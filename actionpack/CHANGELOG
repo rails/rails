@@ -1,5 +1,20 @@
 *SVN*
 
+* Add chained replace/update support for assert_select_rjs [Rick Olson]
+
+    Given RJS like...
+
+      page['test1'].replace "<div id=\"1\">foo</div>"
+      page['test2'].replace_html "<div id=\"2\">foo</div>"
+
+    Test it with...
+
+      assert_select_rjs :chained_replace
+      assert_select_rjs :chained_replace, "test1"
+
+      assert_select_rjs :chained_replace_html
+      assert_select_rjs :chained_replace_html, "test2"
+
 * Load helpers in alphabetical order for consistency. Resolve cyclic javascript_helper dependency.  #6132, #6178 [choonkeat@gmail.com]
 
 * Skip params with empty names, such as the &=Save query string from <input type="submit"/>.  #2569 [manfred, raphinou@yahoo.com]

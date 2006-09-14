@@ -340,6 +340,33 @@ class AssertSelectTest < Test::Unit::TestCase
     assert_raises(AssertionFailedError) { assert_select_rjs :replace_html, "test1" }
   end
 
+  def test_assert_select_rjs_for_chained_replace
+    render_rjs do |page|
+      page['test1'].replace "<div id=\"1\">foo</div>"
+      page['test2'].replace_html "<div id=\"2\">foo</div>"
+      page.insert_html :top, "test3", "<div id=\"3\">foo</div>"
+    end
+    # Replace.
+    assert_select_rjs :chained_replace do
+      assert_select "div", 1
+      assert_select "#1"
+    end
+    assert_select_rjs :chained_replace, "test1" do
+      assert_select "div", 1
+      assert_select "#1"
+    end
+    assert_raises(AssertionFailedError) { assert_select_rjs :chained_replace, "test2" }
+    # Replace HTML.
+    assert_select_rjs :chained_replace_html do
+      assert_select "div", 1
+      assert_select "#2"
+    end
+    assert_select_rjs :chained_replace_html, "test2" do
+      assert_select "div", 1
+      assert_select "#2"
+    end
+    assert_raises(AssertionFailedError) { assert_select_rjs :replace_html, "test1" }
+  end
 
   def test_assert_select_rjs_for_insert
     render_rjs do |page|

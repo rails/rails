@@ -343,11 +343,16 @@ EOT
       #
       # === Examples
       #
-      #   # Updating the element foo.
-      #   assert_select_rjs :update, "foo"
+      #   # Replacing the element foo.
+      #   # page.replace 'foo', ...
+      #   assert_select_rjs :replace, "foo"
+      #
+      #   # Replacing with the chained RJS proxy.
+      #   # page[:foo].replace ...
+      #   assert_select_rjs :chained_replace, 'foo'
       #
       #   # Inserting into the element bar, top position.
-      #   assert_select rjs, :insert, :top, "bar"
+      #   assert_select_rjs :insert, :top, "bar"
       #
       #   # Changing the element foo, with an image.
       #   assert_select_rjs "foo" do
@@ -362,20 +367,22 @@ EOT
       #   # The same, but shorter.
       #   assert_select "ol>li", 4
       def assert_select_rjs(*args, &block)
-        arg = args.shift
+        rjs_type = nil
+        arg      = args.shift
 
         # If the first argument is a symbol, it's the type of RJS statement we're looking
         # for (update, replace, insertion, etc). Otherwise, we're looking for just about
         # any RJS statement.
         if arg.is_a?(Symbol)
-          if arg == :insert
+          rjs_type = arg
+          if rjs_type == :insert
             arg = args.shift
             insertion = "insert_#{arg}".to_sym
             raise ArgumentError, "Unknown RJS insertion type #{arg}" unless RJS_STATEMENTS[insertion]
             statement = "(#{RJS_STATEMENTS[insertion]})"
           else
-            raise ArgumentError, "Unknown RJS statement type #{arg}" unless RJS_STATEMENTS[arg]
-            statement = "(#{RJS_STATEMENTS[arg]})"
+            raise ArgumentError, "Unknown RJS statement type #{rjs_type}" unless RJS_STATEMENTS[rjs_type]
+            statement = "(#{RJS_STATEMENTS[rjs_type]})"
           end
           arg = args.shift
         else
@@ -391,7 +398,13 @@ EOT
           id = "[^\"]*"
         end
 
-        pattern = Regexp.new("#{statement}\\(\"#{id}\", #{RJS_PATTERN_HTML}\\)", Regexp::MULTILINE)
+        pattern =
+          case rjs_type
+            when :chained_replace, :chained_replace_html
+              Regexp.new("\\$\\(\"#{id}\"\\)#{statement}\\(#{RJS_PATTERN_HTML}\\)", Regexp::MULTILINE)
+            else
+              Regexp.new("#{statement}\\(\"#{id}\", #{RJS_PATTERN_HTML}\\)", Regexp::MULTILINE)
+          end
           
         # Duplicate the body since the next step involves destroying it.
         matches = nil
@@ -507,8 +520,10 @@ EOT
       protected
         unless const_defined?(:RJS_STATEMENTS)
           RJS_STATEMENTS = {
-            :replace      => /Element\.replace/,
-            :replace_html => /Element\.update/
+            :replace              => /Element\.replace/,
+            :replace_html         => /Element\.update/,
+            :chained_replace      => /\.replace/,
+            :chained_replace_html => /\.update/,
           }
           RJS_INSERTIONS = [:top, :bottom, :before, :after]
           RJS_INSERTIONS.each do |insertion|
