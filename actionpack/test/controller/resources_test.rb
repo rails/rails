@@ -12,7 +12,7 @@ class CommentsController < ResourcesController; end
 
 class ResourcesTest < Test::Unit::TestCase
   def test_should_arrange_actions
-    resource = ActionController::Resources::Resource.new(:messages, 
+    resource = ActionController::Resources::Resource.new(:messages,
       :collection => { :rss => :get, :reorder => :post, :csv => :post },
       :member     => { :rss => :get, :atom => :get, :upload => :post, :fix => :post },
       :new        => { :preview => :get, :draft => :get })
@@ -23,7 +23,7 @@ class ResourcesTest < Test::Unit::TestCase
     assert_resource_methods [:upload, :fix],      resource, :member,     :post
     assert_resource_methods [:preview, :draft],   resource, :new,        :get
   end
-  
+
   def test_default_restful_routes
     with_restful_routing :messages do
       assert_simply_restful_for :messages
@@ -51,15 +51,24 @@ class ResourcesTest < Test::Unit::TestCase
   end
 
   def test_with_collection_action
-    with_restful_routing :messages, :collection => { :rss => :get } do
-      rss_options = {:action => 'rss'}
-      rss_path    = "/messages;rss"
+    rss_options = {:action => 'rss'}
+    rss_path    = "/messages;rss"
+    actions = { 'a' => :put, 'b' => :post, 'c' => :delete }
+
+    with_restful_routing :messages, :collection => { :rss => :get }.merge(actions) do
       assert_restful_routes_for :messages do |options|
         assert_routing rss_path, options.merge(rss_options)
+
+        actions.each do |action, method|
+          assert_recognizes(options.merge(:action => action), :path => "/messages;#{action}", :method => method)
+        end
       end
-      
+
       assert_restful_named_routes_for :messages do |options|
         assert_named_route rss_path, :rss_messages_path, rss_options
+        actions.keys.each do |action|
+          assert_named_route "/messages;#{action}", "#{action}_messages_path", :action => action
+        end
       end
     end
   end
@@ -72,7 +81,7 @@ class ResourcesTest < Test::Unit::TestCase
         assert_restful_routes_for :messages do |options|
           assert_recognizes(options.merge(mark_options), :path => mark_path, :method => method)
         end
-        
+
         assert_restful_named_routes_for :messages do |options|
           assert_named_route mark_path, :mark_message_path, mark_options
         end
@@ -89,7 +98,7 @@ class ResourcesTest < Test::Unit::TestCase
           assert_restful_routes_for :messages do |options|
             assert_recognizes(options.merge(action_options), :path => action_path, :method => method)
           end
-        
+
           assert_restful_named_routes_for :messages do |options|
             assert_named_route action_path, "#{action}_message_path".to_sym, action_options
           end
@@ -106,7 +115,7 @@ class ResourcesTest < Test::Unit::TestCase
       assert_restful_routes_for :messages do |options|
         assert_recognizes(options.merge(preview_options), :path => preview_path, :method => :post)
       end
-      
+
       assert_restful_named_routes_for :messages do |options|
         assert_named_route preview_path, :preview_new_message_path, preview_options
       end
@@ -132,13 +141,13 @@ class ResourcesTest < Test::Unit::TestCase
         :options => { :thread_id => '1', :message_id => '2' }
     end
   end
-  
+
   def test_restful_routes_dont_generate_duplicates
     with_restful_routing :messages do
       routes = ActionController::Routing::Routes.routes
       routes.each do |route|
         routes.each do |r|
-          next if route === r # skip the comparison instance 
+          next if route === r # skip the comparison instance
           assert distinct_routes?(route, r), "Duplicate Route: #{route}"
         end
       end
@@ -162,30 +171,34 @@ class ResourcesTest < Test::Unit::TestCase
     def assert_restful_routes_for(controller_name, options = {})
       (options[:options] ||= {})[:controller] = controller_name.to_s
 
+      collection_path = "/#{options[:path_prefix]}#{controller_name}"
+      member_path = "#{collection_path}/1"
+      new_path = "#{collection_path}/new"
+
       with_options(options[:options]) do |controller|
-        controller.assert_routing "/#{options[:path_prefix]}#{controller_name}",        :action => 'index'
-        controller.assert_routing "/#{options[:path_prefix]}#{controller_name}.xml" ,   :action => 'index', :format => 'xml'
-        controller.assert_routing "/#{options[:path_prefix]}#{controller_name}/new",    :action => 'new'
-        controller.assert_routing "/#{options[:path_prefix]}#{controller_name}/1",      :action => 'show', :id => '1'
-        controller.assert_routing "/#{options[:path_prefix]}#{controller_name}/1;edit", :action => 'edit', :id => '1'
-        controller.assert_routing "/#{options[:path_prefix]}#{controller_name}/1.xml",  :action => 'show', :id => '1', :format => 'xml'
+        controller.assert_routing collection_path,            :action => 'index'
+        controller.assert_routing "#{collection_path}.xml" ,  :action => 'index', :format => 'xml'
+        controller.assert_routing new_path,                   :action => 'new'
+        controller.assert_routing member_path,                :action => 'show', :id => '1'
+        controller.assert_routing "#{member_path};edit",      :action => 'edit', :id => '1'
+        controller.assert_routing "#{member_path}.xml",       :action => 'show', :id => '1', :format => 'xml'
       end
 
       assert_recognizes(
         options[:options].merge(:action => 'create'),
-        {:path => "/#{options[:path_prefix]}#{controller_name}", :method => :post})
+        :path => collection_path, :method => :post)
 
       assert_recognizes(
         options[:options].merge(:action => 'update', :id => '1'),
-        {:path => "/#{options[:path_prefix]}#{controller_name}/1", :method => :put})
+        :path => member_path, :method => :put)
 
       assert_recognizes(
         options[:options].merge(:action => 'destroy', :id => '1'),
-        {:path => "/#{options[:path_prefix]}#{controller_name}/1", :method => :delete})
+        :path => member_path, :method => :delete)
 
       yield options[:options] if block_given?
     end
-    
+
     # test named routes like foo_path and foos_path map to the correct options.
     def assert_restful_named_routes_for(controller_name, singular_name = nil, options = {})
       if singular_name.is_a?(Hash)
@@ -219,11 +232,11 @@ class ResourcesTest < Test::Unit::TestCase
     def assert_resource_methods(expected, resource, action_method, method)
       assert_equal expected.length, resource.send("#{action_method}_methods")[method].size, "#{resource.send("#{action_method}_methods")[method].inspect}"
       expected.each do |action|
-        assert resource.send("#{action_method}_methods")[method].include?(action), 
+        assert resource.send("#{action_method}_methods")[method].include?(action),
           "#{method} not in #{action_method} methods: #{resource.send("#{action_method}_methods")[method].inspect}"
       end
     end
-    
+
     def distinct_routes? (r1, r2)
       if r1.conditions == r2.conditions and r1.requirements == r2.requirements then
         if r1.segments.collect(&:to_s) == r2.segments.collect(&:to_s) then

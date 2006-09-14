@@ -225,7 +225,6 @@ module ActionController
 
       def map_collection_actions(map, resource)
         resource.collection_methods.each do |method, actions|
-          primary       = actions.shift.to_s if method != :get
           route_options = requirements_for(method)
 
           actions.each do |action|
@@ -240,11 +239,6 @@ module ActionController
               "#{resource.path}.:format;#{action}",
               route_options.merge(:action => action.to_s)
             )
-          end
-
-          unless primary.blank?
-            map.connect(resource.path, route_options.merge(:action => primary))
-            map.connect("#{resource.path}.:format", route_options.merge(:action => primary))
           end
         end
 
@@ -271,14 +265,11 @@ module ActionController
       def map_member_actions(map, resource)
         resource.member_methods.each do |method, actions|
           route_options = requirements_for(method)
-          primary = actions.shift.to_s unless [ :get, :post, :any ].include?(method)
 
           actions.each do |action|
             map.named_route("#{resource.name_prefix}#{action}_#{resource.singular}", "#{resource.member_path};#{action}", route_options.merge(:action => action.to_s))
             map.named_route("formatted_#{resource.name_prefix}#{action}_#{resource.singular}", "#{resource.member_path}.:format;#{action}", route_options.merge(:action => action.to_s))
           end
-
-          map.connect(resource.member_path, route_options.merge(:action => primary)) unless primary.blank?
         end
 
         map.named_route("#{resource.name_prefix}#{resource.singular}", resource.member_path, :action => "show", :conditions => { :method => :get })
