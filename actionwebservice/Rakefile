@@ -72,7 +72,7 @@ spec = Gem::Specification.new do |s|
   s.homepage = "http://www.rubyonrails.org"
 
   s.add_dependency('actionpack', '= 1.12.5' + PKG_BUILD)
-  s.add_dependency('activerecord', '= 1.14.5' + PKG_BUILD)
+  s.add_dependency('activerecord', '= 1.14.4' + PKG_BUILD)
 
   s.has_rdoc = true
   s.requirements << 'none'
