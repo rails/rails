@@ -25,8 +25,6 @@ class DeprecatedAssociationWarningsTest < Test::Unit::TestCase
 end
 
 class DeprecatedAssociationsTest < Test::Unit::TestCase
-  #include SilenceDeprecationWarnings
-
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects
 
