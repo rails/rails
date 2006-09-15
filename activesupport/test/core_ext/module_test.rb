@@ -100,9 +100,12 @@ end
 
 module BarMethodAliaser
   def self.included(foo_class)
+    foo_class.send :include, BarMethods
     foo_class.alias_method_chain :bar, :baz
   end
+end
 
+module BarMethods
   def bar_with_baz
     bar_without_baz << '_with_baz'
   end
@@ -202,5 +205,17 @@ class MethodAliasingTest < Test::Unit::TestCase
     assert_raise(NameError) do
       FooClassWithBarMethod.alias_method_chain :quux?, :baz!
     end
+  end
+
+  def test_alias_method_chain_yields_target_and_punctuation
+    FooClassWithBarMethod.send(:define_method, :quux?, Proc.new { })
+    FooClassWithBarMethod.send :include, BarMethods
+    block_called = false
+    FooClassWithBarMethod.alias_method_chain :quux?, :baz do |target, punctuation|
+      block_called = true
+      assert_equal 'quux', target
+      assert_equal '?', punctuation
+    end
+    assert block_called
   end
 end
