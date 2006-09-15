@@ -991,6 +991,10 @@ module ActiveRecord
         end
 
         def configure_dependency_for_has_many(reflection)
+          if reflection.options[:dependent] == true
+            ::ActiveSupport::Deprecation.warn("The :dependent => true option is deprecated and will be removed from Rails 2.0.  Please use :dependent => :destroy instead.  See http://www.rubyonrails.org/deprecation for details.", caller)
+          end
+
           if reflection.options[:dependent] && reflection.options[:exclusively_dependent]
             raise ArgumentError, ':dependent and :exclusively_dependent are mutually exclusive options.  You may specify one or the other.'
           end
@@ -1010,7 +1014,7 @@ module ActiveRecord
           end
 
           case reflection.options[:dependent]
-            when :destroy, true  
+            when :destroy, true
               module_eval "before_destroy '#{reflection.name}.each { |o| o.destroy }'"
             when :delete_all
               module_eval "before_destroy { |record| #{reflection.class_name}.delete_all(%(#{dependent_conditions})) }"
@@ -1019,10 +1023,10 @@ module ActiveRecord
             when nil, false
               # pass
             else
-              raise ArgumentError, 'The :dependent option expects either :destroy, :delete_all, or :nullify' 
+              raise ArgumentError, 'The :dependent option expects either :destroy, :delete_all, or :nullify'
           end
         end
-        
+
         def configure_dependency_for_has_one(reflection)
           case reflection.options[:dependent]
             when :destroy, true

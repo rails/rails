@@ -30,14 +30,18 @@ class AssociationsTest < Test::Unit::TestCase
     firm.save
     firm.clients.each {|c|} # forcing to load all clients
     assert firm.clients.empty?, "New firm shouldn't have client objects"
-    assert !firm.has_clients?, "New firm shouldn't have clients"
+    assert_deprecated do
+      assert !firm.has_clients?, "New firm shouldn't have clients"
+    end
     assert_equal 0, firm.clients.size, "New firm should have 0 clients"
 
     client = Client.new("name" => "TheClient.com", "firm_id" => firm.id)
     client.save
 
     assert firm.clients.empty?, "New firm should have cached no client objects"
-    assert !firm.has_clients?, "New firm should have cached a no-clients response"
+    assert_deprecated do
+      assert !firm.has_clients?, "New firm should have cached a no-clients response"
+    end
     assert_equal 0, firm.clients.size, "New firm should have cached 0 clients count"
 
     assert !firm.clients(true).empty?, "New firm should have reloaded client objects"
@@ -480,34 +484,44 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_find_all
-    firm = Firm.find_first
-    assert_equal firm.clients, firm.clients.find_all
-    assert_equal 2, firm.clients.find(:all, :conditions => "#{QUOTED_TYPE} = 'Client'").length
-    assert_equal 1, firm.clients.find(:all, :conditions => "name = 'Summit'").length
+    assert_deprecated 'find_all' do
+      firm = Firm.find_first
+      assert_equal firm.clients, firm.clients.find_all
+      assert_equal 2, firm.clients.find(:all, :conditions => "#{QUOTED_TYPE} = 'Client'").length
+      assert_equal 1, firm.clients.find(:all, :conditions => "name = 'Summit'").length
+    end
   end
 
   def test_find_all_sanitized
-    firm = Firm.find_first
-    assert_equal firm.clients.find_all("name = 'Summit'"), firm.clients.find_all(["name = '%s'", "Summit"])
-    summit = firm.clients.find(:all, :conditions => "name = 'Summit'")
-    assert_equal summit, firm.clients.find(:all, :conditions => ["name = ?", "Summit"])
-    assert_equal summit, firm.clients.find(:all, :conditions => ["name = :name", { :name => "Summit" }])
+    assert_deprecated 'find_all' do
+      firm = Firm.find_first
+      assert_equal firm.clients.find_all("name = 'Summit'"), firm.clients.find_all(["name = '%s'", "Summit"])
+      summit = firm.clients.find(:all, :conditions => "name = 'Summit'")
+      assert_equal summit, firm.clients.find(:all, :conditions => ["name = ?", "Summit"])
+      assert_equal summit, firm.clients.find(:all, :conditions => ["name = :name", { :name => "Summit" }])
+    end
   end
 
   def test_find_first
-    firm = Firm.find_first
-    client2 = Client.find(2)
-    assert_equal firm.clients.first, firm.clients.find_first
-    assert_equal client2, firm.clients.find_first("#{QUOTED_TYPE} = 'Client'")
-    assert_equal client2, firm.clients.find(:first, :conditions => "#{QUOTED_TYPE} = 'Client'")
+    assert_deprecated 'find_first' do
+      firm = Firm.find_first
+      client2 = Client.find(2)
+      assert_equal firm.clients.first, firm.clients.find_first
+      assert_equal client2, firm.clients.find_first("#{QUOTED_TYPE} = 'Client'")
+      assert_equal client2, firm.clients.find(:first, :conditions => "#{QUOTED_TYPE} = 'Client'")
+    end
   end
 
   def test_find_first_sanitized
-    firm = Firm.find_first
-    client2 = Client.find(2)
-    assert_equal client2, firm.clients.find_first(["#{QUOTED_TYPE} = ?", "Client"])
-    assert_equal client2, firm.clients.find(:first, :conditions => ["#{QUOTED_TYPE} = ?", 'Client'])
-    assert_equal client2, firm.clients.find(:first, :conditions => ["#{QUOTED_TYPE} = :type", { :type => 'Client' }])
+    assert_deprecated 'find_first' do
+      firm = Firm.find_first
+      client2 = Client.find(2)
+      assert_deprecated(/find_first/) do
+        assert_equal client2, firm.clients.find_first(["#{QUOTED_TYPE} = ?", "Client"])
+      end
+      assert_equal client2, firm.clients.find(:first, :conditions => ["#{QUOTED_TYPE} = ?", 'Client'])
+      assert_equal client2, firm.clients.find(:first, :conditions => ["#{QUOTED_TYPE} = :type", { :type => 'Client' }])
+    end
   end
 
   def test_find_in_collection
@@ -779,7 +793,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
   def test_deleting_a_item_which_is_not_in_the_collection
     force_signal37_to_load_all_clients_of_firm
-    summit = Client.find_first("name = 'Summit'")
+    summit = Client.find_by_name('Summit')
     companies(:first_firm).clients_of_firm.delete(summit)
     assert_equal 1, companies(:first_firm).clients_of_firm.size
     assert_equal 1, companies(:first_firm).clients_of_firm(true).size
@@ -1346,7 +1360,9 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_adding_uses_explicit_values_on_join_table
     ac = projects(:action_controller)
     assert !developers(:jamis).projects.include?(ac)
-    developers(:jamis).projects.push_with_attributes(ac, :access_level => 3)
+    assert_deprecated do
+      developers(:jamis).projects.push_with_attributes(ac, :access_level => 3)
+    end
 
     assert developers(:jamis, :reload).projects.include?(ac)
     project = developers(:jamis).projects.detect { |p| p == ac }
@@ -1389,9 +1405,13 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     no_of_projects = Project.count
     now = Date.today
     ken = Developer.new("name" => "Ken")
-    ken.projects.push_with_attributes( Project.find(1), :joined_on => now )
+    assert_deprecated do
+      ken.projects.push_with_attributes( Project.find(1), :joined_on => now )
+    end
     p = Project.new("name" => "Foomatic")
-    ken.projects.push_with_attributes( p, :joined_on => now )
+    assert_deprecated do
+      ken.projects.push_with_attributes( p, :joined_on => now )
+    end
     assert ken.new_record?
     assert p.new_record?
     assert ken.save
@@ -1554,8 +1574,10 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
 
   def test_rich_association
     jamis = developers(:jamis)
-    jamis.projects.push_with_attributes(projects(:action_controller), :joined_on => Date.today)
-    
+    assert_deprecated 'push_with_attributes' do
+      jamis.projects.push_with_attributes(projects(:action_controller), :joined_on => Date.today)
+    end
+
     assert_date_from_db Date.today, jamis.projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on
     assert_date_from_db Date.today, developers(:jamis).projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on
   end

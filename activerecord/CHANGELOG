@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecation tests. Remove warnings for dynamic finders and for the foo_count method if it's also an attribute. [Jeremy Kemper]
+
 * Mock Time.now for more accurate Touch mixin tests.  #6213 [Dan Peterson]
 
 * Improve yaml fixtures error reporting.  #6205 [Bruce Williams]

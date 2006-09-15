@@ -568,32 +568,29 @@ class BasicsTest < Test::Unit::TestCase
     end
   end
 
-  def test_utc_as_time_zone
-    # Oracle and SQLServer do not have a TIME datatype.
-    return true if current_adapter?(:SQLServerAdapter, :OracleAdapter)
+  # Oracle and SQLServer do not have a TIME datatype.
+  unless current_adapter?(:SQLServerAdapter, :OracleAdapter)
+    def test_utc_as_time_zone
+      Topic.default_timezone = :utc
+      attributes = { "bonus_time" => "5:42:00AM" }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+      assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
+      Topic.default_timezone = :local
+    end
 
-    Topic.default_timezone = :utc
-    attributes = { "bonus_time" => "5:42:00AM" }
-    topic = Topic.find(1)
-    topic.attributes = attributes
-    assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
-    Topic.default_timezone = :local
-  end
-
-  def test_utc_as_time_zone_and_new
-    # Oracle and SQLServer do not have a TIME datatype.
-    return true if current_adapter?(:SQLServerAdapter, :OracleAdapter)
-
-    Topic.default_timezone = :utc
-    attributes = { "bonus_time(1i)"=>"2000",
-                   "bonus_time(2i)"=>"1",
-                   "bonus_time(3i)"=>"1",
-                   "bonus_time(4i)"=>"10",
-                   "bonus_time(5i)"=>"35",
-                   "bonus_time(6i)"=>"50" }
-    topic = Topic.new(attributes)
-    assert_equal Time.utc(2000, 1, 1, 10, 35, 50), topic.bonus_time
-    Topic.default_timezone = :local
+    def test_utc_as_time_zone_and_new
+      Topic.default_timezone = :utc
+      attributes = { "bonus_time(1i)"=>"2000",
+                     "bonus_time(2i)"=>"1",
+                     "bonus_time(3i)"=>"1",
+                     "bonus_time(4i)"=>"10",
+                     "bonus_time(5i)"=>"35",
+                     "bonus_time(6i)"=>"50" }
+      topic = Topic.new(attributes)
+      assert_equal Time.utc(2000, 1, 1, 10, 35, 50), topic.bonus_time
+      Topic.default_timezone = :local
+    end
   end
 
   def test_default_values_on_empty_strings
@@ -1319,18 +1316,18 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_to_xml_skipping_attributes
-    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => :title)
+    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => [:title, :replies_count])
     assert_equal "<topic>", xml.first(7)
     assert !xml.include?(%(<title>The First Topic</title>))
     assert xml.include?(%(<author-name>David</author-name>))    
 
-    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => [ :title, :author_name ])
+    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => [:title, :author_name, :replies_count])
     assert !xml.include?(%(<title>The First Topic</title>))
     assert !xml.include?(%(<author-name>David</author-name>))    
   end
-  
+
   def test_to_xml_including_has_many_association
-    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :include => :replies)
+    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :include => :replies, :except => :replies_count)
     assert_equal "<topic>", xml.first(7)
     assert xml.include?(%(<replies><reply>))
     assert xml.include?(%(<title>The Second Topic's of the day</title>))

@@ -39,11 +39,11 @@ class MultipleDbTest < Test::Unit::TestCase
 
   def test_associations
     c1 = Course.find(1)
-    assert_equal 2, c1.entrants_count
+    assert_equal 2, c1.entrants.count
     e1 = Entrant.find(1)
     assert_equal e1.course.id, c1.id
     c2 = Course.find(2)
-    assert_equal 1, c2.entrants_count
+    assert_equal 1, c2.entrants.count
     e3 = Entrant.find(3)
     assert_equal e3.course.id, c2.id
   end

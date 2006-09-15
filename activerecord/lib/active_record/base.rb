@@ -1198,7 +1198,7 @@ module ActiveRecord #:nodoc:
               when nil
                 options = { :conditions => conditions }
                 set_readonly_option!(options)
-                send(finder, options)
+                ActiveSupport::Deprecation.silence { send(finder, options) }
 
               when Hash
                 finder_options = extra_options.merge(:conditions => conditions)
@@ -1207,14 +1207,16 @@ module ActiveRecord #:nodoc:
 
                 if extra_options[:conditions]
                   with_scope(:find => { :conditions => extra_options[:conditions] }) do
-                    send(finder, finder_options)
+                    ActiveSupport::Deprecation.silence { send(finder, finder_options) }
                   end
                 else
-                  send(finder, finder_options)
+                  ActiveSupport::Deprecation.silence { send(finder, finder_options) }
                 end
 
               else
-                send(deprecated_finder, conditions, *arguments[attribute_names.length..-1]) # deprecated API
+                ActiveSupport::Deprecation.silence do
+                  send(deprecated_finder, conditions, *arguments[attribute_names.length..-1])
+                end
             end
           elsif match = /find_or_(initialize|create)_by_([_a-zA-Z]\w*)/.match(method_id.to_s)
             instantiator = determine_instantiator(match)

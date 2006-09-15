@@ -2,19 +2,19 @@ module ActiveRecord
   module Acts #:nodoc:
     module Tree #:nodoc:
       def self.included(base)
-        base.extend(ClassMethods)              
-      end  
+        base.extend(ClassMethods)
+      end
 
-      # Specify this act if you want to model a tree structure by providing a parent association and a children 
+      # Specify this act if you want to model a tree structure by providing a parent association and a children
       # association. This act requires that you have a foreign key column, which by default is called parent_id.
-      # 
+      #
       #   class Category < ActiveRecord::Base
       #     acts_as_tree :order => "name"
       #   end
-      #   
-      #   Example : 
+      #
+      #   Example:
       #   root
-      #    \_ child1 
+      #    \_ child1
       #         \_ subchild1
       #         \_ subchild2
       #
@@ -27,7 +27,7 @@ module ActiveRecord
       #   root.children # => [child1]
       #   root.children.first.children.first # => subchild1
       #
-      # In addition to the parent and children associations, the following instance methods are added to the class 
+      # In addition to the parent and children associations, the following instance methods are added to the class
       # after specifying the act:
       # * siblings          : Returns all the children of the parent, excluding the current node ([ subchild2 ] when called from subchild1)
       # * self_and_siblings : Returns all the children of the parent, including the current node ([ subchild1, subchild2 ] when called from subchild1)
@@ -48,7 +48,7 @@ module ActiveRecord
 
           class_eval <<-EOV
             include ActiveRecord::Acts::Tree::InstanceMethods
-            
+
             def self.roots
               find(:all, :conditions => "#{configuration[:foreign_key]} IS NULL", :order => #{configuration[:order].nil? ? "nil" : %Q{"#{configuration[:order]}"}})
             end
@@ -66,13 +66,13 @@ module ActiveRecord
         #   subchild1.ancestors # => [child1, root]
         def ancestors
           node, nodes = self, []
-          nodes << node = node.parent until not node.has_parent?
+          nodes << node = node.parent while node.parent
           nodes
         end
 
         def root
           node = self
-          node = node.parent until not node.has_parent?
+          node = node.parent while node.parent
           node
         end
 
@@ -81,7 +81,7 @@ module ActiveRecord
         end
 
         def self_and_siblings
-          has_parent? ? parent.children : self.class.roots
+          parent ? parent.children : self.class.roots
         end
       end
     end

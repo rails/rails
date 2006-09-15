@@ -111,14 +111,16 @@ class AssociationCallbacksTest < Test::Unit::TestCase
   end
   
   def test_push_with_attributes
-    david = developers(:david)
-    activerecord = projects(:active_record)
-    assert activerecord.developers_log.empty?
-    activerecord.developers_with_callbacks.push_with_attributes(david, {})
-    assert_equal ["before_adding#{david.id}", "after_adding#{david.id}"], activerecord.developers_log
-    activerecord.developers_with_callbacks.push_with_attributes(david, {})
-    assert_equal ["before_adding#{david.id}", "after_adding#{david.id}", "before_adding#{david.id}", 
-                  "after_adding#{david.id}"], activerecord.developers_log
+    assert_deprecated 'push_with_attributes' do
+      david = developers(:david)
+      activerecord = projects(:active_record)
+      assert activerecord.developers_log.empty?
+      activerecord.developers_with_callbacks.push_with_attributes(david, {})
+      assert_equal ["before_adding#{david.id}", "after_adding#{david.id}"], activerecord.developers_log
+      activerecord.developers_with_callbacks.push_with_attributes(david, {})
+      assert_equal ["before_adding#{david.id}", "after_adding#{david.id}", "before_adding#{david.id}", 
+                    "after_adding#{david.id}"], activerecord.developers_log
+    end
   end
 end
 

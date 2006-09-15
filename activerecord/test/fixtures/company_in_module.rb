@@ -46,11 +46,13 @@ module MyApplication
     end
 
     class Account < ActiveRecord::Base
-      belongs_to :firm, :class_name => 'MyApplication::Business::Firm'
-      belongs_to :qualified_billing_firm, :class_name => 'MyApplication::Billing::Firm'
-      belongs_to :unqualified_billing_firm, :class_name => 'Firm'
-      belongs_to :nested_qualified_billing_firm, :class_name => 'MyApplication::Billing::Nested::Firm'
-      belongs_to :nested_unqualified_billing_firm, :class_name => 'Nested::Firm'
+      with_options(:foreign_key => :firm_id) do |i|
+        i.belongs_to :firm, :class_name => 'MyApplication::Business::Firm'
+        i.belongs_to :qualified_billing_firm, :class_name => 'MyApplication::Billing::Firm'
+        i.belongs_to :unqualified_billing_firm, :class_name => 'Firm'
+        i.belongs_to :nested_qualified_billing_firm, :class_name => 'MyApplication::Billing::Nested::Firm'
+        i.belongs_to :nested_unqualified_billing_firm, :class_name => 'Nested::Firm'
+      end
 
       protected
         def validate

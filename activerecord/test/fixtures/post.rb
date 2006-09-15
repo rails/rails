@@ -5,7 +5,7 @@ class Post < ActiveRecord::Base
     end
   end
 
-  belongs_to :author_with_posts, :class_name => "Author", :include => :posts
+  belongs_to :author_with_posts, :class_name => "Author", :foreign_key => :author_id, :include => :posts
 
   has_many   :comments, :order => "body" do
     def find_most_recent
