@@ -78,6 +78,15 @@ class DeprecationTest < Test::Unit::TestCase
     end
   end
 
+  def test_assert_deprecated_matches_any_warning
+    assert_deprecated 'abc' do
+      ActiveSupport::Deprecation.warn 'abc'
+      ActiveSupport::Deprecation.warn 'def'
+    end
+  rescue Test::Unit::AssertionFailedError
+    flunk 'assert_deprecated should match any warning in block, not just the last one'
+  end
+
   def test_silence
     ActiveSupport::Deprecation.silence do
       assert_not_deprecated { @dtc.partially }

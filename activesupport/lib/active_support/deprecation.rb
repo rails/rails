@@ -86,11 +86,11 @@ module ActiveSupport
 
     module Assertions
       def assert_deprecated(match = nil, &block)
-        last = collect_deprecations(&block).last
-        assert last, "Expected a deprecation warning within the block but received none"
+        warnings = collect_deprecations(&block)
+        assert !warnings.empty?, "Expected a deprecation warning within the block but received none"
         if match
           match = Regexp.new(Regexp.escape(match)) unless match.is_a?(Regexp)
-          assert_match match, last, "Deprecation warning didn't match #{match}: #{last}"
+          assert warnings.any? { |w| w =~ match }, "No deprecation warning matched #{match}: #{warnings.join(', ')}"
         end
       end
 
