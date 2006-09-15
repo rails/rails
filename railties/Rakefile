@@ -267,7 +267,7 @@ PKG_FILES = FileList[
   'generators/**/*', 
   'html/**/*', 
   'lib/**/*'
-]
+] - [ 'test' ]
 
 spec = Gem::Specification.new do |s|
   s.name = 'rails'
@@ -302,6 +302,7 @@ spec = Gem::Specification.new do |s|
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|
+  pkg.gem_spec = spec
 end
 
 
