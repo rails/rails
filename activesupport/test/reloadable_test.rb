@@ -96,18 +96,18 @@ class ReloadableTest < Test::Unit::TestCase
   
   def test_include_subclasses_should_warn
     c = Class.new
-    deps = collect_deprecations do
+    result, deps = collect_deprecations do
       c.send :include, Reloadable::Subclasses
     end
     assert_equal 1, deps.size
     assert_match %r{Reloadable::Subclasses}, deps.first
-    
+
     assert_deprecated_reloadable { c.reloadable? }
   end
   
   def test_include_deprecated_should_not_warn
     c = Class.new
-    deps = collect_deprecations do
+    result, deps = collect_deprecations do
       c.send :include, Reloadable::Deprecated
     end
     assert_equal 0, deps.size
