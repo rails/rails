@@ -1,5 +1,8 @@
 *SVN*
 
+* Declare file extensions exempt from layouts.  #6219 [brandon]
+    Example: ActionController::Base.exempt_from_layout 'rpdf'
+
 * Add chained replace/update support for assert_select_rjs [Rick Olson]
 
     Given RJS like...

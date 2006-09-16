@@ -72,6 +72,39 @@ class LayoutAutoDiscoveryTest < Test::Unit::TestCase
   end
 end
 
+class ExemptFromLayoutTest < Test::Unit::TestCase
+  def setup
+    @controller = LayoutTest.new
+  end
+
+  def test_rjs_exempt_from_layout
+    assert @controller.send(:template_exempt_from_layout?, 'test.rjs')
+  end
+
+  def test_rhtml_and_rxml_not_exempt_from_layout
+    assert !@controller.send(:template_exempt_from_layout?, 'test.rhtml')
+    assert !@controller.send(:template_exempt_from_layout?, 'test.rxml')
+  end
+
+  def test_other_extension_not_exempt_from_layout
+    assert !@controller.send(:template_exempt_from_layout?, 'test.random')
+  end
+
+  def test_add_extension_to_exempt_from_layout
+    ['rpdf', :rpdf].each do |ext|
+      assert_nothing_raised do
+        ActionController::Base.exempt_from_layout ext
+      end
+      assert @controller.send(:template_exempt_from_layout?, "test.#{ext}")
+    end
+  end
+
+  def test_add_regexp_to_exempt_from_layout
+    ActionController::Base.exempt_from_layout /\.rdoc/
+    assert @controller.send(:template_exempt_from_layout?, 'test.rdoc')
+  end
+end
+
 
 class DefaultLayoutController < LayoutTest
 end
