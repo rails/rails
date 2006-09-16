@@ -16,6 +16,8 @@ module ActionWebService # :nodoc:
     #   persons = soap_client.find_all
     #
     class Soap < Base
+      # provides access to the underlying soap driver
+      attr_reader :driver
 
       # Creates a new web service client using the SOAP RPC protocol.
       #

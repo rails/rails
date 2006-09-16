@@ -1,5 +1,7 @@
 *SVN*
 
+* Provide access to the underlying SOAP driver. #6212 [bmilekic, Kent Sibilev]
+
 * Deprecation: update docs. #5998 [jakob@mentalized.net, Kevin Clark]
 
 * ActionWebService WSDL generation ignores HTTP_X_FORWARDED_HOST [Paul Butcher <paul@paulbutcher.com>]
