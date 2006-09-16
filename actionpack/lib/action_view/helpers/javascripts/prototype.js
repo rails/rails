@@ -8,10 +8,13 @@
 
 var Prototype = {
   Version: '1.5.0_rc1',
-  ScriptFragment: '(?:<script.*?>)((\n|\r|.)*?)(?:<\/script>)',
+  BrowserFeatures: {
+    XPath: !!document.evaluate
+  },
 
+  ScriptFragment: '(?:<script.*?>)((\n|\r|.)*?)(?:<\/script>)',
   emptyFunction: function() {},
-  K: function(x) {return x}
+  K: function(x) { return x }
 }
 
 var Class = {
@@ -927,13 +930,33 @@ function $() {
   return results.reduce();
 }
 
+if (Prototype.BrowserFeatures.XPath) {
+  document._getElementsByXPath = function(expression, parentElement) {
+    var results = [];
+    var query = document.evaluate(expression, $(parentElement) || document,
+      null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+    for (var i = 0, len = query.snapshotLength; i < len; i++)
+      results.push(query.snapshotItem(i));
+    return results;
+  }
+}
+
 document.getElementsByClassName = function(className, parentElement) {
-  var children = ($(parentElement) || document.body).getElementsByTagName('*');
-  return $A(children).inject([], function(elements, child) {
-    if (child.className.match(new RegExp("(^|\\s)" + className + "(\\s|$)")))
-      elements.push(Element.extend(child));
+  if (Prototype.BrowserFeatures.XPath) {
+    var q = ".//*[contains(concat(' ', @class, ' '), ' " + className + " ')]";
+    return document._getElementsByXPath(q, parentElement);
+  } else {
+    var children = ($(parentElement) || document.body).getElementsByTagName('*');
+    var elements = [], child;
+    for (var i = 0, len = children.length; i < len; i++) {
+      child = children[i];
+      if (child.className.length == 0) continue;
+      if (child.className == className ||
+          child.className.match(new RegExp("(^|\\s)" + className + "(\\s|$)")))
+        elements.push(Element.extend(child));
+    }
     return elements;
-  });
+  }
 }
 
 /*--------------------------------------------------------------------------*/
@@ -943,7 +966,7 @@ if (!window.Element)
 
 Element.extend = function(element) {
   if (!element) return;
-  if (_nativeExtensions) return element;
+  if (_nativeExtensions || element.nodeType == 3) return element;
 
   if (!element._extended && element.tagName && element != window) {
     var methods = Object.clone(Element.Methods), cache = Element.extend.cache;
@@ -1133,10 +1156,12 @@ Element.Methods = {
   // removes whitespace-only text node children
   cleanWhitespace: function(element) {
     element = $(element);
-    for (var i = 0; i < element.childNodes.length; i++) {
-      var node = element.childNodes[i];
+    var node = element.firstChild;
+    while (node) {
+      var nextNode = node.nextSibling;
       if (node.nodeType == 3 && !/\S/.test(node.nodeValue))
-        Element.remove(node);
+        element.removeChild(node);
+      node = nextNode;
     }
     return element;
   },
@@ -1248,7 +1273,7 @@ Element.Methods = {
     element = $(element);
     if (!element._overflow) return;
     element.style.overflow = element._overflow == 'auto' ? '' : element._overflow;
-    delete element._overflow;
+    element._overflow = null;
     return element;
   }
 }
@@ -1594,9 +1619,9 @@ var Form = {
 
 Form.Methods = {
   serialize: function(form) {
-    this.serializeElements(Form.getElements($(form)));
+    return this.serializeElements(Form.getElements($(form)));
   },
-  
+
   serializeElements: function(elements) {
     var queryComponents = new Array();
 
@@ -1606,20 +1631,15 @@ Form.Methods = {
         queryComponents.push(queryComponent);
     }
 
-    return queryComponents.join('&');    
+    return queryComponents.join('&');
   },
 
   getElements: function(form) {
-    form = $(form);
-    var elements = new Array();
-
-    for (var tagName in Form.Element.Serializers) {
-      var tagElements = form.getElementsByTagName(tagName);
-      for (var j = 0; j < tagElements.length; j++)
-        elements.push(tagElements[j]);
-    }
-
-    return elements;
+    return $A($(form).getElementsByTagName('*')).inject([], function(elements, child) {
+      if (Form.Element.Serializers[child.tagName.toLowerCase()])
+        elements.push(Element.extend(child));
+      return elements;
+    });
   },
 
   getInputs: function(form, typeName, name) {
@@ -1739,14 +1759,14 @@ Form.Element.Methods = {
 
   disable: function(element) {
     element = $(element);
-    element.disabled = '';
+    element.disabled = true;
     return element;
   },
 
   enable: function(element) {
     element = $(element);
     element.blur();
-    element.disabled = 'true';
+    element.disabled = false;
     return element;
   }
 }
@@ -2063,7 +2083,8 @@ var Position = {
       valueL += element.offsetLeft || 0;
       element = element.offsetParent;
       if (element) {
-        p = Element.getStyle(element, 'position');
+        if(element.tagName=='BODY') break;
+        var p = Element.getStyle(element, 'position');
         if (p == 'relative' || p == 'absolute') break;
       }
     } while (element);
