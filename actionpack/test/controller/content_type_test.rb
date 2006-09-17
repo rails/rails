@@ -30,6 +30,15 @@ class ContentTypeController < ActionController::Base
     render :action => "render_default_for_rxml"
   end
 
+  def render_default_content_types_for_respond_to
+    respond_to do |format|
+      format.html { render :text   => "hello world!" }
+      format.xml  { render :action => "render_default_content_types_for_respond_to.rhtml" }
+      format.js   { render :text   => "hello world!" }
+      format.rss  { render :text   => "hello world!", :content_type => Mime::XML }
+    end
+  end
+
   def rescue_action(e) raise end
 end
 
@@ -95,5 +104,27 @@ class ContentTypeTest < Test::Unit::TestCase
     get :render_change_for_rxml
     assert_equal Mime::HTML, @response.content_type
     assert_equal "utf-8", @response.charset    
+  end
+  
+  def test_render_default_content_types_for_respond_to
+    @request.env["HTTP_ACCEPT"] = Mime::HTML.to_s
+    get :render_default_content_types_for_respond_to
+    assert_equal Mime::HTML, @response.content_type
+
+    @request.env["HTTP_ACCEPT"] = Mime::JS.to_s
+    get :render_default_content_types_for_respond_to
+    assert_equal Mime::JS, @response.content_type
+  end
+
+  def test_render_default_content_types_for_respond_to_with_template
+    @request.env["HTTP_ACCEPT"] = Mime::XML.to_s
+    get :render_default_content_types_for_respond_to
+    assert_equal Mime::XML, @response.content_type
+  end
+  
+  def test_render_default_content_types_for_respond_to_with_overwrite
+    @request.env["HTTP_ACCEPT"] = Mime::RSS.to_s
+    get :render_default_content_types_for_respond_to
+    assert_equal Mime::XML, @response.content_type
   end
 end

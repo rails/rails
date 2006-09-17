@@ -108,7 +108,7 @@ module ActionController #:nodoc:
     
     class Responder #:nodoc:
       DEFAULT_BLOCKS = [:html, :js, :xml].inject({}) do |blocks, ext|
-        blocks.update ext => %(Proc.new { render :action => "\#{action_name}.r#{ext}" })
+        blocks.update ext => %(Proc.new { render :action => "\#{action_name}.r#{ext}", :content_type => Mime::#{ext.to_s.upcase} })
       end      
       
       def initialize(block_binding)
@@ -129,7 +129,10 @@ module ActionController #:nodoc:
         @order << mime_type
         
         if block_given?
-          @responses[mime_type] = block
+          @responses[mime_type] = Proc.new do
+            eval "response.content_type = Mime::#{mime_type.to_sym.to_s.upcase}", @block_binding
+            block.call
+          end
         else
           if source = DEFAULT_BLOCKS[mime_type.to_sym]
             @responses[mime_type] = eval(source, @block_binding)            
