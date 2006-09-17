@@ -1,0 +1,99 @@
+require File.dirname(__FILE__) + '/../abstract_unit'
+
+class ContentTypeController < ActionController::Base
+  def render_content_type_from_body
+    response.content_type = Mime::RSS
+    render :text => "hello world!"
+  end
+
+  def render_defaults
+    render :text => "hello world!"
+  end
+
+  def render_content_type_from_render
+    render :text => "hello world!", :content_type => Mime::RSS
+  end
+  
+  def render_charset_from_body
+    response.charset = "utf-16"
+    render :text => "hello world!"
+  end
+  
+  def render_default_for_rhtml
+  end
+
+  def render_default_for_rxml
+  end
+
+  def render_change_for_rxml
+    response.content_type = Mime::HTML
+    render :action => "render_default_for_rxml"
+  end
+
+  def rescue_action(e) raise end
+end
+
+ContentTypeController.template_root = File.dirname(__FILE__) + "/../fixtures/"
+
+class ContentTypeTest < Test::Unit::TestCase
+  def setup
+    @controller = ContentTypeController.new
+
+    # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
+    # a more accurate simulation of what happens in "real life".
+    @controller.logger = Logger.new(nil)
+
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+  end
+
+  def test_render_defaults
+    get :render_defaults
+    assert_equal "utf-8", @response.charset
+    assert_equal Mime::HTML, @response.content_type
+  end
+
+  def test_render_changed_charset_default
+    ContentTypeController.default_charset = "utf-16"
+    get :render_defaults
+    assert_equal "utf-16", @response.charset    
+    assert_equal Mime::HTML, @response.content_type
+    ContentTypeController.default_charset = "utf-8"
+  end
+
+  def test_content_type_from_body
+    get :render_content_type_from_body
+    assert_equal "application/rss+xml", @response.content_type
+    assert_equal "utf-8", @response.charset    
+  end
+
+  def test_content_type_from_render
+    get :render_content_type_from_render
+    assert_equal "application/rss+xml", @response.content_type
+    assert_equal "utf-8", @response.charset    
+  end
+
+  def test_charset_from_body
+    get :render_charset_from_body
+    assert_equal "utf-16", @response.charset
+    assert_equal Mime::HTML, @response.content_type
+  end
+
+  def test_default_for_rhtml
+    get :render_default_for_rhtml
+    assert_equal Mime::HTML, @response.content_type
+    assert_equal "utf-8", @response.charset    
+  end
+
+  def test_default_for_rxml
+    get :render_default_for_rxml
+    assert_equal Mime::XML, @response.content_type
+    assert_equal "utf-8", @response.charset    
+  end
+
+  def test_change_for_rxml
+    get :render_change_for_rxml
+    assert_equal Mime::HTML, @response.content_type
+    assert_equal "utf-8", @response.charset    
+  end
+end

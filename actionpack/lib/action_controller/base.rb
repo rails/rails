@@ -272,6 +272,10 @@ module ActionController #:nodoc:
     @@param_parsers = { Mime::XML => :xml_simple }
     cattr_accessor :param_parsers
 
+    # Controls the default charset for all renders.
+    @@default_charset = "utf-8"
+    cattr_accessor :default_charset
+
     # Template root determines the base from which template references will be made. So a call to render("test/template")
     # will be converted to "#{template_root}/test/template.rhtml".
     class_inheritable_accessor :template_root
@@ -420,6 +424,7 @@ module ActionController #:nodoc:
         log_processing
         send(method, *arguments)
 
+        assign_default_content_type_and_charset
         response
       ensure
         process_cleanup
@@ -703,7 +708,7 @@ module ActionController #:nodoc:
         end
 
         if content_type = options[:content_type]
-          headers["Content-Type"] = content_type.to_s
+          response.content_type = content_type.to_s
         end
 
         if text = options[:text]
@@ -793,12 +798,12 @@ module ActionController #:nodoc:
       end
 
       def render_javascript(javascript, status = nil) #:nodoc:
-        response.headers['Content-Type'] = 'text/javascript; charset=UTF-8'
+        response.content_type = Mime::JS
         render_text(javascript, status)
       end
 
       def render_xml(xml, status = nil) #:nodoc:
-        response.headers['Content-Type'] = 'application/xml'
+        response.content_type = Mime::XML
         render_text(xml, status)
       end
 
@@ -1032,6 +1037,11 @@ module ActionController #:nodoc:
 
       def assign_names
         @action_name = (params['action'] || 'index')
+      end
+
+      def assign_default_content_type_and_charset
+        response.content_type ||= Mime::HTML
+        response.charset      ||= self.class.default_charset
       end
 
       def action_methods

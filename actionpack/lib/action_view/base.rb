@@ -1,7 +1,6 @@
 require 'erb'
 
 module ActionView #:nodoc:
-
   class ActionViewError < StandardError #:nodoc:
   end
 
@@ -441,11 +440,11 @@ module ActionView #:nodoc:
         if template_requires_setup?(extension)
           body = case extension.to_sym
             when :rxml
+              "@controller.response.content_type ||= 'application/xml'\n" +
               "xml = Builder::XmlMarkup.new(:indent => 2)\n" +
-              "@controller.headers['Content-Type'] ||= 'application/xml'\n" +
               template
             when :rjs
-              "@controller.headers['Content-Type'] ||= 'text/javascript'\n" +
+              "@controller.response.content_type ||= 'text/javascript'\n" +
               "update_page do |page|\n#{template}\nend"
           end
         else

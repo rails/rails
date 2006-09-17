@@ -210,7 +210,7 @@ module ActionController #:nodoc:
           def set_content_type!(action_cache_path)
             if extention = action_cache_path.extension
               content_type = Mime::EXTENSION_LOOKUP[extention]
-              action_cache_path.controller.headers['Content-Type'] = content_type.to_s
+              action_cache_path.controller.content_type = content_type.to_s
             end
           end
           
