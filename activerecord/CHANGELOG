@@ -1,5 +1,7 @@
 *SVN*
 
+* Add a :namespace option to  AR::Base#to_xml [Koz]
+
 * Deprecation tests. Remove warnings for dynamic finders and for the foo_count method if it's also an attribute. [Jeremy Kemper]
 
 * Mock Time.now for more accurate Touch mixin tests.  #6213 [Dan Peterson]

@@ -222,12 +222,17 @@ module ActiveRecord #:nodoc:
     end
 
     def serialize
-      builder.tag!(root) do
+      args = [root]
+      if options[:namespace]
+        args << {:xmlns=>options[:namespace]}
+      end
+        
+      builder.tag!(*args) do
         add_attributes
         add_includes
         add_procs
       end
-    end
+    end        
     
     alias_method :to_s, :serialize
 

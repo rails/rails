@@ -20,7 +20,13 @@ class XmlSerializationTest < Test::Unit::TestCase
     assert_match %r{^<contact>},  @xml
     assert_match %r{</contact>$}, @xml
   end
-
+  
+  def test_should_serialize_default_root_with_namespace
+    @xml = Contact.new.to_xml :namespace=>"http://xml.rubyonrails.org/contact"
+    assert_match %r{^<contact xmlns="http://xml.rubyonrails.org/contact">},  @xml
+    assert_match %r{</contact>$}, @xml
+  end
+  
   def test_should_serialize_custom_root
     @xml = Contact.new.to_xml :root => 'xml_contact'
     assert_match %r{^<xml-contact>},  @xml
