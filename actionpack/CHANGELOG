@@ -1,5 +1,7 @@
 *SVN*
 
+* Rescue Errno::ECONNRESET to handle an unexpectedly closed socket connection. Improves SCGI reliability.  #3368, #6226 [sdsykes, fhanshaw@vesaria.com]
+
 * Added that respond_to blocks will automatically set the content type to be the same as is requested [DHH]. Examples:
 
     respond_to do |format|

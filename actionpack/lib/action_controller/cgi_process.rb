@@ -173,7 +173,7 @@ end_msg
       convert_content_type!(@headers)
       output.binmode      if output.respond_to?(:binmode)
       output.sync = false if output.respond_to?(:sync=)
-      
+
       begin
         output.write(@cgi.header(@headers))
 
@@ -189,8 +189,8 @@ end_msg
         end
 
         output.flush if output.respond_to?(:flush)
-      rescue Errno::EPIPE => e
-        # lost connection to the FCGI process -- ignore the output, then
+      rescue Errno::EPIPE, Errno::ECONNRESET
+        # lost connection to parent process, ignore output
       end
     end
 
