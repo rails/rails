@@ -1,5 +1,11 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
-first:
+one:
   id: 1
-another:
+<% for attribute in attributes -%>
+  <%= attribute.name %>: <%= attribute.default %>
+<% end -%>
+two:
   id: 2
+<% for attribute in attributes -%>
+  <%= attribute.name %>: <%= attribute.default %>
+<% end -%>

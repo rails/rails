@@ -2,16 +2,16 @@
 
 <table>
   <tr>
-  <%% for column in <%= model_name %>.content_columns %>
-    <th><%%= column.human_name %></th>
-  <%% end %>
+<% for attribute in attributes -%>
+    <th><%= attribute.column.human_name %></th>
+<% end -%>
   </tr>
   
 <%% for <%= singular_name %> in @<%= plural_name %> %>
   <tr>
-  <%% for column in <%= model_name %>.content_columns %>
-    <td><%%=h <%= singular_name %>.send(column.name) %></td>
-  <%% end %>
+<% for attribute in attributes -%>
+    <td><%%=h <%= singular_name %>.<%= attribute.name %> %></td>
+<% end -%>
     <td><%%= link_to 'Show', <%= singular_name %>_path(<%= singular_name %>) %></td>
     <td><%%= link_to 'Edit', edit_<%= singular_name %>_path(<%= singular_name %>) %></td>
     <td><%%= link_to 'Destroy', <%= singular_name %>_path(<%= singular_name %>), :confirm => 'Are you sure?', :method => :delete %></td>
