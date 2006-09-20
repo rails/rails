@@ -130,12 +130,12 @@ module ActionController #:nodoc:
         
         if block_given?
           @responses[mime_type] = Proc.new do
-            eval "response.content_type = Mime::#{mime_type.to_sym.to_s.upcase}", @block_binding
+            eval "response.content_type = '#{mime_type.to_s}'", @block_binding
             block.call
           end
         else
           if source = DEFAULT_BLOCKS[mime_type.to_sym]
-            @responses[mime_type] = eval(source, @block_binding)            
+            @responses[mime_type] = eval(source, @block_binding)
           else
             raise ActionController::RenderError, "Expected a block but none was given for custom mime handler #{mime_type}"
           end
