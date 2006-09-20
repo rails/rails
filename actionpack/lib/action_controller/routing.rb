@@ -820,8 +820,6 @@ module ActionController
           when /\A:(\w+)/
             key = $1.to_sym
             case key
-              when :action then DynamicSegment.new(key, :default => 'index')
-              when :id then DynamicSegment.new(key, :optional => true)
               when :controller then ControllerSegment.new(key)
               else DynamicSegment.new key
             end
@@ -862,11 +860,11 @@ module ActionController
       # are returned as a hash.
       def assign_route_options(segments, defaults, requirements)
         route_requirements = {} # Requirements that do not belong to a segment
-    
+        
         segment_named = Proc.new do |key|
           segments.detect { |segment| segment.key == key if segment.respond_to?(:key) }
         end
-    
+        
         requirements.each do |key, requirement|
           segment = segment_named[key]
           if segment
@@ -879,18 +877,39 @@ module ActionController
             route_requirements[key] = requirement
           end
         end
-    
+        
         defaults.each do |key, default|
           segment = segment_named[key]
           raise ArgumentError, "#{key}: No matching segment exists; cannot assign default" unless segment
           segment.is_optional = true
           segment.default = default.to_param if default
         end
-
+        
+        assign_default_route_options(segments)
         ensure_required_segments(segments)
         route_requirements
       end
-  
+      
+      # Assign default options, such as 'index' as a default for :action. This
+      # method must be run *after* user supplied requirements and defaults have
+      # been applied to the segments.
+      def assign_default_route_options(segments)
+        segments.each do |segment|
+          next unless segment.is_a? DynamicSegment
+          case segment.key
+            when :action
+              if segment.regexp.nil? || segment.regexp.match('index').to_s == 'index'
+                segment.default ||= 'index'
+                segment.is_optional = true
+              end
+            when :id
+              if segment.default.nil? && segment.regexp.nil? || segment.regexp =~ ''
+                segment.is_optional = true
+              end
+          end
+        end
+      end
+      
       # Makes sure that there are no optional segments that precede a required
       # segment. If any are found that precede a required segment, they are
       # made required.
@@ -909,7 +928,7 @@ module ActionController
           end
         end
       end
-
+      
       # Construct and return a route with the given path and options.
       def build(path, options)
         # Wrap the path with slashes

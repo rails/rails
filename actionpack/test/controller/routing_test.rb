@@ -311,7 +311,19 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     #assert_equal({'controller' => "admin/news_feed", 'action' => 'index'}, rs.recognize_path("Admin/NewsFeed"))
     #assert_equal({'controller' => "admin/news_feed", 'action' => 'index'}, rs.recognize_path("Admin/News_Feed"))
   end
+  
+  def test_requirement_should_prevent_optional_id
+    rs.draw do |map|
+      map.post 'post/:id', :controller=> 'post', :action=> 'show', :requirements => {:id => /\d+/}
+    end
 
+    assert_equal '/post/10', rs.generate(:controller => 'post', :action => 'show', :id => 10)
+    
+    assert_raises ActionController::RoutingError do
+      rs.generate(:controller => 'post', :action => 'show')
+    end
+  end
+  
   def test_both_requirement_and_optional
     rs.draw do |map|
       map.blog('test/:year', :controller => 'post', :action => 'show',
@@ -992,7 +1004,6 @@ class RouteBuilderTest < Test::Unit::TestCase
   def test_segment_for_action
     s, r = builder.segment_for(':action/something/else')
     assert_equal '/something/else', r
-    assert_equal 'index', s.default
     assert_equal :action, s.key
   end
   
@@ -1081,6 +1092,55 @@ class RouteBuilderTest < Test::Unit::TestCase
     assert_equal 6, segments.length # "/", "books", "/", ":action", ".", ":format"
     assert !segments.any? { |seg| seg.optional? }
     assert_kind_of ROUTING::DynamicSegment, segments.last
+  end
+  
+  def test_assignment_of_default_options
+    segments = builder.segments_for_route_path '/:controller/:action/:id/'
+    action, id = segments[-4], segments[-2]
+    
+    assert_equal :action, action.key
+    assert_equal :id, id.key
+    assert ! action.optional?
+    assert ! id.optional?
+    
+    builder.assign_default_route_options(segments)
+    
+    assert_equal 'index', action.default
+    assert action.optional?
+    assert id.optional?
+  end
+  
+  def test_assignment_of_default_options_respects_existing_defaults
+    segments = builder.segments_for_route_path '/:controller/:action/:id/'
+    action, id = segments[-4], segments[-2]
+    
+    assert_equal :action, action.key
+    assert_equal :id, id.key
+    action.default = 'show'
+    action.is_optional = true
+    
+    id.default = 'Welcome'
+    id.is_optional = true
+    
+    builder.assign_default_route_options(segments)
+    
+    assert_equal 'show', action.default
+    assert action.optional?
+    assert_equal 'Welcome', id.default
+    assert id.optional?
+  end
+  
+  def test_assignment_of_default_options_respects_regexps
+    segments = builder.segments_for_route_path '/:controller/:action/:id/'
+    action = segments[-4]
+    
+    assert_equal :action, action.key
+    action.regexp = /show|in/ # Use 'in' to check partial matches
+    
+    builder.assign_default_route_options(segments)
+    
+    assert_equal nil, action.default
+    assert ! action.optional?
   end
   
   def test_assignment_of_is_optional_when_default
