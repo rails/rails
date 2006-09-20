@@ -77,14 +77,19 @@ module ActiveSupport #:nodoc:
         end
 
         module ClassMethods
-          def create_from_xml(xml)
+          def from_xml(xml)
             # TODO: Refactor this into something much cleaner that doesn't rely on XmlSimple
             undasherize_keys(typecast_xml_value(XmlSimple.xml_in(xml,
               'forcearray'   => false,
               'forcecontent' => true,
               'keeproot'     => true,
               'contentkey'   => '__content__')
-            ))
+            ))            
+          end
+          
+          def create_from_xml(xml)
+            ActiveSupport::Deprecation.warn("Hash.create_from_xml has been renamed to Hash.from_xml", caller)
+            from_xml(xml)
           end
 
           private

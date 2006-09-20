@@ -49,7 +49,7 @@ class CGIMethods #:nodoc:
         when Proc
           strategy.call(raw_post_data)
         when :xml_simple
-          raw_post_data.blank? ? {} : Hash.create_from_xml(raw_post_data)
+          raw_post_data.blank? ? {} : Hash.from_xml(raw_post_data)
         when :yaml
           YAML.load(raw_post_data)
         when :xml_node

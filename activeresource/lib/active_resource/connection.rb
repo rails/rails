@@ -43,7 +43,7 @@ module ActiveResource
     end
 
     def get(path)
-      Hash.create_from_xml(request(:get, path).body)
+      Hash.from_xml(request(:get, path).body)
     end
 
     def delete(path)

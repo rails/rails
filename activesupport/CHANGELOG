@@ -1,5 +1,7 @@
 *SVN*
 
+* Hash.create_from_xml has been renamed to Hash.from_xml, alias will exist until Rails 2.0 [DHH]
+
 * alias_method_chain works with accessor= methods also.  #6153 [Caio Chassot]
 
 * Fix loadable_constants_for_path to handle load paths that do not end with a slash. [Nicholas Seckar]
@@ -12,7 +14,7 @@
 
 * Don't pad remaining places with in_groups_of if specified padding value is false. [Marcel Molina Jr.]
 
-* Fix cases where empty xml nodes weren't being translated to nil in Hash.create_from_xml [Rick Olson]
+* Fix cases where empty xml nodes weren't being translated to nil in Hash.create_from_xml [Rick Olso n]
 
   <written-on type="date"></written-on> # => { :type => 'date' } # WRONG
   <written-on type="date"></written-on> # => nil # RIGHT

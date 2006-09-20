@@ -336,7 +336,7 @@ class HashToXmlTest < Test::Unit::TestCase
       :parent_id => nil
     }.stringify_keys
 
-    assert_equal expected_topic_hash, Hash.create_from_xml(topic_xml)["topic"]
+    assert_equal expected_topic_hash, Hash.from_xml(topic_xml)["topic"]
   end
 
   def test_single_record_from_xml_with_nil_values
@@ -360,7 +360,7 @@ class HashToXmlTest < Test::Unit::TestCase
       :parent_id  => nil
     }.stringify_keys
 
-    assert_equal expected_topic_hash, Hash.create_from_xml(topic_xml)["topic"]
+    assert_equal expected_topic_hash, Hash.from_xml(topic_xml)["topic"]
   end
 
   def test_multiple_records_from_xml
@@ -406,7 +406,7 @@ class HashToXmlTest < Test::Unit::TestCase
       :parent_id => nil
     }.stringify_keys
 
-    assert_equal expected_topic_hash, Hash.create_from_xml(topics_xml)["topics"]["topic"].first
+    assert_equal expected_topic_hash, Hash.from_xml(topics_xml)["topics"]["topic"].first
   end
 
   def test_single_record_from_xml_with_attributes_other_than_type
@@ -429,7 +429,7 @@ class HashToXmlTest < Test::Unit::TestCase
       :isfamily => "0",
     }.stringify_keys
 
-    assert_equal expected_topic_hash, Hash.create_from_xml(topic_xml)["rsp"]["photos"]["photo"]
+    assert_equal expected_topic_hash, Hash.from_xml(topic_xml)["rsp"]["photos"]["photo"]
   end
 
   def test_should_use_default_value_for_unknown_key
