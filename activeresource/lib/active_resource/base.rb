@@ -164,8 +164,13 @@ module ActiveResource
 
       def create
         returning connection.post(self.class.collection_path(prefix_options), to_xml) do |resp|
-          self.id = resp['Location'][/\/([^\/]*?)(\.\w+)?$/, 1]
+          self.id = id_from_response(resp)
         end
+      end
+
+      # takes a response from a typical create post and pulls the ID out
+      def id_from_response(response)
+        response['Location'][/\/([^\/]*?)(\.\w+)?$/, 1]
       end
 
     private

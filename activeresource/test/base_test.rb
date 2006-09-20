@@ -10,22 +10,22 @@ class BaseTest < Test::Unit::TestCase
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get    "/people/1.xml",             @matz
       mock.get    "/people/2.xml",             @david
-      mock.put    "/people/1",                 nil, 204
-      mock.delete "/people/1",                 nil, 200
-      mock.delete "/people/2",                 nil, 400
-      mock.post   "/people",                   nil, 201, 'Location' => '/people/5.xml'
+      mock.put    "/people/1.xml",             nil, 204
+      mock.delete "/people/1.xml",             nil, 200
+      mock.delete "/people/2.xml",             nil, 400
+      mock.post   "/people.xml",               nil, 201, 'Location' => '/people/5.xml'
       mock.get    "/people/99.xml",            nil, 404
       mock.get    "/people.xml",               "<people>#{@matz}#{@david}</people>"
       mock.get    "/people/1/addresses.xml",   "<addresses>#{@addy}</addresses>"
       mock.get    "/people/1/addresses/1.xml", @addy
-      mock.put    "/people/1/addresses/1",     nil, 204
-      mock.delete "/people/1/addresses/1",     nil, 200
-      mock.post   "/people/1/addresses",       nil, 201, 'Location' => '/people/1/addresses/5'
+      mock.put    "/people/1/addresses/1.xml", nil, 204
+      mock.delete "/people/1/addresses/1.xml", nil, 200
+      mock.post   "/people/1/addresses.xml",   nil, 201, 'Location' => '/people/1/addresses/5'
       mock.get    "/people//addresses.xml",    nil, 404
       mock.get    "/people//addresses/1.xml",  nil, 404
-      mock.put    "/people//addresses/1",      nil, 404
-      mock.delete "/people//addresses/1",      nil, 404
-      mock.post   "/people//addresses",        nil, 404
+      mock.put    "/people//addresses/1.xml",  nil, 404
+      mock.delete "/people//addresses/1.xml",  nil, 404
+      mock.post   "/people//addresses.xml",    nil, 404
     end
   end
 
@@ -111,6 +111,15 @@ class BaseTest < Test::Unit::TestCase
     assert_equal '5', rick.id
   end
 
+  def test_id_from_response
+    p = Person.new
+    resp = {'Location' => '/foo/bar/1'}
+    assert_equal '1', p.send(:id_from_response, resp)
+    
+    resp['Location'] << '.xml'
+    assert_equal '1', p.send(:id_from_response, resp)
+  end
+
   def test_create_with_custom_prefix
     matzs_house = StreetAddress.new({}, {:person_id => 1})
     matzs_house.save
@@ -136,7 +145,7 @@ class BaseTest < Test::Unit::TestCase
   def test_update_conflict
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/people/2.xml", @david
-      mock.put "/people/2", nil, 409
+      mock.put "/people/2.xml", nil, 409
     end
     assert_raises(ActiveResource::ResourceConflict) { Person.find(2).save }
   end

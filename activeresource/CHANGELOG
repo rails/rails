@@ -1,5 +1,8 @@
 *SVN*
 
+* Extracted #id_from_response as an entry point for customizing how a created resource gets its own ID.
+  By default, it extracts from the Location response header.
+
 * Optimistic locking: raise ActiveResource::ResourceConflict on 409 Conflict response. [Jeremy Kemper]
 
     # Example controller action
