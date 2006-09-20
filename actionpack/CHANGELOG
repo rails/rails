@@ -1,5 +1,7 @@
 *SVN*
 
+* Update RJS render tests. [sam]
+
 * Update CGI process to allow sessions to contain namespaced models. Closes #4638. [dfelstead@site5.com]
 
 * Fix routing to respect user provided requirements and defaults when assigning default routing options (such as :action => 'index'). Closes #5950. [Nicholas Seckar]

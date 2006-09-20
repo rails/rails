@@ -434,17 +434,17 @@ EOS
 
   def test_render_rjs_with_default
     get :delete_with_js
-    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight(\"project-4\",{});!, @response.body
+    assert_equal %!Element.remove("person");\nnew Effect.Highlight(\"project-4\",{});!, @response.body
   end
 
   def test_render_rjs_template_explicitly
     get :render_js_with_explicit_template
-    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight(\"project-4\",{});!, @response.body
+    assert_equal %!Element.remove("person");\nnew Effect.Highlight(\"project-4\",{});!, @response.body
   end
 
   def test_rendering_rjs_action_explicitly
     get :render_js_with_explicit_action_template
-    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight(\"project-4\",{});!, @response.body
+    assert_equal %!Element.remove("person");\nnew Effect.Highlight(\"project-4\",{});!, @response.body
   end
 
   def test_layout_rendering
