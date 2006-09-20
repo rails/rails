@@ -141,7 +141,7 @@ module ActionController #:nodoc:
       def stale_session_check!
         yield
       rescue ArgumentError => argument_error
-        if argument_error.message =~ %r{undefined class/module (\w+)}
+        if argument_error.message =~ %r{undefined class/module ([\w:]+)}
           begin
             Module.const_missing($1)
           rescue LoadError, NameError => const_error
