@@ -30,7 +30,7 @@ module CommonActiveRecordStoreTests
   end
 end
 
-class ActiveRecordStoreTest < Test::Unit::TestCase
+class ActiveRecordStoreTest < ActiveRecordTestCase
   include CommonActiveRecordStoreTests
 
   def session_class
@@ -83,7 +83,7 @@ class ActiveRecordStoreTest < Test::Unit::TestCase
   end
 end
 
-class ColumnLimitTest < Test::Unit::TestCase
+class ColumnLimitTest < ActiveRecordTestCase
   def setup
     @session_class = CGI::Session::ActiveRecordStore::Session
     @session_class.create_table!
