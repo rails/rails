@@ -15,7 +15,7 @@ module ActiveResource
         @connection = Connection.new(site) if refresh || @connection.nil?
         @connection
       end
-      
+
       def element_name
         self.to_s.underscore
       end
@@ -30,20 +30,20 @@ module ActiveResource
         self.prefix = default
         prefix(options)
       end
-      
+
       def prefix=(value = '/')
         prefix_call = value.gsub(/:\w+/) { |s| "\#{options[#{s}]}" }
         method_decl = %(def self.prefix(options={}) "#{prefix_call}" end)
         eval method_decl
       end
       alias_method :set_prefix, :prefix=
-      
+
       def element_name=(value)
         class << self ; attr_reader :element_name ; end
         @element_name = value
       end
       alias_method :set_element_name, :element_name=
-      
+
       def collection_name=(value)
         class << self ; attr_reader :collection_name ; end
         @collection_name = value
@@ -53,21 +53,21 @@ module ActiveResource
       def element_path(id, options = {})
         "#{prefix(options)}#{collection_name}/#{id}.xml"
       end
-      
+
       def collection_path(options = {})
         "#{prefix(options)}#{collection_name}.xml"
       end
-      
+
       def primary_key
         self.primary_key = 'id'
       end
-      
+
       def primary_key=(value)
         class << self ; attr_reader :primary_key ; end
         @primary_key = value
       end
       alias_method :set_primary_key, :primary_key=
-      
+
       # Person.find(1) # => GET /people/1.xml
       # StreetAddress.find(1, :person_id => 1) # => GET /people/1/street_addresses/1.xml
       def find(*arguments)
@@ -86,7 +86,7 @@ module ActiveResource
         def find_every(options)
           connection.get(collection_path(options)).values.first.values.first.collect { |element| new(element, options) }
         end
-        
+
         # { :person => person1 }
         def find_single(scope, options)
           new(connection.get(element_path(scope, options)).values.first, options)
@@ -95,7 +95,7 @@ module ActiveResource
 
     attr_accessor :attributes
     attr_accessor :prefix_options
-    
+
     def initialize(attributes = {}, prefix_options = {})
       @attributes = {}
       self.load attributes
@@ -109,11 +109,11 @@ module ActiveResource
     def id
       attributes[self.class.primary_key]
     end
-    
+
     def id=(id)
       attributes[self.class.primary_key] = id
     end
-    
+
     def save
       new? ? create : update
     end
@@ -142,8 +142,17 @@ module ActiveResource
               resource = find_or_create_resource_for_collection(key)
               value.map { |attrs| resource.new(attrs) }
             when Hash
-              resource = find_or_create_resource_for(key)
-              resource.new(value)
+              # Workaround collections loaded as Hash
+              #   :persons => { :person => [
+              #     { :id => 1, :name => 'a' },
+              #     { :id => 2, :name => 'b' } ]}
+              if value.keys.size == 1 and value.values.first.is_a?(Array)
+                resource = find_or_create_resource_for(value.keys.first)
+                value.values.first.map { |attrs| resource.new(attrs) }
+              else
+                resource = find_or_create_resource_for(key)
+                resource.new(value)
+              end
             when ActiveResource::Base
               value.class.new(value.attributes)
             else
@@ -157,7 +166,7 @@ module ActiveResource
       def connection(refresh = false)
         self.class.connection(refresh)
       end
-    
+
       def update
         connection.put(self.class.element_path(id, prefix_options), to_xml)
       end
@@ -190,7 +199,7 @@ module ActiveResource
 
       def method_missing(method_symbol, *arguments)
         method_name = method_symbol.to_s
-        
+
         case method_name.last
           when "="
             attributes[method_name.first(-1)] = arguments.first

@@ -5,11 +5,16 @@ require "fixtures/street_address"
 class BaseLoadTest < Test::Unit::TestCase
   def setup
     @matz  = { :id => 1, :name => 'Matz' }
-    @addys = [{ :id => 1, :street => '12345 Street' }, { :id => 2, :street => '67890 Street' }]
+
+    @first_address = { :id => 1, :street => '12345 Street' }
+    @addresses = [@first_address, { :id => 2, :street => '67890 Street' }]
+    @addresses_from_xml = { :street_addresses => { :street_address => @addresses }}
+
     @deep  = { :id => 1, :street => {
       :id => 1, :state => { :id => 1, :name => 'Oregon',
-        :notable_rivers => [{ :id => 1, :name => 'Willamette' },
-          { :id => 2, :name => 'Columbia', :rafted_by => @matz }] }}}
+        :notable_rivers => { :notable_river => [
+          { :id => 1, :name => 'Willamette' },
+          { :id => 2, :name => 'Columbia', :rafted_by => @matz }] }}}}
 
     @person = Person.new
   end
@@ -25,29 +30,30 @@ class BaseLoadTest < Test::Unit::TestCase
   end
 
   def test_load_one_with_existing_resource
-    address = @person.load(:street_address => @addys.first).street_address
+    address = @person.load(:street_address => @first_address).street_address
     assert_kind_of StreetAddress, address
-    assert_equal @addys.first.stringify_keys, address.attributes
+    assert_equal @first_address.stringify_keys, address.attributes
   end
 
   def test_load_one_with_unknown_resource
-    address = silence_warnings { @person.load(:address => @addys.first).address }
+    address = silence_warnings { @person.load(:address => @first_address).address }
     assert_kind_of Person::Address, address
-    assert_equal @addys.first.stringify_keys, address.attributes
+    assert_equal @first_address.stringify_keys, address.attributes
   end
 
   def test_load_collection_with_existing_resource
-    addresses = @person.load(:street_addresses => @addys).street_addresses
+    addresses = @person.load(@addresses_from_xml).street_addresses
+    assert_kind_of Array, addresses
     addresses.each { |address| assert_kind_of StreetAddress, address }
-    assert_equal @addys.map(&:stringify_keys), addresses.map(&:attributes)
+    assert_equal @addresses.map(&:stringify_keys), addresses.map(&:attributes)
   end
 
   def test_load_collection_with_unknown_resource
     assert !Person.const_defined?(:Address), "Address shouldn't exist until autocreated"
-    addresses = silence_warnings { @person.load(:addresses => @addys).addresses }
+    addresses = silence_warnings { @person.load(:addresses => @addresses).addresses }
     assert Person.const_defined?(:Address), "Address should have been autocreated"
     addresses.each { |address| assert_kind_of Person::Address, address }
-    assert_equal @addys.map(&:stringify_keys), addresses.map(&:attributes)
+    assert_equal @addresses.map(&:stringify_keys), addresses.map(&:attributes)
   end
 
   def test_recursively_loaded_collections
@@ -63,8 +69,9 @@ class BaseLoadTest < Test::Unit::TestCase
     assert_equal @deep[:street][:state][:id], state.id
 
     rivers = state.notable_rivers
+    assert_kind_of Array, rivers
     assert_kind_of Person::Street::State::NotableRiver, rivers.first
-    assert_equal @deep[:street][:state][:notable_rivers].first[:id], rivers.first.id
+    assert_equal @deep[:street][:state][:notable_rivers][:notable_river].first[:id], rivers.first.id
     assert_equal @matz[:id], rivers.last.rafted_by.id
   end
 end
