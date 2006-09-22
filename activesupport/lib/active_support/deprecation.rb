@@ -75,12 +75,20 @@ module ActiveSupport
           alias_method_chain(method_name, :deprecation) do |target, punctuation|
             class_eval(<<-EOS, __FILE__, __LINE__)
               def #{target}_with_deprecation#{punctuation}(*args, &block)
-                ::ActiveSupport::Deprecation.warn("#{method_name} is deprecated and will be removed from Rails 2.0", caller)
+                ::ActiveSupport::Deprecation.warn(self.class.deprecated_method_warning(:#{method_name}), caller)
                 #{target}_without_deprecation#{punctuation}(*args, &block)
               end
             EOS
           end
         end
+      end
+
+      def deprecated_method_warning(method_name)
+        "#{method_name} is deprecated and will be removed from Rails #{deprecation_horizon}"
+      end
+
+      def deprecation_horizon
+        '2.0'
       end
     end
 
