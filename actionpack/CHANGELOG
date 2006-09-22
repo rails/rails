@@ -1,5 +1,7 @@
 *SVN*
 
+* Filters overhaul including meantime filter support using around filters + blocks.  #5949 [Martin Emde, Roman Le Negrate, Stefan Kaes, Jeremy Kemper]
+
 * Update RJS render tests. [sam]
 
 * Update CGI process to allow sessions to contain namespaced models. Closes #4638. [dfelstead@site5.com]

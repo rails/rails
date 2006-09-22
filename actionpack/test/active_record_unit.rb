@@ -106,6 +106,7 @@ class ActiveRecordTestCase < Test::Unit::TestCase
   private
     # If things go wrong, we don't want to run our test cases. We'll just define them to test nothing.
     def abort_tests
+      $stderr.puts 'No Active Record connection, aborting tests.'
       self.class.public_instance_methods.grep(/^test./).each do |method|
         self.class.class_eval { define_method(method.to_sym){} }
       end
