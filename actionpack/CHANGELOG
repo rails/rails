@@ -1,5 +1,7 @@
 *SVN*
 
+* Clear the cache of possible controllers whenever Routes are reloaded. [Nicholas Seckar]
+
 * Filters overhaul including meantime filter support using around filters + blocks.  #5949 [Martin Emde, Roman Le Negrate, Stefan Kaes, Jeremy Kemper]
 
 * Update RJS render tests. [sam]

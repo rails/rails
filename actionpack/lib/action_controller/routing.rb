@@ -243,10 +243,11 @@ module ActionController
 
     class << self
       def with_controllers(names)
+        prior_controllers = @possible_controllers
         use_controllers! names
         yield
       ensure
-        use_controllers! nil
+        use_controllers! prior_controllers
       end
 
       def normalize_paths(paths)
@@ -1127,6 +1128,7 @@ module ActionController
       end
   
       def load!
+        Routing.use_controllers! nil # Clear the controller cache so we may discover new ones
         clear!
         load_routes!
         named_routes.install

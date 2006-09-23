@@ -18,8 +18,8 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   attr_reader :rs
   def setup
     @rs = ::ActionController::Routing::RouteSet.new
-    ActionController::Routing.use_controllers! %w(content admin/user admin/news_feed)
     @rs.draw {|m| m.connect ':controller/:action/:id' }
+    ActionController::Routing.use_controllers! %w(content admin/user admin/news_feed)
   end
   
   def test_default_setup
@@ -1657,7 +1657,33 @@ class RoutingTest < Test::Unit::TestCase
     if true_controller_paths
       ActionController::Routing.controller_paths = true_controller_paths
     end
+    ActionController::Routing.use_controllers! nil
     Object.send(:remove_const, :RAILS_ROOT) rescue nil
+  end
+  
+  def test_possible_controllers_are_reset_on_each_load
+    true_possible_controllers = ActionController::Routing.possible_controllers
+    true_controller_paths = ActionController::Routing.controller_paths
+    
+    ActionController::Routing.use_controllers! nil
+    root = File.dirname(__FILE__) + '/controller_fixtures'
+    
+    ActionController::Routing.controller_paths = []
+    assert_equal [], ActionController::Routing.possible_controllers
+    
+    ActionController::Routing::Routes.load!
+    ActionController::Routing.controller_paths = [
+      root, root + '/app/controllers', root + '/vendor/plugins/bad_plugin/lib'
+    ]
+    
+    assert_equal ["admin/user", "plugin", "user"], ActionController::Routing.possible_controllers.sort
+  ensure
+    ActionController::Routing.controller_paths = true_controller_paths
+    ActionController::Routing.use_controllers! true_possible_controllers
+    Object.send(:remove_const, :RAILS_ROOT) rescue nil
+    
+    ActionController::Routing::Routes.clear!
+    ActionController::Routing::Routes.load_routes!
   end
   
   def test_with_controllers
