@@ -112,7 +112,7 @@ module ActiveRecord #:nodoc:
     attr_reader :options
     
     def initialize(record, options = {})
-      @record, @options = record, options
+      @record, @options = record, options.dup
     end
     
     def builder

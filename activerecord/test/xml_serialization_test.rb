@@ -1,4 +1,6 @@
 require 'abstract_unit'
+require 'fixtures/post'
+require 'fixtures/author'
 
 class Contact < ActiveRecord::Base
   # mock out self.columns so no pesky db is needed for these tests
@@ -106,5 +108,18 @@ class NilXmlSerializationTest < Test::Unit::TestCase
   
   def test_should_serialize_boolean
     assert_match %r{<awesome type=\"boolean\"></awesome>}, @xml
+  end
+end
+
+class DatabaseConnectedXmlSerializationTest < Test::Unit::TestCase
+  fixtures :authors, :posts
+  # to_xml used to mess with the hash the user provided which
+  # caused the builder to be reused
+  def test_passing_hash_shouldnt_reuse_builder
+    options = {:include=>:posts}
+    david = authors(:david)
+    first_xml_size = david.to_xml(options).size
+    second_xml_size = david.to_xml(options).size
+    assert_equal first_xml_size, second_xml_size
   end
 end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Duplicate the hash provided to AR::Base#to_xml to prevent unexpected side effects [Koz]
+
 * Add a :namespace option to  AR::Base#to_xml [Koz]
 
 * Deprecation tests. Remove warnings for dynamic finders and for the foo_count method if it's also an attribute. [Jeremy Kemper]
