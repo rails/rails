@@ -106,13 +106,7 @@ module ActionWebService # :nodoc:
             invocation.method_named_params.each do |name, value|
               params[name] = value
             end
-            params['action'] = invocation.api_method.name.to_s
-            if before_action == false
-              raise(DispatcherError, "Method filtered")
-            end
-            return_value = web_service_direct_invoke_without_controller(invocation)
-            after_action
-            return_value
+            web_service_direct_invoke_without_controller(invocation)
           end
 
           def log_request(ws_request, body)

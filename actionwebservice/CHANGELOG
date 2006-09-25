@@ -1,5 +1,7 @@
 *SVN*
 
+* Removed invocation of deprecated before_action and around_action filter methods. Corresponding before_invocation and after_invocation methods should be used instead. #6275 [Kent Sibilev]
+
 * Provide access to the underlying SOAP driver. #6212 [bmilekic, Kent Sibilev]
 
 * Deprecation: update docs. #5998 [jakob@mentalized.net, Kevin Clark]
