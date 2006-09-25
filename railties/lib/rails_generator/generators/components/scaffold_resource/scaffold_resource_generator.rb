@@ -121,7 +121,7 @@ class ScaffoldResourceGenerator < Rails::Generator::NamedBase
   protected
     # Override with your own usage banner.
     def banner
-      "Usage: #{$0} scaffold_resources ModelName"
+      "Usage: #{$0} scaffold_resource ModelName"
     end
 
     def scaffold_views
