@@ -31,9 +31,9 @@ for adapter in %w( mysql postgresql sqlite sqlite3 firebird sqlserver sqlserver_
   Rake::TestTask.new("test_#{adapter}") { |t|
     t.libs << "test" << "test/connections/native_#{adapter}"
     if adapter =~ /^sqlserver/
-      t.pattern = "test/*_test{,_sqlserver}.rb"
+      t.pattern = "test/**/*_test{,_sqlserver}.rb"
     else
-      t.pattern = "test/*_test{,_#{adapter}}.rb"
+      t.pattern = "test/**/*_test{,_#{adapter}}.rb"
     end
     t.verbose = true
   }
