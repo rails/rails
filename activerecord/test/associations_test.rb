@@ -11,19 +11,16 @@ require 'fixtures/category'
 require 'fixtures/post'
 require 'fixtures/author'
 
-# Can't declare new classes in test case methods, so tests before that
-bad_collection_keys = false
-begin
-  class Car < ActiveRecord::Base; has_many :wheels, :name => "wheels"; end
-rescue ArgumentError
-  bad_collection_keys = true
-end
-raise "ActiveRecord should have barked on bad collection keys" unless bad_collection_keys
-
 
 class AssociationsTest < Test::Unit::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers
+
+  def test_bad_collection_keys
+    assert_raise(ArgumentError, 'ActiveRecord should have barked on bad collection keys') do
+      Class.new(ActiveRecord::Base).has_many(:wheels, :name => 'wheels')
+    end
+  end
 
   def test_force_reload
     firm = Firm.new("name" => "A New Firm, Inc")
