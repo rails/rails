@@ -102,11 +102,24 @@ class HasOneAssociationsTest < Test::Unit::TestCase
   end
 
   def test_has_one_cache_nils
-    assert_nil companies(:another_firm).account
-    assert_queries(0) { companies(:another_firm).account }
+    firm = companies(:another_firm)
+    assert_queries(1) { assert_nil firm.account }
+    assert_queries(0) { assert_nil firm.account }
 
     firms = Firm.find(:all, :include => :account)
     assert_queries(0) { firms.each(&:account) }
+  end
+
+  def test_can_marshal_has_one_association_with_nil_target
+    firm = Firm.new
+    assert_nothing_raised do
+      assert_equal firm.attributes, Marshal.load(Marshal.dump(firm)).attributes
+    end
+
+    firm.account
+    assert_nothing_raised do
+      assert_equal firm.attributes, Marshal.load(Marshal.dump(firm)).attributes
+    end
   end
 
   def test_proxy_assignment
