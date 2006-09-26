@@ -137,7 +137,7 @@ module ActiveRecord
           elsif @reflection.options[:counter_sql]
             @reflection.klass.count_by_sql(@counter_sql)
           else
-            @reflection.klass.count(@counter_sql)
+            @reflection.klass.count(:conditions => @counter_sql)
           end
           
           @target = [] and loaded if count == 0

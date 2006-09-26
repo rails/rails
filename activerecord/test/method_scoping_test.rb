@@ -57,7 +57,7 @@ class MethodScopingTest < Test::Unit::TestCase
 
     Developer.with_scope(:find => { :conditions => 'salary = 100000' }) do
       assert_equal 8, Developer.count
-      assert_equal 1, Developer.count("name LIKE 'fixture_1%'")
+      assert_equal 1, Developer.count(:conditions => "name LIKE 'fixture_1%'")
     end        
   end
 
@@ -74,7 +74,7 @@ class MethodScopingTest < Test::Unit::TestCase
   def test_scoped_count_include
     # with the include, will retrieve only developers for the given project
     Developer.with_scope(:find => { :include => :projects }) do
-      assert_equal 1, Developer.count('projects.id = 2')
+      assert_equal 1, Developer.count(:conditions => 'projects.id = 2')
     end
   end
 

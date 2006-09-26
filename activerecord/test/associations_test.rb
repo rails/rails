@@ -395,7 +395,9 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_counting_with_single_conditions
-    assert_equal 2, Firm.find(:first).plain_clients.count('1=1')
+    assert_deprecated 'count' do
+      assert_equal 2, Firm.find(:first).plain_clients.count('1=1')
+    end
   end
 
   def test_counting_with_single_hash

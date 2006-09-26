@@ -1159,7 +1159,7 @@ class BasicsTest < Test::Unit::TestCase
   def test_count_with_join
     res = Post.count_by_sql "SELECT COUNT(*) FROM posts LEFT JOIN comments ON posts.id=comments.post_id WHERE posts.#{QUOTED_TYPE} = 'Post'"
     res2 = nil
-    assert_nothing_raised do
+    assert_deprecated 'count' do
       res2 = Post.count("posts.#{QUOTED_TYPE} = 'Post'",
                         "LEFT JOIN comments ON posts.id=comments.post_id")
     end

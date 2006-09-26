@@ -196,4 +196,16 @@ class CalculationsTest < Test::Unit::TestCase
     assert_equal 6, Account.count(:distinct => true, :include => :firm)
     assert_equal 4, Account.count(:distinct => true, :include => :firm, :select => :credit_limit)
   end
+
+  def test_deprecated_count_with_string_parameters
+    assert_deprecated('count') { Account.count('credit_limit > 50') }
+  end
+
+  def test_count_with_no_parameters_isnt_deprecated
+    assert_not_deprecated { Account.count }
+  end
+
+  def test_count_with_too_many_parameters_raises
+    assert_raise(ArgumentError) { Account.count(1, 2, 3) }
+  end
 end

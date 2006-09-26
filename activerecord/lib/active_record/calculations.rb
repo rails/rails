@@ -9,7 +9,7 @@ module ActiveRecord
       # Count operates using three different approaches. 
       #
       # * Count all: By not passing any parameters to count, it will return a count of all the rows for the model.
-      # * Count by conditions or joins: For backwards compatibility, you can pass in +conditions+ and +joins+ as individual parameters.
+      # * Count by conditions or joins: This API has been deprecated and will be removed in Rails 2.0
       # * Count using options will find the row count matched by the options used.
       #
       # The last approach, count using options, accepts an option hash as the only parameter. The options are:
@@ -29,7 +29,7 @@ module ActiveRecord
       # Examples for counting all:
       #   Person.count         # returns the total count of all people
       #
-      # Examples for count by +conditions+ and +joins+ (for backwards compatibility):
+      # Examples for count by +conditions+ and +joins+ (this has been deprecated):
       #   Person.count("age > 26")  # returns the number of people older than 26
       #   Person.find("age > 26 AND job.salary > 60000", "LEFT JOIN jobs on jobs.person_id = person.id") # returns the total number of rows matching the conditions and joins fetched by SELECT COUNT(*).
       #
@@ -128,24 +128,33 @@ module ActiveRecord
         def construct_count_options_from_legacy_args(*args)
           options     = {}
           column_name = :all
-          # For backwards compatibility, we need to handle both count(conditions=nil, joins=nil) or count(options={}) or count(column_name=:all, options={}).
-          if args.size >= 0 && args.size <= 2
-            if args.first.is_a?(Hash)
-              options     = args.first
+
+          # We need to handle
+          #   count()
+          #   count(options={})
+          #   count(column_name=:all, options={})
+          #   count(conditions=nil, joins=nil)      # deprecated
+          if args.size > 2
+            raise ArgumentError, "Unexpected parameters passed to count(options={}): #{args.inspect}"
+          elsif args.size > 0
+            if args[0].is_a?(Hash)
+              options = args[0]
             elsif args[1].is_a?(Hash)
-              options     = args[1]
-              column_name = args.first
+              column_name, options = args
             else
-              # Handle legacy paramter options: def count(conditions=nil, joins=nil)
-              options.merge!(:conditions => args[0]) if args.length > 0
-              options.merge!(:joins      => args[1]) if args.length > 1
+              # Deprecated count(conditions, joins=nil)
+              ActiveSupport::Deprecation.warn(
+                "You called count(#{args[0].inspect}, #{args[1].inspect}), which is a deprecated API call. Instead you should use " +
+                "count(column_name, options). Passing the conditions and joins as string parameters will be removed in Rails 2.0."
+              )
+              options.merge!(:conditions => args[0])
+              options.merge!(:joins      => args[1]) if args[1]
             end
-          else
-            raise(ArgumentError, "Unexpected parameters passed to count(*args): expected either count(conditions=nil, joins=nil) or count(options={})")
           end
+
           [column_name, options]
         end
-      
+
         def construct_calculation_sql(operation, column_name, options) #:nodoc:
           scope           = scope(:find)
           merged_includes = merge_includes(scope ? scope[:include] : [], options[:include])
