@@ -46,6 +46,7 @@ module ActionController
         
         def add_default_actions
           add_default_action(member_methods, :get, :edit)
+          add_default_action(new_methods, :get, :new)
         end
 
         def set_prefixes
@@ -253,13 +254,15 @@ module ActionController
         resource.new_methods.each do |method, actions|
           route_options = requirements_for(method)
           actions.each do |action|
-            map.named_route("#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path};#{action}", route_options.merge(:action => action.to_s))
-            map.named_route("formatted_#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path}.:format;#{action}", route_options.merge(:action => action.to_s))
+            if action == :new
+              map.named_route("#{resource.name_prefix}new_#{resource.singular}", resource.new_path, route_options.merge(:action => "new"))
+              map.named_route("formatted_#{resource.name_prefix}new_#{resource.singular}", "#{resource.new_path}.:format", route_options.merge(:action => "new"))
+            else
+              map.named_route("#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path};#{action}", route_options.merge(:action => action.to_s))
+              map.named_route("formatted_#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path}.:format;#{action}", route_options.merge(:action => action.to_s))
+            end
           end
         end
-
-        map.named_route("#{resource.name_prefix}new_#{resource.singular}", resource.new_path, :action => "new", :conditions => { :method => :get })
-        map.named_route("formatted_#{resource.name_prefix}new_#{resource.singular}", "#{resource.new_path}.:format", :action => "new", :conditions => { :method => :get })
       end
       
       def map_member_actions(map, resource)

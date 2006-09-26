@@ -17,11 +17,11 @@ class ResourcesTest < Test::Unit::TestCase
       :member     => { :rss => :get, :atom => :get, :upload => :post, :fix => :post },
       :new        => { :preview => :get, :draft => :get })
 
-    assert_resource_methods [:rss],               resource, :collection, :get
-    assert_resource_methods [:csv, :reorder],     resource, :collection, :post
-    assert_resource_methods [:edit, :rss, :atom], resource, :member,     :get
-    assert_resource_methods [:upload, :fix],      resource, :member,     :post
-    assert_resource_methods [:preview, :draft],   resource, :new,        :get
+    assert_resource_methods [:rss],                   resource, :collection, :get
+    assert_resource_methods [:csv, :reorder],         resource, :collection, :post
+    assert_resource_methods [:edit, :rss, :atom],     resource, :member,     :get
+    assert_resource_methods [:upload, :fix],          resource, :member,     :post
+    assert_resource_methods [:new, :preview, :draft], resource, :new,        :get
   end
 
   def test_default_restful_routes
@@ -118,6 +118,24 @@ class ResourcesTest < Test::Unit::TestCase
 
       assert_restful_named_routes_for :messages do |options|
         assert_named_route preview_path, :preview_new_message_path, preview_options
+      end
+    end
+  end
+
+  def test_override_new_method
+    with_restful_routing :messages do
+      assert_restful_routes_for :messages do |options|
+        assert_recognizes(options.merge(:action => "new"), :path => "/messages/new", :method => :get)
+        assert_raises(ActionController::RoutingError) do
+          ActionController::Routing::Routes.recognize_path("/messages/new", :method => :post)
+        end
+      end
+    end
+
+    with_restful_routing :messages, :new => { :new => :any } do
+      assert_restful_routes_for :messages do |options|
+        assert_recognizes(options.merge(:action => "new"), :path => "/messages/new", :method => :post)
+        assert_recognizes(options.merge(:action => "new"), :path => "/messages/new", :method => :get)
       end
     end
   end
