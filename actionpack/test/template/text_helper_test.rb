@@ -51,6 +51,7 @@ class TextHelperTest < Test::Unit::TestCase
 
   def test_strip_links
     assert_equal "on my mind", strip_links("<a href='almost'>on my mind</a>")
+    assert_equal "on my mind", strip_links("<A href='almost'>on my mind</A>")
   end
 
   def test_highlighter

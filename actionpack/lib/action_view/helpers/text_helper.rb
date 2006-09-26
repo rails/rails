@@ -152,7 +152,7 @@ module ActionView
 
       # Turns all links into words, like "<a href="something">else</a>" to "else".
       def strip_links(text)
-        text.gsub(/<a\b.*?>(.*?)<\/a>/m, '\1')
+        text.gsub(/<a\b.*?>(.*?)<\/a>/mi, '\1')
       end
 
       # Try to require the html-scanner library
