@@ -1,5 +1,10 @@
 *SVN*
 
+* script/runner can run files, pass on arguments, and be used as a shebang.  #6286 [Tuxie]
+    #!/usr/bin/env /path/to/my/app/script/runner
+    # Example: just start using your models as if you are in script/console
+    Product.find(:all).each { |product| product.check_inventory }
+
 * Look for rake tasks in plugin subdirs.  #6259 [obrie]
 
 * Added map.connect ':controller/:action/:id.:format' as a default route to config/routes.rb [DHH]
