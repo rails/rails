@@ -425,11 +425,11 @@ module ActionController #:nodoc:
         private
         def build_excluded_actions_hash
           @excluded_actions_hash =
-                   if @included_actions
-                     @included_actions.inject(Hash.new(true)){|h, a| h[a] = false; h}
-                   else
-                     @excluded_actions.inject(Hash.new(false)){|h, a| h[a] = true; h}
-                   end
+            if @included_actions
+              @included_actions.inject(Hash.new(true)){|h, a| h[a] = false; h}
+            else
+              @excluded_actions.inject(Hash.new(false)){|h, a| h[a] = true; h}
+            end
         end
       end
 
