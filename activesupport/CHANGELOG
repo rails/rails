@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't undefine #class in OptionMerger [Rick]
+
 * Hash.create_from_xml has been renamed to Hash.from_xml, alias will exist until Rails 2.0 [DHH]
 
 * alias_method_chain works with accessor= methods also.  #6153 [Caio Chassot]

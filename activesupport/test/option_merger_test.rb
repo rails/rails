@@ -38,6 +38,11 @@ class OptionMergerTest < Test::Unit::TestCase
     end
   end
 
+  # Needed when counting objects with the ObjectSpace
+  def test_option_merger_class_method
+    assert_equal ActiveSupport::OptionMerger, ActiveSupport::OptionMerger.new('', '').class
+  end
+
   private
     def method_with_options(options = {})
       options

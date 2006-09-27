@@ -1,7 +1,7 @@
 module ActiveSupport
   class OptionMerger #:nodoc:
     instance_methods.each do |method| 
-      undef_method(method) if method !~ /^(__|instance_eval)/
+      undef_method(method) if method !~ /^(__|instance_eval|class)/
     end
     
     def initialize(context, options)
