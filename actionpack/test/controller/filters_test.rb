@@ -20,6 +20,26 @@ class FilterTest < Test::Unit::TestCase
         @ran_after_filter << "clean_up"
       end
   end
+  
+  class TestMultipleFiltersController < ActionController::Base
+    before_filter :try_1
+    before_filter :try_2
+    before_filter :try_3
+
+    (1..3).each do |i|
+      define_method "fail_#{i}" do
+        render :text => i.to_s
+      end
+    end
+
+    protected
+    (1..3).each do |i|
+      define_method "try_#{i}" do
+        instance_variable_set :@try, i
+        action_name != "fail_#{i}"
+      end
+    end
+  end
 
   class RenderingController < ActionController::Base
     before_filter :render_something_else
@@ -618,6 +638,30 @@ class YieldingAroundFiltersTest < Test::Unit::TestCase
   def test_filter_order_with_skip_filter_method
     controller = test_process(ControllerWithTwoLessFilters,'no_raise')
     assert_equal 'before around (before yield) around (after yield)',controller.template.assigns['ran_filter'].join(' ')
+  end
+
+  def test_first_filter_in_multiple_before_filter_chain_halts
+    controller = ::FilterTest::TestMultipleFiltersController.new
+    response = test_process(controller, 'fail_1')
+    assert_equal '', response.body
+    assert_equal 1, controller.instance_variable_get(:@try)
+    assert controller.instance_variable_get(:@before_filter_chain_aborted)
+  end
+
+  def test_second_filter_in_multiple_before_filter_chain_halts
+    controller = ::FilterTest::TestMultipleFiltersController.new
+    response = test_process(controller, 'fail_2')
+    assert_equal '', response.body
+    assert_equal 2, controller.instance_variable_get(:@try)
+    assert controller.instance_variable_get(:@before_filter_chain_aborted)
+  end
+
+  def test_last_filter_in_multiple_before_filter_chain_halts
+    controller = ::FilterTest::TestMultipleFiltersController.new
+    response = test_process(controller, 'fail_3')
+    assert_equal '', response.body
+    assert_equal 3, controller.instance_variable_get(:@try)
+    assert controller.instance_variable_get(:@before_filter_chain_aborted)
   end
 
   protected

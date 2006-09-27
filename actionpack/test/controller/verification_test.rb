@@ -3,6 +3,7 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 class VerificationTest < Test::Unit::TestCase
   class TestController < ActionController::Base
     verify :only => :guarded_one, :params => "one",
+           :add_flash => { :error => 'unguarded' },
            :redirect_to => { :action => "unguarded" }
 
     verify :only => :guarded_two, :params => %w( one two ),
@@ -103,6 +104,7 @@ class VerificationTest < Test::Unit::TestCase
   def test_guarded_one_without_prereqs
     get :guarded_one
     assert_redirected_to :action => "unguarded"
+    assert_equal 'unguarded', flash[:error]
   end
 
   def test_guarded_with_flash_with_prereqs

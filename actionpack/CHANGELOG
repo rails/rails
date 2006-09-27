@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix bug that kept any before_filter except the first one from being able to halt the before_filter chain.  [Rick Olson]
+
 * strip_links is case-insensitive.  #6285 [tagoh, Bob Silva]
 
 * Clear the cache of possible controllers whenever Routes are reloaded. [Nicholas Seckar]

@@ -629,13 +629,12 @@ module ActionController #:nodoc:
         filter = chain[index]
         return call_filter(chain, index.next) if filter.excluded_from?(action_name)
 
-        called = false
+        halted = false
         filter.call(self) do
-          call_filter(chain, index.next)
-          called = true
+          halted = call_filter(chain, index.next)
         end
-        halt_filter_chain(filter.filter, :no_yield) if called == false
-        called
+        halt_filter_chain(filter.filter, :no_yield) if halted == false
+        halted
       end
 
       def halt_filter_chain(filter, reason)
