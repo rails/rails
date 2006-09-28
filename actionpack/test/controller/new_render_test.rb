@@ -222,6 +222,10 @@ class NewRenderTestController < ActionController::Base
     head :x_custom_header => "something"
   end
 
+  def head_with_status_code_first
+    head :forbidden, :x_custom_header => "something"
+  end
+
   helper NewRenderTestHelper
   helper do 
     def rjs_helper_method(value)
@@ -656,9 +660,16 @@ EOS
     end
   end
 
-  def head_with_string_status
+  def test_head_with_string_status
     get :head_with_string_status, :status => "404 Eat Dirt"
     assert_equal 404, @response.response_code
     assert_equal "Eat Dirt", @response.message
+  end
+
+  def test_head_with_status_code_first
+    get :head_with_status_code_first
+    assert_equal 403, @response.response_code
+    assert_equal "Forbidden", @response.message
+    assert_equal "something", @response.headers["X-Custom-Header"]
   end
 end

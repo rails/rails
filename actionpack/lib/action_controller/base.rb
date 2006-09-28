@@ -837,15 +837,31 @@ module ActionController #:nodoc:
       # This allows you to easily return a response that consists only of
       # significant headers:
       #
-      #   head :status => :created, :location => person_path(@person)
+      #   head :created, :location => person_path(@person)
       #
       # It can also be used to return exceptional conditions:
       #
-      #   return head(:status => :method_not_allowed) unless request.post?
-      #   return head(:status => :bad_request) unless valid_request?
+      #   return head(:method_not_allowed) unless request.post?
+      #   return head(:bad_request) unless valid_request?
       #   render
-      def head(options = {})
-        status = interpret_status(options.delete(:status) || :ok)
+      def head(*args)
+        if args.length > 2
+          raise ArgumentError, "too many arguments to head"
+        elsif args.empty?
+          raise ArgumentError, "too few arguments to head"
+        elsif args.length == 2
+          status = args.shift
+          options = args.shift
+        elsif args.first.is_a?(Hash)
+          options = args.first
+        else
+          status = args.first
+          options = {}
+        end
+
+        raise ArgumentError, "head requires an options hash" if !options.is_a?(Hash)
+
+        status = interpret_status(status || options.delete(:status) || :ok)
 
         options.each do |key, value|
           headers[key.to_s.dasherize.split(/-/).map { |v| v.capitalize }.join("-")] = value.to_s
