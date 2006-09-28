@@ -1,5 +1,16 @@
 *SVN*
 
+* Make the :status parameter expand to the default message for that status code if it is an integer. Also support symbol statuses. [Jamis Buck]. Examples:
+
+    head :status => 404        # expands to "404 Not Found"
+    head :status => :not_found # expands to "404 Not Found"
+    head :status => :created   # expands to "201 Created"
+
+* Add head(options = {}) for responses that have no body. [Jamis Buck]. Examples:
+
+    head :status => 404 # return an empty response with a 404 status
+    head :location => person_path(@person), :status => 201
+
 * Fix bug that kept any before_filter except the first one from being able to halt the before_filter chain.  [Rick Olson]
 
 * strip_links is case-insensitive.  #6285 [tagoh, Bob Silva]

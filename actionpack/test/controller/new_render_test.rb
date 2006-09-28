@@ -202,6 +202,26 @@ class NewRenderTestController < ActionController::Base
     render :template => "test/hello_world.rxml"
   end
 
+  def head_with_location_header
+    head :location => "/foo"
+  end
+
+  def head_with_symbolic_status
+    head :status => params[:status].intern
+  end
+
+  def head_with_integer_status
+    head :status => params[:status].to_i
+  end
+
+  def head_with_string_status
+    head :status => params[:status]
+  end
+
+  def head_with_custom_header
+    head :x_custom_header => "something"
+  end
+
   helper NewRenderTestHelper
   helper do 
     def rjs_helper_method(value)
@@ -601,5 +621,44 @@ EOS
 
     get :hello_world_from_rxml_using_action
     assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
+  end
+
+
+  def test_head_with_location_header
+    get :head_with_location_header
+    assert @response.body.blank?
+    assert_equal "/foo", @response.headers["Location"]
+  end
+
+  def test_head_with_custom_header
+    get :head_with_custom_header
+    assert @response.body.blank?
+    assert_equal "something", @response.headers["X-Custom-Header"]
+  end
+
+  def test_head_with_symbolic_status
+    get :head_with_symbolic_status, :status => "ok"
+    assert_equal "200 OK", @response.headers["Status"]
+
+    get :head_with_symbolic_status, :status => "not_found"
+    assert_equal "404 Not Found", @response.headers["Status"]
+
+    ActionController::StatusCodes::SYMBOL_TO_STATUS_CODE.each do |status, code|
+      get :head_with_symbolic_status, :status => status.to_s
+      assert_equal code, @response.response_code
+    end
+  end
+
+  def test_head_with_integer_status
+    ActionController::StatusCodes::STATUS_CODES.each do |code, message|
+      get :head_with_integer_status, :status => code.to_s
+      assert_equal message, @response.message
+    end
+  end
+
+  def head_with_string_status
+    get :head_with_string_status, :status => "404 Eat Dirt"
+    assert_equal 404, @response.response_code
+    assert_equal "Eat Dirt", @response.message
   end
 end

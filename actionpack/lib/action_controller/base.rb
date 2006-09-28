@@ -4,6 +4,7 @@ require 'action_controller/response'
 require 'action_controller/routing'
 require 'action_controller/resources'
 require 'action_controller/url_rewriter'
+require 'action_controller/status_codes'
 require 'drb'
 require 'set'
 
@@ -209,6 +210,7 @@ module ActionController #:nodoc:
     DEFAULT_RENDER_STATUS_CODE = "200 OK"
 
     include Reloadable::Deprecated
+    include StatusCodes
 
     # Determines whether the view has access to controller internals @request, @response, @session, and @template.
     # By default, it does.
@@ -793,7 +795,7 @@ module ActionController #:nodoc:
 
       def render_text(text = nil, status = nil) #:nodoc:
         @performed_render = true
-        response.headers['Status'] = (status || DEFAULT_RENDER_STATUS_CODE).to_s
+        response.headers['Status'] = interpret_status(status || DEFAULT_RENDER_STATUS_CODE)
         response.body = text
       end
 
@@ -827,6 +829,29 @@ module ActionController #:nodoc:
 
       def render_without_layout(template_name = default_template_name, status = nil) #:nodoc:
         render_with_no_layout(template_name, status)
+      end
+
+
+      # Return a response that has no content (merely headers). The options
+      # argument is interpreted to be a hash of header names and values.
+      # This allows you to easily return a response that consists only of
+      # significant headers:
+      #
+      #   head :status => :created, :location => person_path(@person)
+      #
+      # It can also be used to return exceptional conditions:
+      #
+      #   return head(:status => :method_not_allowed) unless request.post?
+      #   return head(:status => :bad_request) unless valid_request?
+      #   render
+      def head(options = {})
+        status = interpret_status(options.delete(:status) || :ok)
+
+        options.each do |key, value|
+          headers[key.to_s.dasherize.split(/-/).map { |v| v.capitalize }.join("-")] = value.to_s
+        end
+
+        render :nothing => true, :status => status
       end
 
 
