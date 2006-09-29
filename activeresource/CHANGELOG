@@ -1,5 +1,7 @@
 *SVN*
 
+* Add Basic HTTP Authentication to ActiveResource (closes #6305). [jonathan]
+
 * Extracted #id_from_response as an entry point for customizing how a created resource gets its own ID.
   By default, it extracts from the Location response header.
 

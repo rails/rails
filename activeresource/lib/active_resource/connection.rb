@@ -25,7 +25,7 @@ module ActiveResource
 
 
   class Connection
-    attr_accessor :site
+    attr_reader :site
 
     class << self
       def requests
@@ -39,23 +39,27 @@ module ActiveResource
     end
 
     def initialize(site)
-      @site = site
+      self.site = site.is_a?(URI) ? site : URI.parse(site)
+    end
+    
+    def site=(site)
+      @site = site.is_a?(URI) ? site : URI.parse(site)
     end
 
     def get(path)
-      Hash.from_xml(request(:get, path).body)
+      Hash.from_xml(request(:get, path, build_request_headers).body)
     end
 
     def delete(path)
-      request(:delete, path, self.class.default_header)
+      request(:delete, path, build_request_headers)
     end
 
     def put(path, body = '')
-      request(:put, path, body, self.class.default_header)
+      request(:put, path, body, build_request_headers)
     end
 
     def post(path, body = '')
-      request(:post, path, body, self.class.default_header)
+      request(:post, path, body, build_request_headers)
     end
 
     private
@@ -90,6 +94,14 @@ module ActiveResource
         end
 
         @http
+      end
+      
+      def build_request_headers
+        authorization_header.update(self.class.default_header)
+      end
+      
+      def authorization_header
+        (@site.user || @site.password ? { 'Authorization' => 'Basic ' + ["#{@site.user}:#{ @site.password}"].pack('m').delete("\r\n") } : {})
       end
   end
 end

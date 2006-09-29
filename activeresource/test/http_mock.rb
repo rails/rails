@@ -1,6 +1,8 @@
 require 'active_resource/connection'
 
 module ActiveResource
+  class InvalidRequestError < StandardError; end
+    
   class HttpMock
     class Responder
       def initialize(responses)
@@ -9,8 +11,8 @@ module ActiveResource
       
       for method in [ :post, :put, :get, :delete ]
         module_eval <<-EOE
-          def #{method}(path, body = nil, status = 200, headers = {})
-            @responses[Request.new(:#{method}, path, nil)] = Response.new(body || {}, status, headers)
+          def #{method}(path, request_headers = {}, body = nil, status = 200, response_headers = {})
+            @responses[Request.new(:#{method}, path, nil, request_headers)] = Response.new(body || {}, status, response_headers)
           end
         EOE
       end
@@ -39,12 +41,22 @@ module ActiveResource
       end
     end
 
-    for method in [ :post, :put, :get, :delete ]
+    for method in [ :post, :put ]
       module_eval <<-EOE
-        def #{method}(*arguments)
-          request = ActiveResource::Request.new(:#{method}, *arguments)
+        def #{method}(path, body, headers)
+          request = ActiveResource::Request.new(:#{method}, path, body, headers)
           self.class.requests << request
-          self.class.responses[request] || raise("No response recorded for: \#{request}")
+          self.class.responses[request] || raise(InvalidRequestError.new("No response recorded for: \#{request}"))
+        end
+      EOE
+    end
+    
+    for method in [ :get, :delete ]
+      module_eval <<-EOE
+        def #{method}(path, headers)
+          request = ActiveResource::Request.new(:#{method}, path, nil, headers)
+          self.class.requests << request
+          self.class.responses[request] || raise(InvalidRequestError.new("No response recorded for: \#{request}"))
         end
       EOE
     end
@@ -55,10 +67,11 @@ module ActiveResource
   end
 
   class Request
-    attr_accessor :path, :method, :body
+    attr_accessor :path, :method, :body, :headers
     
     def initialize(method, path, body = nil, headers = nil)
-      @method, @path, @body = method, path, body
+      @method, @path, @body, @headers = method, path, body, headers
+      @headers.update('Content-Type' => 'application/xml')
     end
 
     def ==(other_request)
@@ -70,11 +83,11 @@ module ActiveResource
     end
     
     def to_s
-      "<#{method.to_s.upcase}: #{path} (#{body})>"
+      "<#{method.to_s.upcase}: #{path} [#{headers}] (#{body})>"
     end
     
     def hash
-      "#{path}#{method}".hash
+      "#{path}#{method}#{headers}".hash
     end
   end
   

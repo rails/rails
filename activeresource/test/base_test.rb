@@ -7,25 +7,27 @@ class BaseTest < Test::Unit::TestCase
     @matz  = { :id => 1, :name => 'Matz' }.to_xml(:root => 'person')
     @david = { :id => 2, :name => 'David' }.to_xml(:root => 'person')
     @addy  = { :id => 1, :street => '12345 Street' }.to_xml(:root => 'address')
+    @default_request_headers = { 'Content-Type' => 'application/xml' }
+    
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get    "/people/1.xml",             @matz
-      mock.get    "/people/2.xml",             @david
-      mock.put    "/people/1.xml",             nil, 204
-      mock.delete "/people/1.xml",             nil, 200
-      mock.delete "/people/2.xml",             nil, 400
-      mock.post   "/people.xml",               nil, 201, 'Location' => '/people/5.xml'
-      mock.get    "/people/99.xml",            nil, 404
-      mock.get    "/people.xml",               "<people>#{@matz}#{@david}</people>"
-      mock.get    "/people/1/addresses.xml",   "<addresses>#{@addy}</addresses>"
-      mock.get    "/people/1/addresses/1.xml", @addy
-      mock.put    "/people/1/addresses/1.xml", nil, 204
-      mock.delete "/people/1/addresses/1.xml", nil, 200
-      mock.post   "/people/1/addresses.xml",   nil, 201, 'Location' => '/people/1/addresses/5'
-      mock.get    "/people//addresses.xml",    nil, 404
-      mock.get    "/people//addresses/1.xml",  nil, 404
-      mock.put    "/people//addresses/1.xml",  nil, 404
-      mock.delete "/people//addresses/1.xml",  nil, 404
-      mock.post   "/people//addresses.xml",    nil, 404
+      mock.get    "/people/1.xml",             {}, @matz
+      mock.get    "/people/2.xml",             {}, @david
+      mock.put    "/people/1.xml",             {}, nil, 204
+      mock.delete "/people/1.xml",             {}, nil, 200
+      mock.delete "/people/2.xml",             {}, nil, 400
+      mock.post   "/people.xml",               {}, nil, 201, 'Location' => '/people/5.xml'
+      mock.get    "/people/99.xml",            {}, nil, 404
+      mock.get    "/people.xml",               {}, "<people>#{@matz}#{@david}</people>"
+      mock.get    "/people/1/addresses.xml",   {}, "<addresses>#{@addy}</addresses>"
+      mock.get    "/people/1/addresses/1.xml", {}, @addy
+      mock.put    "/people/1/addresses/1.xml", {}, nil, 204
+      mock.delete "/people/1/addresses/1.xml", {}, nil, 200
+      mock.post   "/people/1/addresses.xml",   {}, nil, 201, 'Location' => '/people/1/addresses/5'
+      mock.get    "/people//addresses.xml",    {}, nil, 404
+      mock.get    "/people//addresses/1.xml",  {}, nil, 404
+      mock.put    "/people//addresses/1.xml",  {}, nil, 404
+      mock.delete "/people//addresses/1.xml",  {}, nil, 404
+      mock.post   "/people//addresses.xml",    {}, nil, 404
     end
   end
 
@@ -144,8 +146,8 @@ class BaseTest < Test::Unit::TestCase
 
   def test_update_conflict
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get "/people/2.xml", @david
-      mock.put "/people/2.xml", nil, 409
+      mock.get "/people/2.xml", {}, @david
+      mock.put "/people/2.xml", @default_request_headers, nil, 409
     end
     assert_raises(ActiveResource::ResourceConflict) { Person.find(2).save }
   end
@@ -153,7 +155,7 @@ class BaseTest < Test::Unit::TestCase
   def test_destroy
     assert Person.find(1).destroy
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get "/people/1.xml", nil, 404
+      mock.get "/people/1.xml", {}, nil, 404
     end
     assert_raises(ActiveResource::ResourceNotFound) { Person.find(1).destroy }
   end
@@ -161,7 +163,7 @@ class BaseTest < Test::Unit::TestCase
   def test_destroy_with_custom_prefix
     assert StreetAddress.find(1, :person_id => 1).destroy
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get "/people/1/addresses/1.xml", nil, 404
+      mock.get "/people/1/addresses/1.xml", {}, nil, 404
     end
     assert_raises(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :person_id => 1).destroy }
   end
