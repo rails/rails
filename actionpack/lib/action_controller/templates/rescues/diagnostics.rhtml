@@ -1,7 +1,7 @@
 <h1>
   <%=h @exception.class.to_s %>
-  <% if @request.parameters['controller'] %>
-    in <%=h @request.parameters['controller'].humanize %>Controller<% if @request.parameters['action'] %>#<%=h @request.parameters['action'] %><% end %>
+  <% if request.parameters['controller'] %>
+    in <%=h request.parameters['controller'].humanize %>Controller<% if request.parameters['action'] %>#<%=h request.parameters['action'] %><% end %>
   <% end %>
 </h1>
 <pre><%=h @exception.clean_message %></pre>

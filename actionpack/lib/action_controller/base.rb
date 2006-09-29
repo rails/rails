@@ -294,7 +294,7 @@ module ActionController #:nodoc:
 
     # Holds the request object that's primarily used to get environment variables through access like
     # <tt>request.env["REQUEST_URI"]</tt>.
-    attr_accessor :request
+    attr_internal :request
 
     # Holds a hash of all the GET, POST, and Url parameters passed to the action. Accessed like <tt>params["post_id"]</tt>
     # to get the post_id. No type casts are made, so all values are returned as strings.
@@ -1014,7 +1014,7 @@ module ActionController #:nodoc:
       end
 
       def assign_shortcuts(request, response)
-        @request, @_params, @cookies = request, request.parameters, request.cookies
+        @_request, @_params, @cookies = request, request.parameters, request.cookies
 
         @response         = response
         @response.session = request.session
@@ -1030,7 +1030,7 @@ module ActionController #:nodoc:
 
 
       # TODO: assigns cookies headers params request response template
-      DEPRECATED_INSTANCE_VARIABLES = %w(flash params session)
+      DEPRECATED_INSTANCE_VARIABLES = %w(flash params request session)
 
       # Gone after 1.2.
       def assign_deprecated_shortcuts(request, response)
@@ -1128,7 +1128,7 @@ module ActionController #:nodoc:
           %w(@assigns @performed_redirect @performed_render)
         else
           %w(@assigns @performed_redirect @performed_render
-             @request @response @_params @_session @session
+             @_request @request @response @_params @params @_session @session
              @cookies @template @request_origin @parent_controller)
         end
       end

@@ -139,22 +139,22 @@ module ActionController #:nodoc:
             self.class
           end
         end
-        
+
         # Create a new request object based on the current request.
         # The new request inherits the session from the current request,
         # bypassing any session options set for the component controller's class
         def request_for_component(controller_name, options)
-          request         = @request.dup
-          request.session = @request.session
-        
-          request.instance_variable_set(
+          new_request         = request.dup
+          new_request.session = request.session
+
+          new_request.instance_variable_set(
             :@parameters,
             (options[:params] || {}).with_indifferent_access.update(
               "controller" => controller_name, "action" => options[:action], "id" => options[:id]
             )
           )
-          
-          request
+
+          new_request
         end
 
         def component_logging(options)

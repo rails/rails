@@ -168,25 +168,6 @@ class RenderTest < Test::Unit::TestCase
     assert_raises(ActionController::UnknownAction, "No action responded to [determine_layout]") { get :determine_layout }
   end
 
-  def test_access_to_request_in_view
-    view_internals_old_value = ActionController::Base.view_controller_internals
-
-    ActionController::Base.view_controller_internals = false
-    ActionController::Base.protected_variables_cache = nil
-
-    get :hello_world
-    assert_nil assigns["request"]
-
-    ActionController::Base.view_controller_internals = true
-    ActionController::Base.protected_variables_cache = nil
-
-    get :hello_world
-    assert_kind_of ActionController::AbstractRequest,  assigns["request"]
-
-    ActionController::Base.view_controller_internals = view_internals_old_value
-    ActionController::Base.protected_variables_cache = nil
-  end
-
   def test_render_xml
     assert_deprecated_render { get :render_xml_hello }
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body

@@ -422,18 +422,26 @@ class NewRenderTest < Test::Unit::TestCase
     ActionController::Base.protected_variables_cache = nil
 
     get :hello_world
-    assert_nil(assigns["request"])
+    assert !assigns.include?('request'), 'request should not be in assigns'
 
     ActionController::Base.view_controller_internals = true
     ActionController::Base.protected_variables_cache = nil
 
     get :hello_world
-    assert_kind_of ActionController::AbstractRequest, assigns["request"]
+    assert assigns.include?('request'), 'request should be in assigns'
+    assert_deprecated 'request' do
+      assert_kind_of ActionController::AbstractRequest, assigns['request']
+    end
+    assert_not_deprecated do
+      assert_kind_of ActionController::AbstractRequest, @response.template.request
+      assert_kind_of ActionController::AbstractRequest, assigns['_request']
+    end
 
+  ensure
     ActionController::Base.view_controller_internals = view_internals_old_value
     ActionController::Base.protected_variables_cache = nil
   end
-  
+
   def test_render_xml
     get :render_xml_hello
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body

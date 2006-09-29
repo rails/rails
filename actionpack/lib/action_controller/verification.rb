@@ -85,7 +85,7 @@ module ActionController #:nodoc:
       
       if !prereqs_invalid && options[:method]
         prereqs_invalid ||= 
-          [*options[:method]].all? { |v| @request.method != v.to_sym }
+          [*options[:method]].all? { |v| request.method != v.to_sym }
       end
       
       prereqs_invalid ||= (request.xhr? != options[:xhr]) unless options[:xhr].nil?

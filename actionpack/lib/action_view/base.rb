@@ -147,8 +147,8 @@ module ActionView #:nodoc:
     attr_accessor :base_path, :assigns, :template_extension
     attr_accessor :controller
 
-    attr_reader :logger, :request, :response, :headers
-    attr_internal :flash, :params, :session
+    attr_reader :logger, :response, :headers
+    attr_internal *ActionController::Base::DEPRECATED_INSTANCE_VARIABLES
 
     # Specify trim mode for the ERB compiler. Defaults to '-'.
     # See ERB documentation for suitable values.
@@ -440,11 +440,11 @@ module ActionView #:nodoc:
         if template_requires_setup?(extension)
           body = case extension.to_sym
             when :rxml
-              "@controller.response.content_type ||= 'application/xml'\n" +
+              "controller.response.content_type ||= 'application/xml'\n" +
               "xml = Builder::XmlMarkup.new(:indent => 2)\n" +
               template
             when :rjs
-              "@controller.response.content_type ||= 'text/javascript'\n" +
+              "controller.response.content_type ||= 'text/javascript'\n" +
               "update_page do |page|\n#{template}\nend"
           end
         else
