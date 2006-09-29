@@ -119,7 +119,7 @@ module ActionController #:nodoc:
 
         disposition <<= %(; filename="#{options[:filename]}") if options[:filename]
 
-        @headers.update(
+        headers.update(
           'Content-Length'            => options[:length],
           'Content-Type'              => options[:type].strip,  # fixes a problem with extra '\r' with some browsers
           'Content-Disposition'       => disposition,
@@ -132,7 +132,7 @@ module ActionController #:nodoc:
         # after it displays the "open/save" dialog, which means that if you 
         # hit "open" the file isn't there anymore when the application that 
         # is called for handling the download is run, so let's workaround that
-        @headers['Cache-Control'] = 'private' if @headers['Cache-Control'] == 'no-cache'
+        headers['Cache-Control'] = 'private' if headers['Cache-Control'] == 'no-cache'
       end
   end
 end
