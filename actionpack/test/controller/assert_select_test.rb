@@ -288,6 +288,18 @@ class AssertSelectTest < Test::Unit::TestCase
     assert_raises(AssertionFailedError) { assert_select_rjs }
   end
 
+  def test_assert_select_rjs_with_unicode
+    # Test that non-ascii characters (which are converted into \uXXXX in RJS) are decoded correctly.
+    render_rjs do |page|
+      page.replace "test", "<div id=\"1\">\343\203\201\343\202\261\343\203\203\343\203\210</div>"
+    end
+    assert_select_rjs do
+      assert_select "#1", :text => "\343\203\201\343\202\261\343\203\203\343\203\210"
+      assert_select "#1", "\343\203\201\343\202\261\343\203\203\343\203\210"
+      assert_select "#1", Regexp.new("\343\203\201..\343\203\210",0,'U')
+      assert_raises(AssertionFailedError) { assert_select "#1", Regexp.new("\343\203\201.\343\203\210",0,'U') }
+    end
+  end
 
   def test_assert_select_rjs_with_id
     # Test that we can pick up all statements in the result.

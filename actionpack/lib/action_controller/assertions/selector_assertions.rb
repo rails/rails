@@ -24,7 +24,7 @@ module ActionController
     # * #assert_select_encoded  -- Assertions on HTML encoded inside XML,
     #     for example for dealing with feed item descriptions.
     # * #assert_select_email    -- Assertions on the HTML body of an e-mail.
-    # 
+    #
     # Also see HTML::Selector for learning how to use selectors.
     module SelectorAssertions
       # :call-seq:
@@ -79,12 +79,12 @@ module ActionController
             selector = HTML::Selector.new(arg, args)
           when Array
             selector = HTML::Selector.new(*arg)
-          when HTML::Selector 
+          when HTML::Selector
             selector = arg
           else raise ArgumentError, "Expecting a selector as the first argument"
         end
 
-        selector.select(root)  
+        selector.select(root)
       end
 
       # :call-seq:
@@ -144,7 +144,7 @@ module ActionController
       # evaluated the block is called with an array of all matched elements.
       #
       # === Examples
-      # 
+      #
       #   # At least one form element
       #   assert_select "form"
       #
@@ -200,7 +200,7 @@ module ActionController
             selector = HTML::Selector.new(arg, args)
           when Array
             selector = HTML::Selector.new(*arg)
-          when HTML::Selector 
+          when HTML::Selector
             selector = arg
           else raise ArgumentError, "Expecting a selector as the first argument"
         end
@@ -242,7 +242,7 @@ module ActionController
           raise ArgumentError, "Not expecting that last argument, you either have too many arguments, or they're the wrong type"
         end
 
-        matches = selector.select(root)  
+        matches = selector.select(root)
         # Equality test.
         equals.each do |type, value|
           case type
@@ -405,14 +405,11 @@ EOT
             else
               Regexp.new("#{statement}\\(\"#{id}\", #{RJS_PATTERN_HTML}\\)", Regexp::MULTILINE)
           end
-          
+
         # Duplicate the body since the next step involves destroying it.
         matches = nil
         @response.body.gsub(pattern) do |match|
-          html = $2
-          # RJS encodes double quotes and line breaks.
-          html.gsub!(/\\"/, "\"")
-          html.gsub!(/\\n/, "\n")
+          html = unescape_rjs($2)
           matches ||= []
           matches.concat HTML::Document.new(html).root.children.select { |n| n.tag? }
           ""
@@ -449,7 +446,7 @@ EOT
       # === Example
       #
       #   assert_select_feed :rss, 2.0 do
-      #     # Select description element of each feed item. 
+      #     # Select description element of each feed item.
       #     assert_select "channel>item>description" do
       #       # Run assertions on the encoded elements.
       #       assert_select_encoded do
@@ -536,6 +533,7 @@ EOT
           RJS_PATTERN_HTML = /"((\\"|[^"])*)"/
           RJS_PATTERN_EVERYTHING = Regexp.new("#{RJS_STATEMENTS[:any]}\\(\"([^\"]*)\", #{RJS_PATTERN_HTML}\\)",
                                               Regexp::MULTILINE)
+          RJS_PATTERN_UNICODE_ESCAPED_CHAR = /\\u([0-9a-zA-Z]{4})/
         end
 
         # #assert_select and #css_select call this to obtain the content in the HTML
@@ -547,10 +545,7 @@ EOT
             root = HTML::Node.new(nil)
             while true
               next if body.sub!(RJS_PATTERN_EVERYTHING) do |match|
-                # RJS encodes double quotes and line breaks.
-                html = $3
-                html.gsub!(/\\"/, "\"")
-                html.gsub!(/\\n/, "\n")
+                html = unescape_rjs($3)
                 matches = HTML::Document.new(html).root.children.select { |n| n.tag? }
                 root.children.concat matches
                 ""
@@ -562,6 +557,17 @@ EOT
             html_document.root
           end
         end
+
+        # Unescapes a RJS string.
+        def unescape_rjs(rjs_string)
+          # RJS encodes double quotes and line breaks.
+          unescaped= rjs_string.gsub('\"', '"')
+          unescaped.gsub!('\n', "\n")
+          # RJS encodes non-ascii characters.
+          unescaped.gsub!(RJS_PATTERN_UNICODE_ESCAPED_CHAR) {|u| [$1.hex].pack('U*')}
+          unescaped
+        end
+
     end
   end
 end

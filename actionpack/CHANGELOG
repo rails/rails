@@ -1,5 +1,7 @@
 *SVN*
 
+* assert_select_rjs decodes escaped unicode chars since the Javascript generators encode them.  #6240 [japgolly]
+
 * Deprecation: @request will be removed after 1.2. Use the request method instead.  [Jeremy Kemper]
 
 * Make the :status parameter expand to the default message for that status code if it is an integer. Also support symbol statuses. [Jamis Buck]. Examples:
