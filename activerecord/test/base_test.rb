@@ -1340,8 +1340,8 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_array_to_xml_including_methods
     xml = [ topics(:first), topics(:second) ].to_xml(:indent => 0, :skip_instruct => true, :methods => [ :topic_id ])
-    assert xml.include?(%(<topic-id type="integer">#{topics(:first).topic_id}</topic-id>))
-    assert xml.include?(%(<topic-id type="integer">#{topics(:second).topic_id}</topic-id>))
+    assert xml.include?(%(<topic-id type="integer">#{topics(:first).topic_id}</topic-id>)), xml
+    assert xml.include?(%(<topic-id type="integer">#{topics(:second).topic_id}</topic-id>)), xml
   end
   
   def test_array_to_xml_including_has_one_association

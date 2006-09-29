@@ -297,11 +297,11 @@ module ActiveRecord #:nodoc:
           end
         end
     end
-  
+
     class MethodAttribute < Attribute #:nodoc:
       protected
         def compute_type
-          Hash::XML_TYPE_NAMES[@record.send(name).class] || :string
+          Hash::XML_TYPE_NAMES[@record.send(name).class.name] || :string
         end
     end
   end
