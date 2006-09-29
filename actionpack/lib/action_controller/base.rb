@@ -1014,7 +1014,7 @@ module ActionController #:nodoc:
       end
 
       def assign_shortcuts(request, response)
-        @_request, @_params, @cookies = request, request.parameters, request.cookies
+        @_request, @_params, @_cookies = request, request.parameters, request.cookies
 
         @response         = response
         @response.session = request.session
@@ -1030,7 +1030,7 @@ module ActionController #:nodoc:
 
 
       # TODO: assigns cookies headers params request response template
-      DEPRECATED_INSTANCE_VARIABLES = %w(flash params request session)
+      DEPRECATED_INSTANCE_VARIABLES = %w(cookies flash params request session)
 
       # Gone after 1.2.
       def assign_deprecated_shortcuts(request, response)
@@ -1129,7 +1129,7 @@ module ActionController #:nodoc:
         else
           %w(@assigns @performed_redirect @performed_render
              @_request @request @response @_params @params @_session @session
-             @cookies @template @request_origin @parent_controller)
+             @_cookies @cookies @template @request_origin @parent_controller)
         end
       end
 

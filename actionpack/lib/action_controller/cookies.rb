@@ -39,7 +39,7 @@ module ActionController #:nodoc:
 
   class CookieJar < Hash #:nodoc:
     def initialize(controller)
-      @controller, @cookies = controller, controller.instance_variable_get("@cookies")
+      @controller, @cookies = controller, controller.request.cookies
       super()
       update(@cookies)
     end

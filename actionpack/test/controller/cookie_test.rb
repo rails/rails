@@ -29,7 +29,7 @@ class CookieTest < Test::Unit::TestCase
     end
 
     def access_frozen_cookies
-      @cookies["will"] = "work"
+      cookies["will"] = "work"
       render_text "hello world"
     end
 
