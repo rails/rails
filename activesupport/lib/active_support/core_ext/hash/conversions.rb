@@ -6,13 +6,15 @@ module ActiveSupport #:nodoc:
     module Hash #:nodoc:
       module Conversions
         XML_TYPE_NAMES = {
-          ::Fixnum     => "integer",
-          ::Float      => "float",
-          ::Date       => "date",
-          ::DateTime   => "datetime",
-          ::Time       => "datetime",
-          ::TrueClass  => "boolean",
-          ::FalseClass => "boolean"
+          "Fixnum"     => "integer",
+          "Bignum"     => "integer",
+          "BigDecimal" => "numeric",
+          "Float"      => "float",
+          "Date"       => "date",
+          "DateTime"   => "datetime",
+          "Time"       => "datetime",
+          "TrueClass"  => "boolean",
+          "FalseClass" => "boolean"
         } unless defined? XML_TYPE_NAMES
 
         XML_FORMATTING = {
@@ -56,7 +58,7 @@ module ActiveSupport #:nodoc:
                   if value.respond_to?(:to_xml)
                     value.to_xml(options.merge({ :root => key, :skip_instruct => true }))
                   else
-                    type_name = XML_TYPE_NAMES[value.class]
+                    type_name = XML_TYPE_NAMES[value.class.name]
 
                     key = dasherize ? key.to_s.dasherize : key.to_s
 

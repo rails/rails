@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
+require 'bigdecimal'
 
 class ArrayExtToParamTests < Test::Unit::TestCase
   def test_string_array
@@ -116,19 +117,22 @@ end
 class ArrayToXmlTests < Test::Unit::TestCase
   def test_to_xml
     xml = [
-      { :name => "David", :age => 26 }, { :name => "Jason", :age => 31 }
+      { :name => "David", :age => 26, :age_in_millis => 820497600000 },
+      { :name => "Jason", :age => 31, :age_in_millis => BigDecimal.new('1.0') }
     ].to_xml(:skip_instruct => true, :indent => 0)
 
-    assert_equal "<records><record>", xml.first(17)
-    assert xml.include?(%(<age type="integer">26</age>))
-    assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<age type="integer">31</age>))
-    assert xml.include?(%(<name>Jason</name>))
+    assert_equal "<records><record>", xml.first(17), xml
+    assert xml.include?(%(<age type="integer">26</age>)), xml
+    assert xml.include?(%(<age-in-millis type="integer">820497600000</age-in-millis>)), xml
+    assert xml.include?(%(<name>David</name>)), xml
+    assert xml.include?(%(<age type="integer">31</age>)), xml
+    assert xml.include?(%(<age-in-millis type="numeric">1.0</age-in-millis>)), xml
+    assert xml.include?(%(<name>Jason</name>)), xml
   end
 
   def test_to_xml_with_dedicated_name
     xml = [
-      { :name => "David", :age => 26 }, { :name => "Jason", :age => 31 }
+      { :name => "David", :age => 26, :age_in_millis => 820497600000 }, { :name => "Jason", :age => 31 }
     ].to_xml(:skip_instruct => true, :indent => 0, :root => "people")
 
     assert_equal "<people><person>", xml.first(16)

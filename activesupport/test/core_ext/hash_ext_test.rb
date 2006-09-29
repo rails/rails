@@ -255,11 +255,12 @@ class HashToXmlTest < Test::Unit::TestCase
   end
 
   def test_one_level_with_types
-    xml = { :name => "David", :street => "Paulina", :age => 26, :moved_on => Date.new(2005, 11, 15) }.to_xml(@xml_options)
+    xml = { :name => "David", :street => "Paulina", :age => 26, :age_in_millis => 820497600000, :moved_on => Date.new(2005, 11, 15) }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
     assert xml.include?(%(<street>Paulina</street>))
     assert xml.include?(%(<name>David</name>))
     assert xml.include?(%(<age type="integer">26</age>))
+    assert xml.include?(%(<age-in-millis type="integer">820497600000</age-in-millis>))
     assert xml.include?(%(<moved-on type="date">2005-11-15</moved-on>))
   end
 
@@ -315,6 +316,7 @@ class HashToXmlTest < Test::Unit::TestCase
         <id type="integer">1</id>
         <approved type="boolean"> true </approved>
         <replies-count type="integer">0</replies-count>
+        <replies-close-in type="integer">2592000000</replies-close-in>
         <written-on type="date">2003-07-16</written-on>
         <viewed-at type="datetime">2003-07-16T09:28:00+0000</viewed-at>
         <content>Have a nice day</content>
@@ -329,6 +331,7 @@ class HashToXmlTest < Test::Unit::TestCase
       :id => 1,
       :approved => true,
       :replies_count => 0,
+      :replies_close_in => 2592000000,
       :written_on => Date.new(2003, 7, 16),
       :viewed_at => Time.utc(2003, 7, 16, 9, 28),
       :content => "Have a nice day",
@@ -372,6 +375,7 @@ class HashToXmlTest < Test::Unit::TestCase
           <id type="integer">1</id>
           <approved type="boolean">false</approved>
           <replies-count type="integer">0</replies-count>
+          <replies-close-in type="integer">2592000000</replies-close-in>
           <written-on type="date">2003-07-16</written-on>
           <viewed-at type="datetime">2003-07-16T09:28:00+0000</viewed-at>
           <content>Have a nice day</content>
@@ -384,6 +388,7 @@ class HashToXmlTest < Test::Unit::TestCase
           <id type="integer">1</id>
           <approved type="boolean">false</approved>
           <replies-count type="integer">0</replies-count>
+          <replies-close-in type="integer">2592000000</replies-close-in>
           <written-on type="date">2003-07-16</written-on>
           <viewed-at type="datetime">2003-07-16T09:28:00+0000</viewed-at>
           <content>Have a nice day</content>
@@ -399,6 +404,7 @@ class HashToXmlTest < Test::Unit::TestCase
       :id => 1,
       :approved => false,
       :replies_count => 0,
+      :replies_close_in => 2592000000,
       :written_on => Date.new(2003, 7, 16),
       :viewed_at => Time.utc(2003, 7, 16, 9, 28),
       :content => "Have a nice day",

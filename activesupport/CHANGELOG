@@ -1,5 +1,7 @@
 *SVN*
 
+* Hash#to_xml supports Bignum and BigDecimal.  #6313 [edibiase]
+
 * Don't undefine #class in OptionMerger [Rick]
 
 * Hash.create_from_xml has been renamed to Hash.from_xml, alias will exist until Rails 2.0 [DHH]
