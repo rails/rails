@@ -1,6 +1,6 @@
 <h1>
   <%=h @exception.original_exception.class.to_s %> in
-  <%=h @request.parameters["controller"].capitalize if @request.parameters["controller"]%>#<%=h @request.parameters["action"] %>
+  <%=h request.parameters["controller"].capitalize if request.parameters["controller"]%>#<%=h request.parameters["action"] %>
 </h1>
 
 <p>

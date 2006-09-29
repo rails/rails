@@ -250,7 +250,7 @@ module ActionController #:nodoc:
         erase_render_results
         add_variables_to_assigns
         @template.instance_variable_set("@content_for_layout", content_for_layout)
-        @response.layout = layout
+        response.layout = layout
         render_text(@template.render_file(layout, true), deprecated_status)
       else
         render_with_no_layout(options, deprecated_status, &block)

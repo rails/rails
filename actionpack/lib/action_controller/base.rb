@@ -304,7 +304,7 @@ module ActionController #:nodoc:
     # <tt>response.headers["Cache-Control"] = "no-cache"</tt>. Can also be used to access the final body HTML after a template
     # has been rendered through response.body -- useful for <tt>after_filter</tt>s that wants to manipulate the output,
     # such as a OutputCompressionFilter.
-    attr_accessor :response
+    attr_internal :response
 
     # Holds a hash of objects in the session. Accessed like <tt>session[:person]</tt> to get the object tied to the "person"
     # key. The session will hold any type of object as values, but the key should be a string or symbol.
@@ -1016,14 +1016,14 @@ module ActionController #:nodoc:
       def assign_shortcuts(request, response)
         @_request, @_params, @_cookies = request, request.parameters, request.cookies
 
-        @response         = response
-        @response.session = request.session
+        @_response         = response
+        @_response.session = request.session
 
-        @_session = @response.session
-        @template = @response.template
-        @assigns  = @response.template.assigns
+        @_session = @_response.session
+        @template = @_response.template
+        @assigns  = @_response.template.assigns
 
-        @_headers = @response.headers
+        @_headers = @_response.headers
 
         assign_deprecated_shortcuts(request, response)
       end
@@ -1128,8 +1128,9 @@ module ActionController #:nodoc:
           %w(@assigns @performed_redirect @performed_render)
         else
           %w(@assigns @performed_redirect @performed_render
-             @_request @request @response @_params @params @_session @session
-             @_cookies @cookies @template @request_origin @parent_controller)
+             @_request @request @_response @response @_params @params
+             @_session @session @_cookies @cookies
+             @template @request_origin @parent_controller)
         end
       end
 

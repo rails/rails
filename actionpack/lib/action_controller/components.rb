@@ -126,11 +126,11 @@ module ActionController #:nodoc:
         def component_response(options, reuse_response)
           klass    = component_class(options)
           request  = request_for_component(klass.controller_name, options)
-          response = reuse_response ? @response : @response.dup
+          new_response = reuse_response ? response : response.dup
 
-          klass.process_with_components(request, response, self)
+          klass.process_with_components(request, new_response, self)
         end
-        
+
         # determine the controller class for the component request
         def component_class(options)
           if controller = options[:controller]

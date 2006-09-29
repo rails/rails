@@ -125,17 +125,17 @@ module ActionController #:nodoc:
         end
       end
 
-      # Manually cache the +content+ in the key determined by +options+. If no content is provided, the contents of @response.body is used
+      # Manually cache the +content+ in the key determined by +options+. If no content is provided, the contents of response.body is used
       # If no options are provided, the current +options+ for this action is used. Example:
       #   cache_page "I'm the cached content", :controller => "lists", :action => "show"
       def cache_page(content = nil, options = {})
         return unless perform_caching && caching_allowed
-        self.class.cache_page(content || @response.body, url_for(options.merge({ :only_path => true, :skip_relative_url_root => true })))
+        self.class.cache_page(content || response.body, url_for(options.merge({ :only_path => true, :skip_relative_url_root => true })))
       end
 
       private
         def caching_allowed
-          !@request.post? && @response.headers['Status'] && @response.headers['Status'].to_i < 400
+          !@request.post? && response.headers['Status'] && response.headers['Status'].to_i < 400
         end
     end
 
@@ -184,7 +184,7 @@ module ActionController #:nodoc:
         end
       end
 
-      class ActionCacheFilter #:nodoc:        
+      class ActionCacheFilter #:nodoc:
         def initialize(*actions, &block)
           @actions = actions
         end

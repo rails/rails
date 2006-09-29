@@ -33,7 +33,7 @@ module ActionController #:nodoc:
 
       # Deprecated cookie writer method
       def cookie(*options)
-        @response.headers["cookie"] << CGI::Cookie.new(*options)
+        response.headers['cookie'] << CGI::Cookie.new(*options)
       end
   end
 
