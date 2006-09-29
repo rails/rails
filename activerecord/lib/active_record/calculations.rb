@@ -144,8 +144,9 @@ module ActiveRecord
             else
               # Deprecated count(conditions, joins=nil)
               ActiveSupport::Deprecation.warn(
-                "You called count(#{args[0].inspect}, #{args[1].inspect}), which is a deprecated API call. Instead you should use " +
-                "count(column_name, options). Passing the conditions and joins as string parameters will be removed in Rails 2.0."
+                "You called count(#{args[0].inspect}, #{args[1].inspect}), which is a deprecated API call. " +
+                "Instead you should use count(column_name, options). Passing the conditions and joins as " +
+                "string parameters will be removed in Rails 2.0.", caller(2)
               )
               options.merge!(:conditions => args[0])
               options.merge!(:joins      => args[1]) if args[1]
