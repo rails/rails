@@ -1,6 +1,7 @@
 require 'optparse'
 
 options = { :environment => (ENV['RAILS_ENV'] || "development").dup }
+code_or_file = nil
 
 ARGV.clone.options do |opts|
   script_name = File.basename($0)
@@ -27,19 +28,21 @@ ARGV.clone.options do |opts|
     opts.separator "-------------------------------------------------------------"
   end
 
-  opts.parse! rescue retry
+  opts.order! { |o| code_or_file ||= o } rescue retry
 end
+
+ARGV.delete(code_or_file)
 
 ENV["RAILS_ENV"] = options[:environment]
 RAILS_ENV.replace(options[:environment]) if defined?(RAILS_ENV)
 
 require RAILS_ROOT + '/config/environment'
 
-if ARGV.empty?
+if code_or_file.nil?
   $stderr.puts "Run '#{$0} -h' for help."
   exit 1
-elsif File.exists?(ARGV.first)
-  eval(File.read(ARGV.shift))
+elsif File.exists?(code_or_file)
+  eval(File.read(code_or_file))
 else
-  eval(ARGV.first)
+  eval(code_or_file)
 end
