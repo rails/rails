@@ -135,7 +135,7 @@ module ActionController #:nodoc:
 
       private
         def caching_allowed
-          !@request.post? && response.headers['Status'] && response.headers['Status'].to_i < 400
+          !request.post? && response.headers['Status'] && response.headers['Status'].to_i < 400
         end
     end
 
@@ -559,8 +559,7 @@ module ActionController #:nodoc:
           return unless perform_caching
           configuration = sweepers.last.is_a?(Hash) ? sweepers.pop : {}
           sweepers.each do |sweeper|
-            observer(sweeper)
-
+            ActiveRecord::Base.observers << sweeper if defined?(ActiveRecord) and defined?(ActiveRecord::Base)
             sweeper_instance = Object.const_get(Inflector.classify(sweeper)).instance
 
             if sweeper_instance.is_a?(Sweeper)

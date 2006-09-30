@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed some deprecation warnings in ActionPack [Rick Olson]
+
 * assert_select_rjs decodes escaped unicode chars since the Javascript generators encode them.  #6240 [japgolly]
 
 * Deprecation: @cookies, @headers, @request, @response will be removed after 1.2. Use the corresponding method instead.  [Jeremy Kemper]
