@@ -1,5 +1,7 @@
 *SVN*
 
+* Add an attribute reader method for ActiveRecord::Base.observers [Rick Olson]
+
 * Deprecation: count class method should be called with an options hash rather than two args for conditions and joins.  #6287 [Bob Silva]
 
 * has_one associations with a nil target may be safely marshaled.  #6279 [norbauer, Jeremy Kemper]
