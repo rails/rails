@@ -934,6 +934,10 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert firm.clients.include?(Client.find_by_name("New Client"))
   end
   
+  def test_get_ids
+    assert_equal [companies(:first_client).id, companies(:second_client).id], companies(:first_firm).client_ids
+  end
+  
   def test_assign_ids
     firm = Firm.new("name" => "Apple")
     firm.client_ids = [companies(:first_client).id, companies(:second_client).id]
@@ -942,6 +946,16 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 2, firm.clients.length
     assert firm.clients.include?(companies(:second_client))
   end
+
+  def test_assign_ids_ignoring_blanks
+    firm = Firm.new("name" => "Apple")
+    firm.client_ids = [companies(:first_client).id, nil, companies(:second_client).id, '']
+    firm.save
+    firm.reload
+    assert_equal 2, firm.clients.length
+    assert firm.clients.include?(companies(:second_client))
+  end
+
 end
 
 class BelongsToAssociationsTest < Test::Unit::TestCase
@@ -1734,5 +1748,30 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     Project.columns.each { |c| group << "projects.#{c.name}" }
 
     assert_equal 3, Developer.find(:all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL', :group => group.join(",")).size
+  end
+
+  def test_get_ids
+    assert_equal [projects(:active_record).id, projects(:action_controller).id], developers(:david).project_ids
+    assert_equal [projects(:active_record).id], developers(:jamis).project_ids
+  end
+
+  def test_assign_ids
+    developer = Developer.new("name" => "Joe")
+    developer.project_ids = [projects(:active_record).id, projects(:action_controller).id]
+    developer.save
+    developer.reload
+    assert_equal 2, developer.projects.length
+    assert_equal projects(:active_record), developer.projects[0] 
+    assert_equal projects(:action_controller), developer.projects[1] 
+  end
+
+  def test_assign_ids_ignoring_blanks
+    developer = Developer.new("name" => "Joe")
+    developer.project_ids = [projects(:active_record).id, nil, projects(:action_controller).id, '']
+    developer.save
+    developer.reload
+    assert_equal 2, developer.projects.length
+    assert_equal projects(:active_record), developer.projects[0] 
+    assert_equal projects(:action_controller), developer.projects[1] 
   end
 end

@@ -916,8 +916,13 @@ module ActiveRecord
             association
           end
 
+          define_method("#{reflection.name.to_s.singularize}_ids") do
+            send(reflection.name).map(&:id)
+          end
+
           define_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
-            send("#{reflection.name}=", reflection.class_name.constantize.find(new_value))
+            ids = (new_value || []).reject { |nid| nid.blank? }
+            send("#{reflection.name}=", reflection.class_name.constantize.find(ids))
           end
         end
 
