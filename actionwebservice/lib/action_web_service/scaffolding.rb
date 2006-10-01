@@ -39,7 +39,7 @@ module ActionWebService
       # can then be used as the entry point for invoking API methods from a web browser.
       def web_service_scaffold(action_name)
         add_template_helper(Helpers)
-        module_eval <<-"end_eval", __FILE__, __LINE__
+        module_eval <<-"end_eval", __FILE__, __LINE__ + 1
           def #{action_name}
             if request.method == :get
               setup_invocation_assigns
@@ -76,12 +76,12 @@ module ActionWebService
                 @method_request_xml = @protocol.encode_request(method_name, params, @scaffold_method.expects)
                 new_request = @protocol.encode_action_pack_request(@scaffold_service.name, @scaffold_method.public_name, @method_request_xml)
                 prepare_request(new_request, @scaffold_service.name, @scaffold_method.public_name)
-                @request = new_request
+                self.request = new_request
                 if @scaffold_container.dispatching_mode != :direct
                   request.parameters['action'] = @scaffold_service.name
                 end
                 dispatch_web_service_request
-                @method_response_xml = @response.body
+                @method_response_xml = response.body
                 method_name, obj = @protocol.decode_response(@method_response_xml)
                 return if handle_invocation_exception(obj)
                 @method_return_value = @scaffold_method.cast_returns(obj)
@@ -127,7 +127,7 @@ module ActionWebService
 
             def reset_invocation_response
               erase_render_results
-              @response.headers = ::ActionController::AbstractResponse::DEFAULT_HEADERS.merge("cookie" => [])
+              response.headers = ::ActionController::AbstractResponse::DEFAULT_HEADERS.merge("cookie" => [])
             end
 
             def public_method_name(service_name, method_name)
