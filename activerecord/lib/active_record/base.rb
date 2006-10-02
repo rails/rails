@@ -1527,14 +1527,13 @@ module ActiveRecord #:nodoc:
       # * No record exists: Creates a new record with values matching those of the object attributes.
       # * A record does exist: Updates the record with values matching those of the object attributes.
       def save
-        raise ReadOnlyRecord if readonly?
         create_or_update
       end
       
       # Attempts to save the record, but instead of just returning false if it couldn't happen, it raises a 
       # RecordNotSaved exception
       def save!
-        save || raise(RecordNotSaved)
+        create_or_update || raise(RecordNotSaved)
       end
 
       # Deletes the record in the database and freezes this instance to reflect that no changes should
@@ -1765,6 +1764,7 @@ module ActiveRecord #:nodoc:
 
     private
       def create_or_update
+        raise ReadOnlyRecord if readonly?
         if new_record? then create else update end
         true
       end

@@ -141,6 +141,12 @@ class ValidationsTest < Test::Unit::TestCase
     assert reply.save(false)
   end
 
+  def test_create_without_validation_bang
+    count = Reply.count
+    assert_nothing_raised { Reply.new.save_without_validation! }
+    assert count+1, Reply.count
+  end
+
   def test_validates_each
     perform = true
     hits = 0
