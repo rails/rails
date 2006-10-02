@@ -6,11 +6,8 @@ class BaseErrorsTest < Test::Unit::TestCase
     ActiveResource::HttpMock.respond_to do |mock|
       mock.post "/people.xml", {}, "<?xml version=\"1.0\" encoding=\"UTF-8\"?><errors><error>Age can't be blank</error><error>Name can't be blank</error><error>Name must start with a letter</error><error>Person quota full for today.</error></errors>", 400
     end
-    @exception = nil
-    @person    = Person.new(:name => '', :age => '')
-    @person.save
-  rescue ActiveResource::ResourceInvalid
-    @exception = $!
+    @person = Person.new(:name => '', :age => '')
+    assert_equal @person.save, false
   end
   
   def test_should_mark_as_invalid

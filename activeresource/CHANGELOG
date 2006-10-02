@@ -1,5 +1,7 @@
 *SVN*
 
+* Make #save behavior mimic AR::Base#save (true on success, false on failure). [Jamis Buck]
+
 * Add Basic HTTP Authentication to ActiveResource (closes #6305). [jonathan]
 
 * Extracted #id_from_response as an entry point for customizing how a created resource gets its own ID.

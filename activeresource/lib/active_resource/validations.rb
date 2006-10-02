@@ -109,8 +109,9 @@ module ActiveResource
 
     def save_with_validation
       save_without_validation
-    rescue ResourceInvalid
-      errors.from_xml($!.response.body)
+    rescue ResourceInvalid => error
+      errors.from_xml(error.response.body)
+      return false
     end
 
     def valid?

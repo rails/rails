@@ -109,7 +109,7 @@ class BaseTest < Test::Unit::TestCase
 
   def test_create
     rick = Person.new
-    rick.save
+    assert_equal true, rick.save
     assert_equal '5', rick.id
   end
 
@@ -133,7 +133,7 @@ class BaseTest < Test::Unit::TestCase
     matz.name = "David"
     assert_kind_of Person, matz
     assert_equal "David", matz.name
-    matz.save
+    assert_equal true, matz.save
   end
 
   def test_update_with_custom_prefix

@@ -169,12 +169,13 @@ module ActiveResource
 
       def update
         connection.put(self.class.element_path(id, prefix_options), to_xml)
+        true
       end
 
       def create
-        returning connection.post(self.class.collection_path(prefix_options), to_xml) do |resp|
-          self.id = id_from_response(resp)
-        end
+        resp = connection.post(self.class.collection_path(prefix_options), to_xml)
+        self.id = id_from_response(resp)
+        true
       end
 
       # takes a response from a typical create post and pulls the ID out
