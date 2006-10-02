@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix issue with #class_inheritable_accessor saving updates to the parent class when initialized with an Array or Hash [mojombo]
+
 * Hash#to_xml supports Bignum and BigDecimal.  #6313 [edibiase]
 
 * Don't undefine #class in OptionMerger [Rick]

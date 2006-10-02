@@ -107,7 +107,12 @@ class Class # :nodoc:
   private 
     def inherited_with_inheritable_attributes(child)
       inherited_without_inheritable_attributes(child) if respond_to?(:inherited_without_inheritable_attributes)
-      child.instance_variable_set('@inheritable_attributes', inheritable_attributes.dup)
+      
+      new_inheritable_attributes = inheritable_attributes.inject({}) do |memo, (key, value)|
+        memo.update(key => (value.dup rescue value))
+      end
+      
+      child.instance_variable_set('@inheritable_attributes', new_inheritable_attributes)
     end
 
     alias inherited_without_inheritable_attributes inherited
