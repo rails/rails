@@ -1030,7 +1030,7 @@ module ActionController #:nodoc:
 
 
       # TODO: assigns cookies headers params request response template
-      DEPRECATED_INSTANCE_VARIABLES = %w(cookies flash headers params request session)
+      DEPRECATED_INSTANCE_VARIABLES = %w(cookies flash headers params request response session)
 
       # Gone after 1.2.
       def assign_deprecated_shortcuts(request, response)
