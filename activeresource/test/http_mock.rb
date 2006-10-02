@@ -69,7 +69,7 @@ module ActiveResource
   class Request
     attr_accessor :path, :method, :body, :headers
     
-    def initialize(method, path, body = nil, headers = nil)
+    def initialize(method, path, body = nil, headers = {})
       @method, @path, @body, @headers = method, path, body, headers
       @headers.update('Content-Type' => 'application/xml')
     end
@@ -94,7 +94,7 @@ module ActiveResource
   class Response
     attr_accessor :body, :code, :headers
     
-    def initialize(body, code = 200, headers = nil)
+    def initialize(body, code = 200, headers = {})
       @body, @code, @headers = body, code, headers
     end
     
