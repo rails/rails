@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL: introduce Mysql::Result#all_hashes to support further optimization.  #5581 [Stefan Kaes]
+
 * save! shouldn't validate twice.  #6324 [maiha, Bob Silva]
 
 * Association collections have an _ids reader method to match the existing writer for collection_select convenience (e.g. employee.task_ids). The writer method skips blank ids so you can safely do @employee.task_ids = params[:tasks] without checking every time for an empty list or blank values.  #1887, #5780 [Michael Schuerig]

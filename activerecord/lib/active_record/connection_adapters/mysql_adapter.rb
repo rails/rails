@@ -1,5 +1,39 @@
 require 'active_record/connection_adapters/abstract_adapter'
 
+module MysqlCompat
+  # add all_hashes method to standard mysql-c bindings or pure ruby version
+  def self.define_all_hashes_method!
+    raise 'Mysql not loaded' unless defined?(::Mysql::Result)
+    return if ::Mysql::Result.instance_methods.include?('all_hashes')
+
+    # Ruby driver has a version string and returns null values in each_hash
+    # C driver >= 2.7 returns null values in each_hash
+    if Mysql.const_defined?(:VERSION)
+      if Mysql::VERSION.is_a?(String) || Mysql::VERSION >= 20700
+        ::Mysql::Result.class_eval <<-'end_eval'
+        def all_hashes
+          rows = []
+          each_hash { |row| rows << row }
+          rows
+        end
+        end_eval
+      end
+
+    # adapters before 2.7 don't have a version constant
+    # and don't return null values in each_hash
+    else
+      ::Mysql::Result.class_eval <<-'end_eval'
+      def all_hashes
+        rows = []
+        all_fields = fetch_fields.inject({}) { |fields, f| fields[f.name] = nil; fields }
+        each_hash { |row| rows << all_fields.dup.update(row) }
+        rows
+      end
+      end_eval
+    end
+  end
+end
+
 module ActiveRecord
   class Base
     # Establishes a connection to the database that's used by all Active Record objects.
@@ -17,6 +51,9 @@ module ActiveRecord
           end
         end
       end
+
+      # Define Mysql::Result.all_hashes
+      MysqlCompat.define_all_hashes_method!
 
       config = config.symbolize_keys
       host     = config[:host]
@@ -83,7 +120,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         super(connection, logger)
         @connection_options, @config = connection_options, config
-        @null_values_in_each_hash = Mysql.const_defined?(:VERSION)
+
         connect
       end
 
@@ -339,21 +376,15 @@ module ActiveRecord
         def select(sql, name = nil)
           @connection.query_with_result = true
           result = execute(sql, name)
-          rows = []
-          if @null_values_in_each_hash
-            result.each_hash { |row| rows << row }
-          else
-            all_fields = result.fetch_fields.inject({}) { |fields, f| fields[f.name] = nil; fields }
-            result.each_hash { |row| rows << all_fields.dup.update(row) }
-          end
+          rows = result.all_hashes
           result.free
           rows
         end
-        
+
         def supports_views?
           version[0] >= 5
         end
-        
+
         def version
           @version ||= @connection.server_info.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
         end
