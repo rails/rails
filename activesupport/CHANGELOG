@@ -1,5 +1,7 @@
 *SVN*
 
+* Add ActiveSupport::Multibyte.  Provides String#chars which lets you deal with strings as a sequence of chars, not of bytes. Closes #6242 [Julian Tarkhanov, Manfred Stienstra & Jan Behrens]
+
 * Fix issue with #class_inheritable_accessor saving updates to the parent class when initialized with an Array or Hash [mojombo]
 
 * Hash#to_xml supports Bignum and BigDecimal.  #6313 [edibiase]
