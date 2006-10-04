@@ -1765,8 +1765,8 @@ module ActiveRecord #:nodoc:
     private
       def create_or_update
         raise ReadOnlyRecord if readonly?
-        if new_record? then create else update end
-        true
+        result = new_record? ? create : update
+        result != false
       end
 
       # Updates the associated record with values matching those of the instance attributes.
