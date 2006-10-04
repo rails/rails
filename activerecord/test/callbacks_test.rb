@@ -109,6 +109,13 @@ class ImmutableMethodDeveloper < ActiveRecord::Base
   end
 end
 
+class CallbackCancellationDeveloper < ActiveRecord::Base
+  set_table_name 'developers'
+  def before_create
+    false
+  end
+end
+
 class CallbacksTest < Test::Unit::TestCase
   fixtures :developers
 
@@ -332,6 +339,12 @@ class CallbacksTest < Test::Unit::TestCase
     assert !david.valid?
     assert !david.save
     assert_raises(ActiveRecord::RecordInvalid) { david.save! }
+  end
+
+  def test_before_create_returning_false
+    someone = CallbackCancellationDeveloper.new
+    assert someone.valid?
+    assert !someone.save
   end
 
   def test_before_destroy_returning_false
