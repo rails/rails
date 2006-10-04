@@ -7,12 +7,12 @@ module ActiveSupport::Multibyte::Handlers
   end
   
   class UnicodeDatabase #:nodoc:
-    attr_accessor :codepoints, :composition_exclusion, :composition_map, :boundary
+    attr_accessor :codepoints, :composition_exclusion, :composition_map, :boundary, :cp1252
     
     # Creates a new UnicodeDatabase instance and loads the database.
     def initialize
       begin
-        @codepoints, @composition_exclusion, @composition_map, @boundary = self.class.load
+        @codepoints, @composition_exclusion, @composition_map, @boundary, @cp1252 = self.class.load
       rescue Exception => e
           raise IOError.new("Couldn't load the unicode tables for UTF8Handler (#{e.message}), handler is unusable")
       end
@@ -20,6 +20,7 @@ module ActiveSupport::Multibyte::Handlers
       @composition_exclusion ||= []
       @composition_map ||= {}
       @boundary ||= {}
+      @cp1252 ||= {}
       
       # Redefine the === method so we can write shorter rules for grapheme cluster breaks
       @boundary.each do |k,_|
@@ -41,26 +42,11 @@ module ActiveSupport::Multibyte::Handlers
     
     # Returns the filename for the data file for this version
     def self.filename
-      File.expand_path File.join(dirname, "unicode_tables-#{VERSION}.dat")
+      File.expand_path File.join(dirname, "unicode_tables.dat")
     end
     
     # Loads the unicode database and returns all the internal objects of UnicodeDatabase
     def self.load
-      begin
-        return load_file(filename)
-      rescue Exception
-        # If we can't load our own version, try the rest
-        Dir["#{dirname}/*.dat"].sort.each do |dat|
-          begin
-            return load_file(dat)
-          rescue Exception
-          end
-        end
-      end
-      raise IOError.new("Can't load a marshal file for your version of Ruby")
-    end
-    
-    def self.load_file(filename)
       File.open(self.filename, 'rb') { |f| Marshal.load f.read }
     end
   end
@@ -275,7 +261,11 @@ module ActiveSupport::Multibyte::Handlers
       
       # Strips all the non-utf-8 bytes from the string resulting in a valid utf-8 string
       def tidy_bytes(str)
-        str.split(//u).reject { |c| !UTF8_PAT.match(c) }.join
+        str.unpack('C*').map { |n|
+          n < 128 ? n.chr :
+          n < 160 ? [UCD.cp1252[n] || n].pack('U') :
+          n < 192 ? "\xC2" + n.chr : "\xC3" + (n-64).chr
+        }.join
       end
       
       protected

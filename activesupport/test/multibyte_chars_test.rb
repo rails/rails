@@ -139,14 +139,15 @@ class CharsTest < Test::Unit::TestCase
   
   def test_resilience
     assert_nothing_raised do
-      assert_equal 1, @s[:bytes].chars.size, "There's only one valid utf-8 byte in the string"
+      assert_equal 5, @s[:bytes].chars.size, "The sequence contains five interpretable bytes"
     end
+    reversed = [0xb8, 0x17e, 0x8, 0x2c6, 0xa5].reverse.pack('U*')
     assert_nothing_raised do
-      assert_equal "\010", @s[:bytes].chars.reverse, "There's only one valid utf-8 byte in the string"
+      assert_equal reversed, @s[:bytes].chars.reverse.to_s, "Reversing the string should only yield interpretable bytes"
     end
     assert_nothing_raised do
       @s[:bytes].chars.reverse!
-      assert_equal "\010", @s[:bytes], "There's only one valid utf-8 byte in the string"
+      assert_equal reversed, @s[:bytes].to_s, "Reversing the string should only yield interpretable bytes"
     end
   end
   

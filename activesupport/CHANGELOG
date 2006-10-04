@@ -1,6 +1,8 @@
 *SVN*
 
-* Add ActiveSupport::Multibyte.  Provides String#chars which lets you deal with strings as a sequence of chars, not of bytes. Closes #6242 [Julian Tarkhanov, Manfred Stienstra & Jan Behrens]
+* Pull in latest multibye patch. Closes #6346 [Manfred Stienstra]
+
+* Add ActiveSupport::Multibyte.  Provides String#chars which lets you deal with strings as a sequence of chars, not of bytes. Closes #6242 [Julian Tarkhanov, Manfred Stienstra, Thijs van der Vossen & Jan Behrens]
 
 * Fix issue with #class_inheritable_accessor saving updates to the parent class when initialized with an Array or Hash [mojombo]
 

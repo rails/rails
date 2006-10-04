@@ -18,7 +18,8 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
     SOURCES = {
       :codepoints => BASE_URI + 'UnicodeData.txt',
       :composition_exclusion => BASE_URI + 'CompositionExclusions.txt',
-      :grapheme_break_property => BASE_URI + 'auxiliary/GraphemeBreakProperty.txt'
+      :grapheme_break_property => BASE_URI + 'auxiliary/GraphemeBreakProperty.txt',
+      :cp1252 => 'http://unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT'
     }
     
     def initialize
@@ -33,6 +34,7 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
       @ucd.composition_exclusion = []
       @ucd.composition_map = {}
       @ucd.boundary = {}
+      @ucd.cp1252 = {}
     end
     
     def parse_codepoints(line)
@@ -87,6 +89,12 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
       end
     end
     
+    def parse_cp1252(line)
+      if line =~ /^([0-9A-Fx]+)\s([0-9A-Fx]+)/i
+        @ucd.cp1252[$1.hex] = $2.hex
+      end
+    end
+    
     def create_composition_map
       @ucd.codepoints.each do |_, cp|
         if !cp.nil? and cp.combining_class == 0 and cp.decomp_type.nil? and !cp.decomp_mapping.nil? and cp.decomp_mapping.length == 2 and @ucd[cp.decomp_mapping[0]].combining_class == 0 and !@ucd.composition_exclusion.include?(cp.code)
@@ -125,7 +133,7 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
     
     def dump_to(filename)
       File.open(filename, 'wb') do |f|
-        f.write Marshal.dump([@ucd.codepoints, @ucd.composition_exclusion, @ucd.composition_map, @ucd.boundary])
+        f.write Marshal.dump([@ucd.codepoints, @ucd.composition_exclusion, @ucd.composition_map, @ucd.boundary, @ucd.cp1252])
       end
     end
   end
