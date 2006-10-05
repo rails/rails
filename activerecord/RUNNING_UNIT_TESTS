@@ -7,15 +7,16 @@ test/connections/<your database>/connection.rb.
 When you have the database online, you can import the fixture tables with 
 the test/fixtures/db_definitions/*.sql files.
 
-Make sure that you create database objects with the same user that you specified in i
+Make sure that you create database objects with the same user that you specified in 
 connection.rb otherwise (on Postgres, at least) tests for default values will fail.
 
 == Running with Rake
 
 The easiest way to run the unit tests is through Rake. The default task runs
 the entire test suite for all the adapters. You can also run the suite on just
-one adapter by using the tasks test_mysql_ruby, test_ruby_mysql, test_sqlite, 
-or test_postgresql. For more information, checkout the full array of rake tasks with "rake -T"
+one adapter by using the tasks test_mysql, test_sqlite, test_postgresql or any
+of the other test_ tasks. For more information, checkout the full array of rake
+tasks with "rake -T"
 
 Rake can be found at http://rake.rubyforge.org
 
