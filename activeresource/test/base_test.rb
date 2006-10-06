@@ -167,4 +167,8 @@ class BaseTest < Test::Unit::TestCase
     end
     assert_raises(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :person_id => 1).destroy }
   end
+
+  def test_delete
+    assert Person.delete(1)
+  end
 end

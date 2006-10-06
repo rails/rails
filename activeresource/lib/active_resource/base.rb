@@ -81,6 +81,10 @@ module ActiveResource
         end
       end
 
+      def delete(id)
+        connection.delete(element_path(id))
+      end
+
       private
         # { :people => { :person => [ person1, person2 ] } }
         def find_every(options)

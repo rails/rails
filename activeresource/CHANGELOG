@@ -1,5 +1,7 @@
 *SVN*
 
+* Add Base.delete for deleting resources without having to instantiate them first. [Jamis Buck]
+
 * Make #save behavior mimic AR::Base#save (true on success, false on failure). [Jamis Buck]
 
 * Add Basic HTTP Authentication to ActiveResource (closes #6305). [jonathan]
