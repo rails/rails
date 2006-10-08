@@ -53,12 +53,21 @@ module ActionView #:nodoc:
   # 
   # You can pass local variables to sub templates by using a hash with the variable names as keys and the objects as values:
   #
-  #   <%= render "shared/header", { "headline" => "Welcome", "person" => person } %>
+  #   <%= render "shared/header", { :headline => "Welcome", :person => person } %>
   #
   # These can now be accessed in shared/header with:
   #
   #   Headline: <%= headline %>
   #   First name: <%= person.first_name %>
+  #
+  # If you need to find out whether a certain local variable has been assigned a value in a particular render call,
+  # you need to use the following pattern:
+  #
+  #   <% if local_assigns.has_key? :headline %>
+  #     Headline: <%= headline %>
+  #   <% end %>
+  #
+  # Testing using <tt>defined? headline</tt> will not work. This is an implementation restriction.
   #
   # == Template caching
   #
@@ -301,6 +310,9 @@ module ActionView #:nodoc:
     # will only be read if it has to be compiled.
     #
     def compile_and_render_template(extension, template = nil, file_path = nil, local_assigns = {}) #:nodoc:
+      # convert string keys to symbols if requested
+      local_assigns = local_assigns.symbolize_keys if @@local_assigns_support_string_keys
+
       # compile the given template, if necessary
       if compile_template?(template, file_path, local_assigns)
         template ||= read_template_file(file_path, extension)
@@ -310,8 +322,6 @@ module ActionView #:nodoc:
       # Get the method name for this template and run it
       method_name = @@method_names[file_path || template]
       evaluate_assigns
-
-      local_assigns = local_assigns.symbolize_keys if @@local_assigns_support_string_keys
 
       send(method_name, local_assigns) do |*name|
         instance_variable_get "@content_for_#{name.first || 'layout'}"
@@ -427,8 +437,8 @@ module ActionView #:nodoc:
 
         if @@compile_time[render_symbol] && supports_local_assigns?(render_symbol, local_assigns)
           if file_name && !@@cache_template_loading 
-            @@compile_time[render_symbol] < File.mtime(file_name) || (File.symlink?(file_name) ? 
-              @@compile_time[render_symbol] < File.lstat(file_name).mtime : false)
+            @@compile_time[render_symbol] < File.mtime(file_name) ||
+              (File.symlink?(file_name) && (@@compile_time[render_symbol] < File.lstat(file_name).mtime))
           end
         else
           true
@@ -457,7 +467,7 @@ module ActionView #:nodoc:
 
         locals_code = ""
         locals_keys.each do |key|
-          locals_code << "#{key} = local_assigns[:#{key}] if local_assigns.has_key?(:#{key})\n"
+          locals_code << "#{key} = local_assigns[:#{key}]\n"
         end
 
         "def #{render_symbol}(local_assigns)\n#{locals_code}#{body}\nend"
