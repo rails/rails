@@ -1,5 +1,7 @@
 *SVN*
 
+* respond_to :html doesn't assume .rhtml.  #6281 [Hampton Catlin]
+
 * Fixed some deprecation warnings in ActionPack [Rick Olson]
 
 * assert_select_rjs decodes escaped unicode chars since the Javascript generators encode them.  #6240 [japgolly]

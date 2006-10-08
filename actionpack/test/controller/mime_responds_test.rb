@@ -303,4 +303,21 @@ class MimeControllerTest < Test::Unit::TestCase
     get :html_xml_or_rss, :format => "rss"
     assert_equal "RSS", @response.body
   end
+
+  def test_render_action_for_html
+    @controller.instance_eval do
+      def render(*args)
+        unless args.empty?
+          @action = args.first[:action]
+        end
+        response.body = @action
+      end
+    end
+
+    get :using_defaults
+    assert_equal "using_defaults", @response.body
+
+    get :using_defaults, :format => "xml"
+    assert_equal "using_defaults.rxml", @response.body
+  end
 end
