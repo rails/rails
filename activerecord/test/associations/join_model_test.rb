@@ -137,6 +137,13 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_equal "Post", tagging.taggable_type
     assert_equal old_count+1, posts(:welcome).taggings.count
   end
+  
+  def test_create_bang_polymorphic_with_has_many_scope
+    old_count = posts(:welcome).taggings.count
+    tagging = posts(:welcome).taggings.create!(:tag => tags(:misc))
+    assert_equal "Post", tagging.taggable_type
+    assert_equal old_count+1, posts(:welcome).taggings.count
+  end
 
   def test_create_polymorphic_has_one_with_scope
     old_count = Tagging.count

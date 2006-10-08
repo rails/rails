@@ -91,20 +91,21 @@ module ActiveRecord
           @reflection.klass.find(*args)
         end
       end
-      
+
       protected
         def method_missing(method, *args, &block)
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             super
           else
+            create_scoping = {}
+            set_belongs_to_association_for(create_scoping)
+
             @reflection.klass.with_scope(
+              :create => create_scoping,
               :find => {
                 :conditions => @finder_sql, 
                 :joins      => @join_sql, 
                 :readonly   => false
-              },
-              :create => {
-                @reflection.primary_key_name => @owner.id
               }
             ) do
               @reflection.klass.send(method, *args, &block)

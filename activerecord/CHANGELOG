@@ -1,5 +1,7 @@
 *SVN*
 
+* The has_many create method works with polymorphic associations.  #6361 [Dan Peterson]
+
 * MySQL: introduce Mysql::Result#all_hashes to support further optimization.  #5581 [Stefan Kaes]
 
 * save! shouldn't validate twice.  #6324 [maiha, Bob Silva]
