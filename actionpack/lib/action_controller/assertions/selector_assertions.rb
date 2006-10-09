@@ -63,7 +63,7 @@ module ActionController
           root = arg
           arg = args.shift
         elsif arg == nil
-          raise ArgumentError, "First arugment is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
+          raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
         elsif @selected
           matches = []
           @selected.each do |selected|
@@ -188,7 +188,7 @@ module ActionController
         elsif arg == nil
           # This usually happens when passing a node/element that
           # happens to be nil.
-          raise ArgumentError, "First arugment is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
+          raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
         elsif @selected
           root = HTML::Node.new(nil)
           root.children.concat @selected
