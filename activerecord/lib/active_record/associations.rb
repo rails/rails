@@ -439,6 +439,7 @@ module ActiveRecord
       # * <tt>collection.delete(object, ...)</tt> - removes one or more objects from the collection by setting their foreign keys to NULL.  
       #   This will also destroy the objects if they're declared as belongs_to and dependent on this model.
       # * <tt>collection=objects</tt> - replaces the collections content by deleting and adding objects as appropriate.
+      # * <tt>collection_singular_ids</tt> - returns an array of the associated objects ids
       # * <tt>collection_singular_ids=ids</tt> - replace the collection by the objects identified by the primary keys in +ids+
       # * <tt>collection.clear</tt> - removes every object from the collection. This destroys the associated objects if they
       #   are <tt>:dependent</tt>, deletes them directly from the database if they are <tt>:dependent => :delete_all</tt>,
@@ -458,6 +459,7 @@ module ActiveRecord
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
       # * <tt>Firm#clients=</tt>
+      # * <tt>Firm#client_ids</tt>
       # * <tt>Firm#client_ids=</tt>
       # * <tt>Firm#clients.clear</tt>
       # * <tt>Firm#clients.empty?</tt> (similar to <tt>firm.clients.size == 0</tt>)
@@ -746,6 +748,7 @@ module ActiveRecord
       # * <tt>collection.delete(object, ...)</tt> - removes one or more objects from the collection by removing their associations from the join table.  
       #   This does not destroy the objects.
       # * <tt>collection=objects</tt> - replaces the collections content by deleting and adding objects as appropriate.
+      # * <tt>collection_singular_ids</tt> - returns an array of the associated objects ids
       # * <tt>collection_singular_ids=ids</tt> - replace the collection by the objects identified by the primary keys in +ids+
       # * <tt>collection.clear</tt> - removes every object from the collection. This does not destroy the objects.
       # * <tt>collection.empty?</tt> - returns true if there are no associated objects.
@@ -760,9 +763,9 @@ module ActiveRecord
       # Example: An Developer class declares <tt>has_and_belongs_to_many :projects</tt>, which will add:
       # * <tt>Developer#projects</tt>
       # * <tt>Developer#projects<<</tt>
-      # * <tt>Developer#projects.push_with_attributes</tt>
       # * <tt>Developer#projects.delete</tt>
       # * <tt>Developer#projects=</tt>
+      # * <tt>Developer#project_ids</tt>
       # * <tt>Developer#project_ids=</tt>
       # * <tt>Developer#projects.clear</tt>
       # * <tt>Developer#projects.empty?</tt>
