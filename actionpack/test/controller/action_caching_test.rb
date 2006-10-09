@@ -121,6 +121,13 @@ class ActionCacheTest < Test::Unit::TestCase
     assert_equal 'example.org/index', @path_class.path_for(@mock_controller)
   end
   
+  def test_file_extensions
+    get :index, :id => 'kitten.jpg' 
+    get :index, :id => 'kitten.jpg'
+
+    assert_response :success
+  end
+  
   private
   
     def content_to_cache
