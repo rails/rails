@@ -117,7 +117,7 @@ A short rundown of the major features:
 
 
 * Transaction support on both a database and object level. The latter is implemented 
-  by using Transaction::Simple[http://www.halostatue.ca/ruby/Transaction__Simple.html]
+  by using Transaction::Simple[http://railsmanual.com/module/Transaction::Simple]
 
     # Just database transaction
     Account.transaction do
