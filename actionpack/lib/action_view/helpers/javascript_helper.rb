@@ -153,7 +153,15 @@ module ActionView
       end
 
       # Returns a JavaScript tag with the +content+ inside. Example:
-      #   javascript_tag "alert('All is good')" # => <script type="text/javascript">alert('All is good')</script>
+      #   javascript_tag "alert('All is good')"
+      #
+      # Returns:
+      #
+      #   <script type="text/javascript">
+      #   //<![CDATA[
+      #   alert('All is good')
+      #   //]]>
+      #   </script>
       def javascript_tag(content)
         content_tag("script", javascript_cdata_section(content), :type => "text/javascript")
       end
