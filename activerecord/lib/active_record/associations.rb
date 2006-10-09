@@ -279,6 +279,30 @@ module ActiveRecord
     # This works by using a type column in addition to a foreign key to specify the associated record.  In the Asset example, you'd need
     # an attachable_id integer column and an attachable_type string column.
     #
+    # Using polymorphic associations in combination with single table inheritance (STI) is a little tricky. In order
+    # for the associations to work as expected, ensure that you store the base model for the STI models in the 
+    # type column of the polymorphic association. To continue with the asset example above, suppose there are guest posts
+    # and member posts that use the posts table for STI. So there will be an additional 'type' column in the posts table.
+    #
+    #   class Asset < ActiveRecord::Base
+    #     belongs_to :attachable, :polymorphic => true
+    #     
+    #     def attachable_type=(sType)
+    #        super(sType.to_s.classify.constantize.base_class.to_s)
+    #     end
+    #   end
+    # 
+    #   class Post < ActiveRecord::Base
+    #     # because we store "Post" in attachable_type now :dependent => :destroy will work
+    #     has_many :assets, :as => :attachable, :dependent => :destroy
+    #   end
+    #
+    #   class GuestPost < ActiveRecord::Base
+    #   end
+    #
+    #   class MemberPost < ActiveRecord::Base
+    #   end
+    #
     # == Caching
     #
     # All of the methods are built on a simple caching principle that will keep the result of the last query around unless specifically
