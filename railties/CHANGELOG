@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed test:uncommitted on Windows (backslash issue) #4999 [paul@paulbutcher.com]
+
 * Fixed migration creation to work with namespaced models, so script/generate model Gallery::Image will use create_table :gallery_images #6327 [BobSilva]
 
 * Fixed rename_table on SQLite tables with indexes defined #5942 [brandon@opensoul.org]

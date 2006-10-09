@@ -67,8 +67,8 @@ namespace :test do
     def t.file_list
       changed_since_checkin = silence_stderr { `svn status` }.map { |path| path.chomp[7 .. -1] }
 
-      models      = changed_since_checkin.select { |path| path =~ /app\/models\/.*\.rb/ }
-      controllers = changed_since_checkin.select { |path| path =~ /app\/controllers\/.*\.rb/ }  
+      models      = changed_since_checkin.select { |path| path =~ /app[\\\/]models[\\\/].*\.rb/ }
+      controllers = changed_since_checkin.select { |path| path =~ /app[\\\/]controllers[\\\/].*\.rb/ }  
 
       unit_tests       = models.map { |model| "test/unit/#{File.basename(model, '.rb')}_test.rb" }
       functional_tests = controllers.map { |controller| "test/functional/#{File.basename(controller, '.rb')}_test.rb" }
