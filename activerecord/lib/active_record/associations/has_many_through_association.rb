@@ -69,6 +69,24 @@ module ActiveRecord
 
       [:push, :concat].each { |method| alias_method method, :<< }
 
+      # Remove +records+ from this association.  Does not destroy +records+.
+      def delete(*records)
+        records = flatten_deeper(records)
+        records.each { |associate| raise_on_type_mismatch(associate) }
+        records.reject! { |associate| @target.delete(associate) if associate.new_record? }
+        return if records.empty?
+        
+        @delete_join_finder ||= "find_all_by_#{@reflection.source_reflection.association_foreign_key}"
+        through = @reflection.through_reflection
+        through.klass.transaction do
+          records.each do |associate|
+            joins = @owner.send(through.name).send(@delete_join_finder, associate.id)
+            @owner.send(through.name).delete(joins)
+            @target.delete(associate)
+          end
+        end
+      end
+
       def build(attrs = nil)
         raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, @reflection.through_reflection)
       end

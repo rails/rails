@@ -418,6 +418,39 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_equal tags, posts(:thinking).tags.push(tags(:general))
   end
 
+  def test_delete_associate_when_deleting_from_has_many_through
+    count = posts(:thinking).tags.count
+    tags_before = posts(:thinking).tags
+    tag = Tag.create!(:name => 'doomed')
+    post_thinking = posts(:thinking)
+    post_thinking.tags << tag
+    assert_equal(count + 1, post_thinking.tags(true).size)
+
+    assert_nothing_raised { post_thinking.tags.delete(tag) }    
+    assert_equal(count, post_thinking.tags.size)
+    assert_equal(count, post_thinking.tags(true).size)
+    assert_equal(tags_before.sort, post_thinking.tags.sort)
+  end
+
+  def test_delete_associate_when_deleting_from_has_many_through_with_multiple_tags
+    count = posts(:thinking).tags.count
+    tags_before = posts(:thinking).tags
+    doomed = Tag.create!(:name => 'doomed')
+    doomed2 = Tag.create!(:name => 'doomed2')
+    quaked = Tag.create!(:name => 'quaked')
+    post_thinking = posts(:thinking)
+    post_thinking.tags << doomed << doomed2
+    assert_equal(count + 2, post_thinking.tags(true).size)
+
+    assert_nothing_raised { post_thinking.tags.delete(doomed, doomed2, quaked) }    
+    assert_equal(count, post_thinking.tags.size)
+    assert_equal(count, post_thinking.tags(true).size)
+    assert_equal(tags_before.sort, post_thinking.tags.sort)
+  end
+
+  def test_deleting_junk_from_has_many_through_should_raise_type_mismatch
+    assert_raise(ActiveRecord::AssociationTypeMismatch) { posts(:thinking).tags.delete("Uhh what now?") }
+  end
 
   def test_has_many_through_sum_uses_calculations
     assert_nothing_raised { authors(:david).comments.sum(:post_id) }

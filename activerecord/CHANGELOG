@@ -1,5 +1,7 @@
 *SVN*
 
+* Add #delete support to has_many :through associations.  Closes #6049 [Martin Landers]
+
 * Reverted old select_limited_ids_list postgresql fix that caused issues in mysql.  Closes #5851 [Rick]
 
 * Removes the ability for eager loaded conditions to be interpolated, since there is no model instance to use as a context for interpolation. #5553 [turnip@turnipspatch.com]
