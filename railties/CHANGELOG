@@ -1,5 +1,11 @@
 *SVN*
 
+* Added generated attribute options to script/generate model, like the one found in scaffold_resource and resource [DHH]. Examples:
+
+    ./script/generate model post title:string created_on:date body:text published:boolean
+
+* Added script/generate resource which works just like scaffold_resource, but creates empty placeholders instead of predefined [DHH]
+
 * script/runner can run files, pass on arguments, and be used as a shebang.  #6286 [Tuxie, dlpond]
     #!/usr/bin/env /path/to/my/app/script/runner
     # Example: just start using your models as if you are in script/console

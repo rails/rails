@@ -1,19 +1,26 @@
 Description:
     The model generator creates stubs for a new model.
 
-    The generator takes a model name as its argument.  The model name may be
-    given in CamelCase or under_score and should not be suffixed with 'Model'.
+    The generator takes a model name as its argument.  The model name may be given in CamelCase or under_score and
+    should not be suffixed with 'Model'.
 
-    The generator creates a model class in app/models, a test suite in
-    test/unit, test fixtures in test/fixtures/singular_name.yml, and a migration
-    in db/migrate.
+    As additional parameters, the generator will take attribute pairs described by name and type. These attributes will
+    be used to prepopulate the migration to create the table for the model and give you a set of predefined fixture.    
+    You don't have to think up all attributes up front, but it's a good idea of adding just the baseline of what's 
+    needed to start really working with the resource.
 
-Example:
-    ./script/generate model Account
+    The generator creates a model class in app/models, a test suite in test/unit, test fixtures in
+    test/fixtures/singular_name.yml, and a migration in db/migrate.
 
-    This will create an Account model:
-        Model:      app/models/account.rb
-        Test:       test/unit/account_test.rb
-        Fixtures:   test/fixtures/accounts.yml
-        Migration:  db/migrate/XXX_add_accounts.rb
+Examples:
+    ./script/generate model account
 
+        This will create an Account model:
+            Model:      app/models/account.rb
+            Test:       test/unit/account_test.rb
+            Fixtures:   test/fixtures/accounts.yml
+            Migration:  db/migrate/XXX_add_accounts.rb
+
+    ./script/generate model post title:string created_on:date body:text published:boolean
+    
+        Creates post model with predefined attributes.

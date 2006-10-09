@@ -1,0 +1,18 @@
+Description:
+    The resource generator creates an empty model and controller for use in a REST-friendly, resource-oriented
+    application. Say you want to a resource called post. Normally, you could just call "script/generate model post" and
+    "script/generate controller posts". This generator basically just collapses these two generators into one step.
+
+    The generator takes the name of the model as its first argument. This model name is then pluralized to get the 
+    controller name. So "resource post" will generate a Post model and a PostsController and will be intended
+    for URLs like /posts and /posts/45.
+
+    As additional parameters, the generator will take attribute pairs described by name and type. These attributes will
+    be used to prepopulate the migration to create the table for the model and give you a set of predefined fixture.    
+    You don't have to think up all attributes up front, but it's a good idea of adding just the baseline of what's 
+    needed to start really working with the resource.
+
+Examples:
+    ./script/generate resource post
+    ./script/generate resource post title:string created_on:date body:text published:boolean
+    ./script/generate resource purchase order_id:integer created_at:datetime amount:decimal

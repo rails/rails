@@ -23,7 +23,7 @@ Description:
     add "map.resources :posts" (notice the plural form) in the routes file. Then your new resource is accessible from
     /posts.
 
-Example:
+Examples:
     ./script/generate scaffold_resource post # no attributes, view will be anemic
     ./script/generate scaffold_resource post title:string created_on:date body:text published:boolean
     ./script/generate scaffold_resource purchase order_id:integer created_at:datetime amount:decimal

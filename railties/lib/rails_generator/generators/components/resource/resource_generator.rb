@@ -1,4 +1,4 @@
-class ScaffoldResourceGenerator < Rails::Generator::NamedBase
+class ResourceGenerator < Rails::Generator::NamedBase
   attr_reader   :controller_name,
                 :controller_class_path,
                 :controller_file_path,
@@ -39,13 +39,6 @@ class ScaffoldResourceGenerator < Rails::Generator::NamedBase
       m.directory(File.join('test/functional', controller_class_path))
       m.directory(File.join('test/unit', class_path))
 
-      for action in scaffold_views
-        m.template(
-          "view_#{action}.rhtml",
-          File.join('app/views', controller_class_path, controller_file_name, "#{action}.rhtml")
-        )
-      end
-
       m.template('model.rb', File.join('app/models', class_path, "#{file_name}.rb"))
 
       m.template(
@@ -84,11 +77,7 @@ class ScaffoldResourceGenerator < Rails::Generator::NamedBase
   protected
     # Override with your own usage banner.
     def banner
-      "Usage: #{$0} scaffold_resource ModelName [field:type, field:type]"
-    end
-
-    def scaffold_views
-      %w[ index show new edit ]
+      "Usage: #{$0} resource ModelName [field:type, field:type]"
     end
 
     def model_name 
