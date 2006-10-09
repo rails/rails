@@ -186,6 +186,23 @@ class AssertSelectTest < Test::Unit::TestCase
   end
 
 
+  def test_assert_select_text_match
+    render_html %Q{<div id="1"><span>foo</span></div><div id="2"><span>bar</span></div>}
+    assert_select "div" do
+      assert_nothing_raised               { assert_select "div", "foo" }
+      assert_nothing_raised               { assert_select "div", "bar" }
+      assert_nothing_raised               { assert_select "div", /\w*/ }
+      assert_nothing_raised               { assert_select "div", /\w*/, :count=>2 }
+      assert_raises(AssertionFailedError) { assert_select "div", :text=>"foo", :count=>2 }
+      assert_nothing_raised               { assert_select "div", :html=>"<span>bar</span>" }
+      assert_nothing_raised               { assert_select "div", :html=>"<span>bar</span>" }
+      assert_nothing_raised               { assert_select "div", :html=>/\w*/ }
+      assert_nothing_raised               { assert_select "div", :html=>/\w*/, :count=>2 }
+      assert_raises(AssertionFailedError) { assert_select "div", :html=>"<span>foo</span>", :count=>2 }
+    end
+  end
+
+
   def test_assert_select_from_rjs
     render_rjs do |page|
       page.replace_html "test", "<div id=\"1\">foo</div>\n<div id=\"2\">foo</div>"

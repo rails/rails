@@ -8,6 +8,10 @@ require File.dirname(__FILE__) + "/../vendor/html-scanner/html/document"
 
 module ActionController
   module Assertions
+    unless const_defined?(:NO_STRIP)
+      NO_STRIP = %w{pre script style textarea}
+    end
+
     # Adds the #assert_select method for use in Rails functional
     # test cases.
     #
@@ -118,27 +122,28 @@ module ActionController
       # === Equality Tests
       #
       # The equality test may be one of the following:
-      # * <tt>nil/true</tt> -- Assertion is true if at least one element is
-      #   selected.
-      # * <tt>String</tt> -- Assertion is true if the text value of all
-      #   selected elements equals to the string.
-      # * <tt>Regexp</tt> -- Assertion is true if the text value of all
-      #   selected elements matches the regular expression.
-      # * <tt>false</tt> -- Assertion is true if no element is selected.
+      # * <tt>true</tt> -- Assertion is true if at least one element selected.
+      # * <tt>false</tt> -- Assertion is true if no element selected.
+      # * <tt>String/Regexp</tt> -- Assertion is true if the text value of at least
+      #   one element matches the string or regular expression.
       # * <tt>Integer</tt> -- Assertion is true if exactly that number of
       #   elements are selected.
       # * <tt>Range</tt> -- Assertion is true if the number of selected
       #   elements fit the range.
+      # If no equality test specified, the assertion is true if at least one
+      # element selected.
       #
-      # To perform more than one equality tests, use a hash the following keys:
-      # * <tt>:text</tt> -- Assertion is true if the text value of each
-      #   selected elements equals to the value (+String+ or +Regexp+).
-      # * <tt>:count</tt> -- Assertion is true if the number of matched elements
-      #   is equal to the value.
-      # * <tt>:minimum</tt> -- Assertion is true if the number of matched
-      #   elements is at least that value.
-      # * <tt>:maximum</tt> -- Assertion is true if the number of matched
-      #   elements is at most that value.
+      # To perform more than one equality tests, use a hash with the following keys:
+      # * <tt>:text</tt> -- Narrow the selection to elements that have this text
+      #   value (string or regexp).
+      # * <tt>:html</tt> -- Narrow the selection to elements that have this HTML
+      #   content (string or regexp).
+      # * <tt>:count</tt> -- Assertion is true if the number of selected elements
+      #   is equal to this value.
+      # * <tt>:minimum</tt> -- Assertion is true if the number of selected
+      #   elements is at least this value.
+      # * <tt>:maximum</tt> -- Assertion is true if the number of selected
+      #   elements is at most this value.
       #
       # If the method is called with a block, once all equality tests are
       # evaluated the block is called with an array of all matched elements.
@@ -224,15 +229,11 @@ module ActionController
           else raise ArgumentError, "I don't understand what you're trying to match"
         end
 
-        # If we have a text test, by default we're looking for at least one match.
-        # Without this statement text tests pass even if nothing is selected.
-        # Can always override by specifying minimum or count.
-        if equals[:text]
-          equals[:minimum] ||= 1
-        end
-        # If a count is specified, it takes precedence over minimum/maximum.
+        # By default we're looking for at least one match.
         if equals[:count]
-          equals[:minimum] = equals[:maximum] = equals.delete(:count)
+          equals[:minimum] = equals[:maximum] = equals[:count]
+        else
+          equals[:minimum] = 1 unless equals[:minimum]
         end
 
         # Last argument is the message we use if the assertion fails.
@@ -243,49 +244,46 @@ module ActionController
         end
 
         matches = selector.select(root)
-        # Equality test.
-        equals.each do |type, value|
-          case type
-            when :text
-              for match in matches
-                text = ""
-                stack = match.children.reverse
-                while node = stack.pop
-                  if node.tag?
-                    stack.concat node.children.reverse
-                  else
-                    text << node.content
-                  end
-                end
-                text.strip! unless match.name == "pre"
-                if value.is_a?(Regexp)
-                  assert text =~ value, build_message(message, <<EOT, value, text)
-<?> expected but was
-<?>.
-EOT
-                else
-                  assert_equal value.to_s, text, message
-                end
+        # If text/html, narrow down to those elements that match it.
+        content_mismatch = nil
+        if match_with = equals[:text]
+          matches.delete_if do |match|
+            text = ""
+            stack = match.children.reverse
+            while node = stack.pop
+              if node.tag?
+                stack.concat node.children.reverse
+              else
+                text << node.content
               end
-            when :html
-              for match in matches
-                html = match.children.map(&:to_s).join
-                html.strip! unless match.name == "pre"
-                if value.is_a?(Regexp)
-                  assert html =~ value, build_message(message, <<EOT, value, html)
-<?> expected but was
-<?>.
-EOT
-                else
-                  assert_equal value.to_s, html, message
-                end
-              end
-            when :minimum
-              assert matches.size >= value, message || "Expecting at least #{value} selected elements, found #{matches.size}"
-            when :maximum
-              assert matches.size <= value, message || "Expecting at most #{value} selected elements, found #{matches.size}"
-            else raise ArgumentError, "I don't support the equality test #{key}"
+            end
+            text.strip! unless NO_STRIP.include?(match.name)
+            unless match_with.is_a?(Regexp) ? (text =~ match_with) : (text == match_with.to_s)
+              content_mismatch ||= build_message(message, "<?> expected but was\n<?>.", match_with, text)
+              true
+            end
           end
+        elsif match_with = equals[:html]
+          matches.delete_if do |match|
+            html = match.children.map(&:to_s).join
+            html.strip! unless NO_STRIP.include?(match.name)
+            unless match_with.is_a?(Regexp) ? (html =~ match_with) : (html == match_with.to_s)
+              content_mismatch ||= build_message(message, "<?> expected but was\n<?>.", match_with, html)
+              true
+            end
+          end
+        end
+        # Expecting foo found bar element only if found zero, not if
+        # found one but expecting two.
+        message ||= content_mismatch if matches.empty?
+        # Test minimum/maximum occurrence.
+        if equals[:minimum]
+          assert matches.size >= equals[:minimum], message ||
+             "Expected at least #{equals[:minimum]} elements, found #{matches.size}."
+        end
+        if equals[:maximum]
+          assert matches.size <= equals[:maximum], message ||
+            "Expected at most #{equals[:maximum]} elements, found #{matches.size}."
         end
 
         # If a block is given call that block. Set @selected to allow
