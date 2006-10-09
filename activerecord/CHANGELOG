@@ -1,5 +1,7 @@
 *SVN*
 
+* Added timeout option to SQLite3 configurations to deal more gracefully with SQLite3::BusyException, now the connection can instead retry for x seconds to see if the db clears up before throwing that exception #6126 [wreese@gmail.com]
+
 * Added update_attributes! which uses save! to raise an exception if a validation error prevents saving #6192 [jonathan]
 
 * Deprecated add_on_boundary_breaking (use validates_length_of instead) #6292 [BobSilva]

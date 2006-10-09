@@ -11,7 +11,7 @@ sqlite_test_db  = "#{BASE_DIR}/fixture_database.sqlite3"
 sqlite_test_db2 = "#{BASE_DIR}/fixture_database_2.sqlite3"
 
 def make_connection(clazz, db_file, db_definitions_file)
-  ActiveRecord::Base.configurations = { clazz.name => { :adapter => 'sqlite3', :database => db_file } }
+  ActiveRecord::Base.configurations = { clazz.name => { :adapter => 'sqlite3', :database => db_file, :timeout => 5000 } }
   unless File.exist?(db_file)
     puts "SQLite3 database not found at #{db_file}. Rebuilding it."
     sqlite_command = %Q{sqlite3 #{db_file} "create table a (a integer); drop table a;"}

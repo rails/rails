@@ -19,6 +19,9 @@ module ActiveRecord
           :results_as_hash => true,
           :type_translation => false
         )
+
+        db.busy_timeout(config[:timeout]) unless config[:timeout].nil?
+
         ConnectionAdapters::SQLiteAdapter.new(db, logger)
       end
 

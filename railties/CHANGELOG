@@ -1,5 +1,7 @@
 *SVN*
 
+* Added default timeout setting of 5 seconds to SQLite3 database.yml configurations [DHH]
+
 * Added generated attribute options to script/generate model, like the one found in scaffold_resource and resource [DHH]. Examples:
 
     ./script/generate model post title:string created_on:date body:text published:boolean
