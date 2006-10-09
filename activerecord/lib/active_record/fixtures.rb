@@ -252,7 +252,7 @@ class Fixtures < YAML::Omap
       end               
       all_loaded_fixtures.merge! fixtures_map  
 
-      connection.transaction do
+      connection.transaction(Thread.current['open_transactions'] == 0) do
         fixtures.reverse.each { |fixture| fixture.delete_existing_fixtures }
         fixtures.each { |fixture| fixture.insert_fixtures }
 
@@ -542,10 +542,10 @@ module Test #:nodoc:
       def teardown_with_fixtures
         return unless defined?(ActiveRecord::Base) && !ActiveRecord::Base.configurations.blank?
 
-        # Rollback changes.
-        if use_transactional_fixtures?
+        # Rollback changes if a transaction is active.
+        if use_transactional_fixtures? && !Thread.current['open_transactions'].zero?
           ActiveRecord::Base.connection.rollback_db_transaction
-          ActiveRecord::Base.send :decrement_open_transactions
+          Thread.current['open_transactions'] = 0
         end
         ActiveRecord::Base.verify_active_connections!
       end
