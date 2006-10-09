@@ -161,11 +161,10 @@ module ActionController
       path = (uri = request_uri) ? uri.split('?').first : ''
 
       # Cut off the path to the installation directory if given
-      root = relative_url_root
-      path[0, root.length] = '' if root
-      path || ''
+      path.sub!(%r/^#{relative_url_root}/, '')
+      path || ''      
     end
-
+    
     # Returns the path minus the web server relative installation directory.
     # This can be set with the environment variable RAILS_RELATIVE_URL_ROOT.
     # It can be automatically extracted for Apache setups. If the server is not

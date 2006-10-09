@@ -207,6 +207,16 @@ class RequestTest < Test::Unit::TestCase
     @request.env['SCRIPT_NAME'] = "/hieraki/dispatch.cgi"
     assert_equal "/hieraki/", @request.request_uri
     assert_equal "/", @request.path    
+                                              
+    @request.set_REQUEST_URI '/hieraki/dispatch.cgi'
+    @request.relative_url_root = '/hieraki'
+    assert_equal "/dispatch.cgi", @request.path    
+    @request.relative_url_root = nil
+
+    @request.set_REQUEST_URI '/hieraki/dispatch.cgi'
+    @request.relative_url_root = '/foo'
+    assert_equal "/hieraki/dispatch.cgi", @request.path    
+    @request.relative_url_root = nil
 
     # This test ensures that Rails uses REQUEST_URI over PATH_INFO
     @request.relative_url_root = nil

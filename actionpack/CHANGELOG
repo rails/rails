@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix relative URL root matching problems. [Mark Imbriaco]
+
 * Fix filter skipping in controller subclasses.  #5949, #6297, #6299 [Martin Emde]
 
 * render_text may optionally append to the response body. render_javascript appends by default. This allows you to chain multiple render :update calls by setting @performed_render = false between them (awaiting a better public API).  [Jeremy Kemper]
