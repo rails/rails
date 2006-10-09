@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to latest Prototype and script.aculo.us trunk versions [Thomas Fuchs]
+
 * Fix relative URL root matching problems. [Mark Imbriaco]
 
 * Fix filter skipping in controller subclasses.  #5949, #6297, #6299 [Martin Emde]

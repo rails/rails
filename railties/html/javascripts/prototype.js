@@ -302,6 +302,14 @@ var Enumerable = {
     } catch (e) {
       if (e != $break) throw e;
     }
+    return this;
+  },
+
+  eachSlice: function(number, iterator) {
+    var index = -number, slices = [], array = this.toArray();
+    while ((index += number) < array.length)
+      slices.push(array.slice(index, index+number));
+    return slices.collect(iterator || Prototype.K);
   },
 
   all: function(iterator) {
@@ -369,6 +377,15 @@ var Enumerable = {
       }
     });
     return found;
+  },
+
+  inGroupsOf: function(number, fillWith) {
+    fillWith = fillWith || null;
+    var results = this.eachSlice(number);
+    if (results.length > 0) (number - results.last().length).times(function() {
+      results.last().push(fillWith)
+    });
+    return results;
   },
 
   inject: function(memo, iterator) {
@@ -1262,7 +1279,7 @@ Element.Methods = {
 
   makeClipping: function(element) {
     element = $(element);
-    if (element._overflow) return;
+    if (element._overflow) return element;
     element._overflow = element.style.overflow || 'auto';
     if ((Element.getStyle(element, 'overflow') || 'visible') != 'hidden')
       element.style.overflow = 'hidden';
@@ -1271,7 +1288,7 @@ Element.Methods = {
 
   undoClipping: function(element) {
     element = $(element);
-    if (!element._overflow) return;
+    if (!element._overflow) return element;
     element.style.overflow = element._overflow == 'auto' ? '' : element._overflow;
     element._overflow = null;
     return element;
@@ -1587,7 +1604,7 @@ Selector.prototype = {
 Object.extend(Selector, {
   matchElements: function(elements, expression) {
     var selector = new Selector(expression);
-    return elements.select(selector.match.bind(selector));
+    return elements.select(selector.match.bind(selector)).collect(Element.extend);
   },
 
   findElement: function(elements, expression, index) {

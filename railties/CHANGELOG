@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to latest Prototype and script.aculo.us trunk versions [Thomas Fuchs]
+
 * PostgreSQL: db:test:purge closes open database connections first.  #6236 [alex]
 
 * Fixed test:uncommitted on Windows (backslash issue) #4999 [paul@paulbutcher.com]

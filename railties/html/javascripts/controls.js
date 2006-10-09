@@ -6,7 +6,8 @@
 //  Rahul Bhargava
 //  Rob Wills
 // 
-// See scriptaculous.js for full license.
+// script.aculo.us is freely distributable under the terms of an MIT-style license.
+// For details, see the script.aculo.us web site: http://script.aculo.us/
 
 // Autocompleter.Base handles all the autocompletion functionality 
 // that's independent of the data source for autocompletion. This
@@ -262,11 +263,11 @@ Autocompleter.Base.prototype = {
     if(!this.changed && this.hasFocus) {
       this.update.innerHTML = choices;
       Element.cleanWhitespace(this.update);
-      Element.cleanWhitespace(this.update.firstChild);
+      Element.cleanWhitespace(this.update.down());
 
-      if(this.update.firstChild && this.update.firstChild.childNodes) {
+      if(this.update.firstChild && this.update.down().childNodes) {
         this.entryCount = 
-          this.update.firstChild.childNodes.length;
+          this.update.down().childNodes.length;
         for (var i = 0; i < this.entryCount; i++) {
           var entry = this.getEntry(i);
           entry.autocompleteIndex = i;
