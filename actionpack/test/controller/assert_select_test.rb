@@ -203,7 +203,8 @@ class AssertSelectTest < Test::Unit::TestCase
   end
 
 
-  def test_assert_select_from_rjs
+  # With single result.
+  def test_assert_select_from_rjs_with_single_result
     render_rjs do |page|
       page.replace_html "test", "<div id=\"1\">foo</div>\n<div id=\"2\">foo</div>"
     end
@@ -216,7 +217,10 @@ class AssertSelectTest < Test::Unit::TestCase
       assert_select "#1"
       assert_select "#2"
     end
-    # With multiple results.
+  end
+
+  # With multiple results.
+  def test_assert_select_from_rjs_with_multiple_results
     render_rjs do |page|
       page.replace_html "test", "<div id=\"1\">foo</div>"
       page.replace_html "test2", "<div id=\"2\">foo</div>"
@@ -260,19 +264,23 @@ class AssertSelectTest < Test::Unit::TestCase
   end
 
 
-  def test_css_select_from_rjs
-    # With one result.
+  # With one result.
+  def test_css_select_from_rjs_with_single_result
     render_rjs do |page|
       page.replace_html "test", "<div id=\"1\">foo</div>\n<div id=\"2\">foo</div>"
     end
     assert_equal 2, css_select("div").size
     assert_equal 1, css_select("#1").size
     assert_equal 1, css_select("#2").size
-    # With multiple results.
+  end
+
+  # With multiple results.
+  def test_css_select_from_rjs_with_multiple_results
     render_rjs do |page|
       page.replace_html "test", "<div id=\"1\">foo</div>"
       page.replace_html "test2", "<div id=\"2\">foo</div>"
     end
+
     assert_equal 2, css_select("div").size
     assert_equal 1, css_select("#1").size
     assert_equal 1, css_select("#2").size
@@ -284,13 +292,14 @@ class AssertSelectTest < Test::Unit::TestCase
   #
 
 
-  def test_assert_select_rjs
-    # Test that we can pick up all statements in the result.
+  # Test that we can pick up all statements in the result.
+  def test_assert_select_rjs_picks_up_all_statements
     render_rjs do |page|
       page.replace "test", "<div id=\"1\">foo</div>"
       page.replace_html "test2", "<div id=\"2\">foo</div>"
       page.insert_html :top, "test3", "<div id=\"3\">foo</div>"
     end
+
     found = false
     assert_select_rjs do
       assert_select "#1"
@@ -299,9 +308,11 @@ class AssertSelectTest < Test::Unit::TestCase
       found = true
     end
     assert found
-    # Test that we fail if there is nothing to pick.
-    render_rjs do |page|
-    end
+  end
+
+  # Test that we fail if there is nothing to pick.
+  def test_assert_select_rjs_fails_if_nothing_to_pick
+    render_rjs { }
     assert_raises(AssertionFailedError) { assert_select_rjs }
   end
 
@@ -397,13 +408,13 @@ class AssertSelectTest < Test::Unit::TestCase
     assert_raises(AssertionFailedError) { assert_select_rjs :replace_html, "test1" }
   end
 
-  def test_assert_select_rjs_for_insert
+  # Non-positioned insert.
+  def test_assert_select_rjs_for_nonpositioned_insert
     render_rjs do |page|
       page.replace "test1", "<div id=\"1\">foo</div>"
       page.replace_html "test2", "<div id=\"2\">foo</div>"
       page.insert_html :top, "test3", "<div id=\"3\">foo</div>"
     end
-    # Non-positioned.
     assert_select_rjs :insert_html do
       assert_select "div", 1
       assert_select "#3"
@@ -413,7 +424,10 @@ class AssertSelectTest < Test::Unit::TestCase
       assert_select "#3"
     end
     assert_raises(AssertionFailedError) { assert_select_rjs :insert_html, "test1" }
-    # Positioned.
+  end
+
+  # Positioned insert.
+  def test_assert_select_rjs_for_positioned_insert
     render_rjs do |page|
       page.insert_html :top, "test1", "<div id=\"1\">foo</div>"
       page.insert_html :bottom, "test2", "<div id=\"2\">foo</div>"
@@ -442,25 +456,31 @@ class AssertSelectTest < Test::Unit::TestCase
   end
 
 
-  def test_nested_assert_select_rjs
-    # Simple selection from a single result.
+  # Simple selection from a single result.
+  def test_nested_assert_select_rjs_with_single_result
     render_rjs do |page|
       page.replace_html "test", "<div id=\"1\">foo</div>\n<div id=\"2\">foo</div>"
     end
+
     assert_select_rjs "test" do |elements|
       assert_equal 2, elements.size
       assert_select "#1"
       assert_select "#2"
     end
-    # Deal with two results.
+  end
+
+  # Deal with two results.
+  def test_nested_assert_select_rjs_with_two_results
     render_rjs do |page|
       page.replace_html "test", "<div id=\"1\">foo</div>"
       page.replace_html "test2", "<div id=\"2\">foo</div>"
     end
+
     assert_select_rjs "test" do |elements|
       assert_equal 1, elements.size
       assert_select "#1"
     end
+
     assert_select_rjs "test2" do |elements|
       assert_equal 1, elements.size
       assert_select "#2"
