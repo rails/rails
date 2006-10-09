@@ -362,12 +362,12 @@ module ActionController #:nodoc:
 
       # Returns a mapping between filters and the actions that may run them.
       def included_actions #:nodoc:
-        filter_chain.inject({}) { |h,f| h[f.filter] = f.included_actions; h }
+        read_inheritable_attribute("included_actions") || {}
       end
 
       # Returns a mapping between filters and actions that may not run them.
       def excluded_actions #:nodoc:
-        filter_chain.inject({}) { |h,f| h[f.filter] = f.excluded_actions; h }
+        read_inheritable_attribute("excluded_actions") || {}
       end
 
       # Find a filter in the filter_chain where the filter method matches the _filter_ param
@@ -379,31 +379,22 @@ module ActionController #:nodoc:
         filter_chain.select { |f| f.filter == filter && (!block_given? || yield(f)) }.first
       end
 
+      # Returns true if the filter is excluded from the given action
+      def filter_excluded_from_action?(filter,action) #:nodoc:
+        if (ia = included_actions[filter]) && !ia.empty?
+          !ia.include?(action)
+        else
+          (excluded_actions[filter] || []).include?(action)
+        end
+      end
+
       # Filter class is an abstract base class for all filters. Handles all of the included/excluded actions but
       # contains no logic for calling the actual filters.
       class Filter #:nodoc:
         attr_reader :filter, :included_actions, :excluded_actions
 
-        def initialize(filter, options={})
+        def initialize(filter)
           @filter = filter
-          @position = options[:position]
-          update_conditions(options)
-        end
-
-        def update_conditions(conditions)
-          if conditions[:only]
-            @included_actions = [conditions[:only]].flatten.map(&:to_s)
-          else
-            @excluded_actions = [conditions[:except]].flatten.compact.map(&:to_s)
-          end
-          build_excluded_actions_hash
-        end
-
-        def remove_actions_from_included_actions!(*actions)
-          if @included_actions
-            actions.flatten.map(&:to_s).each { |action| @included_actions.delete(action) }
-            build_excluded_actions_hash
-          end
         end
 
         def before?
@@ -414,22 +405,8 @@ module ActionController #:nodoc:
           false
         end
 
-        def excluded_from?(action)
-          @excluded_actions_hash[action]
-        end
-
         def call(controller, &block)
           raise(ActionControllerError, 'No filter type: Nothing to do here.')
-        end
-
-        private
-        def build_excluded_actions_hash
-          @excluded_actions_hash =
-            if @included_actions
-              @included_actions.inject(Hash.new(true)){|h, a| h[a] = false; h}
-            else
-              @excluded_actions.inject(Hash.new(false)){|h, a| h[a] = true; h}
-            end
         end
       end
 
@@ -511,25 +488,27 @@ module ActionController #:nodoc:
 
         def create_filters(filters, position, &block) #:nodoc:
           filters, conditions = extract_conditions(filters, &block)
-          conditions.merge!(:position => position)
 
-          # conditions should be blank for a filter behind a filter proxy since the proxy will take care of all conditions.
-          proxy_conditions, conditions = conditions, {} unless :around == position
-
-          filters.map do |filter|
+          filters.map! do |filter|
             # change all the filters into instances of Filter derived classes
-            class_for_filter(filter).new(filter, conditions)
-          end.collect do |filter|
+            class_for_filter(filter).new(filter)
+          end
+
+          filters.map! do |filter|
             # apply proxy to filter if necessary
             case position
             when :before
-              BeforeFilterProxy.new(filter, proxy_conditions)
+              BeforeFilterProxy.new(filter)
             when :after
-              AfterFilterProxy.new(filter, proxy_conditions)
+              AfterFilterProxy.new(filter)
             else
               filter
             end
           end
+
+          update_conditions(filters, conditions)
+
+          filters
         end
 
         # The determination of the filter type was once done at run time.
@@ -553,6 +532,55 @@ module ActionController #:nodoc:
           end
         end
 
+        def extract_conditions(*filters, &block) #:nodoc:
+          filters.flatten!
+          conditions = filters.last.is_a?(Hash) ? filters.pop : {}
+          filters << block if block_given?
+          return filters, conditions
+        end
+
+        def update_conditions(filters, conditions)
+          return if conditions.empty?
+          if conditions[:only]
+            write_inheritable_hash('included_actions', condition_hash(filters, conditions[:only]))
+          else
+            write_inheritable_hash('excluded_actions', condition_hash(filters, conditions[:except])) if conditions[:except]
+          end
+        end
+
+        def condition_hash(filters, *actions)
+          actions = actions.flatten.map(&:to_s)
+          filters.inject({}) { |h,f| h.update( f => (actions.blank? ? nil : actions)) }
+        end
+
+        def skip_filter_in_chain(*filters, &test) #:nodoc:
+          filters, conditions = extract_conditions(filters)
+          filters.map! { |f| block_given? ? find_filter(f, &test) : find_filter(f) }
+          filters.compact!
+
+          if conditions.empty?
+            delete_filters_in_chain(filters)
+          else
+            remove_actions_from_included_actions!(filters,conditions[:only] || [])
+            conditions[:only], conditions[:except] = conditions[:except], conditions[:only]
+            update_conditions(filters,conditions)
+          end
+        end
+
+        def remove_actions_from_included_actions!(filters,*actions)
+          actions = actions.flatten.map(&:to_s)
+          updated_hash = filters.inject(included_actions) do |hash,filter|
+            ia = (hash[filter] || []) - actions
+            ia.blank? ? hash.delete(filter) : hash[filter] = ia
+            hash
+          end
+          write_inheritable_attribute('included_actions', updated_hash)
+        end
+
+        def delete_filters_in_chain(filters) #:nodoc:
+          write_inheritable_attribute('filter_chain', filter_chain.reject { |f| filters.include?(f) })
+        end
+
         def filter_responds_to_before_and_after(filter) #:nodoc:
           filter.respond_to?(:before) && filter.respond_to?(:after)
         end
@@ -568,34 +596,6 @@ module ActionController #:nodoc:
               end
             end
           end
-        end
-
-        def extract_conditions(*filters, &block) #:nodoc:
-          filters.flatten!
-          conditions = filters.last.is_a?(Hash) ? filters.pop : {}
-          filters << block if block_given?
-          return filters.flatten, conditions
-        end
-
-        def skip_filter_in_chain(*filters, &test) #:nodoc:
-          filters, conditions = extract_conditions(filters)
-          finder_proc = block_given? ?
-            proc { |f| find_filter(f, &test) } :
-            proc { |f| find_filter(f) }
-
-          filters.map(&finder_proc).reject(&:nil?).each do |filter|
-            if conditions.empty?
-              delete_filter_in_chain(filter)
-            else
-              filter.remove_actions_from_included_actions!(conditions[:only] || [])
-              conditions[:only], conditions[:except] = conditions[:except], conditions[:only]
-              filter.update_conditions(conditions)
-            end
-          end
-        end
-
-        def delete_filter_in_chain(filter) #:nodoc:
-          write_inheritable_attribute('filter_chain', filter_chain.reject { |f| f == filter })
         end
     end
 
@@ -627,7 +627,7 @@ module ActionController #:nodoc:
       def call_filter(chain, index)
         return (performed? || perform_action_without_filters) if index >= chain.size
         filter = chain[index]
-        return call_filter(chain, index.next) if filter.excluded_from?(action_name)
+        return call_filter(chain, index.next) if self.class.filter_excluded_from_action?(filter,action_name)
 
         halted = false
         filter.call(self) do

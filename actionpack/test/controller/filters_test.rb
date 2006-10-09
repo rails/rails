@@ -154,7 +154,7 @@ class FilterTest < Test::Unit::TestCase
         @ran_filter << "find_user"
       end
   end
-  
+
   class ConditionalParentOfConditionalSkippingController < ConditionalFilterController
     before_filter :conditional_in_parent, :only => [:show, :another_action]
     after_filter  :conditional_in_parent, :only => [:show, :another_action]
@@ -170,6 +170,10 @@ class FilterTest < Test::Unit::TestCase
   class ChildOfConditionalParentController < ConditionalParentOfConditionalSkippingController
     skip_before_filter :conditional_in_parent, :only => :another_action
     skip_after_filter  :conditional_in_parent, :only => :another_action
+  end
+
+  class AnotherChildOfConditionalParentController < ConditionalParentOfConditionalSkippingController
+    skip_before_filter :conditional_in_parent, :only => :show
   end
 
   class ProcController < PrependingController
@@ -411,6 +415,12 @@ class FilterTest < Test::Unit::TestCase
   def test_conditional_skipping_of_filters_when_parent_filter_is_also_conditional
     assert_equal %w( conditional_in_parent conditional_in_parent ), test_process(ChildOfConditionalParentController).template.assigns['ran_filter']
     assert_nil test_process(ChildOfConditionalParentController, 'another_action').template.assigns['ran_filter']
+  end
+
+  def test_condition_skipping_of_filters_when_siblings_also_have_conditions
+    assert_equal %w( conditional_in_parent conditional_in_parent ), test_process(ChildOfConditionalParentController).template.assigns['ran_filter'], "1"
+    assert_equal nil, test_process(AnotherChildOfConditionalParentController).template.assigns['ran_filter']
+    assert_equal %w( conditional_in_parent conditional_in_parent ), test_process(ChildOfConditionalParentController).template.assigns['ran_filter']
   end
 
   private
