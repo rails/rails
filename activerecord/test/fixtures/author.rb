@@ -18,8 +18,7 @@ class Author < ActiveRecord::Base
   has_many :funky_comments, :through => :posts, :source => :comments
 
   has_many :special_posts,        :class_name => "Post"
-  has_many :hello_posts,          :class_name => "Post", :conditions=>"\#{aliased_table_name}.body = 'hello'"
-  has_many :nonexistent_posts,    :class_name => "Post", :conditions=>"\#{aliased_table_name}.body = 'nonexistent'"
+  has_many :other_posts,          :class_name => "Post"
   has_many :posts_with_callbacks, :class_name => "Post", :before_add => :log_before_adding,
            :after_add     => :log_after_adding, 
            :before_remove => :log_before_removing,

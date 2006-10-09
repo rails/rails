@@ -1,8 +1,7 @@
 class Category < ActiveRecord::Base
   has_and_belongs_to_many :posts
   has_and_belongs_to_many :special_posts, :class_name => "Post"
-  has_and_belongs_to_many :hello_posts, :class_name => "Post", :conditions => "\#{aliased_table_name}.body = 'hello'"
-  has_and_belongs_to_many :nonexistent_posts, :class_name => "Post", :conditions=>"\#{aliased_table_name}.body = 'nonexistent'"
+  has_and_belongs_to_many :other_posts, :class_name => "Post"
   
   def self.what_are_you
     'a category...'

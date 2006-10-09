@@ -349,23 +349,17 @@ module ActiveRecord
     # But that shouldn't fool you to think that you can pull out huge amounts of data with no performance penalty just because you've reduced
     # the number of queries. The database still needs to send all the data to Active Record and it still needs to be processed. So it's no
     # catch-all for performance problems, but it's a great way to cut down on the number of queries in a situation as the one described above.
+    # 
+    # Since the eager loading pulls from multiple tables, you'll have to disambiguate any column references in both conditions and orders. So
+    # :order => "posts.id DESC" will work while :order => "id DESC" will not. Because eager loading generates the SELECT statement too, the
+    # :select option is ignored.
     #
-    # Please note that limited eager loading with has_many and has_and_belongs_to_many associations is not compatible with describing conditions
-    # on these eager tables. This will work:
-    #
-    #   Post.find(:all, :include => :comments, :conditions => "posts.title = 'magic forest'", :limit => 2)
-    #
-    # ...but this will not (and an ArgumentError will be raised):
-    #
-    #   Post.find(:all, :include => :comments, :conditions => "comments.body like 'Normal%'", :limit => 2)
-    #
-    # Also have in mind that since the eager loading is pulling from multiple tables, you'll have to disambiguate any column references
-    # in both conditions and orders. So :order => "posts.id DESC" will work while :order => "id DESC" will not. This may require that
-    # you alter the :order and :conditions on the association definitions themselves.  Because eager loading generates the SELECT statement too,
-    # the :select option is ignored.
-    #
-    # It's currently not possible to use eager loading on multiple associations from the same table. Eager loading will not pull
-    # additional attributes on join tables, so "rich associations" with has_and_belongs_to_many is not a good fit for eager loading.
+    # You can use eager loading on multiple associations from the same table, but you cannot use those associations in orders and conditions
+    # as there is currently not any way to disambiguate them. Eager loading will not pull additional attributes on join tables, so "rich
+    # associations" with has_and_belongs_to_many are not a good fit for eager loading.
+    # 
+    # When eager loaded, conditions are not interpolated. This is because the interpolation of lazy loaded conditions happens within the context
+    # of the object; when eager loading the object does not exist yet.
     # 
     # == Table Aliasing
     #
@@ -1567,7 +1561,7 @@ module ActiveRecord
                 aliased_table_name, 
                 reflection.active_record.connection.quote_column_name(reflection.active_record.inheritance_column), 
                 klass.quote_value(klass.name.demodulize)] unless klass.descends_from_active_record?
-              join << "AND #{interpolate_sql(sanitize_sql(reflection.options[:conditions]))} " if reflection.options[:conditions]
+              join << "AND #{sanitize_sql(reflection.options[:conditions])} " if reflection.options[:conditions]
               join
             end
             
@@ -1582,10 +1576,6 @@ module ActiveRecord
 
               def table_name_and_alias
                 table_alias_for table_name, @aliased_table_name
-              end
-
-              def interpolate_sql(sql)
-                instance_eval("%@#{sql.gsub('@', '\@')}@")
               end
           end
         end

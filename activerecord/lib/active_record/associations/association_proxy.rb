@@ -41,7 +41,7 @@ module ActiveRecord
       end
       
       def conditions
-        @conditions ||= eval("%(#{@reflection.klass.send :sanitize_sql, @reflection.options[:conditions]})") if @reflection.options[:conditions]
+        @conditions ||= interpolate_sql(sanitize_sql(@reflection.options[:conditions])) if @reflection.options[:conditions]
       end
       alias :sql_conditions :conditions
       

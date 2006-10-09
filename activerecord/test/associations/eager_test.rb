@@ -283,7 +283,7 @@ class EagerAssociationTest < Test::Unit::TestCase
     end
     # Test regular association, association with conditions, association with
     # STI, and association with conditions assured not to be true
-    post_types = [:posts, :hello_posts, :special_posts, :nonexistent_posts]
+    post_types = [:posts, :other_posts, :special_posts]
     # test both has_many and has_and_belongs_to_many
     [Author, Category].each do |className|
       d1 = find_all_ordered(className)
