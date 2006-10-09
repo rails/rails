@@ -123,6 +123,8 @@ namespace :db do
           ENV['PGPORT']     = abcs["test"]["port"].to_s if abcs["test"]["port"]
           ENV['PGPASSWORD'] = abcs["test"]["password"].to_s if abcs["test"]["password"]
           enc_option = "-E #{abcs["test"]["encoding"]}" if abcs["test"]["encoding"]
+
+          ActiveRecord::Base.clear_active_connections!
           `dropdb -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
           `createdb #{enc_option} -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
         when "sqlite","sqlite3"
