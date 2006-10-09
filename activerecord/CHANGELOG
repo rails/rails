@@ -1,5 +1,7 @@
 *SVN*
 
+* Reverted old select_limited_ids_list postgresql fix that caused issues in mysql.  Closes #5851 [Rick]
+
 * Removes the ability for eager loaded conditions to be interpolated, since there is no model instance to use as a context for interpolation. #5553 [turnip@turnipspatch.com]
 
 * Added timeout option to SQLite3 configurations to deal more gracefully with SQLite3::BusyException, now the connection can instead retry for x seconds to see if the db clears up before throwing that exception #6126 [wreese@gmail.com]

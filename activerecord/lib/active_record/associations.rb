@@ -1196,11 +1196,10 @@ module ActiveRecord
           sql = "SELECT "
           sql << "DISTINCT #{table_name}." if include_eager_conditions?(options) || include_eager_order?(options)
           sql << primary_key
-          sql << ", #{options[:order].split(',').collect { |s| s.split.first } * ', '}" if options[:order] && (include_eager_conditions?(options) || include_eager_order?(options))
           sql << " FROM #{table_name} "
           
           if include_eager_conditions?(options) || include_eager_order?(options)
-            sql << join_dependency.join_associations.collect{|join| join.association_join }.join
+            sql << join_dependency.join_associations.collect(&:association_join).join
             add_joins!(sql, options, scope)
           end
           
@@ -1209,7 +1208,7 @@ module ActiveRecord
           add_limit!(sql, options, scope)
           return sanitize_sql(sql)
         end
-        
+
         # Checks if the conditions reference a table other than the current model table
         def include_eager_conditions?(options)
           # look in both sets of conditions
