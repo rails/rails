@@ -1,5 +1,15 @@
 *SVN*
 
+* Added an html_options hash parameter to javascript_tag() and update_page_tag() helpers #6311 [tzaharia]. Example:
+
+    update_page_tag :defer => 'true' { |page| ... }
+
+  Gives:
+
+    <script defer="true" type="text/javascript">...</script>
+    
+  Which is needed for dealing with the IE6 DOM when it's not yet fully loaded.
+
 * Fixed that rescue template path shouldn't be hardcoded, then it's easier to hook in your own #6295 [mnaberez]
 
 * Fixed escaping of backslashes in JavaScriptHelper#escape_javascript #6302 [sven@c3d2.de]

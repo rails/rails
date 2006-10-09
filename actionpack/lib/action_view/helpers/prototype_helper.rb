@@ -684,8 +684,11 @@ module ActionView
       # Works like update_page but wraps the generated JavaScript in a <script>
       # tag. Use this to include generated JavaScript in an ERb template.
       # See JavaScriptGenerator for more information.
-      def update_page_tag(&block)
-        javascript_tag update_page(&block)
+      #
+      # +html_options+ may be a hash of <script> attributes to be passed
+      # to ActionView::Helpers::JavaScriptHelper#javascript_tag.  
+      def update_page_tag(html_options = {}, &block)
+        javascript_tag update_page(&block), html_options
       end
 
     protected

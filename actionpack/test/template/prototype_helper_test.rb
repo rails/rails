@@ -171,6 +171,12 @@ class PrototypeHelperTest < Test::Unit::TestCase
     block = Proc.new { |page| page.replace_html('foo', 'bar') }
     assert_equal javascript_tag(create_generator(&block).to_s), update_page_tag(&block)
   end
+
+  def test_update_page_tag_with_html_options
+    block = Proc.new { |page| page.replace_html('foo', 'bar') }
+    assert_equal javascript_tag(create_generator(&block).to_s, {:defer => 'true'}), update_page_tag({:defer => 'true'}, &block)
+  end
+
 end
 
 class JavaScriptGeneratorTest < Test::Unit::TestCase

@@ -162,8 +162,11 @@ module ActionView
       #   alert('All is good')
       #   //]]>
       #   </script>
-      def javascript_tag(content)
-        content_tag("script", javascript_cdata_section(content), :type => "text/javascript")
+      #
+      # +html_options+ may be a hash of attributes for the <script> tag. Example:
+      #   javascript_tag "alert('All is good')", :defer => 'true' # => <script defer="true" type="text/javascript">alert('All is good')</script>
+      def javascript_tag(content, html_options = {})
+        content_tag("script", javascript_cdata_section(content), html_options.merge(:type => "text/javascript"))
       end
 
       def javascript_cdata_section(content) #:nodoc:
