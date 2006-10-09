@@ -443,7 +443,7 @@ module ActionView
               if ActionView::Base.debug_rjs
                 source = javascript.dup
                 javascript.replace "try {\n#{source}\n} catch (e) "
-                javascript << "{ alert('RJS error:\\n\\n' + e.toString()); alert('#{source.gsub(/\r\n|\n|\r/, "\\n").gsub(/["']/) { |m| "\\#{m}" }}'); throw e }"
+                javascript << "{ alert('RJS error:\\n\\n' + e.toString()); alert('#{source.gsub('\\','\0\0').gsub(/\r\n|\n|\r/, "\\n").gsub(/["']/) { |m| "\\#{m}" }}'); throw e }"
               end
             end
           end
