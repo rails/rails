@@ -75,7 +75,6 @@ class ResourceGenerator < Rails::Generator::NamedBase
   end
 
   protected
-    # Override with your own usage banner.
     def banner
       "Usage: #{$0} resource ModelName [field:type, field:type]"
     end
