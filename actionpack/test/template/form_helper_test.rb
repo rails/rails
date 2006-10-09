@@ -120,6 +120,12 @@ class FormHelperTest < Test::Unit::TestCase
       radio_button("post", "secret", "1")
    )
   end
+  
+  def test_radio_button_respects_passed_in_id
+     assert_dom_equal('<input checked="checked" id="foo" name="post[secret]" type="radio" value="1" />',
+       radio_button("post", "secret", "1", :id=>"foo")
+    )
+  end
 
   def test_text_area
     assert_dom_equal(

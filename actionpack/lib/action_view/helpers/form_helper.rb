@@ -269,9 +269,9 @@ module ActionView
         else
           checked = self.class.radio_button_checked?(value(object), tag_value)
         end
-        options["checked"] = "checked" if checked
+        options["checked"]  = "checked" if checked
         pretty_tag_value    = tag_value.to_s.gsub(/\s/, "_").gsub(/\W/, "").downcase
-        options["id"]       = defined?(@auto_index) ?             
+        options["id"]     ||= defined?(@auto_index) ?             
           "#{@object_name}_#{@auto_index}_#{@method_name}_#{pretty_tag_value}" :
           "#{@object_name}_#{@method_name}_#{pretty_tag_value}"
         add_default_name_and_id(options)

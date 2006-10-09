@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that FormHelper#radio_button didn't respect an :id being passed in #6266 [evansj]
+
 * Added an html_options hash parameter to javascript_tag() and update_page_tag() helpers #6311 [tzaharia]. Example:
 
     update_page_tag :defer => 'true' { |page| ... }
