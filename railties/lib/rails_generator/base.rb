@@ -183,6 +183,7 @@ module Rails
           if @class_nesting.empty?
             @class_name = @class_name_without_nesting
           else
+            @table_name = @class_nesting.underscore << "_" << @table_name
             @class_name = "#{@class_nesting}::#{@class_name_without_nesting}"
           end
         end
