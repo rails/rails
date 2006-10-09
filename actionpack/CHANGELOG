@@ -1,5 +1,7 @@
 *SVN*
 
+* render_text may optionally append to the response body. render_javascript appends by default. This allows you to chain multiple render :update calls by setting @performed_render = false between them (awaiting a better public API).  [Jeremy Kemper]
+
 * Rename test assertion to prevent shadowing. Closes #6306. [psross]
 
 * Fixed that NumberHelper#number_to_delimiter should respect precision of higher than two digits #6231 [phallstrom]

@@ -793,15 +793,22 @@ module ActionController #:nodoc:
         render_text(@template.render_template(type, template, nil, local_assigns), status)
       end
 
-      def render_text(text = nil, status = nil) #:nodoc:
+      def render_text(text = nil, status = nil, append_response = false) #:nodoc:
         @performed_render = true
+
         response.headers['Status'] = interpret_status(status || DEFAULT_RENDER_STATUS_CODE)
-        response.body = text
+
+        if append_response
+          response.body ||= ''
+          response.body << text
+        else
+          response.body = text
+        end
       end
 
-      def render_javascript(javascript, status = nil) #:nodoc:
+      def render_javascript(javascript, status = nil, append_response = true) #:nodoc:
         response.content_type = Mime::JS
-        render_text(javascript, status)
+        render_text(javascript, status, append_response)
       end
 
       def render_xml(xml, status = nil) #:nodoc:

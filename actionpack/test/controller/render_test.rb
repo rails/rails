@@ -43,6 +43,15 @@ class TestController < ActionController::Base
     render_text "hello world", "404 Moved"
   end
 
+  def render_text_appendix
+    render_text "hello world"
+    render_text ", goodbye!", "404 Not Found", true
+  end
+
+  def render_nothing_with_appendix
+    render_text "appended", nil, true
+  end
+
   def render_xml_hello
     @name = "David"
     render "test/hello"
@@ -158,6 +167,18 @@ class RenderTest < Test::Unit::TestCase
   def test_do_with_render_custom_code
     get :render_custom_code
     assert_response 404
+  end
+
+  def test_do_with_render_text_appendix
+    get :render_text_appendix
+    assert_response 404
+    assert_equal 'hello world, goodbye!', @response.body
+  end
+
+  def test_do_with_render_nothing_with_appendix
+    get :render_nothing_with_appendix
+    assert_response 200
+    assert_equal 'appended', @response.body
   end
 
   def test_attempt_to_access_object_method
