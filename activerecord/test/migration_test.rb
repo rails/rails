@@ -378,6 +378,27 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_rename_table_with_an_index
+      begin
+        ActiveRecord::Base.connection.create_table :octopuses do |t|
+          t.column :url, :string
+        end
+        ActiveRecord::Base.connection.add_index :octopuses, :url
+        
+        ActiveRecord::Base.connection.rename_table :octopuses, :octopi
+
+        # Using explicit id in insert for compatibility across all databases
+        con = ActiveRecord::Base.connection     
+        assert_nothing_raised { con.execute "INSERT INTO octopi (#{con.quote_column_name('id')}, #{con.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')" }
+
+        assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', ActiveRecord::Base.connection.select_value("SELECT url FROM octopi WHERE id=1")
+        assert ActiveRecord::Base.connection.indexes(:octopi).first.columns.include?("url")
+      ensure
+        ActiveRecord::Base.connection.drop_table :octopuses rescue nil
+        ActiveRecord::Base.connection.drop_table :octopi rescue nil
+      end
+    end
+
     def test_change_column
       Person.connection.add_column 'people', 'age', :integer
       old_columns = Person.connection.columns(Person.table_name, "#{name} Columns")

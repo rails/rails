@@ -227,13 +227,13 @@ module ActiveRecord
       end
       
       def rename_table(name, new_name)
-        move_table(name, new_name)
+        execute "ALTER TABLE #{name} RENAME TO #{new_name}"
       end
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
-        alter_table(table_name) do |definition|
-          definition.column(column_name, type, options)
-        end
+        super(table_name, column_name, type, options = {})
+        # See last paragraph on http://www.sqlite.org/lang_altertable.html
+        execute "VACUUM"
       end
       
       def remove_column(table_name, column_name) #:nodoc:
@@ -316,8 +316,9 @@ module ActiveRecord
             elsif from == "altered_#{to}"
               name = name[5..-1]
             end
-
-            opts = { :name => name }
+            
+            # index name can't be the same
+            opts = { :name => name.gsub(/_(#{from})_/, "_#{to}_") }
             opts[:unique] = true if index.unique
             add_index(to, index.columns, opts)
           end
@@ -370,6 +371,17 @@ module ActiveRecord
           sql
         end
       end
+      
+      def rename_table(name, new_name)
+        move_table(name, new_name)
+      end
+      
+      def add_column(table_name, column_name, type, options = {}) #:nodoc:
+        alter_table(table_name) do |definition|
+          definition.column(column_name, type, options)
+        end
+      end
+      
     end
 
     class DeprecatedSQLiteAdapter < SQLite2Adapter # :nodoc:
