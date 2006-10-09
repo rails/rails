@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that rescue template path shouldn't be hardcoded, then it's easier to hook in your own #6295 [mnaberez]
+
 * Fixed escaping of backslashes in JavaScriptHelper#escape_javascript #6302 [sven@c3d2.de]
 
 * Fixed that some 500 rescues would cause 500's themselves because the response had not yet been generated #6329 [cmselmer]
