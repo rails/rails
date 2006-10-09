@@ -41,4 +41,4 @@
 
 
 <h2 style="margin-top: 30px">Response</h2>
-<b>Headers</b>: <%=h response.headers.inspect.gsub(/,/, ",\n") %><br/>
+<b>Headers</b>: <%=h response ? response.headers.inspect.gsub(/,/, ",\n") : "None" %><br/>

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that some 500 rescues would cause 500's themselves because the response had not yet been generated #6329 [cmselmer]
+
 * respond_to :html doesn't assume .rhtml.  #6281 [Hampton Catlin]
 
 * Fixed some deprecation warnings in ActionPack [Rick Olson]
