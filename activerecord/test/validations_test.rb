@@ -165,19 +165,6 @@ class ValidationsTest < Test::Unit::TestCase
     perform = false
   end
 
-  def test_errors_on_boundary_breaking
-    developer = Developer.new("name" => "xs")
-    assert !developer.save
-    assert_equal "is too short (minimum is 3 characters)", developer.errors.on("name")
-
-    developer.name = "All too very long for this boundary, it really is"
-    assert !developer.save
-    assert_equal "is too long (maximum is 20 characters)", developer.errors.on("name")
-
-    developer.name = "Just right"
-    assert developer.save
-  end
-
   def test_no_title_confirmation
     Topic.validates_confirmation_of(:title)
 
@@ -625,6 +612,18 @@ class ValidationsTest < Test::Unit::TestCase
     assert !t.valid?
 
     assert_equal 'tu est trops petit hombre 10', t.errors['title']
+  end
+  
+  def test_add_on_boundary_breaking_is_deprecated
+    t = Topic.new('title' => 'noreplies', 'content' => 'whatever')
+    class << t
+      def validate
+        errors.add_on_boundary_breaking('title', 1..6)
+      end
+    end
+    assert_deprecated 'add_on_boundary_breaking' do
+      assert !t.valid?
+    end
   end
 
   def test_validates_size_of_association

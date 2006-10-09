@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecated add_on_boundary_breaking (use validates_length_of instead) #6292 [BobSilva]
+
 * The has_many create method works with polymorphic associations.  #6361 [Dan Peterson]
 
 * MySQL: introduce Mysql::Result#all_hashes to support further optimization.  #5581 [Stefan Kaes]

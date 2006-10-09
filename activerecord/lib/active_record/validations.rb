@@ -87,6 +87,7 @@ module ActiveRecord
     end
 
     alias :add_on_boundry_breaking :add_on_boundary_breaking
+    deprecate :add_on_boundary_breaking, :add_on_boundry_breaking
 
     # Returns true if the specified +attribute+ has errors associated with it.
     def invalid?(attribute)
