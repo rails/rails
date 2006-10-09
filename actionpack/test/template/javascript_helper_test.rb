@@ -19,6 +19,7 @@ class JavaScriptHelperTest < Test::Unit::TestCase
 
   def test_escape_javascript
     assert_equal %(This \\"thing\\" is really\\n netos\\'), escape_javascript(%(This "thing" is really\n netos'))
+    assert_equal %(backslash\\\\test), escape_javascript( %(backslash\\test) )
   end
                                       
   def test_link_to_function
