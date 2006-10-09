@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that NumberHelper#number_to_delimiter should respect precision of higher than two digits #6231 [phallstrom]
+
 * Fixed that FormHelper#radio_button didn't respect an :id being passed in #6266 [evansj]
 
 * Added an html_options hash parameter to javascript_tag() and update_page_tag() helpers #6311 [tzaharia]. Example:

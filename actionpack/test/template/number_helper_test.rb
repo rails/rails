@@ -31,6 +31,15 @@ class NumberHelperTest < Test::Unit::TestCase
 
   def test_number_with_delimiter
     assert_equal("12,345,678", number_with_delimiter(12345678))
+    assert_equal(nil, number_with_delimiter(nil))
+    assert_equal("0", number_with_delimiter(0))
+    assert_equal("123", number_with_delimiter(123))
+    assert_equal("123,456", number_with_delimiter(123456))
+    assert_equal("123,456.78", number_with_delimiter(123456.78))
+    assert_equal("123,456.789", number_with_delimiter(123456.789))
+    assert_equal("123,456.78901", number_with_delimiter(123456.78901))
+    assert_equal("123,456,789.78901", number_with_delimiter(123456789.78901))
+    assert_equal("0.78901", number_with_delimiter(0.78901))
   end
 
   def test_number_to_human_size
