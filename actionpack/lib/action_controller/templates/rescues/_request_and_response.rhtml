@@ -8,7 +8,7 @@
 <% if false %>
   <br /><br />
   <% begin %>
-    <%= form_tag(@request.request_uri, "method" => @request.method) %>
+    <%= form_tag(request.request_uri, "method" => request.method) %>
       <input type="hidden" name="BP-RETRY" value="1" />
   
       <% for key, values in params %>
@@ -26,7 +26,7 @@
 <% end %>
 
 <%
-  request_parameters_without_action = @request.parameters.clone
+  request_parameters_without_action = request.parameters.clone
   request_parameters_without_action.delete("action")
   request_parameters_without_action.delete("controller")
   
@@ -37,8 +37,8 @@
 <p><b>Parameters</b>: <%=h request_dump == "{}" ? "None" : request_dump %></p>
 
 <p><a href="#" onclick="document.getElementById('session_dump').style.display='block'; return false;">Show session dump</a></p>
-<div id="session_dump" style="display:none"><%= debug(@request.session.instance_variable_get("@data")) %></div>
+<div id="session_dump" style="display:none"><%= debug(request.session.instance_variable_get("@data")) %></div>
 
 
 <h2 style="margin-top: 30px">Response</h2>
-<b>Headers</b>: <%=h @response.headers.inspect.gsub(/,/, ",\n") %><br/>
+<b>Headers</b>: <%=h response.headers.inspect.gsub(/,/, ",\n") %><br/>
