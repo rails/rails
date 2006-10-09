@@ -1605,7 +1605,7 @@ class RouteSetTest < Test::Unit::TestCase
     assert_equal "/about", url
   end
 
-  def test_generate_extras
+  def test_generate
     set.draw { |map| map.connect ':controller/:action/:id' }
 
     args = { :controller => "foo", :action => "bar", :id => "7", :x => "y" }
