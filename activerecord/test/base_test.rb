@@ -149,8 +149,11 @@ class BasicsTest < Test::Unit::TestCase
   def test_save!
     topic = Topic.new(:title => "New Topic")
     assert topic.save!
-  end
     
+    reply = Reply.new
+    assert_raise(ActiveRecord::RecordInvalid) { reply.save! }
+  end
+  
   def test_hashes_not_mangled
     new_topic = { :title => "New Topic" }
     new_topic_values = { :title => "AnotherTopic" }
@@ -644,6 +647,40 @@ class BasicsTest < Test::Unit::TestCase
 
     Topic.find(1).update_attribute(:approved, false)
     assert !Topic.find(1).approved?
+  end
+  
+  def test_update_attributes
+    topic = Topic.find(1)
+    assert !topic.approved?
+    assert_equal "The First Topic", topic.title
+    
+    topic.update_attributes("approved" => true, "title" => "The First Topic Updated")
+    topic.reload
+    assert topic.approved?
+    assert_equal "The First Topic Updated", topic.title
+
+    topic.update_attributes(:approved => false, :title => "The First Topic")
+    topic.reload
+    assert !topic.approved?
+    assert_equal "The First Topic", topic.title
+  end
+  
+  def test_update_attributes!
+    reply = Reply.find(2)
+    assert_equal "The Second Topic's of the day", reply.title
+    assert_equal "Have a nice day", reply.content
+    
+    reply.update_attributes!("title" => "The Second Topic's of the day updated", "content" => "Have a nice evening")
+    reply.reload
+    assert_equal "The Second Topic's of the day updated", reply.title
+    assert_equal "Have a nice evening", reply.content
+    
+    reply.update_attributes!(:title => "The Second Topic's of the day", :content => "Have a nice day")
+    reply.reload
+    assert_equal "The Second Topic's of the day", reply.title
+    assert_equal "Have a nice day", reply.content
+    
+    assert_raise(ActiveRecord::RecordInvalid) { reply.update_attributes!(:title => nil, :content => "Have a nice evening") }
   end
   
   def test_mass_assignment_protection

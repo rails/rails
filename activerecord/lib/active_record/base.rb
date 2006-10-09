@@ -1576,6 +1576,12 @@ module ActiveRecord #:nodoc:
         self.attributes = attributes
         save
       end
+      
+      # Updates an object just like Base.update_attributes but calls save! instead of save so an exception is raised if the record is invalid.
+      def update_attributes!(attributes)
+        self.attributes = attributes
+        save!
+      end
 
       # Initializes the +attribute+ to zero if nil and adds one. Only makes sense for number-based attributes. Returns self.
       def increment(attribute)

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added update_attributes! which uses save! to raise an exception if a validation error prevents saving #6192 [jonathan]
+
 * Deprecated add_on_boundary_breaking (use validates_length_of instead) #6292 [BobSilva]
 
 * The has_many create method works with polymorphic associations.  #6361 [Dan Peterson]
