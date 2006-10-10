@@ -1,6 +1,6 @@
 *SVN*
 
-* Don't rollback in teardown unless a transaction was started. Don't start a transaction in create_fixtures if a transaction is started.  #6282 [lukfugl, Jeremy Kemper]
+* Don't rollback in teardown unless a transaction was started. Don't start a transaction in create_fixtures if a transaction is started.  #6282 [Jacob Fugal, Jeremy Kemper]
 
 * Add #delete support to has_many :through associations.  Closes #6049 [Martin Landers]
 

@@ -11,7 +11,7 @@ module ActiveRecord
       base.extend(ClassMethods)
 
       base.class_eval do
-        [:destroy, :save].each do |method|
+        [:destroy, :save, :save!].each do |method|
           alias_method_chain method, :transactions
         end
       end
@@ -115,9 +115,13 @@ module ActiveRecord
     def destroy_with_transactions #:nodoc:
       transaction { destroy_without_transactions }
     end
-    
+
     def save_with_transactions(perform_validation = true) #:nodoc:
       transaction { save_without_transactions(perform_validation) }
+    end
+
+    def save_with_transactions! #:nodoc:
+      transaction { save_without_transactions! }
     end
   end
 end
