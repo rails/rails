@@ -1025,11 +1025,8 @@ module ActionController
           routes.length
         end
 
-        def install(dest = ActionController::Base)
-          dest.send :include, @module
-          if dest.respond_to? :helper_method
-            helpers.each { |name| dest.send :helper_method, name }
-          end
+        def install(destinations = [ActionController::Base, ActionView::Base])
+          Array(destinations).each { |dest| dest.send :include, @module }
         end
 
         private
