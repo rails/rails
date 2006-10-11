@@ -543,7 +543,7 @@ module Test #:nodoc:
         return unless defined?(ActiveRecord::Base) && !ActiveRecord::Base.configurations.blank?
 
         # Rollback changes if a transaction is active.
-        if use_transactional_fixtures? && !Thread.current['open_transactions'].zero?
+        if use_transactional_fixtures? && Thread.current['open_transactions'] != 0
           ActiveRecord::Base.connection.rollback_db_transaction
           Thread.current['open_transactions'] = 0
         end
