@@ -351,6 +351,13 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
       assert_equal [1,2,3,5,6,7,8,9,10], author.comments.collect(&:id)
     end
   end
+  
+  def test_eager_load_has_many_through_has_many_with_conditions
+    post = Post.find(:first, :include => :invalid_tags)
+    assert_no_queries do
+      post.invalid_tags
+    end
+  end
 
   def test_eager_belongs_to_and_has_one_not_singularized
     assert_nothing_raised do

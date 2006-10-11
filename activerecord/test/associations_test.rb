@@ -315,7 +315,7 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     assert_equal a, firm.account
     assert_equal a, firm.account(true)
   end
-  
+
   def test_finding_with_interpolated_condition
     firm = Firm.find(:first)
     superior = firm.clients.create(:name => 'SuperiorCo')

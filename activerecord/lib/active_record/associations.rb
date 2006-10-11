@@ -358,8 +358,8 @@ module ActiveRecord
     # as there is currently not any way to disambiguate them. Eager loading will not pull additional attributes on join tables, so "rich
     # associations" with has_and_belongs_to_many are not a good fit for eager loading.
     # 
-    # When eager loaded, conditions are not interpolated. This is because the interpolation of lazy loaded conditions happens within the context
-    # of the object; when eager loading the object does not exist yet.
+    # When eager loaded, conditions are interpolated in the context of the model class, not the model instance.  Conditions are lazily interpolated
+    # before the actual model exists.
     # 
     # == Table Aliasing
     #
@@ -1560,7 +1560,7 @@ module ActiveRecord
                 aliased_table_name, 
                 reflection.active_record.connection.quote_column_name(reflection.active_record.inheritance_column), 
                 klass.quote_value(klass.name.demodulize)] unless klass.descends_from_active_record?
-              join << "AND #{sanitize_sql(reflection.options[:conditions])} " if reflection.options[:conditions]
+              join << "AND #{interpolate_sql(sanitize_sql(reflection.options[:conditions]))} " if reflection.options[:conditions]
               join
             end
             
@@ -1576,6 +1576,10 @@ module ActiveRecord
               def table_name_and_alias
                 table_alias_for table_name, @aliased_table_name
               end
+
+              def interpolate_sql(sql)
+                instance_eval("%@#{sql.gsub('@', '\@')}@") 
+              end 
           end
         end
     end
