@@ -10,7 +10,7 @@ module ActiveSupport #:nodoc:
         #   "hello".at(4)  # => "o"
         #   "hello".at(10) # => nil
         def at(position)
-          self[position, 1]
+          chars[position, 1]
         end
         
         # Returns the remaining of the string from the +position+ treating the string as an array (where 0 is the first character).
@@ -20,7 +20,7 @@ module ActiveSupport #:nodoc:
         #   "hello".from(2)  # => "llo"
         #   "hello".from(10) # => nil
         def from(position)
-          self[position..-1]
+          chars[position..-1]
         end
         
         # Returns the beginning of the string up to the +position+ treating the string as an array (where 0 is the first character).
@@ -30,7 +30,7 @@ module ActiveSupport #:nodoc:
         #   "hello".to(2)  # => "hel"
         #   "hello".to(10) # => "hello"
         def to(position)
-          self[0..position]
+          chars[0..position]
         end
 
         # Returns the first character of the string or the first +limit+ characters.
@@ -40,7 +40,7 @@ module ActiveSupport #:nodoc:
         #   "hello".first(2)  # => "he"
         #   "hello".first(10) # => "hello"
         def first(limit = 1)
-          self[0..(limit - 1)]
+          chars[0..(limit - 1)]
         end
         
         # Returns the last character of the string or the last +limit+ characters.
@@ -50,7 +50,7 @@ module ActiveSupport #:nodoc:
         #   "hello".last(2)  # => "lo"
         #   "hello".last(10) # => "hello"
         def last(limit = 1)
-          self[(-limit)..-1] || self
+          chars[(-limit)..-1] || self
         end
       end
     end
