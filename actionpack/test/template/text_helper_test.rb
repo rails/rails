@@ -24,31 +24,16 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal "Hello Wor...", truncate("Hello World!!", 12)
   end
 
-  def test_truncate_multibyte_without_kcode
-    result = execute_in_sandbox(<<-'CODE')
-      require File.dirname(__FILE__) + '/../../activesupport/lib/active_support/core_ext/kernel'
-      require "#{File.dirname(__FILE__)}/../lib/action_view/helpers/text_helper"
-      include ActionView::Helpers::TextHelper
-      truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", 10)
-    CODE
-
-    assert_equal "\354\225\210\353\205\225\355...", result
+  def test_truncate_multibyte
+    with_kcode 'none' do
+      assert_equal "\354\225\210\353\205\225\355...", truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", 10) 
+    end
+    with_kcode 'u' do
+      assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254\353\236 ...",
+        truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254\353\236 \354\225\204\353\235\274\353\246\254\354\230\244", 10)
+    end
   end
-
-  def test_truncate_multibyte_with_kcode
-    result = execute_in_sandbox(<<-'CODE')
-      $KCODE = "u"
-      require 'jcode'
-
-      require File.dirname(__FILE__) + '/../../activesupport/lib/active_support/core_ext/kernel'
-      require "#{File.dirname(__FILE__)}/../lib/action_view/helpers/text_helper"
-      include ActionView::Helpers::TextHelper
-      truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254\353\236 \354\225\204\353\235\274\353\246\254\354\230\244", 10)
-    CODE
-
-    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254\353\236 ...", result
-  end
-
+  
   def test_strip_links
     assert_equal "on my mind", strip_links("<a href='almost'>on my mind</a>")
     assert_equal "on my mind", strip_links("<A href='almost'>on my mind</A>")
@@ -105,7 +90,15 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal('...is a beautiful! morn...', excerpt('This is a beautiful! morning', 'beautiful', 5))
     assert_equal('...is a beautiful? morn...', excerpt('This is a beautiful? morning', 'beautiful', 5))
   end
-  
+
+  def test_excerpt_with_utf8
+    with_kcode('u') do
+      assert_equal("...ﬃciency could not be h...", excerpt("That's why eﬃciency could not be helped", 'could', 8))
+    end
+    with_kcode('none') do
+      assert_equal("...\203ciency could not be h...", excerpt("That's why eﬃciency could not be helped", 'could', 8))
+    end
+  end
     
   def test_word_wrap
     assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", 15))

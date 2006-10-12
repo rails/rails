@@ -45,14 +45,14 @@ module ActionView
         if text.nil? || phrase.nil? then return end
         phrase = Regexp.escape(phrase)
 
-        if found_pos = text =~ /(#{phrase})/i
+        if found_pos = text.chars =~ /(#{phrase})/i
           start_pos = [ found_pos - radius, 0 ].max
-          end_pos   = [ found_pos + phrase.length + radius, text.length ].min
+          end_pos   = [ found_pos + phrase.chars.length + radius, text.chars.length ].min
 
           prefix  = start_pos > 0 ? excerpt_string : ""
-          postfix = end_pos < text.length ? excerpt_string : ""
+          postfix = end_pos < text.chars.length ? excerpt_string : ""
 
-          prefix + text[start_pos..end_pos].strip + postfix
+          prefix + text.chars[start_pos..end_pos].strip + postfix
         else
           nil
         end
