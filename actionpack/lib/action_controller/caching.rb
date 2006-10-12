@@ -118,10 +118,10 @@ module ActionController #:nodoc:
         return unless perform_caching
         if options[:action].is_a?(Array)
           options[:action].dup.each do |action|
-            self.class.expire_page(url_for(options.merge({ :only_path => true, :skip_relative_url_root => true, :action => action })))
+            self.class.expire_page(url_for(options.merge(:only_path => true, :skip_relative_url_root => true, :action => action)))
           end
         else
-          self.class.expire_page(url_for(options.merge({ :only_path => true, :skip_relative_url_root => true })))
+          self.class.expire_page(url_for(options.merge(:only_path => true, :skip_relative_url_root => true)))
         end
       end
 
@@ -130,7 +130,7 @@ module ActionController #:nodoc:
       #   cache_page "I'm the cached content", :controller => "lists", :action => "show"
       def cache_page(content = nil, options = {})
         return unless perform_caching && caching_allowed
-        self.class.cache_page(content || response.body, url_for(options.merge({ :only_path => true, :skip_relative_url_root => true })))
+        self.class.cache_page(content || response.body, url_for(options.merge(:only_path => true, :skip_relative_url_root => true, :format => params[:format])))
       end
 
       private

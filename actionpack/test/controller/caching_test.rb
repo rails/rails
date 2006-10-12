@@ -7,6 +7,27 @@ FILE_STORE_PATH = File.join(File.dirname(__FILE__), '/../temp/', CACHE_DIR)
 ActionController::Base.perform_caching = true
 ActionController::Base.fragment_cache_store = :file_store, FILE_STORE_PATH
 
+class PageCachingTest < Test::Unit::TestCase
+  def setup
+    ActionController::Routing::Routes.draw do |map|
+      map.main '', :controller => 'posts'
+      map.resources :posts
+      map.connect ':controller/:action/:id'
+    end
+    
+    @request = ActionController::TestRequest.new
+    @params = {:controller => 'posts', :action => 'index', :only_path => true, :skip_relative_url_root => true}
+    @rewriter = ActionController::UrlRewriter.new(@request, @params)
+  end 
+
+  def test_page_caching_resources_saves_to_correct_path_with_extension_even_if_default_route
+    @params[:format] = 'rss'
+    assert_equal '/posts.rss', @rewriter.rewrite(@params)
+    @params[:format] = nil
+    assert_equal '/', @rewriter.rewrite(@params)
+  end
+end
+
 class ActionCachingTestController < ActionController::Base
   caches_action :index
  
