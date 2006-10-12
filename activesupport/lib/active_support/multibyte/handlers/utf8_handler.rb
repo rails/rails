@@ -162,10 +162,10 @@ module ActiveSupport::Multibyte::Handlers
         elsif args[0].kind_of? Range
           cps = u_unpack(str).slice(*args)
           cps.nil? ? nil : cps.pack('U*')
-        elsif args[0].kind_of? Numeric
+        elsif args.size == 1 && args[0].kind_of?(Numeric)
           u_unpack(str)[args[0]]
         else
-          str.slice(*args)
+          u_unpack(str).slice(*args).pack('U*')
         end
       end
       alias_method :[], :slice

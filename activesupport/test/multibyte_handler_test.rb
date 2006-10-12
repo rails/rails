@@ -157,6 +157,8 @@ module UTF8HandlingTest
     assert_equal nil, @handler.slice('', -1..1), "Broken range should return nil"
     assert_equal '', @handler.slice('', 0..10), "Empty string should not break things"
     assert_equal "d Блå ﬃ", @handler.slice(@string, 3..9), "Unicode characters have to be returned"
+    assert_equal "d Блå ﬃ", @handler.slice(@string, 3, 7), "Unicode characters have to be returned"
+    assert_equal "A", @handler.slice(@string, 0, 1), "Slicing from an offset should return characters"
     assert_equal " Блå ﬃ ", @handler.slice(@string, 4..10), "Unicode characters have to be returned"
     assert_equal "", @handler.slice(@string, 7..6), "Range is empty, should return an empty string"
     assert_raise(ActiveSupport::Multibyte::Handlers::EncodingError) { @handler.slice(@bytestring, 2..3) }
