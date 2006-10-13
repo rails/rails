@@ -186,7 +186,6 @@ module ActiveRecord
         execute "ROLLBACK"
       end
 
-
       # SCHEMA STATEMENTS ========================================
 
       # Return the list of all tables in the schema search path.
@@ -383,6 +382,16 @@ module ActiveRecord
         else
           'bigint'
         end
+      end
+      
+      # PostgreSQL requires the ORDER BY columns in the select list for distinct queries.
+      # If you select distinct by a column though, you must pass that column in the order by clause too:
+      #
+      #   distinct("posts.id", 'posts.id', 'posts.created_at')
+      def distinct(columns, *order_columns)
+        order_columns.delete_if &:blank?
+        sql = "DISTINCT ON (#{columns}) #{columns}"
+        sql << (order_columns.any? ? ", #{order_columns * ', '}" : '')
       end
 
       private

@@ -279,6 +279,11 @@ module ActiveRecord
         sql << " DEFAULT #{quote(options[:default], options[:column])}" unless options[:default].nil?
         sql << " NOT NULL" if options[:null] == false
       end
+
+      # SELECT DISTINCT clause for a given set of columns.  PostgreSQL overrides this for custom DISTINCT syntax.
+      def distinct(columns, *order_columns)
+        "DISTINCT #{columns}"
+      end
     end
   end
 end

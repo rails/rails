@@ -1192,13 +1192,18 @@ module ActiveRecord
         end
  
         def construct_finder_sql_for_association_limiting(options, join_dependency)
-          scope = scope(:find)
+          scope       = scope(:find)
+          is_distinct = include_eager_conditions?(options) || include_eager_order?(options)
           sql = "SELECT "
-          sql << "DISTINCT #{table_name}." if include_eager_conditions?(options) || include_eager_order?(options)
-          sql << primary_key
+          if is_distinct
+            ordered_columns = options[:order].to_s.split(',').collect! { |s| s.split.first }
+            sql << connection.distinct("#{table_name}.#{primary_key}", ordered_columns)
+          else
+            sql << primary_key
+          end
           sql << " FROM #{table_name} "
           
-          if include_eager_conditions?(options) || include_eager_order?(options)
+          if is_distinct
             sql << join_dependency.join_associations.collect(&:association_join).join
             add_joins!(sql, options, scope)
           end

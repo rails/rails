@@ -1,5 +1,7 @@
 *SVN*
 
+* fix select_limited_ids_list issues in postgresql, retain current behavior in other adapters [Rick]
+
 * Restore eager condition interpolation, document it's differences [Rick]
 
 * Don't rollback in teardown unless a transaction was started. Don't start a transaction in create_fixtures if a transaction is started.  #6282 [Jacob Fugal, Jeremy Kemper]
