@@ -84,6 +84,33 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal 'x', 'x'.last(4)
   end
 
+  def test_access_returns_a_real_string
+    hash = {}
+    hash["h"] = true
+    hash["hello123".at(0)] = true
+    assert_equal %w(h), hash.keys
+
+    hash = {}
+    hash["llo"] = true
+    hash["hello".from(2)] = true
+    assert_equal %w(llo), hash.keys
+
+    hash = {}
+    hash["hel"] = true
+    hash["hello".to(2)] = true
+    assert_equal %w(hel), hash.keys
+
+    hash = {}
+    hash["hello"] = true
+    hash["123hello".last(5)] = true
+    assert_equal %w(hello), hash.keys
+
+    hash = {}
+    hash["hello"] = true
+    hash["hello123".first(5)] = true
+    assert_equal %w(hello), hash.keys
+  end
+
   def test_starts_ends_with
     s = "hello"
     assert s.starts_with?('h')
