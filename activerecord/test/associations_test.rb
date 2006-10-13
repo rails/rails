@@ -1782,4 +1782,19 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_equal projects(:active_record), developer.projects[0] 
     assert_equal projects(:action_controller), developer.projects[1] 
   end
+  
+  # this bug highlights an issue in postgresql. fixed in edge, but i had to rollback in [5265].
+  def test_select_limited_ids_list
+    # Set timestamps
+    Developer.transaction do
+      Developer.find(:all, :order => 'id').each_with_index do |record, i|
+        record.update_attributes(:created_at => 5.years.ago + (i * 5.minutes))
+      end
+    end
+    
+    join_base = ActiveRecord::Associations::ClassMethods::JoinDependency::JoinBase.new(Project)
+    join_dep  = ActiveRecord::Associations::ClassMethods::JoinDependency.new(join_base, :developers, nil)
+    projects  = Project.send(:select_limited_ids_list, {:order => 'developers.created_at'}, join_dep)
+    assert_equal "'1', '2'", projects
+  end
 end
