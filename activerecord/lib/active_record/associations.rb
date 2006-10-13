@@ -1197,6 +1197,7 @@ module ActiveRecord
           sql = "SELECT "
           if is_distinct
             ordered_columns = options[:order].to_s.split(',').collect! { |s| s.split.first }
+            options[:order] = "#{table_name}.#{primary_key}, #{options[:order]}" if options[:order] && connection.requires_order_columns_in_distinct_clause?
             sql << connection.distinct("#{table_name}.#{primary_key}", ordered_columns)
           else
             sql << primary_key

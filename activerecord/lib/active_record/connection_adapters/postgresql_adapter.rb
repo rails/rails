@@ -111,6 +111,10 @@ module ActiveRecord
         63
       end
 
+      def requires_order_columns_in_distinct_clause?
+        true
+      end
+
       # QUOTING ==================================================
 
       def quote(value, column = nil)

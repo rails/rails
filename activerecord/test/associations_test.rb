@@ -1793,7 +1793,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     
     join_base = ActiveRecord::Associations::ClassMethods::JoinDependency::JoinBase.new(Project)
     join_dep  = ActiveRecord::Associations::ClassMethods::JoinDependency.new(join_base, :developers, nil)
-    projects  = Project.send(:select_limited_ids_list, {:order => 'projects.id, developers.created_at'}, join_dep)
+    projects  = Project.send(:select_limited_ids_list, {:order => 'developers.created_at'}, join_dep)
     assert_equal "'1', '2'", projects
   end
 end
