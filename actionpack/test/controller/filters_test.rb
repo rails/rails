@@ -20,7 +20,15 @@ class FilterTest < Test::Unit::TestCase
         @ran_after_filter << "clean_up"
       end
   end
-  
+
+  class ChangingTheRequirementsController < TestController
+    before_filter :ensure_login, :except => [:go_wild]
+
+    def go_wild
+      render :text => "gobble"
+    end
+  end
+
   class TestMultipleFiltersController < ActionController::Base
     before_filter :try_1
     before_filter :try_2
@@ -421,6 +429,10 @@ class FilterTest < Test::Unit::TestCase
     assert_equal %w( conditional_in_parent conditional_in_parent ), test_process(ChildOfConditionalParentController).template.assigns['ran_filter'], "1"
     assert_equal nil, test_process(AnotherChildOfConditionalParentController).template.assigns['ran_filter']
     assert_equal %w( conditional_in_parent conditional_in_parent ), test_process(ChildOfConditionalParentController).template.assigns['ran_filter']
+  end
+
+  def test_changing_the_requirements
+    assert_equal nil, test_process(ChangingTheRequirementsController, "go_wild").template.assigns['ran_filter']
   end
 
   private

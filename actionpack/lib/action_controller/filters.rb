@@ -248,7 +248,10 @@ module ActionController #:nodoc:
       # The passed <tt>filters</tt> will be appended to the filter_chain and
       # will execute before the action on this controller is performed.
       def append_before_filter(*filters, &block)
-        append_filter_to_chain(filters, :before, &block)
+        new_filters, existing_filters = look_for_existing_filters(filters, :before)
+
+        append_filter_to_chain(new_filters, :before, &block)
+        skip_before_filter(existing_filters) unless existing_filters.empty?
       end
 
       # The passed <tt>filters</tt> will be prepended to the filter_chain and
@@ -263,7 +266,10 @@ module ActionController #:nodoc:
       # The passed <tt>filters</tt> will be appended to the array of filters
       # that run _after_ actions on this controller are performed.
       def append_after_filter(*filters, &block)
-        prepend_filter_to_chain(filters, :after, &block)
+        new_filters, existing_filters = look_for_existing_filters(filters, :after)
+
+        prepend_filter_to_chain(new_filters, :after, &block)
+        skip_after_filter(existing_filters) unless existing_filters.empty?
       end
 
       # The passed <tt>filters</tt> will be prepended to the array of filters
@@ -596,6 +602,27 @@ module ActionController #:nodoc:
               end
             end
           end
+        end
+
+        def look_for_existing_filters(filters, which)
+          filters, options = extract_conditions(filters)
+          old_filters = []
+
+          filter_chain.select(&"#{which}?".to_sym).each do |f|
+            old_filters << f.filter if filters.include?(f.filter)
+          end
+          
+          new_filters = filters - old_filters + [options]
+
+          if options[:except]
+            old_filters << { :only => options[:except] }
+          elsif options[:only]
+            old_filters << { :except => options[:only] }
+          else
+            old_filters = []
+          end
+
+          [new_filters, old_filters]
         end
     end
 
