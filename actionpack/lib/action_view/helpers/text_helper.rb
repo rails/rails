@@ -20,13 +20,8 @@ module ActionView
       # if the +text+ is longer than +length+.
       def truncate(text, length = 30, truncate_string = "...")
         if text.nil? then return end
-        l = length - truncate_string.length
-        if $KCODE == "NONE"
-          text.length > length ? text[0...l] + truncate_string : text
-        else
-          chars = text.split(//)
-          chars.length > length ? chars[0...l].join + truncate_string : text
-        end
+        l = length - truncate_string.chars.length
+        text.chars.length > length ? text.chars[0...l] + truncate_string : text
       end
 
       # Highlights the +phrase+ where it is found in the +text+ by surrounding it like
