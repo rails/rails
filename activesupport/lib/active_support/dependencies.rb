@@ -38,6 +38,11 @@ module Dependencies #:nodoc:
   mattr_accessor :autoloaded_constants
   self.autoloaded_constants = []
   
+  # An array of constant names that need to be unloaded on every request. Used
+  # to allow arbitrary constants to be marked for unloading.
+  mattr_accessor :explicitly_unloadable_constants
+  self.explicitly_unloadable_constants = []
+  
   # Set to true to enable logging of const_missing and file loads
   mattr_accessor :log_activity
   self.log_activity = false
@@ -60,7 +65,7 @@ module Dependencies #:nodoc:
   def clear
     log_call
     loaded.clear
-    remove_autoloaded_constants!
+    remove_unloadable_constants!
   end
 
   def require_or_load(file_name, const_path = nil)
@@ -252,21 +257,12 @@ module Dependencies #:nodoc:
     end
   end
   
-  # Remove the constants that have been autoloaded.
-  def remove_autoloaded_constants!
-    until autoloaded_constants.empty?
-      const = autoloaded_constants.shift
-      next unless qualified_const_defined? const
-      names = const.split('::')
-      if names.size == 1 || names.first.empty? # It's under Object
-        parent = Object
-      else
-        parent = (names[0..-2] * '::').constantize
-      end
-      log "removing constant #{const}"
-      parent.send :remove_const, names.last
-      true
-    end
+  # Remove the constants that have been autoloaded, and those that have been
+  # marked for unloading.
+  def remove_unloadable_constants!
+    autoloaded_constants.each { |const| remove_constant const }
+    autoloaded_constants.clear
+    explicitly_unloadable_constants.each { |const| remove_constant const }
   end
   
   # Determine if the given constant has been automatically loaded.
@@ -274,6 +270,21 @@ module Dependencies #:nodoc:
     name = to_constant_name desc
     return false unless qualified_const_defined? name
     return autoloaded_constants.include?(name)
+  end
+  
+  # Will the provided constant descriptor be unloaded?
+  def will_unload?(const_desc)
+    autoloaded?(desc) ||
+      explicitly_unloadable_constants.include?(const_desc.to_constant_name)
+  end
+  
+  # Mark the provided constant name for unloading. This constant will be
+  # unloaded on each request, not just the next one.
+  def mark_for_unload(const_desc)
+    name = const_desc.to_constant_name
+    unless explicitly_unloadable_constants.include? name
+      explicitly_unloadable_constants << name
+    end
   end
   
   class LoadingModule
@@ -298,6 +309,21 @@ protected
       when Module then desc.name
       else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
     end
+  end
+  
+  def remove_constant(const)
+    return false unless qualified_const_defined? const
+    
+    names = const.split('::')
+    if names.size == 1 || names.first.empty? # It's under Object
+      parent = Object
+    else
+      parent = (names[0..-2] * '::').constantize
+    end
+    
+    log "removing constant #{const}"
+    parent.send :remove_const, names.last
+    return true
   end
   
   def log_call(*args)

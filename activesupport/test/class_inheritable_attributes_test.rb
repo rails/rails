@@ -153,7 +153,7 @@ class ClassInheritableAttributesTest < Test::Unit::TestCase
     assert_equal [], @klass.a
   end
   
-  def test_array_inheritance
+  def test_array_inheritance_
     @klass.class_inheritable_accessor :a
     @klass.a = {}
 
