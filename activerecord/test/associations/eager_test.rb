@@ -104,12 +104,27 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
   
   def test_eager_with_has_many_through
-    posts_with_comments = people(:michael).posts.find(:all, :include => :comments )
+    posts_with_comments = people(:michael).posts.find(:all, :include => :comments)
     posts_with_author = people(:michael).posts.find(:all, :include => :author )
     posts_with_comments_and_author = people(:michael).posts.find(:all, :include => [ :comments, :author ])
     assert_equal 2, posts_with_comments.inject(0) { |sum, post| sum += post.comments.size }
     assert_equal authors(:david), assert_no_queries { posts_with_author.first.author }
     assert_equal authors(:david), assert_no_queries { posts_with_comments_and_author.first.author }
+  end
+
+  def test_eager_with_has_many_through_an_sti_join_model
+    author = Author.find(:first, :include => :special_post_comments, :order => 'authors.id')
+    assert_equal [comments(:does_it_hurt)], assert_no_queries { author.special_post_comments }
+  end
+  
+  def test_eager_with_has_many_through_an_sti_join_model_with_conditions_on_both
+    author = Author.find(:first, :include => :special_nonexistant_post_comments, :order => 'authors.id')
+    assert_equal [], author.special_nonexistant_post_comments
+  end
+  
+  def test_eager_with_has_many_through_join_model_with_conditions
+    assert_equal Author.find(:first, :include => :hello_post_comments).hello_post_comments,
+      Author.find(:first).hello_post_comments
   end
 
   def test_eager_with_has_many_and_limit

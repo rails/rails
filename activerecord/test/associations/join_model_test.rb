@@ -463,6 +463,10 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_nothing_raised { authors(:david).comments.sum(:post_id) }
   end
 
+  def test_has_many_through_has_many_with_sti
+    assert_equal [comments(:does_it_hurt)], authors(:david).special_post_comments
+  end
+
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)
