@@ -24,6 +24,7 @@ class DependenciesTest < Test::Unit::TestCase
   ensure
     Dependencies.load_paths = prior_load_paths
     Dependencies.mechanism = old_mechanism
+    Dependencies.explicitly_unloadable_constants = []
   end
 
   def test_tracking_loaded_files
@@ -451,6 +452,35 @@ class DependenciesTest < Test::Unit::TestCase
     
   ensure
     Object.send :remove_const, :E if Object.const_defined?(:E)
+  end
+  
+  def test_unloadable
+    with_loading 'autoloading_fixtures' do
+      Object.const_set :M, Module.new
+      M.unloadable
+      
+      Dependencies.clear
+      assert ! defined?(M)
+      
+      Object.const_set :M, Module.new
+      Dependencies.clear
+      assert ! defined?(M), "Dependencies should unload unloadable constants each time"
+    end
+  end
+  
+  def test_unloadable_should_fail_with_anonymous_modules
+    with_loading 'autoloading_fixtures' do
+      m = Module.new
+      assert_raises(ArgumentError) { m.unloadable }
+    end
+  end
+  
+  def test_unloadable_should_return_change_flag
+    with_loading 'autoloading_fixtures' do
+      Object.const_set :M, Module.new
+      assert_equal true, M.unloadable
+      assert_equal false, M.unloadable
+    end
   end
   
 end

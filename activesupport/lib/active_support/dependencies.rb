@@ -38,6 +38,11 @@ module Dependencies #:nodoc:
   mattr_accessor :autoloaded_constants
   self.autoloaded_constants = []
   
+  # An array of constant names that need to be unloaded on every request. Used
+  # to allow arbitrary constants to be marked for unloading.
+  mattr_accessor :explicitly_unloadable_constants
+  self.explicitly_unloadable_constants = []
+  
   # Set to true to enable logging of const_missing and file loads
   mattr_accessor :log_activity
   self.log_activity = false
@@ -60,7 +65,7 @@ module Dependencies #:nodoc:
   def clear
     log_call
     loaded.clear
-    remove_autoloaded_constants!
+    remove_unloadable_constants!
   end
 
   def require_or_load(file_name, const_path = nil)
@@ -252,21 +257,12 @@ module Dependencies #:nodoc:
     end
   end
   
-  # Remove the constants that have been autoloaded.
-  def remove_autoloaded_constants!
-    until autoloaded_constants.empty?
-      const = autoloaded_constants.shift
-      next unless qualified_const_defined? const
-      names = const.split('::')
-      if names.size == 1 || names.first.empty? # It's under Object
-        parent = Object
-      else
-        parent = (names[0..-2] * '::').constantize
-      end
-      log "removing constant #{const}"
-      parent.send :remove_const, names.last
-      true
-    end
+  # Remove the constants that have been autoloaded, and those that have been
+  # marked for unloading.
+  def remove_unloadable_constants!
+    autoloaded_constants.each { |const| remove_constant const }
+    autoloaded_constants.clear
+    explicitly_unloadable_constants.each { |const| remove_constant const }
   end
   
   # Determine if the given constant has been automatically loaded.
@@ -274,6 +270,24 @@ module Dependencies #:nodoc:
     name = to_constant_name desc
     return false unless qualified_const_defined? name
     return autoloaded_constants.include?(name)
+  end
+  
+  # Will the provided constant descriptor be unloaded?
+  def will_unload?(const_desc)
+    autoloaded?(desc) ||
+      explicitly_unloadable_constants.include?(to_constant_name(const_desc))
+  end
+  
+  # Mark the provided constant name for unloading. This constant will be
+  # unloaded on each request, not just the next one.
+  def mark_for_unload(const_desc)
+    name = to_constant_name const_desc
+    if explicitly_unloadable_constants.include? name
+      return false
+    else
+      explicitly_unloadable_constants << name
+      return true
+    end
   end
   
   class LoadingModule
@@ -295,9 +309,26 @@ protected
     name = case desc
       when String then desc.starts_with?('::') ? desc[2..-1] : desc
       when Symbol then desc.to_s
-      when Module then desc.name
+      when Module
+        raise ArgumentError, "Anonymous modules have no name to be referenced by" if desc.name.blank?
+        desc.name
       else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
     end
+  end
+  
+  def remove_constant(const)
+    return false unless qualified_const_defined? const
+    
+    names = const.split('::')
+    if names.size == 1 || names.first.empty? # It's under Object
+      parent = Object
+    else
+      parent = (names[0..-2] * '::').constantize
+    end
+    
+    log "removing constant #{const}"
+    parent.send :remove_const, names.last
+    return true
   end
   
   def log_call(*args)
@@ -328,6 +359,11 @@ class Module #:nodoc:
   def const_missing(class_id)
     Dependencies.load_missing_constant self, class_id
   end
+  
+  def unloadable(const_desc = self)
+    super(const_desc)
+  end
+  
 end
 
 class Class
@@ -366,6 +402,24 @@ class Object #:nodoc:
     exception.blame_file! file
     raise
   end
+
+  # Mark the given constant as unloadable. Unloadable constants are removed each
+  # time dependencies are cleared.
+  # 
+  # Note that marking a constant for unloading need only be done once. Setup
+  # or init scripts may list each unloadable constant that may need unloading;
+  # each constant will be removed for every subsequent clear, as opposed to for
+  # the first clear.
+  # 
+  # The provided constant descriptor may be a (non-anonymous) module or class,
+  # or a qualified constant name as a string or symbol.
+  # 
+  # Returns true if the constant was not previously marked for unloading, false
+  # otherwise.
+  def unloadable(const_desc)
+    Dependencies.mark_for_unload const_desc
+  end
+
 end
 
 # Add file-blaming to exceptions
