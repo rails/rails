@@ -1,5 +1,7 @@
 *SVN*
 
+* Clean up html on included error pages. [Tim Lucas]
+
 * Fixed default 404.html and 500.htmls to remove extreme ugliness and include human language [DHH]
 
 * Update to latest Prototype and script.aculo.us trunk versions [Thomas Fuchs]
