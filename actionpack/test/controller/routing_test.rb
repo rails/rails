@@ -645,7 +645,7 @@ class DynamicSegmentTest < Test::Unit::TestCase
   end
   
   def test_expiry_should_not_trigger_once_expired
-    not_expired = false
+    expired = true
     hash = merged = {:a => 2, :b => 3}
     options = {:b => 3}
     expire_on = Hash.new { raise 'No!!!' }
@@ -656,18 +656,18 @@ class DynamicSegmentTest < Test::Unit::TestCase
   end
   
   def test_expiry_should_occur_according_to_expire_on
-    not_expired = true
+    expired = false
     hash = merged = {:a => 2, :b => 3}
     options = {:b => 3}
     
     expire_on = {:b => true, :a => false}
     eval(segment.expiry_statement)
-    assert not_expired
+    assert !expired
     assert_equal({:a => 2, :b => 3}, hash)
     
     expire_on = {:b => true, :a => true}
     eval(segment.expiry_statement)
-    assert ! not_expired
+    assert expired
     assert_equal({:b => 3}, hash)
   end
   
@@ -694,7 +694,8 @@ class DynamicSegmentTest < Test::Unit::TestCase
     hash = merged = {:a => 'Hi', :b => '3'}
     options = {:b => '3'}
     a_value = nil
-    
+    expired = true
+
     eval(segment.extraction_code)
     assert_equal 'Hi', a_value
   end
@@ -704,13 +705,14 @@ class DynamicSegmentTest < Test::Unit::TestCase
     hash = merged = {:b => '3'}
     options = {:b => '3'}
     a_value = nil
+    expired = true
     
     eval(segment.extraction_code)
     assert_equal 'hi', a_value
   end
   
   def test_extraction_code_should_perform_expiry
-    not_expired = true
+    expired = false
     hash = merged = {:a => 'Hi', :b => '3'}
     options = {:b => '3'}
     expire_on = {:a => true}
@@ -718,7 +720,7 @@ class DynamicSegmentTest < Test::Unit::TestCase
     
     eval(segment.extraction_code)
     assert_equal 'Hi', a_value
-    assert ! not_expired
+    assert expired
     assert_equal options, hash
   end
   

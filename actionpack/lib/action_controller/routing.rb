@@ -317,7 +317,7 @@ module ActionController
       # Write and compile a +generate+ method for this Route.
       def write_generation
         # Build the main body of the generation
-        body = "not_expired = true\n#{generation_extraction}\n#{generation_structure}"
+        body = "expired = false\n#{generation_extraction}\n#{generation_structure}"
     
         # If we have conditions that must be tested first, nest the body inside an if
         body = "if #{generation_requirements}\n#{body}\nend" if generation_requirements
@@ -671,7 +671,7 @@ module ActionController
         end
       end
       def expiry_statement
-        "not_expired, hash = false, options if not_expired && expire_on[:#{key}]"
+        "expired, hash = true, options if !expired && expire_on[:#{key}]"
       end
   
       def extraction_code
@@ -1190,7 +1190,6 @@ module ActionController
       def generate(options, recall = {}, method=:generate)
         named_route_name = options.delete(:use_route)
         if named_route_name
-          options = options.dup
           named_route = named_routes[named_route_name]
           options = named_route.parameter_shell.merge(options)
         end
