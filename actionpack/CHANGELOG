@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix broken assert_generates when extra keys are being checked. [Jamis Buck]
+
 * Replace KCODE checks with String#chars for truncate.  Closes #6385 [Manfred Stienstra]
 
 * Make page caching respect the format of the resource that is being requested even if the current route is the default route so that, e.g. posts.rss is not transformed by url_for to '/' and subsequently cached as '/index.html' when it should be cached as '/posts.rss'.  [Marcel Molina Jr.]

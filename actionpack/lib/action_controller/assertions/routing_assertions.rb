@@ -40,7 +40,7 @@ module ActionController
           # Load routes.rb if it hasn't been loaded.
           ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
       
-          generated_path, extra_keys = ActionController::Routing::Routes.generate_extras(options, extras)
+          generated_path, extra_keys = ActionController::Routing::Routes.generate_extras(options, defaults)
           found_extras = options.reject {|k, v| ! extra_keys.include? k}
 
           msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
