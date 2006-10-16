@@ -130,9 +130,7 @@ module Rails
     # Set the paths from which Rails will automatically load source files, and
     # the load_once paths.
     def set_autoload_paths
-      Dependencies.load_paths = configuration.load_paths.collect do |path|
-        File.expand_path path
-      end.uniq
+      Dependencies.load_paths = configuration.load_paths.uniq
       Dependencies.load_once_paths = configuration.load_once_paths.uniq
       
       extra = Dependencies.load_once_paths - Dependencies.load_paths
