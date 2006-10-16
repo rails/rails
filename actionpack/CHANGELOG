@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix deprecation warnings when rendering the template error template. [Nicholas Seckar]
+
 * Fix routing to correctly determine when generation fails. Closes #6300. [psross].
 
 * Fix broken assert_generates when extra keys are being checked. [Jamis Buck]
