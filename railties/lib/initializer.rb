@@ -122,26 +122,28 @@ module Rails
     # Set the <tt>$LOAD_PATH</tt> based on the value of
     # Configuration#load_paths. Duplicates are removed.
     def set_load_path
-      configuration.load_paths.reverse_each { |dir| $LOAD_PATH.unshift(dir) if File.directory?(dir) }
+      load_paths = configuration.load_paths + configuration.framework_paths
+      load_paths.reverse_each { |dir| $LOAD_PATH.unshift(dir) if File.directory?(dir) }
       $LOAD_PATH.uniq!
     end
     
     # Set the paths from which Rails will automatically load source files, and
     # the load_once paths.
     def set_autoload_paths
-      Dependencies.load_paths = configuration.autoload_paths.uniq
+      Dependencies.load_paths = configuration.load_paths.collect do |path|
+        File.expand_path path
+      end.uniq
       Dependencies.load_once_paths = configuration.load_once_paths.uniq
       
       extra = Dependencies.load_once_paths - Dependencies.load_paths
       unless extra.empty?
         abort <<-end_error
-          load_once_paths must be a subset of the autoload_paths.
+          load_once_paths must be a subset of the load_paths.
           Extra items in load_once_paths: #{extra * ','}
         end_error
       end
       
       # Freeze the arrays so future modifications will fail rather than do nothing mysteriously
-      configuration.autoload_paths.freeze
       configuration.load_once_paths.freeze
     end
     
@@ -431,25 +433,8 @@ module Rails
     # all +app+, +lib+, +vendor+ and mock paths are included in this list.
     attr_accessor :load_paths
     
-    # An array of paths from which Rails will automatically load classes and
-    # modules from. By default, all +app+, +lib+, +vendor+ and mock paths are
-    # included in this list.
-    # 
-    # To automatically load constants from a directory, add it to this array. For
-    # example, if you organize your models in subdirectories (not modules), you
-    # would add:
-    # 
-    #   config.autoload_paths += Dir[RAILS_ROOT + '/app/models/*/']
-    # 
-    # and if you do not have any models in the root of app/models, you would
-    # also want:
-    # 
-    #   config.autoload_paths.remove RAILS_ROOT + '/app/models'
-    # 
-    attr_accessor :autoload_paths
-    
     # An array of paths from which Rails will automatically load from only once.
-    # All elements of this array must also be in +autoload_paths+.
+    # All elements of this array must also be in +load_paths+.
     attr_accessor :load_once_paths
     
     # The log level to use for the default Rails logger. In production mode,
@@ -483,7 +468,6 @@ module Rails
     def initialize
       self.frameworks                   = default_frameworks
       self.load_paths                   = default_load_paths
-      self.autoload_paths               = default_autoload_paths
       self.load_once_paths              = default_load_once_paths
       self.log_path                     = default_log_path
       self.log_level                    = default_log_level
@@ -544,6 +528,19 @@ module Rails
       (environment == 'development') ? Dir["#{RAILTIES_PATH}/builtin/*/"] : []
     end
     
+    def framework_paths
+      # TODO: Don't include dirs for frameworks that are not used
+      %w(
+        railties
+        railties/lib
+        actionpack/lib
+        activesupport/lib
+        activerecord/lib
+        actionmailer/lib
+        actionwebservice/lib
+      ).map { |dir| "#{framework_root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+    end
+    
     private
       def root_path
         ::RAILS_ROOT
@@ -579,52 +576,11 @@ module Rails
           lib 
           vendor 
         ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
-
-        # TODO: Don't include dirs for frameworks that are not used
-        paths.concat %w(
-          railties
-          railties/lib
-          actionpack/lib
-          activesupport/lib
-          activerecord/lib
-          actionmailer/lib
-          actionwebservice/lib
-        ).map { |dir| "#{framework_root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
-      end
-      
-      def default_autoload_paths
-        paths = []
-        
-        mock_path = "#{root_path}/test/mocks/#{RAILS_ENV}"
-        paths << mock_path if File.directory?(mock_path)
-        
-        # Add the app's controller directory
-        paths.concat(Dir["#{root_path}/app/controllers/"])
-
-        # Then component subdirectories.
-        paths.concat(Dir["#{root_path}/components/[_a-z]*"])
-
-        # Followed by the standard includes.
-        paths.concat %w(
-          app
-          app/models
-          app/controllers
-          app/helpers
-          app/services
-          app/apis
-          components
-          config
-          lib
-        ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
-        
-        paths.concat Dir["#{root_path}/vendor/plugins/*/lib/"]
-        paths.concat builtin_directories
-        paths.uniq
       end
       
       def default_load_once_paths
         plugin_root = "#{root_path}/vendor/plugins/"
-        default_autoload_paths.select do |path|
+        default_load_paths.select do |path|
           path[0, plugin_root.length] == plugin_root # No begins_with yet
         end
       end
