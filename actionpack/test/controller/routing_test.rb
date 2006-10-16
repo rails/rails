@@ -1253,6 +1253,33 @@ class RouteSetTest < Test::Unit::TestCase
     extras = set.extra_keys(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
     assert_equal %w(that this), extras.map(&:to_s).sort
   end
+  
+  def test_generate_extras_not_first
+    set.draw do |map| 
+      map.connect ':controller/:action/:id.:format'
+      map.connect ':controller/:action/:id'
+    end    
+    path, extras = set.generate_extras(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
+    assert_equal "/foo/bar/15", path
+    assert_equal %w(that this), extras.map(&:to_s).sort
+  end
+  
+  def test_generate_not_first
+    set.draw do |map| 
+      map.connect ':controller/:action/:id.:format'
+      map.connect ':controller/:action/:id'
+    end    
+    assert_equal "/foo/bar/15?this=hello", set.generate(:controller => "foo", :action => "bar", :id => 15, :this => "hello")
+  end
+  
+  def test_extra_keys_not_first
+    set.draw do |map| 
+      map.connect ':controller/:action/:id.:format'
+      map.connect ':controller/:action/:id'
+    end
+    extras = set.extra_keys(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
+    assert_equal %w(that this), extras.map(&:to_s).sort
+  end   
 
   def test_draw
     assert_equal 0, set.routes.size

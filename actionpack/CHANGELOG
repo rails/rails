@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix routing to correctly determine when generation fails. Closes #6300. [psross].
+
 * Fix broken assert_generates when extra keys are being checked. [Jamis Buck]
 
 * Replace KCODE checks with String#chars for truncate.  Closes #6385 [Manfred Stienstra]

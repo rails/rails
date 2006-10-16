@@ -1229,7 +1229,7 @@ module ActionController
 
           routes.each do |route|
             results = route.send(method, options, merged, expire_on)
-            return results if results
+            return results if results && (!results.is_a?(Array) || results.first)
           end
         end
     
