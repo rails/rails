@@ -1514,15 +1514,21 @@ module ActiveRecord
                             when :belongs_to
                               first_key  = primary_key
                               second_key = source_reflection.options[:foreign_key] || klass.to_s.classify.foreign_key
+                              extra      = nil
                             when :has_many
-                              first_key  = through_reflection.klass.to_s.classify.foreign_key
+                              first_key  = through_reflection.klass.base_class.to_s.classify.foreign_key
                               second_key = options[:foreign_key] || primary_key
+                              extra      = through_reflection.klass.descends_from_active_record? ? nil :
+                                " AND %s.%s = %s" % [
+                                  aliased_join_table_name,
+                                  reflection.active_record.connection.quote_column_name(through_reflection.active_record.inheritance_column),
+                                  through_reflection.klass.quote_value(through_reflection.klass.name.demodulize)]
                           end
-                          " LEFT OUTER JOIN %s ON %s.%s = %s.%s "  % [
+                          " LEFT OUTER JOIN %s ON (%s.%s = %s.%s%s) "  % [
                             table_alias_for(through_reflection.klass.table_name, aliased_join_table_name), 
                             aliased_join_table_name, through_reflection.primary_key_name,
-                            parent.aliased_table_name, parent.primary_key] +
-                          " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
+                            parent.aliased_table_name, parent.primary_key, extra] +
+                          " LEFT OUTER JOIN %s ON (%s.%s = %s.%s) " % [
                             table_name_and_alias,
                             aliased_table_name, first_key, 
                             aliased_join_table_name, second_key
@@ -1566,7 +1572,11 @@ module ActiveRecord
                 aliased_table_name, 
                 reflection.active_record.connection.quote_column_name(reflection.active_record.inheritance_column), 
                 klass.quote_value(klass.name.demodulize)] unless klass.descends_from_active_record?
-              join << "AND #{interpolate_sql(sanitize_sql(reflection.options[:conditions]))} " if reflection.options[:conditions]
+
+              [through_reflection, reflection].each do |ref|
+                join << "AND #{interpolate_sql(sanitize_sql(ref.options[:conditions]))} " if ref && ref.options[:conditions]
+              end
+
               join
             end
             
