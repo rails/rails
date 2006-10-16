@@ -576,6 +576,9 @@ module Rails
           lib 
           vendor 
         ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+        
+        paths.concat Dir["#{root_path}/vendor/plugins/*/lib/"]
+        paths.concat builtin_directories
       end
       
       def default_load_once_paths
