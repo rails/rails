@@ -83,6 +83,7 @@ module Rails
       set_autoload_paths
       load_environment
 
+      initialize_encoding
       initialize_database
       initialize_logger
       initialize_framework_logging
@@ -195,6 +196,13 @@ module Rails
 
     def load_observers
       ActiveRecord::Base.instantiate_observers
+    end
+
+    # This initialzation sets $KCODE to 'u' to enable the multibyte safe operations.
+    # Plugin authors supporting other encodings should override this behaviour and 
+    # set the relevant +default_charset+ on ActionController::Base
+    def initialize_encoding
+      $KCODE='u'
     end
 
     # This initialization routine does nothing unless <tt>:active_record</tt>
