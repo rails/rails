@@ -259,13 +259,18 @@ module ActiveSupport::Multibyte::Handlers
         g_unpack(str).length
       end
       
-      # Strips all the non-utf-8 bytes from the string resulting in a valid utf-8 string
+      # Replaces all the non-utf-8 bytes by their iso-8859-1 or cp1252 equivalent resulting in a valid utf-8 string
       def tidy_bytes(str)
-        str.unpack('C*').map { |n|
-          n < 128 ? n.chr :
-          n < 160 ? [UCD.cp1252[n] || n].pack('U') :
-          n < 192 ? "\xC2" + n.chr : "\xC3" + (n-64).chr
-        }.join
+        str.split(//u).map do |c|
+          if !UTF8_PAT.match(c)
+            n = c.unpack('C')[0]
+            n < 128 ? n.chr :
+            n < 160 ? [UCD.cp1252[n] || n].pack('U') :
+            n < 192 ? "\xC2" + n.chr : "\xC3" + (n-64).chr
+          else
+            c
+          end
+        end.join
       end
       
       protected

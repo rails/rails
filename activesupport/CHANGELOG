@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure Chars#tidy_bytes only tidies broken bytes. Closes #6397 [Manfred Stienstra]
+
 * Add 'unloadable', a method used to mark any constant as requiring an unload after each request. [Nicholas Seckar]
 
 * Make core_ext/string/access.rb multibyte safe. Closes #6388 [Manfred Stienstra]

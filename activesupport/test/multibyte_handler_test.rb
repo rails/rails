@@ -228,7 +228,10 @@ module UTF8HandlingTest
   def test_tidy_bytes
     result = [0xb8, 0x17e, 0x8, 0x2c6, 0xa5].pack('U*')
     assert_equal result, @handler.tidy_bytes(@bytestring)
-    assert_equal "a#{result}a", @handler.tidy_bytes('a' + @bytestring + 'a')
+    assert_equal "a#{result}a", @handler.tidy_bytes('a' + @bytestring + 'a'),
+      'tidy_bytes should leave surrounding characters intact'
+    assert_equal "é#{result}é", @handler.tidy_bytes('é' + @bytestring + 'é'),
+      'tidy_bytes should leave surrounding characters intact'
     assert_nothing_raised { @handler.tidy_bytes(@bytestring).unpack('U*') }
     
     assert_equal "\xC3\xA7", @handler.tidy_bytes("\xE7") # iso_8859_1: small c cedilla
@@ -236,7 +239,7 @@ module UTF8HandlingTest
     assert_equal "\xE2\x80\x9C", @handler.tidy_bytes("\x93") # win_1252: left smart quote
     assert_equal "\xE2\x82\xAC", @handler.tidy_bytes("\x80") # win_1252: euro
     assert_equal "\x00", @handler.tidy_bytes("\x00") # null char
-    assert_equal [0xef, 0xbf, 0xbd].pack('U*'), @handler.tidy_bytes("\xef\xbf\xbd") # invalid char
+    assert_equal [0xfffd].pack('U'), @handler.tidy_bytes("\xef\xbf\xbd") # invalid char
   end
   
   protected
