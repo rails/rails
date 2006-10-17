@@ -11,12 +11,15 @@
 require File.join(File.dirname(__FILE__), 'boot')
 
 Rails::Initializer.run do |config|
-  # Settings in config/environments/* take precedence those specified here
+  # Settings in config/environments/* take precedence over those specified here
   
   # Skip frameworks you're not going to use (only works if using vendor/rails)
   # config.frameworks -= [ :action_web_service, :action_mailer ]
 
-  # Add additional load paths for your own custom dirs
+  # Only load the plugins named here, by default all plugins in vendor/plugins are loaded
+  # config.plugins = %W( exception_notification ssl_requirement )
+
+  # Add additional load paths (these paths will be subject to auto-loading of constants)
   # config.load_paths += %W( #{RAILS_ROOT}/extras )
 
   # Force all environments to use the same logger level 

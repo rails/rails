@@ -322,7 +322,7 @@ module Rails
         base_paths.flatten.inject([]) do |plugins, base_path|
           Dir.glob(File.join(base_path, '*')).each do |path|
             if plugin_path?(path)
-              plugins << path
+              plugins << path if plugin_enabled?(path)
             elsif File.directory?(path)
               plugins += find_plugins(path)
             end
@@ -333,6 +333,10 @@ module Rails
 
       def plugin_path?(path)
         File.directory?(path) and (File.directory?(File.join(path, 'lib')) or File.file?(File.join(path, 'init.rb')))
+      end
+
+      def plugin_enabled?(path)
+        configuration.plugins.empty? || configuration.plugins.include?(File.basename(path))
       end
 
       # Load the plugin at <tt>path</tt> unless already loaded.
@@ -456,6 +460,9 @@ module Rails
     # Set to +true+ if you want to be warned (noisily) when you try to invoke
     # any method of +nil+. Set to +false+ for the standard Ruby behavior.
     attr_accessor :whiny_nils
+
+    # The list of plugins to load. If this is set to <tt>[]</tt>, all plugins will be loaded.
+    attr_accessor :plugins
     
     # The path to the root of the plugins directory. By default, it is in
     # <tt>vendor/plugins</tt>.
@@ -474,6 +481,7 @@ module Rails
       self.cache_classes                = default_cache_classes
       self.breakpoint_server            = default_breakpoint_server
       self.whiny_nils                   = default_whiny_nils
+      self.plugins                      = default_plugins
       self.plugin_paths                 = default_plugin_paths
       self.database_configuration_file  = default_database_configuration_file
 
@@ -622,6 +630,10 @@ module Rails
       
       def default_whiny_nils
         false
+      end
+
+      def default_plugins
+        []
       end
 
       def default_plugin_paths
