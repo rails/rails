@@ -8,8 +8,8 @@ class DeprecatedViewInstanceVariablesTest < Test::Unit::TestCase
 
     ActionController::Base::DEPRECATED_INSTANCE_VARIABLES.each do |var|
       class_eval <<-end_eval
-        def old_#{var}_inline;  render :inline => '<%= @#{var}.inspect %>'  end
-        def new_#{var}_inline;  render :inline => '<%= #{var}.inspect %>'   end
+        def old_#{var}_inline;  render :inline => '<%= @#{var}.to_s %>'  end
+        def new_#{var}_inline;  render :inline => '<%= #{var}.to_s %>'   end
         def old_#{var}_partial; render :partial => '#{var}_ivar'    end
         def new_#{var}_partial; render :partial => '#{var}_method'  end
       end_eval

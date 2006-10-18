@@ -12,9 +12,9 @@ class DeprecatedControllerInstanceVariablesTest < Test::Unit::TestCase
     end
 
     ActionController::Base::DEPRECATED_INSTANCE_VARIABLES.each do |var|
-      class_eval "def old_#{var}; render :text => @#{var}.inspect end"
-      class_eval "def new_#{var}; render :text => #{var}.inspect end"
-      class_eval "def internal_#{var}; render :text => @_#{var}.inspect end"
+      class_eval "def old_#{var}; render :text => @#{var}.to_s end"
+      class_eval "def new_#{var}; render :text => #{var}.to_s end"
+      class_eval "def internal_#{var}; render :text => @_#{var}.to_s end"
     end
 
     def rescue_action(e) raise e end
