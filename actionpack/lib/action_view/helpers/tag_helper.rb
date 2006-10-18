@@ -34,7 +34,7 @@ module ActionView
       private
         def tag_options(options)
           cleaned_options = convert_booleans(options.stringify_keys.reject {|key, value| value.nil?})
-          ' ' + cleaned_options.map {|key, value| %(#{key}="#{html_escape(value.to_s)}")}.sort * ' ' unless cleaned_options.empty?
+          ' ' + cleaned_options.map {|key, value| %(#{key}="#{fix_double_escape(html_escape(value.to_s))}")}.sort * ' ' unless cleaned_options.empty?
         end
 
         def convert_booleans(options)
@@ -44,6 +44,11 @@ module ActionView
 
         def boolean_attribute(options, attribute)
           options[attribute] ? options[attribute] = attribute : options.delete(attribute)
+        end
+        
+        # Fix double-escaped entities, such as &amp;amp;, &amp;#123;, etc.
+        def fix_double_escape(escaped)
+          escaped.gsub(/&amp;([a-z]+|(#\d+));/i) { "&#{$1};" }
         end
     end
   end

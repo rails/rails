@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix double-escaped entities, such as &amp;amp;, &amp;#123;, etc. [Rick]
+
 * Fix deprecation warnings when rendering the template error template. [Nicholas Seckar]
 
 * Fix routing to correctly determine when generation fails. Closes #6300. [psross].
