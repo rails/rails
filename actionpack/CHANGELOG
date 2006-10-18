@@ -1,5 +1,7 @@
 *SVN*
 
+* Add <%= escape_once html %> to escape html while leaving any currently escaped entities alone.  Fix button_to double-escaping issue. [Rick]
+
 * Fix double-escaped entities, such as &amp;amp;, &amp;#123;, etc. [Rick]
 
 * Fix deprecation warnings when rendering the template error template. [Nicholas Seckar]

@@ -39,6 +39,10 @@ class TagHelperTest < Test::Unit::TestCase
     assert_equal "<![CDATA[<hello world>]]>", cdata_section("<hello world>")
   end
   
+  def test_escape_once
+    assert_equal '1 &lt; 2 &amp; 3', escape_once('1 < 2 &amp; 3')
+  end
+  
   def test_double_escaping_attributes
     ['1&amp;2', '1 &lt; 2', '&#8220;test&#8220;'].each do |escaped|
       assert_equal %(<a href="#{escaped}" />), tag('a', :href => escaped)

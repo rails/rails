@@ -131,8 +131,8 @@ module ActionView
         name ||= url
 
         html_options.merge!("type" => "submit", "value" => name)
-
-        "<form method=\"#{form_method}\" action=\"#{h url}\" class=\"button-to\"><div>" + 
+        
+        "<form method=\"#{form_method}\" action=\"#{escape_once url}\" class=\"button-to\"><div>" + 
           method_tag + tag("input", html_options) + "</div></form>"
       end
 

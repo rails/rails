@@ -31,10 +31,19 @@ module ActionView
         "<![CDATA[#{content}]]>"
       end
 
+      # Escapes a given string, while leaving any currently escaped entities alone.
+      #
+      #   escape_once("1 > 2 &amp; 3")
+      #   # => "1 &lt; 2 &amp; 3"
+      #
+      def escape_once(html)
+        fix_double_escape(html_escape(html.to_s))
+      end
+
       private
         def tag_options(options)
           cleaned_options = convert_booleans(options.stringify_keys.reject {|key, value| value.nil?})
-          ' ' + cleaned_options.map {|key, value| %(#{key}="#{fix_double_escape(html_escape(value.to_s))}")}.sort * ' ' unless cleaned_options.empty?
+          ' ' + cleaned_options.map {|key, value| %(#{key}="#{escape_once(value)}")}.sort * ' ' unless cleaned_options.empty?
         end
 
         def convert_booleans(options)
