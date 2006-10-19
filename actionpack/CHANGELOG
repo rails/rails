@@ -1,5 +1,9 @@
 *SVN*
 
+* Add support for converting blocks into function arguments to JavaScriptGenerator#call and JavaScriptProxy#call. [Sam Stephenson]
+
+* Add JavaScriptGenerator#literal for wrapping a string in an object whose #to_json is the string itself. [Sam Stephenson]
+
 * Add <%= escape_once html %> to escape html while leaving any currently escaped entities alone.  Fix button_to double-escaping issue. [Rick]
 
 * Fix double-escaped entities, such as &amp;amp;, &amp;#123;, etc. [Rick]

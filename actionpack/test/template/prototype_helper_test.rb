@@ -448,10 +448,37 @@ return (value.className == "welcome");
   ensure
     ActionView::Base.debug_rjs = false
   end
+  
+  def test_literal
+    literal = @generator.literal("function() {}")
+    assert_equal "function() {}", literal.to_json
+    assert_equal "", @generator.to_s
+  end
 
   def test_class_proxy
     @generator.form.focus('my_field')
     assert_equal "Form.focus(\"my_field\");", @generator.to_s
+  end
+  
+  def test_call_with_block
+    @generator.call(:before)
+    @generator.call(:my_method) do |p|
+      p[:one].show
+      p[:two].hide
+    end
+    @generator.call(:in_between)
+    @generator.call(:my_method_with_arguments, true, "hello") do |p|
+      p[:three].visual_effect(:highlight)
+    end
+    assert_equal "before();\nmy_method(function() { $(\"one\").show();\n$(\"two\").hide(); });\nin_between();\nmy_method_with_arguments(true, \"hello\", function() { $(\"three\").visualEffect(\"highlight\"); });", @generator.to_s
+  end
+  
+  def test_class_proxy_call_with_block
+    @generator.my_object.my_method do |p|
+      p[:one].show
+      p[:two].hide
+    end
+    assert_equal "MyObject.myMethod(function() { $(\"one\").show();\n$(\"two\").hide(); });", @generator.to_s
   end
 end
 

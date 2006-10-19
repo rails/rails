@@ -458,6 +458,12 @@ module ActionView
             JavaScriptElementProxy.new(self, id)
           end
           
+          # Returns an object whose <tt>#to_json</tt> evaluates to +code+. Use this to pass a literal JavaScript 
+          # expression as an argument to another JavaScriptGenerator method.
+          def literal(code)
+            JavaScriptLiteral.new(code)
+          end
+          
           # Returns a collection reference by finding it through a CSS +pattern+ in the DOM. This collection can then be
           # used for further method calls. Examples:
           #
@@ -578,16 +584,18 @@ module ActionView
             call 'alert', message
           end
           
-          # Redirects the browser to the given +location+, in the same form as
-          # +url_for+.
+          # Redirects the browser to the given +location+, in the same form as +url_for+.
           def redirect_to(location)
             assign 'window.location.href', @context.url_for(location)
           end
           
-          # Calls the JavaScript +function+, optionally with the given 
-          # +arguments+.
-          def call(function, *arguments)
-            record "#{function}(#{arguments_for_call(arguments)})"
+          # Calls the JavaScript +function+, optionally with the given +arguments+.
+          #
+          # If a block is given, the block will be passed to a new JavaScriptGenerator;
+          # the resulting JavaScript code will then be wrapped inside <tt>function() { ... }</tt> 
+          # and passed as the called function's final argument.
+          def call(function, *arguments, &block)
+            record "#{function}(#{arguments_for_call(arguments, block)})"
           end
           
           # Assigns the JavaScript +variable+ the given +value+.
@@ -649,7 +657,7 @@ module ActionView
             end
           
             def record(line)
-              returning line = "#{line.to_s.chomp.gsub /\;$/, ''};" do
+              returning line = "#{line.to_s.chomp.gsub(/\;\z/, '')};" do
                 self << line
               end
             end
@@ -664,10 +672,16 @@ module ActionView
               object.respond_to?(:to_json) ? object.to_json : object.inspect
             end
           
-            def arguments_for_call(arguments)
+            def arguments_for_call(arguments, block = nil)
+              arguments << block_to_function(block) if block
               arguments.map { |argument| javascript_object_for(argument) }.join ', '
             end
             
+            def block_to_function(block)
+              generator = self.class.new(@context, &block)
+              literal("function() { #{generator.to_s} }")
+            end  
+
             def method_missing(method, *arguments)
               JavaScriptProxy.new(self, method.to_s.camelize)
             end
@@ -744,6 +758,13 @@ module ActionView
       end
     end
 
+    # Bypasses string escaping so you can pass around raw JavaScript
+    class JavaScriptLiteral < String #:nodoc:
+      def to_json
+        to_s
+      end
+    end
+
     # Converts chained method calls on DOM proxy elements into JavaScript chains 
     class JavaScriptProxy < Builder::BlankSlate #:nodoc:
       def initialize(generator, root = nil)
@@ -752,16 +773,16 @@ module ActionView
       end
 
       private
-        def method_missing(method, *arguments)
+        def method_missing(method, *arguments, &block)
           if method.to_s =~ /(.*)=$/
             assign($1, arguments.first)
           else
-            call("#{method.to_s.camelize(:lower)}", *arguments)
+            call("#{method.to_s.camelize(:lower)}", *arguments, &block)
           end
         end
       
-        def call(function, *arguments)
-          append_to_function_chain!("#{function}(#{@generator.send(:arguments_for_call, arguments)})")
+        def call(function, *arguments, &block)
+          append_to_function_chain!("#{function}(#{@generator.send(:arguments_for_call, arguments, block)})")
           self
         end
 
@@ -770,7 +791,7 @@ module ActionView
         end
         
         def function_chain
-          @function_chain ||= @generator.instance_variable_get("@lines")
+          @function_chain ||= @generator.instance_variable_get(:@lines)
         end
         
         def append_to_function_chain!(call)
