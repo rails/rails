@@ -20,8 +20,8 @@ class MailerGenerator < Rails::Generator::NamedBase
 
       # View template and fixture for each action.
       actions.each do |action|
-        relative_path = File.join(class_path, file_name, "#{action}.rhtml")
-        view_path     = File.join('app/views', relative_path)
+        relative_path = File.join(class_path, file_name, action)
+        view_path     = File.join('app/views', "#{relative_path}.rhtml")
         fixture_path  = File.join('test/fixtures', relative_path)
 
         m.template "view.rhtml", view_path,
