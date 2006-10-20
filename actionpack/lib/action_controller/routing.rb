@@ -1039,7 +1039,7 @@ module ActionController
           end
 
           def define_named_route_methods(name, route)
-            {:url => {}, :path => {:only_path => true}}.each do |kind, opts|
+            {:url => {:only_path => false}, :path => {:only_path => true}}.each do |kind, opts|
               hash = route.defaults.merge(:use_route => name).merge(opts)
               define_hash_access route, name, kind, hash
               define_url_helper route, name, kind, hash

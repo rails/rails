@@ -1,5 +1,11 @@
 *SVN*
 
+* Force *_url named routes to show the host in ActionView [Rick]
+
+  <%= url_for ... %> # no host
+  <%= foo_path %>    # no host
+  <%= foo_url %>     # host!
+
 * Add support for converting blocks into function arguments to JavaScriptGenerator#call and JavaScriptProxy#call. [Sam Stephenson]
 
 * Add JavaScriptGenerator#literal for wrapping a string in an object whose #to_json is the string itself. [Sam Stephenson]
