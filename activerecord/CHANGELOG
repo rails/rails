@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL: all_hashes compatibility with old MysqlRes class.  #6429 [Jeremy Kemper]
+
 * Fix has_many :through to add the appropriate conditions when going through an association using STI. Closes #5783. [Jonathan Viney]
 
 * fix select_limited_ids_list issues in postgresql, retain current behavior in other adapters [Rick]

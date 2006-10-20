@@ -3,14 +3,20 @@ require 'active_record/connection_adapters/abstract_adapter'
 module MysqlCompat
   # add all_hashes method to standard mysql-c bindings or pure ruby version
   def self.define_all_hashes_method!
-    raise 'Mysql not loaded' unless defined?(::Mysql::Result)
-    return if ::Mysql::Result.instance_methods.include?('all_hashes')
+    raise 'Mysql not loaded' unless defined?(::Mysql)
+
+    # for compatibility
+    Object.const_set(:MysqlRes,   Mysql::Result) unless defined?(::MysqlRes)
+    Object.const_set(:MysqlField, Mysql::Field)  unless defined?(::MysqlField)
+    Object.const_set(:MysqlError, Mysql::Error)  unless defined?(::MysqlError)
+
+    return if ::MysqlRes.instance_methods.include?('all_hashes')
 
     # Ruby driver has a version string and returns null values in each_hash
     # C driver >= 2.7 returns null values in each_hash
     if Mysql.const_defined?(:VERSION)
       if Mysql::VERSION.is_a?(String) || Mysql::VERSION >= 20700
-        ::Mysql::Result.class_eval <<-'end_eval'
+        ::MysqlRes.class_eval <<-'end_eval'
         def all_hashes
           rows = []
           each_hash { |row| rows << row }
@@ -22,7 +28,7 @@ module MysqlCompat
     # adapters before 2.7 don't have a version constant
     # and don't return null values in each_hash
     else
-      ::Mysql::Result.class_eval <<-'end_eval'
+      ::MysqlRes.class_eval <<-'end_eval'
       def all_hashes
         rows = []
         all_fields = fetch_fields.inject({}) { |fields, f| fields[f.name] = nil; fields }
