@@ -1,8 +1,7 @@
 require File.dirname(__FILE__) + '<%= '/..' * class_nesting_depth %>/../test_helper'
-require '<%= file_name %>'
 
 class <%= class_name %>Test < Test::Unit::TestCase
-  FIXTURES_PATH = File.dirname(__FILE__) + '/../fixtures'
+  FIXTURES_PATH = File.dirname(__FILE__) + '<%= '/..' * class_nesting_depth %>/../fixtures'
   CHARSET = "utf-8"
 
   include ActionMailer::Quoting
@@ -29,7 +28,7 @@ class <%= class_name %>Test < Test::Unit::TestCase
 <% end -%>
   private
     def read_fixture(action)
-      IO.readlines("#{FIXTURES_PATH}/<%= file_name %>/#{action}")
+      IO.readlines("#{FIXTURES_PATH}/<%= file_path %>/#{action}")
     end
 
     def encode(subject)
