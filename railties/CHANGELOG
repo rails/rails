@@ -1,5 +1,7 @@
 *SVN*
 
+* Mailer generator: handle mailers in modules, set mime_version in unit test.  [Jeremy Kemper]
+
 * Set $KCODE to 'u' by default to enable the multibyte safe String#chars proxy. [Koz]
 
 * Added config.plugins to control which plugins are loaded #6269 [skaes]. By default, everything in vendor/plugins will be loaded, but if you specify config.plugins, only those will be loaded. Example:

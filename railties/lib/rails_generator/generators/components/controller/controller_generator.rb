@@ -29,8 +29,7 @@ class ControllerGenerator < Rails::Generator::NamedBase
       # View template for each action.
       actions.each do |action|
         path = File.join('app/views', class_path, file_name, "#{action}.rhtml")
-        m.template 'view.rhtml',
-          path,
+        m.template 'view.rhtml', path,
           :assigns => { :action => action, :path => path }
       end
     end

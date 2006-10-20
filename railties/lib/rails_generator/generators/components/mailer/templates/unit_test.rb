@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require File.dirname(__FILE__) + '<%= '/..' * class_nesting_depth %>/../test_helper'
 require '<%= file_name %>'
 
 class <%= class_name %>Test < Test::Unit::TestCase
@@ -14,6 +14,7 @@ class <%= class_name %>Test < Test::Unit::TestCase
 
     @expected = TMail::Mail.new
     @expected.set_content_type "text", "plain", { "charset" => CHARSET }
+    @expected.mime_version = '1.0'
   end
 
 <% for action in actions -%>
