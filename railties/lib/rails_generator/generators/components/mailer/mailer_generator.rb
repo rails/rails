@@ -27,7 +27,7 @@ class MailerGenerator < Rails::Generator::NamedBase
         m.template "view.rhtml", view_path,
                    :assigns => { :action => action, :path => view_path }
         m.template "fixture.rhtml", fixture_path,
-                   :assigns => { :action => action, :path => fixture_path }
+                   :assigns => { :action => action, :path => view_path }
       end
     end
   end
