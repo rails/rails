@@ -248,10 +248,7 @@ module ActionController #:nodoc:
       # The passed <tt>filters</tt> will be appended to the filter_chain and
       # will execute before the action on this controller is performed.
       def append_before_filter(*filters, &block)
-        new_filters, existing_filters = look_for_existing_filters(filters, :before)
-
-        append_filter_to_chain(new_filters, :before, &block)
-        skip_before_filter(existing_filters) unless existing_filters.empty?
+        append_filter_to_chain(filters, :before, &block)
       end
 
       # The passed <tt>filters</tt> will be prepended to the filter_chain and
@@ -266,10 +263,7 @@ module ActionController #:nodoc:
       # The passed <tt>filters</tt> will be appended to the array of filters
       # that run _after_ actions on this controller are performed.
       def append_after_filter(*filters, &block)
-        new_filters, existing_filters = look_for_existing_filters(filters, :after)
-
-        prepend_filter_to_chain(new_filters, :after, &block)
-        skip_after_filter(existing_filters) unless existing_filters.empty?
+        prepend_filter_to_chain(filters, :after, &block)
       end
 
       # The passed <tt>filters</tt> will be prepended to the array of filters
@@ -411,6 +405,10 @@ module ActionController #:nodoc:
           false
         end
 
+        def around?
+          true
+        end
+
         def call(controller, &block)
           raise(ActionControllerError, 'No filter type: Nothing to do here.')
         end
@@ -421,6 +419,10 @@ module ActionController #:nodoc:
       class FilterProxy < Filter #:nodoc:
         def filter
           @filter.filter
+        end
+
+        def around?
+          false
         end
       end
 
@@ -494,27 +496,26 @@ module ActionController #:nodoc:
 
         def create_filters(filters, position, &block) #:nodoc:
           filters, conditions = extract_conditions(filters, &block)
+          filters.map! { |filter| find_or_create_filter(filter,position) }
+          update_conditions(filters, conditions)
+          filters
+        end
 
-          filters.map! do |filter|
-            # change all the filters into instances of Filter derived classes
-            class_for_filter(filter).new(filter)
-          end
-
-          filters.map! do |filter|
+        def find_or_create_filter(filter,position)
+          if found_filter = find_filter(filter) { |f| f.send("#{position}?") }
+            found_filter
+          else
+            f = class_for_filter(filter).new(filter)
             # apply proxy to filter if necessary
             case position
             when :before
-              BeforeFilterProxy.new(filter)
+              BeforeFilterProxy.new(f)
             when :after
-              AfterFilterProxy.new(filter)
+              AfterFilterProxy.new(f)
             else
-              filter
+              f
             end
           end
-
-          update_conditions(filters, conditions)
-
-          filters
         end
 
         # The determination of the filter type was once done at run time.
@@ -602,27 +603,6 @@ module ActionController #:nodoc:
               end
             end
           end
-        end
-
-        def look_for_existing_filters(filters, which)
-          filters, options = extract_conditions(filters)
-          old_filters = []
-
-          filter_chain.select(&"#{which}?".to_sym).each do |f|
-            old_filters << f.filter if filters.include?(f.filter)
-          end
-          
-          new_filters = filters - old_filters + [options]
-
-          if options[:except]
-            old_filters << { :only => options[:except] }
-          elsif options[:only]
-            old_filters << { :except => options[:only] }
-          else
-            old_filters = []
-          end
-
-          [new_filters, old_filters]
         end
     end
 
