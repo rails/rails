@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that setting RAILS_ASSET_ID to "" should not add a trailing slash after assets #6454 [BobSilva/chrismear]
+
 * Force *_url named routes to show the host in ActionView [Rick]
 
   <%= url_for ... %> # no host

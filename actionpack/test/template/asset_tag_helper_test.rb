@@ -70,7 +70,8 @@ class AssetTagHelperTest < Test::Unit::TestCase
     %(stylesheet_link_tag("/dir/file")) => %(<link href="/dir/file.css" media="screen" rel="Stylesheet" type="text/css" />),
     %(stylesheet_link_tag("dir/file")) => %(<link href="/stylesheets/dir/file.css" media="screen" rel="Stylesheet" type="text/css" />),
     %(stylesheet_link_tag("style", :media => "all")) => %(<link href="/stylesheets/style.css" media="all" rel="Stylesheet" type="text/css" />),
-    %(stylesheet_link_tag("random.styles", "/css/stylish")) => %(<link href="/stylesheets/random.styles" media="screen" rel="Stylesheet" type="text/css" />\n<link href="/css/stylish.css" media="screen" rel="Stylesheet" type="text/css" />)
+    %(stylesheet_link_tag("random.styles", "/css/stylish")) => %(<link href="/stylesheets/random.styles" media="screen" rel="Stylesheet" type="text/css" />\n<link href="/css/stylish.css" media="screen" rel="Stylesheet" type="text/css" />),
+    %(stylesheet_link_tag("http://www.example.com/styles/style")) => %(<link href="http://www.example.com/styles/style.css" media="screen" rel="Stylesheet" type="text/css" />)
   }
 
   ImagePathToTag = {
@@ -139,6 +140,12 @@ class AssetTagHelperTest < Test::Unit::TestCase
     Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
     ENV["RAILS_ASSET_ID"] = "4500"
     assert_equal %(<img alt="Rails" src="/images/rails.png?4500" />), image_tag("rails.png")
+  end
+
+  def test_preset_empty_asset_id
+    Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
+    ENV["RAILS_ASSET_ID"] = ""
+    assert_equal %(<img alt="Rails" src="/images/rails.png" />), image_tag("rails.png")
   end
 
   def test_url_dup_image_tag

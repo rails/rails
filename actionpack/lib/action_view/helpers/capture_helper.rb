@@ -89,7 +89,7 @@ module ActionView
       # named @@content_for_#{name_of_the_content_block}@. So <tt><%= content_for('footer') %></tt>
       # would be avaiable as <tt><%= @content_for_footer %></tt>. The preferred notation now is
       # <tt><%= yield :footer %></tt>.
-      def content_for(name, &block)
+      def content_for(name, content = nil, &block)
         eval "@content_for_#{name} = (@content_for_#{name} || '') + capture(&block)"
       end
 
