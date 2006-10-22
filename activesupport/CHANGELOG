@@ -1,5 +1,7 @@
 *SVN*
 
+* Expose methods added to Enumerable in the documentation, such as group_by. Closes #6170. [sergeykojin@gmail.com, Marcel Molina Jr.]
+
 * Ensure Chars#tidy_bytes only tidies broken bytes. Closes #6397 [Manfred Stienstra]
 
 * Add 'unloadable', a method used to mark any constant as requiring an unload after each request. [Nicholas Seckar]

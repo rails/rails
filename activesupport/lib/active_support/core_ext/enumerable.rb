@@ -1,4 +1,4 @@
-module Enumerable #:nodoc:
+module Enumerable
   # Collect an enumerable into sets, grouped by the result of a block. Useful,
   # for example, for grouping records by date.
   #
@@ -19,7 +19,7 @@ module Enumerable #:nodoc:
       (groups[yield(element)] ||= []) << element
       groups
     end
-  end 
+  end if RUBY_VERSION < '1.9'
 
   # Calculates a sum from the elements. Examples:
   #
