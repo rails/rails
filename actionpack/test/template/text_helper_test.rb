@@ -16,9 +16,12 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal "<p>crazy\n<br /> cross\n<br /> platform linebreaks</p>", simple_format("crazy\r\n cross\r platform linebreaks")
     assert_equal "<p>A paragraph</p>\n\n<p>and another one!</p>", simple_format("A paragraph\n\nand another one!")
     assert_equal "<p>A paragraph\n<br /> With a newline</p>", simple_format("A paragraph\n With a newline")
-    assert_equal "<p>A\n<br />B\n<br />C\n<br />D</p>", simple_format("A\nB\nC\nD")
+    
+    text = "A\nB\nC\nD"
+    assert_equal "<p>A\n<br />B\n<br />C\n<br />D</p>", simple_format(text)
+    assert_equal text, "A\nB\nC\nD"
   end
-
+  
   def test_truncate
     assert_equal "Hello World!", truncate("Hello World!", 12)
     assert_equal "Hello Wor...", truncate("Hello World!!", 12)
@@ -35,8 +38,7 @@ class TextHelperTest < Test::Unit::TestCase
   end
   
   def test_strip_links
-    assert_equal "on my mind", strip_links("<a href='almost'>on my mind</a>")
-    assert_equal "on my mind", strip_links("<A href='almost'>on my mind</A>")
+    assert_equal "on my mind\nall day long", strip_links("<a href='almost'>on my mind</a>\n<A href='almost'>all day long</A>")
   end
 
   def test_highlighter
@@ -82,7 +84,6 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal("...is a beautiful morni...", excerpt("This is a beautiful morning", "beautiful", 5))
     assert_equal("This is a...", excerpt("This is a beautiful morning", "this", 5))
     assert_equal("...iful morning", excerpt("This is a beautiful morning", "morning", 5))
-    assert_equal("...iful morning", excerpt("This is a beautiful morning", "morning", 5))
     assert_nil excerpt("This is a beautiful morning", "day")
   end
 
@@ -111,6 +112,7 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal("2 counts", pluralize('2', "count"))
     assert_equal("1,066 counts", pluralize('1,066', "count"))
     assert_equal("1.25 counts", pluralize('1.25', "count"))
+    assert_equal("2 counters", pluralize(2, "count", "counters"))
   end
 
   def test_auto_link_parsing

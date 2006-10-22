@@ -2,40 +2,63 @@ require File.dirname(__FILE__) + '/tag_helper'
 
 module ActionView
   module Helpers #:nodoc:
-    # Provides a set of methods for working with text strings that can help unburden the level of inline Ruby code in the
-    # templates. In the example below we iterate over a collection of posts provided to the template and print each title
-    # after making sure it doesn't run longer than 20 characters:
-    #   <% for post in @posts %>
-    #     Title: <%= truncate(post.title, 20) %>
+    # The TextHelper Module provides a set of methods for filtering, formatting 
+    # and transforming strings that can reduce the amount of inline Ruby code in 
+    # your views. These helper methods extend ActionView making them callable 
+    # within your template files as shown in the following example which truncates
+    # the title of each post to 10 characters.
+    #
+    #   <% @posts.each do |post| %>
+    #     # post == 'This is my title'
+    #     Title: <%= truncate(post.title, 10) %>
     #   <% end %>
+    #    => Title: This is my...
     module TextHelper      
-      # The regular puts and print are outlawed in eRuby. It's recommended to use the <%= "hello" %> form instead of print "hello".
-      # If you absolutely must use a method-based output, you can use concat. It's used like this: <% concat "hello", binding %>. Notice that
-      # it doesn't have an equal sign in front. Using <%= concat "hello" %> would result in a double hello.
+      # The preferred method of outputting text in your views is to use the 
+      # <%= "text" %> eRuby syntax. The regular _puts_ and _print_ methods 
+      # do not operate as expected in an eRuby code block. If you absolutely must 
+      # output text within a code block, you can use the concat method.
+      #
+      #   <% concat "hello", binding %>
+      # is equivalent to using:
+      #   <%= "hello" %>
       def concat(string, binding)
         eval("_erbout", binding).concat(string)
       end
 
-      # Truncates +text+ to the length of +length+ and replaces the last three characters with the +truncate_string+
-      # if the +text+ is longer than +length+.
+      # If +text+ is longer than +length+, +text+ will be truncated to the length of 
+      # +length+ and the last three characters will be replaced with the +truncate_string+.
+      #
+      #   truncate("Once upon a time in a world far far away", 14)  
+      #    => Once upon a...
       def truncate(text, length = 30, truncate_string = "...")
         if text.nil? then return end
         l = length - truncate_string.chars.length
         text.chars.length > length ? text.chars[0...l] + truncate_string : text
       end
 
-      # Highlights the +phrase+ where it is found in the +text+ by surrounding it like
-      # <strong class="highlight">I'm a highlight phrase</strong>. The highlighter can be specialized by
-      # passing +highlighter+ as single-quoted string with \1 where the phrase is supposed to be inserted.
-      # N.B.: The +phrase+ is sanitized to include only letters, digits, and spaces before use.
+      # Highlights +phrase+ everywhere it is found in +text+ by inserting it into
+      # a +highlighter+ string. The highlighter can be specialized by passing +highlighter+ 
+      # as a single-quoted string with \1 where the phrase is to be inserted.
+      #
+      #   highlight('You searched for: rails', 'rails')  
+      #    => You searched for: <strong class="highlight">rails</strong>
       def highlight(text, phrase, highlighter = '<strong class="highlight">\1</strong>')
         if phrase.blank? then return text end
         text.gsub(/(#{Regexp.escape(phrase)})/i, highlighter) unless text.nil?
       end
 
-      # Extracts an excerpt from the +text+ surrounding the +phrase+ with a number of characters on each side determined
-      # by +radius+. If the phrase isn't found, nil is returned. Ex:
-      #   excerpt("hello my world", "my", 3) => "...lo my wo..."
+      # Extracts an excerpt from +text+ that matches the first instance of +phrase+. 
+      # The +radius+ expands the excerpt on each side of +phrase+ by the number of characters
+      # defined in +radius+. If the excerpt radius overflows the beginning or end of the +text+,
+      # then the +excerpt_string+ will be prepended/appended accordingly. If the +phrase+ 
+      # isn't found, nil is returned.
+      #
+      #   excerpt('This is an example', 'an', 5) 
+      #    => "...s is an examp..."
+      #
+      #   excerpt('This is an example', 'is', 5) 
+      #    => "This is an..."
       def excerpt(text, phrase, radius = 100, excerpt_string = "...")
         if text.nil? || phrase.nil? then return end
         phrase = Regexp.escape(phrase)
@@ -53,7 +76,14 @@ module ActionView
         end
       end
 
-      # Attempts to pluralize the +singular+ word unless +count+ is 1. See source for pluralization rules.
+      # Attempts to pluralize the +singular+ word unless +count+ is 1. If +plural+
+      # is supplied, it will use that when count is > 1, if the ActiveSupport Inflector 
+      # is loaded, it will use the Inflector to determine the plural form, otherwise 
+      # it will just add an 's' to the +singular+ word.
+      #
+      #   pluralize(1, 'person')  => 1 person
+      #   pluralize(2, 'person')  => 2 people
+      #   pluralize(3, 'person', 'users')  => 3 users
       def pluralize(count, singular, plural = nil)
          "#{count} " + if count == 1 || count == '1'
           singular
@@ -66,7 +96,11 @@ module ActionView
         end
       end
 
-      # Word wrap long lines to line_width.
+      # Wraps the +text+ into lines no longer than +line_width+ width. This method
+      # breaks on the first whitespace character that does not exceed +line_width+.
+      #
+      #   word_wrap('Once upon a time', 4)
+      #    => Once\nupon\na\ntime
       def word_wrap(text, line_width = 80)
         text.gsub(/\n/, "\n\n").gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1\n").strip
       end
@@ -74,8 +108,9 @@ module ActionView
       begin
         require_library_or_gem "redcloth" unless Object.const_defined?(:RedCloth)
 
-        # Returns the text with all the Textile codes turned into HTML-tags.
-        # <i>This method is only available if RedCloth can be required</i>.
+        # Returns the text with all the Textile codes turned into HTML tags.
+        # <i>This method is only available if RedCloth[http://whytheluckystiff.net/ruby/redcloth/]
+        # is available</i>.
         def textilize(text)
           if text.blank?
             ""
@@ -86,8 +121,10 @@ module ActionView
           end
         end
 
-        # Returns the text with all the Textile codes turned into HTML-tags, but without the regular bounding <p> tag.
-        # <i>This method is only available if RedCloth can be required</i>.
+        # Returns the text with all the Textile codes turned into HTML tags, 
+        # but without the bounding <p> tag that RedCloth adds.
+        # <i>This method is only available if RedCloth[http://whytheluckystiff.net/ruby/redcloth/]
+        # is available</i>.
         def textilize_without_paragraph(text)
           textiled = textilize(text)
           if textiled[0..2] == "<p>" then textiled = textiled[3..-1] end
@@ -101,8 +138,9 @@ module ActionView
       begin
         require_library_or_gem "bluecloth" unless Object.const_defined?(:BlueCloth)
 
-        # Returns the text with all the Markdown codes turned into HTML-tags.
-        # <i>This method is only available if BlueCloth can be required</i>.
+        # Returns the text with all the Markdown codes turned into HTML tags.
+        # <i>This method is only available if BlueCloth[http://www.deveiate.org/projects/BlueCloth]
+        # is available</i>.
         def markdown(text)
           text.blank? ? "" : BlueCloth.new(text).to_html
         end
@@ -110,12 +148,13 @@ module ActionView
         # We can't really help what's not there
       end
       
-      # Returns +text+ transformed into HTML using very simple formatting rules
-      # Surrounds paragraphs with <tt><p></tt> tags, and converts line breaks into <tt><br/></tt>
-      # Two consecutive newlines(<tt>\n\n</tt>) are considered as a paragraph, one newline (<tt>\n</tt>) is
-      # considered a linebreak, three or more consecutive newlines are turned into two newlines 
+      # Returns +text+ transformed into HTML using simple formatting rules.
+      # Two or more consecutive newlines(<tt>\n\n</tt>) are considered as a 
+      # paragraph and wrapped in <tt><p></tt> tags. One newline (<tt>\n</tt>) is
+      # considered as a linebreak and a <tt><br /></tt> tag is appended. This
+      # method does not remove the newlines from the +text+. 
       def simple_format(text)
-        text.gsub!(/(\r\n|\n|\r)/, "\n") # lets make them newlines crossplatform
+        text = text.gsub(/(\r\n|\n|\r)/, "\n") # lets make them newlines crossplatform
         text.gsub!(/\n\n+/, "\n\n") # zap dupes
         text.gsub!(/\n\n/, '</p>\0<p>') # turn two newlines into paragraph
         text.gsub!(/([^\n])(\n)(?=[^\n])/, '\1\2<br />') # turn single newline into <br />
@@ -123,16 +162,18 @@ module ActionView
         content_tag("p", text)
       end
 
-      # Turns all urls and email addresses into clickable links. The +link+ parameter can limit what should be linked.
-      # Options are <tt>:all</tt> (default), <tt>:email_addresses</tt>, and <tt>:urls</tt>.
+      # Turns all urls and email addresses into clickable links. The +link+ parameter 
+      # will limit what should be linked. You can add html attributes to the links using
+      # +href_options+. Options for +link+ are <tt>:all</tt> (default), 
+      # <tt>:email_addresses</tt>, and <tt>:urls</tt>.
       #
-      # Example:
-      #   auto_link("Go to http://www.rubyonrails.com and say hello to david@loudthinking.com") =>
-      #     Go to <a href="http://www.rubyonrails.com">http://www.rubyonrails.com</a> and
+      #   auto_link("Go to http://www.rubyonrails.org and say hello to david@loudthinking.com") =>
+      #     Go to <a href="http://www.rubyonrails.org">http://www.rubyonrails.org</a> and
       #     say hello to <a href="mailto:david@loudthinking.com">david@loudthinking.com</a>
       #
       # If a block is given, each url and email address is yielded and the
-      # result is used as the link text.  Example:
+      # result is used as the link text.
+      #
       #   auto_link(post.body, :all, :target => '_blank') do |text|
       #     truncate(text, 15)
       #   end
@@ -145,7 +186,10 @@ module ActionView
         end
       end
 
-      # Turns all links into words, like "<a href="something">else</a>" to "else".
+      # Strips link tags from +text+ leaving just the link label.
+      #
+      #   strip_links('<a href="http://www.rubyonrails.org">Ruby on Rails</a>')
+      #    => Ruby on Rails
       def strip_links(text)
         text.gsub(/<a\b.*?>(.*?)<\/a>/mi, '\1')
       end
@@ -156,7 +200,7 @@ module ActionView
         require 'html/node'
       rescue LoadError
         # if there isn't a copy installed, use the vendor version in
-        # action controller
+        # ActionController
         $:.unshift File.join(File.dirname(__FILE__), "..", "..",
                       "action_controller", "vendor", "html-scanner")
         require 'html/tokenizer'
@@ -166,12 +210,16 @@ module ActionView
       VERBOTEN_TAGS = %w(form script plaintext) unless defined?(VERBOTEN_TAGS)
       VERBOTEN_ATTRS = /^on/i unless defined?(VERBOTEN_ATTRS)
 
-      # Sanitizes the given HTML by making form and script tags into regular
+      # Sanitizes the +html+ by converting <form> and <script> tags into regular
       # text, and removing all "onxxx" attributes (so that arbitrary Javascript
-      # cannot be executed). Also removes href attributes that start with
-      # "javascript:".
+      # cannot be executed). It also removes href= and src= attributes that start with
+      # "javascript:". You can modify what gets sanitized by defining VERBOTEN_TAGS
+      # and VERBOTEN_ATTRS before this Module is loaded.
       #
-      # Returns the sanitized text.
+      #   sanitize('<script> do_nasty_stuff() </script>')
+      #    => &lt;script> do_nasty_stuff() &lt;/script>
+      #   sanitize('<a href="javascript: sucker();">Click here for $100</a>')
+      #    => <a>Click here for $100</a>
       def sanitize(html)
         # only do this if absolutely necessary
         if html.index("<")
@@ -204,10 +252,9 @@ module ActionView
         html
       end
       
-      # Strips all HTML tags from the input, including comments.  This uses the html-scanner
-      # tokenizer and so it's HTML parsing ability is limited by that of html-scanner.
-      #
-      # Returns the tag free text.
+      # Strips all HTML tags from the +html+, including comments.  This uses the 
+      # html-scanner tokenizer and so its HTML parsing ability is limited by 
+      # that of html-scanner.
       def strip_tags(html)     
         return nil if html.blank?
         if html.index("<")
@@ -227,32 +274,33 @@ module ActionView
         end 
       end
       
-      # Returns a Cycle object whose to_s value cycles through items of an
-      # array every time it is called. This can be used to alternate classes
-      # for table rows:
+      # Creates a Cycle object whose _to_s_ method cycles through elements of an
+      # array every time it is called. This can be used for example, to alternate 
+      # classes for table rows:
       #
-      #   <%- for item in @items do -%>
-      #     <tr class="<%= cycle("even", "odd") %>">
-      #       ... use item ...
+      #   <% @items.each do |item| %>
+      #     <tr class="<%= cycle("even", "odd") -%>">
+      #       <td>item</td>
       #     </tr>
-      #   <%- end -%>
+      #   <% end %>
       #
-      # You can use named cycles to prevent clashes in nested loops.  You'll
-      # have to reset the inner cycle, manually:
+      # You can use named cycles to allow nesting in loops.  Passing a Hash as 
+      # the last parameter with a <tt>:name</tt> key will create a named cycle.
+      # You can manually reset a cycle by calling reset_cycle and passing the 
+      # name of the cycle.
       #
-      #   <%- for item in @items do -%>
+      #   <% @items.each do |item| %>
       #     <tr class="<%= cycle("even", "odd", :name => "row_class")
       #       <td>
-      #         <%- for value in item.values do -%>
-      #           <span style="color:'<%= cycle("red", "green", "blue"
-      #                                         :name => "colors") %>'">
-      #             item
+      #         <% item.values.each do |value| %>
+      #           <span style="color:<%= cycle("red", "green", "blue", :name => "colors") -%>">
+      #             value
       #           </span>
-      #         <%- end -%>
-      #         <%- reset_cycle("colors") -%>
+      #         <% end %>
+      #         <% reset_cycle("colors") %>
       #       </td>
       #    </tr>
-      #  <%- end -%>
+      #  <% end %>
       def cycle(first_value, *values)
         if (values.last.instance_of? Hash)
           params = values.pop
@@ -269,8 +317,8 @@ module ActionView
         return cycle.to_s
       end
       
-      # Resets a cycle so that it starts from the first element in the array
-      # the next time it is used.
+      # Resets a cycle so that it starts from the first element the next time 
+      # it is called. Pass in +name+ to reset a named cycle.
       def reset_cycle(name = "default")
         cycle = get_cycle(name)
         cycle.reset unless cycle.nil?
@@ -311,9 +359,9 @@ module ActionView
       
         AUTO_LINK_RE = %r{
                         (                        # leading text
-                          <\w+.*?>|              #   leading HTML tag, or
-                          [^=!:'"/]|             #   leading punctuation, or 
-                          ^                      #   beginning of line
+                          <\w+.*?>|              # leading HTML tag, or
+                          [^=!:'"/]|             # leading punctuation, or 
+                          ^                      # beginning of line
                         )
                         (
                           (?:https?://)|         # protocol spec, or
@@ -331,10 +379,7 @@ module ActionView
                        }x unless const_defined?(:AUTO_LINK_RE)
 
         # Turns all urls into clickable links.  If a block is given, each url
-        # is yielded and the result is used as the link text.  Example:
-        #   auto_link_urls(post.body, :all, :target => '_blank') do |text|
-        #     truncate(text, 15)
-        #   end
+        # is yielded and the result is used as the link text.
         def auto_link_urls(text, href_options = {})
           extra_options = tag_options(href_options.stringify_keys) || ""
           text.gsub(AUTO_LINK_RE) do
@@ -351,10 +396,6 @@ module ActionView
 
         # Turns all email addresses into clickable links.  If a block is given,
         # each email is yielded and the result is used as the link text.
-        # Example:
-        #   auto_link_email_addresses(post.body) do |text|
-        #     truncate(text, 15)
-        #   end
         def auto_link_email_addresses(text)
           text.gsub(/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/) do
             text = $1
