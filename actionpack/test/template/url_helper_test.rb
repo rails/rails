@@ -13,7 +13,7 @@ class UrlHelperTest < Test::Unit::TestCase
 
   def setup
     @controller = Class.new do
-      attr_accessor :url
+      attr_accessor :url, :request
       def url_for(options, *parameters_for_method_reference)
         url
       end
@@ -143,10 +143,19 @@ class UrlHelperTest < Test::Unit::TestCase
     )
   end
   
+  def test_link_tag_with_post_is_deprecated
+    assert_deprecated 'post' do
+      assert_dom_equal(
+        "<a href='http://www.example.com' onclick=\"var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;f.submit();return false;\">Hello</a>",
+        link_to("Hello", "http://www.example.com", :post => true)
+      )
+    end
+  end
+  
   def test_link_tag_using_post_javascript
     assert_dom_equal(
       "<a href='http://www.example.com' onclick=\"var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;f.submit();return false;\">Hello</a>",
-      link_to("Hello", "http://www.example.com", :post => true)
+      link_to("Hello", "http://www.example.com", :method => :post)
     )
   end
 
@@ -160,12 +169,12 @@ class UrlHelperTest < Test::Unit::TestCase
   def test_link_tag_using_post_javascript_and_confirm
     assert_dom_equal(
       "<a href=\"http://www.example.com\" onclick=\"if (confirm('Are you serious?')) { var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;f.submit(); };return false;\">Hello</a>",
-      link_to("Hello", "http://www.example.com", :post => true, :confirm => "Are you serious?")
+      link_to("Hello", "http://www.example.com", :method => :post, :confirm => "Are you serious?")
     )    
   end
   
   def test_link_tag_using_post_javascript_and_popup
-    assert_raises(ActionView::ActionViewError) { link_to("Hello", "http://www.example.com", :popup => true, :post => true, :confirm => "Are you serious?") }
+    assert_raises(ActionView::ActionViewError) { link_to("Hello", "http://www.example.com", :popup => true, :method => :post, :confirm => "Are you serious?") }
   end
   
   def test_link_to_unless
@@ -189,14 +198,14 @@ class UrlHelperTest < Test::Unit::TestCase
     assert_equal "Showing", link_to_if(false, "Showing", :action => "show", :controller => "weblog", :id => 1)
   end
 
-  def xtest_link_unless_current
-    @request = RequestMock.new("http://www.example.com")
-    assert_equal "Showing", link_to_unless_current("Showing", :action => "show", :controller => "weblog")
-    @request = RequestMock.new("http://www.example.org")
-    assert "<a href=\"http://www.example.com\">Listing</a>", link_to_unless_current("Listing", :action => "list", :controller => "weblog")
+  def test_link_unless_current
+    @controller.request = RequestMock.new("http://www.example.com/weblog/show")
+    @controller.url = "http://www.example.com/weblog/show"
+    assert_equal "Showing", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
 
-    @request = RequestMock.new("http://www.example.com")
-    assert_equal "Showing", link_to_unless_current("Showing", :action => "show", :controller => "weblog", :id => 1)
+    @controller.request = RequestMock.new("http://www.example.com/weblog/show")
+    @controller.url = "http://www.example.com/weblog/list"
+    assert_equal "<a href=\"http://www.example.com/weblog/list\">Listing</a>", link_to_unless_current("Listing", :action => "list", :controller => "weblog")
   end
   
   def test_mail_to

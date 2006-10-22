@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecated UrlHelper#link_to_image and UrlHelper#link_to :post => true #6409 [BobSilva]
+
 * Upgraded NumberHelper with number_to_phone support international formats to comply with ITU E.123 by supporting area codes with less than 3 digits, added precision argument to number_to_human_size (defaults to 1) #6421 [BobSilva]
 
 * Fixed that setting RAILS_ASSET_ID to "" should not add a trailing slash after assets #6454 [BobSilva/chrismear]
