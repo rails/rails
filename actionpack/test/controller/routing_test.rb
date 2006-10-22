@@ -137,23 +137,23 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   def test_basic_named_route
     rs.add_named_route :home, '', :controller => 'content', :action => 'list' 
     x = setup_for_named_route.new
-    assert_equal({:controller => 'content', :action => 'list', :use_route => :home},
+    assert_equal({:controller => 'content', :action => 'list', :use_route => :home, :only_path => false},
                  x.send(:home_url))
   end
 
   def test_named_route_with_option
     rs.add_named_route :page, 'page/:title', :controller => 'content', :action => 'show_page'
     x = setup_for_named_route.new
-    assert_equal({:controller => 'content', :action => 'show_page', :title => 'new stuff', :use_route => :page},
+    assert_equal({:controller => 'content', :action => 'show_page', :title => 'new stuff', :use_route => :page, :only_path => false},
                  x.send(:page_url, :title => 'new stuff'))
   end
 
   def test_named_route_with_default
     rs.add_named_route :page, 'page/:title', :controller => 'content', :action => 'show_page', :title => 'AboutPage'
     x = setup_for_named_route.new
-    assert_equal({:controller => 'content', :action => 'show_page', :title => 'AboutPage', :use_route => :page},
+    assert_equal({:controller => 'content', :action => 'show_page', :title => 'AboutPage', :use_route => :page, :only_path => false},
                  x.send(:page_url))
-    assert_equal({:controller => 'content', :action => 'show_page', :title => 'AboutRails', :use_route => :page},
+    assert_equal({:controller => 'content', :action => 'show_page', :title => 'AboutRails', :use_route => :page, :only_path => false},
                  x.send(:page_url, :title => "AboutRails"))
 
   end
@@ -161,7 +161,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   def test_named_route_with_nested_controller
     rs.add_named_route :users, 'admin/user', :controller => '/admin/user', :action => 'index'
     x = setup_for_named_route.new
-    assert_equal({:controller => '/admin/user', :action => 'index', :use_route => :users},
+    assert_equal({:controller => '/admin/user', :action => 'index', :use_route => :users, :only_path => false},
                  x.send(:users_url))
   end
 
@@ -186,11 +186,11 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     end
     x = setup_for_named_route.new
     assert_equal(
-      {:controller => 'page', :action => 'show', :title => 'hi', :use_route => :article},
+      {:controller => 'page', :action => 'show', :title => 'hi', :use_route => :article, :only_path => false},
       x.send(:article_url, :title => 'hi')
     )
     assert_equal(
-      {:controller => 'page', :action => 'show', :title => 'hi', :day => 10, :year => 2005, :month => 6, :use_route => :article},
+      {:controller => 'page', :action => 'show', :title => 'hi', :day => 10, :year => 2005, :month => 6, :use_route => :article, :only_path => false},
       x.send(:article_url, :title => 'hi', :day => 10, :year => 2005, :month => 6)
     )
   end
@@ -337,7 +337,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal '/test', rs.generate(:controller => 'post', :action => 'show', :year => nil)
     
     x = setup_for_named_route.new
-    assert_equal({:controller => 'post', :action => 'show', :use_route => :blog},
+    assert_equal({:controller => 'post', :action => 'show', :use_route => :blog, :only_path => false},
                  x.send(:blog_url))
   end
   
@@ -384,7 +384,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal '/', rs.generate(:controller => 'content')
     
     x = setup_for_named_route.new
-    assert_equal({:controller => 'content', :action => 'index', :use_route => :root},
+    assert_equal({:controller => 'content', :action => 'index', :use_route => :root, :only_path => false},
                  x.send(:root_url))
   end
   
@@ -1323,11 +1323,11 @@ class RouteSetTest < Test::Unit::TestCase
     controller = setup_named_route_test
 
     assert_equal(
-      { :controller => 'people', :action => 'show', :id => 5, :use_route => :show },
+      { :controller => 'people', :action => 'show', :id => 5, :use_route => :show, :only_path => false },
       controller.send(:hash_for_show_url, :id => 5))
 
     assert_equal(
-      { :controller => 'people', :action => 'index', :use_route => :index },
+      { :controller => 'people', :action => 'index', :use_route => :index, :only_path => false },
       controller.send(:hash_for_index_url))
     
     assert_equal(
