@@ -15,11 +15,26 @@ module ActionView
       end
 
       # Examples:
-      # * <tt>content_tag("p", "Hello world!") => <p>Hello world!</p></tt>
-      # * <tt>content_tag("div", content_tag("p", "Hello world!"), "class" => "strong") => </tt>
+      # * <tt>content_tag(:p, "Hello world!") => <p>Hello world!</p></tt>
+      # * <tt>content_tag(:div, content_tag(:p, "Hello world!"), :class => "strong") => </tt>
       #   <tt><div class="strong"><p>Hello world!</p></div></tt>
-      def content_tag(name, content, options = nil)
-        "<#{name}#{tag_options(options.stringify_keys) if options}>#{content}</#{name}>"
+      #
+      # ERb example:
+      #  <% content_tag :div, :class => "strong" %>
+      #    Hello world!
+      #  <% end %>
+      #
+      # Will output:
+      #   <div class="strong"><p>Hello world!</p></div>
+      def content_tag(name, content_or_options_with_block = nil, options = nil, &block)
+        if block_given?
+          options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
+          content = capture(&block)
+          concat(content_tag_string(name, content, options), block.binding)
+        else
+          content = content_or_options_with_block
+          content_tag_string(name, content, options)
+        end
       end
 
       # Returns a CDATA section for the given +content+.  CDATA sections
@@ -41,6 +56,11 @@ module ActionView
       end
 
       private
+        def content_tag_string(name, content, options)
+          tag_options = options ? tag_options(options.stringify_keys) : ""
+          "<#{name}#{tag_options}>#{content}</#{name}>"
+        end
+      
         def tag_options(options)
           cleaned_options = convert_booleans(options.stringify_keys.reject {|key, value| value.nil?})
           ' ' + cleaned_options.map {|key, value| %(#{key}="#{escape_once(value)}")}.sort * ' ' unless cleaned_options.empty?
