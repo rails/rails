@@ -2,6 +2,10 @@ require 'active_resource/connection'
 
 module ActiveResource
   class Base
+    # The logger for logging diagnostic and trace information during ARes
+    # calls.
+    cattr_accessor :logger
+
     class << self
       attr_reader :site
 

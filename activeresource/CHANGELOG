@@ -1,5 +1,7 @@
 *SVN*
 
+* Add basic logging support for logging outgoing requests. [Jamis Buck]
+
 * Add Base.delete for deleting resources without having to instantiate them first. [Jamis Buck]
 
 * Make #save behavior mimic AR::Base#save (true on success, false on failure). [Jamis Buck]

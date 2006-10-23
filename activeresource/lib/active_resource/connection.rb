@@ -2,6 +2,7 @@ require 'net/https'
 require 'date'
 require 'time'
 require 'uri'
+require 'benchmark'
 
 module ActiveResource
   class ConnectionError < StandardError
@@ -63,8 +64,12 @@ module ActiveResource
     end
 
     private
-      def request(method, *arguments)
-        handle_response(http.send(method, *arguments))
+      def request(method, path, *arguments)
+        logger.info "requesting #{method.to_s.upcase} #{site.scheme}://#{site.host}:#{site.port}#{path}" if logger
+        result = nil
+        time = Benchmark.realtime { result = http.send(method, path, *arguments) }
+        logger.info "--> #{result.code} #{result.message} (#{result.body.length}b %.2fs)" % time if logger
+        handle_response(result)
       end
 
       def handle_response(response)
@@ -102,6 +107,10 @@ module ActiveResource
       
       def authorization_header
         (@site.user || @site.password ? { 'Authorization' => 'Basic ' + ["#{@site.user}:#{ @site.password}"].pack('m').delete("\r\n") } : {})
+      end
+
+      def logger
+        ActiveResource::Base.logger
       end
   end
 end
