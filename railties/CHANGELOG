@@ -1,5 +1,7 @@
 *SVN*
 
+* Plugin generator: check for class collisions.  #4833 [vinbarnes@gmail.com]
+
 * Mailer generator: handle mailers in modules, set mime_version in unit test.  [Jeremy Kemper]
 
 * Set $KCODE to 'u' by default to enable the multibyte safe String#chars proxy. [Koz]
