@@ -1,10 +1,11 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
 class FormTagHelperTest < Test::Unit::TestCase
-
   include ActionView::Helpers::UrlHelper
   include ActionView::Helpers::TagHelper
   include ActionView::Helpers::FormTagHelper
+  include ActionView::Helpers::TextHelper
+  include ActionView::Helpers::CaptureHelper
 
   def setup
     @controller = Class.new do
@@ -37,6 +38,22 @@ class FormTagHelperTest < Test::Unit::TestCase
     actual = form_tag({}, { :method => :put })
     expected = %(<form action="http://www.example.com" method="post"><input type="hidden" name="_method" value="put" />)
     assert_dom_equal expected, actual
+  end
+
+  def test_form_tag_with_block
+    _erbout = ''
+    form_tag("http://example.com") { _erbout.concat "Hello world!" }
+
+    expected = %(<form action="http://www.example.com" method="post">Hello world!</form>)
+    assert_dom_equal expected, _erbout
+  end
+
+  def test_form_tag_with_block_and_method
+    _erbout = ''
+    form_tag("http://example.com", :method => :put) { _erbout.concat "Hello world!" }
+
+    expected = %(<form action="http://www.example.com" method="post"><input type="hidden" name="_method" value="put" />Hello world!</form>)
+    assert_dom_equal expected, _erbout
   end
 
   def test_hidden_field_tag

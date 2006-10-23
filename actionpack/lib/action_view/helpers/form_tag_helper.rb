@@ -17,7 +17,7 @@ module ActionView
       # * <tt>:method</tt>    - The method to use when submitting the form, usually either "get" or "post".
       #                         If "put", "delete", or another verb is used, a hidden input with name _method 
       #                         is added to simulate the verb over post.
-      def form_tag(url_for_options = {}, options = {}, *parameters_for_url, &proc)
+      def form_tag(url_for_options = {}, options = {}, *parameters_for_url, &block)
         html_options = options.stringify_keys
         html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
         html_options["action"]  = url_for(url_for_options, *parameters_for_url)
@@ -34,7 +34,14 @@ module ActionView
             method_tag = tag(:input, :type => "hidden", :name => "_method", :value => method)
         end
         
-        tag(:form, html_options, true) + method_tag
+        if block_given?
+          content = capture(&block)
+          concat(tag(:form, html_options, true) + method_tag, block.binding)
+          concat(content, block.binding)
+          concat("</form>", block.binding)
+        else
+          tag(:form, html_options, true) + method_tag
+        end
       end
 
       alias_method :start_form_tag, :form_tag

@@ -7,7 +7,7 @@
    <% end %>
   
   Will output:
-    <div class="strong"><p>Hello world!</p></div>
+    <div class="strong">Hello world!</div>
 
 * Deprecated UrlHelper#link_to_image and UrlHelper#link_to :post => true #6409 [BobSilva]
 
