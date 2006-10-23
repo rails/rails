@@ -69,6 +69,11 @@ module ActionView
       # containing the values of the ids of elements the sortable consists 
       # of, in the current order.
       #
+      # Important: For this to work, the sortable elements must have id
+      # attributes in the form "string_identifier". For example, "item_1". Only
+      # the identifier part of the id attribute will be serialized.
+      #
+      #
       # You can change the behaviour with various options, see
       # http://script.aculo.us for more documentation.
       def sortable_element(element_id, options = {})
