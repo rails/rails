@@ -71,11 +71,13 @@ module ActiveSupport
     module ClassMethods
       # Declare that a method has been deprecated.
       def deprecate(*method_names)
+        options = method_names.last.is_a?(Hash) ? method_names.pop : {}
+        method_names = method_names + options.keys
         method_names.each do |method_name|
           alias_method_chain(method_name, :deprecation) do |target, punctuation|
             class_eval(<<-EOS, __FILE__, __LINE__)
               def #{target}_with_deprecation#{punctuation}(*args, &block)
-                ::ActiveSupport::Deprecation.warn(self.class.deprecated_method_warning(:#{method_name}), caller)
+                ::ActiveSupport::Deprecation.warn(self.class.deprecated_method_warning(:#{method_name}, #{options[method_name].inspect}), caller)
                 #{target}_without_deprecation#{punctuation}(*args, &block)
               end
             EOS
@@ -83,8 +85,13 @@ module ActiveSupport
         end
       end
 
-      def deprecated_method_warning(method_name)
-        "#{method_name} is deprecated and will be removed from Rails #{deprecation_horizon}"
+      def deprecated_method_warning(method_name, message=nil)
+        warning = "#{method_name} is deprecated and will be removed from Rails #{deprecation_horizon}"
+        case message
+          when Symbol then "#{warning} (use #{message} instead)"
+          when String then "#{warning} (#{message})"
+          else warning
+        end
       end
 
       def deprecation_horizon

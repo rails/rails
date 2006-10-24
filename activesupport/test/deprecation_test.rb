@@ -17,6 +17,13 @@ class Deprecatee
   def one(a) a end
   def multi(a,b,c) [a,b,c] end
   deprecate :none, :one, :multi
+
+  def a; end
+  def b; end
+  def c; end
+  def d; end
+  def e; end
+  deprecate :a, :b, :c => :e, :d => "you now need to do something extra for this one"
 end
 
 
@@ -107,5 +114,18 @@ class DeprecationTest < Test::Unit::TestCase
     ActiveSupport::Deprecation.silenced = true
     assert_not_deprecated { @dtc.partially }
     ActiveSupport::Deprecation.silenced = false
+  end
+
+  def test_deprecation_without_explanation
+    assert_deprecated { @dtc.a }
+    assert_deprecated { @dtc.b }
+  end
+
+  def test_deprecation_with_alternate_method
+    assert_deprecated(/use e instead/) { @dtc.c }
+  end
+
+  def test_deprecation_with_explicit_message
+    assert_deprecated(/you now need to do something extra for this one/) { @dtc.d }
   end
 end
