@@ -130,8 +130,8 @@ module ActiveResource
       connection.delete(self.class.element_path(id, prefix_options))
     end
 
-    def to_xml
-      attributes.to_xml(:root => self.class.element_name)
+    def to_xml(options={})
+      attributes.to_xml({:root => self.class.element_name}.merge(options))
     end
 
     # Reloads the attributes of this object from the remote web service.
