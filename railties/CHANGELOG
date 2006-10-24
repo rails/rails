@@ -1,5 +1,7 @@
 *SVN*
 
+* Update scaffold to use new form_tag block functionality.  Closes #6480. [BobSilva]
+
 * Plugin generator: check for class collisions.  #4833 [vinbarnes@gmail.com]
 
 * Mailer generator: handle mailers in modules, set mime_version in unit test.  [Jeremy Kemper]

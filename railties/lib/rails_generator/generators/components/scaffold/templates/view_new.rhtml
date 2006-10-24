@@ -1,8 +1,8 @@
 <h1>New <%= singular_name %></h1>
 
-<%%= start_form_tag :action => 'create<%= @suffix %>' %>
+<%% form_tag :action => 'create<%= @suffix %>' do %>
   <%%= render :partial => 'form' %>
   <%%= submit_tag "Create" %>
-<%%= end_form_tag %>
+<%% end %>
 
 <%%= link_to 'Back', :action => 'list<%= suffix %>' %>
