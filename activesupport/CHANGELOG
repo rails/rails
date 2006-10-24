@@ -1,5 +1,7 @@
 *SVN*
 
+* next_week respects DST changes.  #6483 [marclove]
+
 * Expose methods added to Enumerable in the documentation, such as group_by. Closes #6170. [sergeykojin@gmail.com, Marcel Molina Jr.]
 
 * Ensure Chars#tidy_bytes only tidies broken bytes. Closes #6397 [Manfred Stienstra]
