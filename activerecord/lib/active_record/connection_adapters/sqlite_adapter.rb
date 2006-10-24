@@ -231,7 +231,7 @@ module ActiveRecord
       end
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
-        super(table_name, column_name, type, options = {})
+        super(table_name, column_name, type, options)
         # See last paragraph on http://www.sqlite.org/lang_altertable.html
         execute "VACUUM"
       end

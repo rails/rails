@@ -1,5 +1,7 @@
 *SVN*
 
+* Make add_column use the options hash with the Sqlite Adapter. Closes #6464 [obrie]
+
 * Document other options available to migration's add_column. #6419 [grg]
 
 * MySQL: all_hashes compatibility with old MysqlRes class.  #6429 [Jeremy Kemper]
