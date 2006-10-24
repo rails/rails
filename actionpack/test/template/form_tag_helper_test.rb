@@ -142,3 +142,31 @@ class FormTagHelperTest < Test::Unit::TestCase
   end
 end
 
+class DeprecatedFormTagHelperTest < Test::Unit::TestCase
+  include ActionView::Helpers::UrlHelper
+  include ActionView::Helpers::TagHelper
+  include ActionView::Helpers::FormTagHelper
+  include ActionView::Helpers::TextHelper
+  include ActionView::Helpers::CaptureHelper
+
+  def setup
+    @controller = Class.new do
+      def url_for(options, *parameters_for_method_reference)
+        "http://www.example.com"
+      end
+    end
+    @controller = @controller.new
+  end
+
+  def test_start_form_tag_deprecation
+    assert_deprecated /start_form_tag/ do
+      start_form_tag
+    end
+  end
+  
+  def test_end_form_tag_deprecation
+    assert_deprecated /end_form_tag/ do
+      end_form_tag
+    end
+  end
+end
