@@ -164,7 +164,12 @@ module ActionView
       #
       # By default the fall-through action is the same as the one specified in 
       # the :url (and the default method is :post).
-      def form_remote_tag(options = {})
+      #
+      # form_remote_tag also takes a block, like form_tag:
+      #   <% form_remote_tag :url => '/posts' do -%>
+      #     <div><%= submit_tag 'Save' %></div>
+      #   <% end -%>
+      def form_remote_tag(options = {}, &block)
         options[:form] = true
 
         options[:html] ||= {}
@@ -172,7 +177,7 @@ module ActionView
           (options[:html][:onsubmit] ? options[:html][:onsubmit] + "; " : "") + 
           "#{remote_function(options)}; return false;"
 
-        form_tag(options[:html].delete(:action) || url_for(options[:url]), options[:html])
+        form_tag(options[:html].delete(:action) || url_for(options[:url]), options[:html], &block)
       end
 
       # Works like form_remote_tag, but uses form_for semantics.

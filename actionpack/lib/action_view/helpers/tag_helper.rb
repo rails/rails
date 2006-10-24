@@ -20,9 +20,9 @@ module ActionView
       #   <tt><div class="strong"><p>Hello world!</p></div></tt>
       #
       # ERb example:
-      #  <% content_tag :div, :class => "strong" %>
+      #  <% content_tag :div, :class => "strong" do -%>
       #    Hello world!
-      #  <% end %>
+      #  <% end -%>
       #
       # Will output:
       #   <div class="strong"><p>Hello world!</p></div>

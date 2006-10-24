@@ -256,7 +256,7 @@ class FormHelperTest < Test::Unit::TestCase
 
     expected = 
       "<form action='http://www.example.com' id='create-post' method='post'>" +
-      "<input name='_method' type='hidden' value='put' />" +
+      "<div style='margin:0;padding:0'><input name='_method' type='hidden' value='put' /></div>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +

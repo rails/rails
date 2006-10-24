@@ -69,8 +69,14 @@ class PrototypeHelperTest < Test::Unit::TestCase
   end
 
   def test_form_remote_tag_with_method
-    assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater('glass_of_beer', 'http://www.example.com/fast', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\"><input name='_method' type='hidden' value='put' />),
+    assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater('glass_of_beer', 'http://www.example.com/fast', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\"><div style='margin:0;padding:0'><input name='_method' type='hidden' value='put' /></div>),
       form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }, :html => { :method => :put })
+  end
+
+  def test_form_remote_tag_with_block
+    _erbout = ''
+    form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }) { _erbout.concat "Hello world!" }
+    assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater('glass_of_beer', 'http://www.example.com/fast', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\">Hello world!</form>), _erbout
   end
   
   def test_on_callbacks

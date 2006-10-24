@@ -1,5 +1,9 @@
 *SVN*
 
+* Added block-usage to PrototypeHelper#form_remote_tag, document block-usage of FormTagHelper#form_tag [Rick]
+
+* Add a 0 margin/padding div around the hidden _method input tag that form_tag outputs.  [Rick]
+
 * Added block-usage to TagHelper#content_tag [DHH]. Example:
 
    <% content_tag :div, :class => "strong" %>

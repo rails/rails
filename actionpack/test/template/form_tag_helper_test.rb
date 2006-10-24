@@ -36,7 +36,7 @@ class FormTagHelperTest < Test::Unit::TestCase
 
   def test_form_tag_with_method
     actual = form_tag({}, { :method => :put })
-    expected = %(<form action="http://www.example.com" method="post"><input type="hidden" name="_method" value="put" />)
+    expected = %(<form action="http://www.example.com" method="post"><div style='margin:0;padding:0'><input type="hidden" name="_method" value="put" /></div>)
     assert_dom_equal expected, actual
   end
 
@@ -52,7 +52,7 @@ class FormTagHelperTest < Test::Unit::TestCase
     _erbout = ''
     form_tag("http://example.com", :method => :put) { _erbout.concat "Hello world!" }
 
-    expected = %(<form action="http://www.example.com" method="post"><input type="hidden" name="_method" value="put" />Hello world!</form>)
+    expected = %(<form action="http://www.example.com" method="post"><div style='margin:0;padding:0'><input type="hidden" name="_method" value="put" /></div>Hello world!</form>)
     assert_dom_equal expected, _erbout
   end
 

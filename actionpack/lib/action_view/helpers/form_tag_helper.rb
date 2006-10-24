@@ -12,6 +12,19 @@ module ActionView
       # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
       #
+      # Examples:
+      # * <tt>form_tag('/posts') => <form action="/posts" method="post"></tt>
+      # * <tt>form_tag('/posts/1', :method => :put) => <form action="/posts/1" method="put"></tt>
+      # * <tt>form_tag('/upload', :multipart => true) => <form action="/upload" method="post" enctype="multipart/form-data"></tt>
+      # 
+      # ERb example:
+      #   <% form_tag '/posts' do -%>
+      #     <div><%= submit_tag 'Save' %></div>
+      #   <% end -%>
+      #
+      # Will output:
+      #   <form action="/posts" method="post"><div><input type="submit" name="submit" value="Save" /></div></form>
+      #
       # Options:
       # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".
       # * <tt>:method</tt>    - The method to use when submitting the form, usually either "get" or "post".
@@ -31,7 +44,7 @@ module ActionView
             html_options["method"] = "post"
           else
             html_options["method"] = "post"
-            method_tag = tag(:input, :type => "hidden", :name => "_method", :value => method)
+            method_tag = content_tag(:div, tag(:input, :type => "hidden", :name => "_method", :value => method), :style => 'margin:0;padding:0')
         end
         
         if block_given?
