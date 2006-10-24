@@ -149,7 +149,7 @@ module ActionView
       end
       
       alias_method :human_size, :number_to_human_size # deprecated alias
-      deprecate :human_size
+      deprecate :human_size => :number_to_human_size
     end
   end
 end
