@@ -826,7 +826,7 @@ module ActiveRecord #:nodoc:
       def quote(value, column = nil) #:nodoc:
         connection.quote(value, column)
       end
-      deprecate :quote
+      deprecate :quote => :quote_value
 
       # Used to sanitize objects before they're used in an SELECT SQL-statement. Delegates to <tt>connection.quote</tt>.
       def sanitize(object) #:nodoc:
@@ -2012,7 +2012,7 @@ module ActiveRecord #:nodoc:
       def quote(value, column = nil)
         self.class.connection.quote(value, column)
       end
-      deprecate :quote
+      deprecate :quote => :quote_value
       
       
       # Interpolate custom sql string in instance context.

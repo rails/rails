@@ -81,7 +81,7 @@ module ActiveRecord
 
         self
       end
-      deprecate :push_with_attributes
+      deprecate :push_with_attributes => "consider using has_many :through instead"
 
       alias :concat_with_attributes :push_with_attributes
 

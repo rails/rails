@@ -10,7 +10,7 @@ module ActiveRecord
       def find_on_conditions(ids, conditions) # :nodoc:
         find(ids, :conditions => conditions)
       end
-      deprecate :find_on_conditions
+      deprecate :find_on_conditions => "use find(ids, :conditions => conditions)"
 
       # This method is deprecated in favor of find(:first, options).
       #
@@ -22,7 +22,7 @@ module ActiveRecord
       def find_first(conditions = nil, orderings = nil, joins = nil) # :nodoc:
         find(:first, :conditions => conditions, :order => orderings, :joins => joins)
       end
-      deprecate :find_first
+      deprecate :find_first => "use find(:first, ...)"
 
       # This method is deprecated in favor of find(:all, options).
       #
@@ -38,7 +38,7 @@ module ActiveRecord
         limit, offset = limit.is_a?(Array) ? limit : [ limit, nil ]
         find(:all, :conditions => conditions, :order => orderings, :joins => joins, :limit => limit, :offset => offset)
       end
-      deprecate :find_all
+      deprecate :find_all => "use find(:all, ...)"
     end
   end
 end

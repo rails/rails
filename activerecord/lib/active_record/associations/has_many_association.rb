@@ -31,13 +31,13 @@ module ActiveRecord
           @reflection.klass.find_all(conditions, orderings, limit, joins)
         end
       end
-      deprecate :find_all
+      deprecate :find_all => "use find(:all, ...) instead"
 
       # DEPRECATED. Find the first associated record.  All arguments are optional.
       def find_first(conditions = nil, orderings = nil)
         find_all(conditions, orderings, 1).first
       end
-      deprecate :find_first
+      deprecate :find_first => "use find(:first, ...) instead"
 
       # Count the number of associated records. All arguments are optional.
       def count(*args)
