@@ -174,7 +174,8 @@ module ActionView
       end
 
       alias_method :link_to_image, :link_image_to
-      deprecate :link_image_to => :link_to_image
+      deprecate :link_to_image => "use link_to(image_tag(...), url)",
+        :link_image_to => "use link_to(image_tag(...), url)"
 
       # Creates a link tag of the given +name+ using a URL created by the set of
       # +options+ unless the current request uri is the same as the links, in 
