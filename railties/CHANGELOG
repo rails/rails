@@ -1,5 +1,7 @@
 *SVN*
 
+* Added option to script/process/spawner of specifying the binding address #5133 [zsombor]
+
 * Update environment.rb comments to include config.autoload_paths. Closes #6478 [caio]
 
 * Update scaffold to use new form_tag block functionality.  Closes #6480. [BobSilva]

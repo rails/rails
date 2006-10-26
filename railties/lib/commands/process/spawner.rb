@@ -23,15 +23,15 @@ class Spawner
   def self.spawn_all
     OPTIONS[:instances].times do |i|
       port = OPTIONS[:port] + i
-      print "Checking if something is already running on port #{port}..."
+      print "Checking if something is already running on #{OPTIONS[:address]}:#{port}..."
 
       begin
-        srv = TCPServer.new('0.0.0.0', port)
+        srv = TCPServer.new(OPTIONS[:address], port)
         srv.close
         srv = nil
 
         puts "NO"
-        puts "Starting dispatcher on port: #{port}"
+        puts "Starting dispatcher on port: #{OPTIONS[:address]}:#{port}"
 
         FileUtils.mkdir_p(OPTIONS[:pids])
         spawn(port)
@@ -44,13 +44,25 @@ end
 
 class FcgiSpawner < Spawner
   def self.spawn(port)
-    system("#{OPTIONS[:spawner]} -f #{OPTIONS[:dispatcher]} -p #{port} -P #{OPTIONS[:pids]}/#{OPTIONS[:process]}.#{port}.pid")
+    cmd = "#{OPTIONS[:spawner]} -f #{OPTIONS[:dispatcher]} -p #{port} -P #{OPTIONS[:pids]}/#{OPTIONS[:process]}.#{port}.pid"
+    cmd << " -a #{OPTIONS[:address]}" if can_bind_to_custom_address?
+    system(cmd)
+  end
+
+  def self.can_bind_to_custom_address?
+    @@can_bind_to_custom_address ||= /^\s-a\s/.match `#{OPTIONS[:spawner]} -h`
   end
 end
 
 class MongrelSpawner < Spawner
   def self.spawn(port)
-    system("mongrel_rails start -d -p #{port} -P #{OPTIONS[:pids]}/#{OPTIONS[:process]}.#{port}.pid -e #{OPTIONS[:environment]}")
+    cmd = "mongrel_rails start -d -p #{port} -P #{OPTIONS[:pids]}/#{OPTIONS[:process]}.#{port}.pid -e #{OPTIONS[:environment]}"
+    cmd << "-a #{OPTIONS[:address]}" if can_bind_to_custom_address?
+    system(cmd)
+  end
+
+  def self.can_bind_to_custom_address?
+    true
   end
 end
 
@@ -99,6 +111,7 @@ OPTIONS = {
   :pids        => File.expand_path(RAILS_ROOT + "/tmp/pids"),
   :process     => "dispatch",
   :port        => 8000,
+  :address     => '0.0.0.0',
   :instances   => 3,
   :repeat      => nil
 }
@@ -110,31 +123,51 @@ ARGV.options do |opts|
 
   opts.on <<-EOF
   Description:
-    The spawner is a wrapper for spawn-fcgi and mongrel that makes it easier to start multiple
-    processes running the Rails dispatcher. The spawn-fcgi command is included with the lighttpd 
-    web server, but can be used with both Apache and lighttpd (and any other web server supporting
-    externally managed FCGI processes). Mongrel automatically ships with with mongrel_rails for starting
-    dispatchers.
-    
-    The first choice you need to make is whether to spawn the Rails dispatchers as FCGI or Mongrel. By default,
-    this spawner will prefer Mongrel, so if that's installed, and no platform choice is made, Mongrel is used.
+    The spawner is a wrapper for spawn-fcgi and mongrel that makes it
+    easier to start multiple processes running the Rails dispatcher. The
+    spawn-fcgi command is included with the lighttpd web server, but can
+    be used with both Apache and lighttpd (and any other web server
+    supporting externally managed FCGI processes). Mongrel automatically
+    ships with with mongrel_rails for starting dispatchers.
 
-    Then decide a starting port (default is 8000) and the number of FCGI process instances you'd 
-    like to run. So if you pick 9100 and 3 instances, you'll start processes on 9100, 9101, and 9102.
+    The first choice you need to make is whether to spawn the Rails
+    dispatchers as FCGI or Mongrel. By default, this spawner will prefer
+    Mongrel, so if that's installed, and no platform choice is made,
+    Mongrel is used.
 
-    By setting the repeat option, you get a protection loop, which will attempt to restart any FCGI processes
-    that might have been exited or outright crashed. 
+    Then decide a starting port (default is 8000) and the number of FCGI
+    process instances you'd like to run. So if you pick 9100 and 3
+    instances, you'll start processes on 9100, 9101, and 9102.
 
-  Examples:
-    spawner               # starts instances on 8000, 8001, and 8002 using Mongrel if available
-    spawner fcgi          # starts instances on 8000, 8001, and 8002 using FCGI
-    spawner mongrel -i 5  # starts instances on 8000, 8001, 8002, 8003, and 8004 using Mongrel
-    spawner -p 9100 -i 10 # starts 10 instances counting from 9100 to 9109 using Mongrel if available
-    spawner -p 9100 -r 5  # starts 3 instances counting from 9100 to 9102 and attempts start them every 5 seconds
+    By setting the repeat option, you get a protection loop, which will
+    attempt to restart any FCGI processes that might have been exited or
+    outright crashed.
+
+    You can select bind address for started processes. By default these
+    listen on every interface. For single machine installations you would
+    probably want to use 127.0.0.1, hiding them form the outside world.
+
+     Examples:
+       spawner               # starts instances on 8000, 8001, and 8002
+                             # using Mongrel if available.
+       spawner fcgi          # starts instances on 8000, 8001, and 8002
+                             # using FCGI.
+       spawner mongrel -i 5  # starts instances on 8000, 8001, 8002,
+                             # 8003, and 8004 using Mongrel.
+       spawner -p 9100 -i 10 # starts 10 instances counting from 9100 to
+                             # 9109 using Mongrel if available.
+       spawner -p 9100 -r 5  # starts 3 instances counting from 9100 to
+                             # 9102 and attempts start them every 5
+                             # seconds.
+       spawner -a 127.0.0.1  # starts 3 instances binding to localhost
   EOF
 
   opts.on("  Options:")
 
+  opts.on("-p", "--port=number",      Integer, "Starting port number (default: #{OPTIONS[:port]})")                { |OPTIONS[:port]| }
+  if spawner_class.can_bind_to_custom_address?
+    opts.on("-a", "--address=ip",     String,  "Bind to IP address (default: #{OPTIONS[:address]})")                { |OPTIONS[:address]| }
+  end
   opts.on("-p", "--port=number",      Integer, "Starting port number (default: #{OPTIONS[:port]})")                { |v| OPTIONS[:port] = v }
   opts.on("-i", "--instances=number", Integer, "Number of instances (default: #{OPTIONS[:instances]})")            { |v| OPTIONS[:instances] = v }
   opts.on("-r", "--repeat=seconds",   Integer, "Repeat spawn attempts every n seconds (default: off)")             { |v| OPTIONS[:repeat] = v }
