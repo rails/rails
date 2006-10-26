@@ -14,7 +14,7 @@
   <%% end %>
     <td><%%= link_to 'Show', :action => 'show<%= suffix %>', :id => <%= singular_name %> %></td>
     <td><%%= link_to 'Edit', :action => 'edit<%= suffix %>', :id => <%= singular_name %> %></td>
-    <td><%%= link_to 'Destroy', { :action => 'destroy<%= suffix %>', :id => <%= singular_name %> }, :confirm => 'Are you sure?', :post => true %></td>
+    <td><%%= link_to 'Destroy', { :action => 'destroy<%= suffix %>', :id => <%= singular_name %> }, :confirm => 'Are you sure?', :method => :post %></td>
   </tr>
 <%% end %>
 </table>
