@@ -1,5 +1,7 @@
 *SVN*
 
+* Clean up the output of rake stats,  de-emphasise components and apis, and remove the indents for tests [Koz]
+
 * Added option to script/process/spawner of specifying the binding address #5133 [zsombor]
 
 * Update environment.rb comments to include config.autoload_paths. Closes #6478 [caio]

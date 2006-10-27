@@ -83,7 +83,7 @@ class CodeStatistics #:nodoc:
       loc_over_m = (statistics["codelines"] / statistics["methods"]) - 2 rescue loc_over_m = 0
 
       start = if TEST_TYPES.include? name
-        "|   #{name.ljust(18)} "
+        "| #{name.ljust(20)} "
       else
         "| #{name.ljust(20)} " 
       end
