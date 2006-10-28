@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to latest Prototype, which doesn't serialize disabled form elements, adds clone() to arrays, empty/non-string Element.update() and adds a fixes excessive error reporting in WebKit beta versions [Thomas Fuchs]
+
 * Clean up the output of rake stats,  de-emphasise components and apis, and remove the indents for tests [Koz]
 
 * Added option to script/process/spawner of specifying the binding address #5133 [zsombor]

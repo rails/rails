@@ -560,6 +560,10 @@ Object.extend(Array.prototype, {
     });
   },
 
+  clone: function() {
+    return [].concat(this);
+  },
+
   inspect: function() {
     return '[' + this.map(Object.inspect).join(', ') + ']';
   }
@@ -1040,6 +1044,7 @@ Element.Methods = {
   },
 
   update: function(element, html) {
+    html = typeof html == 'undefined' ? '' : html.toString();
     $(element).innerHTML = html.stripScripts();
     setTimeout(function() {html.evalScripts()}, 10);
     return element;
@@ -1299,6 +1304,7 @@ Element.Methods = {
 if(document.all){
   Element.Methods.update = function(element, html) {
     element = $(element);
+    html = typeof html == 'undefined' ? '' : html.toString();
     var tagName = element.tagName.toUpperCase();
     if (['THEAD','TBODY','TR','TD'].indexOf(tagName) > -1) {
       var div = document.createElement('div');
@@ -1335,14 +1341,13 @@ Object.extend(Element, Element.Methods);
 
 var _nativeExtensions = false;
 
-if (!window.HTMLElement && /Konqueror|Safari|KHTML/.test(navigator.userAgent)) {
-  /* Emulate HTMLElement, HTMLFormElement, HTMLInputElement, HTMLTextAreaElement,
-     and HTMLSelectElement in Safari */
+if(/Konqueror|Safari|KHTML/.test(navigator.userAgent))
   ['', 'Form', 'Input', 'TextArea', 'Select'].each(function(tag) {
-    var klass = window['HTML' + tag + 'Element'] = {};
+    var className = 'HTML' + tag + 'Element';
+    if(window[className]) return;
+    var klass = window[className] = {};
     klass.prototype = document.createElement(tag ? tag.toLowerCase() : 'div').__proto__;
   });
-}
 
 Element.addMethods = function(methods) {
   Object.extend(Element.Methods, methods || {});
@@ -1732,6 +1737,7 @@ Form.Element = {
 Form.Element.Methods = {
   serialize: function(element) {
     element = $(element);
+    if (element.disabled) return '';
     var method = element.tagName.toLowerCase();
     var parameter = Form.Element.Serializers[method](element);
 

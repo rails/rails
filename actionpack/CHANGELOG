@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to latest Prototype, which doesn't serialize disabled form elements, adds clone() to arrays, empty/non-string Element.update() and adds a fixes excessive error reporting in WebKit beta versions [Thomas Fuchs]
+
 * Deprecate start_form_tag and end_form_tag.  Use form_tag / '</form>' from now on.  [Rick]
 
 * Added block-usage to PrototypeHelper#form_remote_tag, document block-usage of FormTagHelper#form_tag [Rick]
