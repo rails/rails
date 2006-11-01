@@ -54,7 +54,7 @@ ActiveRecord::Schema.define do
     t.column :lock_version, :integer
   end
   
-  create_table :lock_with_custom_column_without_defaults, :force => true do |t|
+  create_table :lock_without_defaults_cust, :force => true do |t|
     t.column :custom_lock_version, :integer
   end
 end

@@ -121,10 +121,11 @@ class EagerAssociationTest < Test::Unit::TestCase
     author = Author.find(:first, :include => :special_nonexistant_post_comments, :order => 'authors.id')
     assert_equal [], author.special_nonexistant_post_comments
   end
-  
+
   def test_eager_with_has_many_through_join_model_with_conditions
-    assert_equal Author.find(:first, :include => :hello_post_comments).hello_post_comments,
-      Author.find(:first).hello_post_comments
+    assert_equal Author.find(:first, :include => :hello_post_comments,
+                             :order => 'authors.id').hello_post_comments.sort_by(&:id),
+                 Author.find(:first, :order => 'authors.id').hello_post_comments.sort_by(&:id)
   end
 
   def test_eager_with_has_many_and_limit

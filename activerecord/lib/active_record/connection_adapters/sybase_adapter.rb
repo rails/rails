@@ -170,15 +170,6 @@ module ActiveRecord
         30
       end
 
-      def select_all(sql, name = nil)
-        select(sql, name)
-      end
-
-      def select_one(sql, name = nil)
-        result = select(sql, name)
-        result.nil? ? nil : result.first
-      end
-
       def columns(table_name, name = nil)
         table_structure(table_name).inject([]) do |columns, column|
           name, default, type, nullable, identity, primary = column
@@ -233,9 +224,6 @@ module ActiveRecord
         # Return rows affected
         @connection.results[0].row_count
       end
-
-      alias_method :update, :execute
-      alias_method :delete, :execute
 
       def begin_db_transaction()    execute "BEGIN TRAN" end
       def commit_db_transaction()   execute "COMMIT TRAN" end

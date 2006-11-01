@@ -41,28 +41,16 @@ begin
         self.oracle_connection(config)
       end
 
-      # Enable the id column to be bound into the sql later, by the adapter's insert method.
-      # This is preferable to inserting the hard-coded value here, because the insert method
-      # needs to know the id value explicitly.
-      alias :attributes_with_quotes_pre_oracle :attributes_with_quotes
-      def attributes_with_quotes(include_primary_key = true) #:nodoc:
-        aq = attributes_with_quotes_pre_oracle(include_primary_key)
-        if connection.class == ConnectionAdapters::OracleAdapter
-          aq[self.class.primary_key] = ":id" if include_primary_key && aq[self.class.primary_key].nil?
-        end
-        aq
-      end
-
       # After setting large objects to empty, select the OCI8::LOB
       # and write back the data.
-      after_save :write_lobs 
+      after_save :write_lobs
       def write_lobs() #:nodoc:
         if connection.is_a?(ConnectionAdapters::OracleAdapter)
           self.class.columns.select { |c| c.sql_type =~ /LOB$/i }.each { |c|
             value = self[c.name]
             next if value.nil?  || (value == '')
             lob = connection.select_one(
-              "SELECT #{c.name} FROM #{self.class.table_name} WHERE #{self.class.primary_key} = #{quote(id)}",
+              "SELECT #{c.name} FROM #{self.class.table_name} WHERE #{self.class.primary_key} = #{quote_value(id)}",
               'Writable Large Object')[c.name]
             lob.write value
           }
@@ -145,7 +133,7 @@ begin
         def supports_migrations? #:nodoc:
           true
         end
-        
+
         def native_database_types #:nodoc
           {
             :primary_key => "NUMBER(38) NOT NULL PRIMARY KEY",
@@ -192,7 +180,7 @@ begin
         def quoted_true
           "1"
         end
-      
+
         def quoted_false
           "0"
         end
@@ -204,7 +192,7 @@ begin
         # Returns true if the connection is active.
         def active?
           # Pings the connection to check if it's still good. Note that an
-          # #active? method is also available, but that simply returns the 
+          # #active? method is also available, but that simply returns the
           # last known state, which isn't good enough if the connection has
           # gone stale since the last use.
           @connection.ping
@@ -230,34 +218,23 @@ begin
         #
         # see: abstract/database_statements.rb
 
-        def select_all(sql, name = nil) #:nodoc:
-          select(sql, name)
-        end
-
-        def select_one(sql, name = nil) #:nodoc:
-          result = select_all(sql, name)
-          result.size > 0 ? result.first : nil
-        end
-
         def execute(sql, name = nil) #:nodoc:
           log(sql, name) { @connection.exec sql }
         end
 
-        def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
-          if pk.nil? # Who called us? What does the sql look like? No idea!
-            execute sql, name
-          elsif id_value # Pre-assigned id
-            log(sql, name) { @connection.exec sql }
-          else # Assume the sql contains a bind-variable for the id
-            id_value = select_one("select #{sequence_name}.nextval id from dual")['id'].to_i
-            log(sql.sub(/\B:id\b/, id_value.to_s), name) { @connection.exec sql, id_value }
-          end
-
-          id_value
+        # Returns the next sequence value from a sequence generator. Not generally
+        # called directly; used by ActiveRecord to get the next primary key value
+        # when inserting a new database record (see #prefetch_primary_key?).
+        def next_sequence_value(sequence_name)
+          id = 0
+          @connection.exec("select #{sequence_name}.nextval id from dual") { |r| id = r[0].to_i }
+          id
         end
 
-        alias :update :execute #:nodoc:
-        alias :delete :execute #:nodoc:
+        def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
+          execute(sql, name)
+          id_value
+        end
 
         def begin_db_transaction #:nodoc:
           @connection.autocommit = false
@@ -283,6 +260,12 @@ begin
           elsif offset > 0
             sql.replace "select * from (select raw_sql_.*, rownum raw_rnum_ from (#{sql}) raw_sql_) where raw_rnum_ > #{offset}"
           end
+        end
+
+        # Returns true for Oracle adapter (since Oracle requires primary key
+        # values to be pre-fetched before insert). See also #next_sequence_value.
+        def prefetch_primary_key?(table_name = nil)
+          true
         end
 
         def default_sequence_name(table, column) #:nodoc:
@@ -331,6 +314,7 @@ begin
 
         def columns(table_name, name = nil) #:nodoc:
           (owner, table_name) = @connection.describe(table_name)
+          raise "Couldn't describe #{table_name}. Does it exist?" unless owner and table_name
 
           table_cols = %Q{
             select column_name as name, data_type as sql_type, data_default, nullable,
@@ -355,6 +339,7 @@ begin
             if row['data_default']
               row['data_default'].sub!(/^(.*?)\s*$/, '\1')
               row['data_default'].sub!(/^'(.*)'$/, '\1')
+              row['data_default'] = nil if row['data_default'] =~ /^null$/i
             end
 
             OracleColumn.new(oracle_downcase(row['name']),
@@ -372,7 +357,7 @@ begin
         def rename_table(name, new_name) #:nodoc:
           execute "RENAME #{name} TO #{new_name}"
           execute "RENAME #{name}_seq TO #{new_name}_seq" rescue nil
-        end  
+        end
 
         def drop_table(name) #:nodoc:
           super(name)
@@ -407,20 +392,20 @@ begin
           end
 
           select_all("select table_name from user_tables").inject(s) do |structure, table|
-            ddl = "create table #{table.to_a.first.last} (\n "  
+            ddl = "create table #{table.to_a.first.last} (\n "
             cols = select_all(%Q{
               select column_name, data_type, data_length, data_precision, data_scale, data_default, nullable
               from user_tab_columns
               where table_name = '#{table.to_a.first.last}'
               order by column_id
-            }).map do |row|              
-              col = "#{row['column_name'].downcase} #{row['data_type'].downcase}"      
+            }).map do |row|
+              col = "#{row['column_name'].downcase} #{row['data_type'].downcase}"
               if row['data_type'] =='NUMBER' and !row['data_precision'].nil?
                 col << "(#{row['data_precision'].to_i}"
                 col << ",#{row['data_scale'].to_i}" if !row['data_scale'].nil?
                 col << ')'
               elsif row['data_type'].include?('CHAR')
-                col << "(#{row['data_length'].to_i})"  
+                col << "(#{row['data_length'].to_i})"
               end
               col << " default #{row['data_default']}" if !row['data_default'].nil?
               col << ' not null' if row['nullable'] == 'N'
@@ -518,7 +503,7 @@ begin
     def describe(name)
       @desc ||= @@env.alloc(OCIDescribe)
       @desc.attrSet(OCI_ATTR_DESC_PUBLIC, -1) if VERSION >= '0.1.14'
-      @desc.describeAny(@svc, name.to_s, OCI_PTYPE_UNK)
+      @desc.describeAny(@svc, name.to_s, OCI_PTYPE_UNK) rescue return nil
       info = @desc.attrGet(OCI_ATTR_PARAM)
 
       case info.attrGet(OCI_ATTR_PTYPE)
@@ -552,10 +537,10 @@ begin
 
   # The OCI8AutoRecover class enhances the OCI8 driver with auto-recover and
   # reset functionality. If a call to #exec fails, and autocommit is turned on
-  # (ie., we're not in the middle of a longer transaction), it will 
+  # (ie., we're not in the middle of a longer transaction), it will
   # automatically reconnect and try again. If autocommit is turned off,
   # this would be dangerous (as the earlier part of the implied transaction
-  # may have failed silently if the connection died) -- so instead the 
+  # may have failed silently if the connection died) -- so instead the
   # connection is marked as dead, to be reconnected on it's next use.
   class OCI8AutoRecover < DelegateClass(OCI8) #:nodoc:
     attr_accessor :active
@@ -601,7 +586,7 @@ begin
     end
 
     # ORA-00028: your session has been killed
-    # ORA-01012: not logged on 
+    # ORA-01012: not logged on
     # ORA-03113: end-of-file on communication channel
     # ORA-03114: not connected to ORACLE
     LOST_CONNECTION_ERROR_CODES = [ 28, 1012, 3113, 3114 ]

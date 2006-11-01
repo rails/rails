@@ -253,16 +253,6 @@ module ActiveRecord
         @connection.disconnect rescue nil
       end
 
-      def select_all(sql, name = nil)
-        select(sql, name)
-      end
-
-      def select_one(sql, name = nil)
-        add_limit!(sql, :limit => 1)
-        result = select(sql, name)
-        result.nil? ? nil : result.first
-      end
-
       def columns(table_name, name = nil)
         return [] if table_name.blank?
         table_name = table_name.to_s if table_name.is_a?(Symbol)
@@ -331,7 +321,7 @@ module ActiveRecord
           end
         end
       end
-      
+
       def begin_db_transaction
         @connection["AutoCommit"] = false
       rescue Exception => e

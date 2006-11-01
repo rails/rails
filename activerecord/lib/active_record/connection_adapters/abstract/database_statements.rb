@@ -4,11 +4,14 @@ module ActiveRecord
       # Returns an array of record hashes with the column names as keys and
       # column values as values.
       def select_all(sql, name = nil)
+        select(sql, name)
       end
 
       # Returns a record hash with the column names as keys and column values
       # as values.
       def select_one(sql, name = nil)
+        result = select(sql, name)
+        result.first if result
       end
 
       # Returns a single value from a record
@@ -25,19 +28,24 @@ module ActiveRecord
       end
 
       # Executes the SQL statement in the context of this connection.
-      # This abstract method raises a NotImplementedError.
       def execute(sql, name = nil)
         raise NotImplementedError, "execute is an abstract method"
       end
 
       # Returns the last auto-generated ID from the affected table.
-      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) end
+      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+        raise NotImplementedError, "insert is an abstract method"
+      end
 
       # Executes the update statement and returns the number of rows affected.
-      def update(sql, name = nil) end
+      def update(sql, name = nil)
+        execute(sql, name)
+      end
 
       # Executes the delete statement and returns the number of rows affected.
-      def delete(sql, name = nil) end
+      def delete(sql, name = nil)
+        update(sql, name)
+      end
 
       # Wrap a block in a transaction.  Returns result of block.
       def transaction(start_db_transaction = true)
@@ -110,6 +118,13 @@ module ActiveRecord
       def reset_sequence!(table, column, sequence = nil)
         # Do nothing by default.  Implement for PostgreSQL, Oracle, ...
       end
+
+      protected
+        # Returns an array of record hashes with the column names as keys and
+        # column values as values.
+        def select(sql, name = nil)
+          raise NotImplementedError, "select is an abstract method"
+        end
     end
   end
 end

@@ -1782,7 +1782,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_equal projects(:active_record), developer.projects[0] 
     assert_equal projects(:action_controller), developer.projects[1] 
   end
-  
+
   def test_select_limited_ids_list
     # Set timestamps
     Developer.transaction do
@@ -1790,10 +1790,10 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
         record.update_attributes(:created_at => 5.years.ago + (i * 5.minutes))
       end
     end
-    
+
     join_base = ActiveRecord::Associations::ClassMethods::JoinDependency::JoinBase.new(Project)
     join_dep  = ActiveRecord::Associations::ClassMethods::JoinDependency.new(join_base, :developers, nil)
     projects  = Project.send(:select_limited_ids_list, {:order => 'developers.created_at'}, join_dep)
-    assert_equal "'1', '2'", projects
+    assert_equal %w(1 2), projects.scan(/\d/).sort
   end
 end
