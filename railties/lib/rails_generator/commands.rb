@@ -83,6 +83,12 @@ module Rails
             "%.#{padding}d" % next_migration_number
           end
 
+          def gsub_file(relative_destination, regexp, *args, &block)
+            path = destination_path(relative_destination)
+            content = File.read(path).gsub(regexp, *args, &block)
+            File.open(path, 'wb') { |file| file.write(content) }
+          end
+
         private
           # Ask the user interactively whether to force collision.
           def force_file_collision?(destination)
@@ -316,6 +322,16 @@ module Rails
           template(relative_source, "#{relative_destination}/#{next_migration_string}_#{migration_file_name}.rb", template_options)
         end
 
+        def route_resources(*resources)
+          resource_list = resources.map { |r| r.to_sym.inspect }.join(', ')
+          sentinel = 'ActionController::Routing::Routes.draw do |map|'
+
+          logger.route "map.resources #{resource_list}"
+          gsub_file 'config/routes.rb', /(#{Regexp.escape(sentinel)})/mi do |match|
+            "#{match}\n  map.resources #{resource_list}\n"
+          end
+        end
+
         private
           # Raise a usage error with an informative WordNet suggestion.
           # Thanks to Florian Gross (flgr).
@@ -438,6 +454,13 @@ end_message
             file(relative_source, file_path, template_options)
           end
         end
+
+        def route_resources(*resources)
+          resource_list = resources.map { |r| r.to_sym.inspect }.join(', ')
+          look_for = "\n  map.resources #{resource_list}\n"
+          logger.route "map.resources #{resource_list}"
+          gsub_file 'config/routes.rb', /(#{look_for})/mi, ''
+        end
       end
 
 
@@ -474,6 +497,11 @@ end_message
         def migration_template(relative_source, relative_destination, options = {})
           migration_directory relative_destination
           logger.migration_template file_name
+        end
+
+        def route_resources(*resources)
+          resource_list = resources.map { |r| r.to_sym.inspect }.join(', ')
+          logger.route "map.resources #{resource_list}"
         end
       end
 

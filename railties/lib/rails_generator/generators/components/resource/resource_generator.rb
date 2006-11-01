@@ -26,7 +26,7 @@ class ResourceGenerator < Rails::Generator::NamedBase
   end
 
   def manifest
-    recorded_session = record do |m|
+    record do |m|
       # Check for class naming collisions.
       m.class_collisions(controller_class_path, "#{controller_class_name}Controller", "#{controller_class_name}Helper")
       m.class_collisions(class_path, "#{class_name}")
@@ -60,18 +60,9 @@ class ResourceGenerator < Rails::Generator::NamedBase
           :migration_file_name => "create_#{file_path.gsub(/\//, '_').pluralize}"
         )
       end
+
+      m.route_resources controller_file_name
     end
-
-    puts
-    puts ("-" * 70)
-    puts "Don't forget the restful route in config/routes.rb"
-    puts
-    puts "  map.resources :#{controller_file_name}"
-    puts
-    puts ("-" * 70)
-    puts
-
-    recorded_session
   end
 
   protected
