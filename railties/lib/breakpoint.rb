@@ -16,7 +16,21 @@
 # license please contact me.
 
 require 'irb'
-require 'binding_of_caller'
+if RUBY_VERSION == '1.8.5'
+  begin
+    require 'rubygems'
+    require 'breakpoint185'
+  rescue LoadError      
+    puts 'WARNING: breakpoints will not work with Ruby 1.8.5 without the call_stack gem.'
+    puts '         gem install call_stack or see http://eigenclass.org/hiki.rb?call_stack'
+    def Binding.of_caller(&block)
+      raise 'Breakpoint requires the call_stack gem with Ruby 1.8.5.'
+      return
+    end
+  end
+else
+  require 'binding_of_caller'
+end
 require 'drb'
 require 'drb/acl'
 
