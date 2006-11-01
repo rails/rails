@@ -483,4 +483,151 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
   
+  def test_new_contants_in_without_constants
+    assert_equal [], (Dependencies.new_constants_in(Object) { })
+    assert Dependencies.constant_watch_stack.empty?    
+  end
+  
+  def test_new_constants_in_with_a_single_constant
+    assert_equal(["Hello"], (Dependencies.new_constants_in(Object) do
+      Object.const_set :Hello, 10
+    end))
+    assert Dependencies.constant_watch_stack.empty?    
+  ensure
+    Object.send :remove_const, :Hello rescue nil
+  end
+  
+  def test_new_constants_in_with_nesting
+    outer = Dependencies.new_constants_in(Object) do
+      Object.const_set :OuterBefore, 10
+      
+      inner = Dependencies.new_constants_in(Object) do
+        Object.const_set :Inner, 20
+      end
+      assert_equal ["Inner"], inner
+      
+      Object.const_set :OuterAfter, 30
+    end
+    
+    assert_equal ["OuterAfter", "OuterBefore"], outer.sort
+    assert Dependencies.constant_watch_stack.empty?
+  ensure
+    %w(OuterBefore Inner OuterAfter).each do |name|
+      Object.send :remove_const, name rescue nil
+    end
+  end
+  
+  def test_new_constants_in_module
+    Object.const_set :M, Module.new
+    
+    outer = Dependencies.new_constants_in(M) do
+      M.const_set :OuterBefore, 10
+      
+      inner = Dependencies.new_constants_in(M) do
+        M.const_set :Inner, 20
+      end
+      assert_equal ["M::Inner"], inner
+      
+      M.const_set :OuterAfter, 30
+    end
+    assert_equal ["M::OuterAfter", "M::OuterBefore"], outer.sort
+    assert Dependencies.constant_watch_stack.empty?    
+  ensure
+    Object.send :remove_const, :M rescue nil
+  end
+  
+  def test_new_constants_in_module_using_name
+    outer = Dependencies.new_constants_in(:M) do
+      Object.const_set :M, Module.new
+      M.const_set :OuterBefore, 10
+      
+      inner = Dependencies.new_constants_in(:M) do
+        M.const_set :Inner, 20
+      end
+      assert_equal ["M::Inner"], inner
+      
+      M.const_set :OuterAfter, 30
+    end
+    assert_equal ["M::OuterAfter", "M::OuterBefore"], outer.sort
+    assert Dependencies.constant_watch_stack.empty?    
+  ensure
+    Object.send :remove_const, :M rescue nil
+  end
+  
+  def test_file_with_multiple_constants_and_require_dependency
+    with_loading 'autoloading_fixtures' do
+      assert ! defined?(MultipleConstantFile)
+      assert ! defined?(SiblingConstant)
+      
+      require_dependency 'multiple_constant_file'
+      assert defined?(MultipleConstantFile)
+      assert defined?(SiblingConstant)
+      assert Dependencies.autoloaded?(:MultipleConstantFile)
+      assert Dependencies.autoloaded?(:SiblingConstant)
+      
+      Dependencies.clear
+      
+      assert ! defined?(MultipleConstantFile)
+      assert ! defined?(SiblingConstant)
+    end
+  end
+  
+  def test_file_with_multiple_constants_and_auto_loading
+    with_loading 'autoloading_fixtures' do
+      assert ! defined?(MultipleConstantFile)
+      assert ! defined?(SiblingConstant)
+      
+      assert_equal 10, MultipleConstantFile
+      
+      assert defined?(MultipleConstantFile)
+      assert defined?(SiblingConstant)
+      assert Dependencies.autoloaded?(:MultipleConstantFile)
+      assert Dependencies.autoloaded?(:SiblingConstant)
+      
+      Dependencies.clear
+      
+      assert ! defined?(MultipleConstantFile)
+      assert ! defined?(SiblingConstant)
+    end
+  end
+  
+  def test_nested_file_with_multiple_constants_and_require_dependency
+    with_loading 'autoloading_fixtures' do
+      assert ! defined?(ClassFolder::NestedClass)
+      assert ! defined?(ClassFolder::SiblingClass)
+      
+      require_dependency 'class_folder/nested_class'
+      
+      assert defined?(ClassFolder::NestedClass)
+      assert defined?(ClassFolder::SiblingClass)
+      assert Dependencies.autoloaded?("ClassFolder::NestedClass")
+      assert Dependencies.autoloaded?("ClassFolder::SiblingClass")
+      
+      Dependencies.clear
+      
+      assert ! defined?(ClassFolder::NestedClass)
+      assert ! defined?(ClassFolder::SiblingClass)
+    end
+  end
+  
+  def test_nested_file_with_multiple_constants_and_auto_loading
+    with_loading 'autoloading_fixtures' do
+      assert ! defined?(ClassFolder::NestedClass)
+      assert ! defined?(ClassFolder::SiblingClass)
+      
+      assert_kind_of Class, ClassFolder::NestedClass
+      
+      assert defined?(ClassFolder::NestedClass)
+      assert defined?(ClassFolder::SiblingClass)
+      assert Dependencies.autoloaded?("ClassFolder::NestedClass")
+      assert Dependencies.autoloaded?("ClassFolder::SiblingClass")
+      
+      Dependencies.clear
+      
+      assert ! defined?(ClassFolder::NestedClass)
+      assert ! defined?(ClassFolder::SiblingClass)
+    end
+  end
+
+  
 end

@@ -47,6 +47,11 @@ module Dependencies #:nodoc:
   mattr_accessor :log_activity
   self.log_activity = false
   
+  # :nodoc:
+  # An internal stack used to record which constants are loaded by any block.
+  mattr_accessor :constant_watch_stack
+  self.constant_watch_stack = []
+  
   def load?
     mechanism == :load
   end
@@ -188,11 +193,13 @@ module Dependencies #:nodoc:
   def load_file(path, const_paths = loadable_constants_for_path(path))
     log_call path, const_paths
     const_paths = [const_paths].compact unless const_paths.is_a? Array
-    undefined_before = const_paths.reject(&method(:qualified_const_defined?))
+    parent_paths = const_paths.collect { |const_path| /(.*)::[^:]+\Z/ =~ const_path ? $1 : :Object }
     
-    result = load path
+    result = nil
+    newly_defined_paths = new_constants_in(*parent_paths) do
+      result = load_without_new_constant_marking path
+    end
     
-    newly_defined_paths = undefined_before.select(&method(:qualified_const_defined?))
     autoloaded_constants.concat newly_defined_paths
     autoloaded_constants.uniq!
     log "loading #{path} defined #{newly_defined_paths * ', '}" unless newly_defined_paths.empty?
@@ -287,6 +294,70 @@ module Dependencies #:nodoc:
     else
       explicitly_unloadable_constants << name
       return true
+    end
+  end
+  
+  # Run the provided block and detect the new constants that were loaded during
+  # its execution. Constants may only be regarded as 'new' once -- so if the
+  # block calls +new_constants_in+ again, then the constants defined within the
+  # inner call will not be reported in this one.
+  def new_constants_in(*descs)
+    log_call(*descs)
+    
+    # Build the watch frames. Each frame is a tuple of
+    #   [module_name_as_string, constants_defined_elsewhere]
+    watch_frames = descs.collect do |desc|
+      if desc.is_a? Module
+        mod_name = desc.name
+        initial_constants = desc.constants
+      elsif desc.is_a?(String) || desc.is_a?(Symbol)
+        mod_name = desc.to_s
+        
+        # Handle the case where the module has yet to be defined.
+        initial_constants = if qualified_const_defined?(mod_name)
+          mod_name.constantize.constants
+        else
+         []
+        end
+      else
+        raise Argument, "#{desc.inspect} does not describe a module!"
+      end
+      
+      [mod_name, initial_constants]
+    end
+    
+    constant_watch_stack.concat watch_frames
+    
+    yield # Now yield to the code that is to define new constants.
+    
+    # Find the new constants.
+    new_constants = watch_frames.collect do |mod_name, prior_constants|
+      # Module still doesn't exist? Treat it as if it has no constants.
+      next [] unless qualified_const_defined?(mod_name)
+      
+      mod = mod_name.constantize
+      next [] unless mod.is_a? Module
+      new_constants = mod.constants - prior_constants
+      
+      # Make sure no other frames takes credit for these constants.
+      constant_watch_stack.each do |frame_name, constants|
+        constants.concat new_constants if frame_name == mod_name
+      end
+      
+      new_constants.collect do |suffix|
+        mod_name == "Object" ? suffix : "#{mod_name}::#{suffix}"
+      end
+    end.flatten
+    
+    log "New constants: #{new_constants * ', '}"
+    return new_constants
+  ensure
+    # Remove the stack frames that we added.
+    if defined?(watch_frames) && ! watch_frames.empty?
+      frame_ids = watch_frames.collect(&:object_id)
+      constant_watch_stack.delete_if do |watch_frame|
+        frame_ids.include? watch_frame.object_id
+      end
     end
   end
   
@@ -389,15 +460,18 @@ class Class
 end
 
 class Object #:nodoc:
+  
+  alias_method :load_without_new_constant_marking, :load
+  
   def load(file, *extras)
-    super(file, *extras)
+    Dependencies.new_constants_in(Object) { super(file, *extras) }
   rescue Exception => exception  # errors from loading file
     exception.blame_file! file
     raise
   end
 
   def require(file, *extras)
-    super(file, *extras)
+    Dependencies.new_constants_in(Object) { super(file, *extras) }
   rescue Exception => exception  # errors from required file
     exception.blame_file! file
     raise
