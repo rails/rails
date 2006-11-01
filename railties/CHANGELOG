@@ -1,5 +1,7 @@
 *SVN*
 
+* resource and scaffold_resource generators add a restful route to config/routes.rb  [Jeremy Kemper]
+
 * Revert environment changes for autoload_paths. [Koz]
 
 * Update to latest Prototype, which doesn't serialize disabled form elements, adds clone() to arrays, empty/non-string Element.update() and adds a fixes excessive error reporting in WebKit beta versions [Thomas Fuchs]
