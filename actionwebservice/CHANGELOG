@@ -1,5 +1,7 @@
 *SVN*
 
+* Removed deprecated end_form_tag helper. [Kent Sibilev]
+
 * Removed deprecated @request and @response usages. [Kent Sibilev]
 
 * Removed invocation of deprecated before_action and around_action filter methods. Corresponding before_invocation and after_invocation methods should be used instead. #6275 [Kent Sibilev]

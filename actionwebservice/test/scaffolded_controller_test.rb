@@ -84,6 +84,7 @@ class ScaffoldedControllerTest < Test::Unit::TestCase
   def test_scaffold_invoke_method_params_with_struct
     get :scaffold_invoke_method_params, :service => 'scaffolded', :method => 'HelloStructParam'
     assert_template 'parameters.rhtml'
+    assert_tag :tag => 'form'
     assert_tag :tag => 'input', :attributes => {:name => "method_params[0][name]"}
   end
 

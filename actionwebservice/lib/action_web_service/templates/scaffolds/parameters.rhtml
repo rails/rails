@@ -1,6 +1,6 @@
 <h4>Method Invocation Details for <em><%= @scaffold_service %>#<%= @scaffold_method.public_name %></em></h4>
 
-<%= form_tag :action => @scaffold_action_name + '_submit'  %>
+<% form_tag(:action => @scaffold_action_name + '_submit') do  -%>
 <%= hidden_field_tag "service", @scaffold_service.name %>
 <%= hidden_field_tag "method", @scaffold_method.public_name %>
 
@@ -22,7 +22,7 @@
 <% end %>
 
 <%= submit_tag "Invoke" %>
-<%= end_form_tag %>
+<% end -%>
 
 <p>
 <%= link_to "Back", :action => @scaffold_action_name %>
