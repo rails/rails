@@ -217,16 +217,7 @@ module ActiveRecord
 
       # DATABASE STATEMENTS ======================================
 
-      def select_all(sql, name = nil) #:nodoc:
-        select(sql, name)
-      end
-
-      def select_one(sql, name = nil) #:nodoc:
-        result = select(sql, name)
-        result.nil? ? nil : result.first
-      end
-
-      def execute(sql, name = nil, retries = 2) #:nodoc:
+      def execute(sql, name = nil) #:nodoc:
         log(sql, name) { @connection.query(sql) }
       rescue ActiveRecord::StatementInvalid => exception
         if exception.message.split(":").first =~ /Packets out of order/
@@ -245,9 +236,6 @@ module ActiveRecord
         execute(sql, name)
         @connection.affected_rows
       end
-
-      alias_method :delete, :update #:nodoc:
-
 
       def begin_db_transaction #:nodoc:
         execute "BEGIN"

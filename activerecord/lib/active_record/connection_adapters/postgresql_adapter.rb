@@ -136,15 +136,6 @@ module ActiveRecord
 
       # DATABASE STATEMENTS ======================================
 
-      def select_all(sql, name = nil) #:nodoc:
-        select(sql, name)
-      end
-
-      def select_one(sql, name = nil) #:nodoc:
-        result = select(sql, name)
-        result.first if result
-      end
-
       def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
         execute(sql, name)
         table = sql.split(" ", 4)[2]
@@ -174,9 +165,6 @@ module ActiveRecord
       def update(sql, name = nil) #:nodoc:
         execute(sql, name).cmdtuples
       end
-
-      alias_method :delete, :update #:nodoc:
-
 
       def begin_db_transaction #:nodoc:
         execute "BEGIN"

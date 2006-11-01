@@ -5,6 +5,7 @@ require 'fixtures/legacy_thing'
 class LockWithoutDefault < ActiveRecord::Base; end
 
 class LockWithCustomColumnWithoutDefault < ActiveRecord::Base
+  set_table_name :lock_without_defaults_cust
   set_locking_column :custom_lock_version
 end
 
