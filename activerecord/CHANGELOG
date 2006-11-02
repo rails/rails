@@ -1,5 +1,7 @@
 *SVN*
 
+* Dynamically generate reader methods for serialized attributes.  #6362 [Stefan Kaes]
+
 * Deprecation: object transactions warning.  [Jeremy Kemper]
 
 * has_one :dependent => :nullify ignores nil associates.  #6528 [janovetz, Jeremy Kemper]
