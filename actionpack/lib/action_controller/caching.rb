@@ -363,7 +363,12 @@ module ActionController #:nodoc:
       # Name can take one of three forms:
       # * String: This would normally take the form of a path like "pages/45/notes"
       # * Hash: Is treated as an implicit call to url_for, like { :controller => "pages", :action => "notes", :id => 45 }
-      # * Regexp: Will destroy all the matched fragments, example: %r{pages/\d*/notes} Ensure you do not specify start and finish in the regex (^$) because the actual filename matched looks like ./cache/filename/path.cache
+      # * Regexp: Will destroy all the matched fragments, example:
+      #     %r{pages/\d*/notes}
+      #   Ensure you do not specify start and finish in the regex (^$) because
+      #   the actual filename matched looks like ./cache/filename/path.cache
+      #   Regexp expiration is not supported on caches which can't iterate over
+      #   all keys, such as memcached.
       def expire_fragment(name, options = nil)
         return unless perform_caching
 
