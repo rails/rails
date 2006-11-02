@@ -1,5 +1,7 @@
 *SVN*
 
+* Generator can show diff on file collision to help you decide whether to skip or overwrite.  #6364 [jeffw, Jeremy Kemper]
+
 * Generated directories are recursively svn added, like mkdir -p.  #6416 [NeilW]
 
 * resource and scaffold_resource generators add a restful route to config/routes.rb  [Jeremy Kemper]

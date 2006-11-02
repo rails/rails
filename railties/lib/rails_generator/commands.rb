@@ -1,6 +1,7 @@
 require 'delegate'
 require 'optparse'
 require 'fileutils'
+require 'tempfile'
 require 'erb'
 
 module Rails
@@ -91,9 +92,17 @@ module Rails
 
         private
           # Ask the user interactively whether to force collision.
-          def force_file_collision?(destination)
-            $stdout.print "overwrite #{destination}? [Ynaq] "
+          def force_file_collision?(destination, src, dst, file_options = {}, &block)
+            $stdout.print "overwrite #{destination}? [Ynaqd] "
             case $stdin.gets
+              when /d/i
+                Tempfile.open(File.basename(destination), File.dirname(destination)) do |temp|
+                  temp.write render_file(src, file_options, &block)
+                  temp.rewind
+                  $stdout.puts `#{diff_cmd} #{dst} #{temp.path}`
+                end
+                puts "retrying"
+                raise 'retry diff'
               when /a/i
                 $stdout.puts "forcing #{spec.name}"
                 options[:collision] = :force
@@ -105,6 +114,10 @@ module Rails
             end
           rescue
             retry
+          end
+
+          def diff_cmd
+            ENV['RAILS_DIFF'] || 'diff -u'
           end
 
           def render_template_part(template_options)
@@ -197,7 +210,7 @@ module Rails
             # Make a choice whether to overwrite the file.  :force and
             # :skip already have their mind made up, but give :ask a shot.
             choice = case (file_options[:collision] || options[:collision]).to_sym #|| :ask
-              when :ask   then force_file_collision?(relative_destination)
+              when :ask   then force_file_collision?(relative_destination, source, destination, file_options, &block)
               when :force then :force
               when :skip  then :skip
               else raise "Invalid collision option: #{options[:collision].inspect}"
@@ -223,27 +236,15 @@ module Rails
           # if block given so templaters may render the source file.  If a
           # shebang is requested, replace the existing shebang or insert a
           # new one.
-          File.open(destination, 'wb') do |df|
-            File.open(source, 'rb') do |sf|
-              if block_given?
-                df.write(yield(sf))
-              else
-                if file_options[:shebang]
-                  df.puts("#!#{file_options[:shebang]}")
-                  if line = sf.gets
-                    df.puts(line) if line !~ /^#!/
-                  end
-                end
-                df.write(sf.read)
-              end
-            end
+          File.open(destination, 'wb') do |dest|
+            dest.write render_file(source, file_options, &block)
           end
 
           # Optionally change permissions.
           if file_options[:chmod]
             FileUtils.chmod(file_options[:chmod], destination)
           end
-          
+
           # Optionally add file to subversion
           system("svn add #{destination}") if options[:svn]
         end
@@ -347,6 +348,23 @@ module Rails
         end
 
         private
+          def render_file(path, options = {})
+            File.open(path, 'rb') do |file|
+              if block_given?
+                yield file
+              else
+                content = ''
+                if shebang = options[:shebang]
+                  content << "#!#{shebang}\n"
+                  if line = file.gets
+                    content << "line\n" if line !~ /^#!/
+                  end
+                end
+                content << file.read
+              end
+            end
+          end
+
           # Raise a usage error with an informative WordNet suggestion.
           # Thanks to Florian Gross (flgr).
           def raise_class_collision(class_name)
