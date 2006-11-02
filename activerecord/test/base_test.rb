@@ -1476,7 +1476,7 @@ class BasicsTest < Test::Unit::TestCase
   
   private
     def assert_readers(model, exceptions)
-      expected_readers = Set.new(model.column_names - (model.serialized_attributes.keys + ['id']))
+      expected_readers = Set.new(model.column_names - ['id'])
       expected_readers += expected_readers.map { |col| "#{col}?" }
       expected_readers -= exceptions
       assert_equal expected_readers, model.read_methods

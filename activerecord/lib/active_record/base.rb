@@ -1874,9 +1874,16 @@ module ActiveRecord #:nodoc:
       # ActiveRecord::Base.generate_read_methods is set to true.
       def define_read_methods
         self.class.columns_hash.each do |name, column|
-          unless self.class.serialized_attributes[name]
-            define_read_method(name.to_sym, name, column) unless respond_to_without_attributes?(name)
-            define_question_method(name)     unless respond_to_without_attributes?("#{name}?")
+          unless respond_to_without_attributes?(name)
+            if self.class.serialized_attributes[name]
+              define_read_method_for_serialized_attribute(name)
+            else
+              define_read_method(name.to_sym, name, column)
+            end
+          end
+
+          unless respond_to_without_attributes?("#{name}?")
+            define_question_method(name)
           end
         end
       end
@@ -1894,6 +1901,15 @@ module ActiveRecord #:nodoc:
         evaluate_read_method attr_name, "def #{symbol}; #{access_code}; end"
       end
       
+      # Define read method for serialized attribute.
+      def define_read_method_for_serialized_attribute(attr_name)
+        unless attr_name.to_s == self.class.primary_key.to_s
+          self.class.read_methods << attr_name
+        end
+        
+        evaluate_read_method attr_name, "def #{attr_name}; unserialize_attribute('#{attr_name}'); end"
+      end
+           
       # Define an attribute ? method.
       def define_question_method(attr_name)
         unless attr_name.to_s == self.class.primary_key.to_s
