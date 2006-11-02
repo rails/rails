@@ -10,21 +10,25 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_seconds_since_midnight_at_daylight_savings_time_start
-    # dt: US: 2005 April 3rd 2:00am ST => April 3rd 3:00am DT
-    assert_equal 3600+59*60+59,  Time.local(2005,4,3,1,59,59).seconds_since_midnight, 'just before DST start'
-    assert_equal 3600+59*60+59+2,Time.local(2005,4,3,3, 0, 1).seconds_since_midnight, 'just after DST start'
+    with_us_timezone do
+      # dt: US: 2005 April 3rd 2:00am ST => April 3rd 3:00am DT
+      assert_equal 3600+59*60+59,  Time.local(2005,4,3,1,59,59).seconds_since_midnight, 'just before DST start'
+      assert_equal 3600+59*60+59+2,Time.local(2005,4,3,3, 0, 1).seconds_since_midnight, 'just after DST start'
+    end
   end
 
   def test_seconds_since_midnight_at_daylight_savings_time_end
-    # st: US: 2005 October 30th 2:00am DT => October 30th 1:00am ST
-    # avoid setting a time between 1:00 and 2:00 since that requires specifying whether DST is active
-    assert_equal 3599, Time.local(2005,10,30,0,59,59).seconds_since_midnight, 'just before DST end'
-    assert_equal 3*3600+1, Time.local(2005,10,30,2, 0, 1).seconds_since_midnight, 'just after DST end'
+    with_us_timezone do
+      # st: US: 2005 October 30th 2:00am DT => October 30th 1:00am ST
+      # avoid setting a time between 1:00 and 2:00 since that requires specifying whether DST is active
+      assert_equal 3599, Time.local(2005,10,30,0,59,59).seconds_since_midnight, 'just before DST end'
+      assert_equal 3*3600+1, Time.local(2005,10,30,2, 0, 1).seconds_since_midnight, 'just after DST end'
 
-    # now set a time between 1:00 and 2:00 by specifying whether DST is active
-    # uses: Time.local( sec, min, hour, day, month, year, wday, yday, isdst, tz )
-    assert_equal 1*3600+30*60, Time.local(0,30,1,30,10,2005,0,0,true,'EST5EDT').seconds_since_midnight, 'before DST end'
-    assert_equal 2*3600+30*60, Time.local(0,30,1,30,10,2005,0,0,false,'EST5EDT').seconds_since_midnight, 'after DST end'
+      # now set a time between 1:00 and 2:00 by specifying whether DST is active
+      # uses: Time.local( sec, min, hour, day, month, year, wday, yday, isdst, tz )
+      assert_equal 1*3600+30*60, Time.local(0,30,1,30,10,2005,0,0,true,'EST5EDT').seconds_since_midnight, 'before DST end'
+      assert_equal 2*3600+30*60, Time.local(0,30,1,30,10,2005,0,0,false,'EST5EDT').seconds_since_midnight, 'after DST end'
+    end
   end
 
   def test_begining_of_week
@@ -107,15 +111,19 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_daylight_savings_time_crossings_backward_start
-    # dt: US: 2005 April 3rd 4:18am
-    assert_equal Time.local(2005,4,2,4,18,0), Time.local(2005,4,3,4,18,0).ago(86400), 'dt-1.day=>st'
-    assert_equal Time.local(2005,4,1,4,18,0), Time.local(2005,4,2,4,18,0).ago(86400), 'st-1.day=>st'
+    with_us_timezone do
+      # dt: US: 2005 April 3rd 4:18am
+      assert_equal Time.local(2005,4,2,4,18,0), Time.local(2005,4,3,4,18,0).ago(86400), 'dt-1.day=>st'
+      assert_equal Time.local(2005,4,1,4,18,0), Time.local(2005,4,2,4,18,0).ago(86400), 'st-1.day=>st'
+    end
   end
 
   def test_daylight_savings_time_crossings_backward_end
-    # st: US: 2005 October 30th 4:03am
-    assert_equal Time.local(2005,10,29,4,3), Time.local(2005,10,30,4,3,0).ago(86400), 'st-1.day=>dt'
-    assert_equal Time.local(2005,10,28,4,3), Time.local(2005,10,29,4,3,0).ago(86400), 'dt-1.day=>dt'
+    with_us_timezone do
+      # st: US: 2005 October 30th 4:03am
+      assert_equal Time.local(2005,10,29,4,3), Time.local(2005,10,30,4,3,0).ago(86400), 'st-1.day=>dt'
+      assert_equal Time.local(2005,10,28,4,3), Time.local(2005,10,29,4,3,0).ago(86400), 'dt-1.day=>dt'
+    end
   end
 
   def test_since
@@ -126,15 +134,19 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_daylight_savings_time_crossings_forward_start
-    # st: US: 2005 April 2nd 7:27pm
-    assert_equal Time.local(2005,4,3,19,27,0), Time.local(2005,4,2,19,27,0).since(86400), 'st+1.day=>dt'
-    assert_equal Time.local(2005,4,4,19,27,0), Time.local(2005,4,3,19,27,0).since(86400), 'dt+1.day=>dt'
+    with_us_timezone do
+      # st: US: 2005 April 2nd 7:27pm
+      assert_equal Time.local(2005,4,3,19,27,0), Time.local(2005,4,2,19,27,0).since(86400), 'st+1.day=>dt'
+      assert_equal Time.local(2005,4,4,19,27,0), Time.local(2005,4,3,19,27,0).since(86400), 'dt+1.day=>dt'
+    end
   end
 
   def test_daylight_savings_time_crossings_forward_end
-    # dt: US: 2005 October 30th 12:45am
-    assert_equal Time.local(2005,10,31,1,45,0), Time.local(2005,10,30,1,45,0).since(86400), 'dt+1.day=>st'
-    assert_equal Time.local(2005,11, 1,1,45,0), Time.local(2005,10,31,1,45,0).since(86400), 'st+1.day=>st'
+    with_us_timezone do
+      # dt: US: 2005 October 30th 12:45am
+      assert_equal Time.local(2005,10,31,1,45,0), Time.local(2005,10,30,1,45,0).since(86400), 'dt+1.day=>st'
+      assert_equal Time.local(2005,11, 1,1,45,0), Time.local(2005,10,31,1,45,0).since(86400), 'st+1.day=>st'
+    end
   end
 
   def test_yesterday
@@ -256,4 +268,12 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   def test_xmlschema_is_available
     assert_nothing_raised { Time.now.xmlschema }
   end
+
+  protected
+    def with_us_timezone
+      old_tz, ENV['TZ'] = ENV['TZ'], 'US/Pacific'
+      yield
+    ensure
+      ENV['TZ'] = old_tz
+    end
 end
