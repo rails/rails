@@ -14,6 +14,10 @@
 # one that allows for commercial usage.) If you for
 # some good reason need to use this under another
 # license please contact me.
+"""
+foo
+bar
+"""
 
 require 'irb'
 if RUBY_VERSION == '1.8.5'
@@ -22,10 +26,8 @@ if RUBY_VERSION == '1.8.5'
     require 'breakpoint185'
   rescue LoadError      
     def Binding.of_caller(&block)
-      raise x=<<EOS
-Breakpoints do not work in Ruby 1.8.5 without call_stack.
-gem install call_stack or see http://eigenclass.org/hiki.rb?call_stack
-EOS
+      raise """Breakpoints do not work in Ruby 1.8.5 without call_stack.
+gem install call_stack or see http://eigenclass.org/hiki.rb?call_stack"""
     end
   end
 else
