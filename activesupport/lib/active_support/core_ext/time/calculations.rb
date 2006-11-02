@@ -25,7 +25,7 @@ module ActiveSupport #:nodoc:
 
         # Seconds since midnight: Time.now.seconds_since_midnight
         def seconds_since_midnight
-          self.hour.hours + self.min.minutes + self.sec + (self.usec/1.0e+6)
+          self.to_i - self.change(:hour => 0).to_i + (self.usec/1.0e+6)
         end
             
         # Returns a new Time where one or more of the elements have been changed according to the +options+ parameter. The time options
@@ -56,13 +56,16 @@ module ActiveSupport #:nodoc:
         # Returns a new Time representing the time a number of seconds ago, this is basically a wrapper around the Numeric extension
         # Do not use this method in combination with x.months, use months_ago instead!
         def ago(seconds)
-          seconds.until(self)
+          self.since(-seconds)
         end
 
         # Returns a new Time representing the time a number of seconds since the instance time, this is basically a wrapper around 
         #the Numeric extension. Do not use this method in combination with x.months, use months_since instead!
         def since(seconds)
-          seconds.since(self)
+          initial_dst = self.dst? ? 1 : 0
+          f = seconds.since(self)
+          final_dst   = f.dst? ? 1 : 0
+          (seconds.abs >= 86400 && initial_dst != final_dst) ? f + (initial_dst - final_dst).hours : f
         end
         alias :in :since
 
@@ -135,9 +138,7 @@ module ActiveSupport #:nodoc:
         # Returns a new Time representing the start of the given day in next week (default is Monday).
         def next_week(day = :monday)
           days_into_week = { :monday => 0, :tuesday => 1, :wednesday => 2, :thursday => 3, :friday => 4, :saturday => 5, :sunday => 6}
-          # Adjust in case of switches to or from daylight savings time
-          week_from_today = self.since(1.week) + (self.since(1.week) <=> self).hour
-          week_from_today.beginning_of_week.since(days_into_week[day].day).change(:hour => 0)
+          since(1.week).beginning_of_week.since(days_into_week[day].day).change(:hour => 0)
         end
         
         # Returns a new Time representing the start of the day (0:00)
