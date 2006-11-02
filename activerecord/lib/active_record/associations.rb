@@ -1060,7 +1060,7 @@ module ActiveRecord
             when :delete
               module_eval "before_destroy '#{reflection.class_name}.delete(#{reflection.name}.id) unless #{reflection.name}.nil?'"
             when :nullify
-              module_eval "before_destroy '#{reflection.name}.update_attribute(\"#{reflection.primary_key_name}\", nil)'"
+              module_eval "before_destroy '#{reflection.name}.update_attribute(\"#{reflection.primary_key_name}\", nil) unless #{reflection.name}.nil?'"
             when nil, false
               # pass
             else
