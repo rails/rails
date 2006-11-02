@@ -1,5 +1,7 @@
 *SVN*
 
+* Generated directories are recursively svn added, like mkdir -p.  #6416 [NeilW]
+
 * resource and scaffold_resource generators add a restful route to config/routes.rb  [Jeremy Kemper]
 
 * Revert environment changes for autoload_paths. [Koz]
