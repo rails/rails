@@ -90,12 +90,14 @@ class TransactionTest < Test::Unit::TestCase
     assert !@first.approved?, "First should be unapproved initially"
 
     begin
-      Topic.transaction(@first, @second) do
-        @first.approved  = true
-        @second.approved = false
-        @first.save
-        @second.save
-        raise "Bad things!"
+      assert_deprecated /Object transactions/ do
+        Topic.transaction(@first, @second) do
+          @first.approved  = true
+          @second.approved = false
+          @first.save
+          @second.save
+          raise "Bad things!"
+        end
       end
     rescue
       # caught it
