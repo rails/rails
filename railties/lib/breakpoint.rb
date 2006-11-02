@@ -14,10 +14,6 @@
 # one that allows for commercial usage.) If you for
 # some good reason need to use this under another
 # license please contact me.
-"""
-foo
-bar
-"""
 
 require 'irb'
 if RUBY_VERSION == '1.8.5'
