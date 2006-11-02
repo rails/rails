@@ -276,8 +276,7 @@ module ActionView #:nodoc:
       elsif options == :update
         update_page(&block)
       elsif options.is_a?(Hash)
-        options[:locals] ||= {}
-        options[:use_full_path] = options[:use_full_path].nil? ? true : options[:use_full_path]
+        options = options.reverse_merge(:type => :rhtml, :locals => {}, :use_full_path => true)
 
         if options[:file]
           render_file(options[:file], options[:use_full_path], options[:locals])
@@ -286,7 +285,7 @@ module ActionView #:nodoc:
         elsif options[:partial]
           render_partial(options[:partial], ActionView::Base::ObjectWrapper.new(options[:object]), options[:locals])
         elsif options[:inline]
-          render_template(options[:type] || :rhtml, options[:inline], nil, options[:locals] || {})
+          render_template(options[:type], options[:inline], nil, options[:locals])
         end
       end
     end
