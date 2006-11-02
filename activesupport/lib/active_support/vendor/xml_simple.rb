@@ -1,20 +1,21 @@
 # = XmlSimple
 #
 # Author::    Maik Schmidt <contact@maik-schmidt.de>
-# Copyright:: Copyright (c) 2003 Maik Schmidt
+# Copyright:: Copyright (c) 2003-2006 Maik Schmidt
 # License::   Distributes under the same terms as Ruby.
 #
 require 'rexml/document'
+require 'stringio'
 
 # Easy API to maintain XML (especially configuration files).
-class XmlSimple #:nodoc:
+class XmlSimple
   include REXML
 
-  @@VERSION = '1.0.2'
+  @@VERSION = '1.0.9'
 
   # A simple cache for XML documents that were already transformed
   # by xml_in.
-  class Cache #:nodoc:
+  class Cache
     # Creates and initializes a new Cache object.
     def initialize
       @mem_share_cache = {}
@@ -184,7 +185,7 @@ class XmlSimple #:nodoc:
         
         @doc = load_xml_file(filename)
       end
-    elsif string.kind_of?(IO)
+    elsif string.kind_of?(IO) || string.kind_of?(StringIO)
       @doc = parse(string.readlines.to_s)
     else
       raise ArgumentError, "Could not parse object of type: <#{string.type}>."
@@ -266,7 +267,7 @@ class XmlSimple #:nodoc:
       keyattr keeproot forcecontent contentkey noattr
       searchpath forcearray suppressempty anonymoustag
       cache grouptags normalisespace normalizespace
-      variables varattr
+      variables varattr keytosymbol
     ),
     'out' => %w(
       keyattr keeproot contentkey noattr rootname
@@ -283,6 +284,7 @@ class XmlSimple #:nodoc:
   DEF_ANONYMOUS_TAG   = 'anon'
   DEF_FORCE_ARRAY     = true
   DEF_INDENTATION     = '  '
+  DEF_KEY_TO_SYMBOL   = false
   
   # Normalizes option names in a hash, i.e., turns all
   # characters to lower case and removes all underscores.
@@ -349,6 +351,8 @@ class XmlSimple #:nodoc:
     if @options.has_key?('xmldeclaration') && @options['xmldeclaration'] == true
       @options['xmldeclaration'] = DEF_XML_DECLARATION
     end
+
+    @options['keytosymbol'] = DEF_KEY_TO_SYMBOL unless @options.has_key?('keytosymbol')
 
     if @options.has_key?('contentkey')
       if @options['contentkey'] =~ /^-(.*)$/
@@ -654,6 +658,14 @@ class XmlSimple #:nodoc:
         end
       end
     end
+    
+    #patch for converting keys to symbols
+    if @options.has_key?('keytosymbol')
+      if @options['keytosymbol'] == true
+        key = key.to_s.downcase.to_sym
+      end
+    end
+    
     if hash.has_key?(key)
       if hash[key].instance_of?(Array)
         hash[key] << value
@@ -879,14 +891,7 @@ class XmlSimple #:nodoc:
   # data::
   #   The string to be escaped.
   def escape_value(data)
-    return data if data.nil? || data == ''
-    result = data.dup
-    result.gsub!('&', '&amp;')
-    result.gsub!('<', '&lt;')
-    result.gsub!('>', '&gt;')
-    result.gsub!('"', '&quot;')
-    result.gsub!("'", '&apos;')
-    result
+    Text::normalize(data)
   end
   
   # Removes leading and trailing whitespace and sequences of
@@ -895,10 +900,7 @@ class XmlSimple #:nodoc:
   # text::
   #   String to be normalised.
   def normalise_space(text)
-    text.sub!(/^\s+/, '')
-    text.sub!(/\s+$/, '')
-    text.gsub!(/\s\s+/, ' ')
-    text
+    text.strip.gsub(/\s\s+/, ' ')
   end
 
   # Checks, if an object is nil, an empty String or an empty Hash.
@@ -926,14 +928,14 @@ class XmlSimple #:nodoc:
   # default::
   #   Value to be returned, if node could not be converted.
   def node_to_text(node, default = nil)
-    if node.instance_of?(Element) 
-      return node.texts.join('')
-    elsif node.instance_of?(Attribute)
-      return node.value.nil? ? default : node.value.strip
-    elsif node.instance_of?(Text)
-      return node.to_s.strip
+    if node.instance_of?(REXML::Element) 
+      node.texts.map { |t| t.value }.join('')
+    elsif node.instance_of?(REXML::Attribute)
+      node.value.nil? ? default : node.value.strip
+    elsif node.instance_of?(REXML::Text)
+      node.value.strip
     else
-      return default
+      default
     end
   end
 
