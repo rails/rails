@@ -2,7 +2,7 @@
 
 * Update dependencies to allow constants to be defined alongside their siblings. A common case for this is AR model classes with STI; user.rb might define User, Administrator and Guest for example. [Nicholas Seckar]
 
-* next_week respects DST changes.  #6483 [marclove]
+* next_week respects DST changes.  #6483, #5617, #2353, #2509, #4551 [marclove, rabiedenharn, rails@roetzel.de, jsolson@damogran.org, drbrain@segment7.net]
 
 * Expose methods added to Enumerable in the documentation, such as group_by. Closes #6170. [sergeykojin@gmail.com, Marcel Molina Jr.]
 

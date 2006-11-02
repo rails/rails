@@ -9,6 +9,24 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal 60.00001,Time.local(2005,1,1,0,1,0,10).seconds_since_midnight
   end
 
+  def test_seconds_since_midnight_at_daylight_savings_time_start
+    # dt: US: 2005 April 3rd 2:00am ST => April 3rd 3:00am DT
+    assert_equal 3600+59*60+59,  Time.local(2005,4,3,1,59,59).seconds_since_midnight, 'just before DST start'
+    assert_equal 3600+59*60+59+2,Time.local(2005,4,3,3, 0, 1).seconds_since_midnight, 'just after DST start'
+  end
+
+  def test_seconds_since_midnight_at_daylight_savings_time_end
+    # st: US: 2005 October 30th 2:00am DT => October 30th 1:00am ST
+    # avoid setting a time between 1:00 and 2:00 since that requires specifying whether DST is active
+    assert_equal 3599, Time.local(2005,10,30,0,59,59).seconds_since_midnight, 'just before DST end'
+    assert_equal 3*3600+1, Time.local(2005,10,30,2, 0, 1).seconds_since_midnight, 'just after DST end'
+
+    # now set a time between 1:00 and 2:00 by specifying whether DST is active
+    # uses: Time.local( sec, min, hour, day, month, year, wday, yday, isdst, tz )
+    assert_equal 1*3600+30*60, Time.local(0,30,1,30,10,2005,0,0,true,'EST5EDT').seconds_since_midnight, 'before DST end'
+    assert_equal 2*3600+30*60, Time.local(0,30,1,30,10,2005,0,0,false,'EST5EDT').seconds_since_midnight, 'after DST end'
+  end
+
   def test_begining_of_week
     assert_equal Time.local(2005,1,31), Time.local(2005,2,4,10,10,10).beginning_of_week
     assert_equal Time.local(2005,11,28), Time.local(2005,11,28,0,0,0).beginning_of_week #monday
@@ -88,11 +106,35 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2005,2,20,9,9,45),   Time.local(2005,2,22,10,10,10).ago(86400*2 + 3600 + 25)
   end
 
+  def test_daylight_savings_time_crossings_backward_start
+    # dt: US: 2005 April 3rd 4:18am
+    assert_equal Time.local(2005,4,2,4,18,0), Time.local(2005,4,3,4,18,0).ago(86400), 'dt-1.day=>st'
+    assert_equal Time.local(2005,4,1,4,18,0), Time.local(2005,4,2,4,18,0).ago(86400), 'st-1.day=>st'
+  end
+
+  def test_daylight_savings_time_crossings_backward_end
+    # st: US: 2005 October 30th 4:03am
+    assert_equal Time.local(2005,10,29,4,3), Time.local(2005,10,30,4,3,0).ago(86400), 'st-1.day=>dt'
+    assert_equal Time.local(2005,10,28,4,3), Time.local(2005,10,29,4,3,0).ago(86400), 'dt-1.day=>dt'
+  end
+
   def test_since
     assert_equal Time.local(2005,2,22,10,10,11), Time.local(2005,2,22,10,10,10).since(1)
     assert_equal Time.local(2005,2,22,11,10,10), Time.local(2005,2,22,10,10,10).since(3600)
     assert_equal Time.local(2005,2,24,10,10,10), Time.local(2005,2,22,10,10,10).since(86400*2)
     assert_equal Time.local(2005,2,24,11,10,35), Time.local(2005,2,22,10,10,10).since(86400*2 + 3600 + 25)
+  end
+
+  def test_daylight_savings_time_crossings_forward_start
+    # st: US: 2005 April 2nd 7:27pm
+    assert_equal Time.local(2005,4,3,19,27,0), Time.local(2005,4,2,19,27,0).since(86400), 'st+1.day=>dt'
+    assert_equal Time.local(2005,4,4,19,27,0), Time.local(2005,4,3,19,27,0).since(86400), 'dt+1.day=>dt'
+  end
+
+  def test_daylight_savings_time_crossings_forward_end
+    # dt: US: 2005 October 30th 12:45am
+    assert_equal Time.local(2005,10,31,1,45,0), Time.local(2005,10,30,1,45,0).since(86400), 'dt+1.day=>st'
+    assert_equal Time.local(2005,11, 1,1,45,0), Time.local(2005,10,31,1,45,0).since(86400), 'st+1.day=>st'
   end
 
   def test_yesterday
@@ -148,6 +190,14 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2005,3,4), Time.local(2005,2,22,15,15,10).next_week(:friday)
     assert_equal Time.local(2006,10,30), Time.local(2006,10,23,0,0,0).next_week
     assert_equal Time.local(2006,11,1), Time.local(2006,10,23,0,0,0).next_week(:wednesday)
+  end
+
+  def test_next_week_near_daylight_start
+    assert_equal Time.local(2006,4,3), Time.local(2006,4,2,23,1,0).next_week, 'just crossed standard => daylight'
+  end
+
+  def test_next_week_near_daylight_end
+    assert_equal Time.local(2006,10,30), Time.local(2006,10,29,23,1,0).next_week, 'just crossed daylight => standard'
   end
 
   def test_to_s
