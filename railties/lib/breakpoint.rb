@@ -21,11 +21,11 @@ if RUBY_VERSION == '1.8.5'
     require 'rubygems'
     require 'breakpoint185'
   rescue LoadError      
-    puts 'WARNING: breakpoints will not work with Ruby 1.8.5 without the call_stack gem.'
-    puts '         gem install call_stack or see http://eigenclass.org/hiki.rb?call_stack'
     def Binding.of_caller(&block)
-      raise 'Breakpoint requires the call_stack gem with Ruby 1.8.5.'
-      return
+      raise x=<<EOS
+Breakpoints do not work in Ruby 1.8.5 without call_stack.
+gem install call_stack or see http://eigenclass.org/hiki.rb?call_stack
+EOS
     end
   end
 else
