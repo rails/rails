@@ -21,7 +21,16 @@ RUBY_FORGE_PROJECT = "rails"
 RUBY_FORGE_USER    = "webster132"
 
 
-Rake::TestTask.new("test") do |t|
+## This is required until the regular test task
+## below passes.  It's not ideal, but at least
+## we can see the failures
+task :test do 
+  Dir['test/**/*_test.rb'].all? do |file|
+    system("ruby #{file}")
+  end or raise "Failures"
+end
+
+Rake::TestTask.new("regular_test") do |t|
   t.libs << 'test'
   t.pattern = 'test/**/*_test.rb'
   t.warning = true
