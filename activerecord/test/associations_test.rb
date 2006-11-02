@@ -184,11 +184,13 @@ class HasOneAssociationsTest < Test::Unit::TestCase
 
   def test_dependence
     num_accounts = Account.count
+
     firm = Firm.find(1)
     assert !firm.account.nil?
     account_id = firm.account.id
     assert_equal [], Account.destroyed_account_ids[firm.id]
-    firm.destroy                
+
+    firm.destroy
     assert_equal num_accounts - 1, Account.count
     assert_equal [account_id], Account.destroyed_account_ids[firm.id]
   end
@@ -201,13 +203,21 @@ class HasOneAssociationsTest < Test::Unit::TestCase
 
   def test_exclusive_dependence
     num_accounts = Account.count
+
     firm = ExclusivelyDependentFirm.find(9)
     assert !firm.account.nil?
     account_id = firm.account.id
     assert_equal [], Account.destroyed_account_ids[firm.id]
+
     firm.destroy
     assert_equal num_accounts - 1, Account.count
     assert_equal [], Account.destroyed_account_ids[firm.id]
+  end
+
+  def test_dependence_with_nil_associate
+    firm = DependentFirm.new(:name => 'nullify')
+    firm.save!
+    assert_nothing_raised { firm.destroy }
   end
 
   def test_succesful_build_association
