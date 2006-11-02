@@ -14,6 +14,10 @@
 # one that allows for commercial usage.) If you for
 # some good reason need to use this under another
 # license please contact me.
+"""
+foo
+bar
+"""
 
 require 'irb'
 if RUBY_VERSION == '1.8.5'
@@ -21,11 +25,9 @@ if RUBY_VERSION == '1.8.5'
     require 'rubygems'
     require 'breakpoint185'
   rescue LoadError      
-    puts 'WARNING: breakpoints will not work with Ruby 1.8.5 without the call_stack gem.'
-    puts '         gem install call_stack or see http://eigenclass.org/hiki.rb?call_stack'
     def Binding.of_caller(&block)
-      raise 'Breakpoint requires the call_stack gem with Ruby 1.8.5.'
-      return
+      raise """Breakpoints do not work in Ruby 1.8.5 without call_stack.
+gem install call_stack or see http://eigenclass.org/hiki.rb?call_stack"""
     end
   end
 else
