@@ -17,14 +17,8 @@
 
 require 'irb'
 if RUBY_VERSION == '1.8.5'
-  begin
-    require 'rubygems'
-    require 'breakpoint185'
-  rescue LoadError      
-    def Binding.of_caller(&block)
-      raise """Breakpoints do not work in Ruby 1.8.5 without call_stack.
-gem install call_stack or see http://eigenclass.org/hiki.rb?call_stack"""
-    end
+  def Binding.of_caller(&block)
+    raise "Breakpoints are not currently working with Ruby 1.8.5"
   end
 else
   require 'binding_of_caller'
