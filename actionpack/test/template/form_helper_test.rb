@@ -396,7 +396,31 @@ class FormHelperTest < Test::Unit::TestCase
 
     assert_dom_equal expected, _erbout
   end
-  
+
+  def test_default_form_builder
+    old_default_form_builder, ActionView::Base.default_form_builder =
+      ActionView::Base.default_form_builder, LabelledFormBuilder
+
+    _erbout = ''
+    form_for(:post, @post) do |f|
+      _erbout.concat f.text_field(:title)
+      _erbout.concat f.text_area(:body)
+      _erbout.concat f.check_box(:secret)
+    end
+
+    expected = 
+      "<form action='http://www.example.com' method='post'>" +
+      "<label for='title'>Title:</label> <input name='post[title]' size='30' type='text' id='post_title' value='Hello World' /><br/>" +
+      "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea><br/>" +
+      "<label for='secret'>Secret:</label> <input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
+      "<input name='post[secret]' type='hidden' value='0' /><br/>" +
+      "</form>"
+
+    assert_dom_equal expected, _erbout
+  ensure
+    ActionView::Base.default_form_builder = old_default_form_builder
+  end
+
   # Perhaps this test should be moved to prototype helper tests.
   def test_remote_form_for_with_labelled_builder
     self.extend ActionView::Helpers::PrototypeHelper

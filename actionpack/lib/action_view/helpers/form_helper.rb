@@ -142,11 +142,13 @@ module ActionView
       #
       # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base.
       # Like collection_select and datetime_select.
-      def fields_for(object_name, *args, &proc)
+      def fields_for(object_name, *args, &block)
         raise ArgumentError, "Missing block" unless block_given?
         options = args.last.is_a?(Hash) ? args.pop : {}
         object  = args.first
-        yield((options[:builder] || FormBuilder).new(object_name, object, self, options, proc))
+
+        builder = options[:builder] || ActionView::Base.default_form_builder
+        yield builder.new(object_name, object, self, options, block)
       end
 
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
@@ -435,5 +437,10 @@ module ActionView
         @template.radio_button(@object_name, method, tag_value, options.merge(:object => @object))
       end
     end
+  end
+
+  class Base
+    cattr_accessor :default_form_builder
+    self.default_form_builder = ::ActionView::Helpers::FormBuilder
   end
 end
