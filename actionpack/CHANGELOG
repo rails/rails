@@ -1,5 +1,7 @@
 *SVN*
 
+* pluralize helper interprets nil as zero.  #6474 [pope]
+
 * Fix invalid test fixture exposed by stricter Ruby 1.8.5 multipart parsing.  #6524 [Bob Silva]
 
 * Set ActionView::Base.default_form_builder once rather than passing the :builder option to every form or overriding the form helper methods.  [Jeremy Kemper]

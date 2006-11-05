@@ -85,7 +85,7 @@ module ActionView
       #   pluralize(2, 'person')  => 2 people
       #   pluralize(3, 'person', 'users')  => 3 users
       def pluralize(count, singular, plural = nil)
-         "#{count} " + if count == 1 || count == '1'
+         "#{count || 0} " + if count == 1 || count == '1'
           singular
         elsif plural
           plural
