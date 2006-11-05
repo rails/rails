@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix unicode JSON regexp for Onigurama compatibility.  #6494 [whitley]
+
 * update XmlSimple to 1.0.10. Closes #6532. [nicksieger]
 
 * Update dependencies to allow constants to be defined alongside their siblings. A common case for this is AR model classes with STI; user.rb might define User, Administrator and Guest for example. [Nicholas Seckar]
