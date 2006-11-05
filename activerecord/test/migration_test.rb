@@ -165,10 +165,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.drop_table :testings rescue nil
     end
 
-    # SQL Server and Sybase will not allow you to add a NOT NULL column
-    # to a table without specifying a default value, so the
-    # following test must be skipped
-    unless current_adapter?(:SQLServerAdapter, :SybaseAdapter)
+    # SQL Server, Sybase, and SQLite3 will not allow you to add a NOT NULL
+    # column to a table without a default value.
+    unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :SQLiteAdapter)
       def test_add_column_not_null_without_default
         Person.connection.create_table :testings do |t|
           t.column :foo, :string

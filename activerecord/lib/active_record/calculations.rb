@@ -6,7 +6,7 @@ module ActiveRecord
     end
 
     module ClassMethods
-      # Count operates using three different approaches. 
+      # Count operates using three different approaches.
       #
       # * Count all: By not passing any parameters to count, it will return a count of all the rows for the model.
       # * Count by conditions or joins: This API has been deprecated and will be removed in Rails 2.0
@@ -36,7 +36,7 @@ module ActiveRecord
       # Examples for count with options:
       #   Person.count(:conditions => "age > 26")
       #   Person.count(:conditions => "age > 26 AND job.salary > 60000", :include => :job) # because of the named association, it finds the DISTINCT count using LEFT OUTER JOIN.
-      #   Person.count(:conditions => "age > 26 AND job.salary > 60000", :joins => "LEFT JOIN jobs on jobs.person_id = person.id") # finds the number of rows matching the conditions and joins. 
+      #   Person.count(:conditions => "age > 26 AND job.salary > 60000", :joins => "LEFT JOIN jobs on jobs.person_id = person.id") # finds the number of rows matching the conditions and joins.
       #   Person.count('id', :conditions => "age > 26") # Performs a COUNT(id)
       #   Person.count(:all, :conditions => "age > 26") # Performs a COUNT(*) (:all is an alias for '*')
       #
@@ -74,11 +74,11 @@ module ActiveRecord
       end
 
       # This calculates aggregate values in the given column:  Methods for count, sum, average, minimum, and maximum have been added as shortcuts.
-      # Options such as :conditions, :order, :group, :having, and :joins can be passed to customize the query.  
+      # Options such as :conditions, :order, :group, :having, and :joins can be passed to customize the query.
       #
       # There are two basic forms of output:
       #   * Single aggregate value: The single value is type cast to Fixnum for COUNT, Float for AVG, and the given column's type for everything else.
-      #   * Grouped values: This returns an ordered hash of the values and groups them by the :group option.  It takes either a column name, or the name 
+      #   * Grouped values: This returns an ordered hash of the values and groups them by the :group option.  It takes either a column name, or the name
       #     of a belongs_to association.
       #
       #       values = Person.maximum(:age, :group => 'last_name')
@@ -157,22 +157,29 @@ module ActiveRecord
         end
 
         def construct_calculation_sql(operation, column_name, options) #:nodoc:
+          operation = operation.to_s.downcase
+          options = options.symbolize_keys
+
           scope           = scope(:find)
           merged_includes = merge_includes(scope ? scope[:include] : [], options[:include])
           aggregate_alias = column_alias_for(operation, column_name)
-          use_workaround  = !Base.connection.supports_count_distinct? && options[:distinct] && operation.to_s.downcase == 'count'
-          join_dependency = nil
 
-          if merged_includes.any? && operation.to_s.downcase == 'count'
-            options[:distinct] = true
-            column_name = options[:select] || [table_name, primary_key] * '.'
+          if operation == 'count'
+            if merged_includes.any?
+              options[:distinct] = true
+              column_name = options[:select] || [table_name, primary_key] * '.'
+            end
+
+            if options[:distinct]
+              use_workaround = !connection.supports_count_distinct?
+            end
           end
 
-          sql  = "SELECT #{operation}(#{'DISTINCT ' if options[:distinct]}#{column_name}) AS #{aggregate_alias}"
+          sql = "SELECT #{operation}(#{'DISTINCT ' if options[:distinct]}#{column_name}) AS #{aggregate_alias}"
 
           # A (slower) workaround if we're using a backend, like sqlite, that doesn't support COUNT DISTINCT.
           sql = "SELECT COUNT(*) AS #{aggregate_alias}" if use_workaround
-          
+
           sql << ", #{options[:group_field]} AS #{options[:group_alias]}" if options[:group]
           sql << " FROM (SELECT DISTINCT #{column_name}" if use_workaround
           sql << " FROM #{table_name} "
@@ -185,17 +192,17 @@ module ActiveRecord
           add_limited_ids_condition!(sql, options, join_dependency) if join_dependency && !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
 
           if options[:group]
-            group_key = Base.connection.adapter_name == 'FrontBase' ?  :group_alias : :group_field
+            group_key = connection.adapter_name == 'FrontBase' ?  :group_alias : :group_field
             sql << " GROUP BY #{options[group_key]} "
           end
 
           if options[:group] && options[:having]
             # FrontBase requires identifiers in the HAVING clause and chokes on function calls
-            if Base.connection.adapter_name == 'FrontBase'
+            if connection.adapter_name == 'FrontBase'
               options[:having].downcase!
               options[:having].gsub!(/#{operation}\s*\(\s*#{column_name}\s*\)/, aggregate_alias)
             end
-              
+
             sql << " HAVING #{options[:having]} "
           end
 

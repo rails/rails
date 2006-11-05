@@ -23,7 +23,7 @@ PKG_FILES = FileList[
 
 
 desc "Default Task"
-task :default => [ :test_mysql, :test_sqlite, :test_postgresql ]
+task :default => [ :test_mysql, :test_sqlite, :test_sqlite3, :test_postgresql ]
 
 # Run the unit tests
 

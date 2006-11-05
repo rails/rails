@@ -1,5 +1,9 @@
 *SVN*
 
+* SQLite: fix calculations workaround, remove count(distinct) query rewrite, cleanup test connection scripts.  [Jeremy Kemper]
+
+* SQLite: count(distinct) queries supported in >= 3.2.6.  #6544 [Bob Silva]
+
 * Dynamically generate reader methods for serialized attributes.  #6362 [Stefan Kaes]
 
 * Deprecation: object transactions warning.  [Jeremy Kemper]
