@@ -32,7 +32,7 @@ module ActiveSupport
           ESCAPED_CHARS[s]
         }.gsub(/([\xC0-\xDF][\x80-\xBF]|
                  [\xE0-\xEF][\x80-\xBF]{2}|
-                 [\xF0-\xF7][\x80-\xBF]{3})+/ux) { |s|
+                 [\xF0-\xF7][\x80-\xBF]{3})+/nx) { |s|
           s.unpack("U*").pack("n*").unpack("H*")[0].gsub(/.{4}/, '\\\\u\&')
         } + '"'
       end
