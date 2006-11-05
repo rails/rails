@@ -1,5 +1,16 @@
 *SVN*
 
+* Add assert_emails and assert_no_emails to test the number of emails delivered.  #6479 [Jonathan Viney]
+    # Assert total number of emails delivered:
+    assert_emails 0
+    ContactMailer.deliver_contact
+    assert_emails 1
+
+    # Assert number of emails delivered within a block:
+    assert_emails 1 do
+      post :signup, :name => 'Jonathan'
+    end
+
 * Make mime version default to 1.0. closes #2323 [ror@andreas-s.net]
 
 * Make sure quoted-printable text is decoded correctly when only portions of the text are encoded. closes #3154. [jon@siliconcircus.com]

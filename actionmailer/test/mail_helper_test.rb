@@ -8,7 +8,7 @@ end
 
 class HelperMailer < ActionMailer::Base
   helper MailerHelper
-  helper :test
+  helper :example
 
   def use_helper(recipient)
     recipients recipient
@@ -16,7 +16,7 @@ class HelperMailer < ActionMailer::Base
     from       "tester@example.com"
   end
 
-  def use_test_helper(recipient)
+  def use_example_helper(recipient)
     recipients recipient
     subject    "using helpers"
     from       "tester@example.com"
@@ -72,8 +72,8 @@ class MailerHelperTest < Test::Unit::TestCase
     assert_match %r{Mr. Joe Person}, mail.encoded
   end
 
-  def test_use_test_helper
-    mail = HelperMailer.create_use_test_helper(@recipient)
+  def test_use_example_helper
+    mail = HelperMailer.create_use_example_helper(@recipient)
     assert_match %r{<em><strong><small>emphasize me!}, mail.encoded
   end
 
