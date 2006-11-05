@@ -161,10 +161,22 @@ class FinderTest < Test::Unit::TestCase
       Company.find(:first, :conditions => { :id => 2, :dhh => true })
     }
   end
-  
+
   def test_hash_condition_find_with_escaped_characters
     Company.create("name" => "Ain't noth'n like' \#stuff")
-    assert Company.find(:first, :conditions => { :name => "Ain't noth'n like' \#stuff"})
+    assert Company.find(:first, :conditions => { :name => "Ain't noth'n like' \#stuff" })
+  end
+
+  def test_hash_condition_find_with_array
+    p1, p2 = Post.find(:all, :limit => 2, :order => 'id asc')
+    assert_equal [p1, p2], Post.find(:all, :conditions => { :id => [p1, p2] }, :order => 'id asc')
+    assert_equal [p1, p2], Post.find(:all, :conditions => { :id => [p1, p2.id] }, :order => 'id asc')
+  end
+
+  def test_hash_condition_find_with_nil
+    topic = Topic.find(:first, :conditions => { :last_read => nil } )
+    assert_not_nil topic
+    assert_nil topic.last_read
   end
 
   def test_bind_variables

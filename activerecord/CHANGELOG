@@ -1,5 +1,8 @@
 *SVN*
 
+* Support nil and Array in :conditions => { attr => value } hashes.  #6548 [Assaf, Jeremy Kemper]
+    find(:all, :conditions => { :topic_id => [1, 2, 3], :last_read => nil }
+
 * Consistently use LOWER() for uniqueness validations (rather than mixing with UPPER()) so the database can always use a functional index on the lowercased column.  #6495 [Si]
 
 * SQLite: fix calculations workaround, remove count(distinct) query rewrite, cleanup test connection scripts.  [Jeremy Kemper]
