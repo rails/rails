@@ -1,5 +1,7 @@
 *SVN*
 
+* Consistently use LOWER() for uniqueness validations (rather than mixing with UPPER()) so the database can always use a functional index on the lowercased column.  #6495 [Si]
+
 * SQLite: fix calculations workaround, remove count(distinct) query rewrite, cleanup test connection scripts.  [Jeremy Kemper]
 
 * SQLite: count(distinct) queries supported in >= 3.2.6.  #6544 [Bob Silva]

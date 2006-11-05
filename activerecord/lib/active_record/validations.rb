@@ -533,8 +533,8 @@ module ActiveRecord
             condition_sql = "#{record.class.table_name}.#{attr_name} #{attribute_condition(value)}"
             condition_params = [value]
           else
-            condition_sql = "UPPER(#{record.class.table_name}.#{attr_name}) #{attribute_condition(value)}"
-            condition_params = [value.upcase]
+            condition_sql = "LOWER(#{record.class.table_name}.#{attr_name}) #{attribute_condition(value)}"
+            condition_params = [value.downcase]
           end
           if scope = configuration[:scope]
             Array(scope).map do |scope_item|
