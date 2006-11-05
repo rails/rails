@@ -1,5 +1,7 @@
 *SVN*
 
+* scaffold_resource generator uses _path named routes and head instead of render :nothing => true.  #6545 [Josh Susser]
+
 * Generator can show diff on file collision to help you decide whether to skip or overwrite.  #6364 [jeffw, Jeremy Kemper]
 
 * Generated directories are recursively svn added, like mkdir -p.  #6416 [NeilW]
