@@ -113,6 +113,7 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal("1,066 counts", pluralize('1,066', "count"))
     assert_equal("1.25 counts", pluralize('1.25', "count"))
     assert_equal("2 counters", pluralize(2, "count", "counters"))
+    assert_equal("0 counters", pluralize(nil, "count", "counters"))
   end
 
   def test_auto_link_parsing
