@@ -1,5 +1,7 @@
 *SVN*
 
+* Cache parsed query parameters.  #6559 [Stefan Kaes]
+
 * Deprecate JavaScriptHelper#update_element_function, which is superseeded by RJS [Thomas Fuchs]
 
 * Fix invalid test fixture exposed by stricter Ruby 1.8.5 multipart parsing.  #6524 [Bob Silva]

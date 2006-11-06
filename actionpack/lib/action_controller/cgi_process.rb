@@ -8,13 +8,13 @@ module ActionController #:nodoc:
     # sessions (large performance increase if sessions are not needed). The <tt>session_options</tt> are the same as for CGI::Session:
     #
     # * <tt>:database_manager</tt> - standard options are CGI::Session::FileStore, CGI::Session::MemoryStore, and CGI::Session::PStore
-    #   (default). Additionally, there is CGI::Session::DRbStore and CGI::Session::ActiveRecordStore. Read more about these in 
+    #   (default). Additionally, there is CGI::Session::DRbStore and CGI::Session::ActiveRecordStore. Read more about these in
     #   lib/action_controller/session.
     # * <tt>:session_key</tt> - the parameter name used for the session id. Defaults to '_session_id'.
     # * <tt>:session_id</tt> - the session id to use.  If not provided, then it is retrieved from the +session_key+ parameter
     #   of the request, or automatically generated for a new session.
     # * <tt>:new_session</tt> - if true, force creation of a new session.  If not set, a new session is only created if none currently
-    #   exists.  If false, a new session is never created, and if none currently exists and the +session_id+ option is not set, 
+    #   exists.  If false, a new session is never created, and if none currently exists and the +session_id+ option is not set,
     #   an ArgumentError is raised.
     # * <tt>:session_expires</tt> - the time the current session expires, as a +Time+ object.  If not set, the session will continue
     #   indefinitely.
@@ -22,10 +22,10 @@ module ActionController #:nodoc:
     #   server.
     # * <tt>:session_secure</tt> - if +true+, this session will only work over HTTPS.
     # * <tt>:session_path</tt> - the path for which this session applies.  Defaults to the directory of the CGI script.
-    def self.process_cgi(cgi = CGI.new, session_options = {}) 
+    def self.process_cgi(cgi = CGI.new, session_options = {})
       new.process_cgi(cgi, session_options)
     end
-  
+
     def process_cgi(cgi, session_options = {}) #:nodoc:
       process(CgiRequest.new(cgi, session_options), CgiResponse.new(cgi)).out
     end
@@ -51,7 +51,7 @@ module ActionController #:nodoc:
       if (qs = @cgi.query_string) && !qs.empty?
         qs
       elsif uri = @env['REQUEST_URI']
-        parts = uri.split('?')  
+        parts = uri.split('?')
         parts.shift
         parts.join('?')
       else
@@ -60,7 +60,8 @@ module ActionController #:nodoc:
     end
 
     def query_parameters
-      (qs = self.query_string).empty? ? {} : CGIMethods.parse_query_parameters(qs)
+      @query_parameters ||=
+        (qs = self.query_string).empty? ? {} : CGIMethods.parse_query_parameters(qs)
     end
 
     def request_parameters
@@ -71,7 +72,7 @@ module ActionController #:nodoc:
           CGIMethods.parse_request_parameters(@cgi.params)
         end
     end
-   
+
     def cookies
       @cgi.cookies.freeze
     end
