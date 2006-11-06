@@ -1,5 +1,7 @@
 *SVN*
 
+* Cache parsed query parameters.  #6559 [Stefan Kaes]
+
 * Deprecate JavaScriptHelper#update_element_function, which is superseeded by RJS [Thomas Fuchs]
 
 * pluralize helper interprets nil as zero.  #6474 [pope]
