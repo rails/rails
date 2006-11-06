@@ -1,3 +1,3 @@
 class RaisesNoMethodError
-  foobar_method_doesnt_exist
+  self.foobar_method_doesnt_exist
 end

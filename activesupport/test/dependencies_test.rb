@@ -654,7 +654,7 @@ class DependenciesTest < Test::Unit::TestCase
       assert !defined?(::RaisesNameError)
       2.times do
         begin
-          ::RaisesNameError
+          ::RaisesNameError.object_id
           flunk 'should have raised NameError when autoloaded file referenced FooBarBaz'
         rescue NameError => e
           assert_equal 'uninitialized constant RaisesNameError::FooBarBaz', e.message
