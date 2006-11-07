@@ -1,5 +1,7 @@
 *SVN*
 
+* make add_order a tad faster. #6567 [Stefan Kaes]
+
 * Find with :include respects scoped :order.  #5850
 
 * Support nil and Array in :conditions => { attr => value } hashes.  #6548 [Assaf, Jeremy Kemper]

@@ -1096,7 +1096,7 @@ module ActiveRecord #:nodoc:
 
           sql << " GROUP BY #{options[:group]} " if options[:group]
 
-          add_order!(sql, options[:order])
+          add_order!(sql, options[:order], scope)
           add_limit!(sql, options, scope)
           add_lock!(sql, options, scope)
 
@@ -1120,12 +1120,14 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def add_order!(sql, order)
+        def add_order!(sql, order, scope = :auto)
+          scope = scope(:find) if :auto == scope
+          scoped_order = scope[:order] if scope
           if order
             sql << " ORDER BY #{order}"
-            sql << ", #{scope(:find, :order)}" if scoped?(:find, :order)
+            sql << ", #{scoped_order}" if scoped_order
           else
-            sql << " ORDER BY #{scope(:find, :order)}" if scoped?(:find, :order)
+            sql << " ORDER BY #{scoped_order}" if scoped_order
           end
         end
 
