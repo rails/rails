@@ -1,5 +1,7 @@
 *SVN*
 
+* Find with :include respects scoped :order.  #5850
+
 * Dynamically generate reader methods for serialized attributes.  #6362 [Stefan Kaes]
 
 * Deprecation: object transactions warning.  [Jeremy Kemper]
