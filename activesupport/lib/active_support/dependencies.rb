@@ -234,7 +234,7 @@ module Dependencies #:nodoc:
       raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
     end
     
-    raise ArgumentError, "Expected #{from_mod} is not missing constant #{const_name}!" if from_mod.const_defined?(const_name)
+    raise ArgumentError, "#{from_mod} is not missing constant #{const_name}!" if from_mod.const_defined?(const_name)
     
     qualified_name = qualified_name_for from_mod, const_name
     path_suffix = qualified_name.underscore
@@ -301,6 +301,10 @@ module Dependencies #:nodoc:
   # its execution. Constants may only be regarded as 'new' once -- so if the
   # block calls +new_constants_in+ again, then the constants defined within the
   # inner call will not be reported in this one.
+  # 
+  # If the provided block does not run to completion, and instead raises an
+  # exception, any new constants are regarded as being only partially defined
+  # and will be removed immediately.
   def new_constants_in(*descs)
     log_call(*descs)
     
@@ -328,28 +332,39 @@ module Dependencies #:nodoc:
     
     constant_watch_stack.concat watch_frames
     
-    yield # Now yield to the code that is to define new constants.
-    
-    # Find the new constants.
-    new_constants = watch_frames.collect do |mod_name, prior_constants|
-      # Module still doesn't exist? Treat it as if it has no constants.
-      next [] unless qualified_const_defined?(mod_name)
+    aborting = true
+    begin
+      yield # Now yield to the code that is to define new constants.
+      aborting = false
+    ensure
+      # Find the new constants.
+      new_constants = watch_frames.collect do |mod_name, prior_constants|
+        # Module still doesn't exist? Treat it as if it has no constants.
+        next [] unless qualified_const_defined?(mod_name)
+        
+        mod = mod_name.constantize
+        next [] unless mod.is_a? Module
+        new_constants = mod.constants - prior_constants
+        
+        # Make sure no other frames takes credit for these constants.
+        constant_watch_stack.each do |frame_name, constants|
+          constants.concat new_constants if frame_name == mod_name
+        end
+        
+        new_constants.collect do |suffix|
+          mod_name == "Object" ? suffix : "#{mod_name}::#{suffix}"
+        end
+      end.flatten
       
-      mod = mod_name.constantize
-      next [] unless mod.is_a? Module
-      new_constants = mod.constants - prior_constants
+      log "New constants: #{new_constants * ', '}"
       
-      # Make sure no other frames takes credit for these constants.
-      constant_watch_stack.each do |frame_name, constants|
-        constants.concat new_constants if frame_name == mod_name
+      if aborting
+        log "Error during loading, removing partially loaded constants "
+        new_constants.each { |name| remove_constant name }
+        new_constants.clear
       end
-      
-      new_constants.collect do |suffix|
-        mod_name == "Object" ? suffix : "#{mod_name}::#{suffix}"
-      end
-    end.flatten
+    end
     
-    log "New constants: #{new_constants * ', '}"
     return new_constants
   ensure
     # Remove the stack frames that we added.

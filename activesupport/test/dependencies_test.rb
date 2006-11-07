@@ -641,7 +641,8 @@ class DependenciesTest < Test::Unit::TestCase
         assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
       end
     end
-
+  
+  ensure
     Object.send(:remove_const, :RaisesNoMethodError) if defined?(::RaisesNoMethodError)
   end
 
@@ -653,7 +654,8 @@ class DependenciesTest < Test::Unit::TestCase
         assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
       end
     end
-
+  
+  ensure
     Object.send(:remove_const, :RaisesNoMethodError) if defined?(::RaisesNoMethodError)
   end
 
@@ -677,6 +679,7 @@ class DependenciesTest < Test::Unit::TestCase
       end
     end
 
+  ensure
     Object.send(:remove_const, :RaisesNameError) if defined?(::RaisesNameError)
   end
 end
