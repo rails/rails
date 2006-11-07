@@ -1,5 +1,10 @@
 *SVN*
 
+* assert_response supports symbolic status codes.  #6569 [Kevin Clark]
+    assert_response :ok
+    assert_response :not_found
+    assert_response :forbidden
+
 * Cache parsed query parameters.  #6559 [Stefan Kaes]
 
 * Deprecate JavaScriptHelper#update_element_function, which is superseeded by RJS [Thomas Fuchs]

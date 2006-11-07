@@ -5,27 +5,31 @@ module ActionController
   module Assertions
     module ResponseAssertions
       # Asserts that the response is one of the following types:
-      # 
+      #
       # * <tt>:success</tt>: Status code was 200
       # * <tt>:redirect</tt>: Status code was in the 300-399 range
       # * <tt>:missing</tt>: Status code was 404
       # * <tt>:error</tt>:  Status code was in the 500-599 range
       #
-      # You can also pass an explicit status code number as the type, like assert_response(501)
+      # You can also pass an explicit status number like assert_response(501)
+      # or its symbolic equivalent assert_response(:not_implemented).
+      # See ActionController::StatusCodes for a full list.
       def assert_response(type, message = nil)
         clean_backtrace do
           if [ :success, :missing, :redirect, :error ].include?(type) && @response.send("#{type}?")
             assert_block("") { true } # to count the assertion
           elsif type.is_a?(Fixnum) && @response.response_code == type
             assert_block("") { true } # to count the assertion
+          elsif type.is_a?(Symbol) && @response.response_code == ActionController::StatusCodes::SYMBOL_TO_STATUS_CODE[type]
+            assert_block("") { true } # to count the assertion
           else
             assert_block(build_message(message, "Expected response to be a <?>, but was <?>", type, @response.response_code)) { false }
-          end               
+          end
         end
       end
 
       # Assert that the redirection options passed in match those of the redirect called in the latest action. This match can be partial,
-      # such that assert_redirected_to(:controller => "weblog") will also match the redirection of 
+      # such that assert_redirected_to(:controller => "weblog") will also match the redirection of
       # redirect_to(:controller => "weblog", :action => "show") and so on.
       def assert_redirected_to(options = {}, message=nil)
         clean_backtrace do
@@ -66,18 +70,18 @@ module ActionController
 
               if value.respond_to?(:[]) && value['controller']
                 if key == :actual && value['controller'].first != '/' && !value['controller'].include?('/')
-                  value['controller'] = ActionController::Routing.controller_relative_to(value['controller'], @controller.class.controller_path) 
+                  value['controller'] = ActionController::Routing.controller_relative_to(value['controller'], @controller.class.controller_path)
                 end
                 value['controller'] = value['controller'][1..-1] if value['controller'].first == '/' # strip leading hash
               end
               url[key] = value
             end
-            
+
 
             @response_diff = url[:expected].diff(url[:actual]) if url[:actual]
-            msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>), difference: <?>", 
+            msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>), difference: <?>",
                                 url[:actual], @response_diff)
-            
+
             assert_block(msg) do
               url[:expected].keys.all? do |k|
                 if k == :controller then url[:expected][k] == ActionController::Routing.controller_relative_to(url[:actual][k], @controller.class.controller_path)
@@ -94,7 +98,7 @@ module ActionController
             end.flatten
 
             assert_equal(eurl, url, msg) if eurl && url
-            assert_equal(epath, path, msg) if epath && path 
+            assert_equal(epath, path, msg) if epath && path
           end
         end
       end
@@ -110,7 +114,7 @@ module ActionController
             else
               expected == rendered
             end
-          end               
+          end
         end
       end
 
