@@ -1,5 +1,7 @@
 *SVN*
 
+* make add_order a tad faster. #6567 [Stefan Kaes]
+
 * Find with :include respects scoped :order.  #5850
 
 * Dynamically generate reader methods for serialized attributes.  #6362 [Stefan Kaes]
