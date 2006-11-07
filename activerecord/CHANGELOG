@@ -1,5 +1,7 @@
 *SVN*
 
+* Find with :include respects scoped :order.  #5850
+
 * Support nil and Array in :conditions => { attr => value } hashes.  #6548 [Assaf, Jeremy Kemper]
     find(:all, :conditions => { :topic_id => [1, 2, 3], :last_read => nil }
 

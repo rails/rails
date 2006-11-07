@@ -1312,6 +1312,16 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal 2, topics.first.id
   end
 
+  def test_scoped_find_order_including_has_many_association
+    developers = Developer.with_scope(:find => { :order => 'developers.salary DESC', :include => :projects }) do
+      Developer.find(:all)
+    end
+    assert developers.size >= 2
+    for i in 1...developers.size
+      assert developers[i-1].salary >= developers[i].salary
+    end
+  end
+
   def test_base_class
     assert LoosePerson.abstract_class?
     assert !LooseDescendant.abstract_class?
