@@ -633,25 +633,33 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
 
-  def test_autoload_doesnt_shadow_no_method_error
+  def test_autoload_doesnt_shadow_no_method_error_with_relative_constant
     with_loading 'autoloading_fixtures' do
-      assert !defined?(RaisesNoMethodError)
+      assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
       2.times do
         assert_raise(NoMethodError) { RaisesNoMethodError }
-        assert !defined?(RaisesNoMethodError)
-      end
-
-      assert !defined?(::RaisesNoMethodError)
-      2.times do
-        assert_raise(NoMethodError) { ::RaisesNoMethodError }
-        assert !defined?(::RaisesNoMethodError)
+        assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
       end
     end
+
+    Object.send(:remove_const, :RaisesNoMethodError) if defined?(::RaisesNoMethodError)
+  end
+
+  def test_autoload_doesnt_shadow_no_method_error_with_absolute_constant
+    with_loading 'autoloading_fixtures' do
+      assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
+      2.times do
+        assert_raise(NoMethodError) { ::RaisesNoMethodError }
+        assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
+      end
+    end
+
+    Object.send(:remove_const, :RaisesNoMethodError) if defined?(::RaisesNoMethodError)
   end
 
   def test_autoload_doesnt_shadow_name_error
     with_loading 'autoloading_fixtures' do
-      assert !defined?(::RaisesNameError)
+      assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it hasn't been referenced yet!"
       2.times do
         begin
           ::RaisesNameError.object_id
@@ -659,14 +667,16 @@ class DependenciesTest < Test::Unit::TestCase
         rescue NameError => e
           assert_equal 'uninitialized constant RaisesNameError::FooBarBaz', e.message
         end
-        assert !defined?(::RaisesNameError)
+        assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
       end
 
       assert !defined?(RaisesNameError)
       2.times do
         assert_raise(NameError) { RaisesNameError }
-        assert !defined?(RaisesNameError)
+        assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
       end
     end
+
+    Object.send(:remove_const, :RaisesNameError) if defined?(::RaisesNameError)
   end
 end
