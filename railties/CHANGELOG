@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove temporary crutch to help ApplicationController be unloaded. Closes #6496. [Nicholas Seckar]
+
 * scaffold_resource generator uses _path named routes and head instead of render :nothing => true.  #6545 [Josh Susser]
 
 * Generator can show diff on file collision to help you decide whether to skip or overwrite.  #6364 [jeffw, Jeremy Kemper]
