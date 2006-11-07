@@ -640,24 +640,29 @@ EOS
     get :head_with_location_header
     assert @response.body.blank?
     assert_equal "/foo", @response.headers["Location"]
+    assert_response :ok
   end
 
   def test_head_with_custom_header
     get :head_with_custom_header
     assert @response.body.blank?
     assert_equal "something", @response.headers["X-Custom-Header"]
+    assert_response :ok
   end
 
   def test_head_with_symbolic_status
     get :head_with_symbolic_status, :status => "ok"
     assert_equal "200 OK", @response.headers["Status"]
+    assert_response :ok
 
     get :head_with_symbolic_status, :status => "not_found"
     assert_equal "404 Not Found", @response.headers["Status"]
+    assert_response :not_found
 
     ActionController::StatusCodes::SYMBOL_TO_STATUS_CODE.each do |status, code|
       get :head_with_symbolic_status, :status => status.to_s
       assert_equal code, @response.response_code
+      assert_response status
     end
   end
 
@@ -672,6 +677,7 @@ EOS
     get :head_with_string_status, :status => "404 Eat Dirt"
     assert_equal 404, @response.response_code
     assert_equal "Eat Dirt", @response.message
+    assert_response :not_found
   end
 
   def test_head_with_status_code_first
@@ -679,5 +685,6 @@ EOS
     assert_equal 403, @response.response_code
     assert_equal "Forbidden", @response.message
     assert_equal "something", @response.headers["X-Custom-Header"]
+    assert_response :forbidden
   end
 end
