@@ -91,7 +91,7 @@ class FirebirdMigrationTest < Test::Unit::TestCase
     assert_nothing_raised { @connection.rename_table :foo, :bar }
     assert !@connection.tables.include?("foo")
     assert @connection.tables.include?("bar")
-    assert_equal "bar_baz_index", @connection.indexes("bar").first.name
+    assert_equal "index_bar_on_baz", @connection.indexes("bar").first.name
     assert_equal 100, FireRuby::Generator.new("bar_seq", @fireruby_connection).last
     assert_equal 100, @connection.select_one("SELECT COUNT(*) FROM bar")["count"]
   ensure

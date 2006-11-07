@@ -50,7 +50,7 @@ module ActiveRecord
 
         @default = parse_default(default_source) if default_source
         @limit = decide_limit(length)
-        @domain, @sub_type, @precision, @scale = domain, sub_type, precision, scale
+        @domain, @sub_type, @precision, @scale = domain, sub_type, precision, scale.abs
       end
 
       def type
@@ -293,6 +293,8 @@ module ActiveRecord
           :string      => { :name => "varchar", :limit => 255 },
           :text        => { :name => "blob sub_type text" },
           :integer     => { :name => "bigint" },
+          :decimal     => { :name => "decimal" },
+          :numeric     => { :name => "numeric" },
           :float       => { :name => "float" },
           :datetime    => { :name => "timestamp" },
           :timestamp   => { :name => "timestamp" },
@@ -534,12 +536,7 @@ module ActiveRecord
       end
 
       def remove_index(table_name, options) #:nodoc:
-        if Hash === options
-          index_name = options[:name]
-        else
-          index_name = "#{table_name}_#{options}_index"
-        end
-        execute "DROP INDEX #{index_name}"
+        execute "DROP INDEX #{quote_column_name(index_name(table_name, options))}"
       end
 
       def rename_table(name, new_name) # :nodoc:
@@ -568,12 +565,12 @@ module ActiveRecord
         super << ";\n"
       end
 
-      def type_to_sql(type, limit = nil) # :nodoc:
+      def type_to_sql(type, limit = nil, precision = nil, scale = nil) # :nodoc:
         case type
           when :integer then integer_sql_type(limit)
           when :float   then float_sql_type(limit)
-          when :string  then super
-          else super(type)
+          when :string  then super(type, limit, precision, scale)
+          else super(type, limit, precision, scale)
         end
       end
 
