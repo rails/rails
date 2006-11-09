@@ -1170,7 +1170,7 @@ module ActiveRecord
 
           sql << "GROUP BY #{options[:group]} " if options[:group]
  
-          add_order!(sql, options[:order])
+          add_order!(sql, options[:order], scope)
           add_limit!(sql, options, scope) if using_limitable_reflections?(join_dependency.reflections)
  
           return sanitize_sql(sql)

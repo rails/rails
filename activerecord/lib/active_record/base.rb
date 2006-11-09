@@ -648,9 +648,10 @@ module ActiveRecord #:nodoc:
         key
       end
 
-      # Defines the column name for use with single table inheritance -- can be overridden in subclasses.
+      # Defines the column name for use with single table inheritance
+      # -- can be set in subclasses like so: self.inheritance_column = "type_id"
       def inheritance_column
-        "type"
+        @inheritance_column ||= "type".freeze
       end
 
       # Lazy-set the sequence name to the connection's default.  This method
@@ -800,7 +801,7 @@ module ActiveRecord #:nodoc:
       # Resets all the cached information about columns, which will cause them to be reloaded on the next request.
       def reset_column_information
         read_methods.each { |name| undef_method(name) }
-        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @read_methods = nil
+        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @read_methods = @inheritance_column = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
@@ -1057,7 +1058,7 @@ module ActiveRecord #:nodoc:
 
                 # Ignore type if no column is present since it was probably
                 # pulled in from a sloppy join.
-                unless self.columns_hash.include?(inheritance_column)
+                unless columns_hash.include?(inheritance_column)
                   allocate
 
                 else
