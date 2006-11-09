@@ -155,9 +155,10 @@ class CGITest < Test::Unit::TestCase
   end
   
   def test_parse_params_from_multipart_upload
-    mockup = Struct.new(:content_type, :original_filename)
+    mockup = Struct.new(:content_type, :original_filename, :read, :rewind)
     file = mockup.new('img/jpeg', 'foo.jpg')
     ie_file = mockup.new('img/jpeg', 'c:\\Documents and Settings\\foo\\Desktop\\bar.jpg')
+    non_file_text_part = mockup.new('text/plain', '', 'abc')
   
     input = {
       "something" => [ StringIO.new("") ],
@@ -168,9 +169,10 @@ class CGITest < Test::Unit::TestCase
       "products[string]" => [ StringIO.new("Apple Computer") ],
       "products[file]" => [ file ],
       "ie_products[string]" => [ StringIO.new("Microsoft") ],
-      "ie_products[file]" => [ ie_file ]
+      "ie_products[file]" => [ ie_file ],
+      "text_part" => [non_file_text_part]
     }
-    
+
     expected_output =  {
       "something" => "",
       "array_of_stringios" => ["One", "Two"],
@@ -192,7 +194,8 @@ class CGITest < Test::Unit::TestCase
       "ie_products" => {
         "string" => "Microsoft",
         "file" => ie_file
-      }
+      },
+      "text_part" => "abc"
     }
 
     params = CGIMethods.parse_request_parameters(input)
@@ -338,7 +341,7 @@ class MultipartCGITest < Test::Unit::TestCase
     assert_equal 'bar', params['foo']
 
     # Ruby CGI doesn't handle multipart/mixed for us.
-    assert_kind_of StringIO, params['files']
+    assert_kind_of String, params['files']
     assert_equal 19756, params['files'].size
   end
 
