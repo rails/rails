@@ -30,6 +30,7 @@ class InheritanceTest < Test::Unit::TestCase
   def test_alt_inheritance_find
     switch_to_alt_inheritance_column
     test_inheritance_find
+    switch_to_default_inheritance_column
   end
 
   def test_inheritance_find_all
@@ -41,6 +42,7 @@ class InheritanceTest < Test::Unit::TestCase
   def test_alt_inheritance_find_all
     switch_to_alt_inheritance_column
     test_inheritance_find_all
+    switch_to_default_inheritance_column
   end
 
   def test_inheritance_save
@@ -55,6 +57,7 @@ class InheritanceTest < Test::Unit::TestCase
   def test_alt_inheritance_save
     switch_to_alt_inheritance_column
     test_inheritance_save
+    switch_to_default_inheritance_column
   end
 
   def test_inheritance_condition
@@ -66,6 +69,7 @@ class InheritanceTest < Test::Unit::TestCase
   def test_alt_inheritance_condition
     switch_to_alt_inheritance_column
     test_inheritance_condition
+    switch_to_default_inheritance_column
   end
 
   def test_finding_incorrect_type_data
@@ -76,6 +80,7 @@ class InheritanceTest < Test::Unit::TestCase
   def test_alt_finding_incorrect_type_data
     switch_to_alt_inheritance_column
     test_finding_incorrect_type_data
+    switch_to_default_inheritance_column
   end
 
   def test_update_all_within_inheritance
@@ -87,6 +92,7 @@ class InheritanceTest < Test::Unit::TestCase
   def test_alt_update_all_within_inheritance
     switch_to_alt_inheritance_column
     test_update_all_within_inheritance
+    switch_to_default_inheritance_column
   end
 
   def test_destroy_all_within_inheritance
@@ -98,6 +104,7 @@ class InheritanceTest < Test::Unit::TestCase
   def test_alt_destroy_all_within_inheritance
     switch_to_alt_inheritance_column
     test_destroy_all_within_inheritance
+    switch_to_default_inheritance_column
   end
 
   def test_find_first_within_inheritance
@@ -109,6 +116,7 @@ class InheritanceTest < Test::Unit::TestCase
   def test_alt_find_first_within_inheritance
     switch_to_alt_inheritance_column
     test_find_first_within_inheritance
+    switch_to_default_inheritance_column
   end
 
   def test_complex_inheritance
@@ -124,6 +132,7 @@ class InheritanceTest < Test::Unit::TestCase
   def test_alt_complex_inheritance
     switch_to_alt_inheritance_column
     test_complex_inheritance
+    switch_to_default_inheritance_column
   end
 
   def test_inheritance_without_mapping
@@ -138,7 +147,10 @@ class InheritanceTest < Test::Unit::TestCase
         c['type'] = nil
         c.save
       end
-    
-      def Company.inheritance_column() "ruby_type" end
+      [ Company, Firm, Client].each { |klass| klass.reset_column_information }
+      def Company.inheritance_column; @inheritance_column ||= "ruby_type"; end
+    end
+    def switch_to_default_inheritance_column
+      [ Company, Firm, Client].each { |klass| klass.reset_column_information }
     end
 end

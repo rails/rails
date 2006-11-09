@@ -1,5 +1,7 @@
 *SVN*
 
+* Cache inheritance_column.  #6592 [Stefan Kaes]
+
 * Firebird: decimal/numeric support.  #6408 [macrnic]
 
 * make add_order a tad faster. #6567 [Stefan Kaes]
