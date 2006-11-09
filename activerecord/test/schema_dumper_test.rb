@@ -8,6 +8,7 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
     def standard_dump
       stream = StringIO.new
       ActiveRecord::SchemaDumper.ignore_tables = []
+      ActiveRecord::SchemaDumper.ignore_tables << /^sqlite_/ if current_adapter?(:SQLiteAdapter)
       ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
       stream.string
     end

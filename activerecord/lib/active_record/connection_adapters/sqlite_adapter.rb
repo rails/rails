@@ -108,7 +108,7 @@ module ActiveRecord
 
       def native_database_types #:nodoc:
         {
-          :primary_key => "INTEGER PRIMARY KEY NOT NULL",
+          :primary_key => default_primary_key_type,
           :string      => { :name => "varchar", :limit => 255 },
           :text        => { :name => "text" },
           :integer     => { :name => "integer" },
@@ -350,6 +350,14 @@ module ActiveRecord
 
         def sqlite_version
           @sqlite_version ||= select_value('select sqlite_version(*)')
+        end
+
+        def default_primary_key_type
+          if sqlite_version >= '3.1.0'
+            'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL'.freeze
+          else
+            'INTEGER PRIMARY KEY NOT NULL'.freeze
+          end
         end
     end
 
