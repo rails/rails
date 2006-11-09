@@ -101,7 +101,7 @@ class Dispatcher
         end
 
         prepare_breakpoint
-        Dependencies.require_or_load('application') unless Object.const_defined?(:ApplicationController)
+        require_dependency 'application' unless Object.const_defined?(:ApplicationController)
         ActiveRecord::Base.verify_active_connections! if defined?(ActiveRecord)
         run_preparation_callbacks
       end
