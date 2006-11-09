@@ -1,5 +1,7 @@
 *SVN*
 
+* Rake: use absolute paths to load lib and vendor tasks so they may be run outside of RAILS_ROOT.  #6584 [jchris]
+
 * Remove temporary crutch to help ApplicationController be unloaded. Closes #6496. [Nicholas Seckar]
 
 * scaffold_resource generator uses _path named routes and head instead of render :nothing => true.  #6545 [Josh Susser]
