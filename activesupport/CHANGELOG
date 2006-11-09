@@ -1,5 +1,7 @@
 *SVN*
 
+* Lazily load the Unicode Database in the UTF-8 Handler [Rick Olson]
+
 * Update dependencies to delete partially loaded constants. [Nicholas Seckar]
 
 * Fix unicode JSON regexp for Onigurama compatibility.  #6494 [whitley]
