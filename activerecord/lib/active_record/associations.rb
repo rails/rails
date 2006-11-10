@@ -1190,25 +1190,23 @@ module ActiveRecord
             "#{name} Load IDs For Limited Eager Loading"
           ).collect { |row| connection.quote(row[primary_key]) }.join(", ")
         end
- 
+
         def construct_finder_sql_for_association_limiting(options, join_dependency)
           scope       = scope(:find)
           is_distinct = include_eager_conditions?(options) || include_eager_order?(options)
           sql = "SELECT "
           if is_distinct
-            ordered_columns = options[:order].to_s.split(',').collect! { |s| s.split.first }
-            options[:order] = "#{table_name}.#{primary_key}, #{options[:order]}" if options[:order] && connection.requires_order_columns_in_distinct_clause?
-            sql << connection.distinct("#{table_name}.#{primary_key}", ordered_columns)
+            sql << connection.distinct("#{table_name}.#{primary_key}", options[:order])
           else
             sql << primary_key
           end
           sql << " FROM #{table_name} "
-          
+
           if is_distinct
             sql << join_dependency.join_associations.collect(&:association_join).join
             add_joins!(sql, options, scope)
           end
-          
+
           add_conditions!(sql, options[:conditions], scope)
           sql << "ORDER BY #{options[:order]} " if options[:order]
           add_limit!(sql, options, scope)

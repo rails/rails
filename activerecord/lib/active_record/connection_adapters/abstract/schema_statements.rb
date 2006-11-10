@@ -280,8 +280,11 @@ module ActiveRecord
         sql << " NOT NULL" if options[:null] == false
       end
 
-      # SELECT DISTINCT clause for a given set of columns.  PostgreSQL overrides this for custom DISTINCT syntax.
-      def distinct(columns, *order_columns)
+      # SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.
+      # Both PostgreSQL and Oracle overrides this for custom DISTINCT syntax.
+      #
+      #   distinct("posts.id", "posts.created_at desc")
+      def distinct(columns, order_by)
         "DISTINCT #{columns}"
       end
     end
