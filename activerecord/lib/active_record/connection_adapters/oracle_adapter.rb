@@ -314,7 +314,7 @@ begin
 
         def columns(table_name, name = nil) #:nodoc:
           (owner, table_name) = @connection.describe(table_name)
-          raise "Couldn't describe #{table_name}. Does it exist?" unless owner and table_name
+          raise "Could not describe #{table_name}. Does it exist?" unless owner and table_name
 
           table_cols = %Q{
             select column_name as name, data_type as sql_type, data_default, nullable,
@@ -427,6 +427,34 @@ begin
           end
         end
 
+        # SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.
+        #
+        # Oracle requires the ORDER BY columns to be in the SELECT list for DISTINCT
+        # queries. However, with those columns included in the SELECT DISTINCT list, you
+        # won't actually get a distinct list of the column you want (presuming the column
+        # has duplicates with multiple values for the ordered-by columns. So we use the 
+        # FIRST_VALUE function to get a single (first) value for each column, effectively
+        # making every row the same.
+        #
+        #   distinct("posts.id", "posts.created_at desc")
+        def distinct(columns, order_by)
+          return "DISTINCT #{columns}" if order_by.blank?
+
+          # construct a clean list of column names from the ORDER BY clause, removing
+          # any asc/desc modifiers
+          order_columns = order_by.split(',').collect! { |s| s.split.first }
+          order_columns.delete_if &:blank?
+
+          # simplify the ORDER BY to just use positional syntax, to avoid the complexity of
+          # having to create valid column aliases for the FIRST_VALUE columns
+          order_by.replace(((offset=columns.count(',')+2) .. offset+order_by.count(',')).to_a * ", ")
+
+          # construct a valid DISTINCT clause, ie. one that includes the ORDER BY columns, using
+          # FIRST_VALUE such that the inclusion of these columns doesn't invalidate the DISTINCT
+          order_columns.map! { |c| "FIRST_VALUE(#{c}) OVER (PARTITION BY #{columns} ORDER BY #{c})" }
+          sql = "DISTINCT #{columns}, "
+          sql << order_columns * ", "
+        end
 
         private
 

@@ -111,10 +111,6 @@ module ActiveRecord
         63
       end
 
-      def requires_order_columns_in_distinct_clause?
-        true
-      end
-
       # QUOTING ==================================================
 
       def quote(value, column = nil)
@@ -376,14 +372,27 @@ module ActiveRecord
         end
       end
       
-      # PostgreSQL requires the ORDER BY columns in the select list for distinct queries.
-      # If you select distinct by a column though, you must pass that column in the order by clause too:
+      # SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.
       #
-      #   distinct("posts.id", 'posts.id', 'posts.created_at')
-      def distinct(columns, *order_columns)
+      # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and
+      # requires that the ORDER BY include the distinct column.
+      #
+      #   distinct("posts.id", "posts.created_at desc")
+      def distinct(columns, order_by)
+        return "DISTINCT #{columns}" if order_by.blank?
+
+        # construct a clean list of column names from the ORDER BY clause, removing
+        # any asc/desc modifiers
+        order_columns = order_by.split(',').collect! { |s| s.split.first }
         order_columns.delete_if &:blank?
-        sql = "DISTINCT ON (#{columns}) #{columns}"
-        sql << (order_columns.any? ? ", #{order_columns * ', '}" : '')
+
+        # add the DISTINCT columns to the start of the ORDER BY clause
+        order_by.replace "#{columns}, #{order_by}"
+
+        # return a DISTINCT ON() clause that's distinct on the columns we want but includes
+        # all the required columns for the ORDER BY to work properly
+        sql = "DISTINCT ON (#{columns}) #{columns}, "
+        sql << order_columns * ', '
       end
 
       private

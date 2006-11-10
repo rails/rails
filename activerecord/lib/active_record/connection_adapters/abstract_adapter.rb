@@ -56,12 +56,6 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter require the order columns to be in the select clause
-      # of a DISTINCT query?  This is +false+ in all adapters except postgresql.
-      def requires_order_columns_in_distinct_clause?
-        false
-      end
-
       def reset_runtime #:nodoc:
         rt, @runtime = @runtime, 0
         rt

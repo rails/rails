@@ -27,7 +27,7 @@
 
 * has_one :dependent => :nullify ignores nil associates.  #6528 [janovetz, Jeremy Kemper]
 
-* Oracle: resolve test failures, use prefetched primary key for inserts, check for null defaults. Factor out some common methods from all adapters.  #6515 [Michael Schoen]
+* Oracle: resolve test failures, use prefetched primary key for inserts, check for null defaults, fix limited id selection for eager loading. Factor out some common methods from all adapters.  #6515 [Michael Schoen]
 
 * Make add_column use the options hash with the Sqlite Adapter. Closes #6464 [obrie]
 
