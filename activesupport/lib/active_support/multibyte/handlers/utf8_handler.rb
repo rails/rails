@@ -7,12 +7,36 @@ module ActiveSupport::Multibyte::Handlers
   end
   
   class UnicodeDatabase #:nodoc:
-    attr_accessor :codepoints, :composition_exclusion, :composition_map, :boundary, :cp1252
+    attr_writer :codepoints, :composition_exclusion, :composition_map, :boundary, :cp1252
     
-    # Creates a new UnicodeDatabase instance and loads the database.
-    def initialize
+    # self-expiring methods that lazily load the Unicode database and then return the value.
+    [:codepoints, :composition_exclusion, :composition_map, :boundary, :cp1252].each do |attr_name|
+      class_eval(<<-EOS, __FILE__, __LINE__)
+        def #{attr_name}
+          load
+          @#{attr_name}
+        end
+      EOS
+    end
+    
+    # Shortcut to ucd.codepoints[]
+    def [](index); codepoints[index]; end
+    
+    # Returns the directory in which the data files are stored
+    def self.dirname
+      File.dirname(__FILE__) + '/../../values/'
+    end
+    
+    # Returns the filename for the data file for this version
+    def self.filename
+      File.expand_path File.join(dirname, "unicode_tables.dat")
+    end
+    
+    # Loads the unicode database and returns all the internal objects of UnicodeDatabase
+    # Once the values have been loaded, define attr_reader methods for the instance variables.
+    def load
       begin
-        @codepoints, @composition_exclusion, @composition_map, @boundary, @cp1252 = self.class.load
+        @codepoints, @composition_exclusion, @composition_map, @boundary, @cp1252 = File.open(self.class.filename, 'rb') { |f| Marshal.load f.read }
       rescue Exception => e
           raise IOError.new("Couldn't load the unicode tables for UTF8Handler (#{e.message}), handler is unusable")
       end
@@ -30,24 +54,11 @@ module ActiveSupport::Multibyte::Handlers
           end
         end if @boundary[k].kind_of?(Array)
       end
-    end
-    
-    # Shortcut to ucd.codepoints[]
-    def [](index); @codepoints[index]; end
-    
-    # Returns the directory in which the data files are stored
-    def self.dirname
-      File.dirname(__FILE__) + '/../../values/'
-    end
-    
-    # Returns the filename for the data file for this version
-    def self.filename
-      File.expand_path File.join(dirname, "unicode_tables.dat")
-    end
-    
-    # Loads the unicode database and returns all the internal objects of UnicodeDatabase
-    def self.load
-      File.open(self.filename, 'rb') { |f| Marshal.load f.read }
+
+      # define attr_reader methods for the instance variables
+      class << self
+        attr_reader :codepoints, :composition_exclusion, :composition_map, :boundary, :cp1252
+      end
     end
   end
   
