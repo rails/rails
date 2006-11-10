@@ -72,6 +72,10 @@ module ActiveRecord
         loaded
       end
       
+      def inspect
+        loaded? ? @target.inspect : "<#{@reflection.name} not loaded yet>"
+      end
+
       protected
         def dependent?
           @reflection.options[:dependent] || false

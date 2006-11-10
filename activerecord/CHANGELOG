@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't inspect unloaded associations.  #2905 [lmarlow]
+
 * SQLite: use AUTOINCREMENT primary key in >= 3.1.0.  #6588 [careo]
 
 * Cache inheritance_column.  #6592 [Stefan Kaes]

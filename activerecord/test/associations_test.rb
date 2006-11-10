@@ -87,6 +87,35 @@ class AssociationProxyTest < Test::Unit::TestCase
     david.posts_with_extension.first   # force load target
     assert_equal  david.posts_with_extension, david.posts_with_extension.testing_proxy_target
   end
+
+  def test_inspect_does_not_load_target
+    david = authors(:david)
+    not_loaded_string = '<posts not loaded yet>'
+    not_loaded_re = Regexp.new(not_loaded_string)
+
+    2.times do
+      assert !david.posts.loaded?, "Posts should not be loaded yet"
+      assert_match not_loaded_re, david.inspect
+      assert_equal not_loaded_string, david.posts.inspect
+
+      assert !david.posts.empty?, "There should be more than one post"
+      assert !david.posts.loaded?, "Posts should still not be loaded yet"
+      assert_match not_loaded_re, david.inspect
+      assert_equal not_loaded_string, david.posts.inspect
+
+      assert !david.posts.find(:all).empty?, "There should be more than one post"
+      assert !david.posts.loaded?, "Posts should still not be loaded yet"
+      assert_match not_loaded_re, david.inspect
+      assert_equal not_loaded_string, david.posts.inspect
+
+      assert !david.posts(true).empty?, "There should be more than one post"
+      assert david.posts.loaded?, "Posts should be loaded now"
+      assert_no_match  not_loaded_re, david.inspect
+      assert_not_equal not_loaded_string, david.posts.inspect
+
+      david.reload
+    end
+  end
 end
 
 class HasOneAssociationsTest < Test::Unit::TestCase
