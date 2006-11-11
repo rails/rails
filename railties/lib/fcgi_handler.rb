@@ -6,11 +6,13 @@ require 'rbconfig'
 class RailsFCGIHandler
   SIGNALS = {
     'HUP'     => :reload,
+    'INT'     => :exit_now,
     'TERM'    => :exit_now,
     'USR1'    => :exit,
     'USR2'    => :restart,
     'SIGTRAP' => :breakpoint
   }
+  GLOBAL_SIGNALS = SIGNALS.keys - %w(USR1)
 
   attr_reader :when_ready
 
@@ -92,15 +94,21 @@ class RailsFCGIHandler
     end
 
     def install_signal_handlers
-      SIGNALS.each do |signal, handler_name|
-        install_signal_handler(signal, method("#{handler_name}_handler").to_proc)
-      end
+      GLOBAL_SIGNALS.each { |signal| install_signal_handler(signal) }
     end
 
-    def install_signal_handler(signal, handler)
+    def install_signal_handler(signal, handler = nil)
+      handler ||= method("#{SIGNALS[signal]}_handler").to_proc
       trap(signal, handler)
     rescue ArgumentError
       dispatcher_log :warn, "Ignoring unsupported signal #{signal}."
+    end
+
+    def with_signal_handler(signal)
+      install_signal_handler(signal)
+      yield
+    ensure
+      install_signal_handler(signal, 'DEFAULT')
     end
 
     def exit_now_handler(signal)
@@ -127,10 +135,13 @@ class RailsFCGIHandler
       dispatcher_log :info, "asked to breakpoint ASAP"
       @when_ready = :breakpoint
     end
-    
+
     def process_each_request!(provider)
-      provider.each_cgi do |cgi| 
-        process_request(cgi)
+      cgi = nil
+      provider.each_cgi do |cgi|
+        with_signal_handler 'USR1' do
+          process_request(cgi)
+        end
 
         case when_ready
           when :reload
@@ -148,6 +159,9 @@ class RailsFCGIHandler
 
         gc_countdown
       end
+    rescue SignalException => signal
+      raise unless signal.message == 'SIGUSR1'
+      close_connection(cgi) if cgi
     end
 
     def process_request(cgi)
@@ -161,7 +175,7 @@ class RailsFCGIHandler
       config       = ::Config::CONFIG
       ruby         = File::join(config['bindir'], config['ruby_install_name']) + config['EXEEXT']
       command_line = [ruby, $0, ARGV].flatten.join(' ')
-      
+
       dispatcher_log :info, "restarted"
 
       exec(command_line)
@@ -183,7 +197,7 @@ class RailsFCGIHandler
       Dispatcher.reset_application!
       ActionController::Routing::Routes.reload
     end
-    
+
     def breakpoint!
       require 'breakpoint'
       port = defined?(BREAKPOINT_SERVER_PORT) ? BREAKPOINT_SERVER_PORT : 42531
@@ -197,14 +211,14 @@ class RailsFCGIHandler
       @gc_request_countdown = gc_request_period
       GC.enable; GC.start; GC.disable
     end
-    
+
     def gc_countdown
       if gc_request_period
         @gc_request_countdown -= 1
         run_gc! if @gc_request_countdown <= 0
       end
     end
-    
+
     def close_connection(cgi)
       cgi.instance_variable_get("@request").finish
     end
