@@ -51,8 +51,10 @@ module ActiveSupport
       
       define_encoder Hash do |hash|
         returning result = '{' do
-          result << hash.map do |pair|
-            pair.map { |value| value.to_json } * ': '
+          result << hash.map do |key, value|
+            key = ActiveSupport::JSON::Variable.new(key.to_s) if 
+              ActiveSupport::JSON.can_unquote_identifier?(key)
+            "#{key.to_json}: #{value.to_json}"
           end * ', '
           result << '}'
         end
