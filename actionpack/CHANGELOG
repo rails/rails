@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove JavaScriptLiteral in favor of ActiveSupport::JSON::Variable. [Sam Stephenson]
+
 * Sync ActionController::StatusCodes::STATUS_CODES with http://www.iana.org/assignments/http-status-codes.  #6586 [dkubb]
 
 * Multipart form values may have a content type without being treated as uploaded files if they do not provide a filename.  #6401 [Andreas Schwarz, Jeremy Kemper]
