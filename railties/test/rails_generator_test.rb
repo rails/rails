@@ -104,8 +104,8 @@ class RailsGeneratorTest < Test::Unit::TestCase
     assert_equal 'Admin::Foo', g.class_name
     assert_equal 'foo', g.singular_name
     assert_equal 'foos', g.plural_name
-    assert_equal g.singular_name, g.file_name
-    assert_equal g.plural_name, g.table_name
+    assert_equal "admin_#{g.singular_name}", g.file_name
+    assert_equal "admin_#{g.plural_name}", g.table_name
     assert_equal %w(bar baz), g.args
   end
 
