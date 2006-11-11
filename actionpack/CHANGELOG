@@ -1,5 +1,9 @@
 *SVN*
 
+* Sync ActionController::StatusCodes::STATUS_CODES with http://www.iana.org/assignments/http-status-codes.  #6586 [dkubb]
+
+* Multipart form values may have a content type without being treated as uploaded files if they do not provide a filename.  #6401 [Andreas Schwarz, Jeremy Kemper]
+
 * assert_response supports symbolic status codes.  #6569 [Kevin Clark]
     assert_response :ok
     assert_response :not_found
@@ -2746,9 +2750,9 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Added pluralize method to the TextHelper that makes it easy to get strings like "1 message", "3 messages"
 
-* Added proper escaping for the rescues [Andreas Schwartz]
+* Added proper escaping for the rescues [Andreas Schwarz]
 
-* Added proper escaping for the option and collection tags [Andreas Schwartz]
+* Added proper escaping for the option and collection tags [Andreas Schwarz]
 
 * Fixed NaN errors on benchmarking [Jim Weirich]
 
