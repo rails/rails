@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove JavaScriptLiteral in favor of ActiveSupport::JSON::Variable. [Sam Stephenson]
+
 * assert_response supports symbolic status codes.  #6569 [Kevin Clark]
     assert_response :ok
     assert_response :not_found

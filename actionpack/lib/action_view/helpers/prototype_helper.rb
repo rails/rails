@@ -391,7 +391,7 @@ module ActionView
           # Returns an object whose <tt>#to_json</tt> evaluates to +code+. Use this to pass a literal JavaScript 
           # expression as an argument to another JavaScriptGenerator method.
           def literal(code)
-            JavaScriptLiteral.new(code)
+            ActiveSupport::JSON::Variable.new(code.to_s)
           end
           
           # Returns a collection reference by finding it through a CSS +pattern+ in the DOM. This collection can then be
@@ -685,13 +685,6 @@ module ActionView
           end
         end
         callbacks
-      end
-    end
-
-    # Bypasses string escaping so you can pass around raw JavaScript
-    class JavaScriptLiteral < String #:nodoc:
-      def to_json
-        to_s
       end
     end
 
