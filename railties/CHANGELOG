@@ -1,5 +1,7 @@
 *SVN*
 
+* Add grep-based fallback to reaper, to work in pidless setups [Jamis Buck]
+
 * Alter prior change to use require_dependency instead of require_or_load. Causes ApplicationController to be reloaded again. Closes #6587. [Nicholas Seckar]
 
 * Rake: use absolute paths to load lib and vendor tasks so they may be run outside of RAILS_ROOT.  #6584 [jchris]

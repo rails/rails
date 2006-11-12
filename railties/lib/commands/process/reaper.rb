@@ -11,8 +11,8 @@ class Killer
     # set of processes:
     #
     #   Killer.process(:reload, "/tmp/pids", "dispatcher.*.pid")
-    def process(action, pid_path, pattern)
-      new(pid_path, pattern).process(action)
+    def process(action, pid_path, pattern, keyword)
+      new(pid_path, pattern, keyword).process(action)
     end
 
     # Forces the (rails) application to reload by sending a +HUP+ signal to the
@@ -45,15 +45,16 @@ class Killer
     end
   end
 
-  def initialize(pid_path, pattern)
-    @pid_path, @pattern = pid_path, pattern
+  def initialize(pid_path, pattern, keyword=nil)
+    @pid_path, @pattern, @keyword = pid_path, pattern, keyword
   end
 
   def process(action)
     pids = find_processes
 
     if pids.empty?
-      puts "Couldn't find any pid file in '#{@pid_path}' matching '#{@pattern}'"
+      warn "Couldn't find any pid file in '#{@pid_path}' matching '#{@pattern}'"
+      warn "(also looked for processes matching #{@keyword.inspect})" if @keyword
     else
       pids.each do |pid|
         puts "#{action.capitalize}ing #{pid}"
@@ -70,7 +71,18 @@ class Killer
     end
   
     def find_processes
-      pid_files.collect { |pid_file| File.read(pid_file).to_i }
+      files = pid_files
+      if files.empty?
+        find_processes_via_grep
+      else
+        files.collect { |pid_file| File.read(pid_file).to_i }
+      end
+    end
+
+    def find_processes_via_grep
+      lines = `ps axww -o 'pid command' | grep #{@keyword}`.split(/\n/).
+        reject { |line| line =~ /inq|ps axww|grep|spawn-fcgi|spawner|reaper/ }
+      lines.map { |line| line[/^\s*(\d+)/, 1].to_i }
     end
     
     def delete_pid_files
@@ -84,9 +96,10 @@ end
 
 
 OPTIONS = {
-  :action   => "restart",
-  :pid_path => File.expand_path(RAILS_ROOT + '/tmp/pids'),
-  :pattern  => "dispatch.[0-9]*.pid"
+  :action     => "restart",
+  :pid_path   => File.expand_path(RAILS_ROOT + '/tmp/pids'),
+  :pattern    => "dispatch.[0-9]*.pid",
+  :dispatcher => File.expand_path("#{RAILS_ROOT}/public/dispatch.fcgi")
 }
 
 ARGV.options do |opts|
@@ -124,6 +137,7 @@ ARGV.options do |opts|
   opts.on("-a", "--action=name", "reload|graceful|kill (default: #{OPTIONS[:action]})", String)  { |v| OPTIONS[:action] = v }
   opts.on("-p", "--pidpath=path", "default: #{OPTIONS[:pid_path]}", String)                      { |v| OPTIONS[:pid_path] = v }
   opts.on("-r", "--pattern=pattern", "default: #{OPTIONS[:pattern]}", String)                    { |v| OPTIONS[:pattern] = v }
+  opts.on("-d", "--dispatcher=path", "DEPRECATED. default: #{OPTIONS[:dispatcher]}", String)     { |v| OPTIONS[:dispatcher] = v }
 
   opts.separator ""
 
@@ -132,4 +146,4 @@ ARGV.options do |opts|
   opts.parse!
 end
 
-Killer.process(OPTIONS[:action], OPTIONS[:pid_path], OPTIONS[:pattern])
+Killer.process(OPTIONS[:action], OPTIONS[:pid_path], OPTIONS[:pattern], OPTIONS[:dispatcher])
