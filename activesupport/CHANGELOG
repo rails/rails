@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't quote hash keys in Hash#to_json if they're valid JavaScript identifiers.  Disable this with ActiveSupport::JSON.unquote_hash_key_identifiers = false if you need strict JSON compliance. [Sam Stephenson]
+
 * Lazily load the Unicode Database in the UTF-8 Handler [Rick Olson]
 
 * Update dependencies to delete partially loaded constants. [Nicholas Seckar]
