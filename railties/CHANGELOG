@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to Prototype 1.5.0_rc2. [Sam Stephenson]
+
 * Add grep-based fallback to reaper, to work in pidless setups [Jamis Buck]
 
 * Only wrap request processing with our USR1 signal handler so FastCGI can trap it and raise an exception while waiting for connections. Idle processes exit immediately rather than waiting for another request; active processes gracefully exit when the request is finished.  [Jeremy Kemper]
