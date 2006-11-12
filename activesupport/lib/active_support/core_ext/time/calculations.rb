@@ -149,6 +149,11 @@ module ActiveSupport #:nodoc:
         alias :at_midnight :beginning_of_day
         alias :at_beginning_of_day :beginning_of_day
         
+        # Returns a new Time representing the end of the day (23:59:59)
+        def end_of_day
+          change(:hour => 23, :minute => 59, :sec => 59)
+        end
+        
         # Returns a new Time representing the start of the month (1st of the month, 0:00)
         def beginning_of_month
           #self - ((self.mday-1).days + self.seconds_since_midnight)
