@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to Prototype 1.5.0_rc2. [Sam Stephenson]
+
 * Remove JavaScriptLiteral in favor of ActiveSupport::JSON::Variable. [Sam Stephenson]
 
 * assert_response supports symbolic status codes.  #6569 [Kevin Clark]

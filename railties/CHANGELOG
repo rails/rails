@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to Prototype 1.5.0_rc2. [Sam Stephenson]
+
 * Add grep-based fallback to reaper, to work in pidless setups [Jamis Buck]
 
 * Alter prior change to use require_dependency instead of require_or_load. Causes ApplicationController to be reloaded again. Closes #6587. [Nicholas Seckar]
