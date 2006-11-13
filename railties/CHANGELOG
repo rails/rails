@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure that exceptions which are thrown outside of the user code try their best to be handeled in ApplicationController#rescue_action [Tobias Luetke]
+
 * Rails::VERSION::STRING should always be available without having to require 'rails/version'.  #6244 [fearoffish]
 
 * Update to Prototype 1.5.0_rc2. [Sam Stephenson]
