@@ -369,7 +369,7 @@ module ActionMailer #:nodoc:
     # rendered and a new TMail::Mail object created.
     def create!(method_name, *parameters) #:nodoc:
       initialize_defaults(method_name)
-      send(method_name, *parameters)
+      __send__(method_name, *parameters)
 
       # If an explicit, textual body has not been set, we check assumptions.
       unless String === @body
@@ -428,7 +428,7 @@ module ActionMailer #:nodoc:
       logger.info "Sent mail:\n #{mail.encoded}" unless logger.nil?
 
       begin
-        send("perform_delivery_#{delivery_method}", mail) if perform_deliveries
+        __send__("perform_delivery_#{delivery_method}", mail) if perform_deliveries
       rescue Exception => e  # Net::SMTP errors or sendmail pipe errors
         raise e if raise_delivery_errors
       end

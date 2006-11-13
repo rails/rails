@@ -801,3 +801,25 @@ class InheritableTemplateRootTest < Test::Unit::TestCase
     assert_equal expected, FunkyPathMailer.template_root
   end
 end
+
+class MethodNamingTest < Test::Unit::TestCase
+  class TestMailer < ActionMailer::Base
+    def send
+      body 'foo'
+    end
+  end
+
+  def setup
+    ActionMailer::Base.delivery_method = :test
+    ActionMailer::Base.perform_deliveries = true
+    ActionMailer::Base.deliveries = []
+  end
+
+  def test_send_method
+    assert_nothing_raised do
+      assert_emails 1 do
+        TestMailer.deliver_send
+      end
+    end
+  end
+end

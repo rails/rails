@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow mailer actions named send by using __send__ internally.  #6467 [iGEL]
+
 * Add assert_emails and assert_no_emails to test the number of emails delivered.  #6479 [Jonathan Viney]
     # Assert total number of emails delivered:
     assert_emails 0
