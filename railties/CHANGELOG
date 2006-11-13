@@ -1,5 +1,7 @@
 *SVN*
 
+* Rails::VERSION::STRING should always be available without having to require 'rails/version'.  #6244 [fearoffish]
+
 * Update to Prototype 1.5.0_rc2. [Sam Stephenson]
 
 * Add grep-based fallback to reaper, to work in pidless setups [Jamis Buck]
