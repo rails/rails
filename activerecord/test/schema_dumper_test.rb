@@ -47,7 +47,7 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
     def test_schema_dump_includes_not_null_columns
       stream = StringIO.new
       
-      ActiveRecord::SchemaDumper.ignore_tables = [/^[^s]/]
+      ActiveRecord::SchemaDumper.ignore_tables = [/^[^r]/]
       ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
       output = stream.string
       assert_match %r{:null => false}, output

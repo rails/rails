@@ -314,9 +314,8 @@ begin
 
         def columns(table_name, name = nil) #:nodoc:
           (owner, table_name) = @connection.describe(table_name)
-          raise "Could not describe #{table_name}. Does it exist?" unless owner and table_name
 
-          table_cols = %Q{
+          table_cols = <<-SQL
             select column_name as name, data_type as sql_type, data_default, nullable,
                    decode(data_type, 'NUMBER', data_precision,
                                      'FLOAT', data_precision,
@@ -327,7 +326,7 @@ begin
              where owner      = '#{owner}'
                and table_name = '#{table_name}'
              order by column_id
-          }
+          SQL
 
           select_all(table_cols, name).map do |row|
             limit, scale = row['limit'], row['scale']
@@ -384,6 +383,25 @@ begin
 
         def remove_column(table_name, column_name) #:nodoc:
           execute "ALTER TABLE #{table_name} DROP COLUMN #{column_name}"
+        end
+
+        # Find a table's primary key and sequence. 
+        # *Note*: Only primary key is implemented - sequence will be nil.
+        def pk_and_sequence_for(table_name)
+          (owner, table_name) = @connection.describe(table_name)
+
+          pks = select_values(<<-SQL, 'Primary Key')
+            select cc.column_name
+              from all_constraints c, all_cons_columns cc
+             where c.owner = '#{owner}'
+               and c.table_name = '#{table_name}'
+               and c.constraint_type = 'P'
+               and cc.owner = c.owner
+               and cc.constraint_name = c.constraint_name
+          SQL
+
+          # only support single column keys
+          pks.size == 1 ? [oracle_downcase(pks.first), nil] : nil
         end
 
         def structure_dump #:nodoc:
@@ -531,7 +549,7 @@ begin
     def describe(name)
       @desc ||= @@env.alloc(OCIDescribe)
       @desc.attrSet(OCI_ATTR_DESC_PUBLIC, -1) if VERSION >= '0.1.14'
-      @desc.describeAny(@svc, name.to_s, OCI_PTYPE_UNK) rescue return nil
+      @desc.describeAny(@svc, name.to_s, OCI_PTYPE_UNK) rescue raise %Q{"DESC #{name}" failed; does it exist?}
       info = @desc.attrGet(OCI_ATTR_PARAM)
 
       case info.attrGet(OCI_ATTR_PTYPE)
@@ -543,6 +561,7 @@ begin
         schema = info.attrGet(OCI_ATTR_SCHEMA_NAME)
         name   = info.attrGet(OCI_ATTR_NAME)
         describe(schema + '.' + name)
+      else raise %Q{"DESC #{name}" failed; not a table or view.}
       end
     end
 
