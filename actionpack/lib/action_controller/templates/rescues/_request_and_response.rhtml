@@ -10,7 +10,7 @@
   <% begin %>
     <%= form_tag(request.request_uri, "method" => request.method) %>
       <input type="hidden" name="BP-RETRY" value="1" />
-  
+
       <% for key, values in params %>
         <% next if key == "BP-RETRY" %>
         <% for value in Array(values) %>
@@ -26,19 +26,19 @@
 <% end %>
 
 <%
-  request_parameters_without_action = request.parameters.clone
-  request_parameters_without_action.delete("action")
-  request_parameters_without_action.delete("controller")
-  
-  request_dump  = request_parameters_without_action.inspect.gsub(/,/, ",\n")
+  clean_params = request.parameters.clone
+  clean_params.delete("action")
+  clean_params.delete("controller")
+
+  request_dump = clean_params.empty? ? 'None' : clean_params.inspect.gsub(',', ",\n")
 %>
 
 <h2 style="margin-top: 30px">Request</h2>
-<p><b>Parameters</b>: <%=h request_dump == "{}" ? "None" : request_dump %></p>
+<p><b>Parameters</b>: <pre><%=h request_dump %></pre></p>
 
 <p><a href="#" onclick="document.getElementById('session_dump').style.display='block'; return false;">Show session dump</a></p>
 <div id="session_dump" style="display:none"><%= debug(request.session.instance_variable_get("@data")) %></div>
 
 
 <h2 style="margin-top: 30px">Response</h2>
-<b>Headers</b>: <%=h response ? response.headers.inspect.gsub(/,/, ",\n") : "None" %><br/>
+<p><b>Headers</b>: <pre><%=h response ? response.headers.inspect.gsub(',', ",\n") : 'None' %></pre></p>
