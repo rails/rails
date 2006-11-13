@@ -1,5 +1,7 @@
 *SVN*
 
+* Oracle: to increase performance, prefetch 100 rows and enable similar cursor sharing. Both are configurable in database.yml.  #6607 [philbogle@gmail.com, Michael Schoen]
+
 * Cache inheritance_column.  #6592 [Stefan Kaes]
 
 * Firebird: decimal/numeric support.  #6408 [macrnic]
