@@ -6,7 +6,16 @@
 # Specify your database using any valid connection syntax, such as a
 # tnsnames.ora service name, or a sql connect url string of the form:
 #
-#   //host:[port][/service name] 
+#   //host:[port][/service name]
+#
+# By default prefetch_rows (OCI_ATTR_PREFETCH_ROWS) is set to 100. And
+# until true bind variables are supported, cursor_sharing is set by default
+# to 'similar'. Both can be changed in the configation below; the defaults
+# are equivalent to specifying:
+#
+#  prefetch_rows: 100
+#  cursor_sharing: similar
+#
 
 development:
   adapter: oracle

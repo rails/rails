@@ -1,5 +1,7 @@
 *SVN*
 
+* Oracle: to increase performance, prefetch 100 rows and enable similar cursor sharing. Both are configurable in database.yml.  #6607 [philbogle@gmail.com, Michael Schoen]
+
 * Don't inspect unloaded associations.  #2905 [lmarlow]
 
 * SQLite: use AUTOINCREMENT primary key in >= 3.1.0.  #6588 [careo]
