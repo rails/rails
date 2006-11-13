@@ -38,7 +38,7 @@ module ActionController #:nodoc:
 
     def reset_session
       @session = TestSession.new
-    end              
+    end
 
     def raw_post
       if raw_post = env['RAW_POST_DATA']
@@ -275,27 +275,40 @@ module ActionController #:nodoc:
   end
 
   class TestSession #:nodoc:
-    def initialize(attributes = {})
+    attr_accessor :session_id
+
+    def initialize(attributes = nil)
+      @session_id = ''
       @attributes = attributes
+      @saved_attributes = nil
+    end
+
+    def data
+      @attributes ||= @saved_attributes || {}
     end
 
     def [](key)
-      @attributes[key]
+      data[key]
     end
 
     def []=(key, value)
-      @attributes[key] = value
+      data[key] = value
     end
 
-    def session_id
-      ""
+    def update
+      @saved_attributes = @attributes
     end
 
-    def update() end
-    def close() end
-    def delete() @attributes = {} end
+    def delete
+      @attributes = nil
+    end
+
+    def close
+      update
+      delete
+    end
   end
-  
+
   # Essentially generates a modified Tempfile object similar to the object
   # you'd get from the standard library CGI module in a multipart
   # request. This means you can use an ActionController::TestUploadedFile

@@ -93,6 +93,10 @@ begin
           end
           @session_data = {}
         end
+        
+        def data
+          @session_data
+        end
       end
     end
   end

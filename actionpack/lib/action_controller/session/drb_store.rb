@@ -26,6 +26,10 @@ class CGI #:nodoc:all
       def delete
         @@session_data.delete(@session_id)
       end
+      
+      def data
+        @@session_data[@session_id]
+      end
     end
   end
 end

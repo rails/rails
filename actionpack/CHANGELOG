@@ -1,5 +1,7 @@
 *SVN*
 
+* Always clear model associations from session.  #4795 [sd@notso.net, andylien@gmail.com]
+
 * Update to Prototype 1.5.0_rc2. [Sam Stephenson]
 
 * Remove JavaScriptLiteral in favor of ActiveSupport::JSON::Variable. [Sam Stephenson]

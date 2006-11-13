@@ -44,6 +44,49 @@ class SessionManagementTest < Test::Unit::TestCase
     end
   end
 
+  class AssociationCachingTestController < ActionController::Base
+    class ObjectWithAssociationCache
+      def initialize
+        @cached_associations = false
+      end
+
+      def fetch_associations
+        @cached_associations = true
+      end
+
+      def clear_association_cache
+        @cached_associations = false
+      end
+
+      def has_cached_associations?
+        @cached_associations
+      end
+    end
+
+    def show
+      session[:object] = ObjectWithAssociationCache.new
+      session[:object].fetch_associations
+      if session[:object].has_cached_associations?
+        render :text => "has cached associations"
+      else
+        render :text => "does not have cached associations"
+      end
+    end
+
+    def tell
+      if session[:object]
+        if session[:object].has_cached_associations?
+          render :text => "has cached associations"
+        else
+          render :text => "does not have cached associations"
+        end
+      else
+        render :text => "there is no object"
+      end
+    end
+  end
+
+
   def setup
     @request, @response = ActionController::TestRequest.new,
       ActionController::TestResponse.new
@@ -90,5 +133,13 @@ class SessionManagementTest < Test::Unit::TestCase
       ActionController::Base.session_store = :active_record_store
       assert_equal CGI::Session::ActiveRecordStore, ActionController::Base.session_store
     end
+  end
+  
+  def test_process_cleanup_with_session_management_support
+    @controller = AssociationCachingTestController.new
+    get :show
+    assert_equal "has cached associations", @response.body
+    get :tell
+    assert_equal "does not have cached associations", @response.body
   end
 end

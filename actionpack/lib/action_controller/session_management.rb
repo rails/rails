@@ -120,16 +120,16 @@ module ActionController #:nodoc:
       end
       
       def process_cleanup_with_session_management_support
-        process_cleanup_without_session_management_support
         clear_persistent_model_associations
+        process_cleanup_without_session_management_support
       end
 
       # Clear cached associations in session data so they don't overflow
       # the database field.  Only applies to ActiveRecordStore since there
       # is not a standard way to iterate over session data.
       def clear_persistent_model_associations #:doc:
-        if defined?(@_session) && @_session.instance_variables.include?('@data')
-          session_data = @_session.instance_variable_get('@data')
+        if defined?(@_session) && @_session.respond_to?(:data)
+          session_data = @_session.data
 
           if session_data && session_data.respond_to?(:each_value)
             session_data.each_value do |obj|
