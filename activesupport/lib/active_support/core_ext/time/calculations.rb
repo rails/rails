@@ -151,7 +151,7 @@ module ActiveSupport #:nodoc:
         
         # Returns a new Time representing the end of the day (23:59:59)
         def end_of_day
-          change(:hour => 23, :minute => 59, :sec => 59)
+          change(:hour => 23, :min => 59, :sec => 59)
         end
         
         # Returns a new Time representing the start of the month (1st of the month, 0:00)
