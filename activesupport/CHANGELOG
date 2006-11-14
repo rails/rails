@@ -1,5 +1,7 @@
 *SVN*
 
+* Hash#to_xml handles keys with the same name as Kernel methods.  #6613 [Catfish]
+
 * Don't quote hash keys in Hash#to_json if they're valid JavaScript identifiers.  Disable this with ActiveSupport::JSON.unquote_hash_key_identifiers = false if you need strict JSON compliance. [Sam Stephenson]
 
 * Lazily load the Unicode Database in the UTF-8 Handler [Rick Olson]

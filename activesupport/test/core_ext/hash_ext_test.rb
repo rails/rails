@@ -458,4 +458,15 @@ class HashToXmlTest < Test::Unit::TestCase
     hash_wia = hash.with_indifferent_access
     assert_equal 3, hash_wia.default
   end
+
+  # The XML builder seems to fail miserably when trying to tag something
+  # with the same name as a Kernel method (throw, test, loop, select ...)
+  def test_kernel_method_names_to_xml
+    hash     = { :throw => { :ball => 'red' } }
+    expected = '<person><throw><ball>red</ball></throw></person>'
+
+    assert_nothing_raised do
+      assert_equal expected, hash.to_xml(@xml_options)
+    end
+  end
 end
