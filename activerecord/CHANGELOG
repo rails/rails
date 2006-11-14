@@ -2,7 +2,7 @@
 
 * Oracle: automatically detect the primary key.  #6594 [vesaria, Michael Schoen]
 
-* Oracle: to increase performance, prefetch 100 rows and enable similar cursor sharing. Both are configurable in database.yml.  #6607 [philbogle@gmail.com, Michael Schoen]
+* Oracle: to increase performance, prefetch 100 rows and enable similar cursor sharing. Both are configurable in database.yml.  #6607 [philbogle@gmail.com, ray.fortna@jobster.com, Michael Schoen]
 
 * Don't inspect unloaded associations.  #2905 [lmarlow]
 
