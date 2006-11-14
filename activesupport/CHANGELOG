@@ -1,5 +1,7 @@
 *SVN*
 
+* Hash#to_xml handles keys with the same name as Kernel methods.  #6613 [Catfish]
+
 * Added Time#end_of_day to get 23:59:59 of that day [DHH]
 
 * Don't quote hash keys in Hash#to_json if they're valid JavaScript identifiers.  Disable this with ActiveSupport::JSON.unquote_hash_key_identifiers = false if you need strict JSON compliance. [Sam Stephenson]

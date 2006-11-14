@@ -35,7 +35,7 @@ module ActiveSupport #:nodoc:
           dasherize = !options.has_key?(:dasherize) || options[:dasherize]
           root = dasherize ? options[:root].to_s.dasherize : options[:root].to_s
 
-          options[:builder].__send__(root) do
+          options[:builder].__send__(:method_missing, root) do
             each do |key, value|
               case value
                 when ::Hash
