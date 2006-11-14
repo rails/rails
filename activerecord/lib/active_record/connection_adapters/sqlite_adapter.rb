@@ -106,6 +106,10 @@ module ActiveRecord
         sqlite_version >= '3.2.6'
       end
 
+      def supports_autoincrement? #:nodoc:
+        sqlite_version >= '3.1.0'
+      end
+
       def native_database_types #:nodoc:
         {
           :primary_key => default_primary_key_type,
@@ -197,7 +201,13 @@ module ActiveRecord
       # SCHEMA STATEMENTS ========================================
 
       def tables(name = nil) #:nodoc:
-        execute("SELECT name FROM sqlite_master WHERE type = 'table'", name).map do |row|
+        sql = <<-SQL
+          SELECT name
+          FROM sqlite_master
+          WHERE type = 'table' AND NOT name = 'sqlite_sequence'
+        SQL
+
+        execute(sql, name).map do |row|
           row[0]
         end
       end
@@ -353,7 +363,7 @@ module ActiveRecord
         end
 
         def default_primary_key_type
-          if sqlite_version >= '3.1.0'
+          if supports_autoincrement?
             'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL'.freeze
           else
             'INTEGER PRIMARY KEY NOT NULL'.freeze

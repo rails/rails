@@ -8,7 +8,6 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
     def standard_dump
       stream = StringIO.new
       ActiveRecord::SchemaDumper.ignore_tables = []
-      ActiveRecord::SchemaDumper.ignore_tables << /^sqlite_/ if current_adapter?(:SQLiteAdapter)
       ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
       stream.string
     end
@@ -20,6 +19,11 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
       assert_no_match %r{create_table "schema_info"}, output
     end
     
+    def test_schema_dump_excludes_sqlite_sequence
+      output = standard_dump
+      assert_no_match %r{create_table "sqlite_sequence"}, output
+    end
+
     def assert_line_up(lines, pattern, required = false)
       return assert(true) if lines.empty?
       matches = lines.map { |line| line.match(pattern) }
