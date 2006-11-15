@@ -317,12 +317,15 @@ module ActionController
       # that update or insert an element with that identifier.
       #
       # Use the first argument to narrow down assertions to only statements
-      # of that type. Possible values are +:replace+, +:replace_html+ and
+      # of that type. Possible values are +:replace+, +:replace_html+, +:remove+ and
       # +:insert_html+.
       #
       # Use the argument +:insert+ followed by an insertion position to narrow
       # down the assertion to only statements that insert elements in that
       # position. Possible values are +:top+, +:bottom+, +:before+ and +:after+.
+      #
+      # Using the +:remove+ statement, you will be able to pass a block, but it will
+      # be ignored as there is no HTML passed for this statement.
       #
       # === Using blocks
       #
@@ -351,6 +354,9 @@ module ActionController
       #
       #   # Inserting into the element bar, top position.
       #   assert_select_rjs :insert, :top, "bar"
+      #
+      #   # Remove the element bar
+      #   assert_select_rjs :remove, "bar"
       #
       #   # Changing the element foo, with an image.
       #   assert_select_rjs "foo" do
@@ -400,20 +406,27 @@ module ActionController
           case rjs_type
             when :chained_replace, :chained_replace_html
               Regexp.new("\\$\\(\"#{id}\"\\)#{statement}\\(#{RJS_PATTERN_HTML}\\)", Regexp::MULTILINE)
+            when :remove
+              Regexp.new("#{statement}\\(\"#{id}\"\\)")
             else
               Regexp.new("#{statement}\\(\"#{id}\", #{RJS_PATTERN_HTML}\\)", Regexp::MULTILINE)
           end
 
         # Duplicate the body since the next step involves destroying it.
         matches = nil
-        @response.body.gsub(pattern) do |match|
-          html = unescape_rjs($2)
-          matches ||= []
-          matches.concat HTML::Document.new(html).root.children.select { |n| n.tag? }
-          ""
+        case rjs_type
+          when :remove
+            matches = @response.body.match(pattern)
+          else
+            @response.body.gsub(pattern) do |match|
+              html = unescape_rjs($2)
+              matches ||= []
+              matches.concat HTML::Document.new(html).root.children.select { |n| n.tag? }
+              ""
+            end
         end
         if matches
-          if block_given?
+          if block_given? && rjs_type != :remove
             begin
               in_scope, @selected = @selected, matches
               yield matches
@@ -519,6 +532,7 @@ module ActionController
             :replace_html         => /Element\.update/,
             :chained_replace      => /\.replace/,
             :chained_replace_html => /\.update/,
+            :remove               => /Element\.remove/,
           }
           RJS_INSERTIONS = [:top, :bottom, :before, :after]
           RJS_INSERTIONS.each do |insertion|

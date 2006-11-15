@@ -408,6 +408,27 @@ class AssertSelectTest < Test::Unit::TestCase
     assert_raises(AssertionFailedError) { assert_select_rjs :replace_html, "test1" }
   end
 
+  # Simple remove
+  def test_assert_select_rjs_for_remove
+    render_rjs do |page|
+      page.remove "test1"
+    end
+
+    assert_select_rjs :remove, "test1"
+  end
+
+  def test_assert_select_rjs_for_remove_ignores_block
+    render_rjs do |page|
+      page.remove "test1"
+    end
+
+    assert_nothing_raised do
+      assert_select_rjs :remove, "test1" do
+        assert_select "p"
+      end
+    end
+  end
+
   # Non-positioned insert.
   def test_assert_select_rjs_for_nonpositioned_insert
     render_rjs do |page|
