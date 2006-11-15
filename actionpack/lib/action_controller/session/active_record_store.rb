@@ -5,6 +5,8 @@ require 'base64'
 
 class CGI
   class Session
+    attr_reader :data
+
     # Return this session's underlying Session instance. Useful for the DB-backed session stores.
     def model
       @dbman.model if @dbman
