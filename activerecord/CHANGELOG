@@ -37,7 +37,7 @@
 
 * Document other options available to migration's add_column. #6419 [grg]
 
-* MySQL: all_hashes compatibility with old MysqlRes class.  #6429 [Jeremy Kemper]
+* MySQL: all_hashes compatibility with old MysqlRes class.  #6429, #6601 [Jeremy Kemper]
 
 * Fix has_many :through to add the appropriate conditions when going through an association using STI. Closes #5783. [Jonathan Viney]
 
