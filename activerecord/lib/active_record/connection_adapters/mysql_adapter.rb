@@ -5,30 +5,24 @@ module MysqlCompat
   def self.define_all_hashes_method!
     raise 'Mysql not loaded' unless defined?(::Mysql)
 
-    # for compatibility
-    Object.const_set(:MysqlRes,   Mysql::Result) unless defined?(::MysqlRes)
-    Object.const_set(:MysqlField, Mysql::Field)  unless defined?(::MysqlField)
-    Object.const_set(:MysqlError, Mysql::Error)  unless defined?(::MysqlError)
-
-    return if ::MysqlRes.instance_methods.include?('all_hashes')
+    target = defined?(Mysql::Result) ? Mysql::Result : MysqlRes
+    return if target.instance_methods.include?('all_hashes')
 
     # Ruby driver has a version string and returns null values in each_hash
     # C driver >= 2.7 returns null values in each_hash
-    if Mysql.const_defined?(:VERSION)
-      if Mysql::VERSION.is_a?(String) || Mysql::VERSION >= 20700
-        ::MysqlRes.class_eval <<-'end_eval'
-        def all_hashes
-          rows = []
-          each_hash { |row| rows << row }
-          rows
-        end
-        end_eval
+    if Mysql.const_defined?(:VERSION) && (Mysql::VERSION.is_a?(String) || Mysql::VERSION >= 20700)
+      target.class_eval <<-'end_eval'
+      def all_hashes
+        rows = []
+        each_hash { |row| rows << row }
+        rows
       end
+      end_eval
 
     # adapters before 2.7 don't have a version constant
     # and don't return null values in each_hash
     else
-      ::MysqlRes.class_eval <<-'end_eval'
+      target.class_eval <<-'end_eval'
       def all_hashes
         rows = []
         all_fields = fetch_fields.inject({}) { |fields, f| fields[f.name] = nil; fields }
@@ -37,19 +31,22 @@ module MysqlCompat
       end
       end_eval
     end
+
+    unless target.instance_methods.include?('all_hashes')
+      raise "Failed to defined #{target.name}#all_hashes method. Mysql::VERSION = #{Mysql::VERSION.inspect}"
+    end
   end
 end
 
 module ActiveRecord
   class Base
-    # Establishes a connection to the database that's used by all Active Record objects.
-    def self.mysql_connection(config) # :nodoc:
-      # Only include the MySQL driver if one hasn't already been loaded
+    def self.require_mysql
+      # Include the MySQL driver if one hasn't already been loaded
       unless defined? Mysql
         begin
           require_library_or_gem 'mysql'
         rescue LoadError => cannot_require_mysql
-          # Only use the supplied backup Ruby/MySQL driver if no driver is already in place
+          # Use the bundled Ruby/MySQL driver if no driver is already in place
           begin
             require 'active_record/vendor/mysql'
           rescue LoadError
@@ -60,7 +57,10 @@ module ActiveRecord
 
       # Define Mysql::Result.all_hashes
       MysqlCompat.define_all_hashes_method!
+    end
 
+    # Establishes a connection to the database that's used by all Active Record objects.
+    def self.mysql_connection(config) # :nodoc:
       config = config.symbolize_keys
       host     = config[:host]
       port     = config[:port]
@@ -74,8 +74,10 @@ module ActiveRecord
         raise ArgumentError, "No database specified. Missing argument: database."
       end
 
+      require_mysql
       mysql = Mysql.init
       mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher]) if config[:sslkey]
+
       ConnectionAdapters::MysqlAdapter.new(mysql, logger, [host, username, password, database, port, socket], config)
     end
   end
