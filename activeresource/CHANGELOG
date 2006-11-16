@@ -1,5 +1,7 @@
 *SVN*
 
+* Use attr_accessor_with_default to dry up attribute initialization. References #6538. [Stuart Halloway]
+
 * Add basic logging support for logging outgoing requests. [Jamis Buck]
 
 * Add Base.delete for deleting resources without having to instantiate them first. [Jamis Buck]

@@ -20,14 +20,10 @@ module ActiveResource
         @connection
       end
 
-      def element_name
-        self.to_s.underscore
-      end
-
-      def collection_name
-        element_name.pluralize
-      end
-
+      attr_accessor_with_default(:element_name) { to_s.underscore }
+      attr_accessor_with_default(:collection_name) { element_name.pluralize }
+      attr_accessor_with_default(:primary_key, 'id')
+      
       def prefix(options={})
         default = site.path
         default << '/' unless default[-1..-1] == '/'
@@ -42,16 +38,7 @@ module ActiveResource
       end
       alias_method :set_prefix, :prefix=
 
-      def element_name=(value)
-        class << self ; attr_reader :element_name ; end
-        @element_name = value
-      end
       alias_method :set_element_name, :element_name=
-
-      def collection_name=(value)
-        class << self ; attr_reader :collection_name ; end
-        @collection_name = value
-      end
       alias_method :set_collection_name, :collection_name=
 
       def element_path(id, options = {})
@@ -62,14 +49,6 @@ module ActiveResource
         "#{prefix(options)}#{collection_name}.xml"
       end
 
-      def primary_key
-        self.primary_key = 'id'
-      end
-
-      def primary_key=(value)
-        class << self ; attr_reader :primary_key ; end
-        @primary_key = value
-      end
       alias_method :set_primary_key, :primary_key=
 
       # Person.find(1) # => GET /people/1.xml
