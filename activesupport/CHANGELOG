@@ -1,5 +1,7 @@
 *SVN*
 
+* Add Module#attr_accessor_with_default to initialize value of attribute before setting it. Closes #6538. [Stuart Halloway, Marcel Molina Jr.]
+
 * Hash#to_xml handles keys with the same name as Kernel methods.  #6613 [Catfish]
 
 * Added Time#end_of_day to get 23:59:59 of that day [DHH]
