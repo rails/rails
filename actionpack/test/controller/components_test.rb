@@ -143,6 +143,8 @@ end
 
 class UsesComponentTemplateRootTest < Test::Unit::TestCase
   def test_uses_component_template_root
-    assert_equal './test/fixtures/', A::B::C::NestedController.uses_component_template_root
+    assert_deprecated 'uses_component_template_root' do
+      assert_equal './test/fixtures/', A::B::C::NestedController.uses_component_template_root
+    end
   end
 end

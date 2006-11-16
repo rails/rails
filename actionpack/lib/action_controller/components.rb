@@ -80,6 +80,8 @@ module ActionController #:nodoc:
 
         self.template_root = path_of_controller_root
       end
+
+      deprecate :uses_component_template_root => 'Components are deprecated and will be removed in Rails 2.0.'
     end
 
     module InstanceMethods

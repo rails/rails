@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecate standalone components.  [Jeremy Kemper]
+
 * assert_select_rjs :remove.  [Dylan Egan]
 
 * Always clear model associations from session.  #4795 [sd@notso.net, andylien@gmail.com]
