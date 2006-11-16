@@ -181,6 +181,15 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
 
+  def test_class_with_nested_inline_subclass_of_parent
+    with_loading 'autoloading_fixtures' do
+      assert_kind_of Class, ClassFolder::ClassFolderSubclass
+      assert_kind_of Class, ClassFolder
+      assert_equal 'indeed', ClassFolder::ClassFolderSubclass::ConstantInClassFolder
+      Object.send :remove_const, :ClassFolder
+    end
+  end
+
   def test_nested_class_can_access_sibling
     with_loading 'autoloading_fixtures' do
       sibling = ModuleFolder::NestedClass.class_eval "NestedSibling"
