@@ -28,6 +28,6 @@ class Exception # :nodoc:
   end
   
   def framework_backtrace
-    clean_backtrace.select {|line| line =~ FrameworkRegexp}
+    clean_backtrace.grep FrameworkRegexp
   end
 end
