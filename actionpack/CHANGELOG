@@ -1,5 +1,7 @@
 *SVN*
 
+* Reuse named route helper module between Routing reloads. Use remove_method to delete named route methods after each load. Since the module is never collected, this fixes a significant memory leak. [Nicholas Seckar]
+
 * ActionView::Base.erb_variable accessor names the buffer variable used to render templates. Defaults to _erbout; use _buf for erubis.  [Rick Olson]
 
 * assert_select_rjs :remove.  [Dylan Egan]
