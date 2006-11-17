@@ -261,6 +261,14 @@ Object.extend(String.prototype, {
     return camelizedString;
   },
 
+  underscore: function() {
+    return this.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z][a-z])/,'#{1}_#{2}').gsub(/([a-z\d])([A-Z])/,'#{1}_#{2}').gsub(/-/,'-').toLowerCase();
+  },
+
+  dasherize: function() {
+    return this.gsub(/_/,'-');
+  },
+
   inspect: function(useDoubleQuotes) {
     var escapedString = this.replace(/\\/g, '\\\\');
     if (useDoubleQuotes)
@@ -580,6 +588,22 @@ Object.extend(Array.prototype, {
 });
 
 Array.prototype.toArray = Array.prototype.clone;
+
+if(window.opera){
+  Array.prototype.concat = function(){
+    var array = [];
+    for(var i = 0, length = this.length; i < length; i++) array.push(this[i]);
+    for(var i = 0, length = arguments.length; i < length; i++) {
+      if(arguments[i].constructor == Array) {
+        for(var j = 0, arrayLength = arguments[i].length; j < arrayLength; j++)
+          array.push(arguments[i][j]);
+      } else {
+        array.push(arguments[i]);
+      }
+    }
+    return array;
+  }
+}
 var Hash = {
   _each: function(iterator) {
     for (var key in this) {
