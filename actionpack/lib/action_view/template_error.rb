@@ -6,16 +6,22 @@ module ActionView
 
     attr_reader :original_exception
 
-    def initialize(base_path, file_name, assigns, source, original_exception)
-      @base_path, @assigns, @source, @original_exception = 
-        base_path, assigns, source, original_exception
-      @file_name = file_name
+    def initialize(base_path, file_path, assigns, source, original_exception)
+      @base_path, @assigns, @source, @original_exception =
+        base_path, assigns.dup, source, original_exception
+      @file_path = file_path
+
+      remove_deprecated_assigns!
     end
-  
+
     def message
-      original_exception.message
+      ActiveSupport::Deprecation.silence { original_exception.message }
     end
-  
+
+    def clean_backtrace
+      original_exception.clean_backtrace
+    end
+
     def sub_template_message
       if @sub_templates
         "Trace of template inclusion: " +
@@ -24,63 +30,81 @@ module ActionView
         ""
       end
     end
-  
-    def source_extract(indention = 0)
-      source_code = IO.readlines(@file_name)
-      
-      start_on_line = [ line_number - SOURCE_CODE_RADIUS - 1, 0 ].max
-      end_on_line   = [ line_number + SOURCE_CODE_RADIUS - 1, source_code.length].min
 
+    def source_extract(indentation = 0)
+      return unless num = line_number
+      num = num.to_i
+
+      source_code = IO.readlines(@file_path)
+
+      start_on_line = [ num - SOURCE_CODE_RADIUS - 1, 0 ].max
+      end_on_line   = [ num + SOURCE_CODE_RADIUS - 1, source_code.length].min
+
+      indent = ' ' * indentation
       line_counter = start_on_line
-      extract = source_code[start_on_line..end_on_line].collect do |line| 
+
+      source_code[start_on_line..end_on_line].sum do |line|
         line_counter += 1
-        "#{' ' * indention}#{line_counter}: " + line
+        "#{indent}#{line_counter}: #{line}"
       end
-
-      extract.join
     end
 
-    def sub_template_of(file_name)
+    def sub_template_of(template_path)
       @sub_templates ||= []
-      @sub_templates << file_name
+      @sub_templates << template_path
     end
-  
+
     def line_number
-      if file_name
-        regexp = /#{Regexp.escape File.basename(file_name)}:(\d+)/
-        [@original_exception.message, @original_exception.clean_backtrace].flatten.each do |line|
-          return $1.to_i if regexp =~ line
+      @line_number ||=
+        if file_name
+          regexp = /#{Regexp.escape File.basename(file_name)}:(\d+)/
+
+          $1 if message =~ regexp or clean_backtrace.find { |line| line =~ regexp }
         end
-      end
-      0
     end
-  
+
     def file_name
-      stripped = strip_base_path(@file_name)
-      stripped[0] == ?/ ? stripped[1..-1] : stripped
+      stripped = strip_base_path(@file_path)
+      stripped.slice!(0,1) if stripped[0] == ?/
+      stripped
     end
-    
+
     def to_s
-      "\n\n#{self.class} (#{message}) on line ##{line_number} of #{file_name}:\n" + 
-      source_extract + "\n    " +
-      original_exception.clean_backtrace.join("\n    ") +
-      "\n\n"
+      "\n\n#{self.class} (#{message}) #{source_location}:\n" +
+        "#{source_extract}\n    #{clean_backtrace.join("\n    ")}\n\n"
     end
 
     def backtrace
-      [ 
-        "On line ##{line_number} of #{file_name}\n\n#{source_extract(4)}\n    " + 
-        original_exception.clean_backtrace.join("\n    ")
+      [
+        "#{source_location.capitalize}\n\n#{source_extract(4)}\n    " +
+        clean_backtrace.join("\n    ")
       ]
     end
 
     private
-      def strip_base_path(file_name)
-        file_name = File.expand_path(file_name).gsub(/^#{Regexp.escape File.expand_path(RAILS_ROOT)}/, '')
-        file_name.gsub(@base_path, "")
+      def remove_deprecated_assigns!
+        ActionController::Base::DEPRECATED_INSTANCE_VARIABLES.each do |ivar|
+          @assigns.delete(ivar)
+        end
+      end
+
+      def strip_base_path(path)
+        File.expand_path(path).
+          gsub(/^#{Regexp.escape File.expand_path(RAILS_ROOT)}/, '').
+          gsub(@base_path, "")
+      end
+
+      def source_location
+        if line_number
+          "on line ##{line_number} of "
+        else
+          'in '
+        end + file_name
       end
   end
 end
 
-Exception::TraceSubstitutions << [/:in\s+`_run_(html|xml).*'\s*$/, ''] if defined?(Exception::TraceSubstitutions)
-Exception::TraceSubstitutions << [%r{^\s*#{Regexp.escape RAILS_ROOT}}, '#{RAILS_ROOT}'] if defined?(RAILS_ROOT)
+if defined?(Exception::TraceSubstitutions)
+  Exception::TraceSubstitutions << [/:in\s+`_run_(html|xml).*'\s*$/, '']
+  Exception::TraceSubstitutions << [%r{^\s*#{Regexp.escape RAILS_ROOT}}, '#{RAILS_ROOT}'] if defined?(RAILS_ROOT)
+end
