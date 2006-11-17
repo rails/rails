@@ -1,5 +1,7 @@
 *SVN*
 
+* Reuse named route helper module between Routing reloads. Use remove_method to delete named route methods after each load. Since the module is never collected, this fixes a significant memory leak. [Nicholas Seckar]
+
 * Deprecate standalone components.  [Jeremy Kemper]
 
 * Always clear model associations from session.  #4795 [sd@notso.net, andylien@gmail.com]

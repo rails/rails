@@ -996,7 +996,11 @@ module ActionController
         def clear!
           @routes = {}
           @helpers = []
-          @module = Module.new
+          
+          @module ||= Module.new
+          @module.instance_methods.each do |selector|
+            @module.send :remove_method, selector
+          end
         end
 
         def add(name, route)
