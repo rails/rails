@@ -183,6 +183,9 @@ module ActionView #:nodoc:
     # that alert()s the caught exception (and then re-raises it). 
     @@debug_rjs = false
     cattr_accessor :debug_rjs
+    
+    @@erb_variable = '_erbout'
+    cattr_accessor :erb_variable
 
     @@template_handlers = HashWithIndifferentAccess.new
  

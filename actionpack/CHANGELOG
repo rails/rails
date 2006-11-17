@@ -1,6 +1,6 @@
 *SVN*
 
-* Deprecate standalone components.  [Jeremy Kemper]
+* ActionView::Base.erb_variable accessor names the buffer variable used to render templates. Defaults to _erbout; use _buf for erubis.  [Rick Olson]
 
 * assert_select_rjs :remove.  [Dylan Egan]
 

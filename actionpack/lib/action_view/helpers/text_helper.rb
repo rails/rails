@@ -23,7 +23,7 @@ module ActionView
       # is equivalent to using:
       #   <%= "hello" %>
       def concat(string, binding)
-        eval("_erbout", binding).concat(string)
+        eval(ActionView::Base.erb_variable, binding) << string
       end
 
       # If +text+ is longer than +length+, +text+ will be truncated to the length of 

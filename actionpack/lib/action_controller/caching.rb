@@ -330,7 +330,7 @@ module ActionController #:nodoc:
       def cache_erb_fragment(block, name = {}, options = nil)
         unless perform_caching then block.call; return end
 
-        buffer = eval("_erbout", block.binding)
+        buffer = eval(ActionView::Base.erb_variable, block.binding)
 
         if cache = read_fragment(name, options)
           buffer.concat(cache)
