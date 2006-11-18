@@ -37,10 +37,9 @@ module ActiveSupport
         @silenced
       end
 
-      # Silence deprecations for the duration of the provided block. For internal
-      # use only.
+      # Silence deprecation warnings within the block.
       def silence
-        old_silenced, @silenced = @silenced, true # We could have done behavior = nil...
+        old_silenced, @silenced = @silenced, true
         yield
       ensure
         @silenced = old_silenced
@@ -153,13 +152,17 @@ module ActiveSupport
       end
 
       private
-        def warn(callstack, called, args)
-          ActiveSupport::Deprecation.warn("#{@var} is deprecated! Call #{@method}.#{called} instead of #{@var}.#{called}. Args: #{args.inspect}", callstack)
-        end
-
         def method_missing(called, *args, &block)
           warn caller, called, args
-          @instance.__send__(@method).__send__(called, *args, &block)
+          target.__send__(called, *args, &block)
+        end
+
+        def target
+          @instance.__send__(@method)
+        end
+
+        def warn(callstack, called, args)
+          ActiveSupport::Deprecation.warn("#{@var} is deprecated! Call #{@method}.#{called} instead of #{@var}.#{called}. Args: #{args.inspect}", callstack)
         end
     end
   end
