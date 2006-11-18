@@ -1673,10 +1673,13 @@ class RoutingTest < Test::Unit::TestCase
   
   def test_possible_controllers
     true_controller_paths = ActionController::Routing.controller_paths
-    
+
     ActionController::Routing.use_controllers! nil
-    Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + '/controller_fixtures')
-    
+
+    silence_warnings do
+      Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + '/controller_fixtures')
+    end
+
     ActionController::Routing.controller_paths = [
       RAILS_ROOT, RAILS_ROOT + '/app/controllers', RAILS_ROOT + '/vendor/plugins/bad_plugin/lib'
     ]
