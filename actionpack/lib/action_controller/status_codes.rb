@@ -3,9 +3,11 @@ module ActionController
 
     # Defines the standard HTTP status codes, by integer, with their
     # corresponding default message texts.
+    # Source: http://www.iana.org/assignments/http-status-codes
     STATUS_CODES = {
       100 => "Continue",
       101 => "Switching Protocols",
+      102 => "Processing",
 
       200 => "OK",
       201 => "Created",
@@ -14,6 +16,8 @@ module ActionController
       204 => "No Content",
       205 => "Reset Content",
       206 => "Partial Content",
+      207 => "Multi-Status",
+      226 => "IM Used",
 
       300 => "Multiple Choices",
       301 => "Moved Permanently",
@@ -41,13 +45,19 @@ module ActionController
       415 => "Unsupported Media Type",
       416 => "Requested Range Not Satisfiable",
       417 => "Expectation Failed",
+      422 => "Unprocessable Entity",
+      423 => "Locked",
+      424 => "Failed Dependency",
+      426 => "Upgrade Required",
 
       500 => "Internal Server Error",
       501 => "Not Implemented",
       502 => "Bad Gateway",
       503 => "Service Unavailable",
       504 => "Gateway Timeout",
-      505 => "HTTP Version Not Supported"
+      505 => "HTTP Version Not Supported",
+      507 => "Insufficient Storage",
+      510 => "Not Extended"
     }
 
     # Provides a symbol-to-fixnum lookup for converting a symbol (like
