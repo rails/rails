@@ -63,43 +63,50 @@ class CGIMethods #:nodoc:
 
     private
       def get_typed_value(value)
-        # test most frequent case first
-        if value.is_a?(String)
-          value
-        elsif value.respond_to?(:content_type) && ! value.content_type.blank?
-          # Uploaded file
-          unless value.respond_to?(:full_original_filename)
-            class << value
-              alias_method :full_original_filename, :original_filename
+        case value
+          when String
+            value
+          when NilClass
+            ''
+          when Array
+            value.map { |v| get_typed_value(v) }
+          else
+            # Uploaded file provides content type and filename.
+            if value.respond_to?(:content_type) &&
+                  !value.content_type.blank? &&
+                  !value.original_filename.blank?
+              unless value.respond_to?(:full_original_filename)
+                class << value
+                  alias_method :full_original_filename, :original_filename
 
-              # Take the basename of the upload's original filename.
-              # This handles the full Windows paths given by Internet Explorer
-              # (and perhaps other broken user agents) without affecting
-              # those which give the lone filename.
-              # The Windows regexp is adapted from Perl's File::Basename.
-              def original_filename
-                if md = /^(?:.*[:\\\/])?(.*)/m.match(full_original_filename)
-                  md.captures.first
-                else
-                  File.basename full_original_filename
+                  # Take the basename of the upload's original filename.
+                  # This handles the full Windows paths given by Internet Explorer
+                  # (and perhaps other broken user agents) without affecting
+                  # those which give the lone filename.
+                  # The Windows regexp is adapted from Perl's File::Basename.
+                  def original_filename
+                    if md = /^(?:.*[:\\\/])?(.*)/m.match(full_original_filename)
+                      md.captures.first
+                    else
+                      File.basename full_original_filename
+                    end
+                  end
                 end
               end
+
+              # Return the same value after overriding original_filename.
+              value
+
+            # Multipart values may have content type, but no filename.
+            elsif value.respond_to?(:read)
+              result = value.read
+              value.rewind
+              result
+
+            # Unknown value, neither string nor multipart.
+            else
+              raise "Unknown form value: #{value.inspect}"
             end
-          end
-
-          # Return the same value after overriding original_filename.
-          value
-
-        elsif value.respond_to?(:read)
-          # Value as part of a multipart request
-          result = value.read
-          value.rewind
-          result
-        elsif value.class == Array
-          value.collect { |v| get_typed_value(v) }
-        else
-          # other value (neither string nor a multipart request)
-          value.to_s
         end
       end
   end
