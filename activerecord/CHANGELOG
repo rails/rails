@@ -1,14 +1,10 @@
-*SVN*
+*1.15.0 RC1* (November 18th, 2006)
 
 * Oracle: automatically detect the primary key.  #6594 [vesaria, Michael Schoen]
 
 * Oracle: to increase performance, prefetch 100 rows and enable similar cursor sharing. Both are configurable in database.yml.  #6607 [philbogle@gmail.com, ray.fortna@jobster.com, Michael Schoen]
 
-* Cache inheritance_column.  #6592 [Stefan Kaes]
-
 * Firebird: decimal/numeric support.  #6408 [macrnic]
-
-* make add_order a tad faster. #6567 [Stefan Kaes]
 
 * Find with :include respects scoped :order.  #5850
 
@@ -78,19 +74,11 @@
 
 * Deprecation: use :dependent => :delete_all rather than :exclusively_dependent => true.  #6024 [Josh Susser]
 
-* Document validates_presences_of behavior with booleans: you probably want validates_inclusion_of :attr, :in => [true, false].  #2253 [Bob Silva]
-
 * Optimistic locking: gracefully handle nil versions, treat as zero.  #5908 [Tom Ward]
 
 * to_xml: the :methods option works on arrays of records.  #5845 [Josh Starcher]
 
-* Deprecation: update docs. #5998 [jakob@mentalized.net, Kevin Clark]
-
-* Add some XmlSerialization tests for ActiveRecord [Rick Olson]
-
 * has_many :through conditions are sanitized by the associating class.  #5971 [martin.emde@gmail.com]
-
-* Tighten rescue clauses.  #5985 [james@grayproductions.net]
 
 * Fix spurious newlines and spaces in AR::Base#to_xml output [Jamis Buck]
 
@@ -99,8 +87,6 @@
 * Nested subclasses are not prefixed with the parent class' table_name since they should always use the base class' table_name.  #5911 [Jonathan Viney]
 
 * SQLServer: work around bug where some unambiguous date formats are not correctly identified if the session language is set to german.  #5894 [Tom Ward, kruth@bfpi]
-
-* SQLServer: fix eager association test.  #5901 [Tom Ward]
 
 * Clashing type columns due to a sloppy join shouldn't wreck single-table inheritance.  #5838 [Kevin Clark]
 
@@ -152,15 +138,11 @@
 
 * Remove ActiveRecord::Base.reset since Dispatcher doesn't use it anymore.  [Rick Olson]
 
-* Document find's :from option. Closes #5762. [andrew@redlinesoftware.com]
-
 * PostgreSQL: autodetected sequences work correctly with multiple schemas. Rely on the schema search_path instead of explicitly qualifying the sequence name with its schema.  #5280 [guy.naor@famundo.com]
 
 * Replace Reloadable with Reloadable::Deprecated. [Nicholas Seckar]
 
 * Cache nil results for has_one associations so multiple calls don't call the database.  Closes #5757. [Michael A. Schoen]
-
-* Add documentation for how to disable timestamps on a per model basis. Closes #5684. [matt@mattmargolis.net Marcel Molina Jr.] 
 
 * Don't save has_one associations unnecessarily.  #5735 [Jonathan Viney]
 
@@ -210,8 +192,6 @@
 
 * PostgreSQL: create/drop as postgres user. #4790 [mail@matthewpainter.co.uk, mlaster@metavillage.com]
 
-* Update callbacks documentation. #3970 [Robby Russell <robby@planetargon.com>]
-
 * PostgreSQL: correctly quote the ' in pk_and_sequence_for. #5462 [tietew@tietew.net]
 
 * PostgreSQL: correctly quote microseconds in timestamps. #5641 [rick@rickbradley.com]
@@ -223,8 +203,6 @@
 * Fixed a few Oracle issues: Allows Oracle's odd date handling to still work consistently within #to_xml, Passes test that hardcode insert statement by dropping the :id column, Updated RUNNING_UNIT_TESTS with Oracle instructions, Corrects method signature for #exec #5294 [schoenm@earthlink.net]
 
 * Added :group to available options for finds done on associations #5516 [mike@michaeldewey.org]
-
-* Minor tweak to improve performance of ActiveRecord::Base#to_param.
 
 * Observers also watch subclasses created after they are declared. #5535 [daniels@pronto.com.au]
 
@@ -325,21 +303,9 @@
 
 * Allow AR::Base#to_xml to include methods too. Closes #4921. [johan@textdrive.com] 
 
-* Replace superfluous name_to_class_name variant with camelize. [Marcel Molina Jr.]
-
-* Replace alias method chaining with Module#alias_method_chain. [Marcel Molina Jr.]
-
-* Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]
-
 * Remove duplicate fixture entry in comments.yml. Closes #4923. [Blair Zajac <blair@orcaware.com>]
 
-* Update FrontBase adapter to check binding version. Closes #4920. [mlaster@metavillage.com] 
-
-* New Frontbase connections don't start in auto-commit mode. Closes #4922. [mlaster@metavillage.com]
-
 * When grouping, use the appropriate option key. [Marcel Molina Jr.]
-
-* Only modify the sequence name in the FrontBase adapter if the FrontBase adapter is actually being used. [Marcel Molina Jr.]
 
 * Add support for FrontBase (http://www.frontbase.com/) with a new adapter thanks to the hard work of one Mike Laster. Closes #4093. [mlaster@metavillage.com]
 
@@ -368,8 +334,6 @@
 
 * Allow all calculations to take the :include option, not just COUNT (closes #4840) [Rick]
 
-* Update inconsistent migrations documentation. #4683 [machomagna@gmail.com]
-
 * Add ActiveRecord::Errors#to_xml [Jamis Buck]
 
 * Properly quote index names in migrations (closes #4764) [John Long]
@@ -379,10 +343,6 @@
 * Ensure that Associations#include_eager_conditions? checks both scoped and explicit conditions [Rick]
 
 * Associations#select_limited_ids_list adds the ORDER BY columns to the SELECT DISTINCT List for postgresql. [Rick]
-
-* DRY up association collection reader method generation. [Marcel Molina Jr.]
-
-* DRY up and tweak style of the validation error object. [Marcel Molina Jr.]
 
 * Add :case_sensitive option to validates_uniqueness_of (closes #3090) [Rick]
 
@@ -397,7 +357,29 @@
     end
 
 
-*1.14.2* (April 9th, 2005)
+*1.14.4* (August 8th, 2006)
+
+* Add warning about the proper way to validate the presence of a foreign key.  #4147 [Francois Beausoleil <francois.beausoleil@gmail.com>]
+
+* Fix syntax error in documentation. #4679 [mislav@nippur.irb.hr] 
+
+* Update inconsistent migrations documentation. #4683 [machomagna@gmail.com]
+
+
+*1.14.3* (June 27th, 2006)
+
+* Fix announcement of very long migration names.  #5722 [blake@near-time.com]
+
+* Update callbacks documentation. #3970 [Robby Russell <robby@planetargon.com>]
+
+* Properly quote index names in migrations (closes #4764) [John Long]
+
+* Ensure that Associations#include_eager_conditions? checks both scoped and explicit conditions [Rick]
+
+* Associations#select_limited_ids_list adds the ORDER BY columns to the SELECT DISTINCT List for postgresql. [Rick]
+
+
+*1.14.2* (April 9th, 2006)
 
 * Fixed calculations for the Oracle Adapter (closes #4626) [Michael Schoen]
 

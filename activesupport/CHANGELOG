@@ -1,4 +1,4 @@
-*SVN*
+*1.4.0 RC1* (November 18th, 2006)
 
 * Hash#to_xml handles keys with the same name as Kernel methods.  #6613 [Catfish]
 
@@ -10,7 +10,7 @@
 
 * Fix unicode JSON regexp for Onigurama compatibility.  #6494 [whitley]
 
-* update XmlSimple to 1.0.10. Closes #6532. [nicksieger]
+* Update XmlSimple to 1.0.10. Closes #6532. [nicksieger]
 
 * Update dependencies to allow constants to be defined alongside their siblings. A common case for this is AR model classes with STI; user.rb might define User, Administrator and Guest for example. [Nicholas Seckar]
 
@@ -45,8 +45,6 @@
 * Fix logic error in determining what was loaded by a given file. Closes #6039. [Nicholas Seckar]
 
 * Equate Kernel.const_missing with Object.const_missing. Fixes #5988. [Nicholas Seckar]
-
-* Add ApplicationController special case to Dependencies. [Nicholas Seckar]
 
 * Don't pad remaining places with in_groups_of if specified padding value is false. [Marcel Molina Jr.]
 
@@ -91,8 +89,6 @@
 * Raise fully qualified names upon name errors. #5533 [lars@pinds.com, Nicholas Seckar]
 
 * Add extention to obtain the missing constant from NameError instances. [Nicholas Seckar]
-
-* Thoroughly document inflections.  #5700 [petermichaux@gmail.com]
 
 * Added Module#alias_attribute [Jamis/DHH]. Example:
 
@@ -216,6 +212,7 @@
 * Updated to Builder 2.0 [DHH]
 
 * Add Array#split for dividing arrays into one or more subarrays by value or block. [Sam Stephenson]
+
 
 *1.3.1* (April 6th, 2006)
 

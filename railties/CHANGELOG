@@ -1,12 +1,10 @@
-*SVN*
+*1.2.0 RC1* (November 8th, 2006)
 
 * Update to Prototype 1.5.0_rc2 [5550] which makes it work in Opera again [Thomas Fuchs]
 
 * Make sure that exceptions which are thrown outside of the user code try their best to be handeled in ApplicationController#rescue_action [Tobias Luetke]
 
 * Rails::VERSION::STRING should always be available without having to require 'rails/version'.  #6244 [fearoffish]
-
-* Update to Prototype 1.5.0_rc2. [Sam Stephenson]
 
 * Add grep-based fallback to reaper, to work in pidless setups [Jamis Buck]
 
@@ -15,8 +13,6 @@
 * Alter prior change to use require_dependency instead of require_or_load. Causes ApplicationController to be reloaded again. Closes #6587. [Nicholas Seckar]
 
 * Rake: use absolute paths to load lib and vendor tasks so they may be run outside of RAILS_ROOT.  #6584 [jchris]
-
-* Remove temporary crutch to help ApplicationController be unloaded. Closes #6496. [Nicholas Seckar]
 
 * scaffold_resource generator uses _path named routes and head instead of render :nothing => true.  #6545 [Josh Susser]
 
@@ -27,8 +23,6 @@
 * resource and scaffold_resource generators add a restful route to config/routes.rb  [Jeremy Kemper]
 
 * Revert environment changes for autoload_paths. [Koz]
-
-* Update to latest Prototype, which doesn't serialize disabled form elements, adds clone() to arrays, empty/non-string Element.update() and adds a fixes excessive error reporting in WebKit beta versions [Thomas Fuchs]
 
 * Clean up the output of rake stats,  de-emphasise components and apis, and remove the indents for tests [Koz]
 
@@ -79,12 +73,6 @@
 
 * Added map.connect ':controller/:action/:id.:format' as a default route to config/routes.rb [DHH]
 
-* Updated prototype.js to 1.5.0_rc1 with latest fixes. [Rick Olson]
-
-  - XPATH support
-  - Make Form.getElements() return elements in the correct order
-  - fix broken Form.serialize return
-
 * session_migration generator adds an index on updated_at.  #6207 [grg]
 
 * script/server creates the tmp/pids directory.  #6204 [jonathan]
@@ -100,8 +88,6 @@ References #6031. [Nicholas Seckar]
 
 * Update to script.aculo.us 1.6.3 [Thomas Fuchs]
 
-* Update to Prototype 1.5.0_rc1 [sam]
-
 * Formally Deprecate the old rake tasks. [Koz]
 
 * Thoroughly test the FCGI dispatcher.  #5970 [Kevin Clark]
@@ -113,8 +99,6 @@ References #6031. [Nicholas Seckar]
 * Cleaning up tests. [Kevin Clark, Jeremy Kemper]
 
 * Add Dependencies.load_once_paths. [Nicholas Seckar]
-
-* Updated to script.aculo.us 1.6.2 [Thomas Fuchs]
 
 * Assign Routing.controller_paths; fix script/about and rails info controller. [Nicholas Seckar]
 
@@ -241,6 +225,32 @@ References #6031. [Nicholas Seckar]
 * Added script/process/inspector to do simple process status information on Rails dispatchers keeping pid files in tmp/pids [DHH]
 
 * Added pid file usage to script/process/spawner and script/process/reaper along with a directive in default config/lighttpd.conf file to record the pid. They will all save their pid file in tmp/pids [DHH]
+
+
+*1.1.6* (August 10th, 2006)
+
+* Additional security patch
+
+
+*1.1.5* (August 8th, 2006)
+
+* Mention in docs that config.frameworks doesn't work when getting Rails via Gems.  #4857 [Alisdair McDiarmid]
+
+* Change the scaffolding layout to use yield rather than @content_for_layout. [Marcel Molina Jr.]
+
+* Includes critical security patch
+
+
+*1.1.4* (June 29th, 2006)
+
+* Remove use of opts.on { |options[:name] } style hash assignment. References #4440. [headius@headius.com]
+
+* Updated to Action Pack 1.12.3, ActionWebService 1.1.4, ActionMailer 1.2.3
+
+
+*1.1.3* (June 27th, 2006)
+
+* Updated to Active Record 1.14.3, Action Pack 1.12.2, ActionWebService 1.1.3, ActionMailer 1.2.2
 
 
 *1.1.2* (April 9th, 2005)

@@ -1,4 +1,4 @@
-*SVN*
+*1.3.0 RC1* (November 18th, 2006)
 
 * Make mime version default to 1.0. closes #2323 [ror@andreas-s.net]
 
@@ -14,8 +14,6 @@
 
 * Replace Reloadable with Reloadable::Deprecated. [Nicholas Seckar]
 
-* Mailer template root applies to a class and its subclasses rather than acting globally. #5555 [somekool@gmail.com]
-
 * Resolve action naming collision. #5520 [ssinghi@kreeti.com]
 
 * ActionMailer::Base documentation rewrite. Closes #4991 [Kevin Clark, Marcel Molina Jr.]
@@ -24,7 +22,29 @@
 
 * Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]
 
+
+*1.2.5* (August 10th, 2006)
+
+* Depend on Action Pack 1.12.5
+
+
+*1.2.4* (August 8th, 2006)
+
+* Backport of documentation enhancements. [Kevin Clark, Marcel Molina Jr]
+
 * Correct spurious documentation example code which results in a SyntaxError. [Marcel Molina Jr.]
+
+* Mailer template root applies to a class and its subclasses rather than acting globally. #5555 [somekool@gmail.com]
+
+
+*1.2.3* (June 29th, 2006)
+
+* Depend on Action Pack 1.12.3
+
+
+*1.2.2* (June 27th, 2006)
+
+* Depend on Action Pack 1.12.2
 
 
 *1.2.1* (April 6th, 2006)
