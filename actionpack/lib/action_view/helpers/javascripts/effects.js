@@ -1,4 +1,4 @@
-// Copyright (c) 2005 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us)
+// Copyright (c) 2005, 2006 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us)
 // Contributors:
 //  Justin Palmer (http://encytemedia.com/)
 //  Mark Pilgrim (http://diveintomark.org/)
@@ -10,7 +10,7 @@
 // converts rgb() and #xxx to #xxxxxx format,  
 // returns self (or first argument) if not convertable  
 String.prototype.parseColor = function() {  
-  var color = '#';  
+  var color = '#';
   if(this.slice(0,4) == 'rgb(') {  
     var cols = this.slice(4,this.length-1).split(',');  
     var i=0; do { color += parseInt(cols[i]).toColorPart() } while (++i<3);  
@@ -937,6 +937,135 @@ Effect.Fold = function(element) {
         effect.element.hide().undoClipping().setStyle(oldStyle);
       } });
   }}, arguments[1] || {}));
+};
+
+Effect.Morph = Class.create();
+Object.extend(Object.extend(Effect.Morph.prototype, Effect.Base.prototype), {
+  initialize: function(element) {
+    this.element = $(element);
+    if(!this.element) throw(Effect._elementDoesNotExistError);
+    var options = Object.extend({
+      style: ''
+    }, arguments[1] || {});
+    this.start(options);
+  },
+  setup: function(){
+    function parseColor(color){
+      if(!color || ['rgba(0, 0, 0, 0)','transparent'].include(color)) color = '#ffffff';
+      color = color.parseColor();
+      return $R(0,2).map(function(i){
+        return parseInt( color.slice(i*2+1,i*2+3), 16 ) 
+      });
+    }
+    this.transforms = this.options.style.parseStyle().map(function(property){
+      var originalValue = this.element.getStyle(property[0]);
+      return $H({ 
+        style: property[0], 
+        originalValue: property[1].unit=='color' ? 
+          parseColor(originalValue) : parseFloat(originalValue || 0), 
+        targetValue: property[1].unit=='color' ? 
+          parseColor(property[1].value) : property[1].value,
+        unit: property[1].unit
+      });
+    }.bind(this)).reject(function(transform){
+      return (
+        (transform.originalValue == transform.targetValue) ||
+        (
+          transform.unit != 'color' &&
+          (isNaN(transform.originalValue) || isNaN(transform.targetValue))
+        )
+      )
+    });
+  },
+  update: function(position) {
+    var style = $H(), value = null;
+    this.transforms.each(function(transform){
+      value = transform.unit=='color' ?
+        $R(0,2).inject('#',function(m,v,i){
+          return m+(Math.round(transform.originalValue[i]+
+            (transform.targetValue[i] - transform.originalValue[i])*position)).toColorPart() }) : 
+        transform.originalValue + Math.round(
+          ((transform.targetValue - transform.originalValue) * position) * 1000)/1000 + transform.unit;
+      style[transform.style] = value;
+    });
+    this.element.setStyle(style);
+  }
+});
+
+Effect.Transform = Class.create();
+Object.extend(Effect.Transform.prototype, {
+  initialize: function(tracks){
+    this.tracks  = [];
+    this.options = arguments[1] || {};
+    this.addTracks(tracks);
+  },
+  addTracks: function(tracks){
+    tracks.each(function(track){
+      var data = $H(track).values().first();
+      this.tracks.push($H({
+        ids:     $H(track).keys().first(),
+        effect:  Effect.Morph,
+        options: { style: data }
+      }));
+    }.bind(this));
+    return this;
+  },
+  play: function(){
+    return new Effect.Parallel(
+      this.tracks.map(function(track){
+        var elements = [$(track.ids) || $$(track.ids)].flatten();
+        return elements.map(function(e){ return new track.effect(e, Object.extend({ sync:true }, track.options)) });
+      }).flatten(),
+      this.options
+    );
+  }
+});
+
+Element.CSS_PROPERTIES = ['azimuth', 'backgroundAttachment', 'backgroundColor', 'backgroundImage', 
+  'backgroundPosition', 'backgroundRepeat', 'borderBottomColor', 'borderBottomStyle', 
+  'borderBottomWidth', 'borderCollapse', 'borderLeftColor', 'borderLeftStyle', 'borderLeftWidth',
+  'borderRightColor', 'borderRightStyle', 'borderRightWidth', 'borderSpacing', 'borderTopColor',
+  'borderTopStyle', 'borderTopWidth', 'bottom', 'captionSide', 'clear', 'clip', 'color', 'content',
+  'counterIncrement', 'counterReset', 'cssFloat', 'cueAfter', 'cueBefore', 'cursor', 'direction',
+  'display', 'elevation', 'emptyCells', 'fontFamily', 'fontSize', 'fontSizeAdjust', 'fontStretch',
+  'fontStyle', 'fontVariant', 'fontWeight', 'height', 'left', 'letterSpacing', 'lineHeight',
+  'listStyleImage', 'listStylePosition', 'listStyleType', 'marginBottom', 'marginLeft', 'marginRight',
+  'marginTop', 'markerOffset', 'marks', 'maxHeight', 'maxWidth', 'minHeight', 'minWidth', 'opacity',
+  'orphans', 'outlineColor', 'outlineOffset', 'outlineStyle', 'outlineWidth', 'overflowX', 'overflowY',
+  'paddingBottom', 'paddingLeft', 'paddingRight', 'paddingTop', 'page', 'pageBreakAfter', 'pageBreakBefore',
+  'pageBreakInside', 'pauseAfter', 'pauseBefore', 'pitch', 'pitchRange', 'position', 'quotes',
+  'richness', 'right', 'size', 'speakHeader', 'speakNumeral', 'speakPunctuation', 'speechRate', 'stress',
+  'tableLayout', 'textAlign', 'textDecoration', 'textIndent', 'textShadow', 'textTransform', 'top',
+  'unicodeBidi', 'verticalAlign', 'visibility', 'voiceFamily', 'volume', 'whiteSpace', 'widows',
+  'width', 'wordSpacing', 'zIndex'];
+  
+Element.CSS_LENGTH = /^(([\+\-]?[0-9\.]+)(em|ex|px|in|cm|mm|pt|pc|\%))|0$/;
+
+String.prototype.parseStyle = function(){
+  var element = Element.extend(document.createElement('div'));
+  element.innerHTML = '<div style="' + this + '"></div>';
+  var style = element.down().style, styleRules = $H();
+  
+  Element.CSS_PROPERTIES.each(function(property){
+   if(style[property]) styleRules[property] = style[property]; 
+  });
+  
+  var result = $H();
+  
+  styleRules.each(function(pair){
+    var property = pair[0], value = pair[1], unit = null;
+    
+    if(value.parseColor('#zzzzzz') != '#zzzzzz') {
+      value = value.parseColor();
+      unit  = 'color';
+    } else if(Element.CSS_LENGTH.test(value)) 
+      var components = value.match(/^([\+\-]?[0-9\.]+)(.*)$/),
+          value = parseFloat(components[1]), unit = (components.length == 3) ? components[2] : null;
+    
+    result[property.underscore().dasherize()] = $H({ value:value, unit:unit });
+  }.bind(this));
+  
+  return result;
 };
 
 ['setOpacity','getOpacity','getInlineOpacity','forceRerendering','setContentZoom',
