@@ -45,7 +45,11 @@ else
   trap(:INT) { exit }
 
   begin
-    `mongrel_rails start -p #{OPTIONS[:port]} -a #{OPTIONS[:ip]} -e #{OPTIONS[:environment]}`
+    silence_warnings do
+      ARGV = [ "start", "-p", OPTIONS[:port].to_s, "-a", OPTIONS[:ip].to_s, "-e", OPTIONS[:environment] ]
+    end
+
+    load("mongrel_rails")
   ensure
     tail_thread.kill if tail_thread
     puts 'Exiting'
