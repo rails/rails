@@ -41,6 +41,7 @@ class AppGenerator < Rails::Generator::Base
         :app_name => @app_name,
         :socket   => options[:db] == "mysql" ? mysql_socket_location : nil
       }
+      m.template "configs/mime.yml",      "config/mime.yml"
       m.template "configs/routes.rb",     "config/routes.rb"
       m.template "configs/apache.conf",   "public/.htaccess"
 
