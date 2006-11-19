@@ -1,5 +1,7 @@
 *SVN*
 
+* Simplify association proxy implementation by factoring construct_scope out of method_missing.  #6643 [martin]
+
 * Oracle: automatically detect the primary key.  #6594 [vesaria, Michael Schoen]
 
 * Oracle: to increase performance, prefetch 100 rows and enable similar cursor sharing. Both are configurable in database.yml.  #6607 [philbogle@gmail.com, ray.fortna@jobster.com, Michael Schoen]

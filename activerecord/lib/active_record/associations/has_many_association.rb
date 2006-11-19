@@ -93,26 +93,6 @@ module ActiveRecord
       end
 
       protected
-        def method_missing(method, *args, &block)
-          if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
-            super
-          else
-            create_scoping = {}
-            set_belongs_to_association_for(create_scoping)
-
-            @reflection.klass.with_scope(
-              :create => create_scoping,
-              :find => {
-                :conditions => @finder_sql, 
-                :joins      => @join_sql, 
-                :readonly   => false
-              }
-            ) do
-              @reflection.klass.send(method, *args, &block)
-            end
-          end
-        end
-
         def load_target
           if !@owner.new_record? || foreign_key_present
             begin
@@ -204,6 +184,12 @@ module ActiveRecord
           else
             @counter_sql = @finder_sql
           end
+        end
+
+        def construct_scope
+          create_scoping = {}
+          set_belongs_to_association_for(create_scoping)
+          { :find => { :conditions => @finder_sql, :joins => @join_sql, :readonly => false }, :create => create_scoping }
         end
     end
   end

@@ -147,6 +147,19 @@ module ActiveRecord
       end
 
       protected
+        def method_missing(method, *args, &block)
+          if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
+            super
+          else
+            @reflection.klass.with_scope(construct_scope) { @reflection.klass.send(method, *args, &block) }
+          end
+        end
+
+        # overloaded in derived Association classes to provide useful scoping depending on association type.
+        def construct_scope
+          {}
+        end
+
         def reset_target!
           @target = Array.new
         end
