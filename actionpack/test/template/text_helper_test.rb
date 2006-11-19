@@ -11,17 +11,21 @@ class TextHelperTest < Test::Unit::TestCase
     # a view is rendered.  The cycle helper depends on this behavior.
     @_cycles = nil if (defined? @_cycles)
   end
-  
+
   def test_simple_format
+    assert_equal "<p></p>", simple_format(nil)
+
     assert_equal "<p>crazy\n<br /> cross\n<br /> platform linebreaks</p>", simple_format("crazy\r\n cross\r platform linebreaks")
     assert_equal "<p>A paragraph</p>\n\n<p>and another one!</p>", simple_format("A paragraph\n\nand another one!")
     assert_equal "<p>A paragraph\n<br /> With a newline</p>", simple_format("A paragraph\n With a newline")
-    
-    text = "A\nB\nC\nD"
+
+    text = "A\nB\nC\nD".freeze
     assert_equal "<p>A\n<br />B\n<br />C\n<br />D</p>", simple_format(text)
-    assert_equal text, "A\nB\nC\nD"
+
+    text = "A\r\n  \nB\n\n\r\n\t\nC\nD".freeze
+    assert_equal "<p>A\n<br />  \n<br />B</p>\n\n<p>\t\n<br />C\n<br />D</p>", simple_format(text)
   end
-  
+
   def test_truncate
     assert_equal "Hello World!", truncate("Hello World!", 12)
     assert_equal "Hello Wor...", truncate("Hello World!!", 12)

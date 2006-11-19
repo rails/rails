@@ -154,12 +154,10 @@ module ActionView
       # considered as a linebreak and a <tt><br /></tt> tag is appended. This
       # method does not remove the newlines from the +text+. 
       def simple_format(text)
-        text = text.gsub(/(\r\n|\n|\r)/, "\n") # lets make them newlines crossplatform
-        text.gsub!(/\n\n+/, "\n\n") # zap dupes
-        text.gsub!(/\n\n/, '</p>\0<p>') # turn two newlines into paragraph
-        text.gsub!(/([^\n])(\n)(?=[^\n])/, '\1\2<br />') # turn single newline into <br />
-        
-        content_tag("p", text)
+        content_tag 'p', text.to_s.
+          gsub(/\r\n?/, "\n").                    # \r\n and \r -> \n
+          gsub(/\n\n+/, "</p>\n\n<p>").           # 2+ newline  -> paragraph
+          gsub(/([^\n]\n)(?=[^\n])/, '\1<br />')  # 1 newline   -> br
       end
 
       # Turns all urls and email addresses into clickable links. The +link+ parameter 

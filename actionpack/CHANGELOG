@@ -1,5 +1,7 @@
 *SVN*
 
+* simple_format helper doesn't choke on nil.  #6644 [jerry426]
+
 * Update to Prototype 1.5.0_rc2 [5550] which makes it work in Opera again [Thomas Fuchs]
 
 * Reuse named route helper module between Routing reloads. Use remove_method to delete named route methods after each load. Since the module is never collected, this fixes a significant memory leak. [Nicholas Seckar]
