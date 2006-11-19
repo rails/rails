@@ -62,7 +62,7 @@ config = IO.read(config_file)
 default_port, default_ip = 3000, '0.0.0.0'
 port = config.scan(/^\s*server.port\s*=\s*(\d+)/).first rescue default_port
 ip   = config.scan(/^\s*server.bind\s*=\s*"([^"]+)"/).first rescue default_ip
-puts "=> Rails application started on http://#{ip || default_ip}:#{port || default_port}"
+puts "=> Rails application starting on http://#{ip || default_ip}:#{port || default_port}"
 
 tail_thread = nil
 
