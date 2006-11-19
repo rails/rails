@@ -1,5 +1,7 @@
 <h1>New <%= singular_name %></h1>
 
+<%%= error_messages_for :<%= singular_name %> %>
+
 <%% form_for(:<%= singular_name %>, :url => <%= plural_name %>_path) do |f| %>
 <% for attribute in attributes -%>
   <p>
