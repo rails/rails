@@ -218,7 +218,9 @@ Object.extend(String.prototype, {
   unescapeHTML: function() {
     var div = document.createElement('div');
     div.innerHTML = this.stripTags();
-    return div.childNodes[0] ? div.childNodes[0].nodeValue : '';
+    return div.childNodes[0] ? (div.childNodes.length > 1 ?
+      $A(div.childNodes).inject('',function(memo,node){ return memo+node.nodeValue }) :
+      div.childNodes[0].nodeValue) : '';
   },
 
   toQueryParams: function(separator) {
@@ -770,6 +772,8 @@ Ajax.Request.Events =
   ['Uninitialized', 'Loading', 'Loaded', 'Interactive', 'Complete'];
 
 Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
+  _complete: false,
+
   initialize: function(url, options) {
     this.transport = Ajax.getTransport();
     this.setOptions(options);
@@ -814,6 +818,7 @@ Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
       /* Force Firefox to handle ready state 4 for synchronous requests */
       if (!this.options.asynchronous && this.transport.overrideMimeType)
         this.onStateChange();
+
     }
     catch (e) {
       this.dispatchException(e);
@@ -822,7 +827,7 @@ Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
 
   onStateChange: function() {
     var readyState = this.transport.readyState;
-    if (readyState > 1)
+    if (readyState > 1 && !((readyState == 4) && this._complete))
       this.respondToReadyState(this.transport.readyState);
   },
 
@@ -872,6 +877,7 @@ Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
 
     if (state == 'Complete') {
       try {
+        this._complete = true;
         (this.options['on' + this.transport.status]
          || this.options['on' + (this.success() ? 'Success' : 'Failure')]
          || Prototype.emptyFunction)(transport, json);
@@ -1292,15 +1298,20 @@ Element.Methods = {
 
   getStyle: function(element, style) {
     element = $(element);
-    var value = element.style[style.camelize()];
+    var inline = (style == 'float' ?
+      (typeof element.style.styleFloat != 'undefined' ? 'styleFloat' : 'cssFloat') : style);
+    var value = element.style[inline.camelize()];
     if (!value) {
       if (document.defaultView && document.defaultView.getComputedStyle) {
         var css = document.defaultView.getComputedStyle(element, null);
         value = css ? css.getPropertyValue(style) : null;
       } else if (element.currentStyle) {
-        value = element.currentStyle[style.camelize()];
+        value = element.currentStyle[inline.camelize()];
       }
     }
+
+    if((value == 'auto') && ['width','height'].include(style) && (element.getStyle('display') != 'none'))
+      value = element['offset'+style.charAt(0).toUpperCase()+style.substring(1)] + 'px';
 
     if (window.opera && ['left', 'top', 'right', 'bottom'].include(style))
       if (Element.getStyle(element, 'position') == 'static') value = 'auto';
@@ -1311,7 +1322,9 @@ Element.Methods = {
   setStyle: function(element, style) {
     element = $(element);
     for (var name in style)
-      element.style[name.camelize()] = style[name];
+      element.style[ (name == 'float' ?
+        ((typeof element.style.styleFloat != 'undefined') ? 'styleFloat' : 'cssFloat') : name).camelize()
+      ] = style[name];
     return element;
   },
 
@@ -1859,7 +1872,8 @@ Form.Element.Methods = {
   activate: function(element) {
     element = $(element);
     element.focus();
-    if (element.select)
+    if (element.select && ( element.tagName.toLowerCase() != 'input' ||
+      !['button', 'reset', 'submit'].include(element.type) ) )
       element.select();
     return element;
   },

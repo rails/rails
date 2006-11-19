@@ -1,8 +1,8 @@
 *1.2.0 RC1* (November 8th, 2006)
 
-* Made script/server work with -e and -d when using Mongrel [DHH]
+* Update to Prototype and script.aculo.us [5579]. [Sam Stephenson, Thomas Fuchs]
 
-* Update to Prototype 1.5.0_rc2 [5550] which makes it work in Opera again [Thomas Fuchs]
+* Made script/server work with -e and -d when using Mongrel [DHH]
 
 * Make sure that exceptions which are thrown outside of the user code try their best to be handeled in ApplicationController#rescue_action [Tobias Luetke]
 
