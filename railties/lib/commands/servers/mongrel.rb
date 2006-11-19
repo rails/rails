@@ -14,14 +14,18 @@ require 'optparse'
 detach = false
 ip = nil
 port = nil
+mime = 'config/mime.yml'
 
 ARGV.clone.options do |opt|
   opt.on("-p", "--port=port", Integer,
           "Runs Rails on the specified port.",
           "Default: 3000") { |p| port = p }
-  opt.on("-a", "--binding=ip", String,
+  opt.on("-a", "--address=ip", String,
           "Binds Rails to the specified ip.",
           "Default: 0.0.0.0") { |i| ip = i }
+  opt.on("-m", "--mime=path", String,
+          "Path to custom mime file.",
+          "Default: config/mime.yml (if it exists)") { |m| mime = m }
   opt.on('-h', '--help', 'Show this message.') { puts opt; exit 0 }
   opt.on('-d', '-d', 'Call with -d to detach') { detach = true }
   opt.parse!
@@ -42,6 +46,10 @@ if !detach
 end
 
 trap(:INT) { exit }
+
+if File.exist?(File.join(RAILS_ROOT, mime)) && !ARGV.any? { |a| a =~ /^--?m/ }
+  ARGV << "--mime=#{mime}"
+end
 
 begin
   ARGV.unshift("start")
