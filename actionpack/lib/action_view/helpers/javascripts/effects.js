@@ -1068,8 +1068,13 @@ String.prototype.parseStyle = function(){
   return result;
 };
 
+Element.morph = function(element, style) {
+  new Effect.Morph(element, Object.extend({ style: style }, arguments[2] || {}));
+  return element;
+};
+
 ['setOpacity','getOpacity','getInlineOpacity','forceRerendering','setContentZoom',
- 'collectTextNodes','collectTextNodesIgnoreClass'].each( 
+ 'collectTextNodes','collectTextNodesIgnoreClass','morph'].each( 
   function(f) { Element.Methods[f] = Element[f]; }
 );
 
