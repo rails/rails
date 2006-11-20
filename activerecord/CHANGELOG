@@ -39,7 +39,7 @@
 
 * Deprecation: object transactions warning.  [Jeremy Kemper]
 
-* has_one :dependent => :nullify ignores nil associates.  #4828, #6528 [bellis@deepthought.org, janovetz, Jeremy Kemper]
+* has_one :dependent => :nullify ignores nil associates.  #4848, #6528 [bellis@deepthought.org, janovetz, Jeremy Kemper]
 
 * Oracle: resolve test failures, use prefetched primary key for inserts, check for null defaults, fix limited id selection for eager loading. Factor out some common methods from all adapters.  #6515 [Michael Schoen]
 
