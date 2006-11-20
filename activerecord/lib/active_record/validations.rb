@@ -730,7 +730,7 @@ module ActiveRecord
       private
         def write_inheritable_set(key, methods)
           existing_methods = read_inheritable_attribute(key) || []
-          write_inheritable_attribute(key, methods | existing_methods)
+          write_inheritable_attribute(key, existing_methods | methods)
         end
 
         def validation_method(on)
