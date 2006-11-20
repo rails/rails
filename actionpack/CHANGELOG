@@ -1,5 +1,7 @@
 *SVN*
 
+* Extract template_changed_since? from compile_template? so plugins may override its behavior for non-file-based templates.  #6651 [Jeff Barczewski]
+
 * Update to Prototype and script.aculo.us [5579]. [Thomas Fuchs]
 
 * simple_format helper doesn't choke on nil.  #6644 [jerry426]

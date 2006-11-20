@@ -71,14 +71,24 @@ class CompiledTemplateTests < Test::Unit::TestCase
   end
 
   def test_compile_time
+    t = Time.now
+    sleep 1
     `echo '#{@a}' > #{@a}; echo '#{@b}' > #{@b}; ln -s #{@a} #{@s}`
 
     v = ActionView::Base.new
     v.base_path = '.'
     v.cache_template_loading = false;
 
+    # private methods template_changed_since? and compile_template?
+    # should report true for all since they have not been compiled
+    assert v.send(:template_changed_since?, @a, t)
+    assert v.send(:template_changed_since?, @b, t)
+    assert v.send(:template_changed_since?, @s, t)
+    assert v.send(:compile_template?, nil, @a, {})
+    assert v.send(:compile_template?, nil, @b, {})
+    assert v.send(:compile_template?, nil, @s, {})
+
     sleep 1
-    t = Time.now
     v.compile_and_render_template(:rhtml, '', @a)
     v.compile_and_render_template(:rhtml, '', @b)
     v.compile_and_render_template(:rhtml, '', @s)
@@ -92,6 +102,14 @@ class CompiledTemplateTests < Test::Unit::TestCase
 
     sleep 1
     t = Time.now
+    # private methods template_changed_since? and compile_template?
+    # should report false for all since none have changed since compile
+    assert !v.send(:template_changed_since?, @a, v.compile_time[a_n])
+    assert !v.send(:template_changed_since?, @b, v.compile_time[b_n])
+    assert !v.send(:template_changed_since?, @s, v.compile_time[s_n])
+    assert !v.send(:compile_template?, nil, @a, {})
+    assert !v.send(:compile_template?, nil, @b, {})
+    assert !v.send(:compile_template?, nil, @s, {})
     v.compile_and_render_template(:rhtml, '', @a)
     v.compile_and_render_template(:rhtml, '', @b)
     v.compile_and_render_template(:rhtml, '', @s)
@@ -101,6 +119,14 @@ class CompiledTemplateTests < Test::Unit::TestCase
     assert v.compile_time[s_n] < t
 
     `rm #{@s}; ln -s #{@b} #{@s}`
+    # private methods template_changed_since? and compile_template?
+    # should report true for symlink since it has changed since compile
+    assert !v.send(:template_changed_since?, @a, v.compile_time[a_n])
+    assert !v.send(:template_changed_since?, @b, v.compile_time[b_n])
+    assert v.send(:template_changed_since?, @s, v.compile_time[s_n])
+    assert !v.send(:compile_template?, nil, @a, {})
+    assert !v.send(:compile_template?, nil, @b, {})
+    assert v.send(:compile_template?, nil, @s, {})
     v.compile_and_render_template(:rhtml, '', @a)
     v.compile_and_render_template(:rhtml, '', @b)
     v.compile_and_render_template(:rhtml, '', @s)
@@ -111,6 +137,15 @@ class CompiledTemplateTests < Test::Unit::TestCase
 
     sleep 1
     `touch #{@b}`
+    # private methods template_changed_since? and compile_template?
+    # should report true for symlink and file at end of symlink
+    # since it has changed since last compile
+    assert !v.send(:template_changed_since?, @a, v.compile_time[a_n])
+    assert v.send(:template_changed_since?, @b, v.compile_time[b_n])
+    assert v.send(:template_changed_since?, @s, v.compile_time[s_n])
+    assert !v.send(:compile_template?, nil, @a, {})
+    assert v.send(:compile_template?, nil, @b, {})
+    assert v.send(:compile_template?, nil, @s, {})
     t = Time.now
     v.compile_and_render_template(:rhtml, '', @a)
     v.compile_and_render_template(:rhtml, '', @b)
