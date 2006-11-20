@@ -6,7 +6,7 @@
 
 * Run validations in the order they were declared.  #6657 [obrie]
 
-* MySQL: detect when a NOT NULL column without a default value is misreported as default ''.  Can't detect for string, text, and binary columns since '' is a legitimate default.  #6156 [simon@redhillconsulting.com.au, obrie, Jeremy Kemper]
+* MySQL: detect when a NOT NULL column without a default value is misreported as default ''.  Can't detect for string, text, and binary columns since '' is a legitimate default.  #6156 [simon@redhillconsulting.com.au, obrie, Jonathan Viney, Jeremy Kemper]
 
 * Simplify association proxy implementation by factoring construct_scope out of method_missing.  #6643 [martin]
 

@@ -88,8 +88,9 @@ module ActiveRecord
       TYPES_ALLOWING_EMPTY_STRING_DEFAULT = Set.new([:binary, :string, :text])
 
       def initialize(name, default, sql_type = nil, null = true)
+        @original_default = default
         super
-        self.default = nil if missing_default_forged_as_empty_string?
+        @default = nil if missing_default_forged_as_empty_string?
       end
 
       private
@@ -107,7 +108,7 @@ module ActiveRecord
         # Test whether the column has default '', is not null, and is not
         # a type allowing default ''.
         def missing_default_forged_as_empty_string?
-          !null && default == '' && !TYPES_ALLOWING_EMPTY_STRING_DEFAULT.include?(type)
+          !null && @original_default == '' && !TYPES_ALLOWING_EMPTY_STRING_DEFAULT.include?(type)
         end
     end
 

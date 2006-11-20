@@ -6,7 +6,7 @@ class DefaultTest < Test::Unit::TestCase
   def test_nil_defaults_for_not_null_columns
     column_defaults =
       if current_adapter?(:MysqlAdapter)
-        { 'id' => nil, 'name' => '', 'course_id' => 0 }
+        { 'id' => nil, 'name' => '',  'course_id' => nil }
       else
         { 'id' => nil, 'name' => nil, 'course_id' => nil }
       end
