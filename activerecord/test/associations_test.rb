@@ -345,6 +345,13 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     firm.destroy
   end
 
+  def test_dependence_with_missing_association_and_nullify
+    Account.destroy_all
+    firm = DependentFirm.find(:first)
+    assert firm.account.nil?
+    firm.destroy
+  end
+
   def test_assignment_before_parent_saved
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.account = a = Account.find(1)
