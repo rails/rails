@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL: detect when a NOT NULL column without a default value is misreported as default ''.  Can't detect for string, text, and binary columns since '' is a legitimate default.  #6156 [simon@redhillconsulting.com.au, obrie, Jeremy Kemper]
+
 * Simplify association proxy implementation by factoring construct_scope out of method_missing.  #6643 [martin]
 
 * Oracle: automatically detect the primary key.  #6594 [vesaria, Michael Schoen]

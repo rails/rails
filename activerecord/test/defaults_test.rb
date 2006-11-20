@@ -1,8 +1,24 @@
 require 'abstract_unit'
 require 'fixtures/default'
+require 'fixtures/entrant'
 
-if current_adapter?(:PostgreSQLAdapter, :SQLServerAdapter)
-  class DefaultsTest < Test::Unit::TestCase
+class DefaultTest < Test::Unit::TestCase
+  def test_nil_defaults_for_not_null_columns
+    column_defaults =
+      if current_adapter?(:MysqlAdapter)
+        { 'id' => nil, 'name' => '', 'course_id' => 0 }
+      else
+        { 'id' => nil, 'name' => nil, 'course_id' => nil }
+      end
+
+    column_defaults.each do |name, default|
+      column = Entrant.columns_hash[name]
+      assert !column.null, "#{name} column should be NOT NULL"
+      assert_equal default, column.default, "#{name} column should be DEFAULT #{default.inspect}"
+    end
+  end
+
+  if current_adapter?(:PostgreSQLAdapter, :SQLServerAdapter, :FirebirdAdapter, :OpenBaseAdapter)
     def test_default_integers
       default = Default.new
       assert_instance_of Fixnum, default.positive_integer

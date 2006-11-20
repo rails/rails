@@ -130,8 +130,8 @@ CREATE TABLE auto_id_tests (
 
 CREATE TABLE entrants (
   id serial,
-  name text,
-  course_id integer
+  name text not null,
+  course_id integer not null
 );
 
 CREATE TABLE colnametests (

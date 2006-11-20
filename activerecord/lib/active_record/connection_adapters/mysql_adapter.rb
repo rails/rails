@@ -1,4 +1,5 @@
 require 'active_record/connection_adapters/abstract_adapter'
+require 'set'
 
 module MysqlCompat
   # add all_hashes method to standard mysql-c bindings or pure ruby version
@@ -84,11 +85,29 @@ module ActiveRecord
 
   module ConnectionAdapters
     class MysqlColumn < Column #:nodoc:
+      TYPES_ALLOWING_EMPTY_STRING_DEFAULT = Set.new([:binary, :string, :text])
+
+      def initialize(name, default, sql_type = nil, null = true)
+        super
+        self.default = nil if missing_default_forged_as_empty_string?
+      end
+
       private
         def simplified_type(field_type)
           return :boolean if MysqlAdapter.emulate_booleans && field_type.downcase.index("tinyint(1)")
           return :string  if field_type =~ /enum/i
           super
+        end
+
+        # MySQL misreports NOT NULL column default when none is given.
+        # We can't detect this for columns which may have a legitimate ''
+        # default (string, text, binary) but we can for others (integer,
+        # datetime, boolean, and the rest).
+        #
+        # Test whether the column has default '', is not null, and is not
+        # a type allowing default ''.
+        def missing_default_forged_as_empty_string?
+          !null && default == '' && !TYPES_ALLOWING_EMPTY_STRING_DEFAULT.include?(type)
         end
     end
 
