@@ -1037,15 +1037,16 @@ class ValidationsTest < Test::Unit::TestCase
 end
 
 
-class ValidatesNumericalityTest
-  NIL = [nil, "", " ", " \t \r \n"]
+class ValidatesNumericalityTest < Test::Unit::TestCase
+  NIL = [nil]
+  BLANK = ["", " ", " \t \r \n"]
   BIGDECIMAL_STRINGS = %w(12345678901234567890.1234567890) # 30 significent digits
   FLOAT_STRINGS = %w(0.0 +0.0 -0.0 10.0 10.5 -10.5 -0.0001 -090.1 90.1e1 -90.1e5 -90.1e-5 90e-5)
   INTEGER_STRINGS = %w(0 +0 -0 10 +10 -10 0090 -090)
   FLOATS = [0.0, 10.0, 10.5, -10.5, -0.0001] + FLOAT_STRINGS
   INTEGERS = [0, 10, -10] + INTEGER_STRINGS
   BIGDECIMAL = BIGDECIMAL_STRINGS.collect! { |bd| BigDecimal.new(bd) }
-  JUNK = ["not a number", "42 not a number", "0xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12"]
+  JUNK = ["not a number", "42 not a number", "0xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"]
 
   def setup
     Topic.write_inheritable_attribute(:validate, nil)
@@ -1056,44 +1057,50 @@ class ValidatesNumericalityTest
   def test_default_validates_numericality_of
     Topic.validates_numericality_of :approved
 
-    invalid!(NIL + JUNK)
+    invalid!(NIL + BLANK + JUNK)
     valid!(FLOATS + INTEGERS + BIGDECIMAL)
   end
 
   def test_validates_numericality_of_with_nil_allowed
     Topic.validates_numericality_of :approved, :allow_nil => true
 
-    invalid!(JUNK)
+    invalid!(BLANK + JUNK)
     valid!(NIL + FLOATS + INTEGERS + BIGDECIMAL)
   end
 
   def test_validates_numericality_of_with_integer_only
     Topic.validates_numericality_of :approved, :only_integer => true
 
-    invalid!(NIL + JUNK + FLOATS + BIGDECIMAL)
+    invalid!(NIL + BLANK + JUNK + FLOATS + BIGDECIMAL)
     valid!(INTEGERS)
   end
 
   def test_validates_numericality_of_with_integer_only_and_nil_allowed
     Topic.validates_numericality_of :approved, :only_integer => true, :allow_nil => true
 
-    invalid!(JUNK + FLOATS + BIGDECIMAL)
+    invalid!(BLANK + JUNK + FLOATS + BIGDECIMAL)
     valid!(NIL + INTEGERS)
   end
 
   private
     def invalid!(values)
-      values.each do |value|
-        topic = Topic.create("title" => "numeric test", "content" => "whatever", "approved" => value)
-        assert !topic.valid?, "#{value} not rejected as a number"
+      with_each_topic_approved_value(values) do |topic, value|
+        assert !topic.valid?, "#{value.inspect} not rejected as a number"
         assert topic.errors.on(:approved)
       end
     end
 
     def valid!(values)
+      with_each_topic_approved_value(values) do |topic, value|
+        assert topic.valid?, "#{value.inspect} not accepted as a number"
+      end
+    end
+
+    def with_each_topic_approved_value(values)
+      topic = Topic.new("title" => "numeric test", "content" => "whatever")
       values.each do |value|
-        topic = Topic.create("title" => "numeric test", "content" => "whatever", "approved" => value)
-        assert topic.valid?, "#{value} not accepted as a number"
+        topic.approved = value
+        yield topic, value
       end
     end
 end

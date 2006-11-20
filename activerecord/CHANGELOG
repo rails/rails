@@ -1,5 +1,7 @@
 *SVN*
 
+* validates_numericality_of uses \A \Z to ensure the entire string matches rather than ^ $ which may match one valid line of a multiline string.  #5716 [Andreas Schwarz]
+
 * Run validations in the order they were declared.  #6657 [obrie]
 
 * MySQL: detect when a NOT NULL column without a default value is misreported as default ''.  Can't detect for string, text, and binary columns since '' is a legitimate default.  #6156 [simon@redhillconsulting.com.au, obrie, Jeremy Kemper]

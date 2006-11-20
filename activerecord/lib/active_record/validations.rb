@@ -559,8 +559,10 @@ module ActiveRecord
       # provided.
       #
       #   class Person < ActiveRecord::Base
-      #     validates_format_of :email, :with => /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/i, :on => :create
+      #     validates_format_of :email, :with => /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i, :on => :create
       #   end
+      #
+      # Note: use \A and \Z to match the start and end of the string, ^ and $ match the start/end of a line.
       #
       # A regular expression must be provided or else an exception will be raised.
       #
@@ -675,7 +677,7 @@ module ActiveRecord
 
       # Validates whether the value of the specified attribute is numeric by trying to convert it to
       # a float with Kernel.Float (if <tt>integer</tt> is false) or applying it to the regular expression
-      # <tt>/^[\+\-]?\d+$/</tt> (if <tt>integer</tt> is set to true).
+      # <tt>/\A[\+\-]?\d+\Z/</tt> (if <tt>integer</tt> is set to true).
       #
       #   class Person < ActiveRecord::Base
       #     validates_numericality_of :value, :on => :create
@@ -696,7 +698,7 @@ module ActiveRecord
 
         if configuration[:only_integer]
           validates_each(attr_names,configuration) do |record, attr_name,value|
-            record.errors.add(attr_name, configuration[:message]) unless record.send("#{attr_name}_before_type_cast").to_s =~ /^[+-]?\d+$/
+            record.errors.add(attr_name, configuration[:message]) unless record.send("#{attr_name}_before_type_cast").to_s =~ /\A[+-]?\d+\Z/
           end
         else
           validates_each(attr_names,configuration) do |record, attr_name,value|
