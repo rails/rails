@@ -1,5 +1,7 @@
 *1.15.0 RC1* (November 19th, 2006)
 
+* Quote ActiveSupport::Multibyte::Chars.  #6653 [Julian Tarkhanov]
+
 * validates_numericality_of uses \A \Z to ensure the entire string matches rather than ^ $ which may match one valid line of a multiline string.  #5716 [Andreas Schwarz]
 
 * Oracle: automatically detect the primary key.  #6594 [vesaria, Michael Schoen]

@@ -8,7 +8,8 @@ module ActiveRecord
         return value.quoted_id if value.respond_to?(:quoted_id)
 
         case value
-          when String
+          when String, ActiveSupport::Multibyte::Chars
+            value = value.to_s
             if column && column.type == :binary && column.class.respond_to?(:string_to_binary)
               "'#{quote_string(column.class.string_to_binary(value))}'" # ' (for ruby-mode)
             elsif column && [:integer, :float].include?(column.type)
