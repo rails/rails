@@ -1,4 +1,4 @@
-*1.15.0 RC1* (November 18th, 2006)
+*1.15.0 RC1* (November 19th, 2006)
 
 * Oracle: automatically detect the primary key.  #6594 [vesaria, Michael Schoen]
 
