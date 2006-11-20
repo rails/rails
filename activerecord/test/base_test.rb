@@ -1102,6 +1102,18 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal author_name, Topic.find(topic.id).author_name
   end
   
+  def test_quote_chars
+    str = 'The Narrator'
+    topic = Topic.create(:author_name => str)
+    assert_equal str, topic.author_name
+    
+    assert_kind_of ActiveSupport::Multibyte::Chars, str.chars
+    topic = Topic.find_by_author_name(str.chars)
+    
+    assert_kind_of Topic, topic
+    assert_equal str, topic.author_name, "The right topic should have been found by name even with name passed as Chars"
+  end
+  
   def test_class_level_destroy
     should_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
     Topic.find(1).replies << should_be_destroyed_reply
