@@ -1,5 +1,7 @@
 *SVN*
 
+* Simplify query_attribute by typecasting the attribute value and checking whether it's nil, false, zero or blank.  #6659 [Jonathan Viney]
+
 * validates_numericality_of uses \A \Z to ensure the entire string matches rather than ^ $ which may match one valid line of a multiline string.  #5716 [Andreas Schwarz]
 
 * Run validations in the order they were declared.  #6657 [obrie]

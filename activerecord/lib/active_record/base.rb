@@ -1976,23 +1976,15 @@ module ActiveRecord #:nodoc:
       end
 
       def query_attribute(attr_name)
-        attribute = @attributes[attr_name]
-        if attribute.kind_of?(Fixnum) && attribute == 0
-          false
-        elsif attribute.kind_of?(String) && attribute == "0"
-          false
-        elsif attribute.kind_of?(String) && attribute.empty?
-          false
-        elsif attribute.nil?
-          false
-        elsif attribute == false
-          false
-        elsif attribute == "f"
-          false
-        elsif attribute == "false"
+        unless value = read_attribute(attr_name)
           false
         else
-          true
+          column = self.class.columns_hash[attr_name]
+          if column.number?
+            !value.zero?
+          else
+            !value.blank?
+          end
         end
       end
 

@@ -269,7 +269,34 @@ class BasicsTest < Test::Unit::TestCase
     assert topic.approved?, "approved should be true"
     # puts ""
   end
-
+  
+  def test_query_attribute_string
+    [nil, "", " "].each do |value|
+      assert_equal false, Topic.new(:author_name => value).author_name?
+    end
+    
+    assert_equal true, Topic.new(:author_name => "Name").author_name?
+  end
+  
+  def test_query_attribute_number
+    [nil, 0, "0"].each do |value|
+      assert_equal false, Developer.new(:salary => value).salary?
+    end
+    
+    assert_equal true, Developer.new(:salary => 1).salary?
+    assert_equal true, Developer.new(:salary => "1").salary?
+  end
+  
+  def test_query_attribute_boolean
+    [nil, "", false, "false", "f", 0].each do |value|
+      assert_equal false, Topic.new(:approved => value).approved?
+    end
+    
+    [true, "true", "1", 1].each do |value|
+      assert_equal true, Topic.new(:approved => value).approved?
+    end
+  end
+  
   def test_reader_generation
     Topic.find(:first).title
     Firm.find(:first).name
