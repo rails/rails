@@ -1,5 +1,7 @@
 *1.13.0 RC1* (November 19th, 2006)
 
+* Ensure render_to_string cleans up after itself when an exception is raised.  #6658 [rsanheim]
+
 * Update to Prototype and script.aculo.us [5579]. [Sam Stephenson, Thomas Fuchs]
 
 * simple_format helper doesn't choke on nil.  #6644 [jerry426]
