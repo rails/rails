@@ -763,13 +763,11 @@ module ActionController #:nodoc:
       # Renders according to the same rules as <tt>render</tt>, but returns the result in a string instead
       # of sending it as the response body to the browser.
       def render_to_string(options = nil, &block) #:doc:
-        result = ActiveSupport::Deprecation.silence { render(options, &block) }
-
+        ActiveSupport::Deprecation.silence { render(options, &block) }
+      ensure
         erase_render_results
         forget_variables_added_to_assigns
         reset_variables_added_to_assigns
-
-        result
       end
 
       def render_action(action_name, status = nil, with_layout = true) #:nodoc:

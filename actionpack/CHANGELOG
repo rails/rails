@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure render_to_string cleans up after itself when an exception is raised.  #6658 [rsanheim]
+
 * Extract template_changed_since? from compile_template? so plugins may override its behavior for non-file-based templates.  #6651 [Jeff Barczewski]
 
 * Update to Prototype and script.aculo.us [5579]. [Thomas Fuchs]

@@ -160,6 +160,27 @@ class NewRenderTestController < ActionController::Base
     @customers = [ Customer.new("david"), Customer.new("mary") ]
     render :text =>  "How's there? #{render_to_string("test/list")}"
   end
+  
+  def render_to_string_with_assigns
+    @before = "i'm before the render"
+    render_to_string :text => "foo"
+    @after = "i'm after the render"
+    render :action => "test/hello_world"
+  end
+  
+  def render_to_string_with_exception
+    render_to_string :file => "exception that will not be caught - this will certainly not work", :use_full_path => true
+  end
+  
+  def render_to_string_with_caught_exception
+    @before = "i'm before the render"
+    begin
+      render_to_string :file => "exception that will be caught- hope my future instance vars still work!", :use_full_path => true
+    rescue
+    end
+    @after = "i'm after the render"
+    render :action => "test/hello_world"
+  end
 
   def accessing_params_in_template
     render :inline =>  "Hello: <%= params[:name] %>"
@@ -186,6 +207,11 @@ class NewRenderTestController < ActionController::Base
   def render_and_redirect
     render :text => "hello"
     redirect_to :action => "double_render"
+  end
+  
+  def render_to_string_and_render
+    @stuff = render_to_string :text => "here is some cached stuff"
+    render :text => "Hi web users! #{@stuff}"
   end
 
   def rendering_with_conflicting_local_vars
@@ -523,6 +549,22 @@ EOS
     assert_not_deprecated { get :hello_in_a_string }
     assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", @response.body
   end
+  
+  def test_render_to_string_doesnt_break_assigns
+    get :render_to_string_with_assigns
+    assert_equal "i'm before the render", assigns(:before)
+    assert_equal "i'm after the render", assigns(:after)
+  end
+  
+  def test_bad_render_to_string_still_throws_exception
+    assert_raises(ActionController::MissingTemplate) { get :render_to_string_with_exception }
+  end
+  
+  def test_render_to_string_that_throws_caught_exception_doesnt_break_assigns
+    assert_nothing_raised { get :render_to_string_with_caught_exception }
+    assert_equal "i'm before the render", assigns(:before)
+    assert_equal "i'm after the render", assigns(:after)
+  end
 
   def test_nested_rendering
     get :hello_world
@@ -554,6 +596,12 @@ EOS
 
   def test_render_and_redirect
     assert_raises(ActionController::DoubleRenderError) { get :render_and_redirect }
+  end
+  
+  # specify the one exception to double render rule - render_to_string followed by render
+  def test_render_to_string_and_render
+    get :render_to_string_and_render
+    assert_equal("Hi web users! here is some cached stuff", @response.body)
   end
 
   def test_rendering_with_conflicting_local_vars
