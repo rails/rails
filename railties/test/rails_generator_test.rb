@@ -40,6 +40,10 @@ class RailsGeneratorTest < Test::Unit::TestCase
   BUILTINS = %w(controller mailer model scaffold)
   CAPITALIZED_BUILTINS = BUILTINS.map { |b| b.capitalize }
 
+  def setup
+    ActiveRecord::Base.pluralize_table_names = true
+  end
+
   def test_sources
     expected = [:lib, :vendor, :plugins, :user, :RubyGems, :builtin]
     expected.delete(:gem) unless Object.const_defined?(:Gem)
@@ -96,7 +100,6 @@ class RailsGeneratorTest < Test::Unit::TestCase
   end
 
   def test_named_generator_attributes
-    ActiveRecord::Base.pluralize_table_names = true
     g = Rails::Generator::Base.instance('working', %w(admin/foo bar baz))
     assert_equal 'admin/foo', g.name
     assert_equal %w(admin), g.class_path
@@ -104,7 +107,7 @@ class RailsGeneratorTest < Test::Unit::TestCase
     assert_equal 'Admin::Foo', g.class_name
     assert_equal 'foo', g.singular_name
     assert_equal 'foos', g.plural_name
-    assert_equal "admin_#{g.singular_name}", g.file_name
+    assert_equal g.singular_name, g.file_name
     assert_equal "admin_#{g.plural_name}", g.table_name
     assert_equal %w(bar baz), g.args
   end
@@ -112,16 +115,23 @@ class RailsGeneratorTest < Test::Unit::TestCase
   def test_named_generator_attributes_without_pluralized
     ActiveRecord::Base.pluralize_table_names = false
     g = Rails::Generator::Base.instance('working', %w(admin/foo bar baz))
-    assert_equal g.singular_name, g.table_name
+    assert_equal "admin_#{g.singular_name}", g.table_name
   end
-  
+
+  def test_session_migration_generator_with_pluralization
+    g = Rails::Generator::Base.instance('session_migration')
+    assert_equal 'session'.pluralize, g.send(:default_session_table_name)
+    ActiveRecord::Base.pluralize_table_names = false
+    assert_equal 'session', g.send(:default_session_table_name)
+  end
+
   def test_scaffold_controller_name
     # Default behaviour is use the model name
     g = Rails::Generator::Base.instance('scaffold', %w(Product))
-    assert_equal "Product", g.controller_name
-    
+    assert_equal "Products", g.controller_name
+
     # When we specify a controller name make sure it sticks!!
     g = Rails::Generator::Base.instance('scaffold', %w(Product Admin))
     assert_equal "Admin", g.controller_name
-  end  
+  end
 end
