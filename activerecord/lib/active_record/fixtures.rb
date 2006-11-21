@@ -436,7 +436,7 @@ end
 module Test #:nodoc:
   module Unit #:nodoc:
     class TestCase #:nodoc:
-      cattr_accessor :fixture_path
+      class_inheritable_accessor :fixture_path
       class_inheritable_accessor :fixture_table_names
       class_inheritable_accessor :fixture_class_names
       class_inheritable_accessor :use_transactional_fixtures

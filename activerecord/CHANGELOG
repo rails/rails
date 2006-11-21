@@ -1,5 +1,7 @@
 *SVN*
 
+* Change fixture_path to a class inheritable accessor allowing test cases to have their own custom set of fixtures. #6672 [zdennis]
+
 * Quote ActiveSupport::Multibyte::Chars.  #6653 [Julian Tarkhanov]
 
 * Simplify query_attribute by typecasting the attribute value and checking whether it's nil, false, zero or blank.  #6659 [Jonathan Viney]
