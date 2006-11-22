@@ -78,7 +78,7 @@ class UrlWriterTests < Test::Unit::TestCase
   
   def test_named_route
     ActionController::Routing::Routes.draw do |map|
-      map.home '/home/sweet/home/:user'
+      map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
       map.connect ':controller/:action/:id'
     end
     
@@ -96,7 +96,7 @@ class UrlWriterTests < Test::Unit::TestCase
   
   def test_only_path
     ActionController::Routing::Routes.draw do |map|
-      map.home '/home/sweet/home/:user'
+      map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
       map.connect ':controller/:action/:id'
     end
     

@@ -950,6 +950,10 @@ module ActionController
           route.significant_keys << :action
         end
 
+        if !route.significant_keys.include?(:controller)
+          raise ArgumentError, "Illegal route: the :controller must be specified!"
+        end
+
         route
       end
     end

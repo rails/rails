@@ -853,6 +853,12 @@ class RouteTest < Test::Unit::TestCase
       { :controller => "users", :action => "show", :format => "html" },
       route.defaults)
   end
+  
+  def test_builder_complains_without_controller
+    assert_raises(ArgumentError) do
+      ROUTING::RouteBuilder.new.build '/contact', :contoller => "contact", :action => "index"
+    end
+  end
 
   def test_significant_keys_for_default_route
     keys = default_route.significant_keys.sort_by {|k| k.to_s }
