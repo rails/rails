@@ -26,10 +26,10 @@ unless defined?(Rails::Initializer)
       rails_gem = Gem.cache.search('rails', "~>#{version}.0").sort_by { |g| g.version.version }.last
 
       if rails_gem
-        require_gem "rails", "=#{version}"
+        require_gem "rails", "=#{rails_gem.version.version}"
         require rails_gem.full_gem_path + '/lib/initializer'
       else
-        STDERR.puts %(Cannot find gem for Rails =#{version}:
+        STDERR.puts %(Cannot find gem for Rails ~>#{version}.0:
     Install the missing gem with 'gem install -v=#{version} rails', or
     change environment.rb to define RAILS_GEM_VERSION with your desired version.
   )
