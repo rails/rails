@@ -1,5 +1,7 @@
 *SVN*
 
+* Made RAILS_GEM_VERSION work for beta gems too, so specifying 1.1.6 will give you 1.1.6.4520 if available [DHH]
+
 * Update to Prototype and script.aculo.us [5579]. [Thomas Fuchs]
 
 * Made script/server work with -e and -d when using Mongrel [DHH]
