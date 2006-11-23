@@ -1,5 +1,7 @@
 *SVN*
 
+* Added GET-masquarading for HEAD, so request.method will return :get even for HEADs. This will help anyone relying on case request.method to automatically work with HEAD and map.resources will also allow HEADs to all GET actions. Rails automatically throws away the response content in a reply to HEAD, so you don't even need to worry about that. If you, for whatever reason, still need to distinguish between GET and HEAD in some edge case, you can use Request#head? and even Request.headers["REQUEST_METHOD"] for get the "real" answer. Closes #6694 [DHH]
+
 * Update Routing to complain when :controller is not specified by a route. Closes #6669. [Nicholas Seckar]
 
 * Ensure render_to_string cleans up after itself when an exception is raised.  #6658 [rsanheim]
