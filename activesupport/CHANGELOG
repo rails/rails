@@ -1,4 +1,4 @@
-*1.4.0 RC1* (November 19th, 2006)
+*1.4.0 RC1* (November 22nd, 2006)
 
 * Hash#to_xml handles keys with the same name as Kernel methods.  #6613 [Catfish]
 

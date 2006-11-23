@@ -1,4 +1,4 @@
-*1.13.0 RC1* (November 19th, 2006)
+*1.13.0 RC1* (November 22nd, 2006)
 
 * Update Routing to complain when :controller is not specified by a route. Closes #6669. [Nicholas Seckar]
 

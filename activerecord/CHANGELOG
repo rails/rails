@@ -1,4 +1,4 @@
-*1.15.0 RC1* (November 19th, 2006)
+*1.15.0 RC1* (November 22nd, 2006)
 
 * Quote ActiveSupport::Multibyte::Chars.  #6653 [Julian Tarkhanov]
 

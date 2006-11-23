@@ -1,4 +1,4 @@
-*1.2.0 RC1* (November 19th, 2006)
+*1.2.0 RC1* (November 22nd, 2006)
 
 * Removed invocation of deprecated before_action and around_action filter methods. Corresponding before_invocation and after_invocation methods should be used instead. #6275 [Kent Sibilev]
 
