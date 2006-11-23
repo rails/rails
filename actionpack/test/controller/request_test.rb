@@ -274,7 +274,7 @@ class RequestTest < Test::Unit::TestCase
   end
 
   def test_symbolized_request_methods
-    [:head, :get, :post, :put, :delete].each do |method|
+    [:get, :post, :put, :delete].each do |method|
       set_request_method_to method
       assert_equal method, @request.method
     end
@@ -282,7 +282,7 @@ class RequestTest < Test::Unit::TestCase
 
   def test_allow_method_hacking_on_post
     set_request_method_to :post
-    [:head, :get, :put, :delete].each do |method|
+    [:get, :put, :delete].each do |method|
       @request.instance_eval { @parameters = { :_method => method } ; @request_method = nil }
       assert_equal method, @request.method
     end
@@ -290,10 +290,17 @@ class RequestTest < Test::Unit::TestCase
 
   def test_restrict_method_hacking
     @request.instance_eval { @parameters = { :_method => 'put' } }
-    [:head, :get, :put, :delete].each do |method|
+    [:get, :put, :delete].each do |method|
       set_request_method_to method
       assert_equal method, @request.method
     end
+  end
+  
+  def test_head_masquarading_as_get
+    set_request_method_to :head
+    assert_equal :get, @request.method
+    assert @request.get?
+    assert @request.head?
   end
 
   protected
