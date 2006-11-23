@@ -53,4 +53,8 @@ end
 #   inflect.uncountable %w( fish sheep )
 # end
 
+# Add new mime types for use in respond_to blocks:
+# Mime::Type.register "text/richtext", :rtf
+# Mime::Type.register "application/x-mobile", :mobile
+
 # Include your application configuration below

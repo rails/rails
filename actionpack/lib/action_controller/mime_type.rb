@@ -135,6 +135,7 @@ module Mime
   HTML  = Type.new "text/html", :html, %w( application/xhtml+xml )
   JS    = Type.new "text/javascript", :js, %w( application/javascript application/x-javascript )
   ICS   = Type.new "text/calendar", :ics
+  CSV   = Type.new "text/csv", :csv
   XML   = Type.new "application/xml", :xml, %w( text/xml application/x-xml )
   RSS   = Type.new "application/rss+xml", :rss
   ATOM  = Type.new "application/atom+xml", :atom
@@ -156,6 +157,8 @@ module Mime
   LOOKUP["application/x-javascript"] = JS
 
   LOOKUP["text/calendar"]            = ICS
+
+  LOOKUP["text/csv"]                 = CSV
 
   LOOKUP["application/xml"]          = XML
   LOOKUP["text/xml"]                 = XML
@@ -180,6 +183,8 @@ module Mime
   EXTENSION_LOOKUP["js"]    = JS
 
   EXTENSION_LOOKUP["ics"]   = ICS
+
+  EXTENSION_LOOKUP["csv"]   = CSV
 
   EXTENSION_LOOKUP["yml"]   = YAML
   EXTENSION_LOOKUP["yaml"]  = YAML
