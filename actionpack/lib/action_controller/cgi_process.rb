@@ -171,7 +171,9 @@ end_msg
     end
 
     def out(output = $stdout)
-      convert_content_type!(@headers)
+      convert_content_type!
+      set_content_length!
+
       output.binmode      if output.respond_to?(:binmode)
       output.sync = false if output.respond_to?(:sync=)
 
@@ -196,16 +198,22 @@ end_msg
     end
 
     private
-      def convert_content_type!(headers)
-        if header = headers.delete("Content-Type")
-          headers["type"] = header
+      def convert_content_type!
+        if content_type = @headers.delete("Content-Type")
+          @headers["type"] = content_type
         end
-        if header = headers.delete("Content-type")
-          headers["type"] = header
+        if content_type = @headers.delete("Content-type")
+          @headers["type"] = content_type
         end
-        if header = headers.delete("content-type")
-          headers["type"] = header
+        if content_type = @headers.delete("content-type")
+          @headers["type"] = content_type
         end
+      end
+      
+      # Don't set the Content-Length for block-based bodies as that would mean reading it all into memory. Not nice
+      # for, say, a 2GB streaming file.
+      def set_content_length!
+        @headers["Content-Length"] = @body.size unless @body.respond_to?(:call)
       end
   end
 end
