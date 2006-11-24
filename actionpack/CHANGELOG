@@ -1,5 +1,7 @@
 *SVN*
 
+* Added CSV to Mime::SET so that respond_to csv will work [Cody Fauser]
+
 * Fixed that HEAD should return the proper Content-Length header (that is, actually use @body.size, not just 0) [DHH]
 
 * Added GET-masquarading for HEAD, so request.method will return :get even for HEADs. This will help anyone relying on case request.method to automatically work with HEAD and map.resources will also allow HEADs to all GET actions. Rails automatically throws away the response content in a reply to HEAD, so you don't even need to worry about that. If you, for whatever reason, still need to distinguish between GET and HEAD in some edge case, you can use Request#head? and even Request.headers["REQUEST_METHOD"] for get the "real" answer. Closes #6694 [DHH]

@@ -141,7 +141,7 @@ module Mime
   ATOM  = Type.new "application/atom+xml", :atom
   YAML  = Type.new "application/x-yaml", :yaml, %w( text/yaml )
 
-  SET   = [ ALL, TEXT, HTML, JS, ICS, XML, RSS, ATOM, YAML ]
+  SET   = [ ALL, TEXT, HTML, JS, ICS, XML, RSS, ATOM, YAML, CSV ]
 
   LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) unless k == "" }
 
