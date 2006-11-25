@@ -1,6 +1,7 @@
 require 'logger'
 require 'set'
 require File.join(File.dirname(__FILE__), 'railties_path')
+require File.join(File.dirname(__FILE__), 'rails/version')
 
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
 
@@ -76,7 +77,6 @@ module Rails
     # Configuration instance.
     def process
       check_ruby_version
-      load_rails_version
       set_load_path
       set_connection_adapters
 
@@ -119,11 +119,6 @@ module Rails
     # from the `rails` program as well without duplication.
     def check_ruby_version
       require 'ruby_version_check'
-    end
-
-    # Rails::VERSION should always be available.
-    def load_rails_version
-      require 'rails/version'
     end
 
     # Set the <tt>$LOAD_PATH</tt> based on the value of

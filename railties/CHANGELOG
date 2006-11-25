@@ -1,5 +1,7 @@
 *SVN*
 
+* Update initializer to load Rails::VERSION as soon as possible. Closes #6698. [Nicholas Seckar]
+
 * Added ActiveRecord::Base.clear_active_connections! in development mode so the database connection is not carried over from request to request. Some databases won't reread the schema if that doesn't happen (I'm looking at you SQLite), so you have to restart the server after each migration (= no fun) [DHH]
 
 * Made RAILS_GEM_VERSION work for beta gems too, so specifying 1.1.6 will give you 1.1.6.4520 if available [DHH]
