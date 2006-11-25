@@ -1087,7 +1087,11 @@ module ActionController #:nodoc:
 
       def assign_default_content_type_and_charset
         response.content_type ||= Mime::HTML
-        response.charset      ||= self.class.default_charset
+        response.charset      ||= self.class.default_charset unless sending_file?
+      end
+
+      def sending_file?
+        response.headers["Content-Transfer-Encoding"] == "binary"
       end
 
       def action_methods
