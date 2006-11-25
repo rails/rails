@@ -272,6 +272,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     time = Time.local(2005, 2, 21, 17, 44, 30)
     assert_equal "2005-02-21 17:44:30",     time.to_s(:db)
     assert_equal "21 Feb 17:44",            time.to_s(:short)
+    assert_equal "17:44",                   time.to_s(:time)
     assert_equal "February 21, 2005 17:44", time.to_s(:long)
 
     time = Time.utc(2005, 2, 21, 17, 44, 30)
