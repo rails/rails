@@ -1,3 +1,7 @@
+*SVN*
+
+Update initializer to load Rails::VERSION as soon as possible. Closes #6698. [Nicholas Seckar]
+
 *1.2.0 RC1* (November 22nd, 2006)
 
 * Added ActiveRecord::Base.clear_active_connections! in development mode so the database connection is not carried over from request to request. Some databases won't reread the schema if that doesn't happen (I'm looking at you SQLite), so you have to restart the server after each migration (= no fun) [DHH]
