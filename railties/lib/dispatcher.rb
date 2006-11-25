@@ -55,17 +55,15 @@ class Dispatcher
     # mailers, and so forth. This allows them to be loaded again without having
     # to restart the server (WEBrick, FastCGI, etc.).
     def reset_application!
-      if defined?(ActiveRecord)
-        ActiveRecord::Base.reset_subclasses
-        ActiveRecord::Base.clear_active_connections!
-      end
+      ActiveRecord::Base.reset_subclasses if defined?(ActiveRecord)
 
       Dependencies.clear
       ActiveSupport::Deprecation.silence do # TODO: Remove after 1.2
         Class.remove_class(*Reloadable.reloadable_classes)
       end
+        
+      ActiveRecord::Base.clear_active_connections! if defined?(ActiveRecord)
     end
-    
     
     # Add a preparation callback. Preparation callbacks are run before every
     # request in development mode, and before the first request in production
