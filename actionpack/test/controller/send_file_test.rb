@@ -63,6 +63,14 @@ class SendFileTest < Test::Unit::TestCase
     assert_equal file_data, response.body
   end
 
+  def test_headers_after_send_shouldnt_include_charset
+    response = process('data')
+    assert_equal "application/octet-stream", response.headers["Content-Type"]
+
+    response = process('file')
+    assert_equal "application/octet-stream", response.headers["Content-Type"]
+  end
+
   # Test that send_file_headers! is setting the correct HTTP headers.
   def test_send_file_headers!
     options = {
