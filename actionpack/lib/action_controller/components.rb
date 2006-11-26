@@ -75,7 +75,7 @@ module ActionController #:nodoc:
       #     will also use /code/weblog/components as template root 
       #     and find templates in /code/weblog/components/admin/parties/users/
       def uses_component_template_root
-        path_of_calling_controller = File.dirname(caller[0].split(/:\d+:/, 2).first)
+        path_of_calling_controller = File.dirname(caller[1].split(/:\d+:/, 2).first)
         path_of_controller_root    = path_of_calling_controller.sub(/#{Regexp.escape(File.dirname(controller_path))}$/, "")
 
         self.template_root = path_of_controller_root
