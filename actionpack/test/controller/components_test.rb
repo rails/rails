@@ -134,7 +134,8 @@ module A
       class NestedController < ActionController::Base
         # Stub for uses_component_template_root
         def self.caller
-          ['./test/fixtures/a/b/c/nested_controller.rb']
+          [ '/path/to/active_support/deprecation.rb:93:in `uses_component_template_root',
+            './test/fixtures/a/b/c/nested_controller.rb' ]
         end
       end
     end
