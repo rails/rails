@@ -27,13 +27,6 @@ class CGI #:nodoc:
   def request_parameters
     CGIMethods.parse_request_parameters(params, env_table)
   end
-
-  def redirect(where)
-     header({ 
-       "Status" => "302 Moved", 
-       "location" => "#{where}"
-    })
-  end
   
   def session(parameters = nil)
     parameters = {} if parameters.nil?
