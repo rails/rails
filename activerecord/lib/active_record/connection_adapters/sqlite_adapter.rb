@@ -101,6 +101,10 @@ module ActiveRecord
       def supports_migrations? #:nodoc:
         true
       end
+
+      def supports_reloading?
+        true
+      end
       
       def supports_count_distinct? #:nodoc:
         false
