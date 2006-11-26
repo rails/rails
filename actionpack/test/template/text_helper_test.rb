@@ -321,6 +321,6 @@ class TextHelperTest < Test::Unit::TestCase
     %{This is a test.\n\n\nIt no longer contains any HTML.\n}, strip_tags(
     %{<title>This is <b>a <a href="" target="_blank">test</a></b>.</title>\n\n<!-- it has a comment -->\n\n<p>It no <b>longer <strong>contains <em>any <strike>HTML</strike></em>.</strong></b></p>\n}))
     assert_equal "This has a  here.", strip_tags("This has a <!-- comment --> here.")
-    [nil, '', '   '].each { |blank| assert_nil strip_tags(blank) }
+    [nil, '', '   '].each { |blank| assert_equal blank, strip_tags(blank) }
   end
 end

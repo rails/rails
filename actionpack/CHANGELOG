@@ -268,7 +268,7 @@
 
 * radio_button_tag generates unique id attributes.  #3353 [Bob Silva, somekool@gmail.com]
 
-* strip_tags returns nil for a blank arg such as nil or "".  #2229 [duncan@whomwah.com]
+* strip_tags passes through blank args such as nil or "".  #2229, #6702 [duncan@whomwah.com, dharana]
 
 * Cleanup assert_tag :children counting.  #2181 [jamie@bravenet.com]
 

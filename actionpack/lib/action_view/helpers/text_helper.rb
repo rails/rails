@@ -254,7 +254,7 @@ module ActionView
       # html-scanner tokenizer and so its HTML parsing ability is limited by 
       # that of html-scanner.
       def strip_tags(html)     
-        return nil if html.blank?
+        return html if html.blank?
         if html.index("<")
           text = ""
           tokenizer = HTML::Tokenizer.new(html)
