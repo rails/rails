@@ -179,7 +179,7 @@ module ActionController #:nodoc:
 
     # returns the redirection location or nil
     def redirect_url
-      redirect? ? headers['location'] : nil
+      redirect? ? headers['Location'] : nil
     end
 
     # does the redirect location match this regexp pattern?

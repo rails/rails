@@ -113,7 +113,7 @@ module ActionController
       # performed on the location header.
       def follow_redirect!
         raise "not a redirect! #{@status} #{@status_message}" unless redirect?
-        get(interpret_uri(headers["location"].first))
+        get(interpret_uri(headers['Location'].first))
         status
       end
 
