@@ -891,7 +891,7 @@ module ActionController #:nodoc:
         response.redirected_to = nil
         response.redirected_to_method_params = nil
         response.headers['Status'] = DEFAULT_RENDER_STATUS_CODE
-        response.headers.delete('location')
+        response.headers.delete('Location')
       end
 
       # Erase both render and redirect results
