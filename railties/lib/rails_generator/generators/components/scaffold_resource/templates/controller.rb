@@ -39,8 +39,8 @@ class <%= controller_class_name %>Controller < ApplicationController
     respond_to do |format|
       if @<%= file_name %>.save
         flash[:notice] = '<%= class_name %> was successfully created.'
-        format.html { redirect_to <%= file_name %>_path(@<%= file_name %>) }
-        format.xml  { head :created, :location => <%= file_name %>_path(@<%= file_name %>) }
+        format.html { redirect_to <%= file_name %>_url(@<%= file_name %>) }
+        format.xml  { head :created, :location => <%= file_name %>_url(@<%= file_name %>) }
       else
         format.html { render :action => "new" }
         format.xml  { render :xml => @<%= file_name %>.errors.to_xml }
@@ -56,7 +56,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     respond_to do |format|
       if @<%= file_name %>.update_attributes(params[:<%= file_name %>])
         flash[:notice] = '<%= class_name %> was successfully updated.'
-        format.html { redirect_to <%= file_name %>_path(@<%= file_name %>) }
+        format.html { redirect_to <%= file_name %>_url(@<%= file_name %>) }
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }
@@ -72,7 +72,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     @<%= file_name %>.destroy
 
     respond_to do |format|
-      format.html { redirect_to <%= table_name %>_path }
+      format.html { redirect_to <%= table_name %>_url }
       format.xml  { head :ok }
     end
   end
