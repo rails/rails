@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 class ActionPackAssertionsController < ActionController::Base
 
   # this does absolutely nothing
-  def nothing() render_text ""; end
+  def nothing() head :ok end
 
   # a standard template
   def hello_world() render "test/hello_world"; end
@@ -27,13 +27,13 @@ class ActionPackAssertionsController < ActionController::Base
   def redirect_external() redirect_to_url "http://www.rubyonrails.org"; end
 
   # a 404
-  def response404() render_text "", "404 AWOL"; end
+  def response404() head '404 AWOL' end
 
   # a 500
-  def response500() render_text "", "500 Sorry"; end
+  def response500() head '500 Sorry' end
 
   # a fictional 599
-  def response599() render_text "", "599 Whoah!"; end
+  def response599() head '599 Whoah!' end
 
   # putting stuff in the flash
   def flash_me
@@ -402,7 +402,9 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
 
     process :redirect_external
     assert_equal 'http://www.rubyonrails.org', @response.redirect_url
+  end
 
+  def test_no_redirect_url
     process :nothing
     assert_nil @response.redirect_url
   end
