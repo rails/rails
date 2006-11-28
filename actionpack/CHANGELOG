@@ -1,5 +1,7 @@
 *SVN*
 
+* @response.redirect_url works with 201 Created responses: just return headers['Location'] rather than checking the response status.  [Jeremy Kemper]
+
 * Added CSV to Mime::SET so that respond_to csv will work [Cody Fauser]
 
 * Fixed that HEAD should return the proper Content-Length header (that is, actually use @body.size, not just 0) [DHH]

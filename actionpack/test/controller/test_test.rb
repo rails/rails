@@ -66,6 +66,11 @@ HTML
       redirect_to :controller => 'fail', :id => 5
     end
 
+    def create
+      headers['Location'] = 'created resource'
+      head :created
+    end
+
     private
       def rescue_action(e)
         raise e
@@ -460,6 +465,20 @@ HTML
       assert_response :redirect
       assert_redirected_to :controller => 'fail', :id => 5
       assert_raise(RuntimeError) { follow_redirect }
+    end
+  end
+
+  def test_redirect_url_only_cares_about_location_header
+    get :create
+    assert_response :created
+
+    # Redirect url doesn't care that it wasn't a :redirect response.
+    assert_equal 'created resource', @response.redirect_url
+    assert_equal @response.redirect_url, redirect_to_url
+
+    # Must be a :redirect response.
+    assert_raise(Test::Unit::AssertionFailedError) do
+      assert_redirected_to 'created resource'
     end
   end
 
