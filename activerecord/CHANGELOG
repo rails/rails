@@ -1,3 +1,9 @@
+*1.15.0 RC2*
+
+* Support nil and Array in :conditions => { attr => value } hashes.  #6548 [Assaf, Jeremy Kemper]
+    find(:all, :conditions => { :topic_id => [1, 2, 3], :last_read => nil }
+
+
 *1.15.0 RC1* (November 22nd, 2006)
 
 * Quote ActiveSupport::Multibyte::Chars.  #6653 [Julian Tarkhanov]
