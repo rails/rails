@@ -33,8 +33,11 @@ end
 puts "=> Rails application starting on http://#{OPTIONS[:ip]}:#{OPTIONS[:port]}"
 
 if OPTIONS[:detach]
-  `mongrel_rails start -d -p #{OPTIONS[:port]} -a #{OPTIONS[:ip]} -e #{OPTIONS[:environment]}`
+  `mongrel_rails start -d -p #{OPTIONS[:port]} -a #{OPTIONS[:ip]} -e #{OPTIONS[:environment]} -P #{RAILS_ROOT}/tmp/pids/mongrel.pid`
 else
+  ENV["RAILS_ENV"] = OPTIONS[:environment]
+  RAILS_ENV.replace(OPTIONS[:environment]) if defined?(RAILS_ENV)
+
   require 'initializer'
   Rails::Initializer.run(:initialize_logger)
 

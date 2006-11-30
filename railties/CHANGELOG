@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that script/server running against Mongrel should tail the proper log regardless of the environment [DHH]
+
 * Update initializer to load Rails::VERSION as soon as possible. Closes #6698. [Nicholas Seckar]
 
 * Added ActiveRecord::Base.clear_active_connections! in development mode so the database connection is not carried over from request to request. Some databases won't reread the schema if that doesn't happen (I'm looking at you SQLite), so you have to restart the server after each migration (= no fun) [DHH]
