@@ -153,11 +153,6 @@ module ActionView
         tag :input, html_options
       end
 
-      # Creates a label tag.
-      def label_tag(text, options = {})
-        content_tag :label, text, options
-      end
-
       # Creates a submit button with the text <tt>value</tt> as the caption. If options contains a pair with the key of "disable_with",
       # then the value will be used to rename a disabled version of the submit button.
       def submit_tag(value = "Save changes", options = {})

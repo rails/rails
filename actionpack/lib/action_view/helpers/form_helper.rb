@@ -223,11 +223,6 @@ module ActionView
       def radio_button(object_name, method, tag_value, options = {})
         InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_radio_button_tag(tag_value, options)
       end
-      
-      
-      def label(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_label_tag(options)
-      end
     end
 
     class InstanceTag #:nodoc:
@@ -331,10 +326,6 @@ module ActionView
         tag_text << ">False</option><option value=\"true\""
         tag_text << " selected" if value
         tag_text << ">True</option></select>"
-      end
-      
-      def to_label_tag(options = {})
-        label_tag(options.delete(:text) || value(object).humanize, options.reverse_merge(:for => tag_id))
       end
       
       def to_content_tag(tag_name, options = {})

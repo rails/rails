@@ -163,12 +163,6 @@ class FormHelperTest < Test::Unit::TestCase
     )
   end
 
-  def test_label
-    assert_dom_equal('<label for="post_body">Body</label>', label("post", "body"))
-    assert_dom_equal('<label for="post_body">Super body</label>', label("post", "body", :text => "Super body"))
-    assert_dom_equal('<label for="post_body" class="strong">Super body</label>', label("post", "body", :text => "Super body", :class => "strong"))
-  end
-
   def test_explicit_name
     assert_dom_equal(
       '<input id="post_title" name="dont guess" size="30" type="text" value="Hello World" />', text_field("post", "title", "name" => "dont guess")
