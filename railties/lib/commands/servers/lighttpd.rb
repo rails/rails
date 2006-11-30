@@ -11,10 +11,6 @@ unless defined?(FCGI)
   exit 1
 end
 
-require 'initializer'
-configuration = Rails::Initializer.run(:initialize_logger).configuration
-default_config_file = config_file = Pathname.new("#{RAILS_ROOT}/config/lighttpd.conf").cleanpath
-
 require 'optparse'
 
 detach = false
@@ -67,6 +63,10 @@ puts "=> Rails application starting on http://#{ip || default_ip}:#{port || defa
 tail_thread = nil
 
 if !detach
+  require 'initializer'
+  configuration = Rails::Initializer.run(:initialize_logger).configuration
+  default_config_file = config_file = Pathname.new("#{RAILS_ROOT}/config/lighttpd.conf").cleanpath
+
   puts "=> Call with -d to detach"
   puts "=> Ctrl-C to shutdown server (see config/lighttpd.conf for options)"
   detach = false

@@ -1,6 +1,10 @@
 *SVN*
 
-Update initializer to load Rails::VERSION as soon as possible. Closes #6698. [Nicholas Seckar]
+* Fixed that script/server running against Mongrel should tail the proper log regardless of the environment [DHH]
+
+* Update initializer to load Rails::VERSION as soon as possible. Closes #6698. [Nicholas Seckar]
+
+
 
 *1.2.0 RC1* (November 22nd, 2006)
 
