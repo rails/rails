@@ -62,7 +62,7 @@ class Dispatcher
         Class.remove_class(*Reloadable.reloadable_classes)
       end
         
-      ActiveRecord::Base.clear_reloadable_connections! if defined?(ActiveRecord)
+      ActiveRecord::Base.clear_active_connections! if defined?(ActiveRecord)
     end
     
     # Add a preparation callback. Preparation callbacks are run before every
@@ -76,16 +76,13 @@ class Dispatcher
     def to_prepare(identifier = nil, &block)
       unless identifier.nil?
         callback = preparation_callbacks.detect { |ident, _| ident == identifier }
-
         if callback # Already registered: update the existing callback
           callback[-1] = block
           return
         end
       end
-
       preparation_callbacks << [identifier, block]
-
-      return
+      nil
     end
 
     private
