@@ -79,6 +79,12 @@ module ActiveRecord
         @active = false
       end
 
+      # Returns true if its safe to reload the connection between requests for development mode.
+      # This is not the case for Ruby/MySQL and it's not necessary for any adapters except SQLite.
+      def supports_reloading?
+        false
+      end
+
       # Lazily verify this connection, calling +active?+ only if it hasn't
       # been called for +timeout+ seconds.       
       def verify!(timeout)

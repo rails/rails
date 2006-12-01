@@ -1173,14 +1173,8 @@ class << Mysql
 
   def finalizer(net)
     proc {
-      begin
-        net.clear
-        net.write Mysql::COM_QUIT.chr
-        net.close
-      rescue Error => error
-        # Swallow lost connection errors if connection is already closed.
-        raise unless error.errno == Error::CR_SERVER_LOST
-      end
+      net.clear
+      net.write Mysql::COM_QUIT.chr
     }
   end
 
