@@ -159,14 +159,14 @@ CREATE TABLE `posts` (
   `author_id` INTEGER,
   `title` VARCHAR(255) NOT NULL,
   `body` TEXT NOT NULL,
-  `type` VARCHAR(255) NOT NULL
+  `type` VARCHAR(255) default NULL
 ) TYPE=InnoDB;
 
 CREATE TABLE `comments` (
   `id` INTEGER NOT NULL auto_increment PRIMARY KEY,
   `post_id` INTEGER NOT NULL,
   `body` TEXT NOT NULL,
-  `type` VARCHAR(255) NOT NULL
+  `type` VARCHAR(255) default NULL
 ) TYPE=InnoDB;
 
 CREATE TABLE `authors` (
@@ -184,7 +184,7 @@ CREATE TABLE `tasks` (
 CREATE TABLE `categories` (
   `id` int(11) NOT NULL auto_increment,
   `name` VARCHAR(255) NOT NULL,
-  `type` VARCHAR(255) NOT NULL,
+  `type` VARCHAR(255) default NULL,
   PRIMARY KEY  (`id`)
 ) TYPE=InnoDB;
 

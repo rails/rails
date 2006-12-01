@@ -144,14 +144,14 @@ CREATE TABLE 'posts' (
   'id' INTEGER NOT NULL PRIMARY KEY,
   'author_id' INTEGER,
   'title' VARCHAR(255) NOT NULL,
-  'type' VARCHAR(255) NOT NULL,
+  'type' VARCHAR(255) DEFAULT NULL,
   'body' TEXT NOT NULL
 );
 
 CREATE TABLE 'comments' (
   'id' INTEGER NOT NULL PRIMARY KEY,
   'post_id' INTEGER NOT NULL,
-  'type' VARCHAR(255) NOT NULL,
+  'type' VARCHAR(255) DEFAULT NULL,
   'body' TEXT NOT NULL
 );
 

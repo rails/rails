@@ -46,7 +46,7 @@ class Post < ActiveRecord::Base
   end
 end
 
-class SpecialPost < Post; end;
+class SpecialPost < Post; end
 
 class StiPost < Post
   self.abstract_class = true
@@ -54,4 +54,5 @@ class StiPost < Post
 end
 
 class SubStiPost < StiPost
+  self.table_name = Post.table_name
 end
