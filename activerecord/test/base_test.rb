@@ -10,6 +10,7 @@ require 'fixtures/auto_id'
 require 'fixtures/column_name'
 require 'fixtures/subscriber'
 require 'fixtures/keyboard'
+require 'fixtures/post'
 
 class Category < ActiveRecord::Base; end
 class Smarts < ActiveRecord::Base; end
@@ -28,8 +29,9 @@ class NonExistentTable < ActiveRecord::Base; end
 class TestOracleDefault < ActiveRecord::Base; end
 
 class LoosePerson < ActiveRecord::Base
-  attr_protected :credit_rating, :administrator
+  self.table_name = 'people'
   self.abstract_class = true
+  attr_protected :credit_rating, :administrator
 end
 
 class LooseDescendant < LoosePerson
@@ -37,6 +39,7 @@ class LooseDescendant < LoosePerson
 end
 
 class TightPerson < ActiveRecord::Base
+  self.table_name = 'people'
   attr_accessible :name, :address
 end
 
@@ -1361,13 +1364,63 @@ class BasicsTest < Test::Unit::TestCase
     end
   end
 
-  def test_base_class
+  def test_abstract_class
+    assert ActiveRecord::Base.abstract_class?
     assert LoosePerson.abstract_class?
     assert !LooseDescendant.abstract_class?
+  end
+
+  def test_base_class
     assert_equal LoosePerson,     LoosePerson.base_class
     assert_equal LooseDescendant, LooseDescendant.base_class
     assert_equal TightPerson,     TightPerson.base_class
     assert_equal TightPerson,     TightDescendant.base_class
+
+    assert_equal Post, Post.base_class
+    assert_equal Post, SpecialPost.base_class
+    assert_equal Post, StiPost.base_class
+    assert_equal SubStiPost, SubStiPost.base_class
+  end
+
+  def test_descends_from_active_record
+    # Tries to call Object.abstract_class?
+    assert_raise(NoMethodError) do
+      ActiveRecord::Base.descends_from_active_record?
+    end
+
+    # Abstract subclass of AR::Base.
+    assert LoosePerson.descends_from_active_record?
+
+    # Concrete subclass of an abstract class.
+    assert LooseDescendant.descends_from_active_record?
+
+    # Concrete subclass of AR::Base.
+    assert TightPerson.descends_from_active_record?
+
+    # Concrete subclass of a concrete class but has no type column.
+    assert TightDescendant.descends_from_active_record?
+
+    # Concrete subclass of AR::Base.
+    assert Post.descends_from_active_record?
+
+    # Abstract subclass of a concrete class which has a type column.
+    # This is pathological, as you'll never have Sub < Abstract < Concrete.
+    assert !StiPost.descends_from_active_record?
+
+    # Concrete subclasses an abstract class which has a type column.
+    assert SubStiPost.descends_from_active_record?
+  end
+
+  def test_find_on_abstract_base_class_doesnt_use_type_condition
+    old_class = LooseDescendant
+    Object.send :remove_const, :LooseDescendant
+
+    descendant = old_class.create!
+    assert_not_nil LoosePerson.find(descendant.id), "Should have found instance of LooseDescendant when finding abstract LoosePerson: #{descendant.inspect}"
+  ensure
+    unless Object.const_defined?(:LooseDescendant)
+      Object.const_set :LooseDescendant, old_class
+    end
   end
 
   def test_assert_queries

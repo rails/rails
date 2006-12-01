@@ -816,7 +816,7 @@ module ActiveRecord #:nodoc:
       end
 
       def descends_from_active_record? # :nodoc:
-        superclass == Base || !columns_hash.include?(inheritance_column)
+        superclass.abstract_class? || !columns_hash.include?(inheritance_column)
       end
 
 
@@ -1161,7 +1161,7 @@ module ActiveRecord #:nodoc:
           segments = []
           segments << sanitize_sql(scope[:conditions]) if scope && scope[:conditions]
           segments << sanitize_sql(conditions) unless conditions.nil?
-          segments << type_condition unless descends_from_active_record?        
+          segments << type_condition unless descends_from_active_record?
           segments.compact!
           sql << "WHERE (#{segments.join(") AND (")}) " unless segments.empty?
         end
@@ -1362,7 +1362,7 @@ module ActiveRecord #:nodoc:
 
         # Returns the class descending directly from ActiveRecord in the inheritance hierarchy.
         def class_of_active_record_descendant(klass)
-          if klass.superclass == Base || klass.superclass.abstract_class?
+          if klass.superclass.abstract_class?
             klass
           elsif klass.superclass.nil?
             raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
@@ -1482,6 +1482,9 @@ module ActiveRecord #:nodoc:
           quoted_value 
         end
     end
+
+    # ActiveRecord::Base is abstract.
+    self.abstract_class = true
 
     public
       # New objects can be instantiated as either empty (pass no construction parameter) or pre-set with

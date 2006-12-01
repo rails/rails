@@ -1,5 +1,7 @@
 *SVN*
 
+* Subclasses of an abstract class work with single-table inheritance.  #5704 [nick+rails@ag.arizona.edu, Ryan Davis, Jeremy Kemper]
+
 * Change fixture_path to a class inheritable accessor allowing test cases to have their own custom set of fixtures. #6672 [zdennis]
 
 * Quote ActiveSupport::Multibyte::Chars.  #6653 [Julian Tarkhanov]
