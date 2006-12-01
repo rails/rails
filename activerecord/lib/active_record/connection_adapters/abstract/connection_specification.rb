@@ -86,6 +86,14 @@ module ActiveRecord
           conn.disconnect!
         end
       end
+      
+      # Clears the cache which maps classes 
+      def clear_reloadable_connections!
+        @@active_connections.each do |name, conn|
+          conn.disconnect! if conn.supports_reloading?
+          @@active_connections.delete(name)
+        end
+      end
 
       # Verify active connections.
       def verify_active_connections! #:nodoc:
