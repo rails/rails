@@ -303,6 +303,18 @@ class RequestTest < Test::Unit::TestCase
     assert @request.head?
   end
 
+  def test_format
+    @request.instance_eval { @parameters = { :format => 'xml' } }
+    assert_equal Mime::XML, @request.format
+
+    @request.instance_eval { @parameters = { :format => 'xhtml' } }
+    assert_equal Mime::HTML, @request.format
+
+    @request.instance_eval { @parameters = { :format => nil } }
+    @request.env["HTTP_ACCEPT"] = "text/javascript"
+    assert_equal Mime::JS, @request.format
+  end
+
   protected
     def set_request_method_to(method)
       @request.env['REQUEST_METHOD'] = method.to_s.upcase

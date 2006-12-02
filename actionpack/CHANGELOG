@@ -1,5 +1,11 @@
 *SVN*
 
+* Added Request#format to return the format used for the request as a mime type. If no format is specified, the first Request#accepts type is used. This means you can stop using respond_to for anything else than responses [DHH]. Examples:
+
+    GET /posts/5.xml   | request.format => Mime::XML
+    GET /posts/5.xhtml | request.format => Mime::HTML
+    GET /posts/5       | request.format => request.accepts.first (usually Mime::HTML for browsers)
+
 * Added the option for extension aliases to mime type registration [DHH]. Example (already in the default routes):
 
     Mime::Type.register "text/html", :html, %w( application/xhtml+xml ), %w( xhtml )

@@ -83,6 +83,16 @@ module ActionController
         end
     end
 
+    # Returns the Mime type for the format used in the request. If there is no format available, the first of the 
+    # accept types will be used. Examples:
+    #
+    #   GET /posts/5.xml   | request.format => Mime::XML
+    #   GET /posts/5.xhtml | request.format => Mime::HTML
+    #   GET /posts/5       | request.format => request.accepts.first (usually Mime::HTML for browsers)
+    def format
+      parameters[:format] ? Mime::Type.lookup_by_extension(parameters[:format]) : accepts.first
+    end
+
     # Returns true if the request's "X-Requested-With" header contains
     # "XMLHttpRequest". (The Prototype Javascript library sends this header with
     # every Ajax request.)

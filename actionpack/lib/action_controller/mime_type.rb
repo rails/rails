@@ -48,6 +48,10 @@ module Mime
         LOOKUP[string]
       end
 
+      def lookup_by_extension(extension)
+        EXTENSION_LOOKUP[extension]
+      end
+
       def register(string, symbol, mime_type_synonyms = [], extension_synonyms = [])
         Mime.send :const_set, symbol.to_s.upcase, Type.new(string, symbol, mime_type_synonyms)
 
