@@ -303,6 +303,11 @@ class MimeControllerTest < Test::Unit::TestCase
     get :html_xml_or_rss, :format => "rss"
     assert_equal "RSS", @response.body
   end
+  
+  def test_extension_synonyms
+    get :html_xml_or_rss, :format => "xhtml"
+    assert_equal "HTML", @response.body
+  end
 
   def test_render_action_for_html
     @controller.instance_eval do

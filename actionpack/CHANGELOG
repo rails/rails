@@ -1,5 +1,11 @@
 *SVN*
 
+* Added the option for extension aliases to mime type registration [DHH]. Example (already in the default routes):
+
+    Mime::Type.register "text/html", :html, %w( application/xhtml+xml ), %w( xhtml )
+  
+  ...will respond on both .html and .xhtml.
+
 * @response.redirect_url works with 201 Created responses: just return headers['Location'] rather than checking the response status.  [Jeremy Kemper]
 
 * Added CSV to Mime::SET so that respond_to csv will work [Cody Fauser]
