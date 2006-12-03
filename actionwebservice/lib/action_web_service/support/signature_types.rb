@@ -61,6 +61,8 @@ module ActionWebService # :nodoc:
           :bool
         when :float, :double
           :float
+        when :decimal
+          :decimal
         when :time, :timestamp
           :time
         when :datetime
@@ -117,6 +119,8 @@ module ActionWebService # :nodoc:
         TrueClass
       when :float
         Float
+      when :decimal
+        BigDecimal
       when :time
         Time
       when :date

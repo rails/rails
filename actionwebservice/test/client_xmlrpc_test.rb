@@ -125,6 +125,7 @@ class TC_ClientXmlRpc < Test::Unit::TestCase
     assert user.active?
     assert_kind_of Time, user.created_on
     assert_equal Time.utc(Time.now.year, Time.now.month, Time.now.day), user.created_on
+    assert_equal BigDecimal('12.2'), user.balance
   end
 
   def test_with_model

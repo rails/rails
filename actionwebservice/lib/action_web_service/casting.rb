@@ -95,6 +95,8 @@ module ActionWebService # :nodoc:
             end
           when :float
             Float(value)
+          when :decimal
+            BigDecimal(value.to_s)
           when :time
             value = "%s/%s/%s %s:%s:%s" % value.values_at(*%w[2 3 1 4 5 6]) if value.kind_of?(Hash)
             value.kind_of?(Time) ? value : Time.parse(value.to_s)

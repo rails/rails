@@ -5,6 +5,16 @@ module XMLRPC # :nodoc:
   class FaultException # :nodoc:
     alias :message :faultString
   end
+  
+  class Create
+    def wrong_type(value)
+      if BigDecimal === value
+        [true, value.to_f]
+      else
+        false
+      end
+    end
+  end
 end
 
 module ActionWebService # :nodoc:

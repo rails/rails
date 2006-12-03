@@ -126,6 +126,7 @@ class TC_ClientSoap < Test::Unit::TestCase
     assert user.active?
     assert_kind_of Date, user.created_on
     assert_equal Date.today, user.created_on
+    assert_equal BigDecimal('12.2'), user.balance
   end
   
   def test_with_model

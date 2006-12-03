@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for decimal types. Closes #6676. [Kent Sibilev]
+
 * Removed deprecated end_form_tag helper. [Kent Sibilev]
 
 * Removed deprecated @request and @response usages. [Kent Sibilev]

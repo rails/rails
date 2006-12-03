@@ -118,18 +118,12 @@ module ActionWebService
           end
 
           def register_static_factories
-            @registry.add(ActionWebService::Base64,
-                          SOAP::SOAPBase64,
-                          SoapBase64Factory.new,
-                          nil)
+            @registry.add(ActionWebService::Base64, SOAP::SOAPBase64, SoapBase64Factory.new, nil)
             mapping = @registry.find_mapped_soap_class(ActionWebService::Base64)
             @type2binding[ActionWebService::Base64] =
-              SoapBinding.new(self, SOAP::SOAPBase64::Type,
-                              ActionWebService::Base64, mapping)
-            @registry.add(Array,
-                          SOAP::SOAPArray,
-                          SoapTypedArrayFactory.new,
-                          nil)
+              SoapBinding.new(self, SOAP::SOAPBase64::Type, ActionWebService::Base64, mapping)
+            @registry.add(Array, SOAP::SOAPArray, SoapTypedArrayFactory.new, nil)
+            @registry.add(::BigDecimal, SOAP::SOAPDouble, SOAP::Mapping::Registry::BasetypeFactory, {:derived_class => true})
           end
       end
 
