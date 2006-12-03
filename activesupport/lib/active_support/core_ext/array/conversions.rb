@@ -61,9 +61,9 @@ module ActiveSupport #:nodoc:
 
           options[:builder].instruct! unless options.delete(:skip_instruct)
 
-          opts = options.merge({ :skip_instruct => true, :root => children })
+          opts = options.merge({ :root => children })
 
-          options[:builder].tag!(root) { each { |e| e.to_xml(opts) } }
+          options[:builder].tag!(root) { each { |e| e.to_xml(opts.merge!({ :skip_instruct => true })) } }
         end
 
       end

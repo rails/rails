@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed Array#to_xml when it contains a series of hashes (each piece would get its own XML declaration) #6610 [thkarcher/cyu]
+
 * Added Time#to_s(:time) which will just return H:M, like 17:44 [DHH]
 
 * Add Module#attr_accessor_with_default to initialize value of attribute before setting it. Closes #6538. [Stuart Halloway, Marcel Molina Jr.]
