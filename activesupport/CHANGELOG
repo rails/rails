@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed Array#to_xml when it contains a series of hashes (each piece would get its own XML declaration) #6610 [thkarcher/cyu]
+
+
 *1.4.0 RC1* (November 22nd, 2006)
 
 * Hash#to_xml handles keys with the same name as Kernel methods.  #6613 [Catfish]
