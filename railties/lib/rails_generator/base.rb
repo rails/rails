@@ -3,19 +3,47 @@ require File.dirname(__FILE__) + '/manifest'
 require File.dirname(__FILE__) + '/spec'
 require File.dirname(__FILE__) + '/generated_attribute'
 
-# Rails::Generator is a code generation platform tailored for the Rails
-# web application framework.  Generators are easily invoked within Rails
-# applications to add and remove components such as models and controllers.
-# New generators are easy to create and may be distributed as RubyGems or
-# tarballs for inclusion system-wide, per-user, or per-application.
-#
-# Generators may subclass other generators to provide variations that
-# require little or no new logic but replace the template files.
-# The postback generator is an example:  it subclasses the scaffold
-# generator and just replaces the code templates with its own.
-#
-# Now go forth and multiply^Wgenerate.
 module Rails
+  # Rails::Generator is a code generation platform tailored for the Rails
+  # web application framework.  Generators are easily invoked within Rails
+  # applications to add and remove components such as models and controllers.
+  # New generators are easy to create and may be distributed as RubyGems,
+  # tarballs, or Rails plugins for inclusion system-wide, per-user, 
+  # or per-application.
+  #
+  # For actual examples see the rails_generator/generators directory in the
+  # Rails source (or the +railties+ directory if you have frozen the Rails
+  # source in your application).
+  #
+  # Generators may subclass other generators to provide variations that
+  # require little or no new logic but replace the template files.
+  #
+  # For a RubyGem, put your generator class and templates in the +lib+
+  # directory. For a Rails plugin, make a +generators+ directory at the 
+  # root of your plugin.
+  #
+  # The layout of generator files can be seen in the built-in 
+  # +controller+ generator:
+  #   
+  #   generators/
+  #     controller/
+  #       controller_generator.rb
+  #       templates/
+  #         controller.rb
+  #         functional_test.rb
+  #         helper.rb
+  #         view.rhtml
+  #
+  # The directory name (+controller+) matches the name of the generator file
+  # (controller_generator.rb) and class (+ControllerGenerator+). The files
+  # that will be copied or used as templates are stored in the +templates+
+  # directory.
+  #
+  # The filenames of the templates don't matter, but choose something that
+  # will be self-explatatory since you will be referencing these in the 
+  # +manifest+ method inside your generator subclass.
+  #
+  # 
   module Generator
     class GeneratorError < StandardError; end
     class UsageError < GeneratorError; end
@@ -23,27 +51,36 @@ module Rails
 
     # The base code generator is bare-bones.  It sets up the source and
     # destination paths and tells the logger whether to keep its trap shut.
-    # You're probably looking for NamedBase, a subclass meant for generating
-    # "named" components such as models, controllers, and mailers.
+    #
+    # It's useful for copying files such as stylesheets, images, or 
+    # javascripts.
+    #
+    # For more comprehensive template-based passive code generation with
+    # arguments, you'll want Rails::Generator::NamedBase. 
     #
     # Generators create a manifest of the actions they perform then hand
-    # the manifest to a command which replay the actions to do the heavy
-    # lifting.  Create, destroy, and list commands are included.  Since a
+    # the manifest to a command which replays the actions to do the heavy
+    # lifting (such as checking for existing files or creating directories
+    # if needed). Create, destroy, and list commands are included.  Since a
     # single manifest may be used by any command, creating new generators is
     # as simple as writing some code templates and declaring what you'd like
     # to do with them.
     #
     # The manifest method must be implemented by subclasses, returning a
-    # Rails::Generator::Manifest.  The record method is provided as a
+    # Rails::Generator::Manifest.  The +record+ method is provided as a
     # convenience for manifest creation.  Example:
-    #   class EliteGenerator < Rails::Generator::Base
+    #
+    #   class StylesheetGenerator < Rails::Generator::Base
     #     def manifest
     #       record do |m|
-    #         m.do(some)
-    #         m.things(in) { here }
+    #         m.directory('public/stylesheets')
+    #         m.file('application.css', 'public/stylesheets/application.css')
     #       end
     #     end
     #   end
+    #
+    # See Rails::Generator::Commands::Create for a list of methods available
+    # to the manifest.
     class Base
       include Options
 
@@ -79,7 +116,7 @@ module Rails
         usage if options[:help]
       end
 
-      # Generators must provide a manifest.  Use the record method to create
+      # Generators must provide a manifest.  Use the +record+ method to create
       # a new manifest and record your generator's actions.
       def manifest
         raise NotImplementedError, "No manifest for '#{spec.name}' generator."
@@ -137,13 +174,25 @@ module Rails
     # The base generator for named components: models, controllers, mailers,
     # etc.  The target name is taken as the first argument and inflected to
     # singular, plural, class, file, and table forms for your convenience.
-    # The remaining arguments are aliased to actions for controller and
-    # mailer convenience.
+    # The remaining arguments are aliased to +actions+ as an array for 
+    # controller and mailer convenience.
+    #
+    # Several useful local variables and methods are populated in the 
+    # +initialize+ method. See below for a list of Attributes and
+    # External Aliases available to both the manifest and to all templates.    
     #
     # If no name is provided, the generator raises a usage error with content
     # optionally read from the USAGE file in the generator's base path.
     #
-    # See Rails::Generator::Base for a discussion of Manifests and Commands.
+    # For example, the +controller+ generator takes the first argument as 
+    # the name of the class and subsequent arguments as the names of
+    # actions to be generated:
+    #
+    #   ./script/generate controller Article index new create
+    #
+    # See Rails::Generator::Base for a discussion of manifests, 
+    # Rails::Generator::Commands::Create for methods available to the manifest,
+    # and Rails::Generator for a general discussion of generators.
     class NamedBase < Base
       attr_reader   :name, :class_name, :singular_name, :plural_name, :table_name
       attr_reader   :class_path, :file_path, :class_nesting, :class_nesting_depth
