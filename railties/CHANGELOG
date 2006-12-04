@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed script/process/spawner to work properly with Mongrel including in -r (daemonize mode) [DHH]
+
 * Deprecated the name route "root" as it'll be used as a shortcut for map.connect '' in Rails 2.0 [DHH]
 
 * Fixed that script/server running against Mongrel should tail the proper log regardless of the environment [DHH]

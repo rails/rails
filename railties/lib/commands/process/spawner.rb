@@ -56,11 +56,18 @@ end
 
 class MongrelSpawner < Spawner
   def self.spawn(port)
-    cmd = "mongrel_rails start -d -p #{port} -P #{OPTIONS[:pids]}/#{OPTIONS[:process]}.#{port}.pid -e #{OPTIONS[:environment]}"
-    cmd << "-a #{OPTIONS[:address]}" if can_bind_to_custom_address?
+    cmd =
+      "mongrel_rails start -d " +
+      "-a #{OPTIONS[:address]} " +
+      "-p #{port} " +
+      "-P #{OPTIONS[:pids]}/#{OPTIONS[:process]}.#{port}.pid " +
+      "-e #{OPTIONS[:environment]} " +
+      "-c #{OPTIONS[:rails_root]} " +
+      "-l #{OPTIONS[:rails_root]}/log/mongrel.log"
+
     system(cmd)
   end
-
+  
   def self.can_bind_to_custom_address?
     true
   end
@@ -109,6 +116,7 @@ OPTIONS = {
   :spawner     => '/usr/bin/env spawn-fcgi',
   :dispatcher  => File.expand_path(RAILS_ROOT + '/public/dispatch.fcgi'),
   :pids        => File.expand_path(RAILS_ROOT + "/tmp/pids"),
+  :rails_root  => File.expand_path(RAILS_ROOT),
   :process     => "dispatch",
   :port        => 8000,
   :address     => '0.0.0.0',
@@ -165,9 +173,11 @@ ARGV.options do |opts|
   opts.on("  Options:")
 
   opts.on("-p", "--port=number",      Integer, "Starting port number (default: #{OPTIONS[:port]})")                { |OPTIONS[:port]| }
+
   if spawner_class.can_bind_to_custom_address?
     opts.on("-a", "--address=ip",     String,  "Bind to IP address (default: #{OPTIONS[:address]})")                { |OPTIONS[:address]| }
   end
+
   opts.on("-p", "--port=number",      Integer, "Starting port number (default: #{OPTIONS[:port]})")                { |v| OPTIONS[:port] = v }
   opts.on("-i", "--instances=number", Integer, "Number of instances (default: #{OPTIONS[:instances]})")            { |v| OPTIONS[:instances] = v }
   opts.on("-r", "--repeat=seconds",   Integer, "Repeat spawn attempts every n seconds (default: off)")             { |v| OPTIONS[:repeat] = v }
