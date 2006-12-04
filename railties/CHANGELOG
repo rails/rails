@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed script/process/spawner to work properly with Mongrel including in -r (daemonize mode) [DHH]
+
 * Added one-letter aliases for the three default environments to script/console, so script/console p will load the production environment (t for test, d for development) [DHH]
 
 * Fixed that script/server running against Mongrel should tail the proper log regardless of the environment [DHH]
