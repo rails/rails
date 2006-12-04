@@ -979,6 +979,14 @@ module ActionController
           @set.add_named_route(name, path, options)
         end
 
+        # Added deprecation notice for anyone who already added a named route called "root".
+        # It'll be used as a shortcut for map.connect '' in Rails 2.0.
+        def root(*args, &proc)
+          super unless args.length >= 1 && proc.nil?
+          @set.add_named_route("root", *args)
+        end
+        deprecate :root => "(as the the label for a named route) will become a shortcut for map.connect '', so find another name"
+
         def method_missing(route_name, *args, &proc)
           super unless args.length >= 1 && proc.nil?
           @set.add_named_route(route_name, *args)

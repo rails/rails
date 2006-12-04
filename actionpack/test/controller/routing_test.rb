@@ -376,7 +376,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
 
   def test_named_url_with_no_action_specified
     rs.draw do |map|
-      map.root '', :controller => 'content'
+      map.home '', :controller => 'content'
       map.connect ':controller/:action/:id'
     end
     
@@ -384,14 +384,14 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal '/', rs.generate(:controller => 'content')
     
     x = setup_for_named_route.new
-    assert_equal({:controller => 'content', :action => 'index', :use_route => :root, :only_path => false},
-                 x.send(:root_url))
+    assert_equal({:controller => 'content', :action => 'index', :use_route => :home, :only_path => false},
+                 x.send(:home_url))
   end
   
   def test_url_generated_when_forgetting_action
     [{:controller => 'content', :action => 'index'}, {:controller => 'content'}].each do |hash| 
       rs.draw do |map|
-        map.root '', hash
+        map.home '', hash
         map.connect ':controller/:action/:id'
       end
       assert_equal '/', rs.generate({:action => nil}, {:controller => 'content', :action => 'hello'})
@@ -1578,6 +1578,18 @@ class RouteSetTest < Test::Unit::TestCase
     assert_equal("show", request.path_parameters[:action])
     assert_equal("5", request.path_parameters[:id])
     assert_equal("png", request.path_parameters[:_format])
+  ensure
+    Object.send(:remove_const, :PeopleController)
+  end
+
+  def test_deprecation_warning_for_root_route
+    Object.const_set(:PeopleController, Class.new)
+
+    set.draw do |map|
+      assert_deprecated do
+        map.root('', :controller => "people")
+      end    
+    end
   ensure
     Object.send(:remove_const, :PeopleController)
   end
