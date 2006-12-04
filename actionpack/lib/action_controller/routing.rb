@@ -975,6 +975,11 @@ module ActionController
           @set.add_route(path, options)
         end
 
+        # Creates a named route called "root" for matching the root level request.
+        def root(options = {})
+          named_route("root", '', options)
+        end
+
         def named_route(name, path, options = {})
           @set.add_named_route(name, path, options)
         end

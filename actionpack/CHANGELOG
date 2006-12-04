@@ -1,5 +1,7 @@
 *SVN*
 
+* Added map.root as an alias for map.connect '' [DHH]
+
 * Added Request#format to return the format used for the request as a mime type. If no format is specified, the first Request#accepts type is used. This means you can stop using respond_to for anything else than responses [DHH]. Examples:
 
     GET /posts/5.xml   | request.format => Mime::XML
