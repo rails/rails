@@ -116,9 +116,13 @@ module ActiveRecord
       def empty?
         size.zero?
       end
-      
-      def any?
-        !empty?
+
+      def any?(&block)
+        if block_given?
+          method_missing(:any?, &block)
+        else
+          !empty?
+        end
       end
 
       def uniq(collection = self)
