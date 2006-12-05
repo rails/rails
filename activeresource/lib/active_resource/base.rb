@@ -106,7 +106,7 @@ module ActiveResource
     end
 
     def destroy
-      connection.delete(self.class.element_path(id, prefix_options))
+      connection.delete(element_path)
     end
 
     def to_xml(options={})
@@ -155,12 +155,12 @@ module ActiveResource
       end
 
       def update
-        connection.put(self.class.element_path(id, prefix_options), to_xml)
+        connection.put(element_path, to_xml)
         true
       end
 
       def create
-        resp = connection.post(self.class.collection_path(prefix_options), to_xml)
+        resp = connection.post(collection_path, to_xml)
         self.id = id_from_response(resp)
         true
       end
@@ -168,6 +168,14 @@ module ActiveResource
       # takes a response from a typical create post and pulls the ID out
       def id_from_response(response)
         response['Location'][/\/([^\/]*?)(\.\w+)?$/, 1]
+      end
+
+      def element_path(options = nil)
+        self.class.element_path(id, options || prefix_options)
+      end
+
+      def collection_path(options = nil)
+        self.class.collection_path(options || prefix_options)
       end
 
     private

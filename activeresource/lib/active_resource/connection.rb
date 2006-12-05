@@ -40,9 +40,10 @@ module ActiveResource
     end
 
     def initialize(site)
-      self.site = site.is_a?(URI) ? site : URI.parse(site)
+      raise ArgumentError, 'Missing site URI' unless site
+      self.site = site
     end
-    
+
     def site=(site)
       @site = site.is_a?(URI) ? site : URI.parse(site)
     end
@@ -65,7 +66,7 @@ module ActiveResource
 
     private
       def request(method, path, *arguments)
-        logger.info "requesting #{method.to_s.upcase} #{site.scheme}://#{site.host}:#{site.port}#{path}" if logger
+        logger.info "#{method.to_s.upcase} #{site.scheme}://#{site.host}:#{site.port}#{path}" if logger
         result = nil
         time = Benchmark.realtime { result = http.send(method, path, *arguments) }
         logger.info "--> #{result.code} #{result.message} (#{result.body.length}b %.2fs)" % time if logger

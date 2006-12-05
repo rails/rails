@@ -2,13 +2,13 @@ require 'active_resource/connection'
 
 module ActiveResource
   class InvalidRequestError < StandardError; end
-    
+
   class HttpMock
     class Responder
       def initialize(responses)
         @responses = responses
       end
-      
+
       for method in [ :post, :put, :get, :delete ]
         module_eval <<-EOE
           def #{method}(path, request_headers = {}, body = nil, status = 200, response_headers = {})
@@ -50,7 +50,7 @@ module ActiveResource
         end
       EOE
     end
-    
+
     for method in [ :get, :delete ]
       module_eval <<-EOE
         def #{method}(path, headers)
@@ -60,7 +60,7 @@ module ActiveResource
         end
       EOE
     end
-    
+
     def initialize(site)
       @site = site
     end
@@ -68,7 +68,7 @@ module ActiveResource
 
   class Request
     attr_accessor :path, :method, :body, :headers
-    
+
     def initialize(method, path, body = nil, headers = {})
       @method, @path, @body, @headers = method, path, body, headers
       @headers.update('Content-Type' => 'application/xml')
@@ -77,27 +77,28 @@ module ActiveResource
     def ==(other_request)
       other_request.hash == hash
     end
-    
+
     def eql?(other_request)
       self == other_request
     end
-    
+
     def to_s
       "<#{method.to_s.upcase}: #{path} [#{headers}] (#{body})>"
     end
-    
+
     def hash
       "#{path}#{method}#{headers}".hash
     end
   end
-  
+
   class Response
-    attr_accessor :body, :code, :headers
-    
-    def initialize(body, code = 200, headers = {})
-      @body, @code, @headers = body, code, headers
+    attr_accessor :body, :message, :code, :headers
+
+    def initialize(body, message = 200, headers = {})
+      @body, @message, @headers = body, message.to_s, headers
+      @code = @message[0,3].to_i
     end
-    
+
     def success?
       (200..299).include?(code)
     end
@@ -105,11 +106,10 @@ module ActiveResource
     def [](key)
       headers[key]
     end
-    
+
     def []=(key, value)
       headers[key] = value
     end
-
   end
 
   class Connection

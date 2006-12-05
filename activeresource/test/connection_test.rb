@@ -2,7 +2,7 @@ require "#{File.dirname(__FILE__)}/abstract_unit"
 require 'base64'
 
 class ConnectionTest < Test::Unit::TestCase
-  Response = Struct.new(:code)
+  ResponseCodeStub = Struct.new(:code)
 
   def setup
     @conn = ActiveResource::Connection.new('http://localhost')
@@ -20,8 +20,8 @@ class ConnectionTest < Test::Unit::TestCase
   def test_handle_response
     # 2xx and 3xx are valid responses.
     [200, 299, 300, 399].each do |code|
-      expected = Response.new(code)
-      assert_equal expected, @conn.send(:handle_response, expected)
+      expected = ResponseCodeStub.new(code)
+      assert_equal expected, handle_response(expected)
     end
 
     # 404 is a missing resource.
@@ -48,41 +48,51 @@ class ConnectionTest < Test::Unit::TestCase
       assert_response_raises ActiveResource::ConnectionError, code
     end
   end
-  
+
+  def test_initialize_raises_argument_error_on_missing_site
+    assert_raise(ArgumentError) { ActiveResource::Connection.new(nil) }
+  end
+
   def test_site_accessor_accepts_uri_or_string_argument
     site = URI.parse("http://localhost")
 
+    assert_raise(URI::InvalidURIError) { @conn.site = nil }
+
     assert_nothing_raised { @conn.site = "http://localhost" }
-    assert_equal site,  @conn.site
+    assert_equal site, @conn.site
 
     assert_nothing_raised { @conn.site = site }
     assert_equal site, @conn.site
   end
-  
+
   def test_get
     matz = @conn.get("/people/1.xml")
     assert_equal "Matz", matz["person"]["name"]
   end
-  
+
   def test_post
     response = @conn.post("/people.xml")
     assert_equal "/people/5.xml", response["Location"]
   end
-  
+
   def test_put
     response = @conn.put("/people/1.xml")
     assert_equal 204, response.code
   end
-  
+
   def test_delete
     response = @conn.delete("/people/1.xml")
     assert_equal 200, response.code
   end
-  
+
   protected
     def assert_response_raises(klass, code)
       assert_raise(klass, "Expected response code #{code} to raise #{klass}") do
-        @conn.send(:handle_response, Response.new(code))
+        handle_response ResponseCodeStub.new(code)
       end
+    end
+
+    def handle_response(response)
+      @conn.send(:handle_response, response)
     end
 end
