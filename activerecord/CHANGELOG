@@ -1,5 +1,7 @@
 *SVN*
 
+* find supports :lock with :include. Check whether your database allows SELECT ... FOR UPDATE with outer joins before using.  #6764 [vitaly, Jeremy Kemper]
+
 * Add AssociationCollection#create! to be consistent with AssociationCollection#create when dealing with a foreign key that is a protected attribute [Cody Fauser]
 
 * Added counter optimization for AssociationCollection#any? so person.friends.any? won't actually load the full association if we have the count in a cheaper form [DHH]

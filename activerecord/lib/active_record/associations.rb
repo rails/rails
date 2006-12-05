@@ -1172,6 +1172,7 @@ module ActiveRecord
  
           add_order!(sql, options[:order], scope)
           add_limit!(sql, options, scope) if using_limitable_reflections?(join_dependency.reflections)
+          add_lock!(sql, options, scope)
  
           return sanitize_sql(sql)
         end
