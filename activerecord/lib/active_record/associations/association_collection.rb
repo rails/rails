@@ -86,14 +86,11 @@ module ActiveRecord
       end
 
       def create(attributes = {})
-        # Can't use Base.create since the foreign key may be a protected attribute.
-        if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr) }
-        else
-          record = build(attributes)
-          record.save unless @owner.new_record?
-          record
-        end
+        build_and_save_with(attributes, :save)        
+      end
+
+      def create!(attributes = {})
+        build_and_save_with(attributes, :save!)
       end
 
       # Returns the size of the collection by executing a SELECT COUNT(*) query if the collection hasn't been loaded and
@@ -202,6 +199,16 @@ module ActiveRecord
           @owner.class.read_inheritable_attribute(full_callback_name.to_sym) || []
         end
         
+        def build_and_save_with(attributes, method)
+          # Can't use Base.create since the foreign key may be a protected attribute.
+          if attributes.is_a?(Array)
+            attributes.collect { |attr| create(attr) }
+          else
+            record = build(attributes)
+            record.send(method) unless @owner.new_record?
+            record
+          end          
+        end
     end
   end
 end

@@ -4,6 +4,9 @@ require 'logger'
 
 ActiveRecord::Base.logger = Logger.new("debug.log")
 
+# GRANT ALL PRIVILEGES ON activerecord_unittest.* to 'rails'@'localhost';
+# GRANT ALL PRIVILEGES ON activerecord_unittest2.* to 'rails'@'localhost';
+
 ActiveRecord::Base.configurations = {
   'arunit' => {
     :adapter  => 'mysql',
