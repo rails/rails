@@ -119,6 +119,10 @@ module ActiveRecord
       def empty?
         size.zero?
       end
+      
+      def any?
+        !empty?
+      end
 
       def uniq(collection = self)
         seen = Set.new

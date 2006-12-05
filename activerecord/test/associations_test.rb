@@ -508,7 +508,9 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
   def test_counting_using_sql
     assert_equal 1, Firm.find(:first).clients_using_counter_sql.size
+    assert Firm.find(:first).clients_using_counter_sql.any?
     assert_equal 0, Firm.find(:first).clients_using_zero_counter_sql.size
+    assert !Firm.find(:first).clients_using_zero_counter_sql.any?
   end
 
   def test_counting_non_existant_items_using_sql

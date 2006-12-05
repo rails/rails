@@ -1,5 +1,7 @@
 *SVN*
 
+* Added counter optimization for AssociationCollection#any? so person.friends.any? won't actually load the full association if we have the count in a cheaper form [DHH]
+
 * Subclasses of an abstract class work with single-table inheritance.  #5704 [nick+rails@ag.arizona.edu, Ryan Davis, Jeremy Kemper]
 
 * Change fixture_path to a class inheritable accessor allowing test cases to have their own custom set of fixtures. #6672 [zdennis]
