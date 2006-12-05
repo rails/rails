@@ -1,5 +1,7 @@
 *1.15.0 RC2*
 
+* find supports :lock with :include. Check whether your database allows SELECT ... FOR UPDATE with outer joins before using.  #6764 [vitaly, Jeremy Kemper]
+
 * Subclasses of an abstract class work with single-table inheritance.  #5704 [nick+rails@ag.arizona.edu, Ryan Davis, Jeremy Kemper]
 
 * Support nil and Array in :conditions => { attr => value } hashes.  #6548 [Assaf, Jeremy Kemper]

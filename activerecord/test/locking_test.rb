@@ -63,12 +63,12 @@ class OptimisticLockingTest < Test::Unit::TestCase
     assert_equal 1, p1.lock_version
     assert_equal p1.lock_version, Person.new(p1.attributes).lock_version
   end
-  
+
   def test_lock_without_default_sets_version_to_zero
     t1 = LockWithoutDefault.new
     assert_equal 0, t1.lock_version
   end
-  
+
   def test_lock_with_custom_column_without_default_sets_version_to_zero
     t1 = LockWithCustomColumnWithoutDefault.new
     assert_equal 0, t1.custom_lock_version
@@ -87,17 +87,17 @@ unless current_adapter?(:SQLServerAdapter)
   class PessimisticLockingTest < Test::Unit::TestCase
     self.use_transactional_fixtures = false
     fixtures :people
-  
+
     def setup
       @allow_concurrency = ActiveRecord::Base.allow_concurrency
       ActiveRecord::Base.allow_concurrency = true
     end
-  
+
     def teardown
       ActiveRecord::Base.allow_concurrency = @allow_concurrency
     end
-  
-    # Test that the adapter doesn't blow up on add_lock!
+
+    # Test typical find.
     def test_sane_find_with_lock
       assert_nothing_raised do
         Person.transaction do
@@ -105,9 +105,9 @@ unless current_adapter?(:SQLServerAdapter)
         end
       end
     end
-  
-    # Test no-blowup for scoped lock.
-    def test_sane_find_with_lock
+
+    # Test scoped lock.
+    def test_sane_find_with_scoped_lock
       assert_nothing_raised do
         Person.transaction do
           Person.with_scope(:find => { :lock => true }) do
@@ -116,7 +116,19 @@ unless current_adapter?(:SQLServerAdapter)
         end
       end
     end
-  
+
+    # PostgreSQL protests SELECT ... FOR UPDATE on an outer join.
+    unless current_adapter?(:PostgreSQLAdapter)
+      # Test locked eager find.
+      def test_eager_find_with_lock
+        assert_nothing_raised do
+          Person.transaction do
+            Reader.find 1, :include => :person, :lock => true
+          end
+        end
+      end
+    end
+
     # Locking a record reloads it.
     def test_sane_lock_method
       assert_nothing_raised do
@@ -128,24 +140,24 @@ unless current_adapter?(:SQLServerAdapter)
         end
       end
     end
-  
+
     if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
       def test_no_locks_no_wait
         first, second = duel { Person.find 1 }
         assert first.end > second.end
       end
-  
+
       def test_second_lock_waits
         assert [0.2, 1, 5].any? { |zzz|
           first, second = duel(zzz) { Person.find 1, :lock => true }
           second.end > first.end
         }
       end
-  
+
       protected
         def duel(zzz = 5)
           t0, t1, t2, t3 = nil, nil, nil, nil
-  
+
           a = Thread.new do
             t0 = Time.now
             Person.transaction do
@@ -154,17 +166,17 @@ unless current_adapter?(:SQLServerAdapter)
             end
             t1 = Time.now
           end
-  
+
           b = Thread.new do
             sleep zzz / 2.0   # ensure thread 1 tx starts first
             t2 = Time.now
             Person.transaction { yield }
             t3 = Time.now
           end
-  
+
           a.join
           b.join
-  
+
           assert t1 > t0 + zzz
           assert t2 > t0
           assert t3 > t2
