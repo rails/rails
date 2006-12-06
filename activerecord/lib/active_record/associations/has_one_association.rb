@@ -6,9 +6,29 @@ module ActiveRecord
         construct_sql
       end
 
-      def create(attributes = {}, replace_existing = true)
-        record = build(attributes, replace_existing)
-        record.save
+      def create(attrs = {}, replace_existing = true)
+        record = @reflection.klass.with_scope(construct_scope) { @reflection.klass.create(attrs) }                
+
+        if replace_existing
+          replace(record, true) 
+        else
+          record[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
+          self.target = record
+        end
+
+        record
+      end
+
+      def create!(attrs = {}, replace_existing = true)
+        record = @reflection.klass.with_scope(construct_scope) { @reflection.klass.create!(attrs) }                
+
+        if replace_existing
+          replace(record, true) 
+        else
+          record[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
+          self.target = record
+        end
+
         record
       end
 
@@ -75,6 +95,13 @@ module ActiveRecord
           end
           @finder_sql << " AND (#{conditions})" if conditions
         end
+        
+        def construct_scope
+          create_scoping = {}
+          set_belongs_to_association_for(create_scoping)
+          { :create => create_scoping }
+        end
+        
     end
   end
 end

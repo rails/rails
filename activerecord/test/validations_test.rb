@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'fixtures/topic'
 require 'fixtures/reply'
+require 'fixtures/person'
 require 'fixtures/developer'
 
 # The following methods in Topic are used in test_conditional_validation_*
@@ -12,6 +13,12 @@ class Topic
   def condition_is_true_but_its_not
     return false
   end
+end
+
+class ProtectedPerson < ActiveRecord::Base
+  set_table_name 'people'
+  attr_accessor :addon
+  attr_protected :first_name
 end
 
 class ValidationsTest < Test::Unit::TestCase
@@ -93,6 +100,24 @@ class ValidationsTest < Test::Unit::TestCase
       assert_raises(ActiveRecord::RecordInvalid) { Reply.create! }
     end
   end
+
+  def test_create_with_exceptions_using_scope_for_protected_attributes
+    assert_nothing_raised do
+      ProtectedPerson.with_scope( :create => { :first_name => "Mary" } ) do
+        person = ProtectedPerson.create! :addon => "Addon"
+        assert_equal person.first_name, "Mary", "scope should ignore attr_protected"
+      end
+    end
+  end
+
+  def test_create_with_exceptions_using_scope_and_empty_attributes
+    assert_nothing_raised do
+      ProtectedPerson.with_scope( :create => { :first_name => "Mary" } ) do        
+        person = ProtectedPerson.create!
+        assert_equal person.first_name, "Mary", "should be ok when no attributes are passed to create!"
+      end
+    end
+ end
 
   def test_single_error_per_attr_iteration
     r = Reply.new

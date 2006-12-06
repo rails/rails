@@ -84,13 +84,19 @@ module ActiveRecord
 
         reset_target!
       end
-
-      def create(attributes = {})
-        build_and_save_with(attributes, :save)        
+      
+      def create(attrs = {})
+        record = @reflection.klass.with_scope(construct_scope) { @reflection.klass.create(attrs) }                
+        @target ||= [] unless loaded?
+        @target << record 
+        record
       end
 
-      def create!(attributes = {})
-        build_and_save_with(attributes, :save!)
+      def create!(attrs = {})
+        record = @reflection.klass.with_scope(construct_scope) { @reflection.klass.create!(attrs) }                
+        @target ||= [] unless loaded?
+        @target << record 
+        record
       end
 
       # Returns the size of the collection by executing a SELECT COUNT(*) query if the collection hasn't been loaded and
@@ -201,18 +207,7 @@ module ActiveRecord
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{@reflection.name}"
           @owner.class.read_inheritable_attribute(full_callback_name.to_sym) || []
-        end
-        
-        def build_and_save_with(attributes, method)
-          # Can't use Base.create since the foreign key may be a protected attribute.
-          if attributes.is_a?(Array)
-            attributes.collect { |attr| create(attr) }
-          else
-            record = build(attributes)
-            record.send(method) unless @owner.new_record?
-            record
-          end          
-        end
+        end        
     end
   end
 end

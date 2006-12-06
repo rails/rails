@@ -1,5 +1,7 @@
 *SVN*
 
+* Consolidated different create and create! versions to call through to the base class with scope. This fixes inconsistencies, especially related to protected attribtues. Closes #5847 [Alexander Dymo, Tobias Luetke]
+
 * find supports :lock with :include. Check whether your database allows SELECT ... FOR UPDATE with outer joins before using.  #6764 [vitaly, Jeremy Kemper]
 
 * Add AssociationCollection#create! to be consistent with AssociationCollection#create when dealing with a foreign key that is a protected attribute [Cody Fauser]

@@ -717,12 +717,10 @@ module ActiveRecord
       # so an exception is raised if the record is invalid.
       def create!(attributes = nil)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| create!(attr) }
+          attributes.collect { |attr| create(attr) }
         else
-          attributes ||= {}
-          attributes.reverse_merge!(scope(:create)) if scoped?(:create)
-
           object = new(attributes)
+          scope(:create).each { |att,value| object.send("#{att}=", value) } if scoped?(:create)
           object.save!
           object
         end
