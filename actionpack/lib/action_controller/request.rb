@@ -66,8 +66,6 @@ module ActionController
               content_type = 'application/x-yaml'
             when 'xml'
               content_type = 'application/xml'
-            when 'json'
-              content_type = 'application/x-json'
             end
           end
           
