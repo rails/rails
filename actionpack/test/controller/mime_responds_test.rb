@@ -19,6 +19,13 @@ class RespondToController < ActionController::Base
       type.all  { render :text => "Nothing" }
     end
   end
+  
+  def json_or_yaml
+    respond_to do |type|
+      type.json { render :text => "JSON" }
+      type.yaml { render :yaml => "YAML" }
+    end
+  end
 
   def html_or_xml
     respond_to do |type|
@@ -162,6 +169,19 @@ class MimeControllerTest < Test::Unit::TestCase
 
     get :just_xml
     assert_response 406
+  end
+  
+  def test_json_or_yaml
+    get :json_or_yaml
+    assert_equal 'JSON', @response.body
+    
+    @request.env["HTTP_ACCEPT"] = "text/yaml"
+    get :json_or_yaml
+    assert_equal 'YAML', @response.body
+    
+    @request.env["HTTP_ACCEPT"] = "text/x-json"
+    get :json_or_yaml
+    assert_equal 'JSON', @response.body
   end
 
   def test_js_or_anything

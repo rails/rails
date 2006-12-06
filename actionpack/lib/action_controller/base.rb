@@ -650,6 +650,20 @@ module ActionController #:nodoc:
       #
       # _Deprecation_ _notice_: This used to have the signature <tt>render_text("text", status = 200)</tt>
       #
+      # === Rendering JSON
+      #
+      # Rendering JSON sets the content type to text/x-json and optionally wraps the JSON in a callback. It is expected
+      # that the response will be eval'd for use as a data structure.
+      #
+      #   # Renders '{name: "David"}'
+      #   render :json => {:name => "David"}.to_json
+      #
+      # Sometimes the result isn't handled directly by a script (such as when the request comes from a SCRIPT tag),
+      # so the callback option is provided for these cases.
+      #
+      #   # Renders 'show({name: "David"})'
+      #   render :json => {:name => "David"}.to_json, :callback => 'show'
+      #
       # === Rendering an inline template
       #
       # Rendering of an inline template works as a cross between text and action rendering where the source for the template
@@ -733,6 +747,12 @@ module ActionController #:nodoc:
 
           elsif xml = options[:xml]
             render_xml(xml, options[:status])
+          
+          elsif json = options[:json]
+            render_json(json, options[:callback], options[:status])
+          
+          elsif yaml = options[:yaml]
+            render_yaml(yaml, options[:status])
 
           elsif partial = options[:partial]
             partial = default_template_name if partial == true
@@ -812,6 +832,18 @@ module ActionController #:nodoc:
       def render_xml(xml, status = nil) #:nodoc:
         response.content_type = Mime::XML
         render_text(xml, status)
+      end
+      
+      def render_json(json, callback = nil, status = nil) #:nodoc:
+        json = "#{callback}(#{json})" unless callback.blank?
+        
+        response.content_type = Mime::JSON
+        render_text(json, status)
+      end
+      
+      def render_yaml(yaml, status = nil) #:nodoc:
+        response.content_type = Mime::YAML
+        render_text(yaml, status)
       end
 
       def render_nothing(status = nil) #:nodoc:
