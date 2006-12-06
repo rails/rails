@@ -8,7 +8,7 @@
     find(:all, :conditions => { :topic_id => [1, 2, 3], :last_read => nil }
 
 
-*1.15.0 RC1* (November 22nd, 2006)
+*1.15.0 RC1* (r5619, November 22nd, 2006)
 
 * Quote ActiveSupport::Multibyte::Chars.  #6653 [Julian Tarkhanov]
 
