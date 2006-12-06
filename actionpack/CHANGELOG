@@ -1,10 +1,29 @@
-*1.13.0 RC1* (November 22nd, 2006)
+*1.13.0 RC2*
+
+* Makes :discard_year work without breaking multi-attribute parsing in AR.  #1260, #3800 [sean@ardismg.com, jmartin@desertflood.com, stephen@touset.org, Bob Silva]
+
+* Adds html id attribute to date helper elements.  #1050, #1382 [mortonda@dgrmm.net, David North, Bob Silva]
+
+* Add :index and @auto_index capability to model driven date/time selects.  #847, #2655 [moriq, Doug Fales, Bob Silva]
+
+* Add :order to datetime_select, select_datetime, and select_date.  #1427 [Timothee Peignier, patrick@lenz.sh, Bob Silva]
+
+* Added time_select to work with time values in models. Update scaffolding.  #2489, #2833 [Justin Palmer, Andre Caum, Bob Silva]
+
+* Added :include_seconds to select_datetime, datetime_select and time_select.  #2998 [csn, Bob Silva]
+
+* All date/datetime selects can now accept an array of month names with :use_month_names. Allows for localization.  #363 [tomasj, Bob Silva]
+
+* Adds :time_separator to select_time and :date_separator to select_datetime. Preserves BC.  #3811 [Bob Silva]
 
 * @response.redirect_url works with 201 Created responses: just return headers['Location'] rather than checking the response status.  [Jeremy Kemper]
 
 * Fixed that HEAD should return the proper Content-Length header (that is, actually use @body.size, not just 0) [DHH]
 
 * Added GET-masquarading for HEAD, so request.method will return :get even for HEADs. This will help anyone relying on case request.method to automatically work with HEAD and map.resources will also allow HEADs to all GET actions. Rails automatically throws away the response content in a reply to HEAD, so you don't even need to worry about that. If you, for whatever reason, still need to distinguish between GET and HEAD in some edge case, you can use Request#head? and even Request.headers["REQUEST_METHOD"] for get the "real" answer. Closes #6694 [DHH]
+
+
+*1.13.0 RC1* (r5619, November 22nd, 2006)
 
 * Update Routing to complain when :controller is not specified by a route. Closes #6669. [Nicholas Seckar]
 
