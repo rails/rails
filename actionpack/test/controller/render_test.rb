@@ -38,11 +38,11 @@ class TestController < ActionController::Base
   def render_text_hello_world
     render_text "hello world"
   end
-  
+
   def render_json_hello_world
     render_json({:hello => 'world'}.to_json)
   end
-  
+
   def render_json_hello_world_with_callback
     render_json({:hello => 'world'}.to_json, 'alert')
   end
@@ -171,15 +171,17 @@ class RenderTest < Test::Unit::TestCase
     get :render_text_hello_world
     assert_equal "hello world", @response.body
   end
-  
+
   def test_do_with_render_json
     get :render_json_hello_world
     assert_equal '{hello: "world"}', @response.body
+    assert_equal 'application/json', @response.content_type
   end
-  
+
   def test_do_with_render_json_with_callback
     get :render_json_hello_world_with_callback
     assert_equal 'alert({hello: "world"})', @response.body
+    assert_equal 'application/json', @response.content_type
   end
 
   def test_do_with_render_custom_code
