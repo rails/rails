@@ -747,12 +747,9 @@ module ActionController #:nodoc:
 
           elsif xml = options[:xml]
             render_xml(xml, options[:status])
-          
+
           elsif json = options[:json]
             render_json(json, options[:callback], options[:status])
-          
-          elsif yaml = options[:yaml]
-            render_yaml(yaml, options[:status])
 
           elsif partial = options[:partial]
             partial = default_template_name if partial == true
@@ -833,17 +830,12 @@ module ActionController #:nodoc:
         response.content_type = Mime::XML
         render_text(xml, status)
       end
-      
+
       def render_json(json, callback = nil, status = nil) #:nodoc:
         json = "#{callback}(#{json})" unless callback.blank?
-        
+
         response.content_type = Mime::JSON
         render_text(json, status)
-      end
-      
-      def render_yaml(yaml, status = nil) #:nodoc:
-        response.content_type = Mime::YAML
-        render_text(yaml, status)
       end
 
       def render_nothing(status = nil) #:nodoc:

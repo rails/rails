@@ -19,11 +19,11 @@ class RespondToController < ActionController::Base
       type.all  { render :text => "Nothing" }
     end
   end
-  
+
   def json_or_yaml
     respond_to do |type|
       type.json { render :text => "JSON" }
-      type.yaml { render :yaml => "YAML" }
+      type.yaml { render :text => "YAML" }
     end
   end
 
