@@ -30,6 +30,10 @@ class ActionView::Helpers::InstanceTag
   def to_datetime_select_tag(options = {})
     "<%= datetime_select '#{@object_name}', '#{@method_name}' #{options.empty? ? '' : ', '+ options.inspect} %>"
   end
+  
+  def to_time_select_tag(options = {})
+    "<%= time_select '#{@object_name}', '#{@method_name}' #{options.empty? ? '' : ', '+ options.inspect} %>"
+  end
 end
 
 class ScaffoldGenerator < Rails::Generator::NamedBase
