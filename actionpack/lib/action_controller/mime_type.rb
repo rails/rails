@@ -140,8 +140,9 @@ module Mime
   RSS   = Type.new "application/rss+xml", :rss
   ATOM  = Type.new "application/atom+xml", :atom
   YAML  = Type.new "application/x-yaml", :yaml, %w( text/yaml )
+  JSON  = Type.new "application/json", :json, %w( text/x-json )
 
-  SET   = [ ALL, TEXT, HTML, JS, ICS, XML, RSS, ATOM, YAML ]
+  SET   = [ ALL, TEXT, HTML, JS, ICS, XML, RSS, ATOM, YAML, JSON ]
 
   LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) unless k == "" }
 
@@ -170,7 +171,10 @@ module Mime
   LOOKUP["application/rss+xml"]      = RSS
   LOOKUP["application/atom+xml"]     = ATOM
 
-  
+  LOOKUP["application/json"]         = JSON
+  LOOKUP["text/x-json"]              = JSON
+
+
   EXTENSION_LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) unless k == "" }
 
   EXTENSION_LOOKUP["html"]  = HTML
@@ -191,4 +195,6 @@ module Mime
 
   EXTENSION_LOOKUP["rss"]   = RSS
   EXTENSION_LOOKUP["atom"]  = ATOM
+
+  EXTENSION_LOOKUP["json"]  = JSON
 end
