@@ -1,5 +1,21 @@
 *SVN*
 
+* Makes :discard_year work without breaking multi-attribute parsing in AR.  #1260, #3800 [sean@ardismg.com, jmartin@desertflood.com, stephen@touset.org, Bob Silva]
+
+* Adds html id attribute to date helper elements.  #1050, #1382 [mortonda@dgrmm.net, David North, Bob Silva]
+
+* Add :index and @auto_index capability to model driven date/time selects.  #847, #2655 [moriq, Doug Fales, Bob Silva]
+
+* Add :order to datetime_select, select_datetime, and select_date.  #1427 [Timothee Peignier, patrick@lenz.sh, Bob Silva]
+
+* Added time_select to work with time values in models. Update scaffolding.  #2489, #2833 [Justin Palmer, Andre Caum, Bob Silva]
+
+* Added :include_seconds to select_datetime, datetime_select and time_select.  #2998 [csn, Bob Silva]
+
+* All date/datetime selects can now accept an array of month names with :use_month_names. Allows for localization.  #363 [tomasj, Bob Silva]
+
+* Adds :time_separator to select_time and :date_separator to select_datetime. Preserves BC.  #3811 [Bob Silva]
+
 * Added map.root as an alias for map.connect '' [DHH]
 
 * Added Request#format to return the format used for the request as a mime type. If no format is specified, the first Request#accepts type is used. This means you can stop using respond_to for anything else than responses [DHH]. Examples:

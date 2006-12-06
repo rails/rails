@@ -167,6 +167,8 @@ module ActionView
             to_date_select_tag(options)
           when :datetime, :timestamp
             to_datetime_select_tag(options)
+          when :time
+            to_time_select_tag(options)
           when :boolean
             to_boolean_select_tag(options)
         end
@@ -205,6 +207,15 @@ module ActionView
             error_wrapping(to_datetime_select_tag_without_error_wrapping(options), object.errors.on(@method_name))
           else
             to_datetime_select_tag_without_error_wrapping(options)
+        end
+      end
+
+      alias_method :to_time_select_tag_without_error_wrapping, :to_time_select_tag
+      def to_time_select_tag(options = {})
+        if object.respond_to?("errors") && object.errors.respond_to?("on")
+          error_wrapping(to_time_select_tag_without_error_wrapping(options), object.errors.on(@method_name))
+        else
+          to_time_select_tag_without_error_wrapping(options)
         end
       end
 
