@@ -86,9 +86,12 @@ end
 unless current_adapter?(:SQLServerAdapter)
   class PessimisticLockingTest < Test::Unit::TestCase
     self.use_transactional_fixtures = false
-    fixtures :people
+    fixtures :people, :readers
 
     def setup
+      # Avoid introspection queries during tests.
+      Person.columns; Reader.columns
+
       @allow_concurrency = ActiveRecord::Base.allow_concurrency
       ActiveRecord::Base.allow_concurrency = true
     end
@@ -123,7 +126,7 @@ unless current_adapter?(:SQLServerAdapter)
       def test_eager_find_with_lock
         assert_nothing_raised do
           Person.transaction do
-            Reader.find 1, :include => :person, :lock => true
+            Person.find 1, :include => :readers, :lock => true
           end
         end
       end
