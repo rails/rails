@@ -1,7 +1,7 @@
 *SVN*
 
 * respond_to recognizes JSON. render :json => @person.to_json automatically sets the content type and takes a :callback option to specify a client-side function to call using the rendered JSON as an argument.  #4185 [Scott Raymond, eventualbuddha]
-    # text/x-json response with body 'Element.show({:name: "David"})'
+    # application/json response with body 'Element.show({:name: "David"})'
     respond_to do |format|
       format.json { render :json => { :name => "David" }.to_json, :callback => 'Element.show' }
     end
