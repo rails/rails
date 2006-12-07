@@ -1,5 +1,14 @@
 *SVN*
 
+* Add singleton resources. [Rick Olson]
+
+  map.resource :account
+  
+  GET /account
+  GET /account;edit
+  UPDATE /account
+  DELEE /account
+
 * respond_to recognizes JSON. render :json => @person.to_json automatically sets the content type and takes a :callback option to specify a client-side function to call using the rendered JSON as an argument.  #4185 [Scott Raymond, eventualbuddha]
     # application/json response with body 'Element.show({:name: "David"})'
     respond_to do |format|

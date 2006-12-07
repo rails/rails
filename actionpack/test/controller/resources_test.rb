@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 
 class ResourcesController < ActionController::Base
   def index() render :nothing => true end
+  alias_method :show, :index
   def rescue_action(e) raise e end
 end
 
@@ -9,6 +10,8 @@ class ThreadsController  < ResourcesController; end
 class MessagesController < ResourcesController; end
 class CommentsController < ResourcesController; end
 
+class AccountController <  ResourcesController; end
+class AdminController   <  ResourcesController; end
 
 class ResourcesTest < Test::Unit::TestCase
   def test_should_arrange_actions
@@ -172,10 +175,77 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_should_create_singleton_resource_routes
+    with_singleton_resources :account do
+      assert_singleton_restful_for :account
+    end
+  end
+
+  def test_should_create_multiple_singleton_resource_routes
+    with_singleton_resources :account, :admin do
+      assert_singleton_restful_for :account
+      assert_singleton_restful_for :admin
+    end
+  end
+
+  def test_should_create_nested_singleton_resource_routes
+    with_routing do |set|
+      set.draw do |map|
+        map.resource :admin do |admin|
+          admin.resource :account
+        end
+      end
+      
+      assert_singleton_restful_for :admin
+      assert_singleton_restful_for :account, :path_prefix => 'admin/'
+    end
+  end
+
+  def test_singleton_resource_with_member_action
+    [:put, :post].each do |method|
+      with_singleton_resources :account, :member => { :reset => method } do
+        reset_options = {:action => 'reset'}
+        reset_path    = "/account;reset"
+        assert_singleton_routes_for :account do |options|
+          assert_recognizes(options.merge(reset_options), :path => reset_path, :method => method)
+        end
+
+        assert_singleton_named_routes_for :account do |options|
+          assert_named_route reset_path, :reset_account_path, reset_options
+        end
+      end
+    end
+  end
+
+  def test_singleton_resource_with_two_member_actions_with_same_method
+    [:put, :post].each do |method|
+      with_singleton_resources :account, :member => { :reset => method, :disable => method } do
+        %w(reset disable).each do |action|
+          action_options = {:action => action}
+          action_path    = "/account;#{action}"
+          assert_singleton_routes_for :account do |options|
+            assert_recognizes(options.merge(action_options), :path => action_path, :method => method)
+          end
+
+          assert_singleton_named_routes_for :account do |options|
+            assert_named_route action_path, "#{action}_account_path".to_sym, action_options
+          end
+        end
+      end
+    end
+  end
+
   protected
     def with_restful_routing(*args)
       with_routing do |set|
         set.draw { |map| map.resources(*args) }
+        yield
+      end
+    end
+    
+    def with_singleton_resources(*args)
+      with_routing do |set|
+        set.draw { |map| map.resource(*args) }
         yield
       end
     end
@@ -184,6 +254,11 @@ class ResourcesTest < Test::Unit::TestCase
     def assert_simply_restful_for(controller_name, options = {})
       assert_restful_routes_for       controller_name, options
       assert_restful_named_routes_for controller_name, options
+    end
+
+    def assert_singleton_restful_for(singleton_name, options = {})
+      assert_singleton_routes_for       singleton_name, options
+      assert_singleton_named_routes_for singleton_name, options
     end
 
     def assert_restful_routes_for(controller_name, options = {})
@@ -240,6 +315,35 @@ class ResourcesTest < Test::Unit::TestCase
       assert_named_route "#{full_prefix}/1;edit", "edit_#{singular_name}_path",        options[:options].merge(:id => '1')
       assert_named_route "#{full_prefix}/1.xml",  "formatted_#{singular_name}_path",   options[:options].merge(:format => 'xml', :id => '1')
       yield options[:options] if block_given?
+    end
+
+    def assert_singleton_routes_for(singleton_name, options = {})
+      (options[:options] ||= {})[:controller] ||= singleton_name.to_s
+      
+      full_path = "/#{options[:path_prefix]}#{singleton_name}"
+      with_options options[:options] do |controller|
+        controller.assert_routing full_path,          :action => 'show'
+        controller.assert_routing "#{full_path}.xml", :action => 'show', :format => 'xml'
+      end
+
+      assert_recognizes(options[:options].merge(:action => 'update'),  :path => full_path, :method => :put)
+      assert_recognizes(options[:options].merge(:action => 'destroy'), :path => full_path, :method => :delete)
+
+      yield options[:options] if block_given?
+    end
+
+    def assert_singleton_named_routes_for(singleton_name, options = {})
+      (options[:options] ||= {})[:controller] ||= singleton_name.to_s
+      @controller = "#{options[:options][:controller].camelize}Controller".constantize.new
+      @request    = ActionController::TestRequest.new
+      @response   = ActionController::TestResponse.new
+      get :show, options[:options]
+      options[:options].delete :action
+      
+      full_path = "/#{options[:path_prefix]}#{singleton_name}"
+      
+      assert_named_route "#{full_path}",    "#{singleton_name}_path",            options[:options]
+      assert_named_route "#{full_path}.xml", "formatted_#{singleton_name}_path", options[:options].merge(:format => 'xml')
     end
 
     def assert_named_route(expected, route, options)
