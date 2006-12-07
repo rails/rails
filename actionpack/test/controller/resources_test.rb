@@ -235,6 +235,32 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_should_nest_resources_in_singleton_resource
+    with_routing do |set|
+      set.draw do |map|
+        map.resource :account do |account|
+          account.resources :messages
+        end
+      end
+      
+      assert_singleton_restful_for :account
+      assert_simply_restful_for :messages, :path_prefix => 'account/'
+    end
+  end
+  
+  def test_should_nest_singleton_resource_in_resources
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :threads do |thread|
+          thread.resource :admin
+        end
+      end
+      
+      assert_simply_restful_for :threads
+      assert_singleton_restful_for :admin, :path_prefix => 'threads/5/', :options => { :thread_id => '5' }
+    end
+  end
+
   protected
     def with_restful_routing(*args)
       with_routing do |set|
