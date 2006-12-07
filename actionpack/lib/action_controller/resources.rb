@@ -276,10 +276,10 @@ module ActionController
     # controllers and views. <tt>map.resource :account</tt> produces the following named routes and helpers:
     # 
     #   Named Route   Helpers
-    #   account       account_url(id), hash_for_account_url(id), 
-    #                 account_path(id), hash_for_account_path(id)
-    #   edit_account  edit_account_url(id), hash_for_edit_account_url(id),
-    #                 edit_account_path(id), hash_for_edit_account_path(id)
+    #   account       account_url, hash_for_account_url, 
+    #                 account_path, hash_for_account_path
+    #   edit_account  edit_account_url, hash_for_edit_account_url,
+    #                 edit_account_path, hash_for_edit_account_path
     def resource(*entities, &block)
       options = entities.last.is_a?(Hash) ? entities.pop : { }
       entities.each { |entity| map_singleton_resource entity, options.dup, &block }
