@@ -152,6 +152,10 @@ class TextHelperTest < Test::Unit::TestCase
     link4_result = %{<a href="#{link4_raw}">#{link4_raw}</a>}
     link5_raw    = 'http://foo.example.com:3000/controller/action'
     link5_result = %{<a href="#{link5_raw}">#{link5_raw}</a>}
+    link6_raw    = 'http://foo.example.com:3000/controller/action+pack'
+    link6_result = %{<a href="#{link6_raw}">#{link6_raw}</a>}
+    link7_raw    = 'http://foo.example.com/controller/action?parm=value&p2=v2#anchor-123'
+    link7_result = %{<a href="#{link7_raw}">#{link7_raw}</a>}
 
     assert_equal %(hello #{email_result}), auto_link("hello #{email_raw}", :email_addresses)
     assert_equal %(Go to #{link_result}), auto_link("Go to #{link_raw}", :urls)
@@ -177,6 +181,8 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal %(<p>Link #{link4_result}</p>), auto_link("<p>Link #{link4_raw}</p>")
     assert_equal %(<p>#{link4_result} Link</p>), auto_link("<p>#{link4_raw} Link</p>")
     assert_equal %(<p>#{link5_result} Link</p>), auto_link("<p>#{link5_raw} Link</p>")
+    assert_equal %(<p>#{link6_result} Link</p>), auto_link("<p>#{link6_raw} Link</p>")
+    assert_equal %(<p>#{link7_result} Link</p>), auto_link("<p>#{link7_raw} Link</p>")
     assert_equal '', auto_link(nil)
     assert_equal '', auto_link('')
   end
