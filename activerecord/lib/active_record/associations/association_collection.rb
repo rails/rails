@@ -86,14 +86,14 @@ module ActiveRecord
       end
       
       def create(attrs = {})
-        record = @reflection.klass.with_scope(construct_scope) { @reflection.klass.create(attrs) }                
+        record = @reflection.klass.with_scope(:create => construct_scope[:create]) { @reflection.klass.create(attrs) }                
         @target ||= [] unless loaded?
         @target << record 
         record
       end
 
       def create!(attrs = {})
-        record = @reflection.klass.with_scope(construct_scope) { @reflection.klass.create!(attrs) }                
+        record = @reflection.klass.with_scope(:create => construct_scope[:create]) { @reflection.klass.create!(attrs) }                
         @target ||= [] unless loaded?
         @target << record 
         record

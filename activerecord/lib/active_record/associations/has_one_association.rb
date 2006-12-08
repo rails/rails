@@ -7,7 +7,7 @@ module ActiveRecord
       end
 
       def create(attrs = {}, replace_existing = true)
-        record = @reflection.klass.with_scope(construct_scope) { @reflection.klass.create(attrs) }                
+        record = @reflection.klass.with_scope(:create => construct_scope[:create]) { @reflection.klass.create(attrs) }                
 
         if replace_existing
           replace(record, true) 
@@ -20,7 +20,7 @@ module ActiveRecord
       end
 
       def create!(attrs = {}, replace_existing = true)
-        record = @reflection.klass.with_scope(construct_scope) { @reflection.klass.create!(attrs) }                
+        record = @reflection.klass.with_scope(:create => construct_scope[:create]) { @reflection.klass.create!(attrs) }                
 
         if replace_existing
           replace(record, true) 
