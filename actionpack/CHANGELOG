@@ -1,5 +1,7 @@
 *SVN*
 
+* Unrescued ActiveRecord::RecordNotFound responds with 404 instead of 500.  [Jeremy Kemper]
+
 * Improved auto_link to match more valid urls correctly [Tobias Luetke]
 
 * Add singleton resources. [Rick Olson]

@@ -11,7 +11,8 @@ module ActionController #:nodoc:
     DEFAULT_RESCUE_RESPONSE = :internal_server_error
     DEFAULT_RESCUE_RESPONSES = {
       'ActionController::RoutingError'    => :not_found,
-      'ActionController::UnknownAction'   => :not_found
+      'ActionController::UnknownAction'   => :not_found,
+      'ActiveRecord::RecordNotFound'      => :not_found
     }
 
     DEFAULT_RESCUE_TEMPLATE = 'diagnostics'
