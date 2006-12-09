@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix remove_constant to correctly handle constant names of the form "::A::...". References #6720. [Nicholas Seckar]
+
 * Fixed Array#to_xml when it contains a series of hashes (each piece would get its own XML declaration) #6610 [thkarcher/cyu]
 
 * Added Time#to_s(:time) which will just return H:M, like 17:44 [DHH]

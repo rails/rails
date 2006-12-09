@@ -405,8 +405,9 @@ protected
   def remove_constant(const)
     return false unless qualified_const_defined? const
     
+    const = $1 if /\A::(.*)\Z/ =~ const.to_s
     names = const.split('::')
-    if names.size == 1 || names.first.empty? # It's under Object
+    if names.size == 1 # It's under Object
       parent = Object
     else
       parent = (names[0..-2] * '::').constantize
