@@ -333,10 +333,10 @@ module ActionController
         # the query string. (Never use keys from the recalled request when building the
         # query string.)
 
-        method_decl = "def generate(#{args})\npath, hash = generate_raw(options, hash, expire_on)\nappend_query_string(path, hash, extra_keys(hash, expire_on))\nend"
+        method_decl = "def generate(#{args})\npath, hash = generate_raw(options, hash, expire_on)\nappend_query_string(path, hash, extra_keys(options))\nend"
         instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
 
-        method_decl = "def generate_extras(#{args})\npath, hash = generate_raw(options, hash, expire_on)\n[path, extra_keys(hash, expire_on)]\nend"
+        method_decl = "def generate_extras(#{args})\npath, hash = generate_raw(options, hash, expire_on)\n[path, extra_keys(options)]\nend"
         instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
         raw_method
       end
@@ -1224,7 +1224,7 @@ module ActionController
         # drop the leading '/' on the controller name
         options[:controller] = options[:controller][1..-1] if options[:controller] && options[:controller][0] == ?/
         merged = recall.merge(options)
-    
+
         if named_route
           path = named_route.generate(options, merged, expire_on)
           raise RoutingError, "#{named_route_name}_url failed to generate from #{options.inspect}, expected: #{named_route.requirements.inspect}, diff: #{named_route.requirements.diff(options).inspect}" if path.nil?

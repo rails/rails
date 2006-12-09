@@ -1687,6 +1687,17 @@ class RouteSetTest < Test::Unit::TestCase
     )
   end
   
+  def test_query_params_will_be_shown_when_recalled
+    set.draw do |map|
+      map.connect 'show_post/:parameter', :controller => 'post', :action => 'show'
+      map.connect ':controller/:action/:id'
+    end
+    assert_equal '/post/edit?parameter=1', set.generate(
+      {:action => 'edit', :parameter => 1},
+      {:controller => 'post', :action => 'show', :parameter => 1}
+    )
+  end
+  
 end
 
 class RoutingTest < Test::Unit::TestCase
