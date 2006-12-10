@@ -691,4 +691,15 @@ class DependenciesTest < Test::Unit::TestCase
   ensure
     Object.send(:remove_const, :RaisesNameError) if defined?(::RaisesNameError)
   end
+  
+  def test_remove_constant_handles_double_colon_at_start
+    Object.const_set 'DeleteMe', Module.new
+    DeleteMe.const_set 'OrMe', Module.new
+    Dependencies.send :remove_constant, "::DeleteMe::OrMe"
+    assert ! defined?(DeleteMe::OrMe)
+    assert defined?(DeleteMe)
+    Dependencies.send :remove_constant, "::DeleteMe"
+    assert ! defined?(DeleteMe)
+  end
+  
 end
