@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure that DispatcherError is being thrown when a malformed request is received. [Kent Sibilev]
+
 * Added support for decimal types. Closes #6676. [Kent Sibilev]
 
 * Removed deprecated end_form_tag helper. [Kent Sibilev]
