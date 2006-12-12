@@ -1,5 +1,7 @@
 *SVN*
 
+* Correctly report which filter halted the chain.  #6699 [Martin Emde]
+
 * Fix a bug in Routing where a parameter taken from the path of the current request could not be used as a query parameter for the next. Closes #6752. [Nicholas Seckar]
 
 * Unrescued ActiveRecord::RecordNotFound responds with 404 instead of 500.  [Jeremy Kemper]
