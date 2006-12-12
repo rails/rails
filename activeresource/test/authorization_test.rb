@@ -10,7 +10,7 @@ class AuthorizationTest < Test::Unit::TestCase
     @david = { :id => 2, :name => 'David' }.to_xml(:root => 'person')
     @authenticated_conn = ActiveResource::Connection.new("http://david:test123@localhost")
     @authorization_request_header = { 'Authorization' => 'Basic ZGF2aWQ6dGVzdDEyMw==' }
-    
+
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get    "/people/2.xml",           @authorization_request_header, @david
       mock.put    "/people/2.xml",           @authorization_request_header, nil, 204
@@ -48,7 +48,7 @@ class AuthorizationTest < Test::Unit::TestCase
   
   def test_get
     david = @authenticated_conn.get("/people/2.xml")
-    assert_equal "David", david["person"]["name"]
+    assert_equal "David", david["name"]
   end
   
   def test_post

@@ -6,10 +6,19 @@ class ConnectionTest < Test::Unit::TestCase
 
   def setup
     @conn = ActiveResource::Connection.new('http://localhost')
-    @matz  = { :id => 1, :name => 'Matz' }.to_xml(:root => 'person')
-    @david = { :id => 2, :name => 'David' }.to_xml(:root => 'person')
+    @matz  = { :id => 1, :name => 'Matz' }
+    @david = { :id => 2, :name => 'David' }
+    @people = [ @matz, @david ].to_xml(:root => 'people')
+    @people_single = [ @matz ].to_xml(:root => 'people-single-elements')
+    @people_empty = [ ].to_xml(:root => 'people-empty-elements')
+    @matz = @matz.to_xml(:root => 'person')
+    @david = @david.to_xml(:root => 'person')
+
     @default_request_headers = { 'Content-Type' => 'application/xml' }
     ActiveResource::HttpMock.respond_to do |mock|
+      mock.get    "/people.xml", {}, @people
+      mock.get    "/people_single_elements.xml", {}, @people_single
+      mock.get    "/people_empty_elements.xml", {}, @people_empty
       mock.get    "/people/1.xml", {}, @matz
       mock.put    "/people/1.xml", {}, nil, 204
       mock.delete "/people/1.xml", {}, nil, 200
@@ -67,7 +76,23 @@ class ConnectionTest < Test::Unit::TestCase
 
   def test_get
     matz = @conn.get("/people/1.xml")
-    assert_equal "Matz", matz["person"]["name"]
+    assert_equal "Matz", matz["name"]
+  end
+
+  def test_get_collection
+    people = @conn.get("/people.xml")
+    assert_equal "Matz", people[0]["name"]
+    assert_equal "David", people[1]["name"]
+  end
+  
+  def test_get_collection_single
+    people = @conn.get("/people_single_elements.xml")
+    assert_equal "Matz", people[0]["name"]
+  end
+  
+  def test_get_collection_empty
+    people = @conn.get("/people_empty_elements.xml")
+    assert_equal people, nil
   end
 
   def test_post

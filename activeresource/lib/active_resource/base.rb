@@ -20,7 +20,7 @@ module ActiveResource
         @connection
       end
 
-      attr_accessor_with_default(:element_name) { to_s.underscore }
+      attr_accessor_with_default(:element_name)    { to_s.underscore }
       attr_accessor_with_default(:collection_name) { element_name.pluralize }
       attr_accessor_with_default(:primary_key, 'id')
       
@@ -69,14 +69,14 @@ module ActiveResource
       end
 
       private
-        # { :people => { :person => [ person1, person2 ] } }
         def find_every(options)
-          connection.get(collection_path(options)).values.first.values.first.collect { |element| new(element, options) }
+          collection = connection.get(collection_path(options)) || []
+          collection.collect! { |element| new(element, options) }
         end
 
         # { :person => person1 }
         def find_single(scope, options)
-          new(connection.get(element_path(scope, options)).values.first, options)
+          new(connection.get(element_path(scope, options)), options)
         end
     end
 
@@ -129,17 +129,8 @@ module ActiveResource
               resource = find_or_create_resource_for_collection(key)
               value.map { |attrs| resource.new(attrs) }
             when Hash
-              # Workaround collections loaded as Hash
-              #   :persons => { :person => [
-              #     { :id => 1, :name => 'a' },
-              #     { :id => 2, :name => 'b' } ]}
-              if value.keys.size == 1 and value.values.first.is_a?(Array)
-                resource = find_or_create_resource_for(value.keys.first)
-                value.values.first.map { |attrs| resource.new(attrs) }
-              else
-                resource = find_or_create_resource_for(key)
-                resource.new(value)
-              end
+              resource = find_or_create_resource_for(key)
+              resource.new(value)
             when ActiveResource::Base
               value.class.new(value.attributes)
             else
@@ -189,7 +180,7 @@ module ActiveResource
       rescue NameError
         resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
         resource.prefix = self.class.prefix
-        resource.site = self.class.site
+        resource.site   = self.class.site
         resource
       end
 

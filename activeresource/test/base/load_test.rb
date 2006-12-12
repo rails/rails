@@ -8,13 +8,14 @@ class BaseLoadTest < Test::Unit::TestCase
 
     @first_address = { :id => 1, :street => '12345 Street' }
     @addresses = [@first_address, { :id => 2, :street => '67890 Street' }]
-    @addresses_from_xml = { :street_addresses => { :street_address => @addresses }}
+    @addresses_from_xml = { :street_addresses => @addresses }
+    @addresses_from_xml_single = { :street_addresses => [ @first_address ] }
 
     @deep  = { :id => 1, :street => {
       :id => 1, :state => { :id => 1, :name => 'Oregon',
-        :notable_rivers => { :notable_river => [
+        :notable_rivers => [
           { :id => 1, :name => 'Willamette' },
-          { :id => 2, :name => 'Columbia', :rafted_by => @matz }] }}}}
+          { :id => 2, :name => 'Columbia', :rafted_by => @matz }] }}}
 
     @person = Person.new
   end
@@ -49,11 +50,28 @@ class BaseLoadTest < Test::Unit::TestCase
   end
 
   def test_load_collection_with_unknown_resource
+    Person.send(:remove_const, :Address) if Person.const_defined?(:Address)
     assert !Person.const_defined?(:Address), "Address shouldn't exist until autocreated"
     addresses = silence_warnings { @person.load(:addresses => @addresses).addresses }
     assert Person.const_defined?(:Address), "Address should have been autocreated"
     addresses.each { |address| assert_kind_of Person::Address, address }
     assert_equal @addresses.map(&:stringify_keys), addresses.map(&:attributes)
+  end
+
+  def test_load_collection_with_single_existing_resource
+    addresses = @person.load(@addresses_from_xml_single).street_addresses
+    assert_kind_of Array, addresses
+    addresses.each { |address| assert_kind_of StreetAddress, address }
+    assert_equal [ @first_address ].map(&:stringify_keys), addresses.map(&:attributes)
+  end
+
+  def test_load_collection_with_single_unknown_resource
+    Person.send(:remove_const, :Address) if Person.const_defined?(:Address)
+    assert !Person.const_defined?(:Address), "Address shouldn't exist until autocreated"
+    addresses = silence_warnings { @person.load(:addresses => [ @first_address ]).addresses }
+    assert Person.const_defined?(:Address), "Address should have been autocreated"
+    addresses.each { |address| assert_kind_of Person::Address, address }
+    assert_equal [ @first_address ].map(&:stringify_keys), addresses.map(&:attributes)
   end
 
   def test_recursively_loaded_collections
@@ -71,7 +89,7 @@ class BaseLoadTest < Test::Unit::TestCase
     rivers = state.notable_rivers
     assert_kind_of Array, rivers
     assert_kind_of Person::Street::State::NotableRiver, rivers.first
-    assert_equal @deep[:street][:state][:notable_rivers][:notable_river].first[:id], rivers.first.id
+    assert_equal @deep[:street][:state][:notable_rivers].first[:id], rivers.first.id
     assert_equal @matz[:id], rivers.last.rafted_by.id
   end
 end
