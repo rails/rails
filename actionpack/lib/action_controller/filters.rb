@@ -616,10 +616,7 @@ module ActionController #:nodoc:
       end
 
       def perform_action_with_filters
-        #result = perform_filters do
-        #  perform_action_without_filters unless performed?
-        #end
-        @before_filter_chain_aborted = (call_filter(self.class.filter_chain, 0) == false)
+        call_filter(self.class.filter_chain, 0)
       end
 
       def process_with_filters(request, response, method = :perform_action, *arguments) #:nodoc:
@@ -640,7 +637,7 @@ module ActionController #:nodoc:
         filter.call(self) do
           halted = call_filter(chain, index.next)
         end
-        halt_filter_chain(filter.filter, :no_yield) if halted == false
+        halt_filter_chain(filter.filter, :no_yield) if halted == false unless @before_filter_chain_aborted
         halted
       end
 
@@ -653,6 +650,7 @@ module ActionController #:nodoc:
             logger.info "Filter chain halted as [#{filter.inspect}] returned false."
           end
         end
+        @before_filter_chain_aborted = true
         return false
       end
 
