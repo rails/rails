@@ -1,6 +1,7 @@
 require "#{File.dirname(__FILE__)}/abstract_unit"
 require "fixtures/person"
 require "fixtures/street_address"
+require "fixtures/beast"
 
 class BaseTest < Test::Unit::TestCase
   def setup
@@ -170,5 +171,10 @@ class BaseTest < Test::Unit::TestCase
 
   def test_delete
     assert Person.delete(1)
+  end
+
+  def test_should_use_site_prefix_and_credentials
+    assert_equal 'http://foo:bar@beast.caboo.se', Forum.site.to_s
+    assert_equal 'http://foo:bar@beast.caboo.se/forums/:forum_id', Topic.site.to_s
   end
 end

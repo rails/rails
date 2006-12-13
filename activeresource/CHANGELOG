@@ -1,5 +1,20 @@
 *SVN*
 
+* Allow subclassed resources to share the site info [Rick]
+
+    class BeastResource < ActiveResource::Base
+      self.site = 'http://beast.caboo.se'
+    end
+    
+    class Forum < BeastResource
+      # taken from BeastResource
+      # self.site = 'http://beast.caboo.se'
+    end
+    
+    class Topic < BeastResource
+      site << '/forums/:forum_id'
+    end
+
 * Fix issues with ActiveResource collection handling.  Closes #6291. [bmilekic]
 
 * Use attr_accessor_with_default to dry up attribute initialization. References #6538. [Stuart Halloway]

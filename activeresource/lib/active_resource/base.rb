@@ -6,11 +6,16 @@ module ActiveResource
     # calls.
     cattr_accessor :logger
 
+    def self.inherited(base)
+      base.site = site.to_s if site
+      super
+    end
+
     class << self
       attr_reader :site
 
       def site=(site)
-        @site = site.is_a?(URI) ? site : URI.parse(site)
+        @site = create_site_uri_from(site)
         @connection = nil
         @site
       end
@@ -77,6 +82,14 @@ module ActiveResource
         # { :person => person1 }
         def find_single(scope, options)
           new(connection.get(element_path(scope, options)), options)
+        end
+      
+        def create_site_uri_from(site)
+          returning site.is_a?(URI) ? site : URI.parse(site) do |uri|
+            def uri.<<(extra)
+              path << extra
+            end unless uri.respond_to?(:<<)
+          end
         end
     end
 
