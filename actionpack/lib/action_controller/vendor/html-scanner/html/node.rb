@@ -316,7 +316,7 @@ module HTML #:nodoc:
         s = "<#{@name}"
         @attributes.each do |k,v|
           s << " #{k}"
-          s << "='#{v.gsub(/'/,"\\\\'")}'" if String === v
+          s << "=\"#{v}\"" if String === v
         end
         s << " /" if @closing == :self
         s << ">"
