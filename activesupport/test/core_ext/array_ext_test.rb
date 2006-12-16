@@ -176,7 +176,7 @@ class ArrayToXmlTests < Test::Unit::TestCase
       { :name => "Jason", :age => 31, :age_in_millis => BigDecimal.new('1.0') }
     ].to_xml(:skip_instruct => false, :indent => 0)
 
-    assert(/^<\?xml [^>]*/.match(xml))
-    assert xml.rindex(/<\?xml /) == 0
+    assert_match(/^<\?xml [^>]*/, xml)
+    assert_equal 0, xml.rindex(/<\?xml /)
   end
 end
