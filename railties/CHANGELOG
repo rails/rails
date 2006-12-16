@@ -1,7 +1,5 @@
 *SVN*
 
-* Make config.plugins affect $LOAD_PATH, not just which init.rb files get required [James Adam]
-
 * Don't generate a components directory in new Rails apps.  [Jeremy Kemper]
 
 * Fixed script/process/spawner to work properly with Mongrel including in -r (daemonize mode) [DHH]
