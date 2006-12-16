@@ -18,7 +18,7 @@ module ActiveSupport #:nodoc:
           replace(reverse_merge(other_hash))
         end
 
-        alias_method :reverse_update, :reverse_merge
+        alias_method :reverse_update, :reverse_merge!
       end
     end
   end

@@ -171,6 +171,18 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal hash.delete('a'), nil
   end
 
+  def test_indifferent_to_hash
+    # Should convert to a Hash with String keys.
+    assert_equal @strings, @mixed.with_indifferent_access.to_hash
+
+    # Should preserve the default value.
+    mixed_with_default = @mixed.dup
+    mixed_with_default.default = '1234'
+    roundtrip = mixed_with_default.with_indifferent_access.to_hash
+    assert_equal @strings, roundtrip
+    assert_equal '1234', roundtrip.default
+  end
+
   def test_stringify_and_symbolize_keys_on_indifferent_preserves_hash
     h = HashWithIndifferentAccess.new
     h[:first] = 1
@@ -180,6 +192,14 @@ class HashExtTest < Test::Unit::TestCase
     h['first'] = 1
     h.symbolize_keys!
     assert_equal 1, h[:first]
+  end
+
+  def test_indifferent_subhashes
+    h = {'user' => {'id' => 5}}.with_indifferent_access
+    ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
+
+    h = {:user => {:id => 5}}.with_indifferent_access
+    ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
   end
 
   def test_assert_valid_keys
@@ -194,14 +214,6 @@ class HashExtTest < Test::Unit::TestCase
     end
   end
 
-  def test_indifferent_subhashes
-    h = {'user' => {'id' => 5}}.with_indifferent_access
-    ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
-
-    h = {:user => {:id => 5}}.with_indifferent_access
-    ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
-  end
-
   def test_assorted_keys_not_stringified
     original = {Object.new => 2, 1 => 2, [] => true}
     indiff = original.with_indifferent_access
@@ -209,7 +221,23 @@ class HashExtTest < Test::Unit::TestCase
   end
 
   def test_reverse_merge
-    assert_equal({ :a => 1, :b => 2, :c => 10 }, { :a => 1, :b => 2 }.reverse_merge({:a => "x", :b => "y", :c => 10}) )
+    defaults = { :a => "x", :b => "y", :c => 10 }.freeze
+    options  = { :a => 1, :b => 2 }
+    expected = { :a => 1, :b => 2, :c => 10 }
+
+    # Should merge defaults into options, creating a new hash.
+    assert_equal expected, options.reverse_merge(defaults)
+    assert_not_equal expected, options
+
+    # Should merge! defaults into options, replacing options.
+    merged = options.dup
+    assert_equal expected, merged.reverse_merge!(defaults)
+    assert_equal expected, merged
+
+    # Should be an alias for reverse_merge!
+    merged = options.dup
+    assert_equal expected, merged.reverse_update(defaults)
+    assert_equal expected, merged
   end
 
   def test_diff
