@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecation: silence warnings when reporting test errors.  [Jeremy Kemper]
+
 * Hash#slice(*keys) returns a new hash with only the given keys. #slice! replaces the hash with only the given keys. Works with HashWithIndifferentAccess also.  [Jeremy Kemper]
 
 * HashWithIndifferentAccess#to_hash converts to a Hash with String keys and the same default value.  [Jeremy Kemper]

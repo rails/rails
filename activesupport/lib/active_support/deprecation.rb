@@ -172,10 +172,23 @@ class Module
   include ActiveSupport::Deprecation::ClassMethods
 end
 
+require 'test/unit'
+
 module Test
   module Unit
     class TestCase
       include ActiveSupport::Deprecation::Assertions
+    end
+
+    class Error # :nodoc:
+      # Silence warnings when reporting test errors.
+      def message_with_silenced_deprecation
+        ActiveSupport::Deprecation.silence do
+          message_without_silenced_deprecation
+        end
+      end
+
+      alias_method_chain :message, :silenced_deprecation
     end
   end
 end
