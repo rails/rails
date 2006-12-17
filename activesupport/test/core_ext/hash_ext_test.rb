@@ -243,6 +243,35 @@ class HashExtTest < Test::Unit::TestCase
   def test_diff
     assert_equal({ :a => 2 }, { :a => 2, :b => 5 }.diff({ :a => 1, :b => 5 }))
   end
+
+  def test_slice
+    original = { :a => 'x', :b => 'y', :c => 10 }
+    expected = { :a => 'x', :b => 'y' }
+
+    # Should return a new hash with only the given keys.
+    assert_equal expected, original.slice(:a, :b)
+    assert_not_equal expected, original
+
+    # Should replace the hash with only the given keys.
+    assert_equal expected, original.slice!(:a, :b)
+    assert_equal expected, original
+  end
+
+  def test_indifferent_slice
+    original = { :a => 'x', :b => 'y', :c => 10 }.with_indifferent_access
+    expected = { :a => 'x', :b => 'y' }.with_indifferent_access
+
+    [['a', 'b'], [:a, :b]].each do |keys|
+      # Should return a new hash with only the given keys.
+      assert_equal expected, original.slice(*keys), keys.inspect
+      assert_not_equal expected, original
+
+      # Should replace the hash with only the given keys.
+      copy = original.dup
+      assert_equal expected, copy.slice!(*keys)
+      assert_equal expected, copy
+    end
+  end
 end
 
 class IWriteMyOwnXML
