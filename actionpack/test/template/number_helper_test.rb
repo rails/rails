@@ -22,7 +22,7 @@ class NumberHelperTest < Test::Unit::TestCase
   def test_number_to_currency
     assert_equal("$1,234,567,890.50", number_to_currency(1234567890.50))
     assert_equal("$1,234,567,890.51", number_to_currency(1234567890.506))
-    assert_equal("$1,234,567,890", number_to_currency(1234567890.50, {:precision => 0}))
+    assert_equal("$1,234,567,892", number_to_currency(1234567891.50, {:precision => 0}))
     assert_equal("$1,234,567,890.5", number_to_currency(1234567890.50, {:precision => 1}))
     assert_equal("&pound;1234567890,50", number_to_currency(1234567890.50, {:unit => "&pound;", :separator => ",", :delimiter => ""}))
     assert_equal("$1,234,567,890.50", number_to_currency("1234567890.50"))
@@ -53,16 +53,20 @@ class NumberHelperTest < Test::Unit::TestCase
     assert_equal("x", number_with_delimiter("x"))
     assert_nil number_with_delimiter(nil)
   end
-  
+
   def test_number_with_precision
     assert_equal("111.235", number_with_precision(111.2346))
     assert_equal("111.23", number_with_precision(111.2346, 2))
     assert_equal("111.00", number_with_precision(111, 2))
     assert_equal("111.235", number_with_precision("111.2346"))
+    assert_equal("112", number_with_precision(111.50, 0))
+    assert_equal("1234567892", number_with_precision(1234567891.50, 0))
+
+    # Return non-numeric params unchanged.
     assert_equal("x", number_with_precision("x"))
     assert_nil number_with_precision(nil)
   end
-  
+
   def test_number_to_human_size
     assert_equal '0 Bytes',   number_to_human_size(0)
     assert_equal '1 Byte',    number_to_human_size(1)
