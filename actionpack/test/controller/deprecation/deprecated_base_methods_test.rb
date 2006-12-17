@@ -14,6 +14,10 @@ class DeprecatedBaseMethodsTest < Test::Unit::TestCase
       "http://example.com/#{greeting}"
     end
 
+    def raises_name_error
+      this_method_doesnt_exist
+    end
+
     def rescue_action(e) raise e end
   end
 
@@ -39,5 +43,12 @@ class DeprecatedBaseMethodsTest < Test::Unit::TestCase
     end
 
     assert_equal "Living in a nested world", @response.body
+  end
+
+  def test_assertion_failed_error_doesnt_spout_deprecation_warnings
+    get :raises_name_error
+  rescue => e
+    error = Test::Unit::Error.new('testing ur doodz', e)
+    assert_not_deprecated { error.message }
   end
 end
