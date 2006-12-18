@@ -1,5 +1,7 @@
 *SVN*
 
+* Make config.plugins affect the load path and the dependencies system.  Allows you to control plugin loading order, and keep disabled plugins off the load path. [James Adam]
+
 * Don't generate a components directory in new Rails apps.  [Jeremy Kemper]
 
 * Fixed script/process/spawner to work properly with Mongrel including in -r (daemonize mode) [DHH]
