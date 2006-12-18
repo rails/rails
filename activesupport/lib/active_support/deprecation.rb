@@ -172,7 +172,7 @@ class Module
   include ActiveSupport::Deprecation::ClassMethods
 end
 
-require 'test/unit'
+require 'test/unit/error'
 
 module Test
   module Unit
