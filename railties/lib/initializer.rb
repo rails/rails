@@ -48,7 +48,7 @@ module Rails
     # instance.
     def initialize(configuration)
       @configuration = configuration
-      @loaded_plugins = Set.new
+      @loaded_plugins = []
     end
 
     # Sequentially step through all of the available initialization routines,
@@ -176,9 +176,22 @@ module Rails
     # * evaluate <tt>init.rb</tt> if present
     #
     # After all plugins are loaded, duplicates are removed from the load path.
-    # Plugins are loaded in alphabetical order.
+    # If an array of plugin names is specified in config.plugins, the plugins
+    # will be loaded in that order. Otherwise, plugins are loaded in alphabetical
+    # order.
     def load_plugins
-      find_plugins(configuration.plugin_paths).sort.each { |path| load_plugin path }
+      if configuration.plugins.nil?
+        # a nil value implies we don't care about plugins; load 'em all in a reliable order
+        find_plugins(configuration.plugin_paths).sort.each { |path| load_plugin path }
+      elsif !configuration.plugins.empty?
+        # we've specified a config.plugins array, so respect that order
+        plugin_paths = find_plugins(configuration.plugin_paths)
+        configuration.plugins.each do |name|
+          path = plugin_paths.find { |p| File.basename(p) == name }
+          raise(LoadError, "Cannot find the plugin '#{name}'!") if path.nil?
+          load_plugin path
+        end
+      end 
       $LOAD_PATH.uniq!
     end
 
@@ -345,7 +358,7 @@ module Rails
       end
 
       def plugin_enabled?(path)
-        configuration.plugins.empty? || configuration.plugins.include?(File.basename(path))
+        configuration.plugins.nil? || configuration.plugins.include?(File.basename(path))
       end
 
       # Load the plugin at <tt>path</tt> unless already loaded.
@@ -374,6 +387,7 @@ module Rails
         if has_lib
           application_lib_index = $LOAD_PATH.index(File.join(RAILS_ROOT, "lib")) || 0
           $LOAD_PATH.insert(application_lib_index + 1, lib_path)
+          Dependencies.load_paths << lib_path
         end
 
         # Allow plugins to reference the current configuration object
@@ -470,7 +484,9 @@ module Rails
     # any method of +nil+. Set to +false+ for the standard Ruby behavior.
     attr_accessor :whiny_nils
 
-    # The list of plugins to load. If this is set to <tt>[]</tt>, all plugins will be loaded.
+    # The list of plugins to load. If this is set to <tt>nil</tt>, all plugins will
+    # be loaded. If this is set to <tt>[]</tt>, no plugins will be loaded. Otherwise,
+    # plugins will be loaded in the order specified.
     attr_accessor :plugins
 
     # The path to the root of the plugins directory. By default, it is in
@@ -592,7 +608,6 @@ module Rails
           vendor
         ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
 
-        paths.concat Dir["#{root_path}/vendor/plugins/*/lib/"]
         paths.concat builtin_directories
       end
 
@@ -642,7 +657,7 @@ module Rails
       end
 
       def default_plugins
-        []
+        nil
       end
 
       def default_plugin_paths

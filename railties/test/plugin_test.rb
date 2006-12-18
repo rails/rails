@@ -43,7 +43,7 @@ class PluginTest < Test::Unit::TestCase
 
   def test_load_plugin
     stubby = "#{File.dirname(__FILE__)}/fixtures/plugins/default/stubby"
-    expected = Set.new(['stubby'])
+    expected = ['stubby']
 
     assert @init.send(:load_plugin, stubby)
     assert_equal expected, @init.loaded_plugins
@@ -66,10 +66,41 @@ class PluginTest < Test::Unit::TestCase
   def test_load_plugins_from_two_sources
     assert_loaded_plugins %w(a stubby acts_as_chunky_bacon), ['default', 'alternate']
   end
+ 
+  def test_load_all_plugins_when_config_plugins_is_nil
+    @init.configuration.plugins = nil
+    assert_loaded_plugins %w(a stubby acts_as_chunky_bacon), ['default', 'alternate']
+  end
 
+  def test_load_no_plugins_when_config_plugins_is_empty_array
+    @init.configuration.plugins = []
+    assert_loaded_plugins [], ['default', 'alternate']   
+  end
+ 
+  def test_load_only_selected_plugins
+    plugins = %w(stubby a)
+    @init.configuration.plugins = plugins
+    assert_loaded_plugins plugins, ['default', 'alternate']
+  end
+ 
+  def test_load_plugins_in_order
+    plugins = %w(stubby acts_as_chunky_bacon a)
+    @init.configuration.plugins = plugins
+    assert_plugin_load_order plugins, ['default', 'alternate']
+  end
+
+  def test_raise_error_when_plugin_not_found
+    @init.configuration.plugins = %w(this_plugin_does_not_exist)
+    assert_raise(LoadError) { load_plugins(['default', 'alternate']) }
+  end
+  
   protected
-    def assert_loaded_plugins(plugins, path)
-      assert_equal Set.new(plugins), load_plugins(path)
+    def assert_loaded_plugins(plugins, paths)
+      assert_equal plugins.sort, load_plugins(paths).sort
+    end
+    
+    def assert_plugin_load_order(plugins, paths)
+      assert_equal plugins, load_plugins(paths)
     end
 
     def load_plugins(*paths)
