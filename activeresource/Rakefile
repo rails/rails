@@ -41,7 +41,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.title    = "Active Resource -- Object-oriented REST services"
   rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
-  rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
+  rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/**/*.rb')
   rdoc.rdoc_files.exclude('lib/active_record/vendor/*')
   rdoc.rdoc_files.include('dev-utils/*.rb')
