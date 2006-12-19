@@ -1569,7 +1569,7 @@ module ActiveRecord
               end || ''
               join << %(AND %s.%s = %s ) % [
                 aliased_table_name, 
-                reflection.active_record.connection.quote_column_name(reflection.active_record.inheritance_column), 
+                reflection.active_record.connection.quote_column_name(klass.inheritance_column), 
                 klass.quote_value(klass.name.demodulize)] unless klass.descends_from_active_record?
 
               [through_reflection, reflection].each do |ref|

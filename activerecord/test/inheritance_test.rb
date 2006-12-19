@@ -4,7 +4,7 @@ require 'fixtures/project'
 require 'fixtures/subscriber'
 
 class InheritanceTest < Test::Unit::TestCase
-  fixtures :companies, :projects, :subscribers
+  fixtures :companies, :projects, :subscribers, :accounts
 
   def test_a_bad_type_column
     #SQLServer need to turn Identity Insert On before manually inserting into the Identity column
@@ -134,6 +134,18 @@ class InheritanceTest < Test::Unit::TestCase
     test_complex_inheritance
     switch_to_default_inheritance_column
   end
+  
+  def test_eager_load_belongs_to_something_inherited
+    account = Account.find(1, :include => :firm)
+    assert_not_nil account.instance_variable_get("@firm"), "nil proves eager load failed"
+  end
+  
+  def test_alt_eager_loading
+    switch_to_alt_inheritance_column
+    test_eager_load_belongs_to_something_inherited
+    switch_to_default_inheritance_column
+    ActiveRecord::Base.logger.debug "cocksucker"
+  end
 
   def test_inheritance_without_mapping
     assert_kind_of SpecialSubscriber, SpecialSubscriber.find("webster132")
@@ -148,9 +160,10 @@ class InheritanceTest < Test::Unit::TestCase
         c.save
       end
       [ Company, Firm, Client].each { |klass| klass.reset_column_information }
-      def Company.inheritance_column; @inheritance_column ||= "ruby_type"; end
+      Company.set_inheritance_column('ruby_type')
     end
     def switch_to_default_inheritance_column
       [ Company, Firm, Client].each { |klass| klass.reset_column_information }
+      Company.set_inheritance_column('type')
     end
 end
