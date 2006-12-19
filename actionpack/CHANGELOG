@@ -1,5 +1,7 @@
 *SVN*
 
+* Silence log_error deprecation warnings from inspecting deprecated instance variables.  [Nate Wiger]
+
 * Only cache GET requests with a 200 OK response.  #6514, #6743 [RSL, anamba]
 
 * Add a 'referer' attribute to TestRequest. [Jamis Buck]
