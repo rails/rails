@@ -1,5 +1,7 @@
 *SVN*
 
+* Only cache GET requests with a 200 OK response.  #6514, #6743 [RSL, anamba]
+
 * Add a 'referer' attribute to TestRequest. [Jamis Buck]
 
 * Ensure render :json => ... skips the layout.  Closes #6808 [Josh Peek]
