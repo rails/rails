@@ -124,6 +124,10 @@ module ActionController #:nodoc:
       @request_method, @accepts, @content_type = nil, nil, nil
     end    
 
+    def referer
+      @env["HTTP_REFERER"]
+    end
+
     private
       def initialize_containers
         @env, @cookies = {}, {}

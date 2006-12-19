@@ -1,5 +1,7 @@
 *SVN*
 
+* Add a 'referer' attribute to TestRequest. [Jamis Buck]
+
 * Ensure render :json => ... skips the layout.  Closes #6808 [Josh Peek]
 
 * Fix HTML::Node to output double quotes instead of single quotes.  Closes #6845 [mitreandy]
