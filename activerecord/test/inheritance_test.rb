@@ -167,3 +167,39 @@ class InheritanceTest < Test::Unit::TestCase
       Company.set_inheritance_column('type')
     end
 end
+
+
+class InheritanceComputeTypeTest < Test::Unit::TestCase
+  fixtures :companies
+
+  def setup
+    Dependencies.log_activity = true
+  end
+
+  def teardown
+    Dependencies.log_activity = false
+    self.class.const_remove :FirmOnTheFly rescue nil
+    Firm.const_remove :FirmOnTheFly rescue nil
+  end
+
+  def test_instantiation_doesnt_try_to_require_corresponding_file
+    foo = Firm.find(:first).clone
+    foo.ruby_type = foo.type = 'FirmOnTheFly'
+    foo.save!
+
+    # Should fail without FirmOnTheFly in the type condition.
+    assert_raise(ActiveRecord::RecordNotFound) { Firm.find(foo.id) }
+
+    # Nest FirmOnTheFly in the test case where Dependencies won't see it.
+    self.class.const_set :FirmOnTheFly, Class.new(Firm)
+    assert_raise(ActiveRecord::SubclassNotFound) { Firm.find(foo.id) }
+
+    # Nest FirmOnTheFly in Firm where Dependencies will see it.
+    # This is analogous to nesting models in a migration.
+    Firm.const_set :FirmOnTheFly, Class.new(Firm)
+
+    # And instantiate will find the existing constant rather than trying
+    # to require firm_on_the_fly.
+    assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
+  end
+end
