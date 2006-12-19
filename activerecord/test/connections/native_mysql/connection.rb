@@ -2,7 +2,9 @@ print "Using native MySQL\n"
 require_dependency 'fixtures/course'
 require 'logger'
 
-ActiveRecord::Base.logger = Logger.new("debug.log")
+RAILS_DEFAULT_LOGGER = Logger.new('debug.log')
+RAILS_DEFAULT_LOGGER.level = Logger::DEBUG
+ActiveRecord::Base.logger = RAILS_DEFAULT_LOGGER
 
 # GRANT ALL PRIVILEGES ON activerecord_unittest.* to 'rails'@'localhost';
 # GRANT ALL PRIVILEGES ON activerecord_unittest2.* to 'rails'@'localhost';
