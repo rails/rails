@@ -37,7 +37,7 @@ CREATE TABLE `topics` (
   `parent_id` int(11) default NULL,
   `type` varchar(50) default NULL,
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `developers` (
   `id` int(11) NOT NULL auto_increment,

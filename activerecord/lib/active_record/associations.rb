@@ -947,10 +947,6 @@ module ActiveRecord
           end
         end
 
-        def require_association_class(class_name)
-          require_association(Inflector.underscore(class_name)) if class_name
-        end
-
         def add_multiple_associated_save_callbacks(association_name)
           method_name = "validate_associated_records_for_#{association_name}".to_sym
           define_method(method_name) do

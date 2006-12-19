@@ -1054,8 +1054,6 @@ module ActiveRecord #:nodoc:
                 allocate
 
               else
-                require_association_class(subclass_name)
-
                 # Ignore type if no column is present since it was probably
                 # pulled in from a sloppy join.
                 unless columns_hash.include?(inheritance_column)
@@ -1354,9 +1352,9 @@ module ActiveRecord #:nodoc:
         def compute_type(type_name)
           modularized_name = type_name_with_module(type_name)
           begin
-            instance_eval(modularized_name)
-          rescue NameError => e
-            instance_eval(type_name)
+            class_eval(modularized_name, __FILE__, __LINE__)
+          rescue NameError
+            class_eval(type_name, __FILE__, __LINE__)
           end
         end
 
