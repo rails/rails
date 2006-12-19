@@ -1,5 +1,7 @@
 *SVN*
 
+* fix faulty inheritance tests and that eager loading grabs the wrong inheritance column when the class of your association is an STI subclass. Closes #6859 [protocool]
+
 * Consolidated different create and create! versions to call through to the base class with scope. This fixes inconsistencies, especially related to protected attribtues. Closes #5847 [Alexander Dymo, Tobias Luetke]
 
 * find supports :lock with :include. Check whether your database allows SELECT ... FOR UPDATE with outer joins before using.  #6764 [vitaly, Jeremy Kemper]
