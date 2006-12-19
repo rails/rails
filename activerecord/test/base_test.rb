@@ -1365,7 +1365,7 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_abstract_class
-    assert ActiveRecord::Base.abstract_class?
+    assert !ActiveRecord::Base.abstract_class?
     assert LoosePerson.abstract_class?
     assert !LooseDescendant.abstract_class?
   end
@@ -1408,7 +1408,7 @@ class BasicsTest < Test::Unit::TestCase
     assert !StiPost.descends_from_active_record?
 
     # Concrete subclasses an abstract class which has a type column.
-    assert SubStiPost.descends_from_active_record?
+    assert !SubStiPost.descends_from_active_record?
   end
 
   def test_find_on_abstract_base_class_doesnt_use_type_condition
