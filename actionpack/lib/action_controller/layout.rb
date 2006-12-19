@@ -266,7 +266,7 @@ module ActionController #:nodoc:
 
       def candidate_for_layout?(options)
         (options.has_key?(:layout) && options[:layout] != false) || 
-        options.values_at(:text, :xml, :file, :inline, :partial, :nothing).compact.empty? &&
+        options.values_at(:text, :xml, :json, :file, :inline, :partial, :nothing).compact.empty? &&
         !template_exempt_from_layout?(default_template_name(options[:action] || options[:template]))
       end
 
