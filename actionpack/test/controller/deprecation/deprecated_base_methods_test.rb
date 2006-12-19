@@ -45,7 +45,13 @@ class DeprecatedBaseMethodsTest < Test::Unit::TestCase
     assert_equal "Living in a nested world", @response.body
   end
 
-  def test_assertion_failed_error_doesnt_spout_deprecation_warnings
+  def test_log_error_silences_deprecation_warnings
+    get :raises_name_error
+  rescue => e
+    assert_not_deprecated { @controller.send :log_error, e }
+  end
+
+  def test_assertion_failed_error_silences_deprecation_warnings
     get :raises_name_error
   rescue => e
     error = Test::Unit::Error.new('testing ur doodz', e)
