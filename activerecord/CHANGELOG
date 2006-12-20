@@ -1,5 +1,7 @@
 *SVN*
 
+* Oracle: fix connection reset failure.  #6846 [leonlleslie]
+
 * Subclass instantiation doesn't try to explicitly require the corresponding subclass.  #6840 [leei, Jeremy Kemper]
 
 * fix faulty inheritance tests and that eager loading grabs the wrong inheritance column when the class of your association is an STI subclass. Closes #6859 [protocool]
