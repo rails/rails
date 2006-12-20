@@ -361,7 +361,7 @@ module ActionView
           defaults = { :discard_type => true }
           options  = defaults.merge(options)
           datetime = value(object)
-          datetime ||= Time.now if options[:include_blank]
+          datetime ||= Time.now unless options[:include_blank]
 
           position = { :year => 1, :month => 2, :day => 3, :hour => 4, :minute => 5, :second => 6 }
 
