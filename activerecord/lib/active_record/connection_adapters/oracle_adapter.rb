@@ -627,7 +627,7 @@ begin
     def reset!
       logoff rescue nil
       begin
-        @connection = @factory.new_connection @username, @password, @database, @async
+        @connection = @factory.new_connection @username, @password, @database, @async, @prefetch_rows, @cursor_sharing
         __setobj__ @connection
         @active = true
       rescue
