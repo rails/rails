@@ -143,12 +143,19 @@ module ActiveSupport
         end
     end
 
-    # Stand-in for @request, @attributes, etc.
+    # Stand-in for @request, @attributes, @params, etc which emits deprecation
+    # warnings on any method call (except #inspect).
     class DeprecatedInstanceVariableProxy
       instance_methods.each { |m| undef_method m unless m =~ /^__/ }
 
       def initialize(instance, method, var = "@#{method}")
         @instance, @method, @var = instance, method, var
+      end
+
+      # Don't give a deprecation warning on inspect since test/unit and error
+      # logs rely on it for diagnostics.
+      def inspect
+        target.inspect
       end
 
       private
