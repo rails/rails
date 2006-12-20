@@ -863,6 +863,49 @@ class DateHelperTest < Test::Unit::TestCase
     assert_equal expected, date_select("post", "written_on", :order => [:day, :month, :year])
   end
 
+  def test_date_select_with_nil
+    @post = Post.new
+
+    start_year = Time.now.year-5
+    end_year   = Time.now.year+5
+    expected =   %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
+    start_year.upto(end_year) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == Time.now.year}>#{i}</option>\n) }
+    expected << "</select>\n"
+
+    expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
+    1.upto(12) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == Time.now.month}>#{Time.now.change(:month => i).strftime("%B")}</option>\n) }
+    expected << "</select>\n"
+
+    expected << %{<select id="post_written_on_3i" name="post[written_on(3i)]">\n}
+    1.upto(31) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == Time.now.day}>#{i}</option>\n) }
+    expected << "</select>\n"
+
+    assert_equal expected, date_select("post", "written_on")
+  end
+
+  def test_date_select_with_nil_and_blank
+    @post = Post.new
+
+    start_year = Time.now.year-5
+    end_year   = Time.now.year+5
+    expected =   %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
+    expected << "<option value=\"\"></option>\n"
+    start_year.upto(end_year) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
+    expected << "</select>\n"
+
+    expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
+    expected << "<option value=\"\"></option>\n"
+    1.upto(12) { |i| expected << %(<option value="#{i}">#{Time.now.change(:month => i).strftime("%B")}</option>\n) }
+    expected << "</select>\n"
+
+    expected << %{<select id="post_written_on_3i" name="post[written_on(3i)]">\n}
+    expected << "<option value=\"\"></option>\n"
+    1.upto(31) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
+    expected << "</select>\n"
+
+    assert_equal expected, date_select("post", "written_on", :include_blank => true)
+  end
+
   def test_date_select_cant_override_discard_hour
     @post = Post.new
     @post.written_on = Date.new(2004, 6, 15)
