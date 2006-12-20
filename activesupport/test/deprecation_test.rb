@@ -79,6 +79,10 @@ class DeprecationTest < Test::Unit::TestCase
     assert_deprecated('@request.to_s') { assert_equal @dtc.request.to_s, @dtc.old_request.to_s }
   end
 
+  def test_deprecated_instance_variable_proxy_shouldnt_warn_on_inspect
+    assert_not_deprecated { assert_equal @dtc.request.inspect, @dtc.old_request.inspect }
+  end
+
   def test_assert_deprecation_without_match
     assert_deprecated do
       @dtc.partially
