@@ -637,12 +637,15 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   def test_adding_before_save
     no_of_firms = Firm.count
     no_of_clients = Client.count
+
     new_firm = Firm.new("name" => "A New Firm, Inc")
+    c = Client.new("name" => "Apple")
+
     new_firm.clients_of_firm.push Client.new("name" => "Natural Company")
-    new_firm.clients_of_firm << (c = Client.new("name" => "Apple"))
-    assert new_firm.new_record?
-    assert c.new_record?
+    assert_equal 1, new_firm.clients_of_firm.size
+    new_firm.clients_of_firm << c
     assert_equal 2, new_firm.clients_of_firm.size
+
     assert_equal no_of_firms, Firm.count      # Firm was not saved to database.
     assert_equal no_of_clients, Client.count  # Clients were not saved to database.
     assert new_firm.save
@@ -651,6 +654,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal new_firm, c.firm
     assert_equal no_of_firms+1, Firm.count      # Firm was saved to database.
     assert_equal no_of_clients+2, Client.count  # Clients were saved to database.
+
     assert_equal 2, new_firm.clients_of_firm.size
     assert_equal 2, new_firm.clients_of_firm(true).size
   end

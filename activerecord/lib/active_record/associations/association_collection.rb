@@ -7,7 +7,7 @@ module ActiveRecord
         load_target
         @target.to_ary
       end
-  
+
       def reset
         reset_target!
         @loaded = false
@@ -17,7 +17,6 @@ module ActiveRecord
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def <<(*records)
         result = true
-        load_target
 
         @owner.transaction do
           flatten_deeper(records).each do |record|
@@ -34,7 +33,7 @@ module ActiveRecord
 
       alias_method :push, :<<
       alias_method :concat, :<<
-                      
+
       # Remove all records from this association
       def delete_all
         load_target
@@ -103,7 +102,7 @@ module ActiveRecord
       # calling collection.size if it has. If it's more likely than not that the collection does have a size larger than zero
       # and you need to fetch that collection afterwards, it'll take one less SELECT query if you use length.
       def size
-        if loaded? && !@reflection.options[:uniq]
+        if @owner.new_record? || (loaded? && !@reflection.options[:uniq])
           @target.size
         elsif !loaded? && !@reflection.options[:uniq] && @target.is_a?(Array)
           unsaved_records = Array(@target.detect { |r| r.new_record? })

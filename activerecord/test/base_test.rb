@@ -1288,12 +1288,12 @@ class BasicsTest < Test::Unit::TestCase
      client_new      = Client.new
      client_new.name = "The Joneses"
      clients         = [ client_stored, client_new ]
-     
+
      firm.clients    << clients
+     assert_equal clients.map(&:name).to_set, firm.clients.map(&:name).to_set
 
      firm.clear_association_cache
-
-     assert_equal    firm.clients.collect{ |x| x.name }.sort, clients.collect{ |x| x.name }.sort
+     assert_equal clients.map(&:name).to_set, firm.clients.map(&:name).to_set
   end
 
   def test_interpolate_sql

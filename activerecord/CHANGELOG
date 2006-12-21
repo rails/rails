@@ -1,5 +1,7 @@
 *SVN*
 
+* Pushing a record on an association collection doesn't unnecessarily load all the associated records.  [Obie Fernandez, Jeremy Kemper]
+
 * Oracle: fix connection reset failure.  #6846 [leonlleslie]
 
 * Subclass instantiation doesn't try to explicitly require the corresponding subclass.  #6840 [leei, Jeremy Kemper]
