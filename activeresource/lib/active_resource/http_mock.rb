@@ -46,7 +46,7 @@ module ActiveResource
         def #{method}(path, body, headers)
           request = ActiveResource::Request.new(:#{method}, path, body, headers)
           self.class.requests << request
-          self.class.responses[request] || raise(InvalidRequestError.new("No response recorded for: \#{request}"))
+          self.class.responses[request] || raise(InvalidRequestError.new("No response recorded for: \#{request.inspect}"))
         end
       EOE
     end
@@ -56,7 +56,7 @@ module ActiveResource
         def #{method}(path, headers)
           request = ActiveResource::Request.new(:#{method}, path, nil, headers)
           self.class.requests << request
-          self.class.responses[request] || raise(InvalidRequestError.new("No response recorded for: \#{request}"))
+          self.class.responses[request] || raise(InvalidRequestError.new("No response recorded for: \#{request.inspect}"))
         end
       EOE
     end
