@@ -98,6 +98,14 @@ class BaseTest < Test::Unit::TestCase
     assert_equal 'addresses', StreetAddress.collection_name
   end
 
+  def test_nested_element_name
+    self.class.const_set :Actor, Class.new(Person)
+    assert_equal 'base_test/actor', Actor.element_name
+  ensure
+    self.class.remove_const :Actor rescue nil
+  end
+
+
   def test_prefix
     assert_equal "/", Person.prefix
   end
