@@ -43,6 +43,36 @@ class BaseTest < Test::Unit::TestCase
     assert_equal site, Person.site
   end
 
+  def test_site_reader_uses_superclass_site_until_written
+    # Superclass is Object so returns nil.
+    assert_nil ActiveResource::Base.site
+    assert_nil Class.new(ActiveResource::Base).site
+
+    # Subclass uses superclass site.
+    actor = Class.new(Person)
+    assert_equal Person.site, actor.site
+
+    # Subclass returns frozen superclass copy.
+    assert !Person.site.frozen?
+    assert actor.site.frozen?
+
+    # Changing subclass site doesn't change superclass site.
+    actor.site = 'http://localhost:31337'
+    assert_not_equal Person.site, actor.site
+
+    # Changed subclass site is not frozen.
+    assert !actor.site.frozen?
+
+    # Changing superclass site doesn't overwrite subclass site.
+    Person.site = 'http://somewhere.else'
+    assert_not_equal Person.site, actor.site
+
+    # Changing superclass site after subclassing changes subclass site.
+    jester = Class.new(actor)
+    actor.site = 'http://nomad'
+    assert_equal actor.site, jester.site
+    assert jester.site.frozen?
+  end
 
   def test_collection_name
     assert_equal "people", Person.collection_name

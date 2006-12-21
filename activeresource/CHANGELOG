@@ -1,18 +1,18 @@
 *SVN*
 
-* Allow subclassed resources to share the site info [Rick]
+* Allow subclassed resources to share the site info [Rick, Jeremy Kemper]
 
     class BeastResource < ActiveResource::Base
       self.site = 'http://beast.caboo.se'
     end
-    
+
     class Forum < BeastResource
       # taken from BeastResource
       # self.site = 'http://beast.caboo.se'
     end
-    
+
     class Topic < BeastResource
-      site << '/forums/:forum_id'
+      self.site += '/forums/:forum_id'
     end
 
 * Fix issues with ActiveResource collection handling.  Closes #6291. [bmilekic]

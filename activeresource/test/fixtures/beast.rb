@@ -10,5 +10,5 @@ class Forum < BeastResource
 end
 
 class Topic < BeastResource
-  site << '/forums/:forum_id'
+  self.site += '/forums/:forum_id'
 end
