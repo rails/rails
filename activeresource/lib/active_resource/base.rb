@@ -111,6 +111,22 @@ module ActiveResource
       attributes[self.class.primary_key] = id
     end
 
+    # True if and only if +other+ is the same object or is an instance of the same class, is not new?, and has the same id.
+    def ==(other)
+      other.equal?(self) || (other.instance_of?(self.class) && !other.new? && other.id == id)
+    end
+
+    # Delegates to ==
+    def eql?(other)
+      self == other
+    end
+
+    # Delegates to id in order to allow two resources of the same type and id to work with something like:
+    #   [Person.find(1), Person.find(2)] & [Person.find(1), Person.find(4)] # => [Person.find(1)]
+    def hash
+      id.hash
+    end
+
     def save
       new? ? create : update
     end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Base#==, eql?, and hash methods. == returns true if its argument is identical to self or if it's an instance of the same class, is not new?, and has the same id. eql? is an alias for ==. hash delegates to id.  [Jeremy Kemper]
+
 * Allow subclassed resources to share the site info [Rick, Jeremy Kemper]
 
     class BeastResource < ActiveResource::Base
