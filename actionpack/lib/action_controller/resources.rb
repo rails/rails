@@ -68,27 +68,13 @@ module ActionController
 
     class SingletonResource < Resource #:nodoc:
       def initialize(entity, options)
-        @singular = entity
-        @plural   = options[:plural] || singular.to_s.pluralize
-        
-        @options  = options
+        @plural = @singular = entity
+        @options = options
         arrange_actions
         add_default_actions
         set_prefixes
       end
 
-      def controller
-        @controller ||= (options[:controller] || singular).to_s
-      end
-      
-      def path
-        @path ||= "#{path_prefix}/#{singular}"
-      end
-      
-      def new_path
-        nil
-      end
-      
       alias_method :member_path,         :path
       alias_method :nesting_path_prefix, :path
     end
@@ -251,27 +237,37 @@ module ActionController
     #   map.resource :account 
     #
     #   class AccountController < ActionController::Base
+    #     # POST account_url
+    #     def create
+    #       # create an account
+    #     end
+    #
+    #     # GET new_account_url
+    #     def new
+    #       # return an HTML form for describing the new account
+    #     end
+    #
     #     # GET account_url
     #     def show
-    #       # find and return a specific message
+    #       # find and return the account
     #     end
-    # 
+    #
     #     # GET edit_account_url
     #     def edit
-    #       # return an HTML form for editing a specific message
+    #       # return an HTML form for editing the account
     #     end
-    # 
+    #
     #     # PUT account_url
     #     def update
-    #       # find and update a specific message
+    #       # find and update the account
     #     end
-    # 
+    #
     #     # DELETE account_url
     #     def destroy
-    #       # delete a specific message
+    #       # delete the account
     #     end
     #   end
-    # 
+    #
     # Along with the routes themselves, #resource generates named routes for use in
     # controllers and views. <tt>map.resource :account</tt> produces the following named routes and helpers:
     # 
@@ -291,6 +287,7 @@ module ActionController
 
         with_options :controller => resource.controller do |map|
           map_collection_actions(map, resource)
+          map_default_collection_actions(map, resource)
           map_new_actions(map, resource)
           map_member_actions(map, resource)
 
@@ -304,6 +301,9 @@ module ActionController
         resource = SingletonResource.new(entities, options)
 
         with_options :controller => resource.controller do |map|
+          map_collection_actions(map, resource)
+          map_default_singleton_actions(map, resource)
+          map_new_actions(map, resource)
           map_member_actions(map, resource)
 
           if block_given?
@@ -330,10 +330,17 @@ module ActionController
             )
           end
         end
+      end
 
+      def map_default_collection_actions(map, resource)
         map.named_route("#{resource.name_prefix}#{resource.plural}", resource.path, :action => "index", :conditions => { :method => :get })
         map.named_route("formatted_#{resource.name_prefix}#{resource.plural}", "#{resource.path}.:format", :action => "index", :conditions => { :method => :get })
 
+        map.connect(resource.path, :action => "create", :conditions => { :method => :post })
+        map.connect("#{resource.path}.:format", :action => "create", :conditions => { :method => :post })
+      end
+
+      def map_default_singleton_actions(map, resource)
         map.connect(resource.path, :action => "create", :conditions => { :method => :post })
         map.connect("#{resource.path}.:format", :action => "create", :conditions => { :method => :post })
       end

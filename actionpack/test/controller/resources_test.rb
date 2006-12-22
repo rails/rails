@@ -350,8 +350,11 @@ class ResourcesTest < Test::Unit::TestCase
       with_options options[:options] do |controller|
         controller.assert_routing full_path,          :action => 'show'
         controller.assert_routing "#{full_path}.xml", :action => 'show', :format => 'xml'
+        controller.assert_routing "#{full_path}/new", :action => 'new'
+        controller.assert_routing "#{full_path};edit", :action => 'edit'
       end
 
+      assert_recognizes(options[:options].merge(:action => 'create'),  :path => full_path, :method => :post)
       assert_recognizes(options[:options].merge(:action => 'update'),  :path => full_path, :method => :put)
       assert_recognizes(options[:options].merge(:action => 'destroy'), :path => full_path, :method => :delete)
 
@@ -370,6 +373,8 @@ class ResourcesTest < Test::Unit::TestCase
       
       assert_named_route "#{full_path}",    "#{singleton_name}_path",            options[:options]
       assert_named_route "#{full_path}.xml", "formatted_#{singleton_name}_path", options[:options].merge(:format => 'xml')
+      assert_named_route "#{full_path}/new", "new_#{singleton_name}_path", options[:options]
+      assert_named_route "#{full_path};edit", "edit_#{singleton_name}_path", options[:options]
     end
 
     def assert_named_route(expected, route, options)

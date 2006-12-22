@@ -1,5 +1,7 @@
 *SVN*
 
+* Singleton resources: POST /singleton => create, GET /singleton/new => new.  [Jeremy Kemper]
+
 * Use 400 Bad Request status for unrescued ActiveRecord::RecordInvalid exceptions.  [Jeremy Kemper]
 
 * Silence log_error deprecation warnings from inspecting deprecated instance variables.  [Nate Wiger]
