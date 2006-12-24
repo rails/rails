@@ -1,5 +1,7 @@
 *SVN*
 
+* Update load once paths to prevent nested once constants from being detected and claimed by an external non-once load. [Nicholas Seckar]
+
 * Deprecation: silence warnings when reporting test errors.  [Jeremy Kemper]
 
 * Hash#slice(*keys) returns a new hash with only the given keys. #slice! replaces the hash with only the given keys. Works with HashWithIndifferentAccess also.  [Jeremy Kemper]
