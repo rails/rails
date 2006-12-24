@@ -1,0 +1,3 @@
+class CrossSiteDepender
+  CrossSiteDependency
+end

@@ -702,4 +702,32 @@ class DependenciesTest < Test::Unit::TestCase
     assert ! defined?(DeleteMe)
   end
   
+  def test_load_once_constants_should_not_be_unloaded
+    with_loading 'autoloading_fixtures' do
+      Dependencies.load_once_paths = Dependencies.load_paths
+      ::A
+      assert defined?(A)
+      Dependencies.clear
+      assert defined?(A)
+    end
+  ensure
+    Dependencies.load_once_paths = []
+    Object.send :remove_const, :A rescue nil
+  end
+  
+  def test_load_once_paths_should_behave_when_recursively_loading
+    with_loading 'dependencies', 'autoloading_fixtures' do
+      Dependencies.load_once_paths = [Dependencies.load_paths.last]
+      CrossSiteDepender.nil?
+      assert defined?(CrossSiteDependency)
+      assert ! Dependencies.autoloaded?(CrossSiteDependency),
+        "CrossSiteDependency shouldn't be marked as autoloaded!"
+      Dependencies.clear
+      assert defined?(CrossSiteDependency),
+        "CrossSiteDependency shouldn't have been unloaded!"
+    end
+  ensure
+    Dependencies.load_once_paths = []
+  end
+  
 end
