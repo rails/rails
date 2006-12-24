@@ -1,5 +1,7 @@
 *1.4.0 RC2*
 
+* Update load once paths to prevent nested once constants from being detected and claimed by an external non-once load. [Nicholas Seckar]
+
 * Deprecation: silence warnings when reporting test errors.  [Jeremy Kemper]
 
 * Fix remove_constant to correctly handle constant names of the form "::A::...". References #6720. [Nicholas Seckar]
