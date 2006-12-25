@@ -86,7 +86,7 @@ HTML
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
     ActionController::Routing::Routes.reload
-    ActionController::Routing.use_controllers! %w(content admin/user)
+    ActionController::Routing.use_controllers! %w(content admin/user test_test/test)
   end
 
   def teardown

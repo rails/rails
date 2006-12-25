@@ -139,6 +139,10 @@ module Admin
     def redirect_to_fellow_controller
       redirect_to :controller => 'user'
     end
+    
+    def redirect_to_top_level_named_route
+      redirect_to top_level_url(:id => "foo")
+    end
   end
 end
 
@@ -150,13 +154,18 @@ end
 # production environment
 ActionPackAssertionsController.template_root = File.dirname(__FILE__) + "/../fixtures/"
 
-
 # a test case to exercise the new capabilities TestRequest & TestResponse
 class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   # let's get this party started
   def setup
+    ActionController::Routing::Routes.reload
+    ActionController::Routing.use_controllers!(%w(action_pack_assertions admin/inner_module content admin/user))
     @controller = ActionPackAssertionsController.new
     @request, @response = ActionController::TestRequest.new, ActionController::TestResponse.new
+  end
+
+  def teardown
+    ActionController::Routing::Routes.reload
   end
 
   # -- assertion-based testing ------------------------------------------------
@@ -292,6 +301,19 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
       process :redirect_to_index
       # redirection is <{"action"=>"index", "controller"=>"admin/admin/inner_module"}>
       assert_redirected_to admin_inner_module_path
+    end
+  end
+  
+  def test_assert_redirected_to_top_level_named_route_from_nested_controller
+    with_routing do |set|
+      set.draw do |map|
+        map.top_level '/action_pack_assertions/:id', :controller => 'action_pack_assertions', :action => 'index'
+        map.connect   ':controller/:action/:id'
+      end
+      @controller = Admin::InnerModuleController.new
+      process :redirect_to_top_level_named_route
+      # passes -> assert_redirected_to "http://test.host/action_pack_assertions/foo"
+      assert_redirected_to "/action_pack_assertions/foo"
     end
   end
 
