@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix assert_redirected_to bug where redirecting from a nested to to a top-level controller incorrectly added the current controller's nesting.  Closes #6128.  [Rick Olson]
+
 * Singleton resources: POST /singleton => create, GET /singleton/new => new.  [Jeremy Kemper]
 
 * Use 400 Bad Request status for unrescued ActiveRecord::RecordInvalid exceptions.  [Jeremy Kemper]
