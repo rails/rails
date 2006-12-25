@@ -66,6 +66,9 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   def initialize(server, options) #:nodoc:
     @server_options = options
     @file_handler = WEBrick::HTTPServlet::FileHandler.new(server, options[:server_root])
+    # Change to the RAILS_ROOT, since Webrick::Daemon.start does a Dir::cwd("/") 
+    # OPTIONS['working_directory'] is an absolute path of the RAILS_ROOT, set in railties/lib/commands/servers/webrick.rb 
+    Dir.chdir(OPTIONS['working_directory']) if defined?(OPTIONS) && File.directory?(OPTIONS['working_directory']) 
     super
   end
 
