@@ -70,7 +70,8 @@ module ActionController
 
               if value.respond_to?(:[]) && value['controller']
                 if key == :actual && value['controller'].first != '/' && !value['controller'].include?('/')
-                  value['controller'] = ActionController::Routing.controller_relative_to(value['controller'], @controller.class.controller_path)
+                  new_controller_path = ActionController::Routing.controller_relative_to(value['controller'], @controller.class.controller_path)
+                  value['controller'] = new_controller_path if value['controller'] != new_controller_path && ActionController::Routing.possible_controllers.include?(new_controller_path)
                 end
                 value['controller'] = value['controller'][1..-1] if value['controller'].first == '/' # strip leading hash
               end

@@ -1,5 +1,7 @@
 *1.13.0 RC2*
 
+* Fix assert_redirected_to bug where redirecting from a nested to to a top-level controller incorrectly added the current controller's nesting.  Closes #6128.  [Rick Olson]
+
 * Ensure render :json => ... skips the layout.  #6808 [Josh Peek]
 
 * Silence log_error deprecation warnings from inspecting deprecated instance variables.  [Nate Wiger]
