@@ -342,8 +342,10 @@ module Rails
           sentinel = 'ActionController::Routing::Routes.draw do |map|'
 
           logger.route "map.resources #{resource_list}"
-          gsub_file 'config/routes.rb', /(#{Regexp.escape(sentinel)})/mi do |match|
-            "#{match}\n  map.resources #{resource_list}\n"
+          unless options[:pretend]
+            gsub_file 'config/routes.rb', /(#{Regexp.escape(sentinel)})/mi do |match|
+              "#{match}\n  map.resources #{resource_list}\n"
+            end
           end
         end
 
