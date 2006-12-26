@@ -163,7 +163,7 @@ class Dispatcher
       end
   end
   
-  self.preparation_callbacks = []
+  self.preparation_callbacks ||= []
   self.preparation_callbacks_run = false
   
 end

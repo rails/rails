@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow config.to_prepare to work, make the dispatcher safe to 're require'. [Koz, Nicholas Seckar]
+
 * Fix scaffold_resource generator so it respects the --pretend argument when creating the routes file.  Closes #6852 [fearoffish]
 
 * Fix Webrick Daemon dispatching bug regarding a bad current working directory.  Closes #4899 [Rick Olson]
