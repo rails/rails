@@ -85,8 +85,10 @@ module ActionView
       #   <%= error_message_on "post", "title", "Title simply ", " (or it won't work)", "inputError" %> =>
       #     <div class="inputError">Title simply can't be empty (or it won't work)</div>
       def error_message_on(object, method, prepend_text = "", append_text = "", css_class = "formError")
-        if errors = instance_variable_get("@#{object}").errors.on(method)
+        if object = instance_variable_get("@#{object}") && errors = object.errors.on(method)
           content_tag("div", "#{prepend_text}#{errors.is_a?(Array) ? errors.first : errors}#{append_text}", :class => css_class)
+        else 
+          ''
         end
       end
 
