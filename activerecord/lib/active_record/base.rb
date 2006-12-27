@@ -763,7 +763,7 @@ module ActiveRecord #:nodoc:
         @columns
       end
 
-      # Returns an array of column objects for the table associated with this class.
+      # Returns a hash of column objects for the table associated with this class.
       def columns_hash
         @columns_hash ||= columns.inject({}) { |hash, column| hash[column.name] = column; hash }
       end
