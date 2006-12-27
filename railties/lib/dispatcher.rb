@@ -25,9 +25,7 @@
 # to the appropriate controller and action. It also takes care of resetting
 # the environment (when Dependencies.load? is true) after each request.
 class Dispatcher
-  
   class << self
-
     # Dispatch the given CGI request, using the given session options, and
     # emitting the output via the given output.  If you dispatch with your
     # own CGI object be sure to handle the exceptions it raises on multipart
@@ -89,8 +87,8 @@ class Dispatcher
     end
 
     private
-
-      attr_accessor :preparation_callbacks, :preparation_callbacks_run
+      attr_accessor_with_default :preparation_callbacks, []
+      attr_accessor_with_default :preparation_callbacks_run, false
       alias_method :preparation_callbacks_run?, :preparation_callbacks_run
       
       # CGI.new plus exception handling.  CGI#read_multipart raises EOFError
@@ -162,10 +160,6 @@ class Dispatcher
         end
       end
   end
-  
-  self.preparation_callbacks ||= []
-  self.preparation_callbacks_run = false
-  
 end
 
 Dispatcher.to_prepare :activerecord_instantiate_observers do
