@@ -293,6 +293,13 @@ class FinderTest < Test::Unit::TestCase
   def test_find_by_one_missing_attribute
     assert_raises(NoMethodError) { Topic.find_by_undertitle("The First Topic!") }
   end
+  
+  def test_find_by_invalid_method_syntax
+    assert_raises(NoMethodError) { Topic.fail_to_find_by_title("The First Topic") }
+    assert_raises(NoMethodError) { Topic.find_by_title?("The First Topic") }
+    assert_raises(NoMethodError) { Topic.fail_to_find_or_create_by_title("Nonexistent Title") }
+    assert_raises(NoMethodError) { Topic.find_or_create_by_title?("Nonexistent Title") }
+  end
 
   def test_find_by_two_attributes
     assert_equal topics(:first), Topic.find_by_title_and_author_name("The First Topic", "David")
