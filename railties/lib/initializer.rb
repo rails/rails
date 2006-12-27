@@ -388,6 +388,7 @@ module Rails
           application_lib_index = $LOAD_PATH.index(File.join(RAILS_ROOT, "lib")) || 0
           $LOAD_PATH.insert(application_lib_index + 1, lib_path)
           Dependencies.load_paths << lib_path
+          Dependencies.load_once_paths << lib_path
         end
 
         # Allow plugins to reference the current configuration object
@@ -612,11 +613,9 @@ module Rails
         paths.concat builtin_directories
       end
 
+      # Doesn't matter since plugins aren't in load_paths yet.
       def default_load_once_paths
-        plugin_root = "#{root_path}/vendor/plugins/"
-        default_load_paths.select do |path|
-          path[0, plugin_root.length] == plugin_root # No begins_with yet
-        end
+        []
       end
 
       def default_log_path

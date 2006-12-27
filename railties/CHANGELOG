@@ -1,5 +1,10 @@
 *SVN*
 
+* Ensure plugins are in the Dependencies.load_once_paths collection by default.  [Rick]
+  If you really want your plugins to reload, add this to the very top of init.rb:
+  
+    Dependencies.load_once_paths.delete(lib_path)
+
 * Allow config.to_prepare to work, make the dispatcher safe to 're require'. [Koz, Nicholas Seckar]
 
 * Fix scaffold_resource generator so it respects the --pretend argument when creating the routes file.  Closes #6852 [fearoffish]
