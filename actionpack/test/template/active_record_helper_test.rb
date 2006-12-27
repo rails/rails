@@ -170,6 +170,10 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
   def test_error_messages_for_handles_nil
     assert_equal "", error_messages_for("notthere")
   end
+  
+  def test_error_message_on_handles_nil
+    assert_equal "", error_message_on("notthere", "notthere")
+  end
 
   def test_error_messages_for_many_objects
     assert_dom_equal %(<div class="errorExplanation" id="errorExplanation"><h2>2 errors prohibited this post from being saved</h2><p>There were problems with the following fields:</p><ul><li>Author name can't be empty</li><li>User email can't be empty</li></ul></div>), error_messages_for("post", "user")
