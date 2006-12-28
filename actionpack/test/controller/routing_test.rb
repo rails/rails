@@ -207,7 +207,14 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       map.path 'file/*path', :controller => 'content', :action => 'show_file'
       map.connect ':controller/:action/:id'
     end
+
+    # No + to space in URI escaping, only for query params.
     results = rs.recognize_path "/file/hello+world/how+are+you%3F"
+    assert results, "Recognition should have succeeded"
+    assert_equal ['hello+world', 'how+are+you?'], results[:path]
+
+    # Use %20 for space instead.
+    results = rs.recognize_path "/file/hello%20world/how%20are%20you%3F"
     assert results, "Recognition should have succeeded"
     assert_equal ['hello world', 'how are you?'], results[:path]
 
@@ -1457,11 +1464,11 @@ class RouteSetTest < Test::Unit::TestCase
   
   def test_recognize_with_encoded_id_and_regex
     set.draw do |map|
-      map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /[a-zA-Z0-9 ]+/
+      map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /[a-zA-Z0-9\+]+/
     end
 
     assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/page/10'))
-    assert_equal({:controller => 'pages', :action => 'show', :id => 'hello world'}, set.recognize_path('/page/hello+world'))
+    assert_equal({:controller => 'pages', :action => 'show', :id => 'hello+world'}, set.recognize_path('/page/hello+world'))
   end
 
   def test_recognize_with_conditions

@@ -1,4 +1,5 @@
 require 'cgi'
+require 'uri'
 
 class Object
   def to_param
@@ -601,7 +602,7 @@ module ActionController
       end
   
       def interpolation_chunk
-        raw? ? value : CGI.escape(value)
+        raw? ? value : URI.escape(value)
       end
   
       def regexp_chunk
@@ -682,7 +683,7 @@ module ActionController
       end
   
       def interpolation_chunk
-        "\#{CGI.escape(#{local_name}.to_s)}"
+        "\#{URI.escape(#{local_name}.to_s)}"
       end
   
       def string_structure(prior_segments)
@@ -731,7 +732,7 @@ module ActionController
         "(?i-:(#{(regexp || Regexp.union(*possible_names)).source}))"
       end
 
-      # Don't CGI.escape the controller name, since it may have slashes in it,
+      # Don't URI.escape the controller name, since it may have slashes in it,
       # like admin/foo.
       def interpolation_chunk
         "\#{#{local_name}.to_s}"
@@ -753,9 +754,9 @@ module ActionController
     end
 
     class PathSegment < DynamicSegment
-      EscapedSlash = CGI.escape("/")
+      EscapedSlash = URI.escape("/")
       def interpolation_chunk
-        "\#{CGI.escape(#{local_name}.to_s).gsub(#{EscapedSlash.inspect}, '/')}"
+        "\#{URI.escape(#{local_name}.to_s).gsub(#{EscapedSlash.inspect}, '/')}"
       end
 
       def default
@@ -777,7 +778,7 @@ module ActionController
       class Result < ::Array #:nodoc:
         def to_s() join '/' end 
         def self.new_escaped(strings)
-          new strings.collect {|str| CGI.unescape str}
+          new strings.collect {|str| URI.unescape str}
         end     
       end     
     end
@@ -1256,7 +1257,7 @@ module ActionController
       end
   
       def recognize_path(path, environment={})
-        path = CGI.unescape(path)
+        path = URI.unescape(path)
         routes.each do |route|
           result = route.recognize(path, environment) and return result
         end
