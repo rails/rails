@@ -1978,7 +1978,13 @@ module ActiveRecord #:nodoc:
           false
         else
           column = self.class.columns_hash[attr_name]
-          if column.number?
+          if column.nil?
+            if value !~ /[^0-9]/
+              !value.to_i.zero?
+            else
+              !value.blank?
+            end
+          elsif column.number?
             !value.zero?
           else
             !value.blank?

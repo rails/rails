@@ -299,7 +299,28 @@ class BasicsTest < Test::Unit::TestCase
       assert_equal true, Topic.new(:approved => value).approved?
     end
   end
-  
+
+  def test_query_attribute_with_custom_fields
+    object = Company.find_by_sql(<<-SQL).first
+      SELECT c1.*, c2.ruby_type as string_value, c2.rating as int_value
+        FROM companies c1, companies c2
+       WHERE c1.firm_id = c2.id
+         AND c1.id = 2
+    SQL
+
+    assert_equal "Firm", object.string_value
+    assert object.string_value?
+
+    object.string_value = "  "
+    assert !object.string_value?
+
+    assert_equal "1", object.int_value
+    assert object.int_value?
+
+    object.int_value = "0"
+    assert !object.int_value?
+  end
+
   def test_reader_generation
     Topic.find(:first).title
     Firm.find(:first).name
