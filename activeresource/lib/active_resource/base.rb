@@ -101,7 +101,7 @@ module ActiveResource
 
         def query_string(options)
           # Omit parameters which appear in the URI path.
-          path unless defined?(@prefix_parameters)
+          prefix unless defined?(@prefix_parameters)
           query_params = options.reject { |key, value| @prefix_parameters.include?(key) }
 
           # Accumulate a list of escaped key=value pairs for the given parameters.
