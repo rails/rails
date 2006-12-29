@@ -43,6 +43,11 @@ class BaseTest < Test::Unit::TestCase
     assert_equal site, Person.site
   end
 
+  def test_should_use_site_prefix_and_credentials
+    assert_equal 'http://foo:bar@beast.caboo.se', Forum.site.to_s
+    assert_equal 'http://foo:bar@beast.caboo.se/forums/:forum_id', Topic.site.to_s
+  end
+
   def test_site_reader_uses_superclass_site_until_written
     # Superclass is Object so returns nil.
     assert_nil ActiveResource::Base.site
@@ -88,7 +93,7 @@ class BaseTest < Test::Unit::TestCase
     assert_equal '/people.xml?gender=', Person.collection_path(:gender => nil)
 
     assert_equal '/people.xml?gender=male', Person.collection_path('gender' => 'male')
-    assert_equal '/people.xml?student=true&gender=male', Person.collection_path(:gender => 'male', :student => true)
+    assert_equal '/people.xml?gender=male&student=true', Person.collection_path(:gender => 'male', :student => true)
 
     assert_equal '/people.xml?name[]=bob&name[]=your+uncle%2Bme&name[]=&name[]=false', Person.collection_path(:name => ['bob', 'your uncle+me', nil, false])
   end
@@ -128,13 +133,13 @@ class BaseTest < Test::Unit::TestCase
 
   def test_prefix
     assert_equal "/", Person.prefix
-    assert_equal Set.new, Person.instance_variable_get('@prefix_parameters')
+    assert_equal Set.new, Person.send(:prefix_parameters)
   end
 
   def test_custom_prefix
     assert_equal '/people//', StreetAddress.prefix
     assert_equal '/people/1/', StreetAddress.prefix(:person_id => 1)
-    assert_equal [:person_id].to_set, StreetAddress.instance_variable_get('@prefix_parameters')
+    assert_equal [:person_id].to_set, StreetAddress.send(:prefix_parameters)
   end
 
   def test_find_by_id
@@ -231,10 +236,5 @@ class BaseTest < Test::Unit::TestCase
 
   def test_delete
     assert Person.delete(1)
-  end
-
-  def test_should_use_site_prefix_and_credentials
-    assert_equal 'http://foo:bar@beast.caboo.se', Forum.site.to_s
-    assert_equal 'http://foo:bar@beast.caboo.se/forums/:forum_id', Topic.site.to_s
   end
 end

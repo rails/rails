@@ -4,8 +4,7 @@ require 'set'
 
 module ActiveResource
   class Base
-    # The logger for logging diagnostic and trace information during ARes
-    # calls.
+    # The logger for diagnosing and tracing ARes calls.
     cattr_accessor :logger
 
     class << self
@@ -18,9 +17,8 @@ module ActiveResource
       end
 
       def site=(site)
-        @site = create_site_uri_from(site)
         @connection = nil
-        @site
+        @site = create_site_uri_from(site)
       end
 
       def connection(refresh = false)
@@ -40,13 +38,11 @@ module ActiveResource
       end
 
       def prefix=(value = '/')
-        @prefix_parameters = Set.new
-        prefix_call = value.gsub(/:\w+/) do |key|
-          @prefix_parameters << key[1..-1].to_sym
-          "\#{options[#{key}]}"
-        end
-        method_decl = %(def prefix(options={}) "#{prefix_call}" end)
-        instance_eval method_decl, __FILE__, __LINE__
+        prefix_call = value.gsub(/:\w+/) { |key| "\#{options[#{key}]}" }
+        instance_eval <<-end_eval, __FILE__, __LINE__
+          def prefix_source() "#{value}" end
+          def prefix(options={}) "#{prefix_call}" end
+        end_eval
       rescue
         logger.error "Couldn't set prefix: #{$!}\n  #{method_decl}"
         raise
@@ -99,10 +95,13 @@ module ActiveResource
           site.is_a?(URI) ? site.dup : URI.parse(site)
         end
 
+        def prefix_parameters
+          @prefix_parameters ||= prefix_source.scan(/:\w+/).map { |key| key[1..-1].to_sym }.to_set
+        end
+
         def query_string(options)
           # Omit parameters which appear in the URI path.
-          prefix unless defined?(@prefix_parameters)
-          query_params = options.reject { |key, value| @prefix_parameters.include?(key) }
+          query_params = options.reject { |key, value| prefix_parameters.include?(key) }
 
           # Accumulate a list of escaped key=value pairs for the given parameters.
           pairs = []
