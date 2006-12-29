@@ -82,12 +82,32 @@ class BaseTest < Test::Unit::TestCase
     assert_equal '/people.xml', Person.collection_path
   end
 
+  def test_collection_path_with_parameters
+    assert_equal '/people.xml?gender=male', Person.collection_path(:gender => 'male')
+    assert_equal '/people.xml?gender=false', Person.collection_path(:gender => false)
+    assert_equal '/people.xml?gender=', Person.collection_path(:gender => nil)
+
+    assert_equal '/people.xml?gender=male', Person.collection_path('gender' => 'male')
+    assert_equal '/people.xml?student=true&gender=male', Person.collection_path(:gender => 'male', :student => true)
+
+    assert_equal '/people.xml?name[]=bob&name[]=your+uncle%2Bme&name[]=&name[]=false', Person.collection_path(:name => ['bob', 'your uncle+me', nil, false])
+  end
+
   def test_custom_element_path
     assert_equal '/people/1/addresses/1.xml', StreetAddress.element_path(1, :person_id => 1)
   end
 
+  def test_custom_element_path_with_parameters
+    assert_equal '/people/1/addresses/1.xml?type=work', StreetAddress.element_path(1, :person_id => 1, :type => 'work')
+    assert_equal '/people/1/addresses/1.xml?type[]=work&type[]=play+time', StreetAddress.element_path(1, :person_id => 1, :type => ['work', 'play time'])
+  end
+
   def test_custom_collection_path
     assert_equal '/people/1/addresses.xml', StreetAddress.collection_path(:person_id => 1)
+  end
+
+  def test_custom_collection_path_with_parameters
+    assert_equal '/people/1/addresses.xml?type=work', StreetAddress.collection_path(:person_id => 1, :type => 'work')
   end
 
   def test_custom_element_name
@@ -108,11 +128,13 @@ class BaseTest < Test::Unit::TestCase
 
   def test_prefix
     assert_equal "/", Person.prefix
+    assert_equal Set.new, Person.instance_variable_get('@prefix_parameters')
   end
 
   def test_custom_prefix
     assert_equal '/people//', StreetAddress.prefix
     assert_equal '/people/1/', StreetAddress.prefix(:person_id => 1)
+    assert_equal [:person_id].to_set, StreetAddress.instance_variable_get('@prefix_parameters')
   end
 
   def test_find_by_id

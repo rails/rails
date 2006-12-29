@@ -1,4 +1,6 @@
 require 'active_resource/connection'
+require 'cgi'
+require 'set'
 
 module ActiveResource
   class Base
@@ -29,7 +31,7 @@ module ActiveResource
       attr_accessor_with_default(:element_name)    { to_s.underscore }
       attr_accessor_with_default(:collection_name) { element_name.pluralize }
       attr_accessor_with_default(:primary_key, 'id')
-      
+
       def prefix(options={})
         default = site.path
         default << '/' unless default[-1..-1] == '/'
@@ -38,21 +40,29 @@ module ActiveResource
       end
 
       def prefix=(value = '/')
-        prefix_call = value.gsub(/:\w+/) { |s| "\#{options[#{s}]}" }
-        method_decl = %(def self.prefix(options={}) "#{prefix_call}" end)
-        eval method_decl
+        @prefix_parameters = Set.new
+        prefix_call = value.gsub(/:\w+/) do |key|
+          @prefix_parameters << key[1..-1].to_sym
+          "\#{options[#{key}]}"
+        end
+        method_decl = %(def prefix(options={}) "#{prefix_call}" end)
+        instance_eval method_decl, __FILE__, __LINE__
+      rescue
+        logger.error "Couldn't set prefix: #{$!}\n  #{method_decl}"
+        raise
       end
+
       alias_method :set_prefix, :prefix=
 
       alias_method :set_element_name, :element_name=
       alias_method :set_collection_name, :collection_name=
 
       def element_path(id, options = {})
-        "#{prefix(options)}#{collection_name}/#{id}.xml"
+        "#{prefix(options)}#{collection_name}/#{id}.xml#{query_string(options)}"
       end
 
       def collection_path(options = {})
-        "#{prefix(options)}#{collection_name}.xml"
+        "#{prefix(options)}#{collection_name}.xml#{query_string(options)}"
       end
 
       alias_method :set_primary_key, :primary_key=
@@ -87,6 +97,28 @@ module ActiveResource
 
         def create_site_uri_from(site)
           site.is_a?(URI) ? site.dup : URI.parse(site)
+        end
+
+        def query_string(options)
+          # Omit parameters which appear in the URI path.
+          query_params = options.reject { |key, value| @prefix_parameters.include?(key) }
+
+          # Accumulate a list of escaped key=value pairs for the given parameters.
+          pairs = []
+          query_params.each do |key, value|
+            key = CGI.escape(key.to_s)
+
+            # a => b becomes a=b
+            # a => [b, c] becomes a[]=b&a[]=c
+            case value
+              when Array
+                value.each { |val| pairs << "#{key}[]=#{CGI.escape(val.to_s)}" }
+              else
+                pairs << "#{key}=#{CGI.escape(value.to_s)}"
+            end
+          end
+
+          "?#{pairs * '&'}" unless pairs.empty?
         end
     end
 
