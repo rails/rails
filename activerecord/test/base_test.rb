@@ -314,7 +314,7 @@ class BasicsTest < Test::Unit::TestCase
     object.string_value = "  "
     assert !object.string_value?
 
-    assert_equal "1", object.int_value
+    assert_equal 1, object.int_value.to_i
     assert object.int_value?
 
     object.int_value = "0"

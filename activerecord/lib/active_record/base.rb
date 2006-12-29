@@ -1979,7 +1979,7 @@ module ActiveRecord #:nodoc:
         else
           column = self.class.columns_hash[attr_name]
           if column.nil?
-            if value !~ /[^0-9]/
+            if Numeric === value || value !~ /[^0-9]/
               !value.to_i.zero?
             else
               !value.blank?
