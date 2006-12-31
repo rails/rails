@@ -305,7 +305,12 @@ class DependenciesTest < Test::Unit::TestCase
       assert Dependencies.autoloaded?("::ModuleFolder")
       assert Dependencies.autoloaded?(:ModuleFolder)
 
-      assert ! Dependencies.autoloaded?(Module.new)
+      # Anonymous modules aren't autoloaded.
+      assert !Dependencies.autoloaded?(Module.new)
+
+      nil_name = Module.new
+      def nil_name.name() nil end
+      assert !Dependencies.autoloaded?(nil_name)
 
       Object.send :remove_const, :ModuleFolder
     end
