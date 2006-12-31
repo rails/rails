@@ -38,7 +38,6 @@ module Builder
   #       xm.title("History")        #     <title>History</title>
   #     }                            #   </head>
   #     xm.body {                    #   <body>
-  #       xm.comment! "HI"           #     <!-- HI -->
   #       xm.h1("Header")            #     <h1>Header</h1>
   #       xm.p("paragraph")          #     <p>paragraph</p>
   #     }                            #   </body>

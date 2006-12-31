@@ -27,9 +27,9 @@ module ActionController #:nodoc:
     # With layouts, you can flip it around and have the common structure know where to insert changing content. This means
     # that the header and footer are only mentioned in one place, like this:
     #
-    #   <!-- The header part of this layout -->
+    #   // The header part of this layout
     #   <%= yield %>
-    #   <!-- The footer part of this layout -->
+    #   // The footer part of this layout -->
     #
     # And then you have content pages that look like this:
     #
@@ -38,9 +38,9 @@ module ActionController #:nodoc:
     # Not a word about common structures. At rendering time, the content page is computed and then inserted in the layout, 
     # like this:
     #
-    #   <!-- The header part of this layout -->
+    #   // The header part of this layout
     #   hello world
-    #   <!-- The footer part of this layout -->
+    #   // The footer part of this layout -->
     #
     # == Accessing shared variables
     #
