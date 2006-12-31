@@ -305,6 +305,8 @@ class DependenciesTest < Test::Unit::TestCase
       assert Dependencies.autoloaded?("::ModuleFolder")
       assert Dependencies.autoloaded?(:ModuleFolder)
 
+      assert ! Dependencies.autoloaded?(Module.new)
+
       Object.send :remove_const, :ModuleFolder
     end
   end
@@ -705,7 +707,7 @@ class DependenciesTest < Test::Unit::TestCase
   def test_load_once_constants_should_not_be_unloaded
     with_loading 'autoloading_fixtures' do
       Dependencies.load_once_paths = Dependencies.load_paths
-      ::A
+      ::A.to_s
       assert defined?(A)
       Dependencies.clear
       assert defined?(A)

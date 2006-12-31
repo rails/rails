@@ -278,6 +278,7 @@ module Dependencies #:nodoc:
   
   # Determine if the given constant has been automatically loaded.
   def autoloaded?(desc)
+    return false if desc.is_a?(Module) && desc.name.empty? # Empty name => anonymous module.
     name = to_constant_name desc
     return false unless qualified_const_defined? name
     return autoloaded_constants.include?(name)
