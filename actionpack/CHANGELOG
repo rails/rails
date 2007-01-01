@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure html_document is reset between integration test requests. [ctm]
+
 * Set session to an empty hash if :new_session => false and no session cookie or param is present. CGI::Session was raising an unrescued ArgumentError.  [Josh Susser]
 
 * Routing uses URI escaping for path components and CGI escaping for query parameters.  [darix, Jeremy Kemper]
