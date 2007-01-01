@@ -110,7 +110,13 @@ module ActionController #:nodoc:
             if session_options_with_string_keys['new_session'] == true
               @session = new_session
             else
-              @session = CGI::Session.new(@cgi, session_options_with_string_keys)
+              begin
+                @session = CGI::Session.new(@cgi, session_options_with_string_keys)
+              # CGI::Session raises ArgumentError if 'new_session' == false
+              # and no session cookie or query param is present.
+              rescue ArgumentError
+                @session = Hash.new
+              end
             end
             @session['__valid_session']
           end
