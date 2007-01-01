@@ -493,6 +493,8 @@ module ActionController
     %w(get post cookies assigns xml_http_request).each do |method|
       define_method(method) do |*args|
         reset! unless @integration_session
+        # reset the html_document variable, but only for new get/post calls
+        @html_document = nil unless %w(cookies assigns).include?(method)
         returning @integration_session.send(method, *args) do
           copy_session_variables!
         end
