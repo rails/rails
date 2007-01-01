@@ -171,7 +171,7 @@ end_msg
       end
 
       def session_options_with_string_keys
-        @session_options_with_string_keys ||= DEFAULT_SESSION_OPTIONS.merge(@session_options).inject({}) { |options, (k,v)| options[k.to_s] = v; options }
+        @session_options_with_string_keys ||= DEFAULT_SESSION_OPTIONS.merge(@session_options).stringify_keys
       end
   end
 
