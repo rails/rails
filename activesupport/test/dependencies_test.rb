@@ -725,9 +725,10 @@ class DependenciesTest < Test::Unit::TestCase
   def test_load_once_paths_should_behave_when_recursively_loading
     with_loading 'dependencies', 'autoloading_fixtures' do
       Dependencies.load_once_paths = [Dependencies.load_paths.last]
-      CrossSiteDepender.nil?
+      assert !defined?(CrossSiteDependency)
+      assert_nothing_raised { CrossSiteDepender.nil? }
       assert defined?(CrossSiteDependency)
-      assert ! Dependencies.autoloaded?(CrossSiteDependency),
+      assert !Dependencies.autoloaded?(CrossSiteDependency),
         "CrossSiteDependency shouldn't be marked as autoloaded!"
       Dependencies.clear
       assert defined?(CrossSiteDependency),
