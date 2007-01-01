@@ -1,5 +1,7 @@
 *SVN*
 
+* Set session to an empty hash if :new_session => false and no session cookie or param is present. CGI::Session was raising an unrescued ArgumentError.  [Josh Susser]
+
 * Routing uses URI escaping for path components and CGI escaping for query parameters.  [darix, Jeremy Kemper]
 
 * Fix assert_redirected_to bug where redirecting from a nested to to a top-level controller incorrectly added the current controller's nesting.  Closes #6128.  [Rick Olson]
