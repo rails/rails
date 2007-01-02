@@ -121,6 +121,36 @@ class TransactionTest < Test::Unit::TestCase
       remove_exception_raising_after_save_callback_to_topic
     end
   end
+  
+  def test_callback_rollback_in_create
+    new_topic = Topic.new(
+      :title => "A new topic",
+      :author_name => "Ben",
+      :author_email_address => "ben@example.com",
+      :written_on => "2003-07-16t15:28:11.2233+01:00",
+      :last_read => "2004-04-15",
+      :bonus_time => "2005-01-30t15:28:00.00+01:00",
+      :content => "Have a nice day",
+      :approved => false)
+    new_record_snapshot = new_topic.new_record?
+    id_snapshot = new_topic.id
+    
+    # Make sure the second save gets the after_create callback called.
+    2.times do
+      begin
+        add_exception_raising_after_create_callback_to_topic
+        new_topic.approved = true
+        new_topic.save
+        flunk
+      rescue => e
+        assert_equal "Make the transaction rollback", e.message
+        assert_equal new_record_snapshot, new_topic.new_record?, "The topic should have its old new_record value"
+        assert_equal id_snapshot, new_topic.id, "The topic should have its old id"
+      ensure
+        remove_exception_raising_after_create_callback_to_topic
+      end
+    end
+  end
 
   def test_nested_explicit_transactions
     Topic.transaction do
@@ -143,6 +173,14 @@ class TransactionTest < Test::Unit::TestCase
     
     def remove_exception_raising_after_save_callback_to_topic
       Topic.class_eval { remove_method :after_save }
+    end
+    
+    def add_exception_raising_after_create_callback_to_topic
+      Topic.class_eval { def after_create() raise "Make the transaction rollback" end }
+    end
+    
+    def remove_exception_raising_after_create_callback_to_topic
+      Topic.class_eval { remove_method :after_create }
     end
 end
 
