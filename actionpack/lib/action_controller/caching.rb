@@ -307,16 +307,16 @@ module ActionController #:nodoc:
       def self.included(base) #:nodoc:
         base.class_eval do
           @@fragment_cache_store = MemoryStore.new
-          cattr_reader :fragment_cache_store
+          cattr_writer :fragment_cache_store
 
-          def self.fragment_cache_store=(store_option)
-            store, *parameters = *([ store_option ].flatten)
-            @@fragment_cache_store = if store.is_a?(Symbol)
+          def self.fragment_cache_store
+            @@fragment_cache_store = if @@fragment_cache_store.is_a?(Array)
+              store, *parameters = *([ @@fragment_cache_store ].flatten)
               store_class_name = (store == :drb_store ? "DRbStore" : store.to_s.camelize)
               store_class = ActionController::Caching::Fragments.const_get(store_class_name)
               store_class.new(*parameters)
             else
-              store
+              @@fragment_cache_store
             end
           end
         end
