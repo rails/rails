@@ -1,7 +1,5 @@
 *SVN*
 
-* Allow ActionController::Base.session_store and #fragment_cache_store to lazily load the session class to allow for custom session store plugins.  [Rick Olson]
-
 * Make sure html_document is reset between integration test requests. [ctm]
 
 * Set session to an empty hash if :new_session => false and no session cookie or param is present. CGI::Session was raising an unrescued ArgumentError.  [Josh Susser]
