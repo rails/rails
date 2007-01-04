@@ -18,13 +18,13 @@ module ActionController #:nodoc:
       # file system, but you can also specify one of the other included stores (:active_record_store, :drb_store, 
       # :mem_cache_store, or :memory_store) or use your own class.
       def session_store=(store)
-        ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager] = store
+        ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager] =
+          store.is_a?(Symbol) ? CGI::Session.const_get(store == :drb_store ? "DRbStore" : store.to_s.camelize) : store
       end
 
       # Returns the session store class currently used.
       def session_store
-        store = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager]
-        self.session_store = store.is_a?(Symbol) ? CGI::Session.const_get(store == :drb_store ? "DRbStore" : store.to_s.camelize) : store
+        ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager]
       end
 
       # Returns the hash used to configure the session. Example use:
