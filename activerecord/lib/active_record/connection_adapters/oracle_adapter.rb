@@ -48,6 +48,7 @@ begin
         if connection.is_a?(ConnectionAdapters::OracleAdapter)
           self.class.columns.select { |c| c.sql_type =~ /LOB$/i }.each { |c|
             value = self[c.name]
+            value = value.to_yaml if unserializable_attribute?(c.name, c)
             next if value.nil?  || (value == '')
             lob = connection.select_one(
               "SELECT #{c.name} FROM #{self.class.table_name} WHERE #{self.class.primary_key} = #{quote_value(id)}",
