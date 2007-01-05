@@ -467,7 +467,7 @@ module ActionView
           #
           #   # Replace the DOM element having ID 'person-45' with the
           #   # 'person' partial for the appropriate object.
-          #   replace_html 'person-45', :partial => 'person', :object => @person
+          #   replace 'person-45', :partial => 'person', :object => @person
           #
           # This allows the same partial that is used for the +insert_html+ to
           # be also used for the input to +replace+ without resorting to
