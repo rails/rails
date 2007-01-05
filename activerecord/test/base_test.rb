@@ -622,8 +622,8 @@ class BasicsTest < Test::Unit::TestCase
     end
   end
 
-  # Oracle and SQLServer do not have a TIME datatype.
-  unless current_adapter?(:SQLServerAdapter, :OracleAdapter)
+  # Oracle, SQLServer, and Sybase do not have a TIME datatype.
+  unless current_adapter?(:SQLServerAdapter, :OracleAdapter, :SybaseAdapter)
     def test_utc_as_time_zone
       Topic.default_timezone = :utc
       attributes = { "bonus_time" => "5:42:00AM" }
@@ -852,8 +852,8 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_attributes_on_dummy_time
-    # Oracle and SQL Server do not have a TIME datatype.
-    return true if current_adapter?(:SQLServerAdapter, :OracleAdapter)
+    # Oracle, SQL Server, and Sybase do not have a TIME datatype.
+    return true if current_adapter?(:SQLServerAdapter, :OracleAdapter, :SybaseAdapter)
 
     attributes = {
       "bonus_time" => "5:42:00AM"
@@ -1075,7 +1075,7 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_sql_injection_via_find
-    assert_raises(ActiveRecord::RecordNotFound) do
+    assert_raises(ActiveRecord::RecordNotFound, ActiveRecord::StatementInvalid) do
       Topic.find("123456 OR id > 0")
     end
   end

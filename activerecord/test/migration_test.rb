@@ -58,8 +58,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nothing_raised { Person.connection.add_index("people", "last_name") }
       assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
 
-      # Orcl nds shrt indx nms.
-      unless current_adapter?(:OracleAdapter)
+      # Orcl nds shrt indx nms.  Sybs 2.
+      unless current_adapter?(:OracleAdapter, :SybaseAdapter)
         assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
         assert_nothing_raised { Person.connection.remove_index("people", :column => ["last_name", "first_name"]) }
         assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
@@ -188,7 +188,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
       
       con = Person.connection     
+      Person.connection.enable_identity_insert("testings", true) if current_adapter?(:SybaseAdapter)
       Person.connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}) values (1, 'hello')"
+      Person.connection.enable_identity_insert("testings", false) if current_adapter?(:SybaseAdapter)
       assert_nothing_raised {Person.connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
 
       assert_raises(ActiveRecord::StatementInvalid) do
@@ -367,7 +369,9 @@ if ActiveRecord::Base.connection.supports_migrations?
 
         # Using explicit id in insert for compatibility across all databases
         con = ActiveRecord::Base.connection     
+        con.enable_identity_insert("octopi", true) if current_adapter?(:SybaseAdapter)
         assert_nothing_raised { con.execute "INSERT INTO octopi (#{con.quote_column_name('id')}, #{con.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')" }
+        con.enable_identity_insert("octopi", false) if current_adapter?(:SybaseAdapter)
 
         assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', ActiveRecord::Base.connection.select_value("SELECT url FROM octopi WHERE id=1")
 
@@ -388,7 +392,9 @@ if ActiveRecord::Base.connection.supports_migrations?
 
         # Using explicit id in insert for compatibility across all databases
         con = ActiveRecord::Base.connection     
+        con.enable_identity_insert("octopi", true) if current_adapter?(:SybaseAdapter)
         assert_nothing_raised { con.execute "INSERT INTO octopi (#{con.quote_column_name('id')}, #{con.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')" }
+        con.enable_identity_insert("octopi", false) if current_adapter?(:SybaseAdapter)
 
         assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', ActiveRecord::Base.connection.select_value("SELECT url FROM octopi WHERE id=1")
         assert ActiveRecord::Base.connection.indexes(:octopi).first.columns.include?("url")
