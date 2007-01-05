@@ -1,5 +1,8 @@
-*1.13.0 RC2* (r5847, January 4th, 2007)
+*SVN*
 
+* [DOCS] fix reference to ActionController::Macros::AutoComplete for #text_field_with_auto_complete. Closes #2578 [Jan Prill]
+
+*1.13.0 RC2* (r5847, January 4th, 2007)
 
 * Make sure html_document is reset between integration test requests. [ctm]
 
