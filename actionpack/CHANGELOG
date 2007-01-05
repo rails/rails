@@ -1,5 +1,7 @@
 *SVN*
 
+* Slight doc tweak to #prepend_filter.  Closes #6493 [Jeremy Voorhis]
+
 * Add more extensive documentation to the AssetTagHelper.  Closes #6452 [Bob Silva]
 
 * Clean up multiple calls to #stringify_keys in TagHelper, add better documentation and testing for TagHelper.  Closes #6394 [Bob Silva]
