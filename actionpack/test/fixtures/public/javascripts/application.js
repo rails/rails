@@ -1,0 +1,1 @@
+# Test file for javascript_include_tag
