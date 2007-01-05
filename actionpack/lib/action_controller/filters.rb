@@ -81,10 +81,10 @@ module ActionController #:nodoc:
     # can use <tt>prepend_before_filter</tt> and <tt>prepend_after_filter</tt>. Filters added by these methods will be put at the
     # beginning of their respective chain and executed before the rest. For example:
     #
-    #   class ShoppingController
+    #   class ShoppingController < ActionController::Base
     #     before_filter :verify_open_shop
     #
-    #   class CheckoutController
+    #   class CheckoutController < ShoppingController
     #     prepend_before_filter :ensure_items_in_cart, :ensure_items_in_stock
     #
     # The filter chain for the CheckoutController is now <tt>:ensure_items_in_cart, :ensure_items_in_stock,</tt>
