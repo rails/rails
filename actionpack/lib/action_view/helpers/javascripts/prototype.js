@@ -1,5 +1,5 @@
 /*  Prototype JavaScript framework, version 1.5.0_rc2
- *  (c) 2005, 2006 Sam Stephenson <sam@conio.net>
+ *  (c) 2005-2007 Sam Stephenson
  *
  *  Prototype is freely distributable under the terms of an MIT-style license.
  *  For details, see the Prototype web site: http://prototype.conio.net/
@@ -145,6 +145,10 @@ PeriodicalExecuter.prototype = {
     }
   }
 }
+String.interpret = function(value){
+  return value == null ? '' : String(value);
+}
+
 Object.extend(String.prototype, {
   gsub: function(pattern, replacement) {
     var result = '', source = this, match;
@@ -153,7 +157,7 @@ Object.extend(String.prototype, {
     while (source.length > 0) {
       if (match = source.match(pattern)) {
         result += source.slice(0, match.index);
-        result += (replacement(match) || '').toString();
+        result += String.interpret(replacement(match));
         source  = source.slice(match.index + match[0].length);
       } else {
         result += source, source = '';
@@ -247,24 +251,31 @@ Object.extend(String.prototype, {
     return this.split('');
   },
 
+  succ: function() {
+    return this.slice(0, this.length - 1) +
+      String.fromCharCode(this.charCodeAt(this.length - 1) + 1);
+  },
+
   camelize: function() {
-    var oStringList = this.split('-');
-    if (oStringList.length == 1) return oStringList[0];
+    var parts = this.split('-'), len = parts.length;
+    if (len == 1) return parts[0];
 
-    var camelizedString = this.indexOf('-') == 0
-      ? oStringList[0].charAt(0).toUpperCase() + oStringList[0].substring(1)
-      : oStringList[0];
+    var camelized = this.charAt(0) == '-'
+      ? parts[0].charAt(0).toUpperCase() + parts[0].substring(1)
+      : parts[0];
 
-    for (var i = 1, length = oStringList.length; i < length; i++) {
-      var s = oStringList[i];
-      camelizedString += s.charAt(0).toUpperCase() + s.substring(1);
-    }
+    for (var i = 1; i < len; i++)
+      camelized += parts[i].charAt(0).toUpperCase() + parts[i].substring(1);
 
-    return camelizedString;
+    return camelized;
+  },
+
+  capitalize: function(){
+    return this.charAt(0).toUpperCase() + this.substring(1).toLowerCase();
   },
 
   underscore: function() {
-    return this.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z][a-z])/,'#{1}_#{2}').gsub(/([a-z\d])([A-Z])/,'#{1}_#{2}').gsub(/-/,'-').toLowerCase();
+    return this.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z][a-z])/,'#{1}_#{2}').gsub(/([a-z\d])([A-Z])/,'#{1}_#{2}').gsub(/-/,'_').toLowerCase();
   },
 
   dasherize: function() {
@@ -300,7 +311,7 @@ Template.prototype = {
     return this.template.gsub(this.pattern, function(match) {
       var before = match[1];
       if (before == '\\') return match[2];
-      return before + (object[match[3]] || '').toString();
+      return before + String.interpret(object[match[3]]);
     });
   }
 }
@@ -329,7 +340,7 @@ var Enumerable = {
     var index = -number, slices = [], array = this.toArray();
     while ((index += number) < array.length)
       slices.push(array.slice(index, index+number));
-    return slices.collect(iterator || Prototype.K);
+    return slices.map(iterator);
   },
 
   all: function(iterator) {
@@ -353,7 +364,7 @@ var Enumerable = {
   collect: function(iterator) {
     var results = [];
     this.each(function(value, index) {
-      results.push(iterator(value, index));
+      results.push((iterator || Prototype.K)(value, index));
     });
     return results;
   },
@@ -400,12 +411,11 @@ var Enumerable = {
   },
 
   inGroupsOf: function(number, fillWith) {
-    fillWith = fillWith || null;
-    var results = this.eachSlice(number);
-    if (results.length > 0) (number - results.last().length).times(function() {
-      results.last().push(fillWith)
+    fillWith = fillWith === undefined ? null : fillWith;
+    return this.eachSlice(number, function(slice) {
+      while(slice.length < number) slice.push(fillWith);
+      return slice;
     });
-    return results;
   },
 
   inject: function(memo, iterator) {
@@ -417,7 +427,7 @@ var Enumerable = {
 
   invoke: function(method) {
     var args = $A(arguments).slice(1);
-    return this.collect(function(value) {
+    return this.map(function(value) {
       return value[method].apply(value, args);
     });
   },
@@ -469,7 +479,7 @@ var Enumerable = {
   },
 
   sortBy: function(iterator) {
-    return this.collect(function(value, index) {
+    return this.map(function(value, index) {
       return {value: value, criteria: iterator(value, index)};
     }).sort(function(left, right) {
       var a = left.criteria, b = right.criteria;
@@ -478,7 +488,7 @@ var Enumerable = {
   },
 
   toArray: function() {
-    return this.collect(Prototype.K);
+    return this.map();
   },
 
   zip: function() {
@@ -490,6 +500,10 @@ var Enumerable = {
     return this.map(function(value, index) {
       return iterator(collections.pluck(index));
     });
+  },
+
+  size: function() {
+    return this.toArray().length;
   },
 
   inspect: function() {
@@ -542,7 +556,7 @@ Object.extend(Array.prototype, {
 
   compact: function() {
     return this.select(function(value) {
-      return value != undefined || value != null;
+      return value != null;
     });
   },
 
@@ -584,12 +598,21 @@ Object.extend(Array.prototype, {
     return [].concat(this);
   },
 
+  size: function() {
+    return this.length;
+  },
+
   inspect: function() {
     return '[' + this.map(Object.inspect).join(', ') + ']';
   }
 });
 
 Array.prototype.toArray = Array.prototype.clone;
+
+function $w(string){
+  string = string.strip();
+  return string ? string.split(/\s+/) : [];
+}
 
 if(window.opera){
   Array.prototype.concat = function(){
@@ -801,8 +824,7 @@ Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
       Ajax.Responders.dispatch('onCreate', this, this.transport);
 
       this.transport.open(this.options.method.toUpperCase(), this.url,
-        this.options.asynchronous, this.options.username,
-        this.options.password);
+        this.options.asynchronous);
 
       if (this.options.asynchronous)
         setTimeout(function() { this.respondToReadyState(1) }.bind(this), 10);
@@ -884,6 +906,10 @@ Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
       } catch (e) {
         this.dispatchException(e);
       }
+
+      if ((this.getHeader('Content-type') || 'text/javascript').strip().
+        match(/^(text|application)\/(x-)?(java|ecma)script(;.*)?$/i))
+          this.evalResponse();
     }
 
     try {
@@ -894,10 +920,6 @@ Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
     }
 
     if (state == 'Complete') {
-      if ((this.getHeader('Content-type') || '').strip().
-        match(/^(text|application)\/(x-)?(java|ecma)script(;.*)?$/i))
-          this.evalResponse();
-
       // avoid memory leak in MSIE: clean up
       this.transport.onreadystatechange = Prototype.emptyFunction;
     }
@@ -1057,8 +1079,7 @@ if (!window.Element)
   var Element = new Object();
 
 Element.extend = function(element) {
-  if (!element) return;
-  if (_nativeExtensions || element.nodeType == 3) return element;
+  if (!element || _nativeExtensions || element.nodeType == 3) return element;
 
   if (!element._extended && element.tagName && element != window) {
     var methods = Object.clone(Element.Methods), cache = Element.extend.cache;
@@ -1162,8 +1183,7 @@ Element.Methods = {
   },
 
   descendants: function(element) {
-    element = $(element);
-    return $A(element.getElementsByTagName('*'));
+    return $A($(element).getElementsByTagName('*'));
   },
 
   immediateDescendants: function(element) {
@@ -1187,10 +1207,9 @@ Element.Methods = {
   },
 
   match: function(element, selector) {
-    element = $(element);
     if (typeof selector == 'string')
       selector = new Selector(selector);
-    return selector.match(element);
+    return selector.match($(element));
   },
 
   up: function(element, expression, index) {
@@ -1215,7 +1234,6 @@ Element.Methods = {
   },
 
   getElementsByClassName: function(element, className) {
-    element = $(element);
     return document.getElementsByClassName(className, element);
   },
 
@@ -1224,8 +1242,7 @@ Element.Methods = {
   },
 
   getHeight: function(element) {
-    element = $(element);
-    return element.offsetHeight;
+    return $(element).offsetHeight;
   },
 
   classNames: function(element) {
@@ -1251,6 +1268,12 @@ Element.Methods = {
   removeClassName: function(element, className) {
     if (!(element = $(element))) return;
     Element.classNames(element).remove(className);
+    return element;
+  },
+
+  toggleClassName: function(element, className) {
+    if (!(element = $(element))) return;
+    Element.classNames(element)[element.hasClassName(className) ? 'remove' : 'add'](className);
     return element;
   },
 
@@ -1290,41 +1313,58 @@ Element.Methods = {
 
   scrollTo: function(element) {
     element = $(element);
-    var x = element.x ? element.x : element.offsetLeft,
-        y = element.y ? element.y : element.offsetTop;
-    window.scrollTo(x, y);
+    var pos = Position.cumulativeOffset(element);
+    window.scrollTo(pos[0], pos[1]);
     return element;
   },
 
   getStyle: function(element, style) {
     element = $(element);
-    var inline = (style == 'float' ?
-      (typeof element.style.styleFloat != 'undefined' ? 'styleFloat' : 'cssFloat') : style);
-    var value = element.style[inline.camelize()];
+    var camelizedStyle = (style == 'float' ?
+      (typeof element.style.styleFloat != 'undefined' ? 'styleFloat' : 'cssFloat') : style).camelize();
+    var value = element.style[camelizedStyle];
     if (!value) {
       if (document.defaultView && document.defaultView.getComputedStyle) {
         var css = document.defaultView.getComputedStyle(element, null);
-        value = css ? css.getPropertyValue(style) : null;
+        value = css ? css[camelizedStyle] : null;
       } else if (element.currentStyle) {
-        value = element.currentStyle[inline.camelize()];
+        value = element.currentStyle[camelizedStyle];
       }
     }
 
     if((value == 'auto') && ['width','height'].include(style) && (element.getStyle('display') != 'none'))
-      value = element['offset'+style.charAt(0).toUpperCase()+style.substring(1)] + 'px';
+      value = element['offset'+style.capitalize()] + 'px';
 
     if (window.opera && ['left', 'top', 'right', 'bottom'].include(style))
       if (Element.getStyle(element, 'position') == 'static') value = 'auto';
-
+    if(style == 'opacity') {
+      if(value) return parseFloat(value);
+      if(value = (element.getStyle('filter') || '').match(/alpha\(opacity=(.*)\)/))
+        if(value[1]) return parseFloat(value[1]) / 100;
+      return 1.0;
+    }
     return value == 'auto' ? null : value;
   },
 
   setStyle: function(element, style) {
     element = $(element);
-    for (var name in style)
-      element.style[ (name == 'float' ?
-        ((typeof element.style.styleFloat != 'undefined') ? 'styleFloat' : 'cssFloat') : name).camelize()
-      ] = style[name];
+    for (var name in style) {
+      var value = style[name];
+      if(name == 'opacity') {
+        if (value == 1) {
+          value = (/Gecko/.test(navigator.userAgent) &&
+            !/Konqueror|Safari|KHTML/.test(navigator.userAgent)) ? 0.999999 : 1.0;
+          if(/MSIE/.test(navigator.userAgent) && !window.opera)
+            element.style.filter = element.getStyle('filter').replace(/alpha\([^\)]*\)/gi,'');
+        } else {
+          if(value < 0.00001) value = 0;
+          if(/MSIE/.test(navigator.userAgent) && !window.opera)
+            element.style.filter = element.getStyle('filter').replace(/alpha\([^\)]*\)/gi,'') +
+              'alpha(opacity='+value*100+')';
+        }
+      } else if(name == 'float') name = (typeof element.style.styleFloat != 'undefined') ? 'styleFloat' : 'cssFloat';
+      element.style[name.camelize()] = value;
+    }
     return element;
   },
 
@@ -1651,7 +1691,7 @@ Selector.prototype = {
     if (params.wildcard)
       conditions.push('true');
     if (clause = params.id)
-      conditions.push('element.id == ' + clause.inspect());
+      conditions.push('element.getAttribute("id") == ' + clause.inspect());
     if (clause = params.tagName)
       conditions.push('element.tagName.toUpperCase() == ' + clause.inspect());
     if ((clause = params.classNames).length > 0)
@@ -1712,7 +1752,7 @@ Selector.prototype = {
 Object.extend(Selector, {
   matchElements: function(elements, expression) {
     var selector = new Selector(expression);
-    return elements.select(selector.match.bind(selector)).collect(Element.extend);
+    return elements.select(selector.match.bind(selector)).map(Element.extend);
   },
 
   findElement: function(elements, expression, index) {
@@ -1752,7 +1792,7 @@ var Form = {
 
 Form.Methods = {
   serialize: function(form) {
-    return Form.serializeElements($(form).getElements());
+    return Form.serializeElements(Form.getElements(form));
   },
 
   getElements: function(form) {
@@ -1767,12 +1807,11 @@ Form.Methods = {
 
   getInputs: function(form, typeName, name) {
     form = $(form);
-    var inputs = form.getElementsByTagName('input');
+    var inputs = form.getElementsByTagName('input'), matchingInputs = [];
 
     if (!typeName && !name)
-      return inputs;
+      return $A(inputs).map(Element.extend);
 
-    var matchingInputs = new Array();
     for (var i = 0, length = inputs.length; i < length; i++) {
       var input = inputs[i];
       if ((typeName && input.type != typeName) ||
@@ -1968,7 +2007,9 @@ Abstract.TimedObserver.prototype = {
 
   onTimerEvent: function() {
     var value = this.getValue();
-    if (this.lastValue != value) {
+    var changed = ('string' == typeof this.lastValue && 'string' == typeof value
+      ? this.lastValue != value : String(this.lastValue) != String(value));
+    if (changed) {
       this.callback(this.element, value);
       this.lastValue = value;
     }
