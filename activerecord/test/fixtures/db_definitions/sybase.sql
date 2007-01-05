@@ -197,12 +197,12 @@ CREATE TABLE keyboards (
 CREATE TABLE legacy_things (
   id numeric(9,0) IDENTITY PRIMARY KEY,
   tps_report_number int default NULL,
-  version int default 0,
+  version int default 0
 )
 
 
 CREATE TABLE numeric_data (
-  id numeric((9,0) IDENTITY PRIMARY KEY,
+  id numeric(9,0) IDENTITY PRIMARY KEY,
   bank_balance numeric(10,2),
   big_bank_balance numeric(15,2),
   world_population numeric(10),

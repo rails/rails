@@ -1,5 +1,7 @@
 *1.15.0 RC2*
 
+* Bring the sybase adapter up to scratch for 1.2 release. [jsheets]
+
 * Oracle: fix connection reset failure.  #6846 [leonlleslie]
 
 * Subclass instantiation doesn't try to explicitly require the corresponding subclass.  #6840 [leei, Jeremy Kemper]

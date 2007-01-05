@@ -1,13 +1,20 @@
 # sybase_adaptor.rb
-# Author: John Sheets <dev@metacasa.net>
+# Author: John R. Sheets
 # 
-# 01 Mar 2006: Initial version.
+# 01 Mar 2006: Initial version.  Based on code from Will Sobel
+#              (http://dev.rubyonrails.org/ticket/2030)
+# 
 # 17 Mar 2006: Added support for migrations; fixed issues with :boolean columns.
+# 
 # 13 Apr 2006: Improved column type support to properly handle dates and user-defined
 #              types; fixed quoting of integer columns.
-#
-# Based on code from Will Sobel (http://dev.rubyonrails.org/ticket/2030)
-#
+# 
+# 05 Jan 2007: Updated for Rails 1.2 release:
+#              restricted Fixtures#insert_fixtures monkeypatch to Sybase adapter;
+#              removed SQL type precision from TEXT type to fix broken
+#              ActiveRecordStore (jburks, #6878); refactored select() to use execute();
+#              fixed leaked exception for no-op change_column(); removed verbose SQL dump
+#              from columns(); added missing scale parameter in normalize_type().
 
 require 'active_record/connection_adapters/abstract_adapter'
 
@@ -77,7 +84,7 @@ module ActiveRecord
     #   2> go
     class SybaseAdapter < AbstractAdapter # :nodoc:
       class ColumnWithIdentity < Column
-        attr_reader :identity, :primary
+        attr_reader :identity
 
         def initialize(name, default, sql_type = nil, nullable = nil, identity = nil, primary = nil)
           super(name, default, sql_type, nullable)
@@ -96,16 +103,6 @@ module ActiveRecord
             when /datetime|smalldatetime/i             then :datetime
             else                                       super
           end
-        end
-
-        def self.string_to_time(string)
-          return string unless string.is_a?(String)
-
-          # Since Sybase doesn't handle DATE or TIME, handle it here.
-          # Populate nil year/month/day with string_to_dummy_time() values.
-          time_array = ParseDate.parsedate(string)[0..5]
-          time_array[0] ||= 2000; time_array[1] ||= 1; time_array[2] ||= 1;
-          Time.send(Base.default_timezone, *time_array) rescue nil
         end
 
         def self.string_to_binary(value)
@@ -148,6 +145,15 @@ module ActiveRecord
         }
       end
 
+      def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
+        return super unless type.to_s == 'integer'
+        if !limit.nil? && limit < 4
+          'smallint'
+        else
+          'integer'
+        end
+      end
+
       def adapter_name
         'Sybase'
       end
@@ -168,14 +174,6 @@ module ActiveRecord
 
       def table_alias_length
         30
-      end
-
-      def columns(table_name, name = nil)
-        table_structure(table_name).inject([]) do |columns, column|
-          name, default, type, nullable, identity, primary = column
-          columns << ColumnWithIdentity.new(name, default, type, nullable, identity, primary)
-          columns
-        end
       end
 
       def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
@@ -212,46 +210,62 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil)
-        log(sql, name) do
-          @connection.context.reset
-          @connection.set_rowcount(@limit || 0)
-          @limit = @offset = nil
-          @connection.sql_norow(sql)
-          if @connection.cmd_fail? or @connection.context.failed?
-            raise "SQL Command Failed for #{name}: #{sql}\nMessage: #{@connection.context.message}"
-          end
-        end
-        # Return rows affected
+        raw_execute(sql, name)
         @connection.results[0].row_count
       end
 
-      def begin_db_transaction()    execute "BEGIN TRAN" end
-      def commit_db_transaction()   execute "COMMIT TRAN" end
-      def rollback_db_transaction() execute "ROLLBACK TRAN" end
+      def begin_db_transaction()    raw_execute "BEGIN TRAN" end
+      def commit_db_transaction()   raw_execute "COMMIT TRAN" end
+      def rollback_db_transaction() raw_execute "ROLLBACK TRAN" end
 
       def current_database
         select_one("select DB_NAME() as name")["name"]
       end
 
       def tables(name = nil)
-        tables = []
-        select("select name from sysobjects where type='U'", name).each do |row|
-          tables << row['name']
-        end
-        tables
+        select("select name from sysobjects where type='U'", name).map { |row| row['name'] }
       end
 
       def indexes(table_name, name = nil)
-        indexes = []
-        select("exec sp_helpindex #{table_name}", name).each do |index|
+        select("exec sp_helpindex #{table_name}", name).map do |index|
           unique = index["index_description"] =~ /unique/
           primary = index["index_description"] =~ /^clustered/
           if !primary
             cols = index["index_keys"].split(", ").each { |col| col.strip! }
-            indexes << IndexDefinition.new(table_name, index["index_name"], unique, cols)
+            IndexDefinition.new(table_name, index["index_name"], unique, cols)
           end
+        end.compact
+      end
+
+      def columns(table_name, name = nil)
+        sql = <<SQLTEXT
+SELECT col.name AS name, type.name AS type, col.prec, col.scale,
+  col.length, col.status, obj.sysstat2, def.text
+ FROM sysobjects obj, syscolumns col, systypes type, syscomments def
+ WHERE obj.id = col.id AND col.usertype = type.usertype AND col.cdefault *= def.id
+  AND obj.type = 'U' AND obj.name = '#{table_name}' ORDER BY col.colid
+SQLTEXT
+        @logger.debug "Get Column Info for table '#{table_name}'" if @logger
+        @connection.set_rowcount(0)
+        @connection.sql(sql)
+
+        raise "SQL Command for table_structure for #{table_name} failed\nMessage: #{@connection.context.message}" if @connection.context.failed?
+        return nil if @connection.cmd_fail?
+
+        @connection.top_row_result.rows.map do |row|
+          name, type, prec, scale, length, status, sysstat2, default = row
+          name.sub!(/_$/o, '')
+          type = normalize_type(type, prec, scale, length)
+          default_value = nil
+          if default =~ /DEFAULT\s+(.+)/o
+            default_value = $1.strip
+            default_value = default_value[1...-1] if default_value =~ /^['"]/o
+          end
+          nullable = (status & 8) == 8
+          identity = status >= 128
+          primary = (sysstat2 & 8) == 8
+          ColumnWithIdentity.new(name, default_value, type, nullable, identity, primary)
         end
-        indexes
       end
 
       def quoted_true
@@ -302,7 +316,7 @@ module ActiveRecord
       def add_limit_offset!(sql, options) # :nodoc:
         @limit = options[:limit]
         @offset = options[:offset]
-        if !normal_select?
+        if use_temp_table?
           # Use temp table to hack offset with Sybase
           sql.sub!(/ FROM /i, ' INTO #artemp FROM ')
         elsif zero_limit?
@@ -316,6 +330,11 @@ module ActiveRecord
             sql << 'WHERE 1 = 2'
           end
         end
+      end
+
+      def add_lock!(sql, options) #:nodoc:
+        @logger.info "Warning: Sybase :lock option '#{options[:lock].inspect}' not supported" if @logger && options.has_key?(:lock)
+        sql
       end
 
       def supports_migrations? #:nodoc:
@@ -334,13 +353,14 @@ module ActiveRecord
         begin
           execute "ALTER TABLE #{table_name} MODIFY #{column_name} #{type_to_sql(type, options[:limit])}"
         rescue StatementInvalid => e
-          # Swallow exception if no-op.
+          # Swallow exception and reset context if no-op.
           raise e unless e.message =~ /no columns to drop, add or modify/
+          @connection.context.reset
         end
 
-        if options[:default]
+        if options.has_key?(:default)
           remove_default_constraint(table_name, column_name)
-          execute "ALTER TABLE #{table_name} REPLACE #{column_name} DEFAULT #{options[:default]}"
+          execute "ALTER TABLE #{table_name} REPLACE #{column_name} DEFAULT #{quote options[:default]}"
         end
       end
 
@@ -350,10 +370,10 @@ module ActiveRecord
       end
 
       def remove_default_constraint(table_name, column_name)
-        defaults = select "select def.name from sysobjects def, syscolumns col, sysobjects tab where col.cdefault = def.id and col.name = '#{column_name}' and tab.name = '#{table_name}' and col.id = tab.id"
-        defaults.each {|constraint|
+        sql = "select def.name from sysobjects def, syscolumns col, sysobjects tab where col.cdefault = def.id and col.name = '#{column_name}' and tab.name = '#{table_name}' and col.id = tab.id"
+        select(sql).each do |constraint|
           execute "ALTER TABLE #{table_name} DROP CONSTRAINT #{constraint["name"]}"
-        }
+        end
       end
 
       def remove_index(table_name, options = {})
@@ -418,34 +438,44 @@ module ActiveRecord
         end
       end
 
-      def normal_select?
-        # If limit is not set at all, we can ignore offset;
-        # if limit *is* set but offset is zero, use normal select
-        # with simple SET ROWCOUNT.  Thus, only use the temp table
-        # if limit is set and offset > 0.
-        has_limit = !@limit.nil?
-        has_offset = !@offset.nil? && @offset > 0
-        !has_limit || !has_offset
+      # If limit is not set at all, we can ignore offset;
+      # if limit *is* set but offset is zero, use normal select
+      # with simple SET ROWCOUNT.  Thus, only use the temp table
+      # if limit is set and offset > 0.
+      def use_temp_table?
+        !@limit.nil? && !@offset.nil? && @offset > 0
       end
 
       def zero_limit?
         !@limit.nil? && @limit == 0
       end
 
-      # Select limit number of rows starting at optional offset.
-      def select(sql, name = nil)
-        @connection.context.reset
+      def raw_execute(sql, name = nil)
         log(sql, name) do
-          if normal_select?
-            # If limit is not explicitly set, return all results.
-            @logger.debug "Setting row count to (#{@limit || 'off'})" if @logger
-
-            # Run a normal select
-            @connection.set_rowcount(@limit || 0)
+          @connection.context.reset
+          @logger.debug "Setting row count to (#{@limit})" if @logger && @limit
+          @connection.set_rowcount(@limit || 0)
+          if sql =~ /^\s*SELECT/i
             @connection.sql(sql)
           else
+            @connection.sql_norow(sql)
+          end
+          @limit = @offset = nil
+          if @connection.cmd_fail? or @connection.context.failed?
+            raise "SQL Command Failed for #{name}: #{sql}\nMessage: #{@connection.context.message}"
+          end
+        end
+      end
+
+      # Select limit number of rows starting at optional offset.
+      def select(sql, name = nil)
+        if !use_temp_table?
+          execute(sql, name)
+        else
+          log(sql, name) do
             # Select into a temp table and prune results
             @logger.debug "Selecting #{@limit + (@offset || 0)} or fewer rows into #artemp" if @logger
+            @connection.context.reset
             @connection.set_rowcount(@limit + (@offset || 0))
             @connection.sql_norow(sql)  # Select into temp table
             @logger.debug "Deleting #{@offset || 0} or fewer rows from #artemp" if @logger
@@ -456,23 +486,21 @@ module ActiveRecord
           end
         end
 
+        raise StatementInvalid, "SQL Command Failed for #{name}: #{sql}\nMessage: #{@connection.context.message}" if @connection.context.failed? or @connection.cmd_fail?
+      
         rows = []
-        if @connection.context.failed? or @connection.cmd_fail?
-          raise StatementInvalid, "SQL Command Failed for #{name}: #{sql}\nMessage: #{@connection.context.message}"
-        else
-          results = @connection.top_row_result
-          if results && results.rows.length > 0
-            fields = results.columns.map { |column| column.sub(/_$/, '') }
-            results.rows.each do |row|
-              hashed_row = {}
-              row.zip(fields) { |cell, column| hashed_row[column] = cell }
-              rows << hashed_row
-            end
+        results = @connection.top_row_result
+        if results && results.rows.length > 0
+          fields = results.columns.map { |column| column.sub(/_$/, '') }
+          results.rows.each do |row|
+            hashed_row = {}
+            row.zip(fields) { |cell, column| hashed_row[column] = cell }
+            rows << hashed_row
           end
         end
-        @connection.sql_norow("drop table #artemp") if !normal_select?
+        @connection.sql_norow("drop table #artemp") if use_temp_table?
         @limit = @offset = nil
-        return rows
+        rows
       end
 
       def get_table_name(sql)
@@ -490,54 +518,17 @@ module ActiveRecord
       end
 
       def get_identity_column(table_name)
-        @table_columns ||= {}
-        @table_columns[table_name] ||= columns(table_name)
-        @table_columns[table_name].each do |col|
-          return col.name if col.identity
+        @id_columns ||= {}
+        if !@id_columns.has_key?(table_name)
+          @logger.debug "Looking up identity column for table '#{table_name}'" if @logger
+          col = columns(table_name).detect { |col| col.identity }
+          @id_columns[table_name] = col.nil? ? nil : col.name
         end
-        nil
+        @id_columns[table_name]
       end
 
       def query_contains_identity_column(sql, col)
         sql =~ /\[#{col}\]/
-      end
-
-      def table_structure(table_name)
-        sql = <<SQLTEXT
-SELECT col.name AS name, type.name AS type, col.prec, col.scale, col.length,
-  col.status, obj.sysstat2, def.text
- FROM sysobjects obj, syscolumns col, systypes type, syscomments def
- WHERE obj.id = col.id AND col.usertype = type.usertype AND col.cdefault *= def.id
-  AND obj.type = 'U' AND obj.name = '#{table_name}' ORDER BY col.colid
-SQLTEXT
-        log(sql, "Get Column Info ") do
-          @connection.set_rowcount(0)
-          @connection.sql(sql)
-        end
-        if @connection.context.failed?
-          raise "SQL Command for table_structure for #{table_name} failed\nMessage: #{@connection.context.message}"
-        elsif !@connection.cmd_fail?
-          columns = []
-          results = @connection.top_row_result
-          results.rows.each do |row|
-            name, type, prec, scale, length, status, sysstat2, default = row
-            type = normalize_type(type, prec, scale, length)
-            default_value = nil
-            name.sub!(/_$/o, '')
-            if default =~ /DEFAULT\s+(.+)/o
-              default_value = $1.strip
-              default_value = default_value[1...-1] if default_value =~ /^['"]/o
-            end
-            nullable = (status & 8) == 8
-            identity = status >= 128
-            primary = (sysstat2 & 8) == 8
-
-            columns << [name, default_value, type, nullable, identity, primary]
-          end
-          columns
-        else
-          nil
-        end
       end
 
       # Resolve all user-defined types (udt) to their fundamental types.
@@ -546,23 +537,23 @@ SQLTEXT
       end
 
       def normalize_type(field_type, prec, scale, length)
-        if field_type =~ /numeric/i and (scale.nil? or scale == 0)
-          type = 'int'
+        has_scale = (!scale.nil? && scale > 0)
+        type = if field_type =~ /numeric/i and !has_scale
+          'int'
         elsif field_type =~ /money/i
-          type = 'numeric'
+          'numeric'
         else
-          type = resolve_type(field_type.strip)
+          resolve_type(field_type.strip)
         end
-        size = ''
-        if prec
-          size = "(#{prec})"
-        elsif length && !(type =~ /date|time/)
-          size = "(#{length})"
-        end
-        return type + size
-      end
 
-      def default_value(value)
+        spec = if prec
+          has_scale ? "(#{prec},#{scale})" : "(#{prec})"
+        elsif length && !(type =~ /date|time|text/)
+          "(#{length})"
+        else
+          ''
+        end
+        "#{type}#{spec}"
       end
     end # class SybaseAdapter
 
@@ -654,10 +645,14 @@ class Fixtures
   alias :original_insert_fixtures :insert_fixtures
 
   def insert_fixtures
-    values.each do |fixture|
-      @connection.enable_identity_insert(table_name, true)
-      @connection.execute "INSERT INTO #{@table_name} (#{fixture.key_list}) VALUES (#{fixture.value_list})", 'Fixture Insert'
-      @connection.enable_identity_insert(table_name, false)
+    if @connection.instance_of?(ActiveRecord::ConnectionAdapters::SybaseAdapter)
+      values.each do |fixture|
+        @connection.enable_identity_insert(table_name, true)
+        @connection.execute "INSERT INTO #{@table_name} (#{fixture.key_list}) VALUES (#{fixture.value_list})", 'Fixture Insert'
+        @connection.enable_identity_insert(table_name, false)
+      end
+    else
+      original_insert_fixtures
     end
   end
 end

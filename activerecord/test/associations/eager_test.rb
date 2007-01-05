@@ -374,7 +374,7 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
   
   def test_count_with_include
-    if current_adapter?(:SQLServerAdapter)
+    if current_adapter?(:SQLServerAdapter, :SybaseAdapter)
       assert_equal 3, authors(:david).posts_with_comments.count(:conditions => "len(comments.body) > 15")
     else
       assert_equal 3, authors(:david).posts_with_comments.count(:conditions => "length(comments.body) > 15")

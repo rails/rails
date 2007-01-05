@@ -81,9 +81,9 @@ end
 # blocks, so separate script called by Kernel#system is needed.
 # (See exec vs. async_exec in the PostgreSQL adapter.)
 
-# TODO: The SQL Server adapter currently has no support for pessimistic locking
+# TODO: The SQL Server and Sybase adapters currently have no support for pessimistic locking
 
-unless current_adapter?(:SQLServerAdapter)
+unless current_adapter?(:SQLServerAdapter, :SybaseAdapter)
   class PessimisticLockingTest < Test::Unit::TestCase
     self.use_transactional_fixtures = false
     fixtures :people, :readers
