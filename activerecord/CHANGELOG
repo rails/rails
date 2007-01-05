@@ -1,5 +1,7 @@
 *SVN*
 
+* [DOCS] Apply more documentation for ActiveRecord Reflection.  Closes #4055 [Robby Russell]
+
 * [DOCS] Document :allow_nil option of #validate_uniqueness_of. Closes #3143 [Caio Chassot]
 
 * Bring the sybase adapter up to scratch for 1.2 release. [jsheets]

@@ -21,33 +21,46 @@ module ActiveRecord
         reflection
       end
       
+      # Returns a hash containing all AssociationReflection objects for the current class
+      # Example:
+      #
+      #   Invoice.reflections
+      #   Account.reflections
+      #
       def reflections
-        read_inheritable_attribute(:reflections) or write_inheritable_attribute(:reflections, {})
+        read_inheritable_attribute(:reflections) || write_inheritable_attribute(:reflections, {})
       end
-      
+       
       # Returns an array of AggregateReflection objects for all the aggregations in the class.
       def reflect_on_all_aggregations
         reflections.values.select { |reflection| reflection.is_a?(AggregateReflection) }
       end
 
       # Returns the AggregateReflection object for the named +aggregation+ (use the symbol). Example:
+      #
       #   Account.reflect_on_aggregation(:balance) # returns the balance AggregateReflection
+      #
       def reflect_on_aggregation(aggregation)
         reflections[aggregation].is_a?(AggregateReflection) ? reflections[aggregation] : nil
       end
 
       # Returns an array of AssociationReflection objects for all the aggregations in the class. If you only want to reflect on a
-      # certain association type, pass in the symbol (:has_many, :has_one, :belongs_to) for that as the first parameter. Example:
-      # Account.reflect_on_all_associations             # returns an array of all associations
-      # Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
+      # certain association type, pass in the symbol (:has_many, :has_one, :belongs_to) for that as the first parameter. 
+      # Example:
+      #
+      #   Account.reflect_on_all_associations             # returns an array of all associations
+      #   Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
+      #
       def reflect_on_all_associations(macro = nil)
         association_reflections = reflections.values.select { |reflection| reflection.is_a?(AssociationReflection) }
         macro ? association_reflections.select { |reflection| reflection.macro == macro } : association_reflections
       end
 
       # Returns the AssociationReflection object for the named +aggregation+ (use the symbol). Example:
+      #
       #   Account.reflect_on_association(:owner) # returns the owner AssociationReflection
       #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
+      #
       def reflect_on_association(association)
         reflections[association].is_a?(AssociationReflection) ? reflections[association] : nil
       end
@@ -147,6 +160,7 @@ module ActiveRecord
       # Gets an array of possible :through source reflection names
       #
       #   [singularized, pluralized]
+      #
       def source_reflection_names
         @source_reflection_names ||= (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }
       end
