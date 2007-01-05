@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that webrick would strip leading newlines and hang connection #4156 [psross]
+
 * Ensure plugins are in the Dependencies.load_once_paths collection by default.  [Rick]
   If you really want your plugins to reload, add this to the very top of init.rb:
   

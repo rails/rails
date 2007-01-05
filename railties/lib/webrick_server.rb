@@ -142,7 +142,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
       data.rewind
       data = data.read
 
-      raw_header, body = *data.split(/^[\xd\xa]+/on, 2)
+      raw_header, body = *data.split(/^[\xd\xa]{2}/on, 2)
       header = WEBrick::HTTPUtils::parse_header(raw_header)
       
       return header, body

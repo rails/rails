@@ -64,6 +64,11 @@ class FormHelperTest < Test::Unit::TestCase
     assert_dom_equal expected, text_field("post", "title", :size => 35)
   end
 
+  def test_text_field_with_prefix
+    expected = '<input id="book_post_title" name="book[post][title]" size="35" type="text" value="Hello World" />'
+    assert_dom_equal expected, text_field("post", "title", :size => 35, :prefix => :book)
+  end
+
   def test_text_field_assuming_size
     expected = '<input id="post_title" maxlength="35" name="post[title]" size="35" type="text" value="Hello World" />'
     assert_dom_equal expected, text_field("post", "title", "maxlength" => 35)
