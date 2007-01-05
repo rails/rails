@@ -1,4 +1,5 @@
-*1.13.0 RC2*
+*1.13.0 RC2* (r5847, January 4th, 2007)
+
 
 * Make sure html_document is reset between integration test requests. [ctm]
 

@@ -1,4 +1,4 @@
-*1.4.0 RC2*
+*1.4.0 RC2* (r5847, January 4th, 2007)
 
 * Fix Dependencies.autoloaded? to ignore anonymous modules. Closes #6561. [Nicholas Seckar]
 

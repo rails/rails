@@ -1,4 +1,4 @@
-*SVN*
+*1.2.0 RC2* (r5847, January 4th, 2007)
 
 * Fixed that webrick would strip leading newlines and hang connection #4156 [psross]
 
