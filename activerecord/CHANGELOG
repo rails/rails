@@ -1,5 +1,7 @@
 *SVN*
 
+* [DOCS] Document :allow_nil option of #validate_uniqueness_of. Closes #3143 [Caio Chassot]
+
 * Bring the sybase adapter up to scratch for 1.2 release. [jsheets]
 
 * Rollback #new_record? and #id values for created records that rollback in an after_save callback. Closes #6910 [Ben Curren]
