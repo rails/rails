@@ -34,6 +34,7 @@ class AssetTagHelperTest < Test::Unit::TestCase
 
   AutoDiscoveryToTag = {
     %(auto_discovery_link_tag) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
+    %(auto_discovery_link_tag(:rss)) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:atom)) => %(<link href="http://www.example.com" rel="alternate" title="ATOM" type="application/atom+xml" />),
     %(auto_discovery_link_tag(:rss, :action => "feed")) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:rss, "http://localhost/feed")) => %(<link href="http://localhost/feed" rel="alternate" title="RSS" type="application/rss+xml" />),
@@ -47,11 +48,13 @@ class AssetTagHelperTest < Test::Unit::TestCase
 
   JavascriptPathToTag = {
     %(javascript_path("xmlhr")) => %(/javascripts/xmlhr.js),
-    %(javascript_path("super/xmlhr")) => %(/javascripts/super/xmlhr.js)
+    %(javascript_path("super/xmlhr")) => %(/javascripts/super/xmlhr.js),
+    %(javascript_path("/super/xmlhr.js")) => %(/super/xmlhr.js)
   }
 
   JavascriptIncludeToTag = {
     %(javascript_include_tag("xmlhr")) => %(<script src="/javascripts/xmlhr.js" type="text/javascript"></script>),
+    %(javascript_include_tag("xmlhr.js")) => %(<script src="/javascripts/xmlhr.js" type="text/javascript"></script>),
     %(javascript_include_tag("xmlhr", :lang => "vbscript")) => %(<script lang="vbscript" src="/javascripts/xmlhr.js" type="text/javascript"></script>),
     %(javascript_include_tag("common.javascript", "/elsewhere/cools")) => %(<script src="/javascripts/common.javascript" type="text/javascript"></script>\n<script src="/elsewhere/cools.js" type="text/javascript"></script>),
     %(javascript_include_tag(:defaults)) => %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>),
@@ -61,12 +64,14 @@ class AssetTagHelperTest < Test::Unit::TestCase
 
   StylePathToTag = {
     %(stylesheet_path("style")) => %(/stylesheets/style.css),
+    %(stylesheet_path("style.css")) => %(/stylesheets/style.css),
     %(stylesheet_path('dir/file')) => %(/stylesheets/dir/file.css),
-    %(stylesheet_path('/dir/file')) => %(/dir/file.css)
+    %(stylesheet_path('/dir/file.rcss')) => %(/dir/file.rcss)
   }
 
   StyleLinkToTag = {
     %(stylesheet_link_tag("style")) => %(<link href="/stylesheets/style.css" media="screen" rel="Stylesheet" type="text/css" />),
+    %(stylesheet_link_tag("style.css")) => %(<link href="/stylesheets/style.css" media="screen" rel="Stylesheet" type="text/css" />),
     %(stylesheet_link_tag("/dir/file")) => %(<link href="/dir/file.css" media="screen" rel="Stylesheet" type="text/css" />),
     %(stylesheet_link_tag("dir/file")) => %(<link href="/stylesheets/dir/file.css" media="screen" rel="Stylesheet" type="text/css" />),
     %(stylesheet_link_tag("style", :media => "all")) => %(<link href="/stylesheets/style.css" media="all" rel="Stylesheet" type="text/css" />),
@@ -75,18 +80,28 @@ class AssetTagHelperTest < Test::Unit::TestCase
   }
 
   ImagePathToTag = {
-    %(image_path("xml")) => %(/images/xml.png),
+    %(image_path("xml.png")) => %(/images/xml.png),
+    %(image_path("dir/xml.png")) => %(/images/dir/xml.png),
+    %(image_path("/dir/xml.png")) => %(/dir/xml.png)    
   }
 
   ImageLinkToTag = {
-    %(image_tag("xml")) => %(<img alt="Xml" src="/images/xml.png" />),
-    %(image_tag("rss", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/images/rss.png" />),
-    %(image_tag("gold", :size => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
-    %(image_tag("symbolize", "size" => "45x70")) => %(<img alt="Symbolize" height="70" src="/images/symbolize.png" width="45" />),
-    %(image_tag("http://www.rubyonrails.com/images/rails")) => %(<img alt="Rails" src="http://www.rubyonrails.com/images/rails.png" />)
+    %(image_tag("xml.png")) => %(<img alt="Xml" src="/images/xml.png" />),
+    %(image_tag("rss.gif", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/images/rss.gif" />),
+    %(image_tag("gold.png", :size => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
+    %(image_tag("gold.png", "size" => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
+    %(image_tag("error.png", "size" => "45")) => %(<img alt="Error" src="/images/error.png" />),
+    %(image_tag("error.png", "size" => "45 x 70")) => %(<img alt="Error" src="/images/error.png" />),
+    %(image_tag("error.png", "size" => "x")) => %(<img alt="Error" src="/images/error.png" />),
+    %(image_tag("http://www.rubyonrails.com/images/rails.png")) => %(<img alt="Rails" src="http://www.rubyonrails.com/images/rails.png" />)
   }
 
-  def test_auto_discovery
+  DeprecatedImagePathToTag = {
+    %(image_path("xml")) => %(/images/xml.png)
+  }
+
+
+  def test_auto_discovery_link_tag
     AutoDiscoveryToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
@@ -94,8 +109,12 @@ class AssetTagHelperTest < Test::Unit::TestCase
     JavascriptPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
-  def test_javascript_include
+  def test_javascript_include_tag
     JavascriptIncludeToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+    
+    Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
+    ENV["RAILS_ASSET_ID"] = "1"    
+    assert_dom_equal(%(<script src="/javascripts/prototype.js?1" type="text/javascript"></script>\n<script src="/javascripts/effects.js?1" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js?1" type="text/javascript"></script>\n<script src="/javascripts/controls.js?1" type="text/javascript"></script>\n<script src="/javascripts/application.js?1" type="text/javascript"></script>), javascript_include_tag(:defaults))
   end
   
   def test_register_javascript_include_default
@@ -105,23 +124,25 @@ class AssetTagHelperTest < Test::Unit::TestCase
     assert_dom_equal  %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/slider.js" type="text/javascript"></script>\n<script src="/javascripts/lib1.js" type="text/javascript"></script>\n<script src="/elsewhere/blub/lib2.js" type="text/javascript"></script>), javascript_include_tag(:defaults)
   end
   
-  def test_style_path
+  def test_stylesheet_path
     StylePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
-  def test_style_link
+  def test_stylesheet_link_tag
     StyleLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_image_path
-    ImagePathToTag.each do |method, tag| 
-      assert_deprecated(/image_path/) { assert_dom_equal(tag, eval(method)) }
-    end
+    ImagePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
-
+  
   def test_image_tag
-    ImageLinkToTag.each do |method, tag|
-      assert_deprecated(/image_path/) { assert_dom_equal(tag, eval(method)) }
+    ImageLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+  
+  def test_should_deprecate_image_filename_with_no_extension
+    DeprecatedImagePathToTag.each do |method, tag| 
+      assert_deprecated("image_path") { assert_dom_equal(tag, eval(method)) }
     end
   end
   
@@ -131,12 +152,12 @@ class AssetTagHelperTest < Test::Unit::TestCase
     assert_equal %(<img alt="Rails" src="/images/rails.png?#{expected_time}" />), image_tag("rails.png")
   end
 
-  def test_skipping_asset_id_on_complete_url
+  def test_should_skip_asset_id_on_complete_url
     Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
     assert_equal %(<img alt="Rails" src="http://www.example.com/rails.png" />), image_tag("http://www.example.com/rails.png")
   end
   
-  def test_preset_asset_id
+  def test_should_use_preset_asset_id
     Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
     ENV["RAILS_ASSET_ID"] = "4500"
     assert_equal %(<img alt="Rails" src="/images/rails.png?4500" />), image_tag("rails.png")
@@ -148,13 +169,11 @@ class AssetTagHelperTest < Test::Unit::TestCase
     assert_equal %(<img alt="Rails" src="/images/rails.png" />), image_tag("rails.png")
   end
 
-  def test_url_dup_image_tag
-    Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
-    img_url = '/images/rails.png'
-    url_copy = img_url.dup
-    image_tag(img_url)
-    
-    assert_equal url_copy, img_url
+  def test_should_not_modify_source_string
+    source = '/images/rails.png'
+    copy = source.dup
+    image_tag(source)
+    assert_equal copy, source
   end
 end
 
@@ -168,13 +187,13 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
       attr_accessor :request
 
       def url_for(options, *parameters_for_method_reference)
-        "http://www.example.com/calloboration/hieraki"
+        "http://www.example.com/collaboration/hieraki"
       end
     end.new
     
     @request = Class.new do 
       def relative_url_root
-        "/calloboration/hieraki"
+        "/collaboration/hieraki"
       end
     end.new
     
@@ -183,89 +202,31 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
     ActionView::Helpers::AssetTagHelper::reset_javascript_include_default
   end
 
-  AutoDiscoveryToTag = {
-    %(auto_discovery_link_tag(:rss, :action => "feed")) => %(<link href="http://www.example.com/calloboration/hieraki" rel="alternate" title="RSS" type="application/rss+xml" />),
-    %(auto_discovery_link_tag(:atom)) => %(<link href="http://www.example.com/calloboration/hieraki" rel="alternate" title="ATOM" type="application/atom+xml" />),
-    %(auto_discovery_link_tag) => %(<link href="http://www.example.com/calloboration/hieraki" rel="alternate" title="RSS" type="application/rss+xml" />),
-  }
-
-  JavascriptPathToTag = {
-    %(javascript_path("xmlhr")) => %(/calloboration/hieraki/javascripts/xmlhr.js),
-  }
-
-  JavascriptIncludeToTag = {
-    %(javascript_include_tag("xmlhr")) => %(<script src="/calloboration/hieraki/javascripts/xmlhr.js" type="text/javascript"></script>),
-    %(javascript_include_tag("common.javascript", "/elsewhere/cools")) => %(<script src="/calloboration/hieraki/javascripts/common.javascript" type="text/javascript"></script>\n<script src="/calloboration/hieraki/elsewhere/cools.js" type="text/javascript"></script>),
-    %(javascript_include_tag(:defaults)) => %(<script src="/calloboration/hieraki/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/calloboration/hieraki/javascripts/effects.js" type="text/javascript"></script>\n<script src="/calloboration/hieraki/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/calloboration/hieraki/javascripts/controls.js" type="text/javascript"></script>)
-  }
-
-  StylePathToTag = {
-    %(stylesheet_path("style")) => %(/calloboration/hieraki/stylesheets/style.css),
-  }
-
-  StyleLinkToTag = {
-    %(stylesheet_link_tag("style")) => %(<link href="/calloboration/hieraki/stylesheets/style.css" media="screen" rel="Stylesheet" type="text/css" />),
-    %(stylesheet_link_tag("random.styles", "/css/stylish")) => %(<link href="/calloboration/hieraki/stylesheets/random.styles" media="screen" rel="Stylesheet" type="text/css" />\n<link href="/calloboration/hieraki/css/stylish.css" media="screen" rel="Stylesheet" type="text/css" />)
-  }
-
-  ImagePathToTag = {
-    %(image_path("xml")) => %(/calloboration/hieraki/images/xml.png),
-  }
-  
-  ImageLinkToTag = {
-    %(image_tag("xml")) => %(<img alt="Xml" src="/calloboration/hieraki/images/xml.png" />),
-    %(image_tag("rss", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/calloboration/hieraki/images/rss.png" />),
-    %(image_tag("gold", :size => "45x70")) => %(<img alt="Gold" height="70" src="/calloboration/hieraki/images/gold.png" width="45" />),
-    %(image_tag("symbolize", "size" => "45x70")) => %(<img alt="Symbolize" height="70" src="/calloboration/hieraki/images/symbolize.png" width="45" />)
-  }
-
-  def test_auto_discovery
-    AutoDiscoveryToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
-  end
-
-  def test_javascript_path
-    JavascriptPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
-  end
-
-  def test_javascript_include
-    JavascriptIncludeToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  def test_should_compute_proper_path
+    assert_dom_equal(%(<link href="http://www.example.com/collaboration/hieraki" rel="alternate" title="RSS" type="application/rss+xml" />), auto_discovery_link_tag)
+    assert_dom_equal(%(/collaboration/hieraki/javascripts/xmlhr.js), javascript_path("xmlhr"))
+    assert_dom_equal(%(/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
+    assert_dom_equal(%(/collaboration/hieraki/images/xml.png), image_path("xml.png"))
   end
   
-  def test_register_javascript_include_default
-    ActionView::Helpers::AssetTagHelper::register_javascript_include_default 'slider'
-    assert_dom_equal  %(<script src="/calloboration/hieraki/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/calloboration/hieraki/javascripts/effects.js" type="text/javascript"></script>\n<script src="/calloboration/hieraki/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/calloboration/hieraki/javascripts/controls.js" type="text/javascript"></script>\n<script src="/calloboration/hieraki/javascripts/slider.js" type="text/javascript"></script>), javascript_include_tag(:defaults)
-    ActionView::Helpers::AssetTagHelper::register_javascript_include_default 'lib1', '/elsewhere/blub/lib2'
-    assert_dom_equal  %(<script src="/calloboration/hieraki/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/calloboration/hieraki/javascripts/effects.js" type="text/javascript"></script>\n<script src="/calloboration/hieraki/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/calloboration/hieraki/javascripts/controls.js" type="text/javascript"></script>\n<script src="/calloboration/hieraki/javascripts/slider.js" type="text/javascript"></script>\n<script src="/calloboration/hieraki/javascripts/lib1.js" type="text/javascript"></script>\n<script src="/calloboration/hieraki/elsewhere/blub/lib2.js" type="text/javascript"></script>), javascript_include_tag(:defaults)
+  def test_should_ignore_relative_root_path_on_complete_url
+    assert_dom_equal(%(http://www.example.com/images/xml.png), image_path("http://www.example.com/images/xml.png"))
   end
 
-  def test_style_path
-    StylePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
-  end
-
-  def test_style_link
-    StyleLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
-  end
-
-  def test_image_path
-    ImagePathToTag.each { |method, tag| assert_deprecated(/image_path/) { assert_dom_equal(tag, eval(method)) } }
-  end
-  
-  def test_image_tag
-    ImageLinkToTag.each do |method, tag| 
-      assert_deprecated(/image_path/) { assert_dom_equal(tag, eval(method)) }
-    end
-    # Assigning a default alt tag should not cause an exception to be raised
-    assert_nothing_raised { image_tag('') }
-  end
-  
-  def test_stylesheet_with_asset_host_already_encoded
-    ActionController::Base.asset_host = "http://foo.example.com"
-    result = stylesheet_link_tag("http://bar.example.com/stylesheets/style.css")
-    assert_dom_equal(
-      %(<link href="http://bar.example.com/stylesheets/style.css" media="screen" rel="Stylesheet" type="text/css" />),
-      result)
+  def test_should_compute_proper_path_with_asset_host
+    ActionController::Base.asset_host = "http://assets.example.com"
+    assert_dom_equal(%(<link href="http://www.example.com/collaboration/hieraki" rel="alternate" title="RSS" type="application/rss+xml" />), auto_discovery_link_tag)
+    assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_path("xmlhr"))
+    assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
+    assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
   ensure
     ActionController::Base.asset_host = ""
   end
-  
+
+  def test_should_ignore_asset_host_on_complete_url
+    ActionController::Base.asset_host = "http://assets.example.com"
+    assert_dom_equal(%(<link href="http://bar.example.com/stylesheets/style.css" media="screen" rel="Stylesheet" type="text/css" />), stylesheet_link_tag("http://bar.example.com/stylesheets/style.css"))
+  ensure
+    ActionController::Base.asset_host = ""
+  end
 end
