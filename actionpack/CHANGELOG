@@ -1,5 +1,7 @@
 *SVN*
 
+* [DOCS] fix reference to ActionController::Macros::AutoComplete for #text_field_with_auto_complete. Closes #2578 [Jan Prill]
+
 * Make sure html_document is reset between integration test requests. [ctm]
 
 * Set session to an empty hash if :new_session => false and no session cookie or param is present. CGI::Session was raising an unrescued ArgumentError.  [Josh Susser]

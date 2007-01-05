@@ -189,9 +189,9 @@ module ActionView
       # Wrapper for text_field with added AJAX autocompletion functionality.
       #
       # In your controller, you'll need to define an action called
-      # auto_complete_for_object_method to respond the AJAX calls,
+      # auto_complete_for to respond the AJAX calls,
       # 
-      # See the RDoc on ActionController::AutoComplete to learn more about this.
+      # See the RDoc on ActionController::Macros::AutoComplete to learn more about this.
       def text_field_with_auto_complete(object, method, tag_options = {}, completion_options = {})
         (completion_options[:skip_style] ? "" : auto_complete_stylesheet) +
         text_field(object, method, tag_options) +
