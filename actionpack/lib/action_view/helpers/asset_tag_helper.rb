@@ -3,20 +3,36 @@ require File.dirname(__FILE__) + '/url_helper'
 require File.dirname(__FILE__) + '/tag_helper'
 
 module ActionView
-  module Helpers
-    # Provides methods for linking a HTML page together with other assets, such as javascripts, stylesheets, and feeds.
+  module Helpers #:nodoc:
+    # Provides methods for linking an HTML page together with other assets such
+    # as images, javascripts, stylesheets, and feeds. You can direct Rails to
+    # link to assets from a dedicated assets server by setting ActionController::Base.asset_host
+    # in your environment.rb. These methods do not verify the assets exist before
+    # linking to them.
+    #
+    #   ActionController::Base.asset_host = "http://assets.example.com"
+    #   image_tag("rails.png")  
+    #     => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
+    #   stylesheet_include_tag("application")
+    #     => <link href="http://assets.example.com/stylesheets/application.css" media="screen" rel="Stylesheet" type="text/css" />
     module AssetTagHelper
-      # Returns a link tag that browsers and news readers can use to auto-detect a RSS or ATOM feed for this page. The +type+ can
-      # either be <tt>:rss</tt> (default) or <tt>:atom</tt> and the +options+ follow the url_for style of declaring a link target.
+      # Returns a link tag that browsers and news readers can use to auto-detect
+      # an RSS or ATOM feed. The +type+ can either be <tt>:rss</tt> (default) or 
+      # <tt>:atom</tt>. Control the link options in url_for format using the
+      # +url_options+. You can modify the LINK tag itself in +tag_options+.
       #
-      # Examples:
-      #   auto_discovery_link_tag # =>
+      # Tag Options:
+      # * <tt>:rel</tt>  - Specify the relation of this link, defaults to "alternate"
+      # * <tt>:type</tt>  - Override the auto-generated mime type
+      # * <tt>:title</tt>  - Specify the title of the link, defaults to the +type+
+      #
+      #  auto_discovery_link_tag # =>
       #     <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.curenthost.com/controller/action" />
-      #   auto_discovery_link_tag(:atom) # =>
+      #  auto_discovery_link_tag(:atom) # =>
       #     <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.curenthost.com/controller/action" />
-      #   auto_discovery_link_tag(:rss, {:action => "feed"}) # =>
+      #  auto_discovery_link_tag(:rss, {:action => "feed"}) # =>
       #     <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.curenthost.com/controller/feed" />
-      #   auto_discovery_link_tag(:rss, {:action => "feed"}, {:title => "My RSS"}) # =>
+      #  auto_discovery_link_tag(:rss, {:action => "feed"}, {:title => "My RSS"}) # =>
       #     <link rel="alternate" type="application/rss+xml" title="My RSS" href="http://www.curenthost.com/controller/feed" />
       def auto_discovery_link_tag(type = :rss, url_options = {}, tag_options = {})
         tag(
@@ -28,9 +44,14 @@ module ActionView
         )
       end
 
-      # Returns path to a javascript asset. Example:
+      # Computes the path to a javascript asset in the public javascripts directory.
+      # If the +source+ filename has no extension, .js will be appended.
+      # Full paths from the document root will be passed through.
+      # Used internally by javascript_include_tag to build the script path.
       #
       #   javascript_path "xmlhr" # => /javascripts/xmlhr.js
+      #   javascript_path "dir/xmlhr.js" # => /javascripts/dir/xmlhr.js
+      #   javascript_path "/dir/xmlhr" # => /dir/xmlhr.js
       def javascript_path(source)
         compute_public_path(source, 'javascripts', 'js')        
       end
@@ -38,7 +59,15 @@ module ActionView
       JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls'] unless const_defined?(:JAVASCRIPT_DEFAULT_SOURCES)
       @@javascript_default_sources = JAVASCRIPT_DEFAULT_SOURCES.dup
 
-      # Returns a script include tag per source given as argument. Examples:
+      # Returns an html script tag for each of the +sources+ provided. You
+      # can pass in the filename (.js extension is optional) of javascript files
+      # that exist in your public/javascripts directory for inclusion into the
+      # current page or you can pass the full path relative to your document
+      # root. To include the Prototype and Scriptaculous javascript libraries in
+      # your application, pass <tt>:defaults</tt> as the source. When using 
+      # :defaults, if an <tt>application.js</tt> file exists in your public 
+      # javascripts directory, it will be included as well. You can modify the 
+      # html attributes of the script tag by passing a hash as the last argument. 
       #
       #   javascript_include_tag "xmlhr" # =>
       #     <script type="text/javascript" src="/javascripts/xmlhr.js"></script>
@@ -52,11 +81,6 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/effects.js"></script>
       #     ...
       #     <script type="text/javascript" src="/javascripts/application.js"></script> *see below
-      #   
-      # If there's an <tt>application.js</tt> file in your <tt>public/javascripts</tt> directory,
-      # <tt>javascript_include_tag :defaults</tt> will automatically include it. This file
-      # facilitates the inclusion of small snippets of JavaScript code, along the lines of
-      # <tt>controllers/application.rb</tt> and <tt>helpers/application_helper.rb</tt>.
       def javascript_include_tag(*sources)
         options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
 
@@ -69,18 +93,16 @@ module ActionView
           sources << "application" if defined?(RAILS_ROOT) && File.exists?("#{RAILS_ROOT}/public/javascripts/application.js") 
         end
 
-        sources.collect { |source|
+        sources.collect do |source|
           source = javascript_path(source)        
           content_tag("script", "", { "type" => "text/javascript", "src" => source }.merge(options))
-        }.join("\n")
+        end.join("\n")
       end
       
       # Register one or more additional JavaScript files to be included when
-      #   
-      #   javascript_include_tag :defaults
-      #
-      # is called. This method is intended to be called only from plugin initialization
-      # to register extra .js files the plugin installed in <tt>public/javascripts</tt>.
+      # <tt>javascript_include_tag :defaults</tt> is called. This method is
+      # only intended to be called from plugin initialization to register additional 
+      # .js files that the plugin installed in <tt>public/javascripts</tt>.
       def self.register_javascript_include_default(*sources)
         @@javascript_default_sources.concat(sources)
       end
@@ -89,14 +111,21 @@ module ActionView
         @@javascript_default_sources = JAVASCRIPT_DEFAULT_SOURCES.dup
       end
 
-      # Returns path to a stylesheet asset. Example:
+      # Computes the path to a stylesheet asset in the public stylesheets directory.
+      # If the +source+ filename has no extension, .css will be appended.
+      # Full paths from the document root will be passed through.
+      # Used internally by stylesheet_link_tag to build the stylesheet path.
       #
       #   stylesheet_path "style" # => /stylesheets/style.css
+      #   stylesheet_path "dir/style.css" # => /stylesheets/dir/style.css
+      #   stylesheet_path "/dir/style.css" # => /dir/style.css
       def stylesheet_path(source)
         compute_public_path(source, 'stylesheets', 'css')
       end
 
-      # Returns a css link tag per source given as argument. Examples:
+      # Returns a stylesheet link tag for the sources specified as arguments. If
+      # you don't specify an extension, .css will be appended automatically.
+      # You can modify the link attributes by passing a hash as the last argument.
       #
       #   stylesheet_link_tag "style" # =>
       #     <link href="/stylesheets/style.css" media="screen" rel="Stylesheet" type="text/css" />
@@ -109,18 +138,20 @@ module ActionView
       #     <link href="/css/stylish.css" media="screen" rel="Stylesheet" type="text/css" />
       def stylesheet_link_tag(*sources)
         options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
-        sources.collect { |source|
+        sources.collect do |source|
           source = stylesheet_path(source)
           tag("link", { "rel" => "Stylesheet", "type" => "text/css", "media" => "screen", "href" => source }.merge(options))
-        }.join("\n")
+        end.join("\n")
       end
 
-      # Returns path to an image asset. Example:
+      # Computes the path to an image asset in the public images directory.
+      # Full paths from the document root will be passed through.
+      # Used internally by image_tag to build the image path. Passing
+      # a filename without an extension is deprecated.
       #
-      # The +src+ can be supplied as a...
-      # * full path, like "/my_images/image.gif"
-      # * file name, like "rss.gif", that gets expanded to "/images/rss.gif"
-      # * file name without extension, like "logo", that gets expanded to "/images/logo.png"
+      #   image_path("edit.png")  # => /images/edit.png
+      #   image_path("icons/edit.png")  # => /images/icons/edit.png
+      #   image_path("/icons/edit.png")  # => /icons/edit.png
       def image_path(source)
         unless (source.split("/").last || source).include?(".") || source.blank?
           ActiveSupport::Deprecation.warn(
@@ -133,15 +164,24 @@ module ActionView
         compute_public_path(source, 'images', 'png')
       end
 
-      # Returns an image tag converting the +options+ into html options on the tag, but with these special cases:
+      # Returns an html image tag for the +source+. The +source+ can be a full
+      # path or a file that exists in your public images directory. Note that 
+      # specifying a filename without the extension is now deprecated in Rails.
+      # You can add html attributes using the +options+. The +options+ supports
+      # two additional keys for convienence and conformance:
       #
-      # * <tt>:alt</tt>  - If no alt text is given, the file name part of the +src+ is used (capitalized and without the extension)
-      # * <tt>:size</tt> - Supplied as "XxY", so "30x45" becomes width="30" and height="45"
+      # * <tt>:alt</tt>  - If no alt text is given, the file name part of the 
+      #   +source+ is used (capitalized and without the extension)
+      # * <tt>:size</tt> - Supplied as "{Width}x{Height}", so "30x45" becomes 
+      #   width="30" and height="45". <tt>:size</tt> will be ignored if the
+      #   value is not in the correct format.
       #
-      # The +src+ can be supplied as a...
-      # * full path, like "/my_images/image.gif"
-      # * file name, like "rss.gif", that gets expanded to "/images/rss.gif"
-      # * file name without extension, like "logo", that gets expanded to "/images/logo.png"
+      #  image_tag("icon.png")  # =>
+      #    <img src="/images/icon.png" alt="Icon" />
+      #  image_tag("icon.png", :size => "16x10", :alt => "Edit Entry")  # =>
+      #    <img src="/images/icon.png" width="16" height="10" alt="Edit Entry" />
+      #  image_tag("/icons/icon.gif", :size => "16x16")  # =>
+      #    <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
       def image_tag(source, options = {})
         options.symbolize_keys!
                 
@@ -149,8 +189,8 @@ module ActionView
         options[:alt] ||= File.basename(options[:src], '.*').split('.').first.capitalize
         
         if options[:size]
-          options[:width], options[:height] = options[:size].split("x")
-          options.delete :size
+          options[:width], options[:height] = options[:size].split("x") if options[:size] =~ %r{^\d+x\d+$}
+          options.delete(:size)
         end
 
         tag("img", options)
@@ -163,7 +203,7 @@ module ActionView
           unless source =~ %r{^[-a-z]+://}
             source = "/#{dir}/#{source}" unless source[0] == ?/
             asset_id = rails_asset_id(source)
-            source << '?' + asset_id if defined?(RAILS_ROOT) and not asset_id.blank?
+            source << '?' + asset_id if defined?(RAILS_ROOT) && !asset_id.blank?
             source = "#{ActionController::Base.asset_host}#{@controller.request.relative_url_root}#{source}"
           end
           source

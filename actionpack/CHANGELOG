@@ -1,5 +1,7 @@
 *SVN*
 
+* Add more extensive documentation to the AssetTagHelper.  Closes #6452 [Bob Silva]
+
 * Clean up multiple calls to #stringify_keys in TagHelper, add better documentation and testing for TagHelper.  Closes #6394 [Bob Silva]
 
 * [DOCS] fix reference to ActionController::Macros::AutoComplete for #text_field_with_auto_complete. Closes #2578 [Jan Prill]
