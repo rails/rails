@@ -1,3 +1,7 @@
+*SVN*
+
+* [DOCS] Document :allow_nil option of #validate_uniqueness_of. Closes #3143 [Caio Chassot]
+
 *1.15.0 RC2* (r5847, January 4th, 2007)
 
 * Bring the sybase adapter up to scratch for 1.2 release. [jsheets]
