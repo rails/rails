@@ -7,8 +7,9 @@ class TagHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::CaptureHelper
 
   def test_tag
-    assert_equal "<p class=\"show\" />", tag("p", "class" => "show")
-    assert_equal tag("p", "class" => "show"), tag("p", :class => "show")
+    assert_equal "<br />", tag("br")
+    assert_equal "<br clear=\"left\" />", tag(:br, :clear => "left")
+    assert_equal "<br>", tag("br", nil, true)
   end
 
   def test_tag_options
