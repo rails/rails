@@ -38,7 +38,7 @@ module ActionView
         tag(
           "link", 
           "rel"   => tag_options[:rel] || "alternate",
-          "type"  => tag_options[:type] || "application/#{type}+xml",
+          "type"  => tag_options[:type] || Mime::Type.lookup_by_extension(type.to_s).to_s,
           "title" => tag_options[:title] || type.to_s.upcase,
           "href"  => url_options.is_a?(Hash) ? url_for(url_options.merge(:only_path => false)) : url_options
         )

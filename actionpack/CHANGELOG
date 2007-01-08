@@ -1,5 +1,7 @@
 *SVN*
 
+* Lookup the mime type for #auto_discovery_link_tag in the Mime::Type class.  Closes #6941 [Josh Peek]
+
 * Fix bug where nested resources ignore a parent singleton parent's path prefix.  Closes #6940 [Dan Kubb]
 
 * Fix no method error with error_messages_on.  Closes #6935 [nik.wakelin Koz]
