@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix bug where nested resources ignore a parent singleton parent's path prefix.  Closes #6940 [Dan Kubb]
+
 * Fix no method error with error_messages_on.  Closes #6935 [nik.wakelin Koz]
 
 * Slight doc tweak to the ActionView::Helpers::PrototypeHelper#replace docs.  Closes #6922 [Steven Bristol]

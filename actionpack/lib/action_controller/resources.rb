@@ -307,7 +307,7 @@ module ActionController
           map_member_actions(map, resource)
 
           if block_given?
-            with_options(:path_prefix => resource.singular, &block)
+            with_options(:path_prefix => resource.nesting_path_prefix, &block)
           end
         end
       end

@@ -247,6 +247,19 @@ class ResourcesTest < Test::Unit::TestCase
       assert_simply_restful_for :messages, :path_prefix => 'account/'
     end
   end
+
+  def test_should_nest_resources_in_singleton_resource_with_path_prefix
+    with_routing do |set|
+      set.draw do |map|
+        map.resource(:account, :path_prefix => ':site_id') do |account|
+          account.resources :messages
+        end
+      end
+
+      assert_singleton_restful_for :account, :path_prefix => '7/', :options => { :site_id => '7' }
+      assert_simply_restful_for :messages, :path_prefix => '7/account/', :options => { :site_id => '7' }
+    end
+  end
   
   def test_should_nest_singleton_resource_in_resources
     with_routing do |set|
