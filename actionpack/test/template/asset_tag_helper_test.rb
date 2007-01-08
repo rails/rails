@@ -6,24 +6,19 @@ class AssetTagHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::AssetTagHelper
 
   def setup
-    @controller = Class.new do
+    Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
 
+    @controller = Class.new do
       attr_accessor :request
-    
-      def url_for(options, *parameters_for_method_reference)
-        "http://www.example.com"
-      end
-      
+      def url_for(*args) "http://www.example.com" end
     end.new
-    
-    @request = Class.new do 
-      def relative_url_root
-        ""
-      end       
+
+    @request = Class.new do
+      def relative_url_root() "" end
     end.new
 
     @controller.request = @request
-    
+
     ActionView::Helpers::AssetTagHelper::reset_javascript_include_default
   end
 
@@ -111,14 +106,16 @@ class AssetTagHelperTest < Test::Unit::TestCase
   end
 
   def test_javascript_include_tag
+    Object.send(:remove_const, :RAILS_ROOT) if defined?(RAILS_ROOT)
     JavascriptIncludeToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
-    
     Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
-    ENV["RAILS_ASSET_ID"] = "1"    
+
+    ENV["RAILS_ASSET_ID"] = "1"
     assert_dom_equal(%(<script src="/javascripts/prototype.js?1" type="text/javascript"></script>\n<script src="/javascripts/effects.js?1" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js?1" type="text/javascript"></script>\n<script src="/javascripts/controls.js?1" type="text/javascript"></script>\n<script src="/javascripts/application.js?1" type="text/javascript"></script>), javascript_include_tag(:defaults))
   end
-  
+
   def test_register_javascript_include_default
+    Object.send(:remove_const, :RAILS_ROOT) if defined?(RAILS_ROOT)
     ActionView::Helpers::AssetTagHelper::register_javascript_include_default 'slider'
     assert_dom_equal  %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/slider.js" type="text/javascript"></script>), javascript_include_tag(:defaults)
     ActionView::Helpers::AssetTagHelper::register_javascript_include_default 'lib1', '/elsewhere/blub/lib2'
@@ -146,26 +143,22 @@ class AssetTagHelperTest < Test::Unit::TestCase
       assert_deprecated("image_path") { assert_dom_equal(tag, eval(method)) }
     end
   end
-  
+
   def test_timebased_asset_id
-    Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
     expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s
     assert_equal %(<img alt="Rails" src="/images/rails.png?#{expected_time}" />), image_tag("rails.png")
   end
 
   def test_should_skip_asset_id_on_complete_url
-    Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
     assert_equal %(<img alt="Rails" src="http://www.example.com/rails.png" />), image_tag("http://www.example.com/rails.png")
   end
   
   def test_should_use_preset_asset_id
-    Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
     ENV["RAILS_ASSET_ID"] = "4500"
     assert_equal %(<img alt="Rails" src="/images/rails.png?4500" />), image_tag("rails.png")
   end
 
   def test_preset_empty_asset_id
-    Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
     ENV["RAILS_ASSET_ID"] = ""
     assert_equal %(<img alt="Rails" src="/images/rails.png" />), image_tag("rails.png")
   end
