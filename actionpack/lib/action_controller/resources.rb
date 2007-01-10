@@ -175,7 +175,15 @@ module ActionController
     #     map.resources :articles do |article|
     #       article.resources :comments
     #     end
-    # 
+    #
+    #   The comment resources work the same, but must now include a value for :article_id.
+    #   
+    #     comments_url(@article)
+    #     comment_url(@article, @comment)
+    #
+    #     comments_url(:article_id => @article)
+    #     comment_url(:article_id => @article, :id => @comment)
+    #
     # * <tt>:name_prefix</tt> -- define a prefix for all generated routes, usually ending in an underscore.
     #   Use this if you have named routes that may clash.
     #
