@@ -1,5 +1,8 @@
 *SVN*
 
+* Pass a range in :conditions to use the SQL BETWEEN operator.  #6974 [dcmanges]
+    Student.find(:all, :conditions => { :grade => 9..12 })
+
 * Fix the Oracle adapter for serialized attributes stored in CLOBs.  Closes #6825 [mschoen, tdfowler]
 
 * [DOCS] Apply more documentation for ActiveRecord Reflection.  Closes #4055 [Robby Russell]
