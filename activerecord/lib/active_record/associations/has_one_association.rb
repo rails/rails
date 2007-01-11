@@ -24,6 +24,7 @@ module ActiveRecord
       end
 
       def create!(attrs = {}, replace_existing = true)
+        load_target if replace_existing
         record = @reflection.klass.with_scope(:create => construct_scope[:create]) { @reflection.klass.create!(attrs) }                
 
         if replace_existing
