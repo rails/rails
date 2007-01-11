@@ -7,47 +7,15 @@ module ActiveRecord
       end
 
       def create(attrs = {}, replace_existing = true)
-        # make sure we load the target first, if we plan on replacing the existing
-        # instance. Otherwise, if the target has not previously been loaded
-        # elsewhere, the instance we create will get orphaned.
-        load_target if replace_existing
-        record = @reflection.klass.with_scope(:create => construct_scope[:create]) { @reflection.klass.create(attrs) }                
-
-        if replace_existing
-          replace(record, true) 
-        else
-          record[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
-          self.target = record
-        end
-
-        record
+        new_record(replace_existing) { |klass| klass.create(attrs) }
       end
 
       def create!(attrs = {}, replace_existing = true)
-        load_target if replace_existing
-        record = @reflection.klass.with_scope(:create => construct_scope[:create]) { @reflection.klass.create!(attrs) }                
-
-        if replace_existing
-          replace(record, true) 
-        else
-          record[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
-          self.target = record
-        end
-
-        record
+        new_record(replace_existing) { |klass| klass.create!(attrs) }
       end
 
-      def build(attributes = {}, replace_existing = true)
-        record = @reflection.klass.new(attributes)
-
-        if replace_existing
-          replace(record, true) 
-        else
-          record[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
-          self.target = record
-        end
-
-        record
+      def build(attrs = {}, replace_existing = true)
+        new_record(replace_existing) { |klass| klass.new(attrs) }
       end
 
       def replace(obj, dont_save = false)
@@ -106,7 +74,23 @@ module ActiveRecord
           set_belongs_to_association_for(create_scoping)
           { :create => create_scoping }
         end
-        
+
+        def new_record(replace_existing)
+          # make sure we load the target first, if we plan on replacing the existing
+          # instance. Otherwise, if the target has not previously been loaded
+          # elsewhere, the instance we create will get orphaned.
+          load_target if replace_existing
+          record = @reflection.klass.with_scope(:create => construct_scope[:create]) { yield @reflection.klass }
+
+          if replace_existing
+            replace(record, true) 
+          else
+            record[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
+            self.target = record
+          end
+
+          record
+        end
     end
   end
 end
