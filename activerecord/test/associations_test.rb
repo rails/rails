@@ -277,9 +277,9 @@ class HasOneAssociationsTest < Test::Unit::TestCase
   end
 
   def test_create_association
-    firm = Firm.new("name" => "GlobalMegaCorp")
-    firm.save
-    assert_equal firm.create_account("credit_limit" => 1000), firm.account
+    firm = Firm.create(:name => "GlobalMegaCorp")
+    account = firm.create_account(:credit_limit => 1000)
+    assert_equal account, firm.reload.account
   end
 
   def test_build

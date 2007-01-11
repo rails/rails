@@ -7,6 +7,10 @@ module ActiveRecord
       end
 
       def create(attrs = {}, replace_existing = true)
+        # make sure we load the target first, if we plan on replacing the existing
+        # instance. Otherwise, if the target has not previously been loaded
+        # elsewhere, the instance we create will get orphaned.
+        load_target if replace_existing
         record = @reflection.klass.with_scope(:create => construct_scope[:create]) { @reflection.klass.create(attrs) }                
 
         if replace_existing
