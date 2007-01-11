@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix HTML::Node to output double quotes instead of single quotes.  Closes #6845 [mitreandy]
+
 * Fix no method error with error_messages_on.  Closes #6935 [nik.wakelin Koz]
 
 * Slight doc tweak to the ActionView::Helpers::PrototypeHelper#replace docs.  Closes #6922 [Steven Bristol]
