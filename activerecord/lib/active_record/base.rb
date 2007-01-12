@@ -1143,7 +1143,7 @@ module ActiveRecord #:nodoc:
         # The optional scope argument is for the current :find scope.
         # The :lock option has precedence over a scoped :lock.
         def add_lock!(sql, options, scope = :auto)
-          scope = scope(:find) if :auto == :scope
+          scope = scope(:find) if :auto == scope
           options = options.reverse_merge(:lock => scope[:lock]) if scope
           connection.add_lock!(sql, options)
         end
