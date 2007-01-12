@@ -167,6 +167,12 @@ class NewRenderTestController < ActionController::Base
     @after = "i'm after the render"
     render :action => "test/hello_world"
   end
+
+ def render_to_string_with_partial
+    @partial_only = render_to_string :partial => "partial_only"
+    @partial_with_locals = render_to_string :partial => "customer", :locals => { :customer => Customer.new("david") }     
+    render :action => "test/hello_world"  
+  end  
   
   def render_to_string_with_exception
     render_to_string :file => "exception that will not be caught - this will certainly not work", :use_full_path => true
@@ -555,7 +561,13 @@ EOS
     assert_equal "i'm before the render", assigns(:before)
     assert_equal "i'm after the render", assigns(:after)
   end
-  
+
+  def test_render_to_string_partial
+    get :render_to_string_with_partial
+    assert_equal "only partial", assigns(:partial_only)
+    assert_equal "Hello: david", assigns(:partial_with_locals)
+  end  
+
   def test_bad_render_to_string_still_throws_exception
     assert_raises(ActionController::MissingTemplate) { get :render_to_string_with_exception }
   end
