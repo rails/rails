@@ -80,6 +80,13 @@ module ActiveResource
         connection.delete(element_path(id))
       end
 
+      # True if the resource is found.
+      def exists?(id, options = {})
+        id && !find_single(id, options).nil?
+      rescue ActiveResource::ResourceNotFound
+        false
+      end
+
       private
         def find_every(options)
           collection = connection.get(collection_path(options)) || []
@@ -165,6 +172,11 @@ module ActiveResource
 
     def destroy
       connection.delete(element_path)
+    end
+
+    # True if this resource is found.
+    def exists?
+      !new? && self.class.exists?(id, prefix_options)
     end
 
     def to_xml(options={})

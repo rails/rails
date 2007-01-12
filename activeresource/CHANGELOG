@@ -1,5 +1,7 @@
 *SVN*
 
+* Base.exists?(id, options) and Base#exists? check whether the resource is found.  #6970 [rwdaigle]
+
 * Query string support.  [untext, Jeremy Kemper]
     # GET /forums/1/topics.xml?sort=created_at
     Topic.find(:all, :forum_id => 1, :sort => 'created_at')

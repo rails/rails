@@ -21,6 +21,8 @@ class BaseTest < Test::Unit::TestCase
       mock.get    "/people.xml",               {}, "<people>#{@matz}#{@david}</people>"
       mock.get    "/people/1/addresses.xml",   {}, "<addresses>#{@addy}</addresses>"
       mock.get    "/people/1/addresses/1.xml", {}, @addy
+      mock.get    "/people/1/addresses/2.xml", {}, nil, 404
+      mock.get    "/people/2/addresses/1.xml", {}, nil, 404
       mock.put    "/people/1/addresses/1.xml", {}, nil, 204
       mock.delete "/people/1/addresses/1.xml", {}, nil, 200
       mock.post   "/people/1/addresses.xml",   {}, nil, 201, 'Location' => '/people/1/addresses/5'
@@ -236,5 +238,27 @@ class BaseTest < Test::Unit::TestCase
 
   def test_delete
     assert Person.delete(1)
+  end
+
+  def test_exists
+    # Class method.
+    assert !Person.exists?(nil)
+    assert Person.exists?(1)
+    assert !Person.exists?(99)
+
+    # Instance method.
+    assert !Person.new.exists?
+    assert Person.find(1).exists?
+    assert !Person.new(:id => 99).exists?
+
+    # Nested class method.
+    assert StreetAddress.exists?(1, :person_id => 1)
+    assert !StreetAddress.exists?(1, :person_id => 2)
+    assert !StreetAddress.exists?(2, :person_id => 1)
+
+    # Nested instance method.
+    assert StreetAddress.find(1, :person_id => 1).exists?
+    assert !StreetAddress.new({:id => 1}, {:person_id => 2}).exists?
+    assert !StreetAddress.new({:id => 2}, {:person_id => 1}).exists?
   end
 end
