@@ -34,11 +34,7 @@ class DefaultTest < Test::Unit::TestCase
       assert_equal nil, klass.columns_hash['omit'].default
       assert !klass.columns_hash['omit'].null
 
-      assert_nothing_raised do
-        instance = klass.create!
-        assert_equal 0, instance.zero
-        assert_nil instance.omit
-      end
+      assert_raise(ActiveRecord::StatementInvalid) { klass.create! }
     ensure
       klass.connection.drop_table(klass.table_name) rescue nil
     end
