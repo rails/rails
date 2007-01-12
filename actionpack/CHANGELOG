@@ -1,5 +1,7 @@
 *SVN*
 
+* link_to_unless_current works with full URLs as well as paths.  #6891 [Jarkko Laine, manfred, idrifter]
+
 * Fix HTML::Node to output double quotes instead of single quotes.  Closes #6845 [mitreandy]
 
 * Fix no method error with error_messages_on.  Closes #6935 [nik.wakelin Koz]
@@ -13,6 +15,7 @@
 * Clean up multiple calls to #stringify_keys in TagHelper, add better documentation and testing for TagHelper.  Closes #6394 [Bob Silva]
 
 * [DOCS] fix reference to ActionController::Macros::AutoComplete for #text_field_with_auto_complete. Closes #2578 [Jan Prill]
+
 
 *1.13.0 RC2* (r5847, January 4th, 2007)
 
