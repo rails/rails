@@ -18,6 +18,32 @@ class DefaultTest < Test::Unit::TestCase
     end
   end
 
+  if current_adapter?(:MysqlAdapter)
+    # MySQL uses an implicit default 0 rather than NULL unless in strict mode.
+    # We use an implicit NULL so schema.rb is compatible with other databases.
+    def test_mysql_integer_not_null_defaults
+      klass = Class.new(ActiveRecord::Base)
+      klass.table_name = 'test_integer_not_null_default_zero'
+      klass.connection.create_table klass.table_name do |t|
+        t.column :zero, :integer, :null => false, :default => 0
+        t.column :omit, :integer, :null => false
+      end
+
+      assert_equal 0, klass.columns_hash['zero'].default
+      assert !klass.columns_hash['zero'].null
+      assert_equal nil, klass.columns_hash['omit'].default
+      assert !klass.columns_hash['omit'].null
+
+      assert_nothing_raised do
+        instance = klass.create!
+        assert_equal 0, instance.zero
+        assert_nil instance.omit
+      end
+    ensure
+      klass.connection.drop_table(klass.table_name) rescue nil
+    end
+  end
+
   if current_adapter?(:PostgreSQLAdapter, :SQLServerAdapter, :FirebirdAdapter, :OpenBaseAdapter)
     def test_default_integers
       default = Default.new
