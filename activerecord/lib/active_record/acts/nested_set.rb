@@ -163,9 +163,9 @@ module ActiveRecord
               child[left_col_name] = right_bound
               child[right_col_name] = right_bound + 1
               self[right_col_name] += 2
-              self.class.transaction {
-                self.class.update_all( "#{left_col_name} = (#{left_col_name} + 2)",  "#{scope_condition} AND #{left_col_name} >= #{right_bound}" )
-                self.class.update_all( "#{right_col_name} = (#{right_col_name} + 2)",  "#{scope_condition} AND #{right_col_name} >= #{right_bound}" )
+              self.class.base_class.transaction {
+                self.class.base_class.update_all( "#{left_col_name} = (#{left_col_name} + 2)",  "#{scope_condition} AND #{left_col_name} >= #{right_bound}" )
+                self.class.base_class.update_all( "#{right_col_name} = (#{right_col_name} + 2)",  "#{scope_condition} AND #{right_col_name} >= #{right_bound}" )
                 self.save
                 child.save
               }
@@ -180,17 +180,17 @@ module ActiveRecord
                                                                
         # Returns a set of itself and all of its nested children
         def full_set
-          self.class.find(:all, :conditions => "#{scope_condition} AND (#{left_col_name} BETWEEN #{self[left_col_name]} and #{self[right_col_name]})" )
+          self.class.base_class.find(:all, :conditions => "#{scope_condition} AND (#{left_col_name} BETWEEN #{self[left_col_name]} and #{self[right_col_name]})" )
         end
                   
         # Returns a set of all of its children and nested children
         def all_children
-          self.class.find(:all, :conditions => "#{scope_condition} AND (#{left_col_name} > #{self[left_col_name]}) and (#{right_col_name} < #{self[right_col_name]})" )
+          self.class.base_class.find(:all, :conditions => "#{scope_condition} AND (#{left_col_name} > #{self[left_col_name]}) and (#{right_col_name} < #{self[right_col_name]})" )
         end
                                   
         # Returns a set of only this entry's immediate children
         def direct_children
-          self.class.find(:all, :conditions => "#{scope_condition} and #{parent_column} = #{self.id}")
+          self.class.base_class.find(:all, :conditions => "#{scope_condition} and #{parent_column} = #{self.id}")
         end
                                       
         # Prunes a branch off of the tree, shifting all of the elements on the right
@@ -199,10 +199,10 @@ module ActiveRecord
           return if self[right_col_name].nil? || self[left_col_name].nil?
           dif = self[right_col_name] - self[left_col_name] + 1
 
-          self.class.transaction {
-            self.class.delete_all( "#{scope_condition} and #{left_col_name} > #{self[left_col_name]} and #{right_col_name} < #{self[right_col_name]}" )
-            self.class.update_all( "#{left_col_name} = (#{left_col_name} - #{dif})",  "#{scope_condition} AND #{left_col_name} >= #{self[right_col_name]}" )
-            self.class.update_all( "#{right_col_name} = (#{right_col_name} - #{dif} )",  "#{scope_condition} AND #{right_col_name} >= #{self[right_col_name]}" )
+          self.class.base_class.transaction {
+            self.class.base_class.delete_all( "#{scope_condition} and #{left_col_name} > #{self[left_col_name]} and #{right_col_name} < #{self[right_col_name]}" )
+            self.class.base_class.update_all( "#{left_col_name} = (#{left_col_name} - #{dif})",  "#{scope_condition} AND #{left_col_name} >= #{self[right_col_name]}" )
+            self.class.base_class.update_all( "#{right_col_name} = (#{right_col_name} - #{dif} )",  "#{scope_condition} AND #{right_col_name} >= #{self[right_col_name]}" )
           }
         end
       end

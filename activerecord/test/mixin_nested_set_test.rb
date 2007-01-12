@@ -178,7 +178,19 @@ class MixinNestedSetTest < Test::Unit::TestCase
     mixins(:set_1).add_child mixins(:set_4)
 
     assert_equal( 3, mixins(:set_1).all_children.length )
-
-
+  end
+  
+  def test_inheritance
+    parent = mixins(:sti_set_3100)
+    child = mixins(:sti_set_3101)
+    grandchild = mixins(:sti_set_3102)
+    assert_equal 5, parent.full_set.size
+    assert_equal 2, child.full_set.size
+    assert_equal 4, parent.all_children.size
+    assert_equal 1, child.all_children.size
+    assert_equal 2, parent.direct_children.size
+    assert_equal 1, child.direct_children.size
+    child.destroy
+    assert_equal 3, parent.full_set.size
   end
 end

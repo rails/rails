@@ -51,3 +51,13 @@ class NestedSetWithSymbolScope < Mixin
   
   def self.table_name() "mixins" end
 end
+
+class NestedSetSuperclass < Mixin
+  acts_as_nested_set :scope => :root
+  
+  def self.table_name() "mixins" end
+end
+
+class NestedSetSubclass < NestedSetSuperclass
+  
+end

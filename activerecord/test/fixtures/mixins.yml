@@ -77,6 +77,24 @@ set_<%= counter %>:
   type: NestedSet
 <% end %>
 
+# Nested set with STI
+<%
+[ [3100,    0, 1, 10, "NestedSetSuperclass"],
+  [3101, 3100, 2, 5, "NestedSetSubclass"],
+  [3102, 3101, 3, 4, "NestedSetSuperclass"],
+  [3103, 3100, 6, 9, "NestedSetSuperclass"],
+  [3104, 3103, 7, 8, "NestedSetSubclass"]
+].each do |sti| %>
+sti_set_<%= sti[0] %>:
+  id: <%= sti[0] %>
+  parent_id: <%= sti[1] %>
+  lft: <%= sti[2] %>
+  rgt: <%= sti[3] %>
+  type: <%= sti[4] %>
+  root_id: 3100
+  
+<% end %>
+
 # Big old set
 <%
 [[4001, 0, 1, 20],
