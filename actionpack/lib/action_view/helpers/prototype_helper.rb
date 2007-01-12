@@ -63,7 +63,7 @@ module ActionView
       # can simulate PUT or DELETE over POST. All specified with <tt>options[:method]</tt>
       #
       # Example:
-      #   link_to_remote "Destroy", person_url(:id => person), :method => :delete
+      #   link_to_remote "Destroy", :url => person_url(:id => person), :method => :delete
       #
       # By default, these remote requests are processed asynchronous during 
       # which various JavaScript callbacks can be triggered (for progress 
