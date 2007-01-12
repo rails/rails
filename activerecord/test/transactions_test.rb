@@ -133,8 +133,9 @@ class TransactionTest < Test::Unit::TestCase
       :content => "Have a nice day",
       :approved => false)
     new_record_snapshot = new_topic.new_record?
+    id_present = new_topic.has_attribute?(Topic.primary_key)
     id_snapshot = new_topic.id
-    
+
     # Make sure the second save gets the after_create callback called.
     2.times do
       begin
@@ -146,6 +147,7 @@ class TransactionTest < Test::Unit::TestCase
         assert_equal "Make the transaction rollback", e.message
         assert_equal new_record_snapshot, new_topic.new_record?, "The topic should have its old new_record value"
         assert_equal id_snapshot, new_topic.id, "The topic should have its old id"
+        assert_equal id_present, new_topic.has_attribute?(Topic.primary_key)
       ensure
         remove_exception_raising_after_create_callback_to_topic
       end

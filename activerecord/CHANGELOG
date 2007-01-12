@@ -11,7 +11,7 @@
 
 * Bring the sybase adapter up to scratch for 1.2 release. [jsheets]
 
-* Rollback #new_record? and #id values for created records that rollback in an after_save callback. Closes #6910 [Ben Curren]
+* Rollback new_record? and id when an exception is raised in a save callback.  #6910 [Ben Curren, outerim]
 
 * Pushing a record on an association collection doesn't unnecessarily load all the associated records.  [Obie Fernandez, Jeremy Kemper]
 
