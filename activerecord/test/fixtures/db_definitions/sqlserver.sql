@@ -228,3 +228,11 @@ CREATE TABLE numeric_data (
   my_house_population decimal(2),
   decimal_number_with_default decimal(3,2) DEFAULT 2.78
 );
+
+CREATE TABLE [order] (
+  id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+  color varchar(255),
+  fruit_size varchar(255),
+  texture varchar(255),
+  flavor varchar(255)
+);
