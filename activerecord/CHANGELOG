@@ -1,5 +1,7 @@
 *SVN*
 
+* acts_as_nested_set works with single-table inheritance.  #6030 [Josh Susser]
+
 * PostgreSQL: use a subselect to correctly perform eager finds with :limit and :order.  #4668 [eventualbuddha]
 
 * Fix the Oracle adapter for serialized attributes stored in CLOBs.  Closes #6825 [mschoen, tdfowler]
