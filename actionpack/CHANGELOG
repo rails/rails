@@ -1,5 +1,7 @@
 *SVN*
 
+* link_to_unless_current works with full URLs as well as paths.  #6891 [Jarkko Laine, manfred, idrifter]
+
 * Lookup the mime type for #auto_discovery_link_tag in the Mime::Type class.  Closes #6941 [Josh Peek]
 
 * Fix bug where nested resources ignore a parent singleton parent's path prefix.  Closes #6940 [Dan Kubb]

@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/../../lib/action_view/helpers/url_helper'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/asset_tag_helper'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/tag_helper'
 
-RequestMock = Struct.new("Request", :request_uri)
+RequestMock = Struct.new("Request", :request_uri, :protocol, :host_with_port)
 
 class UrlHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::AssetTagHelper
@@ -202,12 +202,16 @@ class UrlHelperTest < Test::Unit::TestCase
     @controller.request = RequestMock.new("http://www.example.com/weblog/show")
     @controller.url = "http://www.example.com/weblog/show"
     assert_equal "Showing", link_to_unless_current("Showing", { :action => "show", :controller => "weblog" })
+    assert_equal "Showing", link_to_unless_current("Showing", "http://www.example.com/weblog/show")
 
     @controller.request = RequestMock.new("http://www.example.com/weblog/show")
     @controller.url = "http://www.example.com/weblog/list"
-    assert_equal "<a href=\"http://www.example.com/weblog/list\">Listing</a>", link_to_unless_current("Listing", :action => "list", :controller => "weblog")
+    assert_equal "<a href=\"http://www.example.com/weblog/list\">Listing</a>",
+      link_to_unless_current("Listing", :action => "list", :controller => "weblog")
+    assert_equal "<a href=\"http://www.example.com/weblog/list\">Listing</a>",
+      link_to_unless_current("Listing", "http://www.example.com/weblog/list")
   end
-  
+
   def test_mail_to
     assert_dom_equal "<a href=\"mailto:david@loudthinking.com\">david@loudthinking.com</a>", mail_to("david@loudthinking.com")
     assert_dom_equal "<a href=\"mailto:david@loudthinking.com\">David Heinemeier Hansson</a>", mail_to("david@loudthinking.com", "David Heinemeier Hansson")
@@ -296,6 +300,65 @@ class UrlHelperWithControllerTest < Test::Unit::TestCase
       with_routing do |set|
         set.draw do |map|
           map.show_named_route 'url_helper_with_controller/show_named_route', :controller => 'url_helper_with_controller', :action => 'show_named_route'
+        end
+        yield
+      end
+    end
+end
+
+class LinkToUnlessCurrentWithControllerTest < Test::Unit::TestCase
+  class TasksController < ActionController::Base
+    self.template_root = "#{File.dirname(__FILE__)}/../fixtures/"
+
+    def self.controller_path; 'tasks' end
+
+    def index
+      render_default
+    end
+
+    def show
+      render_default
+    end
+
+    def rescue_action(e) raise e end
+
+    protected
+      def render_default
+        render :inline =>
+          "<%= link_to_unless_current(\"tasks\", tasks_path) %>\n" +
+          "<%= link_to_unless_current(\"tasks\", tasks_url) %>"
+      end
+  end
+
+  include ActionView::Helpers::UrlHelper
+
+  def setup
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    @controller = TasksController.new
+  end
+
+  def test_link_to_unless_current_to_current
+    with_restful_routing do
+      get :index
+      assert_equal "tasks\ntasks", @response.body
+    end
+  end
+
+  def test_link_to_unless_current_shows_link
+    with_restful_routing do
+      get :show, :id => 1
+      assert_equal "<a href=\"/tasks\">tasks</a>\n" +
+        "<a href=\"#{@request.protocol}#{@request.host_with_port}/tasks\">tasks</a>",
+        @response.body
+    end
+  end
+
+  protected
+    def with_restful_routing
+      with_routing do |set|
+        set.draw do |map|
+          map.resources :tasks
         end
         yield
       end
