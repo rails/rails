@@ -447,7 +447,6 @@ module ActiveRecord #:nodoc:
           attributes.collect { |attr| create(attr) }
         else
           object = new(attributes)
-          scope(:create).each { |att,value| object.send("#{att}=", value) } if scoped?(:create)
           object.save
           object
         end
@@ -1504,6 +1503,7 @@ module ActiveRecord #:nodoc:
         @new_record = true
         ensure_proper_type
         self.attributes = attributes unless attributes.nil?
+        self.class.send(:scope, :create).each { |att,value| self.send("#{att}=", value) } if self.class.send(:scoped?, :create)
         yield self if block_given?
       end
 

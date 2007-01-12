@@ -750,6 +750,13 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     companies(:first_firm).clients_of_firm.create([{"name" => "Another Client"}, {"name" => "Another Client II"}])
     assert_equal 3, companies(:first_firm).clients_of_firm(true).size
   end
+  
+  def test_find_or_initialize
+    the_client = companies(:first_firm).clients.find_or_initialize_by_name("Yet another client")
+    assert_equal companies(:first_firm).id, the_client.firm_id
+    assert_equal "Yet another client", the_client.name
+    assert the_client.new_record?
+  end
 
   def test_find_or_create
     number_of_clients = companies(:first_firm).clients.size

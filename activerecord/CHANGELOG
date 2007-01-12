@@ -1,5 +1,7 @@
 *SVN*
 
+* Apply scoping during initialize instead of create.  Fixes setting of foreign key when using find_or_initialize_by with scoping. [Cody Fauser]
+
 * SQLServer: handle [quoted] table names.  #6635 [rrich]
 
 * acts_as_nested_set works with single-table inheritance.  #6030 [Josh Susser]

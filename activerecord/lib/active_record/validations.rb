@@ -721,7 +721,6 @@ module ActiveRecord
           attributes.collect { |attr| create(attr) }
         else
           object = new(attributes)
-          scope(:create).each { |att,value| object.send("#{att}=", value) } if scoped?(:create)
           object.save!
           object
         end
