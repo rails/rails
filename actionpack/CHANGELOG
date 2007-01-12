@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix parsing of array[] CGI parameters so extra empty values aren't included.  #6252 [Nicholas Seckar, aiwilliams, brentrowland]
+
 * link_to_unless_current works with full URLs as well as paths.  #6891 [Jarkko Laine, manfred, idrifter]
 
 * Lookup the mime type for #auto_discovery_link_tag in the Mime::Type class.  Closes #6941 [Josh Peek]
