@@ -1205,7 +1205,13 @@ module ActiveRecord
           end
 
           add_conditions!(sql, options[:conditions], scope)
-          sql << "ORDER BY #{options[:order]} " if options[:order]
+          if options[:order]
+            if is_distinct
+              connection.add_order_by_for_association_limiting!(sql, options)
+            else
+              sql << "ORDER BY #{options[:order]}"
+            end
+          end
           add_limit!(sql, options, scope)
           return sanitize_sql(sql)
         end
