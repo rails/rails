@@ -1,10 +1,13 @@
 *SVN*
 
+* PostgreSQL: use a subselect to correctly perform eager finds with :limit and :order.  #4668 [eventualbuddha]
+
 * Fix the Oracle adapter for serialized attributes stored in CLOBs.  Closes #6825 [mschoen, tdfowler]
 
 * [DOCS] Apply more documentation for ActiveRecord Reflection.  Closes #4055 [Robby Russell]
 
 * [DOCS] Document :allow_nil option of #validate_uniqueness_of. Closes #3143 [Caio Chassot]
+
 
 *1.15.0 RC2* (r5847, January 4th, 2007)
 
