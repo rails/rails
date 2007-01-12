@@ -1,10 +1,9 @@
 CREATE SEQUENCE public.accounts_id_seq START 100;
 
 CREATE TABLE accounts (
-    id integer DEFAULT nextval('public.accounts_id_seq'),
+    id integer primary key DEFAULT nextval('public.accounts_id_seq'),
     firm_id integer,
-    credit_limit integer,
-    PRIMARY KEY (id)
+    credit_limit integer
 );
 
 CREATE TABLE funny_jokes (
@@ -15,14 +14,13 @@ CREATE TABLE funny_jokes (
 CREATE SEQUENCE companies_nonstd_seq START 101;
 
 CREATE TABLE companies (
-    id integer DEFAULT nextval('companies_nonstd_seq'),
+    id integer primary key DEFAULT nextval('companies_nonstd_seq'),
     "type" character varying(50),
     "ruby_type" character varying(50),
     firm_id integer,
     name character varying(50),
     client_of integer,
-    rating integer default 1,
-    PRIMARY KEY (id)
+    rating integer default 1
 );
 
 CREATE TABLE developers_projects (
@@ -33,25 +31,23 @@ CREATE TABLE developers_projects (
 );
 
 CREATE TABLE developers (
-    id serial,
+    id serial primary key,
     name character varying(100),
     salary integer DEFAULT 70000,
     created_at timestamp,
-    updated_at timestamp,
-    PRIMARY KEY (id)
+    updated_at timestamp
 );
 SELECT setval('developers_id_seq', 100);
 
 CREATE TABLE projects (
-    id serial,
+    id serial primary key,
     name character varying(100),
-    type varchar(255),
-    PRIMARY KEY (id)
+    type varchar(255)
 );
 SELECT setval('projects_id_seq', 100);
 
 CREATE TABLE topics (
-    id serial,
+    id serial primary key,
     title character varying(255),
     author_name character varying(255),
     author_email_address character varying(255),
@@ -62,52 +58,46 @@ CREATE TABLE topics (
     approved boolean default true,
     replies_count integer default 0,
     parent_id integer,
-    "type" character varying(50),
-    PRIMARY KEY (id)
+    "type" character varying(50)
 );
 SELECT setval('topics_id_seq', 100);
 
 CREATE TABLE customers (
-    id serial,
+    id serial primary key,
     name character varying,
     balance integer default 0,
     address_street character varying,
     address_city character varying,
     address_country character varying,
-    gps_location character varying,
-    PRIMARY KEY (id)
+    gps_location character varying
 );
 SELECT setval('customers_id_seq', 100);
 
 CREATE TABLE orders (
-    id serial,
+    id serial primary key,
     name character varying,
     billing_customer_id integer,
-    shipping_customer_id integer,
-    PRIMARY KEY (id)
+    shipping_customer_id integer
 );
 SELECT setval('orders_id_seq', 100);
 
 CREATE TABLE movies (
-    movieid serial,
-    name text,
-    PRIMARY KEY (movieid)
+    movieid serial primary key,
+    name text
 );
 
 CREATE TABLE subscribers (
-    nick text NOT NULL,
-    name text,
-    PRIMARY KEY (nick)
+    nick text primary key NOT NULL,
+    name text
 );
 
 CREATE TABLE booleantests (
-    id serial,
-    value boolean,
-    PRIMARY KEY (id)
+    id serial primary key,
+    value boolean
 );
 
 CREATE TABLE defaults (
-    id serial,
+    id serial primary key,
     modified_date date default CURRENT_DATE,
     modified_date_function date default now(),
     fixed_date date default '2004-01-01',
@@ -123,24 +113,23 @@ CREATE TABLE defaults (
 );
 
 CREATE TABLE auto_id_tests (
-    auto_id serial,
-    value integer,
-    PRIMARY KEY (auto_id)
+    auto_id serial primary key,
+    value integer
 );
 
 CREATE TABLE entrants (
-  id serial,
+  id serial primary key,
   name text not null,
   course_id integer not null
 );
 
 CREATE TABLE colnametests (
-  id serial,
+  id serial primary key,
   "references" integer NOT NULL
 );
 
 CREATE TABLE mixins (
-  id serial,
+  id serial primary key,
   parent_id integer,
   type character varying,  
   pos integer,
@@ -148,38 +137,34 @@ CREATE TABLE mixins (
   rgt integer,
   root_id integer,  
   created_at timestamp,
-  updated_at timestamp,
-  PRIMARY KEY  (id)
+  updated_at timestamp
 );
 
 CREATE TABLE people (
-  id serial,
+  id serial primary key,
   first_name text,
-  lock_version integer default 0,
-  PRIMARY KEY  (id)
+  lock_version integer default 0
 );
 
 CREATE TABLE readers (
-    id serial,
+    id serial primary key,
     post_id integer NOT NULL,
-    person_id integer NOT NULL,
-    primary key (id)
+    person_id integer NOT NULL
 );
 
-CREATE TABLE binaries ( 
-  id serial , 
-  data bytea,
-  PRIMARY KEY (id)
+CREATE TABLE binaries (
+  id serial primary key,
+  data bytea
 );
 
 CREATE TABLE computers (
-  id serial,
+  id serial primary key,
   developer integer NOT NULL,
   "extendedWarranty" integer NOT NULL
 );
 
 CREATE TABLE posts (
-  id serial,
+  id serial primary key,
   author_id integer,
   title varchar(255),
   type varchar(255),
@@ -187,26 +172,25 @@ CREATE TABLE posts (
 );
 
 CREATE TABLE comments (
-  id serial,
+  id serial primary key,
   post_id integer,
   type varchar(255),
   body text
 );
 
 CREATE TABLE authors (
-  id serial,
+  id serial primary key,
   name varchar(255) default NULL
 );
 
 CREATE TABLE tasks (
-  id serial,
+  id serial primary key,
   starting timestamp,
-  ending timestamp,
-  PRIMARY KEY (id)
+  ending timestamp
 );
 
 CREATE TABLE categories (
-  id serial,
+  id serial primary key,
   name varchar(255),
   type varchar(255)
 );
