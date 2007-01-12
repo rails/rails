@@ -425,4 +425,16 @@ class CGIRequestTest < Test::Unit::TestCase
     assert_equal ["c84ace84796670c052c6ceb2451fb0f2"], alt_cookies["_session_id"]
     assert_equal ["yes"], alt_cookies["is_admin"]
   end
+  
+  def test_unbalanced_query_string_with_array
+   assert_equal(
+     {'location' => ["1", "2"], 'age_group' => ["2"]},
+  CGIMethods.parse_query_parameters("location[]=1&location[]=2&age_group[]=2")
+   )
+   assert_equal(
+     {'location' => ["1", "2"], 'age_group' => ["2"]},
+     CGIMethods.parse_request_parameters({'location[]' => ["1", "2"],
+  'age_group[]' => ["2"]})
+   )
+  end
 end

@@ -23,18 +23,19 @@ class CGIMethods #:nodoc:
     def parse_request_parameters(params)
       parser = FormEncodedPairParser.new
 
-      finished = false
-      until finished
-        finished = true
+      params = params.dup
+      until params.empty?
         for key, value in params
-          next if key.blank?
-          if !key.include?('[')
+          if key.blank?
+            params.delete key
+          elsif !key.include?('[')
             # much faster to test for the most common case first (GET)
             # and avoid the call to build_deep_hash
             parser.result[key] = get_typed_value(value[0])
+            params.delete key
           elsif value.is_a?(Array)
             parser.parse(key, get_typed_value(value.shift))
-            finished = false unless value.empty?
+            params.delete key if value.empty?
           else
             raise TypeError, "Expected array, found #{value.inspect}"
           end
