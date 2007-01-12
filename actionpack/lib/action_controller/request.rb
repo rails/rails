@@ -145,19 +145,21 @@ module ActionController
       @env['RAW_POST_DATA']
     end
 
-    # Returns the request URI correctly, taking into account the idiosyncracies
-    # of the various servers.
+    # Return the request URI, accounting for server idiosyncracies.
+    # WEBrick includes the full URL. IIS leaves REQUEST_URI blank.
     def request_uri
       if uri = @env['REQUEST_URI']
-        (%r{^\w+\://[^/]+(/.*|$)$} =~ uri) ? $1 : uri # Remove domain, which webrick puts into the request_uri.
-      else  # REQUEST_URI is blank under IIS - get this from PATH_INFO and SCRIPT_NAME
+        # Remove domain, which webrick puts into the request_uri.
+        (%r{^\w+\://[^/]+(/.*|$)$} =~ uri) ? $1 : uri
+      else
+        # Construct IIS missing REQUEST_URI from SCRIPT_NAME and PATH_INFO.
         script_filename = @env['SCRIPT_NAME'].to_s.match(%r{[^/]+$})
         uri = @env['PATH_INFO']
         uri = uri.sub(/#{script_filename}\//, '') unless script_filename.nil?
         unless (env_qs = @env['QUERY_STRING']).nil? || env_qs.empty?
           uri << '?' << env_qs
         end
-        uri
+        @env['REQUEST_URI'] = uri
       end
     end
 
