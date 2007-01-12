@@ -257,6 +257,7 @@ module ActiveRecord
         return [] if table_name.blank?
         table_name = table_name.to_s if table_name.is_a?(Symbol)
         table_name = table_name.split('.')[-1] unless table_name.nil?
+        table_name = table_name.gsub(/[\[\]]/, '')
         sql = %Q{
           SELECT 
             cols.COLUMN_NAME as ColName,  

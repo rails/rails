@@ -1,5 +1,7 @@
 *SVN*
 
+* SQLServer: handle [quoted] table names.  #6635 [rrich]
+
 * acts_as_nested_set works with single-table inheritance.  #6030 [Josh Susser]
 
 * PostgreSQL: use a subselect to correctly perform eager finds with :limit and :order.  #4668 [eventualbuddha]
