@@ -6,7 +6,7 @@
 
 * acts_as_nested_set works with single-table inheritance.  #6030 [Josh Susser]
 
-* PostgreSQL: use a subselect to correctly perform eager finds with :limit and :order.  #4668 [eventualbuddha]
+* PostgreSQL, Oracle: correctly perform eager finds with :limit and :order.  #4668, #7021 [eventualbuddha, Michael Schoen]
 
 * Pass a range in :conditions to use the SQL BETWEEN operator.  #6974 [dcmanges]
     Student.find(:all, :conditions => { :grade => 9..12 })

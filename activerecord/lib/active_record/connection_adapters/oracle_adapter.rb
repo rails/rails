@@ -459,20 +459,27 @@ begin
         def distinct(columns, order_by)
           return "DISTINCT #{columns}" if order_by.blank?
 
-          # construct a clean list of column names from the ORDER BY clause, removing
-          # any asc/desc modifiers
-          order_columns = order_by.split(',').collect! { |s| s.split.first }
-          order_columns.delete_if &:blank?
-
-          # simplify the ORDER BY to just use positional syntax, to avoid the complexity of
-          # having to create valid column aliases for the FIRST_VALUE columns
-          order_by.replace(((offset=columns.count(',')+2) .. offset+order_by.count(',')).to_a * ", ")
-
           # construct a valid DISTINCT clause, ie. one that includes the ORDER BY columns, using
           # FIRST_VALUE such that the inclusion of these columns doesn't invalidate the DISTINCT
-          order_columns.map! { |c| "FIRST_VALUE(#{c}) OVER (PARTITION BY #{columns} ORDER BY #{c})" }
+          order_columns = order_by.split(',').map { |s| s.strip }.reject(&:blank?)
+          order_columns = order_columns.zip((0...order_columns.size).to_a).map do |c, i|
+            "FIRST_VALUE(#{c.split.first}) OVER (PARTITION BY #{columns} ORDER BY #{c}) AS alias_#{i}__"
+          end
           sql = "DISTINCT #{columns}, "
           sql << order_columns * ", "
+        end
+
+        # ORDER BY clause for the passed order option.
+        # 
+        # Uses column aliases as defined by #distinct.
+        def add_order_by_for_association_limiting!(sql, options)
+          return sql if options[:order].blank?
+
+          order = options[:order].split(',').collect { |s| s.strip }.reject(&:blank?)
+          order.map! {|s| $1 if s =~ / (.*)/}
+          order = order.zip((0...order.size).to_a).map { |s,i| "alias_#{i}__ #{s}" }.join(', ')
+
+          sql << "ORDER BY #{order}"
         end
 
         private
