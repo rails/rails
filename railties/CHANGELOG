@@ -1,5 +1,7 @@
 *SVN*
 
+* Generator: use destination path for diff tempfiles.  #7015 [alfeld]
+
 * Fixed that webrick would strip leading newlines and hang connection #4156 [psross]
 
 * Ensure plugins are in the Dependencies.load_once_paths collection by default.  [Rick]
