@@ -1,5 +1,7 @@
 *SVN*
 
+* Unbundle flexmock.  [Jeremy Kemper]
+
 * Fix Dependencies.autoloaded? to ignore anonymous modules. Closes #6561. [Nicholas Seckar]
 
 * Update load once paths to prevent nested once constants from being detected and claimed by an external non-once load. [Nicholas Seckar]
