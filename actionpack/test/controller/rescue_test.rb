@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
-require 'flexmock'
+
+# gem install mocha
+require 'mocha'
 
 class RescueController < ActionController::Base
   def raises
@@ -10,7 +12,6 @@ end
 
 
 class RescueTest < Test::Unit::TestCase
-  include FlexMock::TestCase
   FIXTURE_PUBLIC = "#{File.dirname(__FILE__)}/../fixtures".freeze
 
   def setup
@@ -30,10 +31,9 @@ class RescueTest < Test::Unit::TestCase
 
 
   def test_rescue_action_locally_if_all_requests_local
-    stub = flexstub(@controller)
-    stub.should_receive(:local_request?).and_return(true)
-    stub.should_receive(:rescue_action_locally).with(@exception).once
-    stub.should_receive(:rescue_action_in_public).never
+    @controller.expects(:local_request?).never
+    @controller.expects(:rescue_action_locally).with(@exception)
+    @controller.expects(:rescue_action_in_public).never
 
     with_all_requests_local do
       @controller.send :rescue_action, @exception
@@ -41,10 +41,9 @@ class RescueTest < Test::Unit::TestCase
   end
 
   def test_rescue_action_locally_if_remote_addr_is_localhost
-    stub = flexstub(@controller)
-    stub.should_receive(:local_request?).and_return(true)
-    stub.should_receive(:rescue_action_locally).with(@exception).once
-    stub.should_receive(:rescue_action_in_public).never
+    @controller.expects(:local_request?).returns(true)
+    @controller.expects(:rescue_action_locally).with(@exception)
+    @controller.expects(:rescue_action_in_public).never
 
     with_all_requests_local false do
       @controller.send :rescue_action, @exception
@@ -52,10 +51,9 @@ class RescueTest < Test::Unit::TestCase
   end
 
   def test_rescue_action_in_public_otherwise
-    stub = flexstub(@controller)
-    stub.should_receive(:local_request?).and_return(false)
-    stub.should_receive(:rescue_action_in_public).with(@exception).once
-    stub.should_receive(:rescue_action_locally).never
+    @controller.expects(:local_request?).returns(false)
+    @controller.expects(:rescue_action_locally).never
+    @controller.expects(:rescue_action_in_public).with(@exception)
 
     with_all_requests_local false do
       @controller.send :rescue_action, @exception
@@ -121,14 +119,14 @@ class RescueTest < Test::Unit::TestCase
 
 
   def test_local_request_when_remote_addr_is_localhost
-    flexstub(@controller).should_receive(:request).and_return(@request)
+    @controller.expects(:request).returns(@request).at_least_once
     with_remote_addr '127.0.0.1' do
       assert @controller.send(:local_request?)
     end
   end
 
   def test_local_request_when_remote_addr_isnt_locahost
-    flexstub(@controller).should_receive(:request).and_return(@request)
+    @controller.expects(:request).returns(@request)
     with_remote_addr '1.2.3.4' do
       assert !@controller.send(:local_request?)
     end
