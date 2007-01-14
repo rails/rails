@@ -106,14 +106,13 @@ class ExemptFromLayoutTest < Test::Unit::TestCase
     assert @controller.send(:template_exempt_from_layout?, 'test.rdoc')
   end
 
-  # TODO: http://dev.rubyonrails.org/ticket/6742
-  # The rhtml exemption is ignored.
   def test_rhtml_exempt_from_layout_status_should_prevent_layout_render
     ActionController::Base.exempt_from_layout :rhtml
     assert @controller.send(:template_exempt_from_layout?, 'test.rhtml')
 
     get :hello
     assert_equal 'hello.rhtml', @response.body
+    ActionController::Base.exempt_from_layout.delete(/\.rhtml$/)
   end
 end
 

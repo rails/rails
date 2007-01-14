@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow exempt_from_layout :rhtml.  #6742, #7026 [dcmanges, Squeegy]
+
 * Recognize the .txt extension as Mime::TEXT [Rick]
 
 * Fix parsing of array[] CGI parameters so extra empty values aren't included.  #6252 [Nicholas Seckar, aiwilliams, brentrowland]
