@@ -131,6 +131,14 @@ class CalculationsTest < Test::Unit::TestCase
     assert_equal 2, c[companies(:rails_core)]
     assert_equal 1, c[companies(:first_client)]
   end
+  
+  def test_should_not_modify_options_when_using_includes
+    options = {:conditions => 'companies.id > 1', :include => :firm}
+    options_copy = options.dup
+    
+    Account.count(:all, options)
+    assert_equal options_copy, options
+  end
 
   def test_should_calculate_grouped_by_function
     c = Company.count(:all, :group => "UPPER(#{QUOTED_TYPE})")
