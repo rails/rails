@@ -407,10 +407,13 @@ module ActionController #:nodoc:
 
       # Don't render layouts for templates with the given extensions.
       def exempt_from_layout(*extensions)
-        regexps = extensions.collect do |extension|
-          extension.is_a?(Regexp) ? extension : /\.#{Regexp.escape(extension.to_s)}$/
-        end
-        @@exempt_from_layout.merge regexps
+        @@exempt_from_layout.merge extensions.collect { |extension|
+          if extension.is_a?(Regexp)
+            extension
+          else
+            /\.#{Regexp.escape(extension.to_s)}$/
+          end
+        }
       end
     end
 
@@ -1190,10 +1193,9 @@ module ActionController #:nodoc:
       end
 
       def template_exempt_from_layout?(template_name = default_template_name)
-        @@exempt_from_layout.any? { |ext| template_name =~ ext } or
-          @template.pick_template_extension(template_name) == :rjs
-      rescue
-        false
+        extension = @template.pick_template_extension(template_name) rescue nil
+        name_with_extension = !template_name.include?('.') && extension ? "#{template_name}.#{extension}" : template_name
+        extension == :rjs || @@exempt_from_layout.any? { |ext| name_with_extension =~ ext }
       end
 
       def assert_existence_of_template_file(template_name)
