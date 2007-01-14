@@ -14,3 +14,13 @@ ActiveSupport::Deprecation.debug = true
 ActionController::Base.logger = nil
 ActionController::Base.ignore_missing_templates = false
 ActionController::Routing::Routes.reload rescue nil
+
+
+# Wrap tests that use Mocha and skip if unavailable.
+def uses_mocha(test_name)
+  require 'mocha'
+  require 'stubba'
+  yield
+rescue LoadError
+  $stderr.puts "Skipping #{test_name} tests. `gem install mocha` and try again."
+end

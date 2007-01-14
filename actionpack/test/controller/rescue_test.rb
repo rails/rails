@@ -1,7 +1,6 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
-# gem install mocha
-require 'mocha'
+uses_mocha 'rescue' do
 
 class RescueController < ActionController::Base
   def raises
@@ -210,3 +209,5 @@ class RescueTest < Test::Unit::TestCase
       end
     end
 end
+
+end # uses_mocha

@@ -3,9 +3,7 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 $:.unshift File.dirname(__FILE__) + '/../../../railties/lib'
 require 'action_controller/integration'
 
-begin # rescue LoadError
-require 'mocha'
-require 'stubba'
+uses_mocha 'integration' do
 
 # Stub process for testing.
 module ActionController
@@ -149,6 +147,4 @@ end
 # class MockCGITest < Test::Unit::TestCase
 # end
 
-rescue LoadError
-  $stderr.puts "Skipping integration tests. `gem install mocha` and try again."
-end
+end # uses_mocha
