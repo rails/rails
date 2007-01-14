@@ -1,6 +1,11 @@
-*1.4.0 RC2* (r5847, January 4th, 2007)
+*SVN*
+
+* Document Inflector.ordinalize and merge docs from String inflections.  #7023 [smeade]
 
 * Unbundle flexmock.  [Jeremy Kemper]
+
+
+*1.4.0 RC2* (r5847, January 4th, 2007)
 
 * Fix Dependencies.autoloaded? to ignore anonymous modules. Closes #6561. [Nicholas Seckar]
 

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../inflector' unless defined? Inflector
+require 'active_support/inflector'
 
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
