@@ -1,5 +1,7 @@
 *SVN*
 
+* Document Inflector.ordinalize and merge docs from String inflections.  #7023 [smeade]
+
 * Unbundle flexmock.  [Jeremy Kemper]
 
 * Fix Dependencies.autoloaded? to ignore anonymous modules. Closes #6561. [Nicholas Seckar]
