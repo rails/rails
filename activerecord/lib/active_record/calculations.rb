@@ -157,6 +157,9 @@ module ActiveRecord
         end
 
         def construct_calculation_sql(operation, column_name, options) #:nodoc:
+          operation = operation.to_s.downcase
+          options = options.symbolize_keys          
+          
           scope           = scope(:find)
           merged_includes = merge_includes(scope ? scope[:include] : [], options[:include])
           aggregate_alias = column_alias_for(operation, column_name)
