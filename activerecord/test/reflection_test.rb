@@ -60,6 +60,13 @@ class ReflectionTest < Test::Unit::TestCase
     assert_equal :integer, @first.column_for_attribute("id").type
   end
 
+  def test_reflection_klass_for_nested_class_name
+    reflection = ActiveRecord::Reflection::MacroReflection.new(nil, nil, { :class_name => 'MyApplication::Business::Company' }, nil)
+    assert_nothing_raised do
+      assert_equal MyApplication::Business::Company, reflection.klass
+    end
+  end
+
   def test_aggregation_reflection
     reflection_for_address = ActiveRecord::Reflection::AggregateReflection.new(
       :composed_of, :address, { :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country) ] }, Customer

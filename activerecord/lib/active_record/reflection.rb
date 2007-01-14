@@ -71,6 +71,7 @@ module ActiveRecord
     # those classes. Objects of AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
     class MacroReflection
       attr_reader :active_record
+
       def initialize(macro, name, options, active_record)
         @macro, @name, @options, @active_record = macro, name, options, active_record
       end
@@ -93,30 +94,29 @@ module ActiveRecord
         @options
       end
 
-      # Returns the class for the macro, so "composed_of :balance, :class_name => 'Money'" would return the Money class and
-      # "has_many :clients" would return the Client class.
-      def klass() end
-        
+      # Returns the class for the macro, so "composed_of :balance, :class_name => 'Money'" returns the Money class and
+      # "has_many :clients" returns the Client class.
+      def klass
+        @klass ||= class_name.constantize
+      end
+
       def class_name
-        @class_name ||= name_to_class_name(name.id2name)
+        @class_name ||= options[:class_name] || derive_class_name
       end
 
       def ==(other_aggregation)
         name == other_aggregation.name && other_aggregation.options && active_record == other_aggregation.active_record
       end
+
+      private
+        def derive_class_name
+          name.to_s.camelize
+        end
     end
 
 
     # Holds all the meta-data about an aggregation as it was specified in the Active Record class.
     class AggregateReflection < MacroReflection #:nodoc:
-      def klass
-        @klass ||= Object.const_get(options[:class_name] || class_name)
-      end
-
-      private
-        def name_to_class_name(name)
-          name.capitalize.gsub(/_(.)/) { |s| $1.capitalize }
-        end
     end
 
     # Holds all the meta-data about an association as it was specified in the Active Record class.
@@ -130,17 +130,9 @@ module ActiveRecord
       end
 
       def primary_key_name
-        return @primary_key_name if @primary_key_name
-        case
-          when macro == :belongs_to
-            @primary_key_name = options[:foreign_key] || class_name.foreign_key
-          when options[:as]
-            @primary_key_name = options[:foreign_key] || "#{options[:as]}_id"
-          else
-            @primary_key_name = options[:foreign_key] || active_record.name.foreign_key
-        end
+        @primary_key_name ||= options[:foreign_key] || derive_primary_key_name
       end
-      
+
       def association_foreign_key
         @association_foreign_key ||= @options[:association_foreign_key] || class_name.foreign_key
       end
@@ -198,19 +190,24 @@ module ActiveRecord
       end
 
       private
-        def name_to_class_name(name)
-          if name =~ /::/
-            name
+        def derive_class_name
+          # get the class_name of the belongs_to association of the through reflection
+          if through_reflection
+            source_reflection.class_name
           else
-            if options[:class_name]
-              options[:class_name]
-            elsif through_reflection # get the class_name of the belongs_to association of the through reflection
-              source_reflection.class_name
-            else
-              class_name = name.to_s.camelize
-              class_name = class_name.singularize if [ :has_many, :has_and_belongs_to_many ].include?(macro)
-              class_name
-            end
+            class_name = name.to_s.camelize
+            class_name = class_name.singularize if [ :has_many, :has_and_belongs_to_many ].include?(macro)
+            class_name
+          end
+        end
+
+        def derive_primary_key_name
+          if macro == :belongs_to
+            class_name.foreign_key
+          elsif options[:as]
+            "#{options[:as]}_id"
+          else
+            active_record.name.foreign_key
           end
         end
     end

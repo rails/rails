@@ -149,7 +149,7 @@ module ActiveRecord
 
         def raise_on_type_mismatch(record)
           unless record.is_a?(@reflection.klass)
-            raise ActiveRecord::AssociationTypeMismatch, "#{@reflection.class_name} expected, got #{record.class}"
+            raise ActiveRecord::AssociationTypeMismatch, "#{@reflection.klass} expected, got #{record.class}"
           end
         end
 
