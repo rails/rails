@@ -385,6 +385,7 @@ module ActiveRecord
           if encoding
             @connection.options(Mysql::SET_CHARSET_NAME, encoding) rescue nil
           end
+          @connection.ssl_set(@config[:sslkey], @config[:sslcert], @config[:sslca], @config[:sslcapath], @config[:sslcipher]) if @config[:sslkey]
           @connection.real_connect(*@connection_options)
           execute("SET NAMES '#{encoding}'") if encoding
         end

@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL: retain SSL settings on reconnect.  #6976 [randyv2]
+
 * SQLServer: handle [quoted] table names.  #6635 [rrich]
 
 * acts_as_nested_set works with single-table inheritance.  #6030 [Josh Susser]
