@@ -94,7 +94,7 @@ module ActiveRecord
         yield table_definition
 
         if options[:force]
-          drop_table(name) rescue nil
+          drop_table(name, options) rescue nil
         end
 
         create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
@@ -112,7 +112,7 @@ module ActiveRecord
       end
 
       # Drops a table from the database.
-      def drop_table(name)
+      def drop_table(name, options = {})
         execute "DROP TABLE #{name}"
       end
 

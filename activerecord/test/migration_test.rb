@@ -700,6 +700,43 @@ if ActiveRecord::Base.connection.supports_migrations?
 			assert_equal 2, ActiveRecord::Migrator.current_version
     end
     
-    
+    def test_create_table_with_custom_sequence_name
+      return unless current_adapter? :OracleAdapter
+
+      # table name is 29 chars, the standard sequence name will
+      # be 33 chars and fail
+      assert_raises(ActiveRecord::StatementInvalid) do
+        begin
+          Person.connection.create_table :table_with_name_thats_just_ok do |t|
+            t.column :foo, :string, :null => false
+          end
+        ensure
+          Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
+        end
+      end
+
+      # should be all good w/ a custom sequence name
+      assert_nothing_raised do
+        begin
+          Person.connection.create_table :table_with_name_thats_just_ok,
+                                         :sequence_name => 'suitably_short_seq' do |t|
+            t.column :foo, :string, :null => false
+          end
+
+          Person.connection.execute("select suitably_short_seq.nextval from dual")
+
+        ensure
+          Person.connection.drop_table :table_with_name_thats_just_ok,
+                                       :sequence_name => 'suitably_short_seq' rescue nil
+        end
+      end
+
+      # confirm the custom sequence got dropped
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Person.connection.execute("select suitably_short_seq.nextval from dual")
+      end
+    end
+
   end
 end
+

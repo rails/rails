@@ -1,5 +1,7 @@
 *SVN*
 
+* Oracle: create_table takes a :sequence_name option to override the 'tablename_seq' default.  #7000 [Michael Schoen]
+
 * MySQL: retain SSL settings on reconnect.  #6976 [randyv2]
 
 * Apply scoping during initialize instead of create.  Fixes setting of foreign key when using find_or_initialize_by with scoping. [Cody Fauser]

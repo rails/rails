@@ -46,7 +46,7 @@ class DefaultTest < Test::Unit::TestCase
     end
   end
 
-  if current_adapter?(:PostgreSQLAdapter, :SQLServerAdapter, :FirebirdAdapter, :OpenBaseAdapter)
+  if current_adapter?(:PostgreSQLAdapter, :SQLServerAdapter, :FirebirdAdapter, :OpenBaseAdapter, :OracleAdapter)
     def test_default_integers
       default = Default.new
       assert_instance_of Fixnum, default.positive_integer
