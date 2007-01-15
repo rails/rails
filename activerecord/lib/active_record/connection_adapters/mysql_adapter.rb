@@ -360,7 +360,7 @@ module ActiveRecord
       def change_column_default(table_name, column_name, default) #:nodoc:
         current_type = select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")["Type"]
 
-        change_column(table_name, column_name, current_type, { :default => default })
+        execute("ALTER TABLE #{table_name} CHANGE #{column_name} #{column_name} #{current_type} DEFAULT #{quote(default)}")
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:

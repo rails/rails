@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL, PostgreSQL: change_column_default quotes the default value and doesn't lose column type information.  #3987, #6664 [Jonathan Viney, manfred, altano@bigfoot.com]
+
 * Oracle: create_table takes a :sequence_name option to override the 'tablename_seq' default.  #7000 [Michael Schoen]
 
 * MySQL: retain SSL settings on reconnect.  #6976 [randyv2]

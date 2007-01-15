@@ -349,7 +349,7 @@ module ActiveRecord
       end
 
       def change_column_default(table_name, column_name, default) #:nodoc:
-        execute "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT '#{default}'"
+        execute "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote(default)}"
       end
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
