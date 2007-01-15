@@ -423,6 +423,29 @@ return (value.className == "welcome");
     EOS
   end
   
+  def test_collection_proxy_with_in_groups_of
+    @generator.select('p').in_groups_of('a', 3)
+    @generator.select('p').in_groups_of('a', 3, 'x')
+    assert_equal <<-EOS.strip, @generator.to_s
+var a = $$("p").inGroupsOf(3);
+var a = $$("p").inGroupsOf(3, "x");
+    EOS
+  end
+  
+  def test_collection_proxy_with_each_slice
+    @generator.select('p').each_slice('a', 3)
+    @generator.select('p').each_slice('a', 3) do |group, index|
+      group.reverse
+    end
+      
+    assert_equal <<-EOS.strip, @generator.to_s
+var a = $$("p").eachSlice(3);
+var a = $$("p").eachSlice(3, function(value, index) {
+return value.reverse();
+});
+    EOS
+  end
+  
   def test_debug_rjs
     ActionView::Base.debug_rjs = true
     @generator['welcome'].replace_html 'Welcome'

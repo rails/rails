@@ -784,7 +784,7 @@ module ActionView
     end
 
     class JavaScriptCollectionProxy < JavaScriptProxy #:nodoc:
-      ENUMERABLE_METHODS_WITH_RETURN = [:all, :any, :collect, :map, :detect, :find, :find_all, :select, :max, :min, :partition, :reject, :sort_by] unless defined? ENUMERABLE_METHODS_WITH_RETURN
+      ENUMERABLE_METHODS_WITH_RETURN = [:all, :any, :collect, :map, :detect, :find, :find_all, :select, :max, :min, :partition, :reject, :sort_by, :in_groups_of, :each_slice] unless defined? ENUMERABLE_METHODS_WITH_RETURN
       ENUMERABLE_METHODS = ENUMERABLE_METHODS_WITH_RETURN + [:each] unless defined? ENUMERABLE_METHODS
       attr_reader :generator
       delegate :arguments_for_call, :to => :generator
@@ -792,11 +792,27 @@ module ActionView
       def initialize(generator, pattern)
         super(generator, @pattern = pattern)
       end
-
+      
+      def each_slice(variable, number, &block)
+        if block
+          enumerate :eachSlice, :variable => variable, :method_args => [number], :yield_args => %w(value index), :return => true, &block
+        else
+          add_variable_assignment!(variable)
+          append_enumerable_function!("eachSlice(#{number.to_json});")
+        end
+      end
+      
       def grep(variable, pattern, &block)
         enumerate :grep, :variable => variable, :return => true, :method_args => [pattern], :yield_args => %w(value index), &block
       end
-
+      
+      def in_groups_of(variable, number, fill_with = nil)
+        arguments = [number]
+        arguments << fill_with unless fill_with.nil?
+        add_variable_assignment!(variable)
+        append_enumerable_function!("inGroupsOf(#{arguments_for_call arguments});")
+      end  
+      
       def inject(variable, memo, &block)
         enumerate :inject, :variable => variable, :method_args => [memo], :yield_args => %w(memo value index), :return => true, &block
       end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow inGroupsOf and eachSlice to be called through rjs. #7046 [Cody Fauser]
+
 * Allow exempt_from_layout :rhtml.  #6742, #7026 [dcmanges, Squeegy]
 
 * Recognize the .txt extension as Mime::TEXT [Rick]
