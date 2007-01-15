@@ -425,13 +425,25 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_change_column_with_new_default
-      Person.connection.add_column "people", "administrator", :boolean, :default => 1
+      Person.connection.add_column "people", "administrator", :boolean, :default => true
       Person.reset_column_information
       assert Person.new.administrator?
 
-      assert_nothing_raised { Person.connection.change_column "people", "administrator", :boolean, :default => 0 }
+      assert_nothing_raised { Person.connection.change_column "people", "administrator", :boolean, :default => false }
       Person.reset_column_information
       assert !Person.new.administrator?
+    end
+    
+    def test_change_column_default
+      Person.connection.change_column_default "people", "first_name", "Tester"
+      Person.reset_column_information
+      assert_equal "Tester", Person.new.first_name
+    end
+    
+    def test_change_column_default_to_null
+      Person.connection.change_column_default "people", "first_name", nil
+      Person.reset_column_information
+      assert_nil Person.new.first_name
     end
 
     def test_add_table
