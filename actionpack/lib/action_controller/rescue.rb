@@ -1,10 +1,13 @@
 module ActionController #:nodoc:
   # Actions that fail to perform as expected throw exceptions. These exceptions can either be rescued for the public view
   # (with a nice user-friendly explanation) or for the developers view (with tons of debugging information). The developers view
-  # is already implemented by the Action Controller, but the public view should be tailored to your specific application. So too
-  # could the decision on whether something is a public or a developer request.
+  # is already implemented by the Action Controller, but the public view should be tailored to your specific application. 
+  # 
+  # The default behavior for public exceptions is to render a static html file with the name of the error code thrown.  If no such 
+  # file exists, an empty response is sent with the correct status code.
   #
-  # You can tailor the rescuing behavior and appearance by overwriting the following two stub methods.
+  # You can override what constitutes a local request by overriding the <tt>local_request?</tt> method in your own controller.
+  # Custom rescue behavior is achieved by overriding the <tt>rescue_action_in_public</tt> and <tt>rescue_action_locally</tt> methods.
   module Rescue
     LOCALHOST = '127.0.0.1'.freeze
 
@@ -74,12 +77,17 @@ module ActionController #:nodoc:
       end
 
 
-      # Overwrite to implement public exception handling (for requests answering false to <tt>local_request?</tt>).
+      # Overwrite to implement public exception handling (for requests answering false to <tt>local_request?</tt>).  By
+      # default will call render_optional_error_file.  Override this method to provide more user friendly error messages.s
       def rescue_action_in_public(exception) #:doc:
         render_optional_error_file response_code_for_rescue(exception)
       end
-
-      def render_optional_error_file(status_code) #:nodoc:
+      
+      # Attempts to render a static error page based on the <tt>status_code</tt> thrown,
+      # or just return headers if no such file exists. For example, if a 500 error is 
+      # being handled Rails will first attempt to render the file at <tt>public/500.html</tt>. 
+      # If the file doesn't exist, the body of the response will be left empty
+      def render_optional_error_file(status_code)
         status = interpret_status(status_code)
         path = "#{RAILS_ROOT}/public/#{status[0,3]}.html"
         if File.exists?(path)
