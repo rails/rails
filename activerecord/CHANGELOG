@@ -1,6 +1,6 @@
 *SVN*
 
-* change_column accepts :default => nil.  #6956 [dcmanges, Jeremy Kemper]
+* change_column accepts :default => nil. Skip column options for primary keys.  #6956, #7048 [dcmanges, Jeremy Kemper]
 
 * MySQL, PostgreSQL: change_column_default quotes the default value and doesn't lose column type information.  #3987, #6664 [Jonathan Viney, manfred, altano@bigfoot.com]
 

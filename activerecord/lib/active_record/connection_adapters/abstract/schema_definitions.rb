@@ -203,17 +203,19 @@ module ActiveRecord
     end
 
     class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :precision, :scale, :default, :null) #:nodoc:
+      
+      def sql_type
+        base.type_to_sql(type.to_sym, limit, precision, scale) rescue type
+      end
+      
       def to_sql
-        column_sql = "#{base.quote_column_name(name)} #{type_to_sql(type.to_sym, limit, precision, scale)}"
-        add_column_options!(column_sql, :null => null, :default => default)
+        column_sql = "#{base.quote_column_name(name)} #{sql_type}"
+        add_column_options!(column_sql, :null => null, :default => default) unless type.to_sym == :primary_key
         column_sql
       end
       alias to_s :to_sql
 
       private
-        def type_to_sql(name, limit, precision, scale)
-          base.type_to_sql(name, limit, precision, scale) rescue name
-        end
 
         def add_column_options!(sql, options)
           base.add_column_options!(sql, options.merge(:column => self))
@@ -233,7 +235,7 @@ module ActiveRecord
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
       def primary_key(name)
-        column(name, native[:primary_key])
+        column(name, :primary_key)
       end
 
       # Returns a ColumnDefinition for the column with name +name+.
