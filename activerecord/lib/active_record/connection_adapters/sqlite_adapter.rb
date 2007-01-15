@@ -102,7 +102,7 @@ module ActiveRecord
         true
       end
 
-      def supports_reloading?
+      def requires_reloading?
         true
       end
 

@@ -90,8 +90,10 @@ module ActiveRecord
       # Clears the cache which maps classes 
       def clear_reloadable_connections!
         @@active_connections.each do |name, conn|
-          conn.disconnect! if conn.supports_reloading?
-          @@active_connections.delete(name)
+          if conn.requires_reloading?
+            conn.disconnect!
+            @@active_connections.delete(name)
+          end
         end
       end
 
