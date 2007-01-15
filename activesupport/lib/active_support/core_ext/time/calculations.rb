@@ -5,6 +5,11 @@ module ActiveSupport #:nodoc:
       module Calculations
         def self.included(base) #:nodoc:
           base.extend(ClassMethods)
+          
+          base.send(:alias_method, :plus_without_duration, :+)
+          base.send(:alias_method, :+, :plus_with_duration)
+          base.send(:alias_method, :minus_without_duration, :-)
+          base.send(:alias_method, :-, :minus_with_duration)
         end
 
         module ClassMethods
@@ -189,6 +194,22 @@ module ActiveSupport #:nodoc:
         # Convenience method which returns a new Time representing the time 1 day since the instance time
         def tomorrow
           self.since(1.day)
+        end
+        
+        def plus_with_duration(other) #:nodoc:
+          if ActiveSupport::Duration === other
+            other.since(self)
+          else
+            plus_without_duration(other)
+          end
+        end
+
+        def minus_with_duration(other) #:nodoc:
+          if ActiveSupport::Duration === other
+            other.until(self)
+          else
+            minus_without_duration(other)
+          end
         end
       end
     end
