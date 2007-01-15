@@ -273,10 +273,10 @@ module ActiveRecord
           column_type_sql << "(#{limit})" if limit
           column_type_sql
         end
-      end            
-    
+      end
+
       def add_column_options!(sql, options) #:nodoc:
-        sql << " DEFAULT #{quote(options[:default], options[:column])}" unless options[:default].nil?
+        sql << " DEFAULT #{quote(options[:default], options[:column])}" if options_include_default?(options)
         sql << " NOT NULL" if options[:null] == false
       end
 
@@ -293,6 +293,11 @@ module ActiveRecord
       def add_order_by_for_association_limiting!(sql, options)
         sql << "ORDER BY #{options[:order]}"
       end
+
+      protected
+        def options_include_default?(options)
+          options.include?(:default) && !(options[:null] == false && options[:default].nil?)
+        end
     end
   end
 end

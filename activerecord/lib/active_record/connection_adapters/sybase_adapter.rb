@@ -381,7 +381,7 @@ SQLTEXT
       end
 
       def add_column_options!(sql, options) #:nodoc:
-        sql << " DEFAULT #{quote(options[:default], options[:column])}" unless options[:default].nil?
+        sql << " DEFAULT #{quote(options[:default], options[:column])}" if options_include_default?(options)
 
         if check_null_for_column?(options[:column], sql)
           sql << (options[:null] == false ? " NOT NULL" : " NULL")
