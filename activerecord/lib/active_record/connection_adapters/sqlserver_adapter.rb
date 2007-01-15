@@ -347,9 +347,14 @@ module ActiveRecord
         case value
           when TrueClass             then '1'
           when FalseClass            then '0'
-          when Time, DateTime        then "'#{value.strftime("%Y%m%d %H:%M:%S")}'"
-          when Date                  then "'#{value.strftime("%Y%m%d")}'"
-          else                       super
+          else
+            if value.acts_like?(:time)
+              "'#{value.strftime("%Y%m%d %H:%M:%S")}'"
+            elsif value.acts_like?(:date)
+              "'#{value.strftime("%Y%m%d")}'"
+            else
+              super
+            end
         end
       end
 

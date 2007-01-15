@@ -375,31 +375,33 @@ module ActiveRecord
                 (column && column.type == :integer ? '0' : quoted_false)
               when Float, Fixnum, Bignum, BigDecimal
                 value.to_s
-              when Time, Date, DateTime
-                if column
-                  case column.type
-                    when :date
-                      "DATE '#{value.strftime("%Y-%m-%d")}'"
-                    when :time
-                      "TIME '#{value.strftime("%H:%M:%S")}'"
-                    when :timestamp
-                      "TIMESTAMP '#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
-                  else
-                    raise NotImplementedError, "Unknown column type!"
-                  end # case
-                else # Column wasn't passed in, so try to guess the right type
-                  if value.kind_of? Date
-                    "DATE '#{value.strftime("%Y-%m-%d")}'"
-                  else
-                    if [:hour, :min, :sec].all? {|part| value.send(:part).zero? }
-                      "TIME '#{value.strftime("%H:%M:%S")}'"
+              else
+                if value.acts_like?(:time) || value.acts_like?(:date)
+                  if column
+                    case column.type
+                      when :date
+                        "DATE '#{value.strftime("%Y-%m-%d")}'"
+                      when :time
+                        "TIME '#{value.strftime("%H:%M:%S")}'"
+                      when :timestamp
+                        "TIMESTAMP '#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
                     else
-                      "TIMESTAMP '#{quoted_date(value)}'"
-                    end
-                  end 
-                end #if column
-              else 
-                "'#{quote_string(value.to_yaml)}'"
+                      raise NotImplementedError, "Unknown column type!"
+                    end # case
+                  else # Column wasn't passed in, so try to guess the right type
+                    if value.acts_like?(:date)
+                      "DATE '#{value.strftime("%Y-%m-%d")}'"
+                    else
+                      if [:hour, :min, :sec].all? {|part| value.send(:part).zero? }
+                        "TIME '#{value.strftime("%H:%M:%S")}'"
+                      else
+                        "TIMESTAMP '#{quoted_date(value)}'"
+                      end
+                    end 
+                  end #if column
+                else 
+                  "'#{quote_string(value.to_yaml)}'"
+                end
             end #case
           end
         else

@@ -24,9 +24,14 @@ module ActiveRecord
           when Float, Fixnum, Bignum    then value.to_s
           # BigDecimals need to be output in a non-normalized form and quoted.
           when BigDecimal               then value.to_s('F')
-          when Date                     then "'#{value.to_s}'"
-          when Time, DateTime           then "'#{quoted_date(value)}'"
-          else                          "'#{quote_string(value.to_yaml)}'"
+          else
+            if value.acts_like?(:date)
+              "'#{value.to_s}'"
+            elsif value.acts_like?(:time)
+              "'#{quoted_date(value)}'"
+            else
+              "'#{quote_string(value.to_yaml)}'"
+            end
         end
       end
 

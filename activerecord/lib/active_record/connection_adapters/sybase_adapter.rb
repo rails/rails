@@ -292,8 +292,12 @@ SQLTEXT
           when TrueClass             then '1'
           when FalseClass            then '0'
           when Float, Fixnum, Bignum then force_numeric?(column) ? value.to_s : "'#{value.to_s}'"
-          when Time, DateTime        then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
-          else                       super
+          else
+            if value.acts_like?(:time)
+              "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
+            else
+              super
+            end
         end
       end
 
