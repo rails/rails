@@ -254,7 +254,7 @@ module ActiveRecord
 
       def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
         native = native_database_types[type]
-        column_type_sql = native[:name]
+        column_type_sql = native.is_a?(Hash) ? native[:name] : native
         if type == :decimal # ignore limit, use precison and scale
           precision ||= native[:precision]
           scale ||= native[:scale]
