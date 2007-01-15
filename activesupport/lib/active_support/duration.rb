@@ -65,16 +65,17 @@ module ActiveSupport
     
     def sum(sign, time = ::Time.now) #:nodoc:
       parts.inject(time) do |t,(type,number)|
-        case t
-        when ::Time
+        if t.respond_to?(:sec) # quacks like a Time
           if type == :seconds
             t + (sign * number)
           else
             t.advance(type => sign * number)
           end
-        when ::Date
+        elsif t.respond_to?(:day) # quacks like a Date
           raise ArgumentError, "Adding seconds to a Date does not make sense" if type == :seconds
           t.advance(type => sign * number)
+        else
+          raise ArgumentError, "expected a time or date, got #{time.inspect}"
         end
       end
     end
