@@ -137,6 +137,23 @@ create table booleantests (
 );
 create sequence booleantests_seq minvalue 10000;
 
+CREATE TABLE defaults (
+    id integer not null,
+    modified_date date default sysdate,
+    modified_date_function date default sysdate,
+    fixed_date date default to_date('2004-01-01', 'YYYY-MM-DD'),
+    modified_time date default sysdate,
+    modified_time_function date default sysdate,
+    fixed_time date default TO_DATE('2004-01-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS'),
+    char1 varchar2(1) default 'Y',
+    char2 varchar2(50) default 'a varchar field',
+    char3 clob default 'a text field',
+    positive_integer integer default 1,
+    negative_integer integer default -1,
+    decimal_number number(3,2) default 2.78
+);
+create sequence defaults_seq minvalue 10000;
+
 create table auto_id_tests (
     auto_id integer not null,
     value integer default null,

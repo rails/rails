@@ -778,7 +778,7 @@ module ActiveRecord
       end  
 
       # Drops a table from the database.
-      def drop_table(name)
+      def drop_table(name, options = {})
         execute "DROP TABLE #{name} RESTRICT"
       rescue ActiveRecord::StatementInvalid => e
         raise e unless e.message.match(/Referenced TABLE - \w* - does not exist/)

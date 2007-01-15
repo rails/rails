@@ -351,7 +351,8 @@ begin
 
         def create_table(name, options = {}) #:nodoc:
           super(name, options)
-          execute "CREATE SEQUENCE #{name}_seq START WITH 10000" unless options[:id] == false
+          seq_name = options[:sequence_name] || "#{name}_seq"
+          execute "CREATE SEQUENCE #{seq_name} START WITH 10000" unless options[:id] == false
         end
 
         def rename_table(name, new_name) #:nodoc:
@@ -359,9 +360,10 @@ begin
           execute "RENAME #{name}_seq TO #{new_name}_seq" rescue nil
         end
 
-        def drop_table(name) #:nodoc:
+        def drop_table(name, options = {}) #:nodoc:
           super(name)
-          execute "DROP SEQUENCE #{name}_seq" rescue nil
+          seq_name = options[:sequence_name] || "#{name}_seq"
+          execute "DROP SEQUENCE #{seq_name}" rescue nil
         end
 
         def remove_index(table_name, options = {}) #:nodoc:
