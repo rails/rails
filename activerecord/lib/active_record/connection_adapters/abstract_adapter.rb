@@ -81,7 +81,7 @@ module ActiveRecord
 
       # Returns true if its safe to reload the connection between requests for development mode.
       # This is not the case for Ruby/MySQL and it's not necessary for any adapters except SQLite.
-      def supports_reloading?
+      def requires_reloading?
         false
       end
 
