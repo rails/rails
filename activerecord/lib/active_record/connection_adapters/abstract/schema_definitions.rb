@@ -253,9 +253,7 @@ module ActiveRecord
       #   Requests a maximum column length (<tt>:string</tt>, <tt>:text</tt>,
       #   <tt>:binary</tt> or <tt>:integer</tt> columns only)
       # * <tt>:default</tt>:
-      #   The column's default value.  You cannot explicitely set the default
-      #   value to +NULL+.  Simply leave off this option if you want a +NULL+
-      #   default value.
+      #   The column's default value. Use nil for NULL.
       # * <tt>:null</tt>:
       #   Allows or disallows +NULL+ values in the column.  This option could
       #   have been named <tt>:null_allowed</tt>.
@@ -271,11 +269,11 @@ module ActiveRecord
       #   <tt>:precision</tt>.
       # * MySQL: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..30]. 
       #   Default is (10,0).
-      # * PostGres?: <tt>:precision</tt> [1..infinity], 
+      # * PostgreSQL: <tt>:precision</tt> [1..infinity], 
       #   <tt>:scale</tt> [0..infinity]. No default.
-      # * Sqlite2: Any <tt>:precision</tt> and <tt>:scale</tt> may be used. 
+      # * SQLite2: Any <tt>:precision</tt> and <tt>:scale</tt> may be used. 
       #   Internal storage as strings. No default.
-      # * Sqlite3: No restrictions on <tt>:precision</tt> and <tt>:scale</tt>,
+      # * SQLite3: No restrictions on <tt>:precision</tt> and <tt>:scale</tt>,
       #   but the maximum supported <tt>:precision</tt> is 16. No default.
       # * Oracle: <tt>:precision</tt> [1..38], <tt>:scale</tt> [-84..127]. 
       #   Default is (38,0).

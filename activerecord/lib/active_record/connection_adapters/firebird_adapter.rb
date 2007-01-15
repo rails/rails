@@ -505,8 +505,8 @@ module ActiveRecord
 
       def change_column(table_name, column_name, type, options = {}) # :nodoc:
         change_column_type(table_name, column_name, type, options)
-        change_column_position(table_name, column_name, options[:position]) if options[:position]
-        change_column_default(table_name, column_name, options[:default]) if options.has_key?(:default)
+        change_column_position(table_name, column_name, options[:position]) if options.include?(:position)
+        change_column_default(table_name, column_name, options[:default]) if options_include_default?(options)
       end
 
       def change_column_default(table_name, column_name, default) # :nodoc:

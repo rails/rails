@@ -94,8 +94,10 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_create_table_with_not_null_column
-      Person.connection.create_table :testings do |t|
-        t.column :foo, :string, :null => false
+      assert_nothing_raised do
+        Person.connection.create_table :testings do |t|
+          t.column :foo, :string, :null => false
+        end
       end
 
       assert_raises(ActiveRecord::StatementInvalid) do
@@ -422,6 +424,17 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nil new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
       assert new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == false }
       assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, :default => true }
+    end
+    
+    def test_change_column_with_nil_default
+      Person.connection.add_column "people", "contributor", :boolean, :default => true
+      Person.reset_column_information
+      assert Person.new.contributor?
+      
+      assert_nothing_raised { Person.connection.change_column "people", "contributor", :boolean, :default => nil }
+      Person.reset_column_information
+      assert !Person.new.contributor?
+      assert_nil Person.new.contributor
     end
 
     def test_change_column_with_new_default
