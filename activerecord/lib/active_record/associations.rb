@@ -93,7 +93,71 @@ module ActiveRecord
     #
     # link:files/examples/associations.png
     #
-    # == Is it belongs_to or has_one?
+    # == Cardinality and associations
+    # 
+    # ActiveRecord associations can be used to describe relations with one-to-one, one-to-many
+    # and many-to-many cardinality. Each model uses an association to describe its role in
+    # the relation. In each case, the belongs_to association is used in the model that has
+    # the foreign key
+    #
+    # === One-to-one
+    #
+    # Use has_one in the base, and belongs_to in the associated model.
+    #
+    #   class Employee < ActiveRecord::Base
+    #     has_one :office
+    #   end
+    #   class Office < ActiveRecord::Base
+    #     belongs_to :employee    # foreign key - employee_id
+    #   end
+    #
+    # === One-to-many
+    #
+    # Use has_many in the base, and belongs_to in the associated model.
+    #
+    #   class Manager < ActiveRecord::Base
+    #     has_many :employees
+    #   end
+    #   class Employee < ActiveRecord::Base
+    #     belongs_to :manager     # foreign key - employee_id
+    #   end
+    #
+    # === Many-to-many
+    #
+    # There are two ways to build a many-to-many relationship.
+    #
+    # The first way uses a has_many association with the :through option and a join model, so
+    # there are two stages of associations.
+    #
+    #   class Assignment < ActiveRecord::Base
+    #     belongs_to :programmer  # foreign key - programmer_id
+    #     belongs_to :project     # foreign key - project_id
+    #   end
+    #   class Programmer < ActiveRecord::Base
+    #     has_many :assignments
+    #     has_many :projects, :through => :assignments
+    #   end
+    #   class Project < ActiveRecord::Base
+    #     has_many :assignments
+    #     has_many :programmers, :through => :assignments
+    #   end
+    #
+    # For the second way, use has_and_belongs_to_many in both models. This requires a join table
+    # that has no corresponding model or primary key.
+    #
+    #   class Programmer < ActiveRecord::Base
+    #     has_and_belongs_to_many :projects       # foreign keys in the join table
+    #   end
+    #   class Project < ActiveRecord::Base
+    #     has_and_belongs_to_many :programmers    # foreign keys in the join table
+    #   end
+    #
+    # It is not always a simple decision which way of building a many-to-many relationship is best.
+    # But if you need to work with the relationship model as its own entity, then you'll need to
+    # use has_many :through. Use has_and_belongs_to_many when working with legacy schemas or when
+    # you never work directly with the relationship itself.
+    #
+    # == Is it a belongs_to or has_one association?
     #
     # Both express a 1-1 relationship, the difference is mostly where to place the foreign key, which goes on the table for the class
     # saying belongs_to. Example:
