@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix that Dates couldn't be subtracted from Dates after [5940].  [Sam Stephenson]
+
 * Add Object#acts_like? and Time#acts_like_time? and Date#acts_like_date? to facilitate duck-typing. [Jamis Buck]
 
 * Make 1.months and friends accurate by introducing a Duration class.  #6835 [eventualbuddha]

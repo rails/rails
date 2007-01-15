@@ -23,7 +23,11 @@ module ActiveSupport #:nodoc:
           end
           
           def minus_with_duration(other) #:nodoc:
-            self.plus_with_duration(-other)
+            if ActiveSupport::Duration === other
+              plus_with_duration(-other)
+            else
+              minus_without_duration(other)
+            end
           end
           
           # Provides precise Date calculations for years, months, and days.  The +options+ parameter takes a hash with 
