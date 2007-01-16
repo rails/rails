@@ -66,7 +66,6 @@ begin
       class OracleColumn < Column #:nodoc:
 
         def type_cast(value)
-          return nil if value =~ /^\s*null\s*$/i
           return guess_date_or_time(value) if type == :datetime && OracleAdapter.emulate_dates
           super
         end
