@@ -1,5 +1,7 @@
 *SVN*
 
+* [DOC] clear up some ambiguity with the way has_and_belongs_to_many creates the default join table name.  #7072 [jeremymcanally]
+
 * change_column accepts :default => nil. Skip column options for primary keys.  #6956, #7048 [dcmanges, Jeremy Kemper]
 
 * MySQL, PostgreSQL: change_column_default quotes the default value and doesn't lose column type information.  #3987, #6664 [Jonathan Viney, manfred, altano@bigfoot.com]
