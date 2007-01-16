@@ -24,7 +24,7 @@ module ActiveResource
 
   class ServerError < ConnectionError;  end  # 5xx Server Error
 
-
+  # Class to handle connections to remote services.
   class Connection
     attr_reader :site
 
@@ -44,27 +44,37 @@ module ActiveResource
       self.site = site
     end
 
+    # Set URI for remote service.
     def site=(site)
       @site = site.is_a?(URI) ? site : URI.parse(site)
     end
 
+    # Execute a GET request.
+    # Used to get (find) resources.
     def get(path)
       from_xml_data(Hash.from_xml(request(:get, path, build_request_headers).body).values.first)
     end
 
+    # Execute a DELETE request (see HTTP protocol documentation if unfamiliar).
+    # Used to delete resources.
     def delete(path)
       request(:delete, path, build_request_headers)
     end
 
+    # Execute a PUT request (see HTTP protocol documentation if unfamiliar).
+    # Used to update resources.
     def put(path, body = '')
       request(:put, path, body, build_request_headers)
     end
 
+    # Execute a POST request.
+    # Used to create new resources.
     def post(path, body = '')
       request(:post, path, body, build_request_headers)
     end
 
     private
+      # Makes request to remote service.
       def request(method, path, *arguments)
         logger.info "#{method.to_s.upcase} #{site.scheme}://#{site.host}:#{site.port}#{path}" if logger
         result = nil
@@ -73,6 +83,7 @@ module ActiveResource
         handle_response(result)
       end
 
+      # Handles response and error codes from remote service.
       def handle_response(response)
         case response.code.to_i
           when 200...400
@@ -92,6 +103,8 @@ module ActiveResource
         end
       end
 
+      # Creates new (or uses currently instantiated) Net::HTTP instance for communication with
+      # remote service and resources.
       def http
         unless @http
           @http             = Net::HTTP.new(@site.host, @site.port)
@@ -102,15 +115,17 @@ module ActiveResource
         @http
       end
       
+      # Builds headers for request to remote service.
       def build_request_headers
         authorization_header.update(self.class.default_header)
       end
       
+      # Sets authorization header; authentication information is pulled from credentials provided with site URI.
       def authorization_header
         (@site.user || @site.password ? { 'Authorization' => 'Basic ' + ["#{@site.user}:#{ @site.password}"].pack('m').delete("\r\n") } : {})
       end
 
-      def logger
+      def logger #:nodoc:
         ActiveResource::Base.logger
       end
 

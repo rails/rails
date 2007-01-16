@@ -1,7 +1,9 @@
 module ActiveResource
-  class ResourceInvalid < ClientError
+  class ResourceInvalid < ClientError  #:nodoc:
   end
 
+  # Active Resource validation is reported to and from this object, which is used by Base#save
+  # to determine whether the object in a valid state to be saved. See usage example in Validations.  
   class Errors
     include Enumerable
     attr_reader :errors
@@ -100,6 +102,38 @@ module ActiveResource
     end
   end
   
+  # Module to allow validation of ActiveResource objects, which are implemented by overriding +Base#validate+ or its variants. 
+  # Each of these methods can inspect the state of the object, which usually means ensuring that a number of 
+  # attributes have a certain value (such as not empty, within a given range, matching a certain regular expression). For example:
+  #
+  #   class Person < ActiveResource::Base
+  #      self.site = "http://www.localhost.com:3000/"
+  #      protected
+  #        def validate
+  #          errors.add_on_empty %w( first_name last_name )
+  #          errors.add("phone_number", "has invalid format") unless phone_number =~ /[0-9]*/
+  #        end
+  #
+  #        def validate_on_create # is only run the first time a new object is saved
+  #          unless valid_member?(self)
+  #            errors.add("membership_discount", "has expired")
+  #          end
+  #        end
+  #
+  #        def validate_on_update
+  #          errors.add_to_base("No changes have occurred") if unchanged_attributes?
+  #        end
+  #   end
+  #   
+  #   person = Person.new("first_name" => "Jim", "phone_number" => "I will not tell you.")
+  #   person.save                         # => false (and doesn't do the save)
+  #   person.errors.empty?                # => false
+  #   person.errors.count                 # => 2
+  #   person.errors.on "last_name"        # => "can't be empty"
+  #   person.attributes = { "last_name" => "Halpert", "phone_number" => "555-5555" }
+  #   person.save                         # => true (and person is now saved to the remote service)
+  #
+  # An Errors object is automatically created for every resource.
   module Validations
     def self.included(base) # :nodoc:
       base.class_eval do

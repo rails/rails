@@ -1,7 +1,7 @@
 require 'active_resource/connection'
 
 module ActiveResource
-  class InvalidRequestError < StandardError; end
+  class InvalidRequestError < StandardError; end #:nodoc:
 
   class HttpMock
     class Responder

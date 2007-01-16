@@ -1,5 +1,7 @@
 *SVN*
 
+* Mega documentation patches. #7025, #7069 [rwdaigle]
+
 * Base.exists?(id, options) and Base#exists? check whether the resource is found.  #6970 [rwdaigle]
 
 * Query string support.  [untext, Jeremy Kemper]

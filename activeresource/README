@@ -1,1 +1,230 @@
 = Active Resource -- Object-oriented REST services
+
+Active Resource (ARes) connects business objects and REST web services.  It is a library
+intended to provide transparent proxying capabilities between a client and a RESTful
+service (for which Rails provides the {Simply RESTful routing}[http://dev.rubyonrails.org/browser/trunk/actionpack/lib/action_controller/resources.rb] implementation).
+
+=== Configuration & Usage
+
+Configuration is as simple as inheriting from ActiveResource::Base and providing a site
+class variable:
+
+   class Person < ActiveResource::Base
+     self.site = "http://api.people.com:3000/"
+   end
+
+Person is now REST enable and can invoke REST services very similarly to how ActiveRecord invokes
+lifecycle methods that operate against a persistent store.
+
+   # Find a person with id = 1
+   # This will invoke the following Http call:
+   # GET http://api.people.com:3000/people/1.xml
+   # and will load up the XML response into a new
+   # Person object
+   #
+   ryan = Person.find(1)
+   Person.exists?(1)  #=> true
+
+   # To create a new person - instantiate the object and call 'save',
+   # which will invoke this Http call:
+   # POST http://api.people.com:3000/people.xml
+   # (and will submit the XML format of the person object in the request)
+   #
+   ryan = Person.new(:first => 'Ryan', :last => 'Daigle')
+   ryan.save  #=> true
+   ryan.id  #=> 2
+   Person.exists?(ryan.id)  #=> true
+   ryan.exists?  #=> true
+
+   # Updating is done with 'save' as well
+   # PUT http://api.people.com:3000/people/1.xml
+   #
+   ryan = Person.find(1)
+   ryan.first = 'Rizzle'
+   ryan.save  #=> true
+
+   # And destruction
+   # DELETE http://api.people.com:3000/people/1.xml
+   #
+   ryan = Person.find(1)
+   ryan.destroy  #=> true  # Or Person.delete(ryan.id)
+
+
+=== Protocol
+
+ARes is built on a standard XML format for requesting and submitting resources.  It mirrors the
+RESTful routing built into ActionController, though it's useful to discuss what ARes expects
+outside the context of ActionController as it is not dependent on a Rails-based RESTful implementation.
+
+==== Find
+
+GET Http requests expect the XML form of whatever resource/resources is/are being requested.  So,
+for a request for a single element - the XML of that item is expected in response:
+
+   # Expects a response of
+   #
+   # <person><id>1</id><attribute1>value1</attribute1><attribute2>..</attribute2></person>
+   #
+   # for GET http://api.people.com:3000/people/1.xml
+   #
+   ryan = Person.find(1)
+
+The XML document that is received is used to build a new object of type Person, with each
+XML element becoming an attribute on the object.
+
+   ryan.is_a? Person  #=> true
+   ryan.attribute1  #=> 'value1'
+
+Any complex element (one that contains other elements) becomes its own object:
+
+   # With this response:
+   #
+   # <person><id>1</id><attribute1>value1</attribute1><complex><attribute2>value2</attribute2></complex></person>
+   #
+   # for GET http://api.people.com:3000/people/1.xml
+   #
+   ryan = Person.find(1)
+   ryan.complex  #=> <Person::Complex::xxxxx>
+   ryan.complex.attribute2  #=> 'value2'
+
+Collections can also be requested in a similar fashion
+
+   # Expects a response of
+   #
+   # <people>
+   #  <person><id>1</id><first>Ryan</first></person>
+   #  <person><id>2</id><first>Jim</first></person>
+   # </people>
+   #
+   # for GET http://api.people.com:3000/people.xml
+   #
+   people = Person.find(:all)
+   people.first  #=> <Person::xxx 'first' => 'Ryan' ...>
+   people.last  #=> <Person::xxx 'first' => 'Jim' ...>
+
+==== Create
+
+Creating a new resource submits the xml form of the resource as the body of the request and expects
+a 'Location' header in the response with the RESTful URL location of the newly created resource.  The
+id of the newly created resource is parsed out of the Location response header and automatically set
+as the id of the ARes object.
+
+  # <person><first>Ryan</first></person>
+  #
+  # is submitted as the body on
+  #
+  # POST http://api.people.com:3000/people.xml
+  # 
+  # when save is called on a new Person object.  An empty response is
+  # is expected with a 'Location' header value:
+  #
+  # Response (200): Location: http://api.people.com:3000/people/2
+  #
+  ryan = Person.new(:first => 'Ryan')
+  ryan.new?  #=> true
+  ryan.save  #=> true
+  ryan.new?  #=> false
+  ryan.id    #=> 2
+
+==== Update
+
+'save' is also used to update an existing resource - and follows the same protocol as creating a resource
+with the exception that no response headers are needed - just an empty response when the update on the
+server side was successful.
+
+  # <person><first>Ryan</first></person>
+  #
+  # is submitted as the body on
+  #
+  # PUT http://api.people.com:3000/people/1.xml
+  #
+  # when save is called on an existing Person object.  An empty response is
+  # is expected with code (204)
+  #
+  ryan = Person.find(1)
+  ryan.first #=> 'Ryan'
+  ryan.first = 'Rizzle'
+  ryan.save  #=> true
+
+==== Delete
+
+Destruction of a resource can be invoked as a class and instance method of the resource.
+
+  # A request is made to
+  #
+  # DELETE http://api.people.com:3000/people/1.xml
+  #
+  # for both of these forms.  An empty response with
+  # is expected with response code (200)
+  #
+  ryan = Person.find(1)
+  ryan.destroy  #=> true
+  ryan.exists?  #=> false
+  Person.delete(2)  #=> true
+  Person.exists?(2) #=> false
+
+
+=== Errors & Validation
+
+Error handling and validation is handled in much the same manner as you're used to seeing in
+ActiveRecord.  Both the response code in the Http response and the body of the response are used to
+indicate that an error occurred.
+
+==== Resource errors
+
+When a get is requested for a resource that does not exist, the Http '404' (resource not found)
+response code will be returned from the server which will raise an ActiveResource::ResourceNotFound
+exception.
+
+  # GET http://api.people.com:3000/people/1.xml
+  # #=> Response (404)
+  #
+  ryan = Person.find(1) #=> Raises ActiveResource::ResourceNotFound
+
+==== Validation errors
+
+Creating and updating resources can lead to validation errors - i.e. 'First name cannot be empty' etc...
+These types of errors are denoted in the response by a response code of 400 and the xml representation
+of the validation errors.  The save operation will then fail (with a 'false' return value) and the
+validation errors can be accessed on the resource in question.
+
+  # When 
+  #
+  # PUT http://api.people.com:3000/people/1.xml
+  #
+  # is requested with invalid values, the expected response is:
+  #
+  # Response (400):
+  # <errors><error>First cannot be empty</error></errors>
+  #
+  ryan = Person.find(1)
+  ryan.first #=> ''
+  ryan.save  #=> false
+  ryan.errors.invalid?(:first)  #=> true
+  ryan.errors.full_messages  #=> ['First cannot be empty']
+
+
+==== Response errors
+
+If the underlying Http request for an ARes operation results in an error response code, an
+exception will be raised.  The following Http response codes will result in these exceptions:
+
+   200 - 399: Valid response, no exception
+   400: ActiveResource::ResourceInvalid (automatically caught by ARes validation)
+   404: ActiveResource::ResourceNotFound
+   409: ActiveResource::ResourceConflict
+   401 - 499: ActiveResource::ClientError
+   500 - 599: ActiveResource::ServerError
+
+   
+=== Authentication
+
+Many REST apis will require username/password authentication, usually in the form of
+Http authentication.  This can easily be specified by putting the username and password
+in the Url of the ARes site:
+
+   class Person < ActiveResource::Base
+     self.site = "http://ryan:password@api.people.com:3000/"
+   end
+
+For obvious reasons it is best if such services are available over https.
