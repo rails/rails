@@ -265,7 +265,7 @@ module ActiveRecord
               column_type_sql << "(#{precision})"
             end
           else
-            raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale if specifed" if scale
+            raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale if specified" if scale
           end
           column_type_sql
         else

@@ -66,7 +66,6 @@ begin
       class OracleColumn < Column #:nodoc:
 
         def type_cast(value)
-          return nil if value =~ /^\s*null\s*$/i
           return guess_date_or_time(value) if type == :datetime && OracleAdapter.emulate_dates
           super
         end
@@ -676,13 +675,14 @@ rescue LoadError
   # OCI8 driver is unavailable.
   module ActiveRecord # :nodoc:
     class Base
+      @@oracle_error_message = "Oracle/OCI libraries could not be loaded: #{$!.to_s}"
       def self.oracle_connection(config) # :nodoc:
         # Set up a reasonable error message
-        raise LoadError, "Oracle/OCI libraries could not be loaded."
+        raise LoadError, @@oracle_error_message
       end
       def self.oci_connection(config) # :nodoc:
         # Set up a reasonable error message
-        raise LoadError, "Oracle/OCI libraries could not be loaded."
+        raise LoadError, @@oracle_error_message
       end
     end
   end

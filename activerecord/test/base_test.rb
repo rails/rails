@@ -69,7 +69,7 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal("Jason", topic.author_name)
     assert_equal(topics(:first).author_email_address, Topic.find(1).author_email_address)
   end
-  
+
   def test_integers_as_nil
     test = AutoId.create('value' => '')
     assert_nil AutoId.find(test.id).value
@@ -156,6 +156,15 @@ class BasicsTest < Test::Unit::TestCase
     reply = Reply.new
     assert_raise(ActiveRecord::RecordInvalid) { reply.save! }
   end
+
+  def test_save_null_string_attributes
+    topic = Topic.find(1)
+    topic.attributes = { "title" => "null", "author_name" => "null" }
+    topic.save!
+    topic.reload
+    assert_equal("null", topic.title)
+    assert_equal("null", topic.author_name)
+  end  
   
   def test_hashes_not_mangled
     new_topic = { :title => "New Topic" }
