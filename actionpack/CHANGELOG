@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix #distance_of_time_in_words to report accurately against the Duration class.  #7114 [eventualbuddha]
+
 * Refactor #form_tag to allow easy extending.  [Rick]
 
 * Update to Prototype 1.5.0. [Sam Stephenson]

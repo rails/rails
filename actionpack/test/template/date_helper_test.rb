@@ -18,7 +18,7 @@ class DateHelperTest < Test::Unit::TestCase
   end
 
   def test_distance_in_words
-    from = Time.mktime(2004, 3, 6, 21, 45, 0)
+    from = Time.mktime(2004, 6, 6, 21, 45, 0)
 
     # 0..1 with include_seconds
     assert_equal "less than 5 seconds", distance_of_time_in_words(from, from + 0.seconds, true)
@@ -64,16 +64,16 @@ class DateHelperTest < Test::Unit::TestCase
     assert_equal "about 1 month", distance_of_time_in_words(from, from + 29.days + 23.hours + 59.minutes + 30.seconds)
     assert_equal "about 1 month", distance_of_time_in_words(from, from + 59.days + 23.hours + 59.minutes + 29.seconds)
 
-    # 86400..525959
+    # 86400..525599
     assert_equal "2 months", distance_of_time_in_words(from, from + 59.days + 23.hours + 59.minutes + 30.seconds)
     assert_equal "12 months", distance_of_time_in_words(from, from + 1.years - 31.seconds)
 
-    # 525960..1051919
+    # 525600..1051199
     assert_equal "about 1 year", distance_of_time_in_words(from, from + 1.years - 30.seconds)
     assert_equal "about 1 year", distance_of_time_in_words(from, from + 2.years - 31.seconds)
 
-    # > 1051920
-    assert_equal "over 2 years", distance_of_time_in_words(from, from + 2.years - 30.seconds)
+    # > 1051199
+    assert_equal "over 2 years", distance_of_time_in_words(from, from + 2.years + 30.seconds)
     assert_equal "over 10 years", distance_of_time_in_words(from, from + 10.years)
 
     # test to < from

@@ -69,9 +69,9 @@ module ActionView
           when 1440..2879      then '1 day'
           when 2880..43199     then "#{(distance_in_minutes / 1440).round} days"
           when 43200..86399    then 'about 1 month'
-          when 86400..525959   then "#{(distance_in_minutes / 43200).round} months"
-          when 525960..1051919 then 'about 1 year'
-          else                      "over #{(distance_in_minutes / 525960).round} years"
+          when 86400..525599   then "#{(distance_in_minutes / 43200).round} months"
+          when 525600..1051199 then 'about 1 year'
+          else                      "over #{(distance_in_minutes / 525600).round} years"
         end
       end
 
