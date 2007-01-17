@@ -1,4 +1,4 @@
-/*  Prototype JavaScript framework, version 1.5.0_rc2
+/*  Prototype JavaScript framework, version 1.5.0
  *  (c) 2005-2007 Sam Stephenson
  *
  *  Prototype is freely distributable under the terms of an MIT-style license.
@@ -7,7 +7,7 @@
 /*--------------------------------------------------------------------------*/
 
 var Prototype = {
-  Version: '1.5.0_rc2',
+  Version: '1.5.0',
   BrowserFeatures: {
     XPath: !!document.evaluate
   },
@@ -629,11 +629,43 @@ if(window.opera){
     return array;
   }
 }
-var Hash = {
+var Hash = function(obj) {
+  Object.extend(this, obj || {});
+};
+
+Object.extend(Hash, {
+  toQueryString: function(obj) {
+    var parts = [];
+
+	  this.prototype._each.call(obj, function(pair) {
+      if (!pair.key) return;
+
+      if (pair.value && pair.value.constructor == Array) {
+        var values = pair.value.compact();
+        if (values.length < 2) pair.value = values.reduce();
+        else {
+        	key = encodeURIComponent(pair.key);
+          values.each(function(value) {
+            value = value != undefined ? encodeURIComponent(value) : '';
+            parts.push(key + '=' + encodeURIComponent(value));
+          });
+          return;
+        }
+      }
+      if (pair.value == undefined) pair[1] = '';
+      parts.push(pair.map(encodeURIComponent).join('='));
+	  });
+
+    return parts.join('&');
+  }
+});
+
+Object.extend(Hash.prototype, Enumerable);
+Object.extend(Hash.prototype, {
   _each: function(iterator) {
     for (var key in this) {
       var value = this[key];
-      if (typeof value == 'function') continue;
+      if (value && value == Hash.prototype[key]) continue;
 
       var pair = [key, value];
       pair.key = key;
@@ -657,26 +689,24 @@ var Hash = {
     });
   },
 
-  toQueryString: function() {
-    return this.map(function(pair) {
-      if (!pair.key) return null;
-
-      if (pair.value && pair.value.constructor == Array) {
-        pair.value = pair.value.compact();
-
-        if (pair.value.length < 2) {
-          pair.value = pair.value.reduce();
-        } else {
-          var key = encodeURIComponent(pair.key);
-          return pair.value.map(function(value) {
-            return key + '=' + encodeURIComponent(value);
-		  	  }).join('&');
+  remove: function() {
+    var result;
+    for(var i = 0, length = arguments.length; i < length; i++) {
+      var value = this[arguments[i]];
+      if (value !== undefined){
+        if (result === undefined) result = value;
+        else {
+          if (result.constructor != Array) result = [result];
+          result.push(value)
         }
       }
+      delete this[arguments[i]];
+    }
+    return result;
+  },
 
-      if (pair.value == undefined) pair[1] = '';
-      return pair.map(encodeURIComponent).join('=');
-    }).join('&');
+  toQueryString: function() {
+    return Hash.toQueryString(this);
   },
 
   inspect: function() {
@@ -684,14 +714,12 @@ var Hash = {
       return pair.map(Object.inspect).join(': ');
     }).join(', ') + '}>';
   }
-}
+});
 
 function $H(object) {
-  var hash = Object.extend({}, object || {});
-  Object.extend(hash, Enumerable);
-  Object.extend(hash, Hash);
-  return hash;
-}
+  if (object && object.constructor == Hash) return object;
+  return new Hash(object);
+};
 ObjectRange = Class.create();
 Object.extend(ObjectRange.prototype, Enumerable);
 Object.extend(ObjectRange.prototype, {
@@ -785,8 +813,8 @@ Ajax.Base.prototype = {
     Object.extend(this.options, options || {});
 
     this.options.method = this.options.method.toLowerCase();
-    this.options.parameters = $H(typeof this.options.parameters == 'string' ?
-      this.options.parameters.toQueryParams() : this.options.parameters);
+    if (typeof this.options.parameters == 'string')
+      this.options.parameters = this.options.parameters.toQueryParams();
   }
 }
 
@@ -804,26 +832,26 @@ Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
   },
 
   request: function(url) {
-    var params = this.options.parameters;
-    if (params.any()) params['_'] = '';
+    this.url = url;
+    var params = this.options.parameters, method = this.options.method;
 
-    if (!['get', 'post'].include(this.options.method)) {
+    if (!['get', 'post'].include(method)) {
       // simulate other verbs over post
-      params['_method'] = this.options.method;
-      this.options.method = 'post';
+      params['_method'] = method;
+      method = 'post';
     }
 
-    this.url = url;
+    params = Hash.toQueryString(params);
+    if (params && /Konqueror|Safari|KHTML/.test(navigator.userAgent)) params += '&_='
 
     // when GET, append parameters to URL
-    if (this.options.method == 'get' && params.any())
-      this.url += (this.url.indexOf('?') >= 0 ? '&' : '?') +
-        params.toQueryString();
+    if (method == 'get' && params)
+      this.url += (this.url.indexOf('?') > -1 ? '&' : '?') + params;
 
     try {
       Ajax.Responders.dispatch('onCreate', this, this.transport);
 
-      this.transport.open(this.options.method.toUpperCase(), this.url,
+      this.transport.open(method.toUpperCase(), this.url,
         this.options.asynchronous);
 
       if (this.options.asynchronous)
@@ -832,8 +860,7 @@ Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
       this.transport.onreadystatechange = this.onStateChange.bind(this);
       this.setRequestHeaders();
 
-      var body = this.options.method == 'post' ?
-        (this.options.postBody || params.toQueryString()) : null;
+      var body = method == 'post' ? (this.options.postBody || params) : null;
 
       this.transport.send(body);
 
@@ -1054,7 +1081,7 @@ if (Prototype.BrowserFeatures.XPath) {
     for (var i = 0, length = query.snapshotLength; i < length; i++)
       results.push(query.snapshotItem(i));
     return results;
-  }
+  };
 }
 
 document.getElementsByClassName = function(className, parentElement) {
@@ -1071,7 +1098,7 @@ document.getElementsByClassName = function(className, parentElement) {
     }
     return elements;
   }
-}
+};
 
 /*--------------------------------------------------------------------------*/
 
@@ -1100,7 +1127,7 @@ Element.extend = function(element) {
 
   element._extended = true;
   return element;
-}
+};
 
 Element.extend.cache = {
   findOrStore: function(value) {
@@ -1108,7 +1135,7 @@ Element.extend.cache = {
       return value.apply(null, [this].concat($A(arguments)));
     }
   }
-}
+};
 
 Element.Methods = {
   visible: function(element) {
@@ -1146,6 +1173,7 @@ Element.Methods = {
 
   replace: function(element, html) {
     element = $(element);
+    html = typeof html == 'undefined' ? '' : html.toString();
     if (element.outerHTML) {
       element.outerHTML = html.stripScripts();
     } else {
@@ -1238,11 +1266,23 @@ Element.Methods = {
   },
 
   readAttribute: function(element, name) {
-    return $(element).getAttribute(name);
+    element = $(element);
+    if (document.all && !window.opera) {
+      var t = Element._attributeTranslations;
+      if (t.values[name]) return t.values[name](element, name);
+      if (t.names[name])  name = t.names[name];
+      var attribute = element.attributes[name];
+      if(attribute) return attribute.nodeValue;
+    }
+    return element.getAttribute(name);
   },
 
   getHeight: function(element) {
-    return $(element).offsetHeight;
+    return $(element).getDimensions().height;
+  },
+
+  getWidth: function(element) {
+    return $(element).getDimensions().width;
   },
 
   classNames: function(element) {
@@ -1304,7 +1344,7 @@ Element.Methods = {
     return $(element).innerHTML.match(/^\s*$/);
   },
 
-  childOf: function(element, ancestor) {
+  descendantOf: function(element, ancestor) {
     element = $(element), ancestor = $(ancestor);
     while (element = element.parentNode)
       if (element == ancestor) return true;
@@ -1320,15 +1360,16 @@ Element.Methods = {
 
   getStyle: function(element, style) {
     element = $(element);
-    var camelizedStyle = (style == 'float' ?
-      (typeof element.style.styleFloat != 'undefined' ? 'styleFloat' : 'cssFloat') : style).camelize();
-    var value = element.style[camelizedStyle];
+    if (['float','cssFloat'].include(style))
+      style = (typeof element.style.styleFloat != 'undefined' ? 'styleFloat' : 'cssFloat');
+    style = style.camelize();
+    var value = element.style[style];
     if (!value) {
       if (document.defaultView && document.defaultView.getComputedStyle) {
         var css = document.defaultView.getComputedStyle(element, null);
-        value = css ? css[camelizedStyle] : null;
+        value = css ? css[style] : null;
       } else if (element.currentStyle) {
-        value = element.currentStyle[camelizedStyle];
+        value = element.currentStyle[style];
       }
     }
 
@@ -1356,13 +1397,16 @@ Element.Methods = {
             !/Konqueror|Safari|KHTML/.test(navigator.userAgent)) ? 0.999999 : 1.0;
           if(/MSIE/.test(navigator.userAgent) && !window.opera)
             element.style.filter = element.getStyle('filter').replace(/alpha\([^\)]*\)/gi,'');
+        } else if(value == '') {
+          if(/MSIE/.test(navigator.userAgent) && !window.opera)
+            element.style.filter = element.getStyle('filter').replace(/alpha\([^\)]*\)/gi,'');
         } else {
           if(value < 0.00001) value = 0;
           if(/MSIE/.test(navigator.userAgent) && !window.opera)
             element.style.filter = element.getStyle('filter').replace(/alpha\([^\)]*\)/gi,'') +
               'alpha(opacity='+value*100+')';
         }
-      } else if(name == 'float') name = (typeof element.style.styleFloat != 'undefined') ? 'styleFloat' : 'cssFloat';
+      } else if(['float','cssFloat'].include(name)) name = (typeof element.style.styleFloat != 'undefined') ? 'styleFloat' : 'cssFloat';
       element.style[name.camelize()] = value;
     }
     return element;
@@ -1370,7 +1414,8 @@ Element.Methods = {
 
   getDimensions: function(element) {
     element = $(element);
-    if (Element.getStyle(element, 'display') != 'none')
+    var display = $(element).getStyle('display');
+    if (display != 'none' && display != null) // Safari bug
       return {width: element.offsetWidth, height: element.offsetHeight};
 
     // All *Width and *Height properties give 0 on elements with display none,
@@ -1378,12 +1423,13 @@ Element.Methods = {
     var els = element.style;
     var originalVisibility = els.visibility;
     var originalPosition = els.position;
+    var originalDisplay = els.display;
     els.visibility = 'hidden';
     els.position = 'absolute';
-    els.display = '';
+    els.display = 'block';
     var originalWidth = element.clientWidth;
     var originalHeight = element.clientHeight;
-    els.display = 'none';
+    els.display = originalDisplay;
     els.position = originalPosition;
     els.visibility = originalVisibility;
     return {width: originalWidth, height: originalHeight};
@@ -1434,16 +1480,63 @@ Element.Methods = {
     element._overflow = null;
     return element;
   }
-}
+};
+
+Object.extend(Element.Methods, {childOf: Element.Methods.descendantOf});
+
+Element._attributeTranslations = {};
+
+Element._attributeTranslations.names = {
+  colspan:   "colSpan",
+  rowspan:   "rowSpan",
+  valign:    "vAlign",
+  datetime:  "dateTime",
+  accesskey: "accessKey",
+  tabindex:  "tabIndex",
+  enctype:   "encType",
+  maxlength: "maxLength",
+  readonly:  "readOnly",
+  longdesc:  "longDesc"
+};
+
+Element._attributeTranslations.values = {
+  _getAttr: function(element, attribute) {
+    return element.getAttribute(attribute, 2);
+  },
+
+  _flag: function(element, attribute) {
+    return $(element).hasAttribute(attribute) ? attribute : null;
+  },
+
+  style: function(element) {
+    return element.style.cssText.toLowerCase();
+  },
+
+  title: function(element) {
+    var node = element.getAttributeNode('title');
+    return node.specified ? node.nodeValue : null;
+  }
+};
+
+Object.extend(Element._attributeTranslations.values, {
+  href: Element._attributeTranslations.values._getAttr,
+  src:  Element._attributeTranslations.values._getAttr,
+  disabled: Element._attributeTranslations.values._flag,
+  checked:  Element._attributeTranslations.values._flag,
+  readonly: Element._attributeTranslations.values._flag,
+  multiple: Element._attributeTranslations.values._flag
+});
 
 Element.Methods.Simulated = {
   hasAttribute: function(element, attribute) {
+    var t = Element._attributeTranslations;
+    attribute = t.names[attribute] || attribute;
     return $(element).getAttributeNode(attribute).specified;
   }
-}
+};
 
 // IE is missing .innerHTML support for TABLE-related elements
-if(document.all){
+if (document.all && !window.opera){
   Element.Methods.update = function(element, html) {
     element = $(element);
     html = typeof html == 'undefined' ? '' : html.toString();
@@ -1477,7 +1570,7 @@ if(document.all){
     setTimeout(function() {html.evalScripts()}, 10);
     return element;
   }
-}
+};
 
 Object.extend(Element, Element.Methods);
 
@@ -1644,7 +1737,7 @@ Element.ClassNames.prototype = {
   toString: function() {
     return $A(this).join(' ');
   }
-}
+};
 
 Object.extend(Element.ClassNames.prototype, Enumerable);
 var Selector = Class.create();
@@ -1691,15 +1784,15 @@ Selector.prototype = {
     if (params.wildcard)
       conditions.push('true');
     if (clause = params.id)
-      conditions.push('element.getAttribute("id") == ' + clause.inspect());
+      conditions.push('element.readAttribute("id") == ' + clause.inspect());
     if (clause = params.tagName)
       conditions.push('element.tagName.toUpperCase() == ' + clause.inspect());
     if ((clause = params.classNames).length > 0)
       for (var i = 0, length = clause.length; i < length; i++)
-        conditions.push('Element.hasClassName(element, ' + clause[i].inspect() + ')');
+        conditions.push('element.hasClassName(' + clause[i].inspect() + ')');
     if (clause = params.attributes) {
       clause.each(function(attribute) {
-        var value = 'element.getAttribute(' + attribute.name.inspect() + ')';
+        var value = 'element.readAttribute(' + attribute.name.inspect() + ')';
         var splitValueBy = function(delimiter) {
           return value + ' && ' + value + '.split(' + delimiter.inspect() + ')';
         }
@@ -1712,7 +1805,7 @@ Selector.prototype = {
                           ); break;
           case '!=':      conditions.push(value + ' != ' + attribute.value.inspect()); break;
           case '':
-          case undefined: conditions.push(value + ' != null'); break;
+          case undefined: conditions.push('element.hasAttribute(' + attribute.name.inspect() + ')'); break;
           default:        throw 'Unknown operator ' + attribute.operator + ' in selector';
         }
       });
@@ -1723,6 +1816,7 @@ Selector.prototype = {
 
   compileMatcher: function() {
     this.match = new Function('element', 'if (!element.tagName) return false; \
+      element = $(element); \
       return ' + this.buildMatchExpression());
   },
 
@@ -1762,7 +1856,7 @@ Object.extend(Selector, {
 
   findChildElements: function(element, expressions) {
     return expressions.map(function(expression) {
-      return expression.strip().split(/\s+/).inject([null], function(results, expr) {
+      return expression.match(/[^\s"]+(?:"[^"]*"[^\s"]+)*/g).inject([null], function(results, expr) {
         var selector = new Selector(expr);
         return results.inject([], function(elements, result) {
           return elements.concat(selector.findElements(result || element));
@@ -1781,18 +1875,28 @@ var Form = {
     return form;
   },
 
-  serializeElements: function(elements) {
-    return elements.inject([], function(queryComponents, element) {
-      var queryComponent = Form.Element.serialize(element);
-      if (queryComponent) queryComponents.push(queryComponent);
-      return queryComponents;
-    }).join('&');
+  serializeElements: function(elements, getHash) {
+    var data = elements.inject({}, function(result, element) {
+      if (!element.disabled && element.name) {
+        var key = element.name, value = $(element).getValue();
+        if (value != undefined) {
+          if (result[key]) {
+            if (result[key].constructor != Array) result[key] = [result[key]];
+            result[key].push(value);
+          }
+          else result[key] = value;
+        }
+      }
+      return result;
+    });
+
+    return getHash ? data : Hash.toQueryString(data);
   }
 };
 
 Form.Methods = {
-  serialize: function(form) {
-    return Form.serializeElements(Form.getElements(form));
+  serialize: function(form, getHash) {
+    return Form.serializeElements(Form.getElements(form), getHash);
   },
 
   getElements: function(form) {
@@ -1807,15 +1911,13 @@ Form.Methods = {
 
   getInputs: function(form, typeName, name) {
     form = $(form);
-    var inputs = form.getElementsByTagName('input'), matchingInputs = [];
+    var inputs = form.getElementsByTagName('input');
 
-    if (!typeName && !name)
-      return $A(inputs).map(Element.extend);
+    if (!typeName && !name) return $A(inputs).map(Element.extend);
 
-    for (var i = 0, length = inputs.length; i < length; i++) {
+    for (var i = 0, matchingInputs = [], length = inputs.length; i < length; i++) {
       var input = inputs[i];
-      if ((typeName && input.type != typeName) ||
-          (name && input.name != name))
+      if ((typeName && input.type != typeName) || (name && input.name != name))
         continue;
       matchingInputs.push(Element.extend(input));
     }
@@ -1873,30 +1975,21 @@ Form.Element = {
 Form.Element.Methods = {
   serialize: function(element) {
     element = $(element);
-    if (element.disabled) return '';
-    var method = element.tagName.toLowerCase();
-    var parameter = Form.Element.Serializers[method](element);
-
-    if (parameter) {
-      var key = encodeURIComponent(parameter[0]);
-      if (key.length == 0) return;
-
-      if (parameter[1].constructor != Array)
-        parameter[1] = [parameter[1]];
-
-      return parameter[1].map(function(value) {
-        return key + '=' + encodeURIComponent(value);
-      }).join('&');
+    if (!element.disabled && element.name) {
+      var value = element.getValue();
+      if (value != undefined) {
+        var pair = {};
+        pair[element.name] = value;
+        return Hash.toQueryString(pair);
+      }
     }
+    return '';
   },
 
   getValue: function(element) {
     element = $(element);
     var method = element.tagName.toLowerCase();
-    var parameter = Form.Element.Serializers[method](element);
-
-    if (parameter)
-      return parameter[1];
+    return Form.Element.Serializers[method](element);
   },
 
   clear: function(element) {
@@ -1933,6 +2026,7 @@ Form.Element.Methods = {
 
 Object.extend(Form.Element, Form.Element.Methods);
 var Field = Form.Element;
+var $F = Form.Element.getValue;
 
 /*--------------------------------------------------------------------------*/
 
@@ -1945,48 +2039,42 @@ Form.Element.Serializers = {
       default:
         return Form.Element.Serializers.textarea(element);
     }
-    return false;
   },
 
   inputSelector: function(element) {
-    if (element.checked)
-      return [element.name, element.value];
+    return element.checked ? element.value : null;
   },
 
   textarea: function(element) {
-    return [element.name, element.value];
+    return element.value;
   },
 
   select: function(element) {
-    return Form.Element.Serializers[element.type == 'select-one' ?
+    return this[element.type == 'select-one' ?
       'selectOne' : 'selectMany'](element);
   },
 
   selectOne: function(element) {
-    var value = '', opt, index = element.selectedIndex;
-    if (index >= 0) {
-      opt = Element.extend(element.options[index]);
-      // Uses the new potential extension if hasAttribute isn't native.
-      value = opt.hasAttribute('value') ? opt.value : opt.text;
-    }
-    return [element.name, value];
+    var index = element.selectedIndex;
+    return index >= 0 ? this.optionValue(element.options[index]) : null;
   },
 
   selectMany: function(element) {
-    var value = [];
-    for (var i = 0, length = element.length; i < length; i++) {
-      var opt = Element.extend(element.options[i]);
-      if (opt.selected)
-        // Uses the new potential extension if hasAttribute isn't native.
-        value.push(opt.hasAttribute('value') ? opt.value : opt.text);
+    var values, length = element.length;
+    if (!length) return null;
+
+    for (var i = 0, values = []; i < length; i++) {
+      var opt = element.options[i];
+      if (opt.selected) values.push(this.optionValue(opt));
     }
-    return [element.name, value];
+    return values;
+  },
+
+  optionValue: function(opt) {
+    // extend element because hasAttribute may not be native
+    return Element.extend(opt).hasAttribute('value') ? opt.value : opt.text;
   }
 }
-
-/*--------------------------------------------------------------------------*/
-
-var $F = Form.Element.getValue;
 
 /*--------------------------------------------------------------------------*/
 
@@ -2382,10 +2470,10 @@ var Position = {
     element._originalHeight = element.style.height;
 
     element.style.position = 'absolute';
-    element.style.top    = top + 'px';;
-    element.style.left   = left + 'px';;
-    element.style.width  = width + 'px';;
-    element.style.height = height + 'px';;
+    element.style.top    = top + 'px';
+    element.style.left   = left + 'px';
+    element.style.width  = width + 'px';
+    element.style.height = height + 'px';
   },
 
   relativize: function(element) {
