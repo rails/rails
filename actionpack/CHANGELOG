@@ -1,5 +1,7 @@
 *SVN*
 
+* Heckling ActionController::Resources::Resource revealed that set_prefixes didn't break when :name_prefix was munged. #7081 [Kevin Clark]
+
 * Fix #distance_of_time_in_words to report accurately against the Duration class.  #7114 [eventualbuddha]
 
 * Refactor #form_tag to allow easy extending.  [Rick]

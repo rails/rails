@@ -52,6 +52,12 @@ class ResourcesTest < Test::Unit::TestCase
       assert_simply_restful_for :comments, :path_prefix => 'thread/5/', :options => { :thread_id => '5' }
     end
   end
+  
+  def test_with_name_prefix
+    with_restful_routing :messages, :name_prefix => 'post_' do
+      assert_simply_restful_for :messages, :name_prefix => 'post_'
+    end
+  end
 
   def test_with_collection_action
     rss_options = {:action => 'rss'}
@@ -346,13 +352,14 @@ class ResourcesTest < Test::Unit::TestCase
       options[:options].delete :action
 
       full_prefix = "/#{options[:path_prefix]}#{controller_name}"
+      name_prefix = options[:name_prefix]
 
-      assert_named_route "#{full_prefix}",        "#{controller_name}_path",           options[:options]
-      assert_named_route "#{full_prefix}.xml",    "formatted_#{controller_name}_path", options[:options].merge(:format => 'xml')
-      assert_named_route "#{full_prefix}/new",    "new_#{singular_name}_path",         options[:options]
-      assert_named_route "#{full_prefix}/1",      "#{singular_name}_path",             options[:options].merge(:id => '1')
-      assert_named_route "#{full_prefix}/1;edit", "edit_#{singular_name}_path",        options[:options].merge(:id => '1')
-      assert_named_route "#{full_prefix}/1.xml",  "formatted_#{singular_name}_path",   options[:options].merge(:format => 'xml', :id => '1')
+      assert_named_route "#{full_prefix}",        "#{name_prefix}#{controller_name}_path",           options[:options]
+      assert_named_route "#{full_prefix}.xml",    "formatted_#{name_prefix}#{controller_name}_path", options[:options].merge(:format => 'xml')
+      assert_named_route "#{full_prefix}/new",    "#{name_prefix}new_#{singular_name}_path",         options[:options]
+      assert_named_route "#{full_prefix}/1",      "#{name_prefix}#{singular_name}_path",             options[:options].merge(:id => '1')
+      assert_named_route "#{full_prefix}/1;edit", "#{name_prefix}edit_#{singular_name}_path",        options[:options].merge(:id => '1')
+      assert_named_route "#{full_prefix}/1.xml",  "formatted_#{name_prefix}#{singular_name}_path",   options[:options].merge(:format => 'xml', :id => '1')
       yield options[:options] if block_given?
     end
 
