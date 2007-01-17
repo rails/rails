@@ -118,7 +118,7 @@ as the id of the ARes object.
   # when save is called on a new Person object.  An empty response is
   # is expected with a 'Location' header value:
   #
-  # Response (200): Location: http://api.people.com:3000/people/2
+  # Response (201): Location: http://api.people.com:3000/people/2
   #
   ryan = Person.new(:first => 'Ryan')
   ryan.new?  #=> true
@@ -184,7 +184,7 @@ exception.
 ==== Validation errors
 
 Creating and updating resources can lead to validation errors - i.e. 'First name cannot be empty' etc...
-These types of errors are denoted in the response by a response code of 400 and the xml representation
+These types of errors are denoted in the response by a response code of 422 and the xml representation
 of the validation errors.  The save operation will then fail (with a 'false' return value) and the
 validation errors can be accessed on the resource in question.
 
@@ -194,7 +194,7 @@ validation errors can be accessed on the resource in question.
   #
   # is requested with invalid values, the expected response is:
   #
-  # Response (400):
+  # Response (422):
   # <errors><error>First cannot be empty</error></errors>
   #
   ryan = Person.find(1)
@@ -210,13 +210,13 @@ If the underlying Http request for an ARes operation results in an error respons
 exception will be raised.  The following Http response codes will result in these exceptions:
 
    200 - 399: Valid response, no exception
-   400: ActiveResource::ResourceInvalid (automatically caught by ARes validation)
    404: ActiveResource::ResourceNotFound
    409: ActiveResource::ResourceConflict
+   422: ActiveResource::ResourceInvalid (rescued by save as validation errors)
    401 - 499: ActiveResource::ClientError
    500 - 599: ActiveResource::ServerError
 
-   
+
 === Authentication
 
 Many REST apis will require username/password authentication, usually in the form of

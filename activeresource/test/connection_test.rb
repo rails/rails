@@ -36,11 +36,11 @@ class ConnectionTest < Test::Unit::TestCase
     # 404 is a missing resource.
     assert_response_raises ActiveResource::ResourceNotFound, 404
 
-    # 400 is a validation error
-    assert_response_raises ActiveResource::ResourceInvalid, 400
-
     # 409 is an optimistic locking error
     assert_response_raises ActiveResource::ResourceConflict, 409
+
+    # 422 is a validation error
+    assert_response_raises ActiveResource::ResourceInvalid, 422
 
     # 4xx are client errors.
     [401, 499].each do |code|

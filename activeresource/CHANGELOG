@@ -1,5 +1,7 @@
 *SVN*
 
+* Interpret 422 Unprocessable Entity as ResourceInvalid.  #7097 [dkubb]
+
 * Mega documentation patches. #7025, #7069 [rwdaigle]
 
 * Base.exists?(id, options) and Base#exists? check whether the resource is found.  #6970 [rwdaigle]
