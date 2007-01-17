@@ -401,11 +401,15 @@ module ActionView
         end
 
         def tag_id
-          "#{@object_name}_#{@method_name}"
+          "#{sanitized_object_name}_#{@method_name}"
         end
 
         def tag_id_with_index(index)
-          "#{@object_name}_#{index}_#{@method_name}"
+          "#{sanitized_object_name}_#{index}_#{@method_name}"
+        end
+
+        def sanitized_object_name
+          @object_name.gsub(/[^-a-zA-Z0-9:.]/, "_").sub(/_$/, "")
         end
     end
 
@@ -420,7 +424,7 @@ module ActionView
         @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc        
       end
       
-      (field_helpers - %w(check_box radio_button)).each do |selector|
+      (field_helpers - %w(check_box radio_button fields_for)).each do |selector|
         src = <<-end_src
           def #{selector}(method, options = {})
             @template.send(#{selector.inspect}, @object_name, method, options.merge(:object => @object))
@@ -428,7 +432,12 @@ module ActionView
         end_src
         class_eval src, __FILE__, __LINE__
       end
-      
+
+      def fields_for(name, *args, &block)
+        name = "#{object_name}[#{name}]"
+        @template.fields_for(name, *args, &block)
+      end
+
       def check_box(method, options = {}, checked_value = "1", unchecked_value = "0")
         @template.check_box(@object_name, method, options.merge(:object => @object), checked_value, unchecked_value)
       end

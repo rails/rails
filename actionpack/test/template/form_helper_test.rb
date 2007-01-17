@@ -297,11 +297,28 @@ class FormHelperTest < Test::Unit::TestCase
     
     expected = 
       "<form action='http://www.example.com' method='post'>" +
-      "<input name='post[123][title]' size='30' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[123][body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
-      "<input name='post[123][secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
+      "<input name='post[123][title]' size='30' type='text' id='post_123_title' value='Hello World' />" +
+      "<textarea name='post[123][body]' id='post_123_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[123][secret]' checked='checked' type='checkbox' id='post_123_secret' value='1' />" +
       "<input name='post[123][secret]' type='hidden' value='0' />" +
       "</form>"
+
+    assert_dom_equal expected, _erbout
+  end
+
+  def test_nested_fields_for
+    _erbout = ''
+    form_for(:post, @post) do |f|
+      f.fields_for(:comment, @post) do |c|
+        _erbout.concat c.text_field(:title)
+      end
+    end
+
+    expected = "<form action='http://www.example.com' method='post'>" +
+               "<input name='post[comment][title]' size='30' type='text' id='post_comment_title' value='Hello World' />" +
+               "</form>"
+
+    assert_dom_equal expected, _erbout
   end
 
   def test_fields_for
@@ -337,6 +354,16 @@ class FormHelperTest < Test::Unit::TestCase
       "<input name='post[secret]' type='hidden' value='0' />"
 
     assert_dom_equal expected, _erbout
+  end
+
+  def test_fields_for_object_with_bracketed_name
+    _erbout = ''
+    fields_for("author[post]", @post) do |f|
+      _erbout.concat f.text_field(:title)
+    end
+
+    assert_dom_equal "<input name='author[post][title]' size='30' type='text' id='author_post_title' value='Hello World' />",
+      _erbout
   end
 
   def test_form_builder_does_not_have_form_for_method
