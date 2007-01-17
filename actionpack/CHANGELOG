@@ -1,5 +1,7 @@
 *SVN*
 
+* RecordInvalid, RecordNotSaved => 422 Unprocessable Entity, StaleObjectError => 409 Conflict.  #7097 [dkubb]
+
 * Allow fields_for to be nested inside form_for, so that the name and id get properly constructed [Jamis Buck]
 
 * Allow inGroupsOf and eachSlice to be called through rjs. #7046 [Cody Fauser]

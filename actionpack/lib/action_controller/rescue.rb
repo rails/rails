@@ -16,7 +16,9 @@ module ActionController #:nodoc:
       'ActionController::RoutingError'    => :not_found,
       'ActionController::UnknownAction'   => :not_found,
       'ActiveRecord::RecordNotFound'      => :not_found,
-      'ActiveRecord::RecordInvalid'       => :bad_request
+      'ActiveRecord::StaleObjectError'    => :conflict,
+      'ActiveRecord::RecordInvalid'       => :unprocessable_entity,
+      'ActiveRecord::RecordNotSaved'      => :unprocessable_entity
     }
 
     DEFAULT_RESCUE_TEMPLATE = 'diagnostics'
