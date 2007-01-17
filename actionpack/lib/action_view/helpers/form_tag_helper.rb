@@ -31,29 +31,11 @@ module ActionView
       #                         If "put", "delete", or another verb is used, a hidden input with name _method 
       #                         is added to simulate the verb over post.
       def form_tag(url_for_options = {}, options = {}, *parameters_for_url, &block)
-        html_options = options.stringify_keys
-        html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
-        html_options["action"]  = url_for(url_for_options, *parameters_for_url)
-
-        method_tag = ""
-        
-        case method = html_options.delete("method").to_s
-          when /^get$/i # must be case-insentive, but can't use downcase as might be nil
-            html_options["method"] = "get"
-          when /^post$/i, "", nil
-            html_options["method"] = "post"
-          else
-            html_options["method"] = "post"
-            method_tag = content_tag(:div, tag(:input, :type => "hidden", :name => "_method", :value => method), :style => 'margin:0;padding:0')
-        end
-        
+        html_options = html_options_for_form(url_for_options, options, *parameters_for_url)
         if block_given?
-          content = capture(&block)
-          concat(tag(:form, html_options, true) + method_tag, block.binding)
-          concat(content, block.binding)
-          concat("</form>", block.binding)
+          form_tag_in_block(html_options, &block)
         else
-          tag(:form, html_options, true) + method_tag
+          form_tag_html(html_options)
         end
       end
 
@@ -171,6 +153,40 @@ module ActionView
       def image_submit_tag(source, options = {})
         tag :input, { "type" => "image", "src" => image_path(source) }.update(options.stringify_keys)
       end
+      
+      private
+        def html_options_for_form(url_for_options, options, *parameters_for_url)
+          returning options.stringify_keys do |html_options|
+            html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
+            html_options["action"]  = url_for(url_for_options, *parameters_for_url)
+          end
+        end
+        
+        def extra_tags_for_form(html_options)
+          case method = html_options.delete("method").to_s
+            when /^get$/i # must be case-insentive, but can't use downcase as might be nil
+              html_options["method"] = "get"
+              ''
+            when /^post$/i, "", nil
+              html_options["method"] = "post"
+              ''
+            else
+              html_options["method"] = "post"
+              content_tag(:div, tag(:input, :type => "hidden", :name => "_method", :value => method), :style => 'margin:0;padding:0')
+          end
+        end
+        
+        def form_tag_html(html_options)
+          extra_tags = extra_tags_for_form(html_options)
+          tag(:form, html_options, true) + extra_tags
+        end
+        
+        def form_tag_in_block(html_options, &block)
+          content = capture(&block)
+          concat(form_tag_html(html_options), block.binding)
+          concat(content, block.binding)
+          concat("</form>", block.binding)
+        end
     end
   end
 end

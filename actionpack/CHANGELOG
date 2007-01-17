@@ -1,5 +1,7 @@
 *SVN*
 
+* Refactor #form_tag to allow easy extending.  [Rick]
+
 * Update to Prototype 1.5.0. [Sam Stephenson]
 
 * RecordInvalid, RecordNotSaved => 422 Unprocessable Entity, StaleObjectError => 409 Conflict.  #7097 [dkubb]
