@@ -1,4 +1,4 @@
-*SVN*
+*1.13.0* (January 16th, 2007)
 
 * Allow exempt_from_layout :rhtml.  #6742, #7026 [dcmanges, Squeegy]
 
@@ -19,9 +19,6 @@
 * Clean up multiple calls to #stringify_keys in TagHelper, add better documentation and testing for TagHelper.  Closes #6394 [Bob Silva]
 
 * [DOCS] fix reference to ActionController::Macros::AutoComplete for #text_field_with_auto_complete. Closes #2578 [Jan Prill]
-
-
-*1.13.0 RC2* (r5847, January 4th, 2007)
 
 * Make sure html_document is reset between integration test requests. [ctm]
 

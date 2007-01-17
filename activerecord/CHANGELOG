@@ -1,4 +1,4 @@
-*SVN*
+*1.15.0* (January 16th, 2007)
 
 * [DOC] clear up some ambiguity with the way has_and_belongs_to_many creates the default join table name.  #7072 [jeremymcanally]
 
@@ -22,9 +22,6 @@
 
 * [DOCS] Document :allow_nil option of #validate_uniqueness_of. Closes #3143 [Caio Chassot]
 
-
-*1.15.0 RC2* (r5847, January 4th, 2007)
-
 * Bring the sybase adapter up to scratch for 1.2 release. [jsheets]
 
 * Oracle: fix connection reset failure.  #6846 [leonlleslie]
@@ -37,9 +34,6 @@
 
 * Support nil and Array in :conditions => { attr => value } hashes.  #6548 [Assaf, Jeremy Kemper]
     find(:all, :conditions => { :topic_id => [1, 2, 3], :last_read => nil }
-
-
-*1.15.0 RC1* (r5619, November 22nd, 2006)
 
 * Quote ActiveSupport::Multibyte::Chars.  #6653 [Julian Tarkhanov]
 

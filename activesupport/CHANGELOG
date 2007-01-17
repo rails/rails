@@ -1,11 +1,8 @@
-*SVN*
+*1.4.0* (January 16th, 2007)
 
 * Document Inflector.ordinalize and merge docs from String inflections.  #7023 [smeade]
 
 * Unbundle flexmock.  [Jeremy Kemper]
-
-
-*1.4.0 RC2* (r5847, January 4th, 2007)
 
 * Fix Dependencies.autoloaded? to ignore anonymous modules. Closes #6561. [Nicholas Seckar]
 
@@ -16,9 +13,6 @@
 * Fix remove_constant to correctly handle constant names of the form "::A::...". References #6720. [Nicholas Seckar]
 
 * Fixed Array#to_xml when it contains a series of hashes (each piece would get its own XML declaration) #6610 [thkarcher/cyu]
-
-
-*1.4.0 RC1* (r5619, November 22nd, 2006)
 
 * Hash#to_xml handles keys with the same name as Kernel methods.  #6613 [Catfish]
 
