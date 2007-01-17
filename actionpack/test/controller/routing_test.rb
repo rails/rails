@@ -774,6 +774,8 @@ class ControllerSegmentTest < Test::Unit::TestCase
   
 end
 
+uses_mocha 'RouteTest' do
+  
 class RouteTest < Test::Unit::TestCase
 
   def setup
@@ -847,7 +849,18 @@ class RouteTest < Test::Unit::TestCase
     o = {:controller => 'accounts', :action => 'list_all'}
     assert_equal '/accounts/list_all', default_route.generate(o, o, {})
   end
-  
+
+  def test_matches_controller_and_action
+    # requirement_for should only be called for the action and controller _once_
+    @route.expects(:requirement_for).with(:controller).times(1).returns('pages')
+    @route.expects(:requirement_for).with(:action).times(1).returns('show')
+    
+    @route.requirements = {:controller => 'pages', :action => 'show'}
+    assert @route.matches_controller_and_action?('pages', 'show')
+    assert !@route.matches_controller_and_action?('not_pages', 'show')
+    assert !@route.matches_controller_and_action?('pages', 'not_show')
+  end
+    
   def test_parameter_shell
     page_url = ROUTING::Route.new
     page_url.requirements = {:controller => 'pages', :action => 'show', :id => /\d+/}
@@ -933,6 +946,8 @@ class RouteTest < Test::Unit::TestCase
       '?' + qs[1..-1].split('&').sort.join('&')
     end
 end
+
+end # uses_mocha
 
 class RouteBuilderTest < Test::Unit::TestCase
 
