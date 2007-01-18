@@ -160,7 +160,8 @@ module ActiveRecord
         true
       end
 
-      def native_database_types #:nodoc:        {
+      def native_database_types #:nodoc:
+        {
           :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY",
           :string      => { :name => "varchar", :limit => 255 },
           :text        => { :name => "text" },
@@ -277,7 +278,8 @@ module ActiveRecord
       end
 
 
-      def add_limit_offset!(sql, options) #:nodoc:        if limit = options[:limit]
+      def add_limit_offset!(sql, options) #:nodoc:
+        if limit = options[:limit]
           unless offset = options[:offset]
             sql << " LIMIT #{limit}"
           else

@@ -134,7 +134,8 @@ begin
           true
         end
 
-        def native_database_types #:nodoc:          {
+        def native_database_types #:nodoc:
+          {
             :primary_key => "NUMBER(38) NOT NULL PRIMARY KEY",
             :string      => { :name => "VARCHAR2", :limit => 255 },
             :text        => { :name => "CLOB" },
