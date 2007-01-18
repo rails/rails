@@ -1,3 +1,8 @@
+*1.2.1* (January 16th, 2007)
+
+* Depend on Action Pack 1.13.1
+
+
 *1.2.0* (January 16th, 2007)
 
 * Removed invocation of deprecated before_action and around_action filter methods. Corresponding before_invocation and after_invocation methods should be used instead. #6275 [Kent Sibilev]

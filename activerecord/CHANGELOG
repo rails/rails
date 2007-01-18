@@ -1,3 +1,8 @@
+*1.15.1* (January 17th, 2007)
+
+* Fix nodoc breaking of adapters
+
+
 *1.15.0* (January 16th, 2007)
 
 * [DOC] clear up some ambiguity with the way has_and_belongs_to_many creates the default join table name.  #7072 [jeremymcanally]

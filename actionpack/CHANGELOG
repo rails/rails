@@ -1,3 +1,8 @@
+*1.13.1* (January 18th, 2007)
+
+* Fixed content-type bug in Prototype [sam]
+
+
 *1.13.0* (January 16th, 2007)
 
 * Modernize cookie testing code, and increase coverage (Heckle++) #7101 [Kevin Clark]
