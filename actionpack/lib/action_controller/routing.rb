@@ -964,7 +964,7 @@ module ActionController
       # 
       # Mapper instances have relatively few instance methods, in order to avoid
       # clashes with named routes.
-      class Mapper
+      class Mapper #:nodoc:
         def initialize(set)
           @set = set
         end
@@ -996,7 +996,7 @@ module ActionController
       # A NamedRouteCollection instance is a collection of named routes, and also
       # maintains an anonymous module that can be used to install helpers for the
       # named routes.
-      class NamedRouteCollection
+      class NamedRouteCollection #:nodoc:
         include Enumerable
 
         attr_reader :routes, :helpers
