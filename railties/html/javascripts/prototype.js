@@ -833,25 +833,26 @@ Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
 
   request: function(url) {
     this.url = url;
-    var params = this.options.parameters, method = this.options.method;
+    this.method = this.options.method;
+    var params = this.options.parameters;
 
-    if (!['get', 'post'].include(method)) {
+    if (!['get', 'post'].include(this.method)) {
       // simulate other verbs over post
-      params['_method'] = method;
-      method = 'post';
+      params['_method'] = this.method;
+      this.method = 'post';
     }
 
     params = Hash.toQueryString(params);
     if (params && /Konqueror|Safari|KHTML/.test(navigator.userAgent)) params += '&_='
 
     // when GET, append parameters to URL
-    if (method == 'get' && params)
+    if (this.method == 'get' && params)
       this.url += (this.url.indexOf('?') > -1 ? '&' : '?') + params;
 
     try {
       Ajax.Responders.dispatch('onCreate', this, this.transport);
 
-      this.transport.open(method.toUpperCase(), this.url,
+      this.transport.open(this.method.toUpperCase(), this.url,
         this.options.asynchronous);
 
       if (this.options.asynchronous)
@@ -860,7 +861,7 @@ Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
       this.transport.onreadystatechange = this.onStateChange.bind(this);
       this.setRequestHeaders();
 
-      var body = method == 'post' ? (this.options.postBody || params) : null;
+      var body = this.method == 'post' ? (this.options.postBody || params) : null;
 
       this.transport.send(body);
 
@@ -887,7 +888,7 @@ Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
       'Accept': 'text/javascript, text/html, application/xml, text/xml, */*'
     };
 
-    if (this.options.method == 'post') {
+    if (this.method == 'post') {
       headers['Content-type'] = this.options.contentType +
         (this.options.encoding ? '; charset=' + this.options.encoding : '');
 
