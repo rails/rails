@@ -24,7 +24,7 @@ class NilClass
   end
 end
 
-class Regexp
+class Regexp #:nodoc:
   def number_of_captures
     Regexp.new("|#{source}").match('').captures.length
   end
@@ -305,7 +305,7 @@ module ActionController
       end     
     end
   
-    class Route
+    class Route #:nodoc:
       attr_accessor :segments, :requirements, :conditions
       
       def initialize
@@ -536,7 +536,7 @@ module ActionController
   
     end
 
-    class Segment
+    class Segment #:nodoc:
       attr_accessor :is_optional
       alias_method :optional?, :is_optional
 
@@ -591,7 +591,7 @@ module ActionController
       end
     end
 
-    class StaticSegment < Segment
+    class StaticSegment < Segment #:nodoc:
       attr_accessor :value, :raw
       alias_method :raw?, :raw
   
@@ -625,7 +625,7 @@ module ActionController
       end
     end
 
-    class DividerSegment < StaticSegment
+    class DividerSegment < StaticSegment #:nodoc:
       def initialize(value = nil)
         super(value)
         self.raw = true
@@ -637,7 +637,7 @@ module ActionController
       end
     end
 
-    class DynamicSegment < Segment
+    class DynamicSegment < Segment #:nodoc:
       attr_accessor :key, :default, :regexp
   
       def initialize(key = nil, options = {})
@@ -725,7 +725,7 @@ module ActionController
   
     end
 
-    class ControllerSegment < DynamicSegment
+    class ControllerSegment < DynamicSegment #:nodoc:
       def regexp_chunk
         possible_names = Routing.possible_controllers.collect { |name| Regexp.escape name }
         "(?i-:(#{(regexp || Regexp.union(*possible_names)).source}))"
@@ -752,7 +752,7 @@ module ActionController
       end
     end
 
-    class PathSegment < DynamicSegment
+    class PathSegment < DynamicSegment #:nodoc:
       EscapedSlash = CGI.escape("/")
       def interpolation_chunk
         "\#{CGI.escape(#{local_name}.to_s).gsub(#{EscapedSlash.inspect}, '/')}"
@@ -782,7 +782,7 @@ module ActionController
       end     
     end
 
-    class RouteBuilder
+    class RouteBuilder #:nodoc:
       attr_accessor :separators, :optional_separators
   
       def initialize
@@ -958,7 +958,7 @@ module ActionController
       end
     end
 
-    class RouteSet
+    class RouteSet #:nodoc:
       # Mapper instances are used to build routes. The object passed to the draw
       # block in config/routes.rb is a Mapper instance.
       # 

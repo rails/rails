@@ -201,7 +201,8 @@ module HTML
 
 
     # An invalid selector.
-    class InvalidSelectorError < StandardError ; end
+    class InvalidSelectorError < StandardError #:nodoc:
+    end
 
 
     class << self

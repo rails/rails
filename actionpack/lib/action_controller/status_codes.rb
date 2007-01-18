@@ -1,6 +1,5 @@
 module ActionController
-  module StatusCodes
-
+  module StatusCodes #:nodoc:
     # Defines the standard HTTP status codes, by integer, with their
     # corresponding default message texts.
     # Source: http://www.iana.org/assignments/http-status-codes

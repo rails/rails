@@ -51,7 +51,7 @@ module ActiveRecord
     # Assigns a world-wide unique ID made up of:
     # < Sequence [2], ProcessID [2] , Time [4], IP Addr [4] >
     
-    class TwelveByteKey < String #:nodoc
+    class TwelveByteKey < String #:nodoc:
       @@mutex = Mutex.new
       @@sequence_number = rand(65536)
       @@key_cached_pid_component = nil
@@ -271,8 +271,7 @@ module ActiveRecord
         true
       end
 
-      def native_database_types #:nodoc
-        {
+      def native_database_types #:nodoc:        {
           :primary_key    => "INTEGER DEFAULT UNIQUE PRIMARY KEY",
           :string         => { :name => "VARCHAR", :limit => 255 },
           :text           => { :name => "CLOB" },
@@ -564,8 +563,7 @@ module ActiveRecord
         execute "SET COMMIT TRUE"
       end
 
-      def add_limit_offset!(sql, options) #:nodoc
-        if limit = options[:limit]
+      def add_limit_offset!(sql, options) #:nodoc:        if limit = options[:limit]
           offset = options[:offset] || 0
         
 # Here is the full syntax FrontBase supports:
