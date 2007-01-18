@@ -15,7 +15,7 @@ class XmlSimple
 
   # A simple cache for XML documents that were already transformed
   # by xml_in.
-  class Cache
+  class Cache #:nodoc:
     # Creates and initializes a new Cache object.
     def initialize
       @mem_share_cache = {}

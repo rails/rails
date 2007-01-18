@@ -1,7 +1,5 @@
-
 # Add a +missing_name+ method to NameError instances.
-class NameError < StandardError
-  
+class NameError < StandardError #:nodoc:  
   # Add a method to obtain the missing name from a NameError.
   def missing_name
     $1 if /((::)?([A-Z]\w*)(::[A-Z]\w*)*)$/ =~ message
@@ -16,5 +14,4 @@ class NameError < StandardError
       missing_name == name.to_s
     end
   end
-  
 end

@@ -30,7 +30,7 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughSourceAssociationMacroError < ActiveRecordError #:nodoc
+  class HasManyThroughSourceAssociationMacroError < ActiveRecordError #:nodoc:
     def initialize(reflection)
       through_reflection = reflection.through_reflection
       source_reflection  = reflection.source_reflection

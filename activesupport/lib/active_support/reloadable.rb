@@ -4,9 +4,8 @@ require 'active_support/deprecation'
 # 
 # Deprecated as of Rails 1.2.
 # All autoloaded objects are now unloaded.
-module Reloadable
-  class << self
-    
+module Reloadable #:nodoc:
+  class << self    
     def included(base) #nodoc:
       unless base.ancestors.include?(Reloadable::Subclasses) # Avoid double warning
         ActiveSupport::Deprecation.warn "Reloadable has been deprecated and has no effect.", caller
@@ -37,7 +36,7 @@ module Reloadable
   # 
   # Deprecated as of Rails 1.2.
   # All autoloaded objects are now unloaded.
-  module Subclasses
+  module Subclasses #:nodoc:
     def self.included(base) #nodoc:
       base.send :include, Reloadable
       ActiveSupport::Deprecation.warn "Reloadable::Subclasses has been deprecated and has no effect.", caller
@@ -48,8 +47,7 @@ module Reloadable
     end
   end
   
-  module Deprecated
-    
+  module Deprecated #:nodoc:
     def self.included(base)
       class << base
         define_method(:reloadable?) do
@@ -58,7 +56,5 @@ module Reloadable
         end
       end
     end
-    
   end
-  
 end
