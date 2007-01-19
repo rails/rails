@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to script.aculo.us 1.7.0.  [Thomas Fuchs]
+
 * Modernize cookie testing code, and increase coverage (Heckle++) #7101 [Kevin Clark]
 
 * Improve Test Coverage for ActionController::Routing::Route#matches_controller_and_action? (Heckle++) #7115 [Kevin Clark]

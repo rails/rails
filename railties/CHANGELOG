@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to script.aculo.us 1.7.0.  [Thomas Fuchs]
+
 * Update to Prototype 1.5.0. [Sam Stephenson]
 
 * Generator: use destination path for diff tempfiles.  #7015 [alfeld]

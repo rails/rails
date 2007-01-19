@@ -303,12 +303,12 @@ Draggable.prototype = {
     if(Event.isLeftClick(event)) {    
       // abort on form elements, fixes a Firefox issue
       var src = Event.element(event);
-      if(src.tagName && (
-        src.tagName=='INPUT' ||
-        src.tagName=='SELECT' ||
-        src.tagName=='OPTION' ||
-        src.tagName=='BUTTON' ||
-        src.tagName=='TEXTAREA')) return;
+      if((tag_name = src.tagName.toUpperCase()) && (
+        tag_name=='INPUT' ||
+        tag_name=='SELECT' ||
+        tag_name=='OPTION' ||
+        tag_name=='BUTTON' ||
+        tag_name=='TEXTAREA')) return;
         
       var pointer = [Event.pointerX(event), Event.pointerY(event)];
       var pos     = Position.cumulativeOffset(this.element);
@@ -572,7 +572,7 @@ var Sortable = {
   sortables: {},
   
   _findRootElement: function(element) {
-    while (element.tagName != "BODY") {  
+    while (element.tagName.toUpperCase() != "BODY") {  
       if(element.id && Sortable.sortables[element.id]) return element;
       element = element.parentNode;
     }
