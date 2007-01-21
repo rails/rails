@@ -354,26 +354,26 @@ module ActionView
           @_cycles = Hash.new unless defined?(@_cycles)
           @_cycles[name] = cycle_object
         end
-      
+
         AUTO_LINK_RE = %r{
-                        (                         # leading text
-                          <\w+.*?>|               # leading HTML tag, or
-                          [^=!:'"/]|              # leading punctuation, or 
-                          ^                       # beginning of line
+                        (                          # leading text
+                          <\w+.*?>|                # leading HTML tag, or
+                          [^=!:'"/]|               # leading punctuation, or 
+                          ^                        # beginning of line
                         )
                         (
-                          (?:https?://)|          # protocol spec, or
-                          (?:www\.)               # www.*
+                          (?:https?://)|           # protocol spec, or
+                          (?:www\.)                # www.*
                         ) 
                         (
-                          [-\w]+                  # subdomain or domain
-                          (?:\.[-\w]+)*           # remaining subdomains or domain
-                          (?::\d+)?               # port
-                          (?:/(?:[~\w\+%.;-]+)?)* # path
-                          (?:\?[\w\+%&=.;-]+)?    # query string
-                          (?:\#[\w\-]*)?          # trailing anchor
+                          [-\w]+                   # subdomain or domain
+                          (?:\.[-\w]+)*            # remaining subdomains or domain
+                          (?::\d+)?                # port
+                          (?:/(?:[~\w\+%.;:-]+)?)* # path
+                          (?:\?[\w\+%&=.;-]+)?     # query string
+                          (?:\#[\w\-]*)?           # trailing anchor
                         )
-                        ([[:punct:]]|\s|<|$)      # trailing text
+                        ([[:punct:]]|\s|<|$)       # trailing text
                        }x unless const_defined?(:AUTO_LINK_RE)
 
         # Turns all urls into clickable links.  If a block is given, each url

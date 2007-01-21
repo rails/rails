@@ -1,5 +1,7 @@
 *SVN*
 
+* Make TextHelper::auto_link recognize URLs with colons in path correctly, fixes #7268.  [imajes]
+
 * Update to script.aculo.us 1.7.0.  [Thomas Fuchs]
 
 * Modernize cookie testing code, and increase coverage (Heckle++) #7101 [Kevin Clark]

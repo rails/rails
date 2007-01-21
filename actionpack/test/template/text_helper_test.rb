@@ -131,7 +131,9 @@ class TextHelperTest < Test::Unit::TestCase
               http://www.rubyonrails.com/contact;new
               http://www.rubyonrails.com/contact;new%20with%20spaces
               http://www.rubyonrails.com/contact;new?with=query&string=params
-              http://www.rubyonrails.com/~minam/contact;new?with=query&string=params)
+              http://www.rubyonrails.com/~minam/contact;new?with=query&string=params
+              http://en.wikipedia.org/wiki/Wikipedia:Today%27s_featured_picture_%28animation%29/January_20%2C_2007
+            )
 
     urls.each do |url|
       assert_equal %(<a href="#{url}">#{url}</a>), auto_link(url)
