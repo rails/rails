@@ -245,6 +245,8 @@ class TestMailer < ActionMailer::Base
   end
 end
 
+uses_mocha 'ActionMailerTest' do
+
 class ActionMailerTest < Test::Unit::TestCase
   include ActionMailer::Quoting
 
@@ -261,12 +263,19 @@ class ActionMailerTest < Test::Unit::TestCase
     mail
   end
 
+  # Replacing logger work around for mocha bug. Should be fixed in mocha 0.3.3
   def setup
     ActionMailer::Base.delivery_method = :test
     ActionMailer::Base.perform_deliveries = true
+    ActionMailer::Base.raise_delivery_errors
     ActionMailer::Base.deliveries = []
 
+    @original_logger = TestMailer.logger
     @recipient = 'test@localhost'
+  end
+  
+  def teardown
+    TestMailer.logger = @original_logger
   end
 
   def test_nested_parts
@@ -434,6 +443,20 @@ class ActionMailerTest < Test::Unit::TestCase
     ActionMailer::Base.perform_deliveries = true
     TestMailer.deliver_signed_up(@recipient)
     assert_equal 1, ActionMailer::Base.deliveries.size
+  end
+  
+  def test_doesnt_raise_errors_when_raise_delivery_errors_is_false
+    ActionMailer::Base.raise_delivery_errors = false
+    TestMailer.any_instance.expects(:perform_delivery_test).raises(Exception)
+    assert_nothing_raised { TestMailer.deliver_signed_up(@recipient) }
+  end
+  
+  def test_delivery_logs_sent_mail
+    mail = TestMailer.create_signed_up(@recipient)
+    logger = mock()
+    logger.expects(:info).with("Sent mail:\n #{mail.encoded}")
+    TestMailer.logger = logger
+    TestMailer.deliver_signed_up(@recipient)
   end
 
   def test_unquote_quoted_printable_subject
@@ -788,6 +811,8 @@ EOF
     assert_match %r{charset=utf-8}, mail['content-type'].to_s
   end
 end
+
+end # uses_mocha
 
 class InheritableTemplateRootTest < Test::Unit::TestCase
   def test_attr

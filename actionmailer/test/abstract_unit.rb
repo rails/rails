@@ -28,3 +28,12 @@ class Net::SMTP
     yield MockSMTP.new
   end
 end
+
+# Wrap tests that use Mocha and skip if unavailable.
+def uses_mocha(test_name)
+  require 'mocha'
+  require 'stubba'
+  yield
+rescue LoadError
+  $stderr.puts "Skipping #{test_name} tests. `gem install mocha` and try again."
+end
