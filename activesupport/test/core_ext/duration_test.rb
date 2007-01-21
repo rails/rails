@@ -14,4 +14,8 @@ class DurationTest < Test::Unit::TestCase
   def test_minus_with_duration_does_not_break_subtraction_of_date_from_date
     assert_nothing_raised { Date.today - Date.today }
   end
+  
+  def test_plus_with_time
+    assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
+  end
 end
