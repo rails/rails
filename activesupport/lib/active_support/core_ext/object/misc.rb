@@ -1,4 +1,4 @@
-class Object #:nodoc:
+class Object
   # A Ruby-ized realization of the K combinator, courtesy of Mikael Brockman.
   #
   #   def foo
@@ -24,10 +24,30 @@ class Object #:nodoc:
     value
   end
 
+  # An elegant way to refactor out common options
+  # 
+  #   with_options :order => 'created_at', :class_name => 'Comment' do |post|
+  #     post.has_many :comments, :conditions => ['approved = ?', true], :dependent => :delete_all
+  #     post.has_many :unapproved_comments, :conditions => ['approved = ?', false]
+  #     post.has_many :all_comments
+  #   end
+  #
+  # Can also be used with an explicit reciever:
+  #
+  #   map.with_options :controller => "people" do |people|
+  #     people.connect "/people",     :action => "index"
+  #     people.connect "/people/:id", :action => "show"
+  #   end
+  #
   def with_options(options)
     yield ActiveSupport::OptionMerger.new(self, options)
   end
   
+  # Dumps object in JSON (JavaScript Object Notation).  See www.json.org for more info.
+  #
+  #   Account.find(1).to_json
+  #   => "{attributes: {username: \"foo\", id: \"1\", password: \"bar\"}}"
+  #
   def to_json
     ActiveSupport::JSON.encode(self)
   end

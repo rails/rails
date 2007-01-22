@@ -1,5 +1,7 @@
 *SVN*
 
+* Better docs for Object extensions [zackchandler, Jamis Buck]
+
 * Fix that Dates couldn't be subtracted from Dates after [5940].  [Sam Stephenson]
 
 * Add Object#acts_like? and Time#acts_like_time? and Date#acts_like_date? to facilitate duck-typing. [Jamis Buck]
