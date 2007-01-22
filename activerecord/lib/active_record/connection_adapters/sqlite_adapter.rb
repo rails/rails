@@ -105,6 +105,11 @@ module ActiveRecord
       def requires_reloading?
         true
       end
+ 
+      def disconnect!
+        super
+        @connection.close rescue nil
+      end
 
       def supports_count_distinct? #:nodoc:
         sqlite_version >= '3.2.6'
