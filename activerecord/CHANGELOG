@@ -1,3 +1,8 @@
+*SVN*
+
+* SQLServer: quote table name in indexes query.  #2928 [keithm@infused.org]
+
+
 *1.15.1* (January 17th, 2007)
 
 * Fix nodoc breaking of adapters
