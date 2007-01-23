@@ -1,0 +1,30 @@
+Description:
+    The resource generator creates an empty model, controller, and functional
+    suitable for inclusion in a REST-like, resource-oriented application.
+    
+    The generator takes the name of the model as its first argument. This
+    model name is then pluralized to get the controller name. So "resource
+    post" will generate a Post model and a PostsController and will be 
+    intended for URLs like /posts and /posts/45.
+    
+    As additional parameters, the generator will take attribute pairs
+    described by name and type. These attributes will be used to
+    prepopulate the migration to create the table for the model. For 
+    example, "resource post title:string created_on:date body:text 
+    published:boolean" will give you a Post model with those four attributes.
+    
+    You don't have to think up all attributes up front, but it's a good
+    idea of adding just the baseline of what's needed to start really
+    working with the resource.
+    
+    The generator also adds an appropriate map.resources declaration to 
+    your config/routes.rb file, hooking up the rules that'll point URLs to 
+    this new resource. 
+    
+    Unlike the scaffold_resource generator, the resource generator does not
+    create views or add any methods to the generated controller.
+    
+Examples:
+    ./script/generate resource post # no attributes
+    ./script/generate resource post title:string created_on:date body:text published:boolean
+    ./script/generate resource purchase order_id:integer created_at:datetime amount:decimal
