@@ -137,6 +137,27 @@ class BaseTest < Test::Unit::TestCase
     assert_equal "/", Person.prefix
     assert_equal Set.new, Person.send(:prefix_parameters)
   end
+  
+  def test_set_prefix
+    SetterTrap.rollback_sets(Person) do |person_class|
+      person_class.prefix = "the_prefix"
+      assert_equal "the_prefix", person_class.prefix
+    end
+  end
+  
+  def test_set_prefix_with_inline_keys
+    SetterTrap.rollback_sets(Person) do |person_class|
+      person_class.prefix = "the_prefix:the_param"
+      assert_equal "the_prefixthe_param_value", person_class.prefix(:the_param => "the_param_value")
+    end
+  end
+  
+  def test_set_prefix_with_default_value
+    SetterTrap.rollback_sets(Person) do |person_class|
+      person_class.set_prefix
+      assert_equal "/", person_class.prefix
+    end
+  end
 
   def test_custom_prefix
     assert_equal '/people//', StreetAddress.prefix
@@ -260,5 +281,10 @@ class BaseTest < Test::Unit::TestCase
     assert StreetAddress.find(1, :person_id => 1).exists?
     assert !StreetAddress.new({:id => 1}, {:person_id => 2}).exists?
     assert !StreetAddress.new({:id => 2}, {:person_id => 1}).exists?
+  end
+  
+  def test_to_xml
+    matz = Person.find(1)
+    assert_equal "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name>Matz</name>\n  <id type=\"integer\">1</id>\n</person>\n", matz.to_xml
   end
 end

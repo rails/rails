@@ -1,5 +1,7 @@
 *SVN*
 
+* Increase ActiveResource::Base test coverage.  Closes #7173, #7174 [Rich Collins]
+
 * Interpret 422 Unprocessable Entity as ResourceInvalid.  #7097 [dkubb]
 
 * Mega documentation patches. #7025, #7069 [rwdaigle]
