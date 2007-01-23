@@ -327,4 +327,37 @@ class InflectorTest < Test::Unit::TestCase
       assert_equal(lower_camel, Inflector.camelize(underscored, false))
     end
   end
+  
+  %w{plurals singulars uncountables}.each do |inflection_type|
+    class_eval "
+      def test_clear_#{inflection_type}
+        cached_values = Inflector.inflections.#{inflection_type}
+        Inflector.inflections.clear :#{inflection_type}
+        assert Inflector.inflections.#{inflection_type}.empty?, \"#{inflection_type} inflections should be empty after clear :#{inflection_type}\"
+        Inflector.inflections.instance_variable_set :@#{inflection_type}, cached_values
+      end
+    "
+  end
+  
+  def test_clear_all
+    cached_values = Inflector.inflections.plurals, Inflector.inflections.singulars, Inflector.inflections.uncountables
+    Inflector.inflections.clear :all
+    assert Inflector.inflections.plurals.empty?
+    assert Inflector.inflections.singulars.empty?
+    assert Inflector.inflections.uncountables.empty?
+    Inflector.inflections.instance_variable_set :@plurals, cached_values[0]
+    Inflector.inflections.instance_variable_set :@singulars, cached_values[1]
+    Inflector.inflections.instance_variable_set :@uncountables, cached_values[2]
+  end
+  
+  def test_clear_with_default
+    cached_values = Inflector.inflections.plurals, Inflector.inflections.singulars, Inflector.inflections.uncountables
+    Inflector.inflections.clear
+    assert Inflector.inflections.plurals.empty?
+    assert Inflector.inflections.singulars.empty?
+    assert Inflector.inflections.uncountables.empty?
+    Inflector.inflections.instance_variable_set :@plurals, cached_values[0]
+    Inflector.inflections.instance_variable_set :@singulars, cached_values[1]
+    Inflector.inflections.instance_variable_set :@uncountables, cached_values[2]
+  end
 end

@@ -1,5 +1,11 @@
 *SVN*
 
+* Remove unused code from Duration#inspect.  Closes #7180.  [Rich Collins]
+
+* Added test coverage for Inflector.inflections.clear.  Closes #7179. [Rich Collins]
+
+* ActiveSupport::Multibyte::Handlers::UTF8Handler should raise when a range and an integer are passed in (just like the native implementation).  Closes #7176 [Rich Collins]
+
 * A couple extra tests for #classify.  Closes #7273. [Josh Susser]
 
 * Better docs for Object extensions [zackchandler, Jamis Buck]
