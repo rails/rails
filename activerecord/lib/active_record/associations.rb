@@ -98,7 +98,7 @@ module ActiveRecord
     # ActiveRecord associations can be used to describe relations with one-to-one, one-to-many
     # and many-to-many cardinality. Each model uses an association to describe its role in
     # the relation. In each case, the belongs_to association is used in the model that has
-    # the foreign key
+    # the foreign key.
     #
     # === One-to-one
     #
@@ -119,7 +119,7 @@ module ActiveRecord
     #     has_many :employees
     #   end
     #   class Employee < ActiveRecord::Base
-    #     belongs_to :manager     # foreign key - employee_id
+    #     belongs_to :manager     # foreign key - manager_id
     #   end
     #
     # === Many-to-many

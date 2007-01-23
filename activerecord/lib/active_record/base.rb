@@ -1712,7 +1712,7 @@ module ActiveRecord #:nodoc:
       # nil nor empty? (the latter only applies to objects that respond to empty?, most notably Strings).
       def attribute_present?(attribute)
         value = read_attribute(attribute)
-        !value.blank? or value == 0
+        !value.blank?
       end
 
       # Returns true if the given attribute is in the attributes hash

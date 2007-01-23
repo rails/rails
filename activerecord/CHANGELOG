@@ -1,5 +1,9 @@
 *SVN*
 
+* Remove useless code in #attribute_present? since 0 != blank?.  Closes #7249 [Josh Susser]
+
+* Fix minor doc typos. Closes #7157 [Josh Susser]
+
 * Fix incorrect usage of #classify when creating the eager loading join statement.  Closes #7044 [Josh Susser]
 
 * SQLServer: quote table name in indexes query.  #2928 [keithm@infused.org]
