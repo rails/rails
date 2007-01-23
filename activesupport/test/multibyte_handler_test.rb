@@ -162,6 +162,9 @@ module UTF8HandlingTest
     assert_equal " Блå ﬃ ", @handler.slice(@string, 4..10), "Unicode characters have to be returned"
     assert_equal "", @handler.slice(@string, 7..6), "Range is empty, should return an empty string"
     assert_raise(ActiveSupport::Multibyte::Handlers::EncodingError) { @handler.slice(@bytestring, 2..3) }
+    assert_raise(TypeError, "With 2 args, should raise TypeError for non-Numeric or Regexp first argument") { @handler.slice(@string, 2..3, 1) }
+    assert_raise(TypeError, "With 2 args, should raise TypeError for non-Numeric or Regexp second argument") { @handler.slice(@string, 1, 2..3) }
+    assert_raise(ArgumentError, "Should raise ArgumentError when there are more than 2 args") { @handler.slice(@string, 1, 1, 1) }
   end
   
   def test_grapheme_cluster_length

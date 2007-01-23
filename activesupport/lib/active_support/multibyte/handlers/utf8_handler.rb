@@ -168,8 +168,12 @@ module ActiveSupport::Multibyte::Handlers
       # Implements Unicode-aware slice with codepoints. Slicing on one point returns the codepoints for that
       # character.
       def slice(str, *args)
-        if (args.size == 2 && args.first.is_a?(Range))
-          raise TypeError, 'cannot convert Range into Integer' # Do as if we were native
+        if args.size > 2
+          raise ArgumentError, "wrong number of arguments (#{args.size} for 1)" # Do as if we were native
+        elsif (args.size == 2 && !(args.first.is_a?(Numeric) || args.first.is_a?(Regexp)))
+          raise TypeError, "cannot convert #{args.first.class} into Integer" # Do as if we were native
+        elsif (args.size == 2 && !args[1].is_a?(Numeric))
+          raise TypeError, "cannot convert #{args[1].class} into Integer" # Do as if we were native
         elsif args[0].kind_of? Range
           cps = u_unpack(str).slice(*args)
           cps.nil? ? nil : cps.pack('U*')
