@@ -275,12 +275,13 @@ class InflectorTest < Test::Unit::TestCase
   def test_classify
     ClassNameToTableName.each do |class_name, table_name|
       assert_equal(class_name, Inflector.classify(table_name))
+      assert_equal(class_name, Inflector.classify("table_prefix." + table_name))
     end
   end
 
   def test_classify_with_symbol
     assert_nothing_raised do
-      assert_equal 'FooBar', Inflector.classify(:foo_bar)
+      assert_equal 'FooBar', Inflector.classify(:foo_bars)
     end
   end
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* A couple extra tests for #classify.  Closes #7273. [Josh Susser]
+
 * Better docs for Object extensions [zackchandler, Jamis Buck]
 
 * Fix that Dates couldn't be subtracted from Dates after [5940].  [Sam Stephenson]
