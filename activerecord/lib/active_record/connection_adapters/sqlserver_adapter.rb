@@ -430,7 +430,7 @@ module ActiveRecord
       def indexes(table_name, name = nil)
         ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = false
         indexes = []        
-        execute("EXEC sp_helpindex #{table_name}", name) do |sth|
+        execute("EXEC sp_helpindex '#{table_name}'", name) do |sth|
           sth.each do |index| 
             unique = index[1] =~ /unique/
             primary = index[1] =~ /primary key/

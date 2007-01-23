@@ -1,5 +1,7 @@
 *SVN*
 
+* SQLServer: quote table name in indexes query.  #2928 [keithm@infused.org]
+
 * Subclasses of an abstract class work with single-table inheritance.  #5704, #7284 [BertG, nick+rails@ag.arizona.edu]
 
 * Make sure sqlite3 driver closes open connections on disconnect [Rob Rasmussen]
