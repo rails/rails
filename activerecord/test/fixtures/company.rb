@@ -1,4 +1,8 @@
-class Company < ActiveRecord::Base
+class AbstractCompany < ActiveRecord::Base
+  self.abstract_class = true
+end
+
+class Company < AbstractCompany
   attr_protected :rating
   set_sequence_name :companies_nonstd_seq
 

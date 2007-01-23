@@ -1,5 +1,7 @@
 *SVN*
 
+* Subclasses of an abstract class work with single-table inheritance.  #5704, #7284 [BertG, nick+rails@ag.arizona.edu]
+
 * Make sure sqlite3 driver closes open connections on disconnect [Rob Rasmussen]
 
 * [DOC] clear up some ambiguity with the way has_and_belongs_to_many creates the default join table name.  #7072 [jeremymcanally]

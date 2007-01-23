@@ -6,6 +6,13 @@ require 'fixtures/subscriber'
 class InheritanceTest < Test::Unit::TestCase
   fixtures :companies, :projects, :subscribers, :accounts
 
+  def test_company_descends_from_active_record
+    assert_raise(NoMethodError) { ActiveRecord::Base.descends_from_active_record? }
+    assert AbstractCompany.descends_from_active_record?, 'AbstractCompany should descend from ActiveRecord::Base'
+    assert Company.descends_from_active_record?, 'Company should descend from ActiveRecord::Base'
+    assert !Class.new(Company).descends_from_active_record?, 'Company subclass should not descend from ActiveRecord::Base'
+  end
+
   def test_a_bad_type_column
     #SQLServer need to turn Identity Insert On before manually inserting into the Identity column
     if current_adapter?(:SQLServerAdapter, :SybaseAdapter)
