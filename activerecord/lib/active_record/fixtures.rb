@@ -276,6 +276,8 @@ class Fixtures < YAML::Omap
     @class_name = class_name || 
                   (ActiveRecord::Base.pluralize_table_names ? @table_name.singularize.camelize : @table_name.camelize)
     @table_name = ActiveRecord::Base.table_name_prefix + @table_name + ActiveRecord::Base.table_name_suffix
+    @table_name = class_name.table_name if class_name.respond_to?(:table_name)
+    @connection = class_name.connection if class_name.respond_to?(:connection)
     read_fixture_files
   end
 

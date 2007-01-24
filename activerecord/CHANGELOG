@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixtures use the table name and connection from set_fixture_class.  #7330 [Anthony Eden]
+
 * Remove useless code in #attribute_present? since 0 != blank?.  Closes #7249 [Josh Susser]
 
 * Fix minor doc typos. Closes #7157 [Josh Susser]
