@@ -21,6 +21,9 @@ module ActionWebService # :nodoc:
       # Whether to transform the public API method names into camel-cased names 
       class_inheritable_option :inflect_names, true
 
+      # By default only HTTP POST requests are processed
+      class_inheritable_option :allowed_http_methods, [ :post ]
+      
       # Whether to allow ActiveRecord::Base models in <tt>:expects</tt>.
       # The default is +false+; you should be aware of the security implications
       # of allowing this, and ensure that you don't allow remote callers to

@@ -37,8 +37,11 @@ module ActionWebService # :nodoc:
       module InstanceMethods # :nodoc:
         private
           def dispatch_web_service_request
-            if request.get?
-              render_text('GET not supported', '500 GET not supported')
+            method = request.method.to_s.upcase
+            allowed_methods = self.class.web_service_api ? (self.class.web_service_api.allowed_http_methods.dup || []) : [ :post ]
+            allowed_methods.map!{|m| m.to_s.upcase }
+            if !allowed_methods.include?(method)
+              render_text("#{method} not supported", "500 #{method} not supported")
               return
             end
             exception = nil

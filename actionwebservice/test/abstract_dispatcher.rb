@@ -426,6 +426,43 @@ module DispatcherCommonTests
     assert_match /Web Service Request/, buf
   end
 
+  def test_allowed_http_methods
+    webservice_api = @direct_controller.class.web_service_api
+    original_allowed_http_methods = webservice_api.allowed_http_methods
+    
+    # check defaults
+    assert_equal false, http_method_allowed?(:get)
+    assert_equal false, http_method_allowed?(:head)
+    assert_equal false, http_method_allowed?(:put)
+    assert_equal false, http_method_allowed?(:delete)
+    assert_equal false, http_method_allowed?(:trace)
+    assert_equal false, http_method_allowed?(:connect)
+    assert_equal true,  http_method_allowed?(:post)
+    
+    # allow get and post
+    webservice_api.allowed_http_methods = [ :get, :post ]
+    assert_equal true,  http_method_allowed?(:get)
+    assert_equal true,  http_method_allowed?(:post)
+
+    # allow get only
+    webservice_api.allowed_http_methods = [ :get ]
+    assert_equal true,  http_method_allowed?(:get)
+    assert_equal false, http_method_allowed?(:post)
+    
+    # allow delete only
+    webservice_api.allowed_http_methods = [ 'DELETE' ]
+    assert_equal false, http_method_allowed?(:get)
+    assert_equal false, http_method_allowed?(:head)
+    assert_equal false, http_method_allowed?(:post)
+    assert_equal false, http_method_allowed?(:put)
+    assert_equal false, http_method_allowed?(:trace)
+    assert_equal false, http_method_allowed?(:connect)
+    assert_equal true,  http_method_allowed?(:delete)
+    
+  ensure
+    webservice_api.allowed_http_methods = original_allowed_http_methods    
+  end
+  
   protected
     def service_name(container)
       raise NotImplementedError
@@ -501,5 +538,14 @@ module DispatcherCommonTests
         assert_match(/Response$/, public_method_name) unless public_method_name == "fault"
       end
       return_value
+    end
+    
+    def http_method_allowed?(method)
+      method = method.to_s.upcase
+      test_request = ActionController::TestRequest.new({ 'action' => 'api' })
+      test_response = ActionController::TestResponse.new
+      test_request.env['REQUEST_METHOD'] = method
+      result = @direct_controller.process(test_request, test_response)
+      result.body =~ /(GET|POST|PUT|DELETE|TRACE|CONNECT) not supported/ ? false : true
     end
 end
