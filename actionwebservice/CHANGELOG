@@ -1,5 +1,7 @@
 *SVN*
 
+* Documentation for ActionWebService::API::Base. Closes #7275. [zackchandler]
+
 * Allow action_web_service to handle various HTTP methods including GET. Closes #7011. [zackchandler]
 
 * Ensure that DispatcherError is being thrown when a malformed request is received. [Kent Sibilev]
