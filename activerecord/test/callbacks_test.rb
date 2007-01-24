@@ -49,6 +49,16 @@ class CallbackDeveloper < ActiveRecord::Base
   end
 end
 
+class ParentDeveloper < ActiveRecord::Base
+  set_table_name 'developers'
+  attr_accessor :after_save_called
+  before_validation {|record| record.after_save_called = true}
+end
+
+class ChildDeveloper < ParentDeveloper
+  
+end
+
 class RecursiveCallbackDeveloper < ActiveRecord::Base
   set_table_name 'developers'
 
@@ -374,4 +384,17 @@ class CallbacksTest < Test::Unit::TestCase
       [ :before_validation, :returning_false  ]
     ], david.history
   end
+  
+  def test_inheritence_of_callbacks
+    parent = ParentDeveloper.new
+    assert !parent.after_save_called
+    parent.save
+    assert parent.after_save_called
+    
+    child = ChildDeveloper.new
+    assert !child.after_save_called
+    child.save
+    assert child.after_save_called
+  end
+  
 end
