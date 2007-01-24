@@ -5,6 +5,7 @@ require 'fixtures/company'
 require 'fixtures/task'
 require 'fixtures/reply'
 require 'fixtures/joke'
+require 'fixtures/course'
 require 'fixtures/category'
 
 class FixturesTest < Test::Unit::TestCase
@@ -331,6 +332,16 @@ class SetTableNameFixturesTest < Test::Unit::TestCase
   
   def test_table_method
     assert_kind_of Joke, funny_jokes(:a_joke)
+  end
+end
+
+class CustomConnectionFixturesTest < Test::Unit::TestCase
+  set_fixture_class :courses => Course
+  fixtures :courses
+  
+  def test_connection
+    assert_kind_of Course, courses(:ruby)
+    assert_equal Course.connection, courses(:ruby).connection
   end
 end
 
