@@ -158,6 +158,10 @@ class TextHelperTest < Test::Unit::TestCase
     link6_result = %{<a href="#{link6_raw}">#{link6_raw}</a>}
     link7_raw    = 'http://foo.example.com/controller/action?parm=value&p2=v2#anchor-123'
     link7_result = %{<a href="#{link7_raw}">#{link7_raw}</a>}
+    link8_raw    = 'http://foo.example.com:3000/controller/action.html'
+    link8_result = %{<a href="#{link8_raw}">#{link8_raw}</a>}
+    link9_raw    = 'http://business.timesonline.co.uk/article/0,,9065-2473189,00.html'
+    link9_result = %{<a href="#{link9_raw}">#{link9_raw}</a>}
 
     assert_equal %(hello #{email_result}), auto_link("hello #{email_raw}", :email_addresses)
     assert_equal %(Go to #{link_result}), auto_link("Go to #{link_raw}", :urls)
@@ -185,6 +189,18 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal %(<p>#{link5_result} Link</p>), auto_link("<p>#{link5_raw} Link</p>")
     assert_equal %(<p>#{link6_result} Link</p>), auto_link("<p>#{link6_raw} Link</p>")
     assert_equal %(<p>#{link7_result} Link</p>), auto_link("<p>#{link7_raw} Link</p>")
+    assert_equal %(Go to #{link8_result}), auto_link("Go to #{link8_raw}", :urls)
+    assert_equal %(Go to #{link8_raw}), auto_link("Go to #{link8_raw}", :email_addresses)
+    assert_equal %(<p>Link #{link8_result}</p>), auto_link("<p>Link #{link8_raw}</p>")
+    assert_equal %(<p>#{link8_result} Link</p>), auto_link("<p>#{link8_raw} Link</p>")
+    assert_equal %(Go to #{link8_result}.), auto_link(%(Go to #{link8_raw}.))
+    assert_equal %(<p>Go to #{link8_result}. seriously, #{link8_result}? i think I'll say hello to #{email_result}. instead.</p>), auto_link(%(<p>Go to #{link8_raw}. seriously, #{link8_raw}? i think I'll say hello to #{email_raw}. instead.</p>))
+    assert_equal %(Go to #{link9_result}), auto_link("Go to #{link9_raw}", :urls)
+    assert_equal %(Go to #{link9_raw}), auto_link("Go to #{link9_raw}", :email_addresses)
+    assert_equal %(<p>Link #{link9_result}</p>), auto_link("<p>Link #{link9_raw}</p>")
+    assert_equal %(<p>#{link9_result} Link</p>), auto_link("<p>#{link9_raw} Link</p>")
+    assert_equal %(Go to #{link9_result}.), auto_link(%(Go to #{link9_raw}.))
+    assert_equal %(<p>Go to #{link9_result}. seriously, #{link9_result}? i think I'll say hello to #{email_result}. instead.</p>), auto_link(%(<p>Go to #{link9_raw}. seriously, #{link9_raw}? i think I'll say hello to #{email_raw}. instead.</p>))
     assert_equal '', auto_link(nil)
     assert_equal '', auto_link('')
   end

@@ -369,7 +369,7 @@ module ActionView
                           [-\w]+                   # subdomain or domain
                           (?:\.[-\w]+)*            # remaining subdomains or domain
                           (?::\d+)?                # port
-                          (?:/(?:[~\w\+%.;:-]+)?)* # path
+                          (?:/(?:(?:[~\w\+%-]|(?:[,.;:][^\s$]))+)?)* # path
                           (?:\?[\w\+%&=.;-]+)?     # query string
                           (?:\#[\w\-]*)?           # trailing anchor
                         )

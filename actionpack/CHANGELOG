@@ -1,5 +1,7 @@
 *SVN*
 
+* Autolinking recognizes trailing and embedded . , : ;  #7354 [Jarkko Laine]
+
 * Make TextHelper::auto_link recognize URLs with colons in path correctly, fixes #7268.  [imajes]
 
 * Update to script.aculo.us 1.7.0.  [Thomas Fuchs]
