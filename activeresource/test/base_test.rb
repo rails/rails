@@ -217,6 +217,13 @@ class BaseTest < Test::Unit::TestCase
     assert_equal '5', matzs_house.id
   end
 
+  # Test that loading a resource preserves its prefix_options.
+  def test_load_preserves_prefix_options
+    address = StreetAddress.find(1, :person_id => 1)
+    ryan = Person.new(:id => 1, :name => 'Ryan', :address => address)
+    assert_equal address.prefix_options, ryan.address.prefix_options
+  end
+
   def test_create
     rick = Person.create(:name => 'Rick')
     assert rick.valid?

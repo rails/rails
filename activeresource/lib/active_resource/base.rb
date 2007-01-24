@@ -45,13 +45,17 @@ module ActiveResource
       # Sets the resource prefix
       #  prefix/collectionname/1.xml
       def prefix=(value = '/')
+        # Replace :placeholders with '#{embedded options[:lookups]}'
         prefix_call = value.gsub(/:\w+/) { |key| "\#{options[#{key}]}" }
-        instance_eval <<-end_eval, __FILE__, __LINE__
+
+        # Redefine the new methods.
+        code = <<-end_code
           def prefix_source() "#{value}" end
           def prefix(options={}) "#{prefix_call}" end
-        end_eval
+        end_code
+        silence_warnings { instance_eval code, __FILE__, __LINE__ }
       rescue
-        logger.error "Couldn't set prefix: #{$!}\n  #{method_decl}"
+        logger.error "Couldn't set prefix: #{$!}\n  #{code}"
         raise
       end
 
@@ -235,7 +239,7 @@ module ActiveResource
               resource = find_or_create_resource_for(key)
               resource.new(value)
             when ActiveResource::Base
-              value.class.new(value.attributes)
+              value.class.new(value.attributes, value.prefix_options)
             else
               value.dup rescue value
           end

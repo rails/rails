@@ -1,5 +1,7 @@
 *SVN*
 
+* Loading a resource preserves its prefix_options.  #7353 [Ryan Daigle]
+
 * Carry over the convenience of #create from ActiveRecord.  Closes #7340.  [Ryan Daigle]
 
 * Increase ActiveResource::Base test coverage.  Closes #7173, #7174 [Rich Collins]
