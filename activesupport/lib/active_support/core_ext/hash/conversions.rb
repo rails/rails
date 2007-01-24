@@ -1,5 +1,23 @@
 require 'date'
 require 'xml_simple'
+require 'cgi'
+
+# Extensions needed for Hash#to_query
+class Object
+  def to_param #:nodoc:
+    to_s
+  end
+
+  def to_query(key) #:nodoc:
+    "#{key}=#{CGI.escape(to_param)}"
+  end
+end
+
+class Array
+  def to_query(key) #:nodoc:
+    collect { |value| value.to_query("#{key}[]") } * '&'
+  end
+end
 
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
@@ -25,6 +43,12 @@ module ActiveSupport #:nodoc:
 
         def self.included(klass)
           klass.extend(ClassMethods)
+        end
+
+        def to_query(namespace = nil)
+          collect do |key, value|
+            value.to_query(namespace ? "#{namespace}[#{key}]" : key)
+          end * '&'
         end
 
         def to_xml(options = {})

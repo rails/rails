@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Hash#to_query to turn a hash of values into a form-encoded query string [Nicholas Seckar]
+
 * Increase test coverage for subclasses_of. Closes #7335. [Roman2K, Nicholas Seckar]
 
 * Remove unused code from Duration#inspect.  Closes #7180.  [Rich Collins]

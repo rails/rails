@@ -527,3 +527,24 @@ class HashToXmlTest < Test::Unit::TestCase
     end
   end
 end
+
+class QueryTest < Test::Unit::TestCase
+  def test_simple_conversion
+    assert_equal 'a=10', {:a => 10}.to_query
+  end
+  
+  def test_nested_conversion
+    assert_equal 'person[name]=Nicholas&person[login]=seckar',
+      {:person => {:name => 'Nicholas', :login => 'seckar'}}.to_query
+  end
+  
+  def test_multiple_nested
+    assert_equal 'account[person][id]=20&person[id]=10',
+      {:person => {:id => 10}, :account => {:person => {:id => 20}}}.to_query
+  end
+  
+  def test_array_values
+    assert_equal 'person[id][]=10&person[id][]=20',
+      {:person => {:id => [10, 20]}}.to_query
+  end
+end
