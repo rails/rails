@@ -90,13 +90,32 @@ module ActiveRecord
     deprecate :add_on_boundary_breaking => :validates_length_of, :add_on_boundry_breaking => :validates_length_of
 
     # Returns true if the specified +attribute+ has errors associated with it.
+    #
+    #   class Company < ActiveRecord::Base
+    #     validates_presence_of :name, :address, :email
+    #     validates_length_of :name, :in => 5..30
+    #   end
+    #
+    #   company = Company.create(:address => '123 First St.')
+    #   company.errors.invalid?(:name)      # => true
+    #   company.errors.invalid?(:address)   # => false
     def invalid?(attribute)
       !@errors[attribute.to_s].nil?
     end
 
-    # * Returns nil, if no errors are associated with the specified +attribute+.
-    # * Returns the error message, if one error is associated with the specified +attribute+.
-    # * Returns an array of error messages, if more than one error is associated with the specified +attribute+.
+    # Returns nil, if no errors are associated with the specified +attribute+.
+    # Returns the error message, if one error is associated with the specified +attribute+.
+    # Returns an array of error messages, if more than one error is associated with the specified +attribute+.
+    #
+    #   class Company < ActiveRecord::Base
+    #     validates_presence_of :name, :address, :email
+    #     validates_length_of :name, :in => 5..30
+    #   end
+    #
+    #   company = Company.create(:address => '123 First St.')
+    #   company.errors.on(:name)      # => ["is too short (minimum is 5 characters)", "can't be blank"]
+    #   company.errors.on(:email)     # => "can't be blank"
+    #   company.errors.on(:address)   # => nil
     def on(attribute)
       errors = @errors[attribute.to_s]
       return nil if errors.nil?
@@ -111,17 +130,48 @@ module ActiveRecord
     end
 
     # Yields each attribute and associated message per error added.
+    #
+    #   class Company < ActiveRecord::Base
+    #     validates_presence_of :name, :address, :email
+    #     validates_length_of :name, :in => 5..30
+    #   end
+    #
+    #   company = Company.create(:address => '123 First St.')
+    #   company.errors.each{|attr,msg| puts "#{attr} - #{msg}" } # =>
+    #     name - is too short (minimum is 5 characters)
+    #     name - can't be blank
+    #     address - can't be blank
     def each
       @errors.each_key { |attr| @errors[attr].each { |msg| yield attr, msg } }
     end
 
     # Yields each full error message added. So Person.errors.add("first_name", "can't be empty") will be returned
     # through iteration as "First name can't be empty".
+    #
+    #   class Company < ActiveRecord::Base
+    #     validates_presence_of :name, :address, :email
+    #     validates_length_of :name, :in => 5..30
+    #   end
+    #
+    #   company = Company.create(:address => '123 First St.')
+    #   company.errors.each_full{|msg| puts msg } # =>
+    #     Name is too short (minimum is 5 characters)
+    #     Name can't be blank
+    #     Address can't be blank
     def each_full
       full_messages.each { |msg| yield msg }
     end
 
     # Returns all the full error messages in an array.
+    #
+    #   class Company < ActiveRecord::Base
+    #     validates_presence_of :name, :address, :email
+    #     validates_length_of :name, :in => 5..30
+    #   end
+    #
+    #   company = Company.create(:address => '123 First St.')
+    #   company.errors.full_messages # =>
+    #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Address can't be blank"]
     def full_messages
       full_messages = []
 
@@ -143,22 +193,35 @@ module ActiveRecord
     def empty?
       @errors.empty?
     end
-    
-    # Removes all the errors that have been added.
+
+    # Removes all errors that have been added.
     def clear
       @errors = {}
     end
 
-    # Returns the total number of errors added. Two errors added to the same attribute will be counted as such
-    # with this as well.
+    # Returns the total number of errors added. Two errors added to the same attribute will be counted as such.
     def size
       @errors.values.inject(0) { |error_count, attribute| error_count + attribute.size }
     end
-    
+
     alias_method :count, :size
     alias_method :length, :size
 
     # Return an XML representation of this error object.
+    #
+    #   class Company < ActiveRecord::Base
+    #     validates_presence_of :name, :address, :email
+    #     validates_length_of :name, :in => 5..30
+    #   end
+    #
+    #   company = Company.create(:address => '123 First St.')
+    #   company.errors.to_xml # =>
+    #     <?xml version="1.0" encoding="UTF-8"?>
+    #     <errors>
+    #       <error>Name is too short (minimum is 5 characters)</error>
+    #       <error>Name can't be blank</error>
+    #       <error>Address can't be blank</error>
+    #     </errors>
     def to_xml(options={})
       options[:root] ||= "errors"
       options[:indent] ||= 2
@@ -374,7 +437,7 @@ module ActiveRecord
       #   end
       #
       # The first_name attribute must be in the object and it cannot be blank.
-      #      
+      #
       # If you want to validate the presence of a boolean field (where the real values are true and false),
       # you will want to use validates_inclusion_of :field_name, :in => [true, false]
       # This is due to the way Object#blank? handles boolean values. false.blank? # => true
@@ -507,10 +570,10 @@ module ActiveRecord
       #   end
       #
       # It can also validate whether the value of the specified attributes are unique based on multiple scope parameters.  For example,
-      # making sure that a teacher can only be on the schedule once per semester for a particular class. 
+      # making sure that a teacher can only be on the schedule once per semester for a particular class.
       #
       #   class TeacherSchedule < ActiveRecord::Base
-      #     validates_uniqueness_of :teacher_id, :scope => [:semester_id, :class_id] 
+      #     validates_uniqueness_of :teacher_id, :scope => [:semester_id, :class_id]
       #   end
       #
       # When the record is created, a check is performed to make sure that no record exists in the database with the given value for the specified
@@ -524,7 +587,6 @@ module ActiveRecord
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
-       
       def validates_uniqueness_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken], :case_sensitive => true }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -554,7 +616,6 @@ module ActiveRecord
         end
       end
 
-      
 
       # Validates whether the value of the specified attribute is of the correct form by matching it against the regular expression
       # provided.

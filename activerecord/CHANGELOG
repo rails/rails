@@ -1,5 +1,7 @@
 *SVN*
 
+* Docs: validations examples.  #7343 [zackchandler]
+
 * Add missing tests ensuring callbacks work with class inheritance.  Closes #7339 [sandofsky]
 
 * Fixtures use the table name and connection from set_fixture_class.  #7330 [Anthony Eden]
