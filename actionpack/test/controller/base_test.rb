@@ -82,16 +82,14 @@ class ControllerInstanceTests < Test::Unit::TestCase
       assert_equal Set.new('public_action'), c.send(:action_methods), "#{c.controller_path} should not be empty!"
     end
   end
-  
+
   protected
-  
-  # Mocha adds methods to Object which are then included in the public_instance_methods
-  # This method hides those from the controller so the above tests won't know the difference
-  def hide_mocha_methods_from_controller(controller)
-    mocha_methods = [:expects, :metaclass, :mocha, :mocha_inspect, :reset_mocha, :stubba_object, :stubba_method, :stubs, :verify]
-    controller.class.send(:hide_action, *mocha_methods)
-  end
-  
+    # Mocha adds some public instance methods to Object that would be
+    # considered actions, so explicitly hide_action them.
+    def hide_mocha_methods_from_controller(controller)
+      mocha_methods = [:expects, :metaclass, :mocha, :mocha_inspect, :reset_mocha, :stubba_object, :stubba_method, :stubs, :verify, :__metaclass__, :__is_a__]
+      controller.class.send(:hide_action, *mocha_methods)
+    end
 end
 
 
