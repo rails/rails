@@ -51,22 +51,23 @@ class ActiveRecordTestConnector
 
     def setup_connection
       if Object.const_defined?(:ActiveRecord)
+        defaults = { :database => ':memory:' }
         begin
-          connection_options = {:adapter => 'sqlite3', :dbfile => ':memory:'}
-          ActiveRecord::Base.establish_connection(connection_options)
-          ActiveRecord::Base.configurations = { 'sqlite3_ar_integration' => connection_options } 
+          options = defaults.merge :adapter => 'sqlite3', :timeout => 500
+          ActiveRecord::Base.establish_connection(options)
+          ActiveRecord::Base.configurations = { 'sqlite3_ar_integration' => options }
           ActiveRecord::Base.connection
         rescue Exception  # errors from establishing a connection
           $stderr.puts 'SQLite 3 unavailable; trying SQLite 2.'
-          connection_options = {:adapter => 'sqlite', :dbfile => ':memory:'}
-          ActiveRecord::Base.establish_connection(connection_options)
-          ActiveRecord::Base.configurations = { 'sqlite2_ar_integration' => connection_options } 
+          options = defaults.merge :adapter => 'sqlite'
+          ActiveRecord::Base.establish_connection(options)
+          ActiveRecord::Base.configurations = { 'sqlite2_ar_integration' => options }
           ActiveRecord::Base.connection
         end
 
         Object.send(:const_set, :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name('type')) unless Object.const_defined?(:QUOTED_TYPE)
       else
-        raise "Couldn't locate ActiveRecord."
+        raise "Can't setup connection since ActiveRecord isn't loaded."
       end
     end
 
@@ -83,7 +84,7 @@ class ActiveRecordTestConnector
   end
 end
 
-# Test case for inheiritance
+# Test case for inheritance
 class ActiveRecordTestCase < Test::Unit::TestCase
   # Set our fixture path
   if ActiveRecordTestConnector.able_to_connect
