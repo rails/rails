@@ -1,3 +1,12 @@
+*SVN*
+
+* Autolinking recognizes trailing and embedded . , : ;  #7354 [Jarkko Laine]
+
+* Make TextHelper::auto_link recognize URLs with colons in path correctly, fixes #7268.  [imajes]
+
+* Improved auto_link to match more valid urls correctly [Tobias Luetke]
+
+
 *1.13.1* (January 18th, 2007)
 
 * Fixed content-type bug in Prototype [sam]
