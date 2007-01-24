@@ -196,7 +196,7 @@ class BaseTest < Test::Unit::TestCase
     assert_raises(ActiveResource::ResourceNotFound) { StreetAddress.find(1) }
   end
 
-  def test_create
+  def test_save
     rick = Person.new
     assert_equal true, rick.save
     assert_equal '5', rick.id
@@ -215,6 +215,19 @@ class BaseTest < Test::Unit::TestCase
     matzs_house = StreetAddress.new({}, {:person_id => 1})
     matzs_house.save
     assert_equal '5', matzs_house.id
+  end
+
+  def test_create
+    rick = Person.create(:name => 'Rick')
+    assert rick.valid?
+    assert !rick.new?
+    assert_equal '5', rick.id
+    
+    # Test that save exceptions get bubbled up too
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post   "/people.xml", {}, nil, 409
+    end    
+    assert_raises(ActiveResource::ResourceConflict) { Person.create(:name => 'Rick') }
   end
 
   def test_update

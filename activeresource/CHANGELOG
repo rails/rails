@@ -1,5 +1,7 @@
 *SVN*
 
+* Carry over the convenience of #create from ActiveRecord.  Closes #7340.  [Ryan Daigle]
+
 * Increase ActiveResource::Base test coverage.  Closes #7173, #7174 [Rich Collins]
 
 * Interpret 422 Unprocessable Entity as ResourceInvalid.  #7097 [dkubb]

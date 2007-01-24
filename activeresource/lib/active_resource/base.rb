@@ -70,6 +70,21 @@ module ActiveResource
 
       alias_method :set_primary_key, :primary_key=  #:nodoc:
 
+      # Create a new resource instance and request to the remote service
+      # that it be saved.  This is equivalent to the following simultaneous calls:
+      #
+      #   ryan = Person.new(:first => 'ryan')
+      #   ryan.save
+      #
+      # The newly created resource is returned.  If a failure has occurred an
+      # exception will be raised (see save).  If the resource is invalid and
+      # has not been saved then <tt>resource.valid?</tt> will return <tt>false</tt>,
+      # while <tt>resource.new?</tt> will still return <tt>true</tt>.
+      #      
+      def create(attributes = {}, prefix_options = {})
+        returning(self.new(attributes, prefix_options)) { |res| res.save }        
+      end
+
       # Core method for finding resources.  Used similarly to ActiveRecord's find method.
       #  Person.find(1) # => GET /people/1.xml
       #  StreetAddress.find(1, :person_id => 1) # => GET /people/1/street_addresses/1.xml

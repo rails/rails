@@ -36,6 +36,11 @@ lifecycle methods that operate against a persistent store.
    Person.exists?(ryan.id)  #=> true
    ryan.exists?  #=> true
 
+   # Resource creation can also use the convenience <tt>create</tt> method which
+   # will request a resource save after instantiation.
+   ryan = Person.create(:first => 'Ryan', :last => 'Daigle')
+   ryan.exists?  #=> true
+
    # Updating is done with 'save' as well
    # PUT http://api.people.com:3000/people/1.xml
    #
