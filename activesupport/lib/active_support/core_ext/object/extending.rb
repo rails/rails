@@ -6,11 +6,11 @@ class Object #:nodoc:
   def subclasses_of(*superclasses)
     subclasses = []
     ObjectSpace.each_object(Class) do |k|
-      next if # Exclude this class if
-        (k.ancestors & superclasses).empty? || # It's not a subclass of our supers
-        superclasses.include?(k) || # It *is* one of the supers
-        eval("! defined?(::#{k})") || # It's not defined.
-        eval("::#{k}").object_id != k.object_id
+      next unless # Exclude this class unless
+        superclasses.any? { |superclass| k < superclass } &&        # It *is* a subclass of our supers
+        eval("defined?(::#{k}) && ::#{k}.object_id == k.object_id") # It *is* defined
+          # Note that we check defined? in case we find a removed class that has
+          # yet to be garbage collected.
       subclasses << k
     end
     subclasses

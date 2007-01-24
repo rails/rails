@@ -1,5 +1,7 @@
 *SVN*
 
+* Increase test coverage for subclasses_of. Closes #7335. [Roman2K, Nicholas Seckar]
+
 * Remove unused code from Duration#inspect.  Closes #7180.  [Rich Collins]
 
 * Added test coverage for Inflector.inflections.clear.  Closes #7179. [Rich Collins]

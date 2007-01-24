@@ -11,6 +11,16 @@ class ClassJ < ClassI; end
 class ClassK
 end
 module Nested
+  class << self
+    def on_const_missing(&callback)
+      @on_const_missing = callback
+    end
+    private
+      def const_missing(mod_id)
+        @on_const_missing[mod_id] if @on_const_missing
+        super
+      end
+  end
   class ClassL < ClassK
   end
 end
@@ -41,9 +51,12 @@ class ClassExtTest < Test::Unit::TestCase
   end
 
   def test_subclasses_of
+    cj = ClassJ
     assert_equal [ClassJ], Object.subclasses_of(ClassI)
     ClassI.remove_subclasses
     assert_equal [], Object.subclasses_of(ClassI)
+  ensure
+    Object.const_set :ClassJ, cj
   end
 
   def test_subclasses_of_should_find_nested_classes
@@ -60,7 +73,31 @@ class ClassExtTest < Test::Unit::TestCase
     subclasses = Object.subclasses_of(ClassK)
     assert subclasses.include?(new_class)
     assert ! subclasses.include?(old_class)
+  ensure
+    Nested.const_set :ClassL, old_class unless defined?(Nested::ClassL)
   end
+  
+  def test_subclasses_of_should_not_trigger_const_missing
+    const_missing = false
+    Nested.on_const_missing { const_missing = true }
+    
+    subclasses = Object.subclasses_of ClassK
+    assert !const_missing
+    assert_equal [ Nested::ClassL ], subclasses
+    
+    removed = Nested.send :remove_const, :ClassL   # keep it in memory
+    subclasses = Object.subclasses_of ClassK
+    assert !const_missing
+    assert subclasses.empty?
+  ensure
+    Nested.const_set :ClassL, removed unless defined?(Nested::ClassL)
+  end
+  
+  def test_subclasses_of_with_multiple_roots
+    classes = Object.subclasses_of(ClassI, ClassK)
+    assert_equal %w(ClassJ Nested::ClassL), classes.collect(&:to_s).sort
+  end
+  
 end
 
 class ObjectTests < Test::Unit::TestCase
