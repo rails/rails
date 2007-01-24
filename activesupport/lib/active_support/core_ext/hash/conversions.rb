@@ -9,7 +9,7 @@ class Object
   end
 
   def to_query(key) #:nodoc:
-    "#{key}=#{CGI.escape(to_param)}"
+    "#{key}=#{CGI.escape(to_param || "")}"
   end
 end
 
