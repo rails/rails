@@ -112,7 +112,7 @@ class CGIMethods #:nodoc:
       end
   end
 
-  class FormEncodedPairParser < StringScanner
+  class FormEncodedPairParser < StringScanner #:nodoc:
     attr_reader :top, :parent, :result
 
     def initialize(pairs = [])

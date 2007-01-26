@@ -2,7 +2,7 @@ require 'rexml/document'
 
 module ActionController #:nodoc:
   module Assertions #:nodoc:
-    module DeprecatedAssertions
+    module DeprecatedAssertions #:nodoc:
       def assert_success(message=nil) #:nodoc:
         assert_response(:success, message)
       end

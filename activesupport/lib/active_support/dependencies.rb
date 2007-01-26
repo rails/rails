@@ -382,7 +382,7 @@ module Dependencies #:nodoc:
     end
   end
   
-  class LoadingModule
+  class LoadingModule #:nodoc:
     # Old style environment.rb referenced this method directly.  Please note, it doesn't
     # actualy *do* anything any more.
     def self.root(*args)

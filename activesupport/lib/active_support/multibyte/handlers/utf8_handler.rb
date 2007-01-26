@@ -1,6 +1,7 @@
 # Contains all the handlers and helper classes
-module ActiveSupport::Multibyte::Handlers
-  class EncodingError < ArgumentError; end
+module ActiveSupport::Multibyte::Handlers #:nodoc:
+  class EncodingError < ArgumentError #:nodoc:
+  end
   
   class Codepoint #:nodoc:
     attr_accessor :code, :combining_class, :decomp_type, :decomp_mapping, :uppercase_mapping, :lowercase_mapping

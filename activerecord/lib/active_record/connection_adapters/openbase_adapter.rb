@@ -122,7 +122,7 @@ module ActiveRecord
 
       # DATABASE STATEMENTS ======================================
 
-      def add_limit_offset!(sql, options) #:nodoc
+      def add_limit_offset!(sql, options) #:nodoc:
         if limit = options[:limit]
           unless offset = options[:offset]
             sql << " RETURN RESULTS #{limit}"

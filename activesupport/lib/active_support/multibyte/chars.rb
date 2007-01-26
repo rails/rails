@@ -2,7 +2,7 @@ require 'active_support/multibyte/handlers/utf8_handler'
 require 'active_support/multibyte/handlers/passthru_handler'
 
 # Encapsulates all the functionality related to the Chars proxy.
-module ActiveSupport::Multibyte
+module ActiveSupport::Multibyte #:nodoc:
   # Chars enables you to work transparently with multibyte encodings in the Ruby String class without having extensive
   # knowledge about the encoding. A Chars object accepts a string upon initialization and proxies String methods in an
   # encoding safe manner. All the normal String methods are also implemented on the proxy.
