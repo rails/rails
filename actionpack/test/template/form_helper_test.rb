@@ -6,6 +6,7 @@ class FormHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::UrlHelper
   include ActionView::Helpers::TagHelper
   include ActionView::Helpers::TextHelper
+  include ActionView::Helpers::ActiveRecordHelper
 
   silence_warnings do
     Post = Struct.new("Post", :title, :author_name, :body, :secret, :written_on, :cost)
@@ -18,8 +19,14 @@ class FormHelperTest < Test::Unit::TestCase
 
   def setup
     @post = Post.new
-    def @post.errors() Class.new{ def on(field) field == "author_name" end }.new end
-
+    def @post.errors() 
+      Class.new{ 
+        def on(field); "can't be empty" if field == "author_name"; end 
+        def empty?() false end 
+        def count() 1 end
+        def full_messages() [ "Author name can't be empty" ] end  
+      }.new 
+    end
     def @post.id; 123; end
     def @post.id_before_type_cast; 123; end
 
@@ -446,6 +453,23 @@ class FormHelperTest < Test::Unit::TestCase
     assert_dom_equal expected, _erbout
   ensure
     ActionView::Base.default_form_builder = old_default_form_builder
+  end
+  
+  def test_default_form_builder_with_active_record_helpers
+     
+    _erbout = '' 
+    form_for(:post, @post) do |f|
+       _erbout.concat f.error_message_on('author_name')
+       _erbout.concat f.error_messages
+    end    
+    
+    expected = %(<form action='http://www.example.com' method='post'>) + 
+               %(<div class='formError'>can't be empty</div>) + 
+               %(<div class="errorExplanation" id="errorExplanation"><h2>1 error prohibited this post from being saved</h2><p>There were problems with the following fields:</p><ul><li>Author name can't be empty</li></ul></div>) +
+               %(</form>)
+    
+    assert_dom_equal expected, _erbout
+
   end
 
   # Perhaps this test should be moved to prototype helper tests.

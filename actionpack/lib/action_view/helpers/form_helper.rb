@@ -445,6 +445,14 @@ module ActionView
       def radio_button(method, tag_value, options = {})
         @template.radio_button(@object_name, method, tag_value, options.merge(:object => @object))
       end
+      
+      def error_message_on(method, prepend_text = "", append_text = "", css_class = "formError")
+        @template.error_message_on(@object_name, method, prepend_text, append_text, css_class)
+      end      
+
+      def error_messages(options = {})
+        @template.error_messages_for(@object_name, options)
+      end
     end
   end
 
