@@ -1,5 +1,7 @@
 *SVN*
 
+* mail_to :encode => 'hex' also encodes the mailto: part of the href attribute as well as the linked email when no name is given.  #2061 [Jarkko Laine, pfc.pille@gmx.net]
+
 * Resource member routes require :id, eliminating the ambiguous overlap with collection routes.  #7229 [dkubb]
 
 * Remove deprecated assertions.  [Jeremy Kemper]

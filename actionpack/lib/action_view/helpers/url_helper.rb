@@ -273,7 +273,7 @@ module ActionView
       #     <a href="mailto:me@domain.com?cc=ccaddress@domain.com&subject=This%20is%20an%20example%20email">My email</a>
       def mail_to(email_address, name = nil, html_options = {})
         html_options = html_options.stringify_keys
-        encode = html_options.delete("encode")
+        encode = html_options.delete("encode").to_s
         cc, bcc, subject, body = html_options.delete("cc"), html_options.delete("bcc"), html_options.delete("subject"), html_options.delete("body")
 
         string = ''
@@ -297,6 +297,14 @@ module ActionView
           end
           "<script type=\"text/javascript\">eval(unescape('#{string}'))</script>"
         elsif encode == "hex"
+          email_address_encoded = ''
+          email_address_obfuscated.each_byte do |c|
+            email_address_encoded << sprintf("&#%d;", c)
+          end
+
+          protocol = 'mailto:'
+          protocol.each_byte { |c| string << sprintf("&#%d;", c) }
+
           for i in 0...email_address.length
             if email_address[i,1] =~ /\w/
               string << sprintf("%%%x",email_address[i])
@@ -304,7 +312,7 @@ module ActionView
               string << email_address[i,1]
             end
           end
-          content_tag "a", name || email_address_obfuscated, html_options.merge({ "href" => "mailto:#{string}#{extras}" })
+          content_tag "a", name || email_address_encoded, html_options.merge({ "href" => "#{string}#{extras}" })
         else
           content_tag "a", name || email_address_obfuscated, html_options.merge({ "href" => "mailto:#{email_address}#{extras}" })
         end
