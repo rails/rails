@@ -1214,6 +1214,7 @@ module ActionController
 
       def generate(options, recall = {}, method=:generate)
         named_route_name = options.delete(:use_route)
+        generate_all = options.delete(:generate_all)
         if named_route_name
           named_route = named_routes[named_route_name]
           options = named_route.parameter_shell.merge(options)
@@ -1249,6 +1250,14 @@ module ActionController
           action = merged[:action]
 
           raise RoutingError, "Need controller and action!" unless controller && action
+          
+          if generate_all
+            # Used by caching to expire all paths for a resource
+            return routes.collect do |route|
+              route.send(method, options, merged, expire_on)
+            end.compact
+          end
+          
           # don't use the recalled keys when determining which routes to check
           routes = routes_by_controller[controller][action][options.keys.sort_by { |x| x.object_id }]
 

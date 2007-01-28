@@ -1719,6 +1719,20 @@ class RouteSetTest < Test::Unit::TestCase
     )
   end
   
+  def test_generate_all
+    set.draw do |map|
+      map.connect 'show_post/:id', :controller => 'post', :action => 'show'
+      map.connect ':controller/:action/:id'
+    end
+    all = set.generate(
+      {:action => 'show', :id => 10, :generate_all => true},
+      {:controller => 'post', :action => 'show'}
+    )
+    assert_equal 2, all.length
+    assert_equal '/show_post/10', all.first
+    assert_equal '/post/show/10', all.last
+  end
+  
 end
 
 class RoutingTest < Test::Unit::TestCase

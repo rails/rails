@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow Routes to generate all urls for a set of options by specifying :generate_all => true. Allows caching to properly set or expire all paths for a resource. References #1739. [Nicholas Seckar]
+
 * Change the query parser to map empty GET params to "" rather than nil. Closes #5694. [Nicholas Seckar]
 
 * date_select and datetime_select take a :default option.  #7052 [nik.wakelin]
