@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix overly greedy rescues when loading helpers. Fixes #6268. [Nicholas Seckar]
+
 * Fixed NumberHelper#number_with_delimiter to use "." always for splitting the original number, not the delimiter parameter #7389 [ceefour]
 
 * Autolinking recognizes trailing and embedded . , : ;  #7354 [Jarkko Laine]

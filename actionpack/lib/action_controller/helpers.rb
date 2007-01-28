@@ -110,9 +110,11 @@ module ActionController #:nodoc:
           module_path = module_name.split('::').map { |m| m.underscore }.join('/')
           require_dependency module_path
           helper module_name.constantize
-        rescue LoadError
+        rescue LoadError => e
+          raise unless e.is_missing? module_path
           logger.debug("#{name}: missing default helper path #{module_path}") if logger
-        rescue NameError
+        rescue NameError => e
+          raise unless e.missing_name? module_name
           logger.debug("#{name}: missing default helper module #{module_name}") if logger
         end
 
