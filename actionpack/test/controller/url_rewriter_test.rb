@@ -17,6 +17,15 @@ class UrlRewriterTests < Test::Unit::TestCase
     assert_match %r(/hi/hi/2$), u
   end
   
+  def test_overwrite_removes_original
+    @params[:controller] = 'search'
+    @params[:action] = 'list'
+    @params[:list_page] = 1
+    
+    assert_equal '/search/list?list_page=2', @rewriter.rewrite(:only_path => true, :overwrite_params => {"list_page" => 2})
+    u = @rewriter.rewrite(:only_path => false, :overwrite_params => {:list_page => 2})
+    assert_equal 'http://test.host/search/list?list_page=2', u
+  end
 
   private
     def split_query_string(str)

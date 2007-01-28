@@ -96,7 +96,7 @@ module ActionController
         options.update(options[:params].symbolize_keys) if options[:params]
         if (overwrite = options.delete(:overwrite_params))
           options.update(@parameters.symbolize_keys)
-          options.update(overwrite)
+          options.update(overwrite.symbolize_keys)
         end
         RESERVED_OPTIONS.each {|k| options.delete k}
 
