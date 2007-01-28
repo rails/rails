@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/abstract_unit'
+require File.dirname(__FILE__) + '/../../abstract_unit'
 
 class ClassInheritableAttributesTest < Test::Unit::TestCase
   def setup
@@ -20,6 +20,14 @@ class ClassInheritableAttributesTest < Test::Unit::TestCase
       assert_respond_to @klass.new, :a=
     end
   end
+  
+  def test_writer_declaration_without_instance_writer
+    assert_nothing_raised do
+      @klass.class_inheritable_writer :a, :instance_writer => false
+      assert_respond_to @klass, :a=
+      assert !@klass.new.respond_to?(:a=)
+    end
+  end
 
   def test_accessor_declaration
     assert_nothing_raised do
@@ -28,6 +36,16 @@ class ClassInheritableAttributesTest < Test::Unit::TestCase
       assert_respond_to @klass.new, :a
       assert_respond_to @klass, :a=
       assert_respond_to @klass.new, :a=
+    end
+  end
+  
+  def test_accessor_declaration_without_instance_writer
+    assert_nothing_raised do
+      @klass.class_inheritable_accessor :a, :instance_writer => false
+      assert_respond_to @klass, :a
+      assert_respond_to @klass.new, :a
+      assert_respond_to @klass, :a=
+      assert !@klass.new.respond_to?(:a=)
     end
   end
 
@@ -41,6 +59,16 @@ class ClassInheritableAttributesTest < Test::Unit::TestCase
     end
   end
 
+  def test_array_declaration_without_instance_writer
+    assert_nothing_raised do
+      @klass.class_inheritable_array :a, :instance_writer => false
+      assert_respond_to @klass, :a
+      assert_respond_to @klass.new, :a
+      assert_respond_to @klass, :a=
+      assert !@klass.new.respond_to?(:a=)
+    end
+  end
+
   def test_hash_declaration
     assert_nothing_raised do
       @klass.class_inheritable_hash :a
@@ -48,6 +76,16 @@ class ClassInheritableAttributesTest < Test::Unit::TestCase
       assert_respond_to @klass.new, :a
       assert_respond_to @klass, :a=
       assert_respond_to @klass.new, :a=
+    end
+  end
+
+  def test_hash_declaration_without_instance_writer
+    assert_nothing_raised do
+      @klass.class_inheritable_hash :a, :instance_writer => false
+      assert_respond_to @klass, :a
+      assert_respond_to @klass.new, :a
+      assert_respond_to @klass, :a=
+      assert !@klass.new.respond_to?(:a=)
     end
   end
 

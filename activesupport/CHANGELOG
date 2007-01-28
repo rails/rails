@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :instance_writer option to #mattr_writer/accessor, #cattr_writer/accessor, and #class_inheritable_writer to skip the creation of the instance writer.  [Rick]
+
 * Added Hash#to_query to turn a hash of values into a form-encoded query string [Nicholas Seckar]
 
 * Increase test coverage for subclasses_of. Closes #7335. [Roman2K, Nicholas Seckar]
