@@ -1,5 +1,7 @@
 *SVN*
 
+* SQLServer: don't choke on strings containing 'null'.  #7083 [Jakob S]
+
 * Consistently use LOWER() for uniqueness validations (rather than mixing with UPPER()) so the database can always use a functional index on the lowercased column.  #6495 [Si]
 
 * MySQL: SET SQL_AUTO_IS_NULL=0 so 'where id is null' doesn't select the last inserted id.  #6778 [Jonathan Viney, timc]
