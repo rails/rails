@@ -4,6 +4,7 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   def test_to_s
     assert_equal "21 Feb",            Date.new(2005, 2, 21).to_s(:short)
     assert_equal "February 21, 2005", Date.new(2005, 2, 21).to_s(:long)
+    assert_equal "2005-02-21",        Date.new(2005, 2, 21).to_s(:db)
   end
 
   def test_to_time

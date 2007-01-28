@@ -5,7 +5,8 @@ module ActiveSupport #:nodoc:
       module Conversions
         DATE_FORMATS = {
           :short => "%e %b",
-          :long  => "%B %e, %Y"
+          :long  => "%B %e, %Y",
+          :db => "%Y-%m-%d"
         }
 
         def self.included(klass) #:nodoc:

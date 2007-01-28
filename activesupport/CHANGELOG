@@ -1,5 +1,8 @@
 *SVN*
 
+* :db format for Date#to_s [Jeremy Kemper]
+    Date.new(2007, 1, 27).to_s(:db) # => '2007-01-27'
+
 * Added :instance_writer option to #mattr_writer/accessor, #cattr_writer/accessor, and #class_inheritable_writer to skip the creation of the instance writer.  [Rick]
 
 * Added Hash#to_query to turn a hash of values into a form-encoded query string [Nicholas Seckar]
