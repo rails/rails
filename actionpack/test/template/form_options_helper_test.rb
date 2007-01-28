@@ -360,6 +360,25 @@ class FormOptionsHelperTest < Test::Unit::TestCase
     )
   end
 
+  def test_collection_select_with_multiple_option_appends_array_brackets
+    @posts = [
+      Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
+      Post.new("Babe went home", "Babe", "To a little house", "shh!"),
+      Post.new("Cabe went home", "Cabe", "To a little house", "shh!")
+    ]
+
+    @post = Post.new
+    @post.author_name = "Babe"
+
+    expected = "<select id=\"post_author_name\" name=\"post[author_name][]\" multiple=\"multiple\"><option value=\"\"></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>"
+
+    # Should suffix default name with [].
+    assert_dom_equal expected, collection_select("post", "author_name", @posts, "author_name", "author_name", { :include_blank => true }, :multiple => true)
+
+    # Shouldn't suffix custom name with [].
+    assert_dom_equal expected, collection_select("post", "author_name", @posts, "author_name", "author_name", { :include_blank => true, :name => 'post[author_name][]' }, :multiple => true)
+  end
+
   def test_country_select
     @post = Post.new
     @post.origin = "Denmark"

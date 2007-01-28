@@ -387,7 +387,7 @@ module ActionView
             options["name"] ||= tag_name_with_index(@auto_index)
             options["id"]   ||= tag_id_with_index(@auto_index)
           else
-            options["name"] ||= tag_name
+            options["name"] ||= tag_name + (options.has_key?('multiple') ? '[]' : '')
             options["id"]   ||= tag_id
           end
         end
