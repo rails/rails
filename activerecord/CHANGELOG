@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL: SET SQL_AUTO_IS_NULL=0 so 'where id is null' doesn't select the last inserted id.  #6778 [Jonathan Viney, timc]
+
 * Fixtures use the table name and connection from set_fixture_class.  #7330 [Anthony Eden]
 
 * SQLServer: quote table name in indexes query.  #2928 [keithm@infused.org]
