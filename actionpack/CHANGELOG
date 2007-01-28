@@ -1,5 +1,7 @@
 *SVN*
 
+* Resource member routes require :id, eliminating the ambiguous overlap with collection routes.  #7229 [dkubb]
+
 * Remove deprecated assertions.  [Jeremy Kemper]
 
 * Change session restoration to allow namespaced models to be autoloaded. Closes #6348. [Nicholas Seckar]

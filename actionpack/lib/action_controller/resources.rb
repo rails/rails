@@ -322,74 +322,82 @@ module ActionController
 
       def map_collection_actions(map, resource)
         resource.collection_methods.each do |method, actions|
-          route_options = requirements_for(method)
-
           actions.each do |action|
-            map.named_route(
-              "#{resource.name_prefix}#{action}_#{resource.plural}", 
-              "#{resource.path};#{action}", 
-              route_options.merge(:action => action.to_s)
-            )
-
-            map.named_route(
-              "formatted_#{resource.name_prefix}#{action}_#{resource.plural}",
-              "#{resource.path}.:format;#{action}",
-              route_options.merge(:action => action.to_s)
-            )
+            action_options = action_options_for(action, resource, method)
+            map.named_route("#{resource.name_prefix}#{action}_#{resource.plural}", "#{resource.path};#{action}", action_options)
+            map.named_route("formatted_#{resource.name_prefix}#{action}_#{resource.plural}", "#{resource.path}.:format;#{action}", action_options)
           end
         end
       end
 
       def map_default_collection_actions(map, resource)
-        map.named_route("#{resource.name_prefix}#{resource.plural}", resource.path, :action => "index", :conditions => { :method => :get })
-        map.named_route("formatted_#{resource.name_prefix}#{resource.plural}", "#{resource.path}.:format", :action => "index", :conditions => { :method => :get })
+        index_action_options = action_options_for("index", resource)
+        map.named_route("#{resource.name_prefix}#{resource.plural}", resource.path, index_action_options)
+        map.named_route("formatted_#{resource.name_prefix}#{resource.plural}", "#{resource.path}.:format", index_action_options)
 
-        map.connect(resource.path, :action => "create", :conditions => { :method => :post })
-        map.connect("#{resource.path}.:format", :action => "create", :conditions => { :method => :post })
+        create_action_options = action_options_for("create", resource)
+        map.connect(resource.path, create_action_options)
+        map.connect("#{resource.path}.:format", create_action_options)
       end
 
       def map_default_singleton_actions(map, resource)
-        map.connect(resource.path, :action => "create", :conditions => { :method => :post })
-        map.connect("#{resource.path}.:format", :action => "create", :conditions => { :method => :post })
+        create_action_options = action_options_for("create", resource)
+        map.connect(resource.path, create_action_options)
+        map.connect("#{resource.path}.:format", create_action_options)
       end
 
       def map_new_actions(map, resource)
         resource.new_methods.each do |method, actions|
-          route_options = requirements_for(method)
           actions.each do |action|
+            action_options = action_options_for(action, resource, method)
             if action == :new
-              map.named_route("#{resource.name_prefix}new_#{resource.singular}", resource.new_path, route_options.merge(:action => "new"))
-              map.named_route("formatted_#{resource.name_prefix}new_#{resource.singular}", "#{resource.new_path}.:format", route_options.merge(:action => "new"))
+              map.named_route("#{resource.name_prefix}new_#{resource.singular}", resource.new_path, action_options)
+              map.named_route("formatted_#{resource.name_prefix}new_#{resource.singular}", "#{resource.new_path}.:format", action_options)
             else
-              map.named_route("#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path};#{action}", route_options.merge(:action => action.to_s))
-              map.named_route("formatted_#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path}.:format;#{action}", route_options.merge(:action => action.to_s))
+              map.named_route("#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path};#{action}", action_options)
+              map.named_route("formatted_#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path}.:format;#{action}", action_options)
             end
           end
         end
       end
-      
+
       def map_member_actions(map, resource)
         resource.member_methods.each do |method, actions|
-          route_options = requirements_for(method)
-
           actions.each do |action|
-            map.named_route("#{resource.name_prefix}#{action}_#{resource.singular}", "#{resource.member_path};#{action}", route_options.merge(:action => action.to_s))
-            map.named_route("formatted_#{resource.name_prefix}#{action}_#{resource.singular}", "#{resource.member_path}.:format;#{action}", route_options.merge(:action => action.to_s))
+            action_options = action_options_for(action, resource, method)
+            map.named_route("#{resource.name_prefix}#{action}_#{resource.singular}", "#{resource.member_path};#{action}", action_options)
+            map.named_route("formatted_#{resource.name_prefix}#{action}_#{resource.singular}", "#{resource.member_path}.:format;#{action}",action_options)
           end
         end
 
-        map.named_route("#{resource.name_prefix}#{resource.singular}", resource.member_path, :action => "show", :conditions => { :method => :get })
-        map.named_route("formatted_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}.:format", :action => "show", :conditions => { :method => :get })
+        show_action_options = action_options_for("show", resource)
+        map.named_route("#{resource.name_prefix}#{resource.singular}", resource.member_path, show_action_options)
+        map.named_route("formatted_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}.:format", show_action_options)
 
-        map.connect(resource.member_path, :action => "update", :conditions => { :method => :put })
-        map.connect("#{resource.member_path}.:format", :action => "update", :conditions => { :method => :put })
+        update_action_options = action_options_for("update", resource)
+        map.connect(resource.member_path, update_action_options)
+        map.connect("#{resource.member_path}.:format", update_action_options)
 
-        map.connect(resource.member_path, :action => "destroy", :conditions => { :method => :delete })
-        map.connect("#{resource.member_path}.:format", :action => "destroy", :conditions => { :method => :delete })
+        destroy_action_options = action_options_for("destroy", resource)
+        map.connect(resource.member_path, destroy_action_options)
+        map.connect("#{resource.member_path}.:format", destroy_action_options)
       end
 
-      def requirements_for(method)
-        method == :any ? {} : { :conditions => { :method => method } }
+      def conditions_for(method)
+        { :conditions => method == :any ? {} : { :method => method } }
+      end
+
+      def action_options_for(action, resource, method = nil)
+        default_options = { :action => action.to_s }
+        require_id = resource.kind_of?(SingletonResource) ? {} : { :requirements => { :id => Regexp.new("[^#{Routing::SEPARATORS.join}]+") } }
+        case default_options[:action]
+          when "index", "new" : default_options.merge(conditions_for(method || :get))
+          when "create"       : default_options.merge(conditions_for(method || :post))
+          when "show", "edit" : default_options.merge(conditions_for(method || :get)).merge(require_id)
+          when "update"       : default_options.merge(conditions_for(method || :put)).merge(require_id)
+          when "destroy"      : default_options.merge(conditions_for(method || :delete)).merge(require_id)
+          else                  default_options.merge(conditions_for(method))
+        end
       end
   end
 end
