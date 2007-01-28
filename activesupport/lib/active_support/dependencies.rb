@@ -47,7 +47,6 @@ module Dependencies #:nodoc:
   mattr_accessor :log_activity
   self.log_activity = false
   
-  # :nodoc:
   # An internal stack used to record which constants are loaded by any block.
   mattr_accessor :constant_watch_stack
   self.constant_watch_stack = []
