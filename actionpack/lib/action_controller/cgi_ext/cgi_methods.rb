@@ -12,7 +12,7 @@ class CGIMethods #:nodoc:
         next if chunk.empty?
         key, value = chunk.split('=', 2)
         next if key.empty?
-        value = (value.nil? || value.empty?) ? nil : CGI.unescape(value)
+        value = value.nil? ? nil : CGI.unescape(value)
         [ CGI.unescape(key), value ]
       end.compact
 

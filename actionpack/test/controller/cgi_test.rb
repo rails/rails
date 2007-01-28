@@ -8,7 +8,7 @@ require 'stringio'
 class CGITest < Test::Unit::TestCase
   def setup
     @query_string = "action=create_customer&full_name=David%20Heinemeier%20Hansson&customerId=1"
-    @query_string_with_nil = "action=create_customer&full_name="
+    @query_string_with_empty = "action=create_customer&full_name="
     @query_string_with_array = "action=create_customer&selected[]=1&selected[]=2&selected[]=3"
     @query_string_with_amps  = "action=create_customer&name=Don%27t+%26+Does"
     @query_string_with_multiple_of_same_name = 
@@ -68,8 +68,8 @@ class CGITest < Test::Unit::TestCase
   
   def test_query_string_with_nil
     assert_equal(
-      { "action" => "create_customer", "full_name" => nil},
-      CGIMethods.parse_query_parameters(@query_string_with_nil)
+      { "action" => "create_customer", "full_name" => ''},
+      CGIMethods.parse_query_parameters(@query_string_with_empty)
     )
   end
 
