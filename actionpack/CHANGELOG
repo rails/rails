@@ -1,5 +1,7 @@
 *SVN*
 
+* TestSession supports indifferent access so session['foo'] == session[:foo] in your tests.  #7372 [julik, jean.helou]
+
 * Allow Routes to generate all urls for a set of options by specifying :generate_all => true. Allows caching to properly set or expire all paths for a resource. References #1739. [Nicholas Seckar]
 
 * Change the query parser to map empty GET params to "" rather than nil. Closes #5694. [Nicholas Seckar]
