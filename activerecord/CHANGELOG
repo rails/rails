@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL: SET SQL_AUTO_IS_NULL=0 so 'where id is null' doesn't select the last inserted id.  #6778 [Jonathan Viney, timc]
+
 * Use Date#to_s(:db) for quoted dates.  #7411 [Michael Schoen]
 
 * Don't create instance writer methods for class attributes.  Closes #7401 [Rick]

@@ -388,6 +388,10 @@ module ActiveRecord
           @connection.ssl_set(@config[:sslkey], @config[:sslcert], @config[:sslca], @config[:sslcapath], @config[:sslcipher]) if @config[:sslkey]
           @connection.real_connect(*@connection_options)
           execute("SET NAMES '#{encoding}'") if encoding
+
+          # By default, MySQL 'where id is null' selects the last inserted id.
+          # Turn this off. http://dev.rubyonrails.org/ticket/6778
+          execute("SET SQL_AUTO_IS_NULL=0")
         end
 
         def select(sql, name = nil)
