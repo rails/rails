@@ -24,6 +24,16 @@ class ResourcesTest < Test::Unit::TestCase
     assert_resource_methods [:new, :preview, :draft], resource, :new,        :get
   end
 
+  def test_should_resource_controller_name_equal_resource_name_by_default
+    resource = ActionController::Resources::Resource.new(:messages, {})
+    assert_equal 'messages', resource.controller
+  end
+
+  def test_should_resource_controller_name_equal_controller_option
+    resource = ActionController::Resources::Resource.new(:messages, :controller => 'posts')
+    assert_equal 'posts', resource.controller
+  end
+
   def test_default_restful_routes
     with_restful_routing :messages do
       assert_simply_restful_for :messages
@@ -113,7 +123,6 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
-
   def test_with_new_action
     with_restful_routing :messages, :new => { :preview => :post } do
       preview_options = {:action => 'preview'}
@@ -178,6 +187,22 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_should_not_allow_delete_or_put_on_collection_path
+    controller_name = :messages
+    with_restful_routing controller_name do
+      options = { :controller => controller_name.to_s }
+      collection_path = "/#{controller_name}"
+
+      assert_raises(ActionController::RoutingError) do
+        assert_recognizes(options.merge(:action => 'update'), :path => collection_path, :method => :put)
+      end
+
+      assert_raises(ActionController::RoutingError) do
+        assert_recognizes(options.merge(:action => 'destroy'), :path => collection_path, :method => :delete)
+      end
+    end
+  end
+
   protected
     def with_restful_routing(*args)
       with_routing do |set|
@@ -195,30 +220,38 @@ class ResourcesTest < Test::Unit::TestCase
     def assert_restful_routes_for(controller_name, options = {})
       (options[:options] ||= {})[:controller] = controller_name.to_s
 
-      collection_path = "/#{options[:path_prefix]}#{controller_name}"
-      member_path = "#{collection_path}/1"
-      new_path = "#{collection_path}/new"
+      collection_path            = "/#{options[:path_prefix]}#{controller_name}"
+      member_path                = "#{collection_path}/1"
+      new_path                   = "#{collection_path}/new"
+      edit_member_path           = "#{member_path};edit"
+      formatted_edit_member_path = "#{member_path}.xml;edit"
 
       with_options(options[:options]) do |controller|
         controller.assert_routing collection_path,            :action => 'index'
-        controller.assert_routing "#{collection_path}.xml" ,  :action => 'index', :format => 'xml'
         controller.assert_routing new_path,                   :action => 'new'
         controller.assert_routing member_path,                :action => 'show', :id => '1'
-        controller.assert_routing "#{member_path};edit",      :action => 'edit', :id => '1'
+        controller.assert_routing edit_member_path,           :action => 'edit', :id => '1'
+        controller.assert_routing "#{collection_path}.xml",   :action => 'index',            :format => 'xml'
+        controller.assert_routing "#{new_path}.xml",          :action => 'new',              :format => 'xml'
         controller.assert_routing "#{member_path}.xml",       :action => 'show', :id => '1', :format => 'xml'
+        controller.assert_routing formatted_edit_member_path, :action => 'edit', :id => '1', :format => 'xml'
       end
 
-      assert_recognizes(
-        options[:options].merge(:action => 'create'),
-        :path => collection_path, :method => :post)
+      assert_recognizes(options[:options].merge(:action => 'index'),               :path => collection_path,  :method => :get)
+      assert_recognizes(options[:options].merge(:action => 'new'),                 :path => new_path,         :method => :get)
+      assert_recognizes(options[:options].merge(:action => 'create'),              :path => collection_path,  :method => :post)
+      assert_recognizes(options[:options].merge(:action => 'show',    :id => '1'), :path => member_path,      :method => :get)
+      assert_recognizes(options[:options].merge(:action => 'edit',    :id => '1'), :path => edit_member_path, :method => :get)
+      assert_recognizes(options[:options].merge(:action => 'update',  :id => '1'), :path => member_path,      :method => :put)
+      assert_recognizes(options[:options].merge(:action => 'destroy', :id => '1'), :path => member_path,      :method => :delete)
 
-      assert_recognizes(
-        options[:options].merge(:action => 'update', :id => '1'),
-        :path => member_path, :method => :put)
-
-      assert_recognizes(
-        options[:options].merge(:action => 'destroy', :id => '1'),
-        :path => member_path, :method => :delete)
+      assert_recognizes(options[:options].merge(:action => 'index',               :format => 'xml'), :path => "#{collection_path}.xml",   :method => :get)
+      assert_recognizes(options[:options].merge(:action => 'new',                 :format => 'xml'), :path => "#{new_path}.xml",          :method => :get)
+      assert_recognizes(options[:options].merge(:action => 'create',              :format => 'xml'), :path => "#{collection_path}.xml",   :method => :post)
+      assert_recognizes(options[:options].merge(:action => 'show',    :id => '1', :format => 'xml'), :path => "#{member_path}.xml",       :method => :get)
+      assert_recognizes(options[:options].merge(:action => 'edit',    :id => '1', :format => 'xml'), :path => formatted_edit_member_path, :method => :get)
+      assert_recognizes(options[:options].merge(:action => 'update',  :id => '1', :format => 'xml'), :path => "#{member_path}.xml",       :method => :put)
+      assert_recognizes(options[:options].merge(:action => 'destroy', :id => '1', :format => 'xml'), :path => "#{member_path}.xml",       :method => :delete)
 
       yield options[:options] if block_given?
     end
@@ -240,12 +273,14 @@ class ResourcesTest < Test::Unit::TestCase
       full_prefix = "/#{options[:path_prefix]}#{controller_name}"
       name_prefix = options[:name_prefix]
 
-      assert_named_route "#{full_prefix}",        "#{name_prefix}#{controller_name}_path",           options[:options]
-      assert_named_route "#{full_prefix}.xml",    "formatted_#{name_prefix}#{controller_name}_path", options[:options].merge(:format => 'xml')
-      assert_named_route "#{full_prefix}/new",    "#{name_prefix}new_#{singular_name}_path",         options[:options]
-      assert_named_route "#{full_prefix}/1",      "#{name_prefix}#{singular_name}_path",             options[:options].merge(:id => '1')
-      assert_named_route "#{full_prefix}/1;edit", "#{name_prefix}edit_#{singular_name}_path",        options[:options].merge(:id => '1')
-      assert_named_route "#{full_prefix}/1.xml",  "formatted_#{name_prefix}#{singular_name}_path",   options[:options].merge(:format => 'xml', :id => '1')
+      assert_named_route "#{full_prefix}",            "#{name_prefix}#{controller_name}_path",              options[:options]
+      assert_named_route "#{full_prefix}/new",        "#{name_prefix}new_#{singular_name}_path",            options[:options]
+      assert_named_route "#{full_prefix}/1",          "#{name_prefix}#{singular_name}_path",                options[:options].merge(:id => '1')
+      assert_named_route "#{full_prefix}/1;edit",     "#{name_prefix}edit_#{singular_name}_path",           options[:options].merge(:id => '1')
+      assert_named_route "#{full_prefix}.xml",        "formatted_#{name_prefix}#{controller_name}_path",    options[:options].merge(            :format => 'xml')
+      assert_named_route "#{full_prefix}/new.xml",    "formatted_#{name_prefix}new_#{singular_name}_path",  options[:options].merge(            :format => 'xml')
+      assert_named_route "#{full_prefix}/1.xml",      "formatted_#{name_prefix}#{singular_name}_path",      options[:options].merge(:id => '1', :format => 'xml')
+      assert_named_route "#{full_prefix}/1.xml;edit", "formatted_#{name_prefix}edit_#{singular_name}_path", options[:options].merge(:id => '1', :format => 'xml')
       yield options[:options] if block_given?
     end
 

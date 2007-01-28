@@ -1,5 +1,7 @@
 *SVN*
 
+* Resource member routes require :id, eliminating the ambiguous overlap with collection routes.  #7229 [dkubb]
+
 * Fixed NumberHelper#number_with_delimiter to use "." always for splitting the original number, not the delimiter parameter #7389 [ceefour]
 
 * Autolinking recognizes trailing and embedded . , : ;  #7354 [Jarkko Laine]
