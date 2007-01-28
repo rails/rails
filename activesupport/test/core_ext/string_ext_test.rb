@@ -16,6 +16,12 @@ class StringInflectionsTest < Test::Unit::TestCase
     end
   end
 
+  def test_titleize
+    InflectorTest::MixtureToTitleCase.each do |before, titleized|
+      assert_equal(titleized, before.titleize)
+    end
+  end
+
   def test_camelize
     InflectorTest::CamelToUnderscore.each do |camel, underscore|
       assert_equal(camel, underscore.camelize)
@@ -31,8 +37,14 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal "html_tidy_generator", "HTMLTidyGenerator".underscore
   end
 
+  def test_underscore_to_lower_camel
+    InflectorTest::UnderscoreToLowerCamel.each do |underscored, lower_camel|
+      assert_equal(lower_camel, underscored.camelize(:lower))
+    end
+  end
+
   def test_demodulize
-    assert_equal "Account", Inflector.demodulize("MyApplication::Billing::Account")
+    assert_equal "Account", "MyApplication::Billing::Account".demodulize
   end
 
   def test_foreign_key
@@ -54,6 +66,12 @@ class StringInflectionsTest < Test::Unit::TestCase
   def test_classify
     InflectorTest::ClassNameToTableName.each do |class_name, table_name|
       assert_equal(class_name, table_name.classify)
+    end
+  end
+
+  def test_humanize
+    InflectorTest::UnderscoreToHuman.each do |underscore, human|
+      assert_equal(human, underscore.humanize)
     end
   end
 

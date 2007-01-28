@@ -1,5 +1,7 @@
 *SVN*
 
+* Full test coverage for Inflector.  #7228 [Dan Kubb]
+
 * :db format for Date#to_s [Jeremy Kemper]
     Date.new(2007, 1, 27).to_s(:db) # => '2007-01-27'
 

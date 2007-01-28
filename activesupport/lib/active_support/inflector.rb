@@ -243,12 +243,11 @@ module Inflector
   #   "Module".constantize #=> Module
   #   "Class".constantize #=> Class
   def constantize(camel_cased_word)
-    unless /^(::)?([A-Z]\w*)(::[A-Z]\w*)*$/ =~ camel_cased_word
+    unless /\A(?:::)?([A-Z]\w*(?:::[A-Z]\w*)*)\z/ =~ camel_cased_word
       raise NameError, "#{camel_cased_word.inspect} is not a valid constant name!"
     end
 
-    camel_cased_word = "::#{camel_cased_word}" unless $1
-    Object.module_eval(camel_cased_word, __FILE__, __LINE__)
+    Object.module_eval("::#{$1}", __FILE__, __LINE__)
   end
 
   # Ordinalize turns a number into an ordinal string used to denote the

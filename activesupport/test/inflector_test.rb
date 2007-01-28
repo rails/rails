@@ -70,39 +70,39 @@ class InflectorTest < Test::Unit::TestCase
 
     "perspective" => "perspectives",
 
-    "ox" => "oxen",
-    "photo" => "photos",
-    "buffalo" => "buffaloes",
-    "tomato" => "tomatoes",
-    "dwarf" => "dwarves",
-    "elf" => "elves",
+    "ox"          => "oxen",
+    "photo"       => "photos",
+    "buffalo"     => "buffaloes",
+    "tomato"      => "tomatoes",
+    "dwarf"       => "dwarves",
+    "elf"         => "elves",
     "information" => "information",
-    "equipment" => "equipment",
-    "bus" => "buses",
-    "status" => "statuses",
+    "equipment"   => "equipment",
+    "bus"         => "buses",
+    "status"      => "statuses",
     "status_code" => "status_codes",
-    "mouse" => "mice",
+    "mouse"       => "mice",
 
-    "louse" => "lice",
-    "house" => "houses",
-    "octopus" => "octopi",
-    "virus" => "viri",
-    "alias" => "aliases",
-    "portfolio" => "portfolios",
+    "louse"       => "lice",
+    "house"       => "houses",
+    "octopus"     => "octopi",
+    "virus"       => "viri",
+    "alias"       => "aliases",
+    "portfolio"   => "portfolios",
 
-    "vertex" => "vertices",
-    "matrix" => "matrices",
+    "vertex"      => "vertices",
+    "matrix"      => "matrices",
 
-    "axis" => "axes",
-    "testis" => "testes",
-    "crisis" => "crises",
+    "axis"        => "axes",
+    "testis"      => "testes",
+    "crisis"      => "crises",
 
-    "rice" => "rice",
-    "shoe" => "shoes",
+    "rice"        => "rice",
+    "shoe"        => "shoes",
 
-    "horse" => "horses",
-    "prize" => "prizes",
-    "edge" => "edges"
+    "horse"       => "horses",
+    "prize"       => "prizes",
+    "edge"        => "edges"
   }
 
   CamelToUnderscore = {
@@ -190,6 +190,9 @@ class InflectorTest < Test::Unit::TestCase
     "103" => "103rd",
     "104" => "104th",
     "110" => "110th",
+    "111" => "111th",
+    "112" => "112th",
+    "113" => "113th",
     "1000" => "1000th",
     "1001" => "1001st"
   }
@@ -198,6 +201,14 @@ class InflectorTest < Test::Unit::TestCase
     "street"                => "street",
     "street_address"        => "street-address",
     "person_street_address" => "person-street-address"
+  }
+
+  Irregularities = {
+    'person' => 'people',
+    'man'    => 'men',
+    'child'  => 'children',
+    'sex'    => 'sexes',
+    'move'   => 'moves',
   }
 
   def test_pluralize_plurals
@@ -219,9 +230,9 @@ class InflectorTest < Test::Unit::TestCase
     end
   end
 
-  MixtureToTitleCase.each do |before, title_cased|
-    define_method 'test_titlecase' do
-      assert_equal(title_cased, Inflector.titleize(before))
+  MixtureToTitleCase.each do |before, titleized|
+    define_method "test_titleize_#{before}" do
+      assert_equal(titleized, Inflector.titleize(before))
     end
   end
 
@@ -285,6 +296,10 @@ class InflectorTest < Test::Unit::TestCase
     end
   end
 
+  def test_classify_with_leading_schema_name
+    assert_equal 'FooBar', Inflector.classify('schema.foo_bar')
+  end
+
   def test_humanize
     UnderscoreToHuman.each do |underscore, human|
       assert_equal(human, Inflector.humanize(underscore))
@@ -292,12 +307,13 @@ class InflectorTest < Test::Unit::TestCase
   end
 
   def test_constantize
-    assert_equal Ace::Base::Case, Inflector.constantize("Ace::Base::Case")
-    assert_equal Ace::Base::Case, Inflector.constantize("::Ace::Base::Case")
-    assert_equal InflectorTest, Inflector.constantize("InflectorTest")
-    assert_equal InflectorTest, Inflector.constantize("::InflectorTest")
+    assert_nothing_raised { assert_equal Ace::Base::Case, Inflector.constantize("Ace::Base::Case") }
+    assert_nothing_raised { assert_equal Ace::Base::Case, Inflector.constantize("::Ace::Base::Case") }
+    assert_nothing_raised { assert_equal InflectorTest, Inflector.constantize("InflectorTest") }
+    assert_nothing_raised { assert_equal InflectorTest, Inflector.constantize("::InflectorTest") }
     assert_raises(NameError) { Inflector.constantize("UnknownClass") }
     assert_raises(NameError) { Inflector.constantize("An invalid string") }
+    assert_raises(NameError) { Inflector.constantize("InvalidClass\n") }
   end
 
   def test_constantize_doesnt_look_in_parent
@@ -359,5 +375,64 @@ class InflectorTest < Test::Unit::TestCase
     Inflector.inflections.instance_variable_set :@plurals, cached_values[0]
     Inflector.inflections.instance_variable_set :@singulars, cached_values[1]
     Inflector.inflections.instance_variable_set :@uncountables, cached_values[2]
+  end
+
+  Irregularities.each do |irregularity|
+    singular, plural = *irregularity
+    Inflector.inflections do |inflect|
+      define_method("test_irregularity_between_#{singular}_and_#{plural}") do
+        inflect.irregular(singular, plural)
+        assert_equal singular, Inflector.singularize(plural)
+        assert_equal plural, Inflector.pluralize(singular)
+      end
+    end
+  end
+
+  [ :all, [] ].each do |scope|
+    Inflector.inflections do |inflect|
+      define_method("test_clear_inflections_with_#{scope.kind_of?(Array) ? "no_arguments" : scope}") do
+        # save all the inflections
+        singulars, plurals, uncountables = inflect.singulars, inflect.plurals, inflect.uncountables
+
+        # clear all the inflections
+        inflect.clear(*scope)
+
+        assert_equal [], inflect.singulars
+        assert_equal [], inflect.plurals
+        assert_equal [], inflect.uncountables
+
+        # restore all the inflections
+        singulars.reverse.each { |singular| inflect.singular(*singular) }
+        plurals.reverse.each   { |plural|   inflect.plural(*plural) }
+        inflect.uncountable(uncountables)
+
+        assert_equal singulars, inflect.singulars
+        assert_equal plurals, inflect.plurals
+        assert_equal uncountables, inflect.uncountables
+      end
+    end
+  end
+
+  { :singulars => :singular, :plurals => :plural, :uncountables => :uncountable }.each do |scope, method|
+    Inflector.inflections do |inflect|
+      define_method("test_clear_inflections_with_#{scope}") do
+        # save the inflections
+        values = inflect.send(scope)
+
+        # clear the inflections
+        inflect.clear(scope)
+
+        assert_equal [], inflect.send(scope)
+
+        # restore the inflections
+        if scope == :uncountables
+          inflect.send(method, values)
+        else
+          values.reverse.each { |value| inflect.send(method, *value) }
+        end
+
+        assert_equal values, inflect.send(scope)
+      end
+    end
   end
 end
