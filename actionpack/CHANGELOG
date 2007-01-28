@@ -1,5 +1,7 @@
 *SVN*
 
+* Change session restoration to allow namespaced models to be autoloaded. Closes #6348. [Nicholas Seckar]
+
 * Fix doubly appearing parameters due to string and symbol mixups. Closes #2551. [aeden]
 
 * Fix overly greedy rescues when loading helpers. Fixes #6268. [Nicholas Seckar]

@@ -153,9 +153,10 @@ module ActionController #:nodoc:
       def stale_session_check!
         yield
       rescue ArgumentError => argument_error
-        if argument_error.message =~ %r{undefined class/module ([\w:]+)}
+        if argument_error.message =~ %r{undefined class/module ([\w:]*\w)}
           begin
-            Module.const_missing($1)
+            # Note that the regexp does not allow $1 to end with a ':'
+            $1.constantize
           rescue LoadError, NameError => const_error
             raise ActionController::SessionRestoreError, <<-end_msg
 Session contains objects whose class definition isn\'t available.
