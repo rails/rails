@@ -23,7 +23,7 @@ module ActiveRecord
       base.alias_method_chain :create, :timestamps
       base.alias_method_chain :update, :timestamps
 
-      base.cattr_accessor :record_timestamps
+      base.cattr_accessor :record_timestamps, :instance_writer => false
       base.record_timestamps = true
     end
 

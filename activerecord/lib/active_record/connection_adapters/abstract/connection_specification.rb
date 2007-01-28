@@ -11,7 +11,7 @@ module ActiveRecord
 
     # Check for activity after at least +verification_timeout+ seconds.
     # Defaults to 0 (always check.)
-    cattr_accessor :verification_timeout
+    cattr_accessor :verification_timeout, :instance_writer => false
     @@verification_timeout = 0
 
     # The class -> [adapter_method, config] map

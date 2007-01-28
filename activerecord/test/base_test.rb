@@ -748,6 +748,16 @@ class BasicsTest < Test::Unit::TestCase
     firm.attributes = { "name" => "Next Angle", "rating" => 5 }
     assert_equal 1, firm.rating
   end
+  
+  def test_mass_assignment_protection_against_class_attribute_writers
+    [:logger, :configurations, :primary_key_prefix_type, :table_name_prefix, :table_name_suffix, :pluralize_table_names, :colorize_logging,
+      :default_timezone, :allow_concurrency, :generate_read_methods, :schema_format, :verification_timeout, :lock_optimistically, :record_timestamps].each do |method|
+      assert  Task.respond_to?(method)
+      assert  Task.respond_to?("#{method}=")
+      assert  Task.new.respond_to?(method)
+      assert !Task.new.respond_to?("#{method}=")
+    end
+  end
 
   def test_customized_primary_key_remains_protected
     subscriber = Subscriber.new(:nick => 'webster123', :name => 'nice try')
