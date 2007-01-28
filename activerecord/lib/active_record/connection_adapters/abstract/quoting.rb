@@ -25,9 +25,7 @@ module ActiveRecord
           # BigDecimals need to be output in a non-normalized form and quoted.
           when BigDecimal               then value.to_s('F')
           else
-            if value.acts_like?(:date)
-              "'#{value.to_s}'"
-            elsif value.acts_like?(:time)
+            if value.acts_like?(:date) || value.acts_like?(:time)
               "'#{quoted_date(value)}'"
             else
               "'#{quote_string(value.to_yaml)}'"
@@ -50,13 +48,13 @@ module ActiveRecord
       def quoted_true
         "'t'"
       end
-      
+
       def quoted_false
         "'f'"
       end
-      
+
       def quoted_date(value)
-        value.strftime("%Y-%m-%d %H:%M:%S")
+        value.to_s(:db)
       end
     end
   end

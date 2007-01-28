@@ -1,5 +1,7 @@
 *SVN*
 
+* Use Date#to_s(:db) for quoted dates.  #7411 [Michael Schoen]
+
 * Don't create instance writer methods for class attributes.  Closes #7401 [Rick]
 
 * Docs: validations examples.  #7343 [zackchandler]

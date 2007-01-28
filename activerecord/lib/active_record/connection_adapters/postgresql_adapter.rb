@@ -125,8 +125,13 @@ module ActiveRecord
         %("#{name}")
       end
 
+      # Include microseconds if the value is a Time responding to usec.
       def quoted_date(value)
-        value.strftime("%Y-%m-%d %H:%M:%S.#{sprintf("%06d", value.usec)}")
+        if value.acts_like?(:time) && value.respond_to?(:usec)
+          "#{super}.#{sprintf("%06d", value.usec)}"
+        else
+          super
+        end
       end
 
 
