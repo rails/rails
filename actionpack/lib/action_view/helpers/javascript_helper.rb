@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/tag_helper'
-require File.dirname(__FILE__) + '/prototype_helper'
+require 'action_view/helpers/tag_helper'
+require 'action_view/helpers/prototype_helper'
 
 module ActionView
   module Helpers

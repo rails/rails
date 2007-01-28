@@ -1,5 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
-require File.dirname(__FILE__) + '/../../lib/action_view/helpers/number_helper'
+require "#{File.dirname(__FILE__)}/../abstract_unit"
 
 class NumberHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::NumberHelper

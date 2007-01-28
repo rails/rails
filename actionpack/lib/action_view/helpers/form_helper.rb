@@ -1,6 +1,6 @@
 require 'cgi'
-require File.dirname(__FILE__) + '/date_helper'
-require File.dirname(__FILE__) + '/tag_helper'
+require 'action_view/helpers/date_helper'
+require 'action_view/helpers/tag_helper'
 
 module ActionView
   module Helpers

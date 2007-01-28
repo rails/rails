@@ -1,5 +1,5 @@
 require 'rexml/document'
-require File.dirname(__FILE__) + "/../vendor/html-scanner/html/document"
+require 'html/document'
 
 module ActionController
   module Assertions

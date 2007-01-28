@@ -128,7 +128,7 @@ end
 
 class SqlBypassActiveRecordStoreTest < ActiveRecordStoreTest
   def session_class
-    unless @session_class
+    unless defined? @session_class
       @session_class = CGI::Session::ActiveRecordStore::SqlBypass
       @session_class.connection = CGI::Session::ActiveRecordStore::Session.connection
     end

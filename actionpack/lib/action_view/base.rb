@@ -157,7 +157,7 @@ module ActionView #:nodoc:
     attr_accessor :controller
 
     attr_reader :logger, :response, :headers
-    attr_internal *ActionController::Base::DEPRECATED_INSTANCE_VARIABLES
+    attr_internal(*ActionController::Base::DEPRECATED_INSTANCE_VARIABLES)
 
     # Specify trim mode for the ERB compiler. Defaults to '-'.
     # See ERB documentation for suitable values.
@@ -210,12 +210,14 @@ module ActionView #:nodoc:
     class ObjectWrapper < Struct.new(:value) #:nodoc:
     end
 
-    def self.load_helpers(helper_dir)#:nodoc:
-      Dir.entries(helper_dir).sort.each do |helper_file|
-        next unless helper_file =~ /^([a-z][a-z_]*_helper).rb$/
-        require File.join(helper_dir, $1)
+    def self.load_helpers #:nodoc:
+      Dir.entries("#{File.dirname(__FILE__)}/helpers").sort.each do |file|
+        next unless file =~ /^([a-z][a-z_]*_helper).rb$/
+        require "action_view/helpers/#{$1}"
         helper_module_name = $1.camelize
-        class_eval("include ActionView::Helpers::#{helper_module_name}") if Helpers.const_defined?(helper_module_name)
+        if Helpers.const_defined?(helper_module_name)
+          include Helpers.const_get(helper_module_name)
+        end
       end
     end
 

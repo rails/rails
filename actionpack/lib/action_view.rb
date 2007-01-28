@@ -21,7 +21,6 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-$:.unshift(File.dirname(__FILE__) + "/action_view/vendor")
 require 'action_view/base'
 require 'action_view/partials'
 
@@ -29,4 +28,4 @@ ActionView::Base.class_eval do
   include ActionView::Partials
 end
 
-ActionView::Base.load_helpers(File.dirname(__FILE__) + "/action_view/helpers/")
+ActionView::Base.load_helpers

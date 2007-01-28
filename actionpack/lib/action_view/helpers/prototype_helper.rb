@@ -860,7 +860,7 @@ module ActionView
           add_variable_assignment!(options[:variable]) if options[:variable]
           append_enumerable_function!("#{enumerable.to_s.camelize(:lower)}(#{method_args}function(#{yield_args}) {")
           # only yield as many params as were passed in the block
-          yield *options[:yield_args].collect { |p| JavaScriptVariableProxy.new(@generator, p) }[0..block.arity-1]
+          yield(*options[:yield_args].collect { |p| JavaScriptVariableProxy.new(@generator, p) }[0..block.arity-1])
           add_return_statement! if options[:return]
           @generator << '});'
         end
@@ -889,4 +889,4 @@ module ActionView
   end
 end
 
-require File.dirname(__FILE__) + '/javascript_helper'
+require 'action_view/helpers/javascript_helper'

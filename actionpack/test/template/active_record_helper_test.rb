@@ -1,11 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
-require File.dirname(__FILE__) + '/../../lib/action_view/helpers/date_helper'
-require File.dirname(__FILE__) + '/../../lib/action_view/helpers/form_helper'
-require File.dirname(__FILE__) + '/../../lib/action_view/helpers/text_helper'
-require File.dirname(__FILE__) + '/../../lib/action_view/helpers/tag_helper'
-require File.dirname(__FILE__) + '/../../lib/action_view/helpers/url_helper'
-require File.dirname(__FILE__) + '/../../lib/action_view/helpers/form_tag_helper'
-# require File.dirname(__FILE__) + '/../../lib/action_view/helpers/active_record_helper'
+require "#{File.dirname(__FILE__)}/../abstract_unit"
 
 class ActiveRecordHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::FormHelper

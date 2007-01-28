@@ -1,5 +1,8 @@
 class CGI #:nodoc:
   module QueryExtension
+    # Remove the old initialize_query method before redefining it.
+    remove_method :initialize_query
+
     # Initialize the data from the query.
     #
     # Handles multipart forms (in particular, forms that involve file uploads).

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require "#{File.dirname(__FILE__)}/../abstract_unit"
 
 module BaseTest
   include ActionView::Helpers::JavaScriptHelper

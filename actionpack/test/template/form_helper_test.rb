@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require "#{File.dirname(__FILE__)}/../abstract_unit"
 
 class FormHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::FormHelper

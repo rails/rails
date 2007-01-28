@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require "#{File.dirname(__FILE__)}/../abstract_unit"
 require "#{File.dirname(__FILE__)}/../testing_sandbox"
 
 class TextHelperTest < Test::Unit::TestCase

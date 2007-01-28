@@ -507,9 +507,9 @@ module ActionController
           end
         end
       end
-  
+
       def matches_controller_and_action?(controller, action)
-        unless @matching_prepared
+        unless defined? @matching_prepared
           @controller_requirement = requirement_for(:controller)
           @action_requirement = requirement_for(:action)
           @matching_prepared = true

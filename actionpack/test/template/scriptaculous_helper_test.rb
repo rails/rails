@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require "#{File.dirname(__FILE__)}/../abstract_unit"
 
 class ScriptaculousHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::JavaScriptHelper

@@ -3,8 +3,8 @@
 # Under MIT and/or CC By license.
 #++
 
-require File.dirname(__FILE__) + '/../abstract_unit'
-require File.dirname(__FILE__) + '/fake_controllers'
+require "#{File.dirname(__FILE__)}/../abstract_unit"
+require "#{File.dirname(__FILE__)}/fake_controllers"
 
 
 unless defined?(ActionMailer)

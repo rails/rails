@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/assertions'
+require 'action_controller/assertions'
 
 module ActionController #:nodoc:
   class Base
@@ -90,11 +90,11 @@ module ActionController #:nodoc:
     end
 
     def request_uri
-      @request_uri || super()
+      @request_uri || super
     end
 
     def path
-      @path || super()
+      @path || super
     end
 
     def assign_parameters(controller_path, action, parameters)

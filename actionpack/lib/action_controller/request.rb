@@ -3,6 +3,7 @@ module ActionController
   # CgiRequest and TestRequest
   class AbstractRequest
     cattr_accessor :relative_url_root
+    remove_method :relative_url_root
 
     # Returns the hash of environment variables for this request,
     # such as { 'RAILS_ENV' => 'production' }.

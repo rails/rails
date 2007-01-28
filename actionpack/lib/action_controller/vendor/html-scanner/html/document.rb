@@ -1,9 +1,8 @@
-require File.dirname(__FILE__) + '/tokenizer'
-require File.dirname(__FILE__) + '/node'
-require File.dirname(__FILE__) + '/selector'
+require 'html/tokenizer'
+require 'html/node'
+require 'html/selector'
 
 module HTML #:nodoc:
-  
   # A top-level HTMl document. You give it a body of text, and it will parse that
   # text into a tree of nodes.
   class Document #:nodoc:

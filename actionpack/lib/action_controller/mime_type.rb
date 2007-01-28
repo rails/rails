@@ -142,4 +142,4 @@ module Mime
   end
 end
 
-require File.dirname(__FILE__) + "/mime_types"
+require 'action_controller/mime_types'

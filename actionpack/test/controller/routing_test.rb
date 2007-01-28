@@ -1,6 +1,5 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
-require 'test/unit'
-require File.dirname(__FILE__) + '/fake_controllers'
+require "#{File.dirname(__FILE__)}/../abstract_unit"
+require "#{File.dirname(__FILE__)}/fake_controllers"
 require 'action_controller/routing'
 
 RunTimeTests = ARGV.include? 'time'
@@ -789,7 +788,7 @@ class RouteTest < Test::Unit::TestCase
   end
   
   def default_route
-    unless @default_route
+    unless defined?(@default_route)
       @default_route = ROUTING::Route.new
       
       @default_route.segments << (s = ROUTING::StaticSegment.new)

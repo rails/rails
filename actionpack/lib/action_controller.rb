@@ -26,13 +26,15 @@ $:.unshift(File.dirname(__FILE__)) unless
 
 unless defined?(ActiveSupport)
   begin
-    $:.unshift(File.dirname(__FILE__) + "/../../activesupport/lib")
-    require 'active_support'  
+    $:.unshift "#{File.dirname(__FILE__)}/../../activesupport/lib"
+    require 'active_support'
   rescue LoadError
     require 'rubygems'
     require_gem 'activesupport'
   end
 end
+
+$:.unshift "#{File.dirname(__FILE__)}/action_controller/vendor/html-scanner"
 
 require 'action_controller/base'
 require 'action_controller/deprecated_redirects'

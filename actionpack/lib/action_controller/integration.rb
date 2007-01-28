@@ -72,7 +72,7 @@ module ActionController
         self.remote_addr = "127.0.0.1"
         self.accept      = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"
 
-        unless @named_routes_configured
+        unless defined? @named_routes_configured
           # install the named routes in this session instance.
           klass = class<<self; self; end
           Routing::Routes.named_routes.install(klass)

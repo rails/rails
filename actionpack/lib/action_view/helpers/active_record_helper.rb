@@ -1,5 +1,5 @@
 require 'cgi'
-require File.dirname(__FILE__) + '/form_helper'
+require 'action_view/helpers/form_helper'
 
 module ActionView
   class Base

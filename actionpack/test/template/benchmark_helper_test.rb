@@ -1,5 +1,5 @@
-require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/action_view/helpers/benchmark_helper'
+require "#{File.dirname(__FILE__)}/../abstract_unit"
+require 'action_view/helpers/benchmark_helper'
 
 class BenchmarkHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::BenchmarkHelper
