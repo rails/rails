@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove deprecated assertions.  [Jeremy Kemper]
+
 * Change session restoration to allow namespaced models to be autoloaded. Closes #6348. [Nicholas Seckar]
 
 * Fix doubly appearing parameters due to string and symbol mixups. Closes #2551. [aeden]
