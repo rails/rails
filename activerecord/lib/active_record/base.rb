@@ -491,7 +491,7 @@ module ActiveRecord #:nodoc:
       # A subset of the records can be selected by specifying +conditions+. Example:
       #   Billing.update_all "category = 'authorized', approved = 1", "author = 'David'"
       def update_all(updates, conditions = nil)
-        sql  = "UPDATE #{table_name} SET #{sanitize_sql(updates)} "
+        sql  = "UPDATE #{table_name} SET #{sanitize_sql_for_assignment(updates)} "
         add_conditions!(sql, conditions, scope(:find))
         connection.update(sql, "#{name} Update")
       end
@@ -1383,31 +1383,53 @@ module ActiveRecord #:nodoc:
         end
 
         # Accepts an array, hash, or string of sql conditions and sanitizes
-        # them into a valid SQL fragment.
+        # them into a valid SQL fragment for a WHERE clause.
         #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
         #   { :name => "foo'bar", :group_id => 4 }  returns "name='foo''bar' and group_id='4'"
         #   "name='foo''bar' and group_id='4'" returns "name='foo''bar' and group_id='4'"
-        def sanitize_sql(condition)
+        def sanitize_sql_for_conditions(condition)
           case condition
             when Array; sanitize_sql_array(condition)
-            when Hash;  sanitize_sql_hash(condition)
+            when Hash;  sanitize_sql_hash_for_conditions(condition)
             else        condition
           end
         end
+        alias_method :sanitize_sql, :sanitize_sql_for_conditions
 
-        # Sanitizes a hash of attribute/value pairs into SQL conditions.
+        # Accepts an array, hash, or string of sql conditions and sanitizes
+        # them into a valid SQL fragment for a SET clause.
+        #   { :name => nil, :group_id => 4 }  returns "name = NULL , group_id='4'"
+        def sanitize_sql_for_assignment(assignments)
+          case assignments
+            when Array; sanitize_sql_array(assignments)
+            when Hash;  sanitize_sql_hash_for_assignment(assignments)
+            else        assignments
+          end
+        end
+
+        # Sanitizes a hash of attribute/value pairs into SQL conditions for a WHERE clause.
         #   { :name => "foo'bar", :group_id => 4 }
         #     # => "name='foo''bar' and group_id= 4"
         #   { :status => nil, :group_id => [1,2,3] }
         #     # => "status IS NULL and group_id IN (1,2,3)"
         #   { :age => 13..18 }
         #     # => "age BETWEEN 13 AND 18"
-        def sanitize_sql_hash(attrs)
+        def sanitize_sql_hash_for_conditions(attrs)
           conditions = attrs.map do |attr, value|
             "#{table_name}.#{connection.quote_column_name(attr)} #{attribute_condition(value)}"
           end.join(' AND ')
 
           replace_bind_variables(conditions, expand_range_bind_variables(attrs.values))
+        end
+        alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions
+
+        # Sanitizes a hash of attribute/value pairs into SQL conditions for a SET clause.
+        #   { :status => nil, :group_id => 1 }
+        #     # => "status = NULL , group_id = 1"
+        def sanitize_sql_hash_for_assignment(attrs)
+          conditions = attrs.map do |attr, value|
+            "#{connection.quote_column_name(attr)} = #{quote_bound_value(value)}"
+          end.join(', ')
         end
 
         # Accepts an array of conditions.  The array has each value

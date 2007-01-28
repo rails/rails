@@ -534,17 +534,30 @@ class BasicsTest < Test::Unit::TestCase
     Topic.decrement_counter("replies_count", 2)
     assert_equal -2, Topic.find(2).replies_count
   end
-  
-  def test_update_all
-    # The ADO library doesn't support the number of affected rows
-    return true if current_adapter?(:SQLServerAdapter)
 
-    assert_equal 2, Topic.update_all("content = 'bulk updated!'")
-    assert_equal "bulk updated!", Topic.find(1).content
-    assert_equal "bulk updated!", Topic.find(2).content
-    assert_equal 2, Topic.update_all(['content = ?', 'bulk updated again!'])
-    assert_equal "bulk updated again!", Topic.find(1).content
-    assert_equal "bulk updated again!", Topic.find(2).content
+  # The ADO library doesn't support the number of affected rows
+  unless current_adapter?(:SQLServerAdapter)
+    def test_update_all
+      assert_equal 2, Topic.update_all("content = 'bulk updated!'")
+      assert_equal "bulk updated!", Topic.find(1).content
+      assert_equal "bulk updated!", Topic.find(2).content
+
+      assert_equal 2, Topic.update_all(['content = ?', 'bulk updated again!'])
+      assert_equal "bulk updated again!", Topic.find(1).content
+      assert_equal "bulk updated again!", Topic.find(2).content
+
+      assert_equal 2, Topic.update_all(['content = ?', nil])
+      assert_nil Topic.find(1).content
+    end
+
+    def test_update_all_with_hash
+      assert_not_nil Topic.find(1).last_read
+      assert_equal 2, Topic.update_all(:content => 'bulk updated with hash!', :last_read => nil)
+      assert_equal "bulk updated with hash!", Topic.find(1).content
+      assert_equal "bulk updated with hash!", Topic.find(2).content
+      assert_nil Topic.find(1).last_read
+      assert_nil Topic.find(2).last_read
+    end
   end
 
   def test_update_many
