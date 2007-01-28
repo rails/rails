@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
-require File.dirname(__FILE__) + '/fake_controllers'
+require "#{File.dirname(__FILE__)}/../abstract_unit"
+require "#{File.dirname(__FILE__)}/fake_controllers"
 
 class TestTest < Test::Unit::TestCase
   class TestController < ActionController::Base
@@ -492,4 +492,32 @@ HTML
         yield set
       end
     end
+end
+
+
+class CleanBacktraceTest < Test::Unit::TestCase
+  def test_should_reraise_the_same_object
+    exception = Test::Unit::AssertionFailedError.new('message')
+    clean_backtrace { raise exception }
+  rescue => caught
+    assert_equal exception.object_id, caught.object_id
+    assert_equal exception.message, caught.message
+  end
+
+  def test_should_clean_assertion_lines_from_backtrace
+    path = File.expand_path("#{File.dirname(__FILE__)}/../../lib/action_controller")
+    exception = Test::Unit::AssertionFailedError.new('message')
+    exception.set_backtrace ["#{path}/abc", "#{path}/assertions/def"]
+    clean_backtrace { raise exception }
+  rescue => caught
+    assert_equal ["#{path}/abc"], caught.backtrace
+  end
+
+  def test_should_only_clean_assertion_failure_errors
+    clean_backtrace do
+      raise "can't touch this", [File.expand_path("#{File.dirname(__FILE__)}/../../lib/action_controller/assertions/abc")]
+    end
+  rescue => caught
+    assert !caught.backtrace.empty?
+  end
 end

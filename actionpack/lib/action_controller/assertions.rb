@@ -9,7 +9,7 @@ module ActionController #:nodoc:
   # * session: Objects being saved in the session.
   # * flash: The flash objects currently in the session.
   # * cookies: Cookies being sent to the user on this request.
-  # 
+  #
   # These collections can be used just like any other hash:
   #
   #   assert_not_nil assigns(:person) # makes sure that a @person instance variable was set
@@ -40,36 +40,26 @@ module ActionController #:nodoc:
   # == Testing named routes
   #
   # If you're using named routes, they can be easily tested using the original named routes methods straight in the test case.
-  # Example: 
+  # Example:
   #
   #  assert_redirected_to page_url(:title => 'foo')
   module Assertions
     def self.included(klass)
-      klass.class_eval do
-        include ActionController::Assertions::ResponseAssertions
-        include ActionController::Assertions::SelectorAssertions
-        include ActionController::Assertions::RoutingAssertions
-        include ActionController::Assertions::TagAssertions
-        include ActionController::Assertions::DomAssertions
-        include ActionController::Assertions::ModelAssertions
+      %w(response selector tag dom routing model).each do |kind|
+        require "action_controller/assertions/#{kind}_assertions"
+        klass.send :include, const_get("#{kind.camelize}Assertions")
       end
     end
 
     def clean_backtrace(&block)
       yield
-    rescue Test::Unit::AssertionFailedError => e         
-      path = File.expand_path(__FILE__)
-      raise Test::Unit::AssertionFailedError, e.message, e.backtrace.reject { |line| File.expand_path(line) =~ /#{path}/ }
+    rescue Test::Unit::AssertionFailedError => error
+      framework_path = Regexp.new(File.expand_path("#{File.dirname(__FILE__)}/assertions"))
+      error.backtrace.reject! { |line| File.expand_path(line) =~ framework_path }
+      raise
     end
   end
 end
-
-require File.dirname(__FILE__) + '/assertions/response_assertions'
-require File.dirname(__FILE__) + '/assertions/selector_assertions'
-require File.dirname(__FILE__) + '/assertions/tag_assertions'
-require File.dirname(__FILE__) + '/assertions/dom_assertions'
-require File.dirname(__FILE__) + '/assertions/routing_assertions'
-require File.dirname(__FILE__) + '/assertions/model_assertions'
 
 module Test #:nodoc:
   module Unit #:nodoc:
