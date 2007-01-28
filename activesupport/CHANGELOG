@@ -1,3 +1,8 @@
+*SVN*
+
+* Full test coverage for Inflector.  #7228 [Dan Kubb]
+
+
 *1.4.0* (January 16th, 2007)
 
 * Document Inflector.ordinalize and merge docs from String inflections.  #7023 [smeade]
