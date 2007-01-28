@@ -27,6 +27,9 @@
 
 * Make 1.months and friends accurate by introducing a Duration class.  #6835 [eventualbuddha]
 
+
+*1.4.0* (January 16th, 2007)
+
 * Document Inflector.ordinalize and merge docs from String inflections.  #7023 [smeade]
 
 * Unbundle flexmock.  [Jeremy Kemper]
