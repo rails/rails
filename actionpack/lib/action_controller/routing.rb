@@ -127,7 +127,8 @@ module ActionController
   # == Named routes
   #
   # Routes can be named with the syntax <tt>map.name_of_route options</tt>,
-  # allowing for easy reference within your source as +name_of_route_url+.
+  # allowing for easy reference within your source as +name_of_route_url+
+  # for the full URL and +name_of_route_path+ for the URI path.
   #
   # Example:
   #   # In routes.rb
@@ -138,29 +139,39 @@ module ActionController
   #
   # Arguments can be passed as well.
   #
-  #   redirect_to show_item_url(:id => 25)
+  #   redirect_to show_item_path(:id => 25)
   #
-  # When using +with_options+, the name goes after the item passed to the block.
+  # Use <tt>map.root</tt> as a shorthand to name a route for the root path ""
   #
-  #  ActionController::Routing::Routes.draw do |map| 
-  #    map.with_options :controller => 'blog' do |blog|
-  #      blog.show    '',            :action  => 'list'
-  #      blog.delete  'delete/:id',  :action  => 'delete',
-  #      blog.edit    'edit/:id',    :action  => 'edit'
-  #    end
-  #    map.connect ':controller/:action/:view 
-  #  end
+  #   # In routes.rb
+  #   map.root :controller => 'blogs'
   #
-  # You would then use the named routes in your views:
+  #   # would recognize http://www.example.com/ as
+  #   params = { :controller => 'blogs', :action => 'index' }
   #
-  #   link_to @article.title, show_url(:id => @article.id) 
+  #   # and provide these named routes
+  #   root_url   # => 'http://www.example.com/'
+  #   root_path  # => ''
   #
-  # == Pretty URL's
+  # Note: when using +with_options+, the route is simply named after the
+  # method you call on the block parameter rather than map.
+  #
+  #   # In routes.rb
+  #   map.with_options :controller => 'blog' do |blog|
+  #     blog.show    '',            :action  => 'list'
+  #     blog.delete  'delete/:id',  :action  => 'delete',
+  #     blog.edit    'edit/:id',    :action  => 'edit'
+  #   end
+  #
+  #   # provides named routes for show, delete, and edit
+  #   link_to @article.title, show_path(:id => @article.id) 
+  #
+  # == Pretty URLs
   #
   # Routes can generate pretty URLs. For example:
   #
   #  map.connect 'articles/:year/:month/:day',
-  #   	         :controller => 'articles', 
+  #              :controller => 'articles', 
   #              :action     => 'find_by_date',
   #              :year       => /\d{4}/,
   #              :month => /\d{1,2}/, 
