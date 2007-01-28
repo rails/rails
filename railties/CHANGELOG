@@ -1,5 +1,7 @@
 *SVN*
 
+* Resource generator depends on the model generator rather than duplicating it.  #7269 [bscofield]
+
 * Add/Update usage documentation for script/destroy, resource generator and scaffold_resource generator.  Closes #7092, #7271, #7267.  [bscofield]
 
 * Update to script.aculo.us 1.7.0.  [Thomas Fuchs]

@@ -39,7 +39,7 @@ class ResourceGenerator < Rails::Generator::NamedBase
       m.directory(File.join('test/functional', controller_class_path))
       m.directory(File.join('test/unit', class_path))
 
-      m.template('model.rb', File.join('app/models', class_path, "#{file_name}.rb"))
+      m.dependency 'model', [singular_name] + @args, :collision => :skip
 
       m.template(
         'controller.rb', File.join('app/controllers', controller_class_path, "#{controller_file_name}_controller.rb")
@@ -47,19 +47,6 @@ class ResourceGenerator < Rails::Generator::NamedBase
 
       m.template('functional_test.rb', File.join('test/functional', controller_class_path, "#{controller_file_name}_controller_test.rb"))
       m.template('helper.rb',          File.join('app/helpers',     controller_class_path, "#{controller_file_name}_helper.rb"))
-      m.template('unit_test.rb',       File.join('test/unit',       class_path, "#{file_name}_test.rb"))
-      m.template('fixtures.yml',       File.join('test/fixtures', "#{table_name}.yml"))
-
-      unless options[:skip_migration]
-        m.migration_template(
-          'migration.rb', 'db/migrate', 
-          :assigns => {
-            :migration_name => "Create#{class_name.pluralize.gsub(/::/, '')}",
-            :attributes     => attributes
-          }, 
-          :migration_file_name => "create_#{file_path.gsub(/\//, '_').pluralize}"
-        )
-      end
 
       m.route_resources controller_file_name
     end
