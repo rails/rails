@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL: blob and text columns may not have defaults in 5.x. Update fixtures schema for strict mode.  #6695 [Dan Kubb]
+
 * update_all can take a Hash argument. sanitize_sql splits into two methods for conditions and assignment since NULL values and delimiters are handled differently.  #6583, #7365 [sandofsky, Assaf]
 
 * MySQL: SET SQL_AUTO_IS_NULL=0 so 'where id is null' doesn't select the last inserted id.  #6778 [Jonathan Viney, timc]

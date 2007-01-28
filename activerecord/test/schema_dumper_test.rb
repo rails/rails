@@ -89,6 +89,13 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
       end
     end
 
+    if current_adapter?(:MysqlAdapter)
+      def test_schema_dump_should_not_add_default_value_for_mysql_text_field
+        output = standard_dump
+        assert_match %r{t.column "body",\s+:text,\s+:null => false$}, output
+      end
+    end
+
     def test_schema_dump_includes_decimal_options
       stream = StringIO.new      
       ActiveRecord::SchemaDumper.ignore_tables = [/^[^n]/]

@@ -85,12 +85,13 @@ module ActiveRecord
 
   module ConnectionAdapters
     class MysqlColumn < Column #:nodoc:
-      TYPES_ALLOWING_EMPTY_STRING_DEFAULT = Set.new([:binary, :string, :text])
+      TYPES_DISALLOWING_DEFAULT = Set.new([:binary, :text])
+      TYPES_ALLOWING_EMPTY_STRING_DEFAULT = Set.new([:string])
 
       def initialize(name, default, sql_type = nil, null = true)
         @original_default = default
         super
-        @default = nil if missing_default_forged_as_empty_string?
+        @default = nil if no_default_allowed? || missing_default_forged_as_empty_string?
       end
 
       private
@@ -102,13 +103,18 @@ module ActiveRecord
 
         # MySQL misreports NOT NULL column default when none is given.
         # We can't detect this for columns which may have a legitimate ''
-        # default (string, text, binary) but we can for others (integer,
-        # datetime, boolean, and the rest).
+        # default (string) but we can for others (integer, datetime, boolean,
+        # and the rest).
         #
         # Test whether the column has default '', is not null, and is not
         # a type allowing default ''.
         def missing_default_forged_as_empty_string?
           !null && @original_default == '' && !TYPES_ALLOWING_EMPTY_STRING_DEFAULT.include?(type)
+        end
+
+        # MySQL 5.0 does not allow text and binary columns to have defaults
+        def no_default_allowed?
+          TYPES_DISALLOWING_DEFAULT.include?(type)
         end
     end
 

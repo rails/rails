@@ -692,7 +692,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
         assert_nothing_raised {
           Person.connection.create_table :binary_testings do |t|
-            t.column "data", :binary, :default => "", :null => false
+            t.column "data", :binary, :null => false
           end
         }
 
@@ -702,7 +702,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         if current_adapter?(:OracleAdapter)
           assert_equal "empty_blob()", data_column.default
         else
-          assert_equal "", data_column.default
+          assert_nil data_column.default
         end
 
         Person.connection.drop_table :binary_testings rescue nil
