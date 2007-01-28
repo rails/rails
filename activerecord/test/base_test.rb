@@ -164,8 +164,16 @@ class BasicsTest < Test::Unit::TestCase
     topic.reload
     assert_equal("null", topic.title)
     assert_equal("null", topic.author_name)
-  end  
-  
+  end
+
+  def test_save_nil_string_attributes
+    topic = Topic.find(1)
+    topic.title = nil
+    topic.save!
+    topic.reload
+    assert_nil topic.title
+  end
+
   def test_hashes_not_mangled
     new_topic = { :title => "New Topic" }
     new_topic_values = { :title => "AnotherTopic" }

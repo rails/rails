@@ -1,5 +1,7 @@
 *SVN*
 
+* SQLServer: don't choke on strings containing 'null'.  #7083 [Jakob S]
+
 * MySQL: blob and text columns may not have defaults in 5.x. Update fixtures schema for strict mode.  #6695 [Dan Kubb]
 
 * update_all can take a Hash argument. sanitize_sql splits into two methods for conditions and assignment since NULL values and delimiters are handled differently.  #6583, #7365 [sandofsky, Assaf]

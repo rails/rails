@@ -73,7 +73,7 @@ module ActiveRecord
       end
 
       def type_cast(value)
-        return nil if value.nil? || value =~ /^\s*null\s*$/i
+        return nil if value.nil?
         case type
         when :datetime  then cast_to_datetime(value)
         when :timestamp then cast_to_time(value)
