@@ -1,5 +1,9 @@
 *SVN*
 
+* date_select and datetime_select take a :default option.  #7052 [nik.wakelin]
+    date_select "post", "written_on", :default => 3.days.from_now
+    date_select "credit_card", "bill_due", :default => { :day => 20 }
+
 * select :multiple => true suffixes the attribute name with [] unless already suffixed.  #6977 [nik.kakelin, ben, julik]
 
 * Improve routes documentation.  #7095 [zackchandler]

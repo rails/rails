@@ -90,6 +90,8 @@ module ActionView
       # set the order of the tags using the <tt>:order</tt> option with an array of symbols <tt>:year</tt>, <tt>:month</tt> and <tt>:day</tt> in
       # the desired order. Symbols may be omitted and the respective select is not included.
       #
+      # Pass the <tt>:default</tt> option to set the default date. Use a Time object or a Hash of :year, :month, :day, :hour, :minute, and :second.
+      #
       # Passing :disabled => true as part of the +options+ will make elements inaccessible for change.
       #
       # NOTE: Discarded selects will default to 1. So if no month select is available, January will be assumed.
@@ -102,6 +104,9 @@ module ActionView
       #                                     :discard_day => true, :include_blank => true)
       #   date_select("post", "written_on", :order => [:day, :month, :year])
       #   date_select("user", "birthday",   :order => [:month, :day])
+      #
+      #   date_select("post", "written_on", :default => 3.days.from_now)
+      #   date_select("credit_card", "bill_due", :default => { :day => 20 })
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       def date_select(object_name, method, options = {})
@@ -361,7 +366,7 @@ module ActionView
           defaults = { :discard_type => true }
           options  = defaults.merge(options)
           datetime = value(object)
-          datetime ||= Time.now unless options[:include_blank]
+          datetime ||= default_time_from_options(options[:default]) unless options[:include_blank]
 
           position = { :year => 1, :month => 2, :day => 3, :hour => 4, :minute => 5, :second => 6 }
 
@@ -409,6 +414,26 @@ module ActionView
             prefix << "[#{@auto_index}]"
           end
           options.merge(:prefix => "#{prefix}[#{@method_name}(#{position}i)]")
+        end
+
+        def default_time_from_options(default)
+          case default
+            when nil
+              Time.now
+            when Date, Time
+              default
+            else
+              # Rename :minute and :second to :min and :sec
+              default[:min] ||= default[:minute]
+              default[:sec] ||= default[:second]
+
+              [:year, :month, :day, :hour, :min, :sec].each do |key|
+                default[key] ||= Time.now.send(key)
+              end
+
+              Time.mktime(default[:year], default[:month], default[:day],
+                          default[:hour], default[:min],   default[:sec])
+            end
         end
     end
 

@@ -1318,4 +1318,78 @@ class DateHelperTest < Test::Unit::TestCase
 
     assert_equal expected, datetime_select("post", "updated_at", :order => [:day, :month])
   end
+
+  def test_datetime_select_with_default_value_as_time
+    @post = Post.new
+    @post.updated_at = nil
+
+    expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
+    2001.upto(2011) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 2006}>#{i}</option>\n) }
+    expected << "</select>\n"
+    expected << %{<select id="post_updated_at_2i" name="post[updated_at(2i)]">\n}
+    1.upto(12) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 9}>#{Date::MONTHNAMES[i]}</option>\n) }
+    expected << "</select>\n"
+    expected << %{<select id="post_updated_at_3i" name="post[updated_at(3i)]">\n}
+    1.upto(31) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 19}>#{i}</option>\n) }
+    expected << "</select>\n"
+
+    expected << " &mdash; "
+
+    expected << %{<select id="post_updated_at_4i" name="post[updated_at(4i)]">\n}
+    0.upto(23) { |i| expected << %(<option value="#{leading_zero_on_single_digits(i)}"#{' selected="selected"' if i == 15}>#{leading_zero_on_single_digits(i)}</option>\n) }
+    expected << "</select>\n"
+    expected << " : "
+    expected << %{<select id="post_updated_at_5i" name="post[updated_at(5i)]">\n}
+    0.upto(59) { |i| expected << %(<option value="#{leading_zero_on_single_digits(i)}"#{' selected="selected"' if i == 16}>#{leading_zero_on_single_digits(i)}</option>\n) }
+    expected << "</select>\n"
+
+    assert_equal expected, datetime_select("post", "updated_at", :default => Time.local(2006, 9, 19, 15, 16, 35))
+  end
+
+  def test_include_blank_overrides_default_option
+    @post = Post.new
+    @post.updated_at = nil
+
+    expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
+    expected << %(<option value=""></option>\n)
+    2002.upto(2012) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
+    expected << "</select>\n"
+    expected << %{<select id="post_updated_at_2i" name="post[updated_at(2i)]">\n}
+    expected << %(<option value=""></option>\n)
+    1.upto(12) { |i| expected << %(<option value="#{i}">#{Date::MONTHNAMES[i]}</option>\n) }
+    expected << "</select>\n"
+    expected << %{<select id="post_updated_at_3i" name="post[updated_at(3i)]">\n}
+    expected << %(<option value=""></option>\n)
+    1.upto(31) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
+    expected << "</select>\n"
+
+    assert_equal expected, date_select("post", "updated_at", :default => Time.local(2006, 9, 19, 15, 16, 35), :include_blank => true)
+  end
+
+  def test_datetime_select_with_default_value_as_hash
+    @post = Post.new
+    @post.updated_at = nil
+
+    expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
+    (Time.now.year - 5).upto(Time.now.year + 5) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == Time.now.year}>#{i}</option>\n) }
+    expected << "</select>\n"
+    expected << %{<select id="post_updated_at_2i" name="post[updated_at(2i)]">\n}
+    1.upto(12) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 10}>#{Date::MONTHNAMES[i]}</option>\n) }
+    expected << "</select>\n"
+    expected << %{<select id="post_updated_at_3i" name="post[updated_at(3i)]">\n}
+    1.upto(31) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == Time.now.day}>#{i}</option>\n) }
+    expected << "</select>\n"
+
+    expected << " &mdash; "
+
+    expected << %{<select id="post_updated_at_4i" name="post[updated_at(4i)]">\n}
+    0.upto(23) { |i| expected << %(<option value="#{leading_zero_on_single_digits(i)}"#{' selected="selected"' if i == 9}>#{leading_zero_on_single_digits(i)}</option>\n) }
+    expected << "</select>\n"
+    expected << " : "
+    expected << %{<select id="post_updated_at_5i" name="post[updated_at(5i)]">\n}
+    0.upto(59) { |i| expected << %(<option value="#{leading_zero_on_single_digits(i)}"#{' selected="selected"' if i == 42}>#{leading_zero_on_single_digits(i)}</option>\n) }
+    expected << "</select>\n"
+
+    assert_equal expected, datetime_select("post", "updated_at", :default => { :month => 10, :minute => 42, :hour => 9 })
+  end
 end
