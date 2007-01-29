@@ -453,6 +453,10 @@ module ActionView
       def error_messages(options = {})
         @template.error_messages_for(@object_name, options)
       end
+      
+      def submit(value = "Save changes", options = {})
+        @template.submit_tag(value, options.reverse_merge(:id => "#{object_name}_submit"))
+      end
     end
   end
 

@@ -239,6 +239,7 @@ class FormHelperTest < Test::Unit::TestCase
       _erbout.concat f.text_field(:title)
       _erbout.concat f.text_area(:body)
       _erbout.concat f.check_box(:secret)
+      _erbout.concat f.submit 'Create post'
     end
 
     expected = 
@@ -247,6 +248,7 @@ class FormHelperTest < Test::Unit::TestCase
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
       "<input name='post[secret]' type='hidden' value='0' />" +
+      "<input name='commit' id='post_submit' type='submit' value='Create post' />" +
       "</form>"
 
     assert_dom_equal expected, _erbout
