@@ -113,6 +113,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         t.column :two, :boolean, :default => true
         t.column :three, :boolean, :default => false
         t.column :four, :integer, :default => 1
+        t.column :five, :text, :default => "hello"
       end
 
       columns = Person.connection.columns(:testings)
@@ -120,11 +121,13 @@ if ActiveRecord::Base.connection.supports_migrations?
       two = columns.detect { |c| c.name == "two" }
       three = columns.detect { |c| c.name == "three" }
       four = columns.detect { |c| c.name == "four" }
+      five = columns.detect { |c| c.name == "five" }
 
       assert_equal "hello", one.default
       assert_equal true, two.default
       assert_equal false, three.default
       assert_equal 1, four.default
+      assert_equal "hello", five.default
 
     ensure
       Person.connection.drop_table :testings rescue nil
@@ -435,6 +438,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.reset_column_information
       assert !Person.new.contributor?
       assert_nil Person.new.contributor
+    ensure
+      Person.connection.remove_column("people", "contributor") rescue nil
     end
 
     def test_change_column_with_new_default
@@ -445,6 +450,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nothing_raised { Person.connection.change_column "people", "administrator", :boolean, :default => false }
       Person.reset_column_information
       assert !Person.new.administrator?
+    ensure
+      Person.connection.remove_column("people", "administrator") rescue nil
     end
     
     def test_change_column_default
@@ -685,29 +692,23 @@ if ActiveRecord::Base.connection.supports_migrations?
       Reminder.reset_sequence_name
     end
 
-#   FrontBase does not support default values on BLOB/CLOB columns
-    unless current_adapter?(:FrontBaseAdapter)
-      def test_create_table_with_binary_column
-        Person.connection.drop_table :binary_testings rescue nil
+    def test_create_table_with_binary_column
+      Person.connection.drop_table :binary_testings rescue nil
 
-        assert_nothing_raised {
-          Person.connection.create_table :binary_testings do |t|
-            t.column "data", :binary, :null => false
-          end
-        }
-
-        columns = Person.connection.columns(:binary_testings)
-        data_column = columns.detect { |c| c.name == "data" }
-
-        if current_adapter?(:OracleAdapter)
-          assert_equal "empty_blob()", data_column.default
-        else
-          assert_nil data_column.default
+      assert_nothing_raised {
+        Person.connection.create_table :binary_testings do |t|
+          t.column "data", :binary, :null => false
         end
+      }
 
-        Person.connection.drop_table :binary_testings rescue nil
-      end
+      columns = Person.connection.columns(:binary_testings)
+      data_column = columns.detect { |c| c.name == "data" }
+
+      assert_nil data_column.default
+
+      Person.connection.drop_table :binary_testings rescue nil
     end
+
     def test_migrator_with_duplicates
       assert_raises(ActiveRecord::DuplicateMigrationVersionError) do
         ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations_with_duplicate/', nil)

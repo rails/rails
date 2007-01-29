@@ -170,7 +170,7 @@ begin
         end
 
         def quote(value, column = nil) #:nodoc:
-          if column && [:text, :binary].include?(column.type)
+          if value && column && [:text, :binary].include?(column.type)
             %Q{empty_#{ column.sql_type.downcase rescue 'blob' }()}
           else
             super
@@ -338,7 +338,7 @@ begin
             if row['data_default']
               row['data_default'].sub!(/^(.*?)\s*$/, '\1')
               row['data_default'].sub!(/^'(.*)'$/, '\1')
-              row['data_default'] = nil if row['data_default'] =~ /^null$/i
+              row['data_default'] = nil if row['data_default'] =~ /^(null|empty_[bc]lob\(\))$/i
             end
 
             OracleColumn.new(oracle_downcase(row['name']),
@@ -445,6 +445,14 @@ begin
           select_all("select table_name from user_tables").inject(s) do |drop, table|
             drop << "drop table #{table.to_a.first.last} cascade constraints;\n\n"
           end
+        end
+
+        def add_column_options!(sql, options) #:nodoc:
+          # handle case of defaults for CLOB columns, which would otherwise get "quoted" incorrectly
+          if options_include_default?(options) && (column = options[:column]) && column.type == :text
+            sql << " DEFAULT #{quote(options.delete(:default))}" 
+          end
+          super
         end
 
         # SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.

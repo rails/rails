@@ -1,5 +1,7 @@
 *SVN*
 
+* Oracle: fix lob and text default handling.  #7344 [gfriedrich, Michael Schoen]
+
 * SQLServer: don't choke on strings containing 'null'.  #7083 [Jakob S]
 
 * MySQL: blob and text columns may not have defaults in 5.x. Update fixtures schema for strict mode.  #6695 [Dan Kubb]
