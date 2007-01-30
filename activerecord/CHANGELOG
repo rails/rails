@@ -1,5 +1,7 @@
 *SVN*
 
+* When dealing with SQLite3, use the table_info pragma helper, so that the bindings can do some translation for when sqlite3 breaks incompatibly between point releases. [Jamis Buck]
+
 * SQLServer: don't choke on strings containing 'null'.  #7083 [Jakob S]
 
 * Consistently use LOWER() for uniqueness validations (rather than mixing with UPPER()) so the database can always use a functional index on the lowercased column.  #6495 [Si]
