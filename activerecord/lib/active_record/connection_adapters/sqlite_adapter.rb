@@ -22,7 +22,7 @@ module ActiveRecord
 
         db.busy_timeout(config[:timeout]) unless config[:timeout].nil?
 
-        ConnectionAdapters::SQLiteAdapter.new(db, logger)
+        ConnectionAdapters::SQLite3Adapter.new(db, logger)
       end
 
       # Establishes a connection to the database that's used by all Active Record objects
@@ -379,6 +379,14 @@ module ActiveRecord
             'INTEGER PRIMARY KEY NOT NULL'.freeze
           end
         end
+    end
+
+    class SQLite3Adapter < SQLiteAdapter # :nodoc:
+      def table_structure(table_name)
+        returning structure = @connection.table_info(table_name) do
+          raise ActiveRecord::StatementInvalid if structure.empty?
+        end
+      end
     end
 
     class SQLite2Adapter < SQLiteAdapter # :nodoc:

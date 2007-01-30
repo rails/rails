@@ -1,5 +1,7 @@
 *SVN*
 
+* When dealing with SQLite3, use the table_info pragma helper, so that the bindings can do some translation for when sqlite3 breaks incompatibly between point releases. [Jamis Buck]
+
 * Oracle: fix lob and text default handling.  #7344 [gfriedrich, Michael Schoen]
 
 * SQLServer: don't choke on strings containing 'null'.  #7083 [Jakob S]

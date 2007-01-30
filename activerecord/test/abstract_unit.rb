@@ -56,7 +56,7 @@ end
 def current_adapter?(*types)
   types.any? do |type|
     ActiveRecord::ConnectionAdapters.const_defined?(type) &&
-      ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters.const_get(type))
+      ActiveRecord::Base.connection.is_a?(ActiveRecord::ConnectionAdapters.const_get(type))
   end
 end
 
