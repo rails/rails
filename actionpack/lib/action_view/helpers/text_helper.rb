@@ -35,7 +35,7 @@ module ActionView
       def truncate(text, length = 30, truncate_string = "...")
         if text.nil? then return end
         l = length - truncate_string.chars.length
-        text.chars.length > length ? text.chars[0...l] + truncate_string : text
+        (text.chars.length > length ? text.chars[0...l] + truncate_string : text).to_s
       end
 
       # Highlights +phrase+ everywhere it is found in +text+ by inserting it into

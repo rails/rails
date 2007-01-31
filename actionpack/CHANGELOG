@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure that the string returned by TextHelper#truncate is actually a string, not a char proxy -- that should only be used internally while working on a multibyte-safe way of truncating [DHH]
+
 * Added FormBuilder#submit as a delegate for FormTagHelper#submit_tag [DHH]
 
 * TestSession supports indifferent access so session['foo'] == session[:foo] in your tests.  #7372 [julik, jean.helou]
