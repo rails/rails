@@ -787,6 +787,19 @@ EOF
     assert_match %r{format=flowed}, mail['content-type'].to_s
     assert_match %r{charset=utf-8}, mail['content-type'].to_s
   end
+  
+  def test_deprecated_server_settings
+    old_smtp_settings = ActionMailer::Base.smtp_settings
+    assert_deprecated do
+      ActionMailer::Base.server_settings
+    end
+    assert_deprecated do
+      ActionMailer::Base.server_settings={}
+      assert_equal Hash.new, ActionMailer::Base.smtp_settings
+    end
+  ensure
+    ActionMailer::Base.smtp_settings=old_smtp_settings    
+  end
 end
 
 class InheritableTemplateRootTest < Test::Unit::TestCase
