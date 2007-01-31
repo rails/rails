@@ -550,8 +550,8 @@ module ActionMailer #:nodoc:
         destinations = mail.destinations
         mail.ready_to_send
 
-        Net::SMTP.start(server_settings[:address], server_settings[:port], server_settings[:domain], 
-            server_settings[:user_name], server_settings[:password], server_settings[:authentication]) do |smtp|
+        Net::SMTP.start(smtp_settings[:address], smtp_settings[:port], smtp_settings[:domain], 
+            smtp_settings[:user_name], smtp_settings[:password], smtp_settings[:authentication]) do |smtp|
           smtp.sendmail(mail.encoded, mail.from, destinations)
         end
       end
