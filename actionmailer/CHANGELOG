@@ -1,5 +1,7 @@
 *SVN*
 
+* Rename server_settings to smtp settings, and add  sendmail_settings to allow you to override the arguments to and location of the sendmail executable. [Koz]
+
 * Allow mailer actions named send by using __send__ internally.  #6467 [iGEL]
 
 * Add assert_emails and assert_no_emails to test the number of emails delivered.  #6479 [Jonathan Viney]
