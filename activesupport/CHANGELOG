@@ -1,5 +1,8 @@
 *SVN*
 
+* Ruby 1.8-cvs and 1.9 define a private Time#to_date that overrides Active
+Support. Make it public to preserve compatibility.  [Jeremy Kemper]
+
 * Full test coverage for Inflector.  #7228 [Dan Kubb]
 
 * :db format for Date#to_s [Jeremy Kemper]
