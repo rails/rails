@@ -1,5 +1,7 @@
 *SVN*
 
+* Plugins may be symlinked in vendor/plugins.  #4245 [brandon, progrium@gmail.com]
+
 * Resource generator depends on the model generator rather than duplicating it.  #7269 [bscofield]
 
 * Add/Update usage documentation for script/destroy, resource generator and scaffold_resource generator.  Closes #7092, #7271, #7267.  [bscofield]

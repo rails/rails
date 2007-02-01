@@ -108,10 +108,10 @@ namespace :test do
     if ENV['PLUGIN']
       t.pattern = "vendor/plugins/#{ENV['PLUGIN']}/test/**/*_test.rb"
     else
-      t.pattern = 'vendor/plugins/**/test/**/*_test.rb'
+      t.pattern = 'vendor/plugins/*/**/test/**/*_test.rb'
     end
 
     t.verbose = true
   end
-  Rake::Task['test:plugins'].comment = "Run the plugin tests in vendor/plugins/**/test (or specify with PLUGIN=name)"
+  Rake::Task['test:plugins'].comment = "Run the plugin tests in vendor/plugins/*/**/test (or specify with PLUGIN=name)"
 end
