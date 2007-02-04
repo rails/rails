@@ -27,7 +27,7 @@ unless defined?(ActionController)
     require 'action_controller'
   rescue LoadError
     require 'rubygems'
-    require_gem 'actionpack', '>= 1.12.5'
+    gem 'actionpack', '>= 1.12.5'
   end
 end
 

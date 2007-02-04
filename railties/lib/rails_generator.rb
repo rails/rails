@@ -28,7 +28,7 @@ begin
   require 'active_support'  
 rescue LoadError
   require 'rubygems'
-  require_gem 'activesupport'
+  gem 'activesupport'
 end
 
 require 'rails_generator/base'

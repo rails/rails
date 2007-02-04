@@ -30,7 +30,7 @@ unless defined?(ActiveSupport)
     require 'active_support'
   rescue LoadError
     require 'rubygems'
-    require_gem 'activesupport'
+    gem 'activesupport'
   end
 end
 

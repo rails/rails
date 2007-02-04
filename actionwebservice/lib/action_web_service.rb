@@ -27,9 +27,9 @@ begin
   require 'active_record'
 rescue LoadError
   require 'rubygems'
-  require_gem 'activesupport', '>= 1.0.2'
-  require_gem 'actionpack', '>= 1.6.0'
-  require_gem 'activerecord', '>= 1.9.0'
+  gem 'activesupport', '>= 1.0.2'
+  gem 'actionpack', '>= 1.6.0'
+  gem 'activerecord', '>= 1.9.0'
 end
 
 $:.unshift(File.dirname(__FILE__) + "/action_web_service/vendor/")

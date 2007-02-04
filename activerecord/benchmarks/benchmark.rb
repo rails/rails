@@ -1,7 +1,7 @@
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 if ARGV[2]
   require 'rubygems'
-  require_gem 'activerecord', ARGV[2]
+  gem 'activerecord', ARGV[2]
 else
   require 'active_record'
 end
