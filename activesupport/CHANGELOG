@@ -1,10 +1,11 @@
-*SVN*
+*1.4.1* (February 4th, 2007)
 
 * Optimize Class Inheritable Attributes so that unnecessary hashes are not created. [Bruce Perens]
 
 * Added :instance_writer option to #mattr_writer/accessor, #cattr_writer/accessor, and #class_inheritable_writer to skip the creation of the instance writer.  [Rick] 
 
 * Full test coverage for Inflector.  #7228 [Dan Kubb]
+
 
 *1.4.0* (January 16th, 2007)
 

@@ -1,4 +1,4 @@
-*SVN*
+*1.15.2* (February 4th, 2007)
 
 * Pass a range in :conditions to use the SQL BETWEEN operator.  #6974 [dcmanges]
     Student.find(:all, :conditions => { :grade => 9..12 })
