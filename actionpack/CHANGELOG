@@ -1,5 +1,11 @@
 *SVN*
 
+* improve error message for Routing for named routes.  Closes #7346 [Rob Sanheim]
+
+* Added enhanced docs to routing assertions.  Closes #7359 [Rob Sanheim]
+
+* fix form_for example in ActionController::Resources documentation.  Closes #7362 [gnarg]
+
 * Make sure that the string returned by TextHelper#truncate is actually a string, not a char proxy -- that should only be used internally while working on a multibyte-safe way of truncating [DHH]
 
 * Added FormBuilder#submit as a delegate for FormTagHelper#submit_tag [DHH]

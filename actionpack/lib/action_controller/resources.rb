@@ -158,7 +158,7 @@ module ActionController
     #   
     # or 
     #   
-    #   <% form_for :message, @message, message_path(@message), :html => {:method => :put} do |f| %>
+    #   <% form_for :message, @message, :url => message_path(@message), :html => {:method => :put} do |f| %>
     # 
     # The #resources method accepts various options, too, to customize the resulting
     # routes:
