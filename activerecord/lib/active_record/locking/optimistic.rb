@@ -26,7 +26,7 @@ module ActiveRecord
         super
         base.extend ClassMethods
 
-        base.cattr_accessor :lock_optimistically
+        base.cattr_accessor :lock_optimistically, :instance_writer => false
         base.lock_optimistically = true
 
         base.alias_method_chain :update, :lock
