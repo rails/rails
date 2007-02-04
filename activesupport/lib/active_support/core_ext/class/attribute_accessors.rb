@@ -3,6 +3,7 @@
 class Class # :nodoc:
   def cattr_reader(*syms)
     syms.flatten.each do |sym|
+      next if sym.is_a?(Hash)
       class_eval(<<-EOS, __FILE__, __LINE__)
         unless defined? @@#{sym}
           @@#{sym} = nil
@@ -20,6 +21,7 @@ class Class # :nodoc:
   end
 
   def cattr_writer(*syms)
+    options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.flatten.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__)
         unless defined? @@#{sym}
@@ -30,9 +32,11 @@ class Class # :nodoc:
           @@#{sym} = obj
         end
 
+        #{"
         def #{sym}=(obj)
           @@#{sym} = obj
         end
+        " unless options[:instance_writer] == false }
       EOS
     end
   end

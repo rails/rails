@@ -9,6 +9,7 @@ end
 class Class # :nodoc:
   def class_inheritable_reader(*syms)
     syms.each do |sym|
+      next if sym.is_a?(Hash)
       class_eval <<-EOS
         def self.#{sym}
           read_inheritable_attribute(:#{sym})
@@ -22,43 +23,52 @@ class Class # :nodoc:
   end
 
   def class_inheritable_writer(*syms)
+    options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
       class_eval <<-EOS
         def self.#{sym}=(obj)
           write_inheritable_attribute(:#{sym}, obj)
         end
 
+        #{"
         def #{sym}=(obj)
           self.class.#{sym} = obj
         end
+        " unless options[:instance_writer] == false }
       EOS
     end
   end
 
   def class_inheritable_array_writer(*syms)
+    options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
       class_eval <<-EOS
         def self.#{sym}=(obj)
           write_inheritable_array(:#{sym}, obj)
         end
 
+        #{"
         def #{sym}=(obj)
           self.class.#{sym} = obj
         end
+        " unless options[:instance_writer] == false }
       EOS
     end
   end
 
   def class_inheritable_hash_writer(*syms)
+    options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
       class_eval <<-EOS
         def self.#{sym}=(obj)
           write_inheritable_hash(:#{sym}, obj)
         end
 
+        #{"
         def #{sym}=(obj)
           self.class.#{sym} = obj
         end
+        " unless options[:instance_writer] == false }
       EOS
     end
   end
