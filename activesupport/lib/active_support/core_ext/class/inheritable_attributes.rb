@@ -118,7 +118,8 @@ class Class # :nodoc:
   end
 
   private
-    EMPTY_INHERITABLE_ATTRIBUTES = {}.freeze
+    # Prevent this constant from being created multiple times
+    EMPTY_INHERITABLE_ATTRIBUTES = {}.freeze unless const_defined?(:EMPTY_INHERITABLE_ATTRIBUTES)
 
     def inherited_with_inheritable_attributes(child)
       inherited_without_inheritable_attributes(child) if respond_to?(:inherited_without_inheritable_attributes)
