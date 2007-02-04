@@ -1,5 +1,4 @@
+require 'date'
 require "#{File.dirname(__FILE__)}/time/behavior"
 
-class DateTime
-  include ActiveSupport::CoreExtensions::Time::Behavior
-end
+DateTime.send(:include, ActiveSupport::CoreExtensions::Time::Behavior)
