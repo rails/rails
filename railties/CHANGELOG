@@ -1,6 +1,9 @@
 *SVN*
 
+* Fix gem deprecation warnings, which also means depending on RubyGems 0.9.0+ [Chad Fowler]
+
 * Require the dispatcher for Rails::Configuration#to_prepare.  [Rick]
+
 
 *1.2.1* (January 16th, 2007)
 

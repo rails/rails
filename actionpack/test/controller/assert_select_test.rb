@@ -13,7 +13,7 @@ unless defined?(ActionMailer)
     require 'action_mailer'
   rescue LoadError
     require 'rubygems'
-    require_gem 'actionmailer'
+    gem 'actionmailer'
   end
 end
 
