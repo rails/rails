@@ -118,7 +118,7 @@ class RespondToController < ActionController::Base
     end
 end
 
-RespondToController.template_root = File.dirname(__FILE__) + "/../fixtures/"
+RespondToController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
 
 class MimeControllerTest < Test::Unit::TestCase
   def setup

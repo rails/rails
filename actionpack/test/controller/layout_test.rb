@@ -1,15 +1,17 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
-# The template_root must be set on Base and not LayoutTest so that LayoutTest's inherited method has access to
-# the template_root when looking for a layout
-ActionController::Base.template_root = File.dirname(__FILE__) + '/../fixtures/layout_tests/'
+# The view_paths array must be set on Base and not LayoutTest so that LayoutTest's inherited
+# method has access to the view_paths array when looking for a layout to automatically assign.
+old_load_paths = ActionController::Base.view_paths
+ActionController::Base.view_paths = [ File.dirname(__FILE__) + '/../fixtures/layout_tests/' ]
 
 class LayoutTest < ActionController::Base
   def self.controller_path; 'views' end
+  self.view_paths = ActionController::Base.view_paths.dup
 end
 
-# Restore template root to be unset
-ActionController::Base.template_root = nil
+# Restore view_paths to previous value
+ActionController::Base.view_paths = old_load_paths
 
 class ProductController < LayoutTest
 end

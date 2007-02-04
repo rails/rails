@@ -152,7 +152,7 @@ end
 # tell the controller where to find its templates but start from parent
 # directory of test_request_response to simulate the behaviour of a
 # production environment
-ActionPackAssertionsController.template_root = File.dirname(__FILE__) + "/../fixtures/"
+ActionPackAssertionsController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
 
 # a test case to exercise the new capabilities TestRequest & TestResponse
 class ActionPackAssertionsControllerTest < Test::Unit::TestCase

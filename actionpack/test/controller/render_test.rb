@@ -134,8 +134,8 @@ class TestController < ActionController::Base
     end
 end
 
-TestController.template_root = File.dirname(__FILE__) + "/../fixtures/"
-Fun::GamesController.template_root = File.dirname(__FILE__) + "/../fixtures/"
+TestController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
+Fun::GamesController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
 
 class RenderTest < Test::Unit::TestCase
   def setup

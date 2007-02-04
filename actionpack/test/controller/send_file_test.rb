@@ -21,7 +21,7 @@ class SendFileController < ActionController::Base
   def rescue_action(e) raise end
 end
 
-SendFileController.template_root = File.dirname(__FILE__) + "/../fixtures/"
+SendFileController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
 
 class SendFileTest < Test::Unit::TestCase
   include TestFileUtils

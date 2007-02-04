@@ -42,7 +42,7 @@ class AddressBookController < ActionController::Base
     end
 end
 
-ActionController::Base.template_root = File.dirname(__FILE__)
+ActionController::Base.view_paths = [ File.dirname(__FILE__) ]
 # ActionController::Base.logger = Logger.new("debug.log") # Remove first comment to turn on logging in current dir
 
 begin

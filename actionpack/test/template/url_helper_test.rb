@@ -250,7 +250,7 @@ end
 
 class UrlHelperWithControllerTest < Test::Unit::TestCase
   class UrlHelperController < ActionController::Base
-    self.template_root = "#{File.dirname(__FILE__)}/../fixtures/"
+    self.view_paths = [ "#{File.dirname(__FILE__)}/../fixtures/" ]
 
     def self.controller_path; 'url_helper_with_controller' end
 
@@ -305,7 +305,7 @@ end
 
 class LinkToUnlessCurrentWithControllerTest < Test::Unit::TestCase
   class TasksController < ActionController::Base
-    self.template_root = "#{File.dirname(__FILE__)}/../fixtures/"
+    self.view_paths = ["#{File.dirname(__FILE__)}/../fixtures/"]
 
     def self.controller_path; 'tasks' end
 

@@ -24,7 +24,7 @@ class BenchmarkController < ActionController::Base
   end
 end
 
-#ActionController::Base.template_root = File.dirname(__FILE__)
+#ActionController::Base.view_paths = [ File.dirname(__FILE__) ]
 
 require "benchmark"
 

@@ -21,7 +21,7 @@ class DeprecatedBaseMethodsTest < Test::Unit::TestCase
     def rescue_action(e) raise e end
   end
 
-  Target.template_root = File.dirname(__FILE__) + "/../../fixtures"
+  Target.view_paths = [ File.dirname(__FILE__) + "/../../fixtures" ]
 
   def setup
     @request    = ActionController::TestRequest.new

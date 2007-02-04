@@ -179,16 +179,18 @@ module ActionController #:nodoc:
       def default_layout #:nodoc:
         @default_layout ||= read_inheritable_attribute("layout")
       end
-
+      
+      def layout_list #:nodoc:
+        view_paths.collect do |path|
+          Dir["#{path}/layouts/**/*"]
+        end.flatten
+      end
+      
       private
         def inherited_with_layout(child)
           inherited_without_layout(child)
           layout_match = child.name.underscore.sub(/_controller$/, '').sub(/^controllers\//, '')
-          child.layout(layout_match) unless layout_list.grep(%r{layouts/#{layout_match}\.[a-z][0-9a-z]*$}).empty?
-        end
-
-        def layout_list
-          Dir.glob("#{template_root}/layouts/**/*")
+          child.layout(layout_match) unless child.layout_list.grep(%r{layouts/#{layout_match}\.[a-z][0-9a-z]*$}).empty?
         end
 
         def add_layout_conditions(conditions)
@@ -305,7 +307,10 @@ module ActionController #:nodoc:
       # Does a layout directory for this class exist?
       # we cache this info in a class level hash
       def layout_directory?(layout_name)
-        template_path = File.join(self.class.view_root, 'layouts', layout_name)
+        view_paths.find do |path|
+          File.file?(File.join(path, 'layouts', layout_name))
+        end
+        template_path ||= File.join(view_paths.first, 'layouts', layout_name)
         dirname = File.dirname(template_path)
         self.class.send(:layout_directory_exists_cache)[dirname]
       end

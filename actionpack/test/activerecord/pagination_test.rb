@@ -4,7 +4,7 @@ class PaginationTest < ActiveRecordTestCase
   fixtures :topics, :replies, :developers, :projects, :developers_projects
   
   class PaginationController < ActionController::Base
-    self.template_root = "#{File.dirname(__FILE__)}/../fixtures/"
+    self.view_paths = [ "#{File.dirname(__FILE__)}/../fixtures/" ]
     
     def simple_paginate
       @topic_pages, @topics = paginate(:topics)

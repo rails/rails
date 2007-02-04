@@ -232,15 +232,16 @@ module ActionView #:nodoc:
       @@template_handlers[extension] = klass
     end
 
-    def initialize(base_path = nil, assigns_for_first_render = {}, controller = nil)#:nodoc:
-      @base_path, @assigns = base_path, assigns_for_first_render
+    def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil)#:nodoc:
+      @view_paths = [*view_paths].compact
+      @assigns = assigns_for_first_render
       @assigns_added = nil
       @controller = controller
       @logger = controller && controller.logger 
     end
 
     # Renders the template present at <tt>template_path</tt>. If <tt>use_full_path</tt> is set to true, 
-    # it's relative to the template_root, otherwise it's absolute. The hash in <tt>local_assigns</tt> 
+    # it's relative to the view_paths array, otherwise it's absolute. The hash in <tt>local_assigns</tt> 
     # is made available as local variables.
     def render_file(template_path, use_full_path = true, local_assigns = {}) #:nodoc:
       @first_render ||= template_path
@@ -268,12 +269,12 @@ module ActionView #:nodoc:
           e.sub_template_of(template_file_name)
           raise e
         else
-          raise TemplateError.new(@base_path, template_file_name, @assigns, template_source, e)
+          raise TemplateError.new(find_base_path_for(template_file_name), template_file_name, @assigns, template_source, e)
         end
       end
     end
-
-    # Renders the template present at <tt>template_path</tt> (relative to the template_root). 
+    
+    # Renders the template present at <tt>template_path</tt> (relative to the view_paths array). 
     # The hash in <tt>local_assigns</tt> is made available as local variables.
     def render(options = {}, old_local_assigns = {}, &block) #:nodoc:
       if options.is_a?(String)
@@ -358,12 +359,11 @@ module ActionView #:nodoc:
 
     def file_exists?(template_path)#:nodoc:
       template_file_name, template_file_extension = path_and_extension(template_path)
-
       if template_file_extension
         template_exists?(template_file_name, template_file_extension)
       else
         cached_template_extension(template_path) ||
-           %w(erb builder javascript delegate).any? do |template_type| 
+           %w(erb builder javascript delegate).any? do |template_type|
              send("#{template_type}_template_exists?", template_path)
            end
       end
@@ -376,7 +376,9 @@ module ActionView #:nodoc:
 
     private
       def full_template_path(template_path, extension)
-        "#{@base_path}/#{template_path}.#{extension}"
+        file_name = "#{template_path}.#{extension}"
+        base_path = find_base_path_for(file_name)
+        "#{base_path}/#{file_name}"
       end
 
       def template_exists?(template_path, extension)
@@ -392,7 +394,11 @@ module ActionView #:nodoc:
       def cached_template_extension(template_path)
         @@cache_template_extensions && @@cached_template_extension[template_path]
       end
-
+      
+      def find_base_path_for(template_file_name)
+        @view_paths.find { |p| File.file?(File.join(p, template_file_name)) }
+      end
+      
       def find_template_extension_for(template_path)
         if match = delegate_template_exists?(template_path)
           match.first.to_sym
@@ -400,7 +406,7 @@ module ActionView #:nodoc:
         elsif builder_template_exists?(template_path):    :rxml
         elsif javascript_template_exists?(template_path): :rjs
         else
-          raise ActionViewError, "No rhtml, rxml, rjs or delegate template found for #{template_path} in #{@base_path}"
+          raise ActionViewError, "No rhtml, rxml, rjs or delegate template found for #{template_path} in #{@view_paths.inspect}"
         end
       end
 
@@ -536,7 +542,7 @@ module ActionView #:nodoc:
             logger.debug "Backtrace: #{e.backtrace.join("\n")}"
           end
 
-          raise TemplateError.new(@base_path, file_name || template, @assigns, template, e)
+          raise TemplateError.new(lookup_template_base_path_for(file_name || template), file_name || template, @assigns, template, e)
         end
 
         @@compile_time[render_symbol] = Time.now

@@ -2,7 +2,7 @@ require "#{File.dirname(__FILE__)}/../abstract_unit"
 
 class DeprecatedViewInstanceVariablesTest < Test::Unit::TestCase
   class DeprecatedInstanceVariablesController < ActionController::Base
-    self.template_root = "#{File.dirname(__FILE__)}/../fixtures/"
+    self.view_paths = [ "#{File.dirname(__FILE__)}/../fixtures/" ]
 
     def self.controller_path; 'deprecated_instance_variables' end
 

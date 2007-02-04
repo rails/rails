@@ -382,7 +382,7 @@ methods:
     end
   end
 
-  WeblogController::Base.template_root = File.dirname(__FILE__)
+  WeblogController::Base.view_paths = [ File.dirname(__FILE__) ]
   WeblogController.process_cgi if $0 == __FILE__
 
 The last two lines are responsible for telling ActionController where the

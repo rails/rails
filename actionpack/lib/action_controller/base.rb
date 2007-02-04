@@ -277,11 +277,7 @@ module ActionController #:nodoc:
     # Controls the default charset for all renders.
     @@default_charset = "utf-8"
     cattr_accessor :default_charset
-
-    # Template root determines the base from which template references will be made. So a call to render("test/template")
-    # will be converted to "#{template_root}/test/template.rhtml".
-    class_inheritable_accessor :template_root
-
+    
     # The logger is used for generating information on the action run-time (including benchmarking) if available.
     # Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
     cattr_accessor :logger
@@ -357,7 +353,41 @@ module ActionController #:nodoc:
       def hide_action(*names)
         write_inheritable_attribute(:hidden_actions, hidden_actions | names.collect { |n| n.to_s })
       end
-
+      
+      # Deprecated. Use view_paths instead.
+      def template_root=(path)
+        view_paths.unshift(path)
+      end
+      deprecate :template_root= => :view_paths
+      
+      # Deprecated. Use view_paths instead.
+      def template_root
+        view_paths.first
+      end
+      deprecate :template_root => :view_paths
+      
+      @@view_paths = {}
+      
+      # View load paths determine the bases from which template references can be made. So a call to
+      # render("test/template") will be looked up in the view load paths array and the closest match will be
+      # returned.
+      def view_paths=(value)
+        @@view_paths[name] = value
+      end
+      
+      # View load paths for controller.
+      def view_paths
+        if paths = @@view_paths[name]
+          paths
+        else
+          if superclass.respond_to?(:view_paths)
+            superclass.view_paths.dup.freeze
+          else
+            @@view_paths[name] = []
+          end
+        end
+      end
+      
       # Replace sensitive paramater data from the request log.
       # Filters paramaters that have any of the arguments as a substring.
       # Looks in all subhashes of the param hash for keys to filter.
@@ -534,9 +564,14 @@ module ActionController #:nodoc:
       def controller_path
         self.class.controller_path
       end
-
+      
       def session_enabled?
         request.session_options[:disabled] != false
+      end
+      
+      # View load paths for controller.
+      def view_paths
+        self.class.view_paths
       end
 
     protected
@@ -1030,14 +1065,10 @@ module ActionController #:nodoc:
           end
       end
 
-      def self.view_root
-        @view_root ||= template_root
-      end
-
       def initialize_template_class(response)
         raise "You must assign a template class through ActionController.template_class= before processing a request" unless @@template_class
 
-        response.template = self.class.view_class.new(self.class.view_root, {}, self)
+        response.template = self.class.view_class.new(view_paths, {}, self)
         response.redirected_to = nil
         @performed_render = @performed_redirect = false
       end
@@ -1056,7 +1087,6 @@ module ActionController #:nodoc:
 
         assign_deprecated_shortcuts(request, response)
       end
-
 
       # TODO: assigns cookies headers params request response template
       DEPRECATED_INSTANCE_VARIABLES = %w(cookies flash headers params request response session)
@@ -1151,7 +1181,7 @@ module ActionController #:nodoc:
       end
 
       def add_class_variables_to_assigns
-        %w(template_root logger template_class ignore_missing_templates).each do |cvar|
+        %w(view_paths logger template_class ignore_missing_templates).each do |cvar|
           @assigns[cvar] = self.send(cvar)
         end
       end

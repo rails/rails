@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow Controllers to have multiple view_paths instead of a single template_root.  Closes #2754 [John Long]
+
 * Add much-needed html-scanner tests.  Fixed CDATA parsing bug. [Rick]
 
 * improve error message for Routing for named routes.  Closes #7346 [Rob Sanheim]

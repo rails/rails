@@ -22,7 +22,7 @@ class AddressesTestController < ActionController::Base
   def self.controller_path; "addresses"; end
 end
 
-AddressesTestController.template_root = File.dirname(__FILE__) + "/../fixtures/"
+AddressesTestController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
 
 class AddressesTest < Test::Unit::TestCase
   def setup
