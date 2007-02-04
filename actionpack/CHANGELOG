@@ -1,5 +1,11 @@
 *SVN*
 
+* improve error message for Routing for named routes. [Rob Sanheim]
+
+* Added enhanced docs to routing assertions. [Rob Sanheim]
+
+* fix form_for example in ActionController::Resources documentation. [gnarg]
+
 * Add singleton resources from trunk [Rick Olson]
 
 * TestSession supports indifferent access so session['foo'] == session[:foo] in your tests.  #7372 [julik, jean.helou]
