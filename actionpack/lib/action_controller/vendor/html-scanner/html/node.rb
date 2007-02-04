@@ -92,7 +92,6 @@ module HTML #:nodoc:
     # returns non +nil+. Returns the result of the #find call that succeeded.
     def find(conditions)
       conditions = validate_conditions(conditions)
-
       @children.each do |child|        
         node = child.find(conditions)
         return node if node
@@ -152,7 +151,7 @@ module HTML #:nodoc:
 
           if scanner.skip(/!\[CDATA\[/)
             scanner.scan_until(/\]\]>/)
-            return CDATA.new(parent, line, pos, scanner.pre_match)
+            return CDATA.new(parent, line, pos, scanner.pre_match.gsub(/<!\[CDATA\[/, ''))
           end
           
           closing = ( scanner.scan(/\//) ? :close : nil )
@@ -410,7 +409,6 @@ module HTML #:nodoc:
     #                               :child => /hello world/ }
     def match(conditions)
       conditions = validate_conditions(conditions)
-
       # check content of child nodes
       if conditions[:content]
         if children.empty?
