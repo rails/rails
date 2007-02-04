@@ -1,5 +1,7 @@
 *SVN*
 
+* Add much-needed html-scanner tests.  Fixed CDATA parsing bug. [Rick]
+
 * improve error message for Routing for named routes.  Closes #7346 [Rob Sanheim]
 
 * Added enhanced docs to routing assertions.  Closes #7359 [Rob Sanheim]
