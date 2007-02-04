@@ -94,7 +94,7 @@ class Class # :nodoc:
   
   def write_inheritable_attribute(key, value)
     if inheritable_attributes.equal?(EMPTY_INHERITABLE_ATTRIBUTES)
-      inheritable_attributes = {}
+      @inheritable_attributes = {}
     end
     inheritable_attributes[key] = value
   end
