@@ -356,9 +356,9 @@ module ActionController #:nodoc:
       
       # Deprecated. Use view_paths instead.
       def template_root=(path)
-        view_paths.unshift(path)
+        prepend_view_path path
+        template_root
       end
-      deprecate :template_root= => :view_paths
       
       # Deprecated. Use view_paths instead.
       def template_root
@@ -374,7 +374,7 @@ module ActionController #:nodoc:
       def view_paths=(value)
         @@view_paths[name] = value
       end
-      
+
       # View load paths for controller.
       def view_paths
         if paths = @@view_paths[name]
@@ -386,6 +386,22 @@ module ActionController #:nodoc:
             @@view_paths[name] = []
           end
         end
+      end
+      
+      # Adds a view_path to the front of the view_paths array.
+      # If the current class has no view paths, copy them from 
+      # the superclass
+      def prepend_view_path(path)
+        self.view_paths = view_paths.dup if view_paths.frozen?
+        view_paths.unshift(path)
+      end
+      
+      # Adds a view_path to the end of the view_paths array.
+      # If the current class has no view paths, copy them from 
+      # the superclass
+      def append_view_path(path)
+        self.view_paths = view_paths.dup if view_paths.frozen?
+        view_paths << path
       end
       
       # Replace sensitive paramater data from the request log.

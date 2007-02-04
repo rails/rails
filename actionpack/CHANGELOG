@@ -1,5 +1,8 @@
 *SVN*
 
+* Fix issue with deprecation messing up #template_root= usage.  Add #prepend_view_path and #append_view_path to allow modification of a copy of the
+superclass' view_paths.  [Rick]
+
 * Allow Controllers to have multiple view_paths instead of a single template_root.  Closes #2754 [John Long]
 
 * Add much-needed html-scanner tests.  Fixed CDATA parsing bug. [Rick]

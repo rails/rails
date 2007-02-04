@@ -77,8 +77,8 @@ module ActionController #:nodoc:
       def uses_component_template_root
         path_of_calling_controller = File.dirname(caller[1].split(/:\d+:/, 2).first)
         path_of_controller_root    = path_of_calling_controller.sub(/#{Regexp.escape(File.dirname(controller_path))}$/, "")
-
-        self.template_root = path_of_controller_root
+        prepend_view_path path_of_controller_root
+        view_paths.first
       end
 
       deprecate :uses_component_template_root => 'Components are deprecated and will be removed in Rails 2.0.'
