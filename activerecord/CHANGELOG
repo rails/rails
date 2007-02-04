@@ -1,5 +1,8 @@
 *SVN*
 
+* Pass a range in :conditions to use the SQL BETWEEN operator.  #6974 [dcmanges]
+    Student.find(:all, :conditions => { :grade => 9..12 })
+
 * Don't create instance writer methods for class attributes. [Rick]
 
 * When dealing with SQLite3, use the table_info pragma helper, so that the bindings can do some translation for when sqlite3 breaks incompatibly between point releases. [Jamis Buck]

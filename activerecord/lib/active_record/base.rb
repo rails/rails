@@ -84,7 +84,7 @@ module ActiveRecord #:nodoc:
   # Conditions can either be specified as a string, array, or hash representing the WHERE-part of an SQL statement.
   # The array form is to be used when the condition input is tainted and requires sanitization. The string form can
   # be used for statements that don't involve tainted data. The hash form works much like the array form, except
-  # only equality is possible. Examples:
+  # only equality and range is possible. Examples:
   #
   #   class User < ActiveRecord::Base
   #     def self.authenticate_unsafely(user_name, password)
@@ -120,6 +120,9 @@ module ActiveRecord #:nodoc:
   #   Student.find(:all, :conditions => { :first_name => "Harvey", :status => 1 })
   #   Student.find(:all, :conditions => params[:student])
   #
+  # A range may be used in the hash to use the SQL BETWEEN operator:
+  #
+  #   Student.find(:all, :conditions => { :grade => 9..12 })
   #
   # == Overwriting default accessors
   #
@@ -1264,6 +1267,7 @@ module ActiveRecord #:nodoc:
           case argument
             when nil   then "IS ?"
             when Array then "IN (?)"
+            when Range then "BETWEEN ? AND ?"
             else            "= ?"
           end
         end
@@ -1392,12 +1396,14 @@ module ActiveRecord #:nodoc:
         #     # => "name='foo''bar' and group_id= 4"
         #   { :status => nil, :group_id => [1,2,3] }
         #     # => "status IS NULL and group_id IN (1,2,3)"
+        #   { :age => 13..18 }
+        #     # => "age BETWEEN 13 AND 18"
         def sanitize_sql_hash(attrs)
           conditions = attrs.map do |attr, value|
             "#{table_name}.#{connection.quote_column_name(attr)} #{attribute_condition(value)}"
           end.join(' AND ')
 
-          replace_bind_variables(conditions, attrs.values)
+          replace_bind_variables(conditions, expand_range_bind_variables(attrs.values))
         end
 
         # Accepts an array of conditions.  The array has each value
@@ -1431,6 +1437,13 @@ module ActiveRecord #:nodoc:
               raise PreparedStatementInvalid, "missing value for :#{match} in #{statement}"
             end
           end
+        end
+
+        def expand_range_bind_variables(bind_vars) #:nodoc:
+          bind_vars.each_with_index do |var, index|
+            bind_vars[index, 1] = [var.first, var.last] if var.is_a?(Range)
+          end
+          bind_vars
         end
 
         def quote_bound_value(value) #:nodoc:
