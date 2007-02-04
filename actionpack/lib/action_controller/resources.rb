@@ -18,26 +18,26 @@ module ActionController
       end
       
       def controller
-        (options[:controller] || plural).to_s
+        @controller ||= (options[:controller] || plural).to_s
       end
       
       def path
-        "#{path_prefix}/#{plural}"
+        @path ||= "#{path_prefix}/#{plural}"
       end
       
       def new_path
-        "#{path}/new"
+        @new_path ||= "#{path}/new"
       end
       
       def member_path
-        "#{path}/:id"
+        @member_path ||= "#{path}/:id"
       end
       
       def nesting_path_prefix
-        "#{path}/:#{singular}_id"
+        @nesting_path_prefix ||= "#{path}/:#{singular}_id"
       end
       
-      private
+      protected
         def arrange_actions
           @collection_methods = arrange_actions_by_methods(options.delete(:collection))
           @member_methods     = arrange_actions_by_methods(options.delete(:member))
@@ -65,7 +65,20 @@ module ActionController
           (collection[method] ||= []).unshift(action)
         end
     end
-    
+
+    class SingletonResource < Resource #:nodoc:
+      def initialize(entity, options)
+        @plural = @singular = entity
+        @options = options
+        arrange_actions
+        add_default_actions
+        set_prefixes
+      end
+
+      alias_method :member_path,         :path
+      alias_method :nesting_path_prefix, :path
+    end
+
     # Creates named routes for implementing verb-oriented controllers. This is
     # useful for implementing REST API's, where a single resource has different
     # behavior based on the HTTP verb (method) used to access it.
@@ -217,12 +230,87 @@ module ActionController
       entities.each { |entity| map_resource entity, options.dup, &block }
     end
 
+    # Creates named routes for implementing verb-oriented controllers for a singleton resource. 
+    # A singleton resource is global to the current user visiting the application, such as a user's
+    # /account profile.
+    # 
+    # See map.resources for general conventions.  These are the main differences:
+    #   - a singular name is given to map.resource.  The default controller name is taken from the singular name.
+    #   - To specify a custom plural name, use the :plural option.  There is no :singular option
+    #   - No default index, new, or create routes are created for the singleton resource controller.
+    #   - When nesting singleton resources, only the singular name is used as the path prefix (example: 'account/messages/1')
+    #
+    # Example:
+    #
+    #   map.resource :account 
+    #
+    #   class AccountController < ActionController::Base
+    #     # POST account_url
+    #     def create
+    #       # create an account
+    #     end
+    #
+    #     # GET new_account_url
+    #     def new
+    #       # return an HTML form for describing the new account
+    #     end
+    #
+    #     # GET account_url
+    #     def show
+    #       # find and return the account
+    #     end
+    #
+    #     # GET edit_account_url
+    #     def edit
+    #       # return an HTML form for editing the account
+    #     end
+    #
+    #     # PUT account_url
+    #     def update
+    #       # find and update the account
+    #     end
+    #
+    #     # DELETE account_url
+    #     def destroy
+    #       # delete the account
+    #     end
+    #   end
+    #
+    # Along with the routes themselves, #resource generates named routes for use in
+    # controllers and views. <tt>map.resource :account</tt> produces the following named routes and helpers:
+    # 
+    #   Named Route   Helpers
+    #   account       account_url, hash_for_account_url, 
+    #                 account_path, hash_for_account_path
+    #   edit_account  edit_account_url, hash_for_edit_account_url,
+    #                 edit_account_path, hash_for_edit_account_path
+    def resource(*entities, &block)
+      options = entities.last.is_a?(Hash) ? entities.pop : { }
+      entities.each { |entity| map_singleton_resource entity, options.dup, &block }
+    end
+
     private
       def map_resource(entities, options = {}, &block)
         resource = Resource.new(entities, options)
 
         with_options :controller => resource.controller do |map|
           map_collection_actions(map, resource)
+          map_default_collection_actions(map, resource)
+          map_new_actions(map, resource)
+          map_member_actions(map, resource)
+
+          if block_given?
+            with_options(:path_prefix => resource.nesting_path_prefix, &block)
+          end
+        end
+      end
+
+      def map_singleton_resource(entities, options = {}, &block)
+        resource = SingletonResource.new(entities, options)
+
+        with_options :controller => resource.controller do |map|
+          map_collection_actions(map, resource)
+          map_default_singleton_actions(map, resource)
           map_new_actions(map, resource)
           map_member_actions(map, resource)
 
@@ -240,11 +328,19 @@ module ActionController
             map.named_route("formatted_#{resource.name_prefix}#{action}_#{resource.plural}", "#{resource.path}.:format;#{action}", action_options)
           end
         end
+      end
 
+      def map_default_collection_actions(map, resource)
         index_action_options = action_options_for("index", resource)
         map.named_route("#{resource.name_prefix}#{resource.plural}", resource.path, index_action_options)
         map.named_route("formatted_#{resource.name_prefix}#{resource.plural}", "#{resource.path}.:format", index_action_options)
 
+        create_action_options = action_options_for("create", resource)
+        map.connect(resource.path, create_action_options)
+        map.connect("#{resource.path}.:format", create_action_options)
+      end
+
+      def map_default_singleton_actions(map, resource)
         create_action_options = action_options_for("create", resource)
         map.connect(resource.path, create_action_options)
         map.connect("#{resource.path}.:format", create_action_options)
@@ -286,14 +382,14 @@ module ActionController
         map.connect(resource.member_path, destroy_action_options)
         map.connect("#{resource.member_path}.:format", destroy_action_options)
       end
-    
+
       def conditions_for(method)
         { :conditions => method == :any ? {} : { :method => method } }
       end
 
       def action_options_for(action, resource, method = nil)
         default_options = { :action => action.to_s }
-        require_id = { :requirements => { :id => Regexp.new("[^#{Routing::SEPARATORS.join}]+") } }
+        require_id = resource.kind_of?(SingletonResource) ? {} : { :requirements => { :id => Regexp.new("[^#{Routing::SEPARATORS.join}]+") } }
         case default_options[:action]
           when "index", "new" : default_options.merge(conditions_for(method || :get))
           when "create"       : default_options.merge(conditions_for(method || :post))
