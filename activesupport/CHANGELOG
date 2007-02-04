@@ -1,5 +1,7 @@
 *SVN*
 
+* Optimize Class Inheritable Attributes so that unnecessary hashes are not created.  Closes #7472 [Bruce Perens]
+
 * Ruby 1.8-cvs and 1.9 define a private Time#to_date that overrides Active
 Support. Make it public to preserve compatibility.  [Jeremy Kemper]
 
