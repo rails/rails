@@ -1,5 +1,7 @@
 *SVN*
 
+* Update Rails Initializer to use ActionController::Base#view_paths [Rick]
+
 * Fix gem deprecation warnings, which also means depending on RubyGems 0.9.0+ [Chad Fowler]
 
 * Plugins may be symlinked in vendor/plugins.  #4245 [brandon, progrium@gmail.com]

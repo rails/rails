@@ -268,14 +268,13 @@ module Rails
       end
     end
 
-    # Sets the +template_root+ for ActionController::Base and ActionMailer::Base
+    # Sets +ActionController::BaseEview_paths+ and +ActionMailer::Base#template_root+
     # (but only for those frameworks that are to be loaded). If the framework's
-    # +template_root+ has already been set, it is not changed, otherwise it is
+    # paths have already been set, it is not changed, otherwise it is
     # set to use Configuration#view_path.
     def initialize_framework_views
-      for framework in ([ :action_controller, :action_mailer ] & configuration.frameworks)
-        framework.to_s.camelize.constantize.const_get("Base").template_root ||= configuration.view_path
-      end
+      ActionMailer::Base.template_root ||= configuration.view_path    if configuration.frameworks.include?(:action_mailer)
+      ActionController::Base.view_paths ||= [configuration.view_path] if configuration.frameworks.include?(:action_controller)
     end
 
     # If ActionController is not one of the loaded frameworks (Configuration#frameworks)
