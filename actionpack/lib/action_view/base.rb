@@ -245,10 +245,9 @@ module ActionView #:nodoc:
     # is made available as local variables.
     def render_file(template_path, use_full_path = true, local_assigns = {}) #:nodoc:
       @first_render ||= template_path
-
+      template_path_without_extension, template_extension = path_and_extension(template_path)
+      
       if use_full_path
-        template_path_without_extension, template_extension = path_and_extension(template_path)
-
         if template_extension
           template_file_name = full_template_path(template_path_without_extension, template_extension)
         else
@@ -257,7 +256,6 @@ module ActionView #:nodoc:
         end
       else
         template_file_name = template_path
-        template_extension = template_path.split('.').last
       end
 
       template_source = nil # Don't read the source until we know that it is required
@@ -269,7 +267,7 @@ module ActionView #:nodoc:
           e.sub_template_of(template_file_name)
           raise e
         else
-          raise TemplateError.new(find_base_path_for(template_file_name), template_file_name, @assigns, template_source, e)
+          raise TemplateError.new(find_base_path_for("#{template_path_without_extension}.#{template_extension}"), template_file_name, @assigns, template_source, e)
         end
       end
     end
@@ -395,6 +393,7 @@ module ActionView #:nodoc:
         @@cache_template_extensions && @@cached_template_extension[template_path]
       end
       
+      # Returns the view path that contains the given relative template path.
       def find_base_path_for(template_file_name)
         @view_paths.find { |p| File.file?(File.join(p, template_file_name)) }
       end
