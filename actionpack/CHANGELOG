@@ -1,4 +1,4 @@
-*1.13.2* (February 4th, 2007)
+*1.13.2* (February 5th, 2007)
 
 * Add much-needed html-scanner tests.  Fixed CDATA parsing bug. [Rick]
 

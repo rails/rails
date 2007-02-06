@@ -1,4 +1,4 @@
-*1.4.1* (February 4th, 2007)
+*1.4.1* (February 5th, 2007)
 
 * Optimize Class Inheritable Attributes so that unnecessary hashes are not created. [Bruce Perens]
 
