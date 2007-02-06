@@ -6,7 +6,7 @@ module ActiveRecord
     end
 
     def clear_query_cache
-      @query_cache = {}
+      @query_cache.clear
     end
 
     def select_all(sql, name = nil)
@@ -16,14 +16,27 @@ module ActiveRecord
     def select_one(sql, name = nil)
       @query_cache[sql] ||= @connection.select_one(sql, name)
     end
+    
+    def select_values(sql, name = nil)
+      (@query_cache[sql] ||= @connection.select_values(sql, name)).dup
+    end
+
+    def select_value(sql, name = nil)
+      @query_cache[sql] ||= @connection.select_value(sql, name)
+    end
+    
+    def execute(sql, name = nil)
+      clear_query_cache
+      @connection.execute(sql, name)
+    end    
 
     def columns(table_name, name = nil)
       @query_cache["SHOW FIELDS FROM #{table_name}"] ||= @connection.columns(table_name, name)
     end
 
-    def insert(sql, name = nil, pk = nil, id_value = nil)
+    def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
       clear_query_cache
-      @connection.insert(sql, name, pk, id_value)
+      @connection.insert(sql, name, pk, id_value, sequence_name)
     end
 
     def update(sql, name = nil)
@@ -41,24 +54,26 @@ module ActiveRecord
         @connection.send(method, *arguments, &proc)
       end
   end
-  
+    
   class Base
     # Set the connection for the class with caching on
     class << self
-      alias_method :connection_without_query_cache=, :connection=
-
-      def connection=(spec)
-        if spec.is_a?(ConnectionSpecification) and spec.config[:query_cache]
-          spec = QueryCache.new(self.send(spec.adapter_method, spec.config))
-        end
-        self.connection_without_query_cache = spec
+      alias_method :connection_without_query_cache, :connection
+      
+      def query_caches
+        (Thread.current[:query_cache] ||= {})
+      end
+            
+      def cache        
+        query_caches[self] = QueryCache.new(connection)
+        yield
+      ensure 
+        query_caches[self] = nil
+      end        
+      
+      def connection
+        query_caches[self] || connection_without_query_cache
       end
     end
-  end
-  
-  class AbstractAdapter #:nodoc:
-    # Stub method to be able to treat the connection the same whether the query cache has been turned on or not
-    def clear_query_cache
-    end
-  end
+  end  
 end

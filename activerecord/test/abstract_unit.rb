@@ -36,16 +36,10 @@ class Test::Unit::TestCase #:nodoc:
   end
 
   def assert_queries(num = 1)
-    ActiveRecord::Base.connection.class.class_eval do
-      self.query_count = 0
-      alias_method :execute, :execute_with_query_counting
-    end
+    $query_count = 0
     yield
   ensure
-    ActiveRecord::Base.connection.class.class_eval do
-      alias_method :execute, :execute_without_query_counting
-    end
-    assert_equal num, ActiveRecord::Base.connection.query_count, "#{ActiveRecord::Base.connection.query_count} instead of #{num} queries were executed."
+    assert_equal num, $query_count, "#{$query_count} instead of #{num} queries were executed."
   end
 
   def assert_no_queries(&block)
@@ -60,16 +54,26 @@ def current_adapter?(*types)
   end
 end
 
-ActiveRecord::Base.connection.class.class_eval do
-  cattr_accessor :query_count
+def uses_mocha(test_name)
+  require 'mocha'
+  require 'stubba'
+  yield
+rescue LoadError
+  $stderr.puts "Skipping #{test_name} tests. `gem install mocha` and try again."
+end
 
-  # Array of regexes of queries that are not counted against query_count
-  @@ignore_list = [/^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/]
+ActiveRecord::Base.connection.class.class_eval do  
+  
+  if not (const_get('IGNORED_SQL') rescue nil)    
+    IGNORED_SQL = [/^PRAGMA/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/]
 
-  alias_method :execute_without_query_counting, :execute
-  def execute_with_query_counting(sql, name = nil, &block)
-    self.query_count += 1 unless @@ignore_list.any? { |r| sql =~ r }
-    execute_without_query_counting(sql, name, &block)
+    def execute_with_counting(sql, name = nil, &block)
+      $query_count ||= 0
+      $query_count  += 1 unless IGNORED_SQL.any? { |r| sql =~ r }
+      execute_without_counting(sql, name, &block)
+    end
+
+    alias_method_chain :execute, :counting
   end
 end
 
