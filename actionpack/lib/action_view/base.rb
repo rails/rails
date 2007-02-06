@@ -541,7 +541,7 @@ module ActionView #:nodoc:
             logger.debug "Backtrace: #{e.backtrace.join("\n")}"
           end
 
-          raise TemplateError.new(lookup_template_base_path_for(file_name || template), file_name || template, @assigns, template, e)
+          raise TemplateError.new(find_base_path_for(file_name || template), file_name || template, @assigns, template, e)
         end
 
         @@compile_time[render_symbol] = Time.now
