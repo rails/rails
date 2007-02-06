@@ -1,6 +1,8 @@
 *SVN*
 
-# Fix #render_file so that TemplateError is called with the correct params and you don't get the WSOD.  [Rick]
+* Fix that FormTagHelper#submit_tag using :disable_with should trigger the onsubmit handler of its form if available [DHH]
+
+* Fix #render_file so that TemplateError is called with the correct params and you don't get the WSOD.  [Rick]
 
 * Fix issue with deprecation messing up #template_root= usage.  Add #prepend_view_path and #append_view_path to allow modification of a copy of the
 superclass' view_paths.  [Rick]

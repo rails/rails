@@ -141,7 +141,12 @@ module ActionView
         options.stringify_keys!
         
         if disable_with = options.delete("disable_with")
-          options["onclick"] = "this.disabled=true;this.value='#{disable_with}';this.form.submit();#{options["onclick"]}"
+          options["onclick"] = [
+            "this.disabled=true",
+            "this.value='#{disable_with}'",
+            "#{options["onclick"]}",
+            "return (this.form.onsubmit ? this.form.onsubmit() : true)",
+          ].join(";")
         end
           
         tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys)
