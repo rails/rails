@@ -145,7 +145,7 @@ module ActionView
             "this.disabled=true",
             "this.value='#{disable_with}'",
             "#{options["onclick"]}",
-            "return (this.form.onsubmit ? this.form.onsubmit() : true)",
+            "return (this.form.onsubmit ? this.form.onsubmit() : this.form.submit())",
           ].join(";")
         end
           
