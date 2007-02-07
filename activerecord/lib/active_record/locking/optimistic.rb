@@ -31,14 +31,14 @@ module ActiveRecord
 
         base.alias_method_chain :update, :lock
         base.alias_method_chain :attributes_from_column_definition, :lock
-        
+
         class << base
           alias_method :locking_column=, :set_locking_column
         end
       end
 
       def locking_enabled? #:nodoc:
-        lock_optimistically && respond_to?(self.class.locking_column)
+        self.class.locking_enabled?
       end
 
       def attributes_from_column_definition_with_lock
@@ -80,6 +80,20 @@ module ActiveRecord
       module ClassMethods
         DEFAULT_LOCKING_COLUMN = 'lock_version'
 
+        def self.extended(base)
+          class <<base
+            alias_method_chain :update_counters, :lock
+          end
+        end
+
+        # Is optimistic locking enabled for this table? Returns true if the
+        # #lock_optimistically flag is set to true (which it is, by default)
+        # and the table includes the #locking_column column (defaults to
+        # lock_version).
+        def locking_enabled?
+          lock_optimistically && columns_hash[locking_column]
+        end
+
         # Set the column to use for optimistic locking. Defaults to lock_version.
         def set_locking_column(value = nil, &block)
           define_attr_method :locking_column, value, &block
@@ -99,6 +113,13 @@ module ActiveRecord
         # Reset the column used for optimistic locking back to the lock_version default.
         def reset_locking_column
           set_locking_column DEFAULT_LOCKING_COLUMN
+        end
+
+        # make sure the lock version column gets updated when counters are
+        # updated.
+        def update_counters_with_lock(id, counters)
+          counters = counters.merge(locking_column => 1) if locking_enabled?
+          update_counters_without_lock(id, counters)
         end
       end
     end

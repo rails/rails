@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'fixtures/person'
+require 'fixtures/reader'
 require 'fixtures/legacy_thing'
 
 class LockWithoutDefault < ActiveRecord::Base; end
@@ -11,6 +12,11 @@ end
 
 class OptimisticLockingTest < Test::Unit::TestCase
   fixtures :people, :legacy_things
+
+  # need to disable transactional fixtures, because otherwise the sqlite3
+  # adapter (at least) chokes when we try and change the schema in the middle
+  # of a test (see test_increment_counter_*).
+  self.use_transactional_fixtures = false
 
   def test_lock_existing
     p1 = Person.find(1)
@@ -73,6 +79,51 @@ class OptimisticLockingTest < Test::Unit::TestCase
     t1 = LockWithCustomColumnWithoutDefault.new
     assert_equal 0, t1.custom_lock_version
   end
+
+  { :lock_version => Person, :custom_lock_version => LegacyThing }.each do |name, model|
+    define_method("test_increment_counter_updates_#{name}") do
+      counter_test model, 1 do |id|
+        model.increment_counter :test_count, id
+      end
+    end
+
+    define_method("test_decrement_counter_updates_#{name}") do
+      counter_test model, -1 do |id|
+        model.decrement_counter :test_count, id
+      end
+    end
+
+    define_method("test_update_counters_updates_#{name}") do
+      counter_test model, 1 do |id|
+        model.update_counters id, :test_count => 1
+      end
+    end
+  end
+
+  private
+
+    def add_counter_column_to(model)
+      model.connection.add_column model.table_name, :test_count, :integer, :null => false, :default => 0
+      model.reset_column_information
+    end
+
+    def remove_counter_column_from(model)
+      model.connection.remove_column model.table_name, :test_count
+      model.reset_column_information
+    end
+
+    def counter_test(model, expected_count)
+      add_counter_column_to(model)
+      object = model.find(:first)
+      assert_equal 0, object.test_count
+      assert_equal 0, object.send(model.locking_column)
+      yield object.id
+      object.reload
+      assert_equal expected_count, object.test_count
+      assert_equal 1, object.send(model.locking_column)
+    ensure
+      remove_counter_column_from(model)
+    end
 end
 
 

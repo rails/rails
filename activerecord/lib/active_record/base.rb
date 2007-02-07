@@ -519,18 +519,37 @@ module ActiveRecord #:nodoc:
         connection.select_value(sql, "#{name} Count").to_i
       end
 
+      # A generic "counter updater" implementation, intended primarily to be
+      # used by increment_counter and decrement_counter, but which may also
+      # be useful on its own. It simply does a direct SQL update for the record
+      # with the given ID, altering the given hash of counters by the amount
+      # given by the corresponding value:
+      #
+      #   Post.update_counters 5, :comment_count => -1, :action_count => 1
+      #   # UPDATE posts
+      #   #    SET comment_count = comment_count - 1,
+      #   #        action_count = action_count + 1
+      #   #  WHERE id = 5
+      def update_counters(id, counters)
+        updates = counters.inject([]) { |list, (counter_name, increment)|
+          sign = increment < 0 ? "-" : "+"
+          list << "#{counter_name} = #{counter_name} #{sign} #{increment.abs}"
+        }.join(", ")
+        update_all(updates, "#{primary_key} = #{quote_value(id)}")
+      end
+
       # Increments the specified counter by one. So <tt>DiscussionBoard.increment_counter("post_count",
       # discussion_board_id)</tt> would increment the "post_count" counter on the board responding to discussion_board_id.
       # This is used for caching aggregate values, so that they don't need to be computed every time. Especially important
       # for looping over a collection where each element require a number of aggregate values. Like the DiscussionBoard
       # that needs to list both the number of posts and comments.
       def increment_counter(counter_name, id)
-        update_all "#{counter_name} = #{counter_name} + 1", "#{primary_key} = #{quote_value(id)}"
+        update_counters(id, counter_name => 1)
       end
 
       # Works like increment_counter, but decrements instead.
       def decrement_counter(counter_name, id)
-        update_all "#{counter_name} = #{counter_name} - 1", "#{primary_key} = #{quote_value(id)}"
+        update_counters(id, counter_name => -1)
       end
 
 

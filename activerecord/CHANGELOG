@@ -1,5 +1,7 @@
 *SVN*
 
+* Made increment_counter/decrement_counter play nicely with optimistic locking, and added a more general update_counters method [Jamis Buck]
+
 * Reworked David's query cache to be available as Model.cache {...}. For the duration of the block no select query should be run more then once. Any inserts/deletes/executes will flush the whole cache however [Tobias Luetke]
   Task.cache { Task.find(1); Task.find(1) } #=> 1 query
   
