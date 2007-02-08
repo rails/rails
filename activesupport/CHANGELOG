@@ -1,8 +1,13 @@
+*SVN*
+
+* Deprecation: warn on stderr if RAILS_DEFAULT_LOGGER isn't set yet.  [Jeremy Kemper]
+
+
 *1.4.1* (February 5th, 2007)
 
-* Optimize Class Inheritable Attributes so that unnecessary hashes are not created. [Bruce Perens]
+* Optimize Class Inheritable Attributes so that unnecessary hashes are not created.  Closes #7472 [Bruce Perens]
 
-* Added :instance_writer option to #mattr_writer/accessor, #cattr_writer/accessor, and #class_inheritable_writer to skip the creation of the instance writer.  [Rick] 
+* Added :instance_writer option to #mattr_writer/accessor, #cattr_writer/accessor, and #class_inheritable_writer to skip the creation of the instance writer.  [Rick]
 
 * Full test coverage for Inflector.  #7228 [Dan Kubb]
 
