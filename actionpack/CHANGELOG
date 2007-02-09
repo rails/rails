@@ -1,5 +1,7 @@
 *SVN*
 
+* Add a :url_based_filename => true option to ActionController::Streaming::send_file, which allows URL-based filenames.  [Thomas Fuchs]
+
 * Fix that FormTagHelper#submit_tag using :disable_with should trigger the onsubmit handler of its form if available [DHH]
 
 * Fix #render_file so that TemplateError is called with the correct params and you don't get the WSOD.  [Rick]

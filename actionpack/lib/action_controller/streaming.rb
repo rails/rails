@@ -29,6 +29,9 @@ module ActionController #:nodoc:
       # * <tt>:buffer_size</tt> - specifies size (in bytes) of the buffer used to stream the file.
       #   Defaults to 4096.
       # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to '200 OK'.
+      # * <tt>:url_based_filename</tt> - set to true if you want the browser guess the filename from 
+      #   the URL, which is necessary for i18n filenames on certain browsers 
+      #   (setting :filename overrides this option).
       #
       # The default Content-Type and Content-Disposition headers are
       # set to download arbitrary binary files in as many browsers as
@@ -59,7 +62,7 @@ module ActionController #:nodoc:
         raise MissingFile, "Cannot read file #{path}" unless File.file?(path) and File.readable?(path)
 
         options[:length]   ||= File.size(path)
-        options[:filename] ||= File.basename(path)
+        options[:filename] ||= File.basename(path) unless options[:url_based_filename]
         send_file_headers! options
 
         @performed_render = false
