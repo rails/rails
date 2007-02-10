@@ -1,5 +1,7 @@
 *SVN*
 
+* Performance: patch cgi/session to require digest/md5 once rather than per #create_new_id.  [Stefan Kaes]
+
 * Add a :url_based_filename => true option to ActionController::Streaming::send_file, which allows URL-based filenames.  [Thomas Fuchs]
 
 * Fix that FormTagHelper#submit_tag using :disable_with should trigger the onsubmit handler of its form if available [DHH]
