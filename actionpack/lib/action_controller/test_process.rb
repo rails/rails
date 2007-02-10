@@ -292,11 +292,11 @@ module ActionController #:nodoc:
     end
 
     def [](key)
-      data[key.to_s]
+      data[key]
     end
 
     def []=(key, value)
-      data[key.to_s] = value
+      data[key] = value
     end
 
     def update
