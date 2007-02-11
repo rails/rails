@@ -108,12 +108,15 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_create_table_with_defaults
+      # MySQL doesn't allow defaults on TEXT or BLOB columns.
+      mysql = current_adapter?(:MysqlAdapter)
+
       Person.connection.create_table :testings do |t|
         t.column :one, :string, :default => "hello"
         t.column :two, :boolean, :default => true
         t.column :three, :boolean, :default => false
         t.column :four, :integer, :default => 1
-        t.column :five, :text, :default => "hello"
+        t.column :five, :text, :default => "hello" unless mysql
       end
 
       columns = Person.connection.columns(:testings)
@@ -121,13 +124,13 @@ if ActiveRecord::Base.connection.supports_migrations?
       two = columns.detect { |c| c.name == "two" }
       three = columns.detect { |c| c.name == "three" }
       four = columns.detect { |c| c.name == "four" }
-      five = columns.detect { |c| c.name == "five" }
+      five = columns.detect { |c| c.name == "five" } unless mysql
 
       assert_equal "hello", one.default
       assert_equal true, two.default
       assert_equal false, three.default
       assert_equal 1, four.default
-      assert_equal "hello", five.default
+      assert_equal "hello", five.default unless mysql
 
     ensure
       Person.connection.drop_table :testings rescue nil
