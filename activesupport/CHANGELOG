@@ -1,5 +1,7 @@
 *SVN*
 
+* Hash#to_query CGI-escapes its keys.  [Jeremy Kemper]
+
 * Deprecation: warn on stderr if RAILS_DEFAULT_LOGGER isn't set yet.  [Jeremy
 Kemper]
 
