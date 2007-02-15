@@ -1,5 +1,14 @@
 *SVN*
 
+* Add Mime::Type convenience methods to check the current mime type. [Rick]
+
+  request.format.html? # => true if Mime::HTML
+  request.format.jpg?  # => true if Mime::JPG
+
+  # ActionController sample usage:
+  # the session will be disabled for non html/ajax requests
+  session :off, :if => Proc.new { |req| !(req.format.html? || req.format.js?) }
+
 * Performance: patch cgi/session to require digest/md5 once rather than per #create_new_id.  [Stefan Kaes]
 
 * Add a :url_based_filename => true option to ActionController::Streaming::send_file, which allows URL-based filenames.  [Thomas Fuchs]

@@ -132,7 +132,7 @@ class FormTagHelperTest < Test::Unit::TestCase
 
   def test_submit_tag
     assert_dom_equal(
-      %(<input name='commit' type='submit' value='Save' onclick="this.disabled=true;this.value='Saving...';alert('hello!');return (this.form.onsubmit ? this.form.onsubmit() : true)" />),
+      %(<input name='commit' type='submit' value='Save' onclick="this.disabled=true;this.value='Saving...';alert('hello!');return (this.form.onsubmit ? (this.form.onsubmit() ? this.form.submit() : false) : this.form.submit())" />),
       submit_tag("Save", :disable_with => "Saving...", :onclick => "alert('hello!')")
     )
   end

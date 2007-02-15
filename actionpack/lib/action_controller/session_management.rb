@@ -61,6 +61,10 @@ module ActionController #:nodoc:
       #   session :off, :only => :foo,
       #           :if => Proc.new { |req| req.parameters[:ws] }
       #
+      #   # the session will be disabled for non html/ajax requests
+      #   session :off, 
+      #     :if => Proc.new { |req| !(req.format.html? || req.format.js?) }
+      #
       # All session options described for ActionController::Base.process_cgi
       # are valid arguments.
       def session(*args)

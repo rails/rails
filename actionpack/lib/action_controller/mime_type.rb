@@ -139,6 +139,16 @@ module Mime
     def ==(mime_type)
       (@synonyms + [ self ]).any? { |synonym| synonym.to_s == mime_type.to_s } if mime_type
     end
+    
+    private
+      def method_missing(method, *args)
+        if method.to_s =~ /(\w+)\?$/
+          mime_type = $1.downcase.to_sym
+          mime_type == @symbol || (mime_type == :html && @symbol == :all)
+        else
+          super
+        end
+      end
   end
 end
 

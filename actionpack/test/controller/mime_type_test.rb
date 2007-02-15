@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
 class MimeTypeTest < Test::Unit::TestCase
-  Mime::PNG   = Mime::Type.new("image/png")
-  Mime::PLAIN = Mime::Type.new("text/plain")
+  Mime::Type.register "image/png", :png
+  Mime::Type.register "text/plain", :plain
 
   def test_parse_single
     Mime::LOOKUP.keys.each do |mime_type|
@@ -29,5 +29,19 @@ class MimeTypeTest < Test::Unit::TestCase
       assert_equal Mime::GIF, Mime::SET.last
     end
     Mime.send :remove_const, :GIF
+  end
+  
+  def test_type_convenience_methods
+    types = [:html, :xml, :png, :plain, :yaml]
+    types.each do |type|
+      mime = Mime.const_get(type.to_s.upcase)
+      assert mime.send("#{type}?"), "Mime::#{type.to_s.upcase} is not #{type}?"
+      (types - [type]).each { |t| assert !mime.send("#{t}?"), "Mime::#{t.to_s.upcase} is #{t}?" }
+    end
+  end
+  
+  def test_mime_all_is_html
+    assert Mime::ALL.all?,  "Mime::ALL is not all?"
+    assert Mime::ALL.html?, "Mime::ALL is not html?"
   end
 end
