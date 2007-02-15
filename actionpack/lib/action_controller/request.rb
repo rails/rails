@@ -78,7 +78,7 @@ module ActionController
     def accepts
       @accepts ||=
         if @env['HTTP_ACCEPT'].to_s.strip.empty?
-          [ content_type, Mime::ALL ]
+          [ content_type, Mime::ALL ].compact # make sure content_type being nil is not included
         else
           Mime::Type.parse(@env['HTTP_ACCEPT'])
         end
