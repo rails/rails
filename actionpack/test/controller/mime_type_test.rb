@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 
 class MimeTypeTest < Test::Unit::TestCase
   Mime::Type.register "image/png", :png
-  Mime::Type.register "text/plain", :plain
+  Mime::Type.register "application/pdf", :pdf
 
   def test_parse_single
     Mime::LOOKUP.keys.each do |mime_type|
@@ -11,14 +11,14 @@ class MimeTypeTest < Test::Unit::TestCase
   end
 
   def test_parse_without_q
-    accept = "text/xml,application/xhtml+xml,text/yaml,application/xml,text/html,image/png,text/plain,*/*"
-    expect = [Mime::HTML, Mime::XML, Mime::YAML, Mime::PNG, Mime::PLAIN, Mime::ALL]
+    accept = "text/xml,application/xhtml+xml,text/yaml,application/xml,text/html,image/png,text/plain,application/pdf,*/*"
+    expect = [Mime::HTML, Mime::XML, Mime::YAML, Mime::PNG, Mime::TEXT, Mime::PDF, Mime::ALL]
     assert_equal expect, Mime::Type.parse(accept)
   end
 
   def test_parse_with_q
-    accept = "text/xml,application/xhtml+xml,text/yaml; q=0.3,application/xml,text/html; q=0.8,image/png,text/plain; q=0.5,*/*; q=0.2"
-    expect = [Mime::HTML, Mime::XML, Mime::PNG, Mime::PLAIN, Mime::YAML, Mime::ALL]
+    accept = "text/xml,application/xhtml+xml,text/yaml; q=0.3,application/xml,text/html; q=0.8,image/png,text/plain; q=0.5,application/pdf,*/*; q=0.2"
+    expect = [Mime::HTML, Mime::XML, Mime::PNG, Mime::PDF, Mime::TEXT, Mime::YAML, Mime::ALL]
     assert_equal expect, Mime::Type.parse(accept)
   end
   
@@ -32,7 +32,7 @@ class MimeTypeTest < Test::Unit::TestCase
   end
   
   def test_type_convenience_methods
-    types = [:html, :xml, :png, :plain, :yaml]
+    types = [:html, :xml, :png, :pdf, :yaml]
     types.each do |type|
       mime = Mime.const_get(type.to_s.upcase)
       assert mime.send("#{type}?"), "Mime::#{type.to_s.upcase} is not #{type}?"
