@@ -63,16 +63,21 @@ module ActionController #:nodoc:
       unless logger
         perform_action_without_benchmark
       else
-        runtime = [Benchmark::measure{ perform_action_without_benchmark }.real, 0.0001].max
+        runtime = [ Benchmark::measure{ perform_action_without_benchmark }.real, 0.0001 ].max
         log_message  = "Completed in #{sprintf("%.5f", runtime)} (#{(1 / runtime).floor} reqs/sec)"
         log_message << rendering_runtime(runtime) if defined?(@rendering_runtime)
         log_message << active_record_runtime(runtime) if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
-        log_message << " | #{headers["Status"]}"
-        log_message << " [#{complete_request_uri rescue "unknown"}]"
-        logger.info(log_message)
+        
+        log_message_with_status = log_message.dup
+        log_message_with_status << " | #{headers["Status"]}"
+        log_message_with_status << " [#{complete_request_uri rescue "unknown"}]"
+
+        response.headers["X-Benchmark"] = log_message
+        logger.info(log_message_with_status)
       end
     end
-    
+
+
     private
       def rendering_runtime(runtime)
         " | Rendering: #{sprintf("%.5f", @rendering_runtime)} (#{sprintf("%d", (@rendering_runtime * 100) / runtime)}%)"

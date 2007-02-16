@@ -1,5 +1,7 @@
 *SVN*
 
+* Added X-Benchmark to all responses with the same benchmark data as goes into the log [DHH]
+
 * Add Mime::Type convenience methods to check the current mime type. [Rick]
 
   request.format.html? # => true if Mime::HTML
