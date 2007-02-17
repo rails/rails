@@ -7,6 +7,7 @@ require 'action_controller/url_rewriter'
 require 'action_controller/status_codes'
 require 'drb'
 require 'set'
+require 'md5'
 
 module ActionController #:nodoc:
   class ActionControllerError < StandardError #:nodoc:
@@ -648,6 +649,12 @@ module ActionController #:nodoc:
       # <tt>render_partial(partial_path = default_template_name, object = nil, local_assigns = {})</tt> and
       # <tt>render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = {})</tt>.
       #
+      # == Automatic etagging
+      #
+      # Rendering will automatically insert the etag header on 200 OK responses. The etag is calculated using MD5 of the
+      # response body. If a request comes in that has a matching etag, the response will be changed to a 304 Not Modified
+      # and the response body will be set to an empty string.
+      #
       # === Rendering a template
       #
       # Template rendering works just like action rendering except that it takes a path relative to the template root.
@@ -870,6 +877,17 @@ module ActionController #:nodoc:
         else
           response.body = text
         end
+
+        if response.headers['Status'] == "200 OK" && response.body.size > 0
+          response.headers['Etag'] = "\"#{MD5.new(text).to_s}\""
+          
+          if request.headers['HTTP_IF_NONE_MATCH'] == response.headers['Etag']
+            response.headers['Status'] = "304 Not Modified"
+            response.body = ''
+          end
+        end
+        
+        response.body
       end
 
       def render_javascript(javascript, status = nil, append_response = true) #:nodoc:

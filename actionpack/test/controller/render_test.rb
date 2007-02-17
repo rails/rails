@@ -69,6 +69,10 @@ class TestController < ActionController::Base
     render "test/hello"
   end
 
+  def heading
+    head :ok
+  end
+
   def greeting
     # let's just rely on the template
   end
@@ -286,8 +290,50 @@ class RenderTest < Test::Unit::TestCase
     assert_equal "Goodbye, Local David", @response.body
   end
 
+  def test_render_200_should_set_etag
+    get :render_hello_world_from_variable
+    assert_equal etag_for("hello david"), @response.headers['Etag']
+  end
+
+  def test_render_against_etag_request_should_304_when_match
+    @request.headers["HTTP_IF_NONE_MATCH"] = etag_for("hello david")
+    get :render_hello_world_from_variable
+    assert_equal "304 Not Modified", @response.headers['Status']
+    assert @response.body.empty?
+  end
+
+  def test_render_against_etag_request_should_200_when_no_match
+    @request.headers["HTTP_IF_NONE_MATCH"] = etag_for("hello somewhere else")
+    get :render_hello_world_from_variable
+    assert_equal "200 OK", @response.headers['Status']
+    assert !@response.body.empty?
+  end
+
+  def test_render_with_etag
+    get :render_hello_world_from_variable
+    expected_etag = "\"#{MD5.new("hello david").to_s}\""
+    assert_equal expected_etag, @response.headers['Etag']
+    
+    @request.headers["HTTP_IF_NONE_MATCH"] = expected_etag
+    get :render_hello_world_from_variable
+    assert_equal "304 Not Modified", @response.headers['Status']
+    
+    @request.headers["HTTP_IF_NONE_MATCH"] = "\"diftag\""
+    get :render_hello_world_from_variable
+    assert_equal "200 OK", @response.headers['Status']
+  end
+
+  def render_with_404_shouldnt_have_etag
+    get :render_custom_code
+    assert_nil @response.headers['Etag']
+  end
+
   protected
     def assert_deprecated_render(&block)
       assert_deprecated(/render/, &block)
+    end
+    
+    def etag_for(text)
+      "\"#{MD5.new(text).to_s}\""
     end
 end

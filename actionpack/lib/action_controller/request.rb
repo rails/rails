@@ -51,6 +51,10 @@ module ActionController
       @env['REQUEST_METHOD'].downcase.to_sym == :head
     end
 
+    def headers
+      @env
+    end
+
     # Determine whether the body of a HTTP call is URL-encoded (default)
     # or matches one of the registered param_parsers. 
     #
