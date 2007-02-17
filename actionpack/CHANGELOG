@@ -1,6 +1,6 @@
 *SVN*
 
-* Added X-Benchmark to all responses with the same benchmark data as goes into the log [DHH]
+* Added X-Runtime to all responses with the request run time [DHH]
 
 * Add Mime::Type convenience methods to check the current mime type. [Rick]
 
