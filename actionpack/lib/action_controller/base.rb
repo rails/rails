@@ -653,7 +653,7 @@ module ActionController #:nodoc:
       #
       # Rendering will automatically insert the etag header on 200 OK responses. The etag is calculated using MD5 of the
       # response body. If a request comes in that has a matching etag, the response will be changed to a 304 Not Modified
-      # and the response body will be set to an empty string.
+      # and the response body will be set to an empty string. No etag header will be inserted if it's already set.
       #
       # === Rendering a template
       #
@@ -879,7 +879,7 @@ module ActionController #:nodoc:
 
           if text.is_a?(String)
             if response.headers['Status'][0..2] == '200' && !response.body.empty?
-              response.headers['Etag'] = %("#{Digest::MD5.hexdigest(text)}")
+              response.headers['Etag'] ||= %("#{Digest::MD5.hexdigest(text)}")
 
               if request.headers['HTTP_IF_NONE_MATCH'] == response.headers['Etag']
                 response.headers['Status'] = "304 Not Modified"

@@ -328,6 +328,13 @@ class RenderTest < Test::Unit::TestCase
     assert_nil @response.headers['Etag']
   end
 
+  def test_etag_should_not_be_changed_when_already_set
+    expected_etag = etag_for("hello somewhere else")
+    @response.headers["Etag"] = expected_etag
+    get :render_hello_world_from_variable
+    assert_equal expected_etag, @response.headers['Etag']
+  end
+
   protected
     def assert_deprecated_render(&block)
       assert_deprecated(/render/, &block)
