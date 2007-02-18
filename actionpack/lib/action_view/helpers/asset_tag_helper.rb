@@ -11,13 +11,25 @@ module ActionView
     # linking to them.
     #
     #   ActionController::Base.asset_host = "http://assets.example.com"
-    #   image_tag("rails.png")  
+    #   image_tag("rails.png")
     #     => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
     #   stylesheet_include_tag("application")
     #     => <link href="http://assets.example.com/stylesheets/application.css" media="screen" rel="Stylesheet" type="text/css" />
+    #
+    # Since browsers typically open at most two connections to a single host,
+    # your assets often wait in single file for their turn to load.
+    #
+    # Use a %d wildcard in asset_host (asset%d.myapp.com) to automatically
+    # distribute asset requests among four hosts (asset0-asset3.myapp.com)
+    # so browsers will open eight connections rather than two.  Use wildcard
+    # DNS to CNAME the wildcard to your real asset host.
+    #
+    # Note: this is purely a browser performance optimization and is not meant
+    # for server load balancing. See http://www.die.net/musings/page_load_time/
+    # for background.
     module AssetTagHelper
       # Returns a link tag that browsers and news readers can use to auto-detect
-      # an RSS or ATOM feed. The +type+ can either be <tt>:rss</tt> (default) or 
+      # an RSS or ATOM feed. The +type+ can either be <tt>:rss</tt> (default) or
       # <tt>:atom</tt>. Control the link options in url_for format using the
       # +url_options+. You can modify the LINK tag itself in +tag_options+.
       #
@@ -36,7 +48,7 @@ module ActionView
       #     <link rel="alternate" type="application/rss+xml" title="My RSS" href="http://www.curenthost.com/controller/feed" />
       def auto_discovery_link_tag(type = :rss, url_options = {}, tag_options = {})
         tag(
-          "link", 
+          "link",
           "rel"   => tag_options[:rel] || "alternate",
           "type"  => tag_options[:type] || Mime::Type.lookup_by_extension(type.to_s).to_s,
           "title" => tag_options[:title] || type.to_s.upcase,
@@ -53,7 +65,7 @@ module ActionView
       #   javascript_path "dir/xmlhr.js" # => /javascripts/dir/xmlhr.js
       #   javascript_path "/dir/xmlhr" # => /dir/xmlhr.js
       def javascript_path(source)
-        compute_public_path(source, 'javascripts', 'js')        
+        compute_public_path(source, 'javascripts', 'js')
       end
 
       JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls'] unless const_defined?(:JAVASCRIPT_DEFAULT_SOURCES)
@@ -64,10 +76,10 @@ module ActionView
       # that exist in your public/javascripts directory for inclusion into the
       # current page or you can pass the full path relative to your document
       # root. To include the Prototype and Scriptaculous javascript libraries in
-      # your application, pass <tt>:defaults</tt> as the source. When using 
-      # :defaults, if an <tt>application.js</tt> file exists in your public 
-      # javascripts directory, it will be included as well. You can modify the 
-      # html attributes of the script tag by passing a hash as the last argument. 
+      # your application, pass <tt>:defaults</tt> as the source. When using
+      # :defaults, if an <tt>application.js</tt> file exists in your public
+      # javascripts directory, it will be included as well. You can modify the
+      # html attributes of the script tag by passing a hash as the last argument.
       #
       #   javascript_include_tag "xmlhr" # =>
       #     <script type="text/javascript" src="/javascripts/xmlhr.js"></script>
@@ -84,29 +96,29 @@ module ActionView
       def javascript_include_tag(*sources)
         options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
 
-        if sources.include?(:defaults) 
-          sources = sources[0..(sources.index(:defaults))] + 
-            @@javascript_default_sources.dup + 
+        if sources.include?(:defaults)
+          sources = sources[0..(sources.index(:defaults))] +
+            @@javascript_default_sources.dup +
             sources[(sources.index(:defaults) + 1)..sources.length]
 
-          sources.delete(:defaults) 
-          sources << "application" if defined?(RAILS_ROOT) && File.exists?("#{RAILS_ROOT}/public/javascripts/application.js") 
+          sources.delete(:defaults)
+          sources << "application" if defined?(RAILS_ROOT) && File.exists?("#{RAILS_ROOT}/public/javascripts/application.js")
         end
 
         sources.collect do |source|
-          source = javascript_path(source)        
+          source = javascript_path(source)
           content_tag("script", "", { "type" => "text/javascript", "src" => source }.merge(options))
         end.join("\n")
       end
-      
+
       # Register one or more additional JavaScript files to be included when
       # <tt>javascript_include_tag :defaults</tt> is called. This method is
-      # only intended to be called from plugin initialization to register additional 
+      # only intended to be called from plugin initialization to register additional
       # .js files that the plugin installed in <tt>public/javascripts</tt>.
       def self.register_javascript_include_default(*sources)
         @@javascript_default_sources.concat(sources)
       end
-      
+
       def self.reset_javascript_include_default #:nodoc:
         @@javascript_default_sources = JAVASCRIPT_DEFAULT_SOURCES.dup
       end
@@ -165,14 +177,14 @@ module ActionView
       end
 
       # Returns an html image tag for the +source+. The +source+ can be a full
-      # path or a file that exists in your public images directory. Note that 
+      # path or a file that exists in your public images directory. Note that
       # specifying a filename without the extension is now deprecated in Rails.
       # You can add html attributes using the +options+. The +options+ supports
       # two additional keys for convienence and conformance:
       #
-      # * <tt>:alt</tt>  - If no alt text is given, the file name part of the 
+      # * <tt>:alt</tt>  - If no alt text is given, the file name part of the
       #   +source+ is used (capitalized and without the extension)
-      # * <tt>:size</tt> - Supplied as "{Width}x{Height}", so "30x45" becomes 
+      # * <tt>:size</tt> - Supplied as "{Width}x{Height}", so "30x45" becomes
       #   width="30" and height="45". <tt>:size</tt> will be ignored if the
       #   value is not in the correct format.
       #
@@ -184,10 +196,10 @@ module ActionView
       #    <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
       def image_tag(source, options = {})
         options.symbolize_keys!
-                
+
         options[:src] = image_path(source)
         options[:alt] ||= File.basename(options[:src], '.*').split('.').first.capitalize
-        
+
         if options[:size]
           options[:width], options[:height] = options[:size].split("x") if options[:size] =~ %r{^\d+x\d+$}
           options.delete(:size)
@@ -195,23 +207,45 @@ module ActionView
 
         tag("img", options)
       end
-      
+
       private
+        # Add the .ext if not present. Return full URLs otherwise untouched.
+        # Prefix with /dir/ if lacking a leading /. Account for relative URL
+        # roots. Rewrite the asset path for cache-busting asset ids. Include
+        # a single or wildcarded asset host if configured.
         def compute_public_path(source, dir, ext)
-          source = source.dup
-          source << ".#{ext}" if File.extname(source).blank?
-          unless source =~ %r{^[-a-z]+://}
+          source += ".#{ext}" if File.extname(source).blank?
+          if source =~ %r{^[-a-z]+://}
+            source
+          else
             source = "/#{dir}/#{source}" unless source[0] == ?/
-            asset_id = rails_asset_id(source)
-            source << '?' + asset_id if defined?(RAILS_ROOT) && !asset_id.blank?
-            source = "#{ActionController::Base.asset_host}#{@controller.request.relative_url_root}#{source}"
+            source = "#{@controller.request.relative_url_root}#{source}"
+            rewrite_asset_path!(source)
+            "#{compute_asset_host(source)}#{source}"
           end
-          source
         end
-        
+
+        # Pick an asset host for this source. Returns nil if no host is set,
+        # the host if no wildcard is set, or the host interpolated with the
+        # numbers 0-3 if it contains %d. The number is the source hash mod 4.
+        def compute_asset_host(source)
+          if host = ActionController::Base.asset_host
+            host % (source.hash % 4)
+          end
+        end
+
+        # Use the RAILS_ASSET_ID environment variable or the source's
+        # modification time as its cache-busting asset id.
         def rails_asset_id(source)
-          ENV["RAILS_ASSET_ID"] || 
+          ENV["RAILS_ASSET_ID"] ||
             File.mtime("#{RAILS_ROOT}/public/#{source}").to_i.to_s rescue ""
+        end
+
+        # Break out the asset path rewrite so you wish to put the asset id
+        # someplace other than the query string.
+        def rewrite_asset_path!(source)
+          asset_id = rails_asset_id(source)
+          source << "?#{asset_id}" if defined?(RAILS_ROOT) && !asset_id.blank?
         end
     end
   end

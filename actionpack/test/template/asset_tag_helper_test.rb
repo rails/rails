@@ -223,4 +223,11 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
   ensure
     ActionController::Base.asset_host = ""
   end
+
+  def test_should_wildcard_asset_host_between_zero_and_four
+    ActionController::Base.asset_host = 'http://a%d.example.com'
+    assert_match %r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_path('xml.png')
+  ensure
+    ActionController::Base.asset_host = nil
+  end
 end

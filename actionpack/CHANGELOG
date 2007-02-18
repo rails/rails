@@ -1,5 +1,7 @@
 *SVN*
 
+* Work around the two connection per host browser limit: use asset%d.myapp.com to distribute asset requests among asset[0123].myapp.com. Use a DNS wildcard or CNAMEs to map these hosts to your asset server. See http://www.die.net/musings/page_load_time/ for background.  [Jeremy Kemper]
+
 * Added default mime type for CSS (Mime::CSS) [DHH]
 
 * Added that rendering will automatically insert the etag header on 200 OK responses. The etag is calculated using MD5 of the response body. If a request comes in that has a matching etag, the response will be changed to a 304 Not Modified and the response body will be set to an empty string. [DHH]
