@@ -10,7 +10,7 @@ module ActionView
     # in your environment.rb. These methods do not verify the assets exist before
     # linking to them.
     #
-    #   ActionController::Base.asset_host = "http://assets.example.com"
+    #   ActionController::Base.asset_host = "assets.example.com"
     #   image_tag("rails.png")
     #     => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
     #   stylesheet_include_tag("application")
@@ -212,7 +212,8 @@ module ActionView
         # Add the .ext if not present. Return full URLs otherwise untouched.
         # Prefix with /dir/ if lacking a leading /. Account for relative URL
         # roots. Rewrite the asset path for cache-busting asset ids. Include
-        # a single or wildcarded asset host if configured.
+        # a single or wildcarded asset host, if configured, with the correct
+        # request protocol.
         def compute_public_path(source, dir, ext)
           source += ".#{ext}" if File.extname(source).blank?
           if source =~ %r{^[-a-z]+://}
@@ -221,7 +222,13 @@ module ActionView
             source = "/#{dir}/#{source}" unless source[0] == ?/
             source = "#{@controller.request.relative_url_root}#{source}"
             rewrite_asset_path!(source)
-            "#{compute_asset_host(source)}#{source}"
+
+            host = compute_asset_host(source)
+            unless host.blank? or host =~ %r{^[-a-z]+://}
+              host = "#{@controller.request.protocol}#{host}"
+            end
+
+            "#{host}#{source}"
           end
         end
 

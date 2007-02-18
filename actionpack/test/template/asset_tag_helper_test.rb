@@ -189,6 +189,10 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
       def relative_url_root
         "/collaboration/hieraki"
       end
+
+      def protocol
+        'gopher://'
+      end
     end.new
     
     @controller.request = @request
@@ -227,6 +231,13 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
   def test_should_wildcard_asset_host_between_zero_and_four
     ActionController::Base.asset_host = 'http://a%d.example.com'
     assert_match %r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_path('xml.png')
+  ensure
+    ActionController::Base.asset_host = nil
+  end
+
+  def test_asset_host_without_protocol_should_use_request_protocol
+    ActionController::Base.asset_host = 'a.example.com'
+    assert_equal 'gopher://a.example.com/collaboration/hieraki/images/xml.png', image_path('xml.png')
   ensure
     ActionController::Base.asset_host = nil
   end
