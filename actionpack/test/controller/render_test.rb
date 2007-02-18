@@ -311,13 +311,13 @@ class RenderTest < Test::Unit::TestCase
 
   def test_render_with_etag
     get :render_hello_world_from_variable
-    expected_etag = "\"#{MD5.new("hello david").to_s}\""
+    expected_etag = etag_for('hello david')
     assert_equal expected_etag, @response.headers['Etag']
-    
+
     @request.headers["HTTP_IF_NONE_MATCH"] = expected_etag
     get :render_hello_world_from_variable
     assert_equal "304 Not Modified", @response.headers['Status']
-    
+
     @request.headers["HTTP_IF_NONE_MATCH"] = "\"diftag\""
     get :render_hello_world_from_variable
     assert_equal "200 OK", @response.headers['Status']
@@ -332,8 +332,8 @@ class RenderTest < Test::Unit::TestCase
     def assert_deprecated_render(&block)
       assert_deprecated(/render/, &block)
     end
-    
+
     def etag_for(text)
-      "\"#{MD5.new(text).to_s}\""
+      %("#{Digest::MD5.hexdigest(text)}")
     end
 end

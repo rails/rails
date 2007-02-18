@@ -7,7 +7,7 @@ require 'action_controller/url_rewriter'
 require 'action_controller/status_codes'
 require 'drb'
 require 'set'
-require 'md5'
+require 'digest/md5'
 
 module ActionController #:nodoc:
   class ActionControllerError < StandardError #:nodoc:
@@ -876,17 +876,19 @@ module ActionController #:nodoc:
           response.body << text
         else
           response.body = text
-        end
 
-        if response.headers['Status'] == "200 OK" && response.body.size > 0
-          response.headers['Etag'] = "\"#{MD5.new(text).to_s}\""
-          
-          if request.headers['HTTP_IF_NONE_MATCH'] == response.headers['Etag']
-            response.headers['Status'] = "304 Not Modified"
-            response.body = ''
+          if text.is_a?(String)
+            if response.headers['Status'][0..2] == '200' && !response.body.empty?
+              response.headers['Etag'] = %("#{Digest::MD5.hexdigest(text)}")
+
+              if request.headers['HTTP_IF_NONE_MATCH'] == response.headers['Etag']
+                response.headers['Status'] = "304 Not Modified"
+                response.body = ''
+              end
+            end
           end
         end
-        
+
         response.body
       end
 
