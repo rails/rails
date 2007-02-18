@@ -879,7 +879,7 @@ module ActionController #:nodoc:
 
           if text.is_a?(String)
             if response.headers['Status'][0..2] == '200' && !response.body.empty?
-              response.headers['Etag'] ||= %("#{Digest::MD5.hexdigest(text)}")
+              response.headers['Etag'] = %("#{Digest::MD5.hexdigest(text)}")
 
               if request.headers['HTTP_IF_NONE_MATCH'] == response.headers['Etag']
                 response.headers['Status'] = "304 Not Modified"

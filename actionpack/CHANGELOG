@@ -1,5 +1,18 @@
 *SVN*
 
+* Added caching option to AssetTagHelper#stylesheet_link_tag and AssetTagHelper#javascript_include_tag [DHH]. Examples:
+
+    stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
+      <link href="/stylesheets/style1.css"  media="screen" rel="Stylesheet" type="text/css" />
+      <link href="/stylesheets/styleB.css"  media="screen" rel="Stylesheet" type="text/css" />
+      <link href="/stylesheets/styleX2.css" media="screen" rel="Stylesheet" type="text/css" />
+ 
+    stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is true =>
+      <link href="/stylesheets/all.css"  media="screen" rel="Stylesheet" type="text/css" />
+
+  ...when caching is on, all.css is the concatenation of style1.css, styleB.css, and styleX2.css.
+  Same deal for JavaScripts.
+
 * Work around the two connection per host browser limit: use asset%d.myapp.com to distribute asset requests among asset[0123].myapp.com. Use a DNS wildcard or CNAMEs to map these hosts to your asset server. See http://www.die.net/musings/page_load_time/ for background.  [Jeremy Kemper]
 
 * Added default mime type for CSS (Mime::CSS) [DHH]

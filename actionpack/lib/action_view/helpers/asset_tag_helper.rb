@@ -28,6 +28,10 @@ module ActionView
     # for server load balancing. See http://www.die.net/musings/page_load_time/
     # for background.
     module AssetTagHelper
+      ASSETS_DIR      = defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/public" : "public"
+      JAVASCRIPTS_DIR = "#{ASSETS_DIR}/javascripts"
+      STYLESHEETS_DIR = "#{ASSETS_DIR}/stylesheets"
+      
       # Returns a link tag that browsers and news readers can use to auto-detect
       # an RSS or ATOM feed. The +type+ can either be <tt>:rss</tt> (default) or
       # <tt>:atom</tt>. Control the link options in url_for format using the
@@ -93,22 +97,70 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/effects.js"></script>
       #     ...
       #     <script type="text/javascript" src="/javascripts/application.js"></script> *see below
+      #
+      # * = The application.js file is only referenced if it exists
+      #
+      # You can also include all javascripts in the javascripts directory using :all as the source:
+      #
+      #   javascript_include_tag :all # =>
+      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
+      #     <script type="text/javascript" src="/javascripts/effects.js"></script>
+      #     ...
+      #     <script type="text/javascript" src="/javascripts/application.js"></script>
+      #     <script type="text/javascript" src="/javascripts/shop.js"></script>
+      #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
+      #
+      # Note that the default javascript files will be included first. So Prototype and Scriptaculous are available for
+      # all subsequently included files. They
+      #
+      # == Caching multiple javascripts into one
+      #
+      # You can also cache multiple javascripts into one file, which requires less HTTP connections and can better be
+      # compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching
+      # is set to true (which is the case by default for the Rails production environment, but not for the development
+      # environment). Examples:
+      #
+      #   javascript_include_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
+      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
+      #     <script type="text/javascript" src="/javascripts/effects.js"></script>
+      #     ...
+      #     <script type="text/javascript" src="/javascripts/application.js"></script>
+      #     <script type="text/javascript" src="/javascripts/shop.js"></script>
+      #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
+      #
+      #   javascript_include_tag :all, :cache => true # when ActionController::Base.perform_caching is true =>
+      #     <script type="text/javascript" src="/javascripts/all.js"></script>
+      #
+      #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when ActionController::Base.perform_caching is false =>
+      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
+      #     <script type="text/javascript" src="/javascripts/cart.js"></script>
+      #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
+      #
+      #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when ActionController::Base.perform_caching is false =>
+      #     <script type="text/javascript" src="/javascripts/shop.js"></script>
       def javascript_include_tag(*sources)
         options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
+        cache   = options.delete("cache")
 
-        if sources.include?(:defaults)
-          sources = sources[0..(sources.index(:defaults))] +
-            @@javascript_default_sources.dup +
-            sources[(sources.index(:defaults) + 1)..sources.length]
+        if ActionController::Base.perform_caching && cache
+          joined_javascript_name = (cache == true ? "all" : cache) + ".js"
+          joined_javascript_path = File.join(JAVASCRIPTS_DIR, joined_javascript_name)
 
-          sources.delete(:defaults)
-          sources << "application" if defined?(RAILS_ROOT) && File.exists?("#{RAILS_ROOT}/public/javascripts/application.js")
+          if !File.exists?(joined_javascript_path)
+            File.open(joined_javascript_path, "w+") do |cache|
+              javascript_paths = expand_javascript_sources(sources).collect { |source| javascript_path(source) }
+              cache.write(join_asset_file_contents(javascript_paths))
+            end
+          end
+
+          content_tag("script", "", { 
+            "type" => "text/javascript", "src" => javascript_path(joined_javascript_name)
+          }.merge(options))
+        else
+          expand_javascript_sources(sources).collect do |source|
+            content_tag("script", "", { "type" => "text/javascript", "src" => javascript_path(source) }.merge(options))
+          end.join("\n")
         end
-
-        sources.collect do |source|
-          source = javascript_path(source)
-          content_tag("script", "", { "type" => "text/javascript", "src" => source }.merge(options))
-        end.join("\n")
       end
 
       # Register one or more additional JavaScript files to be included when
@@ -148,12 +200,64 @@ module ActionView
       #   stylesheet_link_tag "random.styles", "/css/stylish" # =>
       #     <link href="/stylesheets/random.styles" media="screen" rel="Stylesheet" type="text/css" />
       #     <link href="/css/stylish.css" media="screen" rel="Stylesheet" type="text/css" />
+      #
+      # You can also include all styles in the stylesheet directory using :all as the source:
+      #
+      #   stylesheet_link_tag :all # =>
+      #     <link href="/stylesheets/style1.css"  media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/styleB.css"  media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/styleX2.css" media="screen" rel="Stylesheet" type="text/css" />
+      #
+      # == Caching multiple stylesheets into one
+      #
+      # You can also cache multiple stylesheets into one file, which requires less HTTP connections and can better be
+      # compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching
+      # is set to true (which is the case by default for the Rails production environment, but not for the development
+      # environment). Examples:
+      #
+      #   stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
+      #     <link href="/stylesheets/style1.css"  media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/styleB.css"  media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/styleX2.css" media="screen" rel="Stylesheet" type="text/css" />
+      #
+      #   stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is true =>
+      #     <link href="/stylesheets/all.css"  media="screen" rel="Stylesheet" type="text/css" />
+      #
+      #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when ActionController::Base.perform_caching is false =>
+      #     <link href="/stylesheets/shop.css"  media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/cart.css"  media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/checkout.css" media="screen" rel="Stylesheet" type="text/css" />
+      #
+      #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when ActionController::Base.perform_caching is true =>
+      #     <link href="/stylesheets/payment.css"  media="screen" rel="Stylesheet" type="text/css" />
       def stylesheet_link_tag(*sources)
         options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
-        sources.collect do |source|
-          source = stylesheet_path(source)
-          tag("link", { "rel" => "Stylesheet", "type" => "text/css", "media" => "screen", "href" => source }.merge(options))
-        end.join("\n")
+        cache   = options.delete("cache")
+
+        if ActionController::Base.perform_caching && cache
+          joined_stylesheet_name = (cache == true ? "all" : cache) + ".css"
+          joined_stylesheet_path = File.join(STYLESHEETS_DIR, joined_stylesheet_name)
+
+          if !File.exists?(joined_stylesheet_path)
+            File.open(joined_stylesheet_path, "w+") do |cache|
+              stylesheet_paths = expand_stylesheet_sources(sources).collect { |source| stylesheet_path(source) }
+              cache.write(join_asset_file_contents(stylesheet_paths))
+            end
+          end
+
+          tag("link", {
+            "rel" => "Stylesheet", "type" => "text/css", "media" => "screen",
+            "href" => stylesheet_path(joined_stylesheet_name)
+          }.merge(options))
+        else
+          options.delete("cache")
+
+          expand_stylesheet_sources(sources).collect do |source|
+            tag("link", { 
+              "rel" => "Stylesheet", "type" => "text/css", "media" => "screen", "href" => stylesheet_path(source)
+            }.merge(options))
+          end.join("\n")
+        end
       end
 
       # Computes the path to an image asset in the public images directory.
@@ -216,6 +320,7 @@ module ActionView
         # request protocol.
         def compute_public_path(source, dir, ext)
           source += ".#{ext}" if File.extname(source).blank?
+
           if source =~ %r{^[-a-z]+://}
             source
           else
@@ -245,14 +350,44 @@ module ActionView
         # modification time as its cache-busting asset id.
         def rails_asset_id(source)
           ENV["RAILS_ASSET_ID"] ||
-            File.mtime("#{RAILS_ROOT}/public/#{source}").to_i.to_s rescue ""
+            File.mtime(File.join(ASSETS_DIR, source)).to_i.to_s rescue ""
         end
 
         # Break out the asset path rewrite so you wish to put the asset id
         # someplace other than the query string.
         def rewrite_asset_path!(source)
           asset_id = rails_asset_id(source)
-          source << "?#{asset_id}" if defined?(RAILS_ROOT) && !asset_id.blank?
+          source << "?#{asset_id}" if !asset_id.blank?
+        end
+
+        def expand_javascript_sources(sources)          
+          case
+          when sources.include?(:all)
+            all_javascript_files = Dir[File.join(JAVASCRIPTS_DIR, '*.js')].collect { |file| File.basename(file).split(".", 0).first }
+            sources = ((@@javascript_default_sources.dup & all_javascript_files) + all_javascript_files).uniq
+
+          when sources.include?(:defaults)
+            sources = sources[0..(sources.index(:defaults))] + 
+              @@javascript_default_sources.dup + 
+              sources[(sources.index(:defaults) + 1)..sources.length]
+
+            sources.delete(:defaults)
+            sources << "application" if File.exists?(File.join(JAVASCRIPTS_DIR, "application.js"))
+          end
+
+          sources
+        end
+
+        def expand_stylesheet_sources(sources)
+          if sources.first == :all
+            sources = Dir[File.join(STYLESHEETS_DIR, '*.css')].collect { |file| File.basename(file).split(".", 1).first }
+          else
+            sources
+          end
+        end
+
+        def join_asset_file_contents(paths)
+          paths.collect { |path| File.read(File.join(ASSETS_DIR, path.split("?").first)) }.join("\n\n")          
         end
     end
   end

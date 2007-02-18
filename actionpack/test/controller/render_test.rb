@@ -335,6 +335,12 @@ class RenderTest < Test::Unit::TestCase
     assert_equal expected_etag, @response.headers['Etag']
   end
 
+  def test_etag_should_govern_renders_with_layouts_too
+    get :builder_layout_test
+    assert_equal etag_for("<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n"), @response.headers['Etag']
+  end
+
+
   protected
     def assert_deprecated_render(&block)
       assert_deprecated(/render/, &block)
