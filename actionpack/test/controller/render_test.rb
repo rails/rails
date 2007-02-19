@@ -337,6 +337,7 @@ class RenderTest < Test::Unit::TestCase
 
   def test_etag_should_govern_renders_with_layouts_too
     get :builder_layout_test
+    assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
     assert_equal etag_for("<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n"), @response.headers['Etag']
   end
 
