@@ -73,10 +73,10 @@ class SendFileTest < Test::Unit::TestCase
 
   def test_headers_after_send_shouldnt_include_charset
     response = process('data')
-    assert_equal "application/octet-stream", response.headers["Content-Type"]
+    assert_equal "application/octet-stream", response.content_type
 
     response = process('file')
-    assert_equal "application/octet-stream", response.headers["Content-Type"]
+    assert_equal "application/octet-stream", response.content_type
   end
 
   # Test that send_file_headers! is setting the correct HTTP headers.
@@ -113,13 +113,13 @@ class SendFileTest < Test::Unit::TestCase
     define_method "test_send_#{method}_status" do
       @controller.options = { :stream => false, :status => 500 }
       assert_nothing_raised { assert_not_nil process(method) }
-      assert_equal '500 Internal Server Error', @controller.headers['Status']
+      assert_equal '500 Internal Server Error', @response.headers['Status']
     end
 
     define_method "test_default_send_#{method}_status" do
       @controller.options = { :stream => false }
       assert_nothing_raised { assert_not_nil process(method) }
-      assert_equal ActionController::Base::DEFAULT_RENDER_STATUS_CODE, @controller.headers['Status']
+      assert_equal ActionController::Base::DEFAULT_RENDER_STATUS_CODE, @response.headers['Status']
     end
   end
 end

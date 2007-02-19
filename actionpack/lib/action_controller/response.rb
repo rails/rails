@@ -41,9 +41,10 @@ module ActionController
       set_content_length!
     end
 
+
     private
       def handle_conditional_get!
-        if body.is_a?(String) && headers['Status'][0..2] == '200' && !body.empty?
+        if body.is_a?(String) && (headers['Status'] ? headers['Status'][0..2] == '200' : true)  && !body.empty?
           self.headers['ETag'] ||= %("#{Digest::MD5.hexdigest(body)}")
           self.headers['Cache-Control'] = 'private' if headers['Cache-Control'] == DEFAULT_HEADERS['Cache-Control']
 

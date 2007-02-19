@@ -669,14 +669,14 @@ EOS
   def test_update_page
     get :update_page
     assert_template nil
-    assert_equal 'text/javascript; charset=utf-8', @response.headers['Content-Type']
+    assert_equal 'text/javascript; charset=utf-8', @response.headers['type']
     assert_equal 2, @response.body.split($/).length
   end
   
   def test_update_page_with_instance_variables
     get :update_page_with_instance_variables
     assert_template nil
-    assert_equal 'text/javascript; charset=utf-8', @response.headers['Content-Type']
+    assert_equal 'text/javascript; charset=utf-8', @response.headers['type']
     assert_match /balance/, @response.body
     assert_match /\$37/, @response.body
   end

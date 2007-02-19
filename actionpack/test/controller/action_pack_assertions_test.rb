@@ -462,18 +462,18 @@ class ActionPackHeaderTest < Test::Unit::TestCase
 
   def test_rendering_xml_sets_content_type
     assert_deprecated(/render/) { process :hello_xml_world }
-    assert_equal('application/xml; charset=utf-8', @controller.headers['Content-Type'])
+    assert_equal('application/xml; charset=utf-8', @response.headers['type'])
   end
 
   def test_rendering_xml_respects_content_type
-    @response.headers['Content-Type'] = 'application/pdf'
+    @response.headers['type'] = 'application/pdf'
     assert_deprecated(/render/) { process :hello_xml_world }
-    assert_equal('application/pdf; charset=utf-8', @controller.headers['Content-Type'])
+    assert_equal('application/pdf; charset=utf-8', @response.headers['type'])
   end
 
 
   def test_render_text_with_custom_content_type
     get :render_text_with_custom_content_type
-    assert_equal 'application/rss+xml; charset=utf-8', @response.headers['Content-Type']
+    assert_equal 'application/rss+xml; charset=utf-8', @response.headers['type']
   end
 end
