@@ -45,6 +45,7 @@ module ActionController
       def handle_conditional_get!
         if body.is_a?(String) && headers['Status'][0..2] == '200' && !body.empty?
           self.headers['Etag'] ||= %("#{Digest::MD5.hexdigest(body)}")
+          headers.delete('Cache-Control') if headers['Cache-Control'] == DEFAULT_HEADERS['Cache-Control']
 
           if request.headers['HTTP_IF_NONE_MATCH'] == headers['Etag']
             self.headers['Status'] = '304 Not Modified'
