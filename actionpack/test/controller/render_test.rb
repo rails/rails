@@ -292,7 +292,7 @@ class RenderTest < Test::Unit::TestCase
 
   def test_render_200_should_set_etag
     get :render_hello_world_from_variable
-    assert_equal etag_for("hello david"), @response.headers['Etag']
+    assert_equal etag_for("hello david"), @response.headers['ETag']
   end
 
   def test_render_against_etag_request_should_304_when_match
@@ -312,7 +312,7 @@ class RenderTest < Test::Unit::TestCase
   def test_render_with_etag
     get :render_hello_world_from_variable
     expected_etag = etag_for('hello david')
-    assert_equal expected_etag, @response.headers['Etag']
+    assert_equal expected_etag, @response.headers['ETag']
 
     @request.headers["HTTP_IF_NONE_MATCH"] = expected_etag
     get :render_hello_world_from_variable
@@ -325,20 +325,20 @@ class RenderTest < Test::Unit::TestCase
 
   def render_with_404_shouldnt_have_etag
     get :render_custom_code
-    assert_nil @response.headers['Etag']
+    assert_nil @response.headers['ETag']
   end
 
   def test_etag_should_not_be_changed_when_already_set
     expected_etag = etag_for("hello somewhere else")
-    @response.headers["Etag"] = expected_etag
+    @response.headers["ETag"] = expected_etag
     get :render_hello_world_from_variable
-    assert_equal expected_etag, @response.headers['Etag']
+    assert_equal expected_etag, @response.headers['ETag']
   end
 
   def test_etag_should_govern_renders_with_layouts_too
     get :builder_layout_test
     assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
-    assert_equal etag_for("<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n"), @response.headers['Etag']
+    assert_equal etag_for("<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n"), @response.headers['ETag']
   end
 
 
