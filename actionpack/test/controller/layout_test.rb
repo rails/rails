@@ -110,7 +110,9 @@ class ExemptFromLayoutTest < Test::Unit::TestCase
 
   def test_rhtml_exempt_from_layout_status_should_prevent_layout_render
     ActionController::Base.exempt_from_layout :rhtml
+    
     assert @controller.send(:template_exempt_from_layout?, 'test.rhtml')
+    assert @controller.send(:template_exempt_from_layout?, 'hello.rhtml')
 
     get :hello
     assert_equal 'hello.rhtml', @response.body

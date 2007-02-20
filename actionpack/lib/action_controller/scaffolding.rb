@@ -71,7 +71,7 @@ module ActionController
     #    end
     #  end
     #
-    # The <tt>render_scaffold</tt> method will first check to see if you've made your own template (like "weblog/show.rhtml" for
+    # The <tt>render_scaffold</tt> method will first check to see if you've made your own template (like "weblog/show.erb" for
     # the show action) and if not, then render the generic template for that action. This gives you the possibility of using the
     # scaffold while you're building your specific application. Start out with a totally generic setup, then replace one template
     # and one action at a time while relying on the rest of the scaffolded templates and actions.
@@ -176,7 +176,7 @@ module ActionController
             end
 
             def scaffold_path(template_name)
-              File.dirname(__FILE__) + "/templates/scaffolds/" + template_name + ".rhtml"
+              File.dirname(__FILE__) + "/templates/scaffolds/" + template_name + ".erb"
             end
 
             def caller_method_name(caller)

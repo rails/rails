@@ -16,7 +16,7 @@ module ActionController #:nodoc:
   #     end
   #   end
   #
-  #   display.rhtml
+  #   display.erb
   #     <% if flash[:notice] %><div class="notice"><%= flash[:notice] %></div><% end %>
   #
   # This example just places a string in the flash, but you can put any object in there. And of course, you can put as many

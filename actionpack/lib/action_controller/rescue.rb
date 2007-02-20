@@ -152,7 +152,7 @@ module ActionController #:nodoc:
       end
 
       def rescues_path(template_name)
-        "#{File.dirname(__FILE__)}/templates/rescues/#{template_name}.rhtml"
+        "#{File.dirname(__FILE__)}/templates/rescues/#{template_name}.erb"
       end
 
       def template_path_for_local_rescue(exception)

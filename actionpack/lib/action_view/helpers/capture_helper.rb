@@ -14,7 +14,7 @@ module ActionView
     # content_for("name") is a wrapper for capture which will 
     # make the fragment available by name to a yielding layout or template.
     #
-    # layout.rhtml:
+    # layout.erb:
     #
     #   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
     #   <head>
@@ -28,7 +28,7 @@ module ActionView
     #   </body>
     #   </html>
     #
-    # view.rhtml
+    # view.erb
     #   
     #   This page shows an alert box!
     #
@@ -42,13 +42,13 @@ module ActionView
       # instance variable. You can use this instance variable anywhere
       # in your templates and even in your layout. 
       # 
-      # Example of capture being used in a .rhtml page:
+      # Example of capture being used in a .erb page:
       # 
       #   <% @greeting = capture do %>
       #     Welcome To my shiny new web page!
       #   <% end %>
       #
-      # Example of capture being used in a .rxml page:
+      # Example of capture being used in a .builder page:
       # 
       #   @greeting = capture do
       #     'Welcome To my shiny new web page!'

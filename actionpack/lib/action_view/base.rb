@@ -4,8 +4,8 @@ module ActionView #:nodoc:
   class ActionViewError < StandardError #:nodoc:
   end
 
-  # Action View templates can be written in three ways. If the template file has a +.rhtml+ extension then it uses a mixture of ERb 
-  # (included in Ruby) and HTML. If the template file has a +.rxml+ extension then Jim Weirich's Builder::XmlMarkup library is used. 
+  # Action View templates can be written in three ways. If the template file has a +.erb+ (or +.rhtml+) extension then it uses a mixture of ERb 
+  # (included in Ruby) and HTML. If the template file has a +.builder+ (or +.rxml+) extension then Jim Weirich's Builder::XmlMarkup library is used. 
   # If the template file has a +.rjs+ extension then it will use ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.
   # 
   # = ERb
@@ -77,7 +77,7 @@ module ActionView #:nodoc:
   # == Builder
   #
   # Builder templates are a more programmatic alternative to ERb. They are especially useful for generating XML content. An +XmlMarkup+ object 
-  # named +xml+ is automatically made available to templates with a +.rxml+ extension. 
+  # named +xml+ is automatically made available to templates with a +.builder+ extension. 
   #
   # Here are some basic examples:
   #
@@ -246,7 +246,6 @@ module ActionView #:nodoc:
     def render_file(template_path, use_full_path = true, local_assigns = {}) #:nodoc:
       @first_render ||= template_path
       template_path_without_extension, template_extension = path_and_extension(template_path)
-      
       if use_full_path
         if template_extension
           template_file_name = full_template_path(template_path_without_extension, template_extension)
@@ -280,7 +279,7 @@ module ActionView #:nodoc:
       elsif options == :update
         update_page(&block)
       elsif options.is_a?(Hash)
-        options = options.reverse_merge(:type => :rhtml, :locals => {}, :use_full_path => true)
+        options = options.reverse_merge(:type => :erb, :locals => {}, :use_full_path => true)
 
         if options[:file]
           render_file(options[:file], options[:use_full_path], options[:locals])
@@ -294,7 +293,7 @@ module ActionView #:nodoc:
       end
     end
 
-    # Renders the +template+ which is given as a string as either rhtml or rxml depending on <tt>template_extension</tt>.
+    # Renders the +template+ which is given as a string as either erb or builder depending on <tt>template_extension</tt>.
     # The hash in <tt>local_assigns</tt> is made available as local variables.
     def render_template(template_extension, template, file_path = nil, local_assigns = {}) #:nodoc:
       if handler = @@template_handlers[template_extension]
@@ -342,15 +341,21 @@ module ActionView #:nodoc:
     def delegate_template_exists?(template_path)#:nodoc:
       @@template_handlers.find { |k,| template_exists?(template_path, k) }
     end
-
+    
+    def one_of(template_path, *extensions)#:nodoc:
+      extensions.detect{|ext| template_exists?(template_path, ext)}
+    end
+    
     def erb_template_exists?(template_path)#:nodoc:
-      template_exists?(template_path, :rhtml)
+      one_of(template_path, :erb, :rhtml)
     end
-
+    alias :rhtml_template_exists? :erb_template_exists?
+    
     def builder_template_exists?(template_path)#:nodoc:
-      template_exists?(template_path, :rxml)
+      one_of(template_path, :builder, :rxml)
     end
-
+    alias :rxml_template_exists? :builder_template_exists?
+    
     def javascript_template_exists?(template_path)#:nodoc:
       template_exists?(template_path, :rjs)
     end
@@ -361,7 +366,7 @@ module ActionView #:nodoc:
         template_exists?(template_file_name, template_file_extension)
       else
         cached_template_extension(template_path) ||
-           %w(erb builder javascript delegate).any? do |template_type|
+           %w(erb rhtml builder rxml javascript delegate).any? do |template_type|
              send("#{template_type}_template_exists?", template_path)
            end
       end
@@ -401,11 +406,11 @@ module ActionView #:nodoc:
       def find_template_extension_for(template_path)
         if match = delegate_template_exists?(template_path)
           match.first.to_sym
-        elsif erb_template_exists?(template_path):        :rhtml
-        elsif builder_template_exists?(template_path):    :rxml
+        elsif extension = erb_template_exists?(template_path):        extension
+        elsif extension = builder_template_exists?(template_path):    extension
         elsif javascript_template_exists?(template_path): :rjs
         else
-          raise ActionViewError, "No rhtml, rxml, rjs or delegate template found for #{template_path} in #{@view_paths.inspect}"
+          raise ActionViewError, "No erb, builder, rhtml, rxml, rjs or delegate template found for #{template_path} in #{@view_paths.inspect}"
         end
       end
 
@@ -464,7 +469,7 @@ module ActionView #:nodoc:
       def create_template_source(extension, template, render_symbol, locals)
         if template_requires_setup?(extension)
           body = case extension.to_sym
-            when :rxml
+            when :rxml, :builder
               "controller.response.content_type ||= 'application/xml'\n" +
               "xml = Builder::XmlMarkup.new(:indent => 2)\n" +
               template
@@ -493,7 +498,7 @@ module ActionView #:nodoc:
       end
 
       def templates_requiring_setup
-        %w(rxml rjs)
+        %w(builder rxml rjs)
       end
 
       def assign_method_name(extension, template, file_name)
@@ -523,7 +528,7 @@ module ActionView #:nodoc:
         line_offset = @@template_args[render_symbol].size
         if extension
           case extension.to_sym
-          when :rxml, :rjs
+          when :builder, :rxml, :rjs
             line_offset += 2
           end
         end

@@ -71,7 +71,7 @@ module ActionController #:nodoc:
   #
   # Actions, by default, render a template in the <tt>app/views</tt> directory corresponding to the name of the controller and action
   # after executing code in the action. For example, the +index+ action of the +GuestBookController+  would render the
-  # template <tt>app/views/guestbook/index.rhtml</tt> by default after populating the <tt>@entries</tt> instance variable.
+  # template <tt>app/views/guestbook/index.erb</tt> by default after populating the <tt>@entries</tt> instance variable.
   #
   # Unlike index, the sign action will not render a template. After performing its main purpose (creating a
   # new entry in the guest book), it initiates a redirect instead. This redirect works by returning an external
@@ -662,7 +662,7 @@ module ActionController #:nodoc:
       # Template rendering works just like action rendering except that it takes a path relative to the template root.
       # The current layout is automatically applied.
       #
-      #   # Renders the template located in [TEMPLATE_ROOT]/weblog/show.r(html|xml) (in Rails, app/views/weblog/show.rhtml)
+      #   # Renders the template located in [TEMPLATE_ROOT]/weblog/show.r(html|xml) (in Rails, app/views/weblog/show.erb)
       #   render :template => "weblog/show"
       #
       # === Rendering a file
@@ -671,12 +671,12 @@ module ActionController #:nodoc:
       # is assumed to be absolute, and the current layout is not applied.
       #
       #   # Renders the template located at the absolute filesystem path
-      #   render :file => "/path/to/some/template.rhtml"
-      #   render :file => "c:/path/to/some/template.rhtml"
+      #   render :file => "/path/to/some/template.erb"
+      #   render :file => "c:/path/to/some/template.erb"
       #
       #   # Renders a template within the current layout, and with a 404 status code
-      #   render :file => "/path/to/some/template.rhtml", :layout => true, :status => 404
-      #   render :file => "c:/path/to/some/template.rhtml", :layout => true, :status => 404
+      #   render :file => "/path/to/some/template.erb", :layout => true, :status => 404
+      #   render :file => "c:/path/to/some/template.erb", :layout => true, :status => 404
       #
       #   # Renders a template relative to the template root and chooses the proper file extension
       #   render :file => "some/template", :use_full_path => true
@@ -734,7 +734,7 @@ module ActionController #:nodoc:
       #   render :inline => "<%= 'hello, ' * 3 + 'again' %>"
       #
       #   # Renders "<p>Good seeing you!</p>" using Builder
-      #   render :inline => "xml.p { 'Good seeing you!' }", :type => :rxml
+      #   render :inline => "xml.p { 'Good seeing you!' }", :type => :builder
       #
       #   # Renders "hello david"
       #   render :inline => "<%= 'hello ' + name %>", :locals => { :name => "david" }
@@ -863,7 +863,7 @@ module ActionController #:nodoc:
         render_text(@template.render_file(template_path, use_full_path, locals), status)
       end
 
-      def render_template(template, status = nil, type = :rhtml, local_assigns = {}) #:nodoc:
+      def render_template(template, status = nil, type = :erb, local_assigns = {}) #:nodoc:
         add_variables_to_assigns
         render_text(@template.render_template(type, template, nil, local_assigns), status)
       end
@@ -1252,7 +1252,7 @@ module ActionController #:nodoc:
 
       def assert_existence_of_template_file(template_name)
         unless template_exists?(template_name) || ignore_missing_templates
-          full_template_path = @template.send(:full_template_path, template_name, 'rhtml')
+          full_template_path = @template.send(:full_template_path, template_name, 'erb')
           template_type = (template_name =~ /layouts/i) ? 'layout' : 'template'
           raise(MissingTemplate, "Missing #{template_type} #{full_template_path}")
         end

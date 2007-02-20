@@ -64,11 +64,11 @@ module ActionController #:nodoc:
     #
     # If there is a template in <tt>app/views/layouts/</tt> with the same name as the current controller then it will be automatically
     # set as that controller's layout unless explicitly told otherwise. Say you have a WeblogController, for example. If a template named 
-    # <tt>app/views/layouts/weblog.rhtml</tt> or <tt>app/views/layouts/weblog.rxml</tt> exists then it will be automatically set as
-    # the layout for your WeblogController. You can create a layout with the name <tt>application.rhtml</tt> or <tt>application.rxml</tt>
+    # <tt>app/views/layouts/weblog.erb</tt> or <tt>app/views/layouts/weblog.builder</tt> exists then it will be automatically set as
+    # the layout for your WeblogController. You can create a layout with the name <tt>application.erb</tt> or <tt>application.builder</tt>
     # and this will be set as the default controller if there is no layout with the same name as the current controller and there is 
     # no layout explicitly assigned with the +layout+ method. Nested controllers use the same folder structure for automatic layout.
-    # assignment. So an Admin::WeblogController will look for a template named <tt>app/views/layouts/admin/weblog.rhtml</tt>.
+    # assignment. So an Admin::WeblogController will look for a template named <tt>app/views/layouts/admin/weblog.erb</tt>.
     # Setting a layout explicitly will always override the automatic behaviour for the controller where the layout is set.
     # Explicitly setting the layout in a parent class, though, will not override the child class's layout assignement if the child
     # class has a layout with the same name. 

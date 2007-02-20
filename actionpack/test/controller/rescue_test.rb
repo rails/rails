@@ -111,7 +111,7 @@ class RescueTest < Test::Unit::TestCase
   def test_rescue_action_locally
     get :raises
     assert_response :internal_server_error
-    assert_template 'diagnostics.rhtml'
+    assert_template 'diagnostics.erb'
     assert @response.body.include?('RescueController#raises'), "Response should include controller and action."
     assert @response.body.include?("don't panic"), "Response should include exception message."
   end
