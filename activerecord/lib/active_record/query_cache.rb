@@ -63,16 +63,28 @@ module ActiveRecord
       def query_caches
         (Thread.current[:query_cache] ||= {})
       end
+      
+      def query_cache
+        if query_caches[self]
+          query_caches[self]
+        elsif superclass.respond_to?(:query_cache)
+          superclass.query_cache
+        end
+      end
+      
+      def query_cache=(cache)
+        query_caches[self] = cache
+      end
             
       def cache        
-        query_caches[self] = QueryCache.new(connection)
+        self.query_cache = QueryCache.new(connection_without_query_cache)
         yield
       ensure 
-        query_caches[self] = nil
+        self.query_cache = nil
       end        
       
       def connection
-        query_caches[self] || connection_without_query_cache
+        query_cache || connection_without_query_cache
       end
     end
   end  

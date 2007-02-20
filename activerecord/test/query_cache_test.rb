@@ -3,10 +3,8 @@ require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/task'
 
-
 class QueryCacheTest < Test::Unit::TestCase
   fixtures :tasks
-
   
   def test_find_queries
     assert_queries(2) {  Task.find(1); Task.find(1) }        
@@ -23,13 +21,31 @@ class QueryCacheTest < Test::Unit::TestCase
       assert_queries(1) {  Task.find(1); Task.find(1) }    
     end
   end
+  
+  def test_query_cache_returned        
+    assert_not_equal ActiveRecord::QueryCache, Task.connection.class
+    Task.cache do 
+      assert_equal ActiveRecord::QueryCache, Task.connection.class      
+    end    
+  end
+  
 
   def test_cache_is_scoped_on_actual_class_only
     Task.cache do
       assert_queries(2) {  Topic.find(1); Topic.find(1) }    
     end
   end
+  
+  
+  def test_cache_is_scoped_on_all_descending_classes
+    ActiveRecord::Base.cache do
+      assert_queries(1) {  Task.find(1); Task.find(1) }    
+    end
+  end
+  
+  
 end
+
 
 uses_mocha('QueryCacheExpiryTest') do
 
