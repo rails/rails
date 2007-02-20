@@ -1,3 +1,7 @@
+*SVN*
+
+* Stop swallowing errors during rake test [Koz]
+
 *1.2.2* (February 5th, 2007)
 
 * Fix gem deprecation warnings, which also means depending on RubyGems 0.9.0+ [Chad Fowler]

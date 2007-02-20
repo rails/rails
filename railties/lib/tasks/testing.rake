@@ -40,14 +40,17 @@ end
 
 desc 'Test all units and functionals'
 task :test do
-  Rake::Task["test:units"].invoke       rescue got_error = true
-  Rake::Task["test:functionals"].invoke rescue got_error = true
+  exceptions = ["test:units", "test:functionals", "test:integration"].collect do |task|
+    begin
+      Rake::Task[task].invoke
+      nil
+    rescue => e
+      e
+    end
+  end.compact
   
-  if File.exist?("test/integration")
-    Rake::Task["test:integration"].invoke rescue got_error = true
-  end
-
-  raise "Test failures" if got_error
+  exceptions.each {|e| puts e;puts e.backtrace }
+  raise "Test failures" unless exceptions.empty?
 end
 
 namespace :test do
