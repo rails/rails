@@ -1,5 +1,7 @@
 *SVN*
 
+* Stop swallowing errors during rake test [Koz]
+
 * Update Rails Initializer to use ActionController::Base#view_paths [Rick]
 
 * Fix gem deprecation warnings, which also means depending on RubyGems 0.9.0+ [Chad Fowler]
