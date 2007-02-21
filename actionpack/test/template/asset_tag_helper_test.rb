@@ -211,9 +211,25 @@ class AssetTagHelperTest < Test::Unit::TestCase
     )
 
     assert File.exists?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
+
   ensure
     File.delete(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
     File.delete(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
+  end
+  
+  def test_caching_javascript_include_tag_when_caching_on_and_using_subdirectory
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionController::Base.asset_host = 'http://a%d.example.com'
+    ActionController::Base.perform_caching = true
+
+    assert_dom_equal(
+      %(<script src="http://a3.example.com/javascripts/cache/money.js" type="text/javascript"></script>),
+      javascript_include_tag(:all, :cache => "cache/money")
+    )
+
+    assert File.exists?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'cache', 'money.js'))
+  ensure
+    File.delete(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'cache', 'money.js'))
   end
   
   def test_caching_javascript_include_tag_when_caching_off
