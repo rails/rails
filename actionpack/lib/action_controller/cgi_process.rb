@@ -2,6 +2,7 @@ require 'action_controller/cgi_ext/cgi_ext'
 require 'action_controller/cgi_ext/cookie_performance_fix'
 require 'action_controller/cgi_ext/raw_post_data_fix'
 require 'action_controller/cgi_ext/session_performance_fix'
+require 'action_controller/session/cookie_store'
 
 module ActionController #:nodoc:
   class Base
@@ -36,9 +37,9 @@ module ActionController #:nodoc:
     attr_accessor :cgi, :session_options
 
     DEFAULT_SESSION_OPTIONS = {
-      :database_manager => CGI::Session::PStore,
-      :prefix           => "ruby_sess.",
-      :session_path     => "/"
+      :database_manager => CGI::Session::CookieStore, # store data in cookie
+      :prefix           => "ruby_sess.",    # prefix session file names
+      :session_path     => "/"              # available to all paths in app
     } unless const_defined?(:DEFAULT_SESSION_OPTIONS)
 
     def initialize(cgi, session_options = {})

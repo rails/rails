@@ -1,3 +1,4 @@
+require 'action_controller/session/cookie_store'
 require 'action_controller/session/drb_store'
 require 'action_controller/session/mem_cache_store'
 if Object.const_defined?(:ActiveRecord)
