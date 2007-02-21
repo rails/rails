@@ -73,13 +73,13 @@ module ActiveRecord
       alias_method :connection_without_query_cache, :connection
       
       def query_caches
-        (Thread.current[:query_cache] ||= {})
+        Thread.current["query_cache_#{connection_without_query_cache.object_id}"] ||= {}
       end
       
       def query_cache
         if query_caches[self]
           query_caches[self]
-        elsif superclass.respond_to?(:query_cache)
+        elsif superclass.respond_to?(:query_cache) and superclass.respond_to?(:connection) and superclass.connection_without_query_cache == connection_without_query_cache
           superclass.query_cache
         end
       end

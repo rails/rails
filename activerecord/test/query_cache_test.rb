@@ -2,6 +2,7 @@ require 'abstract_unit'
 require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/task'
+require 'fixtures/course'
 
 class QueryCacheTest < Test::Unit::TestCase
   fixtures :tasks
@@ -43,6 +44,16 @@ class QueryCacheTest < Test::Unit::TestCase
     end
   end
   
+  def test_cache_does_not_blow_up_other_connections
+    assert_not_equal Course.connection.object_id, Task.connection.object_id, 
+        "Connections should be different, Course connects to a different database"
+    
+    ActiveRecord::Base.cache do
+      assert_not_equal Course.connection.object_id, Task.connection.object_id, 
+          "Connections should be different, Course connects to a different database"
+    end
+  end
+    
   
 end
 
