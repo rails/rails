@@ -1,5 +1,13 @@
 *SVN*
 
+* Added database connection as a yield parameter to ActiveRecord::Base.transaction so you can manually rollback [DHH]. Example:
+
+    transaction do |transaction|
+      david.withdrawal(100)
+      mary.deposit(100)
+      transaction.rollback! # rolls back the transaction that was otherwise going to be successful
+    end
+
 * Made increment_counter/decrement_counter play nicely with optimistic locking, and added a more general update_counters method [Jamis Buck]
 
 * Reworked David's query cache to be available as Model.cache {...}. For the duration of the block no select query should be run more then once. Any inserts/deletes/executes will flush the whole cache however [Tobias Luetke]

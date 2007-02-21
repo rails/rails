@@ -32,6 +32,17 @@ module ActiveRecord
     # Exceptions will force a ROLLBACK that returns the database to the state before the transaction was begun. Be aware, though,
     # that the objects by default will _not_ have their instance data returned to their pre-transactional state.
     #
+    # == Rolling back a transaction manually
+    #
+    # Instead of relying on exceptions to rollback your transactions, you can also do so manually from within the scope
+    # of the transaction by accepting a yield parameter and calling rollback! on it. Example:
+    #
+    #   transaction do |transaction|
+    #     david.withdrawal(100)
+    #     mary.deposit(100)
+    #     transaction.rollback! # rolls back the transaction that was otherwise going to be successful
+    #   end
+    #
     # == Transactions are not distributed across database connections
     #
     # A transaction acts on a single database connection.  If you have

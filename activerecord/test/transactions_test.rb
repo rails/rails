@@ -88,7 +88,7 @@ class TransactionTest < Test::Unit::TestCase
   
   def test_failing_with_object_rollback
     assert !@first.approved?, "First should be unapproved initially"
-
+  
     begin
       assert_deprecated /Object transactions/ do
         Topic.transaction(@first, @second) do
@@ -167,6 +167,24 @@ class TransactionTest < Test::Unit::TestCase
     assert Topic.find(1).approved?, "First should have been approved"
     assert !Topic.find(2).approved?, "Second should have been unapproved"
   end
+
+  def test_manually_rolling_back_a_transaction
+    Topic.transaction do |transaction|
+      @first.approved  = true
+      @second.approved = false
+      @first.save
+      @second.save
+      
+      transaction.rollback!
+    end
+
+    assert @first.approved?, "First should still be changed in the objects"
+    assert !@second.approved?, "Second should still be changed in the objects"
+    
+    assert !Topic.find(1).approved?, "First shouldn't have been approved"
+    assert Topic.find(2).approved?, "Second should still be approved"
+  end
+
 
   private
     def add_exception_raising_after_save_callback_to_topic

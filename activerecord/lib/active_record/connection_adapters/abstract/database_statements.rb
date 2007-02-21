@@ -56,7 +56,7 @@ module ActiveRecord
               begin_db_transaction 
               transaction_open = true
             end
-            yield
+            yield self
           end
         rescue Exception => database_transaction_rollback
           if transaction_open
@@ -78,6 +78,11 @@ module ActiveRecord
       # Rolls back the transaction (and turns on auto-committing). Must be
       # done if the transaction block raises an exception or returns false.
       def rollback_db_transaction() end
+
+      # Alias for rollback_db_transaction to be used when yielding the transaction
+      def rollback!
+        rollback_db_transaction
+      end
 
       # Alias for #add_limit_offset!.
       def add_limit!(sql, options)
