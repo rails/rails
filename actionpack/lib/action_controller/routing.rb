@@ -412,7 +412,7 @@ module ActionController
       def recognition_extraction
         next_capture = 1
         extraction = segments.collect do |segment|
-          x = segment.match_extraction next_capture
+          x = segment.match_extraction(next_capture)
           next_capture += Regexp.new(segment.regexp_chunk).number_of_captures
           x
         end
@@ -694,7 +694,7 @@ module ActionController
       end
   
       def interpolation_chunk
-        "\#{URI.escape(#{local_name}.to_s)}"
+        "\#{CGI.escape(#{local_name}.to_s)}"
       end
   
       def string_structure(prior_segments)
@@ -725,10 +725,17 @@ module ActionController
         optional? ? Regexp.optionalize(pattern) : pattern
       end
       def match_extraction(next_capture)
-        hangon = (default ? "|| #{default.inspect}" : "if match[#{next_capture}]")
-        
         # All non code-related keys (such as :id, :slug) have to be unescaped as other CGI params
-        "params[:#{key}] = match[#{next_capture}] #{hangon}"
+        default_value = default ? default.inspect : nil
+        %[
+          value = if (m = match[#{next_capture}])
+            m = m.gsub('+', '%2B')
+            CGI.unescape(m)
+          else
+            #{default_value}
+          end
+          params[:#{key}] = value if value
+        ]
       end
   
       def optionality_implied?
@@ -1292,7 +1299,6 @@ module ActionController
       end
   
       def recognize_path(path, environment={})
-        path = URI.unescape(path)
         routes.each do |route|
           result = route.recognize(path, environment) and return result
         end

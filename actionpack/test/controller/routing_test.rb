@@ -13,6 +13,46 @@ class ROUTING::RouteBuilder
   end
 end
 
+class UriReservedCharactersRoutingTest < Test::Unit::TestCase
+  # See RFC 3986, section 2.2 Reserved Characters
+  
+  def setup
+    ActionController::Routing.use_controllers! ['controller']
+    @set = ActionController::Routing::RouteSet.new
+    @set.draw do |map|
+      map.connect ':controller/:action/:var'
+    end
+  end
+  
+  def test_should_escape_reserved_uri_characters_within_individual_path_components
+    assert_equal '/controller/action/p1%3Ap2', @set.generate(:controller => 'controller', :action => 'action', :var => 'p1:p2')
+    assert_equal '/controller/action/p1%2Fp2', @set.generate(:controller => 'controller', :action => 'action', :var => 'p1/p2')
+    assert_equal '/controller/action/p1%3Fp2', @set.generate(:controller => 'controller', :action => 'action', :var => 'p1?p2')
+    assert_equal '/controller/action/p1%23p2', @set.generate(:controller => 'controller', :action => 'action', :var => 'p1#p2')
+    assert_equal '/controller/action/p1%5Bp2', @set.generate(:controller => 'controller', :action => 'action', :var => 'p1[p2')
+    assert_equal '/controller/action/p1%5Dp2', @set.generate(:controller => 'controller', :action => 'action', :var => 'p1]p2')
+    assert_equal '/controller/action/p1%40p2', @set.generate(:controller => 'controller', :action => 'action', :var => 'p1@p2')
+  end
+  
+  def test_should_recognize_escaped_path_component_and_unescape
+    expected_options = {:var => "p1:p2", :controller => "controller", :action => "action"}
+    assert_equal expected_options, @set.recognize_path('/controller/action/p1%3Ap2')
+    expected_options = {:var => "p1/p2", :controller => "controller", :action => "action"}
+    assert_equal expected_options, @set.recognize_path('/controller/action/p1%2Fp2')
+    expected_options = {:var => "p1?p2", :controller => "controller", :action => "action"}
+    assert_equal expected_options, @set.recognize_path('/controller/action/p1%3Fp2')
+    expected_options = {:var => "p1#p2", :controller => "controller", :action => "action"}
+    assert_equal expected_options, @set.recognize_path('/controller/action/p1%23p2')
+    expected_options = {:var => "p1[p2", :controller => "controller", :action => "action"}
+    assert_equal expected_options, @set.recognize_path('/controller/action/p1%5Bp2')
+    expected_options = {:var => "p1]p2", :controller => "controller", :action => "action"}
+    assert_equal expected_options, @set.recognize_path('/controller/action/p1%5Dp2')
+    expected_options = {:var => "p1@p2", :controller => "controller", :action => "action"}
+    assert_equal expected_options, @set.recognize_path('/controller/action/p1%40p2')
+  end
+  
+end
+
 class LegacyRouteSetTests < Test::Unit::TestCase
   attr_reader :rs
   def setup
