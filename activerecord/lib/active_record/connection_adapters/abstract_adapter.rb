@@ -101,6 +101,17 @@ module ActiveRecord
       def raw_connection
         @connection
       end
+      
+      def log_info(sql, name, runtime)
+        return unless @logger or !@logger.debug?
+
+        @logger.debug(
+          format_log_entry(
+            "#{name.nil? ? "SQL" : name} (#{sprintf("%f", runtime)})",
+            sql.gsub(/ +/, " ")
+          )
+        )
+      end      
 
       protected
         def log(sql, name)
@@ -126,17 +137,6 @@ module ActiveRecord
           message = "#{e.class.name}: #{e.message}: #{sql}"
           log_info(message, name, 0)
           raise ActiveRecord::StatementInvalid, message
-        end
-
-        def log_info(sql, name, runtime)
-          return unless @logger
-
-          @logger.debug(
-            format_log_entry(
-              "#{name.nil? ? "SQL" : name} (#{sprintf("%f", runtime)})",
-              sql.gsub(/ +/, " ")
-            )
-          )
         end
 
         def format_log_entry(message, dump = nil)

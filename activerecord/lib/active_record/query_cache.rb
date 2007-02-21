@@ -10,19 +10,19 @@ module ActiveRecord
     end
 
     def select_all(sql, name = nil)
-      (@query_cache[sql] ||= @connection.select_all(sql, name)).dup
+      cache(sql) { @connection.select_all(sql, name) }
     end
 
     def select_one(sql, name = nil)
-      @query_cache[sql] ||= @connection.select_one(sql, name)
+      cache(sql) { @connection.select_one(sql, name) }
     end
     
     def select_values(sql, name = nil)
-      (@query_cache[sql] ||= @connection.select_values(sql, name)).dup
+      cache(sql) { @connection.select_values(sql, name) }
     end
 
     def select_value(sql, name = nil)
-      @query_cache[sql] ||= @connection.select_value(sql, name)
+      cache(sql) { @connection.select_value(sql, name) }
     end
     
     def execute(sql, name = nil)
@@ -50,6 +50,18 @@ module ActiveRecord
     end
     
     private
+    
+      def cache(sql)
+        result = if @query_cache.has_key?(sql)
+          log_info(sql, "CACHE", 0.0)
+          @query_cache[sql]
+        else
+          @query_cache[sql] = yield
+        end
+        
+        result ? result.dup : nil
+      end
+    
       def method_missing(method, *arguments, &proc)
         @connection.send(method, *arguments, &proc)
       end
