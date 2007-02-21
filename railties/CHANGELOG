@@ -1,5 +1,7 @@
 *SVN*
 
+* For new apps, generate a random secret for the cookie-based session store.  [Jeremy Kemper]
+
 * Stop swallowing errors during rake test [Koz]
 
 * Update Rails Initializer to use ActionController::Base#view_paths [Rick]
