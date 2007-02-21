@@ -1,0 +1,10 @@
+<h1>Routing Error</h1>
+<p><pre><%=h @exception.message %></pre></p>
+<% unless @exception.failures.empty? %><p>
+  <h2>Failure reasons:</h2>
+  <ol>
+  <% @exception.failures.each do |route, reason| %>
+    <li><code><%=h route.inspect.gsub('\\', '') %></code> failed because <%=h reason.downcase %></li>
+  <% end %>
+  </ol>
+</p><% end %>

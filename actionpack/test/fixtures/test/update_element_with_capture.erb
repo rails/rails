@@ -1,0 +1,9 @@
+<% replacement_function = update_element_function("products", :action => :update) do %>
+  <p>Product 1</p>
+  <p>Product 2</p>
+<% end %>
+<%= javascript_tag(replacement_function) %>
+
+<% update_element_function("status", :action => :update, :binding => binding) do %>
+  <b>You bought something!</b>
+<% end %>

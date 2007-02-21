@@ -1,0 +1,32 @@
+<html>
+<body>
+<h1><%= @topic.title %></h1>
+
+<p><%= @topic.body %></p>
+
+<%= link_to "Back to topics", :action => "index" %>
+
+<% unless @topic.replies.empty? %>
+  <h2>Replies</h2>
+  <ol>
+  <% for reply in @topic.replies %>
+    <li><%= reply.body %></li>
+  <% end %>
+  </ol>
+<% end %>
+
+<h2>Reply to this topic</h2>
+
+<form action="<%= url_for(:action => "create_reply") %>" method="post">
+  <input type="hidden" name="reply[topic_id]" value="<%= @topic.id %>">
+  <p>
+    <textarea name="reply[body]" style="width: 200px; height: 200px"></textarea>
+  </p>
+
+  <p>
+    <input type="submit" value="Create reply">
+  </p>
+</form>
+
+</body>
+</html>

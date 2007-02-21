@@ -5,7 +5,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     @<%= table_name %> = <%= class_name %>.find(:all)
 
     respond_to do |format|
-      format.html # index.rhtml
+      format.html # index.erb
       format.xml  { render :xml => @<%= table_name %>.to_xml }
     end
   end
@@ -16,7 +16,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     @<%= file_name %> = <%= class_name %>.find(params[:id])
 
     respond_to do |format|
-      format.html # show.rhtml
+      format.html # show.erb
       format.xml  { render :xml => @<%= file_name %>.to_xml }
     end
   end

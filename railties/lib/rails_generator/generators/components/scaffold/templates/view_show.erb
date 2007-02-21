@@ -1,0 +1,8 @@
+<%% for column in <%= model_name %>.content_columns %>
+<p>
+  <b><%%= column.human_name %>:</b> <%%=h @<%= singular_name %>.send(column.name) %>
+</p>
+<%% end %>
+
+<%%= link_to 'Edit', :action => 'edit<%= suffix %>', :id => @<%= singular_name %> %> |
+<%%= link_to 'Back', :action => 'list<%= suffix %>' %>

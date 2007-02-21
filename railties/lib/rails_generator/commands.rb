@@ -559,7 +559,7 @@ end_message
              return
            end
 
-           logger.refreshing "#{template_options[:insert].gsub(/\.rhtml/,'')} inside #{relative_destination}"
+           logger.refreshing "#{template_options[:insert].gsub(/\.erb/,'')} inside #{relative_destination}"
 
            begin_mark = Regexp.quote(template_part_mark(template_options[:begin_mark], template_options[:mark_id]))
            end_mark = Regexp.quote(template_part_mark(template_options[:end_mark], template_options[:mark_id]))

@@ -133,13 +133,13 @@ app/models
 
 app/views
   Holds the template files for the view that should be named like
-  weblogs/index.rhtml for the WeblogsController#index action. All views use eRuby
+  weblogs/index.erb for the WeblogsController#index action. All views use eRuby
   syntax.
 
 app/views/layouts
   Holds the template files for layouts to be used with views. This models the common
   header/footer method of wrapping views. In your views, define a layout using the
-  <tt>layout :default</tt> and create a file named default.rhtml. Inside default.rhtml,
+  <tt>layout :default</tt> and create a file named default.erb. Inside default.erb,
   call <% yield %> to render the view using this layout.
 
 app/helpers

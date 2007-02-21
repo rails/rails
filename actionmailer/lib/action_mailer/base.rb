@@ -52,9 +52,9 @@ module ActionMailer #:nodoc:
   #
   # Like ActionController, each mailer class has a corresponding view directory
   # in which each method of the class looks for a template with its name.
-  # To define a template to be used with a mailing, create an <tt>.rhtml</tt> file with the same name as the method
+  # To define a template to be used with a mailing, create an <tt>.erb</tt> file with the same name as the method
   # in your mailer model. For example, in the mailer defined above, the template at 
-  # <tt>app/views/notifier/signup_notification.rhtml</tt> would be used to generate the email.
+  # <tt>app/views/notifier/signup_notification.erb</tt> would be used to generate the email.
   #
   # Variables defined in the model are accessible as instance variables in the view.
   #
@@ -103,7 +103,7 @@ module ActionMailer #:nodoc:
   #
   # = HTML email
   #
-  # To send mail as HTML, make sure your view (the <tt>.rhtml</tt> file) generates HTML and
+  # To send mail as HTML, make sure your view (the <tt>.erb</tt> file) generates HTML and
   # set the content type to html.
   #
   #   class MyMailer < ActionMailer::Base
@@ -142,10 +142,10 @@ module ActionMailer #:nodoc:
   # by the content type. Each such detected template will be added as separate part to the message.
   # 
   # For example, if the following templates existed:
-  # * signup_notification.text.plain.rhtml
-  # * signup_notification.text.html.rhtml
-  # * signup_notification.text.xml.rxml
-  # * signup_notification.text.x-yaml.rhtml
+  # * signup_notification.text.plain.erb
+  # * signup_notification.text.html.erb
+  # * signup_notification.text.xml.builder
+  # * signup_notification.text.x-yaml.erb
   #  
   # Each would be rendered and added as a separate part to the message,
   # with the corresponding content type. The same body hash is passed to
@@ -383,14 +383,14 @@ module ActionMailer #:nodoc:
       unless String === @body
         # First, we look to see if there are any likely templates that match,
         # which include the content-type in their file name (i.e.,
-        # "the_template_file.text.html.rhtml", etc.). Only do this if parts
+        # "the_template_file.text.html.erb", etc.). Only do this if parts
         # have not already been specified manually.
         if @parts.empty?
           templates = Dir.glob("#{template_path}/#{@template}.*")
           templates.each do |path|
-            # TODO: don't hardcode rhtml|rxml
+            # TODO: don't hardcode erb|builder
             basename = File.basename(path)
-            next unless md = /^([^\.]+)\.([^\.]+\.[^\.]+)\.(rhtml|rxml)$/.match(basename)
+            next unless md = /^([^\.]+)\.([^\.]+\.[^\.]+)\.(erb|builder|rhtml|rxml)$/.match(basename)
             template_name = basename
             content_type = md.captures[1].gsub('.', '/')
             @parts << Part.new(:content_type => content_type,

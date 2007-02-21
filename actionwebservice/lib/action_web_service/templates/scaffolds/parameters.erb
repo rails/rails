@@ -1,0 +1,29 @@
+<h4>Method Invocation Details for <em><%= @scaffold_service %>#<%= @scaffold_method.public_name %></em></h4>
+
+<% form_tag(:action => @scaffold_action_name + '_submit') do  -%>
+<%= hidden_field_tag "service", @scaffold_service.name %>
+<%= hidden_field_tag "method", @scaffold_method.public_name %>
+
+<p>
+<label for="protocol">Protocol:</label><br />
+<%= select_tag 'protocol', options_for_select([['SOAP', 'soap'], ['XML-RPC', 'xmlrpc']], params['protocol']) %>
+</p>
+
+<% if @scaffold_method.expects %>
+
+<strong>Method Parameters:</strong><br />
+<% @scaffold_method.expects.each_with_index do |type, i| %>
+  <p>
+  <label for="method_params[<%= i %>]"><%= method_parameter_label(type.name, type) %> </label><br />
+  <%= method_parameter_input_fields(@scaffold_method, type, "method_params", i) %>
+  </p>
+<% end %>
+
+<% end %>
+
+<%= submit_tag "Invoke" %>
+<% end -%>
+
+<p>
+<%= link_to "Back", :action => @scaffold_action_name %>
+</p>

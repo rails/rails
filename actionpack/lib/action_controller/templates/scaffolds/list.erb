@@ -1,0 +1,27 @@
+<h1>Listing <%= @scaffold_plural_name %></h1>
+
+<table>
+  <tr>
+  <% for column in @scaffold_class.content_columns %>
+    <th><%= column.human_name %></th>
+  <% end %>
+  </tr>
+  
+<% for entry in instance_variable_get("@#{@scaffold_plural_name}") %>
+  <tr>
+  <% for column in @scaffold_class.content_columns %>
+    <td><%= entry.send(column.name) %></td>
+  <% end %>
+    <td><%= link_to "Show", :action => "show#{@scaffold_suffix}", :id => entry %></td>
+    <td><%= link_to "Edit", :action => "edit#{@scaffold_suffix}", :id => entry %></td>
+    <td><%= link_to "Destroy", {:action => "destroy#{@scaffold_suffix}", :id => entry}, { :confirm => "Are you sure?", :method => :post } %></td>
+  </tr>
+<% end %>
+</table>
+
+<%= link_to "Previous page", { :page => instance_variable_get("@#{@scaffold_singular_name}_pages").current.previous } if instance_variable_get("@#{@scaffold_singular_name}_pages").current.previous %>
+<%= link_to "Next page", { :page => instance_variable_get("@#{@scaffold_singular_name}_pages").current.next } if instance_variable_get("@#{@scaffold_singular_name}_pages").current.next %> 
+
+<br />
+
+<%= link_to "New #{@scaffold_singular_name}", :action => "new#{@scaffold_suffix}" %>

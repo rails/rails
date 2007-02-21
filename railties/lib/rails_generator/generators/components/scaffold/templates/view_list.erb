@@ -1,0 +1,27 @@
+<h1>Listing <%= plural_name %></h1>
+
+<table>
+  <tr>
+  <%% for column in <%= model_name %>.content_columns %>
+    <th><%%= column.human_name %></th>
+  <%% end %>
+  </tr>
+  
+<%% for <%= singular_name %> in @<%= plural_name %> %>
+  <tr>
+  <%% for column in <%= model_name %>.content_columns %>
+    <td><%%=h <%= singular_name %>.send(column.name) %></td>
+  <%% end %>
+    <td><%%= link_to 'Show', :action => 'show<%= suffix %>', :id => <%= singular_name %> %></td>
+    <td><%%= link_to 'Edit', :action => 'edit<%= suffix %>', :id => <%= singular_name %> %></td>
+    <td><%%= link_to 'Destroy', { :action => 'destroy<%= suffix %>', :id => <%= singular_name %> }, :confirm => 'Are you sure?', :method => :post %></td>
+  </tr>
+<%% end %>
+</table>
+
+<%%= link_to 'Previous page', { :page => @<%= singular_name %>_pages.current.previous } if @<%= singular_name %>_pages.current.previous %>
+<%%= link_to 'Next page', { :page => @<%= singular_name %>_pages.current.next } if @<%= singular_name %>_pages.current.next %> 
+
+<br />
+
+<%%= link_to 'New <%= singular_name %>', :action => 'new<%= suffix %>' %>

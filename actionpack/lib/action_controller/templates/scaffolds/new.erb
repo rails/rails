@@ -1,0 +1,6 @@
+<h1>New <%= @scaffold_singular_name %></h1>
+
+<%= error_messages_for(@scaffold_singular_name) %>
+<%= form(@scaffold_singular_name, :action => "create#{@scaffold_suffix}") %>
+
+<%= link_to "Back", :action => "list#{@scaffold_suffix}" %>

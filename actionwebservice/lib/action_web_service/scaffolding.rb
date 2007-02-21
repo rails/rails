@@ -25,10 +25,10 @@ module ActionWebService
     #
     # If you want to customize the default views, create the following views in "app/views":
     #
-    # * <tt>action_name/methods.rhtml</tt>
-    # * <tt>action_name/parameters.rhtml</tt>
-    # * <tt>action_name/result.rhtml</tt>
-    # * <tt>action_name/layout.rhtml</tt>
+    # * <tt>action_name/methods.erb</tt>
+    # * <tt>action_name/parameters.erb</tt>
+    # * <tt>action_name/result.erb</tt>
+    # * <tt>action_name/layout.erb</tt>
     #
     # Where <tt>action_name</tt> is the name of the action you gave to ClassMethods#web_service_scaffold.
     #
@@ -122,7 +122,7 @@ module ActionWebService
             end
 
             def scaffold_path(template_name)
-              File.dirname(__FILE__) + "/templates/scaffolds/" + template_name + ".rhtml"
+              File.dirname(__FILE__) + "/templates/scaffolds/" + template_name + ".erb"
             end
 
             def reset_invocation_response
