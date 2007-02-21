@@ -42,6 +42,7 @@ class AssetTagHelperTest < Test::Unit::TestCase
 
   def teardown
     ActionController::Base.perform_caching = false
+    ActionController::Base.asset_host = nil
     ENV["RAILS_ASSET_ID"] = nil
   end
 
@@ -194,17 +195,18 @@ class AssetTagHelperTest < Test::Unit::TestCase
 
   def test_caching_javascript_include_tag_when_caching_on
     ENV["RAILS_ASSET_ID"] = ""
+    ActionController::Base.asset_host = 'http://a%d.example.com'
     ActionController::Base.perform_caching = true
     
     assert_dom_equal(
-      %(<script src="/javascripts/all.js" type="text/javascript"></script>),
+      %(<script src="http://a0.example.com/javascripts/all.js" type="text/javascript"></script>),
       javascript_include_tag(:all, :cache => true)
     )
 
     assert File.exists?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
     
     assert_dom_equal(
-      %(<script src="/javascripts/money.js" type="text/javascript"></script>),
+      %(<script src="http://a2.example.com/javascripts/money.js" type="text/javascript"></script>),
       javascript_include_tag(:all, :cache => "money")
     )
 
@@ -235,17 +237,18 @@ class AssetTagHelperTest < Test::Unit::TestCase
 
   def test_caching_stylesheet_link_tag_when_caching_on
     ENV["RAILS_ASSET_ID"] = ""
+    ActionController::Base.asset_host = 'http://a%d.example.com'
     ActionController::Base.perform_caching = true
     
     assert_dom_equal(
-      %(<link href="/stylesheets/all.css" media="screen" rel="Stylesheet" type="text/css" />),
+      %(<link href="http://a3.example.com/stylesheets/all.css" media="screen" rel="Stylesheet" type="text/css" />),
       stylesheet_link_tag(:all, :cache => true)
     )
 
     assert File.exists?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'all.css'))
 
     assert_dom_equal(
-      %(<link href="/stylesheets/money.css" media="screen" rel="Stylesheet" type="text/css" />),
+      %(<link href="http://a3.example.com/stylesheets/money.css" media="screen" rel="Stylesheet" type="text/css" />),
       stylesheet_link_tag(:all, :cache => "money")
     )
 

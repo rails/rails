@@ -148,7 +148,10 @@ module ActionView
 
           if !File.exists?(joined_javascript_path)
             File.open(joined_javascript_path, "w+") do |cache|
-              javascript_paths = expand_javascript_sources(sources).collect { |source| javascript_path(source) }
+              javascript_paths = expand_javascript_sources(sources).collect do |source|
+                compute_public_path(source, 'javascripts', 'js', false) 
+              end
+
               cache.write(join_asset_file_contents(javascript_paths))
             end
           end
@@ -240,7 +243,10 @@ module ActionView
 
           if !File.exists?(joined_stylesheet_path)
             File.open(joined_stylesheet_path, "w+") do |cache|
-              stylesheet_paths = expand_stylesheet_sources(sources).collect { |source| stylesheet_path(source) }
+              stylesheet_paths = expand_stylesheet_sources(sources).collect do |source|
+                compute_public_path(source, 'stylesheets', 'css', false) 
+              end
+
               cache.write(join_asset_file_contents(stylesheet_paths))
             end
           end
@@ -318,7 +324,7 @@ module ActionView
         # roots. Rewrite the asset path for cache-busting asset ids. Include
         # a single or wildcarded asset host, if configured, with the correct
         # request protocol.
-        def compute_public_path(source, dir, ext)
+        def compute_public_path(source, dir, ext, include_host = true)
           source += ".#{ext}" if File.extname(source).blank?
 
           if source =~ %r{^[-a-z]+://}
@@ -328,12 +334,17 @@ module ActionView
             source = "#{@controller.request.relative_url_root}#{source}"
             rewrite_asset_path!(source)
 
-            host = compute_asset_host(source)
-            unless host.blank? or host =~ %r{^[-a-z]+://}
-              host = "#{@controller.request.protocol}#{host}"
-            end
+            if include_host
+              host = compute_asset_host(source)
 
-            "#{host}#{source}"
+              unless host.blank? or host =~ %r{^[-a-z]+://}
+                host = "#{@controller.request.protocol}#{host}"
+              end
+
+              "#{host}#{source}"
+            else
+              source
+            end
           end
         end
 
