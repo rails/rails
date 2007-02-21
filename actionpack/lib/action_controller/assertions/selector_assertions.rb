@@ -551,7 +551,7 @@ module ActionController
         # #assert_select and #css_select call this to obtain the content in the HTML
         # page, or from all the RJS statements, depending on the type of response.
         def response_from_page_or_rjs()
-          content_type = @response.headers["Content-Type"]
+          content_type = @response.content_type
           if content_type && content_type =~ /text\/javascript/
             body = @response.body.dup
             root = HTML::Node.new(nil)
