@@ -686,23 +686,23 @@ EOF
 
   def test_implicitly_multipart_messages
     mail = TestMailer.create_implicitly_multipart_example(@recipient)
-    assert_equal 3, mail.parts.length
+    assert_equal 6, mail.parts.length
     assert_equal "1.0", mail.mime_version
     assert_equal "multipart/alternative", mail.content_type
     assert_equal "text/yaml", mail.parts[0].content_type
     assert_equal "utf-8", mail.parts[0].sub_header("content-type", "charset")
-    assert_equal "text/plain", mail.parts[1].content_type
-    assert_equal "utf-8", mail.parts[1].sub_header("content-type", "charset")
-    assert_equal "text/html", mail.parts[2].content_type
+    assert_equal "text/plain", mail.parts[2].content_type
     assert_equal "utf-8", mail.parts[2].sub_header("content-type", "charset")
+    assert_equal "text/html", mail.parts[4].content_type
+    assert_equal "utf-8", mail.parts[4].sub_header("content-type", "charset")
   end
 
   def test_implicitly_multipart_messages_with_custom_order
     mail = TestMailer.create_implicitly_multipart_example(@recipient, nil, ["text/yaml", "text/plain"])
-    assert_equal 3, mail.parts.length
+    assert_equal 6, mail.parts.length
     assert_equal "text/html", mail.parts[0].content_type
-    assert_equal "text/plain", mail.parts[1].content_type
-    assert_equal "text/yaml", mail.parts[2].content_type
+    assert_equal "text/plain", mail.parts[2].content_type
+    assert_equal "text/yaml", mail.parts[4].content_type
   end
 
   def test_implicitly_multipart_messages_with_charset
