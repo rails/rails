@@ -87,14 +87,22 @@ module ActiveRecord
       def query_cache=(cache)
         query_caches[self] = cache
       end
-            
-      def cache        
-        self.query_cache = QueryCache.new(connection_without_query_cache)
-        yield
-      ensure 
-        self.query_cache = nil
-      end        
-      
+
+      # Use a query cache within the given block.
+      def cache
+        # Don't cache if Active Record is not configured.
+        if ActiveRecord::Base.configurations.blank?
+          yield
+        else
+          begin
+            self.query_cache = QueryCache.new(connection_without_query_cache)
+            yield
+          ensure
+            self.query_cache = nil
+          end
+        end
+      end
+
       def connection
         query_cache || connection_without_query_cache
       end
