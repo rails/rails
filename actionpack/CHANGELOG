@@ -1,5 +1,7 @@
 *SVN*
 
+* Integration tests: introduce methods for other HTTP methods.  #6353 [caboose]
+
 * Routing: better support for escaped values in route segments.  #7544 [Chris
 Roos]
 
