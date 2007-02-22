@@ -81,13 +81,13 @@ class CGI::Session::CookieStore
     # Marshal a session hash into safe cookie data. Include an integrity hash.
     def marshal(session)
       data = Base64.encode64(Marshal.dump(session)).chop
-      "#{data}--#{generate_digest(data)}"
+      CGI.escape "#{data}--#{generate_digest(data)}"
     end
 
     # Unmarshal cookie data to a hash and verify its integrity.
     def unmarshal(cookie)
       if cookie
-        data, digest = cookie.split('--')
+        data, digest = CGI.unescape(cookie).split('--')
         raise TamperedWithCookie unless digest == generate_digest(data)
         Marshal.load(Base64.decode64(data))
       end

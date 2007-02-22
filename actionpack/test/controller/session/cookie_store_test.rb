@@ -27,10 +27,10 @@ class CookieStoreTest < Test::Unit::TestCase
   }
 
   module Cookies
-    EMPTY = ['BAh7AA==--fda6e506d1cc14a1d8e97fd3f5abf77e756ff2d987b069e5f9b0fbadb62ca6fb3cf523e8dfc61464dd98d7bd2d675e0713ce54226f428e521b4c5d21d2389eae', {}]
+    EMPTY = ['BAh7AA%3D%3D--fda6e506d1cc14a1d8e97fd3f5abf77e756ff2d987b069e5f9b0fbadb62ca6fb3cf523e8dfc61464dd98d7bd2d675e0713ce54226f428e521b4c5d21d2389eae', {}]
     A_ONE = ['BAh7BiIGYWkG--8dfd099b297a60f6742933b1217b81e91c50237eedd8b25f3ce47b86394e14de3b17128225ba984e7d8660f7777e33979b8d98091dc87400be8c54ebbfdbe599', { 'a' => 1 }]
     TYPICAL = ['BAh7ByIMdXNlcl9pZGkBeyIKZmxhc2h7BiILbm90aWNlIgxIZXkgbm93--251fa4706464e87bcb90c76a27a1dee2410ff81a1ba9903f9760263ad44e739a42d0a5d5d7229087ddb4b3e1d6b956a6c4f6a2f8dcb5a5b281a342fed12d38c0', { 'user_id' => 123, 'flash' => { 'notice' => 'Hey now' }}]
-    FLASHED = ['BAh7ByIMdXNlcl9pZGkBeyIKZmxhc2h7AA==--a574ffd23d744c363f94a75b449d02dd619fd9409978ea0a2797c98dc638bff9fe0f9cacb2106b1610f0731b386416bcca6e11e031b7885719ba8c956dfd6f2c', { 'user_id' => 123, 'flash' => {} }]
+    FLASHED = ['BAh7ByIMdXNlcl9pZGkBeyIKZmxhc2h7AA%3D%3D--a574ffd23d744c363f94a75b449d02dd619fd9409978ea0a2797c98dc638bff9fe0f9cacb2106b1610f0731b386416bcca6e11e031b7885719ba8c956dfd6f2c', { 'user_id' => 123, 'flash' => {} }]
   end
 
   def setup
