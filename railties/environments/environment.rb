@@ -43,7 +43,10 @@ Rails::Initializer.run do |config|
 
   # Your secret key for verifying cookie session data integrity.
   # If you change this key, all old sessions will become invalid!
-  config.action_controller.session = { :secret => '<%= CGI::Session.generate_unique_id(app_name) %>' }
+  config.action_controller.session = {
+    :session_key => '_<%= app_name %>_session',
+    :secret => '<%= CGI::Session.generate_unique_id(app_name) %>'
+  }
 
   # See Rails::Configuration for more options
 end
