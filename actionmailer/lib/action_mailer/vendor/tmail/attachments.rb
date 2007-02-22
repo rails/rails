@@ -18,7 +18,9 @@ module TMail
     def attachments
       if multipart?
         parts.collect { |part| 
-          if attachment?(part)
+          if part.multipart?
+            part.attachments
+          elsif attachment?(part)
             content   = part.body # unquoted automatically by TMail#body
             file_name = (part['content-location'] &&
                           part['content-location'].body) ||
@@ -32,7 +34,7 @@ module TMail
             attachment.content_type = part.content_type
             attachment
           end
-        }.compact
+        }.flatten.compact
       end      
     end
   end
