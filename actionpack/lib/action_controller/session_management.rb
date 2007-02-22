@@ -81,6 +81,9 @@ module ActionController #:nodoc:
         write_inheritable_array("session_options", [options])
       end
 
+      # So we can declare session options in the Rails initializer.
+      alias_method :session=, :session
+
       def cached_session_options #:nodoc:
         @session_options ||= read_inheritable_attribute("session_options") || []
       end

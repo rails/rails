@@ -40,7 +40,11 @@ Rails::Initializer.run do |config|
 
   # Make Active Record use UTC-base instead of local time
   # config.active_record.default_timezone = :utc
-  
+
+  # Your secret key for verifying cookie session data integrity.
+  # If you change this key, all old sessions will become invalid!
+  config.action_controller.session = { :secret => '<%= CGI::Session.generate_unique_id(app_name) %>' }
+
   # See Rails::Configuration for more options
 end
 
