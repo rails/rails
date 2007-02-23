@@ -121,6 +121,7 @@ class AppGenerator < Rails::Generator::Base
     app/models
     app/views/layouts
     config/environments
+    config/initializers
     db
     doc
     lib

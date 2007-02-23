@@ -1,5 +1,7 @@
 *SVN*
 
+* Added config/initializers where all ruby files within it are automatically loaded after the Rails configuration is done, so you don't have to litter the environment.rb file with a ton of mixed stuff [DHH]
+
 * For new apps, generate a random secret for the cookie-based session store.  [Jeremy Kemper]
 
 * Stop swallowing errors during rake test [Koz]

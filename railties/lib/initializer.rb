@@ -70,6 +70,8 @@ module Rails
     # * #load_plugins
     # * #load_observers
     # * #initialize_routing
+    # * #after_initialize
+    # * #load_application_initializers
     #
     # (Note that #load_environment is invoked twice, once at the start and
     # once at the end, to support the legacy configuration style where the
@@ -112,6 +114,8 @@ module Rails
 
       # the framework is now fully initialized
       after_initialize
+
+      load_application_initializers
     end
 
     # Check for valid Ruby version
@@ -332,6 +336,12 @@ module Rails
     # Fires the user-supplied after_initialize block (Configuration#after_initialize)
     def after_initialize
       configuration.after_initialize_block.call if configuration.after_initialize_block
+    end
+
+    def load_application_initializers
+      Dir["#{RAILS_ROOT}/config/initializers/**/*.rb"].each do |initializer|
+        load(initializer)
+      end
     end
 
     protected

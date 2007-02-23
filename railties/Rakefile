@@ -38,9 +38,27 @@ Rake::TestTask.new("regular_test") do |t|
 end
 
 
-BASE_DIRS   = %w( 
-  app config/environments components db doc log lib lib/tasks public script script/performance script/process test vendor vendor/plugins
-  tmp/sessions tmp/cache tmp/sockets tmp/pids
+BASE_DIRS = %w( 
+  app
+  config/environments
+  config/initializers
+  components
+  db
+  doc
+  log
+  lib
+  lib/tasks
+  public
+  script
+  script/performance
+  script/process
+  test
+  vendor
+  vendor/plugins
+  tmp/sessions
+  tmp/cache
+  tmp/sockets
+  tmp/pids
 )
 
 APP_DIRS    = %w( models controllers helpers views views/layouts )
