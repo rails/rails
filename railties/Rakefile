@@ -197,8 +197,8 @@ task :copy_configs do
 
   cp "configs/apache.conf", "#{PKG_DESTINATION}/public/.htaccess"
 
-  cp "configs/initializers/inflections.rb", "#{PKG_DESTINATION}/configs/initializers/inflections.rb"
-  cp "configs/initializers/mime_types.rb",  "#{PKG_DESTINATION}/configs/initializers/mime_types.rb"
+  cp "configs/initializers/inflections.rb", "#{PKG_DESTINATION}/config/initializers/inflections.rb"
+  cp "configs/initializers/mime_types.rb",  "#{PKG_DESTINATION}/config/initializers/mime_types.rb"
 
   cp "environments/boot.rb",        "#{PKG_DESTINATION}/config/boot.rb"
   cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
