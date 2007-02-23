@@ -44,6 +44,10 @@ class AppGenerator < Rails::Generator::Base
       m.template "configs/routes.rb",     "config/routes.rb"
       m.template "configs/apache.conf",   "public/.htaccess"
 
+      # Initializers
+      m.template "configs/initializers/inflections.rb", "config/initializers/inflections.rb"
+      m.template "configs/initializers/mime_types.rb",  "configs/initializers/mime_types.rb"
+
       # Environments
       m.file "environments/boot.rb",    "config/boot.rb"
       m.template "environments/environment.rb", "config/environment.rb", :assigns => { :freeze => options[:freeze] }

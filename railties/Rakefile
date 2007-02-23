@@ -197,11 +197,14 @@ task :copy_configs do
 
   cp "configs/apache.conf", "#{PKG_DESTINATION}/public/.htaccess"
 
-  cp "environments/boot.rb", "#{PKG_DESTINATION}/config/boot.rb"
+  cp "configs/initializers/inflections.rb", "#{PKG_DESTINATION}/configs/initializers/inflections.rb"
+  cp "configs/initializers/mime_types.rb",  "#{PKG_DESTINATION}/configs/initializers/mime_types.rb"
+
+  cp "environments/boot.rb",        "#{PKG_DESTINATION}/config/boot.rb"
   cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
-  cp "environments/production.rb", "#{PKG_DESTINATION}/config/environments/production.rb"
+  cp "environments/production.rb",  "#{PKG_DESTINATION}/config/environments/production.rb"
   cp "environments/development.rb", "#{PKG_DESTINATION}/config/environments/development.rb"
-  cp "environments/test.rb", "#{PKG_DESTINATION}/config/environments/test.rb"
+  cp "environments/test.rb",        "#{PKG_DESTINATION}/config/environments/test.rb"
 end
 
 task :copy_binfiles do
