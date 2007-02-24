@@ -30,7 +30,7 @@ Rails::Initializer.run do |config|
   # If you change this key, all old sessions will become invalid!
   config.action_controller.session = {
     :session_key => '_<%= app_name %>_session',
-    :secret      => '<%= CGI::Session.generate_unique_id(app_name) %>'
+    :secret      => '<%= app_secret %>'
   }
 
   # Use the database for sessions instead of the file system

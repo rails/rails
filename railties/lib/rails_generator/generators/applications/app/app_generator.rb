@@ -1,4 +1,5 @@
 require 'rbconfig'
+require 'digest/md5' 
 
 class AppGenerator < Rails::Generator::Base
   DEFAULT_SHEBANG = File.join(Config::CONFIG['bindir'],
@@ -21,6 +22,15 @@ class AppGenerator < Rails::Generator::Base
     # Use /usr/bin/env if no special shebang was specified
     script_options     = { :chmod => 0755, :shebang => options[:shebang] == DEFAULT_SHEBANG ? nil : options[:shebang] }
     dispatcher_options = { :chmod => 0755, :shebang => options[:shebang] }
+
+    # duplicate CGI::Session#generate_unique_id
+    md5 = Digest::MD5.new
+    now = Time.now
+    md5 << now.to_s
+    md5 << String(now.usec)
+    md5 << String(rand(0))
+    md5 << String($$)
+    md5 << @app_name
 
     record do |m|
       # Root directory and all subdirectories.
@@ -46,11 +56,11 @@ class AppGenerator < Rails::Generator::Base
 
       # Initializers
       m.template "configs/initializers/inflections.rb", "config/initializers/inflections.rb"
-      m.template "configs/initializers/mime_types.rb",  "configs/initializers/mime_types.rb"
+      m.template "configs/initializers/mime_types.rb",  "config/initializers/mime_types.rb"
 
       # Environments
       m.file "environments/boot.rb",    "config/boot.rb"
-      m.template "environments/environment.rb", "config/environment.rb", :assigns => { :freeze => options[:freeze] }
+      m.template "environments/environment.rb", "config/environment.rb", :assigns => { :freeze => options[:freeze], :app_name => @app_name, :app_secret => md5.hexdigest }
       m.file "environments/production.rb",  "config/environments/production.rb"
       m.file "environments/development.rb", "config/environments/development.rb"
       m.file "environments/test.rb",        "config/environments/test.rb"
