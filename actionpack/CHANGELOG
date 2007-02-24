@@ -1,5 +1,7 @@
 *SVN*
 
+* Added helper(:all) as a way to include all helpers from app/helpers/**/*.rb in ApplicationController [DHH]
+
 * Integration tests: introduce methods for other HTTP methods.  #6353 [caboose]
 
 * Routing: better support for escaped values in route segments.  #7544 [Chris

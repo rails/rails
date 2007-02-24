@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
+silence_warnings { ActionController::Helpers::HELPERS_DIR = File.dirname(__FILE__) + '/../fixtures/helpers' }
+
 class TestController < ActionController::Base
   attr_accessor :delegate_attr
   def delegate_method() end
@@ -15,13 +17,17 @@ module Fun
     def rescue_action(e) raise end
   end
 
-  class PDFController < ActionController::Base
+  class PdfController < ActionController::Base
     def test
       render :inline => "test: <%= foobar %>"
     end
 
     def rescue_action(e) raise end
   end
+end
+
+class ApplicationController < ActionController::Base
+  helper :all
 end
 
 module LocalAbcHelper
@@ -120,7 +126,18 @@ class HelperTest < Test::Unit::TestCase
     response = ActionController::TestResponse.new
     request.action = 'test'
 
-    assert_equal 'test: baz', Fun::PDFController.process(request, response).body
+    assert_equal 'test: baz', Fun::PdfController.process(request, response).body
+  end
+
+  def test_all_helpers
+    # abc_helper.rb
+    assert ApplicationController.master_helper_module.instance_methods.include?("bare_a")
+
+    # fun/games_helper.rb
+    assert ApplicationController.master_helper_module.instance_methods.include?("stratego")
+
+    # fun/pdf_helper.rb
+    assert ApplicationController.master_helper_module.instance_methods.include?("foobar")
   end
 
   private

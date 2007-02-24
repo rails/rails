@@ -1,5 +1,7 @@
 module ActionController #:nodoc:
   module Helpers #:nodoc:
+    HELPERS_DIR = (defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/app/helpers" : "app/helpers")
+    
     def self.included(base)
       # Initialize the base module to aggregate its helpers.
       base.class_inheritable_accessor :master_helper_module
@@ -46,19 +48,28 @@ module ActionController #:nodoc:
       end
 
       # Declare a helper:
+      #
       #   helper :foo
       # requires 'foo_helper' and includes FooHelper in the template class.
+      #
       #   helper FooHelper
       # includes FooHelper in the template class.
+      #
       #   helper { def foo() "#{bar} is the very best" end }
       # evaluates the block in the template class, adding method #foo.
+      #
       #   helper(:three, BlindHelper) { def mice() 'mice' end }
       # does all three.
+      #
+      #   helper :all
+      # includes all helpers from app/views/helpers/**/*.rb under RAILS_ROOT
       def helper(*args, &block)
         args.flatten.each do |arg|
           case arg
             when Module
               add_template_helper(arg)
+            when :all
+              helper(all_application_helpers)
             when String, Symbol
               file_name  = arg.to_s.underscore + '_helper'
               class_name = file_name.camelize
@@ -73,14 +84,14 @@ module ActionController #:nodoc:
 
               add_template_helper(class_name.constantize)
             else
-              raise ArgumentError, 'helper expects String, Symbol, or Module argument'
+              raise ArgumentError, "helper expects String, Symbol, or Module argument (was: #{args.inspect})"
           end
         end
 
         # Evaluate block in template class if given.
         master_helper_module.module_eval(&block) if block_given?
       end
-
+      
       # Declare a controller method as a helper.  For example,
       #   helper_method :link_to
       #   def link_to(name, options) ... end
@@ -104,6 +115,7 @@ module ActionController #:nodoc:
         attrs.flatten.each { |attr| helper_method(attr, "#{attr}=") }
       end
 
+
       private 
         def default_helper_module!
           module_name = name.sub(/Controller$|$/, 'Helper')
@@ -120,12 +132,20 @@ module ActionController #:nodoc:
 
         def inherited_with_helper(child)
           inherited_without_helper(child)
+
           begin
             child.master_helper_module = Module.new
             child.master_helper_module.send :include, master_helper_module
             child.send :default_helper_module!
           rescue MissingSourceFile => e
             raise unless e.is_missing?("helpers/#{child.controller_path}_helper")
+          end
+        end
+        
+        def all_application_helpers
+          Dir["#{HELPERS_DIR}/**/*.rb"].collect do |file|
+            # Helper file without excess path, "_helper" suffix, and_extension
+            file[((File.dirname(HELPERS_DIR) + "/helpers/").size)..-("_helper".size + 4)]
           end
         end
     end
