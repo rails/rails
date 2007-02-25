@@ -244,12 +244,15 @@ class Fixtures < YAML::Omap
 
   def self.create_fixtures(fixtures_directory, table_names, class_names = {})
     table_names = [table_names].flatten.map { |n| n.to_s }
-    connection = block_given? ? yield : ActiveRecord::Base.connection
+    connection  = block_given? ? yield : ActiveRecord::Base.connection
+
     ActiveRecord::Base.silence do
       fixtures_map = {}
+
       fixtures = table_names.map do |table_name|
         fixtures_map[table_name] = Fixtures.new(connection, File.split(table_name.to_s).last, class_names[table_name.to_sym], File.join(fixtures_directory, table_name.to_s))
       end               
+
       all_loaded_fixtures.merge! fixtures_map  
 
       connection.transaction(Thread.current['open_transactions'] == 0) do
@@ -291,8 +294,8 @@ class Fixtures < YAML::Omap
     end
   end
 
-  private
 
+  private
     def read_fixture_files
       if File.file?(yaml_file_path)
         # YAML fixtures
@@ -460,7 +463,13 @@ module Test #:nodoc:
       end
       
       def self.fixtures(*table_names)
-        table_names = table_names.flatten.map { |n| n.to_s }
+        if table_names.first == :all
+          table_names = Dir["#{fixture_path}/*.yml"] + Dir["#{fixture_path}/*.csv"]
+          table_names.map! { |f| File.basename(f).split('.')[0..-2].join('.') }
+        else
+          table_names = table_names.flatten.map { |n| n.to_s }
+        end
+
         self.fixture_table_names |= table_names
         require_fixture_classes(table_names)
         setup_fixture_accessors(table_names)

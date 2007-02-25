@@ -1,5 +1,7 @@
 *SVN*
 
+* Added fixtures :all to test_helper.rb to assume that most people just want all their fixtures loaded all the time [DHH]
+
 * Added config/initializers where all ruby files within it are automatically loaded after the Rails configuration is done, so you don't have to litter the environment.rb file with a ton of mixed stuff [DHH]
 
 * For new apps, generate a random secret for the cookie-based session store.  [Jeremy Kemper]

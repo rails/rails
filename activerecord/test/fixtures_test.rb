@@ -399,3 +399,12 @@ class FixturesBrokenRollbackTest < Test::Unit::TestCase
       raise 'argh'
     end
 end
+
+class LoadAllFixturesTest < Test::Unit::TestCase
+  write_inheritable_attribute :fixture_path, File.join(File.dirname(__FILE__), '/fixtures/all')
+  fixtures :all
+
+  def test_all_there
+    assert_equal %w(developers people tasks), fixture_table_names.sort
+  end
+end
