@@ -1,5 +1,9 @@
 *SVN*
 
+* Allow routing requirements on map.resource(s) #7633 [quixoten]. Example:
+
+  map.resources :network_interfaces, :requirements => { :id => /^\d+\.\d+\.\d+\.\d+$/ }
+
 * Cookie session store: empty and unchanged sessions don't write a cookie.  [Jeremy Kemper]
 
 * Added helper(:all) as a way to include all helpers from app/helpers/**/*.rb in ApplicationController [DHH]

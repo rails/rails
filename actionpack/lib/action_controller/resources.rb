@@ -11,7 +11,7 @@ module ActionController
         @singular = options[:singular] || plural.to_s.singularize
         
         @options = options
-
+        
         arrange_actions
         add_default_actions
         set_prefixes
@@ -19,6 +19,13 @@ module ActionController
       
       def controller
         @controller ||= (options[:controller] || plural).to_s
+      end
+      
+      def requirements(with_id = false)
+        @requirements   ||= @options[:requirements] || {}
+        @id_requirement ||= { :id => @requirements.delete(:id) || /[^#{Routing::SEPARATORS.join}]+/ }
+        
+        with_id ? @requirements.merge(@id_requirement) : @requirements
       end
       
       def path
@@ -389,14 +396,14 @@ module ActionController
 
       def action_options_for(action, resource, method = nil)
         default_options = { :action => action.to_s }
-        require_id = resource.kind_of?(SingletonResource) ? {} : { :requirements => { :id => Regexp.new("[^#{Routing::SEPARATORS.join}]+") } }
+        require_id = !resource.kind_of?(SingletonResource)
         case default_options[:action]
-          when "index", "new" : default_options.merge(conditions_for(method || :get))
-          when "create"       : default_options.merge(conditions_for(method || :post))
-          when "show", "edit" : default_options.merge(conditions_for(method || :get)).merge(require_id)
-          when "update"       : default_options.merge(conditions_for(method || :put)).merge(require_id)
-          when "destroy"      : default_options.merge(conditions_for(method || :delete)).merge(require_id)
-          else                  default_options.merge(conditions_for(method))
+          when "index", "new" : default_options.merge(conditions_for(method || :get)).merge(resource.requirements)
+          when "create"       : default_options.merge(conditions_for(method || :post)).merge(resource.requirements)
+          when "show", "edit" : default_options.merge(conditions_for(method || :get)).merge(resource.requirements(require_id))
+          when "update"       : default_options.merge(conditions_for(method || :put)).merge(resource.requirements(require_id))
+          when "destroy"      : default_options.merge(conditions_for(method || :delete)).merge(resource.requirements(require_id))
+          else                  default_options.merge(conditions_for(method)).merge(resource.requirements)
         end
       end
   end

@@ -57,6 +57,31 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_irregular_id_with_no_requirements_should_raise_error
+    expected_options = {:controller => 'messages', :action => 'show', :id => '1.1.1'}
+    
+    with_restful_routing :messages do
+      assert_raises(ActionController::RoutingError) do
+        assert_recognizes(expected_options, :path => 'messages/1.1.1', :method => :get)
+      end
+    end
+  end
+  
+  def test_irregular_id_with_requirements_should_pass
+    expected_options = {:controller => 'messages', :action => 'show', :id => '1.1.1'}
+    
+    with_restful_routing(:messages, :requirements => {:id => /[0-9]\.[0-9]\.[0-9]/}) do
+      assert_recognizes(expected_options, :path => 'messages/1.1.1', :method => :get)
+    end
+  end
+  
+  def test_with_path_prefix_requirements
+    expected_options = {:controller => 'messages', :action => 'show', :thread_id => '1.1.1', :id => '1'}
+    with_restful_routing :messages, :path_prefix => '/thread/:thread_id', :requirements => {:thread_id => /[0-9]\.[0-9]\.[0-9]/} do
+      assert_recognizes(expected_options, :path => 'thread/1.1.1/messages/1', :method => :get)
+    end
+  end
+
   def test_with_path_prefix
     with_restful_routing :messages, :path_prefix => '/thread/:thread_id' do
       assert_simply_restful_for :messages, :path_prefix => 'thread/5/', :options => { :thread_id => '5' }
