@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :port and :host handling to UrlRewriter (which unified url_for usage, regardless of whether it's called in view or controller) #7616 [alancfrancis]
+
 * Allow send_file/send_data to use a registered mime type as the :type parameter #7620 [jonathan]
 
 * Allow routing requirements on map.resource(s) #7633 [quixoten]. Example:

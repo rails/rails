@@ -7,6 +7,22 @@ class UrlRewriterTests < Test::Unit::TestCase
     @rewriter = ActionController::UrlRewriter.new(@request, @params)
   end 
 
+  def test_port
+    assert_equal('http://test.host:1271/c/a/i',
+      @rewriter.rewrite(:controller => 'c', :action => 'a', :id => 'i', :port => 1271)
+    )
+  end
+
+  def test_protocol_with_and_without_separator
+    assert_equal('https://test.host/c/a/i',
+      @rewriter.rewrite(:protocol => 'https', :controller => 'c', :action => 'a', :id => 'i')
+    )
+
+    assert_equal('https://test.host/c/a/i',
+      @rewriter.rewrite(:protocol => 'https://', :controller => 'c', :action => 'a', :id => 'i')
+    )
+  end
+  
   def test_overwrite_params
     @params[:controller] = 'hi'
     @params[:action] = 'bye'
@@ -85,6 +101,16 @@ class UrlWriterTests < Test::Unit::TestCase
     )
   end
   
+  def test_protocol_with_and_without_separator
+    add_host!
+    assert_equal('https://www.basecamphq.com/c/a/i',
+      W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https')
+    )
+    assert_equal('https://www.basecamphq.com/c/a/i',
+      W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https://')
+    )
+  end
+
   def test_named_route
     ActionController::Routing::Routes.draw do |map|
       map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'

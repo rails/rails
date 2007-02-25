@@ -43,7 +43,7 @@ module ActionController
       url = ''
       unless options.delete :only_path
         url << (options.delete(:protocol) || 'http')
-        url << '://'
+        url << '://' unless url.match("://") #dont add separator if its already been specified in :protocol 
         
         raise "Missing host to link to! Please provide :host parameter or set default_url_options[:host]" unless options[:host]
         url << options.delete(:host)
@@ -60,7 +60,7 @@ module ActionController
   
   # Rewrites URLs for Base.redirect_to and Base.url_for in the controller.
   class UrlRewriter #:nodoc:
-    RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :trailing_slash, :skip_relative_url_root]
+    RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash, :skip_relative_url_root]
     def initialize(request, parameters)
       @request, @parameters = request, parameters
     end
@@ -80,7 +80,9 @@ module ActionController
         rewritten_url = ""
         unless options[:only_path]
           rewritten_url << (options[:protocol] || @request.protocol)
+          rewritten_url << "://" unless rewritten_url.match("://")
           rewritten_url << (options[:host] || @request.host_with_port)
+          rewritten_url << ":#{options.delete(:port)}" if options.key?(:port)
         end
 
         rewritten_url << @request.relative_url_root.to_s unless options[:skip_relative_url_root]
