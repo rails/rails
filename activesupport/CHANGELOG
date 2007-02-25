@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow users to provide custom formatters to Logger. [aeden]
+
 * Hash#to_query CGI-escapes its keys.  [Jeremy Kemper]
 
 * Deprecation: warn on stderr if RAILS_DEFAULT_LOGGER isn't set yet.  [Jeremy
