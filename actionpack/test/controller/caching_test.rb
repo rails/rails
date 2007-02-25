@@ -4,7 +4,6 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hoze something you don't want hozed
 FILE_STORE_PATH = File.join(File.dirname(__FILE__), '/../temp/', CACHE_DIR)
-ActionController::Base.perform_caching = true
 ActionController::Base.page_cache_directory = FILE_STORE_PATH
 ActionController::Base.fragment_cache_store = :file_store, FILE_STORE_PATH
 
@@ -30,6 +29,8 @@ end
 
 class PageCachingTest < Test::Unit::TestCase
   def setup
+    ActionController::Base.perform_caching = true
+
     ActionController::Routing::Routes.draw do |map|
       map.main '', :controller => 'posts'
       map.resources :posts
@@ -51,6 +52,8 @@ class PageCachingTest < Test::Unit::TestCase
 
   def teardown
     FileUtils.rm_rf(File.dirname(FILE_STORE_PATH))
+
+    ActionController::Base.perform_caching = false
   end
 
   def test_page_caching_resources_saves_to_correct_path_with_extension_even_if_default_route
