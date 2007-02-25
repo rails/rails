@@ -26,6 +26,8 @@ SendFileController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
 class SendFileTest < Test::Unit::TestCase
   include TestFileUtils
 
+  Mime::Type.register "image/png", :png unless defined? Mime::PNG
+  
   def setup
     @controller = SendFileController.new
     @request = ActionController::TestRequest.new
@@ -83,7 +85,7 @@ class SendFileTest < Test::Unit::TestCase
   def test_send_file_headers!
     options = {
       :length => 1,
-      :type => 'type',
+      :type => Mime::PNG,
       :disposition => 'disposition',
       :filename => 'filename'
     }
@@ -98,7 +100,7 @@ class SendFileTest < Test::Unit::TestCase
 
     h = @controller.headers
     assert_equal 1, h['Content-Length']
-    assert_equal 'type', h['Content-Type']
+    assert_equal 'image/png', h['Content-Type']
     assert_equal 'disposition; filename="filename"', h['Content-Disposition']
     assert_equal 'binary', h['Content-Transfer-Encoding']
 

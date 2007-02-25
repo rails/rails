@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow send_file/send_data to use a registered mime type as the :type parameter #7620 [jonathan]
+
 * Allow routing requirements on map.resource(s) #7633 [quixoten]. Example:
 
   map.resources :network_interfaces, :requirements => { :id => /^\d+\.\d+\.\d+\.\d+$/ }
