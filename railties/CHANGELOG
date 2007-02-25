@@ -1,5 +1,7 @@
 *SVN*
 
+* Added source-annotations extractor tasks to rake [Jamis Buck]. This allows you to add FIXME, OPTIMIZE, and TODO comments to your source code that can then be extracted in concert with rake notes (shows all), rake notes:fixme, rake notes:optimize and rake notes:todo.
+
 * Added fixtures :all to test_helper.rb to assume that most people just want all their fixtures loaded all the time [DHH]
 
 * Added config/initializers where all ruby files within it are automatically loaded after the Rails configuration is done, so you don't have to litter the environment.rb file with a ton of mixed stuff [DHH]
