@@ -4,47 +4,63 @@ require 'action_view/helpers/tag_helper'
 
 module ActionView
   module Helpers
-    # Provides a set of methods for working with forms and especially forms related to objects assigned to the template.
-    # The following is an example of a complete form for a person object that works for both creates and updates built
-    # with all the form helpers. The <tt>@person</tt> object was assigned by an action on the controller:
-    #   <form action="save_person" method="post">
-    #     Name:
-    #     <%= text_field "person", "name", "size" => 20 %>
+    # Form helpers are designed to make working with models much easier than just standard html elements.  These helpers
+    # provide a set of methods for creating forms based on your models.  Each helper deals with a different type of data.
+    # Instead of creating the html elements manually, you ask the helpers to create the form element.  When the form is 
+    # submitted i.e. when the user hits the submit button, the form elements will be bundled into the params object and
+    # passed back to the controller.
     #
-    #     Password:
-    #     <%= password_field "person", "password", "maxsize" => 20 %>
+    # There are two types of form helper, those that specifically work with the attributes on models, and those that don't.  
+    # First, an example of a form generated for a login page that doesn't deal with model attributes:
     #
-    #     Single?:
-    #     <%= check_box "person", "single" %>
+    #     <% form_tag :controller => 'sessions', :action => 'new' do -%>
+    #       <%= text_field_tag 'login' %>
+    #       <%= password_field_tag 'password' %>
+    # 
+    #       <%= submit_tag 'Log in' %>
+    #     <% end -%>
     #
-    #     Description:
-    #     <%= text_area "person", "description", "cols" => 20 %>
+    # This would generate the following html:
     #
-    #     <input type="submit" value="Save">
-    #   </form>
+    #     <form action="/sessions/new" method="post">
+    #       <input id="login" name="login" type="text" />
+    #       <input id="password" name="password" type="password" />
+    #     
+    #       <input name="commit" type="submit" value="Log in" />
+    #     </form>
     #
-    # ...is compiled to:
+    # The params object created for this would look like:
     #
-    #   <form action="save_person" method="post">
-    #     Name:
-    #     <input type="text" id="person_name" name="person[name]"
-    #       size="20" value="<%= @person.name %>" />
+    #     {"commit"=>"Log in", "action"=>"create", "controller"=>"sessions", "login"=>"some_user", "password"=>"some_pass"}
     #
-    #     Password:
-    #     <input type="password" id="person_password" name="person[password]"
-    #       size="20" maxsize="20" value="<%= @person.password %>" />
+    # Note how the params are not nested when creating a form this way.
     #
-    #     Single?:
-    #     <input type="checkbox" id="person_single" name="person[single]" value="1" />
+    # An example that specifically deals with a person object:
     #
-    #     Description:
-    #     <textarea cols="20" rows="40" id="person_description" name="person[description]">
-    #       <%= @person.description %>
-    #     </textarea>
+    #     # Note: a @person variable will have been created in the controller and populated with data 
+    #     # e.g. @person = Person.find(1)
+    #     <% form_for :person, @person, :url => { :action => "update" } do |f| %>
+    #       <%= f.text_field :first_name %>
+    #       <%= f.text_field :last_name %>
+    #       <%= submit_tag 'Update' %>
+    #     <% end %>
     #
-    #     <input type="submit" value="Save">
-    #   </form>
+    # The html generated for this would be:
     #
+    #     <form action="/persons/update" method="post">
+    #       <input id="person_first_name" name="person[first_name]" size="30" type="text" />
+    #       <input id="person_last_name" name="person[last_name]" size="30" type="text" />
+    #       <input name="commit" type="submit" value="Update" />
+    #     </form>
+    #
+    # The params object created when this form is submitted would look like:
+    #
+    #     {"action"=>"create", "controller"=>"sessions", "person"=>{"first_name"=>"William", "last_name"=>"Smith"}}
+    # 
+    # The form_for method generates a form based on a method, in our example if the @person object had contained any 
+    # values they would have been set in the form (this is how edit forms are created).  Notice how the params hash 
+    # has a nested 'person' value, which can therefore be accessed with params[:person] in the controller.
+    #    
     # If the object name contains square brackets the id for the object will be inserted. Example:
     #
     #   <%= text_field "person[]", "name" %> 
@@ -62,7 +78,7 @@ module ActionView
     #
     #   <input type="text" id="person_1_name" name="person[1][name]" value="<%= @person.name %>" />
     #
-    # There's also methods for helping to build form tags in link:classes/ActionView/Helpers/FormOptionsHelper.html,
+    # There are also methods for helping to build form tags in link:classes/ActionView/Helpers/FormOptionsHelper.html,
     # link:classes/ActionView/Helpers/DateHelper.html, and link:classes/ActionView/Helpers/ActiveRecordHelper.html
     module FormHelper
       # Creates a form and a scope around a specific model object, which is then used as a base for questioning about
@@ -75,8 +91,8 @@ module ActionView
       #     Admin?    : <%= f.check_box :admin %>
       #   <% end %>
       #
-      # Worth noting is that the form_for tag is called in a ERb evaluation block, not a ERb output block. So that's <tt><% %></tt>, 
-      # not <tt><%= %></tt>. Also worth noting is that the form_for yields a form_builder object, in this example as f, which emulates
+      # Worth noting is that the form_for tag is called in a ERb evaluation block, not an ERb output block. So that's <tt><% %></tt>, 
+      # not <tt><%= %></tt>. Also worth noting is that form_for yields a form_builder object, in this example as f, which emulates
       # the API for the stand-alone FormHelper methods, but without the object name. So instead of <tt>text_field :person, :name</tt>,
       # you get away with <tt>f.text_field :name</tt>. 
       #
@@ -153,10 +169,11 @@ module ActionView
 
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
-      # hash with +options+.
+      # hash with +options+.  These options will be tagged onto the html as an html element attribute as in the example
+      # shown.
       #
       # Examples (call, result):
-      #   text_field("post", "title", "size" => 20)
+      #   text_field(:post, :title, :size => 20)
       #     <input type="text" id="post_title" name="post[title]" size="20" value="#{@post.title}" />
       def text_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_input_field_tag("text", options)
@@ -202,7 +219,7 @@ module ActionView
       #     <input type="checkbox" id="post_validate" name="post[validated]" value="1" checked="checked" />
       #     <input name="post[validated]" type="hidden" value="0" />
       #
-      # Example (call, result). Imagine that @puppy.gooddog returns no:
+      # Example (call, result). Imagine that @puppy.gooddog returns "no":
       #   check_box("puppy", "gooddog", {}, "yes", "no")
       #     <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog]" value="yes" />
       #     <input name="puppy[gooddog]" type="hidden" value="no" />
