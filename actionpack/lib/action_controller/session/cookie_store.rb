@@ -65,7 +65,7 @@ class CGI::Session::CookieStore
 
   # Write the session data cookie if it was loaded and has changed.
   def close
-    if defined? @data
+    if defined?(@data) && !@data.blank?
       updated = marshal(@data)
       raise CookieOverflow if updated.size > MAX
       write_cookie('value' => updated) unless updated == @original
@@ -74,6 +74,7 @@ class CGI::Session::CookieStore
 
   # Delete the session data by setting an expired cookie with no data.
   def delete
+    @data = nil
     write_cookie('value' => '', 'expires' => 1.year.ago)
   end
 

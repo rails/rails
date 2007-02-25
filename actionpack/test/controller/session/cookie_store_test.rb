@@ -68,11 +68,20 @@ class CookieStoreTest < Test::Unit::TestCase
     end
   end
 
+  def test_close_doesnt_write_cookie_if_data_is_blank
+    new_session do |session|
+      assert_nil session.cgi.output_cookies, session.cgi.output_cookies.inspect
+      session.close
+      assert_nil session.cgi.output_cookies, session.cgi.output_cookies.inspect
+    end
+  end
+
   def test_close_doesnt_write_cookie_if_data_is_unchanged
     set_cookie! Cookies::TYPICAL.first
     new_session do |session|
       assert_nil session.cgi.output_cookies, session.cgi.output_cookies.inspect
       session['user_id'] = session['user_id']
+      session.close
       assert_nil session.cgi.output_cookies, session.cgi.output_cookies.inspect
     end
   end
@@ -91,13 +100,18 @@ class CookieStoreTest < Test::Unit::TestCase
     end
   end
 
-  def test_delete_writes_expired_empty_cookie
+  def test_delete_writes_expired_empty_cookie_and_sets_data_to_nil
     set_cookie! Cookies::TYPICAL.first
     new_session do |session|
       assert_nil session.cgi.output_cookies, session.cgi.output_cookies.inspect
       session.delete
       assert_equal 1, session.cgi.output_cookies.size
       cookie = session.cgi.output_cookies.first
+      assert_equal ['_myapp_session', [], 1.year.ago.to_date],
+                   [cookie.name, cookie.value, cookie.expires.to_date]
+
+      # @data is set to nil so #close doesn't send another cookie.
+      session.close
       assert_equal ['_myapp_session', [], 1.year.ago.to_date],
                    [cookie.name, cookie.value, cookie.expires.to_date]
     end
