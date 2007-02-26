@@ -1174,7 +1174,11 @@ class << Mysql
   def finalizer(net)
     proc {
       net.clear
-      net.write Mysql::COM_QUIT.chr
+      begin
+        net.write(Mysql::COM_QUIT.chr)
+        net.close
+      rescue  # Ignore IOError if socket is already closed.
+      end
     }
   end
 
