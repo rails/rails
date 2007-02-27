@@ -240,11 +240,12 @@ class Plugin
     def install_using_http(options = {})
       root = rails_env.root
       mkdir_p "#{root}/vendor/plugins"
-      Dir.chdir "#{root}/vendor/plugins"
-      puts "fetching from '#{uri}'" if $verbose
-      fetcher = RecursiveHTTPFetcher.new(uri)
-      fetcher.quiet = true if options[:quiet]
-      fetcher.fetch
+      Dir.chdir "#{root}/vendor/plugins" do
+        puts "fetching from '#{uri}'" if $verbose
+        fetcher = RecursiveHTTPFetcher.new(uri)
+        fetcher.quiet = true if options[:quiet]
+        fetcher.fetch
+      end
     end
 
     def svn_command(cmd, options = {})
@@ -914,5 +915,4 @@ class RecursiveHTTPFetcher
   end
 end
 
-RAILS_ROOT = RailsEnvironment.default.root unless Object.const_defined?(:RAILS_ROOT)
 Commands::Plugin.parse!
