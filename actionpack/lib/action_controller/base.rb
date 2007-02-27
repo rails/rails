@@ -539,7 +539,7 @@ module ActionController #:nodoc:
       end
 
       def session_enabled?
-        request.session_options[:disabled] != false
+        request.session_options && request.session_options[:disabled] != false
       end
 
     protected
