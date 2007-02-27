@@ -914,4 +914,5 @@ class RecursiveHTTPFetcher
   end
 end
 
+RAILS_ROOT = RailsEnvironment.default.root unless Object.const_defined?(:RAILS_ROOT)
 Commands::Plugin.parse!
