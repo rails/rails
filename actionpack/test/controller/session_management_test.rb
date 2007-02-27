@@ -142,4 +142,15 @@ class SessionManagementTest < Test::Unit::TestCase
     get :tell
     assert_equal "does not have cached associations", @response.body
   end
+  
+  def test_session_is_enabled
+    @controller = TestController.new
+    get :show
+    assert_nothing_raised do
+      assert_equal false, @controller.session_enabled?
+    end
+    
+    get :tell
+    assert @controller.session_enabled?
+  end
 end
