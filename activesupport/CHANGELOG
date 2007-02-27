@@ -1,5 +1,7 @@
 *SVN*
 
+* Give DateTime correct .to_s implementations, lets it play nice with ActiveRecord quoting. [gbuesing]
+
 * Add File.atomic_write,  allows you to write large files in an atomic manner, preventing users from seeing half written files.  [Koz]
 
 * Allow users to provide custom formatters to Logger. [aeden]
