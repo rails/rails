@@ -17,6 +17,7 @@ class PluginGenerator < Rails::Generator::NamedBase
       m.directory "#{plugin_path}/test"
 
       m.template 'README',        "#{plugin_path}/README"
+      m.template 'MIT-LICENSE',   "#{plugin_path}/MIT-LICENSE"
       m.template 'Rakefile',      "#{plugin_path}/Rakefile"
       m.template 'init.rb',       "#{plugin_path}/init.rb"
       m.template 'install.rb',    "#{plugin_path}/install.rb"

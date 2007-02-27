@@ -1,4 +1,13 @@
 <%= class_name %>
 <%= "=" * class_name.size %>
 
-Description goes here
+Introduction goes here.
+
+
+Example
+=======
+
+Example goes here.
+
+
+Copyright (c) 2007 [name of plugin creator], released under the MIT license
