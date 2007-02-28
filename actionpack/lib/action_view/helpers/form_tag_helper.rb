@@ -142,6 +142,7 @@ module ActionView
         
         if disable_with = options.delete("disable_with")
           options["onclick"] = [
+            "this.setAttribute('originalValue', this.value)",
             "this.disabled=true",
             "this.value='#{disable_with}'",
             "#{options["onclick"]}",
