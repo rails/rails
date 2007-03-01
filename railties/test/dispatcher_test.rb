@@ -1,8 +1,6 @@
-$:.unshift File.dirname(__FILE__) + "/../lib"
-$:.unshift File.dirname(__FILE__) + "/../../actionpack/lib"
+require "#{File.dirname(__FILE__)}/abstract_unit"
 $:.unshift File.dirname(__FILE__) + "/../../actionmailer/lib"
 
-require 'test/unit'
 require 'stringio'
 require 'cgi'
 

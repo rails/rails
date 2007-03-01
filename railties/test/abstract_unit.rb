@@ -4,10 +4,7 @@ $:.unshift File.dirname(__FILE__) + "/../lib"
 $:.unshift File.dirname(__FILE__) + "/../builtin/rails_info"
 
 require 'test/unit'
-require 'rubygems'
-
-# Needed for the class mock delegation
-#require File.dirname(__FILE__) + "/../../activesupport/lib/active_support/core_ext/class/attribute_accessors"
+require 'active_support'
 
 if defined?(RAILS_ROOT)
   RAILS_ROOT.replace File.dirname(__FILE__)
