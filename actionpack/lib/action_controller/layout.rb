@@ -240,7 +240,7 @@ module ActionController #:nodoc:
         assert_existence_of_template_file(layout)
 
         options = options.merge :layout => false if template_with_options
-        logger.info("Rendering #{options} within #{layout}") if logger
+        logger.info("Rendering template within #{layout}") if logger
 
         if template_with_options
           content_for_layout = render_with_no_layout(options, &block)
@@ -259,8 +259,8 @@ module ActionController #:nodoc:
       end
     end
 
+
     private
-    
       def apply_layout?(template_with_options, options)
         return false if options == :update
         template_with_options ?  candidate_for_layout?(options) : !template_exempt_from_layout?
