@@ -46,7 +46,7 @@ module Rails
             unless registered_plugins.nil? || registered_plugins.empty?
               missing_plugins = registered_plugins - loaders.map(&:name)
               unless missing_plugins.empty?
-                raise LoadError, "Could not locate the following plugins: #{missing_plugins.inspect}"
+                raise LoadError, "Could not locate the following plugins: #{missing_plugins.to_sentence}"
               end
             end
           end
