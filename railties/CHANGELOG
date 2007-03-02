@@ -1,5 +1,7 @@
 *SVN*
 
+* Split plugin location and loading out of the initializer and into a new Plugin namespace, which includes Plugin::Locater and Plugin::Loader. The loader class that is used can be customized using the config.plugin_loader option.  Those monkey patching the plugin loading subsystem take note, the internals changing here will likely break your modifications. The good news is that it should be substantially easier to hook into the plugin locating and loading process now.  [Marcel Molina Jr.]
+
 * Added assumption that all plugin creators desire to be sharing individuals and release their work under the MIT license [DHH]
 
 * Added source-annotations extractor tasks to rake [Jamis Buck]. This allows you to add FIXME, OPTIMIZE, and TODO comments to your source code that can then be extracted in concert with rake notes (shows all), rake notes:fixme, rake notes:optimize and rake notes:todo.
