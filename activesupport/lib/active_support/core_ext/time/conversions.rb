@@ -1,6 +1,3 @@
-require 'date'
-require 'time'
-
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Time #:nodoc:

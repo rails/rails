@@ -1,5 +1,8 @@
 *SVN*
 
+* Ruby 1.8.6 and 1.9 define private Time#to_date and #to_datetime; make them
+public for compatibility.  [Jeremy Kemper]
+
 * Deprecation: warn on stderr if RAILS_DEFAULT_LOGGER isn't set yet.  [Jeremy Kemper]
 
 
