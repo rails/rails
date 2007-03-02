@@ -11,4 +11,8 @@ class Test::Unit::TestCase
   def plugin_fixture_root_path
     File.join(File.dirname(__FILE__), 'fixtures', 'plugins')
   end
+  
+  def only_load_the_following_plugins!(plugins)
+    @initializer.configuration.plugins = plugins
+  end
 end

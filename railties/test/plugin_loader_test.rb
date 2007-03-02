@@ -7,6 +7,13 @@ class TestPluginLoader < Test::Unit::TestCase
     @empty_plugin_path = plugin_fixture_path('default/empty')
   end
   
+  def test_determining_if_the_plugin_order_has_been_explicitly_set
+    loader = loader_for(@valid_plugin_path)
+    assert !loader.send(:explicit_plugin_loading_order?)
+    only_load_the_following_plugins! %w(stubby acts_as_chunky_bacon)
+    assert loader.send(:explicit_plugin_loading_order?)
+  end
+  
   def test_determining_whether_a_given_plugin_is_loaded
     plugin_loader = loader_for(@valid_plugin_path)
     assert !plugin_loader.loaded?
@@ -44,7 +51,7 @@ class TestPluginLoader < Test::Unit::TestCase
   end
   
   def test_loading_a_plugin_gives_the_init_file_access_to_all_it_needs
-    failure_tip = "Perhaps someone has written another test that loads this same plugin and therefore makes the SubbyMixin constant defined already."
+    failure_tip = "Perhaps someone has written another test that loads this same plugin and therefore makes the StubbyMixin constant defined already."
     assert !defined?(StubbyMixin), failure_tip
     assert !added_to_load_path?(@valid_plugin_path)
     # The init.rb of this plugin raises if it doesn't have access to all the things it needs

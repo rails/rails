@@ -1,5 +1,7 @@
 *SVN*
 
+* Split out the basic plugin locator functionality into an abstract super class. Add a FileSystemLocator to do the job of checking the plugin_paths for plugins. Add plugin_locators configuration option which will iterate over the set of plugin locators and load each of the plugin loaders they return. Rename locater everywhere to locator. [Marcel Molina Jr.] 
+
 * Split plugin location and loading out of the initializer and into a new Plugin namespace, which includes Plugin::Locater and Plugin::Loader. The loader class that is used can be customized using the config.plugin_loader option.  Those monkey patching the plugin loading subsystem take note, the internals changing here will likely break your modifications. The good news is that it should be substantially easier to hook into the plugin locating and loading process now.  [Marcel Molina Jr.]
 
 * Added assumption that all plugin creators desire to be sharing individuals and release their work under the MIT license [DHH]

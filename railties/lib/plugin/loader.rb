@@ -32,16 +32,36 @@ module Rails
       def plugin_path?
         File.directory?(directory) && (has_lib_directory? || has_init_file?)
       end
-    
+      
       def enabled?
-        config.plugins.nil? || config.plugins.include?(name)
+        !explicit_plugin_loading_order? || registered?
+      end
+        
+      def registered?
+        explicit_plugin_loading_order? && registered_plugins.include?(name)
+      end
+      
+      def plugin_does_not_exist!(plugin_name = name)
+        raise LoadError, "Can not find the plugin named: #{plugin_name}"
       end
       
       private
-        def report_nonexistant_or_empty_plugin!
-          raise LoadError, "No such plugin: #{directory}" unless plugin_path?
+        # The plugins that have been explicitly listed with config.plugins. If this list is nil
+        # then it means the client does not care which plugins or in what order they are loaded, 
+        # so we load all in alphabetical order. If it is an empty array, we load no plugins, if it is
+        # non empty, we load the named plugins in the order specified.
+        def registered_plugins
+          config.plugins
         end
-  
+        
+        def explicit_plugin_loading_order?
+          !registered_plugins.nil?
+        end
+        
+        def report_nonexistant_or_empty_plugin!
+          plugin_does_not_exist! unless plugin_path?
+        end
+        
         def lib_path
           File.join(directory, 'lib')
         end
@@ -88,7 +108,15 @@ module Rails
         end
       
         def <=>(other_plugin_loader)
-          name <=> other_plugin_loader.name
+          if explicit_plugin_loading_order?
+            if non_existent_plugin = [self, other_plugin_loader].detect {|plugin| !registered_plugins.include?(plugin.name)}
+              plugin_does_not_exist!(non_existent_plugin.name)
+            end
+            
+            registered_plugins.index(name) <=> registered_plugins.index(other_plugin_loader.name)
+          else
+            name <=> other_plugin_loader.name
+          end
         end
     end
   end

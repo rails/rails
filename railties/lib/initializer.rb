@@ -2,7 +2,7 @@ require 'logger'
 require 'set'
 require File.join(File.dirname(__FILE__), 'railties_path')
 require File.join(File.dirname(__FILE__), 'rails/version')
-require File.join(File.dirname(__FILE__), 'plugin/locater')
+require File.join(File.dirname(__FILE__), 'plugin/locator')
 require File.join(File.dirname(__FILE__), 'plugin/loader')
 
 
@@ -183,12 +183,14 @@ module Rails
     # * evaluate <tt>init.rb</tt> if present
     #
     # After all plugins are loaded, duplicates are removed from the load path.
-    # If an array of plugin names is specified in config.plugins, the plugins
-    # will be loaded in that order. Otherwise, plugins are loaded in alphabetical
+    # If an array of plugin names is specified in config.plugins, only those plugins will be loaded
+    # and they plugins will be loaded in that order. Otherwise, plugins are loaded in alphabetical
     # order.
     def load_plugins
-      Plugin::Locater.new(self).each do |plugin|
-        plugin.load
+      configuration.plugin_locators.each do |locator|
+        locator.new(self).each do |plugin|
+          plugin.load
+        end
       end
       $LOAD_PATH.uniq!      
     end
@@ -429,6 +431,12 @@ module Rails
     # <tt>vendor/plugins</tt>.
     attr_accessor :plugin_paths
     
+    # The classes that handle finding the desired plugins that you'd like to load for
+    # your application. By default it is the Rails::Plugin::FileSystemLocator which finds
+    # plugins to load in <tt>vendor/plugins</tt>. You can hook into gem location by subclassing
+    # Rails::Plugin::Locator and adding it onto the list of <tt>plugin_locators</tt>.
+    attr_accessor :plugin_locators
+    
     # The class that handles loading each plugin. Defaults to Rails::Plugin::Loader, but 
     # a sub class would have access to fine grained modification of the loading behavior. See
     # the implementation of Rails::Plugin::Loader for more details.
@@ -449,6 +457,7 @@ module Rails
       self.whiny_nils                   = default_whiny_nils
       self.plugins                      = default_plugins
       self.plugin_paths                 = default_plugin_paths
+      self.plugin_locators              = default_plugin_locators
       self.plugin_loader                = default_plugin_loader
       self.database_configuration_file  = default_database_configuration_file
 
@@ -603,6 +612,10 @@ module Rails
 
       def default_plugin_paths
         ["#{root_path}/vendor/plugins"]
+      end
+      
+      def default_plugin_locators
+        [Plugin::FileSystemLocator]
       end
       
       def default_plugin_loader
