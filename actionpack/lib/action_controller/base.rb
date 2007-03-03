@@ -495,6 +495,8 @@ module ActionController #:nodoc:
       #   is currently not recommended since it breaks caching.
       # * <tt>:host</tt> -- overrides the default (current) host if provided
       # * <tt>:protocol</tt> -- overrides the default (current) protocol if provided
+      # * <tt>:user</tt> -- Inline HTTP authentication (only plucked out if :password is also present)
+      # * <tt>:password</tt> -- Inline HTTP authentication (only plucked out if :user is also present)
       #
       # The URL is generated from the remaining keys in the hash. A URL contains two key parts: the <base> and a query string.
       # Routes composes a query string as the key/value pairs not included in the <base>.
@@ -502,9 +504,10 @@ module ActionController #:nodoc:
       # The default Routes setup supports a typical Rails path of "controller/action/id" where action and id are optional, with
       # action defaulting to 'index' when not given. Here are some typical url_for statements and their corresponding URLs:
       #  
-      #   url_for :controller => 'posts', :action => 'recent' # => 'proto://host.com/posts/recent'
-      #   url_for :controller => 'posts', :action => 'index' # => 'proto://host.com/posts'
-      #   url_for :controller => 'posts', :action => 'show', :id => 10 # => 'proto://host.com/posts/show/10'
+      #   url_for :controller => 'posts', :action => 'recent'              # => 'proto://host.com/posts/recent'
+      #   url_for :controller => 'posts', :action => 'index'               # => 'proto://host.com/posts'
+      #   url_for :controller => 'posts', :action => 'show', :id => 10     # => 'proto://host.com/posts/show/10'
+      #   url_for :controller => 'posts', :user => 'd', :password => '123' # => 'proto://d:123@host.com/posts'
       #
       # When generating a new URL, missing values may be filled in from the current request's parameters. For example,
       # <tt>url_for :action => 'some_action'</tt> will retain the current controller, as expected. This behavior extends to

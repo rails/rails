@@ -1,5 +1,7 @@
 *SVN*
 
+* Added user/password options for url_for to add http authentication in a URL [DHH]
+
 * Fixed that FormTagHelper#text_area_tag should disregard :size option if it's not a string [Brendon Davidson]
 
 * Set the original button value in an attribute of the button when using the :disable_with key with submit_tag, so that the original can be restored later. [Jamis Buck]

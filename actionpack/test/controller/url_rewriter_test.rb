@@ -23,6 +23,13 @@ class UrlRewriterTests < Test::Unit::TestCase
     )
   end
   
+  def test_user_name_and_password
+    assert_equal(
+      'http://david:secret@test.host/c/a/i',
+      @rewriter.rewrite(:user => "david", :password => "secret", :controller => 'c', :action => 'a', :id => 'i')
+    )
+  end
+  
   def test_overwrite_params
     @params[:controller] = 'hi'
     @params[:action] = 'bye'
