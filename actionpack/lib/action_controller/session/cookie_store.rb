@@ -1,24 +1,37 @@
 require 'cgi'
 require 'cgi/session'
-require 'base64'        # to make marshaled data HTTP header friendly
-require 'digest/sha2'   # to generate the data integrity hash
+require 'base64'        # to convert Marshal.dump to ASCII
+require 'openssl'       # to generate the HMAC message digest
 
 # This cookie-based session store is the Rails default. Sessions typically
 # contain at most a user_id and flash message; both fit within the 4K cookie
 # size limit. Cookie-based sessions are dramatically faster than the
 # alternatives.
 #
-# A secure hash is included with the cookie to ensure data integrity:
-# a user cannot alter his user_id without knowing the secret key included in
-# the hash. New apps are generated with a session :secret option in
-# Application Controller. Set your own for old apps you're upgrading.
-# Note that changing the secret invalidates all existing sessions!
-#
 # If you have more than 4K of session data or don't want your data to be
 # visible to the user, pick another session store.
 #
 # CookieOverflow is raised if you attempt to store more than 4K of data.
 # TamperedWithCookie is raised if the data integrity check fails.
+#
+# A message digest is included with the cookie to ensure data integrity:
+# a user cannot alter his user_id without knowing the secret key included in
+# the hash. New apps are generated with a pregenerated secret in
+# config/environment.rb. Set your own for old apps you're upgrading.
+#
+# Session options:
+#   :secret   An application-wide key string or block returning a string
+#             called per generated digest. The block is called with the
+#             CGI::Session instance as an argument.
+#
+#             Example:  :secret => '449fe2e7daee471bffae2fd8dc02313d'
+#                       :secret => Proc.new { User.current_user.secret_key }
+#
+#   :digest   The message digest algorithm used to verify session integrity
+#             defaults to 'SHA1' but may be any digest provided by OpenSSL,
+#             such as 'MD5', 'RIPEMD160', 'SHA256', etc.
+#
+# Note that changing digest or secret invalidates all existing sessions!
 class CGI::Session::CookieStore
   # Cookies can typically store 4096 bytes.
   MAX = 4096
@@ -33,11 +46,14 @@ class CGI::Session::CookieStore
   def initialize(session, options = {})
     # The secret option is required.
     if options['secret'].blank?
-      raise ArgumentError, 'A secret is required to generate an integrity hash for cookie session data. Use session :secret => "some secret phrase" in ApplicationController.'
+      raise ArgumentError, 'A secret is required to generate an integrity hash for cookie session data. Use config.action_controller.session = { :secret => "some secret phrase" } in config/environment.rb'
     end
 
     # Keep the session and its secret on hand so we can read and write cookies.
     @session, @secret = session, options['secret']
+
+    # Message digest defaults to SHA1.
+    @digest = options['digest'] || 'SHA1'
 
     # Default cookie options derived from session settings.
     @cookie_options = {
@@ -97,11 +113,10 @@ class CGI::Session::CookieStore
       end
     end
 
-    # Generate the inline SHA512 message digest. Larger (128 bytes) than SHA256
-    # (64 bytes) or RMD160 (40 bytes), but small relative to the 4096 byte
-    # max cookie size.
+    # Generate the HMAC keyed message digest. Uses SHA1 by default.
     def generate_digest(data)
-      Digest::SHA512.hexdigest "#{data}#{@secret}"
+      key = @secret.respond_to?(:call) ? @secret.call(@session) : @secret
+      OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new(@digest), key, data)
     end
 
     # Read the session data cookie.

@@ -21,7 +21,17 @@
 * Routing: better support for escaped values in route segments.  #7544 [Chris
 Roos]
 
-* Introduce a cookie-based session store as the Rails default. Sessions typically contain at most a user_id and flash message; both fit within the 4K cookie size limit. A secure hash is included with the cookie to ensure data integrity (a user cannot alter his user_id without knowing the secret key included in the hash). If you have more than 4K of session data or don't want your data to be visible to the user, pick another session store. Cookie-based sessions are dramatically faster than the alternatives.  [Jeremy Kemper]
+* Introduce a cookie-based session store as the Rails default. Sessions typically contain at most a user_id and flash message; both fit within the 4K cookie size limit. A secure message digest is included with the cookie to ensure data integrity (a user cannot alter his user_id without knowing the secret key included in the digest). If you have more than 4K of session data or don't want your data to be visible to the user, pick another session store.  Cookie-based sessions are dramatically faster than the alternatives.   [Jeremy Kemper]
+
+  Example config/environment.rb:
+    # Use an application-wide secret key and the default SHA1 message digest.
+    config.action_controller.session = { :secret => "can't touch this" }
+
+    # Store a secret key per user and employ a stronger message digest.
+    config.action_controller.session = {
+      :digest => 'SHA512',
+      :secret => Proc.new { User.current.secret_key }
+    }
 
 * Added .erb and .builder as preferred aliases to the now deprecated .rhtml and .rxml extensions [Chad Fowler]. This is done to separate the renderer from the mime type. .erb templates are often used to render emails, atom, csv, whatever. So labeling them .rhtml doesn't make too much sense. The same goes for .rxml, which can be used to build everything from HTML to Atom to whatever. .rhtml and .rxml will continue to work until Rails 3.0, though. So this is a slow phasing out. All generators and examples will start using the new aliases, though.
 
