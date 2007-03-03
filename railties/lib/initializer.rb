@@ -2,8 +2,8 @@ require 'logger'
 require 'set'
 require File.join(File.dirname(__FILE__), 'railties_path')
 require File.join(File.dirname(__FILE__), 'rails/version')
-require File.join(File.dirname(__FILE__), 'plugin/locator')
-require File.join(File.dirname(__FILE__), 'plugin/loader')
+require File.join(File.dirname(__FILE__), 'rails/plugin/locator')
+require File.join(File.dirname(__FILE__), 'rails/plugin/loader')
 
 
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
