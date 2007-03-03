@@ -29,26 +29,10 @@ module Rails
     class FileSystemLocator < Locator
         private
           def located_plugins
-            returning locate_plugins do |loaders|
-              ensure_all_registered_plugins_are_loaded!(loaders)
-            end
-          end
-          
-          def locate_plugins
             initializer.configuration.plugin_paths.flatten.inject([]) do |plugins, path|
               plugins.concat locate_plugins_under(path)
               plugins
             end.flatten
-          end
-          
-          def ensure_all_registered_plugins_are_loaded!(loaders)
-            registered_plugins = initializer.configuration.plugins
-            unless registered_plugins.nil? || registered_plugins.empty?
-              missing_plugins = registered_plugins - loaders.map(&:name)
-              unless missing_plugins.empty?
-                raise LoadError, "Could not locate the following plugins: #{missing_plugins.to_sentence}"
-              end
-            end
           end
 
           # This starts at the base path looking for directories that pass the plugin_path? test of the Plugin::Loader.

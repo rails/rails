@@ -192,6 +192,7 @@ module Rails
           plugin.load
         end
       end
+      ensure_all_registered_plugins_are_loaded!
       $LOAD_PATH.uniq!      
     end
 
@@ -339,6 +340,16 @@ module Rails
         load(initializer)
       end
     end
+    
+    private
+      def ensure_all_registered_plugins_are_loaded!
+        unless configuration.plugins.nil?
+          unless loaded_plugins == configuration.plugins
+            missing_plugins = configuration.plugins - loaded_plugins
+            raise LoadError, "Could not locate the following plugins: #{missing_plugins.to_sentence}"
+          end
+        end
+      end
   end
 
   # The Configuration class holds all the parameters for the Initializer and
