@@ -4,6 +4,8 @@ require 'fixtures/post'
 require 'fixtures/task'
 
 class SqlServerAdapterTest < Test::Unit::TestCase
+  class TableWithRealColumn < ActiveRecord::Base; end
+
   fixtures :posts, :tasks
 
   def setup
@@ -11,7 +13,11 @@ class SqlServerAdapterTest < Test::Unit::TestCase
   end
 
   def teardown
-    @connection.execute("SET LANGUAGE us_english")
+    @connection.execute("SET LANGUAGE us_english") rescue nil
+  end
+
+  def test_real_column_has_float_type
+    assert_equal :float, TableWithRealColumn.columns_hash["real_number"].type
   end
 
   # SQL Server 2000 has a bug where some unambiguous date formats are not 
@@ -22,6 +28,14 @@ class SqlServerAdapterTest < Test::Unit::TestCase
     assert_nothing_raised do
       Task.create(:starting => Time.utc(2000, 1, 31, 5, 42, 0), :ending => Date.new(2006, 12, 31))
     end
+  end
+
+  def test_indexes_with_descending_order
+    # Make sure we have an index with descending order
+    @connection.execute "CREATE INDEX idx_credit_limit ON accounts (credit_limit DESC)" rescue nil
+    assert_equal ["credit_limit"], @connection.indexes('accounts').first.columns
+  ensure
+    @connection.execute "DROP INDEX accounts.idx_credit_limit"
   end
 
   def test_execute_without_block_closes_statement

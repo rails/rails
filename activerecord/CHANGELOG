@@ -1,5 +1,9 @@
 *SVN*
 
+* SQLServer: correctly schema-dump tables with no indexes or descending indexes.  #7333, #7703 [Jakob S, Tom Ward]
+
+* SQLServer: recognize real column type as Ruby float.  #7057 [sethladd, Tom Ward]
+
 * Added fixtures :all as a way of loading all fixtures in the fixture directory at once #7214 [manfred]
 
 * Added database connection as a yield parameter to ActiveRecord::Base.transaction so you can manually rollback [DHH]. Example:

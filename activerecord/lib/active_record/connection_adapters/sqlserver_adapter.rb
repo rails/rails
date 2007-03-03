@@ -41,7 +41,7 @@ module ActiveRecord
         raise ArgumentError, "Missing Database. Argument ':database' must be set in order for this adapter to work." unless config.has_key?(:database)
         database  = config[:database]
         host      = config[:host] ? config[:host].to_s : 'localhost'
-        driver_url = "DBI:ADO:Provider=SQLOLEDB;Data Source=#{host};Initial Catalog=#{database};User Id=#{username};Password=#{password};"
+        driver_url = "DBI:ADO:Provider=SQLOLEDB;Data Source=#{host};Initial Catalog=#{database};User ID=#{username};Password=#{password};"
       end
       conn      = DBI.connect(driver_url, username, password)
       conn["AutoCommit"] = autocommit
@@ -64,6 +64,7 @@ module ActiveRecord
 
       def simplified_type(field_type)
         case field_type
+          when /real/i              then :float
           when /money/i             then :decimal
           when /image/i             then :binary
           when /bit/i               then :boolean
@@ -168,11 +169,13 @@ module ActiveRecord
     # * <tt>:mode</tt>      -- ADO or ODBC. Defaults to ADO.
     # * <tt>:username</tt>  -- Defaults to sa.
     # * <tt>:password</tt>  -- Defaults to empty string.
+    # * <tt>:windows_auth</tt> -- Defaults to "User ID=#{username};Password=#{password}"
     #
     # ADO specific options:
     #
     # * <tt>:host</tt>      -- Defaults to localhost.
     # * <tt>:database</tt>  -- The name of the database. No default, must be provided.
+    # * <tt>:windows_auth</tt> -- Use windows authentication instead of username/password.
     #
     # ODBC specific options:                   
     #
@@ -419,9 +422,9 @@ module ActiveRecord
 
       def tables(name = nil)
         execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'", name) do |sth|
-          sth.inject([]) do |tables, field|
+          result = sth.inject([]) do |tables, field|
             table_name = field[0]
-            tables << table_name unless table_name == 'dtproperties'
+            tables << table_name unless table_name == 'dtproperties'            
             tables
           end
         end
@@ -430,18 +433,20 @@ module ActiveRecord
       def indexes(table_name, name = nil)
         ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = false
         indexes = []        
-        execute("EXEC sp_helpindex '#{table_name}'", name) do |sth|
-          sth.each do |index| 
-            unique = index[1] =~ /unique/
-            primary = index[1] =~ /primary key/
-            if !primary
-              indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", "))
+        execute("EXEC sp_helpindex '#{table_name}'", name) do |handle|
+          if handle.column_info.any?
+            handle.each do |index| 
+              unique = index[1] =~ /unique/
+              primary = index[1] =~ /primary key/
+              if !primary
+                indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", ").map {|e| e.gsub('(-)','')})
+              end
             end
           end
         end
         indexes
-        ensure
-          ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = true
+      ensure
+        ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = true
       end
             
       def rename_table(name, new_name)
@@ -471,6 +476,11 @@ module ActiveRecord
         sql_commands.each {|c|
           execute(c)
         }
+      end
+      
+      def change_column_default(table_name, column_name, default)
+        remove_default_constraint(table_name, column_name)
+        execute "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{quote(default, column_name)} FOR #{column_name}"   
       end
       
       def remove_column(table_name, column_name)

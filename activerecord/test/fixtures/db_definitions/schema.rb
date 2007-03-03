@@ -64,4 +64,11 @@ ActiveRecord::Schema.define do
       t.column :name, :string
     end
   end
+  
+  # For sqlserver 2000+, ensure real columns can be used
+  if adapter_name.starts_with?("SQLServer")
+    create_table :table_with_real_columns, :force => true do |t|
+      t.column :real_number, :real
+    end
+  end
 end
