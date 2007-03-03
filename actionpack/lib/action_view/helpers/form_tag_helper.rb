@@ -114,7 +114,7 @@ module ActionView
         options.stringify_keys!
 
         if size = options.delete("size")
-          options["cols"], options["rows"] = size.split("x")
+          options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
         end
 
         content_tag :textarea, content, { "name" => name, "id" => name }.update(options.stringify_keys)

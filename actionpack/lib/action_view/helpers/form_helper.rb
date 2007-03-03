@@ -302,7 +302,7 @@ module ActionView
         add_default_name_and_id(options)
 
         if size = options.delete("size")
-          options["cols"], options["rows"] = size.split("x")
+          options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
         end
 
         content_tag("textarea", html_escape(options.delete('value') || value_before_type_cast(object)), options)

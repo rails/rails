@@ -105,6 +105,12 @@ class FormTagHelperTest < Test::Unit::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_text_area_tag_should_disregard_size_if_its_given_as_an_integer
+    actual = text_area_tag "body", "hello world", :size => 20
+    expected = %(<textarea id="body" name="body">hello world</textarea>)
+    assert_dom_equal expected, actual
+  end
+
   def test_text_field_tag
     actual = text_field_tag "title", "Hello!"
     expected = %(<input id="title" name="title" type="text" value="Hello!" />)
