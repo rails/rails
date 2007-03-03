@@ -89,7 +89,10 @@ class CGI::Session::CookieStore
     def unmarshal(cookie)
       if cookie
         data, digest = CGI.unescape(cookie).split('--')
-        raise TamperedWithCookie unless digest == generate_digest(data)
+        unless digest == generate_digest(data)
+          delete
+          raise TamperedWithCookie
+        end
         Marshal.load(Base64.decode64(data))
       end
     end

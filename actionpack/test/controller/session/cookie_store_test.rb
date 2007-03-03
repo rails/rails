@@ -68,56 +68,86 @@ class CookieStoreTest < Test::Unit::TestCase
     end
   end
 
+  def test_restore_deletes_tampered_cookies
+    set_cookie! 'a--b'
+    new_session do |session|
+      assert_raise(CGI::Session::CookieStore::TamperedWithCookie) { session['fail'] }
+      assert_cookie_deleted session
+    end
+  end
+
   def test_close_doesnt_write_cookie_if_data_is_blank
     new_session do |session|
-      assert_nil session.cgi.output_cookies, session.cgi.output_cookies.inspect
+      assert_no_cookies session
       session.close
-      assert_nil session.cgi.output_cookies, session.cgi.output_cookies.inspect
+      assert_no_cookies session
     end
   end
 
   def test_close_doesnt_write_cookie_if_data_is_unchanged
     set_cookie! Cookies::TYPICAL.first
     new_session do |session|
-      assert_nil session.cgi.output_cookies, session.cgi.output_cookies.inspect
+      assert_no_cookies session
       session['user_id'] = session['user_id']
       session.close
-      assert_nil session.cgi.output_cookies, session.cgi.output_cookies.inspect
+      assert_no_cookies session
+    end
+  end
+
+  def test_close_raises_when_data_overflows
+    set_cookie! Cookies::EMPTY.first
+    new_session do |session|
+      session['overflow'] = 'bye!' * 1024
+      assert_raise(CGI::Session::CookieStore::CookieOverflow) { session.close }
+      assert_no_cookies session
     end
   end
 
   def test_close_marshals_and_writes_cookie
     set_cookie! Cookies::TYPICAL.first
     new_session do |session|
-      assert_nil session.cgi.output_cookies, session.cgi.output_cookies.inspect
+      assert_no_cookies session
       session['flash'] = {}
-      assert_nil session.cgi.output_cookies, session.cgi.output_cookies.inspect
+      assert_no_cookies session
       session.close
       assert_equal 1, session.cgi.output_cookies.size
       cookie = session.cgi.output_cookies.first
       assert_equal ['_myapp_session', [Cookies::FLASHED.first]],
                    [cookie.name, cookie.value]
+      assert_cookie cookie, Cookies::FLASHED.first
     end
   end
 
   def test_delete_writes_expired_empty_cookie_and_sets_data_to_nil
     set_cookie! Cookies::TYPICAL.first
     new_session do |session|
-      assert_nil session.cgi.output_cookies, session.cgi.output_cookies.inspect
+      assert_no_cookies session
       session.delete
-      assert_equal 1, session.cgi.output_cookies.size
-      cookie = session.cgi.output_cookies.first
-      assert_equal ['_myapp_session', [], 1.year.ago.to_date],
-                   [cookie.name, cookie.value, cookie.expires.to_date]
+      assert_cookie_deleted session
 
       # @data is set to nil so #close doesn't send another cookie.
       session.close
-      assert_equal ['_myapp_session', [], 1.year.ago.to_date],
-                   [cookie.name, cookie.value, cookie.expires.to_date]
+      assert_cookie_deleted session
     end
   end
 
   private
+    def assert_no_cookies(session)
+      assert_nil session.cgi.output_cookies, session.cgi.output_cookies.inspect
+    end
+
+    def assert_cookie_deleted(session, message = 'Expected session deletion cookie to be set')
+      assert_equal 1, session.cgi.output_cookies.size
+      cookie = session.cgi.output_cookies.first
+      assert_cookie cookie, nil, 1.year.ago.to_date, message
+    end
+
+    def assert_cookie(cookie, value = nil, expires = nil, message = nil)
+      assert_equal '_myapp_session', cookie.name, message
+      assert_equal [value].compact, cookie.value, message
+      assert_equal expires, cookie.expires ? cookie.expires.to_date : cookie.expires, message
+    end
+
     def set_cookie!(value)
       ENV['HTTP_COOKIE'] = "_myapp_session=#{value}"
     end
