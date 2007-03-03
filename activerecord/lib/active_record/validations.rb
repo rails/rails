@@ -452,10 +452,10 @@ module ActiveRecord
       # === Warning
       # Validate the presence of the foreign key, not the instance variable itself.
       # Do this:
-      #  validate_presence_of :invoice_id
+      #  validates_presence_of :invoice_id
       #
       # Not this:
-      #  validate_presence_of :invoice
+      #  validates_presence_of :invoice
       #
       # If you validate the presence of the associated object, you will get
       # failures on saves when both the parent object and the child object are
