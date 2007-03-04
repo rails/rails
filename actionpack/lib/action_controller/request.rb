@@ -129,7 +129,7 @@ module ActionController
 
     # Returns the complete URL used for this request
     def url
-      request.protocol + request.host_with_port + request.request_uri
+      protocol + host_with_port + request_uri
     end
 
     # Return 'https://' if this is an SSL request and 'http://' otherwise.
