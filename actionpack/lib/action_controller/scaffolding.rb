@@ -184,6 +184,8 @@ module ActionController
             end
         end_eval
       end
+
+      deprecate :scaffold => 'Controller scaffolding will be moved to a plugin in Rails 2.0. Switch to the generator or `script/plugin install scaffolding`'
     end
   end
 end

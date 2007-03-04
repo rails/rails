@@ -1,5 +1,7 @@
 *SVN*
 
+* Extract dynamic scaffolding into a plugin.  #7700 [Josh Peek]
+
 * Added user/password options for url_for to add http authentication in a URL [DHH]
 
 * Fixed that FormTagHelper#text_area_tag should disregard :size option if it's not a string [Brendon Davidson]

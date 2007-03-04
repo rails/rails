@@ -16,8 +16,6 @@ class Address
 end
 
 class AddressesTestController < ActionController::Base
-  scaffold :address
-
   def self.controller_name; "addresses"; end
   def self.controller_path; "addresses"; end
 end
