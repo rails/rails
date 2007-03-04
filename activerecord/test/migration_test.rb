@@ -40,7 +40,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       Reminder.reset_column_information
 
       %w(last_name key bio age height wealth birthday favorite_day
-         male administrator).each do |column|
+         moment_of_truth male administrator).each do |column|
         Person.connection.remove_column('people', column) rescue nil
       end
       Person.connection.remove_column("people", "first_name") rescue nil
@@ -261,8 +261,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.add_column "people", "wealth", :decimal, :precision => '30', :scale => '10'
       Person.connection.add_column "people", "birthday", :datetime
       Person.connection.add_column "people", "favorite_day", :date
+      Person.connection.add_column "people", "moment_of_truth", :datetime
       Person.connection.add_column "people", "male", :boolean
-      assert_nothing_raised { Person.create :first_name => 'bob', :last_name => 'bobsen', :bio => "I was born ....", :age => 18, :height => 1.78, :wealth => BigDecimal.new("12345678901234567890.0123456789"), :birthday => 18.years.ago, :favorite_day => 10.days.ago, :male => true }
+      assert_nothing_raised { Person.create :first_name => 'bob', :last_name => 'bobsen', :bio => "I was born ....", :age => 18, :height => 1.78, :wealth => BigDecimal.new("12345678901234567890.0123456789"), :birthday => 18.years.ago, :favorite_day => 10.days.ago, :moment_of_truth => "1817-10-25 21:40:18", :male => true }
       bob = Person.find(:first)
 
       assert_equal 'bob', bob.first_name
@@ -294,6 +295,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_equal Date, bob.favorite_day.class
       end
 
+      assert_equal DateTime, bob.moment_of_truth.class
       assert_equal TrueClass, bob.male?.class
       assert_kind_of BigDecimal, bob.wealth
     end

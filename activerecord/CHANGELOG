@@ -1,5 +1,7 @@
 *SVN*
 
+* Test DateTime native type in migrations.  #7649 [fedot]
+
 * SQLServer: correctly schema-dump tables with no indexes or descending indexes.  #7333, #7703 [Jakob S, Tom Ward]
 
 * SQLServer: recognize real column type as Ruby float.  #7057 [sethladd, Tom Ward]
