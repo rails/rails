@@ -9,11 +9,6 @@ module ActionController
     # such as { 'RAILS_ENV' => 'production' }.
     attr_reader :env
 
-    # Returns both GET and POST parameters in a single hash.
-    def parameters
-      @parameters ||= request_parameters.update(query_parameters).update(path_parameters).with_indifferent_access
-    end
-
     # Returns the HTTP request method as a lowercase symbol (:get, for example). Note, HEAD is returned as :get
     # since the two are supposedly to be functionaly equivilent for all purposes except that HEAD won't return a response
     # body (which Rails also takes care of elsewhere).
@@ -126,6 +121,56 @@ module ActionController
       @env['REMOTE_ADDR']
     end
 
+    # Returns the lowercase name of the HTTP server software.
+    def server_software
+      (@env['SERVER_SOFTWARE'] && /^([a-zA-Z]+)/ =~ @env['SERVER_SOFTWARE']) ? $1.downcase : nil
+    end
+
+
+    # Returns the complete URL used for this request
+    def url
+      request.protocol + request.host_with_port + request.request_uri
+    end
+
+    # Return 'https://' if this is an SSL request and 'http://' otherwise.
+    def protocol
+      ssl? ? 'https://' : 'http://'
+    end
+
+    # Is this an SSL request?
+    def ssl?
+      @env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https'
+    end
+
+    # Returns the host for this request, such as example.com.
+    def host
+    end
+
+    # Returns a host:port string for this request, such as example.com or
+    # example.com:8080.
+    def host_with_port
+      host + port_string
+    end
+
+    # Returns the port number of this request as an integer.
+    def port
+      @port_as_int ||= @env['SERVER_PORT'].to_i
+    end
+
+    # Returns the standard port number for this request's protocol
+    def standard_port
+      case protocol
+        when 'https://' then 443
+        else 80
+      end
+    end
+
+    # Returns a port suffix like ":8080" if the port number of this request
+    # is not the default HTTP port 80 or HTTPS port 443.
+    def port_string
+      (port == standard_port) ? '' : ":#{port}"
+    end
+
     # Returns the domain part of a host, such as rubyonrails.org in "www.rubyonrails.org". You can specify
     # a different <tt>tld_length</tt>, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
     def domain(tld_length = 1)
@@ -141,13 +186,6 @@ module ActionController
       return [] unless host
       parts = host.split('.')
       parts[0..-(tld_length+2)]
-    end
-
-    # Receive the raw post data.
-    # This is useful for services such as REST, XMLRPC and SOAP
-    # which communicate over HTTP POST but don't use the traditional parameter format.
-    def raw_post
-      @env['RAW_POST_DATA']
     end
 
     # Return the request URI, accounting for server idiosyncracies.
@@ -166,16 +204,6 @@ module ActionController
         end
         @env['REQUEST_URI'] = uri
       end
-    end
-
-    # Return 'https://' if this is an SSL request and 'http://' otherwise.
-    def protocol
-      ssl? ? 'https://' : 'http://'
-    end
-
-    # Is this an SSL request?
-    def ssl?
-      @env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https'
     end
 
     # Returns the interpreted path to requested resource after all the installation directory of this application was taken into account
@@ -202,29 +230,17 @@ module ActionController
       end
     end
 
-    # Returns the port number of this request as an integer.
-    def port
-      @port_as_int ||= @env['SERVER_PORT'].to_i
+
+    # Receive the raw post data.
+    # This is useful for services such as REST, XMLRPC and SOAP
+    # which communicate over HTTP POST but don't use the traditional parameter format.
+    def raw_post
+      @env['RAW_POST_DATA']
     end
 
-    # Returns the standard port number for this request's protocol
-    def standard_port
-      case protocol
-        when 'https://' then 443
-        else 80
-      end
-    end
-
-    # Returns a port suffix like ":8080" if the port number of this request
-    # is not the default HTTP port 80 or HTTPS port 443.
-    def port_string
-      (port == standard_port) ? '' : ":#{port}"
-    end
-
-    # Returns a host:port string for this request, such as example.com or
-    # example.com:8080.
-    def host_with_port
-      host + port_string
+    # Returns both GET and POST parameters in a single hash.
+    def parameters
+      @parameters ||= request_parameters.update(query_parameters).update(path_parameters).with_indifferent_access
     end
 
     def path_parameters=(parameters) #:nodoc:
@@ -246,10 +262,6 @@ module ActionController
       @path_parameters ||= {}
     end
 
-    # Returns the lowercase name of the HTTP server software.
-    def server_software
-      (@env['SERVER_SOFTWARE'] && /^([a-zA-Z]+)/ =~ @env['SERVER_SOFTWARE']) ? $1.downcase : nil
-    end
 
     #--
     # Must be implemented in the concrete request
@@ -258,10 +270,6 @@ module ActionController
     end
 
     def request_parameters #:nodoc:
-    end
-
-    # Returns the host for this request, such as example.com.
-    def host
     end
 
     def cookies #:nodoc:

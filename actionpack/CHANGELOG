@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Request#url that returns the complete URL used for the request [DHH]
+
 * Extract dynamic scaffolding into a plugin.  #7700 [Josh Peek]
 
 * Added user/password options for url_for to add http authentication in a URL [DHH]
