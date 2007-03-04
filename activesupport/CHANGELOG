@@ -1,5 +1,7 @@
 *SVN*
 
+* DateTime calculations analogous to the Date and Time extensions.  #7693 [Geoff Buesing]
+
 * Give DateTime correct .to_s implementations, lets it play nice with ActiveRecord quoting. [gbuesing]
 
 * Add File.atomic_write,  allows you to write large files in an atomic manner, preventing users from seeing half written files.  [Koz]
