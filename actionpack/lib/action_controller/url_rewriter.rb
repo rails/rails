@@ -111,7 +111,7 @@ module ActionController
       
       def rewrite_authentication(options)
         if options[:user] && options[:password]
-          "#{options.delete(:user)}:#{options.delete(:password)}@"
+          "#{CGI.escape(options.delete(:user))}:#{CGI.escape(options.delete(:password))}@"
         else
           ""
         end

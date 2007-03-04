@@ -29,7 +29,14 @@ class UrlRewriterTests < Test::Unit::TestCase
       @rewriter.rewrite(:user => "david", :password => "secret", :controller => 'c', :action => 'a', :id => 'i')
     )
   end
-  
+
+  def test_user_name_and_password_with_escape_codes
+    assert_equal(
+      'http://openid.aol.com%2Fnextangler:one+two%3F@test.host/c/a/i',
+      @rewriter.rewrite(:user => "openid.aol.com/nextangler", :password => "one two?", :controller => 'c', :action => 'a', :id => 'i')
+    )
+  end
+
   def test_overwrite_params
     @params[:controller] = 'hi'
     @params[:action] = 'bye'
