@@ -374,7 +374,7 @@ module ActionView
         def expand_javascript_sources(sources)          
           case
           when sources.include?(:all)
-            all_javascript_files = Dir[File.join(JAVASCRIPTS_DIR, '*.js')].collect { |file| File.basename(file).split(".", 0).first }
+            all_javascript_files = Dir[File.join(JAVASCRIPTS_DIR, '*.js')].collect { |file| File.basename(file).split(".", 0).first }.sort
             sources = ((@@javascript_default_sources.dup & all_javascript_files) + all_javascript_files).uniq
 
           when sources.include?(:defaults)
@@ -391,7 +391,7 @@ module ActionView
 
         def expand_stylesheet_sources(sources)
           if sources.first == :all
-            sources = Dir[File.join(STYLESHEETS_DIR, '*.css')].collect { |file| File.basename(file).split(".", 1).first }
+            sources = Dir[File.join(STYLESHEETS_DIR, '*.css')].collect { |file| File.basename(file).split(".", 1).first }.sort
           else
             sources
           end
