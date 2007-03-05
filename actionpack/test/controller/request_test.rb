@@ -323,6 +323,25 @@ class RequestTest < Test::Unit::TestCase
     @request.env["HTTP_ACCEPT"] = "text/javascript"
     assert_equal Mime::JS, @request.format
   end
+  
+  def test_content_type
+    @request.env["CONTENT_TYPE"] = "text/html"
+    assert_equal Mime::HTML, @request.content_type
+  end
+
+  def test_content_no_type
+    assert_equal nil, @request.content_type
+  end
+  
+  def test_content_type_xml
+    @request.env["CONTENT_TYPE"] = "application/xml"
+    assert_equal Mime::XML, @request.content_type
+  end
+
+  def test_content_type_with_charset
+    @request.env["CONTENT_TYPE"] = "application/xml; charset=UTF-8"
+    assert_equal Mime::XML, @request.content_type
+  end
 
   protected
     def set_request_method_to(method)

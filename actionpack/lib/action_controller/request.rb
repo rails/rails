@@ -58,7 +58,8 @@ module ActionController
     def content_type
       @content_type ||=
         begin
-          content_type = @env['CONTENT_TYPE'].to_s.downcase
+          # Receive header sans any charset information.
+          content_type = @env['CONTENT_TYPE'].to_s.sub(/\s*\;.*$/, '').strip.downcase
           
           if x_post_format = @env['HTTP_X_POST_DATA_FORMAT']
             case x_post_format.to_s.downcase
