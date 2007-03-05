@@ -138,7 +138,7 @@ module ActiveRecord
 
         # Construct attributes for :through pointing to owner and associate.
         def construct_join_attributes(associate)
-          construct_owner_attributes(@reflection.through_reflection).merge(@reflection.source_reflection.association_foreign_key => associate.id)
+          construct_owner_attributes(@reflection.through_reflection).merge(@reflection.source_reflection.primary_key_name => associate.id)
         end
 
         # Associate attributes pointing to owner, quoted.

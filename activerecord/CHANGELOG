@@ -1,3 +1,8 @@
+*SVN*
+
+* Fix has_many :through << with custom foreign keys.  #6466, #7153 [naffis, Rich Collins]
+
+
 *1.15.2* (February 5th, 2007)
 
 * Pass a range in :conditions to use the SQL BETWEEN operator.  #6974 [dcmanges]
