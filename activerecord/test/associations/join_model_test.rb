@@ -6,10 +6,12 @@ require 'fixtures/comment'
 require 'fixtures/author'
 require 'fixtures/category'
 require 'fixtures/categorization'
+require 'fixtures/vertex'
+require 'fixtures/edge'
 
 class AssociationsJoinModelTest < Test::Unit::TestCase
   self.use_transactional_fixtures = false
-  fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites
+  fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices
 
   def test_has_many
     assert authors(:david).categories.include?(categories(:general))
@@ -414,6 +416,9 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
                 message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
     assert_equal(count + 4, post_thinking.tags.size)
     assert_equal(count + 4, post_thinking.tags(true).size)
+
+    # Raises if the wrong reflection name is used to set the Edge belongs_to
+    assert_nothing_raised { vertices(:vertex_1).sinks << vertices(:vertex_5) }
   end
 
   def test_adding_junk_to_has_many_through_should_raise_type_mismatch
