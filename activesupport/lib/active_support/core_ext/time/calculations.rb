@@ -91,6 +91,8 @@ module ActiveSupport #:nodoc:
           f = seconds.since(self)
           final_dst   = f.dst? ? 1 : 0
           (seconds.abs >= 86400 && initial_dst != final_dst) ? f + (initial_dst - final_dst).hours : f
+        rescue
+          self.to_datetime.since(seconds)          
         end
         alias :in :since
 

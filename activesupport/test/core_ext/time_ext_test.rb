@@ -167,6 +167,8 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2005,2,22,11,10,10), Time.local(2005,2,22,10,10,10).since(3600)
     assert_equal Time.local(2005,2,24,10,10,10), Time.local(2005,2,22,10,10,10).since(86400*2)
     assert_equal Time.local(2005,2,24,11,10,35), Time.local(2005,2,22,10,10,10).since(86400*2 + 3600 + 25)
+    # when out of range of Time, returns a DateTime
+    assert_equal DateTime.civil(2038,1,20,11,59,59), Time.utc(2038,1,18,11,59,59).since(86400*2)
   end
 
   def test_daylight_savings_time_crossings_forward_start
@@ -349,6 +351,16 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
 
   def test_xmlschema_is_available
     assert_nothing_raised { Time.now.xmlschema }
+  end
+
+  def test_to_datetime
+    assert_equal Time.utc(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, 0, 0)
+    with_timezone 'US/Eastern' do
+      assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, DateTime.now.offset, 0)
+    end
+    with_timezone 'NZ' do
+      assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, DateTime.now.offset, 0)
+    end    
   end
 
   protected

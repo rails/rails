@@ -1,6 +1,6 @@
 *SVN*
 
-* Out-of-range Time calculations transparently overflow to DateTime.  #7706 [Geoff Buesing]
+* Out-of-range Time calculations transparently overflow to DateTime. Introduce Time#to_datetime.  #7706, #7715 [Geoff Buesing]
 
 * DateTime calculations analogous to the Date and Time extensions.  #7693 [Geoff Buesing]
 

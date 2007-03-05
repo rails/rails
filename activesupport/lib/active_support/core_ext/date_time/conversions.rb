@@ -22,6 +22,11 @@ module ActiveSupport #:nodoc:
         def to_date
           ::Date.new(year, month, day)
         end
+        
+        # To be able to keep Times and DateTimes interchangeable on conversions
+        def to_datetime
+          self
+        end        
       end
     end
   end

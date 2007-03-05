@@ -28,6 +28,11 @@ module ActiveSupport #:nodoc:
         def to_time
           self
         end
+        
+        # converts to a Ruby DateTime instance; preserves utc offset
+        def to_datetime
+          ::DateTime.civil(year, month, day, hour, min, sec, Rational(utc_offset, 86400), 0)
+        end        
       end
     end
   end
