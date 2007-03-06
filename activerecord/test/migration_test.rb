@@ -263,9 +263,16 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.add_column "people", "favorite_day", :date
       Person.connection.add_column "people", "moment_of_truth", :datetime
       Person.connection.add_column "people", "male", :boolean
-      assert_nothing_raised { Person.create :first_name => 'bob', :last_name => 'bobsen', :bio => "I was born ....", :age => 18, :height => 1.78, :wealth => BigDecimal.new("12345678901234567890.0123456789"), :birthday => 18.years.ago, :favorite_day => 10.days.ago, :moment_of_truth => "1817-10-25 21:40:18", :male => true }
-      bob = Person.find(:first)
 
+      assert_nothing_raised do
+        Person.create :first_name => 'bob', :last_name => 'bobsen',
+          :bio => "I was born ....", :age => 18, :height => 1.78,
+          :wealth => BigDecimal.new("12345678901234567890.0123456789"),
+          :birthday => 18.years.ago, :favorite_day => 10.days.ago,
+          :moment_of_truth => "1582-10-10 21:40:18", :male => true
+      end
+
+      bob = Person.find(:first)
       assert_equal 'bob', bob.first_name
       assert_equal 'bobsen', bob.last_name
       assert_equal "I was born ....", bob.bio

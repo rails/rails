@@ -115,7 +115,12 @@ module ActiveRecord
         time_hash[:sec_fraction] = microseconds(time_hash)
         time_array = time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)
         # treat 0000-00-00 00:00:00 as nil
-        Time.send(Base.default_timezone, *time_array) rescue DateTime.new(*time_array[0..5]) rescue nil
+        begin
+          Time.send(Base.default_timezone, *time_array)
+        rescue
+          # Append zero offset to account for dates skipped by calendar reform.
+          DateTime.new(*time_array[0..5] << 0 << 0) rescue nil
+        end
       end
 
       def self.string_to_dummy_time(string)

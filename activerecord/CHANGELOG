@@ -2,7 +2,8 @@
 
 * Fix has_many :through << with custom foreign keys.  #6466, #7153 [naffis, Rich Collins]
 
-* Test DateTime native type in migrations.  #7649 [fedot]
+* Test DateTime native type in migrations, including an edge case with dates
+during calendar reform.  #7649, #7724 [fedot, Geoff Buesing]
 
 * SQLServer: correctly schema-dump tables with no indexes or descending indexes.  #7333, #7703 [Jakob S, Tom Ward]
 
