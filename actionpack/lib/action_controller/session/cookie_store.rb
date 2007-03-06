@@ -94,6 +94,12 @@ class CGI::Session::CookieStore
     write_cookie('value' => '', 'expires' => 1.year.ago)
   end
 
+  # Generate the HMAC keyed message digest. Uses SHA1 by default.
+  def generate_digest(data)
+    key = @secret.respond_to?(:call) ? @secret.call(@session) : @secret
+    OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new(@digest), key, data)
+  end
+
   private
     # Marshal a session hash into safe cookie data. Include an integrity hash.
     def marshal(session)
@@ -111,12 +117,6 @@ class CGI::Session::CookieStore
         end
         Marshal.load(Base64.decode64(data))
       end
-    end
-
-    # Generate the HMAC keyed message digest. Uses SHA1 by default.
-    def generate_digest(data)
-      key = @secret.respond_to?(:call) ? @secret.call(@session) : @secret
-      OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new(@digest), key, data)
     end
 
     # Read the session data cookie.

@@ -1,5 +1,8 @@
 *SVN*
 
+# Add a #dbman attr_reader for CGI::Session and make CGI::Session::CookieStore#generate_digest public so it's easy to generate digests
+using the cookie store's secret. [Rick]
+
 * Added Request#url that returns the complete URL used for the request [DHH]
 
 * Extract dynamic scaffolding into a plugin.  #7700 [Josh Peek]

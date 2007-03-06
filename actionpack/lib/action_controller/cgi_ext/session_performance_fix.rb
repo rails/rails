@@ -26,6 +26,7 @@ class CGI
 
     # Make the CGI instance available to session stores.
     attr_reader :cgi
+    attr_reader :dbman
     alias_method :initialize_without_cgi_reader, :initialize
     def initialize(cgi, options = {})
       @cgi = cgi
