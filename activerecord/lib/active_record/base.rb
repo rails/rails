@@ -386,6 +386,10 @@ module ActiveRecord #:nodoc:
       #   Person.find([1])     # returns an array for objects the object with ID = 1
       #   Person.find(1, :conditions => "administrator = 1", :order => "created_on DESC")
       #
+      # Note that returned records may not be in the same order as the ids you
+      # provide since database rows are unordered. Give an explicit :order
+      # to ensure the results are sorted.
+      #
       # Examples for find first:
       #   Person.find(:first) # returns the first object fetched by SELECT * FROM people
       #   Person.find(:first, :conditions => [ "user_name = ?", user_name])
