@@ -1,6 +1,6 @@
 require 'optparse'
 
-if RUBY_PLATFORM =~ /mswin32/ then abort("Inspector is only for Unix") end
+if RUBY_PLATFORM =~ /(:?mswin|mingw)/ then abort("Inspector is only for Unix") end
 
 OPTIONS = {
   :pid_path => File.expand_path(RAILS_ROOT + '/tmp/pids'),

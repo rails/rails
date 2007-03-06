@@ -92,7 +92,7 @@ server = case ARGV.first
   else
     if defined?(Mongrel)
       "mongrel"
-    elsif RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `spawn-fcgi -version` }.blank? && defined?(FCGI)
+    elsif RUBY_PLATFORM !~ /(:?mswin|mingw)/ && !silence_stderr { `spawn-fcgi -version` }.blank? && defined?(FCGI)
       "fcgi"
     end
 end

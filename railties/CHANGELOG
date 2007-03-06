@@ -1,6 +1,9 @@
 *SVN*
 
+* Windows: include MinGW in RUBY_PLATFORM check.  #2982 [okkez000@gmail.com, Kaspar Schiess]
+
 * Stop swallowing errors during rake test [Koz]
+
 
 *1.2.2* (February 5th, 2007)
 

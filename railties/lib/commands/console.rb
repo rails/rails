@@ -1,4 +1,4 @@
-irb = RUBY_PLATFORM =~ /mswin32/ ? 'irb.bat' : 'irb'
+irb = RUBY_PLATFORM =~ /(:?mswin|mingw)/ ? 'irb.bat' : 'irb'
 
 require 'optparse'
 options = { :sandbox => false, :irb => irb }
