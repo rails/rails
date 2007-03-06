@@ -1008,7 +1008,7 @@ class RouteTest < Test::Unit::TestCase
   end
 
   def test_expand_array_build_query_string
-    assert_equal '?x[]=1&x[]=2', order_query_string(@route.build_query_string(:x => [1, 2]))
+    assert_equal '?x%5B%5D=1&x%5B%5D=2', order_query_string(@route.build_query_string(:x => [1, 2]))
   end
 
   def test_escape_spaces_build_query_string_selected_keys

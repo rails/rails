@@ -452,26 +452,18 @@ module ActionController
       # is given (as an array), only the keys indicated will be used to build
       # the query string. The query string will correctly build array parameter
       # values.
-      def build_query_string(hash, only_keys=nil)
+      def build_query_string(hash, only_keys = nil)
         elements = []
 
-        only_keys ||= hash.keys
-        
-        only_keys.each do |key|
-          value = hash[key] or next
-          key = CGI.escape key.to_s
-          if value.class == Array
-            key <<  '[]'
-          else    
-            value = [ value ] 
-          end     
-          value.each { |val| elements << "#{key}=#{CGI.escape(val.to_param.to_s)}" }
-        end     
-        
-        query_string = "?#{elements.join("&")}" unless elements.empty?
-        query_string || ""
+        (only_keys || hash.keys).each do |key|
+          if value = hash[key]
+            elements << value.to_query(key)
+          end
+        end
+
+        elements.empty? ? '' : "?#{elements.sort * '&'}"
       end
-  
+
       # Write the real recognition implementation and then resend the message.
       def recognize(path, environment={})
         write_recognition
@@ -545,7 +537,7 @@ module ActionController
         end
         nil
       end
-  
+
     end
 
     class Segment #:nodoc:
@@ -669,7 +661,7 @@ module ActionController
       end
   
       def extract_value
-        "#{local_name} = hash[:#{key}] #{"|| #{default.inspect}" if default}"
+        "#{local_name} = hash[:#{key}] && hash[:#{key}].to_param #{"|| #{default.inspect}" if default}"
       end
       def value_check
         if default # Then we know it won't be nil
@@ -1195,10 +1187,9 @@ module ActionController
         #
         # great fun, eh?
 
-        options_as_params = options[:controller] ? { :action => "index" } : {}
-        options.each do |k, value|
-          options_as_params[k] = value.to_param
-        end
+        options_as_params = options.clone
+        options_as_params[:action] ||= 'index' if options[:controller]
+        options_as_params[:action] = options_as_params[:action].to_s if options_as_params[:action]
         options_as_params
       end
   
