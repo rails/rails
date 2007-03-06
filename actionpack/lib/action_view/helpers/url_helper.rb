@@ -295,7 +295,7 @@ module ActionView
           for i in 0...tmp.length
             string << sprintf("%%%x",tmp[i])
           end
-          "<script type=\"text/javascript\">eval(unescape('#{string}'))</script>"
+          "<script type=\"#{Mime::JS}\">eval(unescape('#{string}'))</script>"
         elsif encode == "hex"
           email_address_encoded = ''
           email_address_obfuscated.each_byte do |c|

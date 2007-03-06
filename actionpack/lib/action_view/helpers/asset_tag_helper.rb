@@ -149,19 +149,19 @@ module ActionView
           if !File.exists?(joined_javascript_path)
             File.open(joined_javascript_path, "w+") do |cache|
               javascript_paths = expand_javascript_sources(sources).collect do |source|
-                compute_public_path(source, 'javascripts', 'js', false) 
+                compute_public_path(source, 'javascripts', 'js', false)
               end
 
               cache.write(join_asset_file_contents(javascript_paths))
             end
           end
 
-          content_tag("script", "", { 
-            "type" => "text/javascript", "src" => javascript_path(joined_javascript_name)
+          content_tag("script", "", {
+            "type" => Mime::JS, "src" => javascript_path(joined_javascript_name)
           }.merge(options))
         else
           expand_javascript_sources(sources).collect do |source|
-            content_tag("script", "", { "type" => "text/javascript", "src" => javascript_path(source) }.merge(options))
+            content_tag("script", "", { "type" => Mime::JS, "src" => javascript_path(source) }.merge(options))
           end.join("\n")
         end
       end
@@ -252,15 +252,15 @@ module ActionView
           end
 
           tag("link", {
-            "rel" => "Stylesheet", "type" => "text/css", "media" => "screen",
+            "rel" => "Stylesheet", "type" => Mime::CSS, "media" => "screen",
             "href" => stylesheet_path(joined_stylesheet_name)
           }.merge(options))
         else
           options.delete("cache")
 
           expand_stylesheet_sources(sources).collect do |source|
-            tag("link", { 
-              "rel" => "Stylesheet", "type" => "text/css", "media" => "screen", "href" => stylesheet_path(source)
+            tag("link", {
+              "rel" => "Stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => stylesheet_path(source)
             }.merge(options))
           end.join("\n")
         end

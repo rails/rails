@@ -132,7 +132,7 @@ module ActionView
       # public/javascripts/ directory, and use +javascript_include_tag+ to 
       # create remote <script> links.
       def define_javascript_functions
-        javascript = '<script type="text/javascript">'
+        javascript = "<script type=\"#{Mime::JS}\">"
         
         # load prototype.js and its extensions first 
         prototype_libs = Dir.glob(File.join(JAVASCRIPT_PATH, 'prototype*')).sort.reverse
@@ -166,7 +166,7 @@ module ActionView
       # +html_options+ may be a hash of attributes for the <script> tag. Example:
       #   javascript_tag "alert('All is good')", :defer => 'true' # => <script defer="true" type="text/javascript">alert('All is good')</script>
       def javascript_tag(content, html_options = {})
-        content_tag("script", javascript_cdata_section(content), html_options.merge(:type => "text/javascript"))
+        content_tag("script", javascript_cdata_section(content), html_options.merge(:type => Mime::JS))
       end
 
       def javascript_cdata_section(content) #:nodoc:

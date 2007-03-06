@@ -20,7 +20,7 @@ module ActionController
     end
     
     def charset=(encoding)
-      self.headers["Content-Type"] = "#{content_type || "text/html"}; charset=#{encoding}"
+      self.headers["Content-Type"] = "#{content_type || Mime::HTML}; charset=#{encoding}"
     end
     
     def charset

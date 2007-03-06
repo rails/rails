@@ -24,7 +24,7 @@ module Mime
       def initialize(order, name, q=nil)
         @order = order
         @name = name.strip
-        q ||= 0.0 if @name == "*/*" # default "*/*" to end of list
+        q ||= 0.0 if @name == Mime::ALL # default wilcard match to end of list
         @q = ((q || 1.0).to_f * 100).to_i
       end
 
@@ -70,7 +70,7 @@ module Mime
 
         # Take care of the broken text/xml entry by renaming or deleting it
         text_xml = list.index("text/xml")
-        app_xml = list.index("application/xml")
+        app_xml = list.index(Mime::XML.to_s)
 
         if text_xml && app_xml
           # set the q value to the max of the two
@@ -84,9 +84,9 @@ module Mime
 
           # delete text_xml from the list
           list.delete_at(text_xml)
-  
+
         elsif text_xml
-          list[text_xml].name = "application/xml"
+          list[text_xml].name = Mime::XML.to_s
         end
 
         # Look for more specific xml-based types and sort them ahead of app/xml

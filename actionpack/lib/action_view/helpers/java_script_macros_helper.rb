@@ -198,10 +198,10 @@ module ActionView
         content_tag("div", "", :id => "#{object}_#{method}_auto_complete", :class => "auto_complete") +
         auto_complete_field("#{object}_#{method}", { :url => { :action => "auto_complete_for_#{object}_#{method}" } }.update(completion_options))
       end
-      
+
       private
         def auto_complete_stylesheet
-          content_tag('style', <<-EOT, :type => 'text/css')
+          content_tag('style', <<-EOT, :type => Mime::CSS)
             div.auto_complete {
               width: 350px;
               background: #fff;
@@ -217,17 +217,17 @@ module ActionView
               margin:0;
               padding:3px;
             }
-            div.auto_complete ul li.selected { 
-              background-color: #ffb; 
+            div.auto_complete ul li.selected {
+              background-color: #ffb;
             }
-            div.auto_complete ul strong.highlight { 
+            div.auto_complete ul strong.highlight {
               color: #800; 
               margin:0;
               padding:0;
             }
           EOT
         end
-      
+
     end
   end
 end

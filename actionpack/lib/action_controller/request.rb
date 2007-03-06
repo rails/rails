@@ -60,16 +60,16 @@ module ActionController
         begin
           # Receive header sans any charset information.
           content_type = @env['CONTENT_TYPE'].to_s.sub(/\s*\;.*$/, '').strip.downcase
-          
+
           if x_post_format = @env['HTTP_X_POST_DATA_FORMAT']
             case x_post_format.to_s.downcase
             when 'yaml'
-              content_type = 'application/x-yaml'
+              content_type = Mime::YAML.to_s
             when 'xml'
-              content_type = 'application/xml'
+              content_type = Mime::XML.to_s
             end
           end
-          
+
           Mime::Type.lookup(content_type)
         end
     end

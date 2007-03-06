@@ -470,11 +470,11 @@ module ActionView #:nodoc:
         if template_requires_setup?(extension)
           body = case extension.to_sym
             when :rxml, :builder
-              "controller.response.content_type ||= 'application/xml'\n" +
+              "controller.response.content_type ||= Mime::XML\n" +
               "xml = Builder::XmlMarkup.new(:indent => 2)\n" +
               template
             when :rjs
-              "controller.response.content_type ||= 'text/javascript'\n" +
+              "controller.response.content_type ||= Mime::JS\n" +
               "update_page do |page|\n#{template}\nend"
           end
         else
