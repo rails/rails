@@ -2,7 +2,7 @@ require 'optparse'
 require 'net/http'
 require 'uri'
 
-if RUBY_PLATFORM =~ /mswin32/ then abort("Reaper is only for Unix") end
+if RUBY_PLATFORM =~ /(:?mswin|mingw)/ then abort("Reaper is only for Unix") end
 
 class Killer
   class << self

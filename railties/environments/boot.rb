@@ -3,7 +3,7 @@
 unless defined?(RAILS_ROOT)
   root_path = File.join(File.dirname(__FILE__), '..')
 
-  unless RUBY_PLATFORM =~ /mswin32/
+  unless RUBY_PLATFORM =~ /(:?mswin|mingw)/
     require 'pathname'
     root_path = Pathname.new(root_path).cleanpath(true).to_s
   end

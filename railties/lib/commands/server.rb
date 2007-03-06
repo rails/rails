@@ -19,7 +19,7 @@ server = case ARGV.first
   else
     if defined?(Mongrel)
       "mongrel"
-    elsif RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `lighttpd -version` }.blank? && defined?(FCGI)
+    elsif RUBY_PLATFORM !~ /(:?mswin|mingw)/ && !silence_stderr { `lighttpd -version` }.blank? && defined?(FCGI)
       "lighttpd"
     else
       "webrick"
