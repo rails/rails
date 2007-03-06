@@ -242,8 +242,8 @@ module ActiveRecord
 SELECT col.name AS name, type.name AS type, col.prec, col.scale,
   col.length, col.status, obj.sysstat2, def.text
  FROM sysobjects obj, syscolumns col, systypes type, syscomments def
- WHERE obj.id = col.id AND col.usertype = type.usertype AND col.cdefault *= def.id
-  AND obj.type = 'U' AND obj.name = '#{table_name}' ORDER BY col.colid
+ WHERE obj.id = col.id AND col.usertype = type.usertype AND type.name != 'timestamp' 
+  AND col.cdefault *= def.id AND obj.type = 'U' AND obj.name = '#{table_name}' ORDER BY col.colid
 SQLTEXT
         @logger.debug "Get Column Info for table '#{table_name}'" if @logger
         @connection.set_rowcount(0)
