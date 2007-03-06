@@ -369,8 +369,9 @@ class BasicsTest < Test::Unit::TestCase
     # SQL Server doesn't have a separate column type just for dates, so all are returned as time
     return true if current_adapter?(:SQLServerAdapter)
 
-    if current_adapter?(:SybaseAdapter)
+    if current_adapter?(:SybaseAdapter, :OracleAdapter)
       # Sybase ctlib does not (yet?) support the date type; use datetime instead.
+      # Oracle treats all dates/times as Time.
       assert_kind_of(
         Time, Topic.find(1).last_read, 
         "The last_read attribute should be of the Time class"

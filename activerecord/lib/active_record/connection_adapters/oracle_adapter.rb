@@ -507,8 +507,11 @@ begin
                 when OCI8::LOB
                   name == 'Writable Large Object' ? row[i]: row[i].read
                 when OraDate
-                  (row[i].hour == 0 and row[i].minute == 0 and row[i].second == 0) ?
-                  row[i].to_date : row[i].to_time
+                  if emulate_dates && (row[i].hour == 0 && row[i].minute == 0 && row[i].second == 0)
+                    row[i].to_date
+                  else
+                    row[i].to_time rescue row[i].to_datetime
+                  end
                 else row[i]
                 end unless col == 'raw_rnum_'
             end

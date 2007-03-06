@@ -55,8 +55,8 @@ def current_adapter?(*types)
 end
 
 def uses_mocha(test_name)
+  require 'rubygems'
   require 'mocha'
-  require 'stubba'
   yield
 rescue LoadError
   $stderr.puts "Skipping #{test_name} tests. `gem install mocha` and try again."

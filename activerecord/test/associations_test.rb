@@ -1515,7 +1515,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_equal 2, ken.projects(true).size
 
     kenReloaded = Developer.find_by_name 'Ken'
-    kenReloaded.projects.each {|prj| assert_date_from_db(now, prj.joined_on)}
+    kenReloaded.projects.each {|prj| assert_date_from_db(now, prj.joined_on.to_date)}
   end
 
   def test_habtm_saving_multiple_relationships
@@ -1653,7 +1653,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_additional_columns_from_join_table
-    assert_date_from_db Date.new(2004, 10, 10), Developer.find(1).projects.first.joined_on
+    assert_date_from_db Date.new(2004, 10, 10), Developer.find(1).projects.first.joined_on.to_date
   end
   
   def test_destroy_all
