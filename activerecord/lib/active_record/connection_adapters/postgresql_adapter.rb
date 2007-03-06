@@ -55,7 +55,10 @@ module ActiveRecord
       def initialize(connection, logger, config = {})
         super(connection, logger)
         @config = config
-        @async = config[:allow_concurrency]
+
+        # Ignore async_exec and async_query with the postgres-pr client lib.
+        @async = config[:allow_concurrency] && @connection.respond_to(:async_exec)
+
         configure_connection
       end
 

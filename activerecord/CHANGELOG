@@ -1,5 +1,7 @@
 *SVN*
 
+* PostgreSQL: don't use async_exec and async_query with postgres-pr.  #7727 [flowdelic]
+
 * Fix has_many :through << with custom foreign keys.  #6466, #7153 [naffis, Rich Collins]
 
 * Test DateTime native type in migrations, including an edge case with dates
