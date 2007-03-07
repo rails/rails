@@ -149,7 +149,7 @@ module ActionView
           if !File.exists?(joined_javascript_path)
             File.atomic_write(joined_javascript_path, File.dirname(joined_javascript_path)) do |cache|
               javascript_paths = expand_javascript_sources(sources).collect do |source|
-                compute_public_path(source, 'javascripts', 'js')
+                compute_public_path(source, 'javascripts', 'js', false)
               end
 
               cache.write(join_asset_file_contents(javascript_paths))
@@ -244,7 +244,7 @@ module ActionView
           if !File.exists?(joined_stylesheet_path)
             File.atomic_write(joined_stylesheet_path, File.dirname(joined_stylesheet_path)) do |cache|
               stylesheet_paths = expand_stylesheet_sources(sources).collect do |source|
-                compute_public_path(source, 'stylesheets', 'css') 
+                compute_public_path(source, 'stylesheets', 'css', false)
               end
 
               cache.write(join_asset_file_contents(stylesheet_paths))
