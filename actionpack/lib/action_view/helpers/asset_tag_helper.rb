@@ -147,7 +147,7 @@ module ActionView
           joined_javascript_path = File.join(JAVASCRIPTS_DIR, joined_javascript_name)
 
           if !File.exists?(joined_javascript_path)
-            File.atomic_write(joined_javascript_path, File.dirname(joined_javascript_path)) do |cache|
+            File.open(joined_javascript_path, "w+") do |cache|
               javascript_paths = expand_javascript_sources(sources).collect do |source|
                 compute_public_path(source, 'javascripts', 'js', false)
               end
@@ -242,9 +242,9 @@ module ActionView
           joined_stylesheet_path = File.join(STYLESHEETS_DIR, joined_stylesheet_name)
 
           if !File.exists?(joined_stylesheet_path)
-            File.atomic_write(joined_stylesheet_path, File.dirname(joined_stylesheet_path)) do |cache|
+            File.open(joined_stylesheet_path, "w+") do |cache|
               stylesheet_paths = expand_stylesheet_sources(sources).collect do |source|
-                compute_public_path(source, 'stylesheets', 'css', false)
+                compute_public_path(source, 'stylesheets', 'css', false) 
               end
 
               cache.write(join_asset_file_contents(stylesheet_paths))
