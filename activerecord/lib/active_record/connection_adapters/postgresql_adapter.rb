@@ -57,7 +57,7 @@ module ActiveRecord
         @config = config
 
         # Ignore async_exec and async_query with the postgres-pr client lib.
-        @async = config[:allow_concurrency] && @connection.respond_to(:async_exec)
+        @async = config[:allow_concurrency] && @connection.respond_to?(:async_exec)
 
         configure_connection
       end

@@ -4,7 +4,7 @@
 
 * Oracle: overflow Time to DateTime.  #7718 [Michael Schoen]
 
-* PostgreSQL: don't use async_exec and async_query with postgres-pr.  #7727 [flowdelic]
+* PostgreSQL: don't use async_exec and async_query with postgres-pr.  #7727, #7762 [flowdelic, toolmantim]
 
 * Fix has_many :through << with custom foreign keys.  #6466, #7153 [naffis, Rich Collins]
 
