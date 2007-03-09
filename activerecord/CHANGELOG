@@ -1,5 +1,7 @@
 *SVN*
 
+* DateTimes assume the default timezone.  #7764 [Geoff Buesing]
+
 * Sybase: hide timestamp columns since they're inherently read-only.  #7716 [Mike Joyce]
 
 * Oracle: overflow Time to DateTime.  #7718 [Michael Schoen]

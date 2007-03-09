@@ -118,8 +118,9 @@ module ActiveRecord
         begin
           Time.send(Base.default_timezone, *time_array)
         rescue
-          # Append zero offset to account for dates skipped by calendar reform.
-          DateTime.new(*time_array[0..5] << 0 << 0) rescue nil
+          zone_offset = if Base.default_timezone == :local then DateTime.now.offset else 0 end
+          # Append zero calendar reform start to account for dates skipped by calendar reform
+          DateTime.new(*time_array[0..5] << zone_offset << 0) rescue nil
         end
       end
 

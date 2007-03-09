@@ -302,7 +302,12 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_equal Date, bob.favorite_day.class
       end
 
+      # Test DateTime column and defaults, including timezone.
       assert_equal DateTime, bob.moment_of_truth.class
+      assert_equal DateTime.now.offset, bob.moment_of_truth.offset
+      assert_not_equal 0, bob.moment_of_truth.offset
+      assert_not_equal "Z", bob.moment_of_truth.zone
+
       assert_equal TrueClass, bob.male?.class
       assert_kind_of BigDecimal, bob.wealth
     end
