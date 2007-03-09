@@ -4,9 +4,10 @@ require 'fixtures/reply'
 require 'fixtures/subscriber'
 require 'fixtures/movie'
 require 'fixtures/keyboard'
+require 'fixtures/mixed_case_monkey'
 
 class PrimaryKeysTest < Test::Unit::TestCase
-  fixtures :topics, :subscribers, :movies
+  fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
 
   def test_integer_key
     topic = Topic.find(1)
@@ -77,5 +78,24 @@ class PrimaryKeysTest < Test::Unit::TestCase
     ActiveRecord::Base.primary_key_prefix_type = nil
     Topic.reset_primary_key
     assert_equal "id", Topic.primary_key
+  end
+  
+  def test_delete_should_quote_pkey
+    assert_nothing_raised { MixedCaseMonkey.delete(1) }
+  end
+  def test_update_counters_should_quote_pkey_and_quote_counter_columns
+    assert_nothing_raised { MixedCaseMonkey.update_counters(1, :fleaCount => 99) }
+  end
+  def test_find_with_one_id_should_quote_pkey
+    assert_nothing_raised { MixedCaseMonkey.find(1) }
+  end
+  def test_find_with_multiple_ids_should_quote_pkey
+    assert_nothing_raised { MixedCaseMonkey.find([1,2]) }
+  end
+  def test_instance_update_should_quote_pkey
+    assert_nothing_raised { MixedCaseMonkey.find(1).save }
+  end
+  def test_instance_destry_should_quote_pkey
+    assert_nothing_raised { MixedCaseMonkey.find(1).destroy }
   end
 end

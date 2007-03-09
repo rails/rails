@@ -34,3 +34,4 @@ DROP TABLE keyboards;
 DROP TABLE legacy_things;
 DROP TABLE numeric_data;
 DROP TABLE column_data;
+DROP TABLE mixed_case_monkeys;

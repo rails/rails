@@ -260,3 +260,9 @@ CREATE TABLE "numeric_data" (
   primary key ("id")
 );
 SET UNIQUE FOR numeric_data(id);
+
+CREATE TABLE mixed_case_monkeys (
+ "monkeyID" integer DEFAULT unique,
+ "fleaCount" integer
+);
+SET UNIQUE FOR mixed_case_monkeys("monkeyID");

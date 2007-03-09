@@ -208,3 +208,8 @@ CREATE TABLE 'numeric_data' (
   'my_house_population' DECIMAL(2),
   'decimal_number_with_default' DECIMAL(3,2) DEFAULT 2.78
 );
+
+CREATE TABLE mixed_case_monkeys (
+ 'monkeyID' INTEGER NOT NULL PRIMARY KEY,
+ 'fleaCount' INTEGER
+);

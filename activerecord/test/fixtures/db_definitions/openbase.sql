@@ -292,3 +292,11 @@ CREATE TABLE numeric_data (
 go
 CREATE PRIMARY KEY numeric_data (id)
 go
+
+CREATE TABLE mixed_case_monkeys (
+  monkeyID INTEGER NOT NULL DEFAULT _rowid,
+  fleaCount INTEGER
+);
+go
+CREATE PRIMARY KEY mixed_case_monkeys (monkeyID)
+go
