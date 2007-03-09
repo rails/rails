@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixtures: fix YAML ordered map support.  #2665 [Manuel Holtgrewe, nfbuckley]
+
 * DateTimes assume the default timezone.  #7764 [Geoff Buesing]
 
 * Sybase: hide timestamp columns since they're inherently read-only.  #7716 [Mike Joyce]

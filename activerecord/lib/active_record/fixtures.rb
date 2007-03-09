@@ -304,18 +304,30 @@ class Fixtures < YAML::Omap
           yaml_string << IO.read(subfixture_path)
         end
         yaml_string << IO.read(yaml_file_path)
+
         begin
           yaml = YAML::load(erb_render(yaml_string))
         rescue Exception=>boom
           raise Fixture::FormatError, "a YAML error occurred parsing #{yaml_file_path}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at http://www.yaml.org/faq.html\nThe exact error was:\n  #{boom.class}: #{boom}"
-        end         
+        end
+
         if yaml
-          yaml = yaml.value if yaml.respond_to?(:type_id) and yaml.respond_to?(:value)
-          yaml.each do |name, data|
-            unless data
-              raise Fixture::FormatError, "Bad data for #{@class_name} fixture named #{name} (nil)"
+          # If the file is an ordered map, extract its children.
+          yaml_value =
+            if yaml.respond_to?(:type_id) && yaml.respond_to?(:value)
+              yaml.value
+            else
+              [yaml]
             end
-            self[name] = Fixture.new(data, @class_name)
+
+          yaml_value.each do |fixture|
+            fixture.each do |name, data|
+              unless data
+                raise Fixture::FormatError, "Bad data for #{@class_name} fixture named #{name} (nil)"
+              end
+
+              self[name] = Fixture.new(data, @class_name)
+            end
           end
         end
       elsif File.file?(csv_file_path)
