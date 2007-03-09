@@ -479,7 +479,7 @@ module ActiveRecord #:nodoc:
       # Deletes the record with the given +id+ without instantiating an object first. If an array of ids is provided, all of them
       # are deleted.
       def delete(id)
-        delete_all([ "#{primary_key} IN (?)", id ])
+        delete_all([ "#{connection.quote_column_name(primary_key)} IN (?)", id ])
       end
 
       # Destroys the record with the given +id+ by instantiating the object and calling #destroy (all the callbacks are the triggered).
@@ -526,12 +526,12 @@ module ActiveRecord #:nodoc:
       # for looping over a collection where each element require a number of aggregate values. Like the DiscussionBoard
       # that needs to list both the number of posts and comments.
       def increment_counter(counter_name, id)
-        update_all "#{counter_name} = #{counter_name} + 1", "#{primary_key} = #{quote_value(id)}"
+        update_all "#{connection.quote_column_name(counter_name)} = #{connection.quote_column_name(counter_name)} + 1", "#{connection.quote_column_name(primary_key)} = #{quote_value(id)}"
       end
 
       # Works like increment_counter, but decrements instead.
       def decrement_counter(counter_name, id)
-        update_all "#{counter_name} = #{counter_name} - 1", "#{primary_key} = #{quote_value(id)}"
+        update_all "#{connection.quote_column_name(counter_name)} = #{connection.quote_column_name(counter_name)} - 1", "#{connection.quote_column_name(primary_key)} = #{quote_value(id)}"
       end
 
 
@@ -1020,7 +1020,7 @@ module ActiveRecord #:nodoc:
       
         def find_one(id, options)
           conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
-          options.update :conditions => "#{table_name}.#{primary_key} = #{quote_value(id,columns_hash[primary_key])}#{conditions}"
+          options.update :conditions => "#{table_name}.#{connection.quote_column_name(primary_key)} = #{quote_value(id,columns_hash[primary_key])}#{conditions}"
 
           # Use find_every(options).first since the primary key condition
           # already ensures we have a single record. Using find_initial adds
@@ -1035,7 +1035,7 @@ module ActiveRecord #:nodoc:
         def find_some(ids, options)
           conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
           ids_list   = ids.map { |id| quote_value(id,columns_hash[primary_key]) }.join(',')
-          options.update :conditions => "#{table_name}.#{primary_key} IN (#{ids_list})#{conditions}"
+          options.update :conditions => "#{table_name}.#{connection.quote_column_name(primary_key)} IN (#{ids_list})#{conditions}"
 
           result = find_every(options)
 
@@ -1558,7 +1558,7 @@ module ActiveRecord #:nodoc:
         unless new_record?
           connection.delete <<-end_sql, "#{self.class.name} Destroy"
             DELETE FROM #{self.class.table_name}
-            WHERE #{self.class.primary_key} = #{quoted_id}
+            WHERE #{connection.quote_column_name(self.class.primary_key)} = #{quoted_id}
           end_sql
         end
 
@@ -1797,7 +1797,7 @@ module ActiveRecord #:nodoc:
         connection.update(
           "UPDATE #{self.class.table_name} " +
           "SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false))} " +
-          "WHERE #{self.class.primary_key} = #{quote_value(id)}",
+          "WHERE #{connection.quote_column_name(self.class.primary_key)} = #{quote_value(id)}",
           "#{self.class.name} Update"
         )
       end

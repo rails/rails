@@ -226,3 +226,9 @@ CREATE TABLE `numeric_data` (
   `my_house_population` decimal(2),
   `decimal_number_with_default` decimal(3,2) DEFAULT 2.78
 ) TYPE=InnoDB;
+
+CREATE TABLE mixed_case_monkeys (
+ `monkeyID` int(11) NOT NULL auto_increment,
+ `fleaCount` int(11),
+ PRIMARY KEY (`monkeyID`)
+) TYPE=InnoDB;

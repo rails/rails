@@ -236,3 +236,8 @@ CREATE TABLE [order] (
   texture varchar(255),
   flavor varchar(255)
 );
+
+CREATE TABLE mixed_case_monkeys (
+  [monkeyID] int NOT NULL IDENTITY(1, 1),
+  [fleaCount] int default NULL
+);

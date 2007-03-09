@@ -210,4 +210,9 @@ CREATE TABLE numeric_data (
   decimal_number_with_default numeric(3,2) DEFAULT 2.78
 )
 
+CREATE TABLE mixed_case_monkeys (
+  [monkeyID] numeric(9,0) IDENTITY PRIMARY KEY,
+  [fleaCount] numeric(9,0)
+);
+
 go

@@ -295,3 +295,10 @@ CREATE TABLE numeric_data (
 );
 CREATE GENERATOR numeric_data_seq;
 SET GENERATOR numeric_data_seq TO 10000;
+
+CREATE TABLE mixed_case_monkeys (
+ "monkeyID" BIGINT NOT NULL,
+ "fleaCount" INTEGER
+);
+CREATE GENERATOR mixed_case_monkeys_seq;
+SET GENERATOR mixed_case_monkeys_seq TO 10000;

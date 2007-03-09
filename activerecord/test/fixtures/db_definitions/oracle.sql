@@ -317,3 +317,9 @@ CREATE TABLE numeric_data (
   decimal_number_with_default decimal(3,2) DEFAULT 2.78
 );
 create sequence numeric_data_seq minvalue 10000;
+
+CREATE TABLE mixed_case_monkeys (
+ "monkeyID" INTEGER NOT NULL PRIMARY KEY,
+ "fleaCount" INTEGER
+);
+create sequence mixed_case_monkeys_seq minvalue 10000;
