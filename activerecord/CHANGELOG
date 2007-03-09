@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixtures: fix YAML ordered map support.  #2665 [Manuel Holtgrewe, nfbuckley]
+
 * Fix has_many :through << with custom foreign keys.  #6466, #7153 [naffis, Rich Collins]
 
 
