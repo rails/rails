@@ -140,23 +140,7 @@ module ActiveResource
         def query_string(options)
           # Omit parameters which appear in the URI path.
           query_params = options.reject { |key, value| prefix_parameters.include?(key) }
-
-          # Accumulate a list of escaped key=value pairs for the given parameters.
-          pairs = []
-          query_params.each do |key, value|
-            key = CGI.escape(key.to_s)
-
-            # a => b becomes a=b
-            # a => [b, c] becomes a[]=b&a[]=c
-            case value
-              when Array
-                value.each { |val| pairs << "#{key}[]=#{CGI.escape(val.to_s)}" }
-              else
-                pairs << "#{key}=#{CGI.escape(value.to_s)}"
-            end
-          end
-
-          "?#{pairs * '&'}" unless pairs.empty?
+          "?#{query_params.to_query}" unless query_params.empty? 
         end
     end
 
