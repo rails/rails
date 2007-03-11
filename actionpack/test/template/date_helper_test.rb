@@ -93,8 +93,7 @@ class DateHelperTest < Test::Unit::TestCase
   end
 
   def test_time_ago_in_words
-    t = Time.now - 1.years
-    assert_equal "about 1 year", time_ago_in_words(t)
+    assert_equal "about 1 year", time_ago_in_words(1.year.ago - 1.day)
   end
 
   def test_select_day
