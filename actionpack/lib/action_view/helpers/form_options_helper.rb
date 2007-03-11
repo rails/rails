@@ -112,17 +112,9 @@ module ActionView
         container = container.to_a if Hash === container
 
         options_for_select = container.inject([]) do |options, element|
-          if !element.is_a?(String) and element.respond_to?(:first) and element.respond_to?(:last)
-            is_selected = ( (selected.respond_to?(:include?) && !selected.is_a?(String) ? selected.include?(element.last) : element.last == selected) )
-            if is_selected
-              options << "<option value=\"#{html_escape(element.last.to_s)}\" selected=\"selected\">#{html_escape(element.first.to_s)}</option>"
-            else
-              options << "<option value=\"#{html_escape(element.last.to_s)}\">#{html_escape(element.first.to_s)}</option>"
-            end
-          else
-            is_selected = ( (selected.respond_to?(:include?) && !selected.is_a?(String) ? selected.include?(element) : element == selected) )
-            options << ((is_selected) ? "<option value=\"#{html_escape(element.to_s)}\" selected=\"selected\">#{html_escape(element.to_s)}</option>" : "<option value=\"#{html_escape(element.to_s)}\">#{html_escape(element.to_s)}</option>")
-          end
+          text, value = option_text_and_value(element)
+          selected_attribute = ' selected="selected"' if option_value_selected?(value, selected)
+          options << %(<option value="#{html_escape(value.to_s)}"#{selected_attribute}>#{html_escape(text.to_s)}</option>)
         end
 
         options_for_select.join("\n")
@@ -130,18 +122,18 @@ module ActionView
 
       # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning the
       # the result of a call to the +value_method+ as the option value and the +text_method+ as the option text.
-      # If +selected_value+ is specified, the element returning a match on +value_method+ will get the selected option tag.
+      # If +selected+ is specified, the element returning a match on +value_method+ will get the selected option tag.
       #
       # Example (call, result). Imagine a loop iterating over each +person+ in <tt>@project.people</tt> to generate an input tag:
       #   options_from_collection_for_select(@project.people, "id", "name")
       #     <option value="#{person.id}">#{person.name}</option>
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
-      def options_from_collection_for_select(collection, value_method, text_method, selected_value = nil)
-        options_for_select(
-          collection.inject([]) { |options, object| options << [ object.send(text_method), object.send(value_method) ] },
-          selected_value
-        )
+      def options_from_collection_for_select(collection, value_method, text_method, selected = nil)
+        options = collection.map do |element|
+          [element.send(text_method), element.send(value_method)]
+        end
+        options_for_select(options, selected)
       end
 
       # Returns a string of option tags, like options_from_collection_for_select, but surrounds them with <optgroup> tags.
@@ -244,6 +236,23 @@ module ActionView
       end
 
       private
+        def option_text_and_value(option)
+          # Options are [text, value] pairs or strings used for both.
+          if !option.is_a?(String) and option.respond_to?(:first) and option.respond_to?(:last)
+            [option.first, option.last]
+          else
+            [option, option]
+          end
+        end
+
+        def option_value_selected?(value, selected)
+          if selected.respond_to?(:include?) && !selected.is_a?(String)
+            selected.include? value
+          else
+            value == selected
+          end
+        end
+
         # All the countries included in the country_options output.
         COUNTRIES = [ "Afghanistan", "Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla", 
             "Antarctica", "Antigua And Barbuda", "Argentina", "Armenia", "Aruba", "Australia", 
