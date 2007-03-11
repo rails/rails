@@ -193,8 +193,8 @@ class UrlWriterTests < Test::Unit::TestCase
     params = extract_params(url)
     assert_equal params[0], { 'query[hobby]'              => 'piercing'     }.to_query
     assert_equal params[1], { 'query[person][name]'       => 'Bob'          }.to_query
-    assert_equal params[2], { 'query[person][position][]' => 'art director' }.to_query
-    assert_equal params[3], { 'query[person][position][]' => 'prof'         }.to_query
+    assert_equal params[2], { 'query[person][position][]' => 'prof'         }.to_query
+    assert_equal params[3], { 'query[person][position][]' => 'art director' }.to_query
   end
 
   private
