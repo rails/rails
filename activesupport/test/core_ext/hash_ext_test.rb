@@ -544,7 +544,7 @@ class QueryTest < Test::Unit::TestCase
   end
 
   def test_nested_conversion
-    assert_query_equal 'person%5Bname%5D=Nicholas&person%5Blogin%5D=seckar',
+    assert_query_equal 'person%5Blogin%5D=seckar&person%5Bname%5D=Nicholas',
       :person => {:name => 'Nicholas', :login => 'seckar'}
   end
 
@@ -558,8 +558,13 @@ class QueryTest < Test::Unit::TestCase
       :person => {:id => [10, 20]}
   end
 
+  def test_array_values_are_not_sorted
+    assert_query_equal 'person%5Bid%5D%5B%5D=20&person%5Bid%5D%5B%5D=10',
+      :person => {:id => [20, 10]}
+  end
+
   private
     def assert_query_equal(expected, actual, message = nil)
-      assert_equal expected.split('&').sort, actual.to_query.split('&').sort
+      assert_equal expected.split('&'), actual.to_query.split('&')
     end
 end

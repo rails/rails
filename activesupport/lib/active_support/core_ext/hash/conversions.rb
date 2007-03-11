@@ -15,7 +15,7 @@ end
 
 class Array
   def to_query(key) #:nodoc:
-    collect { |value| value.to_query("#{key}[]") }.sort * '&'
+    collect { |value| value.to_query("#{key}[]") } * '&'
   end
 end
 
