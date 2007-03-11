@@ -22,4 +22,4 @@ end
 `rubyforge add_release rails rails 'REL #{VERSION}' rails-#{VERSION}.zip`
 
 # Create SVN tag
-puts "Remeber to create SVN tag"
+puts "Remember to create SVN tag"
