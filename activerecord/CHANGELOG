@@ -1,4 +1,4 @@
-*SVN*
+*1.15.3* (March 12th, 2007)
 
 * Consistently quote primary key column names.  #7763 [toolmantim]
 
