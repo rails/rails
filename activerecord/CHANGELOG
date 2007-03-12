@@ -1,5 +1,7 @@
 *SVN*
 
+* Oracle: fix quoted primary keys and datetime overflow.  #7798 [Michael Schoen]
+
 * Consistently quote primary key column names.  #7763 [toolmantim]
 
 * Fixtures: fix YAML ordered map support.  #2665 [Manuel Holtgrewe, nfbuckley]

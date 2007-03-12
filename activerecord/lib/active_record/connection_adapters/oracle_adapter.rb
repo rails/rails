@@ -162,7 +162,7 @@ begin
         # camelCase column names need to be quoted; not that anyone using Oracle
         # would really do this, but handling this case means we pass the test...
         def quote_column_name(name) #:nodoc:
-          name =~ /[A-Z]/ ? "\"#{name}\"" : name
+          name.to_s =~ /[A-Z]/ ? "\"#{name}\"" : name
         end
 
         def quote_string(s) #:nodoc:
@@ -507,10 +507,19 @@ begin
                 when OCI8::LOB
                   name == 'Writable Large Object' ? row[i]: row[i].read
                 when OraDate
-                  if emulate_dates && (row[i].hour == 0 && row[i].minute == 0 && row[i].second == 0)
-                    row[i].to_date
+                  d = row[i]
+                  if emulate_dates && (d.hour == 0 && d.minute == 0 && d.second == 0)
+                    d.to_date
                   else
-                    row[i].to_time rescue row[i].to_datetime
+                    # see string_to_time; Time overflowing to DateTime, respecting the default timezone
+                    time_array = [d.year, d.month, d.day, d.hour, d.minute, d.second]
+                    begin
+                      Time.send(Base.default_timezone, *time_array)
+                    rescue
+                      zone_offset = if Base.default_timezone == :local then DateTime.now.offset else 0 end
+                      # Append zero calendar reform start to account for dates skipped by calendar reform
+                      DateTime.new(*time_array[0..5] << zone_offset << 0) rescue nil
+                    end
                   end
                 else row[i]
                 end unless col == 'raw_rnum_'
