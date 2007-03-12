@@ -1,5 +1,7 @@
 *SVN*
 
+* Apply [5709] to stable.
+
 * session_enabled? works with session :off.  #6680 [Catfish]
 
 * Performance: patch cgi/session to require digest/md5 once rather than per #create_new_id.  [Stefan Kaes]
