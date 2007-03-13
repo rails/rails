@@ -326,7 +326,7 @@ desc "Publish the release files to RubyForge."
 task :release => [ :package ] do
   require 'rubyforge'
 
-  packages = %w( gem tgz zip ).collect{ |ext| "pkg/#{PKG_NAME}-#{PKG_VERSION}.#{ext}" }
+  packages = %w( gem ).collect{ |ext| "pkg/#{PKG_NAME}-#{PKG_VERSION}.#{ext}" }
 
   rubyforge = RubyForge.new
   rubyforge.login
