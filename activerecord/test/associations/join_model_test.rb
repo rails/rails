@@ -300,6 +300,18 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
       assert_equal [posts(:welcome), posts(:thinking)], tags(:general).taggings.find(:all, :include => :taggable)
     end
   end
+  
+  def test_has_many_polymorphic_with_source_type
+    assert_equal [posts(:welcome), posts(:thinking)], tags(:general).tagged_posts
+  end
+
+  def test_eager_has_many_polymorphic_with_source_type
+    tag_with_include = Tag.find(tags(:general).id, :include => :tagged_posts)
+    desired = [posts(:welcome), posts(:thinking)]
+    assert_no_queries do
+      assert_equal desired, tag_with_include.tagged_posts
+    end
+  end
 
   def test_has_many_through_has_many_find_all
     assert_equal comments(:greetings), authors(:david).comments.find(:all, :order => 'comments.id').first

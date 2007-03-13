@@ -138,7 +138,11 @@ module ActiveRecord
 
         # Construct attributes for :through pointing to owner and associate.
         def construct_join_attributes(associate)
-          construct_owner_attributes(@reflection.through_reflection).merge(@reflection.source_reflection.primary_key_name => associate.id)
+          returning construct_owner_attributes(@reflection.through_reflection).merge(@reflection.source_reflection.primary_key_name => associate.id) do |join_attributes|
+            if @reflection.options[:source_type]
+              join_attributes.merge!(@reflection.source_reflection.options[:foreign_type] => associate.class.base_class.name.to_s)
+            end
+          end
         end
 
         # Associate attributes pointing to owner, quoted.
@@ -176,6 +180,12 @@ module ActiveRecord
           if @reflection.through_reflection.options[:as] || @reflection.source_reflection.macro == :belongs_to
             reflection_primary_key = @reflection.klass.primary_key
             source_primary_key     = @reflection.source_reflection.primary_key_name
+            if @reflection.options[:source_type]
+              polymorphic_join = "AND %s.%s = %s" % [
+                @reflection.through_reflection.table_name, "#{@reflection.source_reflection.options[:foreign_type]}",
+                @owner.class.quote_value(@reflection.options[:source_type])
+              ]
+            end
           else
             reflection_primary_key = @reflection.source_reflection.primary_key_name
             source_primary_key     = @reflection.klass.primary_key

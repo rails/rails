@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow a polymorphic :source for has_many :through associations.  Closes #7143 [protocool]
+
 * Consistent public/protected/private visibility for chained methods.  #7813 [Dan Manges]
 
 * Oracle: fix quoted primary keys and datetime overflow.  #7798 [Michael Schoen]

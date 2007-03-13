@@ -178,8 +178,12 @@ module ActiveRecord
           if source_reflection.nil?
             raise HasManyThroughSourceAssociationNotFoundError.new(self)
           end
+
+          if options[:source_type] && source_reflection.options[:polymorphic].nil?
+            raise HasManyThroughAssociationPointlessSourceTypeError.new(active_record.name, self, source_reflection)
+          end
           
-          if source_reflection.options[:polymorphic]
+          if source_reflection.options[:polymorphic] && options[:source_type].nil?
             raise HasManyThroughAssociationPolymorphicError.new(active_record.name, self, source_reflection)
           end
           
@@ -193,7 +197,7 @@ module ActiveRecord
         def derive_class_name
           # get the class_name of the belongs_to association of the through reflection
           if through_reflection
-            source_reflection.class_name
+            options[:source_type] || source_reflection.class_name
           else
             class_name = name.to_s.camelize
             class_name = class_name.singularize if [ :has_many, :has_and_belongs_to_many ].include?(macro)
