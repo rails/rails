@@ -17,20 +17,20 @@ module ActionController #:nodoc:
   #   end
   #
   # The same can be done in a view to do a partial rendering:
-  # 
-  #   Let's see a greeting: 
+  #
+  #   Let's see a greeting:
   #   <%= render_component :controller => "greeter", :action => "hello_world" %>
   #
   # It is also possible to specify the controller as a class constant, bypassing the inflector
   # code to compute the controller class at runtime:
-  # 
+  #
   # <%= render_component :controller => GreeterController, :action => "hello_world" %>
   #
   # == When to use components
   #
   # Components should be used with care. They're significantly slower than simply splitting reusable parts into partials and
   # conceptually more complicated. Don't use components as a way of separating concerns inside a single application. Instead,
-  # reserve components to those rare cases where you truly have reusable view and controller elements that can be employed 
+  # reserve components to those rare cases where you truly have reusable view and controller elements that can be employed
   # across many applications at once.
   #
   # So to repeat: Components are a special-purpose approach that can often be replaced with better use of partials and filters.
@@ -40,21 +40,21 @@ module ActionController #:nodoc:
       base.extend(ClassMethods)
 
       base.helper do
-        def render_component(options) 
+        def render_component(options)
           @controller.send(:render_component_as_string, options)
         end
       end
-            
+
       # If this controller was instantiated to process a component request,
       # +parent_controller+ points to the instantiator of this controller.
       base.send :attr_accessor, :parent_controller
-      
+
       base.class_eval do
         alias_method_chain :process_cleanup, :components
         alias_method_chain :set_session_options, :components
         alias_method_chain :flash, :components
 
-        alias_method :component_request?, :parent_controller       
+        alias_method :component_request?, :parent_controller
       end
     end
 
@@ -65,23 +65,6 @@ module ActionController #:nodoc:
         controller.parent_controller = parent_controller
         controller.process(request, response)
       end
-
-      # Set the template root to be one directory behind the root dir of the controller. Examples:
-      #   /code/weblog/components/admin/users_controller.rb with Admin::UsersController 
-      #     will use /code/weblog/components as template root 
-      #     and find templates in /code/weblog/components/admin/users/
-      #
-      #   /code/weblog/components/admin/parties/users_controller.rb with Admin::Parties::UsersController 
-      #     will also use /code/weblog/components as template root 
-      #     and find templates in /code/weblog/components/admin/parties/users/
-      def uses_component_template_root
-        path_of_calling_controller = File.dirname(caller[1].split(/:\d+:/, 2).first)
-        path_of_controller_root    = path_of_calling_controller.sub(/#{Regexp.escape(File.dirname(controller_path))}$/, "")
-        prepend_view_path path_of_controller_root
-        view_paths.first
-      end
-
-      deprecate :uses_component_template_root => 'Components are deprecated and will be removed in Rails 2.0.'
     end
 
     module InstanceMethods
@@ -90,7 +73,7 @@ module ActionController #:nodoc:
         flash.discard if component_request?
         process_without_components(request, response, method, *arguments)
       end
-      
+
       protected
         # Renders the component specified as the response for the current method
         def render_component(options) #:doc:
