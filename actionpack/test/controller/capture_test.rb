@@ -64,19 +64,8 @@ class CaptureTest < Test::Unit::TestCase
     assert_equal expected_content_for_output, @response.body
   end
 
-  def test_update_element_with_capture
-    assert_deprecated 'update_element_function' do
-      get :update_element_with_capture
-    end
-    assert_equal(
-      "<script type=\"text/javascript\">\n//<![CDATA[\n$('products').innerHTML = '\\n  <p>Product 1</p>\\n  <p>Product 2</p>\\n';\n\n//]]>\n</script>" +
-        "\n\n$('status').innerHTML = '\\n  <b>You bought something!</b>\\n';",
-      @response.body.strip
-    )
-  end
-
   private
-  def expected_content_for_output
-    "<title>Putting stuff in the title!</title>\n\nGreat stuff!"
-  end
+    def expected_content_for_output
+      "<title>Putting stuff in the title!</title>\n\nGreat stuff!"
+    end
 end

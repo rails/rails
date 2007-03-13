@@ -39,14 +39,6 @@ module ActionView
         end
       end
 
-      alias_method :start_form_tag, :form_tag
-
-      # Outputs "</form>"
-      def end_form_tag
-        "</form>"
-      end
-      
-      deprecate :end_form_tag, :start_form_tag => :form_tag
 
       # Creates a dropdown selection box, or if the <tt>:multiple</tt> option is set to true, a multiple
       # choice selection box.
