@@ -136,23 +136,14 @@ module ActionController #:nodoc:
     end
 
     module InstanceMethods #:nodoc:
-      def assign_shortcuts_with_flash(request, response) #:nodoc:
-        assign_shortcuts_without_flash(request, response)
-        flash(:refresh)
-      end
-      
-      def process_cleanup_with_flash
-        flash.sweep if @_session
-        process_cleanup_without_flash
-      end
 
-      def reset_session_with_flash
-        reset_session_without_flash
-        remove_instance_variable(:@_flash)
-        flash(:refresh)
-      end
+      protected
+        def reset_session_with_flash
+          reset_session_without_flash
+          remove_instance_variable(:@_flash)
+          flash(:refresh)
+        end
       
-      protected 
         # Access the contents of the flash. Use <tt>flash["notice"]</tt> to read a notice you put there or 
         # <tt>flash["notice"] = "hello"</tt> to put a new one.
         # Note that if sessions are disabled only flash.now will work.
@@ -176,6 +167,17 @@ module ActionController #:nodoc:
         def keep_flash #:doc:
           ActiveSupport::Deprecation.warn 'keep_flash is deprecated; use flash.keep instead.', caller
           flash.keep
+        end
+        
+      private
+        def assign_shortcuts_with_flash(request, response) #:nodoc:
+          assign_shortcuts_without_flash(request, response)
+          flash(:refresh)
+        end
+    
+        def process_cleanup_with_flash
+          flash.sweep if @_session
+          process_cleanup_without_flash
         end
     end
   end

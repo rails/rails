@@ -23,7 +23,6 @@ module ActiveRecord
     # This method uses the same syntax as <tt>set_table_name</tt>
     module Optimistic
       def self.included(base) #:nodoc:
-        super
         base.extend ClassMethods
 
         base.cattr_accessor :lock_optimistically, :instance_writer => false
@@ -41,41 +40,42 @@ module ActiveRecord
         self.class.locking_enabled?
       end
 
-      def attributes_from_column_definition_with_lock
-        result = attributes_from_column_definition_without_lock
+      private
+        def attributes_from_column_definition_with_lock
+          result = attributes_from_column_definition_without_lock
         
-        # If the locking column has no default value set,
-        # start the lock version at zero.  Note we can't use
-        # locking_enabled? at this point as @attributes may
-        # not have been initialized yet
+          # If the locking column has no default value set,
+          # start the lock version at zero.  Note we can't use
+          # locking_enabled? at this point as @attributes may
+          # not have been initialized yet
         
-        if lock_optimistically && result.include?(self.class.locking_column)
-          result[self.class.locking_column] ||= 0
-        end
+          if lock_optimistically && result.include?(self.class.locking_column)
+            result[self.class.locking_column] ||= 0
+          end
         
-        return result
-      end
-
-      def update_with_lock #:nodoc:
-        return update_without_lock unless locking_enabled?
-
-        lock_col = self.class.locking_column
-        previous_value = send(lock_col)
-        send(lock_col + '=', previous_value + 1)
-
-        affected_rows = connection.update(<<-end_sql, "#{self.class.name} Update with optimistic locking")
-          UPDATE #{self.class.table_name}
-          SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false))}
-          WHERE #{self.class.primary_key} = #{quote_value(id)}
-          AND #{self.class.quoted_locking_column} = #{quote_value(previous_value)}
-        end_sql
-
-        unless affected_rows == 1
-          raise ActiveRecord::StaleObjectError, "Attempted to update a stale object"
+          return result
         end
 
-        return true
-      end
+        def update_with_lock #:nodoc:
+          return update_without_lock unless locking_enabled?
+
+          lock_col = self.class.locking_column
+          previous_value = send(lock_col)
+          send(lock_col + '=', previous_value + 1)
+
+          affected_rows = connection.update(<<-end_sql, "#{self.class.name} Update with optimistic locking")
+            UPDATE #{self.class.table_name}
+            SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false))}
+            WHERE #{self.class.primary_key} = #{quote_value(id)}
+            AND #{self.class.quoted_locking_column} = #{quote_value(previous_value)}
+          end_sql
+
+          unless affected_rows == 1
+            raise ActiveRecord::StaleObjectError, "Attempted to update a stale object"
+          end
+
+          return true
+        end
 
       module ClassMethods
         DEFAULT_LOCKING_COLUMN = 'lock_version'

@@ -233,31 +233,32 @@ module ActionController #:nodoc:
       end
     end
 
-    def render_with_a_layout(options = nil, deprecated_status = nil, deprecated_layout = nil, &block) #:nodoc:
-      template_with_options = options.is_a?(Hash)
+    protected
+      def render_with_a_layout(options = nil, deprecated_status = nil, deprecated_layout = nil, &block) #:nodoc:
+        template_with_options = options.is_a?(Hash)
 
-      if apply_layout?(template_with_options, options) && (layout = pick_layout(template_with_options, options, deprecated_layout))
-        assert_existence_of_template_file(layout)
+        if apply_layout?(template_with_options, options) && (layout = pick_layout(template_with_options, options, deprecated_layout))
+          assert_existence_of_template_file(layout)
 
-        options = options.merge :layout => false if template_with_options
-        logger.info("Rendering template within #{layout}") if logger
+          options = options.merge :layout => false if template_with_options
+          logger.info("Rendering template within #{layout}") if logger
 
-        if template_with_options
-          content_for_layout = render_with_no_layout(options, &block)
-          deprecated_status = options[:status] || deprecated_status
+          if template_with_options
+            content_for_layout = render_with_no_layout(options, &block)
+            deprecated_status = options[:status] || deprecated_status
+          else
+            content_for_layout = render_with_no_layout(options, deprecated_status, &block)
+          end
+
+          erase_render_results
+          add_variables_to_assigns
+          @template.instance_variable_set("@content_for_layout", content_for_layout)
+          response.layout = layout
+          render_text(@template.render_file(layout, true), deprecated_status)
         else
-          content_for_layout = render_with_no_layout(options, deprecated_status, &block)
+          render_with_no_layout(options, deprecated_status, &block)
         end
-
-        erase_render_results
-        add_variables_to_assigns
-        @template.instance_variable_set("@content_for_layout", content_for_layout)
-        response.layout = layout
-        render_text(@template.render_file(layout, true), deprecated_status)
-      else
-        render_with_no_layout(options, deprecated_status, &block)
       end
-    end
 
 
     private

@@ -1,5 +1,7 @@
 *SVN*
 
+* Consistent public/protected/private visibility for chained methods.  #7813 [dcmanges]
+
 * Prefer MIME constants to strings.  #7707 [Dan Kubb]
 
 * Allow array and hash query parameters. Array route parameters are converted/to/a/path as before.  #6765, #7047, #7462 [bgipsy, Jeremy McAnally, Dan Kubb, brendan]

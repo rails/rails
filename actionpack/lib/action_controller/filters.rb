@@ -615,15 +615,6 @@ module ActionController #:nodoc:
         end
       end
 
-      def perform_action_with_filters
-        call_filter(self.class.filter_chain, 0)
-      end
-
-      def process_with_filters(request, response, method = :perform_action, *arguments) #:nodoc:
-        @before_filter_chain_aborted = false
-        process_without_filters(request, response, method, *arguments)
-      end
-
       def filter_chain
         self.class.filter_chain
       end
@@ -654,7 +645,18 @@ module ActionController #:nodoc:
         return false
       end
 
+      protected
+
+        def process_with_filters(request, response, method = :perform_action, *arguments) #:nodoc:
+          @before_filter_chain_aborted = false
+          process_without_filters(request, response, method, *arguments)
+        end
+
       private
+        def perform_action_with_filters
+          call_filter(self.class.filter_chain, 0)
+        end
+
         def process_cleanup_with_filters
           if @before_filter_chain_aborted
             close_session

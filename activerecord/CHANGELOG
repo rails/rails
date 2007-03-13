@@ -1,5 +1,7 @@
 *SVN*
 
+* Consistent public/protected/private visibility for chained methods.  #7813 [dcmanges]
+
 * Oracle: fix quoted primary keys and datetime overflow.  #7798 [Michael Schoen]
 
 * Consistently quote primary key column names.  #7763 [toolmantim]

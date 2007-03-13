@@ -40,44 +40,44 @@ module ActionController #:nodoc:
       end
     end
 
-    def render_with_benchmark(options = nil, deprecated_status = nil, &block)
-      unless logger
-        render_without_benchmark(options, deprecated_status, &block)
-      else
-        db_runtime = ActiveRecord::Base.connection.reset_runtime if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
+    protected
+      def render_with_benchmark(options = nil, deprecated_status = nil, &block)
+        unless logger
+          render_without_benchmark(options, deprecated_status, &block)
+        else
+          db_runtime = ActiveRecord::Base.connection.reset_runtime if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
 
-        render_output = nil
-        @rendering_runtime = Benchmark::measure{ render_output = render_without_benchmark(options, deprecated_status, &block) }.real
+          render_output = nil
+          @rendering_runtime = Benchmark::measure{ render_output = render_without_benchmark(options, deprecated_status, &block) }.real
 
-        if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
-          @db_rt_before_render = db_runtime
-          @db_rt_after_render = ActiveRecord::Base.connection.reset_runtime
-          @rendering_runtime -= @db_rt_after_render
+          if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
+            @db_rt_before_render = db_runtime
+            @db_rt_after_render = ActiveRecord::Base.connection.reset_runtime
+            @rendering_runtime -= @db_rt_after_render
+          end
+
+          render_output
         end
-
-        render_output
-      end
-    end    
-
-    def perform_action_with_benchmark
-      unless logger
-        perform_action_without_benchmark
-      else
-        runtime = [ Benchmark::measure{ perform_action_without_benchmark }.real, 0.0001 ].max
-
-        log_message  = "Completed in #{sprintf("%.5f", runtime)} (#{(1 / runtime).floor} reqs/sec)"
-        log_message << rendering_runtime(runtime) if defined?(@rendering_runtime)
-        log_message << active_record_runtime(runtime) if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
-        log_message << " | #{headers["Status"]}"
-        log_message << " [#{complete_request_uri rescue "unknown"}]"
-
-        logger.info(log_message)
-        response.headers["X-Runtime"] = sprintf("%.5f", runtime)
-      end
-    end
-
+      end    
 
     private
+      def perform_action_with_benchmark
+        unless logger
+          perform_action_without_benchmark
+        else
+          runtime = [ Benchmark::measure{ perform_action_without_benchmark }.real, 0.0001 ].max
+
+          log_message  = "Completed in #{sprintf("%.5f", runtime)} (#{(1 / runtime).floor} reqs/sec)"
+          log_message << rendering_runtime(runtime) if defined?(@rendering_runtime)
+          log_message << active_record_runtime(runtime) if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
+          log_message << " | #{headers["Status"]}"
+          log_message << " [#{complete_request_uri rescue "unknown"}]"
+
+          logger.info(log_message)
+          response.headers["X-Runtime"] = sprintf("%.5f", runtime)
+        end
+      end
+
       def rendering_runtime(runtime)
         " | Rendering: #{sprintf("%.5f", @rendering_runtime)} (#{sprintf("%d", (@rendering_runtime * 100) / runtime)}%)"
       end

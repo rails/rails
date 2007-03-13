@@ -227,6 +227,7 @@ module ActiveRecord
       callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
       result
     end
+    private :initialize_with_callbacks
 
     # Is called _before_ Base.save (regardless of whether it's a create or update save).
     def before_save() end
@@ -243,6 +244,7 @@ module ActiveRecord
       callback(:after_save)
       result
     end
+    private :create_or_update_with_callbacks
 
     # Is called _before_ Base.save on new objects that haven't been saved yet (no record exists).
     def before_create() end
@@ -255,6 +257,7 @@ module ActiveRecord
       callback(:after_create)
       result
     end
+    private :create_with_callbacks
 
     # Is called _before_ Base.save on existing objects that have a record.
     def before_update() end
@@ -268,6 +271,7 @@ module ActiveRecord
       callback(:after_update)
       result
     end
+    private :update_with_callbacks
 
     # Is called _before_ Validations.validate (which is part of the Base.save call).
     def before_validation() end
