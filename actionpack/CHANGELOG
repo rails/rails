@@ -1,6 +1,6 @@
 *SVN*
 
-* Consistent public/protected/private visibility for chained methods.  #7813 [dcmanges]
+* Consistent public/protected/private visibility for chained methods.  #7813 [Dan Manges]
 
 * Prefer MIME constants to strings.  #7707 [Dan Kubb]
 
@@ -157,7 +157,7 @@ superclass' view_paths.  [Rick]
 
 * Allow inGroupsOf and eachSlice to be called through rjs. #7046 [Cody Fauser]
 
-* Allow exempt_from_layout :rhtml.  #6742, #7026 [dcmanges, Squeegy]
+* Allow exempt_from_layout :rhtml.  #6742, #7026 [Dan Manges, Squeegy]
 
 * Recognize the .txt extension as Mime::TEXT [Rick]
 

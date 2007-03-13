@@ -1,6 +1,6 @@
 *SVN*
 
-* Consistent public/protected/private visibility for chained methods.  #7813 [dcmanges]
+* Consistent public/protected/private visibility for chained methods.  #7813 [Dan Manges]
 
 * Oracle: fix quoted primary keys and datetime overflow.  #7798 [Michael Schoen]
 
@@ -76,7 +76,7 @@ during calendar reform.  #7649, #7724 [fedot, Geoff Buesing]
 
 * [DOC] clear up some ambiguity with the way has_and_belongs_to_many creates the default join table name.  #7072 [jeremymcanally]
 
-* change_column accepts :default => nil. Skip column options for primary keys.  #6956, #7048 [dcmanges, Jeremy Kemper]
+* change_column accepts :default => nil. Skip column options for primary keys.  #6956, #7048 [Dan Manges, Jeremy Kemper]
 
 * MySQL, PostgreSQL: change_column_default quotes the default value and doesn't lose column type information.  #3987, #6664 [Jonathan Viney, manfred, altano@bigfoot.com]
 
@@ -92,7 +92,7 @@ during calendar reform.  #7649, #7724 [fedot, Geoff Buesing]
 
 * PostgreSQL, Oracle: correctly perform eager finds with :limit and :order.  #4668, #7021 [eventualbuddha, Michael Schoen]
 
-* Pass a range in :conditions to use the SQL BETWEEN operator.  #6974 [dcmanges]
+* Pass a range in :conditions to use the SQL BETWEEN operator.  #6974 [Dan Manges]
     Student.find(:all, :conditions => { :grade => 9..12 })
 
 * Fix the Oracle adapter for serialized attributes stored in CLOBs.  Closes #6825 [mschoen, tdfowler]
