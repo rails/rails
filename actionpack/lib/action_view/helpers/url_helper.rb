@@ -2,19 +2,19 @@ require 'action_view/helpers/javascript_helper'
 
 module ActionView
   module Helpers #:nodoc:
-    # Provides a set of methods for making easy links and getting urls that 
-    # depend on the controller and action. This means that you can use the 
+    # Provides a set of methods for making easy links and getting urls that
+    # depend on the controller and action. This means that you can use the
     # same format for links in the views that you do in the controller.
     module UrlHelper
       include JavaScriptHelper
-      
-      # Returns the URL for the set of +options+ provided. This takes the 
-      # same options as url_for in action controller. For a list, see the 
-      # documentation for ActionController::Base#url_for. Note that it'll 
-      # set :only_path => true so you'll get the relative /controller/action 
+
+      # Returns the URL for the set of +options+ provided. This takes the
+      # same options as url_for in action controller. For a list, see the
+      # documentation for ActionController::Base#url_for. Note that it'll
+      # set :only_path => true so you'll get the relative /controller/action
       # instead of the fully qualified http://example.com/controller/action.
-      #  
-      # When called from a view, url_for returns an HTML escaped url. If you 
+      #
+      # When called from a view, url_for returns an HTML escaped url. If you
       # need an unescaped url, pass :escape => false in the +options+.
       def url_for(options = {}, *parameters_for_method_reference)
         if options.kind_of? Hash
@@ -28,29 +28,29 @@ module ActionView
         escape ? html_escape(url) : url
       end
 
-      # Creates a link tag of the given +name+ using a URL created by the set 
-      # of +options+. See the valid options in the documentation for 
-      # ActionController::Base#url_for. It's also possible to pass a string instead 
-      # of an options hash to get a link tag that uses the value of the string as the 
-      # href for the link. If nil is passed as a name, the link itself will become 
+      # Creates a link tag of the given +name+ using a URL created by the set
+      # of +options+. See the valid options in the documentation for
+      # ActionController::Base#url_for. It's also possible to pass a string instead
+      # of an options hash to get a link tag that uses the value of the string as the
+      # href for the link. If nil is passed as a name, the link itself will become
       # the name.
       #
       # The +html_options+ will accept a hash of html attributes for the link tag.
-      # It also accepts 3 modifiers that specialize the link behavior. 
+      # It also accepts 3 modifiers that specialize the link behavior.
       #
-      # * <tt>:confirm => 'question?'</tt>: This will add a JavaScript confirm 
-      #   prompt with the question specified. If the user accepts, the link is 
+      # * <tt>:confirm => 'question?'</tt>: This will add a JavaScript confirm
+      #   prompt with the question specified. If the user accepts, the link is
       #   processed normally, otherwise no action is taken.
-      # * <tt>:popup => true || array of window options</tt>: This will force the 
-      #   link to open in a popup window. By passing true, a default browser window 
-      #   will be opened with the URL. You can also specify an array of options 
+      # * <tt>:popup => true || array of window options</tt>: This will force the
+      #   link to open in a popup window. By passing true, a default browser window
+      #   will be opened with the URL. You can also specify an array of options
       #   that are passed-thru to JavaScripts window.open method.
       # * <tt>:method => symbol of HTTP verb</tt>: This modifier will dynamically
-      #   create an HTML form and immediately submit the form for processing using 
+      #   create an HTML form and immediately submit the form for processing using
       #   the HTTP verb specified. Useful for having links perform a POST operation
       #   in dangerous actions like deleting a record (which search bots can follow
       #   while spidering your site). Supported verbs are :post, :delete and :put.
-      #   Note that if the user has JavaScript disabled, the request will fall back 
+      #   Note that if the user has JavaScript disabled, the request will fall back
       #   to using GET. If you are relying on the POST behavior, your should check
       #   for it in your controllers action by using the request objects methods
       #   for post?, delete? or put?.
@@ -88,7 +88,7 @@ module ActionView
       # the form submission and input element behavior using +html_options+.
       # This method accepts the <tt>:method</tt> and <tt>:confirm</tt> modifiers
       # described in the link_to documentation. If no <tt>:method</tt> modifier
-      # is given, it will default to performing a POST operation. You can also 
+      # is given, it will default to performing a POST operation. You can also
       # disable the button by passing <tt>:disabled => true</tt> in +html_options+.
       #
       #   button_to "New", :action => "new"
@@ -133,52 +133,14 @@ module ActionView
         name ||= url
 
         html_options.merge!("type" => "submit", "value" => name)
-        
-        "<form method=\"#{form_method}\" action=\"#{escape_once url}\" class=\"button-to\"><div>" + 
+
+        "<form method=\"#{form_method}\" action=\"#{escape_once url}\" class=\"button-to\"><div>" +
           method_tag + tag("input", html_options) + "</div></form>"
       end
 
 
-      # DEPRECATED. It is reccommended to use the AssetTagHelper::image_tag within
-      # a link_to method to generate a linked image.
-      # 
-      #   link_to(image_tag("rss", :size => "30x45", :border => 0), "http://www.example.com")
-      def link_image_to(src, options = {}, html_options = {}, *parameters_for_method_reference)
-        image_options = { "src" => src.include?("/") ? src : "/images/#{src}" }
-        image_options["src"] += ".png" unless image_options["src"].include?(".")
-
-        html_options = html_options.stringify_keys
-        if html_options["alt"]
-          image_options["alt"] = html_options["alt"]
-          html_options.delete "alt"
-        else
-          image_options["alt"] = src.split("/").last.split(".").first.capitalize
-        end
-
-        if html_options["size"]
-          image_options["width"], image_options["height"] = html_options["size"].split("x")
-          html_options.delete "size"
-        end
-
-        if html_options["border"]
-          image_options["border"] = html_options["border"]
-          html_options.delete "border"
-        end
-
-        if html_options["align"]
-          image_options["align"] = html_options["align"]
-          html_options.delete "align"
-        end
-
-        link_to(tag("img", image_options), options, html_options, *parameters_for_method_reference)
-      end
-
-      alias_method :link_to_image, :link_image_to
-      deprecate :link_to_image => "use link_to(image_tag(...), url)",
-        :link_image_to => "use link_to(image_tag(...), url)"
-
       # Creates a link tag of the given +name+ using a URL created by the set of
-      # +options+ unless the current request uri is the same as the links, in 
+      # +options+ unless the current request uri is the same as the links, in
       # which case only the name is returned (or the given block is yielded, if
       # one exists). Refer to the documentation for link_to_unless for block usage.
       #
@@ -198,7 +160,7 @@ module ActionView
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
-      # +options+ unless +condition+ is true, in which case only the name is 
+      # +options+ unless +condition+ is true, in which case only the name is
       # returned. To specialize the default behavior, you can pass a block that
       # accepts the name or the full argument list for link_to_unless (see the example).
       #
@@ -208,7 +170,7 @@ module ActionView
       #
       #   <%= link_to_unless(@current_user.nil?, "Reply", { :action => "reply" }) do |name|
       #      link_to(name, { :controller => "accounts", :action => "signup" })
-      #    end %>     
+      #    end %>
       def link_to_unless(condition, name, options = {}, html_options = {}, *parameters_for_method_reference, &block)
         if condition
           if block_given?
@@ -218,11 +180,11 @@ module ActionView
           end
         else
           link_to(name, options, html_options, *parameters_for_method_reference)
-        end  
+        end
       end
-      
+
       # Creates a link tag of the given +name+ using a URL created by the set of
-      # +options+ if +condition+ is true, in which case only the name is 
+      # +options+ if +condition+ is true, in which case only the name is
       # returned. To specialize the default behavior, you can pass a block that
       # accepts the name or the full argument list for link_to_unless (see the examples
       # in link_to_unless).
@@ -268,7 +230,7 @@ module ActionView
       #   mail_to "me@domain.com", nil, :replace_at => "_at_", :replace_dot => "_dot_", :class => "email"  # =>
       #     <a href="mailto:me@domain.com" class="email">me_at_domain_dot_com</a>
       #
-      #   mail_to "me@domain.com", "My email", :cc => "ccaddress@domain.com", 
+      #   mail_to "me@domain.com", "My email", :cc => "ccaddress@domain.com",
       #            :subject => "This is an example email"  # =>
       #     <a href="mailto:me@domain.com?cc=ccaddress@domain.com&subject=This%20is%20an%20example%20email">My email</a>
       def mail_to(email_address, name = nil, html_options = {})
@@ -333,19 +295,11 @@ module ActionView
         def convert_options_to_javascript!(html_options)
           confirm, popup = html_options.delete("confirm"), html_options.delete("popup")
 
-          # post is deprecated, but if its specified and method is not, assume that method = :post
-          method, post   = html_options.delete("method"), html_options.delete("post")
-          if !method && post
-            ActiveSupport::Deprecation.warn(
-              "Passing :post as a link modifier is deprecated. " +
-              "Use :method => \"post\" instead. :post will be removed in Rails 2.0."
-            )
-            method = :post
-          end
-        
+          method = html_options.delete("method")
+
           html_options["onclick"] = case
             when popup && method
-              raise ActionView::ActionViewError, "You can't use :popup and :post in the same link"
+              raise ActionView::ActionViewError, "You can't use :popup and :method in the same link"
             when confirm && popup
               "if (#{confirm_javascript_function(confirm)}) { #{popup_javascript_function(popup)} };return false;"
             when confirm && method
@@ -360,25 +314,25 @@ module ActionView
               html_options["onclick"]
           end
         end
-        
+
         def confirm_javascript_function(confirm)
           "confirm('#{escape_javascript(confirm)}')"
         end
-        
+
         def popup_javascript_function(popup)
           popup.is_a?(Array) ? "window.open(this.href,'#{popup.first}','#{popup.last}');" : "window.open(this.href);"
         end
-        
+
         def method_javascript_function(method)
-          submit_function = 
+          submit_function =
             "var f = document.createElement('form'); f.style.display = 'none'; " +
             "this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;"
-          
+
           unless method == :post
             submit_function << "var m = document.createElement('input'); m.setAttribute('type', 'hidden'); "
             submit_function << "m.setAttribute('name', '_method'); m.setAttribute('value', '#{method}'); f.appendChild(m);"
           end
-          
+
           submit_function << "f.submit();"
         end
 

@@ -17,7 +17,7 @@ class UrlHelperTest < Test::Unit::TestCase
     @controller = @controller.new
     @controller.url = "http://www.example.com"
   end
-  
+
   def test_url_for_escapes_urls
     @controller.url = "http://www.example.com?a=b&c=d"
     assert_equal "http://www.example.com?a=b&amp;c=d", url_for(:a => 'b', :c => 'd')
@@ -59,14 +59,14 @@ class UrlHelperTest < Test::Unit::TestCase
       button_to("Hello", "http://www.example.com", :disabled => true)
     )
   end
-  
+
   def test_button_to_with_method_delete
     assert_dom_equal(
       "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\"><div><input type=\"hidden\" name=\"_method\" value=\"delete\" /><input type=\"submit\" value=\"Hello\" /></div></form>",
       button_to("Hello", "http://www.example.com", :method => :delete)
     )
   end
-  
+
   def test_button_to_with_method_get
     assert_dom_equal(
       "<form method=\"get\" action=\"http://www.example.com\" class=\"button-to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>",
@@ -97,18 +97,18 @@ class UrlHelperTest < Test::Unit::TestCase
   def test_link_tag_with_custom_onclick
     assert_dom_equal "<a href=\"http://www.example.com\" onclick=\"alert('yay!')\">Hello</a>", link_to("Hello", "http://www.example.com", :onclick => "alert('yay!')")
   end
-  
+
   def test_link_tag_with_javascript_confirm
     assert_dom_equal(
       "<a href=\"http://www.example.com\" onclick=\"return confirm('Are you sure?');\">Hello</a>",
       link_to("Hello", "http://www.example.com", :confirm => "Are you sure?")
     )
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"return confirm('You can\\'t possibly be sure, can you?');\">Hello</a>", 
+      "<a href=\"http://www.example.com\" onclick=\"return confirm('You can\\'t possibly be sure, can you?');\">Hello</a>",
       link_to("Hello", "http://www.example.com", :confirm => "You can't possibly be sure, can you?")
     )
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"return confirm('You can\\'t possibly be sure,\\n can you?');\">Hello</a>", 
+      "<a href=\"http://www.example.com\" onclick=\"return confirm('You can\\'t possibly be sure,\\n can you?');\">Hello</a>",
       link_to("Hello", "http://www.example.com", :confirm => "You can't possibly be sure,\n can you?")
     )
   end
@@ -119,15 +119,15 @@ class UrlHelperTest < Test::Unit::TestCase
       link_to("Hello", "http://www.example.com", :popup => true)
     )
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"window.open(this.href);return false;\">Hello</a>", 
+      "<a href=\"http://www.example.com\" onclick=\"window.open(this.href);return false;\">Hello</a>",
       link_to("Hello", "http://www.example.com", :popup => 'true')
     )
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"window.open(this.href,'window_name','width=300,height=300');return false;\">Hello</a>", 
+      "<a href=\"http://www.example.com\" onclick=\"window.open(this.href,'window_name','width=300,height=300');return false;\">Hello</a>",
       link_to("Hello", "http://www.example.com", :popup => ['window_name', 'width=300,height=300'])
     )
   end
-  
+
   def test_link_tag_with_popup_and_javascript_confirm
     assert_dom_equal(
       "<a href=\"http://www.example.com\" onclick=\"if (confirm('Fo\\' sho\\'?')) { window.open(this.href); };return false;\">Hello</a>",
@@ -138,16 +138,7 @@ class UrlHelperTest < Test::Unit::TestCase
       link_to("Hello", "http://www.example.com", { :popup => ['window_name', 'width=300,height=300'], :confirm => "Are you serious?" })
     )
   end
-  
-  def test_link_tag_with_post_is_deprecated
-    assert_deprecated 'post' do
-      assert_dom_equal(
-        "<a href='http://www.example.com' onclick=\"var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;f.submit();return false;\">Hello</a>",
-        link_to("Hello", "http://www.example.com", :post => true)
-      )
-    end
-  end
-  
+
   def test_link_tag_using_post_javascript
     assert_dom_equal(
       "<a href='http://www.example.com' onclick=\"var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;f.submit();return false;\">Hello</a>",
@@ -161,18 +152,18 @@ class UrlHelperTest < Test::Unit::TestCase
       link_to("Destroy", "http://www.example.com", :method => :delete)
     )
   end
-  
+
   def test_link_tag_using_post_javascript_and_confirm
     assert_dom_equal(
       "<a href=\"http://www.example.com\" onclick=\"if (confirm('Are you serious?')) { var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;f.submit(); };return false;\">Hello</a>",
       link_to("Hello", "http://www.example.com", :method => :post, :confirm => "Are you serious?")
-    )    
+    )
   end
-  
+
   def test_link_tag_using_post_javascript_and_popup
     assert_raises(ActionView::ActionViewError) { link_to("Hello", "http://www.example.com", :popup => true, :method => :post, :confirm => "Are you serious?") }
   end
-  
+
   def test_link_to_unless
     assert_equal "Showing", link_to_unless(true, "Showing", :action => "show", :controller => "weblog")
     assert_dom_equal "<a href=\"http://www.example.com\">Listing</a>", link_to_unless(false, "Listing", :action => "list", :controller => "weblog")
@@ -182,12 +173,12 @@ class UrlHelperTest < Test::Unit::TestCase
     }
     assert_equal "<strong>Showing</strong>", link_to_unless(true, "Showing", :action => "show", :controller => "weblog", :id => 1) { |name|
       "<strong>#{name}</strong>"
-    }    
+    }
     assert_equal "test", link_to_unless(true, "Showing", :action => "show", :controller => "weblog", :id => 1) {
       "test"
-    }    
+    }
   end
-  
+
   def test_link_to_if
     assert_equal "Showing", link_to_if(false, "Showing", :action => "show", :controller => "weblog")
     assert_dom_equal "<a href=\"http://www.example.com\">Listing</a>", link_to_if(true, "Listing", :action => "list", :controller => "weblog")
@@ -222,14 +213,14 @@ class UrlHelperTest < Test::Unit::TestCase
   def test_mail_to_with_javascript
     assert_dom_equal "<script type=\"text/javascript\">eval(unescape('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%22%3e%4d%79%20%65%6d%61%69%6c%3c%2f%61%3e%27%29%3b'))</script>", mail_to("me@domain.com", "My email", :encode => "javascript")
   end
-  
+
   def test_mail_with_options
     assert_dom_equal(
       %(<a href="mailto:me@example.com?cc=ccaddress%40example.com&amp;bcc=bccaddress%40example.com&amp;body=This%20is%20the%20body%20of%20the%20message.&amp;subject=This%20is%20an%20example%20email">My email</a>),
       mail_to("me@example.com", "My email", :cc => "ccaddress@example.com", :bcc => "bccaddress@example.com", :subject => "This is an example email", :body => "This is the body of the message.")
     )
   end
-  
+
   def test_mail_to_with_img
     assert_dom_equal %(<a href="mailto:feedback@example.com"><img src="/feedback.png" /></a>), mail_to('feedback@example.com', '<img src="/feedback.png" />')
   end
@@ -257,7 +248,7 @@ class UrlHelperWithControllerTest < Test::Unit::TestCase
     def show_url_for
       render :inline => "<%= url_for :controller => 'url_helper_with_controller', :action => 'show_url_for' %>"
     end
-    
+
     def show_named_route
       render :inline => "<%= show_named_route_#{params[:kind]} %>"
     end
@@ -272,26 +263,26 @@ class UrlHelperWithControllerTest < Test::Unit::TestCase
     @response   = ActionController::TestResponse.new
     @controller = UrlHelperController.new
   end
-  
+
   def test_url_for_shows_only_path
     get :show_url_for
     assert_equal '/url_helper_with_controller/show_url_for', @response.body
   end
-  
+
   def test_named_route_shows_host_and_path
     with_url_helper_routing do
       get :show_named_route, :kind => 'url'
       assert_equal 'http://test.host/url_helper_with_controller/show_named_route', @response.body
     end
   end
-  
+
   def test_named_route_path_shows_only_path
     with_url_helper_routing do
       get :show_named_route, :kind => 'path'
       assert_equal '/url_helper_with_controller/show_named_route', @response.body
     end
   end
-  
+
   protected
     def with_url_helper_routing
       with_routing do |set|
