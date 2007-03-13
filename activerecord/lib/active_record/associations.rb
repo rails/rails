@@ -1568,16 +1568,6 @@ module ActiveRecord
                       first_key = second_key = as_extra = nil 
                       
                       if through_reflection.options[:as] # has_many :through against a polymorphic join
-                    ####polymorphic_foreign_key  = through_reflection.options[:as].to_s + '_id'
-                    ####polymorphic_foreign_type = through_reflection.options[:as].to_s + '_type'
-                    ####
-                    ####" LEFT OUTER JOIN %s ON (%s.%s = %s.%s AND %s.%s = %s) "  % [
-                    ####  table_alias_for(through_reflection.klass.table_name, aliased_join_table_name),
-                    ####  aliased_join_table_name, polymorphic_foreign_key,
-                    ####  parent.aliased_table_name, parent.primary_key,
-                    ####  aliased_join_table_name, polymorphic_foreign_type, klass.quote_value(parent.active_record.base_class.name)] +
-                    ####" LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [table_name_and_alias,
-                    ####  aliased_table_name, primary_key, aliased_join_table_name, options[:foreign_key] || reflection.klass.to_s.foreign_key
                         jt_foreign_key = through_reflection.options[:as].to_s + '_id'
                         jt_as_extra = " AND %s.%s = %s" % [
                           aliased_join_table_name,
@@ -1585,17 +1575,6 @@ module ActiveRecord
                           klass.quote_value(parent.active_record.base_class.name)
                         ]
                       else
-                      ##if source_reflection.macro == :has_many && source_reflection.options[:as]
-                      ####" LEFT OUTER JOIN %s ON %s.%s = %s.%s "  % [
-                      ####  table_alias_for(through_reflection.klass.table_name, aliased_join_table_name), aliased_join_table_name,
-                      ####  through_reflection.primary_key_name,
-                      ####  parent.aliased_table_name, parent.primary_key] +
-                      ####" LEFT OUTER JOIN %s ON %s.%s = %s.%s AND %s.%s = %s " % [
-                      ####  table_name_and_alias,
-                      ####  aliased_table_name, "#{source_reflection.options[:as]}_id", 
-                      ####  aliased_join_table_name, options[:foreign_key] || primary_key,
-                      ####  aliased_table_name, "#{source_reflection.options[:as]}_type", 
-                      ####  klass.quote_value(source_reflection.active_record.base_class.name)
                         jt_foreign_key = through_reflection.primary_key_name 
                       end
                         
@@ -1610,29 +1589,6 @@ module ActiveRecord
                             klass.quote_value(source_reflection.active_record.base_class.name) 
                           ]
                         else
-                      ####case source_reflection.macro
-                      ####  when :belongs_to
-                      ####    first_key  = primary_key
-                      ####    second_key = source_reflection.options[:foreign_key] || klass.to_s.foreign_key
-                      ####    extra      = nil
-                      ####  when :has_many
-                      ####    first_key  = through_reflection.klass.base_class.to_s.foreign_key
-                      ####    second_key = options[:foreign_key] || primary_key
-                      ####    extra      = through_reflection.klass.descends_from_active_record? ? nil :
-                      ####      " AND %s.%s = %s" % [
-                      ####        aliased_join_table_name,
-                      ####        reflection.active_record.connection.quote_column_name(through_reflection.active_record.inheritance_column),
-                      ####        through_reflection.klass.quote_value(through_reflection.klass.name.demodulize)]
-                      ####end
-                      ####" LEFT OUTER JOIN %s ON (%s.%s = %s.%s%s) "  % [
-                      ####  table_alias_for(through_reflection.klass.table_name, aliased_join_table_name), 
-                      ####  aliased_join_table_name, through_reflection.primary_key_name,
-                      ####  parent.aliased_table_name, parent.primary_key, extra] +
-                      ####" LEFT OUTER JOIN %s ON (%s.%s = %s.%s) " % [
-                      ####  table_name_and_alias,
-                      ####  aliased_table_name, first_key, 
-                      ####  aliased_join_table_name, second_key
-                      ####]
                           first_key   = through_reflection.klass.base_class.to_s.foreign_key
                           second_key  = options[:foreign_key] || primary_key
                         end
