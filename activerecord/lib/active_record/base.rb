@@ -1052,10 +1052,9 @@ module ActiveRecord #:nodoc:
         def instantiate(record)
           object =
             if subclass_name = record[inheritance_column]
-              # No type given.
               if subclass_name.empty?
+                # No type given.
                 allocate
-
               else
                 # Ignore type if no column is present since it was probably
                 # pulled in from a sloppy join.
