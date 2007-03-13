@@ -37,7 +37,6 @@ end
 $:.unshift "#{File.dirname(__FILE__)}/action_controller/vendor/html-scanner"
 
 require 'action_controller/base'
-require 'action_controller/deprecated_redirects'
 require 'action_controller/request'
 require 'action_controller/deprecated_request_methods'
 require 'action_controller/rescue'

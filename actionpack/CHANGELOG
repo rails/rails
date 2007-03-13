@@ -1,6 +1,6 @@
 *SVN*
 
-* Deprecation: remove deprecated instance variables.  [Jeremy Kemper]
+* Deprecation: remove deprecated instance variables and redirect methods.  [Jeremy Kemper]
 
 * Consistent public/protected/private visibility for chained methods.  #7813 [Dan Manges]
 

@@ -24,7 +24,7 @@ class ActionPackAssertionsController < ActionController::Base
   def redirect_to_named_route() redirect_to route_one_url end
 
   # a redirect to an external location
-  def redirect_external() redirect_to_url "http://www.rubyonrails.org"; end
+  def redirect_external() redirect_to "http://www.rubyonrails.org"; end
 
   # a 404
   def response404() head '404 AWOL' end
