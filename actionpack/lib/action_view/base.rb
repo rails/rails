@@ -157,7 +157,7 @@ module ActionView #:nodoc:
     attr_accessor :controller
 
     attr_reader :logger, :response, :headers
-    attr_internal(*ActionController::Base::DEPRECATED_INSTANCE_VARIABLES)
+    attr_internal :cookies, :flash, :headers, :params, :request, :response, :session
 
     # Specify trim mode for the ERB compiler. Defaults to '-'.
     # See ERB documentation for suitable values.

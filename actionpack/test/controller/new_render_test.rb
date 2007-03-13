@@ -460,14 +460,9 @@ class NewRenderTest < Test::Unit::TestCase
     ActionController::Base.protected_variables_cache = nil
 
     get :hello_world
-    assert assigns.include?('request'), 'request should be in assigns'
-    assert_deprecated 'request' do
-      assert_kind_of ActionController::AbstractRequest, assigns['request']
-    end
-    assert_not_deprecated do
-      assert_kind_of ActionController::AbstractRequest, @response.template.request
-      assert_kind_of ActionController::AbstractRequest, assigns['_request']
-    end
+    assert !assigns.include?('request'), 'request should not be in assigns'
+    assert_kind_of ActionController::AbstractRequest, assigns['_request']
+    assert_kind_of ActionController::AbstractRequest, @response.template.request
 
   ensure
     ActionController::Base.view_controller_internals = view_internals_old_value

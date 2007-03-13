@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecation: remove deprecated instance variables.  [Jeremy Kemper]
+
 * Consistent public/protected/private visibility for chained methods.  #7813 [Dan Manges]
 
 * Prefer MIME constants to strings.  #7707 [Dan Kubb]

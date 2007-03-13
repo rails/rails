@@ -10,8 +10,6 @@ module ActionView
       @base_path, @assigns, @source, @original_exception =
         base_path, assigns.dup, source, original_exception
       @file_path = file_path
-
-      remove_deprecated_assigns!
     end
 
     def message
@@ -82,12 +80,6 @@ module ActionView
     end
 
     private
-      def remove_deprecated_assigns!
-        ActionController::Base::DEPRECATED_INSTANCE_VARIABLES.each do |ivar|
-          @assigns.delete(ivar)
-        end
-      end
-
       def strip_base_path(path)
         File.expand_path(path).
           gsub(/^#{Regexp.escape File.expand_path(RAILS_ROOT)}/, '').

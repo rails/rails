@@ -1112,25 +1112,6 @@ module ActionController #:nodoc:
         @assigns  = @_response.template.assigns
 
         @_headers = @_response.headers
-
-        assign_deprecated_shortcuts(request, response)
-      end
-
-      # TODO: assigns cookies headers params request response template
-      DEPRECATED_INSTANCE_VARIABLES = %w(cookies flash headers params request response session)
-
-      # Gone after 1.2.
-      def assign_deprecated_shortcuts(request, response)
-        DEPRECATED_INSTANCE_VARIABLES.each do |method|
-          var = "@#{method}"
-          if instance_variables.include?(var)
-            value = instance_variable_get(var)
-            unless ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy === value
-              raise "Deprecating #{var}, but it's already set to #{value.inspect}! Use the #{method}= writer method instead of setting #{var} directly."
-            end
-          end
-          instance_variable_set var, ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, method)
-        end
       end
 
       def initialize_current_url
