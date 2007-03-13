@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure with_scope takes both :select and :joins into account when setting :readonly.  Allows you to save records you retrieve using method_missing on a has_many :through associations.  [Koz]
+
 * Allow a polymorphic :source for has_many :through associations.  Closes #7143 [protocool]
 
 * Consistent public/protected/private visibility for chained methods.  #7813 [Dan Manges]

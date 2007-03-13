@@ -938,7 +938,7 @@ module ActiveRecord #:nodoc:
 
         if f = method_scoping[:find]
           f.assert_valid_keys([ :conditions, :joins, :select, :include, :from, :offset, :limit, :order, :readonly, :lock ])
-          f[:readonly] = true if !f[:joins].blank? && !f.has_key?(:readonly)
+          set_readonly_option! f
         end
 
         # Merge scopings

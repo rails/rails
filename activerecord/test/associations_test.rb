@@ -10,6 +10,8 @@ require 'fixtures/order'
 require 'fixtures/category'
 require 'fixtures/post'
 require 'fixtures/author'
+require 'fixtures/tag'
+require 'fixtures/tagging'
 
 
 class AssociationsTest < Test::Unit::TestCase
@@ -1854,5 +1856,13 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     join_dep  = ActiveRecord::Associations::ClassMethods::JoinDependency.new(join_base, :developers, nil)
     projects  = Project.send(:select_limited_ids_list, {:order => 'developers.created_at'}, join_dep)
     assert_equal %w(1 2), projects.scan(/\d/).sort
+  end
+  
+  def test_scoped_find_on_through_association_doesnt_return_read_only_records
+    tag = Post.find(1).tags.find_by_name("General")
+    
+    assert_nothing_raised do
+      tag.save!
+    end
   end
 end
