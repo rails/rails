@@ -54,10 +54,6 @@ HTML
       render :text => params[:file].size
     end
 
-    def redirect_to_symbol
-      redirect_to :generate_url, :id => 5
-    end
-
     def redirect_to_same_controller
       redirect_to :controller => 'test', :action => 'test_uri', :id => 5
     end
@@ -438,16 +434,6 @@ HTML
 
   def test_test_uploaded_file_exception_when_file_doesnt_exist
     assert_raise(RuntimeError) { ActionController::TestUploadedFile.new('non_existent_file') }
-  end
-
-  def test_assert_redirected_to_symbol
-    with_foo_routing do |set|
-      assert_deprecated(/generate_url.*redirect_to/) do
-        get :redirect_to_symbol
-      end
-      assert_response :redirect
-      assert_redirected_to :generate_url
-    end
   end
 
   def test_assert_follow_redirect_to_same_controller

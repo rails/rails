@@ -553,22 +553,14 @@ module ActionController #:nodoc:
       #
       # This takes the current URL as is and only exchanges the action. In contrast, <tt>url_for :action => 'print'</tt>
       # would have slashed-off the path components after the changed action.
-      def url_for(options = {}, *parameters_for_method_reference) #:doc:
-        case options
+      def url_for(options = nil) #:doc:
+        case options || {}
           when String
             options
-
-          when Symbol
-            ActiveSupport::Deprecation.warn(
-              "You called url_for(:#{options}), which is a deprecated API call. Instead you should use the named " +
-              "route directly, like #{options}(). Using symbols and parameters with url_for will be removed from Rails 2.0.",
-              caller
-            )
-
-            send(options, *parameters_for_method_reference)
-
           when Hash
             @url.rewrite(rewrite_options(options))
+          else
+            raise ArgumentError, "Unrecognized url_for options: #{options.inspect}"
         end
       end
 
