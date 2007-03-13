@@ -1,5 +1,7 @@
 *SVN*
 
+* Cookie session store: raise ArgumentError when :session_key is blank.  [Jeremy Kemper]
+
 * Deprecation: remove deprecated request, redirect, and dependency methods. Remove deprecated instance variables. Remove deprecated url_for(:symbol, *args) and redirect_to(:symbol, *args) in favor of named routes. Remove uses_component_template_root for toplevel components directory. Privatize deprecated render_partial and render_partial_collection view methods. Remove deprecated link_to_image, link_image_to, update_element_function, start_form_tag, and end_form_tag helper methods. Remove deprecated human_size helper alias.  [Jeremy Kemper]
 
 * Consistent public/protected/private visibility for chained methods.  #7813 [Dan Manges]

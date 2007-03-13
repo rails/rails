@@ -44,9 +44,14 @@ class CGI::Session::CookieStore
 
   # Called from CGI::Session only.
   def initialize(session, options = {})
+    # The session_key option is required.
+    if options['session_key'].blank?
+      raise ArgumentError, 'A session_key is required to write a cookie containing the session data. Use config.action_controller.session = { :session_key => "_myapp_session", :secret => "some secret phrase" } in config/environment.rb'
+    end
+
     # The secret option is required.
     if options['secret'].blank?
-      raise ArgumentError, 'A secret is required to generate an integrity hash for cookie session data. Use config.action_controller.session = { :secret => "some secret phrase" } in config/environment.rb'
+      raise ArgumentError, 'A secret is required to generate an integrity hash for cookie session data. Use config.action_controller.session = { :session_key => "_myapp_session", :secret => "some secret phrase" } in config/environment.rb'
     end
 
     # Keep the session and its secret on hand so we can read and write cookies.

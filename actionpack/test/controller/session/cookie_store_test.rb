@@ -37,6 +37,12 @@ class CookieStoreTest < Test::Unit::TestCase
     ENV.delete('HTTP_COOKIE')
   end
 
+  def test_raises_argument_error_if_missing_session_key
+    [nil, ''].each do |blank|
+      assert_raise(ArgumentError, blank.inspect) { new_session 'session_key' => blank }
+    end
+  end
+
   def test_raises_argument_error_if_missing_secret
     [nil, ''].each do |blank|
       assert_raise(ArgumentError, blank.inspect) { new_session 'secret' => blank }
