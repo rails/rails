@@ -50,7 +50,7 @@ module ActionView
       #  number_to_currency(1234567890.50)     => $1,234,567,890.50
       #  number_to_currency(1234567890.506)    => $1,234,567,890.51
       #  number_to_currency(1234567890.506, :precision => 3)    => $1,234,567,890.506
-      #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "") 
+      #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "")
       #     => &pound;1234567890,50
       def number_to_currency(number, options = {})
         options   = options.stringify_keys
@@ -58,7 +58,7 @@ module ActionView
         unit      = options["unit"] || "$"
         separator = precision > 0 ? options["separator"] || "." : ""
         delimiter = options["delimiter"] || ","
-        
+
         begin
           parts = number_with_precision(number, precision).split('.')
           unit + number_with_delimiter(parts[0], delimiter) + separator + parts[1].to_s
@@ -79,7 +79,7 @@ module ActionView
         options   = options.stringify_keys
         precision = options["precision"] || 3
         separator = options["separator"] || "."
-        
+
         begin
           number = number_with_precision(number, precision)
           parts = number.split('.')
@@ -110,7 +110,7 @@ module ActionView
           number
         end
       end
-      
+
       # Formats a +number+ with the specified level of +precision+. The default
       # level of precision is 3.
       #
@@ -121,12 +121,12 @@ module ActionView
       rescue
         number
       end
-      
+
       # Formats the bytes in +size+ into a more understandable representation.
-      # Useful for reporting file sizes to users. This method returns nil if 
-      # +size+ cannot be converted into a number. You can change the default 
+      # Useful for reporting file sizes to users. This method returns nil if
+      # +size+ cannot be converted into a number. You can change the default
       # precision of 1 in +precision+.
-      # 
+      #
       #  number_to_human_size(123)           => 123 Bytes
       #  number_to_human_size(1234)          => 1.2 KB
       #  number_to_human_size(12345)         => 12.1 KB
@@ -136,7 +136,7 @@ module ActionView
       #  number_to_human_size(1234567, 2)    => 1.18 MB
       def number_to_human_size(size, precision=1)
         size = Kernel.Float(size)
-        case 
+        case
           when size == 1        : "1 Byte"
           when size < 1.kilobyte: "%d Bytes" % size
           when size < 1.megabyte: "%.#{precision}f KB"  % (size / 1.0.kilobyte)
@@ -147,9 +147,6 @@ module ActionView
       rescue
         nil
       end
-      
-      alias_method :human_size, :number_to_human_size # deprecated alias
-      deprecate :human_size => :number_to_human_size
     end
   end
 end

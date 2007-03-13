@@ -1,6 +1,6 @@
 *SVN*
 
-* Deprecation: remove deprecated request, redirect, and dependency methods.  Remove deprecated instance variables. Remove uses_component_template_root for toplevel components directory. Privatize deprecated render_partial and render_partial_collection view methods. Remove deprecated link_to_image and link_image_to helper methods.  [Jeremy Kemper]
+* Deprecation: remove deprecated request, redirect, and dependency methods. Remove deprecated instance variables. Remove uses_component_template_root for toplevel components directory. Privatize deprecated render_partial and render_partial_collection view methods. Remove deprecated link_to_image and link_image_to helper methods. Remove deprecated human_size helper alias.  [Jeremy Kemper]
 
 * Consistent public/protected/private visibility for chained methods.  #7813 [Dan Manges]
 

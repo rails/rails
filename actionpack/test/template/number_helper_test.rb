@@ -86,10 +86,4 @@ class NumberHelperTest < Test::Unit::TestCase
     assert_nil number_to_human_size('x')
     assert_nil number_to_human_size(nil)
   end
-  
-  def test_human_size_alias_is_deprecated
-    assert_deprecated 'human_size' do
-      assert_equal '0 Bytes', human_size(0)
-    end
-  end
 end
