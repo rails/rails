@@ -98,15 +98,6 @@ class WebServiceTest < Test::Unit::TestCase
     assert_nothing_raised { process('POST', 'application/xml', "") }
     assert_equal "", @controller.response.body
   end
-  
-  def test_deprecated_request_methods
-    process('POST', 'application/x-yaml')
-    assert_equal Mime::YAML, @controller.request.content_type
-    assert_equal true, @controller.request.post?
-    assert_equal :yaml, @controller.request.post_format
-    assert_equal true, @controller.request.yaml_post?
-    assert_equal false, @controller.request.xml_post?    
-  end
 
   def test_dasherized_keys_as_xml
     ActionController::Base.param_parsers[Mime::XML] = :xml_simple
