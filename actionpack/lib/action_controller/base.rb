@@ -650,9 +650,6 @@ module ActionController #:nodoc:
       # Note that the partial filename must also be a valid Ruby variable name,
       # so e.g. 2005 and register-user are invalid.
       #
-      # _Deprecation_ _notice_: This used to have the signatures
-      # <tt>render_partial(partial_path = default_template_name, object = nil, local_assigns = {})</tt> and
-      # <tt>render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = {})</tt>.
       #
       # == Automatic etagging
       #
@@ -907,12 +904,12 @@ module ActionController #:nodoc:
 
       def render_partial(partial_path = default_template_name, object = nil, local_assigns = nil, status = nil) #:nodoc:
         add_variables_to_assigns
-        render_text(@template.render_partial(partial_path, object, local_assigns), status)
+        render_text(@template.send(:render_partial, partial_path, object, local_assigns), status)
       end
 
       def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = nil, status = nil) #:nodoc:
         add_variables_to_assigns
-        render_text(@template.render_partial_collection(partial_name, collection, partial_spacer_template, local_assigns), status)
+        render_text(@template.send(:render_partial_collection, partial_name, collection, partial_spacer_template, local_assigns), status)
       end
 
       def render_with_layout(template_name = default_template_name, status = nil, layout = nil) #:nodoc:
