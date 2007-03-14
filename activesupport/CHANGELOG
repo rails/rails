@@ -1,3 +1,8 @@
+*SVN*
+
+* Update Dependencies to ignore constants inherited from ancestors. Closes #6951. [Nicholas Seckar]
+
+
 *1.4.2* (March 12th, 2007)
 
 * Ruby 1.8.6 and 1.9 define private Time#to_date and #to_datetime; make them
