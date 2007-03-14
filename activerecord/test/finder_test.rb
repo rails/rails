@@ -385,6 +385,17 @@ class FinderTest < Test::Unit::TestCase
     assert !another.new_record?
   end
   
+  def test_find_or_create_from_one_attribute_and_hash
+    number_of_companies = Company.count
+    sig38 = Company.find_or_create_by_name({:name => "38signals", :firm_id => 17, :client_of => 23})
+    assert_equal number_of_companies + 1, Company.count
+    assert_equal sig38, Company.find_or_create_by_name({:name => "38signals", :firm_id => 17, :client_of => 23})
+    assert !sig38.new_record?
+    assert_equal "38signals", sig38.name
+    assert_equal 17, sig38.firm_id
+    assert_equal 23, sig38.client_of
+  end
+
   def test_find_or_initialize_from_one_attribute
     sig38 = Company.find_or_initialize_by_name("38signals")
     assert_equal "38signals", sig38.name
@@ -396,6 +407,14 @@ class FinderTest < Test::Unit::TestCase
     assert_equal "Another topic", another.title
     assert_equal "John", another.author_name
     assert another.new_record?
+  end
+  
+  def test_find_or_initialize_from_one_attribute_and_hash
+    sig38 = Company.find_or_initialize_by_name({:name => "38signals", :firm_id => 17, :client_of => 23})
+    assert_equal "38signals", sig38.name
+    assert_equal 17, sig38.firm_id
+    assert_equal 23, sig38.client_of
+    assert sig38.new_record?
   end
 
   def test_find_with_bad_sql

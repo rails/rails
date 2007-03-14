@@ -188,6 +188,13 @@ module ActiveRecord #:nodoc:
   #   winter = Tag.find_or_initialize_by_name("Winter")
   #   winter.new_record? # true
   #
+  # To find by a subset of the attributes to be used for instantiating a new object, pass a hash instead of
+  # a list of parameters. For example:
+  #
+  #   Tag.find_or_create_by_name(:name => "rails", :creator => current_user)
+  #
+  # That will either find an existing tag named "rails", or create a new one while setting the user that created it.
+  #
   # == Saving arrays, hashes, and other non-mappable objects in text columns
   #
   # Active Record can serialize any object in text columns using YAML. To do so, you must specify this with a call to the class method +serialize+.
@@ -1254,8 +1261,13 @@ module ActiveRecord #:nodoc:
             attribute_names = extract_attribute_names_from_match(match)
             super unless all_attributes_exists?(attribute_names)
 
-            attributes = construct_attributes_from_arguments(attribute_names, arguments)
-            options = { :conditions => attributes }
+            if arguments[0].is_a?(Hash)
+              attributes = arguments[0].with_indifferent_access
+              find_attributes = attributes.slice(*attribute_names)
+            else
+              find_attributes = attributes = construct_attributes_from_arguments(attribute_names, arguments)
+            end
+            options = { :conditions => find_attributes }
             set_readonly_option!(options)
 
             find_initial(options) || send(instantiator, attributes)
