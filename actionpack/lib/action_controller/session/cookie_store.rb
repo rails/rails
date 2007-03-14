@@ -96,6 +96,7 @@ class CGI::Session::CookieStore
   # Delete the session data by setting an expired cookie with no data.
   def delete
     @data = nil
+    clear_old_cookie_value
     write_cookie('value' => '', 'expires' => 1.year.ago)
   end
 
@@ -133,5 +134,10 @@ class CGI::Session::CookieStore
     def write_cookie(options)
       cookie = CGI::Cookie.new(@cookie_options.merge(options))
       @session.cgi.send :instance_variable_set, '@output_cookies', [cookie]
+    end
+
+    # Clear cookie value so subsequent new_session doesn't reload old data.
+    def clear_old_cookie_value
+      @session.cgi.cookies[@cookie_options['name']].clear
     end
 end

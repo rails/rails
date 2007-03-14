@@ -135,6 +135,19 @@ class CookieStoreTest < Test::Unit::TestCase
     end
   end
 
+  def test_new_session_doesnt_reuse_deleted_cookie_data
+    set_cookie! cookie_value(:typical)
+
+    new_session do |session|
+      assert_not_nil session['user_id']
+      session.delete
+
+      # Start a new session using the same CGI instance.
+      post_delete_session = CGI::Session.new(session.cgi, self.class.default_session_options)
+      assert_nil post_delete_session['user_id']
+    end
+  end
+
   private
     def assert_no_cookies(session)
       assert_nil session.cgi.output_cookies, session.cgi.output_cookies.inspect

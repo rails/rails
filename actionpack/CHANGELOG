@@ -1,5 +1,7 @@
 *SVN*
 
+* Cookie session store: ensure that new sessions doesn't reuse data from a deleted session in the same request.  [Jeremy Kemper]
+
 * Deprecation: verification with :redirect_to => :named_route shouldn't be deprecated.  #7525 [Justin French]
 
 * Cookie session store: raise ArgumentError when :session_key is blank.  [Jeremy Kemper]
