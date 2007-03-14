@@ -1,6 +1,6 @@
 *1.13.3* (March 12th, 2007)
 
-* Apply [5709] to stable.
+* Fix a bug in Routing where a parameter taken from the path of the current request could not be used as a query parameter for the next.  #6752 [Nicholas Seckar]
 
 * session_enabled? works with session :off.  #6680 [Catfish]
 
