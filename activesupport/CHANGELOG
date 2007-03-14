@@ -16,8 +16,7 @@
 
 * Hash#to_query CGI-escapes its keys.  [Jeremy Kemper]
 
-* Deprecation: warn on stderr if RAILS_DEFAULT_LOGGER isn't set yet.  [Jeremy
-Kemper]
+* Deprecation: warn on stderr if RAILS_DEFAULT_LOGGER isn't set yet.  [Jeremy Kemper]
 
 * Optimize Class Inheritable Attributes so that unnecessary hashes are not created.  Closes #7472 [Bruce Perens]
 
