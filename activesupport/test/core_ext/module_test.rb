@@ -1,10 +1,14 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
 module One
+  Constant1 = "Hello World"
+  Constant2 = "What's up?"
 end
 
 class Ab
   include One
+  Constant1 = "Hello World" # Will have different object id than One::Constant1
+  Constant3 = "Goodbye World"
 end
 
 module Xy
@@ -90,6 +94,10 @@ class ModuleTest < Test::Unit::TestCase
   def test_parents
     assert_equal [Yz::Zy, Yz, Object], Yz::Zy::Cd.parents
     assert_equal [Yz, Object], Yz::Zy.parents
+  end
+  
+  def test_local_constants
+    assert_equal %w(Constant1 Constant3), Ab.local_constants.sort
   end
 
   def test_as_load_path

@@ -18,4 +18,18 @@ class Module
     parents << Object unless parents.include? Object
     parents
   end
+  
+  # Return the constants that have been defined locally by this object and not
+  # in an ancestor. This method may miss some constants if their definition in
+  # the ancestor is identical to their definition in the receiver.
+  def local_constants
+    inherited = {}
+    ancestors.each do |anc|
+      next if anc == self
+      anc.constants.each { |const| inherited[const] = anc.const_get(const) }
+    end
+    constants.select do |const|
+      ! inherited.key?(const) || inherited[const].object_id != const_get(const).object_id
+    end
+  end
 end
