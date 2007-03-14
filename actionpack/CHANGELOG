@@ -1,3 +1,8 @@
+*SVN*
+
+* Deprecation: verification with :redirect_to => :named_route shouldn't be deprecated.  #7525 [Justin French]
+
+
 *1.13.3* (March 12th, 2007)
 
 * Fix a bug in Routing where a parameter taken from the path of the current request could not be used as a query parameter for the next.  #6752 [Nicholas Seckar]

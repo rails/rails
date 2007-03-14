@@ -34,7 +34,14 @@ class VerificationTest < Test::Unit::TestCase
 
     verify :only => :must_be_post, :method => :post, :render => { :status => 405, :text => "Must be post" }, :add_headers => { "Allow" => "POST" }
 
+    verify :only => :guarded_one_for_named_route_test, :params => "one",
+           :redirect_to => :foo_url
+
     def guarded_one
+      render :text => "#{params[:one]}"
+    end
+    
+    def guarded_one_for_named_route_test
       render :text => "#{params[:one]}"
     end
 
@@ -94,6 +101,14 @@ class VerificationTest < Test::Unit::TestCase
     @controller = TestController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
+    ActionController::Routing::Routes.add_named_route :foo, '/foo', :controller => 'test', :action => 'foo'
+  end
+  
+  def test_no_deprecation_warning_for_named_route
+    assert_not_deprecated do
+      get :guarded_one_for_named_route_test, :two => "not one"
+      assert_redirected_to '/foo'
+    end
   end
 
   def test_guarded_one_with_prereqs
