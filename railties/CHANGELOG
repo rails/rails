@@ -1,5 +1,7 @@
 *SVN*
 
+* Add environment variable RAILS_DEFAULT_DATABASE, which allows the builtin default of 'mysql' to be overridden. [Nicholas Seckar]
+
 * Windows: include MinGW in RUBY_PLATFORM check.  #2982 [okkez000@gmail.com, Kaspar Schiess]
 
 * Split out the basic plugin locator functionality into an abstract super class. Add a FileSystemLocator to do the job of checking the plugin_paths for plugins. Add plugin_locators configuration option which will iterate over the set of plugin locators and load each of the plugin loaders they return. Rename locater everywhere to locator. [Marcel Molina Jr.] 
