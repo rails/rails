@@ -1,5 +1,7 @@
 *SVN*
 
+* Performance: patch cgi/session/pstore to require digest/md5 once rather than per #initialize.  #7583 [Stefan Kaes]
+
 * Deprecation: verification with :redirect_to => :named_route shouldn't be deprecated.  #7525 [Justin French]
 
 
