@@ -1037,7 +1037,7 @@ module ActionController #:nodoc:
               response.redirected_to = options
             else
               # TOOD: Deprecate me!
-              redirect_to(url_for(options, *parameters_for_method_reference))
+              redirect_to(url_for(options))
               response.redirected_to, response.redirected_to_method_params = options, parameters_for_method_reference
             end
         end
