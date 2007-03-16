@@ -212,9 +212,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     # functionality. This allows us to more easily catch INSERT being broken,
     # but SELECT actually working fine.
     def test_native_decimal_insert_manual_vs_automatic
-      # SQLite3 always uses float in violation of SQL
-      # 16 decimal places
-      correct_value = (current_adapter?(:SQLiteAdapter) ? '0.123456789012346E20' : '0012345678901234567890.0123456789').to_d
+      correct_value = '0012345678901234567890.0123456789'.to_d
 
       Person.delete_all
       Person.connection.add_column "people", "wealth", :decimal, :precision => '30', :scale => '10'
@@ -280,12 +278,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       # Test for 30 significent digits (beyond the 16 of float), 10 of them
       # after the decimal place.
-      if current_adapter?(:SQLiteAdapter)
-        # SQLite3 uses float in violation of SQL. Test for 16 decimal places.
-        assert_equal BigDecimal.new('0.123456789012346E20'), bob.wealth
-      else
-        assert_equal BigDecimal.new("0012345678901234567890.0123456789"), bob.wealth
-      end
+     
+      assert_equal BigDecimal.new("0012345678901234567890.0123456789"), bob.wealth
 
       assert_equal true, bob.male?
 
