@@ -451,8 +451,6 @@ module ActiveRecord
                 case res.type(cel_index)
                   when BYTEA_COLUMN_TYPE_OID
                     column = unescape_bytea(column)
-                  when TIMESTAMPTZOID, TIMESTAMPOID
-                    column = cast_to_time(column)
                   when NUMERIC_COLUMN_TYPE_OID
                     column = column.to_d if column.respond_to?(:to_d)
                 end
@@ -578,14 +576,6 @@ module ActiveRecord
           # Anything else is blank, some user type, or some function
           # and we can't know the value of that, so return nil.
           return nil
-        end
-
-        # Only needed for DateTime instances
-        def cast_to_time(value)
-          return value unless value.class == DateTime
-          v = value
-          time_array = [v.year, v.month, v.day, v.hour, v.min, v.sec, v.usec]
-          Time.send(Base.default_timezone, *time_array) rescue nil
         end
     end
   end

@@ -1,5 +1,7 @@
 *SVN*
 
+* PostgreSQL: remove DateTime -> Time downcast. Warning: do not enable translate_results for the C bindings if you have timestamps outside Time's domain.  [Jeremy Kemper]
+
 * find_or_create_by_* takes a hash so you can create with more attributes than are in the method name. For example, Person.find_or_create_by_name(:name => 'Henry', :comments => 'Hi new user!') is equivalent to Person.find_by_name('Henry') || Person.create(:name => 'Henry', :comments => 'Hi new user!').  #7368 [Josh Susser]
 
 * Make sure with_scope takes both :select and :joins into account when setting :readonly.  Allows you to save records you retrieve using method_missing on a has_many :through associations.  [Koz]
