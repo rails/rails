@@ -2,8 +2,6 @@
 
 * Performance: patch cgi/session/pstore to require digest/md5 once rather than per #initialize.  #7583 [Stefan Kaes]
 
-* Undeprecate redirect_to with Hash argument and additional url_for parameters.  #7837 [subelsky]
-
 * Cookie session store: ensure that new sessions doesn't reuse data from a deleted session in the same request.  [Jeremy Kemper]
 
 * Deprecation: verification with :redirect_to => :named_route shouldn't be deprecated.  #7525 [Justin French]

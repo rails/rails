@@ -22,11 +22,6 @@ class RedirectController < ActionController::Base
     redirect_to :back
   end
 
-  def redirect_with_parameters
-    session[:params] = { :user => 'test'}
-    redirect_to session[:params], :acton => 'hello_world'
-  end
-  
   def rescue_errors(e) raise e end
     
   def rescue_action(e) raise end
@@ -102,11 +97,6 @@ class RedirectTest < Test::Unit::TestCase
       get :redirect_to_back
     }
   end
-  
-  def test_redirect_with_parameters
-    get :redirect_with_parameters
-  end
-  
 end
 
 module ModuleTest
