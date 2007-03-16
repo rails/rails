@@ -2,6 +2,7 @@ require 'action_controller/cgi_ext/cgi_ext'
 require 'action_controller/cgi_ext/cookie_performance_fix'
 require 'action_controller/cgi_ext/raw_post_data_fix'
 require 'action_controller/cgi_ext/session_performance_fix'
+require 'action_controller/cgi_ext/pstore_performance_fix'
 require 'action_controller/session/cookie_store'
 
 module ActionController #:nodoc:
