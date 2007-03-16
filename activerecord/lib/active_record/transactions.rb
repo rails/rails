@@ -1,5 +1,3 @@
-require 'active_record/vendor/simple.rb'
-Transaction::Simple.send(:remove_method, :transaction)
 require 'thread'
 
 module ActiveRecord
@@ -66,50 +64,17 @@ module ActiveRecord
     # will happen under the protected cover of a transaction. So you can use validations to check for values that the transaction
     # depend on or you can raise exceptions in the callbacks to rollback.
     #
-    # == Object-level transactions (deprecated)
-    #
-    # You can enable object-level transactions for Active Record objects, though. You do this by naming each of the Active Records
-    # that you want to enable object-level transactions for, like this:
-    #
-    #   Account.transaction(david, mary) do
-    #     david.withdrawal(100)
-    #     mary.deposit(100)
-    #   end
-    #
-    # If the transaction fails, David and Mary will be returned to their
-    # pre-transactional state. No money will have changed hands in neither
-    # object nor database.
-    #
-    # However, useful state such as validation errors are also rolled back,
-    # limiting the usefulness of this feature. As such it is deprecated in
-    # Rails 1.2 and will be removed in the next release. Install the
-    # object_transactions plugin if you wish to continue using it.
-    #
     # == Exception handling
     #
     # Also have in mind that exceptions thrown within a transaction block will be propagated (after triggering the ROLLBACK), so you
     # should be ready to catch those in your application code.
-    #
-    # Tribute: Object-level transactions are implemented by Transaction::Simple by Austin Ziegler.
     module ClassMethods
-      def transaction(*objects, &block)
+      def transaction(&block)
         previous_handler = trap('TERM') { raise TransactionError, "Transaction aborted" }
         increment_open_transactions
 
         begin
-          unless objects.empty?
-            ActiveSupport::Deprecation.warn "Object transactions are deprecated and will be removed from Rails 2.0.  See http://www.rubyonrails.org/deprecation for details.", caller
-            objects.each { |o| o.extend(Transaction::Simple) }
-            objects.each { |o| o.start_transaction }
-          end
-
-          result = connection.transaction(Thread.current['start_db_transaction'], &block)
-
-          objects.each { |o| o.commit_transaction }
-          return result
-        rescue Exception => object_transaction_rollback
-          objects.each { |o| o.abort_transaction }
-          raise
+          connection.transaction(Thread.current['start_db_transaction'], &block)
         ensure
           decrement_open_transactions
           trap('TERM', previous_handler)
@@ -128,8 +93,8 @@ module ActiveRecord
         end
     end
 
-    def transaction(*objects, &block)
-      self.class.transaction(*objects, &block)
+    def transaction(&block)
+      self.class.transaction(&block)
     end
 
     def destroy_with_transactions #:nodoc:
