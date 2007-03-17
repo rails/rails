@@ -569,6 +569,12 @@ class BasicsTest < Test::Unit::TestCase
     end
   end
 
+  if current_adapter?(:MysqlAdapter)
+    def test_update_all_with_order_and_limit
+      assert_equal 1, Topic.update_all("content = 'bulk updated!'", nil, :limit => 1, :order => 'id DESC')
+    end
+  end
+
   def test_update_many
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
     updated = Topic.update(topic_data.keys, topic_data.values)

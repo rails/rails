@@ -501,9 +501,15 @@ module ActiveRecord #:nodoc:
       # Updates all records with the SET-part of an SQL update statement in +updates+ and returns an integer with the number of rows updated.
       # A subset of the records can be selected by specifying +conditions+. Example:
       #   Billing.update_all "category = 'authorized', approved = 1", "author = 'David'"
-      def update_all(updates, conditions = nil)
+      #
+      # Optional :order and :limit options may be given as the third parameter,
+      # but their behavior is database-specific.
+      def update_all(updates, conditions = nil, options = {})
         sql  = "UPDATE #{table_name} SET #{sanitize_sql_for_assignment(updates)} "
-        add_conditions!(sql, conditions, scope(:find))
+        scope = scope(:find)
+        add_conditions!(sql, conditions, scope)
+        add_order!(sql, options[:order], scope)
+        add_limit!(sql, options, scope)
         connection.update(sql, "#{name} Update")
       end
 
