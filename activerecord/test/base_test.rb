@@ -1509,7 +1509,7 @@ class BasicsTest < Test::Unit::TestCase
     assert xml.include?(%(<id type="integer">1</id>))
     assert xml.include?(%(<replies-count type="integer">1</replies-count>))
     assert xml.include?(%(<written-on type="datetime">#{written_on_in_current_timezone}</written-on>))
-    assert xml.include?(%(<content>Have a nice day</content>))
+    assert xml.include?(%(<content type="yaml">--- Have a nice day\n</content>))
     assert xml.include?(%(<author-email-address>david@loudthinking.com</author-email-address>))
     assert xml.match(%(<parent-id type="integer"></parent-id>))
     if current_adapter?(:SybaseAdapter, :SQLServerAdapter, :OracleAdapter)

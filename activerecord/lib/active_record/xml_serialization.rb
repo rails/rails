@@ -275,7 +275,7 @@ module ActiveRecord #:nodoc:
     
       protected
         def compute_type
-          type = @record.class.columns_hash[name].type
+          type = @record.class.serialized_attributes.has_key?(name) ? :yaml : @record.class.columns_hash[name].type
 
           case type
             when :text

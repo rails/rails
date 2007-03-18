@@ -38,7 +38,8 @@ module ActiveSupport #:nodoc:
         XML_FORMATTING = {
           "date"     => Proc.new { |date| date.to_s(:db) },
           "datetime" => Proc.new { |time| time.xmlschema },
-          "binary"   => Proc.new { |binary| Base64.encode64(binary) }
+          "binary"   => Proc.new { |binary| Base64.encode64(binary) },
+          "yaml"     => Proc.new { |yaml| yaml.to_yaml }
         } unless defined? XML_FORMATTING
 
         def self.included(klass)
@@ -105,7 +106,7 @@ module ActiveSupport #:nodoc:
         module ClassMethods
           def from_xml(xml)
             # TODO: Refactor this into something much cleaner that doesn't rely on XmlSimple
-            undasherize_keys(typecast_xml_value(XmlSimple.xml_in(xml,
+            typecast_xml_value(undasherize_keys(XmlSimple.xml_in(xml,
               'forcearray'   => false,
               'forcecontent' => true,
               'keeproot'     => true,
@@ -129,6 +130,7 @@ module ActiveSupport #:nodoc:
                       when "boolean"  then content.strip == "true"
                       when "datetime" then ::Time.parse(content).utc
                       when "date"     then ::Date.parse(content)
+                      when "yaml"     then YAML::load(content) rescue content
                       else                 content
                     end
                   else

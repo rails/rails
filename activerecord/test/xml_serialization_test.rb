@@ -9,11 +9,14 @@ class Contact < ActiveRecord::Base
     columns << ActiveRecord::ConnectionAdapters::Column.new(name.to_s, default, sql_type.to_s, null)
   end
 
-  column :name,       :string
-  column :age,        :integer
-  column :avatar,     :binary
-  column :created_at, :datetime
-  column :awesome,    :boolean
+  column :name,        :string
+  column :age,         :integer
+  column :avatar,      :binary
+  column :created_at,  :datetime
+  column :awesome,     :boolean
+  column :preferences, :string
+  
+  serialize :preferences
 end
 
 class XmlSerializationTest < Test::Unit::TestCase
@@ -57,7 +60,7 @@ end
 
 class DefaultXmlSerializationTest < Test::Unit::TestCase
   def setup
-    @xml = Contact.new(:name => 'aaron stack', :age => 25, :avatar => 'binarydata', :created_at => Time.utc(2006, 8, 1), :awesome => false).to_xml
+    @xml = Contact.new(:name => 'aaron stack', :age => 25, :avatar => 'binarydata', :created_at => Time.utc(2006, 8, 1), :awesome => false, :preferences => { :gem => 'ruby' }).to_xml
   end
 
   def test_should_serialize_string
@@ -80,6 +83,10 @@ class DefaultXmlSerializationTest < Test::Unit::TestCase
   
   def test_should_serialize_boolean
     assert_match %r{<awesome type=\"boolean\">false</awesome>}, @xml
+  end
+  
+  def test_should_serialize_yaml
+    assert_match %r{<preferences type=\"yaml\">--- \n:gem: ruby\n</preferences>}, @xml
   end
 end
 
@@ -108,6 +115,10 @@ class NilXmlSerializationTest < Test::Unit::TestCase
   
   def test_should_serialize_boolean
     assert_match %r{<awesome type=\"boolean\"></awesome>}, @xml
+  end
+  
+  def test_should_serialize_yaml
+    assert_match %r{<preferences type=\"yaml\"></preferences>}, @xml
   end
 end
 

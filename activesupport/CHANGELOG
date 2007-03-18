@@ -1,5 +1,7 @@
 *SVN*
 
+* Hash#to_xml supports YAML attributes.  #7502 [jonathan]
+
 * Refactor ActiveSupport::JSON to be less obtuse.  Add support for JSON decoding by way of Syck with ActiveSupport::JSON.decode(json_string).  Prevent hash keys that are JavaScript reserved words from being unquoted during encoding.  [Sam Stephenson]
 
 * alias_method_chain preserves the original method's visibility.  #7854 [Jonathan Viney]

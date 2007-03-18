@@ -376,7 +376,7 @@ class HashToXmlTest < Test::Unit::TestCase
         <replies-close-in type="integer">2592000000</replies-close-in>
         <written-on type="date">2003-07-16</written-on>
         <viewed-at type="datetime">2003-07-16T09:28:00+0000</viewed-at>
-        <content>Have a nice day</content>
+        <content type="yaml">--- \n1: should be an integer\n:message: Have a nice day\narray: \n- should-have-dashes: true\n  should_have_underscores: true\n</content>
         <author-email-address>david@loudthinking.com</author-email-address>
         <parent-id></parent-id>
       </topic>
@@ -391,7 +391,7 @@ class HashToXmlTest < Test::Unit::TestCase
       :replies_close_in => 2592000000,
       :written_on => Date.new(2003, 7, 16),
       :viewed_at => Time.utc(2003, 7, 16, 9, 28),
-      :content => "Have a nice day",
+      :content => { :message => "Have a nice day", 1 => "should be an integer", "array" => [{ "should-have-dashes" => true, "should_have_underscores" => true }] },
       :author_email_address => "david@loudthinking.com",
       :parent_id => nil
     }.stringify_keys
@@ -407,6 +407,7 @@ class HashToXmlTest < Test::Unit::TestCase
         <approved type="boolean"></approved>
         <written-on type="date"></written-on>
         <viewed-at type="datetime"></viewed-at>
+        <content type="yaml"></content>
         <parent-id></parent-id>
       </topic>
     EOT
@@ -416,7 +417,8 @@ class HashToXmlTest < Test::Unit::TestCase
       :id         => nil,
       :approved   => nil,
       :written_on => nil,
-      :viewed_at  => nil, 
+      :viewed_at  => nil,
+      :content    => nil, 
       :parent_id  => nil
     }.stringify_keys
 

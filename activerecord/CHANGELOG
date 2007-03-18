@@ -1,5 +1,7 @@
 *SVN*
 
+* Base#to_xml supports serialized attributes.  #7502 [jonathan]
+
 * Base.update_all :order and :limit options. Useful for MySQL updates that must be ordered to avoid violating unique constraints.  [Jeremy Kemper]
 
 * Remove deprecated object transactions.  People relying on this functionality should install the object_transactions plugin at http://code.bitsweat.net/svn/object_transactions.  Closes #5637 [Koz, Jeremy Kemper]
