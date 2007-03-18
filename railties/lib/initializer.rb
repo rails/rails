@@ -1,7 +1,11 @@
 require 'logger'
 require 'set'
-require File.join(File.dirname(__FILE__), 'railties_path')
-require File.join(File.dirname(__FILE__), 'rails/version')
+require 'pathname'
+
+$LOAD_PATH.unshift File.dirname(__FILE__)
+require 'railties_path'
+require 'rails/version'
+
 
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
 
@@ -191,7 +195,7 @@ module Rails
           raise(LoadError, "Cannot find the plugin '#{name}'!") if path.nil?
           load_plugin path
         end
-      end 
+      end
       $LOAD_PATH.uniq!
     end
 
@@ -307,10 +311,10 @@ module Rails
 
     def initialize_temporary_directories
       if configuration.frameworks.include?(:action_controller)
-        session_path = "#{RAILS_ROOT}/tmp/sessions/"
+        session_path = "#{configuration.root_path}/tmp/sessions/"
         ActionController::Base.session_options[:tmpdir] = File.exist?(session_path) ? session_path : Dir::tmpdir
 
-        cache_path = "#{RAILS_ROOT}/tmp/cache/"
+        cache_path = "#{configuration.root_path}/tmp/cache/"
         if File.exist?(cache_path)
           ActionController::Base.fragment_cache_store = :file_store, cache_path
         end
@@ -414,6 +418,9 @@ module Rails
   #   config = Rails::Configuration.new
   #   Rails::Initializer.run(:process, config)
   class Configuration
+    # The application's base directory.
+    attr_reader :root_path
+
     # A stub for setting options on ActionController::Base
     attr_accessor :action_controller
 
@@ -497,6 +504,8 @@ module Rails
     # Create a new Configuration instance, initialized with the default
     # values.
     def initialize
+      set_root_path!
+
       self.frameworks                   = default_frameworks
       self.load_paths                   = default_load_paths
       self.load_once_paths              = default_load_once_paths
@@ -514,6 +523,23 @@ module Rails
       for framework in default_frameworks
         self.send("#{framework}=", Rails::OrderedOptions.new)
       end
+    end
+
+    # Set the root_path to RAILS_ROOT and canonicalize it.
+    def set_root_path!
+      raise 'RAILS_ROOT is not set' unless defined?(::RAILS_ROOT)
+      raise 'RAILS_ROOT is not a directory' unless File.directory?(::RAILS_ROOT)
+
+      @root_path =
+        # Pathname is incompatible with Windows, but Windows doesn't have
+        # real symlinks so File.expand_path is safe.
+        if RUBY_PLATFORM =~ /(:?mswin|mingw)/
+          File.expand_path(::RAILS_ROOT)
+
+        # Otherwise use Pathname#realpath which respects symlinks.
+        else
+          Pathname.new(::RAILS_ROOT).realpath.to_s
+        end
     end
 
     # Loads and returns the contents of the #database_configuration_file. The
@@ -575,10 +601,6 @@ module Rails
     end
 
     private
-      def root_path
-        ::RAILS_ROOT
-      end
-
       def framework_root_path
         defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{root_path}/vendor/rails"
       end

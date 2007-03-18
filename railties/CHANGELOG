@@ -1,3 +1,8 @@
+*SVN*
+
+* Canonicalize RAILS_ROOT by using File.expand_path on Windows, which doesn't have to worry about symlinks, and Pathname#realpath elsewhere, which respects symlinks in relative paths but is incompatible with Windows.  #6755 [Jeremy Kemper, trevor]
+
+
 *1.2.3* (March 12th, 2007)
 
 * Ruby 1.8.6 compatibility fixes. Upgrade rake dependency to 0.7.2.
