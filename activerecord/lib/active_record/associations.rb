@@ -1499,7 +1499,7 @@ module ActiveRecord
             end
 
             def instantiate(row)
-              @cached_record[record_id(row)] ||= active_record.instantiate(extract_record(row))
+              @cached_record[record_id(row)] ||= active_record.send(:instantiate, extract_record(row))
             end
           end
 
