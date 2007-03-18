@@ -1,9 +1,12 @@
 require 'logger'
 require 'set'
-require File.join(File.dirname(__FILE__), 'railties_path')
-require File.join(File.dirname(__FILE__), 'rails/version')
-require File.join(File.dirname(__FILE__), 'rails/plugin/locator')
-require File.join(File.dirname(__FILE__), 'rails/plugin/loader')
+require 'pathname'
+
+$LOAD_PATH.unshift File.dirname(__FILE__)
+require 'railties_path'
+require 'rails/version'
+require 'rails/plugin/locator'
+require 'rails/plugin/loader'
 
 
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
@@ -193,7 +196,7 @@ module Rails
         end
       end
       ensure_all_registered_plugins_are_loaded!
-      $LOAD_PATH.uniq!      
+      $LOAD_PATH.uniq!
     end
 
     # Loads the environment specified by Configuration#environment_path, which
@@ -307,10 +310,10 @@ module Rails
 
     def initialize_temporary_directories
       if configuration.frameworks.include?(:action_controller)
-        session_path = "#{RAILS_ROOT}/tmp/sessions/"
+        session_path = "#{configuration.root_path}/tmp/sessions/"
         ActionController::Base.session_options[:tmpdir] = File.exist?(session_path) ? session_path : Dir::tmpdir
 
-        cache_path = "#{RAILS_ROOT}/tmp/cache/"
+        cache_path = "#{configuration.root_path}/tmp/cache/"
         if File.exist?(cache_path)
           ActionController::Base.fragment_cache_store = :file_store, cache_path
         end
@@ -336,11 +339,11 @@ module Rails
     end
 
     def load_application_initializers
-      Dir["#{RAILS_ROOT}/config/initializers/**/*.rb"].each do |initializer|
+      Dir["#{configuration.root_path}/config/initializers/**/*.rb"].each do |initializer|
         load(initializer)
       end
     end
-    
+
     private
       def ensure_all_registered_plugins_are_loaded!
         unless configuration.plugins.nil?
@@ -362,6 +365,9 @@ module Rails
   #   config = Rails::Configuration.new
   #   Rails::Initializer.run(:process, config)
   class Configuration
+    # The application's base directory.
+    attr_reader :root_path
+
     # A stub for setting options on ActionController::Base
     attr_accessor :action_controller
 
@@ -441,14 +447,14 @@ module Rails
     # The path to the root of the plugins directory. By default, it is in
     # <tt>vendor/plugins</tt>.
     attr_accessor :plugin_paths
-    
+
     # The classes that handle finding the desired plugins that you'd like to load for
     # your application. By default it is the Rails::Plugin::FileSystemLocator which finds
     # plugins to load in <tt>vendor/plugins</tt>. You can hook into gem location by subclassing
     # Rails::Plugin::Locator and adding it onto the list of <tt>plugin_locators</tt>.
     attr_accessor :plugin_locators
-    
-    # The class that handles loading each plugin. Defaults to Rails::Plugin::Loader, but 
+
+    # The class that handles loading each plugin. Defaults to Rails::Plugin::Loader, but
     # a sub class would have access to fine grained modification of the loading behavior. See
     # the implementation of Rails::Plugin::Loader for more details.
     attr_accessor :plugin_loader
@@ -456,6 +462,8 @@ module Rails
     # Create a new Configuration instance, initialized with the default
     # values.
     def initialize
+      set_root_path!
+
       self.frameworks                   = default_frameworks
       self.load_paths                   = default_load_paths
       self.load_once_paths              = default_load_once_paths
@@ -475,6 +483,23 @@ module Rails
       for framework in default_frameworks
         self.send("#{framework}=", Rails::OrderedOptions.new)
       end
+    end
+
+    # Set the root_path to RAILS_ROOT and canonicalize it.
+    def set_root_path!
+      raise 'RAILS_ROOT is not set' unless defined?(::RAILS_ROOT)
+      raise 'RAILS_ROOT is not a directory' unless File.directory?(::RAILS_ROOT)
+
+      @root_path =
+        # Pathname is incompatible with Windows, but Windows doesn't have
+        # real symlinks so File.expand_path is safe.
+        if RUBY_PLATFORM =~ /(:?mswin|mingw)/
+          File.expand_path(::RAILS_ROOT)
+
+        # Otherwise use Pathname#realpath which respects symlinks.
+        else
+          Pathname.new(::RAILS_ROOT).realpath.to_s
+        end
     end
 
     # Loads and returns the contents of the #database_configuration_file. The
@@ -536,10 +561,6 @@ module Rails
     end
 
     private
-      def root_path
-        ::RAILS_ROOT
-      end
-
       def framework_root_path
         defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{root_path}/vendor/rails"
       end
@@ -596,7 +617,7 @@ module Rails
       end
 
       def default_controller_paths
-        paths = [ File.join(root_path, 'app', 'controllers'), File.join(root_path, 'components') ]
+        paths = [File.join(root_path, 'app', 'controllers')]
         paths.concat builtin_directories
         paths
       end
@@ -624,11 +645,11 @@ module Rails
       def default_plugin_paths
         ["#{root_path}/vendor/plugins"]
       end
-      
+
       def default_plugin_locators
         [Plugin::FileSystemLocator]
       end
-      
+
       def default_plugin_loader
         Plugin::Loader
       end

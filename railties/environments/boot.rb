@@ -1,15 +1,6 @@
 # Don't change this file. Configuration is done in config/environment.rb and config/environments/*.rb
 
-unless defined?(RAILS_ROOT)
-  root_path = File.join(File.dirname(__FILE__), '..')
-
-  unless RUBY_PLATFORM =~ /(:?mswin|mingw)/
-    require 'pathname'
-    root_path = Pathname.new(root_path).cleanpath(true).to_s
-  end
-
-  RAILS_ROOT = root_path
-end
+RAILS_ROOT = "#{File.dirname(__FILE__)}/.." unless defined?(RAILS_ROOT)
 
 unless defined?(Rails::Initializer)
   if File.directory?("#{RAILS_ROOT}/vendor/rails")

@@ -1,5 +1,9 @@
 *SVN*
 
+* Canonicalize RAILS_ROOT by using File.expand_path on Windows, which doesn't have to worry about symlinks, and Pathname#realpath elsewhere, which respects symlinks in relative paths but is incompatible with Windows.  #6755 [Jeremy Kemper, trevor]
+
+* Deprecation: remove components from controller paths.  [Jeremy Kemper]
+
 * Add environment variable RAILS_DEFAULT_DATABASE, which allows the builtin default of 'mysql' to be overridden. [Nicholas Seckar]
 
 * Windows: include MinGW in RUBY_PLATFORM check.  #2982 [okkez000@gmail.com, Kaspar Schiess]
