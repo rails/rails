@@ -1,48 +1,31 @@
-require 'active_support/json/encoders'
+require 'active_support/json/encoding'
+require 'active_support/json/decoding'
 
 module ActiveSupport
-  module JSON #:nodoc:
-    class CircularReferenceError < StandardError #:nodoc:
-    end
-    
-    # A string that returns itself as as its JSON-encoded form.
-    class Variable < String #:nodoc:
-      def to_json
-        self
-      end
-    end
-    
-    # When +true+, Hash#to_json will omit quoting string or symbol keys
-    # if the keys are valid JavaScript identifiers.  Note that this is
-    # technically improper JSON (all object keys must be quoted), so if
-    # you need strict JSON compliance, set this option to +false+.
-    mattr_accessor :unquote_hash_key_identifiers
-    @@unquote_hash_key_identifiers = true
+  module JSON
+    RESERVED_WORDS = %w(
+      abstract      delete        goto          private       transient
+      boolean       do            if            protected     try
+      break         double        implements    public        typeof
+      byte          else          import        return        var
+      case          enum          in            short         void
+      catch         export        instanceof    static        volatile
+      char          extends       int           super         while
+      class         final         interface     switch        with
+      const         finally       long          synchronized
+      continue      float         native        this
+      debugger      for           new           throw
+      default       function      package       throws
+    ) #:nodoc:
 
     class << self
-      REFERENCE_STACK_VARIABLE = :json_reference_stack
-      
-      def encode(value)
-        raise_on_circular_reference(value) do
-          Encoders[value.class].call(value)
-        end
+      def valid_identifier?(key) #:nodoc:
+        key.to_s =~ /^[[:alpha:]_$][[:alnum:]_$]*$/ && !reserved_word?(key)
       end
-      
-      def can_unquote_identifier?(key)
-        return false unless unquote_hash_key_identifiers
-        key.to_s =~ /^[[:alpha:]_$][[:alnum:]_$]*$/
+
+      def reserved_word?(key) #:nodoc:
+        RESERVED_WORDS.include?(key.to_s)
       end
-      
-      protected
-        def raise_on_circular_reference(value)
-          stack = Thread.current[REFERENCE_STACK_VARIABLE] ||= []
-          raise CircularReferenceError, 'object references itself' if
-            stack.include? value
-          stack << value
-          yield
-        ensure
-          stack.pop
-        end
     end
   end
 end

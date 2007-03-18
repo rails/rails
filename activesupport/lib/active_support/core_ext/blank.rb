@@ -1,6 +1,6 @@
-class Object #:nodoc:
+class Object 
   # "", "   ", nil, [], and {} are blank
-  def blank?
+  def blank? #:nodoc:
     if respond_to?(:empty?) && respond_to?(:strip)
       empty? or strip.empty?
     elsif respond_to?(:empty?)

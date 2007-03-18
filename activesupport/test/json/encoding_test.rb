@@ -1,12 +1,12 @@
-require File.dirname(__FILE__) + '/abstract_unit'
+require File.dirname(__FILE__) + '/../abstract_unit'
 
-class Foo
-  def initialize(a, b)
-    @a, @b = a, b
+class TestJSONEncoding < Test::Unit::TestCase
+  class Foo
+    def initialize(a, b)
+      @a, @b = a, b
+    end
   end
-end
 
-class TestJSONEmitters < Test::Unit::TestCase
   TrueTests     = [[ true,  %(true)  ]]
   FalseTests    = [[ false, %(false) ]]
   NilTests      = [[ nil,   %(null)  ]]
@@ -70,9 +70,14 @@ class TestJSONEmitters < Test::Unit::TestCase
   end
   
   def test_unquote_hash_key_identifiers
-    values = {0 => 0, 1 => 1, :_ => :_, "$" => "$", "a" => "a", :A => :A, :A0 => :A0, "A0B" => "A0B"}    
-    assert_equal %({"a": "a", 0: 0, "_": "_", 1: 1, "$": "$", "A": "A", "A0B": "A0B", "A0": "A0"}), values.to_json
-    unquote(true) { assert_equal %({a: "a", 0: 0, _: "_", 1: 1, $: "$", A: "A", A0B: "A0B", A0: "A0"}), values.to_json }
+    values = {0 => 0, 1 => 1, :_ => :_, "$" => "$", "a" => "a", :A => :A, :A0 => :A0, "A0B" => "A0B"}
+    assert_equal %w( "$" "A" "A0" "A0B" "_" "a" 0 1 ), object_keys(values.to_json)
+    unquote(true) { assert_equal %w( $ 0 1 A A0 A0B _ a ), object_keys(values.to_json) }
+  end
+  
+  def test_unquote_hash_key_identifiers_ignores_javascript_reserved_words
+    values = {"hello" => "world", "this" => "that", "with" => "foo"}
+    unquote(true) { assert_equal %w( "this" "with" hello ), object_keys(values.to_json) }
   end
   
   protected
@@ -82,6 +87,10 @@ class TestJSONEmitters < Test::Unit::TestCase
       yield if block_given?
     ensure
       ActiveSupport::JSON.unquote_hash_key_identifiers = previous_value if block_given?
+    end
+    
+    def object_keys(json_object)
+      json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
     end
     
 end

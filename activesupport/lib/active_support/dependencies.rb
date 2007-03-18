@@ -480,18 +480,18 @@ class Class
   end
 end
 
-class Object #:nodoc:
+class Object
   
   alias_method :load_without_new_constant_marking, :load
   
-  def load(file, *extras)
+  def load(file, *extras) #:nodoc:
     Dependencies.new_constants_in(Object) { super(file, *extras) }
   rescue Exception => exception  # errors from loading file
     exception.blame_file! file
     raise
   end
 
-  def require(file, *extras)
+  def require(file, *extras) #:nodoc:
     Dependencies.new_constants_in(Object) { super(file, *extras) }
   rescue Exception => exception  # errors from required file
     exception.blame_file! file
