@@ -65,7 +65,7 @@ class CGI #:nodoc:
           if env_qs.blank? && !(uri = env_table['REQUEST_URI']).blank?
             uri.split('?', 2)[1] || ''
           else
-            env_qs
+            env_qs || ''
           end
         end
       end
