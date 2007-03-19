@@ -1,5 +1,7 @@
 *SVN*
 
+* SQLite: binary escaping works with $KCODE='u'.  #7862 [tsuka]
+
 * Base#to_xml supports serialized attributes.  #7502 [jonathan]
 
 * Base.update_all :order and :limit options. Useful for MySQL updates that must be ordered to avoid violating unique constraints.  [Jeremy Kemper]
