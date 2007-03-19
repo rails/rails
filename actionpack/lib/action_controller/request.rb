@@ -209,7 +209,7 @@ module ActionController
 
     # Returns the interpreted path to requested resource after all the installation directory of this application was taken into account
     def path
-      path = (uri = request_uri) ? uri.split('?').first : ''
+      path = (uri = request_uri) ? uri.split('?').first.to_s : ''
 
       # Cut off the path to the installation directory if given
       path.sub!(%r/^#{relative_url_root}/, '')
