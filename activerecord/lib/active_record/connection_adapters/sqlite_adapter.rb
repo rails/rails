@@ -68,7 +68,7 @@ module ActiveRecord
     class SQLiteColumn < Column #:nodoc:
       class <<  self
         def string_to_binary(value)
-          value.gsub(/\0|\%/) do |b|
+          value.gsub(/\0|\%/n) do |b|
             case b
               when "\0" then "%00"
               when "%"  then "%25"
@@ -77,7 +77,7 @@ module ActiveRecord
         end
         
         def binary_to_string(value)
-          value.gsub(/%00|%25/) do |b|
+          value.gsub(/%00|%25/n) do |b|
             case b
               when "%00" then "\0"
               when "%25" then "%"

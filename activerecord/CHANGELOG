@@ -1,3 +1,8 @@
+*SVN*
+
+* SQLite: binary escaping works with $KCODE='u'.  #7862 [tsuka]
+
+
 *1.15.3* (March 12th, 2007)
 
 * Allow a polymorphic :source for has_many :through associations. Closes #7143 [protocool] 
