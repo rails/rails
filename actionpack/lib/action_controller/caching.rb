@@ -161,6 +161,19 @@ module ActionController #:nodoc:
     # Different representations of the same resource, e.g. <tt>http://david.somewhere.com/lists</tt> and <tt>http://david.somewhere.com/lists.xml</tt>
     # are treated like separate requests and so are cached separately. Keep in mind when expiring an action cache that <tt>:action => 'lists'</tt> is not the same
     # as <tt>:action => 'list', :format => :xml</tt>.
+    #
+    # You can set modify the default action cache path by passing a :cache_path option.  This will be passed directly to ActionCachePath.path_for.  This is handy
+    # for actions with multiple possible routes that should be cached differently.  If a block is given, it is called with the current controller instance.
+    #
+    #   class ListsController < ApplicationController
+    #     before_filter :authenticate, :except => :public
+    #     caches_page   :public
+    #     caches_action :show, :cache_path => { :project => 1 }
+    #     caches_action :show, :cache_path => Proc.new { |controller| 
+    #       controller.params[:user_id] ? 
+    #         controller.send(:user_list_url, c.params[:user_id], c.params[:id]) :
+    #         controller.send(:list_url, c.params[:id]) }
+    #   end
     module Actions
       def self.included(base) #:nodoc:
         base.extend(ClassMethods)
@@ -188,11 +201,12 @@ module ActionController #:nodoc:
       class ActionCacheFilter #:nodoc:
         def initialize(*actions, &block)
           @actions = actions
+          @options = @actions.last.is_a?(Hash) ? @actions.pop : {}
         end
 
         def before(controller)
           return unless @actions.include?(controller.action_name.intern)
-          action_cache_path = ActionCachePath.new(controller)
+          action_cache_path = ActionCachePath.new(controller, path_options_for(controller))
           if cache = controller.read_fragment(action_cache_path.path)
             controller.rendered_action_cache = true
             set_content_type!(action_cache_path)
@@ -203,7 +217,7 @@ module ActionController #:nodoc:
 
         def after(controller)
           return if !@actions.include?(controller.action_name.intern) || controller.rendered_action_cache
-          controller.write_fragment(ActionCachePath.path_for(controller), controller.response.body)
+          controller.write_fragment(ActionCachePath.path_for(controller, path_options_for(controller)), controller.response.body)
         end
         
         private
@@ -213,6 +227,10 @@ module ActionController #:nodoc:
               content_type = Mime::EXTENSION_LOOKUP[extention]
               action_cache_path.controller.response.content_type = content_type.to_s
             end
+          end
+          
+          def path_options_for(controller)
+            (@options[:cache_path].respond_to?(:call) ? @options[:cache_path].call(controller) : @options[:cache_path]) || {}
           end
           
       end
@@ -597,6 +615,12 @@ module ActionController #:nodoc:
           # Clean up, so that the controller can be collected after this request
           self.controller = nil
         end
+
+        protected
+          # gets the action cache path for the given options.
+          def action_path_for(options)
+            ActionController::Caching::Actions::ActionCachePath.path_for(controller, options)
+          end
 
         private
           def callback(timing)

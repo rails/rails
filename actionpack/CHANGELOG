@@ -1,5 +1,14 @@
 *SVN*
 
+* Allow configuration of the default action cache path for #caches_action calls.  [Rick Olson]
+
+  class ListsController < ApplicationController
+    caches_action :index, :cache_path => Proc.new { |controller| 
+      controller.params[:user_id] ? 
+        controller.send(:user_lists_url, c.params[:user_id]) :
+        controller.send(:lists_url) }
+  end
+
 * Performance: patch cgi/session/pstore to require digest/md5 once rather than per #initialize.  #7583 [Stefan Kaes]
 
 * Cookie session store: ensure that new sessions doesn't reuse data from a deleted session in the same request.  [Jeremy Kemper]

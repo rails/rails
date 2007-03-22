@@ -98,11 +98,16 @@ end
 
 class ActionCachingTestController < ActionController::Base
   caches_action :index
+  caches_action :show, :cache_path => 'http://test.host/custom/show'
+  caches_action :edit, :cache_path => Proc.new { |c| c.params[:id] ? "http://test.host/#{c.params[:id]};edit" : "http://test.host/edit" }
 
   def index
     @cache_this = Time.now.to_f.to_s
     render :text => @cache_this
   end
+  
+  alias_method :show, :index
+  alias_method :edit, :index
 
   def expire
     expire_action :controller => 'action_caching_test', :action => 'index'
@@ -148,10 +153,31 @@ class ActionCacheTest < Test::Unit::TestCase
     get :index
     cached_time = content_to_cache
     assert_equal cached_time, @response.body
+    assert_cache_exists 'hostname.com/action_caching_test'
     reset!
 
     get :index
     assert_equal cached_time, @response.body
+  end
+  
+  def test_action_cache_with_custom_cache_path
+    get :show
+    cached_time = content_to_cache
+    assert_equal cached_time, @response.body
+    assert_cache_exists 'test.host/custom/show'
+    reset!
+
+    get :show
+    assert_equal cached_time, @response.body
+  end
+
+  def test_action_cache_with_custom_cache_path_in_block
+    get :edit
+    assert_cache_exists 'test.host/edit'
+    reset!
+
+    get :edit, :id => 1
+    assert_cache_exists 'test.host/1;edit'
   end
 
   def test_cache_expiration
@@ -227,5 +253,10 @@ class ActionCacheTest < Test::Unit::TestCase
       @response   = ActionController::TestResponse.new
       @controller = ActionCachingTestController.new
       @request.host = 'hostname.com'
+    end
+    
+    def assert_cache_exists(path)
+      full_path = File.join(FILE_STORE_PATH, path + '.cache')
+      assert File.exist?(full_path), "#{full_path.inspect} does not exist."
     end
 end
