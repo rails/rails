@@ -1,4 +1,4 @@
-# CGI::Session::Pstore.initialize requires 'digest/md5' on every call.
+# CGI::Session::PStore.initialize requires 'digest/md5' on every call.
 # This makes sense when spawning processes per request, but is
 # unnecessarily expensive when serving requests from a long-lived
 # process.
@@ -6,7 +6,7 @@ require 'cgi/session'
 require 'cgi/session/pstore'
 require 'digest/md5'
 
-class CGI::Session::Pstore #:nodoc:
+class CGI::Session::PStore #:nodoc:
   def initialize(session, option={})
     dir = option['tmpdir'] || Dir::tmpdir
     prefix = option['prefix'] || ''
