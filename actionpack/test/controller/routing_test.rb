@@ -1793,7 +1793,14 @@ class RouteSetTest < Test::Unit::TestCase
       {:controller => 'post', :action => 'show', :parameter => 1}
     )
   end
-  
+
+  def test_expiry_determination_should_consider_values_with_to_param
+    set.draw { |map| map.connect 'projects/:project_id/:controller/:action' }
+    assert_equal '/projects/1/post/show', set.generate(
+      {:action => 'show', :project_id => 1},
+      {:controller => 'post', :action => 'show', :project_id => '1'})
+  end
+
   def test_generate_all
     set.draw do |map|
       map.connect 'show_post/:id', :controller => 'post', :action => 'show'

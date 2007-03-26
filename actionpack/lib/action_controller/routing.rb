@@ -1195,7 +1195,7 @@ module ActionController
   
       def build_expiry(options, recall)
         recall.inject({}) do |expiry, (key, recalled_value)|
-          expiry[key] = (options.key?(key) && options[key] != recalled_value)
+          expiry[key] = (options.key?(key) && options[key].to_param != recalled_value.to_param)
           expiry
         end
       end

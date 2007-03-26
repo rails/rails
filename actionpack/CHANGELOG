@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure the route expiry hash is constructed by comparing the to_param-ized values of each hash. [Jamis Buck]
+
 * Allow configuration of the default action cache path for #caches_action calls.  [Rick Olson]
 
   class ListsController < ApplicationController
