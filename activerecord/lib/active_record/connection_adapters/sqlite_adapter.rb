@@ -286,7 +286,7 @@ module ActiveRecord
       protected
         def table_structure(table_name)
           returning structure = execute("PRAGMA table_info(#{table_name})") do
-            raise ActiveRecord::StatementInvalid if structure.empty?
+            raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
           end
         end
 
@@ -384,7 +384,7 @@ module ActiveRecord
     class SQLite3Adapter < SQLiteAdapter # :nodoc:
       def table_structure(table_name)
         returning structure = @connection.table_info(table_name) do
-          raise ActiveRecord::StatementInvalid if structure.empty?
+          raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
         end
       end
     end
