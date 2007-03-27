@@ -538,6 +538,7 @@ module ActionController #:nodoc:
         self.class.controller_path
       end
 
+      # Test whether the session is enabled for this request.
       def session_enabled?
         request.session_options && request.session_options[:disabled] != false
       end

@@ -1,5 +1,9 @@
 *SVN*
 
+* Cleaned up, corrected, and mildly expanded ActionPack documentation.  Closes #7190 [jeremymcanally]
+
+* Small collection of ActionController documentation cleanups.  Closes #7319 [jeremymcanally]
+
 * Performance: patch cgi/session/pstore to require digest/md5 once rather than per #initialize.  #7583 [Stefan Kaes]
 
 * Deprecation: verification with :redirect_to => :named_route shouldn't be deprecated.  #7525 [Justin French]

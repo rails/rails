@@ -3,14 +3,14 @@ module ActionView
 
   # CompiledTemplates modules hold methods that have been compiled.
   # Templates are compiled into these methods so that they do not need to be
-  # re-read and re-parsed each request.
+  # read and parsed for each request.
   #
   # Each template may be compiled into one or more methods. Each method accepts a given
   # set of parameters which is used to implement local assigns passing.
   #
   # To use a compiled template module, create a new instance and include it into the class
   # in which you want the template to be rendered.
-  class CompiledTemplates < Module #:nodoc:
+  class CompiledTemplates < Module
     attr_reader :method_names
 
     def initialize

@@ -76,6 +76,7 @@ module ActionController
     alias_method :to_s, :to_str
 
     private
+      # Given a path and options, returns a rewritten URL string
       def rewrite_url(path, options)
         rewritten_url = ""
         unless options[:only_path]
@@ -91,6 +92,7 @@ module ActionController
         rewritten_url
       end
 
+      # Given a Hash of options, generates a route
       def rewrite_path(options)
         options = options.symbolize_keys
         options.update(options[:params].symbolize_keys) if options[:params]

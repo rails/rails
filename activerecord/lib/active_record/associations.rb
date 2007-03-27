@@ -734,6 +734,7 @@ module ActiveRecord
           deprecated_association_comparison_method(reflection.name, reflection.class_name)
         end
 
+        # Create the callbacks to update counter cache
         if options[:counter_cache]
           cache_column = options[:counter_cache] == true ?
             "#{self.to_s.underscore.pluralize}_count" :
@@ -871,6 +872,12 @@ module ActiveRecord
       end
 
       private
+        # Generate a join table name from two provided tables names.
+        # The order of names in join name is determined by lexical precedence.
+        #   join_table_name("members", "clubs")
+        #   => "clubs_members"
+        #   join_table_name("members", "special_clubs")
+        #   => "members_special_clubs"
         def join_table_name(first_table_name, second_table_name)
           if first_table_name < second_table_name
             join_table = "#{first_table_name}_#{second_table_name}"
@@ -880,7 +887,7 @@ module ActiveRecord
 
           table_name_prefix + join_table + table_name_suffix
         end
-        
+      
         def association_accessor_methods(reflection, association_proxy_class)
           define_method(reflection.name) do |*params|
             force_reload = params.first unless params.empty?

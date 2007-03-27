@@ -148,7 +148,7 @@ module ActionView #:nodoc:
   #
   # This refreshes the sidebar, removes a person element and highlights the user list.
   # 
-  # See the ActionView::Helpers::PrototypeHelper::JavaScriptGenerator documentation for more details.
+  # See the ActionView::Helpers::PrototypeHelper::GeneratorMethods documentation for more details.
   class Base
     include ERB::Util
 
@@ -160,7 +160,7 @@ module ActionView #:nodoc:
     attr_internal *ActionController::Base::DEPRECATED_INSTANCE_VARIABLES
 
     # Specify trim mode for the ERB compiler. Defaults to '-'.
-    # See ERB documentation for suitable values.
+    # See ERb documentation for suitable values.
     @@erb_trim_mode = '-'
     cattr_accessor :erb_trim_mode
 
@@ -191,17 +191,17 @@ module ActionView #:nodoc:
     end
     include CompiledTemplates
 
-    # maps inline templates to their method names 
+    # Maps inline templates to their method names 
     @@method_names = {}
-    # map method names to their compile time
+    # Map method names to their compile time
     @@compile_time = {}
-    # map method names to the names passed in local assigns so far
+    # Map method names to the names passed in local assigns so far
     @@template_args = {}
-    # count the number of inline templates
+    # Count the number of inline templates
     @@inline_template_count = 0
-    # maps template paths without extension to their file extension returned by pick_template_extension.
-    # if for a given path, path.ext1 and path.ext2 exist on the file system, the order of extensions
-    # used by pick_template_extension determines whether ext1 or ext2 will be stored
+    # Maps template paths without extension to their file extension returned by pick_template_extension.
+    # If for a given path, path.ext1 and path.ext2 exist on the file system, the order of extensions
+    # used by pick_template_extension determines whether ext1 or ext2 will be stored.
     @@cached_template_extension = {}
 
     class ObjectWrapper < Struct.new(:value) #:nodoc:
@@ -305,7 +305,6 @@ module ActionView #:nodoc:
     # Render the provided template with the given local assigns. If the template has not been rendered with the provided
     # local assigns yet, or if the template has been updated on disk, then the template will be compiled to a method.
     #
-
     # Either, but not both, of template and file_path may be nil. If file_path is given, the template
     # will only be read if it has to be compiled.
     #
@@ -371,10 +370,12 @@ module ActionView #:nodoc:
     end
 
     private
+      # Builds a string holding the full path of the template including extension
       def full_template_path(template_path, extension)
         "#{@base_path}/#{template_path}.#{extension}"
       end
 
+      # Asserts the existence of a template.
       def template_exists?(template_path, extension)
         file_path = full_template_path(template_path, extension)
         @@method_names.has_key?(file_path) || FileTest.exists?(file_path)
@@ -389,6 +390,7 @@ module ActionView #:nodoc:
         @@cache_template_extensions && @@cached_template_extension[template_path]
       end
 
+      # Determines the template's file extension, such as rhtml, rxml, or rjs.
       def find_template_extension_for(template_path)
         if match = delegate_template_exists?(template_path)
           match.first.to_sym
@@ -405,6 +407,7 @@ module ActionView #:nodoc:
         File.read(template_path)
       end
 
+      # Evaluate the local assigns and pushes them to the view.
       def evaluate_assigns
         unless @assigns_added
           assign_variables_from_controller
@@ -416,6 +419,7 @@ module ActionView #:nodoc:
         handler.new(self).render(template, local_assigns)
       end
 
+      # Assigns instance variables from the controller to the view.
       def assign_variables_from_controller
         @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
       end
@@ -427,10 +431,10 @@ module ActionView #:nodoc:
           ((args = @@template_args[render_symbol]) && local_assigns.all? { |k,_| args.has_key?(k) })
       end
 
-      # Check whether compilation is necessary.
-      # Compile if the inline template or file has not been compiled yet.
-      # Or if local_assigns has a new key, which isn't supported by the compiled code yet.
-      # Or if the file has changed on disk and checking file mods hasn't been disabled. 
+      # Method to check whether template compilation is necessary.
+      # The template will be compiled if the inline template or file has not been compiled yet,
+      # if local_assigns has a new key, which isn't supported by the compiled code yet,
+      # or if the file has changed on disk and checking file mods hasn't been disabled.
       def compile_template?(template, file_name, local_assigns)
         method_key    = file_name || template
         render_symbol = @@method_names[method_key]
@@ -445,7 +449,7 @@ module ActionView #:nodoc:
         end
       end
 
-      # Create source code for given template
+      # Method to create the source code for a given template.
       def create_template_source(extension, template, render_symbol, locals)
         if template_requires_setup?(extension)
           body = case extension.to_sym
@@ -473,11 +477,11 @@ module ActionView #:nodoc:
         "def #{render_symbol}(local_assigns)\n#{locals_code}#{body}\nend"
       end
 
-      def template_requires_setup?(extension)
+      def template_requires_setup?(extension) #:nodoc:
         templates_requiring_setup.include? extension.to_s
       end
 
-      def templates_requiring_setup
+      def templates_requiring_setup #:nodoc:
         %w(rxml rjs)
       end
 
@@ -501,6 +505,7 @@ module ActionView #:nodoc:
         end
       end
 
+      # Compile and evaluate the template's code
       def compile_template(extension, template, file_name, local_assigns)
         render_symbol = assign_method_name(extension, template, file_name)
         render_source = create_template_source(extension, template, render_symbol, local_assigns.keys)

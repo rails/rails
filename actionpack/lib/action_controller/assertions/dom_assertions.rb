@@ -1,7 +1,7 @@
 module ActionController
   module Assertions
     module DomAssertions
-      # test 2 html strings to be equivalent, i.e. identical up to reordering of attributes
+      # Test two HTML strings for equivalency (e.g., identical up to reordering of attributes)
       def assert_dom_equal(expected, actual, message="")
         clean_backtrace do
           expected_dom = HTML::Document.new(expected).root
@@ -11,7 +11,7 @@ module ActionController
         end
       end
       
-      # negated form of +assert_dom_equivalent+
+      # The negated form of +assert_dom_equivalent+.
       def assert_dom_not_equal(expected, actual, message="")
         clean_backtrace do
           expected_dom = HTML::Document.new(expected).root

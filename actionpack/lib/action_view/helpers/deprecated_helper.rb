@@ -2,6 +2,9 @@ module ActionView
   module Helpers
     module PrototypeHelper
 
+      # Method to execute an element update using Prototype.
+      # DEPRECATION WARNING: This helper has been depercated; use RJS instead.
+      # See ActionView::Helpers::PrototypeHelper::JavaScriptGenerator::GeneratorMethods for more information.
       def update_element_function(element_id, options = {}, &block)
         content = escape_javascript(options[:content] || '')
         content = escape_javascript(capture(&block)) if block

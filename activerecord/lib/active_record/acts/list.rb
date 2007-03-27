@@ -74,6 +74,7 @@ module ActiveRecord
       # lower in the list of all chapters. Likewise, <tt>chapter.first?</tt> would return true if that chapter is
       # the first in the list of all chapters.
       module InstanceMethods
+        # Insert the item at the given position (defaults to the top position of 1).
         def insert_at(position = 1)
           insert_at_position(position)
         end
@@ -118,6 +119,7 @@ module ActiveRecord
           end
         end
         
+        # Removes the item from the list.
         def remove_from_list
           decrement_positions_on_lower_items if in_list?
         end
@@ -162,6 +164,7 @@ module ActiveRecord
           )
         end
 
+        # Test if this record is in a list
         def in_list?
           !send(position_column).nil?
         end
@@ -178,21 +181,26 @@ module ActiveRecord
           # Overwrite this method to define the scope of the list changes
           def scope_condition() "1" end
 
+          # Returns the bottom position number in the list.
+          #   bottom_position_in_list    # => 2
           def bottom_position_in_list(except = nil)
             item = bottom_item(except)
             item ? item.send(position_column) : 0
           end
 
+          # Returns the bottom item
           def bottom_item(except = nil)
             conditions = scope_condition
             conditions = "#{conditions} AND #{self.class.primary_key} != #{except.id}" if except
             acts_as_list_class.find(:first, :conditions => conditions, :order => "#{position_column} DESC")
           end
 
+          # Forces item to assume the bottom position in the list.
           def assume_bottom_position
             update_attribute(position_column, bottom_position_in_list(self).to_i + 1)
           end
   
+          # Forces item to assume the top position in the list.
           def assume_top_position
             update_attribute(position_column, 1)
           end
@@ -227,6 +235,7 @@ module ActiveRecord
            )
           end
 
+          # Increments position (<tt>position_column</tt>) of all items in the list.
           def increment_positions_on_all_items
             acts_as_list_class.update_all(
               "#{position_column} = (#{position_column} + 1)",  "#{scope_condition}"

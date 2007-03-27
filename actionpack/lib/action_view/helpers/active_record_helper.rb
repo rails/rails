@@ -13,17 +13,18 @@ module ActionView
     # is a great of making the record quickly available for editing, but likely to prove lackluster for a complicated real-world form.
     # In that case, it's better to use the input method and the specialized form methods in link:classes/ActionView/Helpers/FormHelper.html
     module ActiveRecordHelper
-      # Returns a default input tag for the type of object returned by the method. Example
-      # (title is a VARCHAR column and holds "Hello World"):
+      # Returns a default input tag for the type of object returned by the method. For example, let's say you have a model
+      # that has an attribute +title+ of type VARCHAR column, and this instance holds "Hello World":
       #   input("post", "title") =>
       #     <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
       def input(record_name, method, options = {})
         InstanceTag.new(record_name, method, self).to_tag(options)
       end
 
-      # Returns an entire form with input tags and everything for a specified Active Record object. Example
-      # (post is a new record that has a title using VARCHAR and a body using TEXT):
-      #   form("post") =>
+      # Returns an entire form with all needed input tags for a specified Active Record object. For example, let's say you 
+      # have a table model <tt>Post</tt> with attributes named <tt>title</tt> of type <tt>VARCHAR</tt> and <tt>body</tt> of type <tt>TEXT</tt>:
+      #   form("post") 
+      # That line would yield a form like the following:
       #     <form action='/post/create' method='post'>
       #       <p>
       #         <label for="post_title">Title</label><br />
@@ -32,14 +33,13 @@ module ActionView
       #       <p>
       #         <label for="post_body">Body</label><br />
       #         <textarea cols="40" id="post_body" name="post[body]" rows="20">
-      #           Back to the hill and over it again!
       #         </textarea>
       #       </p>
       #       <input type='submit' value='Create' />
       #     </form>
       #
       # It's possible to specialize the form builder by using a different action name and by supplying another
-      # block renderer. Example (entry is a new record that has a message attribute using VARCHAR):
+      # block renderer. For example, let's say you have a model <tt>Entry</tt> with an attribute <tt>message</tt> of type <tt>VARCHAR</tt>:
       #
       #   form("entry", :action => "sign", :input_block =>
       #        Proc.new { |record, column| "#{column.human_name}: #{input(record, column.name)}<br />" }) =>
@@ -74,16 +74,16 @@ module ActionView
         content_tag('form', contents, :action => action, :method => 'post', :enctype => options[:multipart] ? 'multipart/form-data': nil)
       end
 
-      # Returns a string containing the error message attached to the +method+ on the +object+, if one exists.
-      # This error message is wrapped in a DIV tag, which can be specialized to include both a +prepend_text+ and +append_text+
-      # to properly introduce the error and a +css_class+ to style it accordingly. Examples (post has an error message
-      # "can't be empty" on the title attribute):
+      # Returns a string containing the error message attached to the +method+ on the +object+ if one exists.
+      # This error message is wrapped in a <tt>DIV</tt> tag, which can be extended to include a +prepend_text+ and/or +append_text+
+      # (to properly explain the error), and a +css_class+ to style it accordingly. As an example, let's say you have a model
+      # +post+ that has an error message on the +title+ attribute:
       #
       #   <%= error_message_on "post", "title" %> =>
       #     <div class="formError">can't be empty</div>
       #
-      #   <%= error_message_on "post", "title", "Title simply ", " (or it won't work)", "inputError" %> =>
-      #     <div class="inputError">Title simply can't be empty (or it won't work)</div>
+      #   <%= error_message_on "post", "title", "Title simply ", " (or it won't work).", "inputError" %> =>
+      #     <div class="inputError">Title simply can't be empty (or it won't work).</div>
       def error_message_on(object, method, prepend_text = "", append_text = "", css_class = "formError")
         if (obj = instance_variable_get("@#{object}")) && (errors = obj.errors.on(method))
           content_tag("div", "#{prepend_text}#{errors.is_a?(Array) ? errors.first : errors}#{append_text}", :class => css_class)
@@ -92,11 +92,11 @@ module ActionView
         end
       end
 
-      # Returns a string with a div containing all of the error messages for the objects located as instance variables by the names
+      # Returns a string with a <tt>DIV</tt> containing all of the error messages for the objects located as instance variables by the names
       # given.  If more than one object is specified, the errors for the objects are displayed in the order that the object names are
       # provided.
       #
-      # This div can be tailored by the following options:
+      # This <tt>DIV</tt> can be tailored by the following options:
       #
       # * <tt>header_tag</tt> - Used for the header of the error div (default: h2)
       # * <tt>id</tt> - The id of the error div (default: errorExplanation)
@@ -105,12 +105,12 @@ module ActionView
       # any text that you prefer. If <tt>object_name</tt> is not set, the name of
       # the first object will be used.
       #
-      # Specifying one object:
+      # To specify the display for one object, you simply provide its name as a parameter.  For example, for the +User+ model:
       # 
       #   error_messages_for 'user'
       #
-      # Specifying more than one object (and using the name 'user' in the
-      # header as the <tt>object_name</tt> instead of 'user_common'):
+      # To specify more than one object, you simply list them; optionally, you can add an extra +object_name+ parameter, which
+      # be the name in the header.
       #
       #   error_messages_for 'user_common', 'user', :object_name => 'user'
       #
