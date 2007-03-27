@@ -1,5 +1,7 @@
 *SVN*
 
+* Small additions and fixes for ActiveRecord documentation.  Closes #7342 [jeremymcanally]
+
 * Add helpful debugging info to the ActiveRecord::StatementInvalid exception in ActiveRecord::ConnectionAdapters::SqliteAdapter#table_structure.  Closes #7925. [court3nay]
 
 * SQLite: binary escaping works with $KCODE='u'.  #7862 [tsuka]

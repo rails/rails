@@ -82,6 +82,7 @@ module ActionController
       end
 
       private
+        # Recognizes the route for a given path.
         def recognized_request_for(path, request_method = nil)
           path = "/#{path}" unless path.first == '/'
 

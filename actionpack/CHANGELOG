@@ -1,5 +1,9 @@
 *SVN*
 
+* Cleaned up, corrected, and mildly expanded ActionPack documentation.  Closes #7190 [jeremymcanally]
+
+* Small collection of ActionController documentation cleanups.  Closes #7319 [jeremymcanally]
+
 * Make sure the route expiry hash is constructed by comparing the to_param-ized values of each hash. [Jamis Buck]
 
 * Allow configuration of the default action cache path for #caches_action calls.  [Rick Olson]

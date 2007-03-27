@@ -119,6 +119,7 @@ module ActionController
       end
 
       private
+        # Recognizes the route for a given path.
         def recognized_request_for(path, request_method = nil)
           path = "/#{path}" unless path.first == '/'
 
@@ -131,6 +132,7 @@ module ActionController
           request
         end
 
+        # Proxy to to_param if the object will respond to it.
         def parameterize(value)
           value.respond_to?(:to_param) ? value.to_param : value
         end

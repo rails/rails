@@ -205,7 +205,9 @@ module Rails
       silence_warnings do
         config = configuration
         constants = self.class.constants
+        
         eval(IO.read(configuration.environment_path), binding, configuration.environment_path)
+        
         (self.class.constants - constants).each do |const|
           Object.const_set(const, self.class.const_get(const))
         end

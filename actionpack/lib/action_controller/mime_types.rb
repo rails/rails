@@ -1,3 +1,6 @@
+# Build list of Mime types for HTTP responses
+# http://www.iana.org/assignments/media-types/
+
 Mime::Type.register "*/*", :all
 Mime::Type.register "text/plain", :text, [], %w(txt)
 Mime::Type.register "text/html", :html, %w( application/xhtml+xml ), %w( xhtml )

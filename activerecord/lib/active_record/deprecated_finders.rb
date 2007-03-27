@@ -1,7 +1,7 @@
 module ActiveRecord
   class Base
     class << self
-      # This method is deprecated in favor of find with the :conditions option.
+      # DEPRECATION NOTICE: This method is deprecated in favor of find with the :conditions option.
       #
       # Works like find, but the record matching +id+ must also meet the +conditions+.
       # +RecordNotFound+ is raised if no record can be found matching the +id+ or meeting the condition.
@@ -12,7 +12,7 @@ module ActiveRecord
       end
       deprecate :find_on_conditions => "use find(ids, :conditions => conditions)"
 
-      # This method is deprecated in favor of find(:first, options).
+      # DEPRECATION NOTICE: This method is deprecated in favor of find(:first, options).
       #
       # Returns the object for the first record responding to the conditions in +conditions+, 
       # such as "group = 'master'". If more than one record is returned from the query, it's the first that'll
@@ -24,7 +24,7 @@ module ActiveRecord
       end
       deprecate :find_first => "use find(:first, ...)"
 
-      # This method is deprecated in favor of find(:all, options).
+      # DEPRECATION NOTICE: This method is deprecated in favor of find(:all, options).
       #
       # Returns an array of all the objects that could be instantiated from the associated
       # table in the database. The +conditions+ can be used to narrow the selection of objects (WHERE-part),

@@ -1229,6 +1229,9 @@ module ActiveRecord #:nodoc:
         #
         # It's even possible to use all the additional parameters to find. For example, the full interface for find_all_by_amount
         # is actually find_all_by_amount(amount, options).
+        #
+        # This also enables you to initialize a record if it is not found, such as find_or_initialize_by_amount(amount) 
+        # or find_or_create_by_user_and_password(user, password).
         def method_missing(method_id, *arguments)
           if match = /^find_(all_by|by)_([_a-zA-Z]\w*)$/.match(method_id.to_s)
             finder, deprecated_finder = determine_finder(match), determine_deprecated_finder(match)

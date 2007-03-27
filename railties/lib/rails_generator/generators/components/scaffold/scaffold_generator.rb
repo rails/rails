@@ -173,7 +173,7 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
         sandbox.model_instance = model_instance
         sandbox.instance_variable_set("@#{singular_name}", sandbox.model_instance)
       rescue ActiveRecord::StatementInvalid => e
-        logger.error "Before updating scaffolding from new DB schema, try creating a table for your model (#{class_name})"
+        logger.error "Before updating scaffolding from new DB schema, try creating a table for your model (#{class_name}) named #{class_name.tableize}."
         raise SystemExit
       end
       sandbox.suffix = suffix
