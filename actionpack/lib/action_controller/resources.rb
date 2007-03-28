@@ -199,7 +199,7 @@ module ActionController
     #
     # * <tt>:collection</tt> -- add named routes for other actions that operate on the collection.
     #   Takes a hash of <tt>#{action} => #{method}</tt>, where method is <tt>:get</tt>/<tt>:post</tt>/<tt>:put</tt>/<tt>:delete</tt>
-    #   or <tt>:any</tt> if the method does not matter.  These routes map to a URL like /messages;rss, with a route of rss_messages_url.
+    #   or <tt>:any</tt> if the method does not matter.  These routes map to a URL like /messages/rss, with a route of rss_messages_url.
     # * <tt>:member</tt> -- same as :collection, but for actions that operate on a specific member.
     # * <tt>:new</tt> -- same as :collection, but for actions that operate on the new resource action.
     #
@@ -211,19 +211,19 @@ module ActionController
     #   # --> GET /thread/7/messages/1
     #  
     #   map.resources :messages, :collection => { :rss => :get }
-    #   # --> GET /messages;rss (maps to the #rss action)
+    #   # --> GET /messages/rss (maps to the #rss action)
     #   #     also adds a named route called "rss_messages"
     # 
     #   map.resources :messages, :member => { :mark => :post }
-    #   # --> POST /messages/1;mark (maps to the #mark action)
+    #   # --> POST /messages/1/mark (maps to the #mark action)
     #   #     also adds a named route called "mark_message"
     # 
     #   map.resources :messages, :new => { :preview => :post }
-    #   # --> POST /messages/new;preview (maps to the #preview action)
+    #   # --> POST /messages/new/preview (maps to the #preview action)
     #   #     also adds a named route called "preview_new_message"
     # 
     #   map.resources :messages, :new => { :new => :any, :preview => :post }
-    #   # --> POST /messages/new;preview (maps to the #preview action)
+    #   # --> POST /messages/new/preview (maps to the #preview action)
     #   #     also adds a named route called "preview_new_message"
     #   # --> /messages/new can be invoked via any request method
     # 
@@ -331,8 +331,8 @@ module ActionController
         resource.collection_methods.each do |method, actions|
           actions.each do |action|
             action_options = action_options_for(action, resource, method)
-            map.named_route("#{resource.name_prefix}#{action}_#{resource.plural}", "#{resource.path};#{action}", action_options)
-            map.named_route("formatted_#{resource.name_prefix}#{action}_#{resource.plural}", "#{resource.path}.:format;#{action}", action_options)
+            map.named_route("#{resource.name_prefix}#{action}_#{resource.plural}", "#{resource.path}/#{action}", action_options)
+            map.named_route("formatted_#{resource.name_prefix}#{action}_#{resource.plural}", "#{resource.path}/#{action}.:format", action_options)
           end
         end
       end
@@ -361,8 +361,8 @@ module ActionController
               map.named_route("#{resource.name_prefix}new_#{resource.singular}", resource.new_path, action_options)
               map.named_route("formatted_#{resource.name_prefix}new_#{resource.singular}", "#{resource.new_path}.:format", action_options)
             else
-              map.named_route("#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path};#{action}", action_options)
-              map.named_route("formatted_#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path}.:format;#{action}", action_options)
+              map.named_route("#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path}/#{action}", action_options)
+              map.named_route("formatted_#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path}/#{action}.:format", action_options)
             end
           end
         end
@@ -372,8 +372,8 @@ module ActionController
         resource.member_methods.each do |method, actions|
           actions.each do |action|
             action_options = action_options_for(action, resource, method)
-            map.named_route("#{resource.name_prefix}#{action}_#{resource.singular}", "#{resource.member_path};#{action}", action_options)
-            map.named_route("formatted_#{resource.name_prefix}#{action}_#{resource.singular}", "#{resource.member_path}.:format;#{action}",action_options)
+            map.named_route("#{resource.name_prefix}#{action}_#{resource.singular}", "#{resource.member_path}/#{action}", action_options)
+            map.named_route("formatted_#{resource.name_prefix}#{action}_#{resource.singular}", "#{resource.member_path}/#{action}.:format",action_options)
           end
         end
 

@@ -103,7 +103,7 @@ class ResourcesTest < Test::Unit::TestCase
 
   def test_with_collection_action
     rss_options = {:action => 'rss'}
-    rss_path    = "/messages;rss"
+    rss_path    = "/messages/rss"
     actions = { 'a' => :put, 'b' => :post, 'c' => :delete }
 
     with_restful_routing :messages, :collection => { :rss => :get }.merge(actions) do
@@ -111,14 +111,14 @@ class ResourcesTest < Test::Unit::TestCase
         assert_routing rss_path, options.merge(rss_options)
 
         actions.each do |action, method|
-          assert_recognizes(options.merge(:action => action), :path => "/messages;#{action}", :method => method)
+          assert_recognizes(options.merge(:action => action), :path => "/messages/#{action}", :method => method)
         end
       end
 
       assert_restful_named_routes_for :messages do |options|
         assert_named_route rss_path, :rss_messages_path, rss_options
         actions.keys.each do |action|
-          assert_named_route "/messages;#{action}", "#{action}_messages_path", :action => action
+          assert_named_route "/messages/#{action}", "#{action}_messages_path", :action => action
         end
       end
     end
@@ -128,7 +128,7 @@ class ResourcesTest < Test::Unit::TestCase
     [:put, :post].each do |method|
       with_restful_routing :messages, :member => { :mark => method } do
         mark_options = {:action => 'mark', :id => '1'}
-        mark_path    = "/messages/1;mark"
+        mark_path    = "/messages/1/mark"
         assert_restful_routes_for :messages do |options|
           assert_recognizes(options.merge(mark_options), :path => mark_path, :method => method)
         end
@@ -145,7 +145,7 @@ class ResourcesTest < Test::Unit::TestCase
       with_restful_routing :messages, :member => { :mark => method, :unmark => method } do
         %w(mark unmark).each do |action|
           action_options = {:action => action, :id => '1'}
-          action_path    = "/messages/1;#{action}"
+          action_path    = "/messages/1/#{action}"
           assert_restful_routes_for :messages do |options|
             assert_recognizes(options.merge(action_options), :path => action_path, :method => method)
           end
@@ -161,7 +161,7 @@ class ResourcesTest < Test::Unit::TestCase
   def test_with_new_action
     with_restful_routing :messages, :new => { :preview => :post } do
       preview_options = {:action => 'preview'}
-      preview_path    = "/messages/new;preview"
+      preview_path    = "/messages/new/preview"
       assert_restful_routes_for :messages do |options|
         assert_recognizes(options.merge(preview_options), :path => preview_path, :method => :post)
       end
@@ -252,7 +252,7 @@ class ResourcesTest < Test::Unit::TestCase
     [:put, :post].each do |method|
       with_singleton_resources :account, :member => { :reset => method } do
         reset_options = {:action => 'reset'}
-        reset_path    = "/account;reset"
+        reset_path    = "/account/reset"
         assert_singleton_routes_for :account do |options|
           assert_recognizes(options.merge(reset_options), :path => reset_path, :method => method)
         end
@@ -269,7 +269,7 @@ class ResourcesTest < Test::Unit::TestCase
       with_singleton_resources :account, :member => { :reset => method, :disable => method } do
         %w(reset disable).each do |action|
           action_options = {:action => action}
-          action_path    = "/account;#{action}"
+          action_path    = "/account/#{action}"
           assert_singleton_routes_for :account do |options|
             assert_recognizes(options.merge(action_options), :path => action_path, :method => method)
           end
@@ -369,8 +369,8 @@ class ResourcesTest < Test::Unit::TestCase
       collection_path            = "/#{options[:path_prefix]}#{controller_name}"
       member_path                = "#{collection_path}/1"
       new_path                   = "#{collection_path}/new"
-      edit_member_path           = "#{member_path};edit"
-      formatted_edit_member_path = "#{member_path}.xml;edit"
+      edit_member_path           = "#{member_path}/edit"
+      formatted_edit_member_path = "#{member_path}/edit.xml"
 
       with_options(options[:options]) do |controller|
         controller.assert_routing collection_path,            :action => 'index'
@@ -422,11 +422,11 @@ class ResourcesTest < Test::Unit::TestCase
       assert_named_route "#{full_prefix}",            "#{name_prefix}#{controller_name}_path",              options[:options]
       assert_named_route "#{full_prefix}/new",        "#{name_prefix}new_#{singular_name}_path",            options[:options]
       assert_named_route "#{full_prefix}/1",          "#{name_prefix}#{singular_name}_path",                options[:options].merge(:id => '1')
-      assert_named_route "#{full_prefix}/1;edit",     "#{name_prefix}edit_#{singular_name}_path",           options[:options].merge(:id => '1')
+      assert_named_route "#{full_prefix}/1/edit",     "#{name_prefix}edit_#{singular_name}_path",           options[:options].merge(:id => '1')
       assert_named_route "#{full_prefix}.xml",        "formatted_#{name_prefix}#{controller_name}_path",    options[:options].merge(            :format => 'xml')
       assert_named_route "#{full_prefix}/new.xml",    "formatted_#{name_prefix}new_#{singular_name}_path",  options[:options].merge(            :format => 'xml')
       assert_named_route "#{full_prefix}/1.xml",      "formatted_#{name_prefix}#{singular_name}_path",      options[:options].merge(:id => '1', :format => 'xml')
-      assert_named_route "#{full_prefix}/1.xml;edit", "formatted_#{name_prefix}edit_#{singular_name}_path", options[:options].merge(:id => '1', :format => 'xml')
+      assert_named_route "#{full_prefix}/1/edit.xml", "formatted_#{name_prefix}edit_#{singular_name}_path", options[:options].merge(:id => '1', :format => 'xml')
       yield options[:options] if block_given?
     end
 
@@ -435,8 +435,8 @@ class ResourcesTest < Test::Unit::TestCase
 
       full_path           = "/#{options[:path_prefix]}#{singleton_name}"
       new_path            = "#{full_path}/new"
-      edit_path           = "#{full_path};edit"
-      formatted_edit_path = "#{full_path}.xml;edit"
+      edit_path           = "#{full_path}/edit"
+      formatted_edit_path = "#{full_path}/edit.xml"
 
       with_options options[:options] do |controller|
         controller.assert_routing full_path,           :action => 'show'
@@ -476,10 +476,10 @@ class ResourcesTest < Test::Unit::TestCase
 
       assert_named_route "#{full_path}",          "#{singleton_name}_path",                options[:options]
       assert_named_route "#{full_path}/new",      "new_#{singleton_name}_path",            options[:options]
-      assert_named_route "#{full_path};edit",     "edit_#{singleton_name}_path",           options[:options]
+      assert_named_route "#{full_path}/edit",     "edit_#{singleton_name}_path",           options[:options]
       assert_named_route "#{full_path}.xml",      "formatted_#{singleton_name}_path",      options[:options].merge(:format => 'xml')
       assert_named_route "#{full_path}/new.xml",  "formatted_new_#{singleton_name}_path",  options[:options].merge(:format => 'xml')
-      assert_named_route "#{full_path}.xml;edit", "formatted_edit_#{singleton_name}_path", options[:options].merge(:format => 'xml')
+      assert_named_route "#{full_path}/edit.xml", "formatted_edit_#{singleton_name}_path", options[:options].merge(:format => 'xml')
     end
 
     def assert_named_route(expected, route, options)
