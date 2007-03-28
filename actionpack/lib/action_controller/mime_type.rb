@@ -63,10 +63,12 @@ module Mime
 
       def parse(accept_header)
         # keep track of creation order to keep the subsequent sort stable
-        index = 0
-        list = accept_header.split(/,/).map! do |i| 
-          AcceptItem.new(index += 1, *i.split(/;\s*q=/))
-        end.sort!
+        list = []
+        accept_header.split(/,/).each_with_index do |header, index| 
+          params = header.split(/;\s*q=/)
+          list << AcceptItem.new(index, *params) unless params.empty?
+        end
+        list.sort!
 
         # Take care of the broken text/xml entry by renaming or deleting it
         text_xml = list.index("text/xml")
