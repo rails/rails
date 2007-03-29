@@ -502,6 +502,8 @@ module Rails
         else
           Pathname.new(::RAILS_ROOT).realpath.to_s
         end
+
+      ::RAILS_ROOT.replace @root_path
     end
 
     # Loads and returns the contents of the #database_configuration_file. The
