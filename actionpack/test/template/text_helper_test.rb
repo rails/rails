@@ -65,6 +65,8 @@ class TextHelperTest < Test::Unit::TestCase
       "This text is not changed because we supplied an empty phrase",
       highlight("This text is not changed because we supplied an empty phrase", nil)
     )
+
+    assert_equal '   ', highlight('   ', 'blank text is returned verbatim')
   end
 
   def test_highlighter_with_regexp
@@ -82,6 +84,10 @@ class TextHelperTest < Test::Unit::TestCase
       "This is a <strong class=\"highlight\">beautiful? morning</strong>",
       highlight("This is a beautiful? morning", "beautiful? morning")
     )
+  end
+
+  def test_highlighting_multiple_phrases_in_one_pass
+    assert_equal %(<em>wow</em> <em>em</em>), highlight('wow em', %w(wow em), '<em>\1</em>')
   end
 
   def test_excerpt

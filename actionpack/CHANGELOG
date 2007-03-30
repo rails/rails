@@ -1,5 +1,7 @@
 *SVN*
 
+* Highlight helper highlights one or many terms in a single pass.  [Jeremy Kemper]
+
 * Dropped the use of ; as a separator of non-crud actions on resources and went back to the vanilla slash. It was a neat idea, but lots of the non-crud actions turned out not to be RPC (as the ; was primarily intended to discourage), but legitimate sub-resources, like /parties/recent, which didn't deserve the uglification of /parties;recent. Further more, the semicolon caused issues with caching and HTTP authentication in Safari. Just Not Worth It [DHH]
 
 * Added that FormTagHelper#submit_tag will return to its original state if the submit fails and you're using :disable_with [DHH]

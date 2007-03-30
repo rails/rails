@@ -38,15 +38,22 @@ module ActionView
         (text.chars.length > length ? text.chars[0...l] + truncate_string : text).to_s
       end
 
-      # Highlights +phrase+ everywhere it is found in +text+ by inserting it into
+      # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
       # a +highlighter+ string. The highlighter can be specialized by passing +highlighter+ 
       # as a single-quoted string with \1 where the phrase is to be inserted.
       #
       #   highlight('You searched for: rails', 'rails')  
-      #    => You searched for: <strong class="highlight">rails</strong>
-      def highlight(text, phrase, highlighter = '<strong class="highlight">\1</strong>')
-        if phrase.blank? then return text end
-        text.gsub(/(#{Regexp.escape(phrase)})/i, highlighter) unless text.nil?
+      #   # => You searched for: <strong class="highlight">rails</strong>
+      #
+      #   highlight('You searched for: rails', ['for', 'rails'], '<em>\1</em>')  
+      #   # => You searched <em>for</em>: <em>rails</em>
+      def highlight(text, phrases, highlighter = '<strong class="highlight">\1</strong>')
+        if text.blank? || phrases.blank?
+          text
+        else
+          match = Array(phrases).map { |p| Regexp.escape(p) }.join('|')
+          text.gsub(/(#{match})/i, highlighter)
+        end
       end
 
       # Extracts an excerpt from +text+ that matches the first instance of +phrase+. 
