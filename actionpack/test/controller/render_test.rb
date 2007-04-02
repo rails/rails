@@ -122,6 +122,12 @@ class TestController < ActionController::Base
     ActionView::Base.local_assigns_support_string_keys = false
   end
 
+  def formatted_html_erb
+  end
+
+  def formatted_xml_erb
+  end
+
   def render_to_string_test
     @foo = render_to_string :inline => "this is a test"
   end
@@ -341,6 +347,20 @@ class RenderTest < Test::Unit::TestCase
     assert_equal etag_for("<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n"), @response.headers['ETag']
   end
 
+  def test_should_render_formatted_template
+    get :formatted_html_erb
+    assert_equal 'formatted html erb', @response.body
+  end
+  
+  def test_should_render_formatted_xml_erb_template
+    get :formatted_xml_erb, :format => :xml
+    assert_equal '<test>passed formatted xml erb</test>', @response.body
+  end
+  
+  def test_should_render_formatted_html_erb_template
+    get :formatted_xml_erb
+    assert_equal '<test>passed formatted html erb</test>', @response.body
+  end
 
   protected
     def assert_deprecated_render(&block)

@@ -1225,7 +1225,7 @@ module ActionController #:nodoc:
 
       def assert_existence_of_template_file(template_name)
         unless template_exists?(template_name) || ignore_missing_templates
-          full_template_path = @template.send(:full_template_path, template_name, 'erb')
+          full_template_path = @template.send(:full_template_path, template_name, "#{@template.send(:template_format)}.erb")
           template_type = (template_name =~ /layouts/i) ? 'layout' : 'template'
           raise(MissingTemplate, "Missing #{template_type} #{full_template_path}")
         end

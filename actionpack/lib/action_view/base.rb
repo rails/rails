@@ -252,6 +252,7 @@ module ActionView #:nodoc:
         else
           template_extension = pick_template_extension(template_path).to_s
           template_file_name = full_template_path(template_path, template_extension)
+          template_extension.gsub!(/^\w+\./, '') # strip off any formats
         end
       else
         template_file_name = template_path
@@ -330,10 +331,11 @@ module ActionView #:nodoc:
     end
 
     def pick_template_extension(template_path)#:nodoc:
+      formatted_template_path = "#{template_path}.#{template_format}"
       if @@cache_template_extensions
-        @@cached_template_extension[template_path] ||= find_template_extension_for(template_path)
+        @@cached_template_extension[formatted_template_path] ||= find_template_extension_for(template_path, formatted_template_path)
       else
-        find_template_extension_for(template_path)
+        find_template_extension_for(template_path, formatted_template_path)
       end
     end
 
@@ -359,21 +361,41 @@ module ActionView #:nodoc:
       template_exists?(template_path, :rjs)
     end
 
+    def formatted_template_exists?(formatted_template_exists)
+      [:erb, :builder, :rjs].each do |ext|
+        return ext if template_exists?(formatted_template_exists, ext)
+      end
+      nil
+    end
+
     def file_exists?(template_path)#:nodoc:
       template_file_name, template_file_extension = path_and_extension(template_path)
       if template_file_extension
         template_exists?(template_file_name, template_file_extension)
       else
-        cached_template_extension(template_path) ||
-           %w(erb rhtml builder rxml javascript delegate).any? do |template_type|
-             send("#{template_type}_template_exists?", template_path)
-           end
+        formatted_template_path = "#{template_path}.#{template_format}"
+        cached_template_extension(formatted_template_path) ||
+          formatted_template_exists?(formatted_template_path) ||
+          %w(erb rhtml builder rxml javascript delegate).any? do |template_type|
+            send("#{template_type}_template_exists?", template_path)
+          end
       end
     end
 
     # Returns true is the file may be rendered implicitly.
     def file_public?(template_path)#:nodoc:
       template_path.split('/').last[0,1] != '_'
+    end
+
+    def template_format
+      if @template_format != false
+        # check controller.respond_to?(:request) in case its an ActionMailer::Base, or some other sneaky class.
+        @template_format = controller.respond_to?(:request) ? false : :html
+        if controller && controller.respond_to?(:request) && controller.request && controller.request.format
+          @template_format = controller.request.format == Mime::ALL ? :html : controller.request.format.to_sym
+        end
+      end
+      @template_format
     end
 
     private
@@ -389,13 +411,16 @@ module ActionView #:nodoc:
         @@method_names.has_key?(file_path) || FileTest.exists?(file_path)
       end
 
+      # Splits the path and extension from the given template_path and returns as an array.
       def path_and_extension(template_path)
         template_path_without_extension = template_path.sub(/\.(\w+)$/, '')
         [ template_path_without_extension, $1 ]
       end
 
-      def cached_template_extension(template_path)
-        @@cache_template_extensions && @@cached_template_extension[template_path]
+      # Caches the extension for the given formatted template path.  The extension may have the format
+      # too, such as 'html.erb'.
+      def cached_template_extension(formatted_template_path)
+        @@cache_template_extensions && @@cached_template_extension[formatted_template_path]
       end
       
       # Returns the view path that contains the given relative template path.
@@ -404,11 +429,13 @@ module ActionView #:nodoc:
       end
 
       # Determines the template's file extension, such as rhtml, rxml, or rjs.
-      def find_template_extension_for(template_path)
+      def find_template_extension_for(template_path, formatted_template_path = nil)
+        formatted_template_path ||= "#{template_path}.#{template_format}"
         if match = delegate_template_exists?(template_path)
           match.first.to_sym
-        elsif extension = erb_template_exists?(template_path):        extension
-        elsif extension = builder_template_exists?(template_path):    extension
+        elsif extension = formatted_template_exists?(formatted_template_path): "#{template_format}.#{extension}"
+        elsif extension = erb_template_exists?(template_path):                 extension
+        elsif extension = builder_template_exists?(template_path):             extension
         elsif javascript_template_exists?(template_path): :rjs
         else
           raise ActionViewError, "No erb, builder, rhtml, rxml, rjs or delegate template found for #{template_path} in #{@view_paths.inspect}"
