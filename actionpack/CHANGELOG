@@ -4,6 +4,14 @@
 
   * Default xml template goes from #{action_name}.rxml => #{action_name}.xml.builder.
   * Default rjs template goes from #{action_name}.rjs => #{action_name}.js.rjs.
+  
+  You can still specify your old templates:
+  
+    respond_to do |format|
+      format.xml do
+        render :action => "#{action_name}.rxml"
+      end
+    end
 
 * Fix WSOD due to modification of a formatted template extension so that requests to templates like 'foo.html.erb' fail on the second hit.  [Rick]
 
