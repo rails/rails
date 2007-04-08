@@ -428,6 +428,11 @@ module ActionView #:nodoc:
         @view_paths.find { |p| File.file?(File.join(p, template_file_name)) }
       end
 
+      # Returns the view path that the full path resides in.
+      def extract_base_path_from(full_path)
+        @view_paths.find { |p| full_path[0..p.size - 1] == p }
+      end
+
       # Determines the template's file extension, such as rhtml, rxml, or rjs.
       def find_template_extension_for(template_path, formatted_template_path = nil)
         formatted_template_path ||= "#{template_path}.#{template_format}"
@@ -577,7 +582,7 @@ module ActionView #:nodoc:
             logger.debug "Backtrace: #{e.backtrace.join("\n")}"
           end
 
-          raise TemplateError.new(find_base_path_for(file_name || template), file_name || template, @assigns, template, e)
+          raise TemplateError.new(extract_base_path_from(file_name) || @view_paths.first, file_name || template, @assigns, template, e)
         end
 
         @@compile_time[render_symbol] = Time.now
