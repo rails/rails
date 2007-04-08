@@ -1,5 +1,10 @@
 *SVN*
 
+* Change default respond_to templates for xml and rjs formats. [Rick]
+
+  * Default xml template goes from #{action_name}.rxml => #{action_name}.xml.builder.
+  * Default rjs template goes from #{action_name}.rjs => #{action_name}.js.rjs.
+
 * Fix WSOD due to modification of a formatted template extension so that requests to templates like 'foo.html.erb' fail on the second hit.  [Rick]
 
 * Fix WSOD when template compilation fails [Rick]

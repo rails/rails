@@ -107,10 +107,11 @@ module ActionController #:nodoc:
     end
     
     class Responder #:nodoc:
-      DEFAULT_BLOCKS = [:html, :js, :xml].inject({}) do |blocks, ext|
-        template_extension = (ext == :html ? '' : ".r#{ext}")
-        blocks.update ext => %(Proc.new { render :action => "\#{action_name}#{template_extension}", :content_type => Mime::#{ext.to_s.upcase} })
-      end
+      default_block_format = %(Proc.new { render :action => "\#{action_name}%s", :content_type => Mime::%s })
+      DEFAULT_BLOCKS = {}
+      DEFAULT_BLOCKS[:html] = default_block_format % ['', 'HTML']
+      DEFAULT_BLOCKS[:js]   = default_block_format % ['.js.rjs', 'JS']
+      DEFAULT_BLOCKS[:xml]  = default_block_format % ['.xml.builder', 'XML']
       
       def initialize(block_binding)
         @block_binding = block_binding

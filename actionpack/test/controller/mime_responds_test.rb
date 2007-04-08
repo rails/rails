@@ -351,6 +351,6 @@ class MimeControllerTest < Test::Unit::TestCase
     assert_equal "using_defaults", @response.body
 
     get :using_defaults, :format => "xml"
-    assert_equal "using_defaults.rxml", @response.body
+    assert_equal "using_defaults.xml.builder", @response.body
   end
 end
