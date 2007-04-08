@@ -219,7 +219,7 @@ module ActionMailer #:nodoc:
   #   <tt>@implicit_parts_order</tt>.
   class Base
     include AdvAttrAccessor, PartContainer
-    include ActionController::UrlWriter
+    include ActionController::UrlWriter if Object.const_defined?(:ActionController)
 
     # Action Mailer subclasses should be reloaded by the dispatcher in Rails
     # when Dependencies.mechanism = :load.
