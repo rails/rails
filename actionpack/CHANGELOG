@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix WSOD due to modification of a formatted template extension so that requests to templates like 'foo.html.erb' fail on the second hit.  [Rick]
+
 * Fix WSOD when template compilation fails [Rick]
 
 * Change ActionView template defaults.  Look for templates using the request format first, such as "show.html.erb" or "show.xml.builder", before looking for the old defaults like "show.erb" or "show.builder" [Rick]

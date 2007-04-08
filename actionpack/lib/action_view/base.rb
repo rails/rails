@@ -252,7 +252,7 @@ module ActionView #:nodoc:
         else
           template_extension = pick_template_extension(template_path).to_s
           template_file_name = full_template_path(template_path, template_extension)
-          template_extension.gsub!(/^\w+\./, '') # strip off any formats
+          template_extension = template_extension.gsub(/^\w+\./, '') # strip off any formats
         end
       else
         template_file_name = template_path
@@ -267,7 +267,7 @@ module ActionView #:nodoc:
           e.sub_template_of(template_file_name)
           raise e
         else
-          raise TemplateError.new(find_base_path_for("#{template_path_without_extension}.#{template_extension}"), template_file_name, @assigns, template_source, e)
+          raise TemplateError.new(find_base_path_for("#{template_path_without_extension}.#{template_extension}") || view_paths.first, template_file_name, @assigns, template_source, e)
         end
       end
     end
@@ -582,7 +582,7 @@ module ActionView #:nodoc:
             logger.debug "Backtrace: #{e.backtrace.join("\n")}"
           end
 
-          raise TemplateError.new(extract_base_path_from(file_name) || @view_paths.first, file_name || template, @assigns, template, e)
+          raise TemplateError.new(extract_base_path_from(file_name) || view_paths.first, file_name || template, @assigns, template, e)
         end
 
         @@compile_time[render_symbol] = Time.now
