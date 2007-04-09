@@ -41,7 +41,7 @@ class WebServiceTest < Test::Unit::TestCase
   def setup
     @controller = TestController.new
     ActionController::Base.param_parsers.clear
-    ActionController::Base.param_parsers[Mime::XML] = :xml_node
+    ActionController::Base.param_parsers[Mime::XML] = :xml_simple
   end
   
   def test_check_parameters
@@ -54,7 +54,7 @@ class WebServiceTest < Test::Unit::TestCase
     
     assert_equal 'entry', @controller.response.body
     assert @controller.params.has_key?(:entry)
-    assert_equal 'content...', @controller.params["entry"].summary.node_value
+    assert_equal 'content...', @controller.params["entry"]['summary']
     assert_equal 'true', @controller.params["entry"]['attributed']
   end
   
@@ -63,7 +63,7 @@ class WebServiceTest < Test::Unit::TestCase
     
     assert_equal 'entry', @controller.response.body
     assert @controller.params.has_key?(:entry)
-    assert_equal 'content...', @controller.params["entry"].summary.node_value
+    assert_equal 'content...', @controller.params["entry"]['summary']
     assert_equal 'true', @controller.params["entry"]['attributed']
   end
 
@@ -182,58 +182,4 @@ class WebServiceTest < Test::Unit::TestCase
     @controller.send(:process, ActionController::CgiRequest.new(cgi, {}), ActionController::CgiResponse.new(cgi))
   end
     
-end
-
-
-class XmlNodeTest < Test::Unit::TestCase
-  def test_all
-    xn = XmlNode.from_xml(%{<?xml version="1.0" encoding="UTF-8"?>
-      <response success='true'>
-      <page title='Ajax Summit' id='1133' email_address='ry87ib@backpackit.com'>
-        <description>With O'Reilly and Adaptive Path</description>
-        <notes>
-          <note title='Hotel' id='1020' created_at='2005-05-14 16:41:11'>
-            Staying at the Savoy
-          </note>
-        </notes>
-        <tags>
-          <tag name='Technology' id='4' />
-          <tag name='Travel' id='5' />
-        </tags>
-      </page>
-      </response>
-     }
-    )     
-    assert_equal 'UTF-8', xn.node.document.encoding
-    assert_equal '1.0', xn.node.document.version
-    assert_equal 'true', xn['success']
-    assert_equal 'response', xn.node_name
-    assert_equal 'Ajax Summit', xn.page['title']
-    assert_equal '1133', xn.page['id']
-    assert_equal "With O'Reilly and Adaptive Path", xn.page.description.node_value
-    assert_equal nil, xn.nonexistent
-    assert_equal "Staying at the Savoy", xn.page.notes.note.node_value.strip
-    assert_equal 'Technology', xn.page.tags.tag[0]['name']
-    assert_equal 'Travel', xn.page.tags.tag[1][:name]
-    matches = xn.xpath('//@id').map{ |id| id.to_i }
-    assert_equal [4, 5, 1020, 1133], matches.sort
-    matches = xn.xpath('//tag').map{ |tag| tag['name'] }
-    assert_equal ['Technology', 'Travel'], matches.sort
-    assert_equal "Ajax Summit", xn.page['title']
-    xn.page['title'] = 'Ajax Summit V2'
-    assert_equal "Ajax Summit V2", xn.page['title']
-    assert_equal "Staying at the Savoy", xn.page.notes.note.node_value.strip
-    xn.page.notes.note.node_value = "Staying at the Ritz"
-    assert_equal "Staying at the Ritz", xn.page.notes.note.node_value.strip
-    assert_equal '5', xn.page.tags.tag[1][:id]
-    xn.page.tags.tag[1]['id'] = '7'
-    assert_equal '7', xn.page.tags.tag[1]['id']
-  end
-  
-
-  def test_small_entry
-    node = XmlNode.from_xml('<entry>hi</entry>')
-    assert_equal 'hi', node.node_value
-  end
-
 end

@@ -1,5 +1,4 @@
 require 'cgi'
-require 'action_controller/vendor/xml_node'
 require 'strscan'
 
 # Static methods for parsing the query and request parameters that can be used in
@@ -49,13 +48,10 @@ class CGIMethods #:nodoc:
       case strategy = ActionController::Base.param_parsers[mime_type]
         when Proc
           strategy.call(raw_post_data)
-        when :xml_simple
+        when :xml_simple, :xml_node
           raw_post_data.blank? ? {} : Hash.from_xml(raw_post_data)
         when :yaml
           YAML.load(raw_post_data)
-        when :xml_node
-          node = XmlNode.from_xml(raw_post_data)
-          { node.node_name => node }
       end
     rescue Exception => e # YAML, XML or Ruby code block errors
       { "exception" => "#{e.message} (#{e.class})", "backtrace" => e.backtrace, 
