@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow layouts with extension of .html.erb.  Closes #8032 [Josh Knowles]
+
 * Change default respond_to templates for xml and rjs formats. [Rick]
 
   * Default xml template goes from #{action_name}.rxml => #{action_name}.xml.builder.

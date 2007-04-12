@@ -28,6 +28,9 @@ end
 class ControllerNameSpace::NestedController < LayoutTest
 end
 
+class MultipleExtensions < LayoutTest
+end
+
 class MabView
   def initialize(view)
   end
@@ -71,6 +74,13 @@ class LayoutAutoDiscoveryTest < Test::Unit::TestCase
     get :hello
     assert_equal 'layouts/controller_name_space/nested', @controller.active_layout
     assert_equal 'controller_name_space/nested.rhtml hello.rhtml', @response.body
+  end
+  
+  def test_namespaced_controllers_auto_detect_layouts
+    @controller = MultipleExtensions.new
+    get :hello
+    assert_equal 'layouts/multiple_extensions', @controller.active_layout
+    assert_equal 'multiple_extensions.html.erb hello.rhtml', @response.body.strip
   end
 end
 

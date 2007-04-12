@@ -190,7 +190,7 @@ module ActionController #:nodoc:
         def inherited_with_layout(child)
           inherited_without_layout(child)
           layout_match = child.name.underscore.sub(/_controller$/, '').sub(/^controllers\//, '')
-          child.layout(layout_match) unless child.layout_list.grep(%r{layouts/#{layout_match}\.[a-z][0-9a-z]*$}).empty?
+          child.layout(layout_match) unless child.layout_list.grep(%r{layouts/#{layout_match}(\.[a-z][0-9a-z]*)+$}).empty?
         end
 
         def add_layout_conditions(conditions)
