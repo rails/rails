@@ -107,11 +107,17 @@ module ActionController #:nodoc:
     end
     
     class Responder #:nodoc:
-      default_block_format = %(Proc.new { render :action => "\#{action_name}%s", :content_type => Mime::%s })
-      DEFAULT_BLOCKS = {}
-      DEFAULT_BLOCKS[:html] = default_block_format % ['', 'HTML']
-      DEFAULT_BLOCKS[:js]   = default_block_format % ['.js.rjs', 'JS']
-      DEFAULT_BLOCKS[:xml]  = default_block_format % ['.xml.builder', 'XML']
+      default_block_format = <<-END
+        Proc.new { 
+          @template.template_format = '%s'
+          render :action => "\#{action_name}", :content_type => Mime::%s
+        }
+      END
+
+      DEFAULT_BLOCKS = [:html, :js, :xml].inject({}) do |memo, ext| 
+        default_block = default_block_format % [ext, ext.to_s.upcase]
+        memo.update(ext => default_block)
+      end
       
       def initialize(block_binding)
         @block_binding = block_binding
@@ -132,7 +138,10 @@ module ActionController #:nodoc:
         
         if block_given?
           @responses[mime_type] = Proc.new do
-            eval "response.content_type = '#{mime_type.to_s}'", @block_binding
+            eval <<-END, @block_binding
+              @template.template_format = '#{mime_type.to_sym}'
+              response.content_type     = '#{mime_type.to_s}'
+            END
             block.call
           end
         else

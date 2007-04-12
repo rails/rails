@@ -1,5 +1,7 @@
 *SVN*
 
+* The default respond_to blocks don't set a specific extension anymore, so that both 'show.rjs' and 'show.js.rjs' will work. [Rick]
+
 * Allow layouts with extension of .html.erb.  Closes #8032 [Josh Knowles]
 
 * Change default respond_to templates for xml and rjs formats. [Rick]

@@ -288,11 +288,13 @@ class MimeControllerTest < Test::Unit::TestCase
     assert_equal 'Either JS or XML', @response.body
   end
   
-  def test_all_types_with_layout
+  def test_rjs_type_skips_layout
     @request.env["HTTP_ACCEPT"] = "text/javascript"
     get :all_types_with_layout
     assert_equal 'RJS for all_types_with_layout', @response.body
-
+  end
+  
+  def test_html_type_with_layout
     @request.env["HTTP_ACCEPT"] = "text/html"
     get :all_types_with_layout
     assert_equal '<html>HTML for all_types_with_layout</html>', @response.body
@@ -343,14 +345,14 @@ class MimeControllerTest < Test::Unit::TestCase
         unless args.empty?
           @action = args.first[:action]
         end
-        response.body = @action
+        response.body = "#{@action} - #{@template.template_format}"
       end
     end
 
     get :using_defaults
-    assert_equal "using_defaults", @response.body
+    assert_equal "using_defaults - html", @response.body
 
     get :using_defaults, :format => "xml"
-    assert_equal "using_defaults.xml.builder", @response.body
+    assert_equal "using_defaults - xml", @response.body
   end
 end

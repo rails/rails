@@ -9,6 +9,8 @@ module ActionController
     # such as { 'RAILS_ENV' => 'production' }.
     attr_reader :env
 
+    attr_accessor :format
+
     # Returns the HTTP request method as a lowercase symbol (:get, for example). Note, HEAD is returned as :get
     # since the two are supposedly to be functionaly equivilent for all purposes except that HEAD won't return a response
     # body (which Rails also takes care of elsewhere).
@@ -91,7 +93,7 @@ module ActionController
     #   GET /posts/5.xhtml | request.format => Mime::HTML
     #   GET /posts/5       | request.format => request.accepts.first (usually Mime::HTML for browsers)
     def format
-      parameters[:format] ? Mime::Type.lookup_by_extension(parameters[:format]) : accepts.first
+      @format ||= parameters[:format] ? Mime::Type.lookup_by_extension(parameters[:format]) : accepts.first
     end
 
     # Returns true if the request's "X-Requested-With" header contains
