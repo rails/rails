@@ -1,5 +1,7 @@
 *SVN*
 
+* Added yielding of Builder instance for ActiveRecord::Base#to_xml calls [DHH]
+
 * Small additions and fixes for ActiveRecord documentation.  Closes #7342 [jeremymcanally]
 
 * Add helpful debugging info to the ActiveRecord::StatementInvalid exception in ActiveRecord::ConnectionAdapters::SqliteAdapter#table_structure.  Closes #7925. [court3nay]

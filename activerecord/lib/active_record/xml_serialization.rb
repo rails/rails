@@ -90,6 +90,23 @@ module ActiveRecord #:nodoc:
     #     <abc>def</abc>
     #   </firm>
     #
+    # Alternatively, you can also just yield the builder object as part of the to_xml call:
+    #
+    #   firm.to_xml do |xml|
+    #     xml.creator do
+    #       xml.first_name "David"
+    #       xml.last_name "Heinemeier Hansson"
+    #     end
+    #   end
+    #
+    #   <firm>
+    #     # ... normal attributes as shown above ...
+    #     <creator>
+    #       <first_name>David</first_name>
+    #       <last_name>Heinemeier Hansson</last_name>
+    #     </creator>
+    #   </firm>
+    #
     # You may override the to_xml method in your ActiveRecord::Base
     # subclasses if you need to.  The general form of doing this is
     #
@@ -103,8 +120,9 @@ module ActiveRecord #:nodoc:
     #       end
     #     end
     #   end
-    def to_xml(options = {})
-      XmlSerializer.new(self, options).to_s
+    def to_xml(options = {}, &block)
+      serializer = XmlSerializer.new(self, options)
+      block_given? ? serializer.to_s(&block) : serializer.to_s
     end
   end
 
@@ -231,6 +249,7 @@ module ActiveRecord #:nodoc:
         add_attributes
         add_includes
         add_procs
+        yield builder if block_given?
       end
     end        
     

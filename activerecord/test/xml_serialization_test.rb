@@ -56,6 +56,14 @@ class XmlSerializationTest < Test::Unit::TestCase
     assert_no_match %r{<age},     @xml
     assert_match %r{<created-at}, @xml
   end
+  
+  def test_should_include_yielded_additions
+    @xml = Contact.new.to_xml do |xml|
+      xml.creator "David"
+    end
+
+    assert_match %r{<creator>David</creator>}, @xml
+  end
 end
 
 class DefaultXmlSerializationTest < Test::Unit::TestCase
