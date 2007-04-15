@@ -1,5 +1,7 @@
 *SVN*
 
+* Tweak template format rules so that the ACCEPT header is only used if it's text/javascript.  This is so ajax actions without a :format param get recognized as Mime::JS. [Rick]
+
 * The default respond_to blocks don't set a specific extension anymore, so that both 'show.rjs' and 'show.js.rjs' will work. [Rick]
 
 * Allow layouts with extension of .html.erb.  Closes #8032 [Josh Knowles]

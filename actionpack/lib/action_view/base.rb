@@ -403,7 +403,19 @@ module ActionView #:nodoc:
 
     # symbolized version of the :format parameter of the request, or :html by default.
     def template_format
-      @template_format ||= controller.request.parameters[:format].to_sym rescue :html
+      if @template_format.nil?
+        @template_format =
+          begin
+            if controller.request.accepts.first == Mime::JS
+              :js
+            else
+              controller.request.parameters[:format].to_sym
+            end
+          rescue
+            :html
+          end
+      end
+      @template_format
     end
 
     def template_handler_preferences
