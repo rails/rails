@@ -502,7 +502,8 @@ module Rails
         else
           Pathname.new(::RAILS_ROOT).realpath.to_s
         end
-
+      
+      Object.const_set(:RELATIVE_RAILS_ROOT, ::RAILS_ROOT.dup) unless defined?(::RELATIVE_RAILS_ROOT)
       ::RAILS_ROOT.replace @root_path
     end
 

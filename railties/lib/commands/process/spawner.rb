@@ -114,9 +114,9 @@ end
 OPTIONS = {
   :environment => "production",
   :spawner     => '/usr/bin/env spawn-fcgi',
-  :dispatcher  => File.expand_path(RAILS_ROOT + '/public/dispatch.fcgi'),
-  :pids        => File.expand_path(RAILS_ROOT + "/tmp/pids"),
-  :rails_root  => File.expand_path(RAILS_ROOT),
+  :dispatcher  => File.expand_path(RELATIVE_RAILS_ROOT + '/public/dispatch.fcgi'),
+  :pids        => File.expand_path(RELATIVE_RAILS_ROOT + "/tmp/pids"),
+  :rails_root  => File.expand_path(RELATIVE_RAILS_ROOT),
   :process     => "dispatch",
   :port        => 8000,
   :address     => '0.0.0.0',
