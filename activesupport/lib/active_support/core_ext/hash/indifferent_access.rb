@@ -73,8 +73,16 @@ class HashWithIndifferentAccess < Hash
     def convert_key(key)
       key.kind_of?(Symbol) ? key.to_s : key
     end
+
     def convert_value(value)
-      value.is_a?(Hash) ? value.with_indifferent_access : value
+      case value
+      when Hash
+        value.with_indifferent_access
+      when Array
+        value.collect { |e| e.is_a?(Hash) ? e.with_indifferent_access : e }
+      else
+        value
+      end
     end
 end
 

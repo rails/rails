@@ -183,6 +183,11 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal '1234', roundtrip.default
   end
 
+  def test_indifferent_hash_with_array_of_hashes
+    hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] }}.with_indifferent_access
+    assert_equal "1", hash[:urls][:url].first[:address]
+  end
+
   def test_stringify_and_symbolize_keys_on_indifferent_preserves_hash
     h = HashWithIndifferentAccess.new
     h[:first] = 1

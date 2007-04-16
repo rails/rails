@@ -111,7 +111,7 @@ module ActiveSupport #:nodoc:
               'forcecontent' => true,
               'keeproot'     => true,
               'contentkey'   => '__content__')
-            ))            
+            ))
           end
           
           def create_from_xml(xml)
