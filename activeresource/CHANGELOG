@@ -1,5 +1,11 @@
 *SVN*
 
+* Fixed constant warning when fetching the same object multiple times [DHH]
+
+* Added that saves which get a body response (and not just a 201) will use that response to update themselves [DHH]
+
+* Disregard namespaces from the default element name, so Highrise::Person will just try to fetch from "/people", not "/highrise/people" [DHH]
+
 * Allow array and hash query parameters.  #7756 [Greg Spurrier]
 
 * Loading a resource preserves its prefix_options.  #7353 [Ryan Daigle]

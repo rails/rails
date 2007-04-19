@@ -29,7 +29,10 @@ module ActiveResource
         @connection
       end
 
-      attr_accessor_with_default(:element_name)    { to_s.underscore } #:nodoc:
+      # Do not include any modules in the default element name. This makes it easier to seclude ARes objects
+      # in a separate namespace without having to set element_name repeatedly.
+      attr_accessor_with_default(:element_name)    { to_s.split("::").last.underscore } #:nodoc:
+
       attr_accessor_with_default(:collection_name) { element_name.pluralize } #:nodoc:
       attr_accessor_with_default(:primary_key, 'id') #:nodoc:
       
@@ -149,7 +152,7 @@ module ActiveResource
 
     def initialize(attributes = {}, prefix_options = {})
       @attributes = {}
-      self.load attributes
+      load(attributes)
       @prefix_options = prefix_options
     end
 
@@ -184,7 +187,9 @@ module ActiveResource
       id.hash
     end
 
-    # Delegates to +create+ if a new object, +update+ if its old.
+    # Delegates to +create+ if a new object, +update+ if its old. If the response to the save includes a body,
+    # it will be assumed that this body is XML for the final object as it looked after the save (which would include
+    # attributes like created_at that wasn't part of the original submit).
     def save
       new? ? create : update
     end
@@ -206,7 +211,7 @@ module ActiveResource
 
     # Reloads the attributes of this object from the remote web service.
     def reload
-      self.load self.class.find(id, @prefix_options).attributes
+      self.load(self.class.find(id, @prefix_options).attributes)
     end
 
     # Manually load attributes from a hash. Recursively loads collections of
@@ -245,6 +250,10 @@ module ActiveResource
       def create
         returning connection.post(collection_path, to_xml) do |response|
           self.id = id_from_response(response)
+          
+          if response['Content-size'] != "0" && response.body.strip.size > 0
+            load(connection.xml_from_response(response))
+          end
         end
       end
 
@@ -270,7 +279,7 @@ module ActiveResource
       # Tries to find a resource for a given name; if it fails, then the resource is created
       def find_or_create_resource_for(name)
         resource_name = name.to_s.camelize
-        resource_name.constantize
+        self.class.const_get(resource_name)
       rescue NameError
         resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
         resource.prefix = self.class.prefix

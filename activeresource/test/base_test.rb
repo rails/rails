@@ -16,8 +16,8 @@ class BaseTest < Test::Unit::TestCase
       mock.put    "/people/1.xml",             {}, nil, 204
       mock.delete "/people/1.xml",             {}, nil, 200
       mock.delete "/people/2.xml",             {}, nil, 400
-      mock.post   "/people.xml",               {}, nil, 201, 'Location' => '/people/5.xml'
       mock.get    "/people/99.xml",            {}, nil, 404
+      mock.post   "/people.xml",               {}, "<person><name>Rick</name><age type='integer'>25</age></person>", 201, 'Location' => '/people/5.xml'
       mock.get    "/people.xml",               {}, "<people>#{@matz}#{@david}</people>"
       mock.get    "/people/1/addresses.xml",   {}, "<addresses>#{@addy}</addresses>"
       mock.get    "/people/1/addresses/1.xml", {}, @addy
@@ -128,14 +128,6 @@ class BaseTest < Test::Unit::TestCase
     assert_equal 'addresses', StreetAddress.collection_name
   end
 
-  def test_nested_element_name
-    self.class.const_set :Actor, Class.new(Person)
-    assert_equal 'base_test/actor', Actor.element_name
-  ensure
-    self.class.remove_const :Actor rescue nil
-  end
-
-
   def test_prefix
     assert_equal "/", Person.prefix
     assert_equal Set.new, Person.send(:prefix_parameters)
@@ -215,7 +207,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_create_with_custom_prefix
-    matzs_house = StreetAddress.new({}, {:person_id => 1})
+    matzs_house = StreetAddress.new({}, { :person_id => 1 })
     matzs_house.save
     assert_equal '5', matzs_house.id
   end
@@ -232,6 +224,9 @@ class BaseTest < Test::Unit::TestCase
     assert rick.valid?
     assert !rick.new?
     assert_equal '5', rick.id
+
+    # test additional attribute returned on create
+    assert_equal 25, rick.age
     
     # Test that save exceptions get bubbled up too
     ActiveResource::HttpMock.respond_to do |mock|

@@ -12,7 +12,7 @@ module ActiveResource
       for method in [ :post, :put, :get, :delete ]
         module_eval <<-EOE
           def #{method}(path, request_headers = {}, body = nil, status = 200, response_headers = {})
-            @responses[Request.new(:#{method}, path, nil, request_headers)] = Response.new(body || {}, status, response_headers)
+            @responses[Request.new(:#{method}, path, nil, request_headers)] = Response.new(body || "", status, response_headers)
           end
         EOE
       end

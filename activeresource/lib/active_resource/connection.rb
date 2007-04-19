@@ -52,7 +52,7 @@ module ActiveResource
     # Execute a GET request.
     # Used to get (find) resources.
     def get(path)
-      from_xml_data(Hash.from_xml(request(:get, path, build_request_headers).body).values.first)
+      xml_from_response(request(:get, path, build_request_headers))
     end
 
     # Execute a DELETE request (see HTTP protocol documentation if unfamiliar).
@@ -72,6 +72,15 @@ module ActiveResource
     def post(path, body = '')
       request(:post, path, body, build_request_headers)
     end
+
+    def xml_from_response(response)
+      if response = from_xml_data(Hash.from_xml(response.body))
+        response.first
+      else
+        nil
+      end
+    end
+
 
     private
       # Makes request to remote service.
@@ -138,7 +147,7 @@ module ActiveResource
               case data.values.first
                 when Hash  then [ from_xml_data(data.values.first) ]
                 when Array then from_xml_data(data.values.first)
-                else       data
+                else       data.values.first
               end
             else
               data.each_key { |key| data[key] = from_xml_data(data[key]) }
