@@ -99,6 +99,8 @@ module ActiveSupport #:nodoc:
                 end
               end
             end
+            
+            yield options[:builder] if block_given?
           end
 
         end

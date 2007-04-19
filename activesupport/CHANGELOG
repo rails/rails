@@ -1,5 +1,7 @@
 *SVN*
 
+* Added yielding of builder in Hash#to_xml [DHH]
+
 * Hash#with_indifferent_access now also converts hashes kept in arrays to indifferent access (makes it easier to treat HTML and XML parameters the same) [DHH]
 
 * Hash#to_xml supports YAML attributes.  #7502 [jonathan]

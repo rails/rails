@@ -342,6 +342,17 @@ class HashToXmlTest < Test::Unit::TestCase
     assert xml.include?(%(<age nil="true"></age>))
   end
 
+  def test_one_level_with_yielding
+    xml = { :name => "David", :street => "Paulina" }.to_xml(@xml_options) do |xml|
+      xml.creator("Rails")
+    end
+
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<street>Paulina</street>))
+    assert xml.include?(%(<name>David</name>))
+    assert xml.include?(%(<creator>Rails</creator>))
+  end
+
   def test_two_levels
     xml = { :name => "David", :address => { :street => "Paulina" } }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
