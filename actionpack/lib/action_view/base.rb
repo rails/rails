@@ -526,7 +526,8 @@ module ActionView #:nodoc:
             when :rxml, :builder
               "controller.response.content_type ||= Mime::XML\n" +
               "xml = Builder::XmlMarkup.new(:indent => 2)\n" +
-              template
+              template +
+              "\nxml.target!\n"
             when :rjs
               "controller.response.content_type ||= Mime::JS\n" +
               "update_page do |page|\n#{template}\nend"

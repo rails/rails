@@ -1,5 +1,7 @@
 *SVN*
 
+* Return the string representation from an Xml Builder when rendering a partial. Closes #5044 [tpope] 
+
 * Fixed that parameters from XML should also be presented in a hash with indifferent access [DHH]
 
 * Tweak template format rules so that the ACCEPT header is only used if it's text/javascript.  This is so ajax actions without a :format param get recognized as Mime::JS. [Rick]
