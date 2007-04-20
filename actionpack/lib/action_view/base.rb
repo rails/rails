@@ -455,8 +455,9 @@ module ActionView #:nodoc:
           body = case extension.to_sym
             when :rxml
               "controller.response.content_type ||= 'application/xml'\n" +
-              "xml = Builder::XmlMarkup.new(:indent => 2)\n" +
-              template
+              "xml ||= Builder::XmlMarkup.new(:indent => 2)\n" +
+              template +
+              "\nxml.target!\n"
             when :rjs
               "controller.response.content_type ||= 'text/javascript'\n" +
               "update_page do |page|\n#{template}\nend"
