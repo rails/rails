@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActiveRecord::Base.inspect to return a column-view like #<Post id:integer, title:string, body:text> [DHH]
+
 * Added yielding of Builder instance for ActiveRecord::Base#to_xml calls [DHH]
 
 * Small additions and fixes for ActiveRecord documentation.  Closes #7342 [jeremymcanally]

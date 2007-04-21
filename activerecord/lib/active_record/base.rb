@@ -862,6 +862,11 @@ module ActiveRecord #:nodoc:
         end
       end
 
+      # Returns a string looking like: #<Post id:integer, title:string, body:text>
+      def inspect
+        "#<#{name} #{columns.collect { |c| "#{c.name}:#{c.type}" }.join(", ")}>"
+      end
+
 
       def quote_value(value, column = nil) #:nodoc:
         connection.quote(value,column)
