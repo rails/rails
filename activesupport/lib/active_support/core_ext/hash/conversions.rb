@@ -1,6 +1,7 @@
 require 'date'
 require 'xml_simple'
 require 'cgi'
+require 'base64'
 
 # Extensions needed for Hash#to_query
 class Object
@@ -26,21 +27,40 @@ module ActiveSupport #:nodoc:
         XML_TYPE_NAMES = {
           "Fixnum"     => "integer",
           "Bignum"     => "integer",
-          "BigDecimal" => "numeric",
+          "BigDecimal" => "decimal",
           "Float"      => "float",
           "Date"       => "date",
           "DateTime"   => "datetime",
           "Time"       => "datetime",
           "TrueClass"  => "boolean",
           "FalseClass" => "boolean"
-        } unless defined? XML_TYPE_NAMES
+        } unless defined?(XML_TYPE_NAMES)
 
         XML_FORMATTING = {
           "date"     => Proc.new { |date| date.to_s(:db) },
           "datetime" => Proc.new { |time| time.xmlschema },
           "binary"   => Proc.new { |binary| Base64.encode64(binary) },
           "yaml"     => Proc.new { |yaml| yaml.to_yaml }
-        } unless defined? XML_FORMATTING
+        } unless defined?(XML_FORMATTING)
+
+        unless defined?(XML_PARSING)
+          XML_PARSING = {
+            "date"         => Proc.new { |date| ::Date.parse(date) },
+            "datetime"     => Proc.new { |time| ::Time.parse(time).utc },
+            "integer"      => Proc.new { |integer| integer.to_i },
+            "float"        => Proc.new { |float| float.to_f },
+            "decimal"      => Proc.new { |number| BigDecimal(number) },
+            "boolean"      => Proc.new { |boolean| %w(1 true).include?(boolean.strip) },
+            "string"       => Proc.new { |string| string.to_s },
+            "yaml"         => Proc.new { |yaml| YAML::load(yaml) rescue yaml },
+            "base64Binary" => Proc.new { |bin| Base64.decode64(bin) }
+          }
+
+          XML_PARSING.update(
+            "double"   => XML_PARSING["float"],
+            "dateTime" => XML_PARSING["datetime"]
+          )
+        end
 
         def self.included(klass)
           klass.extend(ClassMethods)
@@ -127,14 +147,13 @@ module ActiveSupport #:nodoc:
                 when "Hash"
                   if value.has_key?("__content__")
                     content = translate_xml_entities(value["__content__"])
-                    case value["type"]
-                      when "integer"  then content.to_i
-                      when "boolean"  then content.strip == "true"
-                      when "datetime" then ::Time.parse(content).utc
-                      when "date"     then ::Date.parse(content)
-                      when "yaml"     then YAML::load(content) rescue content
-                      else                 content
+                    if XML_PARSING[value["type"]]
+                      XML_PARSING[value["type"]].call(content)
+                    else
+                      content
                     end
+                  elsif value['type'] == 'string' && value['nil'] != 'true'
+                    ""
                   else
                     (value.blank? || value['type'] || value['nil'] == 'true') ? nil : value.inject({}) do |h,(k,v)|
                       h[k] = typecast_xml_value(v)

@@ -395,6 +395,8 @@ class HashToXmlTest < Test::Unit::TestCase
         <content type="yaml">--- \n1: should be an integer\n:message: Have a nice day\narray: \n- should-have-dashes: true\n  should_have_underscores: true\n</content>
         <author-email-address>david@loudthinking.com</author-email-address>
         <parent-id></parent-id>
+        <ad-revenue type="decimal">1.5</ad-revenue>
+        <optimum-viewing-angle type="float">135</optimum-viewing-angle>
       </topic>
     EOT
 
@@ -409,7 +411,9 @@ class HashToXmlTest < Test::Unit::TestCase
       :viewed_at => Time.utc(2003, 7, 16, 9, 28),
       :content => { :message => "Have a nice day", 1 => "should be an integer", "array" => [{ "should-have-dashes" => true, "should_have_underscores" => true }] },
       :author_email_address => "david@loudthinking.com",
-      :parent_id => nil
+      :parent_id => nil,
+      :ad_revenue => BigDecimal("1.50"),
+      :optimum_viewing_angle => 135.0
     }.stringify_keys
 
     assert_equal expected_topic_hash, Hash.from_xml(topic_xml)["topic"]
@@ -511,6 +515,30 @@ class HashToXmlTest < Test::Unit::TestCase
     }.stringify_keys
 
     assert_equal expected_topic_hash, Hash.from_xml(topic_xml)["rsp"]["photos"]["photo"]
+  end
+
+  def test_xsd_like_types_from_xml
+    bacon_xml = <<-EOT
+    <bacon>
+      <weight type="double">0.5</weight>
+      <price type="decimal">12.50</price>
+      <chunky type="boolean"> 1 </chunky>
+      <expires-at type="dateTime">2007-12-25T12:34:56+0000</expires-at>
+      <notes type="string"></notes>
+      <illustration type="base64Binary">YmFiZS5wbmc=</illustration>
+    </bacon>
+    EOT
+
+    expected_bacon_hash = {
+      :weight => 0.5,
+      :chunky => true,
+      :price => BigDecimal("12.50"),
+      :expires_at => Time.utc(2007,12,25,12,34,56),
+      :notes => "",
+      :illustration => "babe.png"
+    }.stringify_keys
+
+    assert_equal expected_bacon_hash, Hash.from_xml(bacon_xml)["bacon"]
   end
 
   def test_should_use_default_value_for_unknown_key

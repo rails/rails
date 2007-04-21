@@ -126,7 +126,7 @@ class ArrayToXmlTests < Test::Unit::TestCase
     assert xml.include?(%(<age-in-millis type="integer">820497600000</age-in-millis>)), xml
     assert xml.include?(%(<name>David</name>)), xml
     assert xml.include?(%(<age type="integer">31</age>)), xml
-    assert xml.include?(%(<age-in-millis type="numeric">1.0</age-in-millis>)), xml
+    assert xml.include?(%(<age-in-millis type="decimal">1.0</age-in-millis>)), xml
     assert xml.include?(%(<name>Jason</name>)), xml
   end
 

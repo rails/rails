@@ -1,5 +1,7 @@
 *SVN*
 
+* Use XSD-compatible type names for Hash#to_xml and make the converters extendable #8047 [Tim Pope]
+
 * Added yielding of builder in Hash#to_xml [DHH]
 
 * Hash#with_indifferent_access now also converts hashes kept in arrays to indifferent access (makes it easier to treat HTML and XML parameters the same) [DHH]
