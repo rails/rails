@@ -54,7 +54,7 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "actionmailer"
   s.homepage = "http://www.rubyonrails.org"
 
-  s.add_dependency('actionpack', '= 1.12.5' + PKG_BUILD)
+  s.add_dependency('actionpack', '= 1.13.3' + PKG_BUILD)
 
   s.has_rdoc = true
   s.requirements << 'none'
@@ -85,11 +85,11 @@ end
 
 desc "Publish the release files to RubyForge."
 task :release => [ :package ] do
-  `rubyforge login`
+  require 'rubyforge'
 
-  for ext in %w( gem tgz zip )
-    release_command = "rubyforge add_release #{PKG_NAME} #{PKG_NAME} 'REL #{PKG_VERSION}' pkg/#{PKG_NAME}-#{PKG_VERSION}.#{ext}"
-    puts release_command
-    system(release_command)
-  end
+  packages = %w( gem tgz zip ).collect{ |ext| "pkg/#{PKG_NAME}-#{PKG_VERSION}.#{ext}" }
+
+  rubyforge = RubyForge.new
+  rubyforge.login
+  rubyforge.add_release(PKG_NAME, PKG_NAME, "REL #{PKG_VERSION}", *packages)
 end
