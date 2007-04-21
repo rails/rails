@@ -867,9 +867,9 @@ module ActionController #:nodoc:
 
         if append_response
           response.body ||= ''
-          response.body << text
+          response.body << text.to_s
         else
-          response.body = text
+          response.body = text.to_s
         end
       end
 
