@@ -121,7 +121,7 @@ module ActiveResource
         # Find every resource.
         def find_every(options)
           collection = connection.get(collection_path(options)) || []
-          collection.collect! { |element| new(element, options) }
+          collection.collect! { |element| new(element) }
         end
 
         # Find a single resource.
