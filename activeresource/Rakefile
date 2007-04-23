@@ -55,22 +55,18 @@ dist_dirs = [ "lib", "test", "examples", "dev-utils" ]
 spec = Gem::Specification.new do |s|
   s.name = PKG_NAME
   s.version = PKG_VERSION
-  s.summary = "Implements the ActiveRecord pattern for ORM."
-  s.description = %q{Implements the ActiveRecord pattern (Fowler, PoEAA) for ORM. It ties database tables and classes together for business objects, like Customer or Subscription, that can find, save, and destroy themselves without resorting to manual SQL.}
+  s.summary = "Think Active Record for web resources."
+  s.description = %q{Wraps web resources in model classes that can be manipulated through XML over REST.}
 
   s.files = [ "Rakefile", "install.rb", "README", "RUNNING_UNIT_TESTS", "CHANGELOG" ]
   dist_dirs.each do |dir|
     s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   end
   
-  s.add_dependency('activesupport', '= 1.3.1' + PKG_BUILD)
+  s.add_dependency('activesupport', '= 1.4.2' + PKG_BUILD)
 
-  s.files.delete "test/fixtures/fixture_database.sqlite"
-  s.files.delete "test/fixtures/fixture_database_2.sqlite"
-  s.files.delete "test/fixtures/fixture_database.sqlite3"
-  s.files.delete "test/fixtures/fixture_database_2.sqlite3"
   s.require_path = 'lib'
-  s.autorequire = 'active_record'
+  s.autorequire = 'active_resource'
 
   s.has_rdoc = true
   s.extra_rdoc_files = %w( README )
@@ -79,7 +75,7 @@ spec = Gem::Specification.new do |s|
   s.author = "David Heinemeier Hansson"
   s.email = "david@loudthinking.com"
   s.homepage = "http://www.rubyonrails.org"
-  s.rubyforge_project = "activerecord"
+  s.rubyforge_project = "activeresource"
 end
   
 Rake::GemPackageTask.new(spec) do |p|
@@ -91,7 +87,7 @@ end
 task :lines do
   lines, codelines, total_lines, total_codelines = 0, 0, 0, 0
 
-  for file_name in FileList["lib/active_record/**/*.rb"]
+  for file_name in FileList["lib/active_resource/**/*.rb"]
     next if file_name =~ /vendor/
     f = File.open(file_name)
 

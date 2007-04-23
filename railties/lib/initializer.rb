@@ -23,7 +23,7 @@ module Rails
   # through the block running:
   #
   #   Rails::Initializer.run do |config|
-  #     config.frameworks -= [ :action_web_service ]
+  #     config.frameworks -= [ :action_mailer ]
   #   end
   #
   # This will use the default configuration options from Rails::Configuration,
@@ -379,11 +379,11 @@ module Rails
     # A stub for setting options on ActionView::Base
     attr_accessor :action_view
 
-    # A stub for setting options on ActionWebService::Base
-    attr_accessor :action_web_service
-
     # A stub for setting options on ActiveRecord::Base
     attr_accessor :active_record
+
+    # A stub for setting options on ActiveRecord::Base
+    attr_accessor :active_resource
 
     # Whether or not to use the breakpoint server (boolean)
     attr_accessor :breakpoint_server
@@ -560,8 +560,8 @@ module Rails
         actionpack/lib
         activesupport/lib
         activerecord/lib
+        activeresource/lib
         actionmailer/lib
-        actionwebservice/lib
       ).map { |dir| "#{framework_root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
     end
 
@@ -571,7 +571,7 @@ module Rails
       end
 
       def default_frameworks
-        [ :active_record, :action_controller, :action_view, :action_mailer, :action_web_service ]
+        [ :active_record, :action_controller, :action_view, :action_mailer, :active_resource ]
       end
 
       def default_load_paths
@@ -590,7 +590,6 @@ module Rails
           app/controllers
           app/helpers
           app/services
-          app/apis
           components
           config
           lib

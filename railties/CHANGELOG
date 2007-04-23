@@ -1,5 +1,11 @@
 *SVN*
 
+* Include Active Resource instead of Action Web Service [DHH] You can add AWS back with this in config/environment.rb:
+
+    config.load_paths += %W( #{RAILS_ROOT}/vendor/rails/actionwebservice/lib )
+  
+  ...or just gem 'actionwebservice'
+
 * Give generate scaffold a more descriptive database message.  Closes #7316 [jeremymcanally]
 
 * Canonicalize RAILS_ROOT by using File.expand_path on Windows, which doesn't have to worry about symlinks, and Pathname#realpath elsewhere, which respects symlinks in relative paths but is incompatible with Windows.  #6755 [Jeremy Kemper, trevor]
