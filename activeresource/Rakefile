@@ -18,7 +18,7 @@ RUBY_FORGE_PROJECT = "activerecord"
 RUBY_FORGE_USER    = "webster132"
 
 PKG_FILES = FileList[
-    "lib/**/*", "test/**/*", "examples/**/*", "doc/**/*", "[A-Z]*", "install.rb", "Rakefile"
+    "lib/**/*", "test/**/*", "[A-Z]*", "Rakefile"
 ].exclude(/\bCVS\b|~$/)
 
 desc "Default Task"
@@ -43,8 +43,6 @@ Rake::RDocTask.new { |rdoc|
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/**/*.rb')
-  rdoc.rdoc_files.exclude('lib/active_record/vendor/*')
-  rdoc.rdoc_files.include('dev-utils/*.rb')
 }
 
 
@@ -58,7 +56,7 @@ spec = Gem::Specification.new do |s|
   s.summary = "Think Active Record for web resources."
   s.description = %q{Wraps web resources in model classes that can be manipulated through XML over REST.}
 
-  s.files = [ "Rakefile", "install.rb", "README", "RUNNING_UNIT_TESTS", "CHANGELOG" ]
+  s.files = [ "Rakefile", "README", "CHANGELOG" ]
   dist_dirs.each do |dir|
     s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   end
