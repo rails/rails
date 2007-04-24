@@ -429,7 +429,7 @@ HTML
 
   def test_fixture_file_upload
     post :test_file_upload, :file => fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")
-    assert_equal 159528, @response.body
+    assert_equal '159528', @response.body
   end
 
   def test_test_uploaded_file_exception_when_file_doesnt_exist
