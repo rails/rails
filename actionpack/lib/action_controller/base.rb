@@ -869,7 +869,7 @@ module ActionController #:nodoc:
           response.body ||= ''
           response.body << text.to_s
         else
-          response.body = text.to_s
+          response.body = text.is_a?(Proc) ? text : text.to_s
         end
       end
 
