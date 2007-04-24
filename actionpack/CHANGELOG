@@ -1,5 +1,10 @@
 *SVN*
 
+* Added that render :xml will try to call to_xml if it can [DHH]. Makes these work:
+
+    render :xml => post
+    render :xml => comments
+
 * Added :location option to render so that the common pattern of rendering a response after creating a new resource is now a 1-liner [DHH]
 
     render :xml => post.to_xml, :status => :created, :location => post_url(post)

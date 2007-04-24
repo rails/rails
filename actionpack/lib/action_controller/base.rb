@@ -879,7 +879,7 @@ module ActionController #:nodoc:
 
       def render_xml(xml, status = nil) #:nodoc:
         response.content_type = Mime::XML
-        render_text(xml, status)
+        render_text(xml.respond_to?(:to_xml) ? xml.to_xml : xml, status)
       end
 
       def render_json(json, callback = nil, status = nil) #:nodoc:

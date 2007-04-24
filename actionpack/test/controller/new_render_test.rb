@@ -258,6 +258,20 @@ class NewRenderTestController < ActionController::Base
     head :forbidden, :x_custom_header => "something"
   end
 
+  def render_with_location
+    render :xml => "<hello/>", :location => "http://example.com", :status => 201
+  end
+
+  def render_with_to_xml
+    to_xmlable = Class.new do
+      def to_xml
+        "<i-am-xml/>"
+      end
+    end.new
+    
+    render :xml => to_xmlable
+  end
+
   helper NewRenderTestHelper
   helper do 
     def rjs_helper_method(value)
@@ -741,5 +755,15 @@ EOS
     assert_equal "Forbidden", @response.message
     assert_equal "something", @response.headers["X-Custom-Header"]
     assert_response :forbidden
+  end
+
+  def test_rendering_with_location_should_set_header
+    get :render_with_location
+    assert_equal "http://example.com", @response.headers["Location"]
+  end
+  
+  def test_rendering_xml_should_call_to_xml_if_possible
+    get :render_with_to_xml
+    assert_equal "<i-am-xml/>", @response.body
   end
 end

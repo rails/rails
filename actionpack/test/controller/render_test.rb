@@ -73,10 +73,6 @@ class TestController < ActionController::Base
     head :ok
   end
 
-  def location
-    render :xml => "<hello/>", :location => "http://example.com", :status => 201
-  end
-
   def greeting
     # let's just rely on the template
   end
@@ -370,11 +366,6 @@ class RenderTest < Test::Unit::TestCase
     @request.env["HTTP_ACCEPT"] = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, appliction/x-shockwave-flash, */*"
     get :formatted_xml_erb
     assert_equal '<test>passed formatted html erb</test>', @response.body
-  end
-
-  def test_rendering_with_location_should_set_header
-    get :location
-    assert_equal "http://example.com", @response.headers["Location"]
   end
 
 
