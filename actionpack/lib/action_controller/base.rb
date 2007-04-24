@@ -743,16 +743,11 @@ module ActionController #:nodoc:
       #     page.visual_effect :highlight, 'user_list'
       #   end
       #
-      # === Rendering nothing
+      # === Rendering with status and location headers
       #
-      # Rendering nothing is often convenient in combination with Ajax calls that perform their effect client-side or
-      # when you just want to communicate a status code. Due to a bug in Safari, nothing actually means a single space.
+      # All renders take the :status and :location options and turn them into headers. They can even be used together:
       #
-      #   # Renders an empty response with status code 200
-      #   render :nothing => true
-      #
-      #   # Renders an empty response with status code 401 (access denied)
-      #   render :nothing => true, :status => 401
+      #   render :xml => post.to_xml, :status => :created, :location => post_url(post)
       def render(options = nil, deprecated_status = nil, &block) #:doc:
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
@@ -777,6 +772,10 @@ module ActionController #:nodoc:
 
         if content_type = options[:content_type]
           response.content_type = content_type.to_s
+        end
+
+        if location = options[:location]
+          response.headers["Location"] = location
         end
 
         if text = options[:text]

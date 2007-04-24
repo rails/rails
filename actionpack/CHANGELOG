@@ -1,5 +1,9 @@
 *SVN*
 
+* Added :location option to render so that the common pattern of rendering a response after creating a new resource is now a 1-liner [DHH]
+
+    render :xml => post.to_xml, :status => :created, :location => post_url(post)
+
 * Ensure that render_text only adds string content to the body of the response [DHH]
 
 * Return the string representation from an Xml Builder when rendering a partial. Closes #5044 [tpope] 
