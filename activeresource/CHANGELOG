@@ -1,5 +1,12 @@
 *SVN*
 
+* Remove explicit prefix_options parameter for ActiveResource::Base#initialize. [Rick]
+  ActiveResource splits the prefix_options from it automatically.
+
+* Allow ActiveResource::Base.delete with custom prefix. [Rick]
+
+* Add ActiveResource::Base#dup [Rick]
+
 * Fixed constant warning when fetching the same object multiple times [DHH]
 
 * Added that saves which get a body response (and not just a 201) will use that response to update themselves [DHH]

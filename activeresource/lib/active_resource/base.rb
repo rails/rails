@@ -41,8 +41,14 @@ module ActiveResource
       def prefix(options={})
         default = site.path
         default << '/' unless default[-1..-1] == '/'
+        # generate the actual method based on the current site path
         self.prefix = default
         prefix(options)
+      end
+
+      def prefix_source
+        prefix # generate #prefix and #prefix_source methods first
+        prefix_source
       end
 
       # Sets the resource prefix
@@ -67,12 +73,26 @@ module ActiveResource
       alias_method :set_element_name, :element_name=  #:nodoc:
       alias_method :set_collection_name, :collection_name=  #:nodoc:
 
-      def element_path(id, options = {})
-        "#{prefix(options)}#{collection_name}/#{id}.xml#{query_string(options)}"
+      # Gets the element path for the given ID.  If no query_options are given, they are split from the prefix options:
+      #
+      # Post.element_path(1) # => /posts/1.xml
+      # Comment.element_path(1, :post_id => 5) # => /posts/5/comments/1.xml
+      # Comment.element_path(1, :post_id => 5, :active => 1) # => /posts/5/comments/1.xml?active=1
+      # Comment.element_path(1, {:post_id => 5}, {:active => 1}) # => /posts/5/comments/1.xml?active=1
+      def element_path(id, prefix_options = {}, query_options = nil)
+        prefix_options, query_options = split_options(prefix_options) if query_options.nil?
+        "#{prefix(prefix_options)}#{collection_name}/#{id}.xml#{query_string(query_options)}"
       end
 
-      def collection_path(options = {}) 
-        "#{prefix(options)}#{collection_name}.xml#{query_string(options)}"
+      # Gets the collection path.  If no query_options are given, they are split from the prefix options:
+      #
+      # Post.collection_path # => /posts.xml
+      # Comment.collection_path(:post_id => 5) # => /posts/5/comments.xml
+      # Comment.collection_path(:post_id => 5, :active => 1) # => /posts/5/comments.xml?active=1
+      # Comment.collection_path({:post_id => 5}, {:active => 1}) # => /posts/5/comments.xml?active=1
+      def collection_path(prefix_options = {}, query_options = nil)
+        prefix_options, query_options = split_options(prefix_options) if query_options.nil?
+        "#{prefix(prefix_options)}#{collection_name}.xml#{query_string(query_options)}"
       end
 
       alias_method :set_primary_key, :primary_key=  #:nodoc:
@@ -88,8 +108,8 @@ module ActiveResource
       # has not been saved then <tt>resource.valid?</tt> will return <tt>false</tt>,
       # while <tt>resource.new?</tt> will still return <tt>true</tt>.
       #      
-      def create(attributes = {}, prefix_options = {})
-        returning(self.new(attributes, prefix_options)) { |res| res.save }        
+      def create(attributes = {})
+        returning(self.new(attributes)) { |res| res.save }        
       end
 
       # Core method for finding resources.  Used similarly to ActiveRecord's find method.
@@ -106,8 +126,8 @@ module ActiveResource
         end
       end
 
-      def delete(id)
-        connection.delete(element_path(id))
+      def delete(id, options = {})
+        connection.delete(element_path(id, options))
       end
 
       # Evalutes to <tt>true</tt> if the resource is found.
@@ -120,14 +140,22 @@ module ActiveResource
       private
         # Find every resource.
         def find_every(options)
-          collection = connection.get(collection_path(options)) || []
-          collection.collect! { |element| new(element) }
+          prefix_options, query_options = split_options(options)
+          collection = connection.get(collection_path(prefix_options, query_options)) || []
+          collection.collect! do |element|
+            returning new(element.merge(prefix_options)) do |resource|
+              resource.prefix_options = prefix_options
+            end
+          end
         end
 
         # Find a single resource.
         #  { :person => person1 }
         def find_single(scope, options)
-          new(connection.get(element_path(scope, options)), options)
+          prefix_options, query_options = split_options(options)
+          returning new(connection.get(element_path(scope, prefix_options, query_options))) do |resource|
+            resource.prefix_options = prefix_options
+          end
         end
 
         # Accepts a URI and creates the site URI from that.
@@ -135,25 +163,34 @@ module ActiveResource
           site.is_a?(URI) ? site.dup : URI.parse(site)
         end
 
+        # contains a set of the current prefix parameters.
         def prefix_parameters
           @prefix_parameters ||= prefix_source.scan(/:\w+/).map { |key| key[1..-1].to_sym }.to_set
         end
 
         # Builds the query string for the request.
         def query_string(options)
-          # Omit parameters which appear in the URI path.
-          query_params = options.reject { |key, value| prefix_parameters.include?(key) }
-          "?#{query_params.to_query}" unless query_params.empty? 
+          "?#{options.to_query}" unless options.empty? 
+        end
+
+        # split an option hash into two hashes, one containing the prefix options, 
+        # and the other containing the leftovers.
+        def split_options(options = {})
+          prefix_options = {}; query_options = {}
+          options.each do |key, value|
+            (prefix_parameters.include?(key) ? prefix_options : query_options)[key] = value
+          end
+          [prefix_options, query_options]
         end
     end
 
     attr_accessor :attributes #:nodoc:
     attr_accessor :prefix_options #:nodoc:
 
-    def initialize(attributes = {}, prefix_options = {})
-      @attributes = {}
+    def initialize(attributes = {})
+      @attributes     = {}
+      @prefix_options = {}
       load(attributes)
-      @prefix_options = prefix_options
     end
 
     # Is the resource a new object?
@@ -185,6 +222,13 @@ module ActiveResource
     #   [Person.find(1), Person.find(2)] & [Person.find(1), Person.find(4)] # => [Person.find(1)]
     def hash
       id.hash
+    end
+    
+    def dup
+      returning new do |resource|
+        resource.attributes     = @attributes
+        resource.prefix_options = @prefix_options
+      end
     end
 
     # Delegates to +create+ if a new object, +update+ if its old. If the response to the save includes a body,
@@ -218,6 +262,7 @@ module ActiveResource
     # resources.
     def load(attributes)
       raise ArgumentError, "expected an attributes Hash, got #{attributes.inspect}" unless attributes.is_a?(Hash)
+      @prefix_options, attributes = split_options(attributes)
       attributes.each do |key, value|
         @attributes[key.to_s] =
           case value
@@ -227,8 +272,6 @@ module ActiveResource
             when Hash
               resource = find_or_create_resource_for(key)
               resource.new(value)
-            when ActiveResource::Base
-              value.class.new(value.attributes, value.prefix_options)
             else
               value.dup rescue value
           end
@@ -243,7 +286,7 @@ module ActiveResource
 
       # Update the resource on the remote service.
       def update
-        connection.put(element_path, to_xml)
+        connection.put(element_path(prefix_options), to_xml)
       end
 
       # Create (i.e., save to the remote service) the new resource.
@@ -285,6 +328,10 @@ module ActiveResource
         resource.prefix = self.class.prefix
         resource.site   = self.class.site
         resource
+      end
+
+      def split_options(options = {})
+        self.class.send(:split_options, options)
       end
 
       def method_missing(method_symbol, *arguments) #:nodoc:

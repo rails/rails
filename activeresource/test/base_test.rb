@@ -112,12 +112,20 @@ class BaseTest < Test::Unit::TestCase
     assert_equal '/people/1/addresses/1.xml?type%5B%5D=work&type%5B%5D=play+time', StreetAddress.element_path(1, :person_id => 1, :type => ['work', 'play time'])
   end
 
+  def test_custom_element_path_with_prefix_and_parameters
+    assert_equal '/people/1/addresses/1.xml?type=work', StreetAddress.element_path(1, {:person_id => 1}, {:type => 'work'})
+  end
+
   def test_custom_collection_path
     assert_equal '/people/1/addresses.xml', StreetAddress.collection_path(:person_id => 1)
   end
 
   def test_custom_collection_path_with_parameters
     assert_equal '/people/1/addresses.xml?type=work', StreetAddress.collection_path(:person_id => 1, :type => 'work')
+  end
+
+  def test_custom_collection_path_with_prefix_and_parameters
+    assert_equal '/people/1/addresses.xml?type=work', StreetAddress.collection_path({:person_id => 1}, {:type => 'work'})
   end
 
   def test_custom_element_name
@@ -207,7 +215,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_create_with_custom_prefix
-    matzs_house = StreetAddress.new({}, { :person_id => 1 })
+    matzs_house = StreetAddress.new(:person_id => 1)
     matzs_house.save
     assert_equal '5', matzs_house.id
   end
@@ -272,11 +280,23 @@ class BaseTest < Test::Unit::TestCase
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/people/1/addresses/1.xml", {}, nil, 404
     end
-    assert_raises(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :person_id => 1).destroy }
+    assert_raises(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :person_id => 1) }
   end
 
   def test_delete
     assert Person.delete(1)
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get "/people/1.xml", {}, nil, 404
+    end
+    assert_raises(ActiveResource::ResourceNotFound) { Person.find(1) }
+  end
+  
+  def test_delete_with_custom_prefix
+    assert StreetAddress.delete(1, :person_id => 1)
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get "/people/1/addresses/1.xml", {}, nil, 404
+    end
+    assert_raises(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :person_id => 1) }
   end
 
   def test_exists
@@ -297,8 +317,8 @@ class BaseTest < Test::Unit::TestCase
 
     # Nested instance method.
     assert StreetAddress.find(1, :person_id => 1).exists?
-    assert !StreetAddress.new({:id => 1}, {:person_id => 2}).exists?
-    assert !StreetAddress.new({:id => 2}, {:person_id => 1}).exists?
+    assert !StreetAddress.new({:id => 1, :person_id => 2}).exists?
+    assert !StreetAddress.new({:id => 2, :person_id => 1}).exists?
   end
   
   def test_to_xml
