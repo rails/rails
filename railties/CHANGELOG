@@ -1,5 +1,7 @@
 *SVN*
 
+* Include Active Resource in rails:freeze:edge rake task.  [Thomas Fuchs]
+
 * Include Active Resource instead of Action Web Service [DHH] You can add AWS back with this in config/environment.rb:
 
     config.load_paths += %W( #{RAILS_ROOT}/vendor/rails/actionwebservice/lib )
