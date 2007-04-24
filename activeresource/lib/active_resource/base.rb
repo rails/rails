@@ -143,7 +143,7 @@ module ActiveResource
           prefix_options, query_options = split_options(options)
           collection = connection.get(collection_path(prefix_options, query_options)) || []
           collection.collect! do |element|
-            returning new(element.merge(prefix_options)) do |resource|
+            returning new(element) do |resource|
               resource.prefix_options = prefix_options
             end
           end
