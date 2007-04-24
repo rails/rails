@@ -2,6 +2,8 @@
 
 * Update Dependencies to ignore constants inherited from ancestors. Closes #6951. [Nicholas Seckar]
 
+* Improved multibyte performance by relying less on exception raising #8159 [Blaine]
+
 
 *1.4.2* (March 12th, 2007)
 

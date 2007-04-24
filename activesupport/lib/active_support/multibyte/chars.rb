@@ -43,7 +43,7 @@ module ActiveSupport::Multibyte #:nodoc:
     
     # Create a new Chars instance.
     def initialize(str)
-      @string = (str.string rescue str)
+      @string = str.respond_to?(:string) ? str.string : str
     end
     
     # Returns -1, 0 or +1 depending on whether the Chars object is to be sorted before, equal or after the
@@ -70,18 +70,18 @@ module ActiveSupport::Multibyte #:nodoc:
     def method_missing(m, *a, &b)
       begin
         # Simulate methods with a ! at the end because we can't touch the enclosed string from the handlers.
-        if m.to_s =~ /^(.*)\!$/
+        if m.to_s =~ /^(.*)\!$/ && handler.respond_to?($1)
           result = handler.send($1, @string, *a, &b)
           if result == @string
             result = nil
           else
             @string.replace result
           end
-        else
+        elsif handler.respond_to?(m)
           result = handler.send(m, @string, *a, &b)
+        else
+          result = @string.send(m, *a, &b)
         end
-      rescue NoMethodError
-        result = @string.send(m, *a, &b)
       rescue Handlers::EncodingError
         @string.replace handler.tidy_bytes(@string)
         retry

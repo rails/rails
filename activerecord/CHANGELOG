@@ -4,6 +4,8 @@
 
 * SQLite: binary escaping works with $KCODE='u'.  #7862 [tsuka]
 
+* Improved cloning performance by relying less on exception raising #8159 [Blaine]
+
 
 *1.15.3* (March 12th, 2007)
 
