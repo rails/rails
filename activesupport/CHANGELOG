@@ -1,5 +1,7 @@
 *SVN*
 
+* Improved multibyte performance by relying less on exception raising #8159 [Blaine]
+
 * Use XSD-compatible type names for Hash#to_xml and make the converters extendable #8047 [Tim Pope]
 
 * Added yielding of builder in Hash#to_xml [DHH]

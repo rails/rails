@@ -2231,7 +2231,13 @@ module ActiveRecord #:nodoc:
 
       def clone_attribute_value(reader_method, attribute_name)
         value = send(reader_method, attribute_name)
-        value.clone
+
+        case value
+        when nil, Fixnum, true, false
+          value
+        else
+          value.clone
+        end
       rescue TypeError, NoMethodError
         value
       end
