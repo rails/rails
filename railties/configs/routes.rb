@@ -19,6 +19,7 @@ ActionController::Routing::Routes.draw do |map|
   # -- just remember to delete public/index.html.
   # map.root :controller => "welcome"
 
-  # Install the default route as the lowest priority.
+  # Install the default routes as the lowest priority.
   map.connect ':controller/:action/:id'
+  map.connect ':controller/:action/:id.:format'
 end
