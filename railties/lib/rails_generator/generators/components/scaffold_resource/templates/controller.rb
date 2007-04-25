@@ -6,7 +6,7 @@ class <%= controller_class_name %>Controller < ApplicationController
 
     respond_to do |format|
       format.html # index.erb
-      format.xml  { render :xml => @<%= table_name %>.to_xml }
+      format.xml  { render :xml => @<%= table_name %> }
     end
   end
 
@@ -17,7 +17,7 @@ class <%= controller_class_name %>Controller < ApplicationController
 
     respond_to do |format|
       format.html # show.erb
-      format.xml  { render :xml => @<%= file_name %>.to_xml }
+      format.xml  { render :xml => @<%= file_name %> }
     end
   end
 
@@ -28,7 +28,7 @@ class <%= controller_class_name %>Controller < ApplicationController
 
     respond_to do |format|
       format.html # new.erb
-      format.xml  { render :xml => @<%= file_name %>.to_xml }
+      format.xml  { render :xml => @<%= file_name %> }
     end
   end
 
@@ -46,10 +46,10 @@ class <%= controller_class_name %>Controller < ApplicationController
       if @<%= file_name %>.save
         flash[:notice] = '<%= class_name %> was successfully created.'
         format.html { redirect_to <%= file_name %>_url(@<%= file_name %>) }
-        format.xml  { head :created, :location => <%= file_name %>_url(@<%= file_name %>) }
+        format.xml  { render :xml => @<%= file_name %>, :status => :created, :location => <%= file_name %>_url(@<%= file_name %>) }
       else
         format.html { render :action => "new" }
-        format.xml  { render :xml => @<%= file_name %>.errors.to_xml }
+        format.xml  { render :xml => @<%= file_name %>.errors }
       end
     end
   end
@@ -66,7 +66,7 @@ class <%= controller_class_name %>Controller < ApplicationController
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }
-        format.xml  { render :xml => @<%= file_name %>.errors.to_xml }
+        format.xml  { render :xml => @<%= file_name %>.errors }
       end
     end
   end
