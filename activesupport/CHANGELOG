@@ -1,5 +1,21 @@
 *SVN*
 
+* Added parsing of file type in Hash.xml_in so you can easily do file uploads with base64 from an API [DHH]
+
+    <person>
+      <name>David</name>
+      <avatar type="file" name="me.jpg" content_type="image/jpg">R0lGODlhkACZAPUAAM5lcfjrtMQCG=\n</avatar>
+    </person>
+  
+  ...becomes:
+  
+    attributes = { :person => { :name => "David", :avatar => #<StringIO> } }
+    attributes[:person][:avatar].content_type      # => "image/jpg"
+    attributes[:person][:avatar].original_filename # => "me.jpg"
+    attributes[:person][:avatar].read # => binary data of the file
+  
+  Which is duck-type compatible with the files that you get when doing multipart uploads through HTML.
+
 * Improved multibyte performance by relying less on exception raising #8159 [Blaine]
 
 * Use XSD-compatible type names for Hash#to_xml and make the converters extendable #8047 [Tim Pope]

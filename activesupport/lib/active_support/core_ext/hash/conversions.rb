@@ -45,15 +45,22 @@ module ActiveSupport #:nodoc:
 
         unless defined?(XML_PARSING)
           XML_PARSING = {
-            "date"         => Proc.new { |date| ::Date.parse(date) },
-            "datetime"     => Proc.new { |time| ::Time.parse(time).utc },
-            "integer"      => Proc.new { |integer| integer.to_i },
-            "float"        => Proc.new { |float| float.to_f },
-            "decimal"      => Proc.new { |number| BigDecimal(number) },
-            "boolean"      => Proc.new { |boolean| %w(1 true).include?(boolean.strip) },
-            "string"       => Proc.new { |string| string.to_s },
-            "yaml"         => Proc.new { |yaml| YAML::load(yaml) rescue yaml },
-            "base64Binary" => Proc.new { |bin| Base64.decode64(bin) }
+            "date"         => Proc.new  { |date|    ::Date.parse(date) },
+            "datetime"     => Proc.new  { |time|    ::Time.parse(time).utc },
+            "integer"      => Proc.new  { |integer| integer.to_i },
+            "float"        => Proc.new  { |float|   float.to_f },
+            "decimal"      => Proc.new  { |number|  BigDecimal(number) },
+            "boolean"      => Proc.new  { |boolean| %w(1 true).include?(boolean.strip) },
+            "string"       => Proc.new  { |string|  string.to_s },
+            "yaml"         => Proc.new  { |yaml|    YAML::load(yaml) rescue yaml },
+            "base64Binary" => Proc.new  { |bin|     Base64.decode64(bin) },
+            # FIXME: Get rid of eval and institute a proper decorator here
+            "file"         => Proc.new do |file, entity|
+              f = StringIO.new(Base64.decode64(file))
+              eval "def f.original_filename() '#{entity["name"]}' || 'untitled' end"
+              eval "def f.content_type()      '#{entity["content_type"]}' || 'application/octet-stream' end"
+              f
+            end
           }
 
           XML_PARSING.update(
@@ -147,17 +154,29 @@ module ActiveSupport #:nodoc:
                 when "Hash"
                   if value.has_key?("__content__")
                     content = translate_xml_entities(value["__content__"])
-                    if XML_PARSING[value["type"]]
-                      XML_PARSING[value["type"]].call(content)
+                    if parser = XML_PARSING[value["type"]]
+                      if parser.arity == 2
+                        XML_PARSING[value["type"]].call(content, value)
+                      else
+                        XML_PARSING[value["type"]].call(content)
+                      end
                     else
                       content
                     end
                   elsif value['type'] == 'string' && value['nil'] != 'true'
                     ""
                   else
-                    (value.blank? || value['type'] || value['nil'] == 'true') ? nil : value.inject({}) do |h,(k,v)|
+                    xml_value = (value.blank? || value['type'] || value['nil'] == 'true') ? nil : value.inject({}) do |h,(k,v)|
                       h[k] = typecast_xml_value(v)
                       h
+                    end
+                    
+                    # Turn { :files => { :file => #<StringIO> } into { :files => #<StringIO> } so it is compatible with
+                    # how multipart uploaded files from HTML appear
+                    if xml_value["file"].is_a?(StringIO)
+                      xml_value["file"]
+                    else
+                      xml_value
                     end
                   end
                 when "Array"

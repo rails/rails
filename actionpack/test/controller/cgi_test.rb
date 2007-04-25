@@ -2,7 +2,6 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 require 'action_controller/cgi_process'
 require 'action_controller/cgi_ext/cgi_ext'
 
-
 require 'stringio'
 
 class CGITest < Test::Unit::TestCase
@@ -274,6 +273,35 @@ class CGITest < Test::Unit::TestCase
     input = { nil => nil, "test2" => %w(value1) }
     expected = { "test2" => "value1" }
     assert_equal expected, CGIMethods.parse_request_parameters(input)
+  end
+end
+
+
+class XmlCGITest < Test::Unit::TestCase
+  def test_single_file
+    raw_post_data = 
+      "<person><name>David</name><avatar type='file' name='me.jpg' content_type='image/jpg'>#{Base64.encode64('ABC')}</avatar></person>"
+    person = CGIMethods.parse_formatted_request_parameters(Mime::XML, raw_post_data)
+    assert_equal "image/jpg", person['person']['avatar'].content_type
+    assert_equal "me.jpg", person['person']['avatar'].original_filename
+    assert_equal "ABC", person['person']['avatar'].read
+  end
+
+  def test_multiple_files
+    raw_post_data = 
+      "<person><name>David</name><avatars>" +
+      "<avatar type='file' name='me.jpg' content_type='image/jpg'>#{Base64.encode64('ABC')}</avatar>" +
+      "<avatar type='file' name='you.gif' content_type='image/gif'>#{Base64.encode64('DEF')}</avatar>" +
+      "</avatars></person>"
+    person = CGIMethods.parse_formatted_request_parameters(Mime::XML, raw_post_data)
+
+    assert_equal "image/jpg", person['person']['avatars']['avatar'].first.content_type
+    assert_equal "me.jpg", person['person']['avatars']['avatar'].first.original_filename
+    assert_equal "ABC", person['person']['avatars']['avatar'].first.read
+
+    assert_equal "image/gif", person['person']['avatars']['avatar'].last.content_type
+    assert_equal "you.gif", person['person']['avatars']['avatar'].last.original_filename
+    assert_equal "DEF", person['person']['avatars']['avatar'].last.read
   end
 end
 
