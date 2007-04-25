@@ -22,8 +22,14 @@ class <%= controller_class_name %>Controller < ApplicationController
   end
 
   # GET /<%= table_name %>/new
+  # GET /<%= table_name %>/new.xml
   def new
     @<%= file_name %> = <%= class_name %>.new
+
+    respond_to do |format|
+      format.html # new.erb
+      format.xml  { render :xml => @<%= file_name %>.to_xml }
+    end
   end
 
   # GET /<%= table_name %>/1;edit

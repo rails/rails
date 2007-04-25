@@ -1,5 +1,7 @@
 *SVN*
 
+* Resource scaffolding responds to new.xml.  #8185 [Eric Mill]
+
 * Include Active Resource in rails:freeze:edge rake task.  [Thomas Fuchs]
 
 * Include Active Resource instead of Action Web Service [DHH] You can add AWS back with this in config/environment.rb:
