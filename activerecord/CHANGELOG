@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve performance of calling .create on has_many :through associations. [evan]
+
 * Improved cloning performance by relying less on exception raising #8159 [Blaine]
 
 * Added ActiveRecord::Base.inspect to return a column-view like #<Post id:integer, title:string, body:text> [DHH]

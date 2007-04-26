@@ -51,8 +51,6 @@ module ActiveRecord
         through = @reflection.through_reflection
         raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) if @owner.new_record?
 
-        load_target
-
         klass = through.klass
         klass.transaction do
           flatten_deeper(records).each do |associate|
@@ -60,7 +58,7 @@ module ActiveRecord
             raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) unless associate.respond_to?(:new_record?) && !associate.new_record?
 
             @owner.send(@reflection.through_reflection.name).proxy_target << klass.with_scope(:create => construct_join_attributes(associate)) { klass.create! }
-            @target << associate
+            @target << associate if loaded?
           end
         end
 
@@ -138,11 +136,11 @@ module ActiveRecord
 
         # Construct attributes for :through pointing to owner and associate.
         def construct_join_attributes(associate)
-          returning construct_owner_attributes(@reflection.through_reflection).merge(@reflection.source_reflection.primary_key_name => associate.id) do |join_attributes|
-            if @reflection.options[:source_type]
-              join_attributes.merge!(@reflection.source_reflection.options[:foreign_type] => associate.class.base_class.name.to_s)
-            end
+          join_attributes = construct_owner_attributes(@reflection.through_reflection).merge(@reflection.source_reflection.primary_key_name => associate.id)
+          if @reflection.options[:source_type]
+            join_attributes.merge!(@reflection.source_reflection.options[:foreign_type] => associate.class.base_class.name.to_s)
           end
+          join_attributes
         end
 
         # Associate attributes pointing to owner, quoted.

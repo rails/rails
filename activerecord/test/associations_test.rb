@@ -7,6 +7,7 @@ require 'fixtures/reply'
 require 'fixtures/computer'
 require 'fixtures/customer'
 require 'fixtures/order'
+require 'fixtures/categorization'
 require 'fixtures/category'
 require 'fixtures/post'
 require 'fixtures/author'
@@ -69,7 +70,7 @@ class AssociationsTest < Test::Unit::TestCase
 end
 
 class AssociationProxyTest < Test::Unit::TestCase
-  fixtures :authors, :posts
+  fixtures :authors, :posts, :categorizations, :categories
   
   def test_proxy_accessors
     welcome = posts(:welcome)
@@ -90,6 +91,17 @@ class AssociationProxyTest < Test::Unit::TestCase
     assert_equal  david.posts_with_extension, david.posts_with_extension.testing_proxy_target
   end
 
+  def test_push_does_not_load_target
+    david = authors(:david)
+    not_loaded_string = '<categories not loaded yet>'
+    not_loaded_re = Regexp.new(not_loaded_string)
+    
+    david.categories << categories(:technology)
+    assert_match not_loaded_re, david.inspect
+    assert_equal not_loaded_string, david.categories.inspect
+    assert david.categories.include?(categories(:technology))
+  end
+  
   def test_inspect_does_not_load_target
     david = authors(:david)
     not_loaded_string = '<posts not loaded yet>'
@@ -660,7 +672,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 2, new_firm.clients_of_firm.size
     assert_equal 2, new_firm.clients_of_firm(true).size
   end
-
+  
   def test_invalid_adding
     firm = Firm.find(1)
     assert !(firm.clients_of_firm << c = Client.new)
