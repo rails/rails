@@ -1,5 +1,20 @@
 *SVN*
 
+* Added support for using classes from within a single nested module [DHH]. Example:
+
+    module Highrise
+      class Note < ActiveResource::Base
+        self.site = "http://37s.sunrise.i:3000"
+      end
+
+      class Comment < ActiveResource::Base
+        self.site = "http://37s.sunrise.i:3000"
+      end
+    end
+
+  assert_kind_of Highrise::Comment, Note.find(1).comments.first
+    
+
 * Added load_attributes_from_response as a way of loading attributes from other responses than just create [DHH]
 
     class Highrise::Task < ActiveResource::Base

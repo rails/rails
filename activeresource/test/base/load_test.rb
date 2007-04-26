@@ -2,6 +2,17 @@ require "#{File.dirname(__FILE__)}/../abstract_unit"
 require "fixtures/person"
 require "fixtures/street_address"
 
+module Highrise
+  class Note < ActiveResource::Base
+    self.site = "http://37s.sunrise.i:3000"
+  end
+
+  class Comment < ActiveResource::Base
+    self.site = "http://37s.sunrise.i:3000"
+  end
+end
+
+
 class BaseLoadTest < Test::Unit::TestCase
   def setup
     @matz  = { :id => 1, :name => 'Matz' }
@@ -91,5 +102,10 @@ class BaseLoadTest < Test::Unit::TestCase
     assert_kind_of Person::Street::State::NotableRiver, rivers.first
     assert_equal @deep[:street][:state][:notable_rivers].first[:id], rivers.first.id
     assert_equal @matz[:id], rivers.last.rafted_by.id
+  end
+  
+  def test_nested_collections_within_the_same_namespace
+    n = Highrise::Note.new(:comments => [{ :name => "1" }])
+    assert_kind_of Highrise::Comment, n.comments.first
   end
 end

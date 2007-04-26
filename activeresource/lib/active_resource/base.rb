@@ -112,8 +112,11 @@ module ActiveResource
         returning(self.new(attributes)) { |res| res.save }        
       end
 
-      # Core method for finding resources.  Used similarly to ActiveRecord's find method.
-      #  Person.find(1) # => GET /people/1.xml
+      # Core method for finding resources.  Used similarly to Active Record's find method.
+      #  Person.find(1)                     # => GET /people/1.xml
+      #  Person.find(:all)                  # => GET /people.xml
+      #  Person.find(:all, :title => "CEO") # => GET /people.xml?title=CEO
+      #  Person.find(:managers)             # => GET /people/managers.xml
       #  StreetAddress.find(1, :person_id => 1) # => GET /people/1/street_addresses/1.xml
       def find(*arguments)
         scope   = arguments.slice!(0)
@@ -290,7 +293,9 @@ module ActiveResource
 
       # Update the resource on the remote service.
       def update
-        connection.put(element_path(prefix_options), to_xml)
+        returning connection.put(element_path(prefix_options), to_xml) do |response|
+          load_attributes_from_response(response)
+        end
       end
 
       # Create (i.e., save to the remote service) the new resource.
@@ -329,7 +334,13 @@ module ActiveResource
       # Tries to find a resource for a given name; if it fails, then the resource is created
       def find_or_create_resource_for(name)
         resource_name = name.to_s.camelize
-        self.class.const_get(resource_name)
+
+        # FIXME: Make it generic enough to support any depth of module nesting
+        if (ancestors = self.class.name.split("::")).size > 1
+          ancestors.first.constantize.const_get(resource_name)
+        else
+          self.class.const_get(resource_name)
+        end
       rescue NameError
         resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
         resource.prefix = self.class.prefix
