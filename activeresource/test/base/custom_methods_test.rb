@@ -82,6 +82,6 @@ class CustomMethodsTest < Test::Unit::TestCase
   end
   
   def test_find_custom_resources
-    assert_equal [{ "id" => 1, "name" => 'Matz' }], Person.find(:managers)
+    assert_equal 'Matz', Person.find(:managers).first.name
   end
 end

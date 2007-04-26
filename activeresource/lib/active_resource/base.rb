@@ -122,7 +122,7 @@ module ActiveResource
         case scope
           when :all   then find_every(options)
           when :first then find_every(options).first
-          when Symbol then get(scope, options)
+          when Symbol then instantiate_collection(get(scope, options))
           else             find_single(scope, options)
         end
       end
@@ -142,7 +142,10 @@ module ActiveResource
         # Find every resource.
         def find_every(options)
           prefix_options, query_options = split_options(options)
-          collection = connection.get(collection_path(prefix_options, query_options)) || []
+          instantiate_collection(connection.get(collection_path(prefix_options, query_options)) || [])
+        end
+        
+        def instantiate_collection(collection, prefix_options = {})
           collection.collect! do |element|
             returning new(element) do |resource|
               resource.prefix_options = prefix_options
