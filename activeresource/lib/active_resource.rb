@@ -37,9 +37,11 @@ end
 require 'active_resource/base'
 require 'active_resource/struct'
 require 'active_resource/validations'
+require 'active_resource/custom_methods'
 
 module ActiveResource
   Base.class_eval do
     include Validations
+    include CustomMethods
   end
 end

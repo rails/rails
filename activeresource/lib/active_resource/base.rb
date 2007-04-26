@@ -122,6 +122,7 @@ module ActiveResource
         case scope
           when :all   then find_every(options)
           when :first then find_every(options).first
+          when Symbol then get(scope, options)
           else             find_single(scope, options)
         end
       end

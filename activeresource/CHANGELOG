@@ -1,5 +1,10 @@
 *SVN*
 
+* Added support for calling custom methods #6979 [rwdaigle]
+
+    Person.find(:managers)    # => GET /people/managers.xml
+    Kase.find(1).post(:close) # => POST /kases/1/close.xml
+
 * Remove explicit prefix_options parameter for ActiveResource::Base#initialize. [Rick]
   ActiveResource splits the prefix_options from it automatically.
 

@@ -95,7 +95,11 @@ class BaseTest < Test::Unit::TestCase
     assert_equal '/people.xml?gender=', Person.collection_path(:gender => nil)
 
     assert_equal '/people.xml?gender=male', Person.collection_path('gender' => 'male')
-    assert_equal '/people.xml?gender=male&student=true', Person.collection_path(:gender => 'male', :student => true)
+    
+    # Use includes? because ordering of param hash is not guaranteed
+    assert Person.collection_path(:gender => 'male', :student => true).include?('/people.xml?')
+    assert Person.collection_path(:gender => 'male', :student => true).include?('gender=male')
+    assert Person.collection_path(:gender => 'male', :student => true).include?('student=true')
 
     assert_equal '/people.xml?name%5B%5D=bob&name%5B%5D=your+uncle%2Bme&name%5B%5D=&name%5B%5D=false', Person.collection_path(:name => ['bob', 'your uncle+me', nil, false])
     

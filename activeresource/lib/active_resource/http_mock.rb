@@ -110,6 +110,14 @@ module ActiveResource
     def []=(key, value)
       headers[key] = value
     end
+    
+    def ==(other)
+      if (other.is_a?(Response))
+        other.body == body && other.message == message && other.headers == headers
+      else
+        false
+      end
+    end
   end
 
   class Connection
