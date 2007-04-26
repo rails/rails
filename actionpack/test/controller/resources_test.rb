@@ -9,6 +9,8 @@ end
 class ThreadsController  < ResourcesController; end
 class MessagesController < ResourcesController; end
 class CommentsController < ResourcesController; end
+class AuthorsController < ResourcesController; end
+class LogoController < ResourcesController; end
 
 class AccountController <  ResourcesController; end
 class AdminController   <  ResourcesController; end
@@ -245,6 +247,29 @@ class ResourcesTest < Test::Unit::TestCase
       
       assert_singleton_restful_for :admin
       assert_singleton_restful_for :account, :path_prefix => 'admin/'
+    end
+  end
+  
+  def test_resource_has_many_should_become_nested_resources
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :messages, :has_many => [ :comments, :authors ]
+      end
+
+      assert_simply_restful_for :messages
+      assert_simply_restful_for :comments, :path_prefix => 'messages/1/', :options => { :message_id => '1' }
+      assert_simply_restful_for :authors,  :path_prefix => 'messages/1/', :options => { :message_id => '1' }
+    end
+  end
+
+  def test_resource_has_one_should_become_nested_resources
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :messages, :has_one => :logo
+      end
+
+      assert_simply_restful_for :messages
+      assert_singleton_restful_for :logo, :path_prefix => 'messages/1/', :options => { :message_id => '1' }
     end
   end
 

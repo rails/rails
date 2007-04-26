@@ -234,7 +234,7 @@ module ActionController
     #   #     has named route "category_message"
     def resources(*entities, &block)
       options = entities.last.is_a?(Hash) ? entities.pop : { }
-      entities.each { |entity| map_resource entity, options.dup, &block }
+      entities.each { |entity| map_resource(entity, options.dup, &block) }
     end
 
     # Creates named routes for implementing verb-oriented controllers for a singleton resource. 
@@ -293,7 +293,7 @@ module ActionController
     #                 edit_account_path, hash_for_edit_account_path
     def resource(*entities, &block)
       options = entities.last.is_a?(Hash) ? entities.pop : { }
-      entities.each { |entity| map_singleton_resource entity, options.dup, &block }
+      entities.each { |entity| map_singleton_resource(entity, options.dup, &block) }
     end
 
     private
@@ -306,9 +306,11 @@ module ActionController
           map_new_actions(map, resource)
           map_member_actions(map, resource)
 
+          map_associations(resource, options)
+
           if block_given?
-            with_options(:path_prefix => resource.nesting_path_prefix, &block)
-          end
+            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.name_prefix, &block)
+          end          
         end
       end
 
@@ -321,9 +323,21 @@ module ActionController
           map_new_actions(map, resource)
           map_member_actions(map, resource)
 
+          map_associations(resource, options)
+
           if block_given?
-            with_options(:path_prefix => resource.nesting_path_prefix, &block)
+            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.name_prefix, &block)
           end
+        end
+      end
+
+      def map_associations(resource, options)
+        Array(options[:has_many]).each do |association|
+          resources(association, :path_prefix => resource.nesting_path_prefix, :name_prefix => resource.name_prefix)
+        end
+
+        Array(options[:has_one]).each do |association|
+          resource(association, :path_prefix => resource.nesting_path_prefix, :name_prefix => resource.name_prefix)
         end
       end
 

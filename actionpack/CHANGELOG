@@ -1,5 +1,37 @@
 *SVN*
 
+* Added :name_prefix as standard for nested resources [DHH]. WARNING: May be backwards incompatible with your app
+
+    Before:
+
+      map.resources :emails do |emails|
+        emails.resources :comments,    :name_prefix => "email_"
+        emails.resources :attachments, :name_prefix => "email_"
+      end
+      
+    After:
+
+      map.resources :emails do |emails|
+        emails.resources :comments
+        emails.resources :attachments
+      end
+    
+    This does mean that if you intended to have comments_url go to /emails/5/comments, then you'll have to set :name_prefix to nil explicitly.
+
+* Added :has_many and :has_one for declaring plural and singular resources beneath the current [DHH]
+
+    Before:
+      
+      map.resources :notes do |notes|
+        notes.resources :comments
+        notes.resources :attachments
+        notes.resource :author
+      end
+    
+    After:
+    
+      map.resources :notes, :has_many => [ :comments, :attachments ], :has_one => :author
+
 * Added that render :xml will try to call to_xml if it can [DHH]. Makes these work:
 
     render :xml => post
