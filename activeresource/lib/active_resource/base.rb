@@ -297,11 +297,14 @@ module ActiveResource
       def create
         returning connection.post(collection_path, to_xml) do |response|
           self.id = id_from_response(response)
-          
-          if response['Content-size'] != "0" && response.body.strip.size > 0
-            load(connection.xml_from_response(response))
-          end
+          load_attributes_from_response(response)
         end
+      end
+      
+      def load_attributes_from_response(response)
+        if response['Content-size'] != "0" && response.body.strip.size > 0
+          load(connection.xml_from_response(response))
+        end        
       end
 
       # Takes a response from a typical create post and pulls the ID out

@@ -1,5 +1,16 @@
 *SVN*
 
+* Added load_attributes_from_response as a way of loading attributes from other responses than just create [DHH]
+
+    class Highrise::Task < ActiveResource::Base
+      def complete
+        load_attributes_from_response(post(:complete))
+      end
+    end
+
+  ...will set "done_at" when complete is called.
+
+
 * Added support for calling custom methods #6979 [rwdaigle]
 
     Person.find(:managers)    # => GET /people/managers.xml
