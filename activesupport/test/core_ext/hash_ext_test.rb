@@ -572,6 +572,12 @@ class HashToXmlTest < Test::Unit::TestCase
       assert_equal expected, hash.to_xml(@xml_options)
     end
   end
+  
+  def test_empty_string_works_for_typecast_xml_value    
+    assert_nothing_raised do
+      Hash.send(:typecast_xml_value, "")
+    end
+  end
 end
 
 class QueryTest < Test::Unit::TestCase

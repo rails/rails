@@ -173,7 +173,7 @@ module ActiveSupport #:nodoc:
                     
                     # Turn { :files => { :file => #<StringIO> } into { :files => #<StringIO> } so it is compatible with
                     # how multipart uploaded files from HTML appear
-                    if xml_value && xml_value["file"].is_a?(StringIO)
+                    if xml_value.is_a?(Hash) && xml_value["file"].is_a?(StringIO)
                       xml_value["file"]
                     else
                       xml_value
