@@ -214,6 +214,26 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_nested_restful_routes_with_overwritten_defaults
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :threads do |map|
+          map.resources :messages, :name_prefix => nil do |map|
+            map.resources :comments, :name_prefix => nil
+          end
+        end
+      end
+
+      assert_simply_restful_for :threads
+      assert_simply_restful_for :messages,
+        :path_prefix => 'threads/1/',
+        :options => { :thread_id => '1' }
+      assert_simply_restful_for :comments,
+        :path_prefix => 'threads/1/messages/2/',
+        :options => { :thread_id => '1', :message_id => '2' }
+    end
+  end
+
   def test_restful_routes_dont_generate_duplicates
     with_restful_routing :messages do
       routes = ActionController::Routing::Routes.routes
