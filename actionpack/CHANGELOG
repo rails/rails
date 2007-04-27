@@ -1,5 +1,23 @@
 *SVN*
 
+* Added map.namespace to deal with the common situation of admin sections and the like [DHH]
+
+    Before:
+    
+      map.resources :products, :path_prefix => "admin", :controller => "admin/products", :collection => { :inventory => :get }, :member => { :duplicate => :post }
+      map.resources :tags, :name_prefix => 'admin_product_', :path_prefix => "admin/products/:product_id", :controller => "admin/product_tags"
+      map.resources :images, :name_prefix => 'admin_product_', :path_prefix => "admin/products/:product_id", :controller => "admin/product_images"
+      map.resources :variants, :name_prefix => 'admin_product_', :path_prefix => "admin/products/:product_id", :controller => "admin/product_variants"
+
+    After:
+    
+      map.namespace(:admin) do |admin|
+        admin.resources :products,
+          :collection => { :inventory => :get },
+          :member     => { :duplicate => :post },
+          :has_many   => [ :tags, :images, :variants ]
+      end
+
 * Added :name_prefix as standard for nested resources [DHH]. WARNING: May be backwards incompatible with your app
 
     Before:

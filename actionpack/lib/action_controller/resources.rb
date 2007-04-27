@@ -18,7 +18,7 @@ module ActionController
       end
       
       def controller
-        @controller ||= (options[:controller] || plural).to_s
+        @controller ||= "#{options[:namespace]}#{(options[:controller] || plural).to_s}"
       end
       
       def requirements(with_id = false)
@@ -300,6 +300,22 @@ module ActionController
       options = entities.last.is_a?(Hash) ? entities.pop : { }
       entities.each { |entity| map_singleton_resource(entity, options.dup, &block) }
     end
+
+    # Enables the use of resources in a module by setting the name_prefix, path_prefix, and namespace for the model.
+    # Example:
+    #
+    #   map.namespace(:admin) do |admin|
+    #     admin.resources :products,
+    #       :has_many => [ :tags, :images, :variants ]
+    #   end
+    #
+    # This will create admin_products_url pointing to "admin/products", which will look for an Admin::ProductsController.
+    # It'll also create admin_product_tags_url pointing to "admin/products/#{product_id}/tags", which will look for
+    # Admin::TagsController.
+    def namespace(name, options = {}, &block)
+      with_options({ :path_prefix => name, :name_prefix => "#{name}_", :namespace => "#{name}/" }.merge(options), &block)
+    end
+
 
     private
       def map_resource(entities, options = {}, &block)

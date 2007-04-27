@@ -15,6 +15,10 @@ class LogoController < ResourcesController; end
 class AccountController <  ResourcesController; end
 class AdminController   <  ResourcesController; end
 
+module Backoffice
+  class ProductsController < ResourcesController; end
+end
+
 class ResourcesTest < Test::Unit::TestCase
   def test_should_arrange_actions
     resource = ActionController::Resources::Resource.new(:messages,
@@ -384,6 +388,28 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_resources_in_namespace
+    with_routing do |set|
+      set.draw do |map|
+        map.namespace :backoffice do |backoffice|
+          backoffice.resources :products
+        end
+      end
+      
+      assert_simply_restful_for :products, :controller => "backoffice/products", :name_prefix => 'backoffice_', :path_prefix => 'backoffice/'
+    end
+  end
+  
+  def test_resources_using_namespace
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products, :namespace => "backoffice/"
+      end
+      
+      assert_simply_restful_for :products, :controller => "backoffice/products"
+    end
+  end
+
   protected
     def with_restful_routing(*args)
       with_routing do |set|
@@ -402,7 +428,7 @@ class ResourcesTest < Test::Unit::TestCase
     # runs assert_restful_routes_for and assert_restful_named_routes for on the controller_name and options, without passing a block.
     def assert_simply_restful_for(controller_name, options = {})
       assert_restful_routes_for       controller_name, options
-      assert_restful_named_routes_for controller_name, options
+      assert_restful_named_routes_for controller_name, nil, options
     end
 
     def assert_singleton_restful_for(singleton_name, options = {})
@@ -411,7 +437,8 @@ class ResourcesTest < Test::Unit::TestCase
     end
 
     def assert_restful_routes_for(controller_name, options = {})
-      (options[:options] ||= {})[:controller] = controller_name.to_s
+      options[:options] ||= {}
+      options[:options][:controller] = options[:controller] || controller_name.to_s
 
       collection_path            = "/#{options[:path_prefix]}#{controller_name}"
       member_path                = "#{collection_path}/1"
@@ -456,8 +483,11 @@ class ResourcesTest < Test::Unit::TestCase
         singular_name = nil
       end
       singular_name ||= controller_name.to_s.singularize
-      (options[:options] ||= {})[:controller] = controller_name.to_s
-      @controller = "#{controller_name.to_s.camelize}Controller".constantize.new
+
+      options[:options] ||= {}
+      options[:options][:controller] = options[:controller] || controller_name.to_s
+
+      @controller = "#{options[:options][:controller].camelize}Controller".constantize.new
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new
       get :index, options[:options]
