@@ -44,6 +44,11 @@ module ActionController
         @nesting_path_prefix ||= "#{path}/:#{singular}_id"
       end
       
+      def nesting_name_prefix
+        "#{singular}_"
+      end
+
+
       protected
         def arrange_actions
           @collection_methods = arrange_actions_by_methods(options.delete(:collection))
@@ -309,7 +314,7 @@ module ActionController
           map_associations(resource, options)
 
           if block_given?
-            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.name_prefix, &block)
+            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, &block)
           end          
         end
       end
@@ -326,18 +331,18 @@ module ActionController
           map_associations(resource, options)
 
           if block_given?
-            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.name_prefix, &block)
+            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, &block)
           end
         end
       end
 
       def map_associations(resource, options)
         Array(options[:has_many]).each do |association|
-          resources(association, :path_prefix => resource.nesting_path_prefix, :name_prefix => resource.name_prefix)
+          resources(association, :path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix)
         end
 
         Array(options[:has_one]).each do |association|
-          resource(association, :path_prefix => resource.nesting_path_prefix, :name_prefix => resource.name_prefix)
+          resource(association, :path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix)
         end
       end
 

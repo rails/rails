@@ -204,9 +204,11 @@ class ResourcesTest < Test::Unit::TestCase
 
       assert_simply_restful_for :threads
       assert_simply_restful_for :messages,
+        :name_prefix => 'thread_',
         :path_prefix => 'threads/1/',
         :options => { :thread_id => '1' }
       assert_simply_restful_for :comments,
+        :name_prefix => 'message_',
         :path_prefix => 'threads/1/messages/2/',
         :options => { :thread_id => '1', :message_id => '2' }
     end
@@ -246,7 +248,7 @@ class ResourcesTest < Test::Unit::TestCase
       end
       
       assert_singleton_restful_for :admin
-      assert_singleton_restful_for :account, :path_prefix => 'admin/'
+      assert_singleton_restful_for :account, :name_prefix => "admin_", :path_prefix => 'admin/'
     end
   end
   
@@ -257,8 +259,8 @@ class ResourcesTest < Test::Unit::TestCase
       end
 
       assert_simply_restful_for :messages
-      assert_simply_restful_for :comments, :path_prefix => 'messages/1/', :options => { :message_id => '1' }
-      assert_simply_restful_for :authors,  :path_prefix => 'messages/1/', :options => { :message_id => '1' }
+      assert_simply_restful_for :comments, :name_prefix => "message_", :path_prefix => 'messages/1/', :options => { :message_id => '1' }
+      assert_simply_restful_for :authors,  :name_prefix => "message_", :path_prefix => 'messages/1/', :options => { :message_id => '1' }
     end
   end
 
@@ -269,7 +271,7 @@ class ResourcesTest < Test::Unit::TestCase
       end
 
       assert_simply_restful_for :messages
-      assert_singleton_restful_for :logo, :path_prefix => 'messages/1/', :options => { :message_id => '1' }
+      assert_singleton_restful_for :logo, :name_prefix => 'message_', :path_prefix => 'messages/1/', :options => { :message_id => '1' }
     end
   end
 
@@ -316,7 +318,7 @@ class ResourcesTest < Test::Unit::TestCase
       end
       
       assert_singleton_restful_for :account
-      assert_simply_restful_for :messages, :path_prefix => 'account/'
+      assert_simply_restful_for :messages, :name_prefix => "account_", :path_prefix => 'account/'
     end
   end
 
@@ -329,7 +331,7 @@ class ResourcesTest < Test::Unit::TestCase
       end
 
       assert_singleton_restful_for :account, :path_prefix => '7/', :options => { :site_id => '7' }
-      assert_simply_restful_for :messages, :path_prefix => '7/account/', :options => { :site_id => '7' }
+      assert_simply_restful_for :messages, :name_prefix => "account_", :path_prefix => '7/account/', :options => { :site_id => '7' }
     end
   end
   
@@ -342,7 +344,7 @@ class ResourcesTest < Test::Unit::TestCase
       end
       
       assert_simply_restful_for :threads
-      assert_singleton_restful_for :admin, :path_prefix => 'threads/5/', :options => { :thread_id => '5' }
+      assert_singleton_restful_for :admin, :name_prefix => 'thread_', :path_prefix => 'threads/5/', :options => { :thread_id => '5' }
     end
   end
 
@@ -498,13 +500,14 @@ class ResourcesTest < Test::Unit::TestCase
       options[:options].delete :action
 
       full_path = "/#{options[:path_prefix]}#{singleton_name}"
+      name_prefix = options[:name_prefix]
 
-      assert_named_route "#{full_path}",          "#{singleton_name}_path",                options[:options]
-      assert_named_route "#{full_path}/new",      "new_#{singleton_name}_path",            options[:options]
-      assert_named_route "#{full_path}/edit",     "edit_#{singleton_name}_path",           options[:options]
-      assert_named_route "#{full_path}.xml",      "formatted_#{singleton_name}_path",      options[:options].merge(:format => 'xml')
-      assert_named_route "#{full_path}/new.xml",  "formatted_new_#{singleton_name}_path",  options[:options].merge(:format => 'xml')
-      assert_named_route "#{full_path}/edit.xml", "formatted_edit_#{singleton_name}_path", options[:options].merge(:format => 'xml')
+      assert_named_route "#{full_path}",          "#{name_prefix}#{singleton_name}_path",                options[:options]
+      assert_named_route "#{full_path}/new",      "#{name_prefix}new_#{singleton_name}_path",            options[:options]
+      assert_named_route "#{full_path}/edit",     "#{name_prefix}edit_#{singleton_name}_path",           options[:options]
+      assert_named_route "#{full_path}.xml",      "formatted_#{name_prefix}#{singleton_name}_path",      options[:options].merge(:format => 'xml')
+      assert_named_route "#{full_path}/new.xml",  "formatted_#{name_prefix}new_#{singleton_name}_path",  options[:options].merge(:format => 'xml')
+      assert_named_route "#{full_path}/edit.xml", "formatted_#{name_prefix}edit_#{singleton_name}_path", options[:options].merge(:format => 'xml')
     end
 
     def assert_named_route(expected, route, options)
