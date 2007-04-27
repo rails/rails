@@ -113,11 +113,13 @@ module ActiveResource
       end
 
       # Core method for finding resources.  Used similarly to Active Record's find method.
-      #  Person.find(1)                     # => GET /people/1.xml
-      #  Person.find(:all)                  # => GET /people.xml
-      #  Person.find(:all, :title => "CEO") # => GET /people.xml?title=CEO
-      #  Person.find(:managers)             # => GET /people/managers.xml
-      #  StreetAddress.find(1, :person_id => 1) # => GET /people/1/street_addresses/1.xml
+      #  Person.find(1)                                        # => GET /people/1.xml
+      #  Person.find(:all)                                     # => GET /people.xml
+      #  Person.find(:all, :title => "CEO")                    # => GET /people.xml?title=CEO
+      #  Person.find(:managers)                                # => GET /people/managers.xml
+      #  Person.find(:all, :from => "/companies/1/people.xml") # => GET /companies/1/people.xml
+      #  Person.find("/companies/1/manager.xml")               # => GET /companies/1/manager.xml
+      #  StreetAddress.find(1, :person_id => 1)                # => GET /people/1/street_addresses/1.xml
       def find(*arguments)
         scope   = arguments.slice!(0)
         options = arguments.slice!(0) || {}
@@ -144,8 +146,11 @@ module ActiveResource
       private
         # Find every resource.
         def find_every(options)
+          from = options.delete(:from)
           prefix_options, query_options = split_options(options)
-          instantiate_collection(connection.get(collection_path(prefix_options, query_options)) || [])
+          from ||= collection_path(prefix_options, query_options)
+
+          instantiate_collection(connection.get(from) || [])
         end
         
         def instantiate_collection(collection, prefix_options = {})
@@ -160,7 +165,9 @@ module ActiveResource
         #  { :person => person1 }
         def find_single(scope, options)
           prefix_options, query_options = split_options(options)
-          returning new(connection.get(element_path(scope, prefix_options, query_options))) do |resource|
+          from = scope.to_s.include?("/") ? scope : element_path(scope, prefix_options, query_options)
+
+          returning new(connection.get(from)) do |resource|
             resource.prefix_options = prefix_options
           end
         end

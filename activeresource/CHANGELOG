@@ -1,5 +1,11 @@
 *SVN*
 
+* Added find-by-path options to ActiveResource::Base.find [DHH]. Examples:
+
+    employees = Person.find(:all, :from => "/companies/1/people.xml") # => GET /companies/1/people.xml
+    manager   = Person.find("/companies/1/manager.xml")               # => GET /companies/1/manager.xml
+
+
 * Added support for using classes from within a single nested module [DHH]. Example:
 
     module Highrise

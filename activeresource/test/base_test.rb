@@ -203,6 +203,21 @@ class BaseTest < Test::Unit::TestCase
     assert_raises(ActiveResource::ResourceNotFound) { StreetAddress.find(1) }
   end
 
+  def test_find_all_by_from
+    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.xml", {}, "<people>#{@david}</people>" }
+  
+    people = Person.find(:all, :from => "/companies/1/people.xml")
+    assert_equal 1, people.size
+    assert_equal "David", people.first.name
+  end
+
+  def test_find_single_by_from
+    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/manager.xml", {}, @david }
+
+    david = Person.find("/companies/1/manager.xml")
+    assert_equal "David", david.name
+  end
+
   def test_save
     rick = Person.new
     assert_equal true, rick.save
