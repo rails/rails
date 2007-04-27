@@ -45,7 +45,7 @@ module ActionController
       end
       
       def nesting_name_prefix
-        "#{singular}_"
+        "#{name_prefix}#{singular}_"
       end
 
 

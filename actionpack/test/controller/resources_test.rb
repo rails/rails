@@ -208,7 +208,7 @@ class ResourcesTest < Test::Unit::TestCase
         :path_prefix => 'threads/1/',
         :options => { :thread_id => '1' }
       assert_simply_restful_for :comments,
-        :name_prefix => 'message_',
+        :name_prefix => 'thread_message_',
         :path_prefix => 'threads/1/messages/2/',
         :options => { :thread_id => '1', :message_id => '2' }
     end
