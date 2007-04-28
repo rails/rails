@@ -69,7 +69,6 @@ module Rails
     # * #initialize_framework_logging
     # * #initialize_framework_views
     # * #initialize_dependency_mechanism
-    # * #initialize_breakpoints
     # * #initialize_whiny_nils
     # * #initialize_framework_settings
     # * #load_environment
@@ -98,7 +97,6 @@ module Rails
       initialize_framework_logging
       initialize_framework_views
       initialize_dependency_mechanism
-      initialize_breakpoints
       initialize_whiny_nils
       initialize_temporary_directories
       initialize_framework_settings
@@ -298,12 +296,6 @@ module Rails
       Dependencies.mechanism = configuration.cache_classes ? :require : :load
     end
 
-    # Sets the +BREAKPOINT_SERVER_PORT+ if Configuration#breakpoint_server
-    # is true.
-    def initialize_breakpoints
-      silence_warnings { Object.const_set("BREAKPOINT_SERVER_PORT", 42531) if configuration.breakpoint_server }
-    end
-
     # Loads support for "whiny nil" (noisy warnings when methods are invoked
     # on +nil+ values) if Configuration#whiny_nils is true.
     def initialize_whiny_nils
@@ -384,9 +376,6 @@ module Rails
 
     # A stub for setting options on ActiveRecord::Base
     attr_accessor :active_resource
-
-    # Whether or not to use the breakpoint server (boolean)
-    attr_accessor :breakpoint_server
 
     # Whether or not classes should be cached (set to false if you want
     # application classes to be reloaded on each request)
@@ -474,7 +463,6 @@ module Rails
       self.view_path                    = default_view_path
       self.controller_paths             = default_controller_paths
       self.cache_classes                = default_cache_classes
-      self.breakpoint_server            = default_breakpoint_server
       self.whiny_nils                   = default_whiny_nils
       self.plugins                      = default_plugins
       self.plugin_paths                 = default_plugin_paths
@@ -631,10 +619,6 @@ module Rails
       end
 
       def default_cache_classes
-        false
-      end
-
-      def default_breakpoint_server
         false
       end
 

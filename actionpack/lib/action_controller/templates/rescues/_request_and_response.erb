@@ -5,26 +5,6 @@
   <pre id="blame_trace" <%='style="display:none"' if hide %>><code><%=h @exception.describe_blame %></code></pre>
 <% end %>
 
-<% if false %>
-  <br /><br />
-  <% begin %>
-    <%= form_tag(request.request_uri, "method" => request.method) %>
-      <input type="hidden" name="BP-RETRY" value="1" />
-
-      <% for key, values in params %>
-        <% next if key == "BP-RETRY" %>
-        <% for value in Array(values) %>
-          <input type="hidden" name="<%= key %>" value="<%= value %>" />
-        <% end %>
-      <% end %>
-
-      <input type="submit" value="Retry with Breakpoint" />
-    </form>
-  <% rescue Exception => e %>
-    <%=h "Couldn't render breakpoint link due to #{e.class} #{e.message}" %>
-  <% end %>
-<% end %>
-
 <%
   clean_params = request.parameters.clone
   clean_params.delete("action")

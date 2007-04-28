@@ -69,29 +69,27 @@ automatically display debugging and runtime information to these files. Debuggin
 info will also be shown in the browser on requests from 127.0.0.1.
 
 
-== Breakpoints
+== Debugger
 
-Breakpoint support is available through the script/breakpointer client. This
-means that you can break out of execution at any point in the code, investigate
+Debugger support is available through the debugger command when you start your Mongrel or
+Webrick server with --debugger. This means that you can break out of execution at any point in the code, investigate
 and change the model, AND then resume execution! Example:
 
   class WeblogController < ActionController::Base
     def index
       @posts = Post.find(:all)
-      breakpoint "Breaking out from the list"
+      debugger
     end
   end
 
 So the controller will accept the action, run the first line, then present you
-with a IRB prompt in the breakpointer window. Here you can do things like:
-
-Executing breakpoint "Breaking out from the list" at .../webrick_server.rb:16 in 'breakpoint'
+with a IRB prompt in the server window. Here you can do things like:
 
   >> @posts.inspect
   => "[#<Post:0x14a6be8 @attributes={\"title\"=>nil, \"body\"=>nil, \"id\"=>\"1\"}>,
        #<Post:0x14a6620 @attributes={\"title\"=>\"Rails you know!\", \"body\"=>\"Only ten..\", \"id\"=>\"2\"}>]"
-  >> @posts.first.title = "hello from a breakpoint"
-  => "hello from a breakpoint"
+  >> @posts.first.title = "hello from a debugger"
+  => "hello from a debugger"
 
 ...and even better is that you can examine how your runtime objects actually work:
 
@@ -100,7 +98,7 @@ Executing breakpoint "Breaking out from the list" at .../webrick_server.rb:16 in
   >> f.
   Display all 152 possibilities? (y or n)
 
-Finally, when you're ready to resume execution, you press CTRL-D
+Finally, when you're ready to resume execution, you enter "cont"
 
 
 == Console

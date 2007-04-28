@@ -198,7 +198,6 @@ module ActiveRecord
                                 sql_type_name(row["typename"],row["length"]),
                                 row["notnull"]
                                 )
-    #      breakpoint() if row["fieldname"] == "content"
         end
         columns
       end

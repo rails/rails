@@ -1,5 +1,17 @@
 *SVN*
 
+* Removed breakpointer and Binding.of_caller in favor of relying on ruby-debug by Kent Sibilev since the breakpointer has been broken since Ruby 1.8.4 and will not be coming back [DHH]
+
+  To use the new debugger, start your server with script/server --debugger and insert a call to  'debugger'
+  (instead of 'breakpoint') where you want to jump into the debugger. 
+  
+  BACKWARDS INCOMPATIBILITY NOTE: You must remove the default line 12 from config/environments/development.rb:
+  
+    config.breakpoint_server = true
+  
+  This configuration option is no longer available. Rails will fail to start in development mode as long as 
+  that's still present.
+
 * Resource scaffolding returns the created entity.to_xml.  [Jeremy Kemper]
 
 * Resource scaffolding responds to new.xml.  #8185 [Eric Mill]

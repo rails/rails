@@ -12,7 +12,6 @@ require 'stringio'
 # Stubs
 require 'fcgi_handler'
 require 'routes'
-require 'stubbed_breakpoint'
 require 'stubbed_kernel'
 
 class RailsFCGIHandler
@@ -35,9 +34,6 @@ class RailsFCGIHandler
     @signal_handlers[which].call(which)
   end
   
-  def breakpoint
-  end
-
   alias_method :old_run_gc!, :run_gc!
   def run_gc!
     @gc_runs ||= 0
@@ -71,14 +67,6 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     @handler.process!
   end
   
-  def test_process_breakpoint
-    @handler.stubs(:when_ready).returns(:breakpoint)
-    
-    @handler.expects(:close_connection)
-    @handler.expects(:breakpoint!)
-    @handler.process!
-  end
-  
   def test_process_with_system_exit_exception
     @handler.stubs(:process_request).raises(SystemExit)
     
@@ -91,13 +79,6 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     
     @handler.send(:restart_handler, nil)
     assert_equal :restart, @handler.when_ready
-  end
-  
-  def test_breakpoint_handler
-    @handler.expects(:dispatcher_log).with(:info, "asked to breakpoint ASAP")
-
-    @handler.send(:breakpoint_handler, nil)
-    assert_equal :breakpoint, @handler.when_ready
   end
   
   def test_install_signal_handler_should_log_on_bad_signal
@@ -143,15 +124,6 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     @handler.send(:restore!)
   end
 
-  def test_breakpoint!
-    @handler.expects(:require).with('breakpoint')
-    Breakpoint.expects(:activate_drb)
-    @handler.expects(:breakpoint)
-    @handler.expects(:dispatcher_log).with(:info, "breakpointing")
-    @handler.send(:breakpoint!)
-    assert_nil @handler.when_ready
-  end
-  
   def test_uninterrupted_processing
     @handler.process!
     assert_nil @handler.exit_code

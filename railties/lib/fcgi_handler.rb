@@ -9,8 +9,7 @@ class RailsFCGIHandler
     'INT'     => :exit_now,
     'TERM'    => :exit_now,
     'USR1'    => :exit,
-    'USR2'    => :restart,
-    'SIGTRAP' => :breakpoint
+    'USR2'    => :restart
   }
   GLOBAL_SIGNALS = SIGNALS.keys - %w(USR1)
 
@@ -131,11 +130,6 @@ class RailsFCGIHandler
       @when_ready = :restart
     end
 
-    def breakpoint_handler(signal)
-      dispatcher_log :info, "asked to breakpoint ASAP"
-      @when_ready = :breakpoint
-    end
-
     def process_each_request!(provider)
       cgi = nil
       provider.each_cgi do |cgi|
@@ -152,9 +146,6 @@ class RailsFCGIHandler
           when :exit
             close_connection(cgi)
             break
-          when :breakpoint
-            close_connection(cgi)
-            breakpoint!
         end
 
         gc_countdown
@@ -196,15 +187,6 @@ class RailsFCGIHandler
       $".replace @features
       Dispatcher.reset_application!
       ActionController::Routing::Routes.reload
-    end
-
-    def breakpoint!
-      require 'breakpoint'
-      port = defined?(BREAKPOINT_SERVER_PORT) ? BREAKPOINT_SERVER_PORT : 42531
-      Breakpoint.activate_drb("druby://localhost:#{port}", nil, !defined?(FastCGI))
-      dispatcher_log :info, "breakpointing"
-      breakpoint
-      @when_ready = nil
     end
 
     def run_gc!

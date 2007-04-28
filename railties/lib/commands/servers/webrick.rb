@@ -2,13 +2,15 @@ require 'webrick'
 require 'optparse'
 
 OPTIONS = {
-  :port            => 3000,
-  :ip              => "0.0.0.0",
-  :environment     => (ENV['RAILS_ENV'] || "development").dup,
-  :server_root     => File.expand_path(RAILS_ROOT + "/public/"),
-  :server_type     => WEBrick::SimpleServer,
-  :charset         => "UTF-8",
-  :mime_types      => WEBrick::HTTPUtils::DefaultMimeTypes
+  :port         => 3000,
+  :ip           => "0.0.0.0",
+  :environment  => (ENV['RAILS_ENV'] || "development").dup,
+  :server_root  => File.expand_path(RAILS_ROOT + "/public/"),
+  :server_type  => WEBrick::SimpleServer,
+  :charset      => "UTF-8",
+  :mime_types   => WEBrick::HTTPUtils::DefaultMimeTypes,
+  :debugger     => false
+  
 }
 
 ARGV.options do |opts|
@@ -34,6 +36,8 @@ ARGV.options do |opts|
           "Make Rails run as a Daemon (only works if fork is available -- meaning on *nix)."
           ) { OPTIONS[:server_type] = WEBrick::Daemon }
 
+  opts.on("-u", "--debugger", "Enable ruby-debugging for the server.") { OPTIONS[:debugger] = true }
+
   opts.on("-c", "--charset=charset", String,
           "Set default charset for output.",
           "Default: UTF-8") { |v| OPTIONS[:charset] = v }
@@ -45,6 +49,8 @@ ARGV.options do |opts|
 
   opts.parse!
 end
+
+start_debugger if OPTIONS[:debugger]
 
 ENV["RAILS_ENV"] = OPTIONS[:environment]
 RAILS_ENV.replace(OPTIONS[:environment]) if defined?(RAILS_ENV)

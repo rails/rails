@@ -8,7 +8,6 @@ require 'test/unit'
 require 'active_record/fixtures'
 require 'action_controller/test_process'
 require 'action_controller/integration'
-require 'breakpoint'
 
 Test::Unit::TestCase.fixture_path = RAILS_ROOT + "/test/fixtures/"
 ActionController::IntegrationTest.fixture_path = Test::Unit::TestCase.fixture_path

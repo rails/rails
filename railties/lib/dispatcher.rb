@@ -104,7 +104,6 @@ class Dispatcher
           self.preparation_callbacks_run = false
         end
 
-        prepare_breakpoint
         require_dependency 'application' unless Object.const_defined?(:ApplicationController)
         ActiveRecord::Base.verify_active_connections! if defined?(ActiveRecord)
         run_preparation_callbacks
@@ -112,16 +111,6 @@ class Dispatcher
 
       def reset_after_dispatch
         reset_application! if Dependencies.load?
-        Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
-      end
-
-      def prepare_breakpoint
-        return unless defined?(BREAKPOINT_SERVER_PORT)
-        require 'breakpoint'
-        Breakpoint.activate_drb("druby://localhost:#{BREAKPOINT_SERVER_PORT}", nil, !defined?(FastCGI))
-        true
-      rescue
-        nil
       end
 
       def run_preparation_callbacks
