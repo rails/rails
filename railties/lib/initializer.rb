@@ -201,6 +201,9 @@ module Rails
     # is typically one of development, testing, or production.
     def load_environment
       silence_warnings do
+        return if @environment_loaded
+        @environment_loaded = true
+        
         config = configuration
         constants = self.class.constants
         
@@ -449,6 +452,16 @@ module Rails
     # a sub class would have access to fine grained modification of the loading behavior. See
     # the implementation of Rails::Plugin::Loader for more details.
     attr_accessor :plugin_loader
+    
+    # Deprecated options:
+    def breakpoint_server(_ = nil)
+      $stderr.puts %(
+      *******************************************************************
+      * config.breakpoint_server has been deprecated and has no effect. *
+      *******************************************************************
+      )
+    end
+    alias_method :breakpoint_server=, :breakpoint_server
 
     # Create a new Configuration instance, initialized with the default
     # values.
