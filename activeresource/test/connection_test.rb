@@ -13,16 +13,21 @@ class ConnectionTest < Test::Unit::TestCase
     @people_empty = [ ].to_xml(:root => 'people-empty-elements')
     @matz = @matz.to_xml(:root => 'person')
     @david = @david.to_xml(:root => 'person')
+    @header = {'key' => 'value'}
 
     @default_request_headers = { 'Content-Type' => 'application/xml' }
     ActiveResource::HttpMock.respond_to do |mock|
+      mock.get    "/people/2.xml", @header, @david
       mock.get    "/people.xml", {}, @people
       mock.get    "/people_single_elements.xml", {}, @people_single
       mock.get    "/people_empty_elements.xml", {}, @people_empty
       mock.get    "/people/1.xml", {}, @matz
       mock.put    "/people/1.xml", {}, nil, 204
+      mock.put    "/people/2.xml", {}, @header, 204
       mock.delete "/people/1.xml", {}, nil, 200
+      mock.delete "/people/2.xml", @header, nil, 200
       mock.post   "/people.xml",   {}, nil, 201, 'Location' => '/people/5.xml'
+      mock.post   "/members.xml",  {}, @header, 201, 'Location' => '/people/6.xml'
     end
   end
 
@@ -79,6 +84,11 @@ class ConnectionTest < Test::Unit::TestCase
     assert_equal "Matz", matz["name"]
   end
 
+  def test_get_with_header
+    david = @conn.get("/people/2.xml", @header)
+    assert_equal "David", david["name"]
+  end
+
   def test_get_collection
     people = @conn.get("/people.xml")
     assert_equal "Matz", people[0]["name"]
@@ -100,13 +110,28 @@ class ConnectionTest < Test::Unit::TestCase
     assert_equal "/people/5.xml", response["Location"]
   end
 
+  def test_post_with_header
+    response = @conn.post("/members.xml", @header)
+    assert_equal "/people/6.xml", response["Location"]
+  end
+
   def test_put
     response = @conn.put("/people/1.xml")
     assert_equal 204, response.code
   end
 
+  def test_put_with_header
+    response = @conn.put("/people/2.xml", @header)
+    assert_equal 204, response.code
+  end
+
   def test_delete
     response = @conn.delete("/people/1.xml")
+    assert_equal 200, response.code
+  end
+
+  def test_delete_with_header
+    response = @conn.delete("/people/2.xml", @header)
     assert_equal 200, response.code
   end
 

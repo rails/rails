@@ -1,5 +1,14 @@
 *SVN*
 
+* Add support for setting custom headers per ActiveResource model [Rick]
+
+  class Project
+    custom_headers['X-Token'] = 'foo'
+  end
+  
+  # makes the GET request with the custom X-Token header
+  Project.find(:all)
+
 * Added find-by-path options to ActiveResource::Base.find [DHH]. Examples:
 
     employees = Person.find(:all, :from => "/companies/1/people.xml") # => GET /companies/1/people.xml

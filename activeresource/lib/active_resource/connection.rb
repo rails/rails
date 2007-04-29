@@ -51,26 +51,26 @@ module ActiveResource
 
     # Execute a GET request.
     # Used to get (find) resources.
-    def get(path)
-      xml_from_response(request(:get, path, build_request_headers))
+    def get(path, headers = {})
+      xml_from_response(request(:get, path, build_request_headers(headers)))
     end
 
     # Execute a DELETE request (see HTTP protocol documentation if unfamiliar).
     # Used to delete resources.
-    def delete(path)
-      request(:delete, path, build_request_headers)
+    def delete(path, headers = {})
+      request(:delete, path, build_request_headers(headers))
     end
 
     # Execute a PUT request (see HTTP protocol documentation if unfamiliar).
     # Used to update resources.
-    def put(path, body = '')
-      request(:put, path, body, build_request_headers)
+    def put(path, body = '', headers = {})
+      request(:put, path, body, build_request_headers(headers))
     end
 
     # Execute a POST request.
     # Used to create new resources.
-    def post(path, body = '')
-      request(:post, path, body, build_request_headers)
+    def post(path, body = '', headers = {})
+      request(:post, path, body, build_request_headers(headers))
     end
 
     def xml_from_response(response)
@@ -125,8 +125,8 @@ module ActiveResource
       end
       
       # Builds headers for request to remote service.
-      def build_request_headers
-        authorization_header.update(self.class.default_header)
+      def build_request_headers(headers)
+        authorization_header.update(self.class.default_header).update(headers)
       end
       
       # Sets authorization header; authentication information is pulled from credentials provided with site URI.

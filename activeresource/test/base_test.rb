@@ -13,6 +13,7 @@ class BaseTest < Test::Unit::TestCase
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get    "/people/1.xml",             {}, @matz
       mock.get    "/people/2.xml",             {}, @david
+      mock.get    "/people/3.xml",             {'key' => 'value'}, nil, 404
       mock.put    "/people/1.xml",             {}, nil, 204
       mock.delete "/people/1.xml",             {}, nil, 200
       mock.delete "/people/2.xml",             {}, nil, 400
@@ -196,6 +197,13 @@ class BaseTest < Test::Unit::TestCase
     matz = Person.find(:first)
     assert_kind_of Person, matz
     assert_equal "Matz", matz.name
+  end
+
+  def test_custom_header
+    Person.custom_headers['key'] = 'value'
+    assert_raises(ActiveResource::ResourceNotFound) { Person.find(3) }
+  ensure
+    Person.custom_headers.delete('key')
   end
 
   def test_find_by_id_not_found
