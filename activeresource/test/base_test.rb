@@ -200,10 +200,10 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_custom_header
-    Person.custom_headers['key'] = 'value'
+    Person.headers['key'] = 'value'
     assert_raises(ActiveResource::ResourceNotFound) { Person.find(3) }
   ensure
-    Person.custom_headers.delete('key')
+    Person.headers.delete('key')
   end
 
   def test_find_by_id_not_found

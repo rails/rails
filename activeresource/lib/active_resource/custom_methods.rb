@@ -36,21 +36,21 @@ module ActiveResource
           alias :orig_delete :delete
           
           def get(method_name, options = {})
-            connection.get(custom_method_collection_url(method_name, options), custom_headers)
+            connection.get(custom_method_collection_url(method_name, options), headers)
           end
       
           def post(method_name, options = {}, body = nil)
-            connection.post(custom_method_collection_url(method_name, options), body, custom_headers)
+            connection.post(custom_method_collection_url(method_name, options), body, headers)
           end
       
           def put(method_name, options = {}, body = nil)
-            connection.put(custom_method_collection_url(method_name, options), body, custom_headers)
+            connection.put(custom_method_collection_url(method_name, options), body, headers)
           end
       
           # Need to jump through some hoops to retain the original class 'delete' method
           def delete(custom_method_name, options = {})
             if (custom_method_name.is_a?(Symbol))
-              connection.delete(custom_method_collection_url(custom_method_name, options), custom_headers)
+              connection.delete(custom_method_collection_url(custom_method_name, options), headers)
             else
               orig_delete(custom_method_name, options)
             end
@@ -71,23 +71,23 @@ module ActiveResource
     
     module InstanceMethods
       def get(method_name, options = {})
-        connection.get(custom_method_element_url(method_name, options), self.class.custom_headers)
+        connection.get(custom_method_element_url(method_name, options), self.class.headers)
       end
       
       def post(method_name, options = {}, body = nil)
         if new?
-          connection.post(custom_method_new_element_url(method_name, options), (body.nil? ? to_xml : body), self.class.custom_headers)
+          connection.post(custom_method_new_element_url(method_name, options), (body.nil? ? to_xml : body), self.class.headers)
         else
-          connection.post(custom_method_element_url(method_name, options), body, self.class.custom_headers)
+          connection.post(custom_method_element_url(method_name, options), body, self.class.headers)
         end
       end
       
       def put(method_name, options = {}, body = nil)
-        connection.put(custom_method_element_url(method_name, options), body, self.class.custom_headers)
+        connection.put(custom_method_element_url(method_name, options), body, self.class.headers)
       end
       
       def delete(method_name, options = {})
-        connection.delete(custom_method_element_url(method_name, options), self.class.custom_headers)
+        connection.delete(custom_method_element_url(method_name, options), self.class.headers)
       end
 
 

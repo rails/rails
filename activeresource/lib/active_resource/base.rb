@@ -29,8 +29,8 @@ module ActiveResource
         @connection
       end
 
-      def custom_headers
-        @custom_headers ||= {}
+      def headers
+        @headers ||= {}
       end
 
       # Do not include any modules in the default element name. This makes it easier to seclude ARes objects
@@ -154,7 +154,7 @@ module ActiveResource
           prefix_options, query_options = split_options(options)
           from ||= collection_path(prefix_options, query_options)
 
-          instantiate_collection(connection.get(from, custom_headers) || [])
+          instantiate_collection(connection.get(from, headers) || [])
         end
         
         def instantiate_collection(collection, prefix_options = {})
@@ -171,7 +171,7 @@ module ActiveResource
           prefix_options, query_options = split_options(options)
           from = scope.to_s.include?("/") ? scope : element_path(scope, prefix_options, query_options)
 
-          returning new(connection.get(from, custom_headers)) do |resource|
+          returning new(connection.get(from, headers)) do |resource|
             resource.prefix_options = prefix_options
           end
         end
@@ -258,7 +258,7 @@ module ActiveResource
 
     # Delete the resource.
     def destroy
-      connection.delete(element_path, self.class.custom_headers)
+      connection.delete(element_path, self.class.headers)
     end
 
     # Evaluates to <tt>true</tt> if this resource is found.
@@ -304,14 +304,14 @@ module ActiveResource
 
       # Update the resource on the remote service.
       def update
-        returning connection.put(element_path(prefix_options), to_xml, self.class.custom_headers) do |response|
+        returning connection.put(element_path(prefix_options), to_xml, self.class.headers) do |response|
           load_attributes_from_response(response)
         end
       end
 
       # Create (i.e., save to the remote service) the new resource.
       def create
-        returning connection.post(collection_path, to_xml, self.class.custom_headers) do |response|
+        returning connection.post(collection_path, to_xml, self.class.headers) do |response|
           self.id = id_from_response(response)
           load_attributes_from_response(response)
         end

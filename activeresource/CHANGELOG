@@ -3,7 +3,7 @@
 * Add support for setting custom headers per ActiveResource model [Rick]
 
   class Project
-    custom_headers['X-Token'] = 'foo'
+    headers['X-Token'] = 'foo'
   end
   
   # makes the GET request with the custom X-Token header
