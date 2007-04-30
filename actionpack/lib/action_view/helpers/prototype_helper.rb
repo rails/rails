@@ -384,8 +384,19 @@ module ActionView
           #   page['blank_slate']                  # => $('blank_slate');
           #   page['blank_slate'].show             # => $('blank_slate').show();
           #   page['blank_slate'].show('first').up # => $('blank_slate').show('first').up();
+          #
+          # You can also pass in a record, which will use ActionController::RecordIdentifier.dom_id to lookup
+          # the correct id:
+          #
+          #   page[@post]     # => $('post_45')
+          #   page[Post.new]  # => $('new_post')
           def [](id)
-            JavaScriptElementProxy.new(self, id)
+            case id
+              when String, Symbol, NilClass
+                JavaScriptElementProxy.new(self, id)
+              else
+                JavaScriptElementProxy.new(self, ActionController::RecordIdentifier.dom_id(id))
+            end
           end
           
           # Returns an object whose <tt>#to_json</tt> evaluates to +code+. Use this to pass a literal JavaScript 

@@ -1,5 +1,7 @@
 require "#{File.dirname(__FILE__)}/../abstract_unit"
 
+Bunny = Struct.new(:Bunny, :id)
+
 module BaseTest
   include ActionView::Helpers::JavaScriptHelper
   include ActionView::Helpers::PrototypeHelper
@@ -251,6 +253,11 @@ Element.update("baz", "<p>This is a test</p>");
 
   def test_element_access
     assert_equal %($("hello");), @generator['hello']
+  end
+
+  def test_element_access_on_records
+    assert_equal %($("bunny_5");),   @generator[Bunny.new(:id => 5)]
+    assert_equal %($("new_bunny");), @generator[Bunny.new]
   end
 
   def test_element_proxy_one_deep

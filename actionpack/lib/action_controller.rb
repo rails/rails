@@ -54,6 +54,7 @@ require 'action_controller/verification'
 require 'action_controller/streaming'
 require 'action_controller/session_management'
 require 'action_controller/components'
+require 'action_controller/record_identifier'
 require 'action_controller/macros/auto_complete'
 require 'action_controller/macros/in_place_editing'
 
@@ -76,6 +77,7 @@ ActionController::Base.class_eval do
   include ActionController::Streaming
   include ActionController::SessionManagement
   include ActionController::Components
+  include ActionController::RecordIdentifier
   include ActionController::Macros::AutoComplete
   include ActionController::Macros::InPlaceEditing
 end

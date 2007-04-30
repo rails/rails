@@ -1,5 +1,20 @@
 *SVN*
 
+* Added RecordTagHelper for using RecordIdentifier conventions on divs and other container elements [DHH]. Example:
+
+    <% div_for(post) do %>     <div id="post_45" class="post">
+      <%= post.body %>           What a wonderful world!
+    <% end %>                  </div>
+
+* Added page[record] accessor to JavaScriptGenerator that relies on RecordIdentifier to find the right dom id [DHH]. Example:
+
+    format.js do
+      # Calls: new Effect.fade('post_45');
+      render(:update) { |page| page[post].visual_effect(:fade) }
+    end
+
+* Added RecordIdentifier to enforce view conventions on records for dom ids, classes, and partial paths [DHH]
+
 * Added map.namespace to deal with the common situation of admin sections and the like [DHH]
 
     Before:
