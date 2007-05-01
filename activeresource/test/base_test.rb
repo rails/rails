@@ -180,7 +180,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_find_by_id_with_custom_prefix
-    addy = StreetAddress.find(1, :person_id => 1)
+    addy = StreetAddress.find(1, :params => { :person_id => 1 })
     assert_kind_of StreetAddress, addy
     assert_equal '12345 Street', addy.street
   end
@@ -219,10 +219,33 @@ class BaseTest < Test::Unit::TestCase
     assert_equal "David", people.first.name
   end
 
+  def test_find_all_by_from_with_options
+    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.xml", {}, "<people>#{@david}</people>" }
+  
+    people = Person.find(:all, :from => "/companies/1/people.xml")
+    assert_equal 1, people.size
+    assert_equal "David", people.first.name
+  end
+
+  def test_find_all_by_symbol_from
+    ActiveResource::HttpMock.respond_to { |m| m.get "/people/managers.xml", {}, "<people>#{@david}</people>" }
+  
+    people = Person.find(:all, :from => :managers)
+    assert_equal 1, people.size
+    assert_equal "David", people.first.name
+  end
+
   def test_find_single_by_from
     ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/manager.xml", {}, @david }
 
-    david = Person.find("/companies/1/manager.xml")
+    david = Person.find(:one, :from => "/companies/1/manager.xml")
+    assert_equal "David", david.name
+  end
+
+  def test_find_single_by_symbol_from
+    ActiveResource::HttpMock.respond_to { |m| m.get "/people/leader.xml", {}, @david }
+
+    david = Person.find(:one, :from => :leader)
     assert_equal "David", david.name
   end
 
@@ -249,7 +272,7 @@ class BaseTest < Test::Unit::TestCase
 
   # Test that loading a resource preserves its prefix_options.
   def test_load_preserves_prefix_options
-    address = StreetAddress.find(1, :person_id => 1)
+    address = StreetAddress.find(1, :params => { :person_id => 1 })
     ryan = Person.new(:id => 1, :name => 'Ryan', :address => address)
     assert_equal address.prefix_options, ryan.address.prefix_options
   end
@@ -279,7 +302,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_update_with_custom_prefix
-    addy = StreetAddress.find(1, :person_id => 1)
+    addy = StreetAddress.find(1, :params => { :person_id => 1 })
     addy.street = "54321 Street"
     assert_kind_of StreetAddress, addy
     assert_equal "54321 Street", addy.street
@@ -303,11 +326,11 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_destroy_with_custom_prefix
-    assert StreetAddress.find(1, :person_id => 1).destroy
+    assert StreetAddress.find(1, :params => { :person_id => 1 }).destroy
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/people/1/addresses/1.xml", {}, nil, 404
     end
-    assert_raises(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :person_id => 1) }
+    assert_raises(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
   end
 
   def test_delete
@@ -323,7 +346,7 @@ class BaseTest < Test::Unit::TestCase
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/people/1/addresses/1.xml", {}, nil, 404
     end
-    assert_raises(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :person_id => 1) }
+    assert_raises(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
   end
 
   def test_exists
@@ -338,12 +361,12 @@ class BaseTest < Test::Unit::TestCase
     assert !Person.new(:id => 99).exists?
 
     # Nested class method.
-    assert StreetAddress.exists?(1, :person_id => 1)
-    assert !StreetAddress.exists?(1, :person_id => 2)
-    assert !StreetAddress.exists?(2, :person_id => 1)
+    assert StreetAddress.exists?(1,  :params => { :person_id => 1 })
+    assert !StreetAddress.exists?(1, :params => { :person_id => 2 })
+    assert !StreetAddress.exists?(2, :params => { :person_id => 1 })
 
     # Nested instance method.
-    assert StreetAddress.find(1, :person_id => 1).exists?
+    assert StreetAddress.find(1, :params => { :person_id => 1 }).exists?
     assert !StreetAddress.new({:id => 1, :person_id => 2}).exists?
     assert !StreetAddress.new({:id => 2, :person_id => 1}).exists?
   end

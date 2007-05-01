@@ -63,10 +63,10 @@ class CustomMethodsTest < Test::Unit::TestCase
     assert_equal ActiveResource::Response.new("", 200, {}), Person.find(1).delete(:deactivate)
     
     # With nested resources
-    assert_equal StreetAddress.find(1, :person_id => 1).get(:deep),
+    assert_equal StreetAddress.find(1, :params => { :person_id => 1 }).get(:deep),
                   { "id" => 1, "street" => '12345 Street', "zip" => "27519" }
     assert_equal ActiveResource::Response.new("", 204, {}),
-                   StreetAddress.find(1, :person_id => 1).put(:normalize_phone, :locale => 'US')
+                   StreetAddress.find(1, :params => { :person_id => 1 }).put(:normalize_phone, :locale => 'US')
   end
   
   def test_custom_new_element_method
@@ -82,6 +82,6 @@ class CustomMethodsTest < Test::Unit::TestCase
   end
   
   def test_find_custom_resources
-    assert_equal 'Matz', Person.find(:managers).first.name
+    assert_equal 'Matz', Person.find(:all, :from => :managers).first.name
   end
 end

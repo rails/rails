@@ -1,6 +1,14 @@
 *SVN*
 
-* Add support for setting custom headers per ActiveResource model [Rick]
+* Added find-one with symbol [DHH]. Example: Person.find(:one, :from => :leader) # => GET /people/leader.xml
+
+* BACKWARDS INCOMPATIBLE: Changed the finder API to be more extensible with :params and more strict usage of scopes [DHH]. Changes:
+
+    Person.find(:all, :title => "CEO")      ...becomes: Person.find(:all, :params => { :title => "CEO" })
+    Person.find(:managers)                  ...becomes: Person.find(:all, :from => :managers)
+    Person.find("/companies/1/manager.xml") ...becomes: Person.find(:one, :from => "/companies/1/manager.xml")
+
+* Add support for setting custom headers per Active Resource model [Rick]
 
   class Project
     headers['X-Token'] = 'foo'

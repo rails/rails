@@ -117,13 +117,15 @@ module ActiveResource
       end
 
       # Core method for finding resources.  Used similarly to Active Record's find method.
-      #  Person.find(1)                                        # => GET /people/1.xml
-      #  Person.find(:all)                                     # => GET /people.xml
-      #  Person.find(:all, :title => "CEO")                    # => GET /people.xml?title=CEO
-      #  Person.find(:managers)                                # => GET /people/managers.xml
-      #  Person.find(:all, :from => "/companies/1/people.xml") # => GET /companies/1/people.xml
-      #  Person.find("/companies/1/manager.xml")               # => GET /companies/1/manager.xml
-      #  StreetAddress.find(1, :person_id => 1)                # => GET /people/1/street_addresses/1.xml
+      #
+      #   Person.find(1)                                         # => GET /people/1.xml
+      #   Person.find(:all)                                      # => GET /people.xml
+      #   Person.find(:all, :params => { :title => "CEO" })      # => GET /people.xml?title=CEO
+      #   Person.find(:all, :from => :managers)                  # => GET /people/managers.xml
+      #   Person.find(:all, :from => "/companies/1/people.xml")  # => GET /companies/1/people.xml
+      #   Person.find(:one, :from => :leader)                    # => GET /people/leader.xml
+      #   Person.find(:one, :from => "/companies/1/manager.xml") # => GET /companies/1/manager.xml
+      #   StreetAddress.find(1, :params => { :person_id => 1 })  # => GET /people/1/street_addresses/1.xml
       def find(*arguments)
         scope   = arguments.slice!(0)
         options = arguments.slice!(0) || {}
@@ -131,7 +133,7 @@ module ActiveResource
         case scope
           when :all   then find_every(options)
           when :first then find_every(options).first
-          when Symbol then instantiate_collection(get(scope, options))
+          when :one   then find_one(options)
           else             find_single(scope, options)
         end
       end
@@ -148,33 +150,49 @@ module ActiveResource
       end
 
       private
-        # Find every resource.
+        # Find every resource
         def find_every(options)
-          from = options.delete(:from)
-          prefix_options, query_options = split_options(options)
-          from ||= collection_path(prefix_options, query_options)
+          case from = options.delete(:from)
+          when Symbol
+            instantiate_collection(get(from, options[:params]))
+          when String
+            path = "#{from}#{query_string(options[:params])}"
+            instantiate_collection(connection.get(path, headers) || [])
+          else
+            prefix_options, query_options = split_options(options[:params])
+            path = collection_path(prefix_options, query_options)
+            instantiate_collection(connection.get(path, headers) || [])
+          end
+        end
+        
+        # Find a single resource from a one-off URL
+        def find_one(options)
+          case from = options[:from]
+          when Symbol
+            instantiate_record(get(from, options[:params]))
+          when String
+            path = "#{from}#{query_string(options[:params])}"
+            instantiate_record(connection.get(path, headers))
+          end
+        end
 
-          instantiate_collection(connection.get(from, headers) || [])
+        # Find a single resource from the default URL
+        def find_single(scope, options)
+          prefix_options, query_options = split_options(options[:params])
+          path = element_path(scope, prefix_options, query_options)
+          instantiate_record(connection.get(path, headers), prefix_options)
         end
         
         def instantiate_collection(collection, prefix_options = {})
-          collection.collect! do |element|
-            returning new(element) do |resource|
-              resource.prefix_options = prefix_options
-            end
-          end
+          collection.collect! { |record| instantiate_record(record, prefix_options) }
         end
 
-        # Find a single resource.
-        #  { :person => person1 }
-        def find_single(scope, options)
-          prefix_options, query_options = split_options(options)
-          from = scope.to_s.include?("/") ? scope : element_path(scope, prefix_options, query_options)
-
-          returning new(connection.get(from, headers)) do |resource|
+        def instantiate_record(record, prefix_options = {})
+          returning new(record) do |resource|
             resource.prefix_options = prefix_options
           end
         end
+
 
         # Accepts a URI and creates the site URI from that.
         def create_site_uri_from(site)
@@ -188,17 +206,19 @@ module ActiveResource
 
         # Builds the query string for the request.
         def query_string(options)
-          "?#{options.to_query}" unless options.empty? 
+          "?#{options.to_query}" unless options.nil? || options.empty? 
         end
 
         # split an option hash into two hashes, one containing the prefix options, 
         # and the other containing the leftovers.
         def split_options(options = {})
-          prefix_options = {}; query_options = {}
-          options.each do |key, value|
+          prefix_options, query_options = {}, {}
+
+          (options || {}).each do |key, value|
             (prefix_parameters.include?(key) ? prefix_options : query_options)[key] = value
           end
-          [prefix_options, query_options]
+
+          [ prefix_options, query_options ]
         end
     end
 
@@ -263,7 +283,7 @@ module ActiveResource
 
     # Evaluates to <tt>true</tt> if this resource is found.
     def exists?
-      !new? && self.class.exists?(id, prefix_options)
+      !new? && self.class.exists?(id, :params => prefix_options)
     end
 
     # Convert the resource to an XML string
