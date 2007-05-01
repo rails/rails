@@ -1,5 +1,7 @@
 *SVN*
 
+* Added assert_difference and assert_no_difference to test/unit assertions [Tobias Luetke]
+
 * Removed breakpointer and Binding.of_caller in favor of relying on ruby-debug by Kent Sibilev since the breakpointer has been broken since Ruby 1.8.4 and will not be coming back [DHH]
 
 * Added parsing of file type in Hash.xml_in so you can easily do file uploads with base64 from an API [DHH]
