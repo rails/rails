@@ -17,7 +17,13 @@ class UrlRewriterTests < Test::Unit::TestCase
     assert_match %r(/hi/hi/2$), u
   end
   
-
+  def test_anchor
+    assert_equal(
+      'http://test.host/c/a/i#anchor',
+      @rewriter.rewrite(:controller => 'c', :action => 'a', :id => 'i', :anchor => 'anchor')
+    )
+  end
+  
   private
     def split_query_string(str)
       [str[0].chr] + str[1..-1].split(/&/).sort
@@ -73,6 +79,12 @@ class UrlWriterTests < Test::Unit::TestCase
     add_host!
     assert_equal('https://www.basecamphq.com/c/a/i',
       W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https')
+    )
+  end
+
+  def test_anchor
+    assert_equal('/c/a#anchor',
+      W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :anchor => 'anchor')
     )
   end
   

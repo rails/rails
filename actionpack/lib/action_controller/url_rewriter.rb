@@ -52,8 +52,9 @@ module ActionController
         # Delete the unused options to prevent their appearance in the query string
         [:protocol, :host, :port].each { |k| options.delete k }
       end
+      anchor = "##{options.delete(:anchor)}" if options.key?(:anchor)
       url << Routing::Routes.generate(options, {})
-      return url
+      return "#{url}#{anchor}"
     end
     
   end
