@@ -152,7 +152,7 @@ module ActiveResource
       private
         # Find every resource
         def find_every(options)
-          case from = options.delete(:from)
+          case from = options[:from]
           when Symbol
             instantiate_collection(get(from, options[:params]))
           when String
@@ -368,7 +368,11 @@ module ActiveResource
 
         # FIXME: Make it generic enough to support any depth of module nesting
         if (ancestors = self.class.name.split("::")).size > 1
-          ancestors.first.constantize.const_get(resource_name)
+          begin
+            ancestors.first.constantize.const_get(resource_name)
+          rescue NameError
+            self.class.const_get(resource_name)
+          end
         else
           self.class.const_get(resource_name)
         end
