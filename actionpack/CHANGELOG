@@ -1,5 +1,7 @@
 *SVN*
 
+* Replace the current block/continuation filter chain handling by an implementation based on a simple loop.  Closes #8226 [Stefan Kaes]
+
 * Return the string representation from an Xml Builder when rendering a partial.  #5044 [tpope]
 
 * Cleaned up, corrected, and mildly expanded ActionPack documentation.  Closes #7190 [jeremymcanally]
