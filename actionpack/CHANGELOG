@@ -1,5 +1,7 @@
 *SVN*
 
+* Replace the current block/continuation filter chain handling by an implementation based on a simple loop.  #8226 [Stefan Kaes]
+
 * Update UrlWriter to accept :anchor parameter. Closes #6771. [octopod]
 
 * Added RecordTagHelper for using RecordIdentifier conventions on divs and other container elements [DHH]. Example:

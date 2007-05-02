@@ -14,7 +14,7 @@ class FilterTest < Test::Unit::TestCase
         @ran_filter ||= []
         @ran_filter << "ensure_login"
       end
-      
+
       def clean_up
         @ran_after_filter ||= []
         @ran_after_filter << "clean_up"
@@ -62,7 +62,7 @@ class FilterTest < Test::Unit::TestCase
         render :inline => "something else"
       end
   end
-  
+
   class ConditionalFilterController < ActionController::Base
     def show
       render :inline => "ran action"
@@ -86,7 +86,7 @@ class FilterTest < Test::Unit::TestCase
         @ran_filter ||= []
         @ran_filter << "clean_up_tmp"
       end
-      
+
       def rescue_action(e) raise(e) end
   end
 
@@ -94,7 +94,7 @@ class FilterTest < Test::Unit::TestCase
     before_filter :ensure_login, :except => [ :show_without_filter, :another_action ]
   end
 
-  class OnlyConditionSymController < ConditionalFilterController 
+  class OnlyConditionSymController < ConditionalFilterController
     before_filter :ensure_login, :only => :show
   end
 
@@ -104,10 +104,10 @@ class FilterTest < Test::Unit::TestCase
 
   class BeforeAndAfterConditionController < ConditionalFilterController
     before_filter :ensure_login, :only => :show
-    after_filter  :clean_up_tmp, :only => :show 
+    after_filter  :clean_up_tmp, :only => :show
   end
-  
-  class OnlyConditionProcController < ConditionalFilterController 
+
+  class OnlyConditionProcController < ConditionalFilterController
     before_filter(:only => :show) {|c| c.assigns["ran_proc_filter"] = true }
   end
 
@@ -145,7 +145,7 @@ class FilterTest < Test::Unit::TestCase
   class ConditionalSkippingController < TestController
     skip_before_filter :ensure_login, :only => [ :login ]
     skip_after_filter  :clean_up,     :only => [ :login ]
-    
+
     before_filter :find_user, :only => [ :change_password ]
 
     def login
@@ -155,7 +155,7 @@ class FilterTest < Test::Unit::TestCase
     def change_password
       render :inline => "ran action"
     end
-    
+
     protected
       def find_user
         @ran_filter ||= []
@@ -166,15 +166,15 @@ class FilterTest < Test::Unit::TestCase
   class ConditionalParentOfConditionalSkippingController < ConditionalFilterController
     before_filter :conditional_in_parent, :only => [:show, :another_action]
     after_filter  :conditional_in_parent, :only => [:show, :another_action]
-    
+
     private
-      
+
       def conditional_in_parent
         @ran_filter ||= []
         @ran_filter << 'conditional_in_parent'
       end
   end
-  
+
   class ChildOfConditionalParentController < ConditionalParentOfConditionalSkippingController
     skip_before_filter :conditional_in_parent, :only => :another_action
     skip_after_filter  :conditional_in_parent, :only => :another_action
@@ -197,7 +197,7 @@ class FilterTest < Test::Unit::TestCase
       controller.assigns["was_audited"] = true
     end
   end
-  
+
   class AroundFilter
     def before(controller)
       @execution_log = "before"
@@ -209,7 +209,7 @@ class FilterTest < Test::Unit::TestCase
       controller.assigns["execution_log"] = @execution_log + " and after"
       controller.assigns["after_ran"] = true
       controller.class.execution_log << " after aroundfilter " if controller.respond_to? :execution_log
-    end    
+    end
   end
 
   class AppendedAroundFilter
@@ -219,12 +219,12 @@ class FilterTest < Test::Unit::TestCase
 
     def after(controller)
       controller.class.execution_log << " after appended aroundfilter "
-    end    
-  end  
-  
+    end
+  end
+
   class AuditController < ActionController::Base
     before_filter(AuditFilter)
-    
+
     def show
       render_text "hello"
     end
@@ -232,6 +232,14 @@ class FilterTest < Test::Unit::TestCase
 
   class AroundFilterController < PrependingController
     around_filter AroundFilter.new
+  end
+
+  class BeforeAfterClassFilterController < PrependingController
+    begin
+      filter = AroundFilter.new
+      before_filter filter
+      after_filter filter
+    end
   end
 
   class MixedFilterController < PrependingController
@@ -247,7 +255,7 @@ class FilterTest < Test::Unit::TestCase
     after_filter  { |c| c.class.execution_log << " after procfilter " }
     append_around_filter AppendedAroundFilter.new
   end
-  
+
   class MixedSpecializationController < ActionController::Base
     class OutOfOrder < StandardError; end
 
@@ -292,11 +300,11 @@ class FilterTest < Test::Unit::TestCase
   def test_base_class_in_isolation
     assert_equal [ ], ActionController::Base.before_filters
   end
-  
+
   def test_prepending_filter
     assert_equal [ :wonderful_life, :ensure_login ], PrependingController.before_filters
   end
-  
+
   def test_running_filters
     assert_equal %w( wonderful_life ensure_login ), test_process(PrependingController).template.assigns["ran_filter"]
   end
@@ -304,11 +312,11 @@ class FilterTest < Test::Unit::TestCase
   def test_running_filters_with_proc
     assert test_process(ProcController).template.assigns["ran_proc_filter"]
   end
-  
+
   def test_running_filters_with_implicit_proc
     assert test_process(ImplicitProcController).template.assigns["ran_proc_filter"]
   end
-  
+
   def test_running_filters_with_class
     assert test_process(AuditController).template.assigns["was_audited"]
   end
@@ -319,7 +327,7 @@ class FilterTest < Test::Unit::TestCase
     assert response.template.assigns["ran_class_filter"]
     assert response.template.assigns["ran_proc_filter1"]
     assert response.template.assigns["ran_proc_filter2"]
-    
+
     response = test_process(AnomolousYetValidConditionController, "show_without_filter")
     assert_equal nil, response.template.assigns["ran_filter"]
     assert !response.template.assigns["ran_class_filter"]
@@ -373,6 +381,12 @@ class FilterTest < Test::Unit::TestCase
     assert controller.template.assigns["after_ran"]
   end
 
+  def test_before_after_class_filter
+    controller = test_process(BeforeAfterClassFilterController)
+    assert controller.template.assigns["before_ran"]
+    assert controller.template.assigns["after_ran"]
+  end
+
   def test_having_properties_in_around_filter
     controller = test_process(AroundFilterController)
     assert_equal "before and after", controller.template.assigns["execution_log"]
@@ -381,10 +395,10 @@ class FilterTest < Test::Unit::TestCase
   def test_prepending_and_appending_around_filter
     controller = test_process(MixedFilterController)
     assert_equal " before aroundfilter  before procfilter  before appended aroundfilter " +
-                 " after appended aroundfilter  after aroundfilter  after procfilter ", 
+                 " after appended aroundfilter  after aroundfilter  after procfilter ",
                  MixedFilterController.execution_log
   end
-  
+
   def test_rendering_breaks_filtering_chain
     response = test_process(RenderingController)
     assert_equal "something else", response.body
