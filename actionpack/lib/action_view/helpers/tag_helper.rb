@@ -48,7 +48,8 @@ module ActionView
         if block_given?
           options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
           content = capture(&block)
-          concat(content_tag_string(name, content, options), block.binding)
+          content_tag = content_tag_string(name, content, options)
+          block_is_within_action_view?(block) ? concat(content_tag, block.binding) : content_tag
         else
           content = content_or_options_with_block
           content_tag_string(name, content, options)
@@ -97,6 +98,10 @@ module ActionView
         # Fix double-escaped entities, such as &amp;amp;, &amp;#123;, etc.
         def fix_double_escape(escaped)
           escaped.gsub(/&amp;([a-z]+|(#\d+));/i) { "&#{$1};" }
+        end
+        
+        def block_is_within_action_view?(block)
+          eval("defined? _erbout", block.binding)
         end
     end
   end

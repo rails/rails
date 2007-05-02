@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that content_tag with a block will just return the result instead of concate it if not used in a ERb view #7857, #7432 [michael.niessner]
+
 * Replace the current block/continuation filter chain handling by an implementation based on a simple loop.  #8226 [Stefan Kaes]
 
 * Update UrlWriter to accept :anchor parameter. Closes #6771. [octopod]

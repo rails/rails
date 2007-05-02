@@ -47,6 +47,11 @@ class TagHelperTest < Test::Unit::TestCase
     assert_dom_equal %(<div class="green">Hello world!</div>), _erbout
   end
   
+  def test_content_tag_with_block_and_options_outside_of_action_view
+    assert_equal content_tag("a", "Create", :href => "create"),
+                 content_tag("a", "href" => "create") { "Create" }    
+  end
+  
   def test_cdata_section
     assert_equal "<![CDATA[<hello world>]]>", cdata_section("<hello world>")
   end
