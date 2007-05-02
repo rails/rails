@@ -51,7 +51,9 @@ module ActionController
         [:protocol, :host, :port].each { |k| options.delete k }
       end
 
+      anchor = "##{CGI.escape options.delete(:anchor).to_param.to_s}" if options.key?(:anchor)
       url << Routing::Routes.generate(options, {})
+      url << anchor if anchor
 
       return url
     end    

@@ -36,6 +36,13 @@ class UrlRewriterTests < Test::Unit::TestCase
       @rewriter.rewrite(:user => "openid.aol.com/nextangler", :password => "one two?", :controller => 'c', :action => 'a', :id => 'i')
     )
   end
+  
+  def test_anchor 
+    assert_equal( 
+      'http://test.host/c/a/i#anchor', 
+      @rewriter.rewrite(:controller => 'c', :action => 'a', :id => 'i', :anchor => 'anchor') 
+    ) 
+  end
 
   def test_overwrite_params
     @params[:controller] = 'hi'
@@ -76,6 +83,12 @@ class UrlWriterTests < Test::Unit::TestCase
     assert_raises RuntimeError do
       W.new.url_for :controller => 'c', :action => 'a', :id => 'i'
     end
+  end
+
+  def test_anchor
+    assert_equal('/c/a#anchor',
+      W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :anchor => 'anchor')
+    )
   end
   
   def test_default_host

@@ -1,5 +1,7 @@
 *SVN*
 
+* Update UrlWriter to accept :anchor parameter. Closes #6771. [octopod]
+
 * Added RecordTagHelper for using RecordIdentifier conventions on divs and other container elements [DHH]. Example:
 
     <% div_for(post) do %>     <div id="post_45" class="post">
