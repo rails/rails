@@ -204,11 +204,11 @@ module ActiveRecord #:nodoc:
           when :has_many, :has_and_belongs_to_many
             records = @record.send(association).to_a
             unless records.empty?
-              tag = records.first.class.to_s.underscore.pluralize
+              tag = association.to_s
               tag = tag.dasherize if dasherize?
 
               builder.tag!(tag) do
-                records.each { |r| r.to_xml(opts.merge(:root => association.to_s.singularize)) }
+                records.each { |r| r.to_xml(opts.merge(:root=>r.class.to_s.underscore)) }
               end
             end
           when :has_one, :belongs_to

@@ -133,12 +133,19 @@ end
 class DatabaseConnectedXmlSerializationTest < Test::Unit::TestCase
   fixtures :authors, :posts
   # to_xml used to mess with the hash the user provided which
-  # caused the builder to be reused
+  # caused the builder to be reused.  This meant the document kept
+  # getting appended to.
   def test_passing_hash_shouldnt_reuse_builder
     options = {:include=>:posts}
     david = authors(:david)
     first_xml_size = david.to_xml(options).size
     second_xml_size = david.to_xml(options).size
     assert_equal first_xml_size, second_xml_size
+  end
+  
+
+  def test_include_uses_association_name
+    xml = authors(:david).to_xml :include=>:hello_posts, :indent=>0
+    assert(xml.include?(%(<hello_posts><post>)) || xml.include?(%(</post></hello-posts>)))
   end
 end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Use association name for the wrapper element when using .to_xml.  Previous behaviour lead to non-deterministic situations with STI and polymorphic associations. [Koz, jstrachan]
+
 * Improve performance of calling .create on has_many :through associations. [evan]
 
 * Improved cloning performance by relying less on exception raising #8159 [Blaine]
