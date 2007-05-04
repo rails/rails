@@ -316,6 +316,26 @@ module ActiveResource
       end
       self
     end
+    
+    # For checking respond_to? without searching the attributes (which is faster).
+    alias_method :respond_to_without_attributes?, :respond_to?
+
+    # A Person object with a name attribute can ask person.respond_to?("name"), person.respond_to?("name="), and
+    # person.respond_to?("name?") which will all return true.
+    def respond_to?(method, include_priv = false)
+      method_name = method.to_s
+      if attributes.nil?
+        return super
+      elsif attributes.has_key?(method_name)
+        return true 
+      elsif ['?','='].include?(method_name.last) && attributes.has_key?(method_name.first(-1))
+        return true
+      end
+      # super must be called at the end of the method, because the inherited respond_to?
+      # would return true for generated readers, even if the attribute wasn't present
+      super
+    end
+    
 
     protected
       def connection(refresh = false)

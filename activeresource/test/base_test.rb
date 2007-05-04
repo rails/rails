@@ -178,6 +178,14 @@ class BaseTest < Test::Unit::TestCase
     assert_kind_of Person, matz
     assert_equal "Matz", matz.name
   end
+  
+  def test_respond_to
+    matz = Person.find(1)
+    assert matz.respond_to?(:name)
+    assert matz.respond_to?(:name=)
+    assert matz.respond_to?(:name?)
+    assert !matz.respond_to?(:java)
+  end
 
   def test_find_by_id_with_custom_prefix
     addy = StreetAddress.find(1, :params => { :person_id => 1 })
