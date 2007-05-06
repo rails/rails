@@ -205,7 +205,7 @@ module ActionController
   #
   # You can reload routes if you feel you must:
   #
-  #  Action::Controller::Routes.reload
+  #  ActionController::Routing::Routes.reload
   #
   # This will clear all named routes and reload routes.rb
   #

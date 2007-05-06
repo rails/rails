@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix documentation typo in routes. [norbert]
+
 * Sweep flash when filter chain is halted. [Caio Chassot <lists@v2studio.com>]
 
 * Fixed that content_tag with a block will just return the result instead of concate it if not used in a ERb view #7857, #7432 [michael.niessner]
