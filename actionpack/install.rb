@@ -4,7 +4,7 @@ require 'ftools'
 
 include Config
 
-# this was adapted from rdoc's install.rb by ways of Log4r
+# this was adapted from rdoc's install.rb by way of Log4r
 
 $sitedir = CONFIG["sitelibdir"]
 unless $sitedir
@@ -18,7 +18,7 @@ unless $sitedir
   end
 end
 
-# the acual gruntwork
+# the actual gruntwork
 Dir.chdir("lib")
 
 Find.find("action_controller", "action_controller.rb", "action_view", "action_view.rb") { |f|

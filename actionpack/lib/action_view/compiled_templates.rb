@@ -1,4 +1,3 @@
-
 module ActionView
 
   # CompiledTemplates modules hold methods that have been compiled.
@@ -40,7 +39,7 @@ module ActionView
     # Compile the provided source code for the given argument names and with the given initial line number.
     # The identifier should be unique to this source.
     #
-    # The file_name, if provided will appear in backtraces. If not provded, the file_name defaults
+    # The file_name, if provided will appear in backtraces. If not provided, the file_name defaults
     # to the identifier.
     #
     # This method will return the selector for the compiled version of this method.
