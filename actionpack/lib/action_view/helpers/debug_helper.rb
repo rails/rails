@@ -1,10 +1,14 @@
 module ActionView
   module Helpers
-    # Provides a set of methods for making it easier to locate problems.
+    # Provides a set of methods for making it easier to debug Rails objects.
     module DebugHelper
-      # Returns a <pre>-tag set with the +object+ dumped by YAML. Very readable way to inspect an object.
+      # Returns a <pre>-tag that has +object+ dumped by YAML. This creates a very
+      # readable way to inspect an object.
+      #
+      # ==== Example
       #  my_hash = {'first' => 1, 'second' => 'two', 'third' => [1,2,3]}
       #  debug(my_hash)
+      #
       #  => <pre class='debug_dump'>--- 
       #  first: 1
       #  second: two
