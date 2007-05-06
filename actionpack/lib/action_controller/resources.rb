@@ -1,4 +1,42 @@
 module ActionController
+  # == Overview
+  #
+  # ActionController::Resources are a way of defining RESTful resources.  A RESTful resource, in basic terms, 
+  # is something that can be pointed at and it will respond with a representation of the data requested.
+  # In real terms this could mean a user with a browser requests an HTML page, or that a desktop application 
+  # requests XML data. 
+  #
+  # RESTful design is based on the assumption that there are four generic verbs that a user of an 
+  # application can request from a resource (the noun).
+  #
+  # Resources can be requested using four basic HTTP verbs (GET, POST, PUT, DELETE), the method used 
+  # denotes the type of action that should take place.
+  #
+  # === The Different Methods and their Usage
+  #
+  # +GET+     Requests for a resource, no saving or editing of a resource should occur in a GET request
+  # +POST+    Creation of resources
+  # +PUT+     Editing of attributes on a resource
+  # +DELETE+  Deletion of a resource
+  #
+  # === Examples
+  #
+  #   # A GET request on the Posts resource is asking for all Posts
+  #   GET /posts
+  #   # A GET request on a single Post resource is asking for that particular Post
+  #   GET /posts/1
+  #   # A POST request on the Posts resource is asking for a Post to be created with the supplied details
+  #   POST /posts # with => { :title => "My Whizzy New Post", :body => "I've got a brand new combine harvester" }
+  #   # A PUT request on a single Post resource is asking for a Post to be updated
+  #   POST /posts # with => { :id => 1, :title => "Changed Whizzy Title" }
+  #   # A DELETE request on a single Post resource is asking for it to be deleted
+  #   DELETE /posts # with => { :id => 1 }
+  #
+  # By using the REST convention, users of our application can assume certain things about how the data 
+  # is requested and how it is returned.  Rails simplifies the routing part of RESTful design by 
+  # supplying you with methods to create them in your routes.rb file.
+  #
+  # Read more about REST at http://en.wikipedia.org/wiki/Representational_State_Transfer
   module Resources
     class Resource #:nodoc:
       attr_reader :collection_methods, :member_methods, :new_methods
