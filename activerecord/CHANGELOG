@@ -1,6 +1,6 @@
 *SVN*
 
-* Enhance documentation for decrement_counter. [fearoffish]
+* Enhance documentation for increment_counter and decrement_counter. [fearoffish]
 
 * Provide brief introduction to what optimistic locking is. [fearoffish]
 

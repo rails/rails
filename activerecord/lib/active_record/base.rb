@@ -555,11 +555,21 @@ module ActiveRecord #:nodoc:
         update_all(updates, "#{connection.quote_column_name(primary_key)} = #{quote_value(id)}")
       end
 
-      # Increments the specified counter by one. So <tt>DiscussionBoard.increment_counter("post_count",
-      # discussion_board_id)</tt> would increment the "post_count" counter on the board responding to discussion_board_id.
-      # This is used for caching aggregate values, so that they don't need to be computed every time. Especially important
-      # for looping over a collection where each element require a number of aggregate values. Like the DiscussionBoard
-      # that needs to list both the number of posts and comments.
+      # Increment a number field by one, usually representing a count.
+      #
+      # This is used for caching aggregate values, so that they don't need to be computed every time. 
+      # For example, a DiscussionBoard may cache post_count and comment_count otherwise every time the board is 
+      # shown it would have to run a SQL query to find how many posts and comments there are.
+      #
+      # ==== Options
+      #
+      # +counter_name+  The name of the field that should be incremented
+      # +id+            The id of the object that should be incremented
+      #
+      # ==== Examples
+      #
+      #   # Increment the post_count column for the record with an id of 5
+      #   DiscussionBoard.increment_counter(:post_count, 5)
       def increment_counter(counter_name, id)
         update_counters(id, counter_name => 1)
       end
