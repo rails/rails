@@ -301,7 +301,7 @@ module ActiveRecord
       #
       # This method returns <tt>self</tt>.
       #
-      # ===== Examples
+      # == Examples
       #  # Assuming td is an instance of TableDefinition
       #  td.column(:granted, :boolean)
       #    #=> granted BOOLEAN
@@ -322,6 +322,34 @@ module ActiveRecord
       #  # probably wouldn't hurt to include it.
       #  def.column(:huge_integer, :decimal, :precision => 30)
       #    #=> huge_integer DECIMAL(30)
+      #
+      # == Short-hand examples
+      #
+      # Instead of calling column directly, you can also work with the short-hand definitions for the default types.
+      # They use the type as the method name instead of as a parameter and allow for multiple columns to be defined
+      # in a single statement.
+      #
+      # What can be written like this with the regular calls to column:
+      #
+      #   create_table "products", :force => true do |t|
+      #     t.column "shop_id",    :integer
+      #     t.column "creator_id", :integer
+      #     t.column "name",       :string,   :default => "Untitled"
+      #     t.column "value",      :string,   :default => "Untitled"
+      #     t.column "created_at", :datetime
+      #     t.column "updated_at", :datetime
+      #   end
+      #
+      # Can also be written as follows using the short-hand:
+      #
+      #   create_table :products do |t|
+      #     t.integer :shop_id, :creator_id
+      #     t.string  :name, :value, :default => "Untitled"
+      #     t.timestamps
+      #   end
+      #
+      # There's a short-hand method for each of the type values declared at the top. And then there's 
+      # TableDefinition#timestamps that'll add created_at and updated_at as datetimes.
       def column(name, type, options = {})
         column = self[name] || ColumnDefinition.new(@base, name, type)
         column.limit = options[:limit] || native[type.to_sym][:limit] if options[:limit] or native[type.to_sym]
@@ -331,6 +359,22 @@ module ActiveRecord
         column.null = options[:null]
         @columns << column unless @columns.include? column
         self
+      end
+
+      %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |column_type|
+        class_eval <<-EOV
+          def #{column_type}(*args)
+            options = args.last.is_a?(Hash) ? args.pop : {}
+            column_names = args
+            
+            column_names.each { |name| column(name, '#{column_type}', options) }
+          end
+        EOV
+      end
+      
+      def timestamps
+        column(:created_at, :datetime)
+        column(:updated_at, :datetime)
       end
 
       # Returns a String whose contents are the column definitions

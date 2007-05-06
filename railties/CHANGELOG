@@ -1,5 +1,7 @@
 *SVN*
 
+* Updated resource_scaffold and model generators to use short-hand style migrations [DHH]
+
 * Updated initializer to only load #{RAILS_ENV}.rb once. Added deprecation warning for config.breakpoint_server. [Nicholas Seckar]
 
 * Removed breakpointer and Binding.of_caller in favor of relying on ruby-debug by Kent Sibilev since the breakpointer has been broken since Ruby 1.8.4 and will not be coming back [DHH]

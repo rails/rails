@@ -1,6 +1,27 @@
 *SVN*
 
-* Use association name for the wrapper element when using .to_xml.  Previous behaviour lead to non-deterministic situations with STI and polymorphic associations. [Koz, jstrachan]
+* Added short-hand declaration style to migrations (inspiration from Sexy Migrations, http://errtheblog.com/post/2381) [DHH]. Example:
+
+    create_table "products" do |t|
+      t.column "shop_id",    :integer
+      t.column "creator_id", :integer
+      t.column "name",       :string,   :default => "Untitled"
+      t.column "value",      :string,   :default => "Untitled"
+      t.column "created_at", :datetime
+      t.column "updated_at", :datetime
+    end
+  
+  ...can now be written as:
+  
+    create_table :products do |t|
+      t.integer :shop_id, :creator_id
+      t.string  :name, :value, :default => "Untitled"
+      t.timestamps
+    end
+    
+  Note: Schema dumping still happens in the old style -- someone care to update it?
+
+* Use association name for the wrapper element when using .to_xml.  Previous behavior lead to non-deterministic situations with STI and polymorphic associations. [Koz, jstrachan]
 
 * Improve performance of calling .create on has_many :through associations. [evan]
 
