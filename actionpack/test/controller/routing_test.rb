@@ -265,7 +265,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       map.content '/content/:query', :controller => 'content', :action => 'show'
     end
     exception = assert_raise(ActionController::RoutingError) { rs.generate(:controller => 'content', :action => 'show', :use_route => "content") }
-    expected_message = %[content_url failed to generate from {:action=>"show", :controller=>"content"} - you may have ambiguous routes, or you may need to supply additional parameters for this route.  content_url has the following required parameters: ["content", :query] - are they all satisifed?]
+    expected_message = "content_url failed to generate from #{{:action=>"show", :controller=>"content"}.inspect} - you may have ambiguous routes, or you may need to supply additional parameters for this route.  content_url has the following required parameters: [\"content\", :query] - are they all satisifed?"
     assert_equal expected_message, exception.message
   end
   
