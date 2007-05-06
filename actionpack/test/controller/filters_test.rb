@@ -131,6 +131,14 @@ class FilterTest < Test::Unit::TestCase
     before_filter(ConditionalClassFilter, :ensure_login, Proc.new {|c| c.assigns["ran_proc_filter1"] = true }, :except => :show_without_filter) { |c| c.assigns["ran_proc_filter2"] = true}
   end
 
+  class EmptyFilterChainController < TestController
+    self.filter_chain.clear
+    def show
+      @action_executed = true
+      render :text => "yawp!"
+    end
+  end
+
   class PrependingController < TestController
     prepend_before_filter :wonderful_life
     # skip_before_filter :fire_flash
@@ -293,6 +301,35 @@ class FilterTest < Test::Unit::TestCase
       end
   end
 
+  class PrependingBeforeAndAfterController < ActionController::Base
+    prepend_before_filter :before_all
+    prepend_after_filter :after_all
+    before_filter :between_before_all_and_after_all
+
+    def before_all
+      @ran_filter ||= []
+      @ran_filter << 'before_all'
+    end
+
+    def after_all
+      @ran_filter ||= []
+      @ran_filter << 'after_all'
+    end
+
+    def between_before_all_and_after_all
+      @ran_filter ||= []
+      @ran_filter << 'between_before_all_and_after_all'
+    end
+    def show
+      render :text => 'hello'
+    end
+  end
+
+  def test_empty_filter_chain
+    assert_equal 0, EmptyFilterChainController.filter_chain.size
+    assert test_process(EmptyFilterChainController).template.assigns['action_executed']
+  end
+
   def test_added_filter_to_inheritance_graph
     assert_equal [ :ensure_login ], TestController.before_filters
   end
@@ -424,6 +461,12 @@ class FilterTest < Test::Unit::TestCase
       response = DynamicDispatchController.process(request, ActionController::TestResponse.new)
       assert_equal action, response.body
     end
+  end
+
+  def test_running_prepended_before_and_after_filter
+    assert_equal 3, PrependingBeforeAndAfterController.filter_chain.length
+    response = test_process(PrependingBeforeAndAfterController)
+    assert_equal %w( before_all between_before_all_and_after_all after_all ), response.template.assigns["ran_filter"]
   end
 
   def test_conditional_skipping_of_filters

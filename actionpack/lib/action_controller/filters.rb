@@ -527,6 +527,8 @@ module ActionController #:nodoc:
         end
 
         def find_filter_append_position(filters, filter_type)
+          # appending an after filter puts it at the end of the call chain
+          # before and around filters goe before the first after filter in the chain
           unless filter_type == :after
             filter_chain.each_with_index do |f,i|
               return i if f.after?
@@ -536,10 +538,13 @@ module ActionController #:nodoc:
         end
 
         def find_filter_prepend_position(filters, filter_type)
+          # prepending a before or around filter puts it at the front of the call chain
+          # after filters go before the first after filter in the chain
           if filter_type == :after
             filter_chain.each_with_index do |f,i|
               return i if f.after?
             end
+            return -1
           end
           return 0
         end
@@ -684,9 +689,9 @@ module ActionController #:nodoc:
 
       def call_filters(chain, index, nesting)
         # run before filters until we find an after filter or around filter
-        while true
+        while chain[index]
           filter, index = skip_excluded_filters(chain, index)
-          break unless filter
+          break unless filter # end of call chain reached
           case filter.type
           when :before
             # invoke before filter
@@ -710,8 +715,9 @@ module ActionController #:nodoc:
         return index if aborted || nesting != 0
 
         # run after filters, if any
-        while filter = chain[index]
+        while chain[index]
           filter, index = skip_excluded_filters(chain, index)
+          break unless filter
           case filter.type
           when :after
             filter.run(self)
