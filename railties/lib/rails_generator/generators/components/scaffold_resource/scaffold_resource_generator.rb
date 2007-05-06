@@ -41,13 +41,13 @@ class ScaffoldResourceGenerator < Rails::Generator::NamedBase
 
       for action in scaffold_views
         m.template(
-          "view_#{action}.erb",
-          File.join('app/views', controller_class_path, controller_file_name, "#{action}.erb")
+          "view_#{action}.html.erb",
+          File.join('app/views', controller_class_path, controller_file_name, "#{action}.html.erb")
         )
       end
 
       # Layout and stylesheet.
-      m.template('layout.erb', File.join('app/views/layouts', controller_class_path, "#{controller_file_name}.erb"))
+      m.template('layout.html.erb', File.join('app/views/layouts', controller_class_path, "#{controller_file_name}.html.erb"))
       m.template('style.css', 'public/stylesheets/scaffold.css')
 
       m.template('model.rb', File.join('app/models', class_path, "#{file_name}.rb"))

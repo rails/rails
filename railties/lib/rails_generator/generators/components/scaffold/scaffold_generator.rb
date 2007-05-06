@@ -81,12 +81,12 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       m.dependency 'model', [singular_name], :collision => :skip, :skip_migration => true
 
       # Scaffolded forms.
-      m.complex_template "form.erb",
+      m.complex_template "form.html.erb",
         File.join('app/views',
                   controller_class_path,
                   controller_file_name,
-                  "_form.erb"),
-        :insert => 'form_scaffolding.erb',
+                  "_form.html.erb"),
+        :insert => 'form_scaffolding.html.erb',
         :sandbox => lambda { create_sandbox },
         :begin_mark => 'form',
         :end_mark => 'eoform',
@@ -95,11 +95,11 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
 
       # Scaffolded views.
       scaffold_views.each do |action|
-        m.template "view_#{action}.erb",
+        m.template "view_#{action}.html.erb",
                    File.join('app/views',
                              controller_class_path,
                              controller_file_name,
-                             "#{action}.erb"),
+                             "#{action}.html.erb"),
                    :assigns => { :action => action }
       end
 
@@ -120,10 +120,10 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
                             "#{controller_file_name}_helper.rb")
 
       # Layout and stylesheet.
-      m.template 'layout.erb',
+      m.template 'layout.html.erb',
                   File.join('app/views/layouts',
                             controller_class_path,
-                            "#{controller_file_name}.erb")
+                            "#{controller_file_name}.html.erb")
 
       m.template 'style.css',     'public/stylesheets/scaffold.css'
 
@@ -133,8 +133,8 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
         path = File.join('app/views',
                           controller_class_path,
                           controller_file_name,
-                          "#{action}.erb")
-        m.template "controller:view.erb", path,
+                          "#{action}.html.erb")
+        m.template "controller:view.html.erb", path,
                    :assigns => { :action => action, :path => path}
       end
     end

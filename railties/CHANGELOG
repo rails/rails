@@ -1,5 +1,7 @@
 *SVN*
 
+* Generators use *.html.erb view template naming.  #8278 [Tim Pope]
+
 * Updated resource_scaffold and model generators to use short-hand style migrations [DHH]
 
 * Updated initializer to only load #{RAILS_ENV}.rb once. Added deprecation warning for config.breakpoint_server. [Nicholas Seckar]
