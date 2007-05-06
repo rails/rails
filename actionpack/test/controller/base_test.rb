@@ -88,7 +88,7 @@ class ControllerInstanceTests < Test::Unit::TestCase
   # Mocha adds methods to Object which are then included in the public_instance_methods
   # This method hides those from the controller so the above tests won't know the difference
   def hide_mocha_methods_from_controller(controller)
-    mocha_methods = [:expects, :metaclass, :mocha, :mocha_inspect, :reset_mocha, :stubba_object, :stubba_method, :stubs, :verify]
+    mocha_methods = [:expects, :metaclass, :mocha, :mocha_inspect, :reset_mocha, :stubba_object, :stubba_method, :stubs, :verify, :__is_a__, :__metaclass__]
     controller.class.send(:hide_action, *mocha_methods)
   end
   
