@@ -1,5 +1,7 @@
 *SVN*
 
+* Modernize documentation for form helpers. [jeremymcanally]
+
 * Add brief introduction to REST to the resources documentation. [fearoffish]
 
 * Fix various documentation typos throughout ActionPack. [Henrik N]
