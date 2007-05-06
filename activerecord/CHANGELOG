@@ -1,5 +1,7 @@
 *SVN*
 
+* Add documentation for :encoding option to mysql adapter. [marclove]
+
 * Added short-hand declaration style to migrations (inspiration from Sexy Migrations, http://errtheblog.com/post/2381) [DHH]. Example:
 
     create_table "products" do |t|

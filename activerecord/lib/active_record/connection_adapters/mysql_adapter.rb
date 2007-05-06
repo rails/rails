@@ -129,6 +129,7 @@ module ActiveRecord
     # * <tt>:username</tt> -- Defaults to root
     # * <tt>:password</tt> -- Defaults to nothing
     # * <tt>:database</tt> -- The name of the database. No default, must be provided.
+    # * <tt>:encoding</tt> -- (Optional) Sets the client encoding by executing "SET NAMES <encoding>" after connection
     # * <tt>:sslkey</tt> -- Necessary to use MySQL with an SSL connection
     # * <tt>:sslcert</tt> -- Necessary to use MySQL with an SSL connection
     # * <tt>:sslcapath</tt> -- Necessary to use MySQL with an SSL connection
