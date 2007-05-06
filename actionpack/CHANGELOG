@@ -1,6 +1,6 @@
 *SVN*
 
-* Fix documentation typo in routes. [norbert]
+* Fix documentation typo in routes. [norbert, pam]
 
 * Sweep flash when filter chain is halted. [Caio Chassot <lists@v2studio.com>]
 

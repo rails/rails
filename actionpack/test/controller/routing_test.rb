@@ -315,7 +315,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_match %r[:action=>"show"], exception.message
     assert_match %r[:controller=>"content"], exception.message
     assert_match %r[you may have ambiguous routes, or you may need to supply additional parameters for this route], exception.message
-    assert_match %r[content_url has the following required parameters: \["content", :query\] - are they all satisifed?], exception.message
+    assert_match %r[content_url has the following required parameters: \["content", :query\] - are they all satisfied?], exception.message
   end
   
   def test_dynamic_path_allowed
