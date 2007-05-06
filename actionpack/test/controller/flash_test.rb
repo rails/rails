@@ -34,6 +34,12 @@ class FlashTest < Test::Unit::TestCase
       silence_warnings { keep_flash }
       render :inline => "hello"
     end
+    
+    def use_flash_and_update_it
+      flash.update("this" => "hello again")
+      @flash_copy = {}.update flash
+      render :inline => "hello"
+    end
 
     def use_flash_after_reset_session
       flash["that"] = "hello"
@@ -47,6 +53,24 @@ class FlashTest < Test::Unit::TestCase
 
     def rescue_action(e)
       raise unless ActionController::MissingTemplate === e
+    end
+
+    # methods for test_sweep_after_halted_filter_chain
+    before_filter :halt_and_redir, :only => "filter_halting_action"
+
+    def std_action
+      @flash_copy = {}.update(flash)
+    end
+
+    def filter_halting_action
+      @flash_copy = {}.update(flash)
+    end
+
+    def halt_and_redir
+      flash["foo"] = "bar"
+      redirect_to :action => "std_action"
+      @flash_copy = {}.update(flash)
+      false
     end
   end
 
@@ -93,10 +117,31 @@ class FlashTest < Test::Unit::TestCase
     assert_nil @response.template.assigns["flashy"]
   end 
   
+  def test_update_flash
+    get :set_flash
+    get :use_flash_and_update_it
+    assert_equal "hello",       @response.template.assigns["flash_copy"]["that"]
+    assert_equal "hello again", @response.template.assigns["flash_copy"]["this"]
+    get :use_flash
+    assert_nil                  @response.template.assigns["flash_copy"]["that"], "On second flash"
+    assert_equal "hello again", @response.template.assigns["flash_copy"]["this"], "On second flash"
+  end
+  
   def test_flash_after_reset_session
     get :use_flash_after_reset_session
     assert_equal "hello",    @response.template.assigns["flashy_that"]
     assert_equal "good-bye", @response.template.assigns["flashy_this"]
     assert_nil   @response.template.assigns["flashy_that_reset"]
   end 
+
+  def test_sweep_after_halted_filter_chain
+    get :std_action
+    assert_nil @response.template.assigns["flash_copy"]["foo"]
+    get :filter_halting_action
+    assert_equal "bar", @response.template.assigns["flash_copy"]["foo"]
+    get :std_action # follow redirection
+    assert_equal "bar", @response.template.assigns["flash_copy"]["foo"]
+    get :std_action
+    assert_nil @response.template.assigns["flash_copy"]["foo"]
+  end
 end

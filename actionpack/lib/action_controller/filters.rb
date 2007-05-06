@@ -672,7 +672,6 @@ module ActionController #:nodoc:
         base.class_eval do
           alias_method_chain :perform_action, :filters
           alias_method_chain :process, :filters
-          alias_method_chain :process_cleanup, :filters
         end
       end
 
@@ -748,13 +747,6 @@ module ActionController #:nodoc:
           call_filters(self.class.filter_chain, 0, 0)
         end
 
-        def process_cleanup_with_filters
-          if @before_filter_chain_aborted
-            close_session
-          else
-            process_cleanup_without_filters
-          end
-        end
     end
   end
 end

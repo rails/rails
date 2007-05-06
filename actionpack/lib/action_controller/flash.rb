@@ -63,7 +63,7 @@ module ActionController #:nodoc:
       end
       
       def update(h) #:nodoc:
-        h.keys.each{ |k| discard(k) }
+        h.keys.each { |k| keep(k) }
         super
       end
       
