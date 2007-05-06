@@ -564,7 +564,19 @@ module ActiveRecord #:nodoc:
         update_counters(id, counter_name => 1)
       end
 
-      # Works like increment_counter, but decrements instead.
+      # Decrement a number field by one, usually representing a count.
+      #
+      # This works the same as increment_counter but reduces the column value by 1 instead of increasing it.
+      #
+      # ==== Options
+      #
+      # +counter_name+  The name of the field that should be decremented
+      # +id+            The id of the object that should be decremented
+      #
+      # ==== Examples
+      #
+      #   # Decrement the post_count column for the record with an id of 5
+      #   DiscussionBoard.decrement_counter(:post_count, 5)
       def decrement_counter(counter_name, id)
         update_counters(id, counter_name => -1)
       end
