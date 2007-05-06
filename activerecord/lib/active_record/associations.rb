@@ -530,7 +530,7 @@ module ActiveRecord
       # * <tt>collection_singular_ids</tt> - returns an array of the associated objects ids
       # * <tt>collection_singular_ids=ids</tt> - replace the collection by the objects identified by the primary keys in +ids+
       # * <tt>collection.clear</tt> - removes every object from the collection. This destroys the associated objects if they
-      #   are <tt>:dependent</tt>, deletes them directly from the database if they are <tt>:dependent => :delete_all</tt>,
+      #   are associated with <tt>:dependent => :destroy</tt>, deletes them directly from the database if <tt>:dependent => :delete_all</tt>,
       #   and sets their foreign keys to NULL otherwise.
       # * <tt>collection.empty?</tt> - returns true if there are no associated objects.
       # * <tt>collection.size</tt> - returns the number of associated objects.
