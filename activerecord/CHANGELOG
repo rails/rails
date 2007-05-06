@@ -1,5 +1,7 @@
 *SVN*
 
+* Add documentation caveat about when to use count_by_sql. [fearoffish]
+
 * Enhance documentation for increment_counter and decrement_counter. [fearoffish]
 
 * Provide brief introduction to what optimistic locking is. [fearoffish]

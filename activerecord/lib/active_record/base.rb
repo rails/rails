@@ -530,6 +530,15 @@ module ActiveRecord #:nodoc:
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
+      # The use of this method should be restricted to complicated SQL queries that can't be executed 
+      # using the ActiveRecord::Calculations class methods.  Look into those before using this.
+      #
+      # ==== Options
+      # 
+      # +sql+: An SQL statement which should return a count query from the database, see the example below
+      #
+      # ==== Examples
+      #
       #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
       def count_by_sql(sql)
         sql = sanitize_conditions(sql)
