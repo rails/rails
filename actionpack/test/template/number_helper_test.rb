@@ -22,7 +22,7 @@ class NumberHelperTest < Test::Unit::TestCase
   def test_number_to_currency
     assert_equal("$1,234,567,890.50", number_to_currency(1234567890.50))
     assert_equal("$1,234,567,890.51", number_to_currency(1234567890.506))
-    assert_equal("$1,234,567,890", number_to_currency(1234567890.50, {:precision => 0}))
+    assert_equal("$1,234,567,891", number_to_currency(1234567890.51, {:precision => 0}))
     assert_equal("$1,234,567,890.5", number_to_currency(1234567890.50, {:precision => 1}))
     assert_equal("&pound;1234567890,50", number_to_currency(1234567890.50, {:unit => "&pound;", :separator => ",", :delimiter => ""}))
     assert_equal("$1,234,567,890.50", number_to_currency("1234567890.50"))
