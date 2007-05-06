@@ -1,5 +1,7 @@
 *SVN*
 
+* Enhance documentation and add examples for url_for. [jeremymcanally]
+
 * Fix documentation typo in routes. [norbert, pam]
 
 * Sweep flash when filter chain is halted. [Caio Chassot <lists@v2studio.com>]
