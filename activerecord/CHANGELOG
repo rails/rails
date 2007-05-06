@@ -1,5 +1,7 @@
 *SVN*
 
+* Document :allow_nil option for validates_acceptance_of since it defaults to true. [tzaharia]
+
 * Update documentation for :dependent declaration so that it explicitly uses the non-deprecated API. [danger]
 
 * Add documentation caveat about when to use count_by_sql. [fearoffish]
