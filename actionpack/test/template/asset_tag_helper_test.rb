@@ -165,7 +165,12 @@ class AssetTagHelperTest < Test::Unit::TestCase
 
   def test_preset_empty_asset_id
     Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
+    # on windows, setting ENV["XXX"] to "" makes ENV["XXX"] return nil
+    if RUBY_PLATFORM =~ /win32/
+      ENV["RAILS_ASSET_ID"] = " "
+    else
     ENV["RAILS_ASSET_ID"] = ""
+    end
     assert_equal %(<img alt="Rails" src="/images/rails.png" />), image_tag("rails.png")
   end
 
