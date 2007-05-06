@@ -1,5 +1,15 @@
 module ActiveRecord
   module Locking
+    # == What is Optimistic Locking
+    #
+    # Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of 
+    # conflicts with the data.  It does this by checking whether another process has made changes to a record since
+    # it was opened, an ActiveRecord::StaleObjectError is thrown if that has occurred and the update is ignored.
+    #
+    # Check out ActiveRecord::Locking::Pessimistic for an alternative.
+    #
+    # == Usage
+    #
     # Active Records support optimistic locking if the field <tt>lock_version</tt> is present.  Each update to the
     # record increments the lock_version column and the locking facilities ensure that records instantiated twice
     # will let the last one saved raise a StaleObjectError if the first was also updated. Example:
