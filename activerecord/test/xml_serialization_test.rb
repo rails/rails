@@ -146,6 +146,8 @@ class DatabaseConnectedXmlSerializationTest < Test::Unit::TestCase
 
   def test_include_uses_association_name
     xml = authors(:david).to_xml :include=>:hello_posts, :indent=>0
-    assert(xml.include?(%(<hello_posts><post>)) || xml.include?(%(</post></hello-posts>)))
+    assert_match %r{<hello-posts>}, xml
+    assert_match %r{<post>}, xml
+    assert_match %r{<sti-post>}, xml
   end
 end
