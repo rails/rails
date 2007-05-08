@@ -1,5 +1,7 @@
 *SVN*
 
+* Simplify API of assert_difference by passing in an expression that is evaluated before and after the passed in block. See documenation for examples of new API. [Marcel Molina Jr.]
+
 * Added assert_difference and assert_no_difference to test/unit assertions [Tobias Luetke]
 
 * Removed breakpointer and Binding.of_caller in favor of relying on ruby-debug by Kent Sibilev since the breakpointer has been broken since Ruby 1.8.4 and will not be coming back [DHH]
