@@ -20,7 +20,7 @@ module Test #:nodoc:
       #     post :delete, :id => ...
       #   end
       def assert_difference(expression, difference = 1, &block)
-        expression_evaluation = lambda { eval(expression) }
+        expression_evaluation = lambda { eval(expression, block.binding) }
         original_value        = expression_evaluation.call
         yield
         assert_equal original_value + difference, expression_evaluation.call
