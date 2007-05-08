@@ -1,5 +1,7 @@
 *SVN*
 
+* Included the HttpAuthentication plugin as part of core (ActionController::HttpAuthentication::Basic) [DHH]
+
 * Modernize documentation for form helpers. [jeremymcanally]
 
 * Add brief introduction to REST to the resources documentation. [fearoffish]
