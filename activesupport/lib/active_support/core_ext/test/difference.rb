@@ -4,19 +4,19 @@ module Test #:nodoc:
       # Test numeric difference between the return value of an expression as a result of what is evaluated
       # in the yielded block.
       #
-      #   assert_difference 'Post.count' do
-      #     post :create, :post => {...}
+      #   assert_difference 'Article.count' do
+      #     post :create, :article => {...}
       #   end
       #
-      # An arbitrary expression is passed in an evaluated.
+      # An arbitrary expression is passed in and evaluated.
       #
-      #   assert_difference 'assigns(:post).comments(:reload).size' do
+      #   assert_difference 'assigns(:article).comments(:reload).size' do
       #     post :create, :comment => {...}
       #   end
       #
-      # An arbitrary positive or negative difference can be specified. The default is 1.
+      # An arbitrary positive or negative difference can be specified. The default is +1.
       #
-      #   assert_difference 'Post.count', -1 do
+      #   assert_difference 'Article.count', -1 do
       #     post :delete, :id => ...
       #   end
       def assert_difference(expression, difference = 1, &block)
@@ -29,8 +29,8 @@ module Test #:nodoc:
       # Assertion that the numeric result of evaluating an expression is not changed before and after
       # invoking the passed in block.
       #
-      #   assert_no_difference 'Post.count' do
-      #     post :create, :post => invalid_attributes
+      #   assert_no_difference 'Article.count' do
+      #     post :create, :article => invalid_attributes
       #   end
       def assert_no_difference(expression, &block)
         assert_difference expression, 0, &block
