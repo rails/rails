@@ -1,5 +1,9 @@
 *SVN*
 
+* Handle string and symbol param keys when splitting params into prefix params and query params.
+
+    Comment.find(:all, :params => { :article_id => 5, :page => 2 }) or Comment.find(:all, :params => { 'article_id' => 5, :page => 2 })
+
 * Added find-one with symbol [DHH]. Example: Person.find(:one, :from => :leader) # => GET /people/leader.xml
 
 * BACKWARDS INCOMPATIBLE: Changed the finder API to be more extensible with :params and more strict usage of scopes [DHH]. Changes:

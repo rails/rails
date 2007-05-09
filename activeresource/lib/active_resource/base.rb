@@ -215,7 +215,8 @@ module ActiveResource
           prefix_options, query_options = {}, {}
 
           (options || {}).each do |key, value|
-            (prefix_parameters.include?(key) ? prefix_options : query_options)[key] = value
+            next if key.blank?
+            (prefix_parameters.include?(key.to_sym) ? prefix_options : query_options)[key.to_sym] = value
           end
 
           [ prefix_options, query_options ]
@@ -360,7 +361,7 @@ module ActiveResource
       def load_attributes_from_response(response)
         if response['Content-size'] != "0" && response.body.strip.size > 0
           load(connection.xml_from_response(response))
-        end        
+        end
       end
 
       # Takes a response from a typical create post and pulls the ID out
