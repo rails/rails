@@ -89,22 +89,37 @@ HEADER
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" if @types[column.type].nil?
             next if column.name == pk
             spec = {}
-            spec[:name]    = column.name.inspect
-            spec[:type]    = column.type.inspect
-            spec[:limit]   = column.limit.inspect if column.limit != @types[column.type][:limit] && column.type != :decimal
+            spec[:name]      = column.name.inspect
+            spec[:type]      = column.type.to_s
+            spec[:limit]     = column.limit.inspect if column.limit != @types[column.type][:limit] && column.type != :decimal
             spec[:precision] = column.precision.inspect if !column.precision.nil?
-            spec[:scale] = column.scale.inspect if !column.scale.nil?
-            spec[:null]    = 'false' if !column.null
-            spec[:default] = default_string(column.default) if !column.default.nil?
+            spec[:scale]     = column.scale.inspect if !column.scale.nil?
+            spec[:null]      = 'false' if !column.null
+            spec[:default]   = default_string(column.default) if !column.default.nil?
             (spec.keys - [:name, :type]).each{ |k| spec[k].insert(0, "#{k.inspect} => ")}
             spec
           end.compact
-          keys = [:name, :type, :limit, :precision, :scale, :default, :null] & column_specs.map{ |spec| spec.keys }.inject([]){ |a,b| a | b }
+
+          # find all migration keys used in this table
+          keys = [:name, :limit, :precision, :scale, :default, :null] & column_specs.map(&:keys).flatten
+
+          # figure out the lengths for each column based on above keys
           lengths = keys.map{ |key| column_specs.map{ |spec| spec[key] ? spec[key].length + 2 : 0 }.max }
-          format_string = lengths.map{ |len| "%-#{len}s" }.join("")
+
+          # the string we're going to sprintf our values against, with standardized column widths
+          format_string = lengths.map{ |len| "%-#{len}s" }
+
+          # find the max length for the 'type' column, which is special
+          type_length = column_specs.map{ |column| column[:type].length }.max
+
+          # add column type definition to our format string
+          format_string.unshift "    t.%-#{type_length}s "
+
+          format_string *= ''
+
           column_specs.each do |colspec|
             values = keys.zip(lengths).map{ |key, len| colspec.key?(key) ? colspec[key] + ", " : " " * len }
-            tbl.print "    t.column "
+            values.unshift colspec[:type]
             tbl.print((format_string % values).gsub(/,\s*$/, ''))
             tbl.puts
           end

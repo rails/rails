@@ -32,11 +32,27 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
       return assert(true) if matches.empty?
       assert_equal 1, matches.map{ |match| match.offset(0).first }.uniq.length
     end
+
+    def column_definition_lines(output = standard_dump)
+      output.scan(/^( *)create_table.*?\n(.*?)^\1end/m).map{ |m| m.last.split(/\n/) }
+    end
+
+    def test_types_line_up
+      column_definition_lines.each do |column_set|
+        next if column_set.empty?
+
+        lengths = column_set.map do |column| 
+          if match = column.match(/t\.(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean)\s+"/)
+            match[0].length
+          end
+        end
+
+        assert_equal 1, lengths.uniq.length
+      end
+    end
     
     def test_arguments_line_up
-      output  = standard_dump
-      output.scan(/^( *)create_table.*?\n(.*?)^\1end/m).map{ |m| m.last.split(/\n/) }.each do |column_set|
-        assert_line_up(column_set, /:(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean)/, true)
+      column_definition_lines.each do |column_set|
         assert_line_up(column_set, /:default => /)
         assert_line_up(column_set, /:limit => /)
         assert_line_up(column_set, /:null => /)
@@ -92,7 +108,7 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
     if current_adapter?(:MysqlAdapter)
       def test_schema_dump_should_not_add_default_value_for_mysql_text_field
         output = standard_dump
-        assert_match %r{t.column "body",\s+:text,\s+:null => false$}, output
+        assert_match %r{t.text\s+"body",\s+:null => false$}, output
       end
     end
 

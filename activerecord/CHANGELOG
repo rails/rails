@@ -30,8 +30,6 @@
       t.string  :name, :value, :default => "Untitled"
       t.timestamps
     end
-    
-  Note: Schema dumping still happens in the old style -- someone care to update it?
 
 * Use association name for the wrapper element when using .to_xml.  Previous behavior lead to non-deterministic situations with STI and polymorphic associations. [Koz, jstrachan]
 
