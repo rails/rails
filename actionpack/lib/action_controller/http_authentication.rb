@@ -86,10 +86,10 @@ module ActionController
       end
 
       def authenticate(controller, &login_procedure)
-        if authorization(controller.request)
-          login_procedure.call(*user_name_and_password(controller.request))
-        else
+        if authorization(controller.request).blank?
           false
+        else
+          login_procedure.call(*user_name_and_password(controller.request))
         end
       end
 
