@@ -17,7 +17,7 @@ module BaseTest
   def setup
     @template = nil
     @controller = Class.new do
-      def url_for(options, *parameters_for_method_reference)
+      def url_for(options)
         if options.is_a?(String)
           options
         else

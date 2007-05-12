@@ -303,7 +303,7 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
     @controller = Class.new do
       attr_accessor :request
 
-      def url_for(options, *parameters_for_method_reference)
+      def url_for(options)
         "http://www.example.com/collaboration/hieraki"
       end
     end.new

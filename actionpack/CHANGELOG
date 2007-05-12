@@ -1,5 +1,14 @@
 *SVN*
 
+* Added record identification with polymorphic routes for ActionController::Base#url_for and ActionView::Base#url_for [DHH]. Examples:
+
+    redirect_to(post)         # => redirect_to(posts_url(post))         => Location: http://example.com/posts/1
+    link_to(post.title, post) # => link_to(post.title, posts_url(post)) => <a href="/posts/1">Hello world</a>
+
+  Any method that calls url_for on its parameters will automatically benefit from this. 
+
+* Removed deprecated parameters_for_method_reference concept (legacy from before named routes) [DHH]
+
 * Add ActionController::Routing::Helpers, a module to contain common URL helpers such as polymorphic_url. [Nicholas Seckar]
 
 * Included the HttpAuthentication plugin as part of core (ActionController::HttpAuthentication::Basic) [DHH]
@@ -2694,7 +2703,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Fixed all helpers so that they use XHTML compliant double quotes for values instead of single quotes [htonl/bitsweat]
 
-* Added link_to_image(src, options = {}, html_options = {}, *parameters_for_method_reference). Documentation:
+* Added link_to_image(src, options = {}, html_options = {}). Documentation:
 
     Creates a link tag to the image residing at the +src+ using an URL created by the set of +options+. See the valid options in
     link:classes/ActionController/Base.html#M000021. It's also possible to pass a string instead of an options hash to

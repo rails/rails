@@ -29,6 +29,13 @@ module ActionView
       # * <tt>:password</tt> -- Inline HTTP authentication (only plucked out if :user is also present)
       # * <tt>:escape</tt> -- Determines whether the returned URL will be HTML escaped or not (<tt>true</tt> by default)
       #
+      # ==== Relying on named routes
+      #
+      # If you instead of a hash pass a record (like an Active Record or Active Resource) as the options parameter,
+      # you'll trigger the named route for that record. The lookup will happen on the name of the class. So passing
+      # a Workshop object will attempt to use the workshop_path route. If you have a nested route, such as 
+      # admin_workshop_path you'll have to call that explicitly (it's impossible for url_for to guess that route). 
+      #
       # ==== Examples
       #   <%= url_for(:action => 'index') %>
       #   # => /blog/
@@ -47,15 +54,30 @@ module ActionView
       #
       #   <%= url_for(:action => 'checkout', :anchor => 'tax&ship', :escape => false) %>
       #   # => /testing/jump/#tax&ship
-      def url_for(options = {}, *parameters_for_method_reference)
-        if options.kind_of? Hash
+      #
+      #   <%= url_for(Workshop.new) %>
+      #   # relies on Workshop answering a new_record? call (and in this case returning true)
+      #   # => /workshops
+      #
+      #   <%= url_for(@workshop) %>
+      #   # calls @workshop.to_s
+      #   # => /workshops/5
+      def url_for(options = {})
+        case options
+        when Hash
           options = { :only_path => true }.update(options.symbolize_keys)
-          escape = options.key?(:escape) ? options.delete(:escape) : true
-        else
+          escape  = options.key?(:escape) ? options.delete(:escape) : true
+          url     = @controller.send(:url_for, options)
+        when String
           escape = true
+          url    = options
+        when NilClass
+          url = @controller.send(:url_for, nil)
+        else
+          escape = false
+          url    = polymorphic_path(options, self)
         end
 
-        url = @controller.send(:url_for, options, *parameters_for_method_reference)
         escape ? html_escape(url) : url
       end
 
@@ -104,7 +126,7 @@ module ActionView
       #        f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;
       #        var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); 
       #        m.setAttribute('value', 'delete'); f.appendChild(m);f.submit(); };return false;">Delete Image</a>
-      def link_to(name, options = {}, html_options = nil, *parameters_for_method_reference)
+      def link_to(name, options = {}, html_options = nil)
         if html_options
           html_options = html_options.stringify_keys
           convert_options_to_javascript!(html_options)
@@ -113,7 +135,7 @@ module ActionView
           tag_options = nil
         end
 
-        url = options.is_a?(String) ? options : self.url_for(options, *parameters_for_method_reference)
+        url = options.is_a?(String) ? options : self.url_for(options)
         "<a href=\"#{url}\"#{tag_options}>#{name || url}</a>"
       end
 
@@ -222,8 +244,8 @@ module ActionView
       #           link_to("Go back", { :controller => 'posts', :action => 'index' }) 
       #        end 
       #     %>
-      def link_to_unless_current(name, options = {}, html_options = {}, *parameters_for_method_reference, &block)
-        link_to_unless current_page?(options), name, options, html_options, *parameters_for_method_reference, &block
+      def link_to_unless_current(name, options = {}, html_options = {}, &block)
+        link_to_unless current_page?(options), name, options, html_options, &block
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
@@ -246,15 +268,15 @@ module ActionView
       #   # => <a href="/controller/reply/">Reply</a>
       #   # If not...
       #   # => <a href="/accounts/signup">Reply</a>
-      def link_to_unless(condition, name, options = {}, html_options = {}, *parameters_for_method_reference, &block)
+      def link_to_unless(condition, name, options = {}, html_options = {}, &block)
         if condition
           if block_given?
-            block.arity <= 1 ? yield(name) : yield(name, options, html_options, *parameters_for_method_reference)
+            block.arity <= 1 ? yield(name) : yield(name, options, html_options)
           else
             name
           end
         else
-          link_to(name, options, html_options, *parameters_for_method_reference)
+          link_to(name, options, html_options)
         end
       end
 
@@ -278,8 +300,8 @@ module ActionView
       #   # => <a href="/sessions/new/">Login</a>
       #   # If they are logged in...
       #   # => <a href="/accounts/show/3">my_username</a>
-      def link_to_if(condition, name, options = {}, html_options = {}, *parameters_for_method_reference, &block)
-        link_to_unless !condition, name, options, html_options, *parameters_for_method_reference, &block
+      def link_to_if(condition, name, options = {}, html_options = {}, &block)
+        link_to_unless !condition, name, options, html_options, &block
       end
 
       # Creates a mailto link tag to the specified +email_address+, which is

@@ -10,7 +10,7 @@ class UrlHelperTest < Test::Unit::TestCase
   def setup
     @controller = Class.new do
       attr_accessor :url, :request
-      def url_for(options, *parameters_for_method_reference)
+      def url_for(options)
         url
       end
     end
@@ -168,7 +168,7 @@ class UrlHelperTest < Test::Unit::TestCase
     assert_equal "Showing", link_to_unless(true, "Showing", :action => "show", :controller => "weblog")
     assert_dom_equal "<a href=\"http://www.example.com\">Listing</a>", link_to_unless(false, "Listing", :action => "list", :controller => "weblog")
     assert_equal "Showing", link_to_unless(true, "Showing", :action => "show", :controller => "weblog", :id => 1)
-    assert_equal "<strong>Showing</strong>", link_to_unless(true, "Showing", :action => "show", :controller => "weblog", :id => 1) { |name, options, html_options, *parameters_for_method_reference|
+    assert_equal "<strong>Showing</strong>", link_to_unless(true, "Showing", :action => "show", :controller => "weblog", :id => 1) { |name, options, html_options|
       "<strong>#{name}</strong>"
     }
     assert_equal "<strong>Showing</strong>", link_to_unless(true, "Showing", :action => "show", :controller => "weblog", :id => 1) { |name|
@@ -347,6 +347,75 @@ class LinkToUnlessCurrentWithControllerTest < Test::Unit::TestCase
       with_routing do |set|
         set.draw do |map|
           map.resources :tasks
+        end
+        yield
+      end
+    end
+end
+
+
+class Workshop
+  attr_accessor :id, :new_record
+
+  def initialize(id, new_record)
+    @id, @new_record = id, new_record
+  end
+  
+  def new_record?
+    @new_record
+  end
+  
+  def to_s
+    id.to_s
+  end
+end
+
+class PolymorphicControllerTest < Test::Unit::TestCase
+  class WorkshopsController < ActionController::Base
+    self.view_paths = ["#{File.dirname(__FILE__)}/../fixtures/"]
+
+    def self.controller_path; 'workshops' end
+
+    def index
+      @workshop = Workshop.new(1, true)
+      render :inline => "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
+    end
+
+    def show
+      @workshop = Workshop.new(params[:id], false)
+      render :inline => "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
+    end
+
+    def rescue_action(e) raise e end
+  end
+
+  include ActionView::Helpers::UrlHelper
+
+  def setup
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    @controller = WorkshopsController.new
+  end
+
+  def test_new_resource
+    with_restful_routing do
+      get :index
+      assert_equal "/workshops\n<a href=\"/workshops\">Workshop</a>", @response.body
+    end
+  end
+
+  def test_existing_resource
+    with_restful_routing do
+      get :show, :id => 1
+      assert_equal "/workshops/1\n<a href=\"/workshops/1\">Workshop</a>", @response.body
+    end
+  end
+
+  protected
+    def with_restful_routing
+      with_routing do |set|
+        set.draw do |map|
+          map.resources :workshops
         end
         yield
       end

@@ -83,7 +83,7 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
     setup_user
 
     @controller = Object.new
-    def @controller.url_for(options, *parameters_for_method_reference)
+    def @controller.url_for(options)
       options = options.symbolize_keys
 
       [options[:action], options[:id].to_param].compact.join('/')

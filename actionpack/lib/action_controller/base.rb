@@ -560,7 +560,7 @@ module ActionController #:nodoc:
           when Hash
             @url.rewrite(rewrite_options(options))
           else
-            raise ArgumentError, "Unrecognized url_for options: #{options.inspect}"
+            polymorphic_url(options, self)
         end
       end
 
@@ -1015,7 +1015,7 @@ module ActionController #:nodoc:
       # When using <tt>redirect_to :back</tt>, if there is no referrer,
       # RedirectBackError will be raised. You may specify some fallback
       # behavior for this case by rescueing RedirectBackError.
-      def redirect_to(options = {}, *parameters_for_method_reference) #:doc:
+      def redirect_to(options = {}) #:doc:
         case options
           when %r{^\w+://.*}
             raise DoubleRenderError if performed?
@@ -1031,14 +1031,8 @@ module ActionController #:nodoc:
             request.env["HTTP_REFERER"] ? redirect_to(request.env["HTTP_REFERER"]) : raise(RedirectBackError)
 
           else
-            if parameters_for_method_reference.empty?
-              redirect_to(url_for(options))
-              response.redirected_to = options
-            else
-              # TOOD: Deprecate me!
-              redirect_to(url_for(options, *parameters_for_method_reference))
-              response.redirected_to, response.redirected_to_method_params = options, parameters_for_method_reference
-            end
+            redirect_to(url_for(options))
+            response.redirected_to = options
         end
       end
 

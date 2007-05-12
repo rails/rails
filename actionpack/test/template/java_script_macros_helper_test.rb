@@ -12,7 +12,7 @@ class JavaScriptMacrosHelperTest < Test::Unit::TestCase
   
   def setup
     @controller = Class.new do
-      def url_for(options, *parameters_for_method_reference)
+      def url_for(options)
         url =  "http://www.example.com/"
         url << options[:action].to_s if options and options[:action]
         url

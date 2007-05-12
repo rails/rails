@@ -38,7 +38,7 @@ class FormHelperTest < Test::Unit::TestCase
 
     @controller = Class.new do
       attr_reader :url_for_options
-      def url_for(options, *parameters_for_method_reference)
+      def url_for(options)
         @url_for_options = options
         "http://www.example.com"
       end
@@ -528,7 +528,7 @@ class FormHelperTest < Test::Unit::TestCase
 
     form_for(:post, @post, :url => 'http://www.otherdomain.com') do |f| end
 
-    assert_equal 'http://www.otherdomain.com', @controller.url_for_options
+    assert_equal '<form action="http://www.otherdomain.com" method="post"></form>', _erbout
   end
 
   def test_form_for_with_hash_url_option
@@ -540,6 +540,14 @@ class FormHelperTest < Test::Unit::TestCase
     assert_equal 'action', @controller.url_for_options[:action]
   end
   
+  def test_form_for_with_record_url_option
+    _erbout = ''
+
+    form_for(:post, @post, :url => @post) do |f| end
+
+    expected = "<form action=\"/posts/123\" method=\"post\"></form>"
+  end
+  
   def test_remote_form_for_with_html_options_adds_options_to_form_tag
     self.extend ActionView::Helpers::PrototypeHelper
     _erbout = ''
@@ -549,4 +557,10 @@ class FormHelperTest < Test::Unit::TestCase
     
     assert_dom_equal expected, _erbout
   end
+
+
+  protected
+    def polymorphic_path(record, url_writer)
+      "/posts/#{record.id}"
+    end
 end

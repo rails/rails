@@ -1,5 +1,6 @@
 require 'cgi'
 require 'uri'
+require 'action_controller/polymorphic_routes'
 
 class Object
   def to_param
@@ -255,6 +256,7 @@ module ActionController
     
     # A helper module to hold URL related helpers.
     module Helpers
+      include PolymorphicRoutes
     end
     
     class << self

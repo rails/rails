@@ -1,5 +1,24 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
+class WorkshopsController < ActionController::Base
+end
+
+class Workshop
+  attr_accessor :id, :new_record
+
+  def initialize(id, new_record)
+    @id, @new_record = id, new_record
+  end
+  
+  def new_record?
+    @new_record
+  end
+  
+  def to_s
+    id.to_s
+  end
+end
+
 class RedirectController < ActionController::Base
   def simple_redirect
     redirect_to :action => "hello_world"
@@ -20,6 +39,14 @@ class RedirectController < ActionController::Base
 
   def redirect_to_back
     redirect_to :back
+  end
+
+  def redirect_to_existing_record
+    redirect_to Workshop.new(5, false)
+  end
+
+  def redirect_to_new_record
+    redirect_to Workshop.new(5, true)
   end
 
   def rescue_errors(e) raise e end
@@ -96,6 +123,19 @@ class RedirectTest < Test::Unit::TestCase
       @request.env["HTTP_REFERER"] = nil
       get :redirect_to_back
     }
+  end
+  
+  def test_redirect_to_record
+    ActionController::Routing::Routes.draw do |map|
+      map.resources :workshops
+      map.connect ':controller/:action/:id'
+    end
+    
+    get :redirect_to_existing_record
+    assert_equal "http://test.host/workshops/5", redirect_to_url
+
+    get :redirect_to_new_record
+    assert_equal "http://test.host/workshops", redirect_to_url
   end
 end
 

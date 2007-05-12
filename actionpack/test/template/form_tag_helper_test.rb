@@ -9,7 +9,7 @@ class FormTagHelperTest < Test::Unit::TestCase
 
   def setup
     @controller = Class.new do
-      def url_for(options, *parameters_for_method_reference)
+      def url_for(options)
         "http://www.example.com"
       end
     end
@@ -44,7 +44,7 @@ class FormTagHelperTest < Test::Unit::TestCase
     _erbout = ''
     form_tag("http://example.com") { _erbout.concat "Hello world!" }
 
-    expected = %(<form action="http://www.example.com" method="post">Hello world!</form>)
+    expected = %(<form action="http://example.com" method="post">Hello world!</form>)
     assert_dom_equal expected, _erbout
   end
 
@@ -52,7 +52,7 @@ class FormTagHelperTest < Test::Unit::TestCase
     _erbout = ''
     form_tag("http://example.com", :method => :put) { _erbout.concat "Hello world!" }
 
-    expected = %(<form action="http://www.example.com" method="post"><div style='margin:0;padding:0'><input type="hidden" name="_method" value="put" /></div>Hello world!</form>)
+    expected = %(<form action="http://example.com" method="post"><div style='margin:0;padding:0'><input type="hidden" name="_method" value="put" /></div>Hello world!</form>)
     assert_dom_equal expected, _erbout
   end
 
