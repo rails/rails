@@ -30,11 +30,8 @@ task :default => [ :test_mysql, :test_sqlite, :test_sqlite3, :test_postgresql ]
 for adapter in %w( mysql postgresql sqlite sqlite3 firebird sqlserver sqlserver_odbc db2 oracle sybase openbase frontbase )
   Rake::TestTask.new("test_#{adapter}") { |t|
     t.libs << "test" << "test/connections/native_#{adapter}"
-    if adapter =~ /^sqlserver/
-      t.pattern = "test/**/*_test{,_sqlserver}.rb"
-    else
-      t.pattern = "test/**/*_test{,_#{adapter}}.rb"
-    end
+    adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z]+/]
+    t.pattern = "test/**/*_test{,_#{adapter_short}}.rb"
     t.verbose = true
   }
 end

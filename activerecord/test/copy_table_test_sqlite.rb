@@ -26,8 +26,9 @@ class CopyTableTest < Test::Unit::TestCase
   def test_copy_table_renaming_column
     test_copy_table('companies', 'companies2', 
         :rename => {'client_of' => 'fan_of'}) do |from, to, options|
-      assert_equal column_values(from, 'client_of').compact.sort, 
-                   column_values(to, 'fan_of').compact.sort
+      expected = column_values(from, 'client_of')
+      assert expected.any?, 'only nils in resultset; real values are needed'
+      assert_equal expected, column_values(to, 'fan_of')
     end
   end
   
@@ -51,7 +52,7 @@ protected
   end
   
   def column_values(table, column)
-    @connection.select_all("SELECT #{column} FROM #{table}").map {|row| row[column]}
+    @connection.select_all("SELECT #{column} FROM #{table} ORDER BY id").map {|row| row[column]}
   end
 
   def table_indexes_without_name(table)
