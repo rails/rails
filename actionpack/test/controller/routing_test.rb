@@ -923,6 +923,11 @@ class RouteTest < Test::Unit::TestCase
     o = {:controller => 'accounts', :action => 'list_all'}
     assert_equal '/accounts/list_all', default_route.generate(o, o, {})
   end
+  
+  def test_default_route_should_escape_pluses_in_id
+    expected = {:controller => 'accounts', :action => 'show', :id => 'hello world'}
+    assert_equal expected, default_route.recognize('/accounts/show/hello+world')
+  end
 
   def test_matches_controller_and_action
     # requirement_for should only be called for the action and controller _once_
