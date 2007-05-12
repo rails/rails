@@ -209,7 +209,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
         map.route_one 'route_one', :controller => 'action_pack_assertions', :action => 'nothing'
         map.connect   ':controller/:action/:id'
       end
-      set.named_routes.install
+      set.install_helpers
 
       process :redirect_to_named_route
       assert_redirected_to 'http://test.host/route_one'

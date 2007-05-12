@@ -252,7 +252,11 @@ module ActionController
     # The root paths which may contain controller files
     mattr_accessor :controller_paths
     self.controller_paths = []
-
+    
+    # A helper module to hold URL related helpers.
+    module Helpers
+    end
+    
     class << self
       def with_controllers(names)
         prior_controllers = @possible_controllers
@@ -1134,14 +1138,19 @@ module ActionController
       def draw
         clear!
         yield Mapper.new(self)
-        named_routes.install
+        install_helpers
       end
-  
+      
       def clear!
         routes.clear
         named_routes.clear
         @combined_regexp = nil
         @routes_by_controller = nil
+      end
+      
+      def install_helpers(destinations = [ActionController::Base, ActionView::Base])
+        Array(destinations).each { |d| d.send :include, Helpers }
+        named_routes.install(destinations)
       end
 
       def empty?
@@ -1152,11 +1161,11 @@ module ActionController
         Routing.use_controllers! nil # Clear the controller cache so we may discover new ones
         clear!
         load_routes!
-        named_routes.install
+        install_helpers
       end
 
       alias reload load!
-
+      
       def load_routes!
         if defined?(RAILS_ROOT) && defined?(::ActionController::Routing::Routes) && self == ::ActionController::Routing::Routes
           load File.join("#{RAILS_ROOT}/config/routes.rb")

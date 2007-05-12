@@ -21,7 +21,7 @@ module ActionController
     self.default_url_options = {}
     
     def self.included(base) #:nodoc:
-      ActionController::Routing::Routes.named_routes.install base
+      ActionController::Routing::Routes.install_helpers base
       base.mattr_accessor :default_url_options
       base.default_url_options ||= default_url_options
     end
