@@ -7,10 +7,14 @@ module ActionController
 
       case
       when options[:action] == "new"
-        url_writer.send(action_prefix(options) + RecordIdentifier.singular_class_name(record) + routing_type(options))
+        url_writer.send(
+          action_prefix(options) + RecordIdentifier.singular_class_name(record) + routing_type(options)
+        )
 
       when record.respond_to?(:new_record?) && record.new_record?
-        url_writer.send(RecordIdentifier.plural_class_name(record) + routing_type(options))
+        url_writer.send(
+          action_prefix(options) + RecordIdentifier.plural_class_name(record) + routing_type(options)
+        )
 
       else
         url_writer.send(

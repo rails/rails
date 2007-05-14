@@ -1,5 +1,29 @@
 *SVN*
 
+* Added record identifications to FormHelper#form_for and PrototypeHelper#remote_form_for [DHH]. Examples:
+
+    <% form_for(@post) do |f| %>
+      ...
+    <% end %>
+  
+  This will expand to be the same as:
+  
+    <% form_for :post, @post, :url => post_path(@post), :html => { :method => :put, :class => "edit_post", :id => "edit_post_45" } do |f| %>
+      ...
+    <% end %>
+  
+  And for new records:
+  
+    <% form_for(Post.new) do |f| %>
+      ...
+    <% end %>
+  
+  This will expand to be the same as:
+  
+    <% form_for :post, @post, :url => posts_path, :html => { :class => "new_post", :id => "new_post" } do |f| %>
+      ...
+    <% end %>
+
 * Rationalize route path escaping according to RFC 2396 section 3.3.  #7544, #8307. [Jeremy Kemper, chrisroos, begemot, jugend]
 
 * Added record identification with polymorphic routes for ActionController::Base#url_for and ActionView::Base#url_for [DHH]. Examples:

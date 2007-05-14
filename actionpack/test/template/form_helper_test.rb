@@ -1,5 +1,22 @@
 require "#{File.dirname(__FILE__)}/../abstract_unit"
 
+silence_warnings do
+  Post = Struct.new(:title, :author_name, :body, :secret, :written_on, :cost)
+  Post.class_eval do
+    alias_method :title_before_type_cast, :title unless respond_to?(:title_before_type_cast)
+    alias_method :body_before_type_cast, :body unless respond_to?(:body_before_type_cast)
+    alias_method :author_name_before_type_cast, :author_name unless respond_to?(:author_name_before_type_cast)
+
+    def new_record=(boolean)
+      @new_record = boolean
+    end
+    
+    def new_record?
+      @new_record
+    end
+  end
+end
+
 class FormHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::FormHelper
   include ActionView::Helpers::FormTagHelper
@@ -7,15 +24,7 @@ class FormHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TagHelper
   include ActionView::Helpers::TextHelper
   include ActionView::Helpers::ActiveRecordHelper
-
-  silence_warnings do
-    Post = Struct.new("Post", :title, :author_name, :body, :secret, :written_on, :cost)
-    Post.class_eval do
-      alias_method :title_before_type_cast, :title unless respond_to?(:title_before_type_cast)
-      alias_method :body_before_type_cast, :body unless respond_to?(:body_before_type_cast)
-      alias_method :author_name_before_type_cast, :author_name unless respond_to?(:author_name_before_type_cast)
-    end
-  end
+  include ActionView::Helpers::RecordIdentificationHelper
 
   def setup
     @post = Post.new
@@ -546,6 +555,38 @@ class FormHelperTest < Test::Unit::TestCase
     form_for(:post, @post, :url => @post) do |f| end
 
     expected = "<form action=\"/posts/123\" method=\"post\"></form>"
+    assert_equal expected, _erbout
+  end
+
+  def test_form_for_with_existing_object
+    _erbout = ''
+
+    form_for(@post) do |f| end
+
+    expected = "<form action=\"/posts/123\" class=\"edit_post\" id=\"edit_post_123\" method=\"post\"><div style=\"margin:0;padding:0\"><input name=\"_method\" type=\"hidden\" value=\"put\" /></div></form>"
+    assert_equal expected, _erbout
+  end
+
+  def test_form_for_with_new_object
+    _erbout = ''
+
+    post = Post.new
+    post.new_record = true
+    def post.id() nil end
+
+    form_for(post) do |f| end
+
+    expected = "<form action=\"/posts\" class=\"new_post\" id=\"new_post\" method=\"post\"></form>"
+    assert_equal expected, _erbout
+  end
+
+  def test_form_for_with_existing_object_and_custom_url
+    _erbout = ''
+
+    form_for(@post, :url => "/super_posts") do |f| end
+
+    expected = "<form action=\"/super_posts\" class=\"edit_post\" id=\"edit_post_123\" method=\"post\"><div style=\"margin:0;padding:0\"><input name=\"_method\" type=\"hidden\" value=\"put\" /></div></form>"
+    assert_equal expected, _erbout
   end
   
   def test_remote_form_for_with_html_options_adds_options_to_form_tag
@@ -561,6 +602,10 @@ class FormHelperTest < Test::Unit::TestCase
 
   protected
     def polymorphic_path(record, url_writer)
-      "/posts/#{record.id}"
+      if record.new_record?
+        "/posts"
+      else
+        "/posts/#{record.id}"
+      end
     end
 end

@@ -1,23 +1,24 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
-class Post
+class Comment
   attr_reader :id
   def save; @id = 1 end
   def new_record?; @id.nil? end
   def name
-    @id.nil? ? 'new post' : "post ##{@id}"
+    @id.nil? ? 'new comment' : "comment ##{@id}"
   end
-  class Nested < Post; end
 end
+
+class Comment::Nested < Comment; end
 
 class Test::Unit::TestCase
   protected
-    def posts_url
-      'http://www.example.com/posts'
+    def comments_url
+      'http://www.example.com/comments'
     end
     
-    def post_url(post)
-      "http://www.example.com/posts/#{post.id}"
+    def comment_url(comment)
+      "http://www.example.com/comments/#{comment.id}"
     end
 end
 
@@ -26,10 +27,10 @@ class RecordIdentifierTest < Test::Unit::TestCase
   include ActionController::RecordIdentifier
 
   def setup
-    @klass  = Post
+    @klass  = Comment
     @record = @klass.new
-    @singular = 'post'
-    @plural = 'posts'
+    @singular = 'comment'
+    @plural = 'comments'
   end
 
   def test_dom_id_with_new_record
@@ -53,7 +54,7 @@ class RecordIdentifierTest < Test::Unit::TestCase
   def test_partial_path
     expected = "#{@plural}/#{@singular}"
     assert_equal expected, partial_path(@record)
-    assert_equal expected, partial_path(Post)
+    assert_equal expected, partial_path(Comment)
   end
 
   def test_dom_class
@@ -88,15 +89,15 @@ end
 
 class NestedRecordIdentifierTest < RecordIdentifierTest
   def setup
-    @klass  = Post::Nested
+    @klass  = Comment::Nested
     @record = @klass.new
-    @singular = 'post_nested'
-    @plural = 'post_nesteds'
+    @singular = 'comment_nested'
+    @plural = 'comment_nesteds'
   end
 
   def test_partial_path
-    expected = "post/nesteds/nested"
+    expected = "comment/nesteds/nested"
     assert_equal expected, partial_path(@record)
-    assert_equal expected, partial_path(Post::Nested)
+    assert_equal expected, partial_path(Comment::Nested)
   end
 end

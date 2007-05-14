@@ -63,7 +63,7 @@ module ActionController
     #
     #   dom_class(Post.new(:id => 45), :edit) # => "edit_post_45"
     def dom_id(record, prefix = nil) 
-      prefix ||= 'new' unless record.id 
+      prefix ||= 'new' unless record.id
       [ prefix, singular_class_name(record), record.id ].compact * '_'
     end
 

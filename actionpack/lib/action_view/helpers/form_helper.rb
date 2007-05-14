@@ -103,6 +103,41 @@ module ActionView
       # The above form will then have the <tt>id</tt> attribute with the value </tt>person_form</tt>, which you can then
       # style with CSS or manipulate with JavaScript.
       #
+      # === Relying on record identification
+      #
+      # In addition to manually configuring the form_for call, you can also rely on record identification, which will use
+      # the conventions and named routes of that approach. Examples:
+      #
+      #   <% form_for(@post) do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # This will expand to be the same as:
+      #
+      #   <% form_for :post, @post, :url => post_path(@post), :html => { :method => :put, :class => "edit_post", :id => "edit_post_45" } do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # And for new records:
+      #
+      #   <% form_for(Post.new) do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # This will expand to be the same as:
+      #
+      #   <% form_for :post, @post, :url => posts_path, :html => { :class => "new_post", :id => "new_post" } do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # You can also overwrite the individual conventions, like this:
+      #
+      #   <% form_for(@post, :url => super_post_path(@post)) do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # === Customized form builders
+      #
       # You can also build forms using a customized FormBuilder class. Subclass FormBuilder and override or define some more helpers,
       # then use your custom builder.  For example, let's say you made a helper to automatically add labels to form inputs.
       #   
@@ -120,12 +155,36 @@ module ActionView
       #   end
       #
       # If you don't need to attach a form to a model instance, then check out FormTagHelper#form_tag.
-      def form_for(object_name, *args, &proc)
+      def form_for(record_or_name, *args, &proc)
         raise ArgumentError, "Missing block" unless block_given?
+
         options = args.last.is_a?(Hash) ? args.pop : {}
+
+        case record_or_name
+        when String, Symbol
+          object_name = record_or_name
+        else
+          object      = record_or_name
+          object_name = ActionController::RecordIdentifier.singular_class_name(record_or_name)
+          apply_form_for_options!(object, options)
+        end
+
         concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}), proc.binding)
         fields_for(object_name, *(args << options), &proc)
         concat('</form>', proc.binding)
+      end
+      
+      def apply_form_for_options!(object, options) #:nodoc:
+        html_options = if object.respond_to?(:new_record?) && object.new_record?
+          { :class  => dom_class(object, :new),  :id => dom_id(object), :method => :post }
+        else
+          { :class  => dom_class(object, :edit), :id => dom_id(object, :edit), :method => :put }
+        end
+        
+        options[:html] ||= {}
+        options[:html].reverse_merge!(html_options)
+
+        options[:url] ||= polymorphic_path(object, self)        
       end
 
       # Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes

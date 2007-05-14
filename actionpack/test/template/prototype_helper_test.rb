@@ -2,6 +2,18 @@ require "#{File.dirname(__FILE__)}/../abstract_unit"
 
 Bunny = Struct.new(:Bunny, :id)
 
+class Author
+  attr_reader :id
+  def save; @id = 1 end
+  def new_record?; @id.nil? end
+  def name
+    @id.nil? ? 'new author' : "author ##{@id}"
+  end
+end
+
+class Author::Nested < Author; end
+
+
 module BaseTest
   include ActionView::Helpers::JavaScriptHelper
   include ActionView::Helpers::PrototypeHelper
@@ -13,6 +25,7 @@ module BaseTest
   include ActionView::Helpers::FormTagHelper
   include ActionView::Helpers::FormHelper
   include ActionView::Helpers::CaptureHelper
+  include ActionView::Helpers::RecordIdentificationHelper
   
   def setup
     @template = nil
@@ -41,17 +54,22 @@ end
 class PrototypeHelperTest < Test::Unit::TestCase
   include BaseTest
   
+  def setup
+    @record = Author.new
+    super
+  end
+
   def test_link_to_remote
-    assert_dom_equal %(<a class=\"fine\" href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true}); return false;\">Remote outpost</a>),
-      link_to_remote("Remote outpost", { :url => { :action => "whatnot"  }}, { :class => "fine"  })
-    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onComplete:function(request){alert(request.reponseText)}}); return false;\">Remote outpost</a>),
-      link_to_remote("Remote outpost", :complete => "alert(request.reponseText)", :url => { :action => "whatnot"  })      
-    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onSuccess:function(request){alert(request.reponseText)}}); return false;\">Remote outpost</a>),
-      link_to_remote("Remote outpost", :success => "alert(request.reponseText)", :url => { :action => "whatnot"  })
-    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onFailure:function(request){alert(request.reponseText)}}); return false;\">Remote outpost</a>),
-      link_to_remote("Remote outpost", :failure => "alert(request.reponseText)", :url => { :action => "whatnot"  })
-    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot?a=10&amp;b=20', {asynchronous:true, evalScripts:true, onFailure:function(request){alert(request.reponseText)}}); return false;\">Remote outpost</a>),
-      link_to_remote("Remote outpost", :failure => "alert(request.reponseText)", :url => { :action => "whatnot", :a => '10', :b => '20' })
+    assert_dom_equal %(<a class=\"fine\" href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true}); return false;\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", { :url => { :action => "whatnot"  }}, { :class => "fine"  })
+    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onComplete:function(request){alert(request.reponseText)}}); return false;\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", :complete => "alert(request.reponseText)", :url => { :action => "whatnot"  })      
+    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onSuccess:function(request){alert(request.reponseText)}}); return false;\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", :success => "alert(request.reponseText)", :url => { :action => "whatnot"  })
+    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onFailure:function(request){alert(request.reponseText)}}); return false;\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", :failure => "alert(request.reponseText)", :url => { :action => "whatnot"  })
+    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot?a=10&amp;b=20', {asynchronous:true, evalScripts:true, onFailure:function(request){alert(request.reponseText)}}); return false;\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", :failure => "alert(request.reponseText)", :url => { :action => "whatnot", :a => '10', :b => '20' })
   end
   
   def test_periodically_call_remote
@@ -80,7 +98,32 @@ class PrototypeHelperTest < Test::Unit::TestCase
     form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }) { _erbout.concat "Hello world!" }
     assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater('glass_of_beer', 'http://www.example.com/fast', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\">Hello world!</form>), _erbout
   end
-  
+
+  def test_remote_form_for_with_record_identification_with_new_record
+    _erbout = ''
+    remote_form_for(@record, {:html => { :id => 'create-author' }}) {}
+    
+    expected = %(<form action='#{authors_url}' onsubmit="new Ajax.Request('#{authors_url}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='new_author' id='create-author' method='post'></form>)
+    assert_dom_equal expected, _erbout
+  end
+
+  def test_remote_form_for_with_record_identification_without_html_options
+    _erbout = ''
+    remote_form_for(@record) {}
+    
+    expected = %(<form action='#{authors_url}' onsubmit="new Ajax.Request('#{authors_url}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='new_author' method='post' id='new_author'></form>)
+    assert_dom_equal expected, _erbout
+  end
+
+  def test_remote_form_for_with_record_identification_with_existing_record
+    @record.save
+    _erbout = ''
+    remote_form_for(@record) {}
+    
+    expected = %(<form action='#{author_url(@record)}' id='edit_author_1' method='post' onsubmit="new Ajax.Request('#{author_url(@record)}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='edit_author'><div style='margin:0;padding:0'><input name='_method' type='hidden' value='put' /></div></form>)
+    assert_dom_equal expected, _erbout
+  end
+
   def test_on_callbacks
     callbacks = [:uninitialized, :loading, :loaded, :interactive, :complete, :success, :failure]
     callbacks.each do |callback|
@@ -161,6 +204,23 @@ class PrototypeHelperTest < Test::Unit::TestCase
     assert_equal javascript_tag(create_generator(&block).to_s, {:defer => 'true'}), update_page_tag({:defer => 'true'}, &block)
   end
 
+
+  protected
+    def author_url(record)
+      "/authors/#{record.id}"
+    end
+    
+    def authors_url
+      "/authors"
+    end
+  
+    def polymorphic_path(record, url_writer)
+      if record.new_record?
+        "/authors"
+      else
+        "/authors/#{record.id}"
+      end
+    end
 end
 
 class JavaScriptGeneratorTest < Test::Unit::TestCase

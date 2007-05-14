@@ -181,8 +181,18 @@ module ActionView
       end
 
       # Works like form_remote_tag, but uses form_for semantics.
-      def remote_form_for(object_name, *args, &proc)
+      def remote_form_for(record_or_name, *args, &proc)
         options = args.last.is_a?(Hash) ? args.pop : {}
+
+        case record_or_name
+        when String, Symbol
+          object_name = record_or_name
+        else
+          object      = record_or_name
+          object_name = ActionController::RecordIdentifier.singular_class_name(record_or_name)
+          apply_form_for_options!(object, options)
+        end
+
         concat(form_remote_tag(options), proc.binding)
         fields_for(object_name, *(args << options), &proc)
         concat('</form>', proc.binding)
