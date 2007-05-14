@@ -13,44 +13,36 @@ class ROUTING::RouteBuilder
   end
 end
 
+# See RFC 3986, section 3.3 for allowed path characters.
 class UriReservedCharactersRoutingTest < Test::Unit::TestCase
-  # See RFC 3986, section 2.2 Reserved Characters
-  
   def setup
     ActionController::Routing.use_controllers! ['controller']
     @set = ActionController::Routing::RouteSet.new
     @set.draw do |map|
-      map.connect ':controller/:action/:var'
+      map.connect ':controller/:action/:variable'
     end
+
+    # TODO: perhaps , (comma) shouldn't be a route separator.
+    safe, unsafe = %w(: @ & = + $), %w(, ^ / ? # [ ] ;)
+    hex = unsafe.map { |char| '%' + char.unpack('H2').first.upcase }
+
+    @segment = "#{safe}#{unsafe}".freeze
+    @escaped = "#{safe}#{hex}".freeze
   end
-  
-  def test_should_escape_reserved_uri_characters_within_individual_path_components
-    assert_equal '/controller/action/p1%3Ap2', @set.generate(:controller => 'controller', :action => 'action', :var => 'p1:p2')
-    assert_equal '/controller/action/p1%2Fp2', @set.generate(:controller => 'controller', :action => 'action', :var => 'p1/p2')
-    assert_equal '/controller/action/p1%3Fp2', @set.generate(:controller => 'controller', :action => 'action', :var => 'p1?p2')
-    assert_equal '/controller/action/p1%23p2', @set.generate(:controller => 'controller', :action => 'action', :var => 'p1#p2')
-    assert_equal '/controller/action/p1%5Bp2', @set.generate(:controller => 'controller', :action => 'action', :var => 'p1[p2')
-    assert_equal '/controller/action/p1%5Dp2', @set.generate(:controller => 'controller', :action => 'action', :var => 'p1]p2')
-    assert_equal '/controller/action/p1%40p2', @set.generate(:controller => 'controller', :action => 'action', :var => 'p1@p2')
+
+  def test_route_generation_escapes_unsafe_path_characters
+    assert_equal "/contr#{@segment}oller/act#{@escaped}ion/var#{@escaped}iable",
+      @set.generate(:controller => "contr#{@segment}oller",
+                    :action => "act#{@segment}ion",
+                    :variable => "var#{@segment}iable")
   end
-  
-  def test_should_recognize_escaped_path_component_and_unescape
-    expected_options = {:var => "p1:p2", :controller => "controller", :action => "action"}
-    assert_equal expected_options, @set.recognize_path('/controller/action/p1%3Ap2')
-    expected_options = {:var => "p1/p2", :controller => "controller", :action => "action"}
-    assert_equal expected_options, @set.recognize_path('/controller/action/p1%2Fp2')
-    expected_options = {:var => "p1?p2", :controller => "controller", :action => "action"}
-    assert_equal expected_options, @set.recognize_path('/controller/action/p1%3Fp2')
-    expected_options = {:var => "p1#p2", :controller => "controller", :action => "action"}
-    assert_equal expected_options, @set.recognize_path('/controller/action/p1%23p2')
-    expected_options = {:var => "p1[p2", :controller => "controller", :action => "action"}
-    assert_equal expected_options, @set.recognize_path('/controller/action/p1%5Bp2')
-    expected_options = {:var => "p1]p2", :controller => "controller", :action => "action"}
-    assert_equal expected_options, @set.recognize_path('/controller/action/p1%5Dp2')
-    expected_options = {:var => "p1@p2", :controller => "controller", :action => "action"}
-    assert_equal expected_options, @set.recognize_path('/controller/action/p1%40p2')
+
+  def test_route_recognition_unescapes_path_components
+    options = { :controller => "controller",
+                :action => "act#{@segment}ion",
+                :variable => "var#{@segment}iable" }
+    assert_equal options, @set.recognize_path("/controller/act#{@escaped}ion/var#{@escaped}iable")
   end
-  
 end
 
 class LegacyRouteSetTests < Test::Unit::TestCase
@@ -924,9 +916,16 @@ class RouteTest < Test::Unit::TestCase
     assert_equal '/accounts/list_all', default_route.generate(o, o, {})
   end
   
-  def test_default_route_should_escape_pluses_in_id
-    expected = {:controller => 'accounts', :action => 'show', :id => 'hello world'}
+  def test_default_route_should_uri_escape_pluses
+    expected = { :controller => 'accounts', :action => 'show', :id => 'hello world' }
+    assert_equal expected, default_route.recognize('/accounts/show/hello world')
+    assert_equal expected, default_route.recognize('/accounts/show/hello%20world')
+    assert_equal '/accounts/show/hello%20world', default_route.generate(expected, expected, {})
+
+    expected[:id] = 'hello+world'
     assert_equal expected, default_route.recognize('/accounts/show/hello+world')
+    assert_equal expected, default_route.recognize('/accounts/show/hello%2Bworld')
+    assert_equal '/accounts/show/hello+world', default_route.generate(expected, expected, {})
   end
 
   def test_matches_controller_and_action

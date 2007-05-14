@@ -1,5 +1,7 @@
 *SVN*
 
+* Rationalize route path escaping according to RFC 2396 section 3.3.  #7544, #8307. [Jeremy Kemper, chrisroos, begemot, jugend]
+
 * Added record identification with polymorphic routes for ActionController::Base#url_for and ActionView::Base#url_for [DHH]. Examples:
 
     redirect_to(post)         # => redirect_to(posts_url(post))         => Location: http://example.com/posts/1

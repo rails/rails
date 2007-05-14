@@ -248,6 +248,7 @@ module ActionController
   #  end
   #
   module Routing
+    # TODO: , (comma) should be an allowed path character.
     SEPARATORS = %w( / ; . , ? )
 
     # The root paths which may contain controller files
@@ -547,6 +548,10 @@ module ActionController
     end
 
     class Segment #:nodoc:
+      # TODO: , (comma) should be an allowed path character.
+      RESERVED_PCHAR = ':@&=+$'
+      UNSAFE_PCHAR = Regexp.new("[^#{URI::REGEXP::PATTERN::UNRESERVED}#{RESERVED_PCHAR}]", false, 'N').freeze
+
       attr_accessor :is_optional
       alias_method :optional?, :is_optional
 
@@ -567,7 +572,11 @@ module ActionController
           prior_segments.last.string_structure(new_priors)
         end
       end
-  
+
+      def interpolation_chunk
+        URI.escape(value, UNSAFE_PCHAR)
+      end
+
       # Return a string interpolation statement for this segment and those before it.
       def interpolation_statement(prior_segments)
         chunks = prior_segments.collect { |s| s.interpolation_chunk }
@@ -611,11 +620,11 @@ module ActionController
       end
   
       def interpolation_chunk
-        raw? ? value : URI.escape(value)
+        raw? ? value : super
       end
   
       def regexp_chunk
-        chunk = Regexp.escape value
+        chunk = Regexp.escape(value)
         optional? ? Regexp.optionalize(chunk) : chunk
       end
   
@@ -692,7 +701,7 @@ module ActionController
       end
   
       def interpolation_chunk
-        "\#{CGI.escape(#{local_name}.to_s)}"
+        "\#{URI.escape(#{local_name}.to_s, ActionController::Routing::Segment::UNSAFE_PCHAR)}"
       end
   
       def string_structure(prior_segments)
@@ -723,12 +732,12 @@ module ActionController
         optional? ? Regexp.optionalize(pattern) : pattern
       end
       def match_extraction(next_capture)
-        # All non code-related keys (such as :id, :slug) have to be unescaped as other CGI params
+        # All non code-related keys (such as :id, :slug) are URI-unescaped as
+        # path parameters.
         default_value = default ? default.inspect : nil
         %[
           value = if (m = match[#{next_capture}])
-            m = m.gsub('+', '%2B')
-            CGI.unescape(m)
+            URI.unescape(m)
           else
             #{default_value}
           end
@@ -748,8 +757,7 @@ module ActionController
         "(?i-:(#{(regexp || Regexp.union(*possible_names)).source}))"
       end
 
-      # Don't URI.escape the controller name, since it may have slashes in it,
-      # like admin/foo.
+      # Don't URI.escape the controller name since it may contain slashes.
       def interpolation_chunk
         "\#{#{local_name}.to_s}"
       end
@@ -770,9 +778,11 @@ module ActionController
     end
 
     class PathSegment < DynamicSegment #:nodoc:
-      EscapedSlash = URI.escape("/")
+      RESERVED_PCHAR = "#{Segment::RESERVED_PCHAR}/"
+      UNSAFE_PCHAR = Regexp.new("[^#{URI::REGEXP::PATTERN::UNRESERVED}#{RESERVED_PCHAR}]", false, 'N').freeze
+
       def interpolation_chunk
-        "\#{URI.escape(#{local_name}.to_s).gsub(#{EscapedSlash.inspect}, '/')}"
+        "\#{URI.escape(#{local_name}.to_s, ActionController::Routing::PathSegment::UNSAFE_PCHAR)}"
       end
 
       def default
