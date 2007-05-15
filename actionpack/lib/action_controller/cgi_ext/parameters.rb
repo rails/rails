@@ -1,16 +1,6 @@
 require 'cgi'
 require 'strscan'
 
-class CGI #:nodoc:
-  class << self
-    alias :escapeHTML_fail_on_nil :escapeHTML
-
-    def escapeHTML(string)
-      escapeHTML_fail_on_nil(string) unless string.nil?
-    end
-  end
-end
-
 module ActionController
   module CgiExt
     module Parameters
@@ -72,18 +62,18 @@ module ActionController
           parser.result
         end
 
-        def parse_formatted_request_parameters(mime_type, raw_post_data)
+        def parse_formatted_request_parameters(mime_type, body)
           case strategy = ActionController::Base.param_parsers[mime_type]
             when Proc
-              strategy.call(raw_post_data)
+              strategy.call(body)
             when :xml_simple, :xml_node
-              raw_post_data.blank? ? {} : Hash.from_xml(raw_post_data).with_indifferent_access
+              body.blank? ? {} : Hash.from_xml(body).with_indifferent_access
             when :yaml
-              YAML.load(raw_post_data)
+              YAML.load(body)
           end
         rescue Exception => e # YAML, XML or Ruby code block errors
           { "exception" => "#{e.message} (#{e.class})", "backtrace" => e.backtrace,
-            "raw_post_data" => raw_post_data, "format" => mime_type }
+            "body" => body, "format" => mime_type }
         end
 
         private

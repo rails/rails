@@ -31,18 +31,14 @@ class CGI #:nodoc:
       # Set multipart to false by default.
       @multipart = false
 
-      # POST and PUT may have params in entity body. If content type is
-      # missing for POST, assume urlencoded. If content type is missing
-      # for PUT, don't assume anything and don't parse the parameters:
-      # it's likely binary data.
-      #
-      # The other HTTP methods have their params in the query string.
+      # POST and PUT may have params in entity body. If content type is missing
+      # or non-urlencoded, don't read the body or parse parameters: assume it's
+      # binary data.
       if method == :post || method == :put
         if boundary = extract_multipart_form_boundary(content_type)
           @multipart = true
           @params = read_multipart(boundary, content_length)
         elsif content_type.blank? || content_type !~ %r{application/x-www-form-urlencoded}i
-          read_params(method, content_length)
           @params = {}
         end
       end

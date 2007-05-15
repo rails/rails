@@ -40,18 +40,15 @@ module ActionController #:nodoc:
       @session = TestSession.new
     end
 
+    # Wraps raw_post in a StringIO.
+    def body
+      StringIO.new(raw_post)
+    end
+
+    # Either the RAW_POST_DATA environment variable or the URL-encoded request
+    # parameters.
     def raw_post
-      if raw_post = env['RAW_POST_DATA']
-        raw_post
-      else
-        params = self.request_parameters.dup
-        %w(controller action only_path).each do |k|
-          params.delete(k)
-          params.delete(k.to_sym)
-        end
-    
-        params.map { |k,v| [ CGI.escape(k.to_s), CGI.escape(v.to_s) ].join('=') }.sort.join('&')
-      end
+      env['RAW_POST_DATA'] ||= url_encoded_request_parameters
     end
 
     def port=(number)
@@ -139,6 +136,17 @@ module ActionController #:nodoc:
         self.remote_addr         = "0.0.0.0"        
         @env["SERVER_PORT"]      = 80
         @env['REQUEST_METHOD']   = "GET"
+      end
+
+      def url_encoded_request_parameters
+        params = self.request_parameters.dup
+
+        %w(controller action only_path).each do |k|
+          params.delete(k)
+          params.delete(k.to_sym)
+        end
+
+        params.to_query
       end
   end
 

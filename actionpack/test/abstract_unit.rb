@@ -3,8 +3,10 @@ $:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib/active_support')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 
 require 'yaml'
+require 'stringio'
 require 'test/unit'
 require 'action_controller'
+require 'action_controller/cgi_ext'
 require 'action_controller/test_process'
 
 # Show backtraces for deprecated behavior for quicker cleanup.

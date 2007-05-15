@@ -58,6 +58,16 @@ module ActionController #:nodoc:
       end
     end
 
+    # The request body is an IO input stream. If the RAW_POST_DATA environment
+    # variable is already set, wrap it in a StringIO.
+    def body
+      if raw_post = env['RAW_POST_DATA']
+        StringIO.new(raw_post)
+      else
+        @cgi.stdinput
+      end
+    end
+
     def query_parameters
       @query_parameters ||=
         (qs = self.query_string).empty? ? {} : CGI.parse_query_parameters(qs)
@@ -66,7 +76,7 @@ module ActionController #:nodoc:
     def request_parameters
       @request_parameters ||=
         if ActionController::Base.param_parsers.has_key?(content_type)
-          CGI.parse_formatted_request_parameters(content_type, @env['RAW_POST_DATA'])
+          CGI.parse_formatted_request_parameters(content_type, body.read)
         else
           CGI.parse_request_parameters(@cgi.params)
         end

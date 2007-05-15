@@ -13,6 +13,10 @@ class TestTest < Test::Unit::TestCase
       render :text => request.raw_post
     end
 
+    def render_body
+      render :text => request.body.read
+    end
+
     def test_params
       render :text => params.inspect
     end
@@ -93,8 +97,15 @@ HTML
     params = {:page => {:name => 'page name'}, 'some key' => 123}
     get :render_raw_post, params.dup
 
-    raw_post = params.map {|k,v| [CGI::escape(k.to_s), CGI::escape(v.to_s)].join('=')}.sort.join('&')
-    assert_equal raw_post, @response.body
+    assert_equal params.to_query, @response.body
+  end
+
+  def test_body_stream
+    params = { :page => { :name => 'page name' }, 'some key' => 123 }
+
+    get :render_body, params.dup
+
+    assert_equal params.to_query, @response.body
   end
 
   def test_process_without_flash

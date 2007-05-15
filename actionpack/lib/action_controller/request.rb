@@ -1,24 +1,27 @@
 module ActionController
-  # Subclassing AbstractRequest makes these methods available to the request objects used in production and testing,
-  # CgiRequest and TestRequest
+  # CgiRequest and TestRequest provide concrete implementations.
   class AbstractRequest
     cattr_accessor :relative_url_root
     remove_method :relative_url_root
 
-    # Returns the hash of environment variables for this request,
+    # The hash of environment variables for this request,
     # such as { 'RAILS_ENV' => 'production' }.
     attr_reader :env
 
-    attr_accessor :format
+    # The requested content type, such as :html or :xml.
+    attr_writer :format
 
-    # Returns the HTTP request method as a lowercase symbol (:get, for example). Note, HEAD is returned as :get
-    # since the two are supposedly to be functionaly equivilent for all purposes except that HEAD won't return a response
-    # body (which Rails also takes care of elsewhere).
+    # The HTTP request method as a lowercase symbol, such as :get.
+    # Note, HEAD is returned as :get since the two are functionally
+    # equivalent from the application's perspective.
     def method
-      @request_method ||= (!parameters[:_method].blank? && @env['REQUEST_METHOD'] == 'POST') ?
-        parameters[:_method].to_s.downcase.to_sym :
-        @env['REQUEST_METHOD'].downcase.to_sym
-      
+      @request_method ||=
+        if @env['REQUEST_METHOD'] == 'POST' && !parameters[:_method].blank?
+          parameters[:_method].to_s.downcase.to_sym
+        else
+          @env['REQUEST_METHOD'].downcase.to_sym
+        end
+
       @request_method == :head ? :get : @request_method
     end
 
@@ -42,8 +45,8 @@ module ActionController
       method == :delete
     end
 
-    # Is this a HEAD request?  HEAD is mapped as :get for request.method, so here we ask the 
-    # REQUEST_METHOD header directly. Thus, for head, both get? and head? will return true.
+    # Is this a HEAD request? request.method sees HEAD as :get, so check the
+    # HTTP method directly.
     def head?
       @env['REQUEST_METHOD'].downcase.to_sym == :head
     end
@@ -269,6 +272,11 @@ module ActionController
     #--
     # Must be implemented in the concrete request
     #++
+
+    # The request body is an IO input stream.
+    def body
+    end
+
     def query_parameters #:nodoc:
     end
 

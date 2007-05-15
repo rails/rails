@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce the request.body stream. Lazy-read to parse parameters rather than always setting RAW_POST_DATA. Reduces the memory footprint of large binary PUT requests.  [Jeremy Kemper]
+
 * Add some performance enhancements to ActionView.
 
   * Cache base_paths in @@cached_base_paths
