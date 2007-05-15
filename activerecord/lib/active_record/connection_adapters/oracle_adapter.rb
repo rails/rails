@@ -320,6 +320,7 @@ begin
                    decode(data_type, 'NUMBER', data_precision,
                                      'FLOAT', data_precision,
                                      'VARCHAR2', data_length,
+                                     'CHAR', data_length,
                                       null) as limit,
                    decode(data_type, 'NUMBER', data_scale, null) as scale
               from all_tab_columns
