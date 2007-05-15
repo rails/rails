@@ -388,6 +388,11 @@ class RenderTest < Test::Unit::TestCase
     assert_equal %(Element.replace("foo", "partial html");), @response.body
   end
 
+  def test_should_render_js_partial
+    xhr :get, :partial, :format => 'js'
+    assert_equal 'partial js', @response.body
+  end
+
   protected
     def assert_deprecated_render(&block)
       assert_deprecated(/render/, &block)
