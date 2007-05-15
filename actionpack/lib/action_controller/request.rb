@@ -241,7 +241,7 @@ module ActionController
     # This is useful for services such as REST, XMLRPC and SOAP
     # which communicate over HTTP POST but don't use the traditional parameter format.
     def raw_post
-      @env['RAW_POST_DATA']
+      @env['RAW_POST_DATA'] ||= body.read
     end
 
     # Returns both GET and POST parameters in a single hash.
