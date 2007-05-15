@@ -69,8 +69,7 @@ module ActionController #:nodoc:
     end
 
     def query_parameters
-      @query_parameters ||=
-        (qs = self.query_string).empty? ? {} : CGI.parse_query_parameters(qs)
+      @query_parameters ||= CGI.parse_query_parameters(query_string)
     end
 
     def request_parameters

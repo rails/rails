@@ -23,8 +23,9 @@ module ActionController
       end
 
       module ClassMethods
-        # DEPRECATED: Use parse_form_encoded_parameters
         def parse_query_parameters(query_string)
+          return {} if query_string.blank?
+
           pairs = query_string.split('&').collect do |chunk|
             next if chunk.empty?
             key, value = chunk.split('=', 2)
@@ -33,12 +34,11 @@ module ActionController
             [ CGI.unescape(key), value ]
           end.compact
 
-          FormEncodedPairParser.new(pairs).result
+          UrlEncodedPairParser.new(pairs).result
         end
 
-        # DEPRECATED: Use parse_form_encoded_parameters
         def parse_request_parameters(params)
-          parser = FormEncodedPairParser.new
+          parser = UrlEncodedPairParser.new
 
           params = params.dup
           until params.empty?
@@ -112,7 +112,7 @@ module ActionController
           end
       end
 
-      class FormEncodedPairParser < StringScanner #:nodoc:
+      class UrlEncodedPairParser < StringScanner #:nodoc:
         attr_reader :top, :parent, :result
 
         def initialize(pairs = [])
