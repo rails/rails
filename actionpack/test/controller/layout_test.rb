@@ -66,6 +66,7 @@ class LayoutAutoDiscoveryTest < Test::Unit::TestCase
     @controller = ThirdPartyTemplateLibraryController.new
     get :hello
     assert_equal 'layouts/third_party_template_library', @controller.active_layout
+    assert_equal 'layouts/third_party_template_library', @response.layout
     assert_equal 'Mab', @response.body
   end
   

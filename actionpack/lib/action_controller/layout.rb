@@ -214,7 +214,6 @@ module ActionController #:nodoc:
     # weblog/standard, but <tt>layout "standard"</tt> will return layouts/standard.
     def active_layout(passed_layout = nil)
       layout = passed_layout || self.class.default_layout
-
       active_layout = case layout
         when String then layout
         when Symbol then send(layout)

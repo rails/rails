@@ -1213,14 +1213,14 @@ module ActionController #:nodoc:
       end
 
       def template_exempt_from_layout?(template_name = default_template_name)
-        extension = @template.pick_template_extension(template_name) rescue nil
+        extension = @template && @template.pick_template_extension(template_name)
         name_with_extension = !template_name.include?('.') && extension ? "#{template_name}.#{extension}" : template_name
         extension == :rjs || @@exempt_from_layout.any? { |ext| name_with_extension =~ ext }
       end
 
       def assert_existence_of_template_file(template_name)
         unless template_exists?(template_name) || ignore_missing_templates
-          full_template_path = template_name.include?('.') ? template_name : @template.send(:full_template_path, template_name, "#{@template.send(:template_format)}.erb")
+          full_template_path = template_name.include?('.') ? template_name : @template.full_template_path(template_name, "#{@template.template_format}.erb")
           template_type = (template_name =~ /layouts/i) ? 'layout' : 'template'
           raise(MissingTemplate, "Missing #{template_type} #{full_template_path}")
         end

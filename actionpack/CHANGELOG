@@ -1,5 +1,11 @@
 *SVN*
 
+* Add some performance enhancements to ActionView.
+
+  * Cache base_paths in @@cached_base_paths
+  * Cache template extensions in @@cached_template_extension
+  * Remove unnecessary rescues
+
 * Assume that rendered partials go by the HTML format by default
 
   def my_partial
