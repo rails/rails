@@ -39,7 +39,7 @@ class MimeTypeTest < Test::Unit::TestCase
   end
   
   def test_type_convenience_methods
-    types = [:html, :xml, :png, :pdf, :yaml]
+    types = [:html, :xml, :png, :pdf, :yaml, :url_encoded_form]
     types.each do |type|
       mime = Mime.const_get(type.to_s.upcase)
       assert mime.send("#{type}?"), "Mime::#{type.to_s.upcase} is not #{type}?"

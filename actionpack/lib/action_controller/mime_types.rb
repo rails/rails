@@ -13,5 +13,8 @@ Mime::Type.register "application/rss+xml", :rss
 Mime::Type.register "application/atom+xml", :atom
 Mime::Type.register "application/x-yaml", :yaml, %w( text/yaml )
 
+Mime::Type.register "multipart/form-data", :multipart_form
+Mime::Type.register "application/x-www-form-urlencoded", :url_encoded_form
+
 # http://www.ietf.org/rfc/rfc4627.txt
 Mime::Type.register "application/json", :json, %w( text/x-json )
