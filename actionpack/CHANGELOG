@@ -1,5 +1,17 @@
 *SVN*
 
+* Assume that rendered partials go by the HTML format by default
+
+  def my_partial
+    render :update do |page|
+      # in this order
+      # _foo.html.erb
+      # _foo.erb
+      # _foo.rhtml
+      page.replace :foo, :partial => 'foo'
+    end
+  end
+
 * Added record identifications to FormHelper#form_for and PrototypeHelper#remote_form_for [DHH]. Examples:
 
     <% form_for(@post) do |f| %>

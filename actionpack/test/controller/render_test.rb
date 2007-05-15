@@ -132,6 +132,16 @@ class TestController < ActionController::Base
     @foo = render_to_string :inline => "this is a test"
   end
 
+  def partial
+    render :partial => 'partial'
+  end
+  
+  def partial_as_rjs
+    render :update do |page|
+      page.replace :foo, :partial => 'partial'
+    end
+  end
+
   def rescue_action(e) raise end
 
   private
@@ -368,6 +378,15 @@ class RenderTest < Test::Unit::TestCase
     assert_equal '<test>passed formatted html erb</test>', @response.body
   end
 
+  def test_should_render_html_formatted_partial
+    get :partial
+    assert_equal 'partial html', @response.body
+  end
+
+  def test_should_render_html_formatted_partial_with_rjs
+    xhr :get, :partial_as_rjs
+    assert_equal %(Element.replace("foo", "partial html");), @response.body
+  end
 
   protected
     def assert_deprecated_render(&block)
