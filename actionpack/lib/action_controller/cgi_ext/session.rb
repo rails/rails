@@ -1,14 +1,10 @@
-# CGI::Session#create_new_id requires 'digest/md5' on every call.  This makes
-# sense when spawning processes per request, but is unnecessarily expensive
-# when serving requests from a long-lived process.
-#
-# http://railsexpress.de/blog/articles/2005/11/22/speeding-up-the-creation-of-new-sessions
-#
-# Also expose the CGI instance to session stores.
-require 'cgi/session'
 require 'digest/md5'
+require 'cgi/session'
+require 'cgi/session/pstore'
 
-class CGI
+class CGI #:nodoc:
+  # * Expose the CGI instance to session stores.
+  # * Don't require 'digest/md5' whenever a new session id is generated.
   class Session #:nodoc:
     # Generate an MD5 hash including the time, a random number, the process id,
     # and a constant string. This is used to generate session ids but may be
@@ -39,5 +35,29 @@ class CGI
         @new_session = true
         self.class.generate_unique_id
       end
+
+    # * Don't require 'digest/md5' whenever a new session is started.
+    class PStore #:nodoc:
+      def initialize(session, option={})
+        dir = option['tmpdir'] || Dir::tmpdir
+        prefix = option['prefix'] || ''
+        id = session.session_id
+        md5 = Digest::MD5.hexdigest(id)[0,16]
+        path = dir+"/"+prefix+md5
+        path.untaint
+        if File::exist?(path)
+          @hash = nil
+        else
+          unless session.new_session
+            raise CGI::Session::NoSession, "uninitialized session"
+          end
+          @hash = {}
+        end
+        @p = ::PStore.new(path)
+        @p.transaction do |p|
+          File.chmod(0600, p.path)
+        end
+      end
+    end
   end
 end

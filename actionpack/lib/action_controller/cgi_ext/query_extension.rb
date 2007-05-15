@@ -1,3 +1,5 @@
+require 'cgi'
+
 class CGI #:nodoc:
   module QueryExtension
     # Remove the old initialize_query method before redefining it.

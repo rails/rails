@@ -1,7 +1,6 @@
 require "#{File.dirname(__FILE__)}/../abstract_unit"
-require 'cgi'
 require 'stringio'
-require 'action_controller/cgi_ext/raw_post_data_fix'
+require 'action_controller/cgi_ext/query_extension'
 
 class RawPostDataTest < Test::Unit::TestCase
   def setup

@@ -1,8 +1,4 @@
-require 'action_controller/cgi_ext/cgi_ext'
-require 'action_controller/cgi_ext/cookie_performance_fix'
-require 'action_controller/cgi_ext/raw_post_data_fix'
-require 'action_controller/cgi_ext/session_performance_fix'
-require 'action_controller/cgi_ext/pstore_performance_fix'
+require 'action_controller/cgi_ext'
 require 'action_controller/session/cookie_store'
 
 module ActionController #:nodoc:
@@ -64,15 +60,15 @@ module ActionController #:nodoc:
 
     def query_parameters
       @query_parameters ||=
-        (qs = self.query_string).empty? ? {} : CGIMethods.parse_query_parameters(qs)
+        (qs = self.query_string).empty? ? {} : CGI.parse_query_parameters(qs)
     end
 
     def request_parameters
       @request_parameters ||=
         if ActionController::Base.param_parsers.has_key?(content_type)
-          CGIMethods.parse_formatted_request_parameters(content_type, @env['RAW_POST_DATA'])
+          CGI.parse_formatted_request_parameters(content_type, @env['RAW_POST_DATA'])
         else
-          CGIMethods.parse_request_parameters(@cgi.params)
+          CGI.parse_request_parameters(@cgi.params)
         end
     end
 

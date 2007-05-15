@@ -1,6 +1,6 @@
 require "#{File.dirname(__FILE__)}/../../abstract_unit"
 require 'action_controller/cgi_process'
-require 'action_controller/cgi_ext/cgi_ext'
+require 'action_controller/cgi_ext'
 
 require 'stringio'
 

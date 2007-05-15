@@ -1,8 +1,5 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 require 'action_controller/cgi_process'
-require 'action_controller/cgi_ext/cgi_ext'
-
-require 'stringio'
 
 class CGITest < Test::Unit::TestCase
   def setup
@@ -22,29 +19,29 @@ class CGITest < Test::Unit::TestCase
   def test_query_string
     assert_equal(
       { "action" => "create_customer", "full_name" => "David Heinemeier Hansson", "customerId" => "1"},
-      CGIMethods.parse_query_parameters(@query_string)
+      CGI.parse_query_parameters(@query_string)
     )
   end
   
   def test_deep_query_string
     expected = {'x' => {'y' => {'z' => '10'}}}
-    assert_equal(expected, CGIMethods.parse_query_parameters('x[y][z]=10'))
+    assert_equal(expected, CGI.parse_query_parameters('x[y][z]=10'))
   end
   
   def test_deep_query_string_with_array
-    assert_equal({'x' => {'y' => {'z' => ['10']}}}, CGIMethods.parse_query_parameters('x[y][z][]=10'))
-    assert_equal({'x' => {'y' => {'z' => ['10', '5']}}}, CGIMethods.parse_query_parameters('x[y][z][]=10&x[y][z][]=5'))
+    assert_equal({'x' => {'y' => {'z' => ['10']}}}, CGI.parse_query_parameters('x[y][z][]=10'))
+    assert_equal({'x' => {'y' => {'z' => ['10', '5']}}}, CGI.parse_query_parameters('x[y][z][]=10&x[y][z][]=5'))
   end
 
   def test_deep_query_string_with_array_of_hash
-    assert_equal({'x' => {'y' => [{'z' => '10'}]}}, CGIMethods.parse_query_parameters('x[y][][z]=10'))
-    assert_equal({'x' => {'y' => [{'z' => '10', 'w' => '10'}]}}, CGIMethods.parse_query_parameters('x[y][][z]=10&x[y][][w]=10'))
+    assert_equal({'x' => {'y' => [{'z' => '10'}]}}, CGI.parse_query_parameters('x[y][][z]=10'))
+    assert_equal({'x' => {'y' => [{'z' => '10', 'w' => '10'}]}}, CGI.parse_query_parameters('x[y][][z]=10&x[y][][w]=10'))
   end
 
   def test_deep_query_string_with_array_of_hashes_with_one_pair
-    assert_equal({'x' => {'y' => [{'z' => '10'}, {'z' => '20'}]}}, CGIMethods.parse_query_parameters('x[y][][z]=10&x[y][][z]=20'))
-    assert_equal("10", CGIMethods.parse_query_parameters('x[y][][z]=10&x[y][][z]=20')["x"]["y"].first["z"])
-    assert_equal("10", CGIMethods.parse_query_parameters('x[y][][z]=10&x[y][][z]=20').with_indifferent_access[:x][:y].first[:z])
+    assert_equal({'x' => {'y' => [{'z' => '10'}, {'z' => '20'}]}}, CGI.parse_query_parameters('x[y][][z]=10&x[y][][z]=20'))
+    assert_equal("10", CGI.parse_query_parameters('x[y][][z]=10&x[y][][z]=20')["x"]["y"].first["z"])
+    assert_equal("10", CGI.parse_query_parameters('x[y][][z]=10&x[y][][z]=20').with_indifferent_access[:x][:y].first[:z])
   end
   
   def test_request_hash_parsing
@@ -55,62 +52,62 @@ class CGITest < Test::Unit::TestCase
 
     expected = { "note" => { "viewers"=>{"viewer"=>[{ "id"=>"1", "type"=>"User"}, {"type"=>"Group", "id"=>"2"} ]} } }
 
-    assert_equal(expected, CGIMethods.parse_request_parameters(query))
+    assert_equal(expected, CGI.parse_request_parameters(query))
   end
   
   def test_deep_query_string_with_array_of_hashes_with_multiple_pairs
     assert_equal(
       {'x' => {'y' => [{'z' => '10', 'w' => 'a'}, {'z' => '20', 'w' => 'b'}]}}, 
-      CGIMethods.parse_query_parameters('x[y][][z]=10&x[y][][w]=a&x[y][][z]=20&x[y][][w]=b')
+      CGI.parse_query_parameters('x[y][][z]=10&x[y][][w]=a&x[y][][z]=20&x[y][][w]=b')
     )
   end
   
   def test_query_string_with_nil
     assert_equal(
       { "action" => "create_customer", "full_name" => ''},
-      CGIMethods.parse_query_parameters(@query_string_with_empty)
+      CGI.parse_query_parameters(@query_string_with_empty)
     )
   end
 
   def test_query_string_with_array
     assert_equal(
       { "action" => "create_customer", "selected" => ["1", "2", "3"]},
-      CGIMethods.parse_query_parameters(@query_string_with_array)
+      CGI.parse_query_parameters(@query_string_with_array)
     )
   end
 
   def test_query_string_with_amps
     assert_equal(
       { "action" => "create_customer", "name" => "Don't & Does"},
-      CGIMethods.parse_query_parameters(@query_string_with_amps)
+      CGI.parse_query_parameters(@query_string_with_amps)
     )    
   end
   
   def test_query_string_with_many_equal
     assert_equal(
       { "action" => "create_customer", "full_name" => "abc=def=ghi"},
-      CGIMethods.parse_query_parameters(@query_string_with_many_equal)
+      CGI.parse_query_parameters(@query_string_with_many_equal)
     )    
   end
   
   def test_query_string_without_equal
     assert_equal(
       { "action" => nil },
-      CGIMethods.parse_query_parameters(@query_string_without_equal)
+      CGI.parse_query_parameters(@query_string_without_equal)
     )    
   end
   
   def test_query_string_with_empty_key
     assert_equal(
       { "action" => "create_customer", "full_name" => "David Heinemeier Hansson" },
-      CGIMethods.parse_query_parameters(@query_string_with_empty_key)
+      CGI.parse_query_parameters(@query_string_with_empty_key)
     )
   end
 
   def test_query_string_with_many_ampersands
     assert_equal(
       { "action" => "create_customer", "full_name" => "David Heinemeier Hansson"},
-      CGIMethods.parse_query_parameters(@query_string_with_many_ampersands)
+      CGI.parse_query_parameters(@query_string_with_many_ampersands)
     )
   end
 
@@ -150,7 +147,7 @@ class CGITest < Test::Unit::TestCase
       }
     }
 
-    assert_equal expected_output, CGIMethods.parse_request_parameters(input)
+    assert_equal expected_output, CGI.parse_request_parameters(input)
   end
   
   def test_parse_params_from_multipart_upload
@@ -197,7 +194,7 @@ class CGITest < Test::Unit::TestCase
       "text_part" => "abc"
     }
 
-    params = CGIMethods.parse_request_parameters(input)
+    params = CGI.parse_request_parameters(input)
     assert_equal expected_output, params
 
     # Lone filenames are preserved.
@@ -228,7 +225,7 @@ class CGITest < Test::Unit::TestCase
       "logo" => File.new(File.dirname(__FILE__) + "/cgi_test.rb").path,
     }
 
-    assert_equal expected_output, CGIMethods.parse_request_parameters(input)
+    assert_equal expected_output, CGI.parse_request_parameters(input)
   end
 
   def test_parse_params_with_array
@@ -236,43 +233,43 @@ class CGITest < Test::Unit::TestCase
 
     expected_output = { "selected" => [ "1", "2", "3" ] }
 
-    assert_equal expected_output, CGIMethods.parse_request_parameters(input)
+    assert_equal expected_output, CGI.parse_request_parameters(input)
   end
 
   def test_parse_params_with_non_alphanumeric_name
     input     = { "a/b[c]" =>  %w(d) }
     expected  = { "a/b" => { "c" => "d" }}
-    assert_equal expected, CGIMethods.parse_request_parameters(input)
+    assert_equal expected, CGI.parse_request_parameters(input)
   end
 
   def test_parse_params_with_single_brackets_in_middle
     input     = { "a/b[c]d" =>  %w(e) }
     expected  = { "a/b" => {} }
-    assert_equal expected, CGIMethods.parse_request_parameters(input)
+    assert_equal expected, CGI.parse_request_parameters(input)
   end
 
   def test_parse_params_with_separated_brackets
     input     = { "a/b@[c]d[e]" =>  %w(f) }
     expected  = { "a/b@" => { }}
-    assert_equal expected, CGIMethods.parse_request_parameters(input)
+    assert_equal expected, CGI.parse_request_parameters(input)
   end
 
   def test_parse_params_with_separated_brackets_and_array
     input     = { "a/b@[c]d[e][]" =>  %w(f) }
     expected  = { "a/b@" => { }}
-    assert_equal expected , CGIMethods.parse_request_parameters(input)
+    assert_equal expected , CGI.parse_request_parameters(input)
   end
 
   def test_parse_params_with_unmatched_brackets_and_array
     input     = { "a/b@[c][d[e][]" =>  %w(f) }
     expected  = { "a/b@" => { "c" => { }}}
-    assert_equal expected, CGIMethods.parse_request_parameters(input)
+    assert_equal expected, CGI.parse_request_parameters(input)
   end
   
   def test_parse_params_with_nil_key
     input = { nil => nil, "test2" => %w(value1) }
     expected = { "test2" => "value1" }
-    assert_equal expected, CGIMethods.parse_request_parameters(input)
+    assert_equal expected, CGI.parse_request_parameters(input)
   end
 end
 
@@ -281,7 +278,7 @@ class XmlCGITest < Test::Unit::TestCase
   def test_single_file
     raw_post_data = 
       "<person><name>David</name><avatar type='file' name='me.jpg' content_type='image/jpg'>#{Base64.encode64('ABC')}</avatar></person>"
-    person = CGIMethods.parse_formatted_request_parameters(Mime::XML, raw_post_data)
+    person = CGI.parse_formatted_request_parameters(Mime::XML, raw_post_data)
     assert_equal "image/jpg", person['person']['avatar'].content_type
     assert_equal "me.jpg", person['person']['avatar'].original_filename
     assert_equal "ABC", person['person']['avatar'].read
@@ -293,7 +290,7 @@ class XmlCGITest < Test::Unit::TestCase
       "<avatar type='file' name='me.jpg' content_type='image/jpg'>#{Base64.encode64('ABC')}</avatar>" +
       "<avatar type='file' name='you.gif' content_type='image/gif'>#{Base64.encode64('DEF')}</avatar>" +
       "</avatars></person>"
-    person = CGIMethods.parse_formatted_request_parameters(Mime::XML, raw_post_data)
+    person = CGI.parse_formatted_request_parameters(Mime::XML, raw_post_data)
 
     assert_equal "image/jpg", person['person']['avatars']['avatar'].first.content_type
     assert_equal "me.jpg", person['person']['avatars']['avatar'].first.original_filename
@@ -387,7 +384,7 @@ class MultipartCGITest < Test::Unit::TestCase
         ENV['CONTENT_LENGTH'] = file.stat.size.to_s
         $stdin = file
         @cgi = CGI.new
-        CGIMethods.parse_request_parameters @cgi.params
+        CGI.parse_request_parameters @cgi.params
       end
     ensure
       $stdin = old_stdin
@@ -457,11 +454,11 @@ class CGIRequestTest < Test::Unit::TestCase
   def test_unbalanced_query_string_with_array
    assert_equal(
      {'location' => ["1", "2"], 'age_group' => ["2"]},
-  CGIMethods.parse_query_parameters("location[]=1&location[]=2&age_group[]=2")
+  CGI.parse_query_parameters("location[]=1&location[]=2&age_group[]=2")
    )
    assert_equal(
      {'location' => ["1", "2"], 'age_group' => ["2"]},
-     CGIMethods.parse_request_parameters({'location[]' => ["1", "2"],
+     CGI.parse_request_parameters({'location[]' => ["1", "2"],
   'age_group[]' => ["2"]})
    )
   end

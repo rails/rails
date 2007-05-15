@@ -1,9 +1,7 @@
 CGI.module_eval { remove_const "Cookie" }
 
+# TODO: document how this differs from stdlib CGI::Cookie
 class CGI #:nodoc:
-  # This is a cookie class that fixes the performance problems with the default one that ships with 1.8.1 and below.
-  # It replaces the inheritance on SimpleDelegator with DelegateClass(Array) following the suggestion from Matz on
-  # http://groups.google.com/groups?th=e3a4e68ba042f842&seekm=c3sioe%241qvm%241%40news.cybercity.dk#link14
   class Cookie < DelegateClass(Array)
     # Create a new CGI::Cookie object.
     #
@@ -19,7 +17,7 @@ class CGI #:nodoc:
     # domain:: the domain for which this cookie applies.
     # expires:: the time at which this cookie expires, as a +Time+ object.
     # secure:: whether this cookie is a secure cookie or not (default to
-    #          false).  Secure cookies are only transmitted to HTTPS 
+    #          false).  Secure cookies are only transmitted to HTTPS
     #          servers.
     #
     # These keywords correspond to attributes of the cookie object.
@@ -39,7 +37,7 @@ class CGI #:nodoc:
         @secure = name['secure'] || false
         @path = name['path']
       end
-      
+
       unless @name
         raise ArgumentError, "`name' required"
       end
