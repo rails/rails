@@ -295,5 +295,22 @@ module ActionController
 
     def reset_session #:nodoc:
     end
+
+
+    def self.parse_formatted_request_parameters(mime_type, body)
+      case strategy = ActionController::Base.param_parsers[mime_type]
+        when Proc
+          strategy.call(body)
+        when :xml_simple, :xml_node
+          body.blank? ? {} : Hash.from_xml(body).with_indifferent_access
+        when :yaml
+          YAML.load(body)
+        else
+          {}
+      end
+    rescue Exception => e # YAML, XML or Ruby code block errors
+      { "exception" => "#{e.message} (#{e.class})", "backtrace" => e.backtrace,
+        "body" => body, "format" => mime_type }
+    end
   end
 end

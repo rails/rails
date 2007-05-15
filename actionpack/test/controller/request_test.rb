@@ -355,3 +355,39 @@ class RequestTest < Test::Unit::TestCase
       @request.instance_eval { @request_method = nil }
     end
 end
+
+
+class RequestParameterParsingTest < Test::Unit::TestCase
+  def test_xml_with_single_file
+    body = "<person><name>David</name><avatar type='file' name='me.jpg' content_type='image/jpg'>#{Base64.encode64('ABC')}</avatar></person>"
+
+    person = ActionController::AbstractRequest.parse_formatted_request_parameters(Mime::XML, body)
+
+    assert_equal "image/jpg", person['person']['avatar'].content_type
+    assert_equal "me.jpg", person['person']['avatar'].original_filename
+    assert_equal "ABC", person['person']['avatar'].read
+  end
+
+  def test_xml_with_multiple_files
+    body = <<-end_body
+      <person>
+        <name>David</name>
+        <avatars>
+          <avatar type='file' name='me.jpg' content_type='image/jpg'>#{Base64.encode64('ABC')}</avatar>
+          <avatar type='file' name='you.gif' content_type='image/gif'>#{Base64.encode64('DEF')}</avatar>
+        </avatars>
+      </person>
+    end_body
+
+    person = ActionController::AbstractRequest.parse_formatted_request_parameters(Mime::XML, body)
+
+    assert_equal "image/jpg", person['person']['avatars']['avatar'].first.content_type
+    assert_equal "me.jpg", person['person']['avatars']['avatar'].first.original_filename
+    assert_equal "ABC", person['person']['avatars']['avatar'].first.read
+
+    assert_equal "image/gif", person['person']['avatars']['avatar'].last.content_type
+    assert_equal "you.gif", person['person']['avatars']['avatar'].last.original_filename
+    assert_equal "DEF", person['person']['avatars']['avatar'].last.read
+  end
+end
+

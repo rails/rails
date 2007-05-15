@@ -274,35 +274,6 @@ class CGITest < Test::Unit::TestCase
 end
 
 
-class XmlCGITest < Test::Unit::TestCase
-  def test_single_file
-    raw_post_data = 
-      "<person><name>David</name><avatar type='file' name='me.jpg' content_type='image/jpg'>#{Base64.encode64('ABC')}</avatar></person>"
-    person = CGI.parse_formatted_request_parameters(Mime::XML, raw_post_data)
-    assert_equal "image/jpg", person['person']['avatar'].content_type
-    assert_equal "me.jpg", person['person']['avatar'].original_filename
-    assert_equal "ABC", person['person']['avatar'].read
-  end
-
-  def test_multiple_files
-    raw_post_data = 
-      "<person><name>David</name><avatars>" +
-      "<avatar type='file' name='me.jpg' content_type='image/jpg'>#{Base64.encode64('ABC')}</avatar>" +
-      "<avatar type='file' name='you.gif' content_type='image/gif'>#{Base64.encode64('DEF')}</avatar>" +
-      "</avatars></person>"
-    person = CGI.parse_formatted_request_parameters(Mime::XML, raw_post_data)
-
-    assert_equal "image/jpg", person['person']['avatars']['avatar'].first.content_type
-    assert_equal "me.jpg", person['person']['avatars']['avatar'].first.original_filename
-    assert_equal "ABC", person['person']['avatars']['avatar'].first.read
-
-    assert_equal "image/gif", person['person']['avatars']['avatar'].last.content_type
-    assert_equal "you.gif", person['person']['avatars']['avatar'].last.original_filename
-    assert_equal "DEF", person['person']['avatars']['avatar'].last.read
-  end
-end
-
-
 class MultipartCGITest < Test::Unit::TestCase
   FIXTURE_PATH = File.dirname(__FILE__) + '/../fixtures/multipart'
 
@@ -379,15 +350,11 @@ class MultipartCGITest < Test::Unit::TestCase
 
   private
     def process(name)
-      old_stdin = $stdin
       File.open(File.join(FIXTURE_PATH, name), 'rb') do |file|
         ENV['CONTENT_LENGTH'] = file.stat.size.to_s
-        $stdin = file
-        @cgi = CGI.new
+        @cgi = CGI.new('query', file)
         CGI.parse_request_parameters @cgi.params
       end
-    ensure
-      $stdin = old_stdin
     end
 end
 

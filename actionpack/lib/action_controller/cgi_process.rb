@@ -76,7 +76,7 @@ module ActionController #:nodoc:
     def request_parameters
       @request_parameters ||=
         if ActionController::Base.param_parsers.has_key?(content_type)
-          CGI.parse_formatted_request_parameters(content_type, body.read)
+          self.class.parse_formatted_request_parameters(content_type, body.read)
         else
           CGI.parse_request_parameters(@cgi.params)
         end
