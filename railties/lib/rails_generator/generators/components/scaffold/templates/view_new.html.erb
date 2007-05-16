@@ -2,7 +2,7 @@
 
 <%%= error_messages_for :<%= singular_name %> %>
 
-<%% form_for(:<%= singular_name %>, :url => <%= plural_name %>_path) do |f| %>
+<%% form_for(@<%= singular_name %>) do |f| %>
 <% for attribute in attributes -%>
   <p>
     <b><%= attribute.column.human_name %></b><br />
@@ -11,7 +11,7 @@
 
 <% end -%>
   <p>
-    <%%= submit_tag "Create" %>
+    <%%= f.submit "Create" %>
   </p>
 <%% end %>
 
