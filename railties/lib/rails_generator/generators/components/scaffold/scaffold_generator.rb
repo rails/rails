@@ -1,4 +1,4 @@
-class ScaffoldResourceGenerator < Rails::Generator::NamedBase
+class ScaffoldGenerator < Rails::Generator::NamedBase
   attr_reader   :controller_name,
                 :controller_class_path,
                 :controller_file_path,
@@ -79,7 +79,7 @@ class ScaffoldResourceGenerator < Rails::Generator::NamedBase
   protected
     # Override with your own usage banner.
     def banner
-      "Usage: #{$0} scaffold_resource ModelName [field:type, field:type]"
+      "Usage: #{$0} scaffold ModelName [field:type, field:type]"
     end
 
     def scaffold_views
