@@ -17,6 +17,10 @@ class AdminController   <  ResourcesController; end
 
 module Backoffice
   class ProductsController < ResourcesController; end
+  
+  module Admin
+    class ProductsController < ResourcesController; end    
+  end
 end
 
 class ResourcesTest < Test::Unit::TestCase
@@ -400,6 +404,20 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
   
+  def test_resources_in_nested_namespace
+    with_routing do |set|
+      set.draw do |map|
+        map.namespace :backoffice do |backoffice|
+          backoffice.namespace :admin do |admin|
+            admin.resources :products
+          end
+        end
+      end
+      
+      assert_simply_restful_for :products, :controller => "backoffice/admin/products", :name_prefix => 'backoffice_admin_', :path_prefix => 'backoffice/admin/'
+    end
+  end
+   
   def test_resources_using_namespace
     with_routing do |set|
       set.draw do |map|

@@ -351,7 +351,11 @@ module ActionController
     # It'll also create admin_product_tags_url pointing to "admin/products/#{product_id}/tags", which will look for
     # Admin::TagsController.
     def namespace(name, options = {}, &block)
-      with_options({ :path_prefix => name, :name_prefix => "#{name}_", :namespace => "#{name}/" }.merge(options), &block)
+      if options[:namespace]
+        with_options({:path_prefix => "#{options.delete(:path_prefix)}/#{name}", :name_prefix => "#{options.delete(:name_prefix)}#{name}_", :namespace => "#{options.delete(:namespace)}#{name}/" }.merge(options), &block)
+      else
+        with_options({ :path_prefix => name.to_s, :name_prefix => "#{name}_", :namespace => "#{name}/" }.merge(options), &block)
+      end
     end
 
 
