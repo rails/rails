@@ -775,7 +775,7 @@ module ActionController #:nodoc:
         end
 
         if location = options[:location]
-          response.headers["Location"] = location
+          response.headers["Location"] = url_for(location)
         end
 
         if text = options[:text]

@@ -1,6 +1,9 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
-silence_warnings { Customer = Struct.new("Customer", :name) }
+silence_warnings { Customer = Struct.new(:name, :id) }
+
+class CustomersController < ActionController::Base
+end
 
 module Fun
   class GamesController < ActionController::Base
@@ -260,6 +263,11 @@ class NewRenderTestController < ActionController::Base
 
   def render_with_location
     render :xml => "<hello/>", :location => "http://example.com", :status => 201
+  end
+  
+  def render_with_object_location
+    customer = Customer.new("Some guy", 1)
+    render :xml => "<customer/>", :location => customer_url(customer), :status => :created
   end
 
   def render_with_to_xml
@@ -765,5 +773,15 @@ EOS
   def test_rendering_xml_should_call_to_xml_if_possible
     get :render_with_to_xml
     assert_equal "<i-am-xml/>", @response.body
+  end
+  
+  def test_rendering_with_object_location_should_set_header_with_url_for
+    ActionController::Routing::Routes.draw do |map|
+      map.resources :customers
+      map.connect ':controller/:action/:id'
+    end
+    
+    get :render_with_object_location
+    assert_equal "http://test.host/customers/1", @response.headers["Location"]
   end
 end
