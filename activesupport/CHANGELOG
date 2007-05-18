@@ -1,5 +1,7 @@
 *SVN*
 
+* Date, Time, and DateTime#to_json.  #8399 [wycats]
+
 * Simplify API of assert_difference by passing in an expression that is evaluated before and after the passed in block. See documenation for examples of new API. [Marcel Molina Jr.]
 
 * Added assert_difference and assert_no_difference to test/unit assertions [Tobias Luetke]
