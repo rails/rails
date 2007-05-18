@@ -93,43 +93,12 @@ class AssociationProxyTest < Test::Unit::TestCase
 
   def test_push_does_not_load_target
     david = authors(:david)
-    not_loaded_string = '<categories not loaded yet>'
-    not_loaded_re = Regexp.new(not_loaded_string)
     
     david.categories << categories(:technology)
-    assert_match not_loaded_re, david.inspect
-    assert_equal not_loaded_string, david.categories.inspect
+    assert !david.categories.loaded?
     assert david.categories.include?(categories(:technology))
   end
   
-  def test_inspect_does_not_load_target
-    david = authors(:david)
-    not_loaded_string = '<posts not loaded yet>'
-    not_loaded_re = Regexp.new(not_loaded_string)
-
-    2.times do
-      assert !david.posts.loaded?, "Posts should not be loaded yet"
-      assert_match not_loaded_re, david.inspect
-      assert_equal not_loaded_string, david.posts.inspect
-
-      assert !david.posts.empty?, "There should be more than one post"
-      assert !david.posts.loaded?, "Posts should still not be loaded yet"
-      assert_match not_loaded_re, david.inspect
-      assert_equal not_loaded_string, david.posts.inspect
-
-      assert !david.posts.find(:all).empty?, "There should be more than one post"
-      assert !david.posts.loaded?, "Posts should still not be loaded yet"
-      assert_match not_loaded_re, david.inspect
-      assert_equal not_loaded_string, david.posts.inspect
-
-      assert !david.posts(true).empty?, "There should be more than one post"
-      assert david.posts.loaded?, "Posts should be loaded now"
-      assert_no_match  not_loaded_re, david.inspect
-      assert_not_equal not_loaded_string, david.posts.inspect
-
-      david.reload
-    end
-  end
 end
 
 class HasOneAssociationsTest < Test::Unit::TestCase

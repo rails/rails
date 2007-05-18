@@ -36,7 +36,7 @@ module ActiveRecord #:nodoc:
   end
   class Rollback < StandardError #:nodoc:
   end
-  
+
   class AttributeAssignmentError < ActiveRecordError #:nodoc:
     attr_reader :exception, :attribute
     def initialize(message, exception, attribute)
@@ -1812,6 +1812,20 @@ module ActiveRecord #:nodoc:
         clone_attributes :read_attribute_before_type_cast
       end
 
+      # Format attributes nicely for inspect.
+      def attribute_for_inspect(attr_name)
+        raise "Attribute not present #{attr_name}" unless has_attribute?(attr_name)
+        value = read_attribute(attr_name)
+
+        if (value.is_a?(String) && value.length > 50)
+          '"' + value[0..50] + '..."'
+        elsif (value.is_a?(Date) || value.is_a?(Time))
+          '"' + value.to_s(:db) + '"'
+        else
+          value.inspect
+        end
+      end
+
       # Returns true if the specified +attribute+ has been set by the user or by a database load and is neither
       # nil nor empty? (the latter only applies to objects that respond to empty?, most notably Strings).
       def attribute_present?(attribute)
@@ -1892,6 +1906,11 @@ module ActiveRecord #:nodoc:
         @readonly = true
       end
 
+      # Nice pretty inspect.
+      def inspect
+        attributes_as_nice_string = self.class.column_names.collect {|attr_name| "#{attr_name}: #{attribute_for_inspect(attr_name)}"}.join(", ")
+        "#<#{self.class.name} #{attributes_as_nice_string}>"
+      end
 
     private
       def create_or_update

@@ -1,5 +1,7 @@
 *SVN*
 
+* Sanitize Base#inspect.  #8392 [Nik Wakelin]
+
 * Replace the transaction {|transaction|..} semantics with a new Exception ActiveRecord::Rollback.   [Koz]
 
 * Oracle: extract column length for CHAR also.  #7866 [ymendel]

@@ -73,7 +73,8 @@ module ActiveRecord
       end
       
       def inspect
-        loaded? ? @target.inspect : "<#{@reflection.name} not loaded yet>"
+        reload unless loaded?
+        @target.inspect
       end
 
       protected
