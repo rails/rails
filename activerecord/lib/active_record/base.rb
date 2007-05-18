@@ -34,6 +34,8 @@ module ActiveRecord #:nodoc:
   end
   class ReadOnlyRecord < StandardError #:nodoc:
   end
+  class Rollback < StandardError #:nodoc:
+  end
   
   class AttributeAssignmentError < ActiveRecordError #:nodoc:
     attr_reader :exception, :attribute

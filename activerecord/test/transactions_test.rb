@@ -149,13 +149,13 @@ class TransactionTest < Test::Unit::TestCase
   end
 
   def test_manually_rolling_back_a_transaction
-    Topic.transaction do |transaction|
+    Topic.transaction do 
       @first.approved  = true
       @second.approved = false
       @first.save
       @second.save
       
-      transaction.rollback!
+      raise ActiveRecord::Rollback
     end
 
     assert @first.approved?, "First should still be changed in the objects"
