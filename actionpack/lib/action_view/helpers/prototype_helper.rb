@@ -250,8 +250,10 @@ module ActionView
         return function
       end
 
-      # Observes the field with the DOM ID specified by +field_id+ and makes
-      # an Ajax call when its contents have changed.
+      # Observes the field with the DOM ID specified by +field_id+ and calls a
+      # callback when its contents have changed. The default callback is an
+      # Ajax call. By default the value of the observed field is sent as a
+      # parameter with the Ajax call.
       # 
       # Required +options+ are either of:
       # <tt>:url</tt>::       +url_for+-style options for the action to call
@@ -268,14 +270,24 @@ module ActionView
       # <tt>:update</tt>::    Specifies the DOM ID of the element whose 
       #                       innerHTML should be updated with the
       #                       XMLHttpRequest response text.
-      # <tt>:with</tt>::      A JavaScript expression specifying the
-      #                       parameters for the XMLHttpRequest. This defaults
-      #                       to 'value', which in the evaluated context 
-      #                       refers to the new field value. If you specify a
-      #                       string without a "=", it'll be extended to mean
-      #                       the form key that the value should be assigned to.
-      #                       So :with => "term" gives "'term'=value". If a "=" is
-      #                       present, no extension will happen.
+      # <tt>:with</tt>::      A JavaScript expression specifying the parameters
+      #                       for the XMLHttpRequest. The default is to send the
+      #                       key and value of the observed field. Any custom
+      #                       expressions should return a valid URL query string.
+      #                       The value of the field is stored in the JavaScript
+      #                       variable +value+.
+      #
+      #                       Examples
+      #                       
+      #                         :with => "'my_custom_key=' + value"
+      #                         :with => "'person[name]=' + prompt('New name')"
+      #                         :with => "Form.Element.serialize('other-field')"
+      #
+      #                       Finally
+      #                         :with => 'name'
+      #                       is shorthand for
+      #                         :with => "'name=' + value"
+      #                       This essentially just changes the key of the parameter.
       # <tt>:on</tt>::        Specifies which event handler to observe. By default,
       #                       it's set to "changed" for text fields and areas and
       #                       "click" for radio buttons and checkboxes. With this,
@@ -291,11 +303,15 @@ module ActionView
           build_observer('Form.Element.EventObserver', field_id, options)
         end
       end
-      
-      # Like +observe_field+, but operates on an entire form identified by the
-      # DOM ID +form_id+. +options+ are the same as +observe_field+, except 
-      # the default value of the <tt>:with</tt> option evaluates to the
-      # serialized (request string) value of the form.
+     
+      # Observes the form with the DOM ID specified by +form_id+ and calls a
+      # callback when its contents have changed. The default callback is an
+      # Ajax call. By default all fields of the observed field are sent as
+      # parameters with the Ajax call.
+      #
+      # The +options+ for +observe_form+ are the same as the options for
+      # +observe_field+. The JavaScript variable +value+ available to the
+      # <tt>:with</tt> option is set to the serialized form by default.
       def observe_form(form_id, options = {})
         if options[:frequency]
           build_observer('Form.Observer', form_id, options)
@@ -660,10 +676,10 @@ module ActionView
       end
     
       def build_observer(klass, name, options = {})
-        if options[:with] && !options[:with].include?("=")
+        if options[:with] && (options[:with] !~ /[=(.]/)
           options[:with] = "'#{options[:with]}=' + value"
         else
-          options[:with] ||= 'value' if options[:update]
+          options[:with] ||= 'value' unless options[:function]
         end
 
         callback = options[:function] || remote_function(options)

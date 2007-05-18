@@ -1,5 +1,7 @@
 *SVN*
 
+* observe_form always sends the serialized form.  #5271 [manfred, normelton@gmail.com]
+
 * Update UrlWriter to accept :anchor parameter. Closes #6771. [octopod]
 
 * Replace the current block/continuation filter chain handling by an implementation based on a simple loop.  Closes #8226 [Stefan Kaes]
