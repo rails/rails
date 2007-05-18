@@ -374,7 +374,7 @@ module ActiveRecord #:nodoc:
       # * <tt>:order</tt>: An SQL fragment like "created_at DESC, name".
       # * <tt>:group</tt>: An attribute name by which the result should be grouped. Uses the GROUP BY SQL-clause.
       # * <tt>:limit</tt>: An integer determining the limit on the number of rows that should be returned.
-      # * <tt>:offset</tt>: An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
+      # * <tt>:offset</tt>: An integer determining the offset from where the rows should be fetched. So at 5, it would skip rows 0 through 4.
       # * <tt>:joins</tt>: An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
       #   The records will be returned read-only since they will have attributes that do not correspond to the table's columns.
       #   Pass :readonly => false to override.
