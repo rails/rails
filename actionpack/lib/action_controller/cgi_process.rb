@@ -47,12 +47,11 @@ module ActionController #:nodoc:
     end
 
     def query_string
-      if (qs = @cgi.query_string) && !qs.empty?
+      qs = @cgi.query_string
+      if !qs.blank?
         qs
       elsif uri = @env['REQUEST_URI']
-        parts = uri.split('?')
-        parts.shift
-        parts.join('?')
+        uri.split('?', 2).last
       else
         @env['QUERY_STRING'] || ''
       end
@@ -69,16 +68,11 @@ module ActionController #:nodoc:
     end
 
     def query_parameters
-      @query_parameters ||= CGI.parse_query_parameters(query_string)
+      @query_parameters ||= self.class.parse_query_parameters(query_string)
     end
 
     def request_parameters
-      @request_parameters ||=
-        if ActionController::Base.param_parsers.has_key?(content_type)
-          self.class.parse_formatted_request_parameters(content_type, body.read)
-        else
-          CGI.parse_request_parameters(@cgi.params)
-        end
+      @request_parameters ||= self.class.parse_formatted_request_parameters(body, content_type_with_parameters, content_length, env)
     end
 
     def cookies

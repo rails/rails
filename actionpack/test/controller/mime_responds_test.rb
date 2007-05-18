@@ -232,11 +232,13 @@ class MimeControllerTest < Test::Unit::TestCase
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
   
-  def test_with_content_type
+  def test_with_atom_content_type
     @request.env["CONTENT_TYPE"] = "application/atom+xml"
     get :made_for_content_type
     assert_equal "ATOM", @response.body
+  end
 
+  def test_with_rss_content_type
     @request.env["CONTENT_TYPE"] = "application/rss+xml"
     get :made_for_content_type
     assert_equal "RSS", @response.body

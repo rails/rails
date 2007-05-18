@@ -199,10 +199,9 @@ class CookieStoreTest < Test::Unit::TestCase
       ENV['HTTP_HOST'] = 'example.com'
       ENV['QUERY_STRING'] = ''
 
-      $stdin, old_stdin = StringIO.new(''), $stdin
-      yield CGI.new
-    ensure
-      $stdin = old_stdin
+      cgi = CGI.new('query', StringIO.new(''))
+      yield cgi if block_given?
+      cgi
     end
 end
 

@@ -36,10 +36,13 @@ class WebServiceTest < Test::Unit::TestCase
   
   def setup
     @controller = TestController.new
-    ActionController::Base.param_parsers.clear
-    ActionController::Base.param_parsers[Mime::XML] = :xml_simple
+    @default_param_parsers = ActionController::Base.param_parsers.dup
   end
-  
+
+  def teardown
+    ActionController::Base.param_parsers = @default_param_parsers
+  end
+
   def test_check_parameters
     process('GET')
     assert_equal '', @controller.response.body

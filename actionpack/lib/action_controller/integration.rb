@@ -306,7 +306,7 @@ module ActionController
                             "REQUEST_URI"    => "/",
                             "HTTP_HOST"      => host,
                             "SERVER_PORT"    => https? ? "443" : "80",
-                            "HTTPS"          => https? ? "on" : "off")                          
+                            "HTTPS"          => https? ? "on" : "off")
           ActionController::UrlRewriter.new(ActionController::CgiRequest.new(cgi), {})
         end
 
