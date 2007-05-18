@@ -601,7 +601,7 @@ class FormHelperTest < Test::Unit::TestCase
 
 
   protected
-    def polymorphic_path(record, url_writer)
+    def polymorphic_path(record)
       if record.new_record?
         "/posts"
       else

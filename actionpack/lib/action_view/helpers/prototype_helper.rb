@@ -191,6 +191,7 @@ module ActionView
           object      = record_or_name
           object_name = ActionController::RecordIdentifier.singular_class_name(record_or_name)
           apply_form_for_options!(object, options)
+          args.unshift object
         end
 
         concat(form_remote_tag(options), proc.binding)

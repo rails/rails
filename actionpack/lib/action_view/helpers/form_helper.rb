@@ -167,6 +167,7 @@ module ActionView
           object      = record_or_name
           object_name = ActionController::RecordIdentifier.singular_class_name(record_or_name)
           apply_form_for_options!(object, options)
+          args.unshift object
         end
 
         concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}), proc.binding)
@@ -184,7 +185,7 @@ module ActionView
         options[:html] ||= {}
         options[:html].reverse_merge!(html_options)
 
-        options[:url] ||= polymorphic_path(object, self)        
+        options[:url] ||= polymorphic_path(object)
       end
 
       # Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes

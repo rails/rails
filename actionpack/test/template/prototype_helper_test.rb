@@ -214,7 +214,7 @@ class PrototypeHelperTest < Test::Unit::TestCase
       "/authors"
     end
   
-    def polymorphic_path(record, url_writer)
+    def polymorphic_path(record)
       if record.new_record?
         "/authors"
       else

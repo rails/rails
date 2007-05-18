@@ -560,7 +560,7 @@ module ActionController #:nodoc:
           when Hash
             @url.rewrite(rewrite_options(options))
           else
-            polymorphic_url(options, self)
+            polymorphic_url(options)
         end
       end
 
@@ -1034,7 +1034,6 @@ module ActionController #:nodoc:
 
           else
             redirect_to(url_for(options))
-            response.redirected_to = options
         end
       end
 

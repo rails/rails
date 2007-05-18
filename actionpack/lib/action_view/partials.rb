@@ -48,19 +48,34 @@ module ActionView
     private
       # Deprecated, use render :partial
       def render_partial(partial_path, local_assigns = nil, deprecated_local_assigns = nil) #:nodoc:
-        path, partial_name = partial_pieces(partial_path)
-        object = extracting_object(partial_name, local_assigns, deprecated_local_assigns)
-        local_assigns = extract_local_assigns(local_assigns, deprecated_local_assigns)
-        local_assigns = local_assigns ? local_assigns.clone : {}
-        add_counter_to_local_assigns!(partial_name, local_assigns)
-        add_object_to_local_assigns!(partial_name, local_assigns, object)
+        case partial_path
+        when String, Symbol, NilClass
+          path, partial_name = partial_pieces(partial_path)
+          object = extracting_object(partial_name, local_assigns, deprecated_local_assigns)
+          local_assigns = extract_local_assigns(local_assigns, deprecated_local_assigns)
+          local_assigns = local_assigns ? local_assigns.clone : {}
+          add_counter_to_local_assigns!(partial_name, local_assigns)
+          add_object_to_local_assigns!(partial_name, local_assigns, object)
 
-        if logger
-          ActionController::Base.benchmark("Rendered #{path}/_#{partial_name}", Logger::DEBUG, false) do
+          if logger
+            ActionController::Base.benchmark("Rendered #{path}/_#{partial_name}", Logger::DEBUG, false) do
+              render("#{path}/_#{partial_name}", local_assigns)
+            end
+          else
             render("#{path}/_#{partial_name}", local_assigns)
           end
+        when Array
+          if partial_path.any?
+            path       = ActionController::RecordIdentifier.partial_path(partial_path.first)
+            collection = partial_path
+            render_partial_collection(path, collection, nil, local_assigns.value)
+          else
+            ""
+          end
         else
-          render("#{path}/_#{partial_name}", local_assigns)
+          render_partial(
+            ActionController::RecordIdentifier.partial_path(partial_path),
+            local_assigns, deprecated_local_assigns)
         end
       end
 

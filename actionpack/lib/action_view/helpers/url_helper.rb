@@ -75,7 +75,7 @@ module ActionView
           url = @controller.send(:url_for, nil)
         else
           escape = false
-          url    = polymorphic_path(options, self)
+          url    = polymorphic_path(options)
         end
 
         escape ? html_escape(url) : url
