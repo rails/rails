@@ -1032,6 +1032,10 @@ module ActionController #:nodoc:
           when :back
             request.env["HTTP_REFERER"] ? redirect_to(request.env["HTTP_REFERER"]) : raise(RedirectBackError)
 
+          when Hash
+            redirect_to(url_for(options))
+            response.redirected_to = options
+
           else
             redirect_to(url_for(options))
         end
