@@ -1,6 +1,10 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
-silence_warnings { Customer = Struct.new(:name, :id) }
+class Customer < Struct.new(:name, :id)
+  def to_param
+    id.to_s
+  end
+end
 
 class CustomersController < ActionController::Base
 end
@@ -780,8 +784,8 @@ EOS
       map.resources :customers
       map.connect ':controller/:action/:id'
     end
-    
+
     get :render_with_object_location
-    assert_equal "http://test.host/customers/1", @response.headers["Location"]
+    assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
   end
 end
