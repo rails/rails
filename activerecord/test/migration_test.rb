@@ -230,7 +230,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_kind_of BigDecimal, row.wealth
 
       # If this assert fails, that means the SELECT is broken!
-      assert_equal correct_value, row.wealth
+      unless current_adapter?(:SQLite3Adapter)
+        assert_equal correct_value, row.wealth
+      end
 
       # Reset to old state
       Person.delete_all
@@ -243,7 +245,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_kind_of BigDecimal, row.wealth
 
       # If these asserts fail, that means the INSERT (create function, or cast to SQL) is broken!
-      assert_equal correct_value, row.wealth
+      unless current_adapter?(:SQLite3Adapter)
+        assert_equal correct_value, row.wealth
+      end
 
       # Reset to old state
       Person.connection.del_column "people", "wealth" rescue nil
@@ -279,8 +283,10 @@ if ActiveRecord::Base.connection.supports_migrations?
       # Test for 30 significent digits (beyond the 16 of float), 10 of them
       # after the decimal place.
      
-      assert_equal BigDecimal.new("0012345678901234567890.0123456789"), bob.wealth
-
+      unless current_adapter?(:SQLite3Adapter)
+        assert_equal BigDecimal.new("0012345678901234567890.0123456789"), bob.wealth
+      end
+      
       assert_equal true, bob.male?
 
       assert_equal String, bob.first_name.class
