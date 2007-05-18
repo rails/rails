@@ -9,14 +9,14 @@ Description:
     
     The generator takes the name of the model as its first argument. This
     model name is then pluralized to get the controller name. So
-    "scaffold_resource post" will generate a Post model and a
+    "scaffold post" will generate a Post model and a
     PostsController and will be intended for URLs like /posts and
     /posts/45.
     
     As additional parameters, the generator will take attribute pairs
     described by name and type. These attributes will be used to
     prepopulate the migration to create the table for the model and to give
-    you a set of templates for the view. For example, "scaffold_resource
+    you a set of templates for the view. For example, "scaffold
     post title:string created_on:date body:text published:boolean" will
     give you a model with those four attributes, forms to create and edit
     those models from, and an index that'll list them all.
@@ -27,7 +27,7 @@ Description:
     
     The generator also adds a declaration to your config/routes.rb file
     to hook up the rules that'll point URLs to this new resource. If you 
-    create a resource like "scaffold_resource post", it will add
+    create a resource like "scaffold post", it will add
     "map.resources :posts" (notice the plural form) in the routes file, 
     making your new resource accessible from /posts. 
 

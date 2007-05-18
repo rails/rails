@@ -18,7 +18,7 @@ module Rails::Generator::Scripts
 This script will destroy all files created by the corresponding 
 script/generate command. For instance, script/destroy migration CreatePost
 will delete the appropriate ###_create_post.rb file in db/migrate, while 
-script/destroy scaffold_resource Post will delete the posts controller and 
+script/destroy scaffold Post will delete the posts controller and 
 views, post model and migration, all associated tests, and the map.resources
 :posts line in config/routes.rb.
       

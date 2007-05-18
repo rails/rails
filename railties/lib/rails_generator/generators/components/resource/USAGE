@@ -21,7 +21,7 @@ Description:
     your config/routes.rb file, hooking up the rules that'll point URLs to 
     this new resource. 
     
-    Unlike the scaffold_resource generator, the resource generator does not
+    Unlike the scaffold generator, the resource generator does not
     create views or add any methods to the generated controller.
     
 Examples:
