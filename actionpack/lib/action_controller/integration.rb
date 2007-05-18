@@ -195,14 +195,13 @@ module ActionController
 
       private
         class MockCGI < CGI #:nodoc:
-          attr_accessor :stdinput, :stdoutput, :env_table
+          attr_accessor :stdoutput, :env_table
 
-          def initialize(env, input=nil)
+          def initialize(env, input = nil)
             self.env_table = env
-            self.stdinput = StringIO.new(input || "")
             self.stdoutput = StringIO.new
 
-            super()
+            super('query', StringIO.new(input || ''))
           end
         end
 
