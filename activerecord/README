@@ -176,7 +176,7 @@ A short rundown of the major features:
    )
 
   {Learn more}[link:classes/ActiveRecord/Base.html#M000081] and read about the built-in support for
-  MySQL[link:classes/ActiveRecord/ConnectionAdapters/MysqlAdapter.html], PostgreSQL[link:classes/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter.html], SQLite[link:classes/ActiveRecord/ConnectionAdapters/SQLiteAdapter.html], Oracle[link:classes/ActiveRecord/ConnectionAdapters/OCIAdapter.html], SQLServer[link:classes/ActiveRecord/ConnectionAdapters/SQLServerAdapter.html], and DB2[link:classes/ActiveRecord/ConnectionAdapters/DB2Adapter.html].
+  MySQL[link:classes/ActiveRecord/ConnectionAdapters/MysqlAdapter.html], PostgreSQL[link:classes/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter.html], SQLite[link:classes/ActiveRecord/ConnectionAdapters/SQLiteAdapter.html], Oracle[link:classes/ActiveRecord/ConnectionAdapters/OracleAdapter.html], SQLServer[link:classes/ActiveRecord/ConnectionAdapters/SQLServerAdapter.html], and DB2[link:classes/ActiveRecord/ConnectionAdapters/DB2Adapter.html].
 
 
 * Logging support for Log4r[http://log4r.sourceforge.net] and Logger[http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc]
