@@ -1,7 +1,12 @@
 require 'active_support/json/variable'
 
-require 'active_support/json/encoders/object' # Require this file explicitly for rdoc
-Dir[File.dirname(__FILE__) + '/encoders/**/*.rb'].each { |file| require file[0..-4] }
+require 'active_support/json/encoders/object' # Require explicitly for rdoc.
+Dir["#{File.dirname(__FILE__)}/encoders/**/*.rb"].each do |file|
+  basename = File.basename(file, '.rb')
+  unless basename == 'object'
+    require "active_support/json/encoders/#{basename}"
+  end
+end
 
 module ActiveSupport
   module JSON

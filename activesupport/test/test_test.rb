@@ -49,8 +49,8 @@ class AssertDifferenceTest < Test::Unit::TestCase
 
   def test_expression_is_evaluated_in_the_appropriate_scope
     local_scope = 'foo'
-    assert_difference 'local_scope; @object.num' do
-      @object.increment
+    silence_warnings do
+      assert_difference('local_scope; @object.num') { @object.increment }
     end
   end
 end
