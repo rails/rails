@@ -320,8 +320,6 @@ module ActionController
         mime_type = Mime::Type.lookup(content_type)
         strategy = ActionController::Base.param_parsers[mime_type]
 
-        raise [content_type, content_length, mime_type, ActionController::Base.param_parsers].inspect unless strategy
-
         # Only multipart form parsing expects a stream.
         if strategy && strategy != :multipart_form
           body = body.read(content_length)
