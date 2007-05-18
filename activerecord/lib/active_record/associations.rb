@@ -95,6 +95,12 @@ module ActiveRecord
     # * <tt>Project#categories.empty?, Project#categories.size, Project#categories, Project#categories<<(category1),</tt>
     #   <tt>Project#categories.delete(category1)</tt>
     #
+    # === A word of warning
+    #
+    # Don't create associations that have the same name as instance methods of ActiveRecord::Base. Since the association
+    # adds a method with that name to its model, it will override the inherited method and break things.
+    # For instance, #attributes and #connection would be bad choices for association names.
+    #
     # == Example
     #
     # link:files/examples/associations.png
