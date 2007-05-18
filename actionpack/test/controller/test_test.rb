@@ -67,8 +67,7 @@ HTML
     end
 
     def create
-      headers['Location'] = 'created resource'
-      head :created
+      head :created, :location => 'created resource'
     end
 
     private
