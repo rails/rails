@@ -32,7 +32,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     end
   end
 
-  # GET /<%= table_name %>/1;edit
+  # GET /<%= table_name %>/1/edit
   def edit
     @<%= file_name %> = <%= class_name %>.find(params[:id])
   end
