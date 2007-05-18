@@ -252,6 +252,15 @@ class FormOptionsHelperTest < Test::Unit::TestCase
     )
   end
 
+  def test_select_with_blank_as_string
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">None</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), :include_blank => 'None')
+    )
+  end
+
   def test_select_with_default_prompt
     @post = Post.new
     @post.category = ""
@@ -360,6 +369,22 @@ class FormOptionsHelperTest < Test::Unit::TestCase
     )
   end
 
+  def test_collection_select_with_blank_as_string_and_style
+    @posts = [
+      Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
+      Post.new("Babe went home", "Babe", "To a little house", "shh!"),
+      Post.new("Cabe went home", "Cabe", "To a little house", "shh!")
+    ]
+
+    @post = Post.new
+    @post.author_name = "Babe"
+
+    assert_dom_equal(
+      "<select id=\"post_author_name\" name=\"post[author_name]\" style=\"width: 200px\"><option value=\"\">No Selection</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
+      collection_select("post", "author_name", @posts, "author_name", "author_name", { :include_blank => 'No Selection' }, "style" => "width: 200px")
+    )
+  end
+
   def test_collection_select_with_multiple_option_appends_array_brackets
     @posts = [
       Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
@@ -439,6 +464,20 @@ class FormOptionsHelperTest < Test::Unit::TestCase
                  html
   end
 
+  def test_time_zone_select_with_blank_as_string
+    @firm = Firm.new("D")
+    html = time_zone_select("firm", "time_zone", nil, :include_blank => 'No Zone')
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
+                 "<option value=\"\">No Zone</option>\n" +
+                 "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
+                 "<option value=\"E\">E</option>" +
+                 "</select>",
+                 html
+  end
+
   def test_time_zone_select_with_style
     @firm = Firm.new("D")
     html = time_zone_select("firm", "time_zone", nil, {},
@@ -470,6 +509,23 @@ class FormOptionsHelperTest < Test::Unit::TestCase
                  html
     assert_dom_equal html, time_zone_select("firm", "time_zone", nil,
       { :include_blank => true }, :style => "color: red")
+  end
+
+  def test_time_zone_select_with_blank_as_string_and_style
+    @firm = Firm.new("D")
+    html = time_zone_select("firm", "time_zone", nil,
+      { :include_blank => 'No Zone' }, "style" => "color: red")
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\" style=\"color: red\">" +
+                 "<option value=\"\">No Zone</option>\n" +
+                 "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
+                 "<option value=\"E\">E</option>" +
+                 "</select>",
+                 html
+    assert_dom_equal html, time_zone_select("firm", "time_zone", nil,
+      { :include_blank => 'No Zone' }, :style => "color: red")
   end
 
   def test_time_zone_select_with_priority_zones

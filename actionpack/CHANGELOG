@@ -1,5 +1,7 @@
 *SVN*
 
+* select :include_blank option can be set to a string instead of true, which just uses an empty string.  #7664 [Wizard]
+
 * Added url_for usage on render :location, which allows for record identification [DHH]. Example:
 
     render :xml => person, :status => :created, :location => person

@@ -10,7 +10,9 @@ module ActionView
     # and <tt>time_zone_select</tt> methods take an <tt>options</tt> parameter,
     # a hash.
     #
-    # * <tt>:include_blank</tt> - set to true if the first option element of the select element is a blank. Useful if there is not a default value required for the select element. For example,
+    # * <tt>:include_blank</tt> - set to true or a prompt string if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
+    #
+    # For example,
     #
     #   select("post", "category", Post::CATEGORIES, {:include_blank => true})
     #
@@ -22,15 +24,31 @@ module ActionView
     #     <option>poem</option>
     #   </select>
     #
-    # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this prepends an option with a generic prompt -- "Please select" -- or the given prompt string.
+    # Another common case is a select tag for an <tt>belongs_to</tt>-associated object.
     #
-    # Another common case is a select tag for an <tt>belongs_to</tt>-associated object. For example,
+    # Example with @post.person_id => 2:
     #
-    #   select("post", "person_id", Person.find(:all).collect {|p| [ p.name, p.id ] })
+    #   select("post", "person_id", Person.find(:all).collect {|p| [ p.name, p.id ] }, {:include_blank => 'None'})
     #
     # could become:
     #
     #   <select name="post[person_id]">
+    #     <option value="">None</option>
+    #     <option value="1">David</option>
+    #     <option value="2" selected="selected">Sam</option>
+    #     <option value="3">Tobias</option>
+    #   </select>
+    #
+    # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this prepends an option with a generic prompt -- "Please select" -- or the given prompt string.
+    #
+    # Example:
+    #
+    #   select("post", "person_id", Person.find(:all).collect {|p| [ p.name, p.id ] }, {:prompt => 'Select Person'})
+    #
+    # could become:
+    #
+    #   <select name="post[person_id]">
+    #     <option value="">Select Person</option>
     #     <option value="1">David</option>
     #     <option value="2">Sam</option>
     #     <option value="3">Tobias</option>
@@ -48,7 +66,7 @@ module ActionView
       # could become:
       #
       #   <select name="post[person_id]">
-      #     <option></option>
+      #     <option value=""></option>
       #     <option value="1" selected="selected">David</option>
       #     <option value="2">Sam</option>
       #     <option value="3">Tobias</option>
@@ -341,8 +359,9 @@ module ActionView
 
       private
         def add_options(option_tags, options, value = nil)
-          option_tags = "<option value=\"\"></option>\n" + option_tags if options[:include_blank]
-
+          if options[:include_blank]
+            option_tags = "<option value=\"\">#{options[:include_blank] if options[:include_blank].kind_of?(String)}</option>\n" + option_tags
+          end
           if value.blank? && options[:prompt]
             ("<option value=\"\">#{options[:prompt].kind_of?(String) ? options[:prompt] : 'Please select'}</option>\n") + option_tags
           else
