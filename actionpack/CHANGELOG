@@ -1,5 +1,7 @@
 *SVN*
 
+* Document caches_action.  #5419 [Jarkko Laine]
+
 * observe_form always sends the serialized form.  #5271 [manfred, normelton@gmail.com]
 
 * Update UrlWriter to accept :anchor parameter. Closes #6771. [octopod]
