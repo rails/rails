@@ -422,7 +422,15 @@ module ActiveRecord
     #   for post in Post.find(:all, :include => [ :author, :comments ])
     #
     # That'll add another join along the lines of: LEFT OUTER JOIN comments ON comments.post_id = posts.id. And we'll be down to 1 query.
-    # But that shouldn't fool you to think that you can pull out huge amounts of data with no performance penalty just because you've reduced
+    #
+    # To include a deep hierarchy of associations, using a hash:
+    #
+    #   for post in Post.find(:all, :include => [ :author, { :comments => { :author => :gravatar } } ])
+    #
+    # That'll grab not only all the comments but all their authors and gravatar pictures.  You can mix and match
+    # symbols, arrays and hashes in any combination to describe the associations you want to load.
+    #
+    # All of this power shouldn't fool you into thinking that you can pull out huge amounts of data with no performance penalty just because you've reduced
     # the number of queries. The database still needs to send all the data to Active Record and it still needs to be processed. So it's no
     # catch-all for performance problems, but it's a great way to cut down on the number of queries in a situation as the one described above.
     # 
