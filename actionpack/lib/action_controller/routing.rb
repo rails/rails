@@ -870,6 +870,14 @@ module ActionController
       # and requirements.
       def divide_route_options(segments, options)
         options = options.dup
+        
+        if options[:namespace]
+          options[:controller] = "#{options[:path_prefix]}/#{options[:controller]}"
+          options.delete(:path_prefix)
+          options.delete(:name_prefix)
+          options.delete(:namespace)
+        end        
+                
         requirements = (options.delete(:requirements) || {}).dup
         defaults     = (options.delete(:defaults)     || {}).dup
         conditions   = (options.delete(:conditions)   || {}).dup
@@ -879,7 +887,7 @@ module ActionController
           hash = (path_keys.include?(key) && ! value.is_a?(Regexp)) ? defaults : requirements
           hash[key] = value
         end
-    
+            
         [defaults, requirements, conditions]
       end
       
@@ -961,7 +969,9 @@ module ActionController
       def build(path, options)
         # Wrap the path with slashes
         path = "/#{path}" unless path[0] == ?/
-        path = "#{path}/" unless path[-1] == ?/
+        path = "#{path}/" unless path[-1] == ?/    
+        
+        path = "/#{options[:path_prefix]}#{path}" if options[:path_prefix]
     
         segments = segments_for_route_path(path)
         defaults, requirements, conditions = divide_route_options(segments, options)
@@ -1010,6 +1020,26 @@ module ActionController
         def named_route(name, path, options = {})
           @set.add_named_route(name, path, options)
         end
+        
+        # Enables the use of resources in a module by setting the name_prefix, path_prefix, and namespace for the model.
+        # Example:
+        #
+        #   map.namespace(:admin) do |admin|
+        #     admin.resources :products,
+        #       :has_many => [ :tags, :images, :variants ]
+        #   end
+        #
+        # This will create admin_products_url pointing to "admin/products", which will look for an Admin::ProductsController.
+        # It'll also create admin_product_tags_url pointing to "admin/products/#{product_id}/tags", which will look for
+        # Admin::TagsController.
+        def namespace(name, options = {}, &block)
+          if options[:namespace]
+            with_options({:path_prefix => "#{options.delete(:path_prefix)}/#{name}", :name_prefix => "#{options.delete(:name_prefix)}#{name}_", :namespace => "#{options.delete(:namespace)}#{name}/" }.merge(options), &block)
+          else
+            with_options({:path_prefix => name, :name_prefix => "#{name}_", :namespace => "#{name}/" }.merge(options), &block)
+          end
+        end
+        
 
         def method_missing(route_name, *args, &proc)
           super unless args.length >= 1 && proc.nil?
@@ -1193,7 +1223,8 @@ module ActionController
       end
   
       def add_named_route(name, path, options = {})
-        named_routes[name] = add_route(path, options)
+        name = options[:name_prefix] + name.to_s if options[:name_prefix]
+        named_routes[name.to_sym] = add_route(path, options)
       end
   
       def options_as_params(options)

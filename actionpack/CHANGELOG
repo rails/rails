@@ -1,5 +1,12 @@
 *SVN*
 
+* Allow routes to be decalred under namespaces [Tobias Luetke]: 
+  
+  map.namespace :admin do |admin|
+    admin.root :controller => "products"       
+    admin.feed 'feed.xml', :controller => 'products', :action => 'feed', :format => 'xml'
+  end
+  
 * Update to script.aculo.us 1.7.1_beta3.  [Thomas Fuchs]
 
 * observe_form always sends the serialized form.  #5271 [manfred, normelton@gmail.com]

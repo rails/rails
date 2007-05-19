@@ -427,7 +427,7 @@ class ResourcesTest < Test::Unit::TestCase
       assert_simply_restful_for :products, :controller => "backoffice/products"
     end
   end
-
+  
   protected
     def with_restful_routing(*args)
       with_routing do |set|
