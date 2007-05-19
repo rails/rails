@@ -5,15 +5,6 @@ module ActiveRecord
   # Timestamping can be turned off by setting
   #   <tt>ActiveRecord::Base.record_timestamps = false</tt>
   #
-  # Keep in mind that, via inheritance, you can turn off timestamps on a per
-  # model basis by setting <tt>record_timestamps</tt> to false in the desired
-  # models.
-  #
-  #   class Feed < ActiveRecord::Base
-  #     self.record_timestamps = false
-  #     # ...
-  #   end
-  #
   # Timestamps are in the local timezone by default but can use UTC by setting
   #   <tt>ActiveRecord::Base.default_timezone = :utc</tt>
   module Timestamp
