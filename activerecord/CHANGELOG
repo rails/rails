@@ -1,5 +1,7 @@
 *SVN*
 
+* Document deep eager includes.  #6267 [Josh Susser, Dan Manges]
+
 * Oracle: extract column length for CHAR also.  #7866 [ymendel]
 
 * Small additions and fixes for ActiveRecord documentation.  Closes #7342 [jeremymcanally]
