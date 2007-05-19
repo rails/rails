@@ -63,32 +63,14 @@ module ActionController
       @content_length ||= env['CONTENT_LENGTH'].to_i
     end
 
-    def content_type_with_parameters
-      @content_type_with_parameters ||= env['CONTENT_TYPE'].to_s
-    end
-
-    # Determine whether the body of a HTTP call is URL-encoded (default)
-    # or matches one of the registered param_parsers. 
+    # The MIME type of the HTTP request, such as Mime::XML.
     #
     # For backward compatibility, the post format is extracted from the
     # X-Post-Data-Format HTTP header if present.
     def content_type
       @content_type ||=
-        begin
-          # Receive header sans any charset information.
-          content_type = content_type_with_parameters.sub(/\s*\;.*$/, '').strip.downcase
-
-          if x_post_format = @env['HTTP_X_POST_DATA_FORMAT']
-            case x_post_format.to_s.downcase
-            when 'yaml'
-              content_type = Mime::YAML.to_s
-            when 'xml'
-              content_type = Mime::XML.to_s
-            end
-          end
-
-          Mime::Type.lookup(content_type)
-        end
+        content_type_from_legacy_post_data_format_header ||
+        Mime::Type.lookup(content_type_without_parameters)
     end
 
     # Returns the accepted MIME type for the request
@@ -308,13 +290,39 @@ module ActionController
     def reset_session #:nodoc:
     end
 
+    protected
+      # The raw content type string. Use when you need parameters such as
+      # charset or boundary which aren't included in the content_type MIME type.
+      def content_type_with_parameters
+        env['CONTENT_TYPE'].to_s
+      end
+
+      # The raw content type string with its parameters stripped off.
+      def content_type_without_parameters
+        @content_type_without_parameters ||= self.class.extract_content_type_without_parameters(content_type_with_parameters)
+      end
+
+    private
+      def content_type_from_legacy_post_data_format_header
+        if x_post_format = @env['HTTP_X_POST_DATA_FORMAT']
+          case x_post_format.to_s.downcase
+            when 'yaml';  Mime::YAML
+            when 'xml';   Mime::XML
+          end
+        end
+      end
+
 
     class << self
-      def parse_formatted_request_parameters(body, content_type, content_length, env = {})
+      def extract_content_type_without_parameters(content_type_with_parameters)
+        $1.strip.downcase if content_type_with_parameters =~ /^([^,\;]*)/
+      end
+
+      def parse_formatted_request_parameters(body, content_type_with_parameters, content_length, env = {})
         content_length = content_length.to_i
         return {} if content_length.zero?
 
-        content_type, boundary = extract_multipart_boundary(content_type.to_s)
+        content_type, boundary = extract_multipart_boundary(content_type_with_parameters.to_s)
         return {} if content_type.blank?
 
         mime_type = Mime::Type.lookup(content_type)
@@ -343,7 +351,7 @@ module ActionController
       rescue Exception => e # YAML, XML or Ruby code block errors
         raise
         { "body" => body,
-          "content_type" => content_type,
+          "content_type" => content_type_with_parameters,
           "content_length" => content_length,
           "exception" => "#{e.message} (#{e.class})",
           "backtrace" => e.backtrace }
@@ -444,11 +452,11 @@ module ActionController
 
         MULTIPART_BOUNDARY = %r|\Amultipart/form-data.*boundary=\"?([^\";,]+)\"?|n
 
-        def extract_multipart_boundary(content_type)
-          if content_type =~ MULTIPART_BOUNDARY
+        def extract_multipart_boundary(content_type_with_parameters)
+          if content_type_with_parameters =~ MULTIPART_BOUNDARY
             ['multipart/form-data', $1.dup]
           else
-            content_type
+            extract_content_type_without_parameters(content_type_with_parameters)
           end
         end
 
