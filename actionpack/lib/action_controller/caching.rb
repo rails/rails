@@ -180,7 +180,9 @@ module ActionController #:nodoc:
         base.send(:attr_accessor, :rendered_action_cache)
       end
 
-      module ClassMethods #:nodoc:
+      module ClassMethods
+        # Declares that +actions+ should be cached.
+        # See ActionController::Caching::Actions for details.
         def caches_action(*actions)
           return unless perform_caching
           around_filter(ActionCacheFilter.new(*actions))

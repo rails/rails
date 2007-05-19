@@ -1,5 +1,7 @@
 *SVN*
 
+* Document caches_action.  #5419 [Jarkko Laine]
+
 * Update to Prototype 1.5.1.  [Sam Stephenson]
 
 * Allow routes to be decalred under namespaces [Tobias Luetke]: 
