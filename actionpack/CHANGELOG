@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to Prototype 1.5.1.  [Sam Stephenson]
+
 * Allow routes to be decalred under namespaces [Tobias Luetke]: 
   
   map.namespace :admin do |admin|
