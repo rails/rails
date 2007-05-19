@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to script.aculo.us 1.7.1_beta3.  [Thomas Fuchs]
+
 * observe_form always sends the serialized form.  #5271 [manfred, normelton@gmail.com]
 
 * Parse url-encoded and multipart requests ourselves instead of delegating to CGI.  [Jeremy Kemper]

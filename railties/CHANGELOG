@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to script.aculo.us 1.7.1_beta3.  [Thomas Fuchs]
+
 * Generators use *.html.erb view template naming.  #8278 [Tim Pope]
 
 * Updated resource_scaffold and model generators to use short-hand style migrations [DHH]

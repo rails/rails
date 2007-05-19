@@ -1,6 +1,6 @@
-// Copyright (c) 2005, 2006 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us)
-//           (c) 2005, 2006 Ivan Krstic (http://blogs.law.harvard.edu/ivan)
-//           (c) 2005, 2006 Jon Tirsen (http://www.tirsen.com)
+// Copyright (c) 2005-2007 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us)
+//           (c) 2005-2007 Ivan Krstic (http://blogs.law.harvard.edu/ivan)
+//           (c) 2005-2007 Jon Tirsen (http://www.tirsen.com)
 // Contributors:
 //  Richard Livsey
 //  Rahul Bhargava
@@ -41,7 +41,8 @@ var Autocompleter = {}
 Autocompleter.Base = function() {};
 Autocompleter.Base.prototype = {
   baseInitialize: function(element, update, options) {
-    this.element     = $(element); 
+    element          = $(element)
+    this.element     = element; 
     this.update      = $(update);  
     this.hasFocus    = false; 
     this.changed     = false; 
@@ -81,15 +82,20 @@ Autocompleter.Base.prototype = {
 
     Element.hide(this.update);
 
-    Event.observe(this.element, "blur", this.onBlur.bindAsEventListener(this));
-    Event.observe(this.element, "keypress", this.onKeyPress.bindAsEventListener(this));
+    Event.observe(this.element, 'blur', this.onBlur.bindAsEventListener(this));
+    Event.observe(this.element, 'keypress', this.onKeyPress.bindAsEventListener(this));
+
+    // Turn autocomplete back on when the user leaves the page, so that the
+    // field's value will be remembered on Mozilla-based browsers.
+    Event.observe(window, 'beforeunload', function(){ 
+      element.setAttribute('autocomplete', 'on'); 
+    });
   },
 
   show: function() {
     if(Element.getStyle(this.update, 'display')=='none') this.options.onShow(this.element, this.update);
     if(!this.iefix && 
-      (navigator.appVersion.indexOf('MSIE')>0) &&
-      (navigator.userAgent.indexOf('Opera')<0) &&
+      (Prototype.Browser.IE) &&
       (Element.getStyle(this.update, 'position')=='absolute')) {
       new Insertion.After(this.update, 
        '<iframe id="' + this.update.id + '_iefix" '+
@@ -139,17 +145,17 @@ Autocompleter.Base.prototype = {
        case Event.KEY_UP:
          this.markPrevious();
          this.render();
-         if(navigator.appVersion.indexOf('AppleWebKit')>0) Event.stop(event);
+         if(Prototype.Browser.WebKit) Event.stop(event);
          return;
        case Event.KEY_DOWN:
          this.markNext();
          this.render();
-         if(navigator.appVersion.indexOf('AppleWebKit')>0) Event.stop(event);
+         if(Prototype.Browser.WebKit) Event.stop(event);
          return;
       }
      else 
        if(event.keyCode==Event.KEY_TAB || event.keyCode==Event.KEY_RETURN || 
-         (navigator.appVersion.indexOf('AppleWebKit') > 0 && event.keyCode == 0)) return;
+         (Prototype.Browser.WebKit > 0 && event.keyCode == 0)) return;
 
     this.changed = true;
     this.hasFocus = true;
@@ -195,7 +201,6 @@ Autocompleter.Base.prototype = {
         this.index==i ? 
           Element.addClassName(this.getEntry(i),"selected") : 
           Element.removeClassName(this.getEntry(i),"selected");
-        
       if(this.hasFocus) { 
         this.show();
         this.active = true;
@@ -297,7 +302,6 @@ Autocompleter.Base.prototype = {
   onObserverEvent: function() {
     this.changed = false;   
     if(this.getToken().length>=this.options.minChars) {
-      this.startIndicator();
       this.getUpdatedChoices();
     } else {
       this.active = false;
@@ -338,7 +342,9 @@ Object.extend(Object.extend(Ajax.Autocompleter.prototype, Autocompleter.Base.pro
   },
 
   getUpdatedChoices: function() {
-    entry = encodeURIComponent(this.options.paramName) + '=' + 
+    this.startIndicator();
+    
+    var entry = encodeURIComponent(this.options.paramName) + '=' + 
       encodeURIComponent(this.getToken());
 
     this.options.parameters = this.options.callback ?
@@ -346,7 +352,7 @@ Object.extend(Object.extend(Ajax.Autocompleter.prototype, Autocompleter.Base.pro
 
     if(this.options.defaultParams) 
       this.options.parameters += '&' + this.options.defaultParams;
-
+    
     new Ajax.Request(this.url, this.options);
   },
 
@@ -475,9 +481,14 @@ Ajax.InPlaceEditor.prototype = {
     this.options = Object.extend({
       paramName: "value",
       okButton: true,
+      okLink: false,
       okText: "ok",
+      cancelButton: false,
       cancelLink: true,
       cancelText: "cancel",
+      textBeforeControls: '',
+      textBetweenControls: '',
+      textAfterControls: '',
       savingText: "Saving...",
       clickToEditText: "Click to edit",
       okText: "ok",
@@ -565,23 +576,52 @@ Ajax.InPlaceEditor.prototype = {
       var br = document.createElement("br");
       this.form.appendChild(br);
     }
+    
+    if (this.options.textBeforeControls)
+      this.form.appendChild(document.createTextNode(this.options.textBeforeControls));
 
     if (this.options.okButton) {
-      okButton = document.createElement("input");
+      var okButton = document.createElement("input");
       okButton.type = "submit";
       okButton.value = this.options.okText;
       okButton.className = 'editor_ok_button';
       this.form.appendChild(okButton);
     }
+    
+    if (this.options.okLink) {
+      var okLink = document.createElement("a");
+      okLink.href = "#";
+      okLink.appendChild(document.createTextNode(this.options.okText));
+      okLink.onclick = this.onSubmit.bind(this);
+      okLink.className = 'editor_ok_link';
+      this.form.appendChild(okLink);
+    }
+    
+    if (this.options.textBetweenControls && 
+      (this.options.okLink || this.options.okButton) && 
+      (this.options.cancelLink || this.options.cancelButton))
+      this.form.appendChild(document.createTextNode(this.options.textBetweenControls));
+      
+    if (this.options.cancelButton) {
+      var cancelButton = document.createElement("input");
+      cancelButton.type = "submit";
+      cancelButton.value = this.options.cancelText;
+      cancelButton.onclick = this.onclickCancel.bind(this);
+      cancelButton.className = 'editor_cancel_button';
+      this.form.appendChild(cancelButton);
+    }
 
     if (this.options.cancelLink) {
-      cancelLink = document.createElement("a");
+      var cancelLink = document.createElement("a");
       cancelLink.href = "#";
       cancelLink.appendChild(document.createTextNode(this.options.cancelText));
       cancelLink.onclick = this.onclickCancel.bind(this);
-      cancelLink.className = 'editor_cancel';      
+      cancelLink.className = 'editor_cancel editor_cancel_link';      
       this.form.appendChild(cancelLink);
     }
+    
+    if (this.options.textAfterControls)
+      this.form.appendChild(document.createTextNode(this.options.textAfterControls));
   },
   hasHTMLLineBreaks: function(string) {
     if (!this.options.handleLineBreaks) return false;
