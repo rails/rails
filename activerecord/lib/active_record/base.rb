@@ -1814,7 +1814,7 @@ module ActiveRecord #:nodoc:
 
       # Format attributes nicely for inspect.
       def attribute_for_inspect(attr_name)
-        raise "Attribute not present #{attr_name}" unless has_attribute?(attr_name)
+        raise "Attribute not present #{attr_name}" unless has_attribute?(attr_name) || new_record?
         value = read_attribute(attr_name)
 
         if value.is_a?(String) && value.length > 50

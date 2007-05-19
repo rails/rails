@@ -1651,6 +1651,10 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal topic.inspect, %(#<Topic id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", written_on: "#{topic.written_on.to_s(:db)}", bonus_time: "#{topic.bonus_time.to_s(:db)}", last_read: "#{topic.last_read.to_s(:db)}", content: "Have a nice day", approved: false, replies_count: 1, parent_id: nil, type: nil>)
   end
 
+  def test_inspect_new
+    assert_match /Topic id: nil/, Topic.new.inspect
+  end
+
   def test_attribute_for_inspect
     t = topics(:first)
     t.content = %(This is some really long content, longer than 50 characters, so I can test that text is truncated correctly by the new ActiveRecord::Base#inspect method! Yay! BOOM!)
