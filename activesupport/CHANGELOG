@@ -1,5 +1,7 @@
 *SVN*
 
+* Document Object#blank?.  #6491 [Chris Mear]
+
 * Update Dependencies to ignore constants inherited from ancestors. Closes #6951. [Nicholas Seckar]
 
 * Improved multibyte performance by relying less on exception raising #8159 [Blaine]
