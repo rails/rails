@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix column type detection while loading fixtures.  Closes #7987 [roderickvd]
+
 * Document deep eager includes.  #6267 [Josh Susser, Dan Manges]
 
 * Oracle: extract column length for CHAR also.  #7866 [ymendel]
