@@ -393,7 +393,8 @@ module ActionController #:nodoc:
             elsif value.is_a?(Hash)
               filtered_parameters[key] = filter_parameters(value)
             elsif block_given?
-              key, value = key.dup, value.dup
+              key = key.dup
+              value = value.dup if value
               yield key, value
               filtered_parameters[key] = value
             else
