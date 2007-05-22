@@ -713,6 +713,11 @@ module ActionController #:nodoc:
         perform_action_without_filters unless performed? || aborted
         return index if aborted || nesting != 0
 
+        # if an around filter catches an exception during rendering and handles it, e.g.
+        # by rendering an error page, we might have left over around filters in the filter
+        # chain. so skip over these.
+        index = index.next while (filter = chain[index]) && filter.type == :around
+
         # run after filters, if any
         while chain[index]
           filter, index = skip_excluded_filters(chain, index)

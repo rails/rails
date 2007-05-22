@@ -324,6 +324,31 @@ class FilterTest < Test::Unit::TestCase
       render :text => 'hello'
     end
   end
+  
+  class ErrorToRescue < Exception; end
+  
+  class RescuingAroundFilterWithBlock
+    def filter(controller)
+      begin
+        yield
+      rescue ErrorToRescue => ex
+        controller.send :render, :text => "I rescued this: #{ex.inspect}"
+      end
+    end
+  end
+  
+  class RescuedController < ActionController::Base
+    around_filter RescuingAroundFilterWithBlock.new
+    
+    def show
+      raise ErrorToRescue.new("Something made the bad noise.")
+    end
+    
+  private
+    def rescue_action(exception)
+      raise exception
+    end
+  end
 
   def test_empty_filter_chain
     assert_equal 0, EmptyFilterChainController.filter_chain.size
@@ -490,6 +515,16 @@ class FilterTest < Test::Unit::TestCase
 
   def test_changing_the_requirements
     assert_equal nil, test_process(ChangingTheRequirementsController, "go_wild").template.assigns['ran_filter']
+  end
+  
+  def test_a_rescuing_around_filter
+    response = nil
+    assert_nothing_raised do
+      response = test_process(RescuedController)
+    end
+    
+    assert response.success?
+    assert_equal("I rescued this: #<FilterTest::ErrorToRescue: Something made the bad noise.>", response.body)
   end
 
   private
