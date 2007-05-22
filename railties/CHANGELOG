@@ -1,5 +1,7 @@
 *SVN*
 
+* Generated scaffold functional tests use assert_difference.  #8421 [norbert]
+
 * Update to Prototype 1.5.1.  [Sam Stephenson]
 
 * Update to script.aculo.us 1.7.1_beta3.  [Thomas Fuchs]
