@@ -336,7 +336,7 @@ module Rails
     end
 
     def load_application_initializers
-      Dir["#{configuration.root_path}/config/initializers/**/*.rb"].each do |initializer|
+      Dir["#{configuration.root_path}/config/initializers/**/*.rb"].sort.each do |initializer|
         load(initializer)
       end
     end
