@@ -17,9 +17,11 @@ class AdminController   <  ResourcesController; end
 
 module Backoffice
   class ProductsController < ResourcesController; end
-  
+  class TagsController < ResourcesController; end
+  class ManufacturerController < ResourcesController; end
+
   module Admin
-    class ProductsController < ResourcesController; end    
+    class ProductsController < ResourcesController; end
   end
 end
 
@@ -403,6 +405,32 @@ class ResourcesTest < Test::Unit::TestCase
       assert_simply_restful_for :products, :controller => "backoffice/products", :name_prefix => 'backoffice_', :path_prefix => 'backoffice/'
     end
   end
+
+  def test_resource_has_many_in_namespace
+    with_routing do |set|
+      set.draw do |map|
+        map.namespace :backoffice do |backoffice|
+          backoffice.resources :products, :has_many => :tags
+        end
+      end
+      
+      assert_simply_restful_for :products,  :controller => "backoffice/products", :name_prefix => 'backoffice_',          :path_prefix => 'backoffice/'
+      assert_simply_restful_for :tags,      :controller => "backoffice/tags",     :name_prefix => "backoffice_product_",  :path_prefix => 'backoffice/products/1/', :options => { :product_id => '1' }
+    end
+  end
+
+  def test_resource_has_one_in_namespace
+    with_routing do |set|
+      set.draw do |map|
+        map.namespace :backoffice do |backoffice|
+          backoffice.resources :products, :has_one => :manufacturer
+        end
+      end
+      
+      assert_simply_restful_for :products, :controller => "backoffice/products", :name_prefix => 'backoffice_', :path_prefix => 'backoffice/'
+      assert_singleton_restful_for :manufacturer, :controller => "backoffice/manufacturer", :name_prefix => 'backoffice_product_', :path_prefix => 'backoffice/products/1/', :options => { :product_id => '1' }
+    end
+  end
   
   def test_resources_in_nested_namespace
     with_routing do |set|
@@ -526,7 +554,8 @@ class ResourcesTest < Test::Unit::TestCase
     end
 
     def assert_singleton_routes_for(singleton_name, options = {})
-      (options[:options] ||= {})[:controller] ||= singleton_name.to_s
+      options[:options] ||= {}
+      options[:options][:controller] = options[:controller] || singleton_name.to_s
 
       full_path           = "/#{options[:path_prefix]}#{singleton_name}"
       new_path            = "#{full_path}/new"

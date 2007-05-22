@@ -1,5 +1,7 @@
 *SVN*
 
+* Resource namespaces are inherited by their has_many subresources.  #8280 [marclove, ggarside]
+
 * Fix filtered parameter logging with nil parameter values.  #8422 [choonkeat]
 
 * Integration tests: alias xhr to xml_http_request and add a request_method argument instead of always using POST.  #7124 [Nik Wakelin, Francois Beausoleil, Wizard]
