@@ -916,7 +916,7 @@ module ActiveRecord
 
           define_method("#{reflection.name}=") do |new_value|
             association = instance_variable_get("@#{reflection.name}")
-            if association.nil?
+            if association.nil? || association.target != new_value
               association = association_proxy_class.new(self, reflection)
             end
 
@@ -926,10 +926,7 @@ module ActiveRecord
               instance_variable_set("@#{reflection.name}", association)
             else
               instance_variable_set("@#{reflection.name}", nil)
-              return nil
             end
-
-            association
           end
 
           define_method("set_#{reflection.name}_target") do |target|
