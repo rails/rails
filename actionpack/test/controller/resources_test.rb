@@ -71,22 +71,22 @@ class ResourcesTest < Test::Unit::TestCase
 
   def test_irregular_id_with_no_requirements_should_raise_error
     expected_options = {:controller => 'messages', :action => 'show', :id => '1.1.1'}
-    
+
     with_restful_routing :messages do
       assert_raises(ActionController::RoutingError) do
         assert_recognizes(expected_options, :path => 'messages/1.1.1', :method => :get)
       end
     end
   end
-  
+
   def test_irregular_id_with_requirements_should_pass
     expected_options = {:controller => 'messages', :action => 'show', :id => '1.1.1'}
-    
+
     with_restful_routing(:messages, :requirements => {:id => /[0-9]\.[0-9]\.[0-9]/}) do
       assert_recognizes(expected_options, :path => 'messages/1.1.1', :method => :get)
     end
   end
-  
+
   def test_with_path_prefix_requirements
     expected_options = {:controller => 'messages', :action => 'show', :thread_id => '1.1.1', :id => '1'}
     with_restful_routing :messages, :path_prefix => '/thread/:thread_id', :requirements => {:thread_id => /[0-9]\.[0-9]\.[0-9]/} do
@@ -106,7 +106,7 @@ class ResourcesTest < Test::Unit::TestCase
       assert_simply_restful_for :comments, :path_prefix => 'thread/5/', :options => { :thread_id => '5' }
     end
   end
-  
+
   def test_with_name_prefix
     with_restful_routing :messages, :name_prefix => 'post_' do
       assert_simply_restful_for :messages, :name_prefix => 'post_'
@@ -276,12 +276,12 @@ class ResourcesTest < Test::Unit::TestCase
           admin.resource :account
         end
       end
-      
+
       assert_singleton_restful_for :admin
       assert_singleton_restful_for :account, :name_prefix => "admin_", :path_prefix => 'admin/'
     end
   end
-  
+
   def test_resource_has_many_should_become_nested_resources
     with_routing do |set|
       set.draw do |map|
@@ -346,7 +346,7 @@ class ResourcesTest < Test::Unit::TestCase
           account.resources :messages
         end
       end
-      
+
       assert_singleton_restful_for :account
       assert_simply_restful_for :messages, :name_prefix => "account_", :path_prefix => 'account/'
     end
@@ -364,7 +364,7 @@ class ResourcesTest < Test::Unit::TestCase
       assert_simply_restful_for :messages, :name_prefix => "account_", :path_prefix => '7/account/', :options => { :site_id => '7' }
     end
   end
-  
+
   def test_should_nest_singleton_resource_in_resources
     with_routing do |set|
       set.draw do |map|
@@ -372,7 +372,7 @@ class ResourcesTest < Test::Unit::TestCase
           thread.resource :admin
         end
       end
-      
+
       assert_simply_restful_for :threads
       assert_singleton_restful_for :admin, :name_prefix => 'thread_', :path_prefix => 'threads/5/', :options => { :thread_id => '5' }
     end
@@ -401,7 +401,7 @@ class ResourcesTest < Test::Unit::TestCase
           backoffice.resources :products
         end
       end
-      
+
       assert_simply_restful_for :products, :controller => "backoffice/products", :name_prefix => 'backoffice_', :path_prefix => 'backoffice/'
     end
   end
@@ -413,7 +413,7 @@ class ResourcesTest < Test::Unit::TestCase
           backoffice.resources :products, :has_many => :tags
         end
       end
-      
+
       assert_simply_restful_for :products,  :controller => "backoffice/products", :name_prefix => 'backoffice_',          :path_prefix => 'backoffice/'
       assert_simply_restful_for :tags,      :controller => "backoffice/tags",     :name_prefix => "backoffice_product_",  :path_prefix => 'backoffice/products/1/', :options => { :product_id => '1' }
     end
@@ -426,12 +426,12 @@ class ResourcesTest < Test::Unit::TestCase
           backoffice.resources :products, :has_one => :manufacturer
         end
       end
-      
+
       assert_simply_restful_for :products, :controller => "backoffice/products", :name_prefix => 'backoffice_', :path_prefix => 'backoffice/'
       assert_singleton_restful_for :manufacturer, :controller => "backoffice/manufacturer", :name_prefix => 'backoffice_product_', :path_prefix => 'backoffice/products/1/', :options => { :product_id => '1' }
     end
   end
-  
+
   def test_resources_in_nested_namespace
     with_routing do |set|
       set.draw do |map|
@@ -441,21 +441,21 @@ class ResourcesTest < Test::Unit::TestCase
           end
         end
       end
-      
+
       assert_simply_restful_for :products, :controller => "backoffice/admin/products", :name_prefix => 'backoffice_admin_', :path_prefix => 'backoffice/admin/'
     end
   end
-   
+
   def test_resources_using_namespace
     with_routing do |set|
       set.draw do |map|
         map.resources :products, :namespace => "backoffice/"
       end
-      
+
       assert_simply_restful_for :products, :controller => "backoffice/products"
     end
   end
-  
+
   protected
     def with_restful_routing(*args)
       with_routing do |set|
@@ -463,7 +463,7 @@ class ResourcesTest < Test::Unit::TestCase
         yield
       end
     end
-    
+
     def with_singleton_resources(*args)
       with_routing do |set|
         set.draw { |map| map.resource(*args) }
