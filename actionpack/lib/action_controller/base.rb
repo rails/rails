@@ -1075,19 +1075,11 @@ module ActionController #:nodoc:
       end
 
     private
-      def self.view_class
-        unless defined? @view_class
-          # Create a template subclass including helper methods.
-          @view_class = Class.new(ActionView::Base)
-          @view_class.send(:include, master_helper_module)
-        end
-        @view_class
-      end
-
       def initialize_template_class(response)
         raise "You must assign a template class through ActionController.template_class= before processing a request" unless @@template_class
 
-        response.template = self.class.view_class.new(view_paths, {}, self)
+        response.template = ActionView::Base.new(view_paths, {}, self)
+        response.template.extend self.class.master_helper_module
         response.redirected_to = nil
         @performed_render = @performed_redirect = false
       end
