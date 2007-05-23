@@ -72,7 +72,7 @@ module ActionController #:nodoc:
     end
 
     def request_parameters
-      @request_parameters ||= self.class.parse_formatted_request_parameters(body, content_type_with_parameters, content_length, env)
+      @request_parameters ||= parse_formatted_request_parameters
     end
 
     def cookies

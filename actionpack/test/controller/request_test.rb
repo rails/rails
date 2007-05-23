@@ -708,9 +708,7 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
   private
     def process(name)
       File.open(File.join(FIXTURE_PATH, name), 'rb') do |file|
-        content_length = file.stat.size.to_s
-        content_type  = 'multipart/form-data, boundary=AaB03x'
-        ActionController::AbstractRequest.parse_formatted_request_parameters(file, content_type, content_length)
+        ActionController::AbstractRequest.parse_multipart_form_parameters(file, 'AaB03x', file.stat.size, {})
       end
     end
 end
@@ -718,9 +716,7 @@ end
 
 class XmlParamsParsingTest < Test::Unit::TestCase
   def test_single_file
-    body = "<person><name>David</name><avatar type='file' name='me.jpg' content_type='image/jpg'>#{Base64.encode64('ABC')}</avatar></person>"
-
-    person = ActionController::AbstractRequest.parse_formatted_request_parameters(StringIO.new(body), 'application/xml', body.size)
+    person = parse_body("<person><name>David</name><avatar type='file' name='me.jpg' content_type='image/jpg'>#{Base64.encode64('ABC')}</avatar></person>")
 
     assert_equal "image/jpg", person['person']['avatar'].content_type
     assert_equal "me.jpg", person['person']['avatar'].original_filename
@@ -728,7 +724,7 @@ class XmlParamsParsingTest < Test::Unit::TestCase
   end
 
   def test_multiple_files
-    body = <<-end_body
+    person = parse_body(<<-end_body)
       <person>
         <name>David</name>
         <avatars>
@@ -738,8 +734,6 @@ class XmlParamsParsingTest < Test::Unit::TestCase
       </person>
     end_body
 
-    person = ActionController::AbstractRequest.parse_formatted_request_parameters(StringIO.new(body), 'application/xml', body.size)
-
     assert_equal "image/jpg", person['person']['avatars']['avatar'].first.content_type
     assert_equal "me.jpg", person['person']['avatars']['avatar'].first.original_filename
     assert_equal "ABC", person['person']['avatars']['avatar'].first.read
@@ -748,4 +742,12 @@ class XmlParamsParsingTest < Test::Unit::TestCase
     assert_equal "you.gif", person['person']['avatars']['avatar'].last.original_filename
     assert_equal "DEF", person['person']['avatars']['avatar'].last.read
   end
+
+  private
+    def parse_body(body)
+      env = { 'CONTENT_TYPE'   => 'application/xml',
+              'CONTENT_LENGTH' => body.size.to_s }
+      cgi = ActionController::Integration::Session::MockCGI.new(env, body)
+      ActionController::CgiRequest.new(cgi).request_parameters
+    end
 end

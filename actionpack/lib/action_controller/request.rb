@@ -231,11 +231,14 @@ module ActionController
     end
 
 
-    # Receive the raw post data.
-    # This is useful for services such as REST, XMLRPC and SOAP
-    # which communicate over HTTP POST but don't use the traditional parameter format.
+    # Read the request body. This is useful for web services that need to
+    # work with raw requests directly.
     def raw_post
-      @env['RAW_POST_DATA'] ||= body.read
+      unless env.include? 'RAW_POST_DATA'
+        env['RAW_POST_DATA'] = body.read(content_length)
+        body.rewind if body.respond_to?(:rewind)
+      end
+      env['RAW_POST_DATA']
     end
 
     # Returns both GET and POST parameters in a single hash.
@@ -312,37 +315,26 @@ module ActionController
         end
       end
 
-
-    class << self
-      def extract_content_type_without_parameters(content_type_with_parameters)
-        $1.strip.downcase if content_type_with_parameters =~ /^([^,\;]*)/
-      end
-
-      def parse_formatted_request_parameters(body, content_type_with_parameters, content_length, env = {})
-        content_length = content_length.to_i
+      def parse_formatted_request_parameters
         return {} if content_length.zero?
 
-        content_type, boundary = extract_multipart_boundary(content_type_with_parameters.to_s)
+        content_type, boundary = self.class.extract_multipart_boundary(content_type_with_parameters)
         return {} if content_type.blank?
 
         mime_type = Mime::Type.lookup(content_type)
         strategy = ActionController::Base.param_parsers[mime_type]
 
         # Only multipart form parsing expects a stream.
-        if strategy && strategy != :multipart_form
-          data = body.read(content_length)
-          body.rewind if body.respond_to?(:rewind)
-          body = data
-        end
+        body = raw_post if strategy && strategy != :multipart_form
 
         case strategy
           when Proc
             strategy.call(body)
           when :url_encoded_form
-            clean_up_ajax_request_body! body
-            parse_query_parameters(body)
+            self.class.clean_up_ajax_request_body! body
+            self.class.parse_query_parameters(body)
           when :multipart_form
-            parse_multipart_form_parameters(body, boundary, content_length, env)
+            self.class.parse_multipart_form_parameters(body, boundary, content_length, env)
           when :xml_simple, :xml_node
             body.blank? ? {} : Hash.from_xml(body).with_indifferent_access
           when :yaml
@@ -359,6 +351,7 @@ module ActionController
           "backtrace" => e.backtrace }
       end
 
+    class << self
       def parse_query_parameters(query_string)
         return {} if query_string.blank?
 
@@ -401,6 +394,24 @@ module ActionController
       def parse_multipart_form_parameters(body, boundary, content_length, env)
         parse_request_parameters(read_multipart(body, boundary, content_length, env))
       end
+
+      def extract_multipart_boundary(content_type_with_parameters)
+        if content_type_with_parameters =~ MULTIPART_BOUNDARY
+          ['multipart/form-data', $1.dup]
+        else
+          extract_content_type_without_parameters(content_type_with_parameters)
+        end
+      end
+
+      def extract_content_type_without_parameters(content_type_with_parameters)
+        $1.strip.downcase if content_type_with_parameters =~ /^([^,\;]*)/
+      end
+
+      def clean_up_ajax_request_body!(body)
+        body.chop! if body[-1] == 0
+        body.gsub!(/&_=$/, '')
+      end
+
 
       private
         def get_typed_value(value)
@@ -453,20 +464,6 @@ module ActionController
 
 
         MULTIPART_BOUNDARY = %r|\Amultipart/form-data.*boundary=\"?([^\";,]+)\"?|n
-
-        def extract_multipart_boundary(content_type_with_parameters)
-          if content_type_with_parameters =~ MULTIPART_BOUNDARY
-            ['multipart/form-data', $1.dup]
-          else
-            extract_content_type_without_parameters(content_type_with_parameters)
-          end
-        end
-
-        def clean_up_ajax_request_body!(body)
-          body.chop! if body[-1] == 0
-          body.gsub!(/&_=$/, '')
-        end
-
 
         EOL = "\015\012"
 
