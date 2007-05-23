@@ -245,7 +245,6 @@ module ActionController
             "SERVER_PORT"    => (https? ? "443" : "80"),
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
             "CONTENT_LENGTH" => data ? data.length.to_s : nil,
-            "RAW_POST_DATA"  => data,
             "HTTP_COOKIE"    => encode_cookies,
             "HTTPS"          => https? ? "on" : "off",
             "HTTP_ACCEPT"    => accept
