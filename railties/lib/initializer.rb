@@ -216,7 +216,9 @@ module Rails
     end
 
     def load_observers
-      ActiveRecord::Base.instantiate_observers
+      if configuration.frameworks.include?(:active_record)
+        ActiveRecord::Base.instantiate_observers
+      end
     end
 
     # This initialzation sets $KCODE to 'u' to enable the multibyte safe operations.
@@ -231,9 +233,10 @@ module Rails
     # this sets the database configuration from Configuration#database_configuration
     # and then establishes the connection.
     def initialize_database
-      return unless configuration.frameworks.include?(:active_record)
-      ActiveRecord::Base.configurations = configuration.database_configuration
-      ActiveRecord::Base.establish_connection
+      if configuration.frameworks.include?(:active_record)
+        ActiveRecord::Base.configurations = configuration.database_configuration
+        ActiveRecord::Base.establish_connection
+      end
     end
 
     # If the +RAILS_DEFAULT_LOGGER+ constant is already set, this initialization
