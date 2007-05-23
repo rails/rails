@@ -608,7 +608,8 @@ module ActiveRecord
       #   include the joined columns.
       # * <tt>:as</tt>: Specifies a polymorphic interface (See #belongs_to).
       # * <tt>:through</tt>: Specifies a Join Model to perform the query through.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt> 
-      #   are ignored, as the association uses the source reflection.
+      #   are ignored, as the association uses the source reflection. You can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>
+      #   or <tt>has_many</tt> association on the join model.
       # * <tt>:source</tt>: Specifies the source association name used by <tt>has_many :through</tt> queries.  Only use it if the name cannot be 
       #   inferred from the association.  <tt>has_many :subscribers, :through => :subscriptions</tt> will look for either +:subscribers+ or
       #   +:subscriber+ on +Subscription+, unless a +:source+ is given.
