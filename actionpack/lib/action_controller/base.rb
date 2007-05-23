@@ -1076,11 +1076,12 @@ module ActionController #:nodoc:
 
     private
       def self.view_class
-        @view_class ||=
-          # create a new class based on the default template class and include helper methods
-          returning Class.new(ActionView::Base) do |view_class|
-            view_class.send(:include, master_helper_module)
-          end
+        unless defined? @view_class
+          # Create a template subclass including helper methods.
+          @view_class = Class.new(ActionView::Base)
+          @view_class.send(:include, master_helper_module)
+        end
+        @view_class
       end
 
       def initialize_template_class(response)
