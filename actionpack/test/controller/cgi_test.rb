@@ -68,3 +68,20 @@ class CgiRequestParamsParsingTest < BaseCgiTest
     assert_equal({"flamenco"=> "love"}, @request.request_parameters)
   end
 end
+
+
+class CgiRequestNeedsRewoundTest < BaseCgiTest
+  def test_body_should_be_rewound
+    data = 'foo'
+    fake_cgi = Struct.new(:env_table, :query_string, :stdinput).new(@request_hash, '', StringIO.new(data))
+    fake_cgi.env_table['CONTENT_LENGTH'] = data.length
+    fake_cgi.env_table['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
+
+    # Read the request body by parsing params.
+    request = ActionController::CgiRequest.new(fake_cgi)
+    request.request_parameters
+
+    # Should have rewound the body.
+    assert_equal 0, request.body.pos
+  end
+end

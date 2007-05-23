@@ -1,5 +1,7 @@
 *SVN*
 
+* Rewind request body after reading it, if possible.  #8438 [s450r1]
+
 * Resource namespaces are inherited by their has_many subresources.  #8280 [marclove, ggarside]
 
 * Fix filtered parameter logging with nil parameter values.  #8422 [choonkeat]

@@ -330,7 +330,9 @@ module ActionController
 
         # Only multipart form parsing expects a stream.
         if strategy && strategy != :multipart_form
-          body = body.read(content_length)
+          data = body.read(content_length)
+          body.rewind if body.respond_to?(:rewind)
+          body = data
         end
 
         case strategy
