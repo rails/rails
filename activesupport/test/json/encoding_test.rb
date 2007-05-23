@@ -30,8 +30,8 @@ class TestJSONEncoding < Test::Unit::TestCase
   RegexpTests   = [[ /^a/, '/^a/' ], [/^\w{1,2}[a-z]+/ix, '/^\\w{1,2}[a-z]+/ix']]
 
   DateTests     = [[ Date.new(2005,1,1), %("01/01/2005") ]]
-  TimeTests     = [[ Time.at(0), %("12/31/1969 16:00:00 #{Time.at(0).zone}") ]]
-  DateTimeTests = [[ Time.at(0), %("12/31/1969 16:00:00 #{Time.at(0).zone}") ]]
+  TimeTests     = [[ Time.at(0), %("#{Time.at(0).strftime('%m/%d/%Y %H:%M:%S %Z')}") ]]
+  DateTimeTests = [[ DateTime.new(0), %("#{DateTime.new(0).strftime('%m/%d/%Y %H:%M:%S %Z')}") ]]
 
   constants.grep(/Tests$/).each do |class_tests|
     define_method("test_#{class_tests[0..-6].downcase}") do
