@@ -325,7 +325,7 @@ module ActionController
         strategy = ActionController::Base.param_parsers[mime_type]
 
         # Only multipart form parsing expects a stream.
-        body = raw_post if strategy && strategy != :multipart_form
+        body = (strategy && strategy != :multipart_form) ? raw_post : self.body
 
         case strategy
           when Proc
