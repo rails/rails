@@ -163,6 +163,10 @@ class NewRenderTestController < ActionController::Base
     render :partial => "customer"
   end
   
+  def missing_partial
+    render :partial => 'thisFileIsntHere'
+  end
+  
   def hello_in_a_string
     @customers = [ Customer.new("david"), Customer.new("mary") ]
     render :text =>  "How's there? #{render_to_string("test/list")}"
@@ -680,6 +684,12 @@ EOS
   def test_partial_with_implicit_local_assignment
     get :partial_with_implicit_local_assignment
     assert_equal "Hello: Marcel", @response.body
+  end
+  
+  def test_render_missing_partial_template
+    assert_raises(ActionView::ActionViewError) do
+      get :missing_partial
+    end
   end
   
   def test_render_text_with_assigns

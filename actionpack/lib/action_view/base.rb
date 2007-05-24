@@ -278,6 +278,10 @@ module ActionView #:nodoc:
 
       template_source = nil # Don't read the source until we know that it is required
 
+      if template_file_name.blank?
+        raise ActionViewError, "Couldn't find template file for #{template_path} in #{@view_paths.inspect}"
+      end
+
       begin
         render_template(template_extension, template_source, template_file_name, local_assigns)
       rescue Exception => e
