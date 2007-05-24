@@ -844,6 +844,30 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert Client.find_by_id(client_id).nil?
   end                                                    
 
+  def test_dependent_association_respects_optional_conditions_on_delete
+    firm = companies(:odegy)
+    Client.create(:client_of => firm.id, :name => "BigShot Inc.")
+    Client.create(:client_of => firm.id, :name => "SmallTime Inc.")
+    # only one of two clients is included in the association due to the :conditions key
+    assert_equal 2, Client.find_all_by_client_of(firm.id).size
+    assert_equal 1, firm.dependent_conditional_clients_of_firm.size
+    firm.destroy
+    # only the correctly associated client should have been deleted
+    assert_equal 1, Client.find_all_by_client_of(firm.id).size
+  end                                                 
+
+  def test_dependent_association_respects_optional_sanitized_conditions_on_delete
+    firm = companies(:odegy)
+    Client.create(:client_of => firm.id, :name => "BigShot Inc.")
+    Client.create(:client_of => firm.id, :name => "SmallTime Inc.")
+    # only one of two clients is included in the association due to the :conditions key
+    assert_equal 2, Client.find_all_by_client_of(firm.id).size
+    assert_equal 1, firm.dependent_sanitized_conditional_clients_of_firm.size
+    firm.destroy
+    # only the correctly associated client should have been deleted
+    assert_equal 1, Client.find_all_by_client_of(firm.id).size
+  end
+
   def test_clearing_without_initial_access
     firm = companies(:first_firm)
 

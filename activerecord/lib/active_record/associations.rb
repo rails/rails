@@ -1126,10 +1126,11 @@ module ActiveRecord
           # delete children, otherwise foreign key is set to NULL.
 
           # Add polymorphic type if the :as option is present
-          dependent_conditions = %(#{reflection.primary_key_name} = \#{record.quoted_id})
-          if reflection.options[:as]
-            dependent_conditions += " AND #{reflection.options[:as]}_type = '#{base_class.name}'"
-          end
+          dependent_conditions = []
+          dependent_conditions << "#{reflection.primary_key_name} = \#{record.quoted_id}"
+          dependent_conditions << "#{reflection.options[:as]}_type = '#{base_class.name}'" if reflection.options[:as]
+          dependent_conditions << sanitize_sql(reflection.options[:conditions]) if reflection.options[:conditions]
+          dependent_conditions = dependent_conditions.collect {|where| "(#{where})" }.join(" AND ")
 
           case reflection.options[:dependent]
             when :destroy, true
