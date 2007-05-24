@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure that associations with :dependent => :delete_all respect :conditions option.  Closes #8034 [danger, joshpeek, Rick]
+
 * belongs_to assignment creates a new proxy rather than modifying its target in-place.  #8412 [mmangino@elevatedrails.com]
 
 * Fix column type detection while loading fixtures.  Closes #7987 [roderickvd]
