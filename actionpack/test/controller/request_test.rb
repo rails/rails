@@ -652,6 +652,10 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
     assert_equal({ 'foo' => 'bar' }, params)
   end
 
+  def test_bracketed_param
+    assert_equal({ 'foo' => { 'baz' => 'bar'}}, process('bracketed_param'))
+  end
+
   def test_text_file
     params = process('text_file')
     assert_equal %w(file foo), params.keys.sort
