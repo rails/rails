@@ -86,6 +86,12 @@ class FormHelperTest < Test::Unit::TestCase
     assert_dom_equal expected, text_field("post", "title", :maxlength => 35)
   end
 
+  def test_text_field_removing_size
+    expected = '<input id="post_title" maxlength="35" name="post[title]" type="text" value="Hello World" />'
+    assert_dom_equal expected, text_field("post", "title", "maxlength" => 35, "size" => nil)
+    assert_dom_equal expected, text_field("post", "title", :maxlength => 35, :size => nil)
+  end
+
   def test_text_field_doesnt_change_param_values
     object_name = 'post[]'
     expected = '<input id="post_123_title" name="post[123][title]" size="30" type="text" value="Hello World" />'

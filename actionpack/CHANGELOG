@@ -1,5 +1,7 @@
 *SVN*
 
+* Added option to suppress :size when using :maxlength for FormTagHelper#text_field #3112 [rails@tpope.info]
+
 * catch possible WSOD when trying to render a missing partial. Closes #8454 [Catfish]
 
 * Rewind request body after reading it, if possible.  #8438 [s450r1]

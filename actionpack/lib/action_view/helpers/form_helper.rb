@@ -393,7 +393,7 @@ module ActionView
 
       def to_input_field_tag(field_type, options = {})
         options = options.stringify_keys
-        options["size"] ||= options["maxlength"] || DEFAULT_FIELD_OPTIONS["size"]
+        options["size"] = options["maxlength"] || DEFAULT_FIELD_OPTIONS["size"] unless options.key?("size")
         options = DEFAULT_FIELD_OPTIONS.merge(options)
         if field_type == "hidden"
           options.delete("size")
