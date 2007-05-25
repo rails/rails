@@ -1,33 +1,11 @@
-# Author: Luke Holden <lholden@cablelan.net>
-# Updated for SQLite3: Jamis Buck <jamis@37signals.com>
-
 require 'active_record/connection_adapters/abstract_adapter'
 
 module ActiveRecord
   class Base
     class << self
-      # sqlite3 adapter reuses sqlite_connection.
-      def sqlite3_connection(config) # :nodoc:
-        parse_config!(config)
-
-        unless self.class.const_defined?(:SQLite3)
-          require_library_or_gem(config[:adapter])
-        end
-
-        db = SQLite3::Database.new(
-          config[:database],
-          :results_as_hash => true,
-          :type_translation => false
-        )
-
-        db.busy_timeout(config[:timeout]) unless config[:timeout].nil?
-
-        ConnectionAdapters::SQLite3Adapter.new(db, logger)
-      end
-
       # Establishes a connection to the database that's used by all Active Record objects
       def sqlite_connection(config) # :nodoc:
-        parse_config!(config)
+        parse_sqlite_config!(config)
 
         unless self.class.const_defined?(:SQLite)
           require_library_or_gem(config[:adapter])
@@ -47,7 +25,7 @@ module ActiveRecord
       end
 
       private
-        def parse_config!(config)
+        def parse_sqlite_config!(config)
           config[:database] ||= config[:dbfile]
           # Require database.
           unless config[:database]
@@ -379,14 +357,6 @@ module ActiveRecord
             'INTEGER PRIMARY KEY NOT NULL'.freeze
           end
         end
-    end
-
-    class SQLite3Adapter < SQLiteAdapter # :nodoc:
-      def table_structure(table_name)
-        returning structure = @connection.table_info(table_name) do
-          raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
-        end
-      end
     end
 
     class SQLite2Adapter < SQLiteAdapter # :nodoc:

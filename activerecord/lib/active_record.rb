@@ -73,13 +73,7 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::AttributeMethods
 end
 
-unless defined?(RAILS_CONNECTION_ADAPTERS)
-  RAILS_CONNECTION_ADAPTERS = %w( mysql postgresql sqlite firebird sqlserver db2 oracle sybase openbase frontbase )
-end
-
-RAILS_CONNECTION_ADAPTERS.each do |adapter|
-  require "active_record/connection_adapters/" + adapter + "_adapter"
-end
+require 'active_record/connection_adapters/abstract_adapter'
 
 require 'active_record/query_cache'
 require 'active_record/schema_dumper'

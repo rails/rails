@@ -207,7 +207,12 @@ module ActiveRecord
           spec = spec.symbolize_keys
           unless spec.key?(:adapter) then raise AdapterNotSpecified, "database configuration does not specify adapter" end
           adapter_method = "#{spec[:adapter]}_connection"
-          unless respond_to?(adapter_method) then raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter" end
+
+          require "active_record/connection_adapters/#{spec[:adapter]}_adapter"
+          unless respond_to?(adapter_method)
+            raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter"
+          end
+
           remove_connection
           establish_connection(ConnectionSpecification.new(spec, adapter_method))
       end
