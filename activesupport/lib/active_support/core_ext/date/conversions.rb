@@ -4,9 +4,10 @@ module ActiveSupport #:nodoc:
       # Getting dates in different convenient string representations and other objects
       module Conversions
         DATE_FORMATS = {
-          :short => "%e %b",
-          :long  => "%B %e, %Y",
-          :db => "%Y-%m-%d"
+          :short        => "%e %b",
+          :long         => "%B %e, %Y",
+          :db           => "%Y-%m-%d",
+          :long_ordinal => lambda { |date| date.strftime("%B #{date.day.ordinalize}, %Y") } # => "April 25th, 2007"
         }
 
         def self.included(klass) #:nodoc:
@@ -15,7 +16,15 @@ module ActiveSupport #:nodoc:
         end
 
         def to_formatted_s(format = :default)
-          DATE_FORMATS[format] ? strftime(DATE_FORMATS[format]).strip : to_default_s
+          if formatter = DATE_FORMATS[format]
+            if formatter.respond_to?(:call)
+              formatter.call(self).to_s
+            else
+              strftime(formatter).strip
+            end
+          else
+            to_default_s
+          end
         end
 
         # To be able to keep Dates and Times interchangeable on conversions
