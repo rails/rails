@@ -41,7 +41,7 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_find_by_ids_with_limit_and_offset
-    assert_equal 2, Entrant.find([1,3,2], :limit => 2)
+    assert_equal 2, Entrant.find([1,3,2], :limit => 2).size
     assert_equal 1, Entrant.find([1,3,2], :limit => 3, :offset => 2).size
   end
 
