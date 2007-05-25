@@ -14,7 +14,6 @@ require 'fixtures/author'
 require 'fixtures/tag'
 require 'fixtures/tagging'
 
-
 class AssociationsTest < Test::Unit::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers
@@ -1034,7 +1033,7 @@ end
 
 class BelongsToAssociationsTest < Test::Unit::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
-           :developers_projects, :computers, :authors, :posts
+           :developers_projects, :computers, :authors, :posts, :tags, :taggings
   
   def test_belongs_to
     Client.find(3).firm.name
