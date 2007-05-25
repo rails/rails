@@ -314,6 +314,20 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_kind_of BigDecimal, bob.wealth
     end
 
+    if current_adapter?(:MysqlAdapter)
+      def test_unabstracted_database_dependent_types
+        Person.delete_all
+
+        ActiveRecord::Migration.add_column :people, :intelligence_quotient, :tinyint
+        Person.create :intelligence_quotient => 300
+        jonnyg = Person.find(:first) 
+        assert_equal 127, jonnyg.intelligence_quotient
+        jonnyg.destroy
+      ensure
+        ActiveRecord::Migration.remove_column :people, :intelligece_quotient rescue nil
+      end
+    end
+
     def test_add_remove_single_field_using_string_arguments
       assert !Person.column_methods_hash.include?(:last_name)
 
