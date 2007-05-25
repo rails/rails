@@ -1,5 +1,7 @@
 *SVN*
 
+* Find with a list of ids supports limit/offset.  #8437 [hrudududu]
+
 * Optimistic locking: revert the lock version when an update fails.  #7840 [plang]
 
 * Migrations: add_column supports custom column types.  #7742 [jsgarvin, Theory]

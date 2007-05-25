@@ -1117,10 +1117,21 @@ module ActiveRecord #:nodoc:
 
           result = find_every(options)
 
-          if result.size == ids.size
+          # If the user passes in a limit to find(), we need to check
+          # to see if the result is limited before just checking the
+          # size of the results.
+          expected_size =
+            if options[:limit] && ids.size > options[:limit]
+              options[:limit]
+            else
+              ids.size
+            end
+          expected_size -= options[:offset] if options[:offset]
+
+          if result.size == expected_size
             result
           else
-            raise RecordNotFound, "Couldn't find all #{name.pluralize} with IDs (#{ids_list})#{conditions}"
+            raise RecordNotFound, "Couldn't find all #{name.pluralize} with IDs (#{ids_list})#{conditions} (found #{result.size} results, but was looking for #{expected_size})"
           end
         end
 
