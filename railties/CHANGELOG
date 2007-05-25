@@ -1,5 +1,7 @@
 *SVN*
 
+* Scaffold generator depends on model generator instead of duplicating it.  #7222 [bscofield]
+
 * Scaffold generator tests.  #8443 [pelle]
 
 * Generated scaffold functional tests use assert_difference.  #8421 [norbert]
