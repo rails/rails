@@ -61,7 +61,6 @@ module Rails
     # in order:
     #
     # * #set_load_path
-    # * #set_connection_adapters
     # * #require_frameworks
     # * #load_environment
     # * #initialize_database
@@ -85,7 +84,6 @@ module Rails
     def process
       check_ruby_version
       set_load_path
-      set_connection_adapters
 
       require_frameworks
       set_autoload_paths
@@ -153,14 +151,6 @@ module Rails
 
       # Freeze the arrays so future modifications will fail rather than do nothing mysteriously
       configuration.load_once_paths.freeze
-    end
-
-    # Sets the +RAILS_CONNECTION_ADAPTERS+ constant based on the value of
-    # Configuration#connection_adapters. This constant is used to determine
-    # which database adapters should be loaded (by default, all adapters are
-    # loaded).
-    def set_connection_adapters
-      Object.const_set("RAILS_CONNECTION_ADAPTERS", configuration.connection_adapters) if configuration.connection_adapters
     end
 
     # Requires all frameworks specified by the Configuration#frameworks
@@ -386,11 +376,6 @@ module Rails
     # Whether or not classes should be cached (set to false if you want
     # application classes to be reloaded on each request)
     attr_accessor :cache_classes
-
-    # The list of connection adapters to load. (By default, all connection
-    # adapters are loaded. You can set this to be just the adapter(s) you
-    # will use to reduce your application's load time.)
-    attr_accessor :connection_adapters
 
     # The list of paths that should be searched for controllers. (Defaults
     # to <tt>app/controllers</tt> and <tt>components</tt>.)
