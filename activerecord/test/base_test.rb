@@ -1598,6 +1598,15 @@ class BasicsTest < Test::Unit::TestCase
     assert xml.include?(%(<arbitrary-method>I am Jack's profound disappointment</arbitrary-method>))
   end
   
+  def test_to_xml_with_block
+    value = "Rockin' the block"
+    xml = Company.new.to_xml(:skip_instruct => true) do |xml|
+      xml.tag! "arbitrary-element", value
+    end
+    assert_equal "<company>", xml.first(9)
+    assert xml.include?(%(<arbitrary-element>#{value}</arbitrary-element>))
+  end
+  
   def test_except_attributes
     assert_equal(
       %w( author_name type id approved replies_count bonus_time written_on content author_email_address parent_id last_read), 
