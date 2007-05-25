@@ -30,6 +30,20 @@ class OptimisticLockingTest < Test::Unit::TestCase
 
     assert_raises(ActiveRecord::StaleObjectError) { p2.save! }
   end
+  
+  def test_lock_repeating
+    p1 = Person.find(1)
+    p2 = Person.find(1)
+    assert_equal 0, p1.lock_version
+    assert_equal 0, p2.lock_version
+
+    p1.save!
+    assert_equal 1, p1.lock_version
+    assert_equal 0, p2.lock_version
+
+    assert_raises(ActiveRecord::StaleObjectError) { p2.save! }
+    assert_raises(ActiveRecord::StaleObjectError) { p2.save! }
+  end
 
   def test_lock_new
     p1 = Person.new(:first_name => 'anika')

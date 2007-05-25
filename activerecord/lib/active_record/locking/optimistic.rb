@@ -2,7 +2,7 @@ module ActiveRecord
   module Locking
     # == What is Optimistic Locking
     #
-    # Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of 
+    # Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of
     # conflicts with the data.  It does this by checking whether another process has made changes to a record since
     # it was opened, an ActiveRecord::StaleObjectError is thrown if that has occurred and the update is ignored.
     #
@@ -16,10 +16,10 @@ module ActiveRecord
     #
     #   p1 = Person.find(1)
     #   p2 = Person.find(1)
-    #   
+    #
     #   p1.first_name = "Michael"
     #   p1.save
-    #   
+    #
     #   p2.first_name = "should fail"
     #   p2.save # Raises a ActiveRecord::StaleObjectError
     #
@@ -53,16 +53,16 @@ module ActiveRecord
       private
         def attributes_from_column_definition_with_lock
           result = attributes_from_column_definition_without_lock
-        
+
           # If the locking column has no default value set,
           # start the lock version at zero.  Note we can't use
           # locking_enabled? at this point as @attributes may
           # not have been initialized yet
-        
+
           if lock_optimistically && result.include?(self.class.locking_column)
             result[self.class.locking_column] ||= 0
           end
-        
+
           return result
         end
 
@@ -73,18 +73,25 @@ module ActiveRecord
           previous_value = send(lock_col)
           send(lock_col + '=', previous_value + 1)
 
-          affected_rows = connection.update(<<-end_sql, "#{self.class.name} Update with optimistic locking")
-            UPDATE #{self.class.table_name}
-            SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false))}
-            WHERE #{self.class.primary_key} = #{quote_value(id)}
-            AND #{self.class.quoted_locking_column} = #{quote_value(previous_value)}
-          end_sql
+          begin
+            affected_rows = connection.update(<<-end_sql, "#{self.class.name} Update with optimistic locking")
+              UPDATE #{self.class.table_name}
+              SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false))}
+              WHERE #{self.class.primary_key} = #{quote_value(id)}
+              AND #{self.class.quoted_locking_column} = #{quote_value(previous_value)}
+            end_sql
 
-          unless affected_rows == 1
-            raise ActiveRecord::StaleObjectError, "Attempted to update a stale object"
+            unless affected_rows == 1
+              raise ActiveRecord::StaleObjectError, "Attempted to update a stale object"
+            end
+
+            affected_rows
+
+          # If something went wrong, revert the version.
+          rescue Exception
+            send(lock_col + '=', previous_value)
+            raise
           end
-
-          return true
         end
 
       module ClassMethods
