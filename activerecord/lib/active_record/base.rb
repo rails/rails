@@ -1621,8 +1621,14 @@ module ActiveRecord #:nodoc:
       def id
         attr_name = self.class.primary_key
         column = column_for_attribute(attr_name)
-        define_read_method(:id, attr_name, column) if self.class.generate_read_methods
-        read_attribute(attr_name)
+        
+        if self.class.generate_read_methods
+          define_read_method(:id, attr_name, column)
+          # now that the method exists, call it
+          self.send attr_name.to_sym
+        else
+          read_attribute(attr_name)
+        end
       end
 
       # Enables Active Record objects to be used as URL parameters in Action Pack automatically.
@@ -1976,8 +1982,13 @@ module ActiveRecord #:nodoc:
             (md = /\?$/.match(method_name) and
             @attributes.include?(query_method_name = md.pre_match) and
             method_name = query_method_name)
-          define_read_methods if self.class.read_methods.empty? && self.class.generate_read_methods
-          md ? query_attribute(method_name) : read_attribute(method_name)
+          if self.class.read_methods.empty? && self.class.generate_read_methods
+            define_read_methods
+            # now that the method exists, call it
+            self.send method_id.to_sym
+          else
+            md ? query_attribute(method_name) : read_attribute(method_name)
+          end
         elsif self.class.primary_key.to_s == method_name
           id
         elsif md = self.class.match_attribute_method?(method_name)
