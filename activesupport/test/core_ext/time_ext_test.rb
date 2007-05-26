@@ -281,6 +281,12 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     time = Time.utc(2005, 2, 21, 17, 44, 30)
     assert_equal "Mon, 21 Feb 2005 17:44:30 +0000", time.to_s(:rfc822)
   end
+  
+  def test_custom_date_format
+    Time::DATE_FORMATS[:custom] = '%Y%m%d%H%M%S'
+    assert_equal '20050221143000', Time.local(2005, 2, 21, 14, 30, 0).to_s(:custom)
+    Time::DATE_FORMATS.delete(:custom)
+  end  
 
   def test_to_date
     assert_equal Date.new(2005, 2, 21), Time.local(2005, 2, 21, 17, 44, 30).to_date

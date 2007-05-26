@@ -11,6 +11,12 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal "Mon, 21 Feb 2005 14:30:00 +0000",   datetime.to_s(:rfc822)
     assert_equal "February 21st, 2005 14:30",         datetime.to_s(:long_ordinal)
   end
+  
+  def test_custom_date_format
+    Time::DATE_FORMATS[:custom] = '%Y%m%d%H%M%S'
+    assert_equal '20050221143000', DateTime.new(2005, 2, 21, 14, 30, 0).to_s(:custom)
+    Time::DATE_FORMATS.delete(:custom)
+  end
 
   def test_to_date
     assert_equal Date.new(2005, 2, 21), DateTime.new(2005, 2, 21).to_date
