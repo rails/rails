@@ -1,5 +1,7 @@
 *SVN*
 
+* Array#to_xml yields the builder just like Hash and ActiveRecord::Base.  #8472 [seth]
+
 * Date, Time, and DateTime support formatting blocks in addition to strftime strings. Introduce :long_ordinal format, e.g. "February 21st, 2005".  #8191 [Coda Hale]
 
 * Document Object#blank?.  #6491 [Chris Mear]

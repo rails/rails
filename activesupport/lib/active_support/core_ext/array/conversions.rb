@@ -63,7 +63,10 @@ module ActiveSupport #:nodoc:
 
           opts = options.merge({ :root => children })
 
-          options[:builder].tag!(root) { each { |e| e.to_xml(opts.merge!({ :skip_instruct => true })) } }
+          options[:builder].tag!(root) {
+            yield options[:builder] if block_given?
+            each { |e| e.to_xml(opts.merge!({ :skip_instruct => true })) }
+          }
         end
 
       end
