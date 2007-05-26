@@ -444,6 +444,13 @@ class ValidationsTest < Test::Unit::TestCase
     assert Topic.create("title" => nil, "content" => "abc").valid?
   end
 
+  def test_numericality_with_getter_method
+    Developer.validates_numericality_of( :salary )
+    developer = Developer.new("name" => "michael", "salary" => nil)
+    developer.instance_eval("def salary; read_attribute('salary') ? read_attribute('salary') : 100000; end")
+    assert developer.valid?
+  end
+
   def test_numericality_with_allow_nil_and_getter_method
     Developer.validates_numericality_of( :salary, :allow_nil => true)
     developer = Developer.new("name" => "michael", "salary" => nil)
@@ -1107,11 +1114,68 @@ class ValidatesNumericalityTest < Test::Unit::TestCase
     valid!(NIL + INTEGERS)
   end
 
+  def test_validates_numericality_with_greater_than
+    Topic.validates_numericality_of :approved, :greater_than => 10
+
+    invalid!([-10, 10], 'must be greater than 10')
+    valid!([11])
+  end
+
+  def test_validates_numericality_with_greater_than_or_equal
+    Topic.validates_numericality_of :approved, :greater_than_or_equal_to => 10
+
+    invalid!([-9, 9], 'must be greater than or equal to 10')
+    valid!([10])
+  end
+
+  def test_validates_numericality_with_equal_to
+    Topic.validates_numericality_of :approved, :equal_to => 10
+
+    invalid!([-10, 11], 'must be equal to 10')
+    valid!([10])
+  end
+
+  def test_validates_numericality_with_less_than
+    Topic.validates_numericality_of :approved, :less_than => 10
+
+    invalid!([10], 'must be less than 10')
+    valid!([-9, 9])
+  end
+
+  def test_validates_numericality_with_less_than_or_equal_to
+    Topic.validates_numericality_of :approved, :less_than_or_equal_to => 10
+
+    invalid!([11], 'must be less than or equal to 10')
+    valid!([-10, 10])
+  end
+
+  def test_validates_numericality_with_odd
+    Topic.validates_numericality_of :approved, :odd => true
+
+    invalid!([-2, 2], 'must be odd')
+    valid!([-1, 1])
+  end
+
+  def test_validates_numericality_with_even
+    Topic.validates_numericality_of :approved, :even => true
+
+    invalid!([-1, 1], 'must be even')
+    valid!([-2, 2])
+  end
+
+  def test_validates_numericality_with_greater_than_less_than_and_even
+    Topic.validates_numericality_of :approved, :greater_than => 1, :less_than => 4, :even => true
+
+    invalid!([1, 3, 4])
+    valid!([2])
+  end
+
   private
-    def invalid!(values)
+    def invalid!(values, error=nil)
       with_each_topic_approved_value(values) do |topic, value|
         assert !topic.valid?, "#{value.inspect} not rejected as a number"
         assert topic.errors.on(:approved)
+        assert_equal error, topic.errors.on(:approved) if error
       end
     end
 

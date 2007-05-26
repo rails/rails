@@ -35,7 +35,14 @@ module ActiveRecord
       :too_short => "is too short (minimum is %d characters)",
       :wrong_length => "is the wrong length (should be %d characters)",
       :taken => "has already been taken",
-      :not_a_number => "is not a number"
+      :not_a_number => "is not a number",
+      :greater_than => "must be greater than %d",
+      :greater_than_or_equal_to => "must be greater than or equal to %d",
+      :equal_to => "must be equal to %d",
+      :less_than => "must be less than %d",
+      :less_than_or_equal_to => "must be less than or equal to %d",
+      :odd => "must be odd",
+      :even => "must be even"
     }
 
     # Holds a hash with all the default error messages, such that they can be replaced by your own copy or localizations.
@@ -298,6 +305,10 @@ module ActiveRecord
       }.freeze
 
       ALL_RANGE_OPTIONS = [ :is, :within, :in, :minimum, :maximum ].freeze
+      ALL_NUMERICALITY_CHECKS = { :greater_than => '>', :greater_than_or_equal_to => '>=',
+                                  :equal_to => '==', :less_than => '<', :less_than_or_equal_to => '<=',
+                                  :odd => 'odd?', :even => 'even?' }.freeze
+
 
       def validate(*methods, &block)
         methods << block if block_given?
@@ -751,30 +762,56 @@ module ActiveRecord
       # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
       # * <tt>only_integer</tt> Specifies whether the value has to be an integer, e.g. an integral value (default is false)
       # * <tt>allow_nil</tt> Skip validation if attribute is nil (default is false). Notice that for fixnum and float columns empty strings are converted to nil
+      # * <tt>greater_than</tt> Specifies the value must be greater than the supplied value
+      # * <tt>greater_than_or_equal_to</tt> Specifies the value must be greater than or equal the supplied value
+      # * <tt>equal_to</tt> Specifies the value must be equal to the supplied value
+      # * <tt>less_than</tt> Specifies the value must be less than the supplied value
+      # * <tt>less_than_or_equal_to</tt> Specifies the value must be less than or equal the supplied value
+      # * <tt>odd</tt> Specifies the value must be an odd number
+      # * <tt>even</tt> Specifies the value must be an even number
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
       def validates_numericality_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:not_a_number], :on => :save,
-                           :only_integer => false, :allow_nil => false }
+        configuration = { :on => :save, :only_integer => false, :allow_nil => false }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
-        if configuration[:only_integer]
-          validates_each(attr_names,configuration) do |record, attr_name,value|
-            record.errors.add(attr_name, configuration[:message]) unless record.send("#{attr_name}_before_type_cast").to_s =~ /\A[+-]?\d+\Z/
-          end
-        else
-          validates_each(attr_names,configuration) do |record, attr_name,value|
-           next if configuration[:allow_nil] and record.send("#{attr_name}_before_type_cast").nil?
-            begin
-              Kernel.Float(record.send("#{attr_name}_before_type_cast").to_s)
+        numericality_options = ALL_NUMERICALITY_CHECKS.keys & configuration.keys
+
+        (numericality_options - [ :odd, :even ]).each do |option|
+          raise ArgumentError, ":#{option} must be a number" unless configuration[option].is_a?(Numeric)
+        end
+
+        validates_each(attr_names,configuration) do |record, attr_name, value|
+          raw_value = record.send("#{attr_name}_before_type_cast") || value
+
+          next if configuration[:allow_nil] and raw_value.nil?
+
+          if configuration[:only_integer]
+            unless raw_value.to_s =~ /\A[+-]?\d+\Z/
+              record.errors.add(attr_name, configuration[:message] || ActiveRecord::Errors.default_error_messages[:not_a_number])
+              next
+            end
+            raw_value = raw_value.to_i
+          else
+           begin
+              raw_value = Kernel.Float(raw_value.to_s)
             rescue ArgumentError, TypeError
-              record.errors.add(attr_name, configuration[:message])
+              record.errors.add(attr_name, configuration[:message] || ActiveRecord::Errors.default_error_messages[:not_a_number])
+              next
+            end
+          end
+
+          numericality_options.each do |option|
+            case option
+              when :odd, :even
+                record.errors.add(attr_name, configuration[:message] || ActiveRecord::Errors.default_error_messages[option]) unless raw_value.to_i.method(ALL_NUMERICALITY_CHECKS[option])[]
+              else
+                record.errors.add(attr_name, configuration[:message] || (ActiveRecord::Errors.default_error_messages[option] % configuration[option])) unless raw_value.method(ALL_NUMERICALITY_CHECKS[option])[configuration[option]]
             end
           end
         end
       end
-
 
       # Creates an object just like Base.create but calls save! instead of save
       # so an exception is raised if the record is invalid.
