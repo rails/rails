@@ -11,7 +11,7 @@ class RespondToController < ActionController::Base
       type.all  { render :text => "Nothing" }
     end
   end
-  
+
   def js_or_html
     respond_to do |type|
       type.html { render :text => "HTML"    }
@@ -34,13 +34,13 @@ class RespondToController < ActionController::Base
       type.all  { render :text => "Nothing" }
     end
   end
-  
+
   def just_xml
     respond_to do |type|
       type.xml  { render :text => "XML" }
     end
   end
-  
+
   def using_defaults
     respond_to do |type|
       type.html
@@ -48,11 +48,11 @@ class RespondToController < ActionController::Base
       type.xml
     end
   end
-  
+
   def using_defaults_with_type_list
     respond_to(:html, :js, :xml)
   end
-  
+
   def made_for_content_type
     respond_to do |type|
       type.rss  { render :text => "RSS"  }
@@ -68,7 +68,7 @@ class RespondToController < ActionController::Base
       type.all  { render :text => "Nothing" }
     end
   end
-  
+
   def custom_constant_handling
     Mime::Type.register("text/x-mobile", :mobile)
 
@@ -76,10 +76,10 @@ class RespondToController < ActionController::Base
       type.html   { render :text => "HTML"   }
       type.mobile { render :text => "Mobile" }
     end
-    
+
     Mime.send :remove_const, :MOBILE
   end
-  
+
   def custom_constant_handling_without_block
     Mime::Type.register("text/x-mobile", :mobile)
 
@@ -87,10 +87,9 @@ class RespondToController < ActionController::Base
       type.html   { render :text => "HTML"   }
       type.mobile
     end
-    
+
     Mime.send :remove_const, :MOBILE    
   end
-  
 
   def handle_any
     respond_to do |type|
@@ -109,7 +108,7 @@ class RespondToController < ActionController::Base
   def rescue_action(e)
     raise
   end
-  
+
   protected
     def set_layout
       if action_name == "all_types_with_layout"
@@ -128,12 +127,12 @@ class MimeControllerTest < Test::Unit::TestCase
     @controller = RespondToController.new
     @request.host = "www.example.com"
   end
-  
+
   def test_html
     @request.env["HTTP_ACCEPT"] = "text/html"
     get :js_or_html
     assert_equal 'HTML', @response.body
-    
+
     get :html_or_xml
     assert_equal 'HTML', @response.body
 
@@ -207,31 +206,37 @@ class MimeControllerTest < Test::Unit::TestCase
   def test_using_defaults
     @request.env["HTTP_ACCEPT"] = "*/*"
     get :using_defaults
+    assert_equal "text/html", @response.content_type
     assert_equal 'Hello world!', @response.body
 
     @request.env["HTTP_ACCEPT"] = "text/javascript"
     get :using_defaults
+    assert_equal "text/javascript", @response.content_type
     assert_equal '$("body").visualEffect("highlight");', @response.body
 
     @request.env["HTTP_ACCEPT"] = "application/xml"
     get :using_defaults
+    assert_equal "application/xml", @response.content_type
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
-  
+
   def test_using_defaults_with_type_list
     @request.env["HTTP_ACCEPT"] = "*/*"
     get :using_defaults_with_type_list
+    assert_equal "text/html", @response.content_type
     assert_equal 'Hello world!', @response.body
 
     @request.env["HTTP_ACCEPT"] = "text/javascript"
     get :using_defaults_with_type_list
+    assert_equal "text/javascript", @response.content_type
     assert_equal '$("body").visualEffect("highlight");', @response.body
 
     @request.env["HTTP_ACCEPT"] = "application/xml"
     get :using_defaults_with_type_list
+    assert_equal "application/xml", @response.content_type
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
-  
+
   def test_with_atom_content_type
     @request.env["CONTENT_TYPE"] = "application/atom+xml"
     get :made_for_content_type
@@ -243,7 +248,7 @@ class MimeControllerTest < Test::Unit::TestCase
     get :made_for_content_type
     assert_equal "RSS", @response.body
   end
-  
+
   def test_synonyms
     @request.env["HTTP_ACCEPT"] = "application/javascript"
     get :js_or_html
@@ -253,14 +258,16 @@ class MimeControllerTest < Test::Unit::TestCase
     get :html_xml_or_rss
     assert_equal "XML", @response.body
   end
-  
+
   def test_custom_types
     @request.env["HTTP_ACCEPT"] = "application/crazy-xml"
     get :custom_type_handling
+    assert_equal "application/crazy-xml", @response.content_type
     assert_equal 'Crazy XML', @response.body
 
     @request.env["HTTP_ACCEPT"] = "text/html"
     get :custom_type_handling
+    assert_equal "text/html", @response.content_type
     assert_equal 'HTML', @response.body
   end
 
@@ -269,7 +276,7 @@ class MimeControllerTest < Test::Unit::TestCase
     get :html_or_xml
     assert_equal 'HTML', @response.body
   end
-  
+
   def test_firefox_simulation
     @request.env["HTTP_ACCEPT"] = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"
     get :html_or_xml
@@ -289,13 +296,13 @@ class MimeControllerTest < Test::Unit::TestCase
     get :handle_any
     assert_equal 'Either JS or XML', @response.body
   end
-  
+
   def test_rjs_type_skips_layout
     @request.env["HTTP_ACCEPT"] = "text/javascript"
     get :all_types_with_layout
     assert_equal 'RJS for all_types_with_layout', @response.body
   end
-  
+
   def test_html_type_with_layout
     @request.env["HTTP_ACCEPT"] = "text/html"
     get :all_types_with_layout
@@ -309,19 +316,19 @@ class MimeControllerTest < Test::Unit::TestCase
     xhr :get, :using_defaults
     assert_equal '$("body").visualEffect("highlight");', @response.body
   end
-  
+
   def test_custom_constant
     get :custom_constant_handling, :format => "mobile"
+    assert_equal "text/x-mobile", @response.content_type
     assert_equal "Mobile", @response.body
   end
-  
-  def custom_constant_handling_without_block
-    
-    assert_raised(ActionController::RenderError) do
-      get :custom_constant_handling, :format => "mobile"
-    end
+
+  def test_custom_constant_handling_without_block
+    get :custom_constant_handling_without_block, :format => "mobile"
+    assert_equal "text/x-mobile", @response.content_type
+    assert_equal "Mobile", @response.body
   end
-  
+
   def test_forced_format
     get :html_xml_or_rss
     assert_equal "HTML", @response.body
@@ -335,7 +342,7 @@ class MimeControllerTest < Test::Unit::TestCase
     get :html_xml_or_rss, :format => "rss"
     assert_equal "RSS", @response.body
   end
-  
+
   def test_extension_synonyms
     get :html_xml_or_rss, :format => "xhtml"
     assert_equal "HTML", @response.body
