@@ -1,5 +1,7 @@
 *SVN*
 
+* Announce migration versions as they're performed.  [Jeremy Kemper]
+
 * find gracefully copes with blank :conditions.  #7599 [Dan Manges, johnnyb]
 
 * validates_numericality_of takes :greater_than, :greater_than_or_equal_to, :equal_to, :less_than, :less_than_or_equal_to, :odd, and :even options.  #3952 [Bob Silva, Dan Kubb, Josh Peek]
