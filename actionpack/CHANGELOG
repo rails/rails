@@ -1,5 +1,7 @@
 *SVN*
 
+* Add support for assert_select_rjs with :show and :hide. #7780 [dchelimsky]
+
 * Make assert_select's failure messages clearer about what failed. #7779 [dchelimsky]
 
 * Introduce a default respond_to block for custom types.  #8174 [Josh Peek]

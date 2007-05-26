@@ -325,8 +325,8 @@ module ActionController
       # that update or insert an element with that identifier.
       #
       # Use the first argument to narrow down assertions to only statements
-      # of that type. Possible values are +:replace+, +:replace_html+, +:remove+ and
-      # +:insert_html+.
+      # of that type. Possible values are +:replace+, +:replace_html+, +:show+,
+      # +:hide+, +:toggle+, +:remove+ and +:insert_html+.
       #
       # Use the argument +:insert+ followed by an insertion position to narrow
       # down the assertion to only statements that insert elements in that
@@ -414,7 +414,7 @@ module ActionController
           case rjs_type
             when :chained_replace, :chained_replace_html
               Regexp.new("\\$\\(\"#{id}\"\\)#{statement}\\(#{RJS_PATTERN_HTML}\\)", Regexp::MULTILINE)
-            when :remove
+            when :remove, :show, :hide, :toggle
               Regexp.new("#{statement}\\(\"#{id}\"\\)")
             else
               Regexp.new("#{statement}\\(\"#{id}\", #{RJS_PATTERN_HTML}\\)", Regexp::MULTILINE)
@@ -423,7 +423,7 @@ module ActionController
         # Duplicate the body since the next step involves destroying it.
         matches = nil
         case rjs_type
-          when :remove
+          when :remove, :show, :hide, :toggle
             matches = @response.body.match(pattern)
           else
             @response.body.gsub(pattern) do |match|
@@ -434,7 +434,7 @@ module ActionController
             end
         end
         if matches
-          if block_given? && rjs_type != :remove
+          if block_given? && !([:remove, :show, :hide, :toggle].include? rjs_type)
             begin
               in_scope, @selected = @selected, matches
               yield matches
@@ -541,6 +541,9 @@ module ActionController
             :chained_replace      => /\.replace/,
             :chained_replace_html => /\.update/,
             :remove               => /Element\.remove/,
+            :show                 => /Element\.show/,
+            :hide                 => /Element\.hide/,
+            :toggle                 => /Element\.toggle/
           }
           RJS_INSERTIONS = [:top, :bottom, :before, :after]
           RJS_INSERTIONS.each do |insertion|

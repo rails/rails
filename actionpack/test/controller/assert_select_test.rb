@@ -452,6 +452,69 @@ class AssertSelectTest < Test::Unit::TestCase
     end
   end
 
+  # Simple show
+  def test_assert_select_rjs_for_show
+    render_rjs do |page|
+      page.show "test1"
+    end
+
+    assert_select_rjs :show, "test1"
+  end
+
+  def test_assert_select_rjs_for_show_ignores_block
+    render_rjs do |page|
+      page.show "test1"
+    end
+
+    assert_nothing_raised do
+      assert_select_rjs :show, "test1" do
+        assert_select "p"
+      end
+    end
+  end
+  
+  # Simple hide
+  def test_assert_select_rjs_for_hide
+    render_rjs do |page|
+      page.hide "test1"
+    end
+
+    assert_select_rjs :hide, "test1"
+  end
+
+  def test_assert_select_rjs_for_hide_ignores_block
+    render_rjs do |page|
+      page.hide "test1"
+    end
+
+    assert_nothing_raised do
+      assert_select_rjs :hide, "test1" do
+        assert_select "p"
+      end
+    end
+  end
+  
+  # Simple toggle
+  def test_assert_select_rjs_for_toggle
+    render_rjs do |page|
+      page.toggle "test1"
+    end
+
+    assert_select_rjs :toggle, "test1"
+  end
+
+  def test_assert_select_rjs_for_toggle_ignores_block
+    render_rjs do |page|
+      page.toggle "test1"
+    end
+
+    assert_nothing_raised do
+      assert_select_rjs :toggle, "test1" do
+        assert_select "p"
+      end
+    end
+  end
+  
   # Non-positioned insert.
   def test_assert_select_rjs_for_nonpositioned_insert
     render_rjs do |page|
@@ -498,8 +561,7 @@ class AssertSelectTest < Test::Unit::TestCase
       assert_select "div", 4
     end
   end
-
-
+  
   # Simple selection from a single result.
   def test_nested_assert_select_rjs_with_single_result
     render_rjs do |page|
