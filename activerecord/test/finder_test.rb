@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'fixtures/comment'
 require 'fixtures/company'
 require 'fixtures/topic'
 require 'fixtures/reply'
@@ -127,6 +128,18 @@ class FinderTest < Test::Unit::TestCase
     assert !topic.respond_to?("title")
     assert topic.attribute_present?("author_name")
     assert topic.respond_to?("author_name")
+  end
+  
+  def test_find_on_blank_conditions
+    [nil, " ", [], {}].each do |blank|
+      assert_nothing_raised { Topic.find(:first, :conditions => blank) }
+    end
+  end
+  
+  def test_find_on_blank_bind_conditions
+    [ [""], ["",{}] ].each do |blank|
+      assert_nothing_raised { Topic.find(:first, :conditions => blank) }
+    end
   end
 
   def test_find_on_array_conditions

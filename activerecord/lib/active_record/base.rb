@@ -1249,11 +1249,11 @@ module ActiveRecord #:nodoc:
         def add_conditions!(sql, conditions, scope = :auto)
           scope = scope(:find) if :auto == scope
           segments = []
-          segments << sanitize_sql(scope[:conditions]) if scope && scope[:conditions]
-          segments << sanitize_sql(conditions) unless conditions.nil?
+          segments << sanitize_sql(scope[:conditions]) if scope && !scope[:conditions].blank?
+          segments << sanitize_sql(conditions) unless conditions.blank?
           segments << type_condition unless descends_from_active_record?
           segments.compact!
-          sql << "WHERE (#{segments.join(") AND (")}) " unless segments.empty?
+          sql << "WHERE (#{segments.join(") AND (")}) " unless segments.all?(&:blank?)
         end
 
         def type_condition
