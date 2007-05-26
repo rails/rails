@@ -20,7 +20,7 @@ class BinaryTest < Test::Unit::TestCase
   # Without using prepared statements, it makes no sense to test
   # BLOB data with DB2 or Firebird, because the length of a statement
   # is limited to 32KB.
-  unless %w(SQLServer Sybase DB2 Oracle Firebird).include? ActiveRecord::Base.connection.adapter_name
+  unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
     def test_load_save
       bin = Binary.new
       bin.data = @data

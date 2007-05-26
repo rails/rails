@@ -1,5 +1,9 @@
 *SVN*
 
+* Oracle: support binary fixtures.  #7987 [Michael Schoen]
+
+* Fixtures: pull fixture insertion into the database adapters.  #7987 [Michael Schoen]
+
 * Announce migration versions as they're performed.  [Jeremy Kemper]
 
 * find gracefully copes with blank :conditions.  #7599 [Dan Manges, johnnyb]

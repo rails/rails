@@ -290,7 +290,7 @@ class Fixtures < YAML::Omap
 
   def insert_fixtures
     values.each do |fixture|
-      @connection.execute "INSERT INTO #{@table_name} (#{fixture.key_list}) VALUES (#{fixture.value_list})", 'Fixture Insert'
+      @connection.insert_fixture fixture, @table_name
     end
   end
 
@@ -380,6 +380,8 @@ class Fixture #:nodoc:
   end
   class FormatError < FixtureError#:nodoc:
   end
+
+  attr_reader :class_name
 
   def initialize(fixture, class_name)
     case fixture

@@ -44,17 +44,9 @@ begin
       # After setting large objects to empty, select the OCI8::LOB
       # and write back the data.
       after_save :write_lobs
-      def write_lobs() #:nodoc:
+      def write_lobs #:nodoc:
         if connection.is_a?(ConnectionAdapters::OracleAdapter)
-          self.class.columns.select { |c| c.sql_type =~ /LOB$/i }.each { |c|
-            value = self[c.name]
-            value = value.to_yaml if unserializable_attribute?(c.name, c)
-            next if value.nil?  || (value == '')
-            lob = connection.select_one(
-              "SELECT #{c.name} FROM #{self.class.table_name} WHERE #{self.class.primary_key} = #{quote_value(id)}",
-              'Writable Large Object')[c.name]
-            lob.write value
-          }
+          connection.write_lobs(self.class.table_name, self.class, attributes)
         end
       end
 
@@ -270,6 +262,30 @@ begin
 
         def default_sequence_name(table, column) #:nodoc:
           "#{table}_seq"
+        end
+
+
+        # Inserts the given fixture into the table. Overriden to properly handle lobs.
+        def insert_fixture(fixture, table_name)
+          super
+
+          klass = fixture.class_name.constantize rescue nil
+          if klass.respond_to?(:ancestors) && klass.ancestors.include?(ActiveRecord::Base)
+            write_lobs(table_name, klass, fixture)
+          end
+        end
+
+        # Writes LOB values from attributes, as indicated by the LOB columns of klass.
+        def write_lobs(table_name, klass, attributes)
+          id = quote(attributes[klass.primary_key])
+          klass.columns.select { |col| col.sql_type =~ /LOB$/i }.each do |col|
+            value = attributes[col.name]
+            value = value.to_yaml if col.text? && klass.serialized_attributes[col.name]
+            next if value.nil?  || (value == '')
+            lob = select_one("SELECT #{col.name} FROM #{table_name} WHERE #{klass.primary_key} = #{id}",
+                             'Writable Large Object')[col.name]
+            lob.write value
+          end
         end
 
 

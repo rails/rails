@@ -119,6 +119,12 @@ module ActiveRecord
         # Do nothing by default.  Implement for PostgreSQL, Oracle, ...
       end
 
+      # Inserts the given fixture into the table. Overriden in adapters that require
+      # something beyond a simple insert (eg. Oracle).
+      def insert_fixture(fixture, table_name)
+        execute "INSERT INTO #{table_name} (#{fixture.key_list}) VALUES (#{fixture.value_list})", 'Fixture Insert'
+      end
+
       protected
         # Returns an array of record hashes with the column names as keys and
         # column values as values.
