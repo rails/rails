@@ -40,6 +40,8 @@ class JavaScriptMacrosHelperTest < Test::Unit::TestCase
         :after_update_element => "function(element,value){alert('You have chosen: '+value)}");
     assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nvar some_input_auto_completer = new Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {paramName:'huidriwusch'})\n//]]>\n</script>),
       auto_complete_field("some_input", :url => { :action => "autocomplete" }, :param_name => 'huidriwusch');
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nvar some_input_auto_completer = new Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {method:'get'})\n//]]>\n</script>),
+      auto_complete_field("some_input", :url => { :action => "autocomplete" }, :method => :get);
   end
   
   def test_auto_complete_result

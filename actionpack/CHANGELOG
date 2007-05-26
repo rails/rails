@@ -1,5 +1,7 @@
 *SVN*
 
+* auto_complete_field takes a :method option so you can GET or POST.  #8120 [zapnap]
+
 * Added option to suppress :size when using :maxlength for FormTagHelper#text_field #3112 [rails@tpope.info]
 
 * catch possible WSOD when trying to render a missing partial. Closes #8454 [Catfish]

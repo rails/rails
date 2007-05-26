@@ -139,6 +139,8 @@ module ActionView
       # <tt>:select</tt>::               Pick the class of the element from which the value for 
       #                                  insertion should be extracted. If this is not specified,
       #                                  the entire element is used.
+      # <tt>:method</tt>::               Specifies the HTTP verb to use when the autocompletion
+      #                                  request is made. Defaults to POST.
       def auto_complete_field(field_id, options = {})
         function =  "var #{field_id}_auto_completer = new Ajax.Autocompleter("
         function << "'#{field_id}', "
@@ -152,6 +154,7 @@ module ActionView
         js_options[:select]     = "'#{options[:select]}'" if options[:select]
         js_options[:paramName]  = "'#{options[:param_name]}'" if options[:param_name]
         js_options[:frequency]  = "#{options[:frequency]}" if options[:frequency]
+        js_options[:method]     = "'#{options[:method].to_s}'" if options[:method]
 
         { :after_update_element => :afterUpdateElement, 
           :on_show => :onShow, :on_hide => :onHide, :min_chars => :minChars }.each do |k,v|
