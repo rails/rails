@@ -1,5 +1,7 @@
 *SVN*
 
+* Add db:create, drop, reset, charset, and collation tasks.  #8448 [matt]
+
 * Scaffold generator depends on model generator instead of duplicating it.  #7222 [bscofield]
 
 * Scaffold generator tests.  #8443 [pelle]

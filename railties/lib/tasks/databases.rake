@@ -1,10 +1,74 @@
 namespace :db do
+  
+  desc 'Creates the databases defined in your config/database.yml (unless they already exist)'
+  task :create => :environment do 
+    ActiveRecord::Base.configurations.each_value do |config|
+      begin
+        ActiveRecord::Base.establish_connection(config)
+        ActiveRecord::Base.connection
+      rescue
+        case config['adapter']
+        when 'mysql'
+          @charset   = ENV['CHARSET']   || 'utf8'
+          @collation = ENV['COLLATION'] || 'utf8_general_ci'
+
+          ActiveRecord::Base.establish_connection(config.merge({'database' => nil}))
+          ActiveRecord::Base.connection.create_database(config['database'], {:charset => @charset, :collation => @collation})
+          ActiveRecord::Base.establish_connection(config)
+        when 'postgresql'
+          `createdb "#{config['database']}" -E utf8`  
+        end
+      end
+    end
+    ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[RAILS_ENV || 'development'])
+  end
+  
+  desc 'Drops the database for your currenet RAILS_ENV as defined in config/database.yml'
+  task :drop => :environment do
+    config = ActiveRecord::Base.configurations[RAILS_ENV || 'development']
+    case config['adapter']
+    when 'mysql'
+      ActiveRecord::Base.connection.drop_database config['database']
+    when 'sqlite3'
+      FileUtils.rm_f File.join(RAILS_ROOT, config['database'])
+    when 'postgresql'
+      `dropdb "#{config['database']}"`   
+    end
+  end
+  
   desc "Migrate the database through scripts in db/migrate. Target specific version with VERSION=x"
   task :migrate => :environment do
     ActiveRecord::Migrator.migrate("db/migrate/", ENV["VERSION"] ? ENV["VERSION"].to_i : nil)
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
+  desc 'Drops, creates and then migrates the database for your current RAILS_ENV. Target specific version with VERSION=x'
+  task :reset => ['db:drop', 'db:create', 'db:migrate']
+  
+  desc "retrieve the charset for your database defined in your current RAILS_ENV"
+  task :charset => :environment do
+    config = ActiveRecord::Base.configurations[RAILS_ENV || 'development']
+    case config['adapter']
+    when 'mysql'
+      ActiveRecord::Base.establish_connection(config)
+      puts ActiveRecord::Base.connection.charset
+    else
+      puts 'sorry, your database adapter is not supported yet, feel free to submit a patch'
+    end
+  end
+
+  desc "retrieve the collation for your database"
+  task :collation => :environment do
+    config = ActiveRecord::Base.configurations[RAILS_ENV || 'development']
+    case config['adapter']
+    when 'mysql'
+      ActiveRecord::Base.establish_connection(config)
+      puts ActiveRecord::Base.connection.collation
+    else
+      puts 'sorry, your database adapter is not supported yet, feel free to submit a patch'
+    end
+  end
+  
   namespace :fixtures do
     desc "Load fixtures into the current environment's database.  Load specific fixtures using FIXTURES=x,y"
     task :load => :environment do
