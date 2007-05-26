@@ -196,7 +196,7 @@ module ActionController
           # Otherwise just operate on the response document.
           root = response_from_page_or_rjs
         end
-
+        
         # First or second argument is the selector: string and we pass
         # all remaining arguments. Array and we pass the argument. Also
         # accepts selector itself.
@@ -209,7 +209,7 @@ module ActionController
             selector = arg
           else raise ArgumentError, "Expecting a selector as the first argument"
         end
-
+        
         # Next argument is used for equality tests.
         equals = {}
         case arg = args.shift
@@ -277,14 +277,10 @@ module ActionController
         # found one but expecting two.
         message ||= content_mismatch if matches.empty?
         # Test minimum/maximum occurrence.
-        if equals[:minimum]
-          assert matches.size >= equals[:minimum], message ||
-             "Expected at least #{equals[:minimum]} elements, found #{matches.size}."
-        end
-        if equals[:maximum]
-          assert matches.size <= equals[:maximum], message ||
-            "Expected at most #{equals[:maximum]} elements, found #{matches.size}."
-        end
+        min, max = equals[:minimum], equals[:maximum]
+        message = message || %(Expected #{count_description(min, max)} matching "#{selector.to_s}", found #{matches.size}.)
+        assert matches.size >= min, message if min
+        assert matches.size <= max, message if max
 
         # If a block is given call that block. Set @selected to allow
         # nested assert_select, which can be nested several levels deep.
@@ -300,7 +296,19 @@ module ActionController
         # Returns all matches elements.
         matches
       end
-
+      
+      def count_description(min, max) #:nodoc:
+        pluralize = lambda {|word, quantity| word << (quantity == 1 ? '' : 's')}
+        
+        if min && max && (max != min)
+          "between #{min} and #{max} elements"
+        elsif min && !(min == 1 && max == 1)
+          "at least #{min} #{pluralize['element', min]}"
+        elsif max
+          "at most #{max} #{pluralize['element', max]}"
+        end
+      end
+      
       # :call-seq:
       #   assert_select_rjs(id?) { |elements| ... }
       #   assert_select_rjs(statement, id?) { |elements| ... }

@@ -73,7 +73,12 @@ class AssertSelectTest < Test::Unit::TestCase
   def teardown
     ActionMailer::Base.deliveries.clear
   end
-
+  
+  def assert_failure(message, &block)
+    e = assert_raises(AssertionFailedError, &block)
+    assert_match(message, e.message) if Regexp === message
+    assert_equal(message, e.message) if String === message
+  end
 
   #
   # Test assert select.
@@ -82,8 +87,8 @@ class AssertSelectTest < Test::Unit::TestCase
   def test_assert_select
     render_html %Q{<div id="1"></div><div id="2"></div>}
     assert_select "div", 2
-    assert_raises(AssertionFailedError) { assert_select "div", 3 }
-    assert_raises(AssertionFailedError){ assert_select "p" }
+    assert_failure(/Expected at least 3 elements matching \"div\", found 2/) { assert_select "div", 3 }
+    assert_failure(/Expected at least 1 element matching \"p\", found 0/) { assert_select "p" }
   end
 
 
@@ -131,22 +136,34 @@ class AssertSelectTest < Test::Unit::TestCase
   end
 
 
-  def test_equality_of_instances
+  def test_counts
     render_html %Q{<div id="1">foo</div><div id="2">foo</div>}
     assert_nothing_raised               { assert_select "div", 2 }
-    assert_raises(AssertionFailedError) { assert_select "div", 3 }
+    assert_failure(/Expected at least 3 elements matching \"div\", found 2/) do
+      assert_select "div", 3
+    end
     assert_nothing_raised               { assert_select "div", 1..2 }
-    assert_raises(AssertionFailedError) { assert_select "div", 3..4 }
+    assert_failure(/Expected between 3 and 4 elements matching \"div\", found 2/) do
+      assert_select "div", 3..4
+    end
     assert_nothing_raised               { assert_select "div", :count=>2 }
-    assert_raises(AssertionFailedError) { assert_select "div", :count=>3 }
+    assert_failure(/Expected at least 3 elements matching \"div\", found 2/) do
+      assert_select "div", :count=>3
+    end
     assert_nothing_raised               { assert_select "div", :minimum=>1 }
     assert_nothing_raised               { assert_select "div", :minimum=>2 }
-    assert_raises(AssertionFailedError) { assert_select "div", :minimum=>3 }
+    assert_failure(/Expected at least 3 elements matching \"div\", found 2/) do
+      assert_select "div", :minimum=>3
+    end
     assert_nothing_raised               { assert_select "div", :maximum=>2 }
     assert_nothing_raised               { assert_select "div", :maximum=>3 }
-    assert_raises(AssertionFailedError) { assert_select "div", :maximum=>1 }
+    assert_failure(/Expected at most 1 element matching \"div\", found 2/) do
+      assert_select "div", :maximum=>1
+    end
     assert_nothing_raised               { assert_select "div", :minimum=>1, :maximum=>2 }
-    assert_raises(AssertionFailedError) { assert_select "div", :minimum=>3, :maximum=>4 }
+    assert_failure(/Expected between 3 and 4 elements matching \"div\", found 2/) do
+      assert_select "div", :minimum=>3, :maximum=>4
+    end
   end
 
 
@@ -181,6 +198,12 @@ class AssertSelectTest < Test::Unit::TestCase
         assert_select "#1"
         assert_select "#2"
         assert_select "#3", false
+      end
+    end
+    
+    assert_failure(/Expected at least 1 element matching \"#4\", found 0\./) do
+      assert_select "div" do
+        assert_select "#4"
       end
     end
   end
