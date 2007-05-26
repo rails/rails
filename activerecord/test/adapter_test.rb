@@ -19,7 +19,7 @@ class AdapterTest < Test::Unit::TestCase
 
   def test_indexes
     idx_name = "accounts_idx"
-      
+
     if @connection.respond_to?(:indexes)
       indexes = @connection.indexes("accounts")
       assert indexes.empty?
@@ -39,10 +39,20 @@ class AdapterTest < Test::Unit::TestCase
   ensure
     @connection.remove_index(:accounts, :name => idx_name) rescue nil
   end
-  
+
   def test_current_database
     if @connection.respond_to?(:current_database)
       assert_equal ENV['ARUNIT_DB_NAME'] || "activerecord_unittest", @connection.current_database
+    end
+  end
+
+  if current_adapter?(:MysqlAdapter)
+    def test_charset
+      assert @connection.charset
+    end
+
+    def test_collation
+      assert @connection.collation
     end
   end
 
@@ -52,11 +62,11 @@ class AdapterTest < Test::Unit::TestCase
       alias_method :old_table_alias_length, :table_alias_length
       alias_method :table_alias_length,     :test_table_alias_length
     end
-      
+
     assert_equal 'posts',      @connection.table_alias_for('posts')
     assert_equal 'posts_comm', @connection.table_alias_for('posts_comments')
     assert_equal 'dbo_posts',  @connection.table_alias_for('dbo.posts')
-    
+
     class << @connection
       alias_method :table_alias_length, :old_table_alias_length
     end
@@ -66,7 +76,7 @@ class AdapterTest < Test::Unit::TestCase
   if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
     require 'fixtures/movie'
     require 'fixtures/subscriber'
-    
+
     def test_reset_empty_table_with_custom_pk
       Movie.delete_all
       Movie.connection.reset_pk_sequence! 'movies'

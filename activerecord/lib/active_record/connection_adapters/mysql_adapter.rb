@@ -209,7 +209,7 @@ module ActiveRecord
       def quoted_true
         "1"
       end
-      
+
       def quoted_false
         "0"
       end
@@ -238,7 +238,7 @@ module ActiveRecord
         disconnect!
         connect
       end
-      
+
       def disconnect!
         @connection.close rescue nil
       end
@@ -304,7 +304,7 @@ module ActiveRecord
         else
           sql = "SHOW TABLES"
         end
-        
+
         select_all(sql).inject("") do |structure, table|
           table.delete('Table_type')
           structure += select_one("SHOW CREATE TABLE #{table.to_a.first.last}")["Create Table"] + ";\n\n"
@@ -316,16 +316,37 @@ module ActiveRecord
         create_database(name)
       end
 
-      def create_database(name) #:nodoc:
-        execute "CREATE DATABASE `#{name}`"
+      # Create a new MySQL database with optional :charset and :collation.
+      # Charset defaults to utf8.
+      #
+      # Example:
+      #   create_database 'charset_test', :charset => 'latin1', :collation => 'latin1_bin'
+      #   create_database 'matt_development'
+      #   create_database 'matt_development', :charset => :big5
+      def create_database(name, options = {})
+        if options[:collation]
+          execute "CREATE DATABASE `#{name}` DEFAULT CHARACTER SET `#{options[:charset] || 'utf8'}` COLLATE `#{options[:collation]}`"
+        else
+          execute "CREATE DATABASE `#{name}` DEFAULT CHARACTER SET `#{options[:charset] || 'utf8'}`"
+        end
       end
-      
+
       def drop_database(name) #:nodoc:
         execute "DROP DATABASE IF EXISTS `#{name}`"
       end
 
       def current_database
-        select_one("SELECT DATABASE() as db")["db"]
+        select_value 'SELECT DATABASE() as db'
+      end
+
+      # Returns the database character set.
+      def charset
+        show_variable 'character_set_database'
+      end
+
+      # Returns the database collation strategy.
+      def collation
+        show_variable 'collation_database'
       end
 
       def tables(name = nil) #:nodoc:
@@ -359,10 +380,10 @@ module ActiveRecord
       def create_table(name, options = {}) #:nodoc:
         super(name, {:options => "ENGINE=InnoDB"}.merge(options))
       end
-      
+
       def rename_table(name, new_name)
         execute "RENAME TABLE #{name} TO #{new_name}"
-      end  
+      end
 
       def change_column_default(table_name, column_name, default) #:nodoc:
         current_type = select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")["Type"]
@@ -385,6 +406,11 @@ module ActiveRecord
         execute "ALTER TABLE #{table_name} CHANGE #{column_name} #{new_column_name} #{current_type}"
       end
 
+
+      # SHOW VARIABLES LIKE 'name'
+      def show_variable(name)
+        select_value "SHOW VARIABLES LIKE '#{name}'"
+      end
 
       private
         def connect

@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL: create_database takes :charset and :collation options. Charset defaults to utf8.  #8448 [matt]
+
 * Find with a list of ids supports limit/offset.  #8437 [hrudududu]
 
 * Optimistic locking: revert the lock version when an update fails.  #7840 [plang]
