@@ -41,6 +41,9 @@ class ConnectionTest < Test::Unit::TestCase
     # 404 is a missing resource.
     assert_response_raises ActiveResource::ResourceNotFound, 404
 
+    # 405 is a missing not allowed error
+    assert_response_raises ActiveResource::MethodNotAllowed, 405
+
     # 409 is an optimistic locking error
     assert_response_raises ActiveResource::ResourceConflict, 409
 
@@ -60,6 +63,16 @@ class ConnectionTest < Test::Unit::TestCase
     # Others are unknown.
     [199, 600].each do |code|
       assert_response_raises ActiveResource::ConnectionError, code
+    end
+  end
+
+  ResponseHeaderStub = Struct.new(:code, 'Allow')
+  def test_should_return_allowed_methods_for_method_no_allowed_exception
+    begin
+      handle_response ResponseHeaderStub.new(405, "GET, POST")
+    rescue ActiveResource::MethodNotAllowed => e
+      assert_equal "Failed with 405", e.message
+      assert_equal [:get, :post], e.allowed_methods
     end
   end
 

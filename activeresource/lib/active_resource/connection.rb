@@ -24,6 +24,13 @@ module ActiveResource
 
   class ServerError < ConnectionError;  end  # 5xx Server Error
 
+  # 405 Method Not Allowed
+  class MethodNotAllowed < ClientError
+    def allowed_methods
+      @response['Allow'].split(',').map { |verb| verb.strip.downcase.to_sym }
+    end
+  end
+
   # Class to handle connections to remote services.
   class Connection
     attr_reader :site
@@ -99,6 +106,8 @@ module ActiveResource
             response
           when 404
             raise(ResourceNotFound.new(response))
+          when 405
+            raise(MethodNotAllowed.new(response))
           when 409
             raise(ResourceConflict.new(response))
           when 422

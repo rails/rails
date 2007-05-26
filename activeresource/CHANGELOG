@@ -1,5 +1,7 @@
 *SVN*
 
+* Recognize and raise an exception on 405 Method Not Allowed responses.  #7692 [Josh Peek]
+
 * Handle string and symbol param keys when splitting params into prefix params and query params.
 
     Comment.find(:all, :params => { :article_id => 5, :page => 2 }) or Comment.find(:all, :params => { 'article_id' => 5, :page => 2 })
