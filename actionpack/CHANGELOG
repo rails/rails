@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix syntax error in code example for routing documentation. #8377. [norbert]
+
 * Routing: respond with 405 Method Not Allowed status when the route path matches but the HTTP method does not.  #6953 [Josh Peek, defeated, Dan Kubb, Coda Hale]
 
 * Add support for assert_select_rjs with :show and :hide. #7780 [dchelimsky]

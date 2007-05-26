@@ -188,11 +188,10 @@ module ActionController
   #  map.geocode 'geocode/:postalcode', :controller => 'geocode',
   #              :action => 'show', :postalcode => /\d{5}(-\d{4})?/
   #
-  # or  more formally:
+  # or, more formally:
   #
   #   map.geocode 'geocode/:postalcode', :controller => 'geocode', 
-  #                      :action => 'show', 
-  #                      :requirements { :postalcode => /\d{5}(-\d{4})?/ }
+  #               :action => 'show', :requirements => { :postalcode => /\d{5}(-\d{4})?/ }
   #
   # == Route globbing
   #
