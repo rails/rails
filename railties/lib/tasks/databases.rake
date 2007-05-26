@@ -17,6 +17,10 @@ namespace :db do
           ActiveRecord::Base.establish_connection(config)
         when 'postgresql'
           `createdb "#{config['database']}" -E utf8`  
+        when 'sqlite'
+          `sqlite "#{config['database']}"`
+        when 'sqlite3'
+          `sqlite3 "#{config['database']}"`
         end
       end
     end
@@ -29,7 +33,7 @@ namespace :db do
     case config['adapter']
     when 'mysql'
       ActiveRecord::Base.connection.drop_database config['database']
-    when 'sqlite3'
+    when /^sqlite/
       FileUtils.rm_f File.join(RAILS_ROOT, config['database'])
     when 'postgresql'
       `dropdb "#{config['database']}"`   
