@@ -188,7 +188,7 @@ class ResourcesTest < Test::Unit::TestCase
     with_restful_routing :messages do
       assert_restful_routes_for :messages do |options|
         assert_recognizes(options.merge(:action => "new"), :path => "/messages/new", :method => :get)
-        assert_raises(ActionController::RoutingError) do
+        assert_raises(ActionController::MethodNotAllowed) do
           ActionController::Routing::Routes.recognize_path("/messages/new", :method => :post)
         end
       end
@@ -384,11 +384,11 @@ class ResourcesTest < Test::Unit::TestCase
       options = { :controller => controller_name.to_s }
       collection_path = "/#{controller_name}"
 
-      assert_raises(ActionController::RoutingError) do
+      assert_raises(ActionController::MethodNotAllowed) do
         assert_recognizes(options.merge(:action => 'update'), :path => collection_path, :method => :put)
       end
 
-      assert_raises(ActionController::RoutingError) do
+      assert_raises(ActionController::MethodNotAllowed) do
         assert_recognizes(options.merge(:action => 'destroy'), :path => collection_path, :method => :delete)
       end
     end

@@ -7,6 +7,14 @@ class RescueController < ActionController::Base
     render :text => 'already rendered'
     raise "don't panic!"
   end
+
+  def method_not_allowed
+    raise ActionController::MethodNotAllowed.new(:get, :head, :put)
+  end
+  
+  def not_implemented
+    raise ActionController::NotImplemented.new(:get, :put)
+  end
 end
 
 
@@ -144,6 +152,8 @@ class RescueTest < Test::Unit::TestCase
     assert_equal :conflict, responses['ActiveRecord::StaleObjectError']
     assert_equal :unprocessable_entity, responses['ActiveRecord::RecordInvalid']
     assert_equal :unprocessable_entity, responses['ActiveRecord::RecordNotSaved']
+    assert_equal :method_not_allowed, responses['ActionController::MethodNotAllowed']
+    assert_equal :not_implemented, responses['ActionController::NotImplemented']
   end
 
   def test_rescue_templates
@@ -175,6 +185,22 @@ class RescueTest < Test::Unit::TestCase
       # No action if backtrace is nil.
       assert_nil @controller.send(:clean_backtrace, Exception.new)
     end
+  end
+  
+  def test_not_implemented
+    with_all_requests_local false do
+      head :not_implemented
+    end
+    assert_response :not_implemented
+    assert_equal "GET, PUT", @response.headers['Allow']
+  end
+
+  def test_method_not_allowed
+    with_all_requests_local false do
+      get :method_not_allowed
+    end
+    assert_response :method_not_allowed
+    assert_equal "GET, HEAD, PUT", @response.headers['Allow']
   end
 
   protected

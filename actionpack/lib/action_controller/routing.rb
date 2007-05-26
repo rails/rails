@@ -251,6 +251,8 @@ module ActionController
     # TODO: , (comma) should be an allowed path character.
     SEPARATORS = %w( / ; . , ? )
 
+    HTTP_METHODS = [:get, :head, :post, :put, :delete]
+
     # The root paths which may contain controller files
     mattr_accessor :controller_paths
     self.controller_paths = []
@@ -1345,7 +1347,16 @@ module ActionController
         routes.each do |route|
           result = route.recognize(path, environment) and return result
         end
-        raise RoutingError, "no route found to match #{path.inspect} with #{environment.inspect}"
+
+        allows = HTTP_METHODS.select { |verb| routes.find { |r| r.recognize(path, :method => verb) } }
+
+        if environment[:method] && !HTTP_METHODS.include?(environment[:method])
+          raise NotImplemented.new(*allows)
+        elsif !allows.empty?
+          raise MethodNotAllowed.new(*allows)
+        else
+          raise RoutingError, "No route matches #{path.inspect} with #{environment.inspect}"
+        end
       end
   
       def routes_by_controller

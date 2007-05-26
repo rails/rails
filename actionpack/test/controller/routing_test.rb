@@ -1590,8 +1590,13 @@ class RouteSetTest < Test::Unit::TestCase
     assert_nothing_raised { set.recognize(request) }
     assert_equal("update", request.path_parameters[:action])
 
-    request.method = :update
-    assert_raises(ActionController::RoutingError) { set.recognize(request) }
+    begin
+      request.method = :bacon
+      set.recognize(request)
+      flunk 'Should have raised NotImplemented'
+    rescue ActionController::NotImplemented => e
+      assert_equal [:get, :post, :put, :delete], e.allowed_methods
+    end
 
     request.path = "/people/5"
     request.method = :get
@@ -1608,10 +1613,15 @@ class RouteSetTest < Test::Unit::TestCase
     assert_nothing_raised { set.recognize(request) }
     assert_equal("destroy", request.path_parameters[:action])
     assert_equal("5", request.path_parameters[:id])
-    
-    request.method = :post
-    assert_raises(ActionController::RoutingError) { set.recognize(request) }
-    
+
+    begin
+      request.method = :post
+      set.recognize(request)
+      flunk 'Should have raised MethodNotAllowed'
+    rescue ActionController::MethodNotAllowed => e
+      assert_equal [:get, :put, :delete], e.allowed_methods
+    end
+
   ensure
     Object.send(:remove_const, :PeopleController)
   end

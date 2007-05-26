@@ -13,12 +13,14 @@ module ActionController #:nodoc:
 
     DEFAULT_RESCUE_RESPONSE = :internal_server_error
     DEFAULT_RESCUE_RESPONSES = {
-      'ActionController::RoutingError'    => :not_found,
-      'ActionController::UnknownAction'   => :not_found,
-      'ActiveRecord::RecordNotFound'      => :not_found,
-      'ActiveRecord::StaleObjectError'    => :conflict,
-      'ActiveRecord::RecordInvalid'       => :unprocessable_entity,
-      'ActiveRecord::RecordNotSaved'      => :unprocessable_entity
+      'ActionController::RoutingError'     => :not_found,
+      'ActionController::UnknownAction'    => :not_found,
+      'ActiveRecord::RecordNotFound'       => :not_found,
+      'ActiveRecord::StaleObjectError'     => :conflict,
+      'ActiveRecord::RecordInvalid'        => :unprocessable_entity,
+      'ActiveRecord::RecordNotSaved'       => :unprocessable_entity,
+      'ActionController::MethodNotAllowed' => :method_not_allowed,
+      'ActionController::NotImplemented'   => :not_implemented
     }
 
     DEFAULT_RESCUE_TEMPLATE = 'diagnostics'
@@ -55,6 +57,12 @@ module ActionController #:nodoc:
       def rescue_action(exception)
         log_error(exception) if logger
         erase_results if performed?
+
+        # Let the exception alter the response if it wants.
+        # For example, MethodNotAllowed sets the Allow header.
+        if exception.respond_to?(:handle_response!)
+          exception.handle_response!(response)
+        end
 
         if consider_all_requests_local || local_request?
           rescue_action_locally(exception)

@@ -22,6 +22,24 @@ module ActionController #:nodoc:
       @failures = failures
     end
   end
+  class MethodNotAllowed < ActionControllerError #:nodoc:
+    attr_reader :allowed_methods
+
+    def initialize(*allowed_methods)
+      super("Only #{allowed_methods.to_sentence} requests are allowed.")
+      @allowed_methods = allowed_methods
+    end
+
+    def allowed_methods_header
+      allowed_methods.map { |method_symbol| method_symbol.to_s.upcase } * ', '
+    end
+
+    def handle_response!(response)
+      response.headers['Allow'] ||= allowed_methods_header
+    end
+  end
+  class NotImplemented < MethodNotAllowed #:nodoc:
+  end
   class UnknownController < ActionControllerError #:nodoc:
   end
   class UnknownAction < ActionControllerError #:nodoc:
