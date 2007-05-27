@@ -59,8 +59,8 @@ namespace :rails do
 
         touch "vendor/rails/REVISION_#{ENV['REVISION']}"
       end
-      
-      for framework in %w( railties actionpack activerecord actionmailer activesupport actionwebservice )
+
+      for framework in %w(railties actionpack activerecord actionmailer activesupport activeresource)
         system "svn export #{rails_svn}/#{framework} vendor/rails/#{framework}" + (ENV['REVISION'] ? " -r #{ENV['REVISION']}" : "")
       end
     end

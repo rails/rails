@@ -1,5 +1,7 @@
 *SVN*
 
+* Add Active Resource to rails:freeze:edge and drop Action Web Service.  #8205 [underbluewaters, Jeremy Kemper]
+
 * Give generate scaffold a more descriptive database message.  Closes #7316 [jeremymcanally]
 
 * Canonicalize RAILS_ROOT by using File.expand_path on Windows, which doesn't have to worry about symlinks, and Pathname#realpath elsewhere, which respects symlinks in relative paths but is incompatible with Windows.  #6755 [Jeremy Kemper, trevor]
