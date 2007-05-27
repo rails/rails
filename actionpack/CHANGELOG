@@ -1,5 +1,7 @@
 *SVN*
 
+* Action Caching speedup.  #8231 [skaes]
+
 * Wordsmith resources documentation.  #8484 [marclove]
 
 * Fix syntax error in code example for routing documentation. #8377. [norbert]
