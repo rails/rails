@@ -56,8 +56,8 @@ class NumericExtTimeTest < Test::Unit::TestCase
   end
   
   def test_chaining_duration_operations
-    assert_equal @now.advance(:days => 2, :months => -3), @now + 2.days - 3.months
-    assert_equal @now.advance(:days => 1, :months => 2), @now + 1.day + 2.months
+    assert_equal @now.advance(:days => 2).advance(:months => -3), @now + 2.days - 3.months
+    assert_equal @now.advance(:days => 1).advance(:months => 2), @now + 1.day + 2.months
   end
   
   def test_duration_after_convertion_is_no_longer_accurate
@@ -78,8 +78,8 @@ class NumericExtDateTest < Test::Unit::TestCase
   end
   
   def test_chaining_duration_operations
-    assert_equal @today.advance(:days => 2, :months => -3), @today + 2.days - 3.months
-    assert_equal @today.advance(:days => 1, :months => 2), @today + 1.day + 2.months
+    assert_equal @today.advance(:days => 2).advance(:months => -3), @today + 2.days - 3.months
+    assert_equal @today.advance(:days => 1).advance(:months => 2), @today + 1.day + 2.months
   end
 end
 
