@@ -1,5 +1,7 @@
 *SVN*
 
+* Drop Action Web Service from rails:freeze:edge.  [Jeremy Kemper]
+
 * Add db:create, drop, reset, charset, and collation tasks.  #8448 [matt]
 
 * Scaffold generator depends on model generator instead of duplicating it.  #7222 [bscofield]
