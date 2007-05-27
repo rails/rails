@@ -496,7 +496,7 @@ module ActionController #:nodoc:
         assign_default_content_type_and_charset
 
         response.request = request
-        response.prepare!
+        response.prepare! unless component_request?
         response
       ensure
         process_cleanup

@@ -96,6 +96,12 @@ class ComponentsTest < Test::Unit::TestCase
     assert_equal "Ring, ring: Lady of the House, speaking", @response.body
   end
 
+  def test_etag_is_set_for_parent_template_when_calling_from_template
+    get :calling_from_template
+    expected_etag = etag_for("Ring, ring: Lady of the House, speaking")
+    assert_equal expected_etag, @response.headers['ETag']
+  end
+
   def test_internal_calling
     get :internal_caller
     assert_equal "Are you there? Yes, ma'am", @response.body
@@ -126,4 +132,9 @@ class ComponentsTest < Test::Unit::TestCase
 
     assert_equal "Lady of the House, speaking", @response.body
   end
+
+  protected
+    def etag_for(text)
+      %("#{Digest::MD5.hexdigest(text)}")
+    end
 end
