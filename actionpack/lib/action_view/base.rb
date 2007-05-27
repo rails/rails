@@ -522,9 +522,10 @@ module ActionView #:nodoc:
         method_key    = file_name || template
         render_symbol = @@method_names[method_key]
 
-        if @@compile_time[render_symbol] && supports_local_assigns?(render_symbol, local_assigns)
+        compile_time = @@compile_time[render_symbol]
+        if compile_time && supports_local_assigns?(render_symbol, local_assigns)
           if file_name && !@@cache_template_loading
-            template_changed_since?(file_name, @@compile_time[render_symbol])
+            template_changed_since?(file_name, compile_time)
           end
         else
           true
@@ -534,8 +535,9 @@ module ActionView #:nodoc:
       # Method to handle checking a whether a template has changed since last compile; isolated so that templates
       # not stored on the file system can hook and extend appropriately.
       def template_changed_since?(file_name, compile_time)
-        compile_time < File.mtime(file_name) ||
-          (File.symlink?(file_name) && (compile_time < File.lstat(file_name).mtime))
+        lstat = File.lstat(file_name)
+        compile_time < lstat.mtime || 
+          (lstat.symlink? && compile_time < File.stat(file_name).mtime)
       end
 
       # Method to create the source code for a given template.

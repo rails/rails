@@ -1,5 +1,7 @@
 *SVN*
 
+* Reduce file stat calls when checking for template changes.  #7736 [alex]
+
 * Added custom path cache_page/expire_page parameters in addition to the options hashes [DHH]. Example:
 
     def index
