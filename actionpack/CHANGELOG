@@ -1,5 +1,11 @@
 *SVN*
 
+* Added custom path cache_page/expire_page parameters in addition to the options hashes [DHH]. Example:
+
+    def index
+      caches_page(response.body, "/index.html")
+    end
+
 * Action Caching speedup.  #8231 [skaes]
 
 * Wordsmith resources documentation.  #8484 [marclove]

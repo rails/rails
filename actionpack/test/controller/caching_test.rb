@@ -25,6 +25,16 @@ class PageCachingTestController < ActionController::Base
   def not_found
     head :not_found
   end
+  
+  def custom_path
+    render :text => "Super soaker"
+    cache_page("Super soaker", "/index.html")
+  end
+  
+  def expire_custom_path
+    expire_page("/index.html")
+    head :ok
+  end
 end
 
 class PageCachingTest < Test::Unit::TestCase
@@ -69,6 +79,19 @@ class PageCachingTest < Test::Unit::TestCase
     assert_page_cached :ok, "get with ok status should have been cached"
   end
 
+  def test_should_cache_with_custom_path
+    get :custom_path
+    assert File.exist?("#{FILE_STORE_PATH}/index.html")
+  end
+
+  def test_should_expire_cache_with_custom_path
+    get :custom_path
+    assert File.exist?("#{FILE_STORE_PATH}/index.html")
+
+    get :expire_custom_path
+    assert !File.exist?("#{FILE_STORE_PATH}/index.html")
+  end
+
   [:ok, :no_content, :found, :not_found].each do |status|
     [:get, :post, :put, :delete].each do |method|
       unless method == :get and status == :ok
@@ -95,6 +118,7 @@ class PageCachingTest < Test::Unit::TestCase
       File.exist? "#{FILE_STORE_PATH}/page_caching_test/#{action}.html"
     end
 end
+
 
 class ActionCachingTestController < ActionController::Base
   caches_action :index
