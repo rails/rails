@@ -2,7 +2,13 @@ require 'abstract_unit'
 require 'fixtures/topic'
 require 'fixtures/task'
 
-class EmptyDateTimeTest < Test::Unit::TestCase
+class DateTimeTest < Test::Unit::TestCase
+  def test_saves_both_date_and_time
+    now = 200.years.ago.to_datetime
+    task = Task.create!(:starting => now)
+    assert_equal now, Task.find(task.id).starting
+  end
+
   def test_assign_empty_date_time
     task = Task.new
     task.starting = ''
