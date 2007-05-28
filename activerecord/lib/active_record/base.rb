@@ -575,7 +575,7 @@ module ActiveRecord #:nodoc:
 
       # Specifies that the attribute by the name of +attr_name+ should be serialized before saving to the database and unserialized
       # after loading from the database. The serialization is done through YAML. If +class_name+ is specified, the serialized
-      # object must be of that class on retrieval or +SerializationTypeMismatch+ will be raised.
+      # object must be of that class on retrieval, or nil. Otherwise, +SerializationTypeMismatch+ will be raised.
       def serialize(attr_name, class_name = Object)
         serialized_attributes[attr_name.to_s] = class_name
       end
@@ -1960,7 +1960,7 @@ module ActiveRecord #:nodoc:
       def unserialize_attribute(attr_name)
         unserialized_object = object_from_yaml(@attributes[attr_name])
 
-        if unserialized_object.is_a?(self.class.serialized_attributes[attr_name])
+        if unserialized_object.is_a?(self.class.serialized_attributes[attr_name]) || unserialized_object.nil?
           @attributes[attr_name] = unserialized_object
         else
           raise SerializationTypeMismatch,

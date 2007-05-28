@@ -1086,16 +1086,29 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal(myobj, topic.content)
   end
 
-  def test_serialized_attribute_with_class_constraint
+  def test_nil_serialized_attribute_with_class_constraint
     myobj = MyObject.new('value1', 'value2')
-    topic = Topic.create("content" => myobj)
+    topic = Topic.new
+    assert_nil topic.content
+  end
+
+  def test_should_raise_exception_on_serialized_attribute_with_type_mismatch
+    myobj = MyObject.new('value1', 'value2')
+    topic = Topic.new(:content => myobj)
+    assert topic.save
     Topic.serialize(:content, Hash)
-
     assert_raise(ActiveRecord::SerializationTypeMismatch) { Topic.find(topic.id).content }
+  ensure
+    Topic.serialize(:content)
+  end
 
+  def test_serialized_attribute_with_class_constraint
     settings = { "color" => "blue" }
-    Topic.find(topic.id).update_attribute("content", settings)
+    Topic.serialize(:content, Hash)
+    topic = Topic.new(:content => settings)
+    assert topic.save
     assert_equal(settings, Topic.find(topic.id).content)
+  ensure
     Topic.serialize(:content)
   end
 
