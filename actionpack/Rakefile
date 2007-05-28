@@ -48,6 +48,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Action Pack -- On rails from request to response"
   rdoc.options << '--line-numbers' << '--inline-source'
+  rdoc.options << '--charset' << 'utf-8'
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   if ENV['DOC_FILES'] 
     rdoc.rdoc_files.include(ENV['DOC_FILES'].split(/,\s*/))

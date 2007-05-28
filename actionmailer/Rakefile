@@ -34,6 +34,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Action Mailer -- Easy email delivery and testing"
   rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
+  rdoc.options << '--charset' << 'utf-8'
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/action_mailer.rb')

@@ -40,6 +40,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Active Resource -- Object-oriented REST services"
   rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
+  rdoc.options << '--charset' << 'utf-8'
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/**/*.rb')
