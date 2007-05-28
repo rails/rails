@@ -1,5 +1,7 @@
 *SVN*
 
+* request.remote_ip understands X-Forwarded-For addresses with nonstandard whitespace.  #7386 [moses]
+
 * Don't prepare response when rendering a component.  #8493 [jsierles]
 
 * Reduce file stat calls when checking for template changes.  #7736 [alex]

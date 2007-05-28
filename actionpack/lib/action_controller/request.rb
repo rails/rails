@@ -112,7 +112,7 @@ module ActionController
 
       if @env.include? 'HTTP_X_FORWARDED_FOR' then
         remote_ips = @env['HTTP_X_FORWARDED_FOR'].split(',').reject do |ip|
-            ip =~ /^unknown$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\./i
+          ip.strip =~ /^unknown$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\./i
         end
 
         return remote_ips.first.strip unless remote_ips.empty?

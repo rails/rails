@@ -29,6 +29,9 @@ class RequestTest < Test::Unit::TestCase
 
     @request.env['HTTP_X_FORWARDED_FOR'] = '10.0.0.1,3.4.5.6'
     assert_equal '3.4.5.6', @request.remote_ip
+    
+    @request.env['HTTP_X_FORWARDED_FOR'] = '10.0.0.1, 10.0.0.1, 3.4.5.6'
+    assert_equal '3.4.5.6', @request.remote_ip
 
     @request.env['HTTP_X_FORWARDED_FOR'] = '127.0.0.1,3.4.5.6'
     assert_equal '127.0.0.1', @request.remote_ip
