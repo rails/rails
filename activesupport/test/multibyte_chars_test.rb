@@ -151,6 +151,13 @@ class CharsTest < Test::Unit::TestCase
     end
   end
   
+  def test_duck_typing
+    assert_equal true,  'test'.chars.respond_to?(:strip)
+    assert_equal true,  'test'.chars.respond_to?(:normalize)
+    assert_equal true,  'test'.chars.respond_to?(:normalize!)
+    assert_equal false, 'test'.chars.respond_to?(:a_method_that_doesnt_exist)
+  end
+  
   protected
 
   def with_kcode(kcode)

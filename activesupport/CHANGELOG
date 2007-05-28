@@ -1,5 +1,7 @@
 *SVN*
 
+* Multibyte strings respond_to the String methods they proxy so they can be duck-typed.  #6549 [Tuxie]
+
 * Array#to_xml yields the builder just like Hash and ActiveRecord::Base.  #8472 [seth]
 
 * Date, Time, and DateTime support formatting blocks in addition to strftime strings. Introduce :long_ordinal format, e.g. "February 21st, 2005".  #8191 [Coda Hale]
@@ -146,7 +148,7 @@
 
 * Make String#chars slicing behaviour consistent with String. Closes #6387 [Manfred Stienstra]
 
-* Pull in latest multibye patch. Closes #6346 [Manfred Stienstra]
+* Pull in latest multibyte patch. Closes #6346 [Manfred Stienstra]
 
 * Add ActiveSupport::Multibyte.  Provides String#chars which lets you deal with strings as a sequence of chars, not of bytes. Closes #6242 [Julian Tarkhanov, Manfred Stienstra, Thijs van der Vossen & Jan Behrens]
 
