@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow nil serialized attributes with a set class constraint.  #7293 [sandofsky]
+
 * Oracle: support binary fixtures.  #7987 [Michael Schoen]
 
 * Fixtures: pull fixture insertion into the database adapters.  #7987 [Michael Schoen]
