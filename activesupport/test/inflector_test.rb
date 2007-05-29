@@ -45,6 +45,7 @@ class InflectorTest < Test::Unit::TestCase
 
     "basis"       => "bases",
     "diagnosis"   => "diagnoses",
+    "diagnosis_a" => "diagnosis_as",
 
     "datum"       => "data",
     "medium"      => "media",
@@ -92,6 +93,7 @@ class InflectorTest < Test::Unit::TestCase
 
     "vertex"      => "vertices",
     "matrix"      => "matrices",
+    "matrix_fu"   => "matrix_fus",
 
     "axis"        => "axes",
     "testis"      => "testes",
