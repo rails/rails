@@ -1,7 +1,7 @@
 module ActionController #:nodoc:
   module Helpers #:nodoc:
     HELPERS_DIR = (defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/app/helpers" : "app/helpers")
-    
+
     def self.included(base)
       # Initialize the base module to aggregate its helpers.
       base.class_inheritable_accessor :master_helper_module
@@ -19,29 +19,29 @@ module ActionController #:nodoc:
     end
 
     # The template helpers serve to relieve the templates from including the same inline code again and again. It's a
-    # set of standardized methods for working with forms (FormHelper), dates (DateHelper), texts (TextHelper), and 
+    # set of standardized methods for working with forms (FormHelper), dates (DateHelper), texts (TextHelper), and
     # Active Records (ActiveRecordHelper) that's available to all templates by default.
     #
     # It's also really easy to make your own helpers and it's much encouraged to keep the template files free
-    # from complicated logic. It's even encouraged to bundle common compositions of methods from other helpers 
+    # from complicated logic. It's even encouraged to bundle common compositions of methods from other helpers
     # (often the common helpers) as they're used by the specific application.
-    # 
+    #
     #   module MyHelper
     #     def hello_world() "hello world" end
     #   end
-    # 
+    #
     # MyHelper can now be included in a controller, like this:
-    # 
+    #
     #   class MyController < ActionController::Base
     #     helper :my_helper
     #   end
-    # 
+    #
     # ...and, same as above, used in any template rendered from MyController, like this:
-    # 
+    #
     # Let's hear what the helper has to say: <tt><%= hello_world %></tt>
     module ClassMethods
       # Makes all the (instance) methods in the helper module available to templates rendered through this controller.
-      # See ActionView::Helpers (link:classes/ActionView/Helpers.html) for more about making your own helper modules 
+      # See ActionView::Helpers (link:classes/ActionView/Helpers.html) for more about making your own helper modules
       # available to the templates.
       def add_template_helper(helper_module) #:nodoc:
         master_helper_module.send(:include, helper_module)
@@ -73,7 +73,7 @@ module ActionController #:nodoc:
             when String, Symbol
               file_name  = arg.to_s.underscore + '_helper'
               class_name = file_name.camelize
-                
+
               begin
                 require_dependency(file_name)
               rescue LoadError => load_error
@@ -91,7 +91,7 @@ module ActionController #:nodoc:
         # Evaluate block in template class if given.
         master_helper_module.module_eval(&block) if block_given?
       end
-      
+
       # Declare a controller method as a helper.  For example,
       #   helper_method :link_to
       #   def link_to(name, options) ... end
@@ -116,7 +116,7 @@ module ActionController #:nodoc:
       end
 
 
-      private 
+      private
         def default_helper_module!
           module_name = name.sub(/Controller$|$/, 'Helper')
           module_path = module_name.split('::').map { |m| m.underscore }.join('/')
@@ -141,12 +141,11 @@ module ActionController #:nodoc:
             raise unless e.is_missing?("helpers/#{child.controller_path}_helper")
           end
         end
-        
+
+        # Extract helper names from files in app/helpers/**/*.rb
         def all_application_helpers
-          Dir["#{HELPERS_DIR}/**/*.rb"].collect do |file|
-            # Helper file without excess path, "_helper" suffix, and_extension
-            file[((File.dirname(HELPERS_DIR) + "/helpers/").size)..-("_helper".size + 4)]
-          end
+          extract = /^#{Regexp.quote(HELPERS_DIR)}\/?(.*)_helper.rb$/
+          Dir["#{HELPERS_DIR}/**/*_helper.rb"].map { |file| file.sub extract, '\1' }
         end
     end
   end
