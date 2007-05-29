@@ -1,17 +1,16 @@
 Description:
-    The controller generator creates stubs for a new controller and its views.
+    Stubs out a new controller and its views. Pass the controller name, either
+    CamelCased or under_scored, and a list of views as arguments.
 
-    The generator takes a controller name and a list of views as arguments.
-    The controller name may be given in CamelCase or under_score and should
-    not be suffixed with 'Controller'.  To create a controller within a
-    module, specify the controller name as 'module/controller'.
+    To create a controller within a module, specify the controller name as a
+    path like 'parent_module/controller_name'.
 
-    The generator creates a controller class in app/controllers with view
-    templates in app/views/controller_name, a helper class in app/helpers,
-    and a functional test suite in test/functional.
+    This generates a controller class in app/controllers, view templates in
+    app/views/controller_name, a helper class in app/helpers, and a functional
+    test suite in test/functional.
 
 Example:
-    ./script/generate controller CreditCard open debit credit close
+    `./script/generate controller CreditCard open debit credit close`
 
     Credit card controller with URLs like /credit_card/debit.
         Controller: app/controllers/credit_card_controller.rb
@@ -20,7 +19,7 @@ Example:
         Test:       test/functional/credit_card_controller_test.rb
 
 Modules Example:
-    ./script/generate controller 'admin/credit_card' suspend late_fee
+    `./script/generate controller 'admin/credit_card' suspend late_fee`
 
     Credit card admin controller with URLs /admin/credit_card/suspend.
         Controller: app/controllers/admin/credit_card_controller.rb

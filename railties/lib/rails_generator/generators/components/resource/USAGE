@@ -1,33 +1,23 @@
 Description:
-    The resource generator creates an empty model, controller, and functional
-    test suitable for a RESTful, resource-oriented application.
+    Stubs out a new resource including an empty model and controller suitable
+    for a restful, resource-oriented application. Pass the singular model name,
+    either CamelCased or under_scored, as the first argument, and an optional
+    list of attribute pairs.
 
-    The generator takes the name of the model as its first argument. This
-    model name is then pluralized to get the controller name. So "resource
-    post" will generate a Post model and a PostsController and will be
-    intended for URLs like /posts and /posts/45.
+    Attribute pairs are column_name:sql_type arguments specifying the
+    model's attributes. Timestamps are added by default, so you don't have to
+    specify them by hand as 'created_at:datetime updated_at:datetime'.
 
-    As additional parameters, the generator will take attribute pairs
-    described by name and type. These attributes will be used to
-    prepopulate the migration to create the table for the model. For
-    example, "resource post title:string body:text published:boolean" will
-    give you a Post model with those three attributes.
+    You don't have to think up every attribute up front, but it helps to
+    sketch out a few so you can start working with the resource immediately.
 
-    By default, created_at and updated_at timestamps are added to migration
-    for you, so you needn't specify them by hand.
+    This creates a model, controller, tests and fixtures for both, and the
+    corresponding map.resources declaration in config/routes.rb
 
-    You don't have to think up all attributes up front, but it's a good
-    idea of adding just the baseline of what's needed to start really
-    working with the resource.
-
-    The generator also adds an appropriate map.resources declaration to
-    your config/routes.rb file, hooking up the rules that'll point URLs to
-    this new resource.
-
-    Unlike the scaffold generator, the resource generator does not
-    create views or add any methods to the generated controller.
+    Unlike the scaffold generator, the resource generator does not create
+    views or add any methods to the generated controller.
 
 Examples:
-    ./script/generate resource post # no attributes
-    ./script/generate resource post title:string body:text published:boolean
-    ./script/generate resource purchase order_id:integer amount:decimal
+    `./script/generate resource post` # no attributes
+    `./script/generate resource post title:string body:text published:boolean`
+    `./script/generate resource purchase order_id:integer amount:decimal`

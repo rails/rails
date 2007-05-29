@@ -1,40 +1,25 @@
 Description:
-    The scaffold resource generator creates a model, a controller, and a
-    set of templates that's ready to use as the starting point for your
-    REST-like, resource-oriented application. This basically means that it
-    follows a set of conventions to exploit the full set of HTTP verbs
-    (GET/POST/PUT/DELETE) and is prepared for multi-client access (like one
-    view for HTML, one for an XML API, one for ATOM, etc). Everything comes
-    with sample unit and functional tests as well.
+    Scaffolds an entire resource, from model and migration to controller and
+    views, along with a full test suite. The resource is ready to use as a
+    starting point for your restful, resource-oriented application.
 
-    The generator takes the name of the model as its first argument. This
-    model name is then pluralized to get the controller name. So
-    "scaffold post" will generate a Post model and a
-    PostsController and will be intended for URLs like /posts and
-    /posts/45.
+    Pass the name of the model, either CamelCased or under_scored, as the first
+    argument, and an optional list of attribute pairs.
 
-    As additional parameters, the generator will take attribute pairs
-    described by name and type. These attributes will be used to
-    prepopulate the migration to create the table for the model and to give
-    you a set of templates for the view. For example, "scaffold post
-    title:string body:text published:boolean" will give you a model with
-    those three attributes, forms to create and edit those models from,
-    and an index that'll list them all.
+    Attribute pairs are column_name:sql_type arguments specifying the
+    model's attributes. Timestamps are added by default, so you don't have to
+    specify them by hand as 'created_at:datetime updated_at:datetime'.
 
-    By default, created_at and updated_at timestamps are added to migration
-    for you, so you needn't specify them by hand.
+    You don't have to think up every attribute up front, but it helps to
+    sketch out a few so you can start working with the resource immediately.
 
-    You don't have to think up all attributes up front, but it's a good
-    idea of adding just the baseline of what's needed to start really
-    working with the resource.
-
-    The generator also adds a declaration to your config/routes.rb file
-    to hook up the rules that'll point URLs to this new resource. If you
-    create a resource like "scaffold post", it will add
-    "map.resources :posts" (notice the plural form) in the routes file,
-    making your new resource accessible from /posts.
+    For example, `scaffold post title:string body:text published:boolean`
+    gives you a model with those three attributes, a controller that handles
+    the create/show/update/destroy, forms to create and edit your posts, and
+    an index that lists them all, as well as a map.resources :posts
+    declaration in config/routes.rb.
 
 Examples:
-    ./script/generate scaffold post # no attributes, view will be anemic
-    ./script/generate scaffold post title:string body:text published:boolean
-    ./script/generate scaffold purchase order_id:integer amount:decimal
+    `./script/generate scaffold post` # no attributes, view will be anemic
+    `./script/generate scaffold post title:string body:text published:boolean`
+    `./script/generate scaffold purchase order_id:integer amount:decimal`
