@@ -345,7 +345,7 @@ module ActiveRecord
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
         begin
-          execute "ALTER TABLE #{table_name} ALTER COLUMN #{quoted_column_name} TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+          execute "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
         rescue ActiveRecord::StatementInvalid
           # This is PG7, so we use a more arcane way of doing it.
           begin_db_transaction
