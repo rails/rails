@@ -397,7 +397,7 @@ begin
         end
 
         def rename_column(table_name, column_name, new_column_name) #:nodoc:
-          execute "ALTER TABLE #{table_name} RENAME COLUMN #{quote_column_name(column_name)} to #{new_column_name}"
+          execute "ALTER TABLE #{table_name} RENAME COLUMN #{quote_column_name(column_name)} to #{quote_column_name(new_column_name)}"
         end
 
         def remove_column(table_name, column_name) #:nodoc:
