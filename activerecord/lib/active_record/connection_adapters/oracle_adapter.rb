@@ -387,21 +387,21 @@ begin
         end
 
         def change_column_default(table_name, column_name, default) #:nodoc:
-          execute "ALTER TABLE #{table_name} MODIFY #{column_name} DEFAULT #{quote(default)}"
+          execute "ALTER TABLE #{table_name} MODIFY #{quote_column_name(column_name)} DEFAULT #{quote(default)}"
         end
 
         def change_column(table_name, column_name, type, options = {}) #:nodoc:
-          change_column_sql = "ALTER TABLE #{table_name} MODIFY #{column_name} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+          change_column_sql = "ALTER TABLE #{table_name} MODIFY #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
           add_column_options!(change_column_sql, options)
           execute(change_column_sql)
         end
 
         def rename_column(table_name, column_name, new_column_name) #:nodoc:
-          execute "ALTER TABLE #{table_name} RENAME COLUMN #{column_name} to #{new_column_name}"
+          execute "ALTER TABLE #{table_name} RENAME COLUMN #{quote_column_name(column_name)} to #{new_column_name}"
         end
 
         def remove_column(table_name, column_name) #:nodoc:
-          execute "ALTER TABLE #{table_name} DROP COLUMN #{column_name}"
+          execute "ALTER TABLE #{table_name} DROP COLUMN #{quote_column_name(column_name)}"
         end
 
         # Find a table's primary key and sequence. 

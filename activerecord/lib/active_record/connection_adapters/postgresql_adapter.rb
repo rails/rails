@@ -325,32 +325,35 @@ module ActiveRecord
         default = options[:default]
         notnull = options[:null] == false
 
+        quoted_column_name = quote_column_name(column_name)
+
         # Add the column.
-        execute("ALTER TABLE #{table_name} ADD COLUMN #{column_name} #{type_to_sql(type, options[:limit])}")
+        execute("ALTER TABLE #{table_name} ADD COLUMN #{quoted_column_name} #{type_to_sql(type, options[:limit])}")
 
         # Set optional default. If not null, update nulls to the new default.
         if options_include_default?(options)
           change_column_default(table_name, column_name, default)
           if notnull
-            execute("UPDATE #{table_name} SET #{column_name}=#{quote(default, options[:column])} WHERE #{column_name} IS NULL")
+            execute("UPDATE #{table_name} SET #{quoted_column_name}=#{quote(default, options[:column])} WHERE #{quoted_column_name} IS NULL")
           end
         end
 
         if notnull
-          execute("ALTER TABLE #{table_name} ALTER #{column_name} SET NOT NULL")
+          execute("ALTER TABLE #{table_name} ALTER #{quoted_column_name} SET NOT NULL")
         end
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
         begin
-          execute "ALTER TABLE #{table_name} ALTER COLUMN #{column_name} TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+          execute "ALTER TABLE #{table_name} ALTER COLUMN #{quoted_column_name} TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
         rescue ActiveRecord::StatementInvalid
           # This is PG7, so we use a more arcane way of doing it.
           begin_db_transaction
-          add_column(table_name, "#{column_name}_ar_tmp", type, options)
-          execute "UPDATE #{table_name} SET #{column_name}_ar_tmp = CAST(#{column_name} AS #{type_to_sql(type, options[:limit], options[:precision], options[:scale])})"
+          tmp_column_name = "#{column_name}_ar_tmp"
+          add_column(table_name, tmp_column_name, type, options)
+          execute "UPDATE #{table_name} SET #{quote_column_name(tmp_column_name)} = CAST(#{quote_column_name(column_name)} AS #{type_to_sql(type, options[:limit], options[:precision], options[:scale])})"
           remove_column(table_name, column_name)
-          rename_column(table_name, "#{column_name}_ar_tmp", column_name)
+          rename_column(table_name, tmp_column_name, column_name)
           commit_db_transaction
         end
 

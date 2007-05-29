@@ -388,7 +388,7 @@ module ActiveRecord
       def change_column_default(table_name, column_name, default) #:nodoc:
         current_type = select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")["Type"]
 
-        execute("ALTER TABLE #{table_name} CHANGE #{column_name} #{column_name} #{current_type} DEFAULT #{quote(default)}")
+        execute("ALTER TABLE #{table_name} CHANGE #{quote_column_name(column_name)} #{quote_column_name(column_name)} #{current_type} DEFAULT #{quote(default)}")
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
@@ -396,14 +396,14 @@ module ActiveRecord
           options[:default] = select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")["Default"]
         end
 
-        change_column_sql = "ALTER TABLE #{table_name} CHANGE #{column_name} #{column_name} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+        change_column_sql = "ALTER TABLE #{table_name} CHANGE #{quote_column_name(column_name)} #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
         add_column_options!(change_column_sql, options)
         execute(change_column_sql)
       end
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
         current_type = select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")["Type"]
-        execute "ALTER TABLE #{table_name} CHANGE #{column_name} #{new_column_name} #{current_type}"
+        execute "ALTER TABLE #{table_name} CHANGE #{quote_column_name(column_name)} #{quote_column_name(new_column_name)} #{current_type}"
       end
 
 

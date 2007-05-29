@@ -398,6 +398,17 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_rename_column_with_sql_reserved_word
+      begin
+        assert_nothing_raised { Person.connection.rename_column "people", "first_name", "group" }
+        Person.reset_column_information
+        assert Person.column_names.include?("group")
+      ensure
+        Person.connection.remove_column("people", "group") rescue nil
+        Person.connection.add_column("people", "first_name", :string) rescue nil
+      end
+    end
+
     def test_rename_table
       begin
         ActiveRecord::Base.connection.create_table :octopuses do |t|

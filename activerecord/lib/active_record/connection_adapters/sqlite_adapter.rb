@@ -327,8 +327,10 @@ module ActiveRecord
           rename.inject(column_mappings) {|map, a| map[a.last] = a.first; map}
           from_columns = columns(from).collect {|col| col.name}
           columns = columns.find_all{|col| from_columns.include?(column_mappings[col])}
+          quoted_columns = columns.map { |col| quote_column_name(col) } * ','
+
           @connection.execute "SELECT * FROM #{from}" do |row|
-            sql = "INSERT INTO #{to} ("+columns*','+") VALUES ("
+            sql = "INSERT INTO #{to} (#{quoted_columns}) VALUES ("
             sql << columns.map {|col| quote row[column_mappings[col]]} * ', '
             sql << ')'
             @connection.execute sql
