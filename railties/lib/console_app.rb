@@ -23,5 +23,7 @@ end
 #reloads the environment
 def reload!
   puts "Reloading..."
-  Dispatcher.reset_application!
+  returning Dispatcher.reset_application! do
+    Dispatcher.send :run_preparation_callbacks
+  end
 end
