@@ -71,7 +71,12 @@ class CompiledTemplateTests < Test::Unit::TestCase
   end
 
   def test_compile_time
-    `echo '#{@a}' > #{@a}; echo '#{@b}' > #{@b}; ln -s #{@a} #{@s}`
+    File.open(@a, "w"){|f| f.puts @a}
+    File.open(@b, "w"){|f| f.puts @b}
+
+    # windows doesn't support symlinks (even under cygwin)
+    windows = (RUBY_PLATFORM =~ /win32/)
+    `ln -s #{@a} #{@s}` unless windows
 
     v = ActionView::Base.new
     v.base_path = '.'
@@ -79,47 +84,54 @@ class CompiledTemplateTests < Test::Unit::TestCase
 
     sleep 1
     t = Time.now
+    sleep 1
+
     v.compile_and_render_template(:rhtml, '', @a)
     v.compile_and_render_template(:rhtml, '', @b)
-    v.compile_and_render_template(:rhtml, '', @s)
+    v.compile_and_render_template(:rhtml, '', @s) unless windows
+
     a_n = v.method_names[@a]
     b_n = v.method_names[@b]
-    s_n = v.method_names[@s]
+    s_n = v.method_names[@s]  unless windows
+    ct_a = v.compile_time[a_n]
+    ct_b = v.compile_time[b_n]
+    ct_s = v.compile_time[s_n] unless windows
     # all of the files have changed since last compile
     assert v.compile_time[a_n] > t
     assert v.compile_time[b_n] > t
-    assert v.compile_time[s_n] > t
+    assert v.compile_time[s_n] > t unless windows
 
     sleep 1
-    t = Time.now
     v.compile_and_render_template(:rhtml, '', @a)
     v.compile_and_render_template(:rhtml, '', @b)
-    v.compile_and_render_template(:rhtml, '', @s)
+    v.compile_and_render_template(:rhtml, '', @s) unless windows
     # none of the files have changed since last compile
-    assert v.compile_time[a_n] < t
-    assert v.compile_time[b_n] < t
-    assert v.compile_time[s_n] < t
+    # so they should not have been recmpiled
+    assert_equal ct_a, v.compile_time[a_n]
+    assert_equal ct_b, v.compile_time[b_n]
+    assert_equal ct_s, v.compile_time[s_n] unless windows
 
-    `rm #{@s}; ln -s #{@b} #{@s}`
+    `rm #{@s}; ln -s #{@b} #{@s}` unless windows
     v.compile_and_render_template(:rhtml, '', @a)
     v.compile_and_render_template(:rhtml, '', @b)
-    v.compile_and_render_template(:rhtml, '', @s)
+    v.compile_and_render_template(:rhtml, '', @s) unless windows
     # the symlink has changed since last compile
-    assert v.compile_time[a_n] < t
-    assert v.compile_time[b_n] < t
-    assert v.compile_time[s_n] > t
+    assert_equal ct_a, v.compile_time[a_n]
+    assert_equal ct_b, v.compile_time[b_n]
+    assert v.compile_time[s_n] > t unless windows
 
     sleep 1
-    `touch #{@b}`
+    FileUtils.touch @b
     t = Time.now
+    sleep 1
     v.compile_and_render_template(:rhtml, '', @a)
     v.compile_and_render_template(:rhtml, '', @b)
-    v.compile_and_render_template(:rhtml, '', @s)
+    v.compile_and_render_template(:rhtml, '', @s) unless windows
     # the file at the end of the symlink has changed since last compile
     # both the symlink and the file at the end of it should be recompiled
     assert v.compile_time[a_n] < t
     assert v.compile_time[b_n] > t
-    assert v.compile_time[s_n] > t
+    assert v.compile_time[s_n] > t unless windows
   end
 end
 
