@@ -22,8 +22,7 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
       map.connect ':controller/:action/:variable'
     end
 
-    # TODO: perhaps , (comma) shouldn't be a route separator.
-    safe, unsafe = %w(: @ & = + $), %w(, ^ / ? # [ ] ;)
+    safe, unsafe = %w(: @ & = + $ , ;), %w(^ / ? # [ ])
     hex = unsafe.map { |char| '%' + char.unpack('H2').first.upcase }
 
     @segment = "#{safe}#{unsafe}".freeze
@@ -532,21 +531,21 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     Object.const_set(:SubpathBooksController, Class.new(ActionController::Base))
 
     rs.draw do |r|
-      r.connect '/books/:id;edit', :controller => 'subpath_books', :action => 'edit'
-      r.connect '/items/:id;:action', :controller => 'subpath_books'
-      r.connect '/posts/new;:action', :controller => 'subpath_books'
+      r.connect '/books/:id/edit', :controller => 'subpath_books', :action => 'edit'
+      r.connect '/items/:id/:action', :controller => 'subpath_books'
+      r.connect '/posts/new/:action', :controller => 'subpath_books'
       r.connect '/posts/:id', :controller => 'subpath_books', :action => "show"
     end
 
-    hash = rs.recognize_path "/books/17;edit"
+    hash = rs.recognize_path "/books/17/edit"
     assert_not_nil hash
     assert_equal %w(subpath_books 17 edit), [hash[:controller], hash[:id], hash[:action]]
     
-    hash = rs.recognize_path "/items/3;complete"
+    hash = rs.recognize_path "/items/3/complete"
     assert_not_nil hash
     assert_equal %w(subpath_books 3 complete), [hash[:controller], hash[:id], hash[:action]]
     
-    hash = rs.recognize_path "/posts/new;preview"
+    hash = rs.recognize_path "/posts/new/preview"
     assert_not_nil hash
     assert_equal %w(subpath_books preview), [hash[:controller], hash[:action]]
 
@@ -561,14 +560,14 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     Object.const_set(:SubpathBooksController, Class.new(ActionController::Base))
 
     rs.draw do |r|
-      r.connect '/books/:id;edit', :controller => 'subpath_books', :action => 'edit'
-      r.connect '/items/:id;:action', :controller => 'subpath_books'
-      r.connect '/posts/new;:action', :controller => 'subpath_books'
+      r.connect '/books/:id/edit', :controller => 'subpath_books', :action => 'edit'
+      r.connect '/items/:id/:action', :controller => 'subpath_books'
+      r.connect '/posts/new/:action', :controller => 'subpath_books'
     end
 
-    assert_equal "/books/7;edit", rs.generate(:controller => "subpath_books", :id => 7, :action => "edit")
-    assert_equal "/items/15;complete", rs.generate(:controller => "subpath_books", :id => 15, :action => "complete")
-    assert_equal "/posts/new;preview", rs.generate(:controller => "subpath_books", :action => "preview")
+    assert_equal "/books/7/edit", rs.generate(:controller => "subpath_books", :id => 7, :action => "edit")
+    assert_equal "/items/15/complete", rs.generate(:controller => "subpath_books", :id => 15, :action => "complete")
+    assert_equal "/posts/new/preview", rs.generate(:controller => "subpath_books", :action => "preview")
   ensure
     Object.send(:remove_const, :SubpathBooksController) rescue nil
   end
@@ -1178,12 +1177,19 @@ class RouteBuilderTest < Test::Unit::TestCase
     assert_equal nil, builder.warn_output # should only warn on the :person segment
   end
   
-  def test_segmentation_of_semicolon_path
+  def test_comma_isnt_a_route_separator
+    segments = builder.segments_for_route_path '/books/:id,:action'
+    defaults = { :action => 'show' }
+    assert_raise(ArgumentError) do
+      builder.assign_route_options(segments, defaults, {})
+    end
+  end
+
+  def test_semicolon_isnt_a_route_separator
     segments = builder.segments_for_route_path '/books/:id;:action'
     defaults = { :action => 'show' }
-    assert builder.assign_route_options(segments, defaults, {}).empty?
-    segments.each do |segment|
-      assert ! segment.optional? || segment.key == :action
+    assert_raise(ArgumentError) do
+      builder.assign_route_options(segments, defaults, {})
     end
   end
   

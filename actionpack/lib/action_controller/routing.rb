@@ -247,8 +247,7 @@ module ActionController
   #  end
   #
   module Routing
-    # TODO: , (comma) should be an allowed path character.
-    SEPARATORS = %w( / ; . , ? )
+    SEPARATORS = %w( / . ? )
 
     HTTP_METHODS = [:get, :head, :post, :put, :delete]
 
@@ -549,8 +548,7 @@ module ActionController
     end
 
     class Segment #:nodoc:
-      # TODO: , (comma) should be an allowed path character.
-      RESERVED_PCHAR = ':@&=+$'
+      RESERVED_PCHAR = ':@&=+$,;'
       UNSAFE_PCHAR = Regexp.new("[^#{URI::REGEXP::PATTERN::UNRESERVED}#{RESERVED_PCHAR}]", false, 'N').freeze
 
       attr_accessor :is_optional
