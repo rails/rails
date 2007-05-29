@@ -1,6 +1,6 @@
 *SVN*
 
-* Generated migrations include timestamps by default.  #8501 [shane]
+* Generated migrations include timestamps by default.  #8501 [Shane Vitarana]
 
 * Drop Action Web Service from rails:freeze:edge.  [Jeremy Kemper]
 
