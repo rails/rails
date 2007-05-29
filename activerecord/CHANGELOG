@@ -1,5 +1,7 @@
 *SVN*
 
+* Raise an exception if both attr_protected and attr_accessible are declared.  #8507 [stellsmi]
+
 * SQLite, MySQL, PostgreSQL, Oracle: quote column names in column migration SQL statements.  #8466 [marclove, lorenjohnson]
 
 * Allow nil serialized attributes with a set class constraint.  #7293 [sandofsky]

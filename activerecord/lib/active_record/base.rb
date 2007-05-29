@@ -2164,6 +2164,8 @@ module ActiveRecord #:nodoc:
           attributes.reject { |key, value| !self.class.accessible_attributes.include?(key.gsub(/\(.+/, "").intern) || attributes_protected_by_default.include?(key.gsub(/\(.+/, "")) }
         elsif self.class.accessible_attributes.nil?
           attributes.reject { |key, value| self.class.protected_attributes.include?(key.gsub(/\(.+/,"").intern) || attributes_protected_by_default.include?(key.gsub(/\(.+/, "")) }
+        else
+          raise "Declare either attr_protected or attr_accessible for #{self.class}, but not both."
         end
       end
 

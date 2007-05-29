@@ -53,6 +53,12 @@ class Task < ActiveRecord::Base
   attr_protected :starting
 end
 
+class TopicWithProtectedContentAndAccessibleAuthorName < ActiveRecord::Base 
+  self.table_name = 'topics' 
+  attr_accessible :author_name
+  attr_protected  :content
+end
+
 class BasicsTest < Test::Unit::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts
 
@@ -769,6 +775,12 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal "Have a nice day", reply.content
     
     assert_raise(ActiveRecord::RecordInvalid) { reply.update_attributes!(:title => nil, :content => "Have a nice evening") }
+  end
+  
+  def test_mass_assignment_should_raise_exception_if_accessible_and_protected_attribute_writers_are_both_used
+    topic = TopicWithProtectedContentAndAccessibleAuthorName.new
+    assert_raises(RuntimeError) { topic.attributes = { "author_name" => "me" } }
+    assert_raises(RuntimeError) { topic.attributes = { "content" => "stuff" } }
   end
   
   def test_mass_assignment_protection
