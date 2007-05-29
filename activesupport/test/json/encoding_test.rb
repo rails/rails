@@ -13,7 +13,7 @@ class TestJSONEncoding < Test::Unit::TestCase
   NumericTests  = [[ 1,     %(1)     ],
                    [ 2.5,   %(2.5)   ]]
 
-  StringTests   = [[ 'this is the string',     %("this is the string")         ],
+  StringTests   = [[ 'this is the <string>',     %("this is the \\074string\\076")],
                    [ 'a "string" with quotes', %("a \\"string\\" with quotes") ]]
 
   ArrayTests    = [[ ['a', 'b', 'c'],          %([\"a\", \"b\", \"c\"])          ],

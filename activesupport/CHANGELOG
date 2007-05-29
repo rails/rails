@@ -1,5 +1,7 @@
 *SVN*
 
+* escape <'s and >'s in JSON strings. #8371 [Rick]
+
 * Inflections: MatrixTest -> MatrixTests instead of MatricesTest.  #8496 [jbwiv]
 
 * Multibyte strings respond_to the String methods they proxy so they can be duck-typed.  #6549 [Tuxie]

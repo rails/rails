@@ -8,7 +8,9 @@ module ActiveSupport
         "\r" =>    '\r',
         "\t" =>    '\t',
         '"' =>     '\"',
-        '\\' =>    '\\\\'
+        '\\' =>    '\\\\',
+        ">" =>     '\076',
+        '<' =>     '\074'
       }
     end
   end
@@ -16,7 +18,7 @@ end
 
 class String
   def to_json #:nodoc:
-    '"' + gsub(/[\010\f\n\r\t"\\]/) { |s|
+    '"' + gsub(/[\010\f\n\r\t"\\><]/) { |s|
       ActiveSupport::JSON::Encoding::ESCAPED_CHARS[s]
     }.gsub(/([\xC0-\xDF][\x80-\xBF]|
              [\xE0-\xEF][\x80-\xBF]{2}|
