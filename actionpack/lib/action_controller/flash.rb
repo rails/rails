@@ -98,8 +98,8 @@ module ActionController #:nodoc:
     
       # Marks the entire flash or a single flash entry to be discarded by the end of the current action
       #
-      #     flash.keep                 # keep entire flash available for the next action
-      #     flash.discard(:warning)    # discard the "warning" entry (it'll still be available for the current action)
+      #     flash.discard              # discard the entire flash at the end of the current action
+      #     flash.discard(:warning)    # discard only the "warning" entry at the end of the current action
       def discard(k = nil)
         use(k)
       end
