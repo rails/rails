@@ -6,32 +6,35 @@ Description:
     (GET/POST/PUT/DELETE) and is prepared for multi-client access (like one
     view for HTML, one for an XML API, one for ATOM, etc). Everything comes
     with sample unit and functional tests as well.
-    
+
     The generator takes the name of the model as its first argument. This
     model name is then pluralized to get the controller name. So
     "scaffold post" will generate a Post model and a
     PostsController and will be intended for URLs like /posts and
     /posts/45.
-    
+
     As additional parameters, the generator will take attribute pairs
     described by name and type. These attributes will be used to
     prepopulate the migration to create the table for the model and to give
-    you a set of templates for the view. For example, "scaffold
-    post title:string created_on:date body:text published:boolean" will
-    give you a model with those four attributes, forms to create and edit
-    those models from, and an index that'll list them all.
-    
+    you a set of templates for the view. For example, "scaffold post
+    title:string body:text published:boolean" will give you a model with
+    those three attributes, forms to create and edit those models from,
+    and an index that'll list them all.
+
+    By default, created_at and updated_at timestamps are added to migration
+    for you, so you needn't specify them by hand.
+
     You don't have to think up all attributes up front, but it's a good
     idea of adding just the baseline of what's needed to start really
     working with the resource.
-    
+
     The generator also adds a declaration to your config/routes.rb file
-    to hook up the rules that'll point URLs to this new resource. If you 
+    to hook up the rules that'll point URLs to this new resource. If you
     create a resource like "scaffold post", it will add
-    "map.resources :posts" (notice the plural form) in the routes file, 
-    making your new resource accessible from /posts. 
+    "map.resources :posts" (notice the plural form) in the routes file,
+    making your new resource accessible from /posts.
 
 Examples:
     ./script/generate scaffold post # no attributes, view will be anemic
-    ./script/generate scaffold post title:string created_on:date body:text published:boolean
-    ./script/generate scaffold purchase order_id:integer created_at:datetime amount:decimal
+    ./script/generate scaffold post title:string body:text published:boolean
+    ./script/generate scaffold purchase order_id:integer amount:decimal

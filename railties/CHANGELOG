@@ -1,5 +1,7 @@
 *SVN*
 
+* Generated migrations include timestamps by default.  #8501 [shane]
+
 * Drop Action Web Service from rails:freeze:edge.  [Jeremy Kemper]
 
 * Add db:create, drop, reset, charset, and collation tasks.  #8448 [matt]

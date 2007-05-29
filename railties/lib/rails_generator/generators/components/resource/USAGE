@@ -10,8 +10,11 @@ Description:
     As additional parameters, the generator will take attribute pairs
     described by name and type. These attributes will be used to
     prepopulate the migration to create the table for the model. For
-    example, "resource post title:string created_on:date body:text
-    published:boolean" will give you a Post model with those four attributes.
+    example, "resource post title:string body:text published:boolean" will
+    give you a Post model with those three attributes.
+
+    By default, created_at and updated_at timestamps are added to migration
+    for you, so you needn't specify them by hand.
 
     You don't have to think up all attributes up front, but it's a good
     idea of adding just the baseline of what's needed to start really
@@ -26,5 +29,5 @@ Description:
 
 Examples:
     ./script/generate resource post # no attributes
-    ./script/generate resource post title:string created_on:date body:text published:boolean
-    ./script/generate resource purchase order_id:integer created_at:datetime amount:decimal
+    ./script/generate resource post title:string body:text published:boolean
+    ./script/generate resource purchase order_id:integer amount:decimal

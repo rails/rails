@@ -128,6 +128,7 @@ module GeneratorTestHelper
   # the parsed yaml tree is passed to a block.
   def assert_generated_fixtures_for(name)
     assert_generated_yaml "test/fixtures/#{name.to_s.underscore}" do |yaml|
+      assert_generated_timestamps(yaml)
       yield yaml if block_given?
     end
   end
@@ -147,7 +148,8 @@ module GeneratorTestHelper
   # It takes the name of the migration as a parameter.
   # the migration body is passed to a block.
   def assert_generated_migration(name,parent="ActiveRecord::Migration")
-    assert_generated_class "db/migrate/001_#{name.to_s.underscore}",parent do |body|      
+    assert_generated_class "db/migrate/001_#{name.to_s.underscore}",parent do |body|   
+      assert body=~/timestamps/, "should have timestamps defined"   
       yield body if block_given?
     end
   end
@@ -174,4 +176,13 @@ module GeneratorTestHelper
       assert body=~/t\.#{type.to_s} :#{name.to_s}/, "should have column #{name.to_s} defined"
   end
   
+  private
+    # asserts that the default timestamps are created in the fixture
+    def assert_generated_timestamps(yaml)
+      yaml.values.each do |v|
+        ["created_at", "updated_at"].each do |field|
+          assert v.keys.include?(field), "should have #{field} field by default"
+        end
+      end            
+    end
 end

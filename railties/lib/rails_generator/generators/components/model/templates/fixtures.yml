@@ -4,8 +4,12 @@ one:
 <% for attribute in attributes -%>
   <%= attribute.name %>: <%= attribute.default %>
 <% end -%>
+  created_at: <%= Time.now.to_s(:db) %>
+  updated_at: <%= Time.now.to_s(:db) %>
 two:
   id: 2
 <% for attribute in attributes -%>
   <%= attribute.name %>: <%= attribute.default %>
 <% end -%>
+  created_at: <%= Time.now.to_s(:db) %>
+  updated_at: <%= Time.now.to_s(:db) %>
