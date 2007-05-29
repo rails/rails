@@ -5,7 +5,11 @@ require 'fixtures/task'
 class DateTimeTest < Test::Unit::TestCase
   def test_saves_both_date_and_time
     now = 200.years.ago.to_datetime
-    task = Task.create!(:starting => now)
+
+    task = Task.new
+    task.starting = now
+    task.save!
+
     assert_equal now, Task.find(task.id).starting
   end
 
