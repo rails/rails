@@ -12,9 +12,13 @@ namespace :db do
           @charset   = ENV['CHARSET']   || 'utf8'
           @collation = ENV['COLLATION'] || 'utf8_general_ci'
 
-          ActiveRecord::Base.establish_connection(config.merge({'database' => nil}))
-          ActiveRecord::Base.connection.create_database(config['database'], {:charset => @charset, :collation => @collation})
-          ActiveRecord::Base.establish_connection(config)
+          begin
+            ActiveRecord::Base.establish_connection(config.merge({'database' => nil}))
+            ActiveRecord::Base.connection.create_database(config['database'], {:charset => @charset, :collation => @collation})
+            ActiveRecord::Base.establish_connection(config)
+          rescue
+            $stderr.puts "Couldn't create database for #{config.inspect}"
+          end
         when 'postgresql'
           `createdb "#{config['database']}" -E utf8`  
         when 'sqlite'
