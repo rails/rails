@@ -85,14 +85,14 @@ module ActiveRecord
       end
       
       def create(attrs = {})
-        record = @reflection.klass.with_scope(:create => construct_scope[:create]) { @reflection.klass.create(attrs) }                
+        record = @reflection.klass.send(:with_scope, :create => construct_scope[:create]) { @reflection.klass.create(attrs) }                
         @target ||= [] unless loaded?
         @target << record 
         record
       end
 
       def create!(attrs = {})
-        record = @reflection.klass.with_scope(:create => construct_scope[:create]) { @reflection.klass.create!(attrs) }                
+        record = @reflection.klass.send(:with_scope, :create => construct_scope[:create]) { @reflection.klass.create!(attrs) }                
         @target ||= [] unless loaded?
         @target << record 
         record
@@ -161,7 +161,7 @@ module ActiveRecord
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             super
           else
-            @reflection.klass.with_scope(construct_scope) { @reflection.klass.send(method, *args, &block) }
+            @reflection.klass.send(:with_scope, construct_scope) { @reflection.klass.send(method, *args, &block) }
           end
         end
 

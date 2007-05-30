@@ -75,5 +75,10 @@ ActiveRecord::Base.connection.class.class_eval do
   end
 end
 
+# Make with_scope public for tests
+class << ActiveRecord::Base
+  public :with_scope, :with_exclusive_scope
+end
+
 #ActiveRecord::Base.logger = Logger.new(STDOUT)
 #ActiveRecord::Base.colorize_logging = false

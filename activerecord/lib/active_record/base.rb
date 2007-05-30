@@ -947,91 +947,6 @@ module ActiveRecord #:nodoc:
         logger.level = old_logger_level if logger
       end
 
-      # Scope parameters to method calls within the block.  Takes a hash of method_name => parameters hash.
-      # method_name may be :find or :create. :find parameters may include the <tt>:conditions</tt>, <tt>:joins</tt>,
-      # <tt>:include</tt>, <tt>:offset</tt>, <tt>:limit</tt>, and <tt>:readonly</tt> options. :create parameters are an attributes hash.
-      #
-      #   Article.with_scope(:find => { :conditions => "blog_id = 1" }, :create => { :blog_id => 1 }) do
-      #     Article.find(1) # => SELECT * from articles WHERE blog_id = 1 AND id = 1
-      #     a = Article.create(1)
-      #     a.blog_id # => 1
-      #   end
-      #
-      # In nested scopings, all previous parameters are overwritten by inner rule
-      # except :conditions in :find, that are merged as hash.
-      #
-      #   Article.with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }, :create => { :blog_id => 1 }) do
-      #     Article.with_scope(:find => { :limit => 10})
-      #       Article.find(:all) # => SELECT * from articles WHERE blog_id = 1 LIMIT 10
-      #     end
-      #     Article.with_scope(:find => { :conditions => "author_id = 3" })
-      #       Article.find(:all) # => SELECT * from articles WHERE blog_id = 1 AND author_id = 3 LIMIT 1
-      #     end
-      #   end
-      #
-      # You can ignore any previous scopings by using <tt>with_exclusive_scope</tt> method.
-      #
-      #   Article.with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }) do
-      #     Article.with_exclusive_scope(:find => { :limit => 10 })
-      #       Article.find(:all) # => SELECT * from articles LIMIT 10
-      #     end
-      #   end
-      def with_scope(method_scoping = {}, action = :merge, &block)
-        method_scoping = method_scoping.method_scoping if method_scoping.respond_to?(:method_scoping)
-
-        # Dup first and second level of hash (method and params).
-        method_scoping = method_scoping.inject({}) do |hash, (method, params)|
-          hash[method] = (params == true) ? params : params.dup
-          hash
-        end
-
-        method_scoping.assert_valid_keys([ :find, :create ])
-
-        if f = method_scoping[:find]
-          f.assert_valid_keys([ :conditions, :joins, :select, :include, :from, :offset, :limit, :order, :readonly, :lock ])
-          set_readonly_option! f
-        end
-
-        # Merge scopings
-        if action == :merge && current_scoped_methods
-          method_scoping = current_scoped_methods.inject(method_scoping) do |hash, (method, params)|
-            case hash[method]
-              when Hash
-                if method == :find
-                  (hash[method].keys + params.keys).uniq.each do |key|
-                    merge = hash[method][key] && params[key] # merge if both scopes have the same key
-                    if key == :conditions && merge
-                      hash[method][key] = [params[key], hash[method][key]].collect{ |sql| "( %s )" % sanitize_sql(sql) }.join(" AND ")
-                    elsif key == :include && merge
-                      hash[method][key] = merge_includes(hash[method][key], params[key]).uniq
-                    else
-                      hash[method][key] = hash[method][key] || params[key]
-                    end
-                  end
-                else
-                  hash[method] = params.merge(hash[method])
-                end
-              else
-                hash[method] = params
-            end
-            hash
-          end
-        end
-
-        self.scoped_methods << method_scoping
-
-        begin
-          yield
-        ensure
-          self.scoped_methods.pop
-        end
-      end
-
-      # Works like with_scope, but discards any nested properties.
-      def with_exclusive_scope(method_scoping = {}, &block)
-        with_scope(method_scoping, :overwrite, &block)
-      end
-
       # Overwrite the default class equality method to provide support for association proxies.
       def ===(object)
         object.is_a?(self)
@@ -1409,6 +1324,103 @@ module ActiveRecord #:nodoc:
         end
 
       protected
+        # Scope parameters to method calls within the block.  Takes a hash of method_name => parameters hash.
+        # method_name may be :find or :create. :find parameters may include the <tt>:conditions</tt>, <tt>:joins</tt>,
+        # <tt>:include</tt>, <tt>:offset</tt>, <tt>:limit</tt>, and <tt>:readonly</tt> options. :create parameters are an attributes hash.
+        #
+        #   class Article < ActiveRecord::Base
+        #     def self.create_with_scope
+        #       with_scope(:find => { :conditions => "blog_id = 1" }, :create => { :blog_id => 1 }) do
+        #         find(1) # => SELECT * from articles WHERE blog_id = 1 AND id = 1
+        #         a = create(1)
+        #         a.blog_id # => 1
+        #       end
+        #     end
+        #   end
+        #
+        # In nested scopings, all previous parameters are overwritten by inner rule
+        # except :conditions in :find, that are merged as hash.
+        #
+        #   class Article < ActiveRecord::Base
+        #     def self.find_with_scope
+        #       with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }, :create => { :blog_id => 1 }) do
+        #         with_scope(:find => { :limit => 10})
+        #           find(:all) # => SELECT * from articles WHERE blog_id = 1 LIMIT 10
+        #         end
+        #         with_scope(:find => { :conditions => "author_id = 3" })
+        #           find(:all) # => SELECT * from articles WHERE blog_id = 1 AND author_id = 3 LIMIT 1
+        #         end
+        #       end
+        #     end
+        #   end
+        #
+        # You can ignore any previous scopings by using <tt>with_exclusive_scope</tt> method.
+        #
+        #   class Article < ActiveRecord::Base
+        #     def self.find_with_exclusive_scope
+        #       with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }) do
+        #         with_exclusive_scope(:find => { :limit => 10 })
+        #           find(:all) # => SELECT * from articles LIMIT 10
+        #         end
+        #       end
+        #     end
+        #   end
+        def with_scope(method_scoping = {}, action = :merge, &block)
+          method_scoping = method_scoping.method_scoping if method_scoping.respond_to?(:method_scoping)
+
+          # Dup first and second level of hash (method and params).
+          method_scoping = method_scoping.inject({}) do |hash, (method, params)|
+            hash[method] = (params == true) ? params : params.dup
+            hash
+          end
+
+          method_scoping.assert_valid_keys([ :find, :create ])
+
+          if f = method_scoping[:find]
+            f.assert_valid_keys([ :conditions, :joins, :select, :include, :from, :offset, :limit, :order, :readonly, :lock ])
+            set_readonly_option! f
+          end
+
+          # Merge scopings
+          if action == :merge && current_scoped_methods
+            method_scoping = current_scoped_methods.inject(method_scoping) do |hash, (method, params)|
+              case hash[method]
+                when Hash
+                  if method == :find
+                    (hash[method].keys + params.keys).uniq.each do |key|
+                      merge = hash[method][key] && params[key] # merge if both scopes have the same key
+                      if key == :conditions && merge
+                        hash[method][key] = [params[key], hash[method][key]].collect{ |sql| "( %s )" % sanitize_sql(sql) }.join(" AND ")
+                      elsif key == :include && merge
+                        hash[method][key] = merge_includes(hash[method][key], params[key]).uniq
+                      else
+                        hash[method][key] = hash[method][key] || params[key]
+                      end
+                    end
+                  else
+                    hash[method] = params.merge(hash[method])
+                  end
+                else
+                  hash[method] = params
+              end
+              hash
+            end
+          end
+
+          self.scoped_methods << method_scoping
+
+          begin
+            yield
+          ensure
+            self.scoped_methods.pop
+          end
+        end
+
+        # Works like with_scope, but discards any nested properties.
+        def with_exclusive_scope(method_scoping = {}, &block)
+          with_scope(method_scoping, :overwrite, &block)
+        end
+
         def subclasses #:nodoc:
           @@subclasses[self] ||= []
           @@subclasses[self] + extra = @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }

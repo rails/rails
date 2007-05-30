@@ -57,7 +57,7 @@ module ActiveRecord
             raise_on_type_mismatch(associate)
             raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) unless associate.respond_to?(:new_record?) && !associate.new_record?
 
-            @owner.send(@reflection.through_reflection.name).proxy_target << klass.with_scope(:create => construct_join_attributes(associate)) { klass.create! }
+            @owner.send(@reflection.through_reflection.name).proxy_target << klass.send(:with_scope, :create => construct_join_attributes(associate)) { klass.create! }
             @target << associate if loaded?
           end
         end
@@ -91,7 +91,7 @@ module ActiveRecord
 
       def create!(attrs = nil)
         @reflection.klass.transaction do
-          self << @reflection.klass.with_scope(:create => attrs) { @reflection.klass.create! }
+          self << @reflection.klass.send(:with_scope, :create => attrs) { @reflection.klass.create! }
         end
       end
 
@@ -105,7 +105,7 @@ module ActiveRecord
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             super
           else
-            @reflection.klass.with_scope(construct_scope) { @reflection.klass.send(method, *args, &block) }
+            @reflection.klass.send(:with_scope, construct_scope) { @reflection.klass.send(method, *args, &block) }
           end
         end
 

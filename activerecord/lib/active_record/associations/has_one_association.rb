@@ -80,7 +80,7 @@ module ActiveRecord
           # instance. Otherwise, if the target has not previously been loaded
           # elsewhere, the instance we create will get orphaned.
           load_target if replace_existing
-          record = @reflection.klass.with_scope(:create => construct_scope[:create]) { yield @reflection.klass }
+          record = @reflection.klass.send(:with_scope, :create => construct_scope[:create]) { yield @reflection.klass }
 
           if replace_existing
             replace(record, true) 
