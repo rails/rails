@@ -1,8 +1,9 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
-class NumericExtTimeTest < Test::Unit::TestCase
+class NumericExtTimeAndDateTimeTest < Test::Unit::TestCase
   def setup
     @now = Time.now
+    @dtnow = DateTime.now
     @seconds = {
       1.minute   => 60,
       10.minutes => 600,
@@ -40,12 +41,19 @@ class NumericExtTimeTest < Test::Unit::TestCase
     assert_equal @now.advance(:months => 1), 1.month.since(@now)
     assert_equal @now.advance(:months => -1), 1.month.until(@now)
     assert_equal @now.advance(:years => 20), 20.years.since(@now)
+    assert_equal @dtnow.advance(:days => 3000), 3000.days.since(@dtnow)
+    assert_equal @dtnow.advance(:months => 1), 1.month.since(@dtnow)
+    assert_equal @dtnow.advance(:months => -1), 1.month.until(@dtnow)
+    assert_equal @dtnow.advance(:years => 20), 20.years.since(@dtnow)
   end
   
   def test_duration_addition
     assert_equal @now.advance(:days => 1, :months => 1), (1.day + 1.month).since(@now)
     assert_equal @now.advance(:days => 7), (1.week + 5.seconds - 5.seconds).since(@now)
     assert_equal @now.advance(:years => 2), (4.years - 2.years).since(@now)
+    assert_equal @dtnow.advance(:days => 1, :months => 1), (1.day + 1.month).since(@dtnow)
+    assert_equal @dtnow.advance(:days => 7), (1.week + 5.seconds - 5.seconds).since(@dtnow)
+    assert_equal @dtnow.advance(:years => 2), (4.years - 2.years).since(@dtnow)    
   end
   
   def test_time_plus_duration
@@ -53,16 +61,24 @@ class NumericExtTimeTest < Test::Unit::TestCase
     assert_equal @now + 22.9, @now + 22.9.seconds
     assert_equal @now.advance(:days => 15), @now + 15.days
     assert_equal @now.advance(:months => 1), @now + 1.month
+    assert_equal @dtnow.since(8), @dtnow + 8.seconds
+    assert_equal @dtnow.since(22.9), @dtnow + 22.9.seconds
+    assert_equal @dtnow.advance(:days => 15), @dtnow + 15.days
+    assert_equal @dtnow.advance(:months => 1), @dtnow + 1.month
   end
   
   def test_chaining_duration_operations
     assert_equal @now.advance(:days => 2).advance(:months => -3), @now + 2.days - 3.months
     assert_equal @now.advance(:days => 1).advance(:months => 2), @now + 1.day + 2.months
+    assert_equal @dtnow.advance(:days => 2).advance(:months => -3), @dtnow + 2.days - 3.months
+    assert_equal @dtnow.advance(:days => 1).advance(:months => 2), @dtnow + 1.day + 2.months    
   end
   
   def test_duration_after_convertion_is_no_longer_accurate
     assert_equal 30.days.to_i.since(@now), 1.month.to_i.since(@now)
     assert_equal 365.25.days.to_f.since(@now), 1.year.to_f.since(@now)
+    assert_equal 30.days.to_i.since(@dtnow), 1.month.to_i.since(@dtnow)
+    assert_equal 365.25.days.to_f.since(@dtnow), 1.year.to_f.since(@dtnow)    
   end
 end
 

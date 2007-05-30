@@ -1,5 +1,7 @@
 *SVN*
 
+* Time durations use since instead of + for accuracy.  #8513 [Geoff Buesing]
+
 * escape <'s and >'s in JSON strings. #8371 [Rick]
 
 * Inflections: MatrixTest -> MatrixTests instead of MatricesTest.  #8496 [jbwiv]

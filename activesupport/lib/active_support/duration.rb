@@ -67,7 +67,7 @@ module ActiveSupport
       parts.inject(time) do |t,(type,number)|
         if t.acts_like?(:time)
           if type == :seconds
-            t + (sign * number)
+            t.since(sign * number)
           else
             t.advance(type => sign * number)
           end

@@ -45,7 +45,7 @@ module ActiveSupport #:nodoc:
         # Returns a new DateTime representing the time a number of seconds since the instance time
         # Do not use this method in combination with x.months, use months_since instead!
         def since(seconds)
-          self + Rational(seconds, 86400)
+          self + Rational(seconds.round, 86400)
         end
         alias :in :since
 
