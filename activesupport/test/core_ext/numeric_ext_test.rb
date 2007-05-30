@@ -48,10 +48,10 @@ class NumericExtTimeAndDateTimeTest < Test::Unit::TestCase
   end
   
   def test_duration_addition
-    assert_equal @now.advance(:days => 1, :months => 1), (1.day + 1.month).since(@now)
+    assert_equal @now.advance(:days => 1).advance(:months => 1), (1.day + 1.month).since(@now)
     assert_equal @now.advance(:days => 7), (1.week + 5.seconds - 5.seconds).since(@now)
     assert_equal @now.advance(:years => 2), (4.years - 2.years).since(@now)
-    assert_equal @dtnow.advance(:days => 1, :months => 1), (1.day + 1.month).since(@dtnow)
+    assert_equal @dtnow.advance(:days => 1).advance(:months => 1), (1.day + 1.month).since(@dtnow)
     assert_equal @dtnow.advance(:days => 7), (1.week + 5.seconds - 5.seconds).since(@dtnow)
     assert_equal @dtnow.advance(:years => 2), (4.years - 2.years).since(@dtnow)    
   end
