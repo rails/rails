@@ -190,7 +190,7 @@ module ActiveRecord
                                   
         # Returns a set of only this entry's immediate children
         def direct_children
-          self.class.base_class.find(:all, :conditions => "#{scope_condition} and #{parent_column} = #{self.id}")
+          self.class.base_class.find(:all, :conditions => "#{scope_condition} and #{parent_column} = #{self.id}", :order => left_col_name)
         end
                                       
         # Prunes a branch off of the tree, shifting all of the elements on the right

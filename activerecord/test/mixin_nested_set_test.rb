@@ -116,12 +116,13 @@ class MixinNestedSetTest < Test::Unit::TestCase
     # Make sure we have the right one
     assert_equal( 3, big_tree.direct_children.length )
     assert_equal( 10, big_tree.full_set.length )
+    assert_equal [4002, 4008, 4005], big_tree.direct_children.map(&:id)
     
     NestedSetWithStringScope.find( 4005 ).destroy
 
     big_tree = NestedSetWithStringScope.find( 4001 )
     
-    assert_equal( 7, big_tree.full_set.length )
+    assert_equal( 9, big_tree.full_set.length )
     assert_equal( 2, big_tree.direct_children.length )
     
     assert_equal( 1, NestedSetWithStringScope.find(4001).lft )
@@ -132,12 +133,12 @@ class MixinNestedSetTest < Test::Unit::TestCase
     assert_equal( 6, NestedSetWithStringScope.find(4004).rgt )
     assert_equal( 7, NestedSetWithStringScope.find(4002).rgt )
     assert_equal( 8, NestedSetWithStringScope.find(4008).lft )
-    assert_equal( 9, NestedSetWithStringScope.find(4009).lft )
-    assert_equal(10, NestedSetWithStringScope.find(4009).rgt )
-    assert_equal(11, NestedSetWithStringScope.find(4010).lft )
-    assert_equal(12, NestedSetWithStringScope.find(4010).rgt )
-    assert_equal(13, NestedSetWithStringScope.find(4008).rgt )
-    assert_equal(14, NestedSetWithStringScope.find(4001).rgt )
+    assert_equal(15, NestedSetWithStringScope.find(4009).lft )
+    assert_equal(16, NestedSetWithStringScope.find(4009).rgt )
+    assert_equal(17, NestedSetWithStringScope.find(4010).lft )
+    assert_equal(18, NestedSetWithStringScope.find(4010).rgt )
+    assert_equal(19, NestedSetWithStringScope.find(4008).rgt )
+    assert_equal(20, NestedSetWithStringScope.find(4001).rgt )
   end
   
   def test_deleting_root
