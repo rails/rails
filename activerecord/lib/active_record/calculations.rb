@@ -265,7 +265,7 @@ module ActiveRecord
           operation = operation.to_s.downcase
           case operation
             when 'count' then value.to_i
-            when 'avg'   then value.to_f
+            when 'avg'   then value && value.to_f
             else column ? column.type_cast(value) : value
           end
         end

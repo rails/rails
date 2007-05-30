@@ -4,6 +4,10 @@ require 'fixtures/topic'
 
 Company.has_many :accounts
 
+class NumericData < ActiveRecord::Base
+  self.table_name = 'numeric_data'
+end
+
 class CalculationsTest < Test::Unit::TestCase
   fixtures :companies, :accounts, :topics
 
@@ -15,6 +19,10 @@ class CalculationsTest < Test::Unit::TestCase
     value = Account.average(:credit_limit)
     assert_kind_of Float, value
     assert_in_delta 53.0, value, 0.001
+  end
+
+  def test_should_return_nil_as_average
+    assert_nil NumericData.average(:bank_balance)
   end
 
   def test_should_get_maximum_of_field

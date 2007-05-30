@@ -1,5 +1,7 @@
 *SVN*
 
+* Calculations: return nil average instead of 0 when there are no rows to average.  #8298 [davidw]
+
 * acts_as_nested_set: direct_children is sorted correctly.  #4761 [Josh Peek, rails@33lc0.net]
 
 * Raise an exception if both attr_protected and attr_accessible are declared.  #8507 [stellsmi]
