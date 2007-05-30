@@ -29,11 +29,12 @@ module ActiveSupport #:nodoc:
           end
         end
 
+        # Converts self to a Ruby Date object; time portion is discarded
         def to_date
           ::Date.new(year, month, day)
         end
 
-        # To be able to keep Dates and Times interchangeable on conversions
+        # To be able to keep Times, Dates and DateTimes interchangeable on conversions
         def to_time
           self
         end

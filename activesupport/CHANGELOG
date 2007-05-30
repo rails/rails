@@ -1,5 +1,9 @@
 *SVN*
 
+* DateTime#to_time converts to Time unless out of range.  #8512 [Geoff Buesing]
+
+* Date#to_datetime, #to_s(:rfc822).  #8512 [Geoff Buesing]
+
 * Time durations use since instead of + for accuracy.  #8513 [Geoff Buesing]
 
 * escape <'s and >'s in JSON strings. #8371 [Rick]

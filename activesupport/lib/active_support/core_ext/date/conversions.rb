@@ -7,7 +7,8 @@ module ActiveSupport #:nodoc:
           :short        => "%e %b",
           :long         => "%B %e, %Y",
           :db           => "%Y-%m-%d",
-          :long_ordinal => lambda { |date| date.strftime("%B #{date.day.ordinalize}, %Y") } # => "April 25th, 2007"
+          :long_ordinal => lambda { |date| date.strftime("%B #{date.day.ordinalize}, %Y") }, # => "April 25th, 2007"
+          :rfc822       => "%e %b %Y"
         }
 
         def self.included(klass) #:nodoc:
@@ -27,17 +28,20 @@ module ActiveSupport #:nodoc:
           end
         end
 
-        # To be able to keep Dates and Times interchangeable on conversions
+        # To be able to keep Times, Dates and DateTimes interchangeable on conversions
         def to_date
           self
         end
 
+        # Converts self to a Ruby Time object; time is set to beginning of day
+        # Timezone can either be :local or :utc  (default :local)
         def to_time(form = :local)
-          if respond_to?(:hour)
-            ::Time.send(form, year, month, day, hour, min, sec)
-          else
-            ::Time.send(form, year, month, day)
-          end
+          ::Time.send("#{form}_time", year, month, day)
+        end
+        
+        # Converts self to a Ruby DateTime object; time is set to beginning of day
+        def to_datetime
+          ::DateTime.civil(year, month, day, 0, 0, 0, 0, 0)
         end
 
         def xmlschema

@@ -20,11 +20,19 @@ module ActiveSupport #:nodoc:
           end
         end
 
+        # Converts self to a Ruby Date object; time portion is discarded
         def to_date
           ::Date.new(year, month, day)
         end
 
-        # To be able to keep Times and DateTimes interchangeable on conversions
+        # Attempts to convert self to a Ruby Time object; returns self if out of range of Ruby Time class
+        # If self.offset is 0, then will attempt to cast as a utc time; otherwise will attempt to cast in local time zone
+        def to_time
+          method = if self.offset == 0 then 'utc' else 'local' end
+          ::Time.send(method, year, month, day, hour, min, sec) rescue self
+        end        
+
+        # To be able to keep Times, Dates and DateTimes interchangeable on conversions
         def to_datetime
           self
         end
