@@ -784,6 +784,23 @@ class DateHelperTest < Test::Unit::TestCase
     assert_equal expected, date_select("post", "written_on")
   end
 
+  def test_date_select_without_day
+    @post = Post.new
+    @post.written_on = Date.new(2004, 6, 15)
+
+    expected = "<input type=\"hidden\" id=\"post_written_on_3i\" name=\"post[written_on(3i)]\" value=\"1\" />\n"
+
+    expected <<  %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
+    expected << %{<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6" selected="selected">June</option>\n<option value="7">July</option>\n<option value="8">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n}
+    expected << "</select>\n"
+
+    expected << %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
+    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << "</select>\n"
+
+    assert_equal expected, date_select("post", "written_on", :order => [ :month, :year ])
+  end
+
   def test_date_select_within_fields_for
     @post = Post.new
     @post.written_on = Date.new(2004, 6, 15)

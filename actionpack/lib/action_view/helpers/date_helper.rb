@@ -109,6 +109,9 @@ module ActionView
       #   date_select("credit_card", "bill_due", :default => { :day => 20 })
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
+      #
+      # Note: If the day is not included as an option but the month is, the day will be set to the 1st to ensure that all month
+      # choices are valid.
       def date_select(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_date_select_tag(options)
       end
@@ -122,6 +125,9 @@ module ActionView
       #   time_select("post", "start_time", :include_seconds => true)
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
+      #
+      # Note: If the day is not included as an option but the month is, the day will be set to the 1st to ensure that all month
+      # choices are valid.
       def time_select(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_time_select_tag(options)
       end
@@ -350,7 +356,7 @@ module ActionView
       include DateHelper
 
       def to_date_select_tag(options = {})
-        date_or_time_select options.merge(:discard_hour => true)
+        date_or_time_select(options.merge(:discard_hour => true))
       end
 
       def to_time_select_tag(options = {})
@@ -381,8 +387,15 @@ module ActionView
           discard[:minute] = true if options[:discard_minute] or discard[:hour]
           discard[:second] = true unless options[:include_seconds] && !discard[:minute]
 
+          # If the day is hidden and the month is visible, the day should be set to the 1st so all month choices are valid
+          # (otherwise it could be 31 and february wouldn't be a valid date)
+          if discard[:day] && !discard[:month]
+            datetime = datetime.change(:day => 1)
+          end
+
           # Maintain valid dates by including hidden fields for discarded elements
           [:day, :month, :year].each { |o| order.unshift(o) unless order.include?(o) }
+
           # Ensure proper ordering of :hour, :minute and :second
           [:hour, :minute, :second].each { |o| order.delete(o); order.push(o) }
 
