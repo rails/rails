@@ -1032,16 +1032,18 @@ module ActiveRecord #:nodoc:
 
           result = find_every(options)
 
-          # If the user passes in a limit to find(), we need to check
-          # to see if the result is limited before just checking the
-          # size of the results.
+          # Determine expected size from limit and offset, not just ids.size.
           expected_size =
             if options[:limit] && ids.size > options[:limit]
               options[:limit]
             else
               ids.size
             end
-          expected_size -= options[:offset] if options[:offset]
+
+          # 11 ids with limit 3, offset 9 should give 2 results.
+          if options[:offset] && (ids.size - options[:offset] < expected_size)
+            expected_size = ids.size - options[:offset]
+          end
 
           if result.size == expected_size
             result
