@@ -21,4 +21,9 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   def test_to_date
     assert_equal Date.new(2005, 2, 21), Date.new(2005, 2, 21).to_date
   end
+
+  def test_change
+    assert_equal Date.new(2005, 2, 21), Date.new(2005, 2, 11).change(:day => 21)
+    assert_equal Date.new(2007, 5, 11), Date.new(2005, 2, 11).change(:year => 2007, :month => 5)
+  end
 end

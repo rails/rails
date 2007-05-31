@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Date#change (like Time#change) [DHH]
+
 * DateTime#to_time converts to Time unless out of range.  #8512 [Geoff Buesing]
 
 * Date#to_datetime, #to_s(:rfc822).  #8512 [Geoff Buesing]

@@ -61,7 +61,7 @@ module ActiveSupport #:nodoc:
             self.utc? ? :utc_time : :local_time,
             options[:year]  || self.year,
             options[:month] || self.month,
-            options[:mday]  || self.mday,
+            options[:day]   || options[:mday] || self.day, # mday is deprecated
             options[:hour]  || self.hour,
             options[:min]   || (options[:hour] ? 0 : self.min),
             options[:sec]   || ((options[:hour] || options[:min]) ? 0 : self.sec),
