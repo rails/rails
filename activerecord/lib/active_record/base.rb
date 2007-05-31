@@ -895,9 +895,16 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Returns a string looking like: #<Post id:integer, title:string, body:text>
+      # Returns a string like 'Post id:integer, title:string, body:text'
       def inspect
-        "#<#{name} #{columns.collect { |c| "#{c.name}: #{c.type}" }.join(", ")}>"
+        if self == Base
+          super
+        elsif abstract_class?
+          "#{super}(abstract)"
+        else
+          attr_list = columns.map { |c| "#{c.name}: #{c.type}" } * ', '
+          "#{super}(#{attr_list})"
+        end
       end
 
 
