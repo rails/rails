@@ -161,7 +161,7 @@ module ActiveResource
           else
             prefix_options, query_options = split_options(options[:params])
             path = collection_path(prefix_options, query_options)
-            instantiate_collection(connection.get(path, headers) || [])
+            instantiate_collection( (connection.get(path, headers) || []), prefix_options )
           end
         end
         

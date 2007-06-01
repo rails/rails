@@ -1,5 +1,7 @@
 *SVN*
 
+* pass the prefix_options to the instantiated record when using find without a specific id. Closes #8544 [alloy]
+
 * Recognize and raise an exception on 405 Method Not Allowed responses.  #7692 [Josh Peek]
 
 * Handle string and symbol param keys when splitting params into prefix params and query params.

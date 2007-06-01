@@ -313,7 +313,7 @@ class BaseTest < Test::Unit::TestCase
     assert_equal true, matz.save
   end
 
-  def test_update_with_custom_prefix
+  def test_update_with_custom_prefix_with_specific_id
     addy = StreetAddress.find(1, :params => { :person_id => 1 })
     addy.street = "54321 Street"
     assert_kind_of StreetAddress, addy
@@ -321,6 +321,14 @@ class BaseTest < Test::Unit::TestCase
     addy.save
   end
 
+  def test_update_with_custom_prefix_without_specific_id
+    addy = StreetAddress.find(:first, :params => { :person_id => 1 })
+    addy.street = "54321 Lane"
+    assert_kind_of StreetAddress, addy
+    assert_equal "54321 Lane", addy.street
+    addy.save
+  end
+  
   def test_update_conflict
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/people/2.xml", {}, @david
