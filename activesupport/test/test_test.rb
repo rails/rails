@@ -53,4 +53,10 @@ class AssertDifferenceTest < Test::Unit::TestCase
       assert_difference('local_scope; @object.num') { @object.increment }
     end
   end
+  
+  def test_array_of_expressions
+    assert_difference [ '@object.num', '@object.num + 1' ], +1 do
+      @object.increment
+    end
+  end
 end
