@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove RAILS_ROOT from backtrace paths.  #8540 [Tim Pope]
+
 * Routing: map.resource :logo routes to LogosController so the controller may be reused for multiple nestings or namespaces.  [Jeremy Kemper]
 
 * render :partial recognizes Active Record associations as Arrays.  #8538 [kamal]
