@@ -370,7 +370,7 @@ class HashToXmlTest < Test::Unit::TestCase
   def test_two_levels_with_array
     xml = { :name => "David", :addresses => [{ :street => "Paulina" }, { :street => "Evergreen" }] }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<addresses><address>))
+    assert xml.include?(%(<addresses type="array"><address>))
     assert xml.include?(%(<address><street>Paulina</street></address>))
     assert xml.include?(%(<address><street>Evergreen</street></address>))
     assert xml.include?(%(<name>David</name>))
@@ -378,7 +378,7 @@ class HashToXmlTest < Test::Unit::TestCase
 
   def test_three_levels_with_array
     xml = { :name => "David", :addresses => [{ :streets => [ { :name => "Paulina" }, { :name => "Paulina" } ] } ] }.to_xml(@xml_options)
-    assert xml.include?(%(<addresses><address><streets><street><name>))
+    assert xml.include?(%(<addresses type="array"><address><streets type="array"><street><name>))
   end
 
   def test_single_record_from_xml
@@ -515,6 +515,41 @@ class HashToXmlTest < Test::Unit::TestCase
     }.stringify_keys
 
     assert_equal expected_topic_hash, Hash.from_xml(topic_xml)["rsp"]["photos"]["photo"]
+  end
+  
+  def test_empty_array_from_xml
+    blog_xml = <<-XML
+      <blog>
+        <posts type="array"></posts>
+      </blog>
+    XML
+    expected_blog_hash = {"blog" => {"posts" => []}}
+    assert_equal expected_blog_hash, Hash.from_xml(blog_xml)
+  end
+
+  def test_array_with_one_entry_from_xml
+    blog_xml = <<-XML
+      <blog>
+        <posts type="array">
+          <post>a post</post>
+        </posts>
+      </blog>
+    XML
+    expected_blog_hash = {"blog" => {"posts" => ["a post"]}}
+    assert_equal expected_blog_hash, Hash.from_xml(blog_xml)
+  end
+
+  def test_array_with_multiple_entries_from_xml
+    blog_xml = <<-XML
+      <blog>
+        <posts type="array">
+          <post>a post</post>
+          <post>another post</post>
+        </posts>
+      </blog>
+    XML
+    expected_blog_hash = {"blog" => {"posts" => ["a post", "another post"]}}
+    assert_equal expected_blog_hash, Hash.from_xml(blog_xml)
   end
 
   def test_xsd_like_types_from_xml

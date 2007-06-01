@@ -1,5 +1,28 @@
 *SVN*
 
+* Added proper handling of arrays #8537 [hasmanyjosh]
+
+  Before:
+    Hash.from_xml '<images></images>'
+    # => {:images => nil}
+
+    Hash.from_xml '<images><image>foo.jpg</image></images>'
+    # => {:images => {:image => "foo.jpg"}}
+
+    Hash.from_xml '<images><image>foo.jpg</image><image>bar.jpg</image></images>'
+    # => {:images => {:image => ["foo.jpg", "bar.jpg"]}}
+
+  After:
+    Hash.from_xml '<images type="array"></images>'
+    # => {:images => []}
+
+    Hash.from_xml '<images type="array"><image>foo.jpg</image></images>'
+    # => {:images => ["foo.jpg"]}
+
+    Hash.from_xml '<images type="array"><image>foo.jpg</image><image>bar.jpg</image></images>'
+    # => {:images => ["foo.jpg", "bar.jpg"]}
+
+
 * Move common DateTime calculations to Date.  #8536 [Geoff Buesing]
 
 * Added Date#change (like Time#change) [DHH]

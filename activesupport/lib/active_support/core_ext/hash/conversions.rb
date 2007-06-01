@@ -163,6 +163,20 @@ module ActiveSupport #:nodoc:
                     else
                       content
                     end
+                  elsif value['type'] == 'array'
+                    child_key, entries = value.detect { |k,v| k != 'type' }   # child_key is throwaway
+                    if entries.nil?
+                      []
+                    else
+                      case entries.class.to_s   # something weird with classes not matching here.  maybe singleton methods breaking is_a?
+                      when "Array"
+                        entries.collect { |v| typecast_xml_value(v) }
+                      when "Hash"
+                        [typecast_xml_value(entries)]
+                      else
+                        raise "can't typecast #{entries.inspect}"
+                      end
+                    end
                   elsif value['type'] == 'string' && value['nil'] != 'true'
                     ""
                   else
