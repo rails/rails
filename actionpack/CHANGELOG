@@ -1,5 +1,7 @@
 *SVN*
 
+* Routing: map.resource :logo routes to LogosController so the controller may be reused for multiple nestings or namespaces.  [Jeremy Kemper]
+
 * render :partial recognizes Active Record associations as Arrays.  #8538 [kamal]
 
 * Routing: drop semicolon and comma as route separators.  [Jeremy Kemper]

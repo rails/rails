@@ -49,8 +49,8 @@ module ActionController
       attr_reader :options
 
       def initialize(entities, options)
-        @plural   = entities
-        @singular = options[:singular] || plural.to_s.singularize
+        @plural   ||= entities
+        @singular ||= options[:singular] || plural.to_s.singularize
 
         @options = options
 
@@ -122,11 +122,9 @@ module ActionController
 
     class SingletonResource < Resource #:nodoc:
       def initialize(entity, options)
-        @plural = @singular = entity
-        @options = options
-        arrange_actions
-        add_default_actions
-        set_prefixes
+        @singular = @plural = entity
+        options[:controller] ||= @singular.to_s.pluralize
+        super
       end
 
       alias_method :member_path,         :path

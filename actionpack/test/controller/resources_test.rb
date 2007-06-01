@@ -10,15 +10,15 @@ class ThreadsController  < ResourcesController; end
 class MessagesController < ResourcesController; end
 class CommentsController < ResourcesController; end
 class AuthorsController < ResourcesController; end
-class LogoController < ResourcesController; end
+class LogosController < ResourcesController; end
 
-class AccountController <  ResourcesController; end
+class AccountsController <  ResourcesController; end
 class AdminController   <  ResourcesController; end
 
 module Backoffice
   class ProductsController < ResourcesController; end
   class TagsController < ResourcesController; end
-  class ManufacturerController < ResourcesController; end
+  class ManufacturersController < ResourcesController; end
 
   module Admin
     class ProductsController < ResourcesController; end
@@ -263,21 +263,21 @@ class ResourcesTest < Test::Unit::TestCase
   end
 
   def test_should_create_multiple_singleton_resource_routes
-    with_singleton_resources :account, :admin do
+    with_singleton_resources :account, :logo do
       assert_singleton_restful_for :account
-      assert_singleton_restful_for :admin
+      assert_singleton_restful_for :logo
     end
   end
 
   def test_should_create_nested_singleton_resource_routes
     with_routing do |set|
       set.draw do |map|
-        map.resource :admin do |admin|
+        map.resource :admin, :controller => 'admin' do |admin|
           admin.resource :account
         end
       end
 
-      assert_singleton_restful_for :admin
+      assert_singleton_restful_for :admin, :controller => 'admin'
       assert_singleton_restful_for :account, :name_prefix => "admin_", :path_prefix => 'admin/'
     end
   end
@@ -369,12 +369,12 @@ class ResourcesTest < Test::Unit::TestCase
     with_routing do |set|
       set.draw do |map|
         map.resources :threads do |thread|
-          thread.resource :admin
+          thread.resource :admin, :controller => 'admin'
         end
       end
 
       assert_simply_restful_for :threads
-      assert_singleton_restful_for :admin, :name_prefix => 'thread_', :path_prefix => 'threads/5/', :options => { :thread_id => '5' }
+      assert_singleton_restful_for :admin, :controller => 'admin', :name_prefix => 'thread_', :path_prefix => 'threads/5/', :options => { :thread_id => '5' }
     end
   end
 
@@ -428,7 +428,7 @@ class ResourcesTest < Test::Unit::TestCase
       end
 
       assert_simply_restful_for :products, :controller => "backoffice/products", :name_prefix => 'backoffice_', :path_prefix => 'backoffice/'
-      assert_singleton_restful_for :manufacturer, :controller => "backoffice/manufacturer", :name_prefix => 'backoffice_product_', :path_prefix => 'backoffice/products/1/', :options => { :product_id => '1' }
+      assert_singleton_restful_for :manufacturer, :controller => "backoffice/manufacturers", :name_prefix => 'backoffice_product_', :path_prefix => 'backoffice/products/1/', :options => { :product_id => '1' }
     end
   end
 
@@ -555,7 +555,7 @@ class ResourcesTest < Test::Unit::TestCase
 
     def assert_singleton_routes_for(singleton_name, options = {})
       options[:options] ||= {}
-      options[:options][:controller] = options[:controller] || singleton_name.to_s
+      options[:options][:controller] = options[:controller] || singleton_name.to_s.pluralize
 
       full_path           = "/#{options[:path_prefix]}#{singleton_name}"
       new_path            = "#{full_path}/new"
@@ -589,7 +589,7 @@ class ResourcesTest < Test::Unit::TestCase
     end
 
     def assert_singleton_named_routes_for(singleton_name, options = {})
-      (options[:options] ||= {})[:controller] ||= singleton_name.to_s
+      (options[:options] ||= {})[:controller] ||= singleton_name.to_s.pluralize
       @controller = "#{options[:options][:controller].camelize}Controller".constantize.new
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new
