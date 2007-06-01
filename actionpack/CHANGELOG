@@ -1,5 +1,7 @@
 *SVN*
 
+* render :partial recognizes Active Record associations as Arrays.  #8538 [kamal]
+
 * Routing: drop semicolon and comma as route separators.  [Jeremy Kemper]
 
 * request.remote_ip understands X-Forwarded-For addresses with nonstandard whitespace.  #7386 [moses]

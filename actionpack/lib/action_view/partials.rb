@@ -64,7 +64,7 @@ module ActionView
           else
             render("#{path}/_#{partial_name}", local_assigns)
           end
-        when Array
+        when Array, ActiveRecord::Associations::AssociationCollection
           if partial_path.any?
             path       = ActionController::RecordIdentifier.partial_path(partial_path.first)
             collection = partial_path
