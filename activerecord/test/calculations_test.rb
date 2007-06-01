@@ -139,6 +139,26 @@ class CalculationsTest < Test::Unit::TestCase
     assert_equal 2, c[companies(:rails_core)]
     assert_equal 1, c[companies(:first_client)]
   end
+
+  uses_mocha 'group_by_non_numeric_foreign_key_association' do
+    def test_should_group_by_association_with_non_numeric_foreign_key
+      ActiveRecord::Base.connection.expects(:select_all).returns([{"count_all" => 1, "firm_id" => "ABC"}])
+
+      firm = mock()
+      firm.expects(:id).returns("ABC")
+      firm.expects(:class).returns(Firm)
+      Company.expects(:find).with(["ABC"]).returns([firm])
+
+      column = mock()
+      column.expects(:name).at_least_once.returns(:firm_id)
+      column.expects(:type_cast).with("ABC").returns("ABC")
+      Account.expects(:columns).at_least_once.returns([column])
+
+      c = Account.count(:all, :group => :firm)
+      assert_equal Firm, c.first.first.class
+      assert_equal 1, c.first.last
+    end
+  end
   
   def test_should_not_modify_options_when_using_includes
     options = {:conditions => 'companies.id > 1', :include => :firm}

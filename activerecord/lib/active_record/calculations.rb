@@ -235,7 +235,8 @@ module ActiveRecord
           end
 
           calculated_data.inject(ActiveSupport::OrderedHash.new) do |all, row|
-            key   = associated ? key_records[row[group_alias].to_i] : type_cast_calculated_value(row[group_alias], group_column)
+            key   = type_cast_calculated_value(row[group_alias], group_column)
+            key   = key_records[key] if associated
             value = row[aggregate_alias]
             all << [key, type_cast_calculated_value(value, column, operation)]
           end
