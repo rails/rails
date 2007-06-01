@@ -1,5 +1,7 @@
 *SVN*
 
+* Move common DateTime calculations to Date.  #8536 [Geoff Buesing]
+
 * Added Date#change (like Time#change) [DHH]
 
 * DateTime#to_time converts to Time unless out of range.  #8512 [Geoff Buesing]

@@ -25,5 +25,105 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   def test_change
     assert_equal Date.new(2005, 2, 21), Date.new(2005, 2, 11).change(:day => 21)
     assert_equal Date.new(2007, 5, 11), Date.new(2005, 2, 11).change(:year => 2007, :month => 5)
+    assert_equal Date.new(2006,2,22), Date.new(2005,2,22).change(:year => 2006)
+    assert_equal Date.new(2005,6,22), Date.new(2005,2,22).change(:month => 6)
   end
+  
+  def test_begining_of_week
+    assert_equal Date.new(2005,1,31),  Date.new(2005,2,4).beginning_of_week
+    assert_equal Date.new(2005,11,28), Date.new(2005,11,28).beginning_of_week #monday
+    assert_equal Date.new(2005,11,28), Date.new(2005,11,29).beginning_of_week #tuesday
+    assert_equal Date.new(2005,11,28), Date.new(2005,11,30).beginning_of_week #wednesday
+    assert_equal Date.new(2005,11,28), Date.new(2005,12,01).beginning_of_week #thursday
+    assert_equal Date.new(2005,11,28), Date.new(2005,12,02).beginning_of_week #friday
+    assert_equal Date.new(2005,11,28), Date.new(2005,12,03).beginning_of_week #saturday
+    assert_equal Date.new(2005,11,28), Date.new(2005,12,04).beginning_of_week #sunday
+  end
+
+  def test_beginning_of_month
+    assert_equal Date.new(2005,2,1), Date.new(2005,2,22).beginning_of_month
+  end
+
+  def test_beginning_of_quarter
+    assert_equal Date.new(2005,1,1),  Date.new(2005,2,15).beginning_of_quarter
+    assert_equal Date.new(2005,1,1),  Date.new(2005,1,1).beginning_of_quarter
+    assert_equal Date.new(2005,10,1), Date.new(2005,12,31).beginning_of_quarter
+    assert_equal Date.new(2005,4,1),  Date.new(2005,6,30).beginning_of_quarter
+  end
+
+  def test_end_of_month
+    assert_equal Date.new(2005,3,31), Date.new(2005,3,20).end_of_month
+    assert_equal Date.new(2005,2,28), Date.new(2005,2,20).end_of_month
+    assert_equal Date.new(2005,4,30), Date.new(2005,4,20).end_of_month
+
+  end
+
+  def test_beginning_of_year
+    assert_equal Date.new(2005,1,1).to_s, Date.new(2005,2,22).beginning_of_year.to_s
+  end
+
+  def test_months_ago
+    assert_equal Date.new(2005,5,5),  Date.new(2005,6,5).months_ago(1)
+    assert_equal Date.new(2004,11,5), Date.new(2005,6,5).months_ago(7)
+    assert_equal Date.new(2004,12,5), Date.new(2005,6,5).months_ago(6)
+    assert_equal Date.new(2004,6,5),  Date.new(2005,6,5).months_ago(12)
+    assert_equal Date.new(2003,6,5),  Date.new(2005,6,5).months_ago(24)
+  end
+
+  def test_months_since
+    assert_equal Date.new(2005,7,5),  Date.new(2005,6,5).months_since(1)
+    assert_equal Date.new(2006,1,5),  Date.new(2005,12,5).months_since(1)
+    assert_equal Date.new(2005,12,5), Date.new(2005,6,5).months_since(6)
+    assert_equal Date.new(2006,6,5),  Date.new(2005,12,5).months_since(6)
+    assert_equal Date.new(2006,1,5),  Date.new(2005,6,5).months_since(7)
+    assert_equal Date.new(2006,6,5),  Date.new(2005,6,5).months_since(12)
+    assert_equal Date.new(2007,6,5),  Date.new(2005,6,5).months_since(24)
+  end
+
+  def test_years_ago
+    assert_equal Date.new(2004,6,5),  Date.new(2005,6,5).years_ago(1)
+    assert_equal Date.new(1998,6,5), Date.new(2005,6,5).years_ago(7)
+  end
+
+  def test_years_since
+    assert_equal Date.new(2006,6,5),  Date.new(2005,6,5).years_since(1)
+    assert_equal Date.new(2012,6,5),  Date.new(2005,6,5).years_since(7)
+    assert_equal Date.new(2182,6,5),  Date.new(2005,6,5).years_since(177)
+  end
+
+  def test_last_year
+    assert_equal Date.new(2004,6,5),  Date.new(2005,6,5).last_year
+  end
+
+  def test_yesterday
+    assert_equal Date.new(2005,2,21), Date.new(2005,2,22).yesterday
+    assert_equal Date.new(2005,2,28), Date.new(2005,3,2).yesterday.yesterday
+  end
+
+  def test_tomorrow
+    assert_equal Date.new(2005,2,23), Date.new(2005,2,22).tomorrow
+    assert_equal Date.new(2005,3,2),  Date.new(2005,2,28).tomorrow.tomorrow
+  end
+
+  def test_plus
+    assert_equal Date.new(2006,2,28), Date.new(2005,2,28).advance(:years => 1)
+    assert_equal Date.new(2005,6,28), Date.new(2005,2,28).advance(:months => 4)
+    assert_equal Date.new(2012,9,28), Date.new(2005,2,28).advance(:years => 7, :months => 7)
+    assert_equal Date.new(2013,10,3), Date.new(2005,2,28).advance(:years => 7, :months => 19, :days => 5)
+  end
+
+  def test_next_week
+    assert_equal Date.new(2005,2,28), Date.new(2005,2,22).next_week
+    assert_equal Date.new(2005,3,4), Date.new(2005,2,22).next_week(:friday)
+    assert_equal Date.new(2006,10,30), Date.new(2006,10,23).next_week
+    assert_equal Date.new(2006,11,1), Date.new(2006,10,23).next_week(:wednesday)
+  end
+
+  def test_next_month_on_31st
+    assert_equal Date.new(2005, 9, 30), Date.new(2005, 8, 31).next_month
+  end
+
+  def test_last_month_on_31st
+    assert_equal Date.new(2004, 2, 29), Date.new(2004, 3, 31).last_month
+  end  
 end
