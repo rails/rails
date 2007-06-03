@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow JSON-style values for the :with option of observe_field.  Closes #8557 [kommen]
+
 * Remove RAILS_ROOT from backtrace paths.  #8540 [Tim Pope]
 
 * Routing: map.resource :logo routes to LogosController so the controller may be reused for multiple nestings or namespaces.  [Jeremy Kemper]
