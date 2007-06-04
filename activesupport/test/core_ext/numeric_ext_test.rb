@@ -90,7 +90,9 @@ class NumericExtDateTest < Test::Unit::TestCase
   def test_date_plus_duration
     assert_equal @today + 1, @today + 1.day
     assert_equal @today >> 1, @today + 1.month
-    assert_raises(ArgumentError) { @today + 1.second }
+    assert_equal @today.to_time.since(1), @today + 1.second
+    assert_equal @today.to_time.since(60), @today + 1.minute
+    assert_equal @today.to_time.since(60*60), @today + 1.hour
   end
   
   def test_chaining_duration_operations

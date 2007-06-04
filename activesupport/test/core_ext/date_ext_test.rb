@@ -139,4 +139,20 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   def test_tomorrow_constructor
     assert_equal Date.today + 1, Date.tomorrow
   end
+  
+  def test_since
+    assert_equal Time.local(2005,2,21,0,0,45), Date.new(2005,2,21).since(45)
+  end
+  
+  def test_ago
+    assert_equal Time.local(2005,2,20,23,59,15), Date.new(2005,2,21).ago(45)
+  end
+  
+  def test_beginning_of_day
+    assert_equal Time.local(2005,2,21,0,0,0), Date.new(2005,2,21).beginning_of_day
+  end
+  
+  def test_end_of_day
+    assert_equal Time.local(2005,2,21,23,59,59), Date.new(2005,2,21).end_of_day
+  end
 end
