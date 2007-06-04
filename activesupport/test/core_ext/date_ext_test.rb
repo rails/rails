@@ -131,4 +131,12 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   def test_last_month_on_31st
     assert_equal Date.new(2004, 2, 29), Date.new(2004, 3, 31).last_month
   end  
+
+  def test_yesterday_constructor
+    assert_equal Date.today - 1, Date.yesterday
+  end
+  
+  def test_tomorrow_constructor
+    assert_equal Date.today + 1, Date.tomorrow
+  end
 end

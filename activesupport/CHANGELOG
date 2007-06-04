@@ -1,5 +1,7 @@
 *SVN*
 
+* Date.yesterday and .tomorrow.  #8571 [Geoff Buesing]
+
 * Readable Date and DateTime#inspect.  #8570 [Geoff Buesing]
 
 * Added proper handling of arrays #8537 [hasmanyjosh]
