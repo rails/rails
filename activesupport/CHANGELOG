@@ -1,5 +1,7 @@
 *SVN*
 
+* String#to_time overflows to DateTime. Add String#to_datetime.  #8572 [Geoff Buesing]
+
 * Date.yesterday and .tomorrow.  #8571 [Geoff Buesing]
 
 * Readable Date and DateTime#inspect.  #8570 [Geoff Buesing]
