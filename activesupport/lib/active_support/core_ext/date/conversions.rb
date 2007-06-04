@@ -14,6 +14,8 @@ module ActiveSupport #:nodoc:
         def self.included(klass) #:nodoc:
           klass.send(:alias_method, :to_default_s, :to_s)
           klass.send(:alias_method, :to_s, :to_formatted_s)
+          klass.send(:alias_method, :default_inspect, :inspect)
+          klass.send(:alias_method, :inspect, :readable_inspect)          
         end
 
         def to_formatted_s(format = :default)
@@ -26,6 +28,11 @@ module ActiveSupport #:nodoc:
           else
             to_default_s
           end
+        end
+        
+        # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005"
+        def readable_inspect
+          strftime("%a, %d %b %Y")
         end
 
         # To be able to keep Times, Dates and DateTimes interchangeable on conversions

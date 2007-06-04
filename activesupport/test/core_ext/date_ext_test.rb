@@ -8,6 +8,11 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal "2005-02-21",          Date.new(2005, 2, 21).to_s(:db)
     assert_equal "21 Feb 2005",         Date.new(2005, 2, 21).to_s(:rfc822)
   end
+  
+  def test_readable_inspect
+    assert_equal "Mon, 21 Feb 2005", Date.new(2005, 2, 21).readable_inspect
+    assert_equal Date.new(2005, 2, 21).readable_inspect, Date.new(2005, 2, 21).inspect
+  end
 
   def test_to_time
     assert_equal Time.local(2005, 2, 21), Date.new(2005, 2, 21).to_time

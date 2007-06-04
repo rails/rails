@@ -6,6 +6,8 @@ module ActiveSupport #:nodoc:
         def self.included(klass)
           klass.send(:alias_method, :to_datetime_default_s, :to_s)
           klass.send(:alias_method, :to_s, :to_formatted_s)
+          klass.send(:alias_method, :default_inspect, :inspect)
+          klass.send(:alias_method, :inspect, :readable_inspect)
         end
 
         def to_formatted_s(format = :default)
@@ -18,6 +20,11 @@ module ActiveSupport #:nodoc:
           else
             to_datetime_default_s
           end
+        end
+        
+        # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005 14:30:00 +0000"
+        def readable_inspect
+          to_s(:rfc822)
         end
 
         # Converts self to a Ruby Date object; time portion is discarded
