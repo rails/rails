@@ -178,13 +178,6 @@ class FormHelperTest < Test::Unit::TestCase
     )
   end
   
-  def test_date_selects
-    assert_dom_equal(
-      '<textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea>',
-      text_area("post", "body")
-    )
-  end
-
   def test_explicit_name
     assert_dom_equal(
       '<input id="post_title" name="dont guess" size="30" type="text" value="Hello World" />', text_field("post", "title", "name" => "dont guess")
