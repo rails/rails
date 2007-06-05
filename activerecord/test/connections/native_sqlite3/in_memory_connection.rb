@@ -15,4 +15,4 @@ end
 
 make_connection(ActiveRecord::Base, 'sqlite.sql')
 make_connection(Course, 'sqlite2.sql')
-  load("#{File.dirname(__FILE__)}/../../fixtures/db_definitions/schema.rb"))
+load("#{File.dirname(__FILE__)}/../../fixtures/db_definitions/schema.rb")
