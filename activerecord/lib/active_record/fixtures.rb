@@ -501,20 +501,26 @@ module Test #:nodoc:
         end
       end
 
-      def self.setup_fixture_accessors(table_names=nil)
+      def self.setup_fixture_accessors(table_names = nil)
         (table_names || fixture_table_names).each do |table_name|
-          table_name = table_name.to_s.tr('.','_')
+          table_name = table_name.to_s.tr('.', '_')
 
-          define_method(table_name) do |fixture, *optionals|
-            force_reload = optionals.shift
+          define_method(table_name) do |*fixtures|
+            force_reload = fixtures.pop if fixtures.last == true || fixtures.last == :reload
+
             @fixture_cache[table_name] ||= Hash.new
-            @fixture_cache[table_name][fixture] = nil if force_reload
 
-            if @loaded_fixtures[table_name][fixture.to_s]
-              @fixture_cache[table_name][fixture] ||= @loaded_fixtures[table_name][fixture.to_s].find
-            else
-              raise StandardError, "No fixture with name '#{fixture}' found for table '#{table_name}'"
+            instances = fixtures.map do |fixture|
+              @fixture_cache[table_name].delete(fixture) if force_reload
+
+              if @loaded_fixtures[table_name][fixture.to_s]
+                @fixture_cache[table_name][fixture] ||= @loaded_fixtures[table_name][fixture.to_s].find
+              else
+                raise StandardError, "No fixture with name '#{fixture}' found for table '#{table_name}'"
+              end
             end
+
+            instances.size == 1 ? instances.first : instances
           end
         end
       end

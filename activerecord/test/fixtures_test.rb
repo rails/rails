@@ -259,6 +259,19 @@ class FixturesWithoutInstantiationTest < Test::Unit::TestCase
     assert_equal "Jamis", developers(:jamis).name
     assert_equal 50, accounts(:signals37).credit_limit
   end
+
+  def test_accessor_methods_with_multiple_args
+    assert_equal 2, topics(:first, :second).size
+    assert_raise(StandardError) { topics([:first, :second]) }
+  end
+
+  uses_mocha 'reloading_fixtures_through_accessor_methods' do
+    def test_reloading_fixtures_through_accessor_methods
+      assert_equal "The First Topic", topics(:first).title
+      @loaded_fixtures['topics']['first'].expects(:find).returns(stub(:title => "Fresh Topic!"))
+      assert_equal "Fresh Topic!", topics(:first, true).title
+    end
+  end
 end
 
 

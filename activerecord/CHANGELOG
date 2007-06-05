@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixtures: people(:technomancy, :josh) returns both fixtures.  #7880 [technomancy, Josh Peek]
+
 * Calculations support non-numeric foreign keys.  #8154 [kamal]
 
 * with_scope is protected.  #8524 [Josh Peek]
