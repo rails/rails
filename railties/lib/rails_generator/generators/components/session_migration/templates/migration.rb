@@ -1,9 +1,9 @@
 class <%= class_name %> < ActiveRecord::Migration
   def self.up
     create_table :<%= session_table_name %> do |t|
-      t.column :session_id, :string
-      t.column :data, :text
-      t.column :updated_at, :datetime
+      t.string :session_id, :null => false
+      t.text :data
+      t.timestamps
     end
 
     add_index :<%= session_table_name %>, :session_id

@@ -1,5 +1,7 @@
 *SVN*
 
+* Sexy migrations for the session_migration generator.  #8561 [Vladislav]
+
 * Console reload! runs to_prepare callbacks also.  #8393 [f.svehla]
 
 * Generated migrations include timestamps by default.  #8501 [Shane Vitarana]
