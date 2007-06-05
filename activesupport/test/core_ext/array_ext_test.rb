@@ -121,7 +121,7 @@ class ArrayToXmlTests < Test::Unit::TestCase
       { :name => "Jason", :age => 31, :age_in_millis => BigDecimal.new('1.0') }
     ].to_xml(:skip_instruct => true, :indent => 0)
 
-    assert_equal '<records type="array"><record>', xml.first(30)
+    assert_equal "<records><record>", xml.first(17), xml
     assert xml.include?(%(<age type="integer">26</age>)), xml
     assert xml.include?(%(<age-in-millis type="integer">820497600000</age-in-millis>)), xml
     assert xml.include?(%(<name>David</name>)), xml
@@ -135,7 +135,7 @@ class ArrayToXmlTests < Test::Unit::TestCase
       { :name => "David", :age => 26, :age_in_millis => 820497600000 }, { :name => "Jason", :age => 31 }
     ].to_xml(:skip_instruct => true, :indent => 0, :root => "people")
 
-    assert_equal '<people type="array"><person>', xml.first(29)
+    assert_equal "<people><person>", xml.first(16)
   end
 
   def test_to_xml_with_options
