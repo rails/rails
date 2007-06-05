@@ -142,6 +142,16 @@ class TestController < ActionController::Base
     end
   end
 
+  def respond_to_partial_as_rjs
+    respond_to do |format|
+      format.js do
+        render :update do |page|
+          page.replace :foo, :partial => 'partial'
+        end
+      end
+    end
+  end
+
   def rescue_action(e) raise end
 
   private
@@ -385,6 +395,11 @@ class RenderTest < Test::Unit::TestCase
 
   def test_should_render_html_formatted_partial_with_rjs
     xhr :get, :partial_as_rjs
+    assert_equal %(Element.replace("foo", "partial html");), @response.body
+  end
+
+  def test_should_render_html_formatted_partial_with_rjs_and_js_format
+    xhr :get, :respond_to_partial_as_rjs
     assert_equal %(Element.replace("foo", "partial html");), @response.body
   end
 

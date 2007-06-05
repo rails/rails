@@ -15,6 +15,10 @@ class Author::Nested < Author; end
 
 
 module BaseTest
+  def self.included(base)
+    base.send :attr_accessor, :template_format
+  end
+
   include ActionView::Helpers::JavaScriptHelper
   include ActionView::Helpers::PrototypeHelper
   include ActionView::Helpers::ScriptaculousHelper

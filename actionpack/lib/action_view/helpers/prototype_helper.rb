@@ -631,9 +631,13 @@ module ActionView
             end
           
             def render(*options_for_render)
+              old_format = @context && @context.template_format
+              @context.template_format = :html if @context
               Hash === options_for_render.first ? 
                 @context.render(*options_for_render) : 
                   options_for_render.first.to_s
+            ensure
+              @context.template_format = old_format if @context
             end
           
             def javascript_object_for(object)
