@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixtures: correctly delete and insert fixtures in a single transaction.  #8553 [Michael Schuerig]
+
 * Fixtures: people(:technomancy, :josh) returns both fixtures.  #7880 [technomancy, Josh Peek]
 
 * Calculations support non-numeric foreign keys.  #8154 [kamal]

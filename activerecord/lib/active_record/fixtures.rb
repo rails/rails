@@ -255,7 +255,7 @@ class Fixtures < YAML::Omap
 
       all_loaded_fixtures.merge! fixtures_map  
 
-      connection.transaction(Thread.current['open_transactions'] == 0) do
+      connection.transaction(Thread.current['open_transactions'].to_i == 0) do
         fixtures.reverse.each { |fixture| fixture.delete_existing_fixtures }
         fixtures.each { |fixture| fixture.insert_fixtures }
 
