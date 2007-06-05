@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't double-escape url_for in views.  #8144 [Rich Collins, Josh Peek]
+
 * Allow JSON-style values for the :with option of observe_field.  Closes #8557 [kommen]
 
 * Remove RAILS_ROOT from backtrace paths.  #8540 [Tim Pope]

@@ -25,6 +25,11 @@ class UrlHelperTest < Test::Unit::TestCase
     assert_equal "http://www.example.com?a=b&c=d", url_for(:a => 'b', :c => 'd', :escape => false)
   end
 
+  def test_url_for_escapes_url_once
+    @controller.url = "http://www.example.com?a=b&amp;c=d"
+    assert_equal "http://www.example.com?a=b&amp;c=d", url_for("http://www.example.com?a=b&amp;c=d")
+  end
+
   # todo: missing test cases
   def test_button_to_with_straight_url
     assert_dom_equal "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com")
