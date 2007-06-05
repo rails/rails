@@ -4,7 +4,7 @@ class <%= migration_name %> < ActiveRecord::Migration
 <% for attribute in attributes -%>
       t.<%= attribute.type %> :<%= attribute.name %>
 <% end -%>
-    t.timestamps 
+      t.timestamps 
     end
   end
 
