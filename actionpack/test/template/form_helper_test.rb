@@ -15,7 +15,20 @@ silence_warnings do
       @new_record
     end
   end
+
+  class Comment
+    attr_reader :id
+    attr_reader :post_id
+    def save; @id = 1; @post_id = 1 end
+    def new_record?; @id.nil? end
+    def name
+      @id.nil? ? 'new comment' : "comment ##{@id}"
+    end
+  end
 end
+
+class Comment::Nested < Comment; end
+
 
 class FormHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::FormHelper
@@ -28,6 +41,7 @@ class FormHelperTest < Test::Unit::TestCase
 
   def setup
     @post = Post.new
+    @comment = Comment.new
     def @post.errors() 
       Class.new{ 
         def on(field); "can't be empty" if field == "author_name"; end 
@@ -579,6 +593,25 @@ class FormHelperTest < Test::Unit::TestCase
     assert_equal expected, _erbout
   end
 
+  def test_form_for_with_existing_object_in_list
+    @post.new_record = false
+    @comment.save
+    _erbout = ''
+    form_for([@post, @comment]) {}
+
+    expected = %(<form action="#{comment_path(@post, @comment)}" class="edit_comment" id="edit_comment_1" method="post"><div style="margin:0;padding:0"><input name="_method" type="hidden" value="put" /></div></form>)
+    assert_dom_equal expected, _erbout
+  end
+
+  def test_form_for_with_new_object_in_list
+    @post.new_record = false
+    _erbout = ''
+    form_for([@post, @comment]) {}
+
+    expected = %(<form action="#{comments_path(@post)}" class="new_comment" id="new_comment" method="post"></form>)
+    assert_dom_equal expected, _erbout
+  end
+
   def test_form_for_with_existing_object_and_custom_url
     _erbout = ''
 
@@ -600,11 +633,27 @@ class FormHelperTest < Test::Unit::TestCase
 
 
   protected
-    def polymorphic_path(record)
-      if record.new_record?
-        "/posts"
+    def comments_path(post)
+      "/posts/#{post.id}/comments"
+    end
+
+    def comment_path(post, comment)
+      "/posts/#{post.id}/comments/#{comment.id}"
+    end
+
+    def polymorphic_path(object, *nested_objects)
+      if nested_objects.empty?
+        if object.new_record?
+          "/posts"
+        else
+          "/posts/#{object.id}"
+        end
       else
-        "/posts/#{record.id}"
+        if object.new_record?
+          "/posts/123/comments"
+        else
+          "/posts/123/comments/#{object.id}"
+        end
       end
     end
 end

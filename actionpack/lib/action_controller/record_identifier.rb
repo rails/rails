@@ -25,7 +25,7 @@ module ActionController
   #     end
   #   end
   #
-  # As the example above shows, you can stop caring to a large extend what the actual id of the post is. You just know
+  # As the example above shows, you can stop caring to a large extent what the actual id of the post is. You just know
   # that one is being assigned and that the subsequent calls in redirect_to and the RJS expect that same naming 
   # convention and allows you to write less code if you follow it.
   module RecordIdentifier

@@ -163,9 +163,14 @@ module ActionView
         case record_or_name
         when String, Symbol
           object_name = record_or_name
+        when Array
+          object = record_or_name.last
+          object_name = ActionController::RecordIdentifier.singular_class_name(object)
+          apply_form_for_options!(object, options, *record_or_name)
+          args.unshift object
         else
-          object      = record_or_name
-          object_name = ActionController::RecordIdentifier.singular_class_name(record_or_name)
+          object = record_or_name
+          object_name = ActionController::RecordIdentifier.singular_class_name(object)
           apply_form_for_options!(object, options)
           args.unshift object
         end
@@ -174,18 +179,18 @@ module ActionView
         fields_for(object_name, *(args << options), &proc)
         concat('</form>', proc.binding)
       end
-      
-      def apply_form_for_options!(object, options) #:nodoc:
-        html_options = if object.respond_to?(:new_record?) && object.new_record?
-          { :class  => dom_class(object, :new),  :id => dom_id(object), :method => :post }
-        else
-          { :class  => dom_class(object, :edit), :id => dom_id(object, :edit), :method => :put }
-        end
-        
+
+      def apply_form_for_options!(object, options, *nested_objects) #:nodoc:
+        html_options =
+          if object.respond_to?(:new_record?) && object.new_record?
+            { :class  => dom_class(object, :new),  :id => dom_id(object), :method => :post }
+          else
+            { :class  => dom_class(object, :edit), :id => dom_id(object, :edit), :method => :put }
+          end
+
         options[:html] ||= {}
         options[:html].reverse_merge!(html_options)
-
-        options[:url] ||= polymorphic_path(object)
+        options[:url] ||= polymorphic_path(object, *nested_objects)
       end
 
       # Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes
