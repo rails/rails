@@ -641,19 +641,27 @@ class FormHelperTest < Test::Unit::TestCase
       "/posts/#{post.id}/comments/#{comment.id}"
     end
 
-    def polymorphic_path(object, *nested_objects)
-      if nested_objects.empty?
-        if object.new_record?
-          "/posts"
-        else
-          "/posts/#{object.id}"
-        end
+    def polymorphic_path(record_or_hash_or_array)  
+      if record_or_hash_or_array.is_a?(Array)
+        record = record_or_hash_or_array.pop
+        array = record_or_hash_or_array
       else
-        if object.new_record?
+        record = record_or_hash_or_array
+        array = [ ]
+      end
+      
+      if array.size > 0
+        if record.new_record? 
           "/posts/123/comments"
         else
-          "/posts/123/comments/#{object.id}"
+          "/posts/123/comments/#{record.id}"
         end
-      end
+      else
+        if record.new_record?
+          "/posts"
+        else
+          "/posts/#{record.id}"
+        end          
+      end        
     end
 end
