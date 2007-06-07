@@ -166,13 +166,12 @@ module ActionView
         when Array
           object = record_or_name_or_array.last
           object_name = ActionController::RecordIdentifier.singular_class_name(object)
-          # apply_form_for_options!(object, options, *record_or_name_or_array)
           apply_form_for_options!(record_or_name_or_array, options)
           args.unshift object
         else
           object = record_or_name_or_array
           object_name = ActionController::RecordIdentifier.singular_class_name(object)
-          apply_form_for_options!([ object ], options)
+          apply_form_for_options!([object], options)
           args.unshift object
         end
 

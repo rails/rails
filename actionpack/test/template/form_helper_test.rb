@@ -38,6 +38,7 @@ class FormHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TextHelper
   include ActionView::Helpers::ActiveRecordHelper
   include ActionView::Helpers::RecordIdentificationHelper
+  include ActionController::PolymorphicRoutes
 
   def setup
     @post = Post.new
@@ -636,32 +637,18 @@ class FormHelperTest < Test::Unit::TestCase
     def comments_path(post)
       "/posts/#{post.id}/comments"
     end
+    alias_method :post_comments_path, :comments_path
 
     def comment_path(post, comment)
       "/posts/#{post.id}/comments/#{comment.id}"
     end
-
-    def polymorphic_path(record_or_hash_or_array)  
-      if record_or_hash_or_array.is_a?(Array)
-        record = record_or_hash_or_array.pop
-        array = record_or_hash_or_array
-      else
-        record = record_or_hash_or_array
-        array = [ ]
-      end
-      
-      if array.size > 0
-        if record.new_record? 
-          "/posts/123/comments"
-        else
-          "/posts/123/comments/#{record.id}"
-        end
-      else
-        if record.new_record?
-          "/posts"
-        else
-          "/posts/#{record.id}"
-        end          
-      end        
+    alias_method :post_comment_path, :comment_path
+    
+    def posts_path
+      "/posts"
+    end 
+    
+    def post_path(post)
+      "/posts/#{post.id}"
     end
 end

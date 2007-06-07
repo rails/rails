@@ -3,7 +3,14 @@ module ActionController
     def polymorphic_url(record_or_hash_or_array, options = {})
       record = extract_record(record_or_hash_or_array)
 
-      args = []
+      args = case record_or_hash_or_array
+        when Hash: [record_or_hash_or_array[:id]]
+        when Array: record_or_hash_or_array.dup
+        else [record_or_hash_or_array]
+        end
+
+      args.pop # Remove the base record; we only need it in one case
+
       inflection =
         case
         when options[:action] == "new"
@@ -11,10 +18,10 @@ module ActionController
         when record.respond_to?(:new_record?) && record.new_record?
           :plural
         else
-          args = [record_or_hash_or_array]
+          args.push(record) # Put the base record back in
           :singular
         end
-
+      
       named_route = build_named_route_call(record_or_hash_or_array, inflection, options)
       send(named_route, *args)
     end
