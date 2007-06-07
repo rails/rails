@@ -172,6 +172,15 @@ class TestMailer < ActionMailer::Base
     body["recipient"] = recipient
   end
 
+  def custom_templating_extension(recipient)
+    recipients recipient
+    subject    "[Signed up] Welcome #{recipient}"
+    from       "system@loudthinking.com"
+    sent_on    Time.local(2004, 12, 12)
+
+    body["recipient"] = recipient
+  end
+
   def various_newlines(recipient)
     recipients   recipient
     subject      "various newlines"
@@ -329,7 +338,37 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_not_nil created
     assert_equal expected.encoded, created.encoded
   end
-  
+
+  def test_custom_templating_extension
+    #
+    # N.b., custom_templating_extension.text.plain.haml is expected to be in fixtures/test_mailer directory
+    expected = new_mail
+    expected.to      = @recipient
+    expected.subject = "[Signed up] Welcome #{@recipient}"
+    expected.body    = "Hello there, \n\nMr. #{@recipient}"
+    expected.from    = "system@loudthinking.com"
+    expected.date    = Time.local(2004, 12, 12)
+    
+    # Stub the render method so no alternative renderers need be present.
+    ActionView::Base.any_instance.stubs(:render).returns("Hello there, \n\nMr. #{@recipient}")
+    
+    # If the template is not registered, there should be no parts.
+    created = nil
+    assert_nothing_raised { created = TestMailer.create_custom_templating_extension(@recipient) }
+    assert_not_nil created
+    assert_equal 0, created.parts.length
+    
+    ActionMailer::Base.register_template_extension('haml')
+    
+    # Now that the template is registered, there should be one part. The text/plain part.
+    created = nil
+    assert_nothing_raised { created = TestMailer.create_custom_templating_extension(@recipient) }
+    assert_not_nil created
+    assert_equal 2, created.parts.length
+    assert_equal 'text/plain', created.parts[0].content_type
+    assert_equal 'text/html', created.parts[1].content_type
+  end
+
   def test_cancelled_account
     expected = new_mail
     expected.to      = @recipient

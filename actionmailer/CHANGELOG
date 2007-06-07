@@ -1,5 +1,7 @@
 *SVN*
 
+* Register alternative template engines using ActionMailer::Base.register_template_extension('haml').  #7534 [cwd, Josh Peek]
+
 * Only load ActionController::UrlWriter if ActionController is present [Rick Olson]
 
 * Make sure parsed emails recognized attachments nested inside multipart parts. #6714 [Jamis Buck]

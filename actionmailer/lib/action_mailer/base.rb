@@ -230,6 +230,9 @@ module ActionMailer #:nodoc:
     class_inheritable_accessor :template_root
     cattr_accessor :logger
 
+    cattr_accessor :template_extensions
+    @@template_extensions = ['erb', 'builder', 'rhtml', 'rxml']
+
     @@smtp_settings = { 
       :address        => "localhost", 
       :port           => 25, 
@@ -363,6 +366,17 @@ module ActionMailer #:nodoc:
       def deliver(mail)
         new.deliver!(mail)
       end
+
+      # Register a template extension so mailer templates written in a
+      # templating language other than rhtml or rxml are supported.
+      # To use this, include in your template-language plugin's init
+      # code or on a per-application basis, this can be invoked from
+      # config/environment.rb:
+      #
+      #   ActionMailer::Base.register_template_extension('haml')
+      def register_template_extension(extension)
+        template_extensions << extension
+      end
     end
 
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
@@ -388,9 +402,9 @@ module ActionMailer #:nodoc:
         if @parts.empty?
           templates = Dir.glob("#{template_path}/#{@template}.*")
           templates.each do |path|
-            # TODO: don't hardcode erb|builder
             basename = File.basename(path)
-            next unless md = /^([^\.]+)\.([^\.]+\.[^\.]+)\.(erb|builder|rhtml|rxml)$/.match(basename)
+            template_regex = Regexp.new("^([^\\\.]+)\\\.([^\\\.]+\\\.[^\\\.]+)\\\.(" + template_extensions.join('|') + ")$")
+            next unless md = template_regex.match(basename)
             template_name = basename
             content_type = md.captures[1].gsub('.', '/')
             @parts << Part.new(:content_type => content_type,
