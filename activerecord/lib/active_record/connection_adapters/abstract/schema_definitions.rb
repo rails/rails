@@ -351,7 +351,8 @@ module ActiveRecord
       # There's a short-hand method for each of the type values declared at the top. And then there's 
       # TableDefinition#timestamps that'll add created_at and updated_at as datetimes.
       def column(name, type, options = {})
-        column = self[name] || ColumnDefinition.new(@base, name, type)
+        raise "You already defined column '#{name}'." if self[name]
+        column = ColumnDefinition.new(@base, name, type)
         column.limit = options[:limit] || native[type.to_sym][:limit] if options[:limit] or native[type.to_sym]
         column.precision = options[:precision]
         column.scale = options[:scale]
