@@ -31,6 +31,11 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal "Hello Wor...", truncate("Hello World!!", 12)
   end
 
+  def test_truncate_should_use_default_length_of_30
+    str = "This is a string that will go longer then the default truncate length of 30"
+    assert_equal str[0...27] + "...", truncate(str)
+  end
+
   def test_truncate_multibyte
     with_kcode 'none' do
       assert_equal "\354\225\210\353\205\225\355...", truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", 10) 
@@ -124,6 +129,19 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal("1.25 counts", pluralize('1.25', "count"))
     assert_equal("2 counters", pluralize(2, "count", "counters"))
     assert_equal("0 counters", pluralize(nil, "count", "counters"))
+    assert_equal("2 people", pluralize(2, "person"))
+    assert_equal("10 buffaloes", pluralize(10, "buffalo")) 
+  end
+
+  uses_mocha("should_just_add_s_for_pluralize_without_inflector_loaded") do
+    def test_should_just_add_s_for_pluralize_without_inflector_loaded
+      Object.expects(:const_defined?).with("Inflector").times(4).returns(false)
+      assert_equal("1 count", pluralize(1, "count"))
+      assert_equal("2 persons", pluralize(2, "person"))
+      assert_equal("2 personss", pluralize("2", "persons"))
+      assert_equal("2 counts", pluralize(2, "count"))
+      assert_equal("10 buffalos", pluralize(10, "buffalo"))
+    end
   end
 
   def test_auto_link_parsing
