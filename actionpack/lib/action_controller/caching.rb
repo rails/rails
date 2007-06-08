@@ -240,20 +240,22 @@ module ActionController #:nodoc:
         end
 
         def after(controller)
-          return if !@actions.include?(controller.action_name.intern) || controller.rendered_action_cache
+          return if !@actions.include?(controller.action_name.intern) || controller.rendered_action_cache || !caching_allowed(controller)
           controller.write_fragment(controller.action_cache_path.path, controller.response.body)
         end
-        
+
         private
-          
           def set_content_type!(controller, extension)
             controller.response.content_type = Mime::EXTENSION_LOOKUP[extension].to_s if extension
           end
-          
+
           def path_options_for(controller, options)
             ((path_options = options[:cache_path]).respond_to?(:call) ? path_options.call(controller) : path_options) || {}
           end
-          
+
+          def caching_allowed(controller)
+            controller.request.get? && controller.response.headers['Status'].to_i == 200
+          end
       end
       
       class ActionCachePath

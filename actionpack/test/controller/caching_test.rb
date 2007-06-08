@@ -121,7 +121,7 @@ end
 
 
 class ActionCachingTestController < ActionController::Base
-  caches_action :index
+  caches_action :index, :redirected, :forbidden
   caches_action :show, :cache_path => 'http://test.host/custom/show'
   caches_action :edit, :cache_path => Proc.new { |c| c.params[:id] ? "http://test.host/#{c.params[:id]};edit" : "http://test.host/edit" }
 
@@ -129,7 +129,16 @@ class ActionCachingTestController < ActionController::Base
     @cache_this = Time.now.to_f.to_s
     render :text => @cache_this
   end
-  
+
+  def redirected
+    redirect_to :action => 'index'
+  end
+
+  def forbidden
+    render :text => "Forbidden"
+    headers["Status"] = "403 Forbidden"
+  end
+
   alias_method :show, :index
   alias_method :edit, :index
 
@@ -243,6 +252,24 @@ class ActionCacheTest < Test::Unit::TestCase
     @request.host = 'david.hostname.com'
     get :index
     assert_equal david_cache, @response.body
+  end
+
+  def test_redirect_is_not_cached
+    get :redirected
+    assert_response :redirect
+    reset!
+
+    get :redirected
+    assert_response :redirect
+  end
+
+  def test_forbidden_is_not_cached
+    get :forbidden
+    assert_response :forbidden
+    reset!
+
+    get :forbidden
+    assert_response :forbidden
   end
 
   def test_xml_version_of_resource_is_treated_as_different_cache

@@ -1,5 +1,7 @@
 *SVN*
 
+* Action caching is limited to GET requests returning 200 OK status.  #3335 [tom@craz8.com, halfbyte, Dan Kubb, Josh Peek]
+
 * Improve Text Helper test coverage.  #7274 [Rob Sanheim, Josh Peek]
 
 * Improve Action View test coverage.  #7241, #7243, #7244 [Rich Collins]
