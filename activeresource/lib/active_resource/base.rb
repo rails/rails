@@ -415,7 +415,7 @@ module ActiveResource
           when "="
             attributes[method_name.first(-1)] = arguments.first
           when "?"
-            attributes[method_name.first(-1)] == true
+            attributes[method_name.first(-1)]
           else
             attributes.has_key?(method_name) ? attributes[method_name] : super
         end

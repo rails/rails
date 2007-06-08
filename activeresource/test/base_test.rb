@@ -181,6 +181,7 @@ class BaseTest < Test::Unit::TestCase
     matz = Person.find(1)
     assert_kind_of Person, matz
     assert_equal "Matz", matz.name
+    assert matz.name?
   end
   
   def test_respond_to

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix query methods on resources. [Cody Fauser]
+
 * pass the prefix_options to the instantiated record when using find without a specific id. Closes #8544 [alloy]
 
 * Recognize and raise an exception on 405 Method Not Allowed responses.  #7692 [Josh Peek]
