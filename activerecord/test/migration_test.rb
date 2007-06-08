@@ -807,22 +807,6 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
-    def test_should_disallow_duplicate_column_definition
-      assert_raises(ActiveRecord::StatementInvalid) do
-        Person.connection.add_column("people", "full_name", :string, :limit => 40)
-        Person.connection.add_column("people", "full_name", :text)
-      end
-
-      assert_raises(RuntimeError) do
-        Person.connection.create_table :people_with_errors do |t|
-          t.column "full_name", :string, :limit => 40
-          t.column "full_name", :text
-        end
-      end
-
-      Person.reset_column_information
-    end
-
   end
 end
 
