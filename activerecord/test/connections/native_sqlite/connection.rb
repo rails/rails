@@ -14,7 +14,7 @@ def make_connection(clazz, db_file)
   ActiveRecord::Base.configurations = { clazz.name => { :adapter => 'sqlite', :database => db_file } }
   unless File.exist?(db_file)
     puts "SQLite database not found at #{db_file}. Rebuilding it."
-    sqlite_command = %Q{sqlite #{db_file} "create table a (a integer); drop table a;"}
+    sqlite_command = %Q{sqlite "#{db_file}" "create table a (a integer); drop table a;"}
     puts "Executing '#{sqlite_command}'"
     raise SqliteError.new("Seems that there is no sqlite executable available") unless system(sqlite_command)
   end
