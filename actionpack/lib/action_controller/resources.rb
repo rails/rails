@@ -31,7 +31,7 @@ module ActionController
   #   POST /posts # with => { :title => "My Whizzy New Post", :body => "I've got a brand new combine harvester" }
   #
   #   # A PUT request on a single Post resource is asking for a Post to be updated
-  #   POST /posts # with => { :id => 1, :title => "Changed Whizzy Title" }
+  #   PUT /posts # with => { :id => 1, :title => "Changed Whizzy Title" }
   #
   #   # A DELETE request on a single Post resource is asking for it to be deleted
   #   DELETE /posts # with => { :id => 1 }
