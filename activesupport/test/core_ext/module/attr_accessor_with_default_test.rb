@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../abstract_unit'
 
-class AttrWithDefaultTest < Test::Unit::TestCase
+class AttrAccessorWithDefaultTest < Test::Unit::TestCase
   def setup
     @target = Class.new do
       def helper
