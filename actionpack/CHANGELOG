@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve Action View test coverage.  #7241, #7243, #7244 [Rich Collins]
+
 * Resources: url_for([parent, child]) generates /parents/1/children/2 for the nested resource. Likewise with the other simply helpful methods like form_for and link_to.  #6432 [mhw, Jonathan Vaught, lotswholetime]
 
 * Assume html format when rendering partials in RJS. #8076 [Rick]
