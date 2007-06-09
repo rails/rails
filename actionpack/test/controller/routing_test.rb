@@ -599,18 +599,18 @@ class SegmentTest < Test::Unit::TestCase
 end
 
 class StaticSegmentTest < Test::Unit::TestCase
-  
+
   def test_interpolation_chunk_should_respect_raw
     s = ROUTING::StaticSegment.new
-    s.value = 'Hello/World'
+    s.value = 'Hello World'
     assert ! s.raw?
-    assert_equal 'Hello/World', CGI.unescape(s.interpolation_chunk)
-    
+    assert_equal 'Hello%20World', s.interpolation_chunk
+
     s.raw = true
     assert s.raw?
-    assert_equal 'Hello/World', s.interpolation_chunk
+    assert_equal 'Hello World', s.interpolation_chunk
   end
-  
+
   def test_regexp_chunk_should_escape_specials
     s = ROUTING::StaticSegment.new
     
