@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove ActiveResource::Struct because it hasn't proven very useful. Creating a new ActiveResource::Base subclass is often less code and always clearer.  #8612 [Josh Peek]
+
 * Fix query methods on resources. [Cody Fauser]
 
 * pass the prefix_options to the instantiated record when using find without a specific id. Closes #8544 [alloy]
