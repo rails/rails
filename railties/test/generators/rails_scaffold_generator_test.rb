@@ -68,7 +68,7 @@ class RailsScaffoldGeneratorTest < Test::Unit::TestCase
     Dir.mkdir("#{RAILS_ROOT}/test/fixtures") unless File.exists?("#{RAILS_ROOT}/test/fixtures")
     Dir.mkdir("#{RAILS_ROOT}/public") unless File.exists?("#{RAILS_ROOT}/public")
     Dir.mkdir("#{RAILS_ROOT}/public/stylesheets") unless File.exists?("#{RAILS_ROOT}/public/stylesheets")
-    File.open("#{RAILS_ROOT}/config/routes.rb",'w') do |f|
+    File.open("#{RAILS_ROOT}/config/routes.rb", 'w') do |f|
       f<<"ActionController::Routing::Routes.draw do |map|\n\nend\n"
     end
   end
@@ -97,19 +97,19 @@ class RailsScaffoldGeneratorTest < Test::Unit::TestCase
 
     assert_generated_controller_for :products do |f|
 
-      assert_has_method f,:index do |name,m|
+      assert_has_method f, :index do |name, m|
         assert_match /@products = Product\.find\(:all\)/, m, "#{name} should query products table"
       end
 
-      assert_has_method f,:show,:edit,:update,:destroy  do |name,m|
+      assert_has_method f, :show, :edit, :update, :destroy do |name, m|
         assert_match /@product = Product\.find\(params\[:id\]\)/, m, "#{name.to_s} should query products table"
       end
 
-      assert_has_method f,:new  do |name,m|
+      assert_has_method f, :new do |name, m|
         assert_match /@product = Product\.new/, m, "#{name.to_s} should instantiate a product"
       end
 
-      assert_has_method f,:create  do |name,m|
+      assert_has_method f, :create do |name, m|
         assert_match /@product = Product\.new\(params\[:product\]\)/, m, "#{name.to_s} should instantiate a product"
         assert_match /format.xml  \{ render :xml => @product.errors, :status => :unprocessable_entity \}/, m, "#{name.to_s} should set status to :unprocessable_entity code for xml"
       end
@@ -122,7 +122,7 @@ class RailsScaffoldGeneratorTest < Test::Unit::TestCase
     assert_generated_fixtures_for :products
     assert_generated_helper_for :products
     assert_generated_stylesheet :scaffold
-    assert_generated_views_for :products, "index.html.erb","new.html.erb","edit.html.erb","show.html.erb"
+    assert_generated_views_for :products, "index.html.erb", "new.html.erb", "edit.html.erb", "show.html.erb"
     assert_generated_migration :create_products
     assert_added_route_for :products
   end
@@ -132,19 +132,19 @@ class RailsScaffoldGeneratorTest < Test::Unit::TestCase
 
     assert_generated_controller_for :products do |f|
 
-      assert_has_method f,:index do |name,m|
+      assert_has_method f, :index do |name, m|
         assert_match /@products = Product\.find\(:all\)/, m, "#{name} should query products table"
       end
 
-      assert_has_method f,:show,:edit,:update,:destroy  do |name,m|
+      assert_has_method f, :show, :edit, :update, :destroy do |name, m|
         assert_match /@product = Product\.find\(params\[:id\]\)/, m, "#{name.to_s} should query products table"
       end
 
-      assert_has_method f,:new  do |name,m|
+      assert_has_method f, :new do |name, m|
         assert_match /@product = Product\.new/, m, "#{name.to_s} should instantiate a product"
       end
 
-      assert_has_method f,:create  do |name,m|
+      assert_has_method f, :create do |name, m|
         assert_match /@product = Product\.new\(params\[:product\]\)/, m, "#{name.to_s} should instantiate a product"
         assert_match /format.xml  \{ render :xml => @product.errors, :status => :unprocessable_entity \}/, m, "#{name.to_s} should set status to :unprocessable_entity code for xml"
       end
@@ -157,11 +157,11 @@ class RailsScaffoldGeneratorTest < Test::Unit::TestCase
     assert_generated_fixtures_for :products
     assert_generated_helper_for :products
     assert_generated_stylesheet :scaffold
-    assert_generated_views_for :products, "index.html.erb","new.html.erb","edit.html.erb","show.html.erb"
+    assert_generated_views_for :products, "index.html.erb", "new.html.erb", "edit.html.erb", "show.html.erb"
     assert_generated_migration :create_products do |t|
       assert_generated_column t, :name, :string
       assert_generated_column t, :supplier_id, :integer
-      assert_generated_column t, :created_at,:timestamp
+      assert_generated_column t, :created_at, :timestamp
     end
 
     assert_added_route_for :products
