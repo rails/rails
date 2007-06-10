@@ -14,7 +14,7 @@ module ActiveRecord
     end
     self.pluralize_table_names = true
   end
-  
+
   module ConnectionAdapters
     class Column
       attr_reader :name, :default, :type, :limit, :null, :sql_type, :precision, :scale
@@ -24,7 +24,7 @@ module ActiveRecord
         @default=default
         @type=@sql_type=sql_type
       end
-      
+
       def human_name
         @name.humanize
       end
@@ -54,9 +54,9 @@ require 'rails_generator'
 require "#{File.dirname(__FILE__)}/generator_test_helper"
 
 class RailsScaffoldGeneratorTest < Test::Unit::TestCase
-  
+
   include GeneratorTestHelper
-  
+
   def setup
     ActiveRecord::Base.pluralize_table_names = true
     Dir.mkdir("#{RAILS_ROOT}/app") unless File.exists?("#{RAILS_ROOT}/app")
@@ -70,9 +70,9 @@ class RailsScaffoldGeneratorTest < Test::Unit::TestCase
     Dir.mkdir("#{RAILS_ROOT}/public/stylesheets") unless File.exists?("#{RAILS_ROOT}/public/stylesheets")
     File.open("#{RAILS_ROOT}/config/routes.rb",'w') do |f|
       f<<"ActionController::Routing::Routes.draw do |map|\n\nend\n"
-    end    
+    end
   end
-  
+
   def teardown
     FileUtils.rm_rf "#{RAILS_ROOT}/app"
     FileUtils.rm_rf "#{RAILS_ROOT}/test"
@@ -80,7 +80,7 @@ class RailsScaffoldGeneratorTest < Test::Unit::TestCase
     FileUtils.rm_rf "#{RAILS_ROOT}/db"
     FileUtils.rm_rf "#{RAILS_ROOT}/public"
   end
-  
+
   def test_scaffolded_names
     g = Rails::Generator::Base.instance('scaffold', %w(ProductLine))
     assert_equal "ProductLines", g.controller_name
@@ -90,31 +90,32 @@ class RailsScaffoldGeneratorTest < Test::Unit::TestCase
     assert_equal "product_lines", g.controller_file_name
     assert_equal "product_lines", g.controller_table_name
   end
-  
+
   def test_scaffold_generates_resources
-    
+
     run_generator('scaffold', %w(Product))
-    
+
     assert_generated_controller_for :products do |f|
-      
+
       assert_has_method f,:index do |name,m|
-        assert m=~/@products = Product\.find\(:all\)/,"#{name} should query products table"
+        assert_match /@products = Product\.find\(:all\)/, m, "#{name} should query products table"
       end
-      
+
       assert_has_method f,:show,:edit,:update,:destroy  do |name,m|
-        assert m=~/@product = Product\.find\(params\[:id\]\)/,"#{name.to_s} should query products table"
+        assert_match /@product = Product\.find\(params\[:id\]\)/, m, "#{name.to_s} should query products table"
       end
 
       assert_has_method f,:new  do |name,m|
-        assert m=~/@product = Product\.new/,"#{name.to_s} should instantiate a product"
+        assert_match /@product = Product\.new/, m, "#{name.to_s} should instantiate a product"
       end
 
       assert_has_method f,:create  do |name,m|
-        assert m=~/@product = Product\.new\(params\[:product\]\)/,"#{name.to_s} should instantiate a product"
+        assert_match /@product = Product\.new\(params\[:product\]\)/, m, "#{name.to_s} should instantiate a product"
+        assert_match /format.xml  \{ render :xml => @product.errors, :status => :unprocessable_entity \}/, m, "#{name.to_s} should set status to :unprocessable_entity code for xml"
       end
-      
+
     end
-    
+
     assert_generated_model_for :product
     assert_generated_functional_test_for :products
     assert_generated_unit_test_for :product
@@ -128,27 +129,28 @@ class RailsScaffoldGeneratorTest < Test::Unit::TestCase
 
   def test_scaffold_generates_resources_with_attributes
     run_generator('scaffold', %w(Product name:string supplier_id:integer created_at:timestamp))
-    
+
     assert_generated_controller_for :products do |f|
-      
+
       assert_has_method f,:index do |name,m|
-        assert m=~/@products = Product\.find\(:all\)/,"#{name} should query products table"
+        assert_match /@products = Product\.find\(:all\)/, m, "#{name} should query products table"
       end
-      
+
       assert_has_method f,:show,:edit,:update,:destroy  do |name,m|
-        assert m=~/@product = Product\.find\(params\[:id\]\)/,"#{name.to_s} should query products table"
+        assert_match /@product = Product\.find\(params\[:id\]\)/, m, "#{name.to_s} should query products table"
       end
 
       assert_has_method f,:new  do |name,m|
-        assert m=~/@product = Product\.new/,"#{name.to_s} should instantiate a product"
+        assert_match /@product = Product\.new/, m, "#{name.to_s} should instantiate a product"
       end
 
       assert_has_method f,:create  do |name,m|
-        assert m=~/@product = Product\.new\(params\[:product\]\)/,"#{name.to_s} should instantiate a product"
+        assert_match /@product = Product\.new\(params\[:product\]\)/, m, "#{name.to_s} should instantiate a product"
+        assert_match /format.xml  \{ render :xml => @product.errors, :status => :unprocessable_entity \}/, m, "#{name.to_s} should set status to :unprocessable_entity code for xml"
       end
-      
+
     end
-    
+
     assert_generated_model_for :product
     assert_generated_functional_test_for :products
     assert_generated_unit_test_for :product
@@ -161,7 +163,7 @@ class RailsScaffoldGeneratorTest < Test::Unit::TestCase
       assert_generated_column t, :supplier_id, :integer
       assert_generated_column t, :created_at,:timestamp
     end
-    
+
     assert_added_route_for :products
   end
 end

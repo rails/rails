@@ -1,5 +1,7 @@
 *SVN*
 
+* Scaffolded validation errors set the appropriate HTTP status for XML responses.  #8622 [mmmultiworks]
+
 * Sexy migrations for the session_migration generator.  #8561 [Vladislav]
 
 * Console reload! runs to_prepare callbacks also.  #8393 [f.svehla]
