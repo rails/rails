@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix syntax error in dispatcher than wrecked failsafe responses.  #8625 [mtitorenko]
+
 * Add Active Resource to rails:freeze:edge and drop Action Web Service.  #8205 [underbluewaters, Jeremy Kemper]
 
 * Give generate scaffold a more descriptive database message.  Closes #7316 [jeremymcanally]
