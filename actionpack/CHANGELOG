@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecation: remove pagination. Install the classic_pagination plugin for forward compatibility, or move to the superior will_paginate plugin.  #8157 [Josh Peek]
+
 * Action caching is limited to GET requests returning 200 OK status.  #3335 [tom@craz8.com, halfbyte, Dan Kubb, Josh Peek]
 
 * Improve Text Helper test coverage.  #7274 [Rob Sanheim, Josh Peek]
