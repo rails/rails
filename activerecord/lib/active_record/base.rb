@@ -911,11 +911,6 @@ module ActiveRecord #:nodoc:
         connection.quote(value,column)
       end
 
-      def quote(value, column = nil) #:nodoc:
-        connection.quote(value, column)
-      end
-      deprecate :quote => :quote_value
-
       # Used to sanitize objects before they're used in an SELECT SQL-statement. Delegates to <tt>connection.quote</tt>.
       def sanitize(object) #:nodoc:
         connection.quote(object)
@@ -2207,13 +2202,6 @@ module ActiveRecord #:nodoc:
         self.class.connection.quote(value, column)
       end
 
-      # Deprecated, use quote_value
-      def quote(value, column = nil)
-        self.class.connection.quote(value, column)
-      end
-      deprecate :quote => :quote_value
-      
-      
       # Interpolate custom sql string in instance context.
       # Optional record argument is meant for custom insert_sql.
       def interpolate_sql(sql, record = nil)
