@@ -50,7 +50,7 @@
 
 * Document warning that associations names shouldn't be reserved words.  #4378 [murphy@cYcnus.de, Josh Susser]
 
-* Sanitize Base#inspect.  #8392 [Nik Wakelin]
+* Sanitize Base#inspect.  #8392, #8623 [Nik Wakelin, jnoon]
 
 * Replace the transaction {|transaction|..} semantics with a new Exception ActiveRecord::Rollback.   [Koz]
 

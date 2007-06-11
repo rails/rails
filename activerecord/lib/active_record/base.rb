@@ -1852,7 +1852,6 @@ module ActiveRecord #:nodoc:
 
       # Format attributes nicely for inspect.
       def attribute_for_inspect(attr_name)
-        raise "Attribute not present #{attr_name}" unless has_attribute?(attr_name) || new_record?
         value = read_attribute(attr_name)
 
         if value.is_a?(String) && value.length > 50
@@ -1947,8 +1946,10 @@ module ActiveRecord #:nodoc:
       # Nice pretty inspect.
       def inspect
         attributes_as_nice_string = self.class.column_names.collect { |name|
-          "#{name}: #{attribute_for_inspect(name)}"
-        }.join(", ")
+          if has_attribute?(name) || new_record?
+            "#{name}: #{attribute_for_inspect(name)}"
+          end
+        }.compact.join(", ")
         "#<#{self.class} #{attributes_as_nice_string}>"
       end
 

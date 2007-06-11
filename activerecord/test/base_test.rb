@@ -1695,6 +1695,11 @@ class BasicsTest < Test::Unit::TestCase
     assert_match /Topic id: nil/, Topic.new.inspect
   end
 
+  def test_inspect_limited_select_instance
+    assert_equal %(#<Topic id: 1>), Topic.find(:first, :select => 'id', :conditions => 'id = 1').inspect
+    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.find(:first, :select => 'id, title', :conditions => 'id = 1').inspect
+  end
+
   def test_attribute_for_inspect
     t = topics(:first)
     t.content = %(This is some really long content, longer than 50 characters, so I can test that text is truncated correctly by the new ActiveRecord::Base#inspect method! Yay! BOOM!)
