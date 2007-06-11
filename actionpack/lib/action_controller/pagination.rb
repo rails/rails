@@ -1,7 +1,9 @@
 module ActionController
   # === Action Pack pagination for Active Record collections
   #
-  # DEPRECATION WARNING: Pagination will be separated into its own plugin with Rails 2.0.
+  # DEPRECATION WARNING: Pagination will be moved to a plugin in Rails 2.0.
+  # Install the classic_pagination plugin for forward compatibility:
+  #   script/plugin install svn://errtheblog.com/svn/plugins/classic_pagination
   #
   # The Pagination module aids in the process of paging large collections of
   # Active Record objects. It offers macro-style automatic fetching of your
@@ -130,6 +132,8 @@ module ActionController
       paginator_and_collection_for(collection_id, options)
     end
 
+    deprecate :paginate => 'Pagination is moving to a plugin in Rails 2.0: script/plugin install svn://errtheblog.com/svn/plugins/classic_pagination'
+
     # These methods become class methods on any controller 
     module ClassMethods
       # Creates a +before_filter+ which automatically paginates an Active
@@ -148,6 +152,8 @@ module ActionController
           OPTIONS[self][collection_id] = options
         end
       end
+
+      deprecate :paginate => 'Pagination is moving to a plugin in Rails 2.0: script/plugin install svn://errtheblog.com/svn/plugins/classic_pagination'
     end
 
     def create_paginators_and_retrieve_collections #:nodoc:

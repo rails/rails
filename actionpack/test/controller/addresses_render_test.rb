@@ -39,7 +39,10 @@ class AddressesTest < Test::Unit::TestCase
   end
 
   def test_list
-    get :list
+    # because pagination is deprecated
+    ActiveSupport::Deprecation.silence do
+      get :list
+    end
     assert_equal "We only need to get this far!", @response.body.chomp
   end
 end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecate pagination. Install the classic_pagination plugin for forward compatibility, or move to the superior will_paginate plugin.  #8157 [Mislav Marohnic]
+
 * Fix filtered parameter logging with nil parameter values.  #8422 [choonkeat]
 
 * Integration tests: alias xhr to xml_http_request and add a request_method argument instead of always using POST.  #7124 [Nik Wakelin, Francois Beausoleil, Wizard]
@@ -465,7 +467,7 @@
 
 * Avoid naming collision among compiled view methods. [Jeremy Kemper]
 
-* Fix CGI extensions when they expect string but get nil in Windows. Closes #5276 [mislav@nippur.irb.hr]
+* Fix CGI extensions when they expect string but get nil in Windows. Closes #5276 [Mislav Marohnic]
 
 * Determine the correct template_root for deeply nested components.  #2841 [s.brink@web.de]
 

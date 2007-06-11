@@ -5,6 +5,8 @@ class PaginationTest < ActiveRecordTestCase
   
   class PaginationController < ActionController::Base
     self.template_root = "#{File.dirname(__FILE__)}/../fixtures/"
+
+    around_filter :silence_deprecation_warnings
     
     def simple_paginate
       @topic_pages, @topics = paginate(:topics)
@@ -66,6 +68,13 @@ class PaginationTest < ActiveRecordTestCase
                                              :conditions => 'project_id=1',
                                              :count => "d.id")        
       render :nothing => true
+    end
+
+
+    def silence_deprecation_warnings
+      ActiveSupport::Deprecation.silence do
+        yield
+      end
     end
     
     def rescue_errors(e) raise e end

@@ -1,6 +1,12 @@
 require File.dirname(__FILE__) + '/../../abstract_unit'
 
 class DeprecatedBaseMethodsTest < Test::Unit::TestCase
+  # ActiveRecord model mock to test pagination deprecation
+  class DummyModel
+    def self.find(*args) [] end
+    def self.count(*args) 0 end
+  end
+
   class Target < ActionController::Base
     def deprecated_symbol_parameter_to_url_for
       redirect_to(url_for(:home_url, "superstars"))
@@ -18,6 +24,11 @@ class DeprecatedBaseMethodsTest < Test::Unit::TestCase
       this_method_doesnt_exist
     end
 
+    def pagination
+      paginate :dummy_models, :class_name => 'DeprecatedBaseMethodsTest::DummyModel'
+      render :nothing => true
+    end
+
     def rescue_action(e) raise e end
   end
 
@@ -27,6 +38,7 @@ class DeprecatedBaseMethodsTest < Test::Unit::TestCase
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
     @controller = Target.new
+    @controller.logger = Logger.new(nil) unless @controller.logger
   end
 
   def test_deprecated_symbol_parameter_to_url_for
@@ -56,5 +68,11 @@ class DeprecatedBaseMethodsTest < Test::Unit::TestCase
   rescue => e
     error = Test::Unit::Error.new('testing ur doodz', e)
     assert_not_deprecated { error.message }
+  end
+
+  def test_pagination_deprecation
+    assert_deprecated('svn://errtheblog.com/svn/plugins/classic_pagination') do
+      get :pagination
+    end
   end
 end
