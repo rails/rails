@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix syntax error in dispatcher than wrecked failsafe responses.  #8625 [mtitorenko]
+
 * Scaffolded validation errors set the appropriate HTTP status for XML responses.  #6946, #8622 [Manfred Stienstra, mmmultiworks]
 
 * Sexy migrations for the session_migration generator.  #8561 [Vladislav]

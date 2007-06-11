@@ -40,8 +40,7 @@ class Dispatcher
       end
     rescue Exception => exception  # errors from CGI dispatch
       failsafe_response(cgi, output, '500 Internal Server Error', exception) do
-        controller ||= ApplicationController rescue LoadError nil
-        controller ||= ActionController::Base
+        controller ||= ApplicationController rescue ActionController::Base
         controller.process_with_exception(request, response, exception).out(output)
       end
     ensure
