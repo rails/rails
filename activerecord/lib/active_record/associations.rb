@@ -1205,7 +1205,6 @@ module ActiveRecord
           deprecated_remove_association_relation(association_name)
           deprecated_has_collection_method(association_name)
           deprecated_find_in_collection_method(association_name)
-          deprecated_find_all_in_collection_method(association_name)
           deprecated_collection_create_method(association_name)
           deprecated_collection_build_method(association_name)
         end

@@ -534,44 +534,30 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_find_all
-    assert_deprecated 'find_all' do
-      firm = Firm.find_first
-      assert_equal firm.clients, firm.clients.find_all
-      assert_equal 2, firm.clients.find(:all, :conditions => "#{QUOTED_TYPE} = 'Client'").length
-      assert_equal 1, firm.clients.find(:all, :conditions => "name = 'Summit'").length
-    end
+    firm = Firm.find(:first)
+    assert_equal 2, firm.clients.find(:all, :conditions => "#{QUOTED_TYPE} = 'Client'").length
+    assert_equal 1, firm.clients.find(:all, :conditions => "name = 'Summit'").length
   end
 
   def test_find_all_sanitized
-    assert_deprecated 'find_all' do
-      firm = Firm.find_first
-      assert_equal firm.clients.find_all("name = 'Summit'"), firm.clients.find_all(["name = '%s'", "Summit"])
-      summit = firm.clients.find(:all, :conditions => "name = 'Summit'")
-      assert_equal summit, firm.clients.find(:all, :conditions => ["name = ?", "Summit"])
-      assert_equal summit, firm.clients.find(:all, :conditions => ["name = :name", { :name => "Summit" }])
-    end
+    firm = Firm.find(:first)
+    summit = firm.clients.find(:all, :conditions => "name = 'Summit'")
+    assert_equal summit, firm.clients.find(:all, :conditions => ["name = ?", "Summit"])
+    assert_equal summit, firm.clients.find(:all, :conditions => ["name = :name", { :name => "Summit" }])
   end
 
   def test_find_first
-    assert_deprecated 'find_first' do
-      firm = Firm.find_first
-      client2 = Client.find(2)
-      assert_equal firm.clients.first, firm.clients.find_first
-      assert_equal client2, firm.clients.find_first("#{QUOTED_TYPE} = 'Client'")
-      assert_equal client2, firm.clients.find(:first, :conditions => "#{QUOTED_TYPE} = 'Client'")
-    end
+    firm = Firm.find(:first)
+    client2 = Client.find(2)
+    assert_equal firm.clients.first, firm.clients.find(:first)
+    assert_equal client2, firm.clients.find(:first, :conditions => "#{QUOTED_TYPE} = 'Client'")
   end
 
   def test_find_first_sanitized
-    assert_deprecated 'find_first' do
-      firm = Firm.find_first
-      client2 = Client.find(2)
-      assert_deprecated(/find_first/) do
-        assert_equal client2, firm.clients.find_first(["#{QUOTED_TYPE} = ?", "Client"])
-      end
-      assert_equal client2, firm.clients.find(:first, :conditions => ["#{QUOTED_TYPE} = ?", 'Client'])
-      assert_equal client2, firm.clients.find(:first, :conditions => ["#{QUOTED_TYPE} = :type", { :type => 'Client' }])
-    end
+    firm = Firm.find(:first)
+    client2 = Client.find(2)
+    assert_equal client2, firm.clients.find(:first, :conditions => ["#{QUOTED_TYPE} = ?", 'Client'])
+    assert_equal client2, firm.clients.find(:first, :conditions => ["#{QUOTED_TYPE} = :type", { :type => 'Client' }])
   end
 
   def test_find_in_collection
@@ -1647,7 +1633,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert david.projects(true).empty?
   end
 
-  def test_rich_association
+  def test_deprecated_push_with_attributes_was_removed
     jamis = developers(:jamis)
     assert_raise(NoMethodError) do
       jamis.projects.push_with_attributes(projects(:action_controller), :joined_on => Date.today)

@@ -1,7 +1,6 @@
 require 'base64'
 require 'yaml'
 require 'set'
-require 'active_record/deprecated_finders'
 
 module ActiveRecord #:nodoc:
   class ActiveRecordError < StandardError #:nodoc:
@@ -1207,7 +1206,7 @@ module ActiveRecord #:nodoc:
         # or find_or_create_by_user_and_password(user, password).
         def method_missing(method_id, *arguments)
           if match = /^find_(all_by|by)_([_a-zA-Z]\w*)$/.match(method_id.to_s)
-            finder, deprecated_finder = determine_finder(match), determine_deprecated_finder(match)
+            finder = determine_finder(match)
 
             attribute_names = extract_attribute_names_from_match(match)
             super unless all_attributes_exists?(attribute_names)
@@ -1234,9 +1233,7 @@ module ActiveRecord #:nodoc:
                 end
 
               else
-                ActiveSupport::Deprecation.silence do
-                  send(deprecated_finder, sanitize_sql(attributes), *arguments[attribute_names.length..-1])
-                end
+                raise ArgumentError, "Unrecognized arguments for #{method_id}: #{extra_options.inspect}"
             end
           elsif match = /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/.match(method_id.to_s)
             instantiator = determine_instantiator(match)
@@ -1260,10 +1257,6 @@ module ActiveRecord #:nodoc:
 
         def determine_finder(match)
           match.captures.first == 'all_by' ? :find_every : :find_initial
-        end
-
-        def determine_deprecated_finder(match)
-          match.captures.first == 'all_by' ? :find_all : :find_first
         end
 
         def determine_instantiator(match)

@@ -49,17 +49,6 @@ module ActiveRecord
         end_eval
       end
 
-      def deprecated_find_all_in_collection_method(collection_name)# :nodoc:
-        module_eval <<-"end_eval", __FILE__, __LINE__
-          def find_all_in_#{collection_name}(runtime_conditions = nil, orderings = nil, limit = nil, joins = nil)
-            ActiveSupport::Deprecation.silence do
-              #{collection_name}.find_all(runtime_conditions, orderings, limit, joins)
-            end
-          end
-          deprecate :find_all_in_#{collection_name} => "use #{collection_name}.find(:all, ...) instead"
-        end_eval
-      end
-
       def deprecated_collection_create_method(collection_name)# :nodoc:
         module_eval <<-"end_eval", __FILE__, __LINE__
           def create_in_#{collection_name}(attributes = {})

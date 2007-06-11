@@ -176,6 +176,14 @@ class FinderTest < Test::Unit::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => true }) }
   end
 
+
+  def test_condition_interpolation
+    assert_kind_of Firm, Company.find(:first, :conditions => ["name = '%s'", "37signals"])
+    assert_nil Company.find(:first, :conditions => ["name = '%s'", "37signals!"])
+    assert_nil Company.find(:first, :conditions => ["name = '%s'", "37signals!' OR 1=1"])
+    assert_kind_of Time, Topic.find(:first, :conditions => ["id = %d", 1]).written_on
+  end
+
   def test_condition_array_interpolation
     assert_kind_of Firm, Company.find(:first, :conditions => ["name = '%s'", "37signals"])
     assert_nil Company.find(:first, :conditions => ["name = '%s'", "37signals!"])

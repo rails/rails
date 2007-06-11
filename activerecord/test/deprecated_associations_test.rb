@@ -17,8 +17,6 @@ raise "ActiveRecord should have barked on bad collection keys" unless bad_collec
 
 class DeprecatedAssociationWarningsTest < Test::Unit::TestCase
   def test_deprecation_warnings
-    assert_deprecated('find_first') { Firm.find_first }
-    assert_deprecated('find_all') { Firm.find_all }
     assert_deprecated('has_account?') { Firm.find(:first).has_account? }
     assert_deprecated('has_clients?') { Firm.find(:first).has_clients? }
   end
@@ -239,7 +237,7 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   def test_has_and_belongs_to_many_zero
     david = Developer.find(1)
     assert_deprecated do
-      david.remove_projects Project.find_all
+      david.remove_projects Project.find(:all)
       assert_equal 0, david.projects_count
       assert !david.has_projects?
     end
@@ -358,9 +356,8 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   end
 
   def test_has_many_find_all
-    assert_deprecated 'find_all_in_clients' do
-      assert_equal 2, @firm.find_all_in_clients("#{QUOTED_TYPE} = 'Client'").length
-      assert_equal 1, @firm.find_all_in_clients("name = 'Summit'").length
+    assert_raise(NoMethodError) do
+      @firm.find_all_in_clients("#{QUOTED_TYPE} = 'Client'")
     end
   end
 

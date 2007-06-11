@@ -20,25 +20,6 @@ module ActiveRecord
         end
       end
 
-      # DEPRECATED.
-      def find_all(runtime_conditions = nil, orderings = nil, limit = nil, joins = nil)
-        if @reflection.options[:finder_sql]
-          @reflection.klass.find_by_sql(@finder_sql)
-        else
-          conditions = @finder_sql
-          conditions += " AND (#{sanitize_sql(runtime_conditions)})" if runtime_conditions
-          orderings ||= @reflection.options[:order]
-          @reflection.klass.find_all(conditions, orderings, limit, joins)
-        end
-      end
-      deprecate :find_all => "use find(:all, ...) instead"
-
-      # DEPRECATED. Find the first associated record.  All arguments are optional.
-      def find_first(conditions = nil, orderings = nil)
-        find_all(conditions, orderings, 1).first
-      end
-      deprecate :find_first => "use find(:first, ...) instead"
-
       # Count the number of associated records. All arguments are optional.
       def count(*args)
         if @reflection.options[:counter_sql]
