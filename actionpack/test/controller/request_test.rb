@@ -690,8 +690,8 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
 
     file = params['file']
     assert_kind_of StringIO, file
-    assert_equal 'file.txt', file.original_filename
-    assert_equal "text/plain\r", file.content_type
+    assert_equal 'file.csv', file.original_filename
+    assert_equal '', file.content_type
     assert_equal 'contents', file.read
 
     file = params['flowers']

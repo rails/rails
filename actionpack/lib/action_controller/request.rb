@@ -423,10 +423,8 @@ module ActionController
             when Array
               value.map { |v| get_typed_value(v) }
             else
-              # Uploaded file provides content type and filename.
-              if value.respond_to?(:content_type) &&
-                    !value.content_type.blank? &&
-                    !value.original_filename.blank?
+              # This is an uploaded file.
+              if value.respond_to?(:original_filename) && !value.original_filename.blank?
                 unless value.respond_to?(:full_original_filename)
                   class << value
                     alias_method :full_original_filename, :original_filename
