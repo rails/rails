@@ -224,6 +224,14 @@ class DateHelperTest < Test::Unit::TestCase
     assert_equal expected, select_month(8, :use_month_names => month_names)
   end
 
+  def test_select_month_with_hidden
+    assert_dom_equal "<input type=\"hidden\" id=\"date_month\" name=\"date[month]\" value=\"8\" />\n", select_month(8, :use_hidden => true)
+  end
+
+  def test_select_month_with_hidden_and_field_name
+    assert_dom_equal "<input type=\"hidden\" id=\"date_mois\" name=\"date[mois]\" value=\"8\" />\n", select_month(8, :use_hidden => true, :field_name => 'mois')
+  end
+
   def test_select_year
     expected = %(<select id="date_year" name="date[year]">\n)
     expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
@@ -269,6 +277,14 @@ class DateHelperTest < Test::Unit::TestCase
 
     assert_equal expected, select_year(Time.mktime(2005, 8, 16), :start_year => 2005, :end_year => 2003)
     assert_equal expected, select_year(2005, :start_year => 2005, :end_year => 2003)
+  end
+
+  def test_select_year_with_hidden
+    assert_dom_equal "<input type=\"hidden\" id=\"date_year\" name=\"date[year]\" value=\"2007\" />\n", select_year(2007, :use_hidden => true)
+  end
+
+  def test_select_year_with_hidden_and_field_name
+    assert_dom_equal "<input type=\"hidden\" id=\"date_anno\" name=\"date[anno]\" value=\"2007\" />\n", select_year(2007, :use_hidden => true, :field_name => 'anno')
   end
 
   def test_select_hour
@@ -365,6 +381,14 @@ class DateHelperTest < Test::Unit::TestCase
     expected << "</select>\n"
 
     assert_equal expected, select_minute(nil, { :include_blank => true , :minute_step => 15 })
+  end
+
+  def test_select_minute_with_hidden
+    assert_dom_equal "<input type=\"hidden\" id=\"date_minute\" name=\"date[minute]\" value=\"8\" />\n", select_minute(8, :use_hidden => true)
+  end
+
+  def test_select_minute_with_hidden_and_field_name
+    assert_dom_equal "<input type=\"hidden\" id=\"date_minuto\" name=\"date[minuto]\" value=\"8\" />\n", select_minute(8, :use_hidden => true, :field_name => 'minuto')
   end
 
   def test_select_second

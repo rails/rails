@@ -62,6 +62,14 @@ class FormTagHelperTest < Test::Unit::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_file_field_tag
+    assert_dom_equal "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" />", file_field_tag("picsplz")
+  end
+
+  def test_file_field_tag_with_options
+    assert_dom_equal "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>", file_field_tag("picsplz", :class => "pix")
+  end
+
   def test_password_field_tag
     actual = password_field_tag
     expected = %(<input id="password" name="password" type="password" />)

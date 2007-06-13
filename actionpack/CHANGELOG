@@ -8,7 +8,7 @@
 
 * Improve Text Helper test coverage.  #7274 [Rob Sanheim, Josh Peek]
 
-* Improve Action View test coverage.  #7241, #7243, #7244 [Rich Collins]
+* Improve helper test coverage.  #7215, #7233, #7234, #7235, #7236, #7237, #7238, #7241, #7243, #7244 [Rich Collins, Josh Peek]
 
 * Resources: url_for([parent, child]) generates /parents/1/children/2 for the nested resource. Likewise with the other simply helpful methods like form_for and link_to.  #6432 [mhw, Jonathan Vaught, lotswholetime]
 

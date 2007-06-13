@@ -114,6 +114,22 @@ class FormHelperTest < Test::Unit::TestCase
     assert_equal object_name, "post[]"
   end
 
+  def test_hidden_field
+    assert_dom_equal '<input id="post_title" name="post[title]" type="hidden" value="Hello World" />',
+      hidden_field("post", "title")
+  end
+
+  def test_hidden_field_with_escapes
+    @post.title = "<b>Hello World</b>"
+    assert_dom_equal '<input id="post_title" name="post[title]" type="hidden" value="&lt;b&gt;Hello World&lt;/b&gt;" />',
+      hidden_field("post", "title")
+  end
+
+  def test_text_field_with_options
+    assert_dom_equal '<input id="post_title" name="post[title]" type="hidden" value="Something Else" />',
+      hidden_field("post", "title", :value => "Something Else")
+  end
+
   def test_check_box
     assert_dom_equal(
       '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
@@ -157,7 +173,7 @@ class FormHelperTest < Test::Unit::TestCase
       radio_button("post", "secret", "1")
    )
   end
-  
+
   def test_radio_button_respects_passed_in_id
      assert_dom_equal('<input checked="checked" id="foo" name="post[secret]" type="radio" value="1" />',
        radio_button("post", "secret", "1", :id=>"foo")
@@ -178,21 +194,21 @@ class FormHelperTest < Test::Unit::TestCase
       text_area("post", "body")
     )
   end
-  
+
   def test_text_area_with_alternate_value
     assert_dom_equal(
       '<textarea cols="40" id="post_body" name="post[body]" rows="20">Testing alternate values.</textarea>',
       text_area("post", "body", :value => 'Testing alternate values.')
     )
   end
-  
+
   def test_text_area_with_size_option
     assert_dom_equal(
       '<textarea cols="183" id="post_body" name="post[body]" rows="820">Back to the hill and over it again!</textarea>',
       text_area("post", "body", :size => "183x820")
     )
   end
-  
+
   def test_explicit_name
     assert_dom_equal(
       '<input id="post_title" name="dont guess" size="30" type="text" value="Hello World" />', text_field("post", "title", "name" => "dont guess")
@@ -317,7 +333,7 @@ class FormHelperTest < Test::Unit::TestCase
 
     assert_dom_equal expected, _erbout
   end
-  
+
   def test_form_for_with_index
     _erbout = ''
     
@@ -401,7 +417,7 @@ class FormHelperTest < Test::Unit::TestCase
   def test_form_builder_does_not_have_form_for_method
     assert ! ActionView::Helpers::FormBuilder.instance_methods.include?('form_for')
   end
-  
+
   def test_form_for_and_fields_for
     _erbout = ''
 
@@ -424,7 +440,7 @@ class FormHelperTest < Test::Unit::TestCase
 
     assert_dom_equal expected, _erbout
   end
-  
+
   class LabelledFormBuilder < ActionView::Helpers::FormBuilder
     (field_helpers - %w(hidden_field)).each do |selector|
       src = <<-END_SRC
@@ -435,7 +451,7 @@ class FormHelperTest < Test::Unit::TestCase
       class_eval src, __FILE__, __LINE__
     end
   end
-  
+
   def test_form_for_with_labelled_builder
     _erbout = ''
 
@@ -479,7 +495,7 @@ class FormHelperTest < Test::Unit::TestCase
   ensure
     ActionView::Base.default_form_builder = old_default_form_builder
   end
-  
+
   def test_default_form_builder_with_active_record_helpers
      
     _erbout = '' 
@@ -536,7 +552,7 @@ class FormHelperTest < Test::Unit::TestCase
     
     assert_dom_equal expected, _erbout
   end
-  
+
   def test_form_for_with_html_options_adds_options_to_form_tag
     _erbout = ''
     
@@ -545,7 +561,7 @@ class FormHelperTest < Test::Unit::TestCase
     
     assert_dom_equal expected, _erbout
   end
-  
+
   def test_form_for_with_string_url_option
     _erbout = ''
 
@@ -562,7 +578,7 @@ class FormHelperTest < Test::Unit::TestCase
     assert_equal 'controller', @controller.url_for_options[:controller]
     assert_equal 'action', @controller.url_for_options[:action]
   end
-  
+
   def test_form_for_with_record_url_option
     _erbout = ''
 
@@ -621,7 +637,7 @@ class FormHelperTest < Test::Unit::TestCase
     expected = "<form action=\"/super_posts\" class=\"edit_post\" id=\"edit_post_123\" method=\"post\"><div style=\"margin:0;padding:0\"><input name=\"_method\" type=\"hidden\" value=\"put\" /></div></form>"
     assert_equal expected, _erbout
   end
-  
+
   def test_remote_form_for_with_html_options_adds_options_to_form_tag
     self.extend ActionView::Helpers::PrototypeHelper
     _erbout = ''
