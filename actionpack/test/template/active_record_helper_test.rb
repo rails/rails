@@ -28,7 +28,16 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
     @post = Post.new    
     def @post.errors
       Class.new {
-        def on(field) field == "author_name" || field == "body" end
+        def on(field)
+          case field.to_s
+          when "author_name"
+            "can't be empty"
+          when "body"
+            true
+          else
+            false
+          end
+        end
         def empty?() false end 
         def count() 1 end 
         def full_messages() [ "Author name can't be empty" ] end
@@ -52,7 +61,7 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
     @post.secret = 1
     @post.written_on  = Date.new(2004, 6, 15)
   end
-  
+
   def setup_user
     @user = User.new    
     def @user.errors
@@ -95,7 +104,7 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
       %(<input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />), input("post", "title")
     )
   end
-  
+
   def test_text_area_with_errors
     assert_dom_equal(
       %(<div class="fieldWithErrors"><textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea></div>),
@@ -109,7 +118,7 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
       text_field("post", "author_name")
     )
   end
-  
+
   def test_form_with_string
     assert_dom_equal(
       %(<form action="create" method="post"><p><label for="post_title">Title</label><br /><input id="post_title" name="post[title]" size="30" type="text" value="Hello World" /></p>\n<p><label for="post_body">Body</label><br /><div class="fieldWithErrors"><textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea></div></p><input name="commit" type="submit" value="Create" /></form>),
@@ -129,7 +138,7 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
       form("post")
     )
   end
-  
+
   def test_form_with_date
     silence_warnings do
       def Post.content_columns() [ Column.new(:date, "written_on", "Written on") ] end
@@ -152,26 +161,30 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
       form("post")
     )
   end
-  
+
   def test_error_for_block
     assert_dom_equal %(<div class="errorExplanation" id="errorExplanation"><h2>1 error prohibited this post from being saved</h2><p>There were problems with the following fields:</p><ul><li>Author name can't be empty</li></ul></div>), error_messages_for("post")
     assert_equal %(<div class="errorDeathByClass" id="errorDeathById"><h1>1 error prohibited this post from being saved</h1><p>There were problems with the following fields:</p><ul><li>Author name can't be empty</li></ul></div>), error_messages_for("post", :class => "errorDeathByClass", :id => "errorDeathById", :header_tag => "h1")
     assert_equal %(<div id="errorDeathById"><h1>1 error prohibited this post from being saved</h1><p>There were problems with the following fields:</p><ul><li>Author name can't be empty</li></ul></div>), error_messages_for("post", :class => nil, :id => "errorDeathById", :header_tag => "h1")
     assert_equal %(<div class="errorDeathByClass"><h1>1 error prohibited this post from being saved</h1><p>There were problems with the following fields:</p><ul><li>Author name can't be empty</li></ul></div>), error_messages_for("post", :class => "errorDeathByClass", :id => nil, :header_tag => "h1")
   end
-  
+
   def test_error_messages_for_handles_nil
     assert_equal "", error_messages_for("notthere")
   end
-  
+
   def test_error_message_on_handles_nil
     assert_equal "", error_message_on("notthere", "notthere")
   end
-  
+
   def test_error_message_on
-    assert error_message_on(:post, :author_name)
+    assert_dom_equal "<div class=\"formError\">can't be empty</div>", error_message_on(:post, :author_name)
   end
-  
+
+  def test_error_message_on_should_use_options
+    assert_dom_equal "<div class=\"differentError\">beforecan't be emptyafter</div>", error_message_on(:post, :author_name, "before", "after", "differentError")
+  end
+
   def test_error_messages_for_many_objects
     assert_dom_equal %(<div class="errorExplanation" id="errorExplanation"><h2>2 errors prohibited this post from being saved</h2><p>There were problems with the following fields:</p><ul><li>Author name can't be empty</li><li>User email can't be empty</li></ul></div>), error_messages_for("post", "user")
 
@@ -186,6 +199,9 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
     
     # any default works too
     assert_dom_equal %(<div class="errorExplanation" id="errorExplanation"><h2>2 errors prohibited this monkey from being saved</h2><p>There were problems with the following fields:</p><ul><li>User email can't be empty</li><li>Author name can't be empty</li></ul></div>), error_messages_for(:user, :post, :object_name => "monkey")
+
+    # should space object name
+    assert_dom_equal %(<div class="errorExplanation" id="errorExplanation"><h2>2 errors prohibited this chunky bacon from being saved</h2><p>There were problems with the following fields:</p><ul><li>User email can't be empty</li><li>Author name can't be empty</li></ul></div>), error_messages_for(:user, :post, :object_name => "chunky_bacon")
   end
 
   def test_form_with_string_multipart

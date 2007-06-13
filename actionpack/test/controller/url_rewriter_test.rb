@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
+ActionController::UrlRewriter
+
 class UrlRewriterTests < Test::Unit::TestCase
   def setup
     @request = ActionController::TestRequest.new
@@ -62,6 +64,14 @@ class UrlRewriterTests < Test::Unit::TestCase
     assert_equal '/search/list?list_page=2', @rewriter.rewrite(:only_path => true, :overwrite_params => {"list_page" => 2})
     u = @rewriter.rewrite(:only_path => false, :overwrite_params => {:list_page => 2})
     assert_equal 'http://test.host/search/list?list_page=2', u
+  end
+
+  def test_to_str
+    @params[:controller] = 'hi'
+    @params[:action] = 'bye'
+    @request.parameters[:id] = '2'
+
+    assert_equal 'http://, test.host, /, hi, bye, {"id"=>"2"}', @rewriter.to_str
   end
 end
 
