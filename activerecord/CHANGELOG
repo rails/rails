@@ -1,6 +1,8 @@
 *SVN*
 
-* Allow nil serialized attributes with a set class constraint. #7293 [sandofsky] 
+* Changing the :default Date format doesn't break date quoting.  #6312 [bshand, Elias]
+
+* Allow nil serialized attributes with a set class constraint. #7293 [sandofsky]
 
 * belongs_to assignment creates a new proxy rather than modifying its target in-place.  #8412 [mmangino@elevatedrails.com]
 
