@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 class DateTimeExtCalculationsTest < Test::Unit::TestCase
   def test_to_s
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
-    assert_equal "2005-02-21T14:30:00+00:00",         datetime.to_s
+    assert_match(/^2005-02-21T14:30:00(Z|\+00:00)$/,  datetime.to_s)
     assert_equal "2005-02-21 14:30:00",               datetime.to_s(:db)
     assert_equal "14:30",                             datetime.to_s(:time)
     assert_equal "21 Feb 14:30",                      datetime.to_s(:short)
