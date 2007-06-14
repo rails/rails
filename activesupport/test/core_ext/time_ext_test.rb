@@ -128,6 +128,9 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).last_year
   end
 
+  def test_next_year
+    assert_equal Time.local(2006,6,5,10), Time.local(2005,6,5,10,0,0).next_year
+  end
 
   def test_ago
     assert_equal Time.local(2005,2,22,10,10,9),  Time.local(2005,2,22,10,10,10).ago(1)
@@ -271,25 +274,34 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_to_s
-    time = Time.local(2005, 2, 21, 17, 44, 30)
-    assert_equal "2005-02-21 17:44:30",       time.to_s(:db)
-    assert_equal "21 Feb 17:44",              time.to_s(:short)
-    assert_equal "17:44",                     time.to_s(:time)
-    assert_equal "February 21, 2005 17:44",   time.to_s(:long)
-    assert_equal "February 21st, 2005 17:44", time.to_s(:long_ordinal)
-
     time = Time.utc(2005, 2, 21, 17, 44, 30)
+    assert_equal "Mon Feb 21 17:44:30 UTC 2005",    time.to_s
+    assert_equal "2005-02-21 17:44:30",             time.to_s(:db)
+    assert_equal "21 Feb 17:44",                    time.to_s(:short)
+    assert_equal "17:44",                           time.to_s(:time)
+    assert_equal "February 21, 2005 17:44",         time.to_s(:long)
+    assert_equal "February 21st, 2005 17:44",       time.to_s(:long_ordinal)
     assert_equal "Mon, 21 Feb 2005 17:44:30 +0000", time.to_s(:rfc822)
   end
-  
+
   def test_custom_date_format
     Time::DATE_FORMATS[:custom] = '%Y%m%d%H%M%S'
     assert_equal '20050221143000', Time.local(2005, 2, 21, 14, 30, 0).to_s(:custom)
     Time::DATE_FORMATS.delete(:custom)
-  end  
+  end
 
   def test_to_date
     assert_equal Date.new(2005, 2, 21), Time.local(2005, 2, 21, 17, 44, 30).to_date
+  end
+
+  def test_to_datetime
+    assert_equal Time.utc(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, 0, 0)
+    with_timezone 'US/Eastern' do
+      assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, Rational(Time.local(2005, 2, 21, 17, 44, 30).utc_offset, 86400), 0)
+    end
+    with_timezone 'NZ' do
+      assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, Rational(Time.local(2005, 2, 21, 17, 44, 30).utc_offset, 86400), 0)
+    end
   end
 
   def test_to_time
@@ -360,14 +372,8 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_nothing_raised { Time.now.xmlschema }
   end
 
-  def test_to_datetime
-    assert_equal Time.utc(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, 0, 0)
-    with_timezone 'US/Eastern' do
-      assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, Rational(Time.local(2005, 2, 21, 17, 44, 30).utc_offset, 86400), 0)
-    end
-    with_timezone 'NZ' do
-      assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, Rational(Time.local(2005, 2, 21, 17, 44, 30).utc_offset, 86400), 0)
-    end    
+  def test_acts_like_time
+    assert Time.new.acts_like_time?
   end
 
   protected

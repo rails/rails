@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 class DateTimeExtCalculationsTest < Test::Unit::TestCase
   def test_to_s
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0)
-
+    assert_equal "2005-02-21T14:30:00+00:00",         datetime.to_s
     assert_equal "2005-02-21 14:30:00",               datetime.to_s(:db)
     assert_equal "14:30",                             datetime.to_s(:time)
     assert_equal "21 Feb 14:30",                      datetime.to_s(:short)
@@ -11,13 +11,13 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal "Mon, 21 Feb 2005 14:30:00 +0000",   datetime.to_s(:rfc822)
     assert_equal "February 21st, 2005 14:30",         datetime.to_s(:long_ordinal)
   end
-  
+
   def test_readable_inspect
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0)
     assert_equal "Mon, 21 Feb 2005 14:30:00 +0000", datetime.readable_inspect
     assert_equal datetime.readable_inspect, datetime.inspect
   end
-  
+
   def test_custom_date_format
     Time::DATE_FORMATS[:custom] = '%Y%m%d%H%M%S'
     assert_equal '20050221143000', DateTime.new(2005, 2, 21, 14, 30, 0).to_s(:custom)
@@ -27,7 +27,11 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
   def test_to_date
     assert_equal Date.new(2005, 2, 21), DateTime.new(2005, 2, 21).to_date
   end
-  
+
+  def test_to_datetime
+    assert_equal DateTime.new(2005, 2, 21), DateTime.new(2005, 2, 21).to_datetime
+  end
+
   def test_to_time
     assert_equal Time.utc(2005, 2, 21, 10, 11, 12), DateTime.new(2005, 2, 21, 10, 11, 12, 0, 0).to_time
     assert_equal Time.local(2005, 2, 21, 10, 11, 12), DateTime.new(2005, 2, 21, 10, 11, 12, Rational(-5, 24), 0).to_time
@@ -54,6 +58,10 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
 
   def test_beginning_of_day
     assert_equal DateTime.civil(2005,2,4,0,0,0), DateTime.civil(2005,2,4,10,10,10).beginning_of_day
+  end
+
+  def test_end_of_day
+    assert_equal DateTime.civil(2005,2,4,23,59,59), DateTime.civil(2005,2,4,10,10,10).end_of_day
   end
 
   def test_beginning_of_month
@@ -111,6 +119,9 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2004,6,5,10),  DateTime.civil(2005,6,5,10,0,0).last_year
   end
 
+  def test_next_year
+    assert_equal DateTime.civil(2006,6,5,10), DateTime.civil(2005,6,5,10,0,0).next_year
+  end
 
   def test_ago
     assert_equal DateTime.civil(2005,2,22,10,10,9),  DateTime.civil(2005,2,22,10,10,10).ago(1)
@@ -171,5 +182,9 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
 
   def test_xmlschema_is_available
     assert_nothing_raised { DateTime.now.xmlschema }
+  end
+
+  def test_acts_like_time
+    assert DateTime.new.acts_like_time?
   end
 end

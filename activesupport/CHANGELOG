@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve Time and Date test coverage.  #8646 [Josh Peek]
+
 * Add Date#since, ago, beginning_of_day, and end_of_day. Date + seconds works now.  #8575 [Geoff Buesing]
 
 * String#to_time overflows to DateTime. Add String#to_datetime.  #8572 [Geoff Buesing]

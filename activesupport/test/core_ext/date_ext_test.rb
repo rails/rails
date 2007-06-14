@@ -2,13 +2,15 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 
 class DateExtCalculationsTest < Test::Unit::TestCase
   def test_to_s
-    assert_equal "21 Feb",              Date.new(2005, 2, 21).to_s(:short)
-    assert_equal "February 21, 2005",   Date.new(2005, 2, 21).to_s(:long)
-    assert_equal "February 21st, 2005", Date.new(2005, 2, 21).to_s(:long_ordinal)
-    assert_equal "2005-02-21",          Date.new(2005, 2, 21).to_s(:db)
-    assert_equal "21 Feb 2005",         Date.new(2005, 2, 21).to_s(:rfc822)
+    date = Date.new(2005, 2, 21)
+    assert_equal "2005-02-21",          date.to_s
+    assert_equal "21 Feb",              date.to_s(:short)
+    assert_equal "February 21, 2005",   date.to_s(:long)
+    assert_equal "February 21st, 2005", date.to_s(:long_ordinal)
+    assert_equal "2005-02-21",          date.to_s(:db)
+    assert_equal "21 Feb 2005",         date.to_s(:rfc822)
   end
-  
+
   def test_readable_inspect
     assert_equal "Mon, 21 Feb 2005", Date.new(2005, 2, 21).readable_inspect
     assert_equal Date.new(2005, 2, 21).readable_inspect, Date.new(2005, 2, 21).inspect
@@ -18,7 +20,7 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2005, 2, 21), Date.new(2005, 2, 21).to_time
     assert_equal Time.local_time(2039, 2, 21), Date.new(2039, 2, 21).to_time
   end
-  
+
   def test_to_datetime
     assert_equal DateTime.civil(2005, 2, 21), Date.new(2005, 2, 21).to_datetime
   end
@@ -33,7 +35,7 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2006,2,22), Date.new(2005,2,22).change(:year => 2006)
     assert_equal Date.new(2005,6,22), Date.new(2005,2,22).change(:month => 6)
   end
-  
+
   def test_begining_of_week
     assert_equal Date.new(2005,1,31),  Date.new(2005,2,4).beginning_of_week
     assert_equal Date.new(2005,11,28), Date.new(2005,11,28).beginning_of_week #monday
@@ -100,6 +102,10 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2004,6,5),  Date.new(2005,6,5).last_year
   end
 
+  def test_next_year
+    assert_equal Date.new(2006,6,5), Date.new(2005,6,5).next_year
+  end
+
   def test_yesterday
     assert_equal Date.new(2005,2,21), Date.new(2005,2,22).yesterday
     assert_equal Date.new(2005,2,28), Date.new(2005,3,2).yesterday.yesterday
@@ -135,23 +141,23 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   def test_yesterday_constructor
     assert_equal Date.today - 1, Date.yesterday
   end
-  
+
   def test_tomorrow_constructor
     assert_equal Date.today + 1, Date.tomorrow
   end
-  
+
   def test_since
     assert_equal Time.local(2005,2,21,0,0,45), Date.new(2005,2,21).since(45)
   end
-  
+
   def test_ago
     assert_equal Time.local(2005,2,20,23,59,15), Date.new(2005,2,21).ago(45)
   end
-  
+
   def test_beginning_of_day
     assert_equal Time.local(2005,2,21,0,0,0), Date.new(2005,2,21).beginning_of_day
   end
-  
+
   def test_end_of_day
     assert_equal Time.local(2005,2,21,23,59,59), Date.new(2005,2,21).end_of_day
   end
