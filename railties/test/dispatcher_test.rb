@@ -27,11 +27,18 @@ class DispatcherTest < Test::Unit::TestCase
     Dispatcher.send(:preparation_callbacks_run=, false)
 
     Object.const_set :ApplicationController, nil
+    class << ActionController::Routing::Routes
+      alias_method :old_reload, :reload
+      def reload() end
+    end
   end
 
   def teardown
     Object.send :remove_const, :ApplicationController
     ENV['REQUEST_METHOD'] = nil
+    class << ActionController::Routing::Routes
+      alias_method :reload, :old_reload
+    end
   end
 
   def test_ac_subclasses_cleared_on_reset

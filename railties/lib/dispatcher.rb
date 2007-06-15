@@ -88,7 +88,6 @@ class Dispatcher
     private
       attr_accessor_with_default :preparation_callbacks, []
       attr_accessor_with_default :preparation_callbacks_run, false
-      alias_method :preparation_callbacks_run?, :preparation_callbacks_run
 
       # CGI.new plus exception handling.  CGI#read_multipart raises EOFError
       # if body.empty? or body.size != Content-Length and raises ArgumentError
@@ -113,7 +112,7 @@ class Dispatcher
       end
 
       def run_preparation_callbacks
-        return if preparation_callbacks_run?
+        return if preparation_callbacks_run
         preparation_callbacks.each { |_, callback| callback.call }
         self.preparation_callbacks_run = true
       end
