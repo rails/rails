@@ -389,7 +389,7 @@ module ActionView
 
           # If the day is hidden and the month is visible, the day should be set to the 1st so all month choices are valid
           # (otherwise it could be 31 and february wouldn't be a valid date)
-          if discard[:day] && !discard[:month]
+          if datetime && discard[:day] && !discard[:month]
             datetime = datetime.change(:day => 1)
           end
 
