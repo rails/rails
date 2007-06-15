@@ -1,5 +1,7 @@
 *SVN*
 
+* Make ActionView#view_paths an attr_accessor for real this time.  Also, don't perform an unnecessary #compact on the @view_paths array in #initialize.  Closes #8582 [dasil003, julik, rick]
+
 * Tolerate missing content type on multipart file uploads. Fix for Safari 3.  [Jeremy Kemper]
 
 * Deprecation: remove pagination. Install the classic_pagination plugin for forward compatibility, or move to the superior will_paginate plugin.  #8157 [Josh Peek]

@@ -7,8 +7,15 @@ class ViewLoadPathsTest < Test::Unit::TestCase
   class TestController < ActionController::Base
     def self.controller_path() "test" end
     def rescue_action(e) raise end
-      
+    
+    before_filter :add_view_path, :only => :hello_world_at_request_time
+    
     def hello_world() end
+    def hello_world_at_request_time() render(:action => 'hello_world') end
+    private
+    def add_view_path
+      self.class.view_paths.unshift "#{LOAD_PATH_ROOT}/override"
+    end
   end
   
   def setup
@@ -40,6 +47,12 @@ class ViewLoadPathsTest < Test::Unit::TestCase
   def test_view_paths_override
     TestController.view_paths.unshift "#{LOAD_PATH_ROOT}/override"
     get :hello_world
+    assert_response :success
+    assert_equal "Hello overridden world!", @response.body
+  end
+  
+  def test_view_paths_override_at_request_time
+    get :hello_world_at_request_time
     assert_response :success
     assert_equal "Hello overridden world!", @response.body
   end

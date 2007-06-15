@@ -154,9 +154,9 @@ module ActionView #:nodoc:
 
     attr_reader   :first_render
     attr_accessor :base_path, :assigns, :template_extension
-    attr_accessor :controller
+    attr_accessor :controller, :view_paths
 
-    attr_reader :logger, :response, :headers, :view_paths
+    attr_reader :logger, :response, :headers
     attr_internal :cookies, :flash, :headers, :params, :request, :response, :session
     
     attr_writer :template_format
@@ -248,7 +248,7 @@ module ActionView #:nodoc:
     end
 
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil)#:nodoc:
-      @view_paths = [*view_paths].compact
+      @view_paths = view_paths.respond_to?(:find) ? view_paths : [*view_paths].compact
       @assigns = assigns_for_first_render
       @assigns_added = nil
       @controller = controller
@@ -267,7 +267,7 @@ module ActionView #:nodoc:
         else
           template_extension = pick_template_extension(template_path).to_s
           unless template_extension
-            raise ActionViewError, "No #{template_handler_preferences.to_sentence} template found for #{template_path} in #{@view_paths.inspect}"
+            raise ActionViewError, "No #{template_handler_preferences.to_sentence} template found for #{template_path} in #{view_paths.inspect}"
           end
           template_file_name = full_template_path(template_path, template_extension)
           template_extension = template_extension.gsub(/^\w+\./, '') # strip off any formats
@@ -279,7 +279,7 @@ module ActionView #:nodoc:
       template_source = nil # Don't read the source until we know that it is required
 
       if template_file_name.blank?
-        raise ActionViewError, "Couldn't find template file for #{template_path} in #{@view_paths.inspect}"
+        raise ActionViewError, "Couldn't find template file for #{template_path} in #{view_paths.inspect}"
       end
 
       begin
@@ -453,12 +453,12 @@ module ActionView #:nodoc:
       
       # Returns the view path that contains the given relative template path.
       def find_base_path_for(template_file_name)
-        @view_paths.find { |p| File.file?(File.join(p, template_file_name)) }
+        view_paths.find { |p| File.file?(File.join(p, template_file_name)) }
       end
 
       # Returns the view path that the full path resides in.
       def extract_base_path_from(full_path)
-        @view_paths.find { |p| full_path[0..p.size - 1] == p }
+        view_paths.find { |p| full_path[0..p.size - 1] == p }
       end
 
       # Determines the template's file extension, such as rhtml, rxml, or rjs.
