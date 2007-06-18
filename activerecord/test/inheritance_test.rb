@@ -151,7 +151,6 @@ class InheritanceTest < Test::Unit::TestCase
     switch_to_alt_inheritance_column
     test_eager_load_belongs_to_something_inherited
     switch_to_default_inheritance_column
-    ActiveRecord::Base.logger.debug "cocksucker"
   end
 
   def test_inheritance_without_mapping
