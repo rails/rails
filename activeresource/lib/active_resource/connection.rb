@@ -71,13 +71,13 @@ module ActiveResource
     # Execute a PUT request (see HTTP protocol documentation if unfamiliar).
     # Used to update resources.
     def put(path, body = '', headers = {})
-      request(:put, path, body, build_request_headers(headers))
+      request(:put, path, body.to_s, build_request_headers(headers))
     end
 
     # Execute a POST request.
     # Used to create new resources.
     def post(path, body = '', headers = {})
-      request(:post, path, body, build_request_headers(headers))
+      request(:post, path, body.to_s, build_request_headers(headers))
     end
 
     def xml_from_response(response)

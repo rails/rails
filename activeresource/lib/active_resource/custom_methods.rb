@@ -39,11 +39,11 @@ module ActiveResource
             connection.get(custom_method_collection_url(method_name, options), headers)
           end
       
-          def post(method_name, options = {}, body = nil)
+          def post(method_name, options = {}, body = '')
             connection.post(custom_method_collection_url(method_name, options), body, headers)
           end
       
-          def put(method_name, options = {}, body = nil)
+          def put(method_name, options = {}, body = '')
             connection.put(custom_method_collection_url(method_name, options), body, headers)
           end
       
@@ -74,7 +74,7 @@ module ActiveResource
         connection.get(custom_method_element_url(method_name, options), self.class.headers)
       end
       
-      def post(method_name, options = {}, body = nil)
+      def post(method_name, options = {}, body = '')
         if new?
           connection.post(custom_method_new_element_url(method_name, options), (body.nil? ? to_xml : body), self.class.headers)
         else
@@ -82,7 +82,7 @@ module ActiveResource
         end
       end
       
-      def put(method_name, options = {}, body = nil)
+      def put(method_name, options = {}, body = '')
         connection.put(custom_method_element_url(method_name, options), body, self.class.headers)
       end
       
