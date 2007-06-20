@@ -48,11 +48,19 @@ class AdapterTest < Test::Unit::TestCase
 
   if current_adapter?(:MysqlAdapter)
     def test_charset
-      assert @connection.charset
+      assert_not_nil @connection.charset
+      assert_not_equal 'character_set_database', @connection.charset
+      assert_equal @connection.show_variable('character_set_database'), @connection.charset
     end
 
     def test_collation
-      assert @connection.collation
+      assert_not_nil @connection.collation
+      assert_not_equal 'collation_database', @connection.collation
+      assert_equal @connection.show_variable('collation_database'), @connection.collation
+    end
+
+    def test_show_nonexistent_variable_returns_nil
+      assert_nil @connection.show_variable('foo_bar_baz')
     end
   end
 

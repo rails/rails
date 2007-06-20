@@ -409,7 +409,8 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        select_value "SHOW VARIABLES LIKE '#{name}'"
+        variables = select_all("SHOW VARIABLES LIKE '#{name}'")
+        variables.first['Value'] unless variables.empty?
       end
 
       private
