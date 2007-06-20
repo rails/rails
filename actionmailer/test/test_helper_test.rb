@@ -38,6 +38,19 @@ class TestHelperTest < Test::Unit::TestCase
     end
   end
   
+  def test_assert_emails_with_no_block
+    assert_nothing_raised do
+      TestHelperMailer.deliver_test
+      assert_emails 1
+    end
+    
+    assert_nothing_raised do
+      TestHelperMailer.deliver_test
+      TestHelperMailer.deliver_test
+      assert_emails 3
+    end
+  end
+  
   def test_assert_no_emails
     assert_nothing_raised do
       assert_no_emails do

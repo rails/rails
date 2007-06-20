@@ -276,7 +276,7 @@ class ActionMailerTest < Test::Unit::TestCase
   def setup
     ActionMailer::Base.delivery_method = :test
     ActionMailer::Base.perform_deliveries = true
-    ActionMailer::Base.raise_delivery_errors
+    ActionMailer::Base.raise_delivery_errors = true
     ActionMailer::Base.deliveries = []
 
     @original_logger = TestMailer.logger
@@ -489,7 +489,16 @@ class ActionMailerTest < Test::Unit::TestCase
     TestMailer.any_instance.expects(:perform_delivery_test).raises(Exception)
     assert_nothing_raised { TestMailer.deliver_signed_up(@recipient) }
   end
-  
+
+  def test_performs_delivery_via_sendmail
+    sm = mock()
+    sm.expects(:print).with(anything)
+    sm.expects(:flush)
+    IO.expects(:popen).once.with('/usr/sbin/sendmail -i -t', 'w+').yields(sm)
+    ActionMailer::Base.delivery_method = :sendmail
+    TestMailer.deliver_signed_up(@recipient)
+  end
+
   def test_delivery_logs_sent_mail
     mail = TestMailer.create_signed_up(@recipient)
     logger = mock()
