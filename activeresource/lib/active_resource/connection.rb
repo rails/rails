@@ -81,11 +81,7 @@ module ActiveResource
     end
 
     def xml_from_response(response)
-      if response = from_xml_data(Hash.from_xml(response.body))
-        response.first
-      else
-        nil
-      end
+      from_xml_data(Hash.from_xml(response.body))
     end
 
 
@@ -150,21 +146,12 @@ module ActiveResource
       # Manipulate from_xml Hash, because xml_simple is not exactly what we
       # want for ActiveResource.
       def from_xml_data(data)
-        case data
-          when Hash
-            if data.keys.size == 1
-              case data.values.first
-                when Hash  then [ from_xml_data(data.values.first) ]
-                when Array then from_xml_data(data.values.first)
-                else       data.values.first
-              end
-            else
-              data.each_key { |key| data[key] = from_xml_data(data[key]) }
-              data
-            end
-          when Array then data.collect { |val| from_xml_data(val) }
-          else data
+        if data.is_a?(Hash) && data.keys.size == 1
+          data.values.first
+        else
+          data
         end
       end
+      
   end
 end

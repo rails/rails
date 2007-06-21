@@ -115,7 +115,7 @@ class ConnectionTest < Test::Unit::TestCase
   
   def test_get_collection_empty
     people = @conn.get("/people_empty_elements.xml")
-    assert_nil people
+    assert_equal [], people
   end
 
   def test_post

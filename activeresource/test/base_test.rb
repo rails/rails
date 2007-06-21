@@ -9,6 +9,10 @@ class BaseTest < Test::Unit::TestCase
     @david = { :id => 2, :name => 'David' }.to_xml(:root => 'person')
     @addy  = { :id => 1, :street => '12345 Street' }.to_xml(:root => 'address')
     @default_request_headers = { 'Content-Type' => 'application/xml' }
+    @rick = { :name => "Rick", :age => 25 }.to_xml(:root => "person")
+    @people = [{ :id => 1, :name => 'Matz' }, { :id => 2, :name => 'David' }].to_xml(:root => 'people')
+    @people_david = [{ :id => 2, :name => 'David' }].to_xml(:root => 'people')
+    @addresses = [{ :id => 1, :street => '12345 Street' }].to_xml(:root => 'addresses')
     
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get    "/people/1.xml",             {}, @matz
@@ -18,9 +22,9 @@ class BaseTest < Test::Unit::TestCase
       mock.delete "/people/1.xml",             {}, nil, 200
       mock.delete "/people/2.xml",             {}, nil, 400
       mock.get    "/people/99.xml",            {}, nil, 404
-      mock.post   "/people.xml",               {}, "<person><name>Rick</name><age type='integer'>25</age></person>", 201, 'Location' => '/people/5.xml'
-      mock.get    "/people.xml",               {}, "<people>#{@matz}#{@david}</people>"
-      mock.get    "/people/1/addresses.xml",   {}, "<addresses>#{@addy}</addresses>"
+      mock.post   "/people.xml",               {}, @rick, 201, 'Location' => '/people/5.xml'
+      mock.get    "/people.xml",               {}, @people
+      mock.get    "/people/1/addresses.xml",   {}, @addresses
       mock.get    "/people/1/addresses/1.xml", {}, @addy
       mock.get    "/people/1/addresses/2.xml", {}, nil, 404
       mock.get    "/people/2/addresses/1.xml", {}, nil, 404
@@ -225,7 +229,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_find_all_by_from
-    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.xml", {}, "<people>#{@david}</people>" }
+    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.xml", {}, @people_david }
   
     people = Person.find(:all, :from => "/companies/1/people.xml")
     assert_equal 1, people.size
@@ -233,7 +237,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_find_all_by_from_with_options
-    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.xml", {}, "<people>#{@david}</people>" }
+    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.xml", {}, @people_david }
   
     people = Person.find(:all, :from => "/companies/1/people.xml")
     assert_equal 1, people.size
@@ -241,7 +245,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_find_all_by_symbol_from
-    ActiveResource::HttpMock.respond_to { |m| m.get "/people/managers.xml", {}, "<people>#{@david}</people>" }
+    ActiveResource::HttpMock.respond_to { |m| m.get "/people/managers.xml", {}, @people_david }
   
     people = Person.find(:all, :from => :managers)
     assert_equal 1, people.size

@@ -6,6 +6,7 @@ class CustomMethodsTest < Test::Unit::TestCase
   def setup
     @matz  = { :id => 1, :name => 'Matz' }.to_xml(:root => 'person')
     @matz_deep  = { :id => 1, :name => 'Matz', :other => 'other' }.to_xml(:root => 'person')
+    @matz_array = [{ :id => 1, :name => 'Matz' }].to_xml(:root => 'people')
     @ryan  = { :name => 'Ryan' }.to_xml(:root => 'person')
     @addy  = { :id => 1, :street => '12345 Street' }.to_xml(:root => 'address')
     @addy_deep  = { :id => 1, :street => '12345 Street', :zip => "27519" }.to_xml(:root => 'address')
@@ -15,8 +16,8 @@ class CustomMethodsTest < Test::Unit::TestCase
       mock.get    "/people/1.xml",             {}, @matz
       mock.get    "/people/1/shallow.xml", {}, @matz
       mock.get    "/people/1/deep.xml", {}, @matz_deep
-      mock.get    "/people/retrieve.xml?name=Matz", {}, "<people>#{@matz}</people>"
-      mock.get    "/people/managers.xml", {}, "<people>#{@matz}</people>"
+      mock.get    "/people/retrieve.xml?name=Matz", {}, @matz_array
+      mock.get    "/people/managers.xml", {}, @matz_array
       mock.put    "/people/1/promote.xml?position=Manager", {}, nil, 204
       mock.put    "/people/promote.xml?name=Matz", {}, nil, 204, {}
       mock.put    "/people/sort.xml?by=name", {}, nil, 204

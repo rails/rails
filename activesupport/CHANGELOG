@@ -1,5 +1,27 @@
 *SVN*
 
+* Added proper handling of arrays #8537 [hasmanyjosh]
+
+  Before:
+    Hash.from_xml '<images></images>'
+    # => {:images => nil}
+
+    Hash.from_xml '<images><image>foo.jpg</image></images>'
+    # => {:images => {:image => "foo.jpg"}}
+
+    Hash.from_xml '<images><image>foo.jpg</image><image>bar.jpg</image></images>'
+    # => {:images => {:image => ["foo.jpg", "bar.jpg"]}}
+
+  After:
+    Hash.from_xml '<images type="array"></images>'
+    # => {:images => []}
+
+    Hash.from_xml '<images type="array"><image>foo.jpg</image></images>'
+    # => {:images => ["foo.jpg"]}
+
+    Hash.from_xml '<images type="array"><image>foo.jpg</image><image>bar.jpg</image></images>'
+    # => {:images => ["foo.jpg", "bar.jpg"]}
+
 * Improve Time and Date test coverage.  #8646 [Josh Peek]
 
 * Add Date#since, ago, beginning_of_day, and end_of_day. Date + seconds works now.  #8575 [Geoff Buesing]
