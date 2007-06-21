@@ -1,5 +1,7 @@
 *SVN*
 
+* Save associated records only if the association is already loaded.  #8713 [blaine]
+
 * Changing the :default Date format doesn't break date quoting.  #6312 [bshand, Elias]
 
 * Allow nil serialized attributes with a set class constraint. #7293 [sandofsky]
