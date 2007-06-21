@@ -69,7 +69,7 @@ class AssociationsTest < Test::Unit::TestCase
 end
 
 class AssociationProxyTest < Test::Unit::TestCase
-  fixtures :authors, :posts, :categorizations, :categories
+  fixtures :authors, :posts, :categorizations, :categories, :developers, :projects, :developers_projects
 
   def test_proxy_accessors
     welcome = posts(:welcome)
@@ -96,6 +96,14 @@ class AssociationProxyTest < Test::Unit::TestCase
     david.categories << categories(:technology)
     assert !david.categories.loaded?
     assert david.categories.include?(categories(:technology))
+  end
+
+  def test_save_on_parent_does_not_load_target
+    david = developers(:david)
+
+    assert !david.projects.loaded?
+    david.update_attribute(:created_at, Time.now)
+    assert !david.projects.loaded?
   end
 
 end

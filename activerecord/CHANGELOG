@@ -1,5 +1,7 @@
 *SVN*
 
+* Save associated records only if the association is already loaded.  #8713 [blaine]
+
 * MySQL: fix show_variable.  #8448 [matt, Jeremy Kemper]
 
 * Fixtures: correctly delete and insert fixtures in a single transaction.  #8553 [Michael Schuerig]
