@@ -293,6 +293,17 @@ class BaseTest < Test::Unit::TestCase
     ryan = Person.new(:id => 1, :name => 'Ryan', :address => address)
     assert_equal address.prefix_options, ryan.address.prefix_options
   end
+  
+  def test_reload_works_with_prefix_options
+    address = StreetAddress.find(1, :params => { :person_id => 1 })
+    assert_equal address, address.reload
+  end
+  
+  def test_reload_works_without_prefix_options    
+    person = Person.find(:first)
+    assert_equal person, person.reload
+  end
+    
 
   def test_create
     rick = Person.create(:name => 'Rick')

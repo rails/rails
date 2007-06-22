@@ -294,7 +294,7 @@ module ActiveResource
 
     # Reloads the attributes of this object from the remote web service.
     def reload
-      self.load(self.class.find(id, @prefix_options).attributes)
+      self.load(self.class.find(id, :params => @prefix_options).attributes)
     end
 
     # Manually load attributes from a hash. Recursively loads collections of

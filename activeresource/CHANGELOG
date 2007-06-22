@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix reload error when path prefix is used.  #8727 [Ian Warshak]
+
 * Remove ActiveResource::Struct because it hasn't proven very useful. Creating a new ActiveResource::Base subclass is often less code and always clearer.  #8612 [Josh Peek]
 
 * Fix query methods on resources. [Cody Fauser]
