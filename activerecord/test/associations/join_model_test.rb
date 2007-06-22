@@ -294,20 +294,20 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
 
   def test_has_many_polymorphic
     assert_raises ActiveRecord::HasManyThroughAssociationPolymorphicError do
-      assert_equal [posts(:welcome), posts(:thinking)], tags(:general).taggables
+      assert_equal posts(:welcome, :thinking), tags(:general).taggables
     end
     assert_raises ActiveRecord::EagerLoadPolymorphicError do
-      assert_equal [posts(:welcome), posts(:thinking)], tags(:general).taggings.find(:all, :include => :taggable)
+      assert_equal posts(:welcome, :thinking), tags(:general).taggings.find(:all, :include => :taggable)
     end
   end
   
   def test_has_many_polymorphic_with_source_type
-    assert_equal [posts(:welcome), posts(:thinking)], tags(:general).tagged_posts
+    assert_equal posts(:welcome, :thinking), tags(:general).tagged_posts
   end
 
   def test_eager_has_many_polymorphic_with_source_type
     tag_with_include = Tag.find(tags(:general).id, :include => :tagged_posts)
-    desired = [posts(:welcome), posts(:thinking)]
+    desired = posts(:welcome, :thinking)
     assert_no_queries do
       assert_equal desired, tag_with_include.tagged_posts
     end
@@ -339,12 +339,12 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   end
 
   def test_has_many_through_polymorphic_has_many
-    assert_equal [taggings(:welcome_general), taggings(:thinking_general)], authors(:david).taggings.uniq.sort_by { |t| t.id }
+    assert_equal taggings(:welcome_general, :thinking_general), authors(:david).taggings.uniq.sort_by { |t| t.id }
   end
 
   def test_include_has_many_through_polymorphic_has_many
     author            = Author.find_by_id(authors(:david).id, :include => :taggings)
-    expected_taggings = [taggings(:welcome_general), taggings(:thinking_general)]
+    expected_taggings = taggings(:welcome_general, :thinking_general)
     assert_no_queries do
       assert_equal expected_taggings, author.taggings.uniq.sort_by { |t| t.id }
     end

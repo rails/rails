@@ -950,7 +950,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
     core = companies(:rails_core)
     assert_equal accounts(:rails_core_account), core.account
-    assert_equal [companies(:leetsoft), companies(:jadedpixel)], core.companies
+    assert_equal companies(:leetsoft, :jadedpixel), core.companies
     core.destroy
     assert_nil accounts(:rails_core_account).reload.firm_id
     assert_nil companies(:leetsoft).reload.client_of
@@ -984,8 +984,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
   def test_replace_with_new
     firm = Firm.find(:first)
-    new_client = Client.new("name" => "New Client")
-    firm.clients = [companies(:second_client),new_client]
+    firm.clients = [companies(:second_client), Client.new("name" => "New Client")]
     firm.save
     firm.reload
     assert_equal 2, firm.clients.length
@@ -1509,8 +1508,8 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_habtm_unique_order_preserved
-    assert_equal [developers(:poor_jamis), developers(:jamis), developers(:david)], projects(:active_record).non_unique_developers
-    assert_equal [developers(:poor_jamis), developers(:jamis), developers(:david)], projects(:active_record).developers
+    assert_equal developers(:poor_jamis, :jamis, :david), projects(:active_record).non_unique_developers
+    assert_equal developers(:poor_jamis, :jamis, :david), projects(:active_record).developers
   end
 
   def test_build
@@ -1791,13 +1790,13 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_get_ids
-    assert_equal [projects(:active_record).id, projects(:action_controller).id], developers(:david).project_ids
+    assert_equal projects(:active_record, :action_controller).map(&:id), developers(:david).project_ids
     assert_equal [projects(:active_record).id], developers(:jamis).project_ids
   end
 
   def test_assign_ids
     developer = Developer.new("name" => "Joe")
-    developer.project_ids = [projects(:active_record).id, projects(:action_controller).id]
+    developer.project_ids = projects(:active_record, :action_controller).map(&:id)
     developer.save
     developer.reload
     assert_equal 2, developer.projects.length

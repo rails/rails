@@ -55,7 +55,7 @@ class CascadedEagerLoadingTest < Test::Unit::TestCase
 
   def test_eager_association_loading_with_acts_as_tree
     roots = TreeMixin.find(:all, :include=>"children", :conditions=>"mixins.parent_id IS NULL", :order=>"mixins.id")
-    assert_equal [mixins(:tree_1), mixins(:tree2_1), mixins(:tree3_1)], roots
+    assert_equal mixins(:tree_1, :tree2_1, :tree3_1), roots
     assert_no_queries do
       assert_equal 2, roots[0].children.size
       assert_equal 0, roots[1].children.size
@@ -73,7 +73,7 @@ class CascadedEagerLoadingTest < Test::Unit::TestCase
 
   def test_eager_association_loading_with_has_many_sti
     topics = Topic.find(:all, :include => :replies, :order => 'topics.id')
-    assert_equal [topics(:first), topics(:second)], topics
+    assert_equal topics(:first, :second), topics
     assert_no_queries do
       assert_equal 1, topics[0].replies.size
       assert_equal 0, topics[1].replies.size

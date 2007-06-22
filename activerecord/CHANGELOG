@@ -1,5 +1,7 @@
 *SVN*
 
+* Update tests' use of fixtures for the new collections api.  #8726 [kamal]
+
 * Save associated records only if the association is already loaded.  #8713 [blaine]
 
 * MySQL: fix show_variable.  #8448 [matt, Jeremy Kemper]

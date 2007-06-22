@@ -292,13 +292,13 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
   
   def test_limited_eager_with_order
-    assert_equal [posts(:thinking), posts(:sti_comments)], Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => 'UPPER(posts.title)', :limit => 2, :offset => 1)
-    assert_equal [posts(:sti_post_and_comments), posts(:sti_comments)], Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => 'UPPER(posts.title) DESC', :limit => 2, :offset => 1)
+    assert_equal posts(:thinking, :sti_comments), Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => 'UPPER(posts.title)', :limit => 2, :offset => 1)
+    assert_equal posts(:sti_post_and_comments, :sti_comments), Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => 'UPPER(posts.title) DESC', :limit => 2, :offset => 1)
   end
   
   def test_limited_eager_with_multiple_order_columns
-    assert_equal [posts(:thinking), posts(:sti_comments)], Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => 'UPPER(posts.title), posts.id', :limit => 2, :offset => 1)
-    assert_equal [posts(:sti_post_and_comments), posts(:sti_comments)], Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => 'UPPER(posts.title) DESC, posts.id', :limit => 2, :offset => 1)
+    assert_equal posts(:thinking, :sti_comments), Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => 'UPPER(posts.title), posts.id', :limit => 2, :offset => 1)
+    assert_equal posts(:sti_post_and_comments, :sti_comments), Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => 'UPPER(posts.title) DESC, posts.id', :limit => 2, :offset => 1)
   end
 
   def test_eager_with_multiple_associations_with_same_table_has_many_and_habtm
