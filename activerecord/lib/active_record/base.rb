@@ -1335,8 +1335,8 @@ module ActiveRecord #:nodoc:
         #     end
         #   end
         #
-        # In nested scopings, all previous parameters are overwritten by inner rule
-        # except :conditions in :find, that are merged as hash.
+        # In nested scopings, all previous parameters are overwritten by the innermost rule, with the exception of
+        # :conditions and :include options in :find, which are merged.
         #
         #   class Article < ActiveRecord::Base
         #     def self.find_with_scope
