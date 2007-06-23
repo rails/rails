@@ -1,6 +1,6 @@
 namespace :db do
   
-  desc 'Creates the databases defined in your config/database.yml (unless they already exist)'
+  desc 'Creates the databases defined in config/database.yml (unless they already exist)'
   task :create => :environment do 
     ActiveRecord::Base.configurations.each_value do |config|
       begin
@@ -31,7 +31,7 @@ namespace :db do
     ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[RAILS_ENV || 'development'])
   end
   
-  desc 'Drops the database for your currenet RAILS_ENV as defined in config/database.yml'
+  desc 'Drops the database for the current environment'
   task :drop => :environment do
     config = ActiveRecord::Base.configurations[RAILS_ENV || 'development']
     case config['adapter']
@@ -50,10 +50,10 @@ namespace :db do
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
-  desc 'Drops, creates and then migrates the database for your current RAILS_ENV. Target specific version with VERSION=x'
+  desc 'Drops, creates and then migrates the database for the current environment. Target specific version with VERSION=x'
   task :reset => ['db:drop', 'db:create', 'db:migrate']
   
-  desc "retrieve the charset for your database defined in your current RAILS_ENV"
+  desc "Retrieves the charset for the current environment's database"
   task :charset => :environment do
     config = ActiveRecord::Base.configurations[RAILS_ENV || 'development']
     case config['adapter']
@@ -65,7 +65,7 @@ namespace :db do
     end
   end
 
-  desc "retrieve the collation for your database"
+  desc "Retrieves the collation for the current environment's database"
   task :collation => :environment do
     config = ActiveRecord::Base.configurations[RAILS_ENV || 'development']
     case config['adapter']
