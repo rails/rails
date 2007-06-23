@@ -642,6 +642,10 @@ module ActionController #:nodoc:
       #   # Renders the same partial with a local variable.
       #   render :partial => "person", :locals => { :name => "david" }
       #
+      #   # Renders the partial, making @new_person available through
+      #   # the local variable 'person'
+      #   render :partial => "person", :object => @new_person
+      #
       #   # Renders a collection of the same partial by making each element
       #   # of @winners available through the local variable "person" as it
       #   # builds the complete response.
