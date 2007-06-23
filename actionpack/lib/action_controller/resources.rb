@@ -238,17 +238,28 @@ module ActionController
     #
     #   The comment resources work the same, but must now include a value for :article_id.
     #
-    #     comments_url(@article)
-    #     comment_url(@article, @comment)
+    #     article_comments_url(@article)
+    #     article_comment_url(@article, @comment)
     #
-    #     comments_url(:article_id => @article)
-    #     comment_url(:article_id => @article, :id => @comment)
+    #     article_comments_url(:article_id => @article)
+    #     article_comment_url(:article_id => @article, :id => @comment)
     #
     # * <tt>:name_prefix</tt> - define a prefix for all generated routes, usually ending in an underscore.
     #   Use this if you have named routes that may clash.
     #
     #     map.resources :tags, :path_prefix => '/books/:book_id', :name_prefix => 'book_'
     #     map.resources :tags, :path_prefix => '/toys/:toy_id',   :name_prefix => 'toy_'
+    #
+    # You may also use :name_prefix to override the generic named routes in a nested resource:
+    # 
+    #   map.resources :articles do |article|
+    #     article.resources :comments, :name_prefix => nil
+    #   end 
+    # 
+    # This will yield named resources like so:
+    # 
+    #   comments_url(@article)
+    #   comment_url(@article, @comment)
     #
     # If <tt>map.resources</tt> is called with multiple resources, they all get the same options applied.
     #
