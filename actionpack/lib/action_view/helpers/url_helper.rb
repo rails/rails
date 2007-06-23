@@ -107,6 +107,12 @@ module ActionView
       #   for post?, delete? or put?.
       # * The +html_options+ will accept a hash of html attributes for the link tag.
       #
+      # Note that if the user has JavaScript disabled, the request will fall back
+      # to using GET. If :href=>'#' is used and the user has JavaScript disabled
+      # clicking the link will have no effect. If you are relying on the POST 
+      # behavior, your should check for it in your controllers action by using the 
+      # request objects methods for post?, delete? or put?. 
+      #
       # You can mix and match the +html_options+ with the exception of
       # :popup and :method which will raise an ActionView::ActionViewError
       # exception.
@@ -127,16 +133,19 @@ module ActionView
       #        var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); 
       #        m.setAttribute('value', 'delete'); f.appendChild(m);f.submit(); };return false;">Delete Image</a>
       def link_to(name, options = {}, html_options = nil)
+        url = options.is_a?(String) ? options : self.url_for(options)
+
         if html_options
           html_options = html_options.stringify_keys
-          convert_options_to_javascript!(html_options)
+          href = html_options['href']
+          convert_options_to_javascript!(html_options, url)
           tag_options = tag_options(html_options)
         else
           tag_options = nil
         end
-
-        url = options.is_a?(String) ? options : self.url_for(options)
-        "<a href=\"#{url}\"#{tag_options}>#{name || url}</a>"
+        
+        href_attr = "href=\"#{url}\"" unless href
+        "<a #{href_attr}#{tag_options}>#{name || url}</a>"
       end
 
       # Generates a form containing a single button that submits to the URL created
@@ -420,10 +429,10 @@ module ActionView
       end
 
       private
-        def convert_options_to_javascript!(html_options)
+        def convert_options_to_javascript!(html_options, url = '')
           confirm, popup = html_options.delete("confirm"), html_options.delete("popup")
 
-          method = html_options.delete("method")
+          method, href = html_options.delete("method"), html_options['href']
 
           html_options["onclick"] = case
             when popup && method
@@ -435,7 +444,7 @@ module ActionView
             when confirm
               "return #{confirm_javascript_function(confirm)};"
             when method
-              "#{method_javascript_function(method)}return false;"
+              "#{method_javascript_function(method, url, href)}return false;"
             when popup
               popup_javascript_function(popup) + 'return false;'
             else
@@ -451,10 +460,11 @@ module ActionView
           popup.is_a?(Array) ? "window.open(this.href,'#{popup.first}','#{popup.last}');" : "window.open(this.href);"
         end
 
-        def method_javascript_function(method)
+        def method_javascript_function(method, url = '', href = nil)
+          action = (href && url.size > 0) ? "'#{url}'" : 'this.href'
           submit_function =
             "var f = document.createElement('form'); f.style.display = 'none'; " +
-            "this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;"
+            "this.parentNode.appendChild(f); f.method = 'POST'; f.action = #{action};"
 
           unless method == :post
             submit_function << "var m = document.createElement('input'); m.setAttribute('type', 'hidden'); "
