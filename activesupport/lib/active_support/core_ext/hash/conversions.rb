@@ -1,6 +1,27 @@
 require 'date'
 require 'xml_simple'
 
+# Locked down XmlSimple#xml_in_string
+class XmlSimple
+  # Same as xml_in but doesn't try to smartly shoot itself in the foot.
+  def xml_in_string(string, options = nil)
+    handle_options('in', options)
+
+    @doc = parse(string)
+    result = collapse(@doc.root)
+
+    if @options['keeproot']
+      merge({}, @doc.root.name, result)
+    else
+      result
+    end
+  end
+
+  def self.xml_in_string(string, options = nil)
+    new.xml_in_string(string, options)
+  end
+end
+
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Hash #:nodoc:
@@ -81,14 +102,14 @@ module ActiveSupport #:nodoc:
         module ClassMethods
           def from_xml(xml)
             # TODO: Refactor this into something much cleaner that doesn't rely on XmlSimple
-            undasherize_keys(typecast_xml_value(XmlSimple.xml_in(xml,
+            undasherize_keys(typecast_xml_value(XmlSimple.xml_in_string(xml,
               'forcearray'   => false,
               'forcecontent' => true,
               'keeproot'     => true,
               'contentkey'   => '__content__')
-            ))            
+            ))
           end
-          
+
           def create_from_xml(xml)
             ActiveSupport::Deprecation.warn("Hash.create_from_xml has been renamed to Hash.from_xml", caller)
             from_xml(xml)

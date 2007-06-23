@@ -1,5 +1,7 @@
 *SVN*
 
+* Demote Hash#to_xml to use XmlSimple#xml_in_string so it can't read files or stdin.  #8453 [candlerb, Jeremy Kemper]
+
 * Document Object#blank?.  #6491 [Chris Mear]
 
 * Update Dependencies to ignore constants inherited from ancestors. Closes #6951. [Nicholas Seckar]
