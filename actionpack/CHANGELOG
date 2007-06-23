@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that radio_button_tag should generate unique ids #3353 [BobSilva/rebecca/josh]
+
 * Fixed that HTTP authentication should work if the header is called REDIRECT_X_HTTP_AUTHORIZATION as well #6754 [mislaw]
 
 * Don't mistakenly interpret the request uri as the query string.  #8731 [lifofifo, Jeremy Kemper]

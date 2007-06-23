@@ -122,7 +122,8 @@ module ActionView
       # Creates a radio button.
       def radio_button_tag(name, value, checked = false, options = {})
         pretty_tag_value = value.to_s.gsub(/\s/, "_").gsub(/(?!-)\W/, "").downcase
-        html_options = { "type" => "radio", "name" => name, "id" => "#{name}_#{pretty_tag_value}", "value" => value }.update(options.stringify_keys)
+        pretty_name = name.gsub(/\[/, "_").gsub(/\]/, "")
+        html_options = { "type" => "radio", "name" => name, "id" => "#{pretty_name}_#{pretty_tag_value}", "value" => value }.update(options.stringify_keys)
         html_options["checked"] = "checked" if checked
         tag :input, html_options
       end
