@@ -167,7 +167,7 @@ module Rails
     # Loads all plugins in <tt>config.plugin_paths</tt>.  <tt>plugin_paths</tt>
     # defaults to <tt>vendor/plugins</tt> but may also be set to a list of
     # paths, such as
-    #   config.plugin_paths = ['lib/plugins', 'vendor/plugins']
+    #   config.plugin_paths = ["#{RAILS_ROOT}/lib/plugins", "#{RAILS_ROOT}/vendor/plugins"]
     #
     # Each plugin discovered in <tt>plugin_paths</tt> is initialized:
     # * add its +lib+ directory, if present, to the beginning of the load path
