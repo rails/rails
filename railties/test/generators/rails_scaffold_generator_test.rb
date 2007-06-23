@@ -42,10 +42,11 @@ end
 
 
 # Must set before requiring generator libs.
+tmp_dir="#{File.dirname(__FILE__)}/../fixtures/tmp"
 if defined?(RAILS_ROOT)
-  RAILS_ROOT.replace "#{File.dirname(__FILE__)}/../fixtures/tmp"
+  RAILS_ROOT.replace(tmp_dir)
 else
-  RAILS_ROOT = "#{File.dirname(__FILE__)}/../fixtures/tmp"
+  RAILS_ROOT=tmp_dir
 end
 Dir.mkdir(RAILS_ROOT) unless File.exists?(RAILS_ROOT)
 
@@ -127,6 +128,20 @@ class RailsScaffoldGeneratorTest < Test::Unit::TestCase
     assert_added_route_for :products
   end
 
+  def test_scaffold_skip_migration_skips_migration
+    run_generator('scaffold', %w(Product --skip-migration))
+
+    assert_generated_model_for :product
+    assert_generated_functional_test_for :products
+    assert_generated_unit_test_for :product
+    assert_generated_fixtures_for :products
+    assert_generated_helper_for :products
+    assert_generated_stylesheet :scaffold
+    assert_generated_views_for :products, "index.html.erb","new.html.erb","edit.html.erb","show.html.erb"
+    assert_skipped_migration :create_products
+    assert_added_route_for :products
+  end
+
   def test_scaffold_generates_resources_with_attributes
     run_generator('scaffold', %w(Product name:string supplier_id:integer created_at:timestamp))
 
@@ -166,4 +181,5 @@ class RailsScaffoldGeneratorTest < Test::Unit::TestCase
 
     assert_added_route_for :products
   end
+
 end

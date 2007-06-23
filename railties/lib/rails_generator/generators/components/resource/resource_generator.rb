@@ -1,4 +1,6 @@
 class ResourceGenerator < Rails::Generator::NamedBase
+  default_options :skip_migration => false
+
   attr_reader   :controller_name,
                 :controller_class_path,
                 :controller_file_path,
@@ -57,7 +59,14 @@ class ResourceGenerator < Rails::Generator::NamedBase
       "Usage: #{$0} resource ModelName [field:type, field:type]"
     end
 
-    def model_name 
+    def add_options!(opt)
+      opt.separator ''
+      opt.separator 'Options:'
+      opt.on("--skip-migration",
+             "Don't generate a migration file for this model") { |v| options[:skip_migration] = v }
+    end
+
+    def model_name
       class_name.demodulize
     end
 end

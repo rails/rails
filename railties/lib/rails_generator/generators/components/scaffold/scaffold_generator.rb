@@ -1,4 +1,6 @@
 class ScaffoldGenerator < Rails::Generator::NamedBase
+  default_options :skip_migration => false
+
   attr_reader   :controller_name,
                 :controller_class_path,
                 :controller_file_path,
@@ -51,7 +53,7 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       m.template('layout.html.erb', File.join('app/views/layouts', controller_class_path, "#{controller_file_name}.html.erb"))
       m.template('style.css', 'public/stylesheets/scaffold.css')
 
-      m.dependency 'model', [singular_name] + @args, :collision => :skip 
+      m.dependency 'model', [singular_name] + @args, :collision => :skip
 
       m.template(
         'controller.rb', File.join('app/controllers', controller_class_path, "#{controller_file_name}_controller.rb")
@@ -70,11 +72,18 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       "Usage: #{$0} scaffold ModelName [field:type, field:type]"
     end
 
+    def add_options!(opt)
+      opt.separator ''
+      opt.separator 'Options:'
+      opt.on("--skip-migration",
+             "Don't generate a migration file for this model") { |v| options[:skip_migration] = v }
+    end
+
     def scaffold_views
       %w[ index show new edit ]
     end
 
-    def model_name 
+    def model_name
       class_name.demodulize
     end
 end
