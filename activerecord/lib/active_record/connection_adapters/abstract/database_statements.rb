@@ -53,7 +53,7 @@ module ActiveRecord
         begin
           if block_given?
             if start_db_transaction
-              begin_db_transaction 
+              begin_db_transaction
               transaction_open = true
             end
             yield
