@@ -864,19 +864,21 @@ class ValidationsTest < Test::Unit::TestCase
   def test_validates_associated_many
     Topic.validates_associated( :replies )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
-    t.replies << [r = Reply.create("title" => "A reply"), r2 = Reply.create("title" => "Another reply")]
+    t.replies << [r = Reply.new("title" => "A reply"), r2 = Reply.new("title" => "Another reply", "content" => "non-empty"), r3 = Reply.new("title" => "Yet another reply"), r4 = Reply.new("title" => "The last reply", "content" => "non-empty")]
     assert !t.valid?
     assert t.errors.on(:replies)
     assert_equal 1, r.errors.count  # make sure all associated objects have been validated
-    assert_equal 1, r2.errors.count
-    r.content = r2.content = "non-empty"
+    assert_equal 0, r2.errors.count
+    assert_equal 1, r3.errors.count
+    assert_equal 0, r4.errors.count
+    r.content = r3.content = "non-empty"
     assert t.valid?
   end
 
   def test_validates_associated_one
     Reply.validates_associated( :topic )
     Topic.validates_presence_of( :content )
-    r = Reply.create("title" => "A reply", "content" => "with content!")
+    r = Reply.new("title" => "A reply", "content" => "with content!")
     r.topic = Topic.create("title" => "uhohuhoh")
     assert !r.valid?
     assert r.errors.on(:topic)

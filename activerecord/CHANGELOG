@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed validates_associated should not stop on the first error #4276 [mrj/manfred/josh]
+
 * Rollback if commit raises an exception.  #8642 [kik, Jeremy Kemper]
 
 * Update tests' use of fixtures for the new collections api.  #8726 [kamal]

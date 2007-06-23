@@ -745,7 +745,7 @@ module ActiveRecord
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           record.errors.add(attr_name, configuration[:message]) unless
-            (value.is_a?(Array) ? value : [value]).all? { |r| r.nil? or r.valid? }
+            (value.is_a?(Array) ? value : [value]).inject(true) { |v, r| (r.nil? || r.valid?) && v }
         end
       end
 
