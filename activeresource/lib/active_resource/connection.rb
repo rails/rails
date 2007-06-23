@@ -5,7 +5,7 @@ require 'uri'
 require 'benchmark'
 
 module ActiveResource
-  class ConnectionError < StandardError
+  class ConnectionError < StandardError # :nodoc:
     attr_reader :response
 
     def initialize(response, message = nil)
@@ -18,20 +18,28 @@ module ActiveResource
     end
   end
 
-  class ClientError < ConnectionError;  end  # 4xx Client Error
-  class ResourceNotFound < ClientError; end  # 404 Not Found
-  class ResourceConflict < ClientError; end  # 409 Conflict
+  # 4xx Client Error
+  class ClientError < ConnectionError; end # :nodoc:
+  
+  # 404 Not Found
+  class ResourceNotFound < ClientError; end # :nodoc:
+  
+  # 409 Conflict
+  class ResourceConflict < ClientError; end # :nodoc:
 
-  class ServerError < ConnectionError;  end  # 5xx Server Error
+  # 5xx Server Error
+  class ServerError < ConnectionError; end # :nodoc:
 
   # 405 Method Not Allowed
-  class MethodNotAllowed < ClientError
+  class MethodNotAllowed < ClientError # :nodoc:
     def allowed_methods
       @response['Allow'].split(',').map { |verb| verb.strip.downcase.to_sym }
     end
   end
 
-  # Class to handle connections to remote services.
+  # Class to handle connections to remote web services.
+  # This class is used by ActiveResource::Base to interface with REST
+  # services.
   class Connection
     attr_reader :site
 
@@ -46,6 +54,8 @@ module ActiveResource
       end
     end
 
+    # The +site+ parameter is required and will set the +site+
+    # attribute to the URI for the remote resource service.
     def initialize(site)
       raise ArgumentError, 'Missing site URI' unless site
       self.site = site
@@ -83,7 +93,6 @@ module ActiveResource
     def xml_from_response(response)
       from_xml_data(Hash.from_xml(response.body))
     end
-
 
     private
       # Makes request to remote service.
@@ -152,6 +161,5 @@ module ActiveResource
           data
         end
       end
-      
   end
 end

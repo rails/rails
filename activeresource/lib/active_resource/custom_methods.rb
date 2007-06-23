@@ -1,31 +1,34 @@
-# Support custom methods and sub-resources for REST.
+# A module to support custom REST methods and sub-resources, allowing you to break out
+# of the "default" REST methods with your own custom resource requests.  For example, 
+# say you use Rails to expose a REST service and configure your routes with:
 #
-# Say you on the server configure your routes with:
+#    map.resources :people, :new => { :register => :post },
+#                           :element => { :promote => :put, :deactivate => :delete }
+#                           :collection => { :active => :get }
 #
-#   map.resources :people, :new => { :register => :post },
-#                          :element => { :promote => :put, :deactivate => :delete }
-#                          :collection => { :active => :get }
+#  This route set creates routes for the following http requests:
 #
-#  Which creates routes for the following http requests:
+#    POST    /people/new/register.xml #=> PeopleController.register
+#    PUT     /people/1/promote.xml    #=> PeopleController.promote with :id => 1
+#    DELETE  /people/1/deactivate.xml #=> PeopleController.deactivate with :id => 1
+#    GET     /people/active.xml       #=> PeopleController.active
 #
-#  POST    /people/new/register.xml #=> PeopleController.register
-#  PUT     /people/1/promote.xml    #=> PeopleController.promote with :id => 1
-#  DELETE  /people/1/deactivate.xml #=> PeopleController.deactivate with :id => 1
-#  GET     /people/active.xml       #=> PeopleController.active
-#
-# This module provides the ability for Active Resource to call these
-# custom REST methods and get the response back.
+# Using this module, Active Resource can use these custom REST methods just like the
+# standard methods.
 #
 #   class Person < ActiveResource::Base
 #     self.site = "http://37s.sunrise.i:3000"
 #   end
 #
-#   Person.new(:name => 'Ryan).post(:register) #=> { :id => 1, :name => 'Ryan' }
+#   Person.new(:name => 'Ryan).post(:register)  # POST /people/new/register.xml
+#   # => { :id => 1, :name => 'Ryan' }
 #
-#   Person.find(1).put(:promote, :position => 'Manager')
-#   Person.find(1).delete(:deactivate)
+#   Person.find(1).put(:promote, :position => 'Manager') # PUT /people/1/promote.xml
+#   Person.find(1).delete(:deactivate) # DELETE /people/1/deactivate.xml
 #
-#   Person.get(:active) #=> [{:id => 1, :name => 'Ryan'}, {:id => 2, :name => 'Joe'}]
+#   Person.get(:active)  # GET /people/active.xml 
+#   # => [{:id => 1, :name => 'Ryan'}, {:id => 2, :name => 'Joe'}]
+#
 module ActiveResource
   module CustomMethods 
     def self.included(within)
