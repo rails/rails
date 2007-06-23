@@ -3,35 +3,42 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 class HttpBasicAuthenticationTest < Test::Unit::TestCase
   include ActionController::HttpAuthentication::Basic
   
+  class DummyController
+    attr_accessor :headers, :renders, :request
+    
+    def initialize
+      @headers, @renders = {}, []
+      @request = ActionController::TestRequest.new
+    end
+    
+    def render(options)
+      self.renders << options
+    end
+  end
+
   def setup
-    @controller = Class.new do
-      attr_accessor :headers, :renders
-      
-      def initialize
-        @headers, @renders = {}, []
-      end
-      
-      def request
-        Class.new do
-          def env
-            { 'HTTP_AUTHORIZATION' => ActionController::HttpAuthentication::Basic.encode_credentials("dhh", "secret") }
-          end
-        end.new
-      end
-      
-      def render(options)
-        self.renders << options
-      end
-    end.new
+    @controller  = DummyController.new
+    @credentials = ActionController::HttpAuthentication::Basic.encode_credentials("dhh", "secret")
   end
 
   def test_successful_authentication
-    assert authenticate(@controller) { |user_name, password| user_name == "dhh" && password == "secret" }
+    login = Proc.new { |user_name, password| user_name == "dhh" && password == "secret" }
+    set_headers
+    assert authenticate(@controller, &login)
+
+    set_headers ''
+    assert_nothing_raised do
+      assert !authenticate(@controller, &login)
+    end
+
+    set_headers nil
+    set_headers @credentials, 'REDIRECT_X_HTTP_AUTHORIZATION'
+    assert authenticate(@controller, &login)
   end
 
-
   def test_failing_authentication
-    assert !authenticate(@controller) { |user_name, password| user_name == "dhh" && password == "secret!!" }
+    set_headers
+    assert !authenticate(@controller) { |user_name, password| user_name == "dhh" && password == "incorrect" }
   end
   
   def test_authentication_request
@@ -39,4 +46,9 @@ class HttpBasicAuthenticationTest < Test::Unit::TestCase
     assert_equal 'Basic realm="Megaglobalapp"', @controller.headers["WWW-Authenticate"]
     assert_equal :unauthorized, @controller.renders.first[:status]
   end
+
+  private
+    def set_headers(value = @credentials, name = 'HTTP_AUTHORIZATION')
+      @controller.request.env[name] = value
+    end
 end
