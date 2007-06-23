@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix that FCGIs would leave log files open when asked to shut down by USR2 #3028 [sebastian.kanthak/josh]
+
 * Fixed that dispatcher preparation callbacks only run once in production mode.  Mock Routes.reload so that dispatcher preparation callback tests run. [Rick]
 
 * Fix syntax error in dispatcher than wrecked failsafe responses.  #8625 [mtitorenko]

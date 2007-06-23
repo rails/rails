@@ -169,6 +169,11 @@ class RailsFCGIHandler
 
       dispatcher_log :info, "restarted"
 
+      # close resources as they won't be closed by
+      # the OS when using exec
+      logger.close rescue nil
+      RAILS_DEFAULT_LOGGER.close rescue nil
+
       exec(command_line)
     end
 
