@@ -67,6 +67,11 @@ class CgiRequestParamsParsingTest < BaseCgiTest
     @request.env['RAW_POST_DATA'] = data
     assert_equal({"flamenco"=> "love"}, @request.request_parameters)
   end
+
+  def test_doesnt_interpret_request_uri_as_query_string_when_missing
+    @request.env['REQUEST_URI'] = 'foo'
+    assert_equal({}, @request.query_parameters)
+  end
 end
 
 

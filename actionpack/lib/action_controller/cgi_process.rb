@@ -47,11 +47,11 @@ module ActionController #:nodoc:
     end
 
     def query_string
-      qs = @cgi.query_string
+      qs = @cgi.query_string if @cgi.respond_to?(:query_string)
       if !qs.blank?
         qs
       elsif uri = @env['REQUEST_URI']
-        uri.split('?', 2).last
+        uri.split('?', 2)[1] || ''
       else
         @env['QUERY_STRING'] || ''
       end
