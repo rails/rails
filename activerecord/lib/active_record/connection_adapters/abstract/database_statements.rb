@@ -57,7 +57,7 @@ module ActiveRecord
               transaction_open = true
             end
             yield
-        end
+          end
         rescue Exception => database_transaction_rollback
           if transaction_open
             transaction_open = false
@@ -66,7 +66,14 @@ module ActiveRecord
           raise unless database_transaction_rollback.is_a? ActiveRecord::Rollback
         end
       ensure
-        commit_db_transaction if transaction_open
+        if transaction_open
+          begin
+            commit_db_transaction
+          rescue Exception => database_transaction_rollback
+            rollback_db_transaction
+            raise
+          end
+        end
       end
 
       # Begins the transaction (and turns off auto-committing).

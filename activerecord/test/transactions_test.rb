@@ -81,12 +81,12 @@ class TransactionTest < Test::Unit::TestCase
 
     assert @first.approved?, "First should still be changed in the objects"
     assert !@second.approved?, "Second should still be changed in the objects"
-    
+
     assert !Topic.find(1).approved?, "First shouldn't have been approved"
     assert Topic.find(2).approved?, "Second should still be approved"
   end
-  
-  
+
+
   def test_callback_rollback_in_save
     add_exception_raising_after_save_callback_to_topic
 
@@ -101,7 +101,7 @@ class TransactionTest < Test::Unit::TestCase
       remove_exception_raising_after_save_callback_to_topic
     end
   end
-  
+
   def test_callback_rollback_in_create
     new_topic = Topic.new(
       :title => "A new topic",
@@ -149,36 +149,48 @@ class TransactionTest < Test::Unit::TestCase
   end
 
   def test_manually_rolling_back_a_transaction
-    Topic.transaction do 
+    Topic.transaction do
       @first.approved  = true
       @second.approved = false
       @first.save
       @second.save
-      
+
       raise ActiveRecord::Rollback
     end
 
     assert @first.approved?, "First should still be changed in the objects"
     assert !@second.approved?, "Second should still be changed in the objects"
-    
+
     assert !Topic.find(1).approved?, "First shouldn't have been approved"
     assert Topic.find(2).approved?, "Second should still be approved"
   end
 
+  uses_mocha 'mocking connection.commit_db_transaction' do
+    def test_rollback_when_commit_raises
+      Topic.connection.expects(:commit_db_transaction).raises('OH NOES')
+      Topic.connection.expects(:rollback_db_transaction)
+
+      assert_raise RuntimeError do
+        Topic.transaction do
+          # do nothing
+        end
+      end
+    end
+  end
 
   private
     def add_exception_raising_after_save_callback_to_topic
       Topic.class_eval { def after_save() raise "Make the transaction rollback" end }
     end
-    
+
     def remove_exception_raising_after_save_callback_to_topic
       Topic.class_eval { remove_method :after_save }
     end
-    
+
     def add_exception_raising_after_create_callback_to_topic
       Topic.class_eval { def after_create() raise "Make the transaction rollback" end }
     end
-    
+
     def remove_exception_raising_after_create_callback_to_topic
       Topic.class_eval { remove_method :after_create }
     end

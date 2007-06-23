@@ -1,5 +1,7 @@
 *SVN*
 
+* Rollback if commit raises an exception.  #8642 [kik, Jeremy Kemper]
+
 * Update tests' use of fixtures for the new collections api.  #8726 [kamal]
 
 * Save associated records only if the association is already loaded.  #8713 [blaine]
