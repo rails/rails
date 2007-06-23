@@ -128,8 +128,14 @@ module ActionView
         tag :input, html_options
       end
 
-      # Creates a submit button with the text <tt>value</tt> as the caption. If options contains a pair with the key of "disable_with",
+      # Creates a submit button with the text <tt>value</tt> as the caption. If options contains a pair with the key of <tt>:disable_with</tt>,
       # then the value will be used to rename a disabled version of the submit button.
+      #
+      # Options:
+      # * <tt>:disable_with</tt> - When specified the button will be disabled when clicked and the <tt>value</tt> will be replaced with the
+      # the string provided.
+      #     # Outputs <input name="commit" onclick="this.disabled=true;this.value='Saving...';this.form.submit();" type="submit" value="Send" />
+      #     <%= submit_tag 'Send', :disable_with => 'Saving...' %>
       def submit_tag(value = "Save changes", options = {})
         options.stringify_keys!
         
