@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for pluralization with a different starting letter than the singular version (cow/kine) #4929 [norri_b/hasmanyjosh]
+
 * Demote Hash#to_xml to use XmlSimple#xml_in_string so it can't read files or stdin.  #8453 [candlerb, Jeremy Kemper]
 
 * Backport clean_logger changes to support ruby 1.8.2 [mislav]

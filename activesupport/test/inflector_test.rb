@@ -104,7 +104,9 @@ class InflectorTest < Test::Unit::TestCase
 
     "horse"       => "horses",
     "prize"       => "prizes",
-    "edge"        => "edges"
+    "edge"        => "edges",
+
+    "cow"         => "kine"
   }
 
   CamelToUnderscore = {
