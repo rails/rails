@@ -4,11 +4,15 @@ require 'action_view/helpers/tag_helper'
 
 module ActionView
   module Helpers #:nodoc:
-    # Provides methods for linking an HTML page together with other assets such
-    # as images, javascripts, stylesheets, and feeds. You can direct Rails to
-    # link to assets from a dedicated assets server by setting ActionController::Base.asset_host
-    # in your environment.rb. These methods do not verify the assets exist before
-    # linking to them.
+    # This module provides methods for generating HTML that links views to assets such
+    # as images, javascripts, stylesheets, and feeds. These methods do not verify 
+    # the assets exist before linking to them. 
+    #
+    # === Using asset hosts
+    # By default, Rails links to these assets on the current host in the public
+    # folder, but you can direct Rails to link to assets from a dedicated assets server by 
+    # setting ActionController::Base.asset_host in your environment.rb.  For example,
+    # let's say your asset host is assets.example.com. 
     #
     #   ActionController::Base.asset_host = "assets.example.com"
     #   image_tag("rails.png")
@@ -16,15 +20,22 @@ module ActionView
     #   stylesheet_include_tag("application")
     #     => <link href="http://assets.example.com/stylesheets/application.css" media="screen" rel="Stylesheet" type="text/css" />
     #
-    # Since browsers typically open at most two connections to a single host,
-    # your assets often wait in single file for their turn to load.
+    # This is useful since browsers typically open at most two connections to a single host,
+    # which means your assets often wait in single file for their turn to load.  You can
+    # alleviate this by using a %d wildcard in <tt>asset_host</tt> (for example, "assets%d.example.com") 
+    # to automatically distribute asset requests among four hosts (e.g., assets0.example.com through assets3.example.com)
+    # so browsers will open eight connections rather than two.  
     #
-    # Use a %d wildcard in asset_host (asset%d.myapp.com) to automatically
-    # distribute asset requests among four hosts (asset0-asset3.myapp.com)
-    # so browsers will open eight connections rather than two.  Use wildcard
-    # DNS to CNAME the wildcard to your real asset host.
+    #   image_tag("rails.png")
+    #     => <img src="http://assets0.example.com/images/rails.png" alt="Rails" />
+    #   stylesheet_include_tag("application")
+    #     => <link href="http://assets3.example.com/stylesheets/application.css" media="screen" rel="Stylesheet" type="text/css" />
     #
-    # Note: this is purely a browser performance optimization and is not meant
+    # To do this, you can either setup four actual hosts, or you can use wildcard DNS to CNAME 
+    # the wildcard to a single asset host.  You can read more about setting up your DNS CNAME records from
+    # your ISP.
+    #
+    # Note: This is purely a browser performance optimization and is not meant
     # for server load balancing. See http://www.die.net/musings/page_load_time/
     # for background.
     module AssetTagHelper
@@ -37,19 +48,24 @@ module ActionView
       # <tt>:atom</tt>. Control the link options in url_for format using the
       # +url_options+. You can modify the LINK tag itself in +tag_options+.
       #
-      # Tag Options:
+      # ==== Options:
       # * <tt>:rel</tt>  - Specify the relation of this link, defaults to "alternate"
       # * <tt>:type</tt>  - Override the auto-generated mime type
       # * <tt>:title</tt>  - Specify the title of the link, defaults to the +type+
       #
+      # ==== Examples
       #  auto_discovery_link_tag # =>
-      #     <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.curenthost.com/controller/action" />
+      #     <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/action" />
       #  auto_discovery_link_tag(:atom) # =>
-      #     <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.curenthost.com/controller/action" />
+      #     <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.currenthost.com/controller/action" />
       #  auto_discovery_link_tag(:rss, {:action => "feed"}) # =>
-      #     <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.curenthost.com/controller/feed" />
+      #     <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/feed" />
       #  auto_discovery_link_tag(:rss, {:action => "feed"}, {:title => "My RSS"}) # =>
-      #     <link rel="alternate" type="application/rss+xml" title="My RSS" href="http://www.curenthost.com/controller/feed" />
+      #     <link rel="alternate" type="application/rss+xml" title="My RSS" href="http://www.currenthost.com/controller/feed" />
+      #  auto_discovery_link_tag(:rss, {:controller => "news", :action => "feed"}) # =>
+      #     <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/news/feed" />
+      #  auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {:title => "Example RSS"}) # =>
+      #     <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed" />
       def auto_discovery_link_tag(type = :rss, url_options = {}, tag_options = {})
         tag(
           "link",
@@ -65,9 +81,12 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by javascript_include_tag to build the script path.
       #
+      # ==== Examples
       #   javascript_path "xmlhr" # => /javascripts/xmlhr.js
       #   javascript_path "dir/xmlhr.js" # => /javascripts/dir/xmlhr.js
       #   javascript_path "/dir/xmlhr" # => /dir/xmlhr.js
+      #   javascript_path "http://www.railsapplication.com/js/xmlhr" # => http://www.railsapplication.com/js/xmlhr.js
+      #   javascript_path "http://www.railsapplication.com/js/xmlhr.js" # => http://www.railsapplication.com/js/xmlhr.js
       def javascript_path(source)
         compute_public_path(source, 'javascripts', 'js')
       end
@@ -85,22 +104,35 @@ module ActionView
       # javascripts directory, it will be included as well. You can modify the
       # html attributes of the script tag by passing a hash as the last argument.
       #
+      # ==== Examples
       #   javascript_include_tag "xmlhr" # =>
+      #     <script type="text/javascript" src="/javascripts/xmlhr.js"></script>
+      #
+      #   javascript_include_tag "xmlhr.js" # =>
       #     <script type="text/javascript" src="/javascripts/xmlhr.js"></script>
       #
       #   javascript_include_tag "common.javascript", "/elsewhere/cools" # =>
       #     <script type="text/javascript" src="/javascripts/common.javascript"></script>
       #     <script type="text/javascript" src="/elsewhere/cools.js"></script>
       #
+      #   javascript_include_tag "http://www.railsapplication.com/xmlhr" # =>
+      #     <script type="text/javascript" src="http://www.railsapplication.com/xmlhr.js"></script>
+      #
+      #   javascript_include_tag "http://www.railsapplication.com/xmlhr.js" # =>
+      #     <script type="text/javascript" src="http://www.railsapplication.com/xmlhr.js"></script>
+      #
       #   javascript_include_tag :defaults # =>
       #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
       #     <script type="text/javascript" src="/javascripts/effects.js"></script>
       #     ...
-      #     <script type="text/javascript" src="/javascripts/application.js"></script> *see below
+      #     <script type="text/javascript" src="/javascripts/application.js"></script> <!-- * see below -->
       #
       # * = The application.js file is only referenced if it exists
       #
-      # You can also include all javascripts in the javascripts directory using :all as the source:
+      # Though it's not really recommended practice, if you need to extend the default JavaScript set for any reason 
+      # (e.g., you're going to be using a certain .js file in every action), then take a look at the register_javascript_include_default method.
+      #
+      # You can also include all javascripts in the javascripts directory using <tt>:all</tt> as the source:
       #
       #   javascript_include_tag :all # =>
       #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
@@ -110,16 +142,17 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/shop.js"></script>
       #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
       #
-      # Note that the default javascript files will be included first. So Prototype and Scriptaculous are available for
-      # all subsequently included files. They
+      # Note that the default javascript files will be included first. So Prototype and Scriptaculous are available to
+      # all subsequently included files.
       #
       # == Caching multiple javascripts into one
       #
-      # You can also cache multiple javascripts into one file, which requires less HTTP connections and can better be
+      # You can also cache multiple javascripts into one file, which requires less HTTP connections to download and can better be
       # compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching
-      # is set to true (which is the case by default for the Rails production environment, but not for the development
-      # environment). Examples:
+      # is set to <tt>true</tt> (which is the case by default for the Rails production environment, but not for the development
+      # environment). 
       #
+      # ==== Examples
       #   javascript_include_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
       #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
       #     <script type="text/javascript" src="/javascripts/effects.js"></script>
@@ -168,7 +201,7 @@ module ActionView
 
       # Register one or more additional JavaScript files to be included when
       # <tt>javascript_include_tag :defaults</tt> is called. This method is
-      # only intended to be called from plugin initialization to register additional
+      # typically intended to be called from plugin initialization to register additional
       # .js files that the plugin installed in <tt>public/javascripts</tt>.
       def self.register_javascript_include_default(*sources)
         @@javascript_default_sources.concat(sources)
@@ -183,9 +216,12 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by stylesheet_link_tag to build the stylesheet path.
       #
+      # ==== Examples
       #   stylesheet_path "style" # => /stylesheets/style.css
       #   stylesheet_path "dir/style.css" # => /stylesheets/dir/style.css
       #   stylesheet_path "/dir/style.css" # => /dir/style.css
+      #   stylesheet_path "http://www.railsapplication.com/css/style" # => http://www.railsapplication.com/css/style.css
+      #   stylesheet_path "http://www.railsapplication.com/css/style.js" # => http://www.railsapplication.com/css/style.css
       def stylesheet_path(source)
         compute_public_path(source, 'stylesheets', 'css')
       end
@@ -194,11 +230,21 @@ module ActionView
       # you don't specify an extension, .css will be appended automatically.
       # You can modify the link attributes by passing a hash as the last argument.
       #
+      # ==== Examples
       #   stylesheet_link_tag "style" # =>
       #     <link href="/stylesheets/style.css" media="screen" rel="Stylesheet" type="text/css" />
       #
+      #   stylesheet_link_tag "style.css" # =>
+      #     <link href="/stylesheets/style.css" media="screen" rel="Stylesheet" type="text/css" />
+      #
+      #   stylesheet_link_tag "http://www.railsapplication.com/style.css" # =>
+      #     <link href="http://www.railsapplication.com/style.css" media="screen" rel="Stylesheet" type="text/css" />
+      #
       #   stylesheet_link_tag "style", :media => "all" # =>
       #     <link href="/stylesheets/style.css" media="all" rel="Stylesheet" type="text/css" />
+      #
+      #   stylesheet_link_tag "style", :media => "print" # =>
+      #     <link href="/stylesheets/style.css" media="print" rel="Stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "random.styles", "/css/stylish" # =>
       #     <link href="/stylesheets/random.styles" media="screen" rel="Stylesheet" type="text/css" />
@@ -218,6 +264,7 @@ module ActionView
       # is set to true (which is the case by default for the Rails production environment, but not for the development
       # environment). Examples:
       #
+      # ==== Examples
       #   stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
       #     <link href="/stylesheets/style1.css"  media="screen" rel="Stylesheet" type="text/css" />
       #     <link href="/stylesheets/styleB.css"  media="screen" rel="Stylesheet" type="text/css" />
@@ -271,9 +318,11 @@ module ActionView
       # Used internally by image_tag to build the image path. Passing
       # a filename without an extension is deprecated.
       #
+      # ==== Examples
       #   image_path("edit.png")  # => /images/edit.png
       #   image_path("icons/edit.png")  # => /images/icons/edit.png
       #   image_path("/icons/edit.png")  # => /icons/edit.png
+      #   image_path("http://www.railsapplication.com/img/edit.png") # => http://www.railsapplication.com/img/edit.png
       def image_path(source)
         unless (source.split("/").last || source).include?(".") || source.blank?
           ActiveSupport::Deprecation.warn(
@@ -289,7 +338,9 @@ module ActionView
       # Returns an html image tag for the +source+. The +source+ can be a full
       # path or a file that exists in your public images directory. Note that
       # specifying a filename without the extension is now deprecated in Rails.
-      # You can add html attributes using the +options+. The +options+ supports
+      #
+      # ==== Options
+      # You can add HTML attributes using the +options+. The +options+ supports
       # two additional keys for convienence and conformance:
       #
       # * <tt>:alt</tt>  - If no alt text is given, the file name part of the
@@ -298,12 +349,17 @@ module ActionView
       #   width="30" and height="45". <tt>:size</tt> will be ignored if the
       #   value is not in the correct format.
       #
+      # ==== Examples
       #  image_tag("icon.png")  # =>
       #    <img src="/images/icon.png" alt="Icon" />
       #  image_tag("icon.png", :size => "16x10", :alt => "Edit Entry")  # =>
       #    <img src="/images/icon.png" width="16" height="10" alt="Edit Entry" />
       #  image_tag("/icons/icon.gif", :size => "16x16")  # =>
       #    <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
+      #  image_tag("/icons/icon.gif", :height => '32', :width => '32') # =>
+      #    <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
+      #  image_tag("/icons/icon.gif", :class => "menu_icon") # =>
+      #    <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
       def image_tag(source, options = {})
         options.symbolize_keys!
 
