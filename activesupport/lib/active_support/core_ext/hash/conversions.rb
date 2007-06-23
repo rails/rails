@@ -142,11 +142,6 @@ module ActiveSupport #:nodoc:
               'contentkey'   => '__content__')
             ))
           end
-          
-          def create_from_xml(xml)
-            ActiveSupport::Deprecation.warn("Hash.create_from_xml has been renamed to Hash.from_xml", caller)
-            from_xml(xml)
-          end
 
           private
             def typecast_xml_value(value)
