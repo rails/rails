@@ -46,7 +46,7 @@ namespace :doc do
 
   plugins = FileList['vendor/plugins/**'].collect { |plugin| File.basename(plugin) }
 
-  desc "Generate documation for all installed plugins"
+  desc "Generate documentation for all installed plugins"
   task :plugins => plugins.collect { |plugin| "doc:plugins:#{plugin}" }
 
   desc "Remove plugin documentation"
