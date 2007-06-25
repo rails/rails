@@ -205,4 +205,20 @@ class ClassInheritableAttributesTest < Test::Unit::TestCase
     assert_equal 1, @sub.a.keys.size
     assert_equal 0, @klass.a.keys.size
   end
+  
+  def test_reset_inheritable_attributes
+    @klass.class_inheritable_accessor :a
+    @klass.a = 'a'
+
+    @sub = eval("class Inheriting < @klass; end; Inheriting")
+
+    assert_equal 'a', @klass.a
+    assert_equal 'a', @sub.a
+
+    @klass.reset_inheritable_attributes
+    @sub = eval("class NotInheriting < @klass; end; NotInheriting")
+
+    assert_equal nil, @klass.a
+    assert_equal nil, @sub.a
+  end
 end

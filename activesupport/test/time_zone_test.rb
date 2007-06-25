@@ -80,12 +80,19 @@ class TimeZoneTest < Test::Unit::TestCase
   def test_index
     assert_nil TimeZone["bogus"]
     assert_not_nil TimeZone["Central Time (US & Canada)"]
+    assert_not_nil TimeZone[8]
+    assert_raises(ArgumentError) { TimeZone[false] }
   end
-
+  
   def test_new
     a = TimeZone.new("Berlin")
     b = TimeZone.new("Berlin")
     assert_same a, b
     assert_nil TimeZone.new("bogus")
   end
+  
+  def test_us_zones
+    assert TimeZone.us_zones.include?(TimeZone["Hawaii"])
+    assert !TimeZone.us_zones.include?(TimeZone["Kuala Lumpur"])
+  end 
 end

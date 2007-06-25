@@ -104,6 +104,7 @@ end
 class NumericExtSizeTest < Test::Unit::TestCase
   def test_unit_in_terms_of_another
     relationships = {
+        1024.bytes     =>   1.kilobyte,
         1024.kilobytes =>   1.megabyte,
       3584.0.kilobytes => 3.5.megabytes,
       3584.0.megabytes => 3.5.gigabytes,

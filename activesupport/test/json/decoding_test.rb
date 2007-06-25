@@ -25,4 +25,8 @@ class TestJSONDecoding < Test::Unit::TestCase
       end
     end
   end
+  
+  def test_failed_json_decoding
+    assert_raises(ActiveSupport::JSON::ParseError) { ActiveSupport::JSON.decode(%({: 1})) }
+  end
 end
