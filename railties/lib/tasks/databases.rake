@@ -1,5 +1,4 @@
-namespace :db do
-  
+namespace :db do  
   desc 'Creates the databases defined in config/database.yml (unless they already exist)'
   task :create => :environment do 
     ActiveRecord::Base.configurations.each_value do |config|
@@ -76,7 +75,13 @@ namespace :db do
       puts 'sorry, your database adapter is not supported yet, feel free to submit a patch'
     end
   end
-  
+
+  desc "Retrieves the current schema version number"
+  task :version => :environment do
+    puts "Current version: " + 
+      ActiveRecord::Migrator.current_version.to_s
+  end
+
   namespace :fixtures do
     desc "Load fixtures into the current environment's database.  Load specific fixtures using FIXTURES=x,y"
     task :load => :environment do

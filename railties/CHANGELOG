@@ -1,5 +1,7 @@
 *SVN*
 
+* Added db:version to get the current schema number [via Tim Bray]
+
 * Added --skip-migration option to scaffold and resource generators #8656 [Michael Glaesemann]
 
 * Fix that FCGIs would leave log files open when asked to shut down by USR2 #3028 [sebastian.kanthak/josh]
