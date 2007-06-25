@@ -2,6 +2,7 @@ require 'abstract_unit'
 require 'fixtures/tag'
 require 'fixtures/tagging'
 require 'fixtures/post'
+require 'fixtures/item'
 require 'fixtures/comment'
 require 'fixtures/author'
 require 'fixtures/category'
@@ -11,7 +12,7 @@ require 'fixtures/edge'
 
 class AssociationsJoinModelTest < Test::Unit::TestCase
   self.use_transactional_fixtures = false
-  fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices
+  fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices, :items
 
   def test_has_many
     assert authors(:david).categories.include?(categories(:general))
@@ -229,7 +230,15 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
       assert_equal tagging, post.tagging
     end
   end
-
+  
+  def test_include_polymorphic_has_one_defined_in_abstract_parent
+    item    = Item.find_by_id(items(:dvd).id, :include => :tagging)
+    tagging = taggings(:godfather)
+    assert_no_queries do
+      assert_equal tagging, item.tagging
+    end
+  end
+  
   def test_include_polymorphic_has_many_through
     posts           = Post.find(:all, :order => 'posts.id')
     posts_with_tags = Post.find(:all, :include => :tags, :order => 'posts.id')

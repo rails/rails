@@ -16,3 +16,10 @@ fake:
   tag_id: 1
   taggable_id: 1
   taggable_type: FakeModel
+
+godfather:
+  id: 4
+  tag_id: 1
+  taggable_id: 1
+  taggable_type: Item
+  

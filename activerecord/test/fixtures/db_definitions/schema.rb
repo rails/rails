@@ -57,6 +57,10 @@ ActiveRecord::Schema.define do
   create_table :lock_without_defaults_cust, :force => true do |t|
     t.column :custom_lock_version, :integer
   end
+  
+  create_table :items, :force => true do |t|
+    t.column :name, :integer
+  end
 
   # For sqlite 3.1.0+, make a table with a autoincrement column
   if adapter_name == 'SQLite' and supports_autoincrement?
