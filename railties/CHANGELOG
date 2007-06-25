@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL, PostgreSQL: database.yml defaults to utf-8.  #8701 [matt]
+
 * Added db:version to get the current schema number [via Err The Blog]
 
 * Added --skip-migration option to scaffold and resource generators #8656 [Michael Glaesemann]
