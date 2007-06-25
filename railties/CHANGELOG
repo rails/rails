@@ -1,6 +1,6 @@
 *SVN*
 
-* Added db:version to get the current schema number [via Tim Bray]
+* Added db:version to get the current schema number [via Err The Blog]
 
 * Added --skip-migration option to scaffold and resource generators #8656 [Michael Glaesemann]
 
