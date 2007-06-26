@@ -636,6 +636,11 @@ module ActionController #:nodoc:
             ActionController::Caching::Actions::ActionCachePath.path_for(controller, options)
           end
 
+          # Retrieve instance variables set in the controller.
+          def assigns(key)
+            controller.instance_variable_get("@#{key}")
+          end
+
         private
           def callback(timing)
             controller_callback_method_name = "#{timing}_#{controller.controller_name.underscore}"

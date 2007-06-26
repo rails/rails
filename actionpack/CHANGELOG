@@ -1,5 +1,9 @@
 *SVN*
 
+* Allow sweepers to be created solely for expiring after controller actions, not model changes [DHH]
+
+* Added assigns method to ActionController::Caching::Sweeper to easily access instance variables on the controller [DHH]
+
 * Give the legacy X-POST_DATA_FORMAT header greater precedence during params parsing for backward compatibility.  [Jeremy Kemper]
 
 * Fixed that link_to with an href of # when using :method will not allow for click-through without JavaScript #7037 [stevenbristol/josh]

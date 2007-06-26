@@ -140,7 +140,11 @@ module ActiveRecord
       # The class observed by default is inferred from the observer's class name:
       #   assert_equal [Person], PersonObserver.observed_class
       def observed_class
-        name.scan(/(.*)Observer/)[0][0].constantize
+        if observed_class_name = name.scan(/(.*)Observer/)[0]
+          observed_class_name[0].constantize
+        else
+          nil
+        end
       end
     end
 
@@ -163,11 +167,11 @@ module ActiveRecord
 
     protected
       def observed_classes
-        Set.new([self.class.observed_class].flatten)
+        Set.new([self.class.observed_class].compact.flatten)
       end
 
       def observed_subclasses
-        observed_classes.sum(&:subclasses)
+        observed_classes.collect(&:subclasses).flatten
       end
 
       def add_observer!(klass)
