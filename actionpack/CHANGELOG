@@ -1,5 +1,7 @@
 *SVN*
 
+* Give the legacy X-POST_DATA_FORMAT header greater precedence during params parsing for backward compatibility.  [Jeremy Kemper]
+
 * Fixed that link_to with an href of # when using :method will not allow for click-through without JavaScript #7037 [stevenbristol/josh]
 
 * Fixed that radio_button_tag should generate unique ids #3353 [BobSilva/rebecca/josh]

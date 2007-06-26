@@ -68,9 +68,7 @@ module ActionController
     # For backward compatibility, the post format is extracted from the
     # X-Post-Data-Format HTTP header if present.
     def content_type
-      @content_type ||=
-        content_type_from_legacy_post_data_format_header ||
-        Mime::Type.lookup(content_type_without_parameters)
+      @content_type ||= Mime::Type.lookup(content_type_without_parameters)
     end
 
     # Returns the accepted MIME type for the request
@@ -296,8 +294,10 @@ module ActionController
     protected
       # The raw content type string. Use when you need parameters such as
       # charset or boundary which aren't included in the content_type MIME type.
+      # Overridden by the X-POST_DATA_FORMAT header for backward compatibility.
       def content_type_with_parameters
-        env['CONTENT_TYPE'].to_s
+        content_type_from_legacy_post_data_format_header ||
+          env['CONTENT_TYPE'].to_s
       end
 
       # The raw content type string with its parameters stripped off.
@@ -309,8 +309,8 @@ module ActionController
       def content_type_from_legacy_post_data_format_header
         if x_post_format = @env['HTTP_X_POST_DATA_FORMAT']
           case x_post_format.to_s.downcase
-            when 'yaml';  Mime::YAML
-            when 'xml';   Mime::XML
+            when 'yaml';  'application/x-yaml'
+            when 'xml';   'application/xml'
           end
         end
       end
@@ -319,6 +319,8 @@ module ActionController
         return {} if content_length.zero?
 
         content_type, boundary = self.class.extract_multipart_boundary(content_type_with_parameters)
+
+        # Don't parse params for unknown requests.
         return {} if content_type.blank?
 
         mime_type = Mime::Type.lookup(content_type)

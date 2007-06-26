@@ -758,3 +758,13 @@ class XmlParamsParsingTest < Test::Unit::TestCase
       ActionController::CgiRequest.new(cgi).request_parameters
     end
 end
+
+class LegacyXmlParamsParsingTest < XmlParamsParsingTest
+  private
+    def parse_body(body)
+      env = { 'HTTP_X_POST_DATA_FORMAT' => 'xml',
+              'CONTENT_LENGTH' => body.size.to_s }
+      cgi = ActionController::Integration::Session::MockCGI.new(env, body)
+      ActionController::CgiRequest.new(cgi).request_parameters
+    end
+end
