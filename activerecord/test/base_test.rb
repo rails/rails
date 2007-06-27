@@ -1563,13 +1563,13 @@ class BasicsTest < Test::Unit::TestCase
   def test_to_xml_including_has_many_association
     xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :include => :replies, :except => :replies_count)
     assert_equal "<topic>", xml.first(7)
-    assert xml.include?(%(<replies><reply>))
+    assert xml.include?(%(<replies type="array"><reply>))
     assert xml.include?(%(<title>The Second Topic's of the day</title>))
   end
 
   def test_array_to_xml_including_has_many_association
     xml = [ topics(:first), topics(:second) ].to_xml(:indent => 0, :skip_instruct => true, :include => :replies)
-    assert xml.include?(%(<replies><reply>))
+    assert xml.include?(%(<replies type="array"><reply>))
   end
 
   def test_array_to_xml_including_methods
@@ -1603,7 +1603,7 @@ class BasicsTest < Test::Unit::TestCase
     xml = companies(:first_firm).to_xml(:indent => 0, :skip_instruct => true, :include => [ :clients, :account ])
     assert_equal "<firm>", xml.first(6)
     assert xml.include?(%(<account>))
-    assert xml.include?(%(<clients><client>))
+    assert xml.include?(%(<clients type="array"><client>))
   end
 
   def test_to_xml_including_multiple_associations_with_options
@@ -1614,7 +1614,7 @@ class BasicsTest < Test::Unit::TestCase
     
     assert_equal "<firm>", xml.first(6)
     assert xml.include?(%(<client><name>Summit</name></client>))
-    assert xml.include?(%(<clients><client>))
+    assert xml.include?(%(<clients type="array"><client>))
   end
   
   def test_to_xml_including_methods

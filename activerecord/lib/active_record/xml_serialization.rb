@@ -207,7 +207,7 @@ module ActiveRecord #:nodoc:
               tag = association.to_s
               tag = tag.dasherize if dasherize?
 
-              builder.tag!(tag) do
+              builder.tag!(tag, :type => :array) do
                 records.each { |r| r.to_xml(opts.merge(:root=>r.class.to_s.underscore)) }
               end
             end
