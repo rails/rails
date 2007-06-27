@@ -1020,6 +1020,11 @@ module ActionController
           @set.add_named_route(name, path, options)
         end
         
+        def deprecated_named_route(name, deprecated_name, path, options = {})
+          named_route(name, path, options)
+          @set.add_deprecated_named_route(name, deprecated_name, path, options) unless deprecated_name == name
+        end
+        
         # Enables the use of resources in a module by setting the name_prefix, path_prefix, and namespace for the model.
         # Example:
         #
@@ -1052,7 +1057,7 @@ module ActionController
       class NamedRouteCollection #:nodoc:
         include Enumerable
 
-        attr_reader :routes, :helpers
+        attr_reader :routes, :helpers, :deprecated_named_routes
 
         def initialize
           clear!
@@ -1061,6 +1066,7 @@ module ActionController
         def clear!
           @routes = {}
           @helpers = []
+          @deprecated_named_routes = {}
           
           @module ||= Module.new
           @module.instance_methods.each do |selector|
@@ -1074,6 +1080,12 @@ module ActionController
         end
 
         def get(name)
+          if @deprecated_named_routes.has_key?(name.to_sym)
+            ActiveSupport::Deprecation.warn(
+              "The named route \"#{name}\" uses a format that has been deprecated. " +
+              "You should use \"#{@deprecated_named_routes[name]}\" instead", caller
+            )
+          end
           routes[name.to_sym]
         end
 
@@ -1169,7 +1181,7 @@ module ActionController
         self.routes = []
         self.named_routes = NamedRouteCollection.new
       end
-
+      
       # Subclasses and plugins may override this method to specify a different
       # RouteBuilder instance, so that other route DSL's can be created.
       def builder
@@ -1222,8 +1234,14 @@ module ActionController
       end
   
       def add_named_route(name, path, options = {})
+        # TODO - is options EVER used?
         name = options[:name_prefix] + name.to_s if options[:name_prefix]
         named_routes[name.to_sym] = add_route(path, options)
+      end
+  
+      def add_deprecated_named_route(name, deprecated_name, path, options = {})
+        add_named_route(deprecated_name, path, options)
+        named_routes.deprecated_named_routes[deprecated_name.to_sym] = name
       end
   
       def options_as_params(options)
