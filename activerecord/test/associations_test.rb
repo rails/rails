@@ -11,6 +11,7 @@ require 'fixtures/categorization'
 require 'fixtures/category'
 require 'fixtures/post'
 require 'fixtures/author'
+require 'fixtures/comment'
 require 'fixtures/tag'
 require 'fixtures/tagging'
 
@@ -420,7 +421,7 @@ end
 
 class HasManyAssociationsTest < Test::Unit::TestCase
   fixtures :accounts, :companies, :developers, :projects,
-           :developers_projects, :topics
+           :developers_projects, :topics, :authors, :comments
 
   def setup
     Client.destroyed_client_ids.clear
@@ -1014,14 +1015,21 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_assign_ids_ignoring_blanks
-    firm = Firm.new("name" => "Apple")
+    firm = Firm.create!(:name => 'Apple')
     firm.client_ids = [companies(:first_client).id, nil, companies(:second_client).id, '']
-    firm.save
-    firm.reload
-    assert_equal 2, firm.clients.length
+    firm.save!
+
+    assert_equal 2, firm.clients(true).size
     assert firm.clients.include?(companies(:second_client))
   end
 
+  def test_get_ids_for_through
+    assert_equal [comments(:eager_other_comment1).id], authors(:mary).comment_ids
+  end
+
+  def test_assign_ids_for_through
+    assert_raise(NoMethodError) { authors(:mary).comment_ids = [123] }
+  end
 end
 
 class BelongsToAssociationsTest < Test::Unit::TestCase

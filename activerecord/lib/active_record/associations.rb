@@ -674,6 +674,7 @@ module ActiveRecord
 
         if options[:through]
           collection_reader_method(reflection, HasManyThroughAssociation)
+          collection_accessor_methods(reflection, HasManyThroughAssociation, false)
         else
           add_multiple_associated_save_callbacks(reflection.name)
           add_association_callbacks(reflection.name, reflection.options)
@@ -1060,7 +1061,7 @@ module ActiveRecord
           end
         end
 
-        def collection_accessor_methods(reflection, association_proxy_class)
+        def collection_accessor_methods(reflection, association_proxy_class, writer = true)
           collection_reader_method(reflection, association_proxy_class)
 
           define_method("#{reflection.name}=") do |new_value|
@@ -1077,7 +1078,7 @@ module ActiveRecord
           define_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
             ids = (new_value || []).reject { |nid| nid.blank? }
             send("#{reflection.name}=", reflection.class_name.constantize.find(ids))
-          end
+          end if writer
         end
 
         def add_multiple_associated_save_callbacks(association_name)

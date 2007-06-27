@@ -1,5 +1,7 @@
 *SVN*
 
+* Define collection singular ids method for has_many :through associations.  #8763 [lifofifo]
+
 * Array attribute conditions work with proxied association collections.  #8318 [kamal, theamazingrando]
 
 * Fix polymorphic has_one associations declared in an abstract class.  #8638 [lifofifo, daxhuiberts]
