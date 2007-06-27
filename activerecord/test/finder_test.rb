@@ -8,7 +8,7 @@ require 'fixtures/developer'
 require 'fixtures/post'
 
 class FinderTest < Test::Unit::TestCase
-  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors
 
   def test_find
     assert_equal(topics(:first).title, Topic.find(1).title)
@@ -157,6 +157,10 @@ class FinderTest < Test::Unit::TestCase
   def test_find_on_hash_conditions
     assert Topic.find(1, :conditions => { :approved => false })
     assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :approved => true }) }
+  end
+
+  def test_find_on_association_proxy_conditions
+    assert_equal [1, 2, 3, 5, 6, 7, 8, 9, 10], Comment.find_all_by_post_id(authors(:david).posts).map(&:id).sort
   end
 
   def test_find_on_hash_conditions_with_range

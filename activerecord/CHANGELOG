@@ -1,5 +1,7 @@
 *SVN*
 
+* Array attribute conditions work with proxied association collections.  #8318 [kamal, theamazingrando]
+
 * Fix polymorphic has_one associations declared in an abstract class.  #8638 [lifofifo, daxhuiberts]
 
 * Fixed validates_associated should not stop on the first error #4276 [mrj/manfred/josh]
