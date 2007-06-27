@@ -54,6 +54,14 @@ class BaseTest < Test::Unit::TestCase
     assert_equal 'http://foo:bar@beast.caboo.se', Forum.site.to_s
     assert_equal 'http://foo:bar@beast.caboo.se/forums/:forum_id', Topic.site.to_s
   end
+  
+  def test_site_variable_can_be_reset
+    actor = Class.new(ActiveResource::Base)    
+    assert_nil actor.site
+    actor.site = 'http://localhost:31337'
+    actor.site = nil
+    assert_nil actor.site    
+  end
 
   def test_site_reader_uses_superclass_site_until_written
     # Superclass is Object so returns nil.
@@ -84,6 +92,28 @@ class BaseTest < Test::Unit::TestCase
     actor.site = 'http://nomad'
     assert_equal actor.site, jester.site
     assert jester.site.frozen?
+    
+    # Subclasses are always equal to superclass site when not overridden    
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+    
+    fruit.site = 'http://market'
+    assert_equal fruit.site, apple.site, 'subclass did not adopt changes to parent class'
+    
+    fruit.site = 'http://supermarket'
+    assert_equal fruit.site, apple.site, 'subclass did not adopt changes to parent class'    
+  end
+  
+  def test_updating_baseclass_site_object_wipes_descendent_cached_connection_objects
+    # Subclasses are always equal to superclass site when not overridden    
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+    
+    fruit.site = 'http://market'
+    assert_equal fruit.connection.site, apple.connection.site
+    
+    fruit.site = 'http://supermarket'
+    assert_equal fruit.connection.site, apple.connection.site    
   end
 
   def test_collection_name

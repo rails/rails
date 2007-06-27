@@ -164,15 +164,19 @@ module ActiveResource
       # The site variable is required ActiveResource's mapping to work.
       def site=(site)
         @connection = nil
-        @site = create_site_uri_from(site)
+        @site = site.nil? ? nil : create_site_uri_from(site)
       end
 
       # An instance of ActiveResource::Connection that is the base connection to the remote service.
       # The +refresh+ parameter toggles whether or not the connection is refreshed at every request
       # or not (defaults to +false+).
       def connection(refresh = false)
-        @connection = Connection.new(site) if refresh || @connection.nil?
-        @connection
+        if defined?(@connection) or superclass == Object
+          @connection = Connection.new(site) if refresh || @connection.nil?
+          @connection
+        else
+          superclass.connection
+        end
       end
 
       def headers
