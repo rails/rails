@@ -1,5 +1,7 @@
 *SVN*
 
+* Generators: look for generators in all gems, not just those suffixed with _generator, in the gem's generators or rails_generators directory. Allow use of the rails_generators directory instead of the standard generators directory in plugins also.  #8730 [Dr Nic, topfunky]
+
 * MySQL, PostgreSQL: database.yml defaults to utf-8.  #8701 [matt]
 
 * Added db:version to get the current schema number [via Err The Blog]

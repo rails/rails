@@ -46,7 +46,7 @@ module Rails
     #
     # A spec is not a generator:  it's a description of where to find
     # the generator and how to create it.  A source is anything that
-    # yields generators from #each.  PathSource and GemSource are provided.
+    # yields generators from #each.  PathSource and GemGeneratorSource are provided.
     module Lookup
       def self.included(base)
         base.extend(ClassMethods)
@@ -101,9 +101,13 @@ module Rails
             sources << PathSource.new(:lib, "#{::RAILS_ROOT}/lib/generators")
             sources << PathSource.new(:vendor, "#{::RAILS_ROOT}/vendor/generators")
             sources << PathSource.new(:plugins, "#{::RAILS_ROOT}/vendor/plugins/*/**/generators")
+            sources << PathSource.new(:plugins, "#{::RAILS_ROOT}/vendor/plugins/*/**/rails_generators")
           end
           sources << PathSource.new(:user, "#{Dir.user_home}/.rails/generators")
-          sources << GemSource.new if Object.const_defined?(:Gem)
+          if Object.const_defined?(:Gem)
+            sources << GemGeneratorSource.new
+            sources << GemPathSource.new
+          end
           sources << PathSource.new(:builtin, "#{File.dirname(__FILE__)}/generators/components")
         end
 
@@ -185,14 +189,15 @@ module Rails
       end
     end
 
-
-    # GemSource hits the mines to quarry for generators.  The latest versions
-    # of gems named *_generator are selected.
-    class GemSource < Source
+    class AbstractGemSource < Source
       def initialize
         super :RubyGems
       end
+    end
 
+    # GemGeneratorSource hits the mines to quarry for generators.  The latest versions
+    # of gems named *_generator are selected.
+    class GemGeneratorSource < AbstractGemSource
       # Yield latest versions of generator gems.
       def each
         Gem::cache.search(/_generator$/).inject({}) { |latest, gem|
@@ -203,6 +208,32 @@ module Rails
           yield Spec.new(gem.name.sub(/_generator$/, ''), gem.full_gem_path, label)
         }
       end
+    end
+
+    # GemPathSource looks for generators within any RubyGem's /rails_generators/<generator_name>_generator.rb file.
+    class GemPathSource < AbstractGemSource
+      # Yield each generator within rails_generator subdirectories.
+      def each
+        generator_full_paths.each do |generator|
+          yield Spec.new(File.basename(generator).sub(/_generator.rb$/, ''), File.dirname(generator), label)
+        end
+      end
+
+      private
+        def generator_full_paths
+          @generator_full_paths ||=
+            Gem::cache.inject({}) do |latest, name_gem|
+              name, gem = name_gem
+              hem = latest[gem.name]
+              latest[gem.name] = gem if hem.nil? or gem.version > hem.version
+              latest
+            end.values.inject([]) do |mem, gem|
+              Dir[gem.full_gem_path + '/{rails_,}generators/**/*_generator.rb'].each do |generator|
+                mem << generator
+              end
+              mem
+            end
+        end
     end
 
   end

@@ -43,9 +43,12 @@ module Rails
 
           def usage_message
             usage = "\nInstalled Generators\n"
-            Rails::Generator::Base.sources.each do |source|
+            Rails::Generator::Base.sources.inject({}) do |mem, source|
               label = source.label.to_s.capitalize
-              names = source.names
+              mem[label] ||= []
+              mem[label] |= source.names
+              mem
+            end.each_pair do |label, names|
               usage << "  #{label}: #{names.join(', ')}\n" unless names.empty?
             end
 

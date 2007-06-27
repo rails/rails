@@ -2,7 +2,7 @@ module Rails
   module Generator
     # A spec knows where a generator was found and how to instantiate it.
     # Metadata include the generator's name, its base path, and the source
-    # which yielded it (PathSource, GemSource, etc.)
+    # which yielded it (PathSource, GemPathSource, etc.)
     class Spec
       attr_reader :name, :path, :source
 
