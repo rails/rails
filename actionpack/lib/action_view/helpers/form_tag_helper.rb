@@ -289,7 +289,7 @@ module ActionView
       #   # => <input checked="checked" class="color_input" id="color_green" name="color" type="radio" value="green" />
       def radio_button_tag(name, value, checked = false, options = {})
         pretty_tag_value = value.to_s.gsub(/\s/, "_").gsub(/(?!-)\W/, "").downcase
-        pretty_name = name.gsub(/\[/, "_").gsub(/\]/, "")
+        pretty_name = name.to_s.gsub(/\[/, "_").gsub(/\]/, "")
         html_options = { "type" => "radio", "name" => name, "id" => "#{pretty_name}_#{pretty_tag_value}", "value" => value }.update(options.stringify_keys)
         html_options["checked"] = "checked" if checked
         tag :input, html_options
