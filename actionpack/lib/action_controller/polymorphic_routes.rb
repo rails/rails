@@ -4,21 +4,20 @@ module ActionController
       record = extract_record(record_or_hash_or_array)
 
       args = case record_or_hash_or_array
-        when Hash: [record_or_hash_or_array[:id]]
+        when Hash:  [ record_or_hash_or_array ]
         when Array: record_or_hash_or_array.dup
-        else [record_or_hash_or_array]
-        end
-
-      args.pop # Remove the base record; we only need it in one case
+        else        [ record_or_hash_or_array ]
+      end
 
       inflection =
         case
         when options[:action] == "new"
+          args.pop
           :singular
         when record.respond_to?(:new_record?) && record.new_record?
+          args.pop
           :plural
         else
-          args.push(record) # Put the base record back in
           :singular
         end
       
