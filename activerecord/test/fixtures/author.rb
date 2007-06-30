@@ -67,6 +67,10 @@ class Author < ActiveRecord::Base
     @post_log = []
   end
 
+  def label
+    "#{id}-#{name}"
+  end
+
   private
     def log_before_adding(object)
       @post_log << "before_adding#{object.id}"

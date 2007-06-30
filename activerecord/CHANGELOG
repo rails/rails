@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't call unsupported methods on associated objects when using :include, :method with to_xml #7307, [manfred, jwilger]
+
 * Define collection singular ids method for has_many :through associations.  #8763 [lifofifo]
 
 * Array attribute conditions work with proxied association collections.  #8318 [kamal, theamazingrando]

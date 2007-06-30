@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'fixtures/post'
 require 'fixtures/author'
+require 'fixtures/tagging'
 
 class Contact < ActiveRecord::Base
   # mock out self.columns so no pesky db is needed for these tests
@@ -142,12 +143,23 @@ class DatabaseConnectedXmlSerializationTest < Test::Unit::TestCase
     second_xml_size = david.to_xml(options).size
     assert_equal first_xml_size, second_xml_size
   end
-  
 
   def test_include_uses_association_name
-    xml = authors(:david).to_xml :include=>:hello_posts, :indent=>0
+    xml = authors(:david).to_xml :include=>:hello_posts, :indent => 0
     assert_match %r{<hello-posts type="array">}, xml
     assert_match %r{<post>}, xml
     assert_match %r{<sti-post>}, xml
+  end
+  
+  def test_methods_are_called_on_object
+    xml = authors(:david).to_xml :methods => :label, :indent => 0
+    assert_match %r{<label>.*</label>}, xml
+  end
+  
+  def test_should_not_call_methods_on_associations_that_dont_respond
+    xml = authors(:david).to_xml :include=>:hello_posts, :methods => :label, :indent => 2
+    assert !authors(:david).hello_posts.first.respond_to?(:label)
+    assert_match %r{^  <label>.*</label>}, xml
+    assert_no_match %r{^      <label>}, xml
   end
 end
