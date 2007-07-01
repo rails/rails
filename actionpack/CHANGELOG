@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow you to delete cookies with options. Closes #3685 [josh, Chris Wanstrath]
+
 * Allow you to render views with periods in the name.  Closes #8076 [norbert]
 
   render :partial => 'show.html.erb'

@@ -31,6 +31,11 @@ class CookieTest < Test::Unit::TestCase
       cookies.delete("user_name")
     end
 
+    def delete_cookie_with_path
+      cookies.delete("user_name", :path => '/beaten')
+      render_text "hello world"
+    end
+
     def rescue_action(e) 
       raise unless ActionController::MissingTemplate # No templates here, and we don't care about the output 
     end
@@ -84,5 +89,11 @@ class CookieTest < Test::Unit::TestCase
     jar = ActionController::CookieJar.new(@controller)
     assert_equal "david", jar["user_name"]
     assert_equal nil, jar["something_else"]
+  end
+
+  def test_delete_cookie_with_path
+    get :delete_cookie_with_path
+    assert_equal "/beaten", @response.headers["cookie"].first.path
+    assert_not_equal "/", @response.headers["cookie"].first.path
   end
 end
