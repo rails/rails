@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow you to delete cookies with options. Closes #3685 [josh, Chris Wanstrath]
+
 * Deprecate pagination. Install the classic_pagination plugin for forward compatibility, or move to the superior will_paginate plugin.  #8157 [Mislav Marohnic]
 
 * Fix filtered parameter logging with nil parameter values.  #8422 [choonkeat]
