@@ -1,5 +1,9 @@
 *SVN*
 
+* Allow you to render views with periods in the name.  Closes #8076 [norbert]
+
+  render :partial => 'show.html.erb'
+
 * Improve capture helper documentation.  #8796 [kampers]
 
 * Prefix nested resource named routes with their action name, e.g. new_group_user_path(@group) instead of group_new_user_path(@group). The old nested action named route is deprecated in Rails 1.2.4.  #8558 [David Chelimsky]

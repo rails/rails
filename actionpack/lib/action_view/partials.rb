@@ -110,12 +110,17 @@ module ActionView
       end
 
       def partial_counter_name(partial_name)
-        "#{partial_name.split('/').last}_counter".intern
+        "#{partial_variable_name(partial_name)}_counter".intern
+      end
+
+      def partial_variable_name(partial_name)
+        partial_name.split('/').last.split('.').first.intern
       end
 
       def extracting_object(partial_name, local_assigns, deprecated_local_assigns)
+        variable_name = partial_variable_name(partial_name)
         if local_assigns.is_a?(Hash) || local_assigns.nil?
-          controller.instance_variable_get("@#{partial_name}")
+          controller.instance_variable_get("@#{variable_name}")
         else
           # deprecated form where object could be passed in as second parameter
           local_assigns
@@ -132,12 +137,13 @@ module ActionView
       end
 
       def add_object_to_local_assigns!(partial_name, local_assigns, object)
-        local_assigns[partial_name.intern] ||=
+        variable_name = partial_variable_name(partial_name)
+        local_assigns[variable_name] ||=
           if object.is_a?(ActionView::Base::ObjectWrapper)
             object.value
           else
             object
-          end || controller.instance_variable_get("@#{partial_name}")
+          end || controller.instance_variable_get("@#{variable_name}")
       end
   end
 end

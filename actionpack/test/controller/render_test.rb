@@ -135,6 +135,10 @@ class TestController < ActionController::Base
   def partial
     render :partial => 'partial'
   end
+
+  def partial_dot_html
+    render :partial => 'partial.html.erb'
+  end
   
   def partial_as_rjs
     render :update do |page|
@@ -390,6 +394,11 @@ class RenderTest < Test::Unit::TestCase
 
   def test_should_render_html_formatted_partial
     get :partial
+    assert_equal 'partial html', @response.body
+  end
+
+  def test_should_render_html_partial_with_dot
+    get :partial_dot_html
     assert_equal 'partial html', @response.body
   end
 
