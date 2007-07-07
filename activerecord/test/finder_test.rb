@@ -507,6 +507,15 @@ class FinderTest < Test::Unit::TestCase
     assert developer_names.include?('Jamis')
   end
 
+  def test_joins_dont_clobber_id
+    first = Firm.find(
+      :first,
+      :joins => 'INNER JOIN companies AS clients ON clients.firm_id = companies.id',
+      :conditions => 'companies.id = 1'
+    )
+    assert_equal 1, first.id
+  end
+
   def test_find_by_id_with_conditions_with_or
     assert_nothing_raised do
       Post.find([1,2,3],

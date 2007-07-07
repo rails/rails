@@ -1109,7 +1109,7 @@ module ActiveRecord #:nodoc:
 
         def construct_finder_sql(options)
           scope = scope(:find)
-          sql  = "SELECT #{(scope && scope[:select]) || options[:select] || '*'} "
+          sql  = "SELECT #{(scope && scope[:select]) || options[:select] || (options[:joins] && table_name + '.*') || '*'} "
           sql << "FROM #{(scope && scope[:from]) || options[:from] || table_name} "
 
           add_joins!(sql, options, scope)
