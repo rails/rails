@@ -165,9 +165,10 @@ class DatabaseConnectedXmlSerializationTest < Test::Unit::TestCase
   
   def test_should_include_empty_has_many_as_empty_array
     authors(:david).posts.delete_all    
-    xml = authors(:david).to_xml :include=>:posts, :indent => 0
+    xml = authors(:david).to_xml :include=>:posts, :indent => 2
     
-    assert_match %r{<posts type="array"></posts>}, xml
+    assert_equal [], Hash.from_xml(xml)['author']['posts']
+    assert_match %r{^  <posts type="array"/>}, xml
   end
   
 end

@@ -207,8 +207,12 @@ module ActiveRecord #:nodoc:
             records = @record.send(association).to_a
             tag = association.to_s
             tag = tag.dasherize if dasherize?
-            builder.tag!(tag, :type => :array) do
-              records.each { |r| r.to_xml(opts.merge(:root=>r.class.to_s.underscore)) }
+            if records.empty?
+              builder.tag!(tag, :type => :array)
+            else
+              builder.tag!(tag, :type => :array) do
+                records.each { |r| r.to_xml(opts.merge(:root=>r.class.to_s.underscore)) }
+              end
             end
           when :has_one, :belongs_to
             if record = @record.send(association)
