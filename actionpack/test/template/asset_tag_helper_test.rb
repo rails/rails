@@ -364,4 +364,11 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
   ensure
     ActionController::Base.asset_host = nil
   end
+
+  def test_asset_host_without_protocol_should_use_request_protocol_even_if_path_present
+    ActionController::Base.asset_host = 'a.example.com/files/go/here'
+    assert_equal 'gopher://a.example.com/files/go/here/collaboration/hieraki/images/xml.png', image_path('xml.png')
+  ensure
+    ActionController::Base.asset_host = nil
+  end
 end

@@ -167,7 +167,7 @@ module ActiveSupport #:nodoc:
           private
             def typecast_xml_value(value)
               case value.class.to_s
-                when "Hash"
+                when 'Hash'
                   if value.has_key?("__content__")
                     content = translate_xml_entities(value["__content__"])
                     if parser = XML_PARSING[value["type"]]
@@ -195,31 +195,34 @@ module ActiveSupport #:nodoc:
                     end
                   elsif value['type'] == 'string' && value['nil'] != 'true'
                     ""
+                  # blank or nil parsed values are represented by nil
+                  elsif value.blank? || value['nil'] == 'true'
+                    nil
+                  # If the type is the only element which makes it then 
+                  # this still makes the value nil
+                  elsif value['type'] && value.size == 1
+                    nil
                   else
-                    xml_value = (value.blank? || value['type'] || value['nil'] == 'true') ? nil : value.inject({}) do |h,(k,v)|
+                    xml_value = value.inject({}) do |h,(k,v)|
                       h[k] = typecast_xml_value(v)
                       h
                     end
                     
                     # Turn { :files => { :file => #<StringIO> } into { :files => #<StringIO> } so it is compatible with
                     # how multipart uploaded files from HTML appear
-                    if xml_value.is_a?(Hash) && xml_value["file"].is_a?(StringIO)
-                      xml_value["file"]
-                    else
-                      xml_value
-                    end
+                    xml_value["file"].is_a?(StringIO) ? xml_value["file"] : xml_value
                   end
-                when "Array"
+                when 'Array'
                   value.map! { |i| typecast_xml_value(i) }
                   case value.length
                     when 0 then nil
                     when 1 then value.first
                     else value
                   end
-                when "String"
+                when 'String'
                   value
                 else
-                  raise "can't typecast #{value.inspect}"
+                  raise "can't typecast #{value.class.name} - #{value.inspect}"
               end
             end
 

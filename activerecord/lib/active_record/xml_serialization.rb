@@ -211,7 +211,13 @@ module ActiveRecord #:nodoc:
               builder.tag!(tag, :type => :array)
             else
               builder.tag!(tag, :type => :array) do
-                records.each { |r| r.to_xml(opts.merge(:root=>r.class.to_s.underscore)) }
+                association_name = association.to_s.singularize
+                records.each do |record| 
+                  record.to_xml opts.merge(
+                    :root => association_name, 
+                    :type => (record.class.to_s.underscore == association_name ? nil : record.class.name)
+                  )
+                end
               end
             end
           when :has_one, :belongs_to
@@ -246,6 +252,10 @@ module ActiveRecord #:nodoc:
       args = [root]
       if options[:namespace]
         args << {:xmlns=>options[:namespace]}
+      end
+      
+      if options[:type]
+        args << {:type=>options[:type]}
       end
         
       builder.tag!(*args) do

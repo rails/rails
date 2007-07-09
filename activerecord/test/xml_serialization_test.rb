@@ -2,6 +2,7 @@ require 'abstract_unit'
 require 'fixtures/post'
 require 'fixtures/author'
 require 'fixtures/tagging'
+require 'fixtures/comment'
 
 class Contact < ActiveRecord::Base
   # mock out self.columns so no pesky db is needed for these tests
@@ -147,8 +148,8 @@ class DatabaseConnectedXmlSerializationTest < Test::Unit::TestCase
   def test_include_uses_association_name
     xml = authors(:david).to_xml :include=>:hello_posts, :indent => 0
     assert_match %r{<hello-posts type="array">}, xml
-    assert_match %r{<post>}, xml
-    assert_match %r{<sti-post>}, xml
+    assert_match %r{<hello-post type="Post">}, xml
+    assert_match %r{<hello-post type="StiPost">}, xml
   end
   
   def test_methods_are_called_on_object
@@ -169,6 +170,20 @@ class DatabaseConnectedXmlSerializationTest < Test::Unit::TestCase
     
     assert_equal [], Hash.from_xml(xml)['author']['posts']
     assert_match %r{^  <posts type="array"/>}, xml
+  end
+  
+  def test_should_has_many_array_elements_should_include_type_when_different_from_guessed_value
+    xml = authors(:david).to_xml :include=>:posts_with_comments, :indent => 2
+    
+    assert Hash.from_xml(xml)
+    assert_match %r{^  <posts-with-comments type="array">}, xml
+    assert_match %r{^    <posts-with-comment type="Post">}, xml
+    assert_match %r{^    <posts-with-comment type="StiPost">}, xml
+
+    types = Hash.from_xml(xml)['author']['posts_with_comments'].collect {|t| t['type'] }
+    assert types.include?('SpecialPost')
+    assert types.include?('Post')
+    assert types.include?('StiPost')
   end
   
 end

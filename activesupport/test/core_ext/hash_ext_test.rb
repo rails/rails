@@ -588,6 +588,23 @@ class HashToXmlTest < Test::Unit::TestCase
 
     assert_equal expected_bacon_hash, Hash.from_xml(bacon_xml)["bacon"]
   end
+  
+  def test_type_trickles_through_when_unknown
+    product_xml = <<-EOT
+    <product>
+      <weight type="double">0.5</weight>
+      <image type="ProductImage"><filename>image.gif</filename></image>
+      
+    </product>
+    EOT
+
+    expected_product_hash = {
+      :weight => 0.5,
+      :image => {'type' => 'ProductImage', 'filename' => 'image.gif' },
+    }.stringify_keys
+
+    assert_equal expected_product_hash, Hash.from_xml(product_xml)["product"]    
+  end
 
   def test_should_use_default_value_for_unknown_key
     hash_wia = HashWithIndifferentAccess.new(3)
