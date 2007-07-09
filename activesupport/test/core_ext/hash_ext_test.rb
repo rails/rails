@@ -277,6 +277,19 @@ class HashExtTest < Test::Unit::TestCase
       assert_equal expected, copy
     end
   end
+
+  def test_except
+    original = { :a => 'x', :b => 'y', :c => 10 }
+    expected = { :a => 'x', :b => 'y' }
+
+    # Should return a new hash with only the given keys.
+    assert_equal expected, original.except(:c)
+    assert_not_equal expected, original
+
+    # Should replace the hash with only the given keys.
+    assert_equal expected, original.except!(:c)
+    assert_equal expected, original
+  end
 end
 
 class IWriteMyOwnXML
