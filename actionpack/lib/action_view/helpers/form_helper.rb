@@ -483,7 +483,7 @@ module ActionView
       end
       
       def object
-        @object || @template_object.instance_variable_get("@#{@object_name}")
+        @object || (@template_object.instance_variable_get("@#{@object_name}") rescue nil)
       end
 
       def value(object)
