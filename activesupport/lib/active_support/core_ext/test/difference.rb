@@ -25,13 +25,19 @@ module Test #:nodoc:
       #   assert_difference [ 'Article.count', 'Post.count' ], +2 do
       #     post :create, :article => {...}
       #   end
-      def assert_difference(expressions, difference = 1, &block)
+      #
+      # A error message can be specified.
+      #
+      #   assert_difference 'Article.count', -1, "An Article should be destroyed" do
+      #     post :delete, :id => ...
+      #   end
+      def assert_difference(expressions, difference = 1, message = nil, &block)
         expression_evaluations = [expressions].flatten.collect{|expression| lambda { eval(expression, block.binding) } } 
         
         original_values = expression_evaluations.inject([]) { |memo, expression| memo << expression.call }
         yield
         expression_evaluations.each_with_index do |expression, i|
-          assert_equal original_values[i] + difference, expression.call
+          assert_equal original_values[i] + difference, expression.call, message
         end
       end
 
@@ -41,8 +47,14 @@ module Test #:nodoc:
       #   assert_no_difference 'Article.count' do
       #     post :create, :article => invalid_attributes
       #   end
-      def assert_no_difference(expressions, &block)
-        assert_difference expressions, 0, &block
+      #
+      # A error message can be specified.
+      #
+      #   assert_no_difference 'Article.count', "An Article should not be destroyed" do
+      #     post :create, :article => invalid_attributes
+      #   end
+      def assert_no_difference(expressions, message = nil, &block)
+        assert_difference expressions, 0, message, &block
       end
     end
   end
