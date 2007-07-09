@@ -205,13 +205,10 @@ module ActiveRecord #:nodoc:
           case @record.class.reflect_on_association(association).macro
           when :has_many, :has_and_belongs_to_many
             records = @record.send(association).to_a
-            unless records.empty?
-              tag = association.to_s
-              tag = tag.dasherize if dasherize?
-
-              builder.tag!(tag, :type => :array) do
-                records.each { |r| r.to_xml(opts.merge(:root=>r.class.to_s.underscore)) }
-              end
+            tag = association.to_s
+            tag = tag.dasherize if dasherize?
+            builder.tag!(tag, :type => :array) do
+              records.each { |r| r.to_xml(opts.merge(:root=>r.class.to_s.underscore)) }
             end
           when :has_one, :belongs_to
             if record = @record.send(association)
