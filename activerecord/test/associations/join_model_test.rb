@@ -422,7 +422,7 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_equal(count + 1, post_thinking.tags.size)
     assert_equal(count + 1, post_thinking.tags(true).size)
 
-    assert_nothing_raised { post_thinking.tags.create!(:name => 'foo') }
+    assert_kind_of Tag, post_thinking.tags.create!(:name => 'foo')
     assert_nil( wrong = post_thinking.tags.detect { |t| t.class != Tag },
                 message = "Expected a Tag in tags collection, got #{wrong.class}.")
     assert_nil( wrong = post_thinking.taggings.detect { |t| t.class != Tagging },

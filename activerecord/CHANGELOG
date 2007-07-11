@@ -1,5 +1,7 @@
 *SVN*
 
+* Make create! on a has_many :through association return the association object.  Not the collection.  Closes #8786 [lifofifo]
+
 * Move from select * to select tablename.* to avoid clobbering IDs. Closes #8889 [dasil003]
 
 * Don't call unsupported methods on associated objects when using :include, :method with to_xml #7307, [manfred, jwilger]
