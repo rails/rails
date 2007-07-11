@@ -1,5 +1,10 @@
 *SVN*
 
+* Fix errors with around_filters which do not yield, restore 1.1 behaviour with after filters. Closes #8891 [skaes]
+
+  After filters will *no longer* be run if an around_filter fails to yield, users relying on
+  this behaviour are advised to put the code in question after a yield statement in an around filter.
+
 * Allow you to delete cookies with options. Closes #3685 [josh, Chris Wanstrath]
 
 * Deprecate pagination. Install the classic_pagination plugin for forward compatibility, or move to the superior will_paginate plugin.  #8157 [Mislav Marohnic]

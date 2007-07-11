@@ -214,9 +214,10 @@ module ActionController #:nodoc:
     # == Filter Chain Halting
     #
     # <tt>before_filter</tt> and <tt>around_filter</tt> may halt the request
-    # before controller action is run. This is useful, for example, to deny
+    # before a controller action is run. This is useful, for example, to deny
     # access to unauthenticated users or to redirect from http to https.
     # Simply return false from the filter or call render or redirect.
+    # After filters will not be executed if the filter chain is halted.
     #
     # Around filters halt the request unless the action block is called.
     # Given these filters
@@ -238,12 +239,12 @@ module ActionController #:nodoc:
     #   .  .  /
     #   .  #around (code after yield)
     #   . /
-    #   #after (actual filter code is run)
+    #   #after (actual filter code is run, unless the around filter does not yield)
     #
-    # If #around returns before yielding, only #after will be run. The #before
-    # filter and controller action will not be run.  If #before returns false,
-    # the second half of #around and all of #after will still run but the
-    # action will not.
+    # If #around returns before yielding, #after will still not be run. The #before
+    # filter and controller action will not be run. If #before returns false,
+    # the second half of #around and will still run but #after and the
+    # action will not. If #around does not yield, #after will not be run.
     module ClassMethods
       # The passed <tt>filters</tt> will be appended to the filter_chain and
       # will execute before the action on this controller is performed.
@@ -439,7 +440,7 @@ module ActionController #:nodoc:
         def run(controller)
           # only filters returning false are halted.
           if false == @filter.call(controller)
-            controller.halt_filter_chain(@filter)
+            controller.send :halt_filter_chain, @filter, :returned_false
           end
         end
 
@@ -528,7 +529,7 @@ module ActionController #:nodoc:
 
         def find_filter_append_position(filters, filter_type)
           # appending an after filter puts it at the end of the call chain
-          # before and around filters goe before the first after filter in the chain
+          # before and around filters go before the first after filter in the chain
           unless filter_type == :after
             filter_chain.each_with_index do |f,i|
               return i if f.after?
@@ -655,7 +656,7 @@ module ActionController #:nodoc:
           return filter unless filter_responds_to_before_and_after(filter)
           Proc.new do |controller, action|
             if filter.before(controller) == false
-              controller.send :halt_filter_chain, filter
+              controller.send :halt_filter_chain, filter, :returned_false
             else
               begin
                 action.call
@@ -676,17 +677,25 @@ module ActionController #:nodoc:
         end
       end
 
-      def perform_action_with_filters
-        call_filters(self.class.filter_chain, 0, 0)
-      end
+      protected
 
       def process_with_filters(request, response, method = :perform_action, *arguments) #:nodoc:
         @before_filter_chain_aborted = false
         process_without_filters(request, response, method, *arguments)
       end
 
-      def filter_chain
-        self.class.filter_chain
+      def perform_action_with_filters
+        call_filters(self.class.filter_chain, 0, 0)
+      end
+
+      private
+
+      def call_filters(chain, index, nesting)
+        index = run_before_filters(chain, index, nesting)
+        aborted = @before_filter_chain_aborted
+        perform_action_without_filters unless performed? || aborted
+        return index if nesting != 0 || aborted
+        run_after_filters(chain, index)
       end
 
       def skip_excluded_filters(chain, index)
@@ -696,63 +705,62 @@ module ActionController #:nodoc:
         [filter, index]
       end
 
-      def call_filters(chain, index, nesting)
-        # run before filters until we find an after filter or around filter
+      def run_before_filters(chain, index, nesting)
         while chain[index]
           filter, index = skip_excluded_filters(chain, index)
           break unless filter # end of call chain reached
           case filter.type
           when :before
-            # invoke before filter
-            filter.run(self)
+            filter.run(self)  # invoke before filter
             index = index.next
             break if @before_filter_chain_aborted
           when :around
+            yielded = false
             filter.call(self) do
+              yielded = true
               # all remaining before and around filters will be run in this call
               index = call_filters(chain, index.next, nesting.next)
             end
+            halt_filter_chain(filter, :did_not_yield) unless yielded
             break
           else
-            # no before or around filters left
-            break
+            break  # no before or around filters left
           end
         end
+        index
+      end
 
-        aborted = @before_filter_chain_aborted
-        perform_action_without_filters unless performed? || aborted
-        return index if aborted || nesting != 0
-
-        # run after filters, if any
+      def run_after_filters(chain, index)
+        seen_after_filter = false
         while chain[index]
           filter, index = skip_excluded_filters(chain, index)
-          break unless filter
+          break unless filter # end of call chain reached
           case filter.type
           when :after
-            filter.run(self)
-            index = index.next
+            seen_after_filter = true
+            filter.run(self)  # invoke after filter
           else
-            raise ActionControllerError, "filter #{filter.inspect} was in the wrong place!"
+            # implementation error or someone has mucked with the filter chain
+            raise ActionControllerError, "filter #{filter.inspect} was in the wrong place!" if seen_after_filter
           end
+          index = index.next
         end
-
         index.next
       end
 
-      def halt_filter_chain(filter)
-        logger.info "Filter chain halted as [#{filter.inspect}] returned false." if logger
+      def halt_filter_chain(filter, reason)
         @before_filter_chain_aborted = true
+        logger.info "Filter chain halted as [#{filter.inspect}] #{reason}." if logger
         false
       end
 
-      private
-        def process_cleanup_with_filters
-          if @before_filter_chain_aborted
-            close_session
-          else
-            process_cleanup_without_filters
-          end
+      def process_cleanup_with_filters
+        if @before_filter_chain_aborted
+          close_session
+        else
+          process_cleanup_without_filters
         end
+      end
     end
   end
 end
