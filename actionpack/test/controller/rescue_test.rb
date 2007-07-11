@@ -15,6 +15,8 @@ class RescueController < ActionController::Base
   def not_implemented
     raise ActionController::NotImplemented.new(:get, :put)
   end
+  
+  def missing_template; end
 end
 
 
@@ -113,6 +115,18 @@ class RescueTest < Test::Unit::TestCase
 
     assert_response :not_found
     assert_equal ' ', @response.body
+  end
+
+
+  def test_rescue_missing_template_in_public
+    with_rails_root FIXTURE_PUBLIC do
+      with_all_requests_local true do
+        get :missing_template
+      end
+    end
+
+    assert_response :internal_server_error
+    assert @response.body.include?('missing_template'), "Response should include the template name."
   end
 
 
