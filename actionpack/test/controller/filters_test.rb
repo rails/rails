@@ -324,9 +324,9 @@ class FilterTest < Test::Unit::TestCase
       render :text => 'hello'
     end
   end
-  
+
   class ErrorToRescue < Exception; end
-  
+
   class RescuingAroundFilterWithBlock
     def filter(controller)
       begin
@@ -336,18 +336,84 @@ class FilterTest < Test::Unit::TestCase
       end
     end
   end
-  
+
   class RescuedController < ActionController::Base
     around_filter RescuingAroundFilterWithBlock.new
-    
+
     def show
       raise ErrorToRescue.new("Something made the bad noise.")
     end
-    
+
   private
     def rescue_action(exception)
       raise exception
     end
+  end
+
+  class NonYieldingAroundFilterController < ActionController::Base
+
+    before_filter :filter_one
+    around_filter :non_yielding_filter
+    before_filter :filter_two
+    after_filter :filter_three
+
+    def index
+      render :inline => "index"
+    end
+
+    #make sure the controller complains
+    def rescue_action(e); raise e; end
+
+    private
+
+      def filter_one
+        @filters  ||= []
+        @filters  << "filter_one"
+      end
+
+      def filter_two
+        @filters  << "filter_two"
+      end
+
+      def non_yielding_filter
+        @filters  << "zomg it didn't yield"
+        @filter_return_value
+      end
+
+      def filter_three
+        @filters  << "filter_three"
+      end
+
+  end
+
+  def test_non_yielding_around_filters_not_returning_false_do_not_raise
+    controller = NonYieldingAroundFilterController.new
+    controller.instance_variable_set "@filter_return_value", true
+    assert_nothing_raised do
+      test_process(controller, "index")
+    end
+  end
+
+  def test_non_yielding_around_filters_returning_false_do_not_raise
+    controller = NonYieldingAroundFilterController.new
+    controller.instance_variable_set "@filter_return_value", false
+    assert_nothing_raised do
+      test_process(controller, "index")
+    end
+  end
+
+  def test_after_filters_are_not_run_if_around_filter_returns_false
+    controller = NonYieldingAroundFilterController.new
+    controller.instance_variable_set "@filter_return_value", false
+    test_process(controller, "index")
+    assert_equal ["filter_one", "zomg it didn't yield"], controller.assigns['filters']
+  end
+
+  def test_after_filters_are_not_run_if_around_filter_does_not_yield
+    controller = NonYieldingAroundFilterController.new
+    controller.instance_variable_set "@filter_return_value", true
+    test_process(controller, "index")
+    assert_equal ["filter_one", "zomg it didn't yield"], controller.assigns['filters']
   end
 
   def test_empty_filter_chain
@@ -516,13 +582,13 @@ class FilterTest < Test::Unit::TestCase
   def test_changing_the_requirements
     assert_equal nil, test_process(ChangingTheRequirementsController, "go_wild").template.assigns['ran_filter']
   end
-  
+
   def test_a_rescuing_around_filter
     response = nil
     assert_nothing_raised do
       response = test_process(RescuedController)
     end
-    
+
     assert response.success?
     assert_equal("I rescued this: #<FilterTest::ErrorToRescue: Something made the bad noise.>", response.body)
   end
