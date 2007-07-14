@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'uri'
+require 'set'
 
 module ActionController #:nodoc:
   # Caching is a cheap way of speeding up slow applications by keeping the result of calculations, renderings, and database calls
@@ -163,7 +164,14 @@ module ActionController #:nodoc:
     module Actions
       def self.included(base) #:nodoc:
         base.extend(ClassMethods)
-        base.send(:attr_accessor, :rendered_action_cache)
+        base.class_eval do
+          attr_accessor :rendered_action_cache, :action_cache_path
+          alias_method_chain :protected_instance_variables, :action_caching
+        end
+      end
+
+      def protected_instance_variables_with_action_caching
+        protected_instance_variables_without_action_caching + %w(@action_cache_path)
       end
 
       module ClassMethods
@@ -171,7 +179,9 @@ module ActionController #:nodoc:
         # See ActionController::Caching::Actions for details.
         def caches_action(*actions)
           return unless perform_caching
-          around_filter(ActionCacheFilter.new(*actions))
+          action_cache_filter = ActionCacheFilter.new(*actions)
+          before_filter action_cache_filter
+          after_filter action_cache_filter
         end
       end
 
@@ -187,70 +197,59 @@ module ActionController #:nodoc:
       end
 
       class ActionCacheFilter #:nodoc:
-        def initialize(*actions, &block)
-          @actions = actions
+        def initialize(*actions)
+          @actions = Set.new actions
         end
 
         def before(controller)
-          return unless @actions.include?(controller.action_name.intern)
-          action_cache_path = ActionCachePath.new(controller)
-          if cache = controller.read_fragment(action_cache_path.path)
+          return unless @actions.include?(controller.action_name.to_sym)
+          cache_path = ActionCachePath.new(controller, {})
+          if cache = controller.read_fragment(cache_path.path)
             controller.rendered_action_cache = true
-            set_content_type!(action_cache_path)
+            set_content_type!(controller, cache_path.extension)
             controller.send(:render_text, cache)
             false
+          else
+            controller.action_cache_path = cache_path
           end
         end
 
         def after(controller)
-          return if !@actions.include?(controller.action_name.intern) || controller.rendered_action_cache
-          controller.write_fragment(ActionCachePath.path_for(controller), controller.response.body)
+          return if !@actions.include?(controller.action_name.to_sym) || controller.rendered_action_cache
+          controller.write_fragment(controller.action_cache_path.path, controller.response.body)
         end
         
         private
-          
-          def set_content_type!(action_cache_path)
-            if extention = action_cache_path.extension
-              content_type = Mime::EXTENSION_LOOKUP[extention]
-              action_cache_path.controller.response.content_type = content_type.to_s
-            end
+          def set_content_type!(controller, extension)
+            controller.response.content_type = Mime::EXTENSION_LOOKUP[extension].to_s if extension
           end
           
       end
       
       class ActionCachePath
-        attr_reader :controller, :options
+        attr_reader :path, :extension
         
         class << self
-          def path_for(*args, &block)
-            new(*args).path
+          def path_for(controller, options)
+            new(controller, options).path
           end
         end
         
         def initialize(controller, options = {})
-          @controller = controller
-          @options    = options
-        end
-        
-        def path
-          return @path if @path
-          @path = controller.url_for(options).split('://').last
-          normalize!
-          add_extension!
-          URI.unescape(@path)
-        end
-        
-        def extension
-          @extension ||= extract_extension(controller.request.path)
+          @extension = extract_extension(controller.request.path)
+          path = controller.url_for(options).split('://').last
+          normalize!(path)
+          add_extension!(path, @extension)
+          @path = URI.unescape(path)
         end
         
         private
-          def normalize!
-            @path << 'index' if @path.last == '/'
+          def normalize!(path)
+            path << 'index' if path[-1] == ?/
           end
         
-          def add_extension!
-            @path << ".#{extension}" if extension
+          def add_extension!(path, extension)
+            path << ".#{extension}" if extension
           end
           
           def extract_extension(file_path)

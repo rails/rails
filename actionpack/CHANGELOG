@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve performance of action caching. Closes #8231 [skaes]
+
 * Fix errors with around_filters which do not yield, restore 1.1 behaviour with after filters. Closes #8891 [skaes]
 
   After filters will *no longer* be run if an around_filter fails to yield, users relying on

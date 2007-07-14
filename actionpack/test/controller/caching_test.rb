@@ -97,6 +97,7 @@ class ActionCachingTestController < ActionController::Base
   caches_action :index
 
   def index
+    sleep 0.01
     @cache_this = Time.now.to_f.to_s
     render :text => @cache_this
   end
@@ -195,7 +196,7 @@ class ActionCacheTest < Test::Unit::TestCase
   def test_xml_version_of_resource_is_treated_as_different_cache
     @mock_controller.mock_url_for = 'http://example.org/posts/'
     @mock_controller.mock_path    = '/posts/index.xml'
-    path_object = @path_class.new(@mock_controller)
+    path_object = @path_class.new(@mock_controller, {})
     assert_equal 'xml', path_object.extension
     assert_equal 'example.org/posts/index.xml', path_object.path
   end
@@ -204,7 +205,7 @@ class ActionCacheTest < Test::Unit::TestCase
     @mock_controller.mock_url_for = 'http://example.org/'
     @mock_controller.mock_path    = '/'
 
-    assert_equal 'example.org/index', @path_class.path_for(@mock_controller)
+    assert_equal 'example.org/index', @path_class.path_for(@mock_controller, {})
   end
 
   def test_file_extensions
