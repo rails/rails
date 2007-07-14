@@ -89,9 +89,9 @@ module ActionController
           rewritten_url << ":#{options.delete(:port)}" if options.key?(:port)
         end
 
+        path = rewrite_path(options)
         rewritten_url << @request.relative_url_root.to_s unless options[:skip_relative_url_root]
-        rewritten_url << rewrite_path(options)
-        rewritten_url << '/' if options[:trailing_slash]
+        rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
         rewritten_url << "##{options[:anchor]}" if options[:anchor]
 
         rewritten_url

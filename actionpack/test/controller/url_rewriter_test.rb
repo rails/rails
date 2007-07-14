@@ -73,6 +73,16 @@ class UrlRewriterTests < Test::Unit::TestCase
 
     assert_equal 'http://, test.host, /, hi, bye, {"id"=>"2"}', @rewriter.to_str
   end
+
+  def test_trailing_slash
+    options = {:controller => 'foo', :action => 'bar', :id => '3', :only_path => true}
+    assert_equal '/foo/bar/3', @rewriter.rewrite(options)
+    assert_equal '/foo/bar/3?query=string', @rewriter.rewrite(options.merge({:query => 'string'}))
+    options.update({:trailing_slash => true})
+    assert_equal '/foo/bar/3/', @rewriter.rewrite(options)
+    options.update({:query => 'string'})
+    assert_equal '/foo/bar/3/?query=string', @rewriter.rewrite(options)
+  end
 end
 
 class UrlWriterTests < Test::Unit::TestCase

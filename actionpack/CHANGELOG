@@ -1,5 +1,7 @@
 *SVN*
 
+* Make :trailing_slash work with query parameters for url_for. Closes #4004 [nov]
+
 * Make sure missing template exceptions actually say which template they were looking for.  Closes #8683 [dasil003]
 
 * Fix errors with around_filters which do not yield, restore 1.1 behaviour with after filters. Closes #8891 [skaes]
