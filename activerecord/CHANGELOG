@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove spurious tests from deprecated_associations_test, most of these aren't deprecated, and are duplicated in associations_test.  Closes #8987 [lifofifo]
+
 * Make create! on a has_many :through association return the association object.  Not the collection.  Closes #8786 [lifofifo]
 
 * Move from select * to select tablename.* to avoid clobbering IDs. Closes #8889 [dasil003]
