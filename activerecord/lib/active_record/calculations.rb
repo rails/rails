@@ -6,13 +6,12 @@ module ActiveRecord
     end
 
     module ClassMethods
-      # Count operates using three different approaches.
+      # Count operates using two different approaches.
       #
       # * Count all: By not passing any parameters to count, it will return a count of all the rows for the model.
-      # * Count by conditions or joins: This API has been deprecated and will be removed in Rails 2.0
       # * Count using options will find the row count matched by the options used.
       #
-      # The last approach, count using options, accepts an option hash as the only parameter. The options are:
+      # The second approach, count using options, accepts an option hash as the only parameter. The options are:
       #
       # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro.
       # * <tt>:joins</tt>: An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
@@ -29,10 +28,6 @@ module ActiveRecord
       # Examples for counting all:
       #   Person.count         # returns the total count of all people
       #
-      # Examples for count by +conditions+ and +joins+ (this has been deprecated):
-      #   Person.count("age > 26")  # returns the number of people older than 26
-      #   Person.find("age > 26 AND job.salary > 60000", "LEFT JOIN jobs on jobs.person_id = person.id") # returns the total number of rows matching the conditions and joins fetched by SELECT COUNT(*).
-      #
       # Examples for count with options:
       #   Person.count(:conditions => "age > 26")
       #   Person.count(:conditions => "age > 26 AND job.salary > 60000", :include => :job) # because of the named association, it finds the DISTINCT count using LEFT OUTER JOIN.
@@ -42,7 +37,7 @@ module ActiveRecord
       #
       # Note: Person.count(:all) will not work because it will use :all as the condition.  Use Person.count instead.
       def count(*args)
-        calculate(:count, *construct_count_options_from_legacy_args(*args))
+        calculate(:count, *construct_count_options_from_args(*args))
       end
 
       # Calculates average value on a given column.  The value is returned as a float.  See #calculate for examples with options.
@@ -125,7 +120,7 @@ module ActiveRecord
       end
 
       protected
-        def construct_count_options_from_legacy_args(*args)
+        def construct_count_options_from_args(*args)
           options     = {}
           column_name = :all
 
@@ -133,25 +128,13 @@ module ActiveRecord
           #   count()
           #   count(options={})
           #   count(column_name=:all, options={})
-          #   count(conditions=nil, joins=nil)      # deprecated
-          if args.size > 2
+          if args[0].is_a?(Hash)
+            options = args[0]
+          elsif args[1].is_a?(Hash)
+            column_name, options = args
+          else
             raise ArgumentError, "Unexpected parameters passed to count(options={}): #{args.inspect}"
-          elsif args.size > 0
-            if args[0].is_a?(Hash)
-              options = args[0]
-            elsif args[1].is_a?(Hash)
-              column_name, options = args
-            else
-              # Deprecated count(conditions, joins=nil)
-              ActiveSupport::Deprecation.warn(
-                "You called count(#{args[0].inspect}, #{args[1].inspect}), which is a deprecated API call. " +
-                "Instead you should use count(column_name, options). Passing the conditions and joins as " +
-                "string parameters will be removed in Rails 2.0.", caller(2)
-              )
-              options.merge!(:conditions => args[0])
-              options.merge!(:joins      => args[1]) if args[1]
-            end
-          end
+          end if args.size > 0
 
           [column_name, options]
         end

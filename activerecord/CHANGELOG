@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove deprecated count(conditions=nil, joins=nil) usage.  Closes #8993 [lifofifo]
+
 * Change belongs_to so that the foreign_key assumption is taken from the association name, not the class name.  Closes #8992 [hasmanyjosh]
 
   OLD

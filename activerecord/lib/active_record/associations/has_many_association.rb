@@ -27,7 +27,7 @@ module ActiveRecord
         elsif @reflection.options[:finder_sql]
           @reflection.klass.count_by_sql(@finder_sql)
         else
-          column_name, options = @reflection.klass.send(:construct_count_options_from_legacy_args, *args)          
+          column_name, options = @reflection.klass.send(:construct_count_options_from_args, *args)          
           options[:conditions] = options[:conditions].nil? ?
             @finder_sql :
             @finder_sql + " AND (#{sanitize_sql(options[:conditions])})"
