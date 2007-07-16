@@ -799,12 +799,6 @@ module ActiveRecord
       #              :conditions => 'discounts > #{payments_count}'
       #   belongs_to :attachable, :polymorphic => true
       def belongs_to(association_id, options = {})
-        if options.include?(:class_name) && !options.include?(:foreign_key)
-          ::ActiveSupport::Deprecation.warn(
-          "The inferred foreign_key name will change in Rails 2.0 to use the association name instead of its class name when they differ.  When using :class_name in belongs_to, use the :foreign_key option to explicitly set the key name to avoid problems in the transition.",
-          caller)
-        end
-        
         reflection = create_belongs_to_reflection(association_id, options)
         
         if reflection.options[:polymorphic]

@@ -207,7 +207,7 @@ module ActiveRecord
 
         def derive_primary_key_name
           if macro == :belongs_to
-            class_name.foreign_key
+            "#{name}_id"
           elsif options[:as]
             "#{options[:as]}_id"
           else

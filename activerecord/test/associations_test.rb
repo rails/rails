@@ -409,13 +409,6 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     end
   end
 
-  def test_deprecated_inferred_foreign_key
-    assert_not_deprecated { Company.belongs_to :firm }
-    assert_not_deprecated { Company.belongs_to :client, :foreign_key => "firm_id" }
-    assert_not_deprecated { Company.belongs_to :firm, :class_name => "Firm", :foreign_key => "client_of" }
-    assert_deprecated("inferred foreign_key name") { Company.belongs_to :client, :class_name => "Firm" }
-  end
-
 end
 
 
