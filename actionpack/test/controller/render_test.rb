@@ -1,8 +1,5 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
-
-unless defined?(Customer)
-  Customer = Struct.new("Customer", :name)
-end
+require File.dirname(__FILE__) + '/fake_models'
 
 module Fun
   class GamesController < ActionController::Base

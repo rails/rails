@@ -1,10 +1,5 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
-
-class Customer < Struct.new(:name, :id)
-  def to_param
-    id.to_s
-  end
-end
+require File.dirname(__FILE__) + '/fake_models'
 
 class CustomersController < ActionController::Base
 end
