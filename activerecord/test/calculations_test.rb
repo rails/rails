@@ -227,12 +227,20 @@ class CalculationsTest < Test::Unit::TestCase
     assert_raises(ArgumentError) { Company.send(:validate_calculation_options, :sum,   :foo => :bar) }
     assert_raises(ArgumentError) { Company.send(:validate_calculation_options, :count, :foo => :bar) }
   end
-
+  
   def test_should_count_selected_field_with_include
     assert_equal 6, Account.count(:distinct => true, :include => :firm)
     assert_equal 4, Account.count(:distinct => true, :include => :firm, :select => :credit_limit)
   end
-
+  
+  def test_count_with_column_parameter
+    assert_equal 5, Account.count(:firm_id)
+  end
+  
+  def test_count_with_column_and_options_parameter
+    assert_equal 2, Account.count(:firm_id, :conditions => "credit_limit = 50")
+  end
+  
   def test_count_with_no_parameters_isnt_deprecated
     assert_not_deprecated { Account.count }
   end

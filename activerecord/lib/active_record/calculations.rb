@@ -6,12 +6,13 @@ module ActiveRecord
     end
 
     module ClassMethods
-      # Count operates using two different approaches.
+      # Count operates using three different approaches.
       #
       # * Count all: By not passing any parameters to count, it will return a count of all the rows for the model.
+      # * Count using column : By passing a column name to count, it will return a count of all the rows for the model with supplied column present
       # * Count using options will find the row count matched by the options used.
       #
-      # The second approach, count using options, accepts an option hash as the only parameter. The options are:
+      # The third approach, count using options, accepts an option hash as the only parameter. The options are:
       #
       # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro.
       # * <tt>:joins</tt>: An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
@@ -27,6 +28,9 @@ module ActiveRecord
       #
       # Examples for counting all:
       #   Person.count         # returns the total count of all people
+      #
+      # Examples for counting by column:
+      #   Person.count(:age)  # returns the total count of all people whose age is present in database
       #
       # Examples for count with options:
       #   Person.count(:conditions => "age > 26")
@@ -123,19 +127,21 @@ module ActiveRecord
         def construct_count_options_from_args(*args)
           options     = {}
           column_name = :all
-
+          
           # We need to handle
           #   count()
+          #   count(:column_name=:all)
           #   count(options={})
           #   count(column_name=:all, options={})
-          if args[0].is_a?(Hash)
-            options = args[0]
-          elsif args[1].is_a?(Hash)
+          case args.size
+          when 1
+            args[0].is_a?(Hash) ? options = args[0] : column_name = args[0]
+          when 2
             column_name, options = args
           else
-            raise ArgumentError, "Unexpected parameters passed to count(options={}): #{args.inspect}"
+            raise ArgumentError, "Unexpected parameters passed to count(): #{args.inspect}"
           end if args.size > 0
-
+          
           [column_name, options]
         end
 
