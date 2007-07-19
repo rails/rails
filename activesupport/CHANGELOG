@@ -1,5 +1,7 @@
 *SVN*
 
+* Let alias_attribute work with attributes with initial capital letters (legacy columns etc).  Closes #8596 [mpalmer]
+
 * Added Hash#except which is the inverse of Hash#slice -- return the hash except the keys that are specified [DHH]
 
 * Added support for pluralization with a different starting letter than the singular version (cow/kine) #4929 [norri_b/hasmanyjosh]
