@@ -85,7 +85,7 @@ module ActiveSupport #:nodoc:
         end
 
         # Returns a new Time representing the time a number of seconds since the instance time, this is basically a wrapper around
-        #the Numeric extension. Do not use this method in combination with x.months, use months_since instead!
+        # the Numeric extension. Do not use this method in combination with x.months, use months_since instead!
         def since(seconds)
           initial_dst = self.dst? ? 1 : 0
           f = seconds.since(self)
