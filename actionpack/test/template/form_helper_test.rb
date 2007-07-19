@@ -629,6 +629,25 @@ class FormHelperTest < Test::Unit::TestCase
     assert_dom_equal expected, _erbout
   end
 
+  def test_form_for_with_existing_object_and_namespace_in_list
+    @post.new_record = false
+    @comment.save
+    _erbout = ''
+    form_for([:admin, @post, @comment]) {}
+  
+    expected = %(<form action="#{admin_comment_path(@post, @comment)}" class="edit_comment" id="edit_comment_1" method="post"><div style="margin:0;padding:0"><input name="_method" type="hidden" value="put" /></div></form>)
+    assert_dom_equal expected, _erbout
+  end
+  
+  def test_form_for_with_new_object_and_namespace_in_list
+    @post.new_record = false
+    _erbout = ''
+    form_for([:admin, @post, @comment]) {}
+  
+    expected = %(<form action="#{admin_comments_path(@post)}" class="new_comment" id="new_comment" method="post"></form>)
+    assert_dom_equal expected, _erbout
+  end
+
   def test_form_for_with_existing_object_and_custom_url
     _erbout = ''
 
@@ -659,6 +678,16 @@ class FormHelperTest < Test::Unit::TestCase
       "/posts/#{post.id}/comments/#{comment.id}"
     end
     alias_method :post_comment_path, :comment_path
+    
+    def admin_comments_path(post)
+      "/admin/posts/#{post.id}/comments"
+    end
+    alias_method :admin_post_comments_path, :admin_comments_path
+    
+    def admin_comment_path(post, comment)
+      "/admin/posts/#{post.id}/comments/#{comment.id}"
+    end
+    alias_method :admin_post_comment_path, :admin_comment_path
     
     def posts_path
       "/posts"

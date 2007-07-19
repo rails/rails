@@ -39,6 +39,23 @@ class Test::Unit::TestCase
   def article_comment_url(article, comment)
     "http://www.example.com/articles/#{article.id}/comments/#{comment.id}"
   end
+  
+  def admin_articles_url
+    "http://www.example.com/admin/articles"
+  end
+  alias_method :new_admin_article_url, :admin_articles_url
+  
+  def admin_article_url(article)
+    "http://www.example.com/admin/articles/#{article.id}"
+  end
+  
+  def admin_article_comments_url(article)
+    "http://www.example.com/admin/articles/#{article.id}/comments"
+  end
+  
+  def admin_article_comment_url(article, comment)
+    "http://www.example.com/admin/test/articles/#{article.id}/comments/#{comment.id}"
+  end
 end
 
 
@@ -68,4 +85,14 @@ class PolymorphicRoutesTest < Test::Unit::TestCase
     @comment.save
     assert_equal(article_comment_url(@article, @comment), polymorphic_url([@article, @comment]))
   end  
+  
+  def test_with_array_and_namespace
+    assert_equal(admin_articles_url, polymorphic_url([:admin, @article], :action => 'new'))
+    assert_equal(admin_articles_url, polymorphic_url([:admin, @article]))
+    @article.save
+    assert_equal(admin_article_url(@article), polymorphic_url([:admin, @article]))
+    assert_equal(admin_article_comments_url(@article), polymorphic_url([:admin, @article, @comment]))
+    @comment.save
+    assert_equal(admin_article_comment_url(@article, @comment), polymorphic_url([:admin, @article, @comment]))
+  end
 end

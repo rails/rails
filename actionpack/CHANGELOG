@@ -1,5 +1,7 @@
 *SVN*
 
+* url_for now accepts a series of symbols representing the namespace of the record [Josh Knowles]
+
 * Make :trailing_slash work with query parameters for url_for. Closes #4004 [nov]
 
 * Make sure missing template exceptions actually say which template they were looking for.  Closes #8683 [dasil003]
