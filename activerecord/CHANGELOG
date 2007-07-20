@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix #count on a has_many :through association so that it recognizes the :uniq option.  Closes #8801 [lifofifo]
+
 * Fix and properly document/test count(column_name) usage. Closes #8999 [lifofifo]
 
 * Remove deprecated count(conditions=nil, joins=nil) usage.  Closes #8993 [lifofifo]

@@ -100,6 +100,16 @@ module ActiveRecord
       def sum(*args, &block)
         calculate(:sum, *args, &block)
       end
+      
+      def count(*args)
+        column_name, options = @reflection.klass.send(:construct_count_options_from_args, *args)
+        if @reflection.options[:uniq]
+          # This is needed becase 'SELECT count(DISTINCT *)..' is not valid sql statement.
+          column_name = "#{@reflection.klass.table_name}.#{@reflection.klass.primary_key}" if column_name == :all
+          options.merge!(:distinct => true) 
+        end
+        @reflection.klass.send(:with_scope, construct_scope) { @reflection.klass.count(column_name, options) } 
+      end
 
       protected
         def method_missing(method, *args, &block)
