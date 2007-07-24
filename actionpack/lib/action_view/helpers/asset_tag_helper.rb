@@ -172,7 +172,7 @@ module ActionView
       #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when ActionController::Base.perform_caching is false =>
       #     <script type="text/javascript" src="/javascripts/shop.js"></script>
       def javascript_include_tag(*sources)
-        options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
+        options = sources.extract_options!.stringify_keys
         cache   = options.delete("cache")
 
         if ActionController::Base.perform_caching && cache
@@ -281,7 +281,7 @@ module ActionView
       #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when ActionController::Base.perform_caching is true =>
       #     <link href="/stylesheets/payment.css"  media="screen" rel="Stylesheet" type="text/css" />
       def stylesheet_link_tag(*sources)
-        options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
+        options = sources.extract_options!.stringify_keys
         cache   = options.delete("cache")
 
         if ActionController::Base.perform_caching && cache

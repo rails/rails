@@ -23,7 +23,7 @@ class Class # :nodoc:
   end
 
   def class_inheritable_writer(*syms)
-    options = syms.last.is_a?(Hash) ? syms.pop : {}
+    options = syms.extract_options!
     syms.each do |sym|
       class_eval <<-EOS
         def self.#{sym}=(obj)
@@ -40,7 +40,7 @@ class Class # :nodoc:
   end
 
   def class_inheritable_array_writer(*syms)
-    options = syms.last.is_a?(Hash) ? syms.pop : {}
+    options = syms.extract_options!
     syms.each do |sym|
       class_eval <<-EOS
         def self.#{sym}=(obj)
@@ -57,7 +57,7 @@ class Class # :nodoc:
   end
 
   def class_inheritable_hash_writer(*syms)
-    options = syms.last.is_a?(Hash) ? syms.pop : {}
+    options = syms.extract_options!
     syms.each do |sym|
       class_eval <<-EOS
         def self.#{sym}=(obj)

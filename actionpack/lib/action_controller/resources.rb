@@ -295,7 +295,7 @@ module ActionController
     # HTTP POST on <tt>new_message_url</tt> will raise a RoutingError exception. The default route in
     # <tt>config/routes.rb</tt> overrides this and allows invalid HTTP methods for resource routes.
     def resources(*entities, &block)
-      options = entities.last.is_a?(Hash) ? entities.pop : { }
+      options = entities.extract_options!
       entities.each { |entity| map_resource(entity, options.dup, &block) }
     end
 
@@ -369,7 +369,7 @@ module ActionController
     #   edit_account  edit_account_url, hash_for_edit_account_url,
     #                 edit_account_path, hash_for_edit_account_path
     def resource(*entities, &block)
-      options = entities.last.is_a?(Hash) ? entities.pop : { }
+      options = entities.extract_options!
       entities.each { |entity| map_singleton_resource(entity, options.dup, &block) }
     end
 

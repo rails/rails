@@ -21,7 +21,7 @@ class Class # :nodoc:
   end
 
   def cattr_writer(*syms)
-    options = syms.last.is_a?(Hash) ? syms.pop : {}
+    options = syms.extract_options!
     syms.flatten.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__)
         unless defined? @@#{sym}

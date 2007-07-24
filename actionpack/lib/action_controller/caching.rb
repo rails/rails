@@ -222,7 +222,7 @@ module ActionController #:nodoc:
 
       class ActionCacheFilter #:nodoc:
         def initialize(*actions, &block)
-          @options = actions.last.is_a?(Hash) ? actions.pop : {}
+          @options = actions.extract_options!
           @actions = Set.new actions
         end
 
@@ -596,7 +596,7 @@ module ActionController #:nodoc:
       module ClassMethods #:nodoc:
         def cache_sweeper(*sweepers)
           return unless perform_caching
-          configuration = sweepers.last.is_a?(Hash) ? sweepers.pop : {}
+          configuration = sweepers.extract_options!
           sweepers.each do |sweeper|
             ActiveRecord::Base.observers << sweeper if defined?(ActiveRecord) and defined?(ActiveRecord::Base)
             sweeper_instance = Object.const_get(Inflector.classify(sweeper)).instance

@@ -118,7 +118,7 @@ module ActionView
       # you need is significantly different from the default presentation, it makes plenty of sense to access the object.errors
       # instance yourself and set it up. View the source of this method to see how easy it is.
       def error_messages_for(*params)
-        options = params.last.is_a?(Hash) ? params.pop.symbolize_keys : {}
+        options = params.extract_options!.symbolize_keys
         objects = params.collect {|object_name| instance_variable_get("@#{object_name}") }.compact
         count   = objects.inject(0) {|sum, object| sum + object.errors.count }
         unless count.zero?

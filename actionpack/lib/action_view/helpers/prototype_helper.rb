@@ -182,7 +182,7 @@ module ActionView
 
       # Works like form_remote_tag, but uses form_for semantics.
       def remote_form_for(record_or_name, *args, &proc)
-        options = args.last.is_a?(Hash) ? args.pop : {}
+        options = args.extract_options!
 
         case record_or_name
         when String, Symbol

@@ -601,7 +601,7 @@ module ActionController #:nodoc:
 
         def extract_conditions(*filters, &block) #:nodoc:
           filters.flatten!
-          conditions = filters.last.is_a?(Hash) ? filters.pop : {}
+          conditions = filters.extract_options!
           filters << block if block_given?
           return filters, conditions
         end

@@ -364,7 +364,7 @@ module ActiveRecord
       %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |column_type|
         class_eval <<-EOV
           def #{column_type}(*args)
-            options = args.last.is_a?(Hash) ? args.pop : {}
+            options = args.extract_options!
             column_names = args
             
             column_names.each { |name| column(name, '#{column_type}', options) }

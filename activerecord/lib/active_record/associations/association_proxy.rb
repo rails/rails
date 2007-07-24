@@ -98,10 +98,6 @@ module ActiveRecord
           @reflection.klass.send(:sanitize_sql, sql)
         end
 
-        def extract_options_from_args!(args)
-          @owner.send(:extract_options_from_args!, args)
-        end
-
         def set_belongs_to_association_for(record)
           if @reflection.options[:as]
             record["#{@reflection.options[:as]}_id"]   = @owner.id unless @owner.new_record?

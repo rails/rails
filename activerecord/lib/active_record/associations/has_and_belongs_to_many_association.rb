@@ -29,7 +29,7 @@ module ActiveRecord
       end
 
       def find(*args)
-        options = Base.send(:extract_options_from_args!, args)
+        options = args.extract_options!
 
         # If using a custom finder_sql, scan the entire collection.
         if @reflection.options[:finder_sql]

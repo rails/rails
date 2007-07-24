@@ -421,7 +421,7 @@ module ActiveRecord #:nodoc:
       #     person.save!
       #   end
       def find(*args)
-        options = extract_options_from_args!(args)
+        options = args.extract_options!
         validate_find_options(options)
         set_readonly_option!(options)
 
@@ -1602,10 +1602,6 @@ module ActiveRecord #:nodoc:
           unless expected == provided
             raise PreparedStatementInvalid, "wrong number of bind variables (#{provided} for #{expected}) in: #{statement}"
           end
-        end
-
-        def extract_options_from_args!(args) #:nodoc:
-          args.last.is_a?(Hash) ? args.pop : {}
         end
 
         VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset,

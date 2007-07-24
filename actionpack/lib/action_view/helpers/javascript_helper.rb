@@ -80,7 +80,7 @@ module ActionView
       #       return false;">Show me more</a>
       #
       def link_to_function(name, *args, &block)
-        html_options = args.last.is_a?(Hash) ? args.pop : {}
+        html_options = args.extract_options!
         function = args[0] || ''
 
         html_options.symbolize_keys!
@@ -111,7 +111,7 @@ module ActionView
       #     page[:details].visual_effect :toggle_slide
       #   end
       def button_to_function(name, *args, &block)
-        html_options = args.last.is_a?(Hash) ? args.pop : {}
+        html_options = args.extract_options!
         function = args[0] || ''
 
         html_options.symbolize_keys!

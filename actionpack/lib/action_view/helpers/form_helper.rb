@@ -158,7 +158,7 @@ module ActionView
       def form_for(record_or_name_or_array, *args, &proc)
         raise ArgumentError, "Missing block" unless block_given?
 
-        options = args.last.is_a?(Hash) ? args.pop : {}
+        options = args.extract_options!
 
         case record_or_name_or_array
         when String, Symbol
@@ -212,7 +212,7 @@ module ActionView
       # like FormOptionHelper#collection_select and DateHelper#datetime_select.
       def fields_for(object_name, *args, &block)
         raise ArgumentError, "Missing block" unless block_given?
-        options = args.last.is_a?(Hash) ? args.pop : {}
+        options = args.extract_options!
         object  = args.first
 
         builder = options[:builder] || ActionView::Base.default_form_builder

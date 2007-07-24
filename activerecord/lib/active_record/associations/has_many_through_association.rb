@@ -9,7 +9,7 @@ module ActiveRecord
       end
 
       def find(*args)
-        options = Base.send(:extract_options_from_args!, args)
+        options = args.extract_options!
 
         conditions = "#{@finder_sql}"
         if sanitized_conditions = sanitize_sql(options[:conditions])
