@@ -7,8 +7,8 @@ namespace :rails do
       Gem.manage_gems
 
       rails = (version = ENV['VERSION']) ?
-        Gem.cache.search('rails', "= #{version}").first :
-        Gem.cache.search('rails').sort_by { |g| g.version }.last
+        Gem.cache.find_name('rails', "= #{version}").first :
+        Gem.cache.find_name('rails').sort_by { |g| g.version }.last
 
       version ||= rails.version
 

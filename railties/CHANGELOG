@@ -1,5 +1,7 @@
 *SVN*
 
+* use Gem.find_name instead of search when freezing gems.  Prevent false positives for other gems with rails in the name. Closes #8729 [wselman]
+
 * Automatically generate add/remove column commands in specially named migrations like AddLocationToEvent.  Closes #9006 [zenspider]
 
 * Default to plural table name in Rails Generator if ActiveRecord is not present.  Closes #8963 [evan]
