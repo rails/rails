@@ -191,3 +191,12 @@ class ArrayToXmlTests < Test::Unit::TestCase
     assert xml.include?(%(<count>2</count>)), xml
   end
 end
+
+class ArrayExtractOptionsTests < Test::Unit::TestCase
+  def test_extract_options
+    assert_equal({}, [].extract_options!)
+    assert_equal({}, [1].extract_options!)
+    assert_equal({:a=>:b}, [{:a=>:b}].extract_options!)
+    assert_equal({:a=>:b}, [1, {:a=>:b}].extract_options!)
+  end
+end

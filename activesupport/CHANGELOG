@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Array#extract_options! to encapsulate the pattern of getting an options hash out of a variable number of parameters #8759 [norbert].
+
 * Let alias_attribute work with attributes with initial capital letters (legacy columns etc).  Closes #8596 [mpalmer]
 
 * Added Hash#except which is the inverse of Hash#slice -- return the hash except the keys that are specified [DHH]
