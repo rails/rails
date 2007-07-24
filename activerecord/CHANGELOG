@@ -1,5 +1,15 @@
 *SVN*
 
+* Added :unless clause to validations #8003 [monki]. Example: 
+
+    def using_open_id?
+      !identity_url.blank?
+    end
+
+    validates_presence_of :identity_url, :if => using_open_id?
+    validates_presence_of :username, :unless => using_open_id?
+    validates_presence_of :password, :unless => using_open_id?
+
 * Fix #count on a has_many :through association so that it recognizes the :uniq option.  Closes #8801 [lifofifo]
 
 * Fix and properly document/test count(column_name) usage. Closes #8999 [lifofifo]

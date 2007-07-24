@@ -362,14 +362,17 @@ module ActiveRecord
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
+      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.      
       def validates_each(*attrs)
         options = attrs.last.is_a?(Hash) ? attrs.pop.symbolize_keys : {}
         attrs   = attrs.flatten
 
         # Declare the validation.
         send(validation_method(options[:on] || :save)) do |record|
-          # Don't validate when there is an :if condition and that condition is false
-          unless options[:if] && !evaluate_condition(options[:if], record)
+          # Don't validate when there is an :if condition and that condition is false or there is an :unless condition and that condition is true
+          unless (options[:if] && !evaluate_condition(options[:if], record)) || (options[:unless] && evaluate_condition(options[:unless], record))
             attrs.each do |attr|
               value = record.send(attr)
               next if value.nil? && options[:allow_nil]
@@ -401,6 +404,9 @@ module ActiveRecord
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
+      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.      
       def validates_confirmation_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:confirmation], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -431,6 +437,9 @@ module ActiveRecord
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
+      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.      
       def validates_acceptance_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save, :allow_nil => true, :accept => "1" }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -460,6 +469,9 @@ module ActiveRecord
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
+      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       #
       # === Warning
       # Validate the presence of the foreign key, not the instance variable itself.
@@ -480,7 +492,7 @@ module ActiveRecord
         # while errors.add_on_empty can
         attr_names.each do |attr_name|
           send(validation_method(configuration[:on])) do |record|
-            unless configuration[:if] and not evaluate_condition(configuration[:if], record)
+            unless (configuration[:if] && !evaluate_condition(configuration[:if], record)) || (configuration[:unless] && evaluate_condition(configuration[:unless], record))
               record.errors.add_on_blank(attr_name,configuration[:message])
             end
           end
@@ -514,6 +526,9 @@ module ActiveRecord
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
+      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.      
       def validates_length_of(*attrs)
         # Merge given options with defaults.
         options = {
@@ -599,6 +614,9 @@ module ActiveRecord
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
+      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       def validates_uniqueness_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken], :case_sensitive => true }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -647,6 +665,9 @@ module ActiveRecord
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
+      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       def validates_format_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save, :with => nil }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -671,6 +692,9 @@ module ActiveRecord
       # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
+      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
       def validates_inclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:inclusion], :on => :save }
@@ -698,6 +722,9 @@ module ActiveRecord
       # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
+      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
       def validates_exclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:exclusion], :on => :save }
@@ -739,6 +766,9 @@ module ActiveRecord
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
+      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       def validates_associated(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -771,6 +801,9 @@ module ActiveRecord
       # * <tt>even</tt> Specifies the value must be an even number
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
+      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
       def validates_numericality_of(*attr_names)
         configuration = { :on => :save, :only_integer => false, :allow_nil => false }

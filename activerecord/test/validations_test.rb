@@ -988,7 +988,7 @@ class ValidationsTest < Test::Unit::TestCase
     assert_equal "This string contains 'single' and \"double\" quotes", r.errors.on(:topic).last
   end
 
-  def test_conditional_validation_using_method_true
+  def test_if_validation_using_method_true
     # When the method returns true
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d", :if => :condition_is_true )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
@@ -997,7 +997,15 @@ class ValidationsTest < Test::Unit::TestCase
     assert_equal "hoo 5", t.errors["title"]
   end
 
-  def test_conditional_validation_using_method_false
+  def test_unless_validation_using_method_true
+    # When the method returns true
+    Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d", :unless => :condition_is_true )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert t.valid?
+    assert !t.errors.on(:title)
+  end
+
+  def test_if_validation_using_method_false
     # When the method returns false
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d", :if => :condition_is_true_but_its_not )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
@@ -1005,7 +1013,16 @@ class ValidationsTest < Test::Unit::TestCase
     assert !t.errors.on(:title)
   end
 
-  def test_conditional_validation_using_string_true
+  def test_unless_validation_using_method_false
+    # When the method returns false
+    Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d", :unless => :condition_is_true_but_its_not )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "hoo 5", t.errors["title"]
+  end
+
+  def test_if_validation_using_string_true
     # When the evaluated string returns true
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d", :if => "a = 1; a == 1" )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
@@ -1014,7 +1031,15 @@ class ValidationsTest < Test::Unit::TestCase
     assert_equal "hoo 5", t.errors["title"]
   end
 
-  def test_conditional_validation_using_string_false
+  def test_unless_validation_using_string_true
+    # When the evaluated string returns true
+    Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d", :unless => "a = 1; a == 1" )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert t.valid?
+    assert !t.errors.on(:title)
+  end
+
+  def test_if_validation_using_string_false
     # When the evaluated string returns false
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d", :if => "false")
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
@@ -1022,7 +1047,16 @@ class ValidationsTest < Test::Unit::TestCase
     assert !t.errors.on(:title)
   end
 
-  def test_conditional_validation_using_block_true
+  def test_unless_validation_using_string_false
+    # When the evaluated string returns false
+    Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d", :unless => "false")
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "hoo 5", t.errors["title"]
+  end
+
+  def test_if_validation_using_block_true
     # When the block returns true
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d",
       :if => Proc.new { |r| r.content.size > 4 } )
@@ -1032,13 +1066,32 @@ class ValidationsTest < Test::Unit::TestCase
     assert_equal "hoo 5", t.errors["title"]
   end
 
-  def test_conditional_validation_using_block_false
+  def test_unless_validation_using_block_true
+    # When the block returns true
+    Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d",
+      :unless => Proc.new { |r| r.content.size > 4 } )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert t.valid?
+    assert !t.errors.on(:title)
+  end
+
+  def test_if_validation_using_block_false
     # When the block returns false
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d",
       :if => Proc.new { |r| r.title != "uhohuhoh"} )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
     assert !t.errors.on(:title)
+  end
+
+  def test_unless_validation_using_block_false
+    # When the block returns false
+    Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d",
+      :unless => Proc.new { |r| r.title != "uhohuhoh"} )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "hoo 5", t.errors["title"]
   end
 
   def test_validates_associated_missing
