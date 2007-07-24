@@ -667,7 +667,7 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
     file = params['file']
     assert_kind_of StringIO, file
     assert_equal 'file.txt', file.original_filename
-    assert_equal "text/plain\r", file.content_type
+    assert_equal "text/plain", file.content_type
     assert_equal 'contents', file.read
   end
 
@@ -679,7 +679,7 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
     file = params['file']
     assert_kind_of Tempfile, file
     assert_equal 'file.txt', file.original_filename
-    assert_equal "text/plain\r", file.content_type
+    assert_equal "text/plain", file.content_type
     assert ('a' * 20480) == file.read
   end
 
@@ -697,7 +697,7 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
     file = params['flowers']
     assert_kind_of StringIO, file
     assert_equal 'flowers.jpg', file.original_filename
-    assert_equal "image/jpeg\r", file.content_type
+    assert_equal "image/jpeg", file.content_type
     assert_equal 19512, file.size
     #assert_equal File.read(File.dirname(__FILE__) + '/../../../activerecord/test/fixtures/flowers.jpg'), file.read
   end

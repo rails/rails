@@ -542,7 +542,7 @@ module ActionController
               filename = CGI.unescape(filename)
             end
 
-            /Content-Type: (.*)/ni.match(head)
+            /Content-Type: ([^\r]*)/ni.match(head)
             content_type = ($1 or "")
 
             (class << content; self; end).class_eval do
