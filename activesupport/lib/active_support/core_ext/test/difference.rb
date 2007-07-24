@@ -1,6 +1,6 @@
 module Test #:nodoc:
   module Unit #:nodoc:
-    class TestCase #:nodoc:      
+    module Assertions #:nodoc:      
       # Test numeric difference between the return value of an expression as a result of what is evaluated
       # in the yielded block.
       #
