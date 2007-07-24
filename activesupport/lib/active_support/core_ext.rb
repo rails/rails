@@ -1,1 +1,1 @@
-Dir[File.dirname(__FILE__) + "/core_ext/*.rb"].each { |file| require(file) }
+Dir[File.dirname(__FILE__) + "/core_ext/*.rb"].sort.each { |file| require(file) }
