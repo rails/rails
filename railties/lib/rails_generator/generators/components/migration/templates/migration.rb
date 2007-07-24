@@ -1,7 +1,7 @@
 class <%= class_name.underscore.camelize %> < ActiveRecord::Migration
-  def self.up
+  def self.up<%= auto_migration :up %>
   end
 
-  def self.down
+  def self.down<%= auto_migration :down %>
   end
 end

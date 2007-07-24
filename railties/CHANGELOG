@@ -1,5 +1,7 @@
 *SVN*
 
+* Automatically generate add/remove column commands in specially named migrations like AddLocationToEvent.  Closes #9006 [zenspider]
+
 * Default to plural table name in Rails Generator if ActiveRecord is not present.  Closes #8963 [evan]
 
 * Added rake routes for listing all the defined routes in the system #8795 [josh]

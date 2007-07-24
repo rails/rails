@@ -3,8 +3,22 @@ Description:
     CamelCased or under_scored, as an argument. A migration class is generated
     in db/migrate prefixed by the latest migration number.
 
+    You can name your migration in either of these formats to generate add/remove
+    column lines: AddColumnToTable or RemoveColumnFromTable
+
 Example:
     `./script/generate migration AddSslFlag`
 
     With 4 existing migrations, this creates the AddSslFlag migration in
     db/migrate/005_add_ssl_flag.rb
+
+    `./script/generate migration AddSslFlagToAccount`
+    
+    This will create the AddSslFlagToAccount in db/migrate/005_add_ssl_flag_to_account.rb with
+    this in the Up migration:
+
+      add_column :accounts, :ssl_flag, :type, :null => :no?, :default => :maybe?
+
+    And this in the Down migration:
+    
+      remove_column :accounts, :ssl_flag
