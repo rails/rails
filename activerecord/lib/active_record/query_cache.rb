@@ -61,7 +61,7 @@ module ActiveRecord
 
         if result
           # perform a deep #dup in case result is an array
-          result = result.collect { |row| row.dup } if result.respond_to?(:collect)
+          result = result.collect { |row| row.dup } if result.is_a?(Array)
           result.dup
         else
           nil

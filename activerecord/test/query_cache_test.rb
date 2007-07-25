@@ -57,6 +57,12 @@ class QueryCacheTest < Test::Unit::TestCase
           "Connections should be different, Course connects to a different database"
     end
   end
+
+  def test_cache_does_not_wrap_string_results_in_arrays 
+    Task.cache do 
+      assert_instance_of String, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks") 
+    end 
+  end 
 end
 
 uses_mocha('QueryCacheExpiryTest') do
