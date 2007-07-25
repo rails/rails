@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow you to set custom :conditions on resource routes.  [Rick]
+
 * Fixed that file.content_type for uploaded files would include a trailing \r #9053 [bgreenlee]
 
 * url_for now accepts a series of symbols representing the namespace of the record [Josh Knowles]

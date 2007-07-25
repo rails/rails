@@ -70,6 +70,10 @@ module ActionController
         with_id ? @requirements.merge(@id_requirement) : @requirements
       end
 
+      def conditions
+        @conditions = @options[:conditions] || {}
+      end
+
       def path
         @path ||= "#{path_prefix}/#{plural}"
       end
@@ -215,8 +219,7 @@ module ActionController
     #
     #   <% form_for :message, @message, :url => message_path(@message), :html => {:method => :put} do |f| %>
     #
-    # The #resources method accepts the following options to customize the resulting
-    # routes:
+    # The #resources method accepts the following options to customize the resulting routes:
     # * <tt>:collection</tt> - add named routes for other actions that operate on the collection.
     #   Takes a hash of <tt>#{action} => #{method}</tt>, where method is <tt>:get</tt>/<tt>:post</tt>/<tt>:put</tt>/<tt>:delete</tt>
     #   or <tt>:any</tt> if the method does not matter.  These routes map to a URL like /messages/rss, with a route of rss_messages_url.
@@ -225,6 +228,8 @@ module ActionController
     # * <tt>:controller</tt> - specify the controller name for the routes.
     # * <tt>:singular</tt> - specify the singular name used in the member routes.
     # * <tt>:path_prefix</tt> - set a prefix to the routes with required route variables.
+    # * <tt>:requirements</tt> - set custom routing parameter requirements.
+    # * <tt>:conditions</tt> - specify custom routing recognition conditions.  Resources sets the :method value for the method-specific routes.
     #   Weblog comments usually belong to a post, so you might use resources like:
     #
     #     map.resources :articles
@@ -490,20 +495,22 @@ module ActionController
         map.connect("#{resource.member_path}.:format", destroy_action_options)
       end
 
-      def conditions_for(method)
-        { :conditions => method == :any ? {} : { :method => method } }
+      def add_conditions_for(conditions, method)
+        returning({:conditions => conditions.dup}) do |options|
+          options[:conditions][:method] = method unless method == :any
+        end
       end
 
       def action_options_for(action, resource, method = nil)
         default_options = { :action => action.to_s }
         require_id = !resource.kind_of?(SingletonResource)
         case default_options[:action]
-          when "index", "new" : default_options.merge(conditions_for(method || :get)).merge(resource.requirements)
-          when "create"       : default_options.merge(conditions_for(method || :post)).merge(resource.requirements)
-          when "show", "edit" : default_options.merge(conditions_for(method || :get)).merge(resource.requirements(require_id))
-          when "update"       : default_options.merge(conditions_for(method || :put)).merge(resource.requirements(require_id))
-          when "destroy"      : default_options.merge(conditions_for(method || :delete)).merge(resource.requirements(require_id))
-          else                  default_options.merge(conditions_for(method)).merge(resource.requirements)
+          when "index", "new" : default_options.merge(add_conditions_for(resource.conditions, method || :get)).merge(resource.requirements)
+          when "create"       : default_options.merge(add_conditions_for(resource.conditions, method || :post)).merge(resource.requirements)
+          when "show", "edit" : default_options.merge(add_conditions_for(resource.conditions, method || :get)).merge(resource.requirements(require_id))
+          when "update"       : default_options.merge(add_conditions_for(resource.conditions, method || :put)).merge(resource.requirements(require_id))
+          when "destroy"      : default_options.merge(add_conditions_for(resource.conditions, method || :delete)).merge(resource.requirements(require_id))
+          else                  default_options.merge(add_conditions_for(resource.conditions, method)).merge(resource.requirements)
         end
       end
   end
