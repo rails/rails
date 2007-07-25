@@ -1,5 +1,7 @@
 *SVN*
 
+# Ensure that has_many :through associations use a count query instead of loading the target when #size is called.  Closes #8800 [lifo]
+
 * Added :unless clause to validations #8003 [monki]. Example: 
 
     def using_open_id?

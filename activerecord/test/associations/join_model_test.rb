@@ -451,6 +451,12 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_nothing_raised { vertices(:vertex_1).sinks << vertices(:vertex_5) }
   end
 
+  def test_has_many_through_collection_size_doesnt_load_target_if_not_loaded
+    author = authors(:david)
+    assert_equal 9, author.comments.size
+    assert !author.comments.loaded?
+  end
+
   def test_adding_junk_to_has_many_through_should_raise_type_mismatch
     assert_raise(ActiveRecord::AssociationTypeMismatch) { posts(:thinking).tags << "Uhh what now?" }
   end
