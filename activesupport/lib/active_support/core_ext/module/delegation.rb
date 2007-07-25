@@ -20,6 +20,7 @@ class Module
   #
   # Multiple delegates to the same target are allowed:
   #   class Foo < ActiveRecord::Base
+  #     belongs_to :greeter
   #     delegate :hello, :goodbye, :to => :greeter
   #   end
   #

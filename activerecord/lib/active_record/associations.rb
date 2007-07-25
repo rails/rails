@@ -586,8 +586,8 @@ module ActiveRecord
       # * <tt>collection.empty?</tt> - returns true if there are no associated objects.
       # * <tt>collection.size</tt> - returns the number of associated objects.
       # * <tt>collection.find</tt> - finds an associated object according to the same rules as Base.find.
-      # * <tt>collection.build(attributes = {})</tt> - returns a new object of the collection type that has been instantiated
-      #   with +attributes+ and linked to this object through a foreign key but has not yet been saved. *Note:* This only works if an 
+      # * <tt>collection.build(attributes = {}, ...)</tt> - returns one or more new objects of the collection type that have been instantiated
+      #   with +attributes+ and linked to this object through a foreign key but have not yet been saved. *Note:* This only works if an 
       #   associated object already exists, not if it's nil!
       # * <tt>collection.create(attributes = {})</tt> - returns a new object of the collection type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key and that has already been saved (if it passed the validation).
