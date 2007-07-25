@@ -70,6 +70,13 @@ EOS
   def test_component_version
     assert_property 'Active Support version', ActiveSupport::VERSION::STRING
   end
+  
+  def test_components_exist
+    Rails::Info.components.each do |component|
+      dir = File.dirname(__FILE__) + "/../../" + component.gsub('_', '')
+      assert File.directory?(dir), "#{component.classify} does not exist"
+    end
+  end
 
 protected
   def svn_info=(info)

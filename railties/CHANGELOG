@@ -1,5 +1,7 @@
 *SVN*
 
+* Add ActiveResource to Rails::Info.  Closes #8741 [kampers]
+
 * use Gem.find_name instead of search when freezing gems.  Prevent false positives for other gems with rails in the name. Closes #8729 [wselman]
 
 * Automatically generate add/remove column commands in specially named migrations like AddLocationToEvent.  Closes #9006 [zenspider]
