@@ -199,6 +199,40 @@ module UTF8HandlingTest
      assert_raise(ActiveSupport::Multibyte::Handlers::EncodingError) { @handler.index(@bytestring, "\010") }
   end
   
+  def test_indexed_insert
+    s = "Καλη!"
+    @handler[s, 2] = "a"
+    assert_equal "Καaη!", s
+    @handler[s, 2] = "ηη"
+    assert_equal "Καηηη!", s
+    assert_raises(IndexError) { @handler[s, 10] = 'a' }
+    assert_equal "Καηηη!", s
+    @handler[s, 2] = 32
+    assert_equal "Κα ηη!", s
+    @handler[s, 3, 2] = "λλλ"
+    assert_equal "Κα λλλ!", s
+    @handler[s, 1, 0] = "λ"
+    assert_equal "Κλα λλλ!", s
+    assert_raises(IndexError) { @handler[s, 10, 4] = 'a' }
+    assert_equal "Κλα λλλ!", s
+    @handler[s, 4..6] = "ηη"
+    assert_equal "Κλα ηη!", s
+    assert_raises(RangeError) { @handler[s, 10..12] = 'a' }
+    assert_equal "Κλα ηη!", s
+    @handler[s, /ηη/] = "λλλ"
+    assert_equal "Κλα λλλ!", s
+    assert_raises(IndexError) { @handler[s, /ii/] = 'a' }
+    assert_equal "Κλα λλλ!", s
+    @handler[s, /(λλ)(.)/, 2] = "α"
+    assert_equal "Κλα λλα!", s
+    assert_raises(IndexError) { @handler[s, /()/, 10] = 'a' }
+    assert_equal "Κλα λλα!", s
+    @handler[s, "α"] = "η"
+    assert_equal "Κλη λλα!", s
+    @handler[s, "λλ"] = "ααα"
+    assert_equal "Κλη αααα!", s
+  end
+  
   def test_strip
     # A unicode aware version of strip should strip all 26 types of whitespace. This includes the NO BREAK SPACE
     # aka BOM (byte order mark). The byte order mark has no place in UTF-8 because it's used to detect LE and BE.

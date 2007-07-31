@@ -140,6 +140,44 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
         bidx ? (u_unpack(str.slice(0...bidx)).size) : nil
       end
       
+      # Works just like the indexed replace method on string, except instead of byte offsets you specify
+      # character offsets.
+      #
+      # Example:
+      #
+      #   s = "Müller"
+      #   s.chars[2] = "e" # Replace character with offset 2
+      #   s
+      #   #=> "Müeler"
+      #
+      #   s = "Müller"
+      #   s.chars[1, 2] = "ö" # Replace 2 characters at character offset 1
+      #   s
+      #   #=> "Möler"
+      def []=(str, *args)
+        replace_by = args.pop
+        # Indexed replace with regular expressions already works
+        return str[*args] = replace_by if args.first.is_a?(Regexp)
+        result = u_unpack(str)
+        if args[0].is_a?(Fixnum)
+          raise IndexError, "index #{args[0]} out of string" if args[0] >= result.length
+          min = args[0]
+          max = args[1].nil? ? min : (min + args[1] - 1)
+          range = Range.new(min, max)
+          replace_by = [replace_by].pack('U') if replace_by.is_a?(Fixnum)
+        elsif args.first.is_a?(Range)
+          raise RangeError, "#{args[0]} out of range" if args[0].min >= result.length
+          range = args[0]
+        else
+          needle = args[0].to_s
+          min = index(str, needle)
+          max = min + length(needle) - 1
+          range = Range.new(min, max)
+        end
+        result[range] = u_unpack(replace_by)
+        str.replace(result.pack('U*'))
+      end
+      
       # Does Unicode-aware rstrip
       def rstrip(str)
         str.gsub(UNICODE_TRAILERS_PAT, '')

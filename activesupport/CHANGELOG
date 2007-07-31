@@ -1,5 +1,7 @@
 *SVN*
 
+* Add support for []= on ActiveSupport::Multibyte::Chars. Closes #9142. [ewan, manfred]
+
 * Added Array#extract_options! to encapsulate the pattern of getting an options hash out of a variable number of parameters #8759 [norbert].
 
 * Let alias_attribute work with attributes with initial capital letters (legacy columns etc).  Closes #8596 [mpalmer]
