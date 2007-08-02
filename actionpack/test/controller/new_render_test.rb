@@ -349,6 +349,14 @@ class NewRenderTestController < ActionController::Base
     render :text => "hello world!"
   end
 
+  def render_call_to_partial_with_layout
+    render :action => "calling_partial_with_layout"
+  end
+
+  def render_using_layout_around_block
+    render :action => "using_layout_around_block"
+  end
+
   def rescue_action(e) raise end
     
   private
@@ -792,5 +800,15 @@ EOS
 
     get :render_with_object_location
     assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
+  end
+
+  def test_render_call_to_partial_with_layout
+    get :render_call_to_partial_with_layout
+    assert_equal "Before (David)\nInside from partial (David)\nAfter", @response.body
+  end
+  
+  def test_using_layout_around_block
+    get :using_layout_around_block
+    assert_equal "Before (David)\nInside from block\nAfter", @response.body
   end
 end

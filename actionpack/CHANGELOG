@@ -1,5 +1,7 @@
 *SVN*
 
+* Added partial layouts (see example in action_view/lib/partials.rb) [DHH]
+
 * Allow you to set custom :conditions on resource routes.  [Rick]
 
 * Fixed that file.content_type for uploaded files would include a trailing \r #9053 [bgreenlee]

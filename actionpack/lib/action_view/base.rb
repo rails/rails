@@ -304,7 +304,17 @@ module ActionView #:nodoc:
       elsif options.is_a?(Hash)
         options = options.reverse_merge(:type => :erb, :locals => {}, :use_full_path => true)
 
-        if options[:file]
+        if options[:layout]
+          path, partial_name = partial_pieces(options.delete(:layout))
+
+          if block_given?
+            @content_for_layout = capture(&block)
+            concat(render(options.merge(:partial => "#{path}/#{partial_name}")), block.binding)
+          else
+            @content_for_layout = render(options)
+            render(options.merge(:partial => "#{path}/#{partial_name}"))
+          end
+        elsif options[:file]
           render_file(options[:file], options[:use_full_path], options[:locals])
         elsif options[:partial] && options[:collection]
           render_partial_collection(options[:partial], options[:collection], options[:spacer_template], options[:locals])
