@@ -163,6 +163,7 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2005,6,28,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(:months => 4)
     assert_equal DateTime.civil(2012,9,28,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(:years => 7, :months => 7)
     assert_equal DateTime.civil(2013,10,3,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :days => 5)
+    assert_equal DateTime.civil(2005,2,28,15,15,10), DateTime.civil(2004,2,29,15,15,10).advance(:years => 1) #leap day plus one year
   end
 
   def test_next_week

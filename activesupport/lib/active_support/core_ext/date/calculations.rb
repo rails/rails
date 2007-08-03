@@ -68,9 +68,10 @@ module ActiveSupport #:nodoc:
         # Provides precise Date calculations for years, months, and days.  The +options+ parameter takes a hash with 
         # any of these keys: :months, :days, :years.
         def advance(options)
-          d = ::Date.new(year + (options.delete(:years) || 0), month, day)
-          d = d >> options.delete(:months) if options[:months]
-          d = d + options.delete(:days) if options[:days]
+          d = self
+          d = d >> options.delete(:years) * 12 if options[:years]
+          d = d >> options.delete(:months)     if options[:months]
+          d = d +  options.delete(:days)       if options[:days]
           d
         end
 
@@ -78,7 +79,7 @@ module ActiveSupport #:nodoc:
         #
         # Examples:
         #
-        #   Date.new(2007, 5, 12).change(:day => 1)                  # => Date.new(2007, 5, 12)
+        #   Date.new(2007, 5, 12).change(:day => 1)                  # => Date.new(2007, 5, 1)
         #   Date.new(2007, 5, 12).change(:year => 2005, :month => 1) # => Date.new(2005, 1, 12)
         def change(options)
           ::Date.new(

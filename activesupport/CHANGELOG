@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix Time#advance bug when trying to advance a year from leap day.  Closes #8655 [gbuesing]
+
 * Add support for []= on ActiveSupport::Multibyte::Chars. Closes #9142. [ewan, manfred]
 
 * Added Array#extract_options! to encapsulate the pattern of getting an options hash out of a variable number of parameters #8759 [norbert].
