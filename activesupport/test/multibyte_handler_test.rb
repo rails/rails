@@ -233,6 +233,57 @@ module UTF8HandlingTest
     assert_equal "Κλη αααα!", s
   end
   
+  def test_rjust
+    s = "Καη"
+    assert_raises(ArgumentError) { @handler.rjust(s, 10, '') }
+    assert_raises(ArgumentError) { @handler.rjust(s) }
+    assert_equal "Καη", @handler.rjust(s, -3)
+    assert_equal "Καη", @handler.rjust(s, 0)
+    assert_equal "Καη", @handler.rjust(s, 3)
+    assert_equal "  Καη", @handler.rjust(s, 5)
+    assert_equal "    Καη", @handler.rjust(s, 7)
+    assert_equal "----Καη", @handler.rjust(s, 7, '-')
+    assert_equal "ααααΚαη", @handler.rjust(s, 7, 'α')
+    assert_equal "abaΚαη", @handler.rjust(s, 6, 'ab')
+    assert_equal "αηαΚαη", @handler.rjust(s, 6, 'αη')
+  end
+  
+  def test_ljust
+    s = "Καη"
+    assert_raises(ArgumentError) { @handler.ljust(s, 10, '') }
+    assert_raises(ArgumentError) { @handler.ljust(s) }
+    assert_equal "Καη", @handler.ljust(s, -3)
+    assert_equal "Καη", @handler.ljust(s, 0)
+    assert_equal "Καη", @handler.ljust(s, 3)
+    assert_equal "Καη  ", @handler.ljust(s, 5)
+    assert_equal "Καη    ", @handler.ljust(s, 7)
+    assert_equal "Καη----", @handler.ljust(s, 7, '-')
+    assert_equal "Καηαααα", @handler.ljust(s, 7, 'α')
+    assert_equal "Καηaba", @handler.ljust(s, 6, 'ab')
+    assert_equal "Καηαηα", @handler.ljust(s, 6, 'αη')
+  end
+  
+  def test_center
+    s = "Καη"
+    assert_raises(ArgumentError) { @handler.center(s, 10, '') }
+    assert_raises(ArgumentError) { @handler.center(s) }
+    assert_equal "Καη", @handler.center(s, -3)
+    assert_equal "Καη", @handler.center(s, 0)
+    assert_equal "Καη", @handler.center(s, 3)
+    assert_equal "Καη ", @handler.center(s, 4)
+    assert_equal " Καη ", @handler.center(s, 5)
+    assert_equal " Καη  ", @handler.center(s, 6)
+    assert_equal "--Καη--", @handler.center(s, 7, '-')
+    assert_equal "--Καη---", @handler.center(s, 8, '-')
+    assert_equal "ααΚαηαα", @handler.center(s, 7, 'α')
+    assert_equal "ααΚαηααα", @handler.center(s, 8, 'α')
+    assert_equal "aΚαηab", @handler.center(s, 6, 'ab')
+    assert_equal "abΚαηab", @handler.center(s, 7, 'ab')
+    assert_equal "ababΚαηabab", @handler.center(s, 11, 'ab')
+    assert_equal "αΚαηαη", @handler.center(s, 6, 'αη')
+    assert_equal "αηΚαηαη", @handler.center(s, 7, 'αη')
+  end
+  
   def test_strip
     # A unicode aware version of strip should strip all 26 types of whitespace. This includes the NO BREAK SPACE
     # aka BOM (byte order mark). The byte order mark has no place in UTF-8 because it's used to detect LE and BE.

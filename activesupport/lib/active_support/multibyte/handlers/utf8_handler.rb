@@ -178,6 +178,45 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
         str.replace(result.pack('U*'))
       end
       
+      # Works just like String#rjust, only integer specifies characters instead of bytes.
+      #
+      # Example:
+      #
+      #   "¾ cup".chars.rjust(8).to_s
+      #   #=> "   ¾ cup"
+      #
+      #   "¾ cup".chars.rjust(8, " ").to_s # Use non-breaking whitespace
+      #   #=> "   ¾ cup"
+      def rjust(str, integer, padstr=' ')
+        justify(str, integer, :right, padstr)
+      end
+      
+      # Works just like String#ljust, only integer specifies characters instead of bytes.
+      #
+      # Example:
+      #
+      #   "¾ cup".chars.rjust(8).to_s
+      #   #=> "¾ cup   "
+      #
+      #   "¾ cup".chars.rjust(8, " ").to_s # Use non-breaking whitespace
+      #   #=> "¾ cup   "
+      def ljust(str, integer, padstr=' ')
+        justify(str, integer, :left, padstr)
+      end
+      
+      # Works just like String#center, only integer specifies characters instead of bytes.
+      #
+      # Example:
+      #
+      #   "¾ cup".chars.center(8).to_s
+      #   #=> " ¾ cup  "
+      #
+      #   "¾ cup".chars.center(8, " ").to_s # Use non-breaking whitespace
+      #   #=> " ¾ cup  "
+      def center(str, integer, padstr=' ')
+        justify(str, integer, :center, padstr)
+      end
+      
       # Does Unicode-aware rstrip
       def rstrip(str)
         str.gsub(UNICODE_TRAILERS_PAT, '')
@@ -378,6 +417,33 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
       # Reverse operation of g_unpack
       def g_pack(unpacked)
         unpacked.flatten
+      end
+      
+      # Justifies a string in a certain way. Valid values for <tt>way</tt> are <tt>:right</tt>, <tt>:left</tt> and
+      # <tt>:center</tt>. Is primarily used as a helper method by <tt>rjust</tt>, <tt>ljust</tt> and <tt>center</tt>.
+      def justify(str, integer, way, padstr=' ')
+        raise ArgumentError, "zero width padding" if padstr.length == 0
+        padsize = integer - size(str)
+        padsize = padsize > 0 ? padsize : 0
+        case way
+        when :right
+          str.dup.insert(0, padding(padsize, padstr))
+        when :left
+          str.dup.insert(-1, padding(padsize, padstr))
+        when :center
+          lpad = padding((padsize / 2.0).floor, padstr)
+          rpad = padding((padsize / 2.0).ceil, padstr)
+          str.dup.insert(0, lpad).insert(-1, rpad)
+        end
+      end
+      
+      # Generates a padding string of a certain size.
+      def padding(padsize, padstr=' ')
+        if padsize != 0
+          slice(padstr * ((padsize / size(padstr)) + 1), 0, padsize)
+        else
+          ''
+        end
       end
       
       # Convert characters to a different case

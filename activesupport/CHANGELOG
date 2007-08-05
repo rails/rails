@@ -1,5 +1,7 @@
 *SVN*
 
+* Add ljust, rjust and center to utf8-handler. Closes #9165 [manfred]
+
 * Fix Time#advance bug when trying to advance a year from leap day.  Closes #8655 [gbuesing]
 
 * Add support for []= on ActiveSupport::Multibyte::Chars. Closes #9142. [ewan, manfred]
