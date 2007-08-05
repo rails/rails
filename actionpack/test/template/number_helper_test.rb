@@ -83,6 +83,10 @@ class NumberHelperTest < Test::Unit::TestCase
     assert_equal '1.18 MB',   number_to_human_size(1234567, 2)
     assert_equal '3 Bytes',   number_to_human_size(3.14159265, 4)
     assert_equal("123 Bytes", number_to_human_size("123"))
+    assert_equal '1.01 KB',   number_to_human_size(1.0123.kilobytes, 2)
+    assert_equal '1.01 KB',   number_to_human_size(1.0100.kilobytes, 4)
+    assert_equal '10 KB',   number_to_human_size(10.000.kilobytes, 4)
+    assert_equal '1 Byte',   number_to_human_size(1.1)
     assert_nil number_to_human_size('x')
     assert_nil number_to_human_size(nil)
   end

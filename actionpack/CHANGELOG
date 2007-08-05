@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix number_to_human_size when using different precisions. Closes #7536. [RichardStrand, mpalmer]
+
 * Added partial layouts (see example in action_view/lib/partials.rb) [DHH]
 
 * Allow you to set custom :conditions on resource routes.  [Rick]
