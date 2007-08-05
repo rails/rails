@@ -81,6 +81,8 @@ class CharsTest < Test::Unit::TestCase
     with_kcode('UTF8') do
       assert_equal 9, (@s[:utf8].chars =~ /ﬃ/),
         "Regex matching should be unicode aware"
+      assert_nil((''.chars =~ /\d+/),
+        "Non-matching regular expressions should return nil")
     end
   end
   
@@ -118,7 +120,7 @@ class CharsTest < Test::Unit::TestCase
   
   def test_passthrough_on_kcode
     # The easiest way to check if the passthrough is in place is through #size
-    with_kcode('nonce') do
+    with_kcode('none') do
       assert_equal 26, @s[:utf8].chars.size
     end
     with_kcode('UTF8') do

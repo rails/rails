@@ -316,8 +316,8 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
       
       # Used to translate an offset from bytes to characters, for instance one received from a regular expression match
       def translate_offset(str, byte_offset)
-        return 0 if str == ''
         return nil if byte_offset.nil?
+        return 0 if str == ''
         chunk = str[0..byte_offset]
         begin
           begin
