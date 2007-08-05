@@ -84,7 +84,36 @@ module ActionView
         InstanceTag.new(object, method, self, nil, options.delete(:object)).to_select_tag(choices, options, html_options)
       end
 
-      # Return select and option tags for the given object and method using options_from_collection_for_select to generate the list of option tags.
+      # Returns <tt><select></tt> and <tt><option></tt> tags for the collection of existing return values of
+      # +method+ for +object+'s class. The value returned from calling +method+ on the instance +object+ will
+      # be selected. If calling +method+ returns +nil+, no selection is made without including <tt>:prompt</tt>
+      # or <tt>:include_blank</tt> in the +options+ hash.
+      #
+      # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are methods to be called on each member
+      # of +collection+. The return values are used as the +value+ attribute and contents of each
+      # <tt><option></tt> tag, respectively.
+      # 
+      # Example object structure for use with this method:
+      #   class Post < ActiveRecord::Base
+      #     belongs_to :author
+      #   end
+      #   class Author < ActiveRecord::Base
+      #     has_many :posts
+      #     def name_with_initial
+      #       "#{first_name.first}. #{last_name}"
+      #     end
+      #   end
+      #
+      # Sample usage (selecting the associated +Author+ for an instance of +Post+, <tt>@post</tt>):
+      #   collection_select(:post, :author_id, Author.find(:all), :id, :name_with_initial, {:prompt => true})
+      #
+      # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
+      #   <select name="post[author_id]">
+      #     <option value="">Please select</option>
+      #     <option value="1" selected="selected">D. Heinemeier Hansson</option>
+      #     <option value="2">D. Thomas</option>
+      #     <option value="3">M. Clark</option>
+      #   </select>
       def collection_select(object, method, collection, value_method, text_method, options = {}, html_options = {})
         InstanceTag.new(object, method, self, nil, options.delete(:object)).to_collection_select_tag(collection, value_method, text_method, options, html_options)
       end
@@ -154,41 +183,54 @@ module ActionView
         options_for_select(options, selected)
       end
 
-      # Returns a string of option tags, like options_from_collection_for_select, but surrounds them with <optgroup> tags.
+      # Returns a string of <tt><option></tt> tags, like <tt>#options_from_collection_for_select</tt>, but
+      # groups them by <tt><optgroup></tt> tags based on the object relationships of the arguments.
       #
-      # An array of group objects are passed. Each group should return an array of options when calling group_method
-      # Each group should return its name when calling group_label_method.
+      # Parameters:
+      # +collection+::          An array of objects representing the <tt><optgroup></tt> tags
+      # +group_method+::        The name of a method which, when called on a member of +collection+, returns an
+      #                         array of child objects representing the <tt><option></tt> tags
+      # +group_label_method+::  The name of a method which, when called on a member of +collection+, returns a
+      #                         string to be used as the +label+ attribute for its <tt><optgroup></tt> tag
+      # +option_key_method+::   The name of a method which, when called on a child object of a member of
+      #                         +collection+, returns a value to be used as the +value+ attribute for its
+      #                         <tt><option></tt> tag
+      # +option_value_method+:: The name of a method which, when called on a child object of a member of
+      #                         +collection+, returns a value to be used as the contents of its
+      #                         <tt><option></tt> tag
+      # +selected_key+::        A value equal to the +value+ attribute for one of the <tt><option></tt> tags,
+      #                         which will have the +selected+ attribute set. Corresponds to the return value
+      #                         of one of the calls to +option_key_method+. If +nil+, no selection is made.
       #
-      # html_option_groups_from_collection(@continents, "countries", "continent_name", "country_id", "country_name", @selected_country.id)
+      # Example object structure for use with this method:
+      #   class Continent < ActiveRecord::Base
+      #     has_many :countries
+      #     # attribs: id, name
+      #   end
+      #   class Country < ActiveRecord::Base
+      #     belongs_to :continent
+      #     # attribs: id, name, continent_id
+      #   end
       #
-      # Could become:
-      #  <optgroup label="Africa">
-      #   <select>Egypt</select>
-      #   <select>Rwanda</select>
-      #   ...
-      #  </optgroup>
-      #  <optgroup label="Asia">
-      #   <select>China</select>
-      #   <select>India</select>
-      #   <select>Japan</select>
-      #   ...
-      #  </optgroup>
+      # Sample usage:
+      #   option_groups_from_collection_for_select(@continents, :countries, :name, :id, :name, 3)
       #
-      # with objects of the following classes:
-      # class Continent
-      #   def initialize(p_name, p_countries) @continent_name = p_name; @countries = p_countries; end
-      #   def continent_name() @continent_name; end
-      #   def countries() @countries; end
-      # end
-      # class Country
-      #   def initialize(id, name) @id = id; @name = name end
-      #   def country_id() @id; end
-      #   def country_name() @name; end
-      # end
+      # Possible output:
+      #   <optgroup label="Africa">
+      #     <option value="1">Egypt</option>
+      #     <option value="4">Rwanda</option>
+      #     ...
+      #   </optgroup>
+      #   <optgroup label="Asia">
+      #     <option value="3" selected="selected">China</option>
+      #     <option value="12">India</option>
+      #     <option value="5">Japan</option>
+      #     ...
+      #   </optgroup>
       #
-      # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
-      def option_groups_from_collection_for_select(collection, group_method, group_label_method,
-            option_key_method, option_value_method, selected_key = nil)
+      # <b>Note:</b> Only the <tt><optgroup></tt> and <tt><option></tt> tags are returned, so you still have to
+      # wrap the output in an appropriate <tt><select></tt> tag.
+      def option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, selected_key = nil)
         collection.inject("") do |options_for_select, group|
           group_label_string = eval("group.#{group_label_method}")
           options_for_select += "<optgroup label=\"#{html_escape(group_label_string)}\">"
