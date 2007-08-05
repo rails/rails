@@ -447,7 +447,7 @@ module ActiveRecord #:nodoc:
       #   Person.exists?(:name => "David")
       #   Person.exists?(['name LIKE ?', "%#{query}%"])
       def exists?(id_or_conditions)
-        !find(:first, :conditions => expand_id_conditions(id_or_conditions)).nil?
+        !find(:first, :select => "#{table_name}.#{primary_key}", :conditions => expand_id_conditions(id_or_conditions)).nil?
       rescue ActiveRecord::ActiveRecordError
         false
       end
