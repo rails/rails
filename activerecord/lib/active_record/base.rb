@@ -912,9 +912,11 @@ module ActiveRecord #:nodoc:
           super
         elsif abstract_class?
           "#{super}(abstract)"
-        else
+        elsif table_exists?
           attr_list = columns.map { |c| "#{c.name}: #{c.type}" } * ', '
           "#{super}(#{attr_list})"
+        else
+          "#{super}(Table doesn't exist)"
         end
       end
 
