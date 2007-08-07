@@ -53,7 +53,6 @@ module ActiveRecord
           options[:conditions] = conditions
           options[:joins]      = @join_sql
           options[:readonly]   = finding_with_ambigious_select?(options[:select])
-          options[:select]   ||= '*'
 
           if options[:order] && @reflection.options[:order]
             options[:order] = "#{options[:order]}, #{@reflection.options[:order]}"
@@ -62,6 +61,8 @@ module ActiveRecord
           end
 
           merge_options_from_reflection!(options)
+
+          options[:select]   ||= '*'
 
           # Pass through args exactly as we received them.
           args << options

@@ -1761,6 +1761,13 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert welcome.save!
   end
 
+  def test_habtm_respects_select
+    categories(:technology).select_testing_posts(true).each do |o|
+      assert_respond_to o, :correctness_marker
+    end
+    assert_respond_to categories(:technology).select_testing_posts.find(:first), :correctness_marker
+  end
+
   def test_updating_attributes_on_rich_associations
     david = projects(:action_controller).developers.first
     david.name = "DHH"
