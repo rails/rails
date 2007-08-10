@@ -58,6 +58,9 @@ module HTML #:nodoc:
         elsif @scanner.scan(/!/) # doctype
           tag << @scanner.matched
           tag << consume_quoted_regions
+        elsif @scanner.scan(/\?/) # processing instructions, drop them
+          tag = ''
+          @scanner.scan_until(/\/>/)
         else
           tag << consume_quoted_regions
         end
