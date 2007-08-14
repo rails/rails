@@ -122,13 +122,14 @@ class CGI
           @data ||= self.class.unmarshal(read_attribute(@@data_column_name)) || {}
         end
 
+        attr_writer :data
+
         # Has the session been loaded yet?
         def loaded?
           !! @data
         end
 
         private
-          attr_writer :data
 
           def marshal_data!
             return false if !loaded?
