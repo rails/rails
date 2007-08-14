@@ -1,5 +1,12 @@
 *SVN*
 
+* Change the implementation of ActiveRecord's attribute reader and writer methods [nzkoz]
+ - Generate Reader and Writer methods which cache attribute values in hashes.  This is to avoid repeatedly parsing the same date or integer columns.
+ - Change exception raised when users use find with :select then try to access a skipped column.  Plugins could override missing_attribute() to lazily load the columns.
+ - Move method definition to the class, instead of the instance
+ - Always generate the readers, writers and predicate methods.
+
+
 * Perform a deep #dup on query cache results so that modifying activerecord attributes does not modify the cached attributes.  [Rick]
 
 # Ensure that has_many :through associations use a count query instead of loading the target when #size is called.  Closes #8800 [lifo]
