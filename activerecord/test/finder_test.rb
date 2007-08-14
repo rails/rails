@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'fixtures/author'
 require 'fixtures/comment'
 require 'fixtures/company'
 require 'fixtures/topic'
@@ -129,10 +130,10 @@ class FinderTest < Test::Unit::TestCase
 
   def test_find_only_some_columns
     topic = Topic.find(1, :select => "author_name")
-    assert_raises(NoMethodError) { topic.title }
+    assert_raises(ActiveRecord::MissingAttributeError) {topic.title}
     assert_equal "David", topic.author_name
     assert !topic.attribute_present?("title")
-    assert !topic.respond_to?("title")
+    #assert !topic.respond_to?("title")
     assert topic.attribute_present?("author_name")
     assert topic.respond_to?("author_name")
   end

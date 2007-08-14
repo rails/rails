@@ -344,24 +344,10 @@ class BasicsTest < Test::Unit::TestCase
     assert !object.int_value?
   end
 
-  def test_reader_generation
-    Topic.find(:first).title
-    Firm.find(:first).name
-    Client.find(:first).name
-    if ActiveRecord::Base.generate_read_methods
-      assert_readers(Topic,  %w(type replies_count))
-      assert_readers(Firm,   %w(type))
-      assert_readers(Client, %w(type ruby_type rating?))
-    else
-      [Topic, Firm, Client].each {|klass| assert_equal klass.read_methods, {}}
-    end
-  end
 
   def test_reader_for_invalid_column_names
-    # column names which aren't legal ruby ids
-    topic = Topic.find(:first)
-    topic.send(:define_read_method, "mumub-jumbo".to_sym, "mumub-jumbo", nil)
-    assert !Topic.read_methods.include?("mumub-jumbo")
+    Topic.send(:define_read_method, "mumub-jumbo".to_sym, "mumub-jumbo", nil)
+    assert !Topic.generated_methods.include?("mumub-jumbo")
   end
 
   def test_non_attribute_access_and_assignment
@@ -791,7 +777,7 @@ class BasicsTest < Test::Unit::TestCase
   
   def test_mass_assignment_protection_against_class_attribute_writers
     [:logger, :configurations, :primary_key_prefix_type, :table_name_prefix, :table_name_suffix, :pluralize_table_names, :colorize_logging,
-      :default_timezone, :allow_concurrency, :generate_read_methods, :schema_format, :verification_timeout, :lock_optimistically, :record_timestamps].each do |method|
+      :default_timezone, :allow_concurrency, :schema_format, :verification_timeout, :lock_optimistically, :record_timestamps].each do |method|
       assert  Task.respond_to?(method)
       assert  Task.respond_to?("#{method}=")
       assert  Task.new.respond_to?(method)
@@ -1708,12 +1694,4 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal %("#{t.written_on.to_s(:db)}"), t.attribute_for_inspect(:written_on)
     assert_equal '"This is some really long content, longer than 50 ch..."', t.attribute_for_inspect(:content)
   end
-
-  private
-    def assert_readers(model, exceptions)
-      expected_readers = Set.new(model.column_names - ['id'])
-      expected_readers += expected_readers.map { |col| "#{col}?" }
-      expected_readers -= exceptions
-      assert_equal expected_readers, model.read_methods
-    end
 end

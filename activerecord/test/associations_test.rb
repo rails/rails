@@ -1470,10 +1470,12 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert project.respond_to?("name=")
     assert project.respond_to?("name?")
     assert project.respond_to?("joined_on")
-    assert project.respond_to?("joined_on=")
+    # given that the 'join attribute' won't be persisted, I don't
+    # think we should define the mutators
+    #assert project.respond_to?("joined_on=")
     assert project.respond_to?("joined_on?")
     assert project.respond_to?("access_level")
-    assert project.respond_to?("access_level=")
+    #assert project.respond_to?("access_level=")
     assert project.respond_to?("access_level?")
   end
 

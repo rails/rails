@@ -121,7 +121,8 @@ module ActiveRecord
         self.id = previous_id
       else
         @attributes.delete(self.class.primary_key)
-      end
+        @attributes_cache.delete(self.class.primary_key)
+      end  
       raise
     end
   end

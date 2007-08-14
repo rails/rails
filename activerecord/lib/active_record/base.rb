@@ -35,6 +35,12 @@ module ActiveRecord #:nodoc:
   end
   class Rollback < StandardError #:nodoc:
   end
+  
+  # Raised when you've tried to access a column, which wasn't
+  # loaded by your finder.  Typically this is because :select
+  # has been specified
+  class MissingAttributeError < NoMethodError
+  end
 
   class AttributeAssignmentError < ActiveRecordError #:nodoc:
     attr_reader :exception, :attribute
@@ -342,13 +348,6 @@ module ActiveRecord #:nodoc:
     cattr_accessor :allow_concurrency, :instance_writer => false
     @@allow_concurrency = false
 
-    # Determines whether to speed up access by generating optimized reader
-    # methods to avoid expensive calls to method_missing when accessing
-    # attributes by name. You might want to set this to false in development
-    # mode, because the methods would be regenerated on each request.
-    cattr_accessor :generate_read_methods, :instance_writer => false
-    @@generate_read_methods = true
-    
     # Specifies the format to use when dumping the database schema with Rails'
     # Rakefile.  If :sql, the schema is dumped as (potentially database-
     # specific) SQL statements.  If :ruby, the schema is dumped as an 
@@ -875,15 +874,10 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Contains the names of the generated reader methods.
-      def read_methods #:nodoc:
-        @read_methods ||= Set.new
-      end
-
       # Resets all the cached information about columns, which will cause them to be reloaded on the next request.
       def reset_column_information
-        read_methods.each { |name| undef_method(name) }
-        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @read_methods = @inheritance_column = nil
+        generated_methods.each { |name| undef_method(name) }
+        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @generated_methods = @inheritance_column = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
@@ -1100,6 +1094,7 @@ module ActiveRecord #:nodoc:
             end
 
           object.instance_variable_set("@attributes", record)
+          object.instance_variable_set("@attributes_cache", Hash.new)
           object
         end
 
@@ -1284,7 +1279,7 @@ module ActiveRecord #:nodoc:
 
         def all_attributes_exists?(attribute_names)
           attribute_names.all? { |name| column_methods_hash.include?(name.to_sym) }
-        end
+        end        
 
         def attribute_condition(argument)
           case argument
@@ -1639,6 +1634,7 @@ module ActiveRecord #:nodoc:
       # hence you can't have attributes that aren't part of the table columns.
       def initialize(attributes = nil)
         @attributes = attributes_from_column_definition
+        @attributes_cache = {}
         @new_record = true
         ensure_proper_type
         self.attributes = attributes unless attributes.nil?
@@ -1652,13 +1648,10 @@ module ActiveRecord #:nodoc:
         attr_name = self.class.primary_key
         column = column_for_attribute(attr_name)
         
-        if self.class.generate_read_methods
-          define_read_method(:id, attr_name, column)
-          # now that the method exists, call it
-          self.send attr_name.to_sym
-        else
-          read_attribute(attr_name)
-        end
+        self.class.send(:define_read_method, :id, attr_name, column)
+        # now that the method exists, call it
+        self.send attr_name.to_sym
+
       end
 
       # Enables Active Record objects to be used as URL parameters in Action Pack automatically.
@@ -1787,6 +1780,7 @@ module ActiveRecord #:nodoc:
         clear_aggregation_cache
         clear_association_cache
         @attributes.update(self.class.find(self.id, options).instance_variable_get('@attributes'))
+        @attributes_cache = {}
         self
       end
 
@@ -1902,27 +1896,6 @@ module ActiveRecord #:nodoc:
         id.hash
       end
 
-      # For checking respond_to? without searching the attributes (which is faster).
-      alias_method :respond_to_without_attributes?, :respond_to?
-
-      # A Person object with a name attribute can ask person.respond_to?("name"), person.respond_to?("name="), and
-      # person.respond_to?("name?") which will all return true.
-      def respond_to?(method, include_priv = false)
-        if @attributes.nil?
-          return super
-        elsif attr_name = self.class.column_methods_hash[method.to_sym]
-          return true if @attributes.include?(attr_name) || attr_name == self.class.primary_key
-          return false if self.class.read_methods.include?(attr_name)
-        elsif @attributes.include?(method_name = method.to_s)
-          return true
-        elsif md = self.class.match_attribute_method?(method.to_s)
-          return true if @attributes.include?(md.pre_match)
-        end
-        # super must be called at the end of the method, because the inherited respond_to?
-        # would return true for generated readers, even if the attribute wasn't present
-        super
-      end
-
       # Just freeze the attributes hash, such that associations are still accessible even on destroyed records.
       def freeze
         @attributes.freeze; self
@@ -1998,182 +1971,12 @@ module ActiveRecord #:nodoc:
         end
       end
 
-
-      # Allows access to the object attributes, which are held in the @attributes hash, as were
-      # they first-class methods. So a Person class with a name attribute can use Person#name and
-      # Person#name= and never directly use the attributes hash -- except for multiple assigns with
-      # ActiveRecord#attributes=. A Milestone class can also ask Milestone#completed? to test that
-      # the completed attribute is not nil or 0.
-      #
-      # It's also possible to instantiate related objects, so a Client class belonging to the clients
-      # table with a master_id foreign key can instantiate master through Client#master.
-      def method_missing(method_id, *args, &block)
-        method_name = method_id.to_s
-        if @attributes.include?(method_name) or
-            (md = /\?$/.match(method_name) and
-            @attributes.include?(query_method_name = md.pre_match) and
-            method_name = query_method_name)
-          if self.class.read_methods.empty? && self.class.generate_read_methods
-            define_read_methods
-            # now that the method exists, call it
-            self.send method_id.to_sym
-          else
-            md ? query_attribute(method_name) : read_attribute(method_name)
-          end
-        elsif self.class.primary_key.to_s == method_name
-          id
-        elsif md = self.class.match_attribute_method?(method_name)
-          attribute_name, method_type = md.pre_match, md.to_s
-          if @attributes.include?(attribute_name)
-            __send__("attribute#{method_type}", attribute_name, *args, &block)
-          else
-            super
-          end
-        else
-          super
-        end
-      end
-
-      # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
-      # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
-      def read_attribute(attr_name)
-        attr_name = attr_name.to_s
-        if !(value = @attributes[attr_name]).nil?
-          if column = column_for_attribute(attr_name)
-            if unserializable_attribute?(attr_name, column)
-              unserialize_attribute(attr_name)
-            else
-              column.type_cast(value)
-            end
-          else
-            value
-          end
-        else
-          nil
-        end
-      end
-
-      def read_attribute_before_type_cast(attr_name)
-        @attributes[attr_name]
-      end
-
-      # Called on first read access to any given column and generates reader
-      # methods for all columns in the columns_hash if
-      # ActiveRecord::Base.generate_read_methods is set to true.
-      def define_read_methods
-        self.class.columns_hash.each do |name, column|
-          unless respond_to_without_attributes?(name)
-            if self.class.serialized_attributes[name]
-              define_read_method_for_serialized_attribute(name)
-            else
-              define_read_method(name.to_sym, name, column)
-            end
-          end
-
-          unless respond_to_without_attributes?("#{name}?")
-            define_question_method(name)
-          end
-        end
-      end
-
-      # Define an attribute reader method.  Cope with nil column.
-      def define_read_method(symbol, attr_name, column)
-        cast_code = column.type_cast_code('v') if column
-        access_code = cast_code ? "(v=@attributes['#{attr_name}']) && #{cast_code}" : "@attributes['#{attr_name}']"
-        
-        unless attr_name.to_s == self.class.primary_key.to_s
-          access_code = access_code.insert(0, "raise NoMethodError, 'missing attribute: #{attr_name}', caller unless @attributes.has_key?('#{attr_name}'); ")
-          self.class.read_methods << attr_name
-        end
-        
-        evaluate_read_method attr_name, "def #{symbol}; #{access_code}; end"
-      end
-      
-      # Define read method for serialized attribute.
-      def define_read_method_for_serialized_attribute(attr_name)
-        unless attr_name.to_s == self.class.primary_key.to_s
-          self.class.read_methods << attr_name
-        end
-        
-        evaluate_read_method attr_name, "def #{attr_name}; unserialize_attribute('#{attr_name}'); end"
-      end
-           
-      # Define an attribute ? method.
-      def define_question_method(attr_name)
-        unless attr_name.to_s == self.class.primary_key.to_s
-          self.class.read_methods << "#{attr_name}?"
-        end
-        
-        evaluate_read_method attr_name, "def #{attr_name}?; query_attribute('#{attr_name}'); end"
-      end
-      
-      # Evaluate the definition for an attribute reader or ? method
-      def evaluate_read_method(attr_name, method_definition)
-        begin
-          self.class.class_eval(method_definition)
-        rescue SyntaxError => err
-          self.class.read_methods.delete(attr_name)
-          if logger
-            logger.warn "Exception occurred during reader method compilation."
-            logger.warn "Maybe #{attr_name} is not a valid Ruby identifier?"
-            logger.warn "#{err.message}"
-          end
-        end
-      end
-
-      # Returns true if the attribute is of a text column and marked for serialization.
-      def unserializable_attribute?(attr_name, column)
-        column.text? && self.class.serialized_attributes[attr_name]
-      end
-
-      # Returns the unserialized object of the attribute.
-      def unserialize_attribute(attr_name)
-        unserialized_object = object_from_yaml(@attributes[attr_name])
-
-        if unserialized_object.is_a?(self.class.serialized_attributes[attr_name]) || unserialized_object.nil?
-          @attributes[attr_name] = unserialized_object
-        else
-          raise SerializationTypeMismatch,
-            "#{attr_name} was supposed to be a #{self.class.serialized_attributes[attr_name]}, but was a #{unserialized_object.class.to_s}"
-        end
-      end
-
-      # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+. Empty strings for fixnum and float
-      # columns are turned into nil.
-      def write_attribute(attr_name, value)
-        attr_name = attr_name.to_s
-        if (column = column_for_attribute(attr_name)) && column.number?
-          @attributes[attr_name] = convert_number_column_value(value)
-        else
-          @attributes[attr_name] = value
-        end
-      end
-
       def convert_number_column_value(value)
         case value
           when FalseClass: 0
           when TrueClass:  1
           when '':         nil
           else value
-        end
-      end
-
-      def query_attribute(attr_name)
-        unless value = read_attribute(attr_name)
-          false
-        else
-          column = self.class.columns_hash[attr_name]
-          if column.nil?
-            if Numeric === value || value !~ /[^0-9]/
-              !value.to_i.zero?
-            else
-              !value.blank?
-            end
-          elsif column.number?
-            !value.zero?
-          else
-            !value.blank?
-          end
         end
       end
 
