@@ -24,6 +24,7 @@ module ActionController #:nodoc:
     attr_accessor :cookies, :session_options
     attr_accessor :query_parameters, :request_parameters, :path, :session, :env
     attr_accessor :host
+    attr_reader   :request_uri_overridden
 
     def initialize(query_parameters = nil, request_parameters = nil, session = nil)
       @query_parameters   = query_parameters || {}
@@ -67,12 +68,14 @@ module ActionController #:nodoc:
     # Used to check AbstractRequest's request_uri functionality.
     # Disables the use of @path and @request_uri so superclass can handle those.
     def set_REQUEST_URI(value)
+      @request_uri_overridden = true
       @env["REQUEST_URI"] = value
       @request_uri = nil
       @path = nil
     end
 
     def request_uri=(uri)
+      @env["REQUEST_URI"] = uri
       @request_uri = uri
       @path = uri.split("?").first
     end
@@ -426,12 +429,12 @@ module ActionController #:nodoc:
     end
 
     def build_request_uri(action, parameters)
-      unless @request.env['REQUEST_URI']
+      unless @request.request_uri_overridden
         options = @controller.send(:rewrite_options, parameters)
         options.update(:only_path => true, :action => action)
 
         url = ActionController::UrlRewriter.new(@request, parameters)
-        @request.set_REQUEST_URI(url.rewrite(options))
+        @request.request_uri = url.rewrite(options)
       end
     end
 

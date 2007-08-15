@@ -482,6 +482,22 @@ HTML
     end
   end
 
+  def test_request_uri_updates
+    get :test_params
+    uri = @request.request_uri
+    assert_equal @request.env['REQUEST_URI'], uri
+    
+    get :test_uri
+    assert_not_equal uri, @request.request_uri
+    uri = @request.request_uri
+    assert_equal @request.env['REQUEST_URI'], uri
+
+    get :test_uri, :testing => true
+    assert_not_equal uri, @request.request_uri
+    uri = @request.request_uri
+    assert_equal @request.env['REQUEST_URI'], uri
+  end
+
   protected
     def with_foo_routing
       with_routing do |set|
