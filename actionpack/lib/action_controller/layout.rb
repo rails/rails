@@ -307,12 +307,10 @@ module ActionController #:nodoc:
       # Does a layout directory for this class exist?
       # we cache this info in a class level hash
       def layout_directory?(layout_name)
-        view_paths.find do |path|
-          File.file?(File.join(path, 'layouts', layout_name))
+        view_paths.find do |path| 
+          next unless template_path = Dir[File.join(path, 'layouts', layout_name) + ".*"].first
+          self.class.send(:layout_directory_exists_cache)[File.dirname(template_path)]
         end
-        template_path ||= File.join(view_paths.first, 'layouts', layout_name)
-        dirname = File.dirname(template_path)
-        self.class.send(:layout_directory_exists_cache)[dirname]
       end
   end
 end

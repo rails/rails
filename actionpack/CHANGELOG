@@ -1,5 +1,7 @@
 *SVN*
 
+* Find layouts even if they're not in the first view_paths directory.  Closes #9258 [caio]
+
 * Major improvement to the documentation for the options / select form helpers. Closes #9038 [kampers, jardeon, wesg]
 
 * Fix number_to_human_size when using different precisions. Closes #7536. [RichardStrand, mpalmer]

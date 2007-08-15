@@ -18,6 +18,11 @@ class ViewLoadPathsTest < Test::Unit::TestCase
     end
   end
   
+  class Test::SubController < ActionController::Base
+    layout 'test/sub'
+    def hello_world; render 'test/hello_world'; end
+  end
+  
   def setup
     TestController.view_paths = [ LOAD_PATH_ROOT ]
     @controller = TestController.new
@@ -27,7 +32,7 @@ class ViewLoadPathsTest < Test::Unit::TestCase
     # Track the last warning.
     @old_behavior = ActiveSupport::Deprecation.behavior
     @last_message = nil
-    ActiveSupport::Deprecation.behavior = Proc.new { |message| @last_message = message }
+    ActiveSupport::Deprecation.behavior = Proc.new { |message, callback| @last_message = message }
   end
   
   def teardown
@@ -49,6 +54,14 @@ class ViewLoadPathsTest < Test::Unit::TestCase
     get :hello_world
     assert_response :success
     assert_equal "Hello overridden world!", @response.body
+  end
+  
+  def test_view_paths_override_for_layouts_in_controllers_with_a_module
+    @controller = Test::SubController.new
+    Test::SubController.view_paths = [ "#{LOAD_PATH_ROOT}/override", LOAD_PATH_ROOT, "#{LOAD_PATH_ROOT}/override2" ]
+    get :hello_world
+    assert_response :success
+    assert_equal "layout: Hello overridden world!", @response.body
   end
   
   def test_view_paths_override_at_request_time
