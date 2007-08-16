@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure has_many uses :include when counting [danger]
+
 * Save associated records only if the association is already loaded.  #8713 [blaine]
 
 * Changing the :default Date format doesn't break date quoting.  #6312 [bshand, Elias]

@@ -271,6 +271,13 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_not_nil f.account
     assert_equal companies(:first_firm, :reload).account, f.account
   end
+  
+  def test_eager_with_multi_table_conditional_properly_counts_the_records_when_using_size
+    author = authors(:david)
+    posts_with_no_comments = author.posts.select { |post| post.comments.blank? }
+    assert_equal posts_with_no_comments.size, author.posts_with_no_comments.size
+    assert_equal posts_with_no_comments, author.posts_with_no_comments
+  end
 
   def test_eager_with_invalid_association_reference
     assert_raises(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
