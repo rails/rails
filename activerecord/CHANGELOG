@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't clobber includes passed to has_many.count [danger]
+
 * Make sure has_many uses :include when counting [danger]
 
 * Change the implementation of ActiveRecord's attribute reader and writer methods [nzkoz]
