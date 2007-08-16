@@ -268,18 +268,20 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_bind_enumerable
+    quoted_abc = %(#{ActiveRecord::Base.connection.quote('a')},#{ActiveRecord::Base.connection.quote('b')},#{ActiveRecord::Base.connection.quote('c')})
+
     assert_equal '1,2,3', bind('?', [1, 2, 3])
-    assert_equal %('a','b','c'), bind('?', %w(a b c))
+    assert_equal quoted_abc, bind('?', %w(a b c))
 
     assert_equal '1,2,3', bind(':a', :a => [1, 2, 3])
-    assert_equal %('a','b','c'), bind(':a', :a => %w(a b c)) # '
+    assert_equal quoted_abc, bind(':a', :a => %w(a b c)) # '
 
     require 'set'
     assert_equal '1,2,3', bind('?', Set.new([1, 2, 3]))
-    assert_equal %('a','b','c'), bind('?', Set.new(%w(a b c)))
+    assert_equal quoted_abc, bind('?', Set.new(%w(a b c)))
 
     assert_equal '1,2,3', bind(':a', :a => Set.new([1, 2, 3]))
-    assert_equal %('a','b','c'), bind(':a', :a => Set.new(%w(a b c))) # '
+    assert_equal quoted_abc, bind(':a', :a => Set.new(%w(a b c))) # '
   end
 
   def test_bind_empty_enumerable
@@ -290,7 +292,7 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_bind_string
-    assert_equal "''", bind('?', '')
+    assert_equal ActiveRecord::Base.connection.quote(''), bind('?', '')
   end
 
   def test_bind_record
@@ -302,8 +304,8 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_string_sanitation
-    assert_not_equal "'something ' 1=1'", ActiveRecord::Base.sanitize("something ' 1=1")
-    assert_equal "'something; select table'", ActiveRecord::Base.sanitize("something; select table")
+    assert_not_equal "#{ActiveRecord::Base.connection.quoted_string_prefix}'something ' 1=1'", ActiveRecord::Base.sanitize("something ' 1=1")
+    assert_equal "#{ActiveRecord::Base.connection.quoted_string_prefix}'something; select table'", ActiveRecord::Base.sanitize("something; select table")
   end
 
   def test_count

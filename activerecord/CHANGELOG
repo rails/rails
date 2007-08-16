@@ -1,5 +1,9 @@
 *SVN*
 
+* Improve performance and functionality of the postgresql adapter.  Closes #8049 [roderickvd]
+
+	For more information see: http://dev.rubyonrails.org/ticket/8049
+
 * Don't clobber includes passed to has_many.count [danger]
 
 * Make sure has_many uses :include when counting [danger]

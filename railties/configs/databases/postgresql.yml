@@ -1,9 +1,13 @@
-# PostgreSQL versions 7.4 - 8.1
+# PostgreSQL. Versions 7.4 and 8.x are supported.
 #
-# Get the C bindings:
-#   gem install postgres
-# or use the pure-Ruby bindings on Windows:
-#   gem install postgres-pr
+# Install the ruby-postgres driver:
+#   gem install ruby-postgres
+# On MacOS X:
+#   gem install ruby-postgres -- --include=/usr/local/pgsql
+# On Windows:
+#   gem install ruby-postgres
+#       Choose the win32 build.
+#       Install PostgreSQL and put its /bin directory on your path.
 development:
   adapter: postgresql
   encoding: unicode
@@ -11,21 +15,18 @@ development:
   username: <%= app_name %>
   password:
 
-  # Connect on a TCP socket.  Omitted by default since the client uses a
-  # domain socket that doesn't need configuration.  Windows does not have
+  # Connect on a TCP socket. Omitted by default since the client uses a
+  # domain socket that doesn't need configuration. Windows does not have
   # domain sockets, so uncomment these lines.
   #host: localhost
   #port: 5432
 
-  # Schema search path.  The server defaults to $user,public
+  # Schema search path. The server defaults to $user,public
   #schema_search_path: myapp,sharedapp,public
-
-  # Character set encoding.  The server defaults to sql_ascii.
-  #encoding: UTF8
 
   # Minimum log levels, in increasing order:
   #   debug5, debug4, debug3, debug2, debug1,
-  #   info, notice, warning, error, log, fatal, or panic
+  #   log, notice, warning, error, fatal, and panic
   # The server defaults to notice.
   #min_messages: warning
 
