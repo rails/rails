@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't clobber includes passed to has_many.count [danger]
+
 * Make sure has_many uses :include when counting [danger]
 
 * Save associated records only if the association is already loaded.  #8713 [blaine]

@@ -168,6 +168,12 @@ class EagerAssociationTest < Test::Unit::TestCase
     posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => "posts.title = 'magic forest'")
     assert_equal 0, posts.size
   end
+  
+  def test_eager_count_performed_on_a_has_many_association_with_multi_table_conditional
+    author = authors(:david)
+    author_posts_without_comments = author.posts.select { |post| post.comments.blank? }
+    assert_equal author_posts_without_comments.size, author.posts.count(:all, :include => :comments, :conditions => 'comments.id is null')
+  end
 
   def test_eager_with_has_and_belongs_to_many_and_limit
     posts = Post.find(:all, :include => :categories, :order => "posts.id", :limit => 3)
