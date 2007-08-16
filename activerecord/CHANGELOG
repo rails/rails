@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure has_many uses :include when counting [danger]
+
 * Change the implementation of ActiveRecord's attribute reader and writer methods [nzkoz]
  - Generate Reader and Writer methods which cache attribute values in hashes.  This is to avoid repeatedly parsing the same date or integer columns.
  - Change exception raised when users use find with :select then try to access a skipped column.  Plugins could override missing_attribute() to lazily load the columns.
