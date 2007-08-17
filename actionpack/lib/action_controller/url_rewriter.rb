@@ -27,9 +27,7 @@ module ActionController
     end
     
     # Generate a url based on the options provided, default_url_options and the 
-    # routes defined in routes.rb
-    # 
-    # Options used by <tt>url_for</tt>:
+    # routes defined in routes.rb.  The following options are supported:
     # 
     # * <tt>:only_path</tt> If true, the relative url is returned. Defaults to false.
     # * <tt>:protocol</tt> The protocol to connect to. Defaults to 'http'.
