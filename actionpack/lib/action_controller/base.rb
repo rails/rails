@@ -514,21 +514,25 @@ module ActionController #:nodoc:
       # * <tt>:only_path</tt> --  if true, returns the relative URL (omitting the protocol, host name, and port) (<tt>false</tt> by default)
       # * <tt>:trailing_slash</tt> --  if true, adds a trailing slash, as in "/archive/2005/". Note that this
       #   is currently not recommended since it breaks caching.
-      # * <tt>:host</tt> -- overrides the default (current) host if provided
-      # * <tt>:protocol</tt> -- overrides the default (current) protocol if provided
-      # * <tt>:user</tt> -- Inline HTTP authentication (only plucked out if :password is also present)
-      # * <tt>:password</tt> -- Inline HTTP authentication (only plucked out if :user is also present)
+      # * <tt>:host</tt> -- overrides the default (current) host if provided.
+      # * <tt>:protocol</tt> -- overrides the default (current) protocol if provided.
+      # * <tt>:port</tt> -- optionally specify the port to connect to.
+      # * <tt>:user</tt> -- Inline HTTP authentication (only plucked out if :password is also present).
+      # * <tt>:password</tt> -- Inline HTTP authentication (only plucked out if :user is also present).
+      # * <tt>:skip_relative_url_root</tt> -- if true, the url is not constructed using the relative_url_root of the request so the path
+      #   will include the web server relative installation directory.
       #
       # The URL is generated from the remaining keys in the hash. A URL contains two key parts: the <base> and a query string.
       # Routes composes a query string as the key/value pairs not included in the <base>.
       #
       # The default Routes setup supports a typical Rails path of "controller/action/id" where action and id are optional, with
       # action defaulting to 'index' when not given. Here are some typical url_for statements and their corresponding URLs:
-      #  
-      #   url_for :controller => 'posts', :action => 'recent'              # => 'proto://host.com/posts/recent'
-      #   url_for :controller => 'posts', :action => 'index'               # => 'proto://host.com/posts'
-      #   url_for :controller => 'posts', :action => 'show', :id => 10     # => 'proto://host.com/posts/show/10'
-      #   url_for :controller => 'posts', :user => 'd', :password => '123' # => 'proto://d:123@host.com/posts'
+      #
+      #   url_for :controller => 'posts', :action => 'recent'                # => 'proto://host.com/posts/recent'
+      #   url_for :controller => 'posts', :action => 'index'                 # => 'proto://host.com/posts'
+      #   url_for :controller => 'posts', :action => 'index', :port=>'8033'  # => 'proto://host.com:8033/posts'
+      #   url_for :controller => 'posts', :action => 'show', :id => 10       # => 'proto://host.com/posts/show/10'
+      #   url_for :controller => 'posts', :user => 'd', :password => '123'   # => 'proto://d:123@host.com/posts'
       #
       # When generating a new URL, missing values may be filled in from the current request's parameters. For example,
       # <tt>url_for :action => 'some_action'</tt> will retain the current controller, as expected. This behavior extends to
