@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix bug where action caching sets the content type to the ActionCachePath object.  Closes #9282 [mindforge]
+
 * Find layouts even if they're not in the first view_paths directory.  Closes #9258 [caio]
 
 * Major improvement to the documentation for the options / select form helpers. Closes #9038 [kampers, jardeon, wesg]

@@ -231,7 +231,7 @@ module ActionController #:nodoc:
           cache_path = ActionCachePath.new(controller, path_options_for(controller, @options))
           if cache = controller.read_fragment(cache_path.path)
             controller.rendered_action_cache = true
-            set_content_type!(controller, cache_path)
+            set_content_type!(controller, cache_path.extension)
             controller.send(:render_text, cache)
             false
           else
