@@ -29,7 +29,16 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_equal 2, authors(:mary).categorized_posts.size
     assert_equal 1, authors(:mary).unique_categorized_posts.size
   end
-
+  
+  def test_has_many_uniq_through_count
+    author = authors(:mary)
+    assert !authors(:mary).unique_categorized_posts.loaded?
+    assert_queries(1) { assert_equal 1, author.unique_categorized_posts.count }
+    assert_queries(1) { assert_equal 1, author.unique_categorized_posts.count(:title, {}) }
+    assert_queries(1) { assert_equal 0, author.unique_categorized_posts.count(:title, { :conditions => "title is NULL" }) }
+    assert !authors(:mary).unique_categorized_posts.loaded?
+  end
+  
   def test_polymorphic_has_many
     assert posts(:welcome).taggings.include?(taggings(:welcome_general))
   end

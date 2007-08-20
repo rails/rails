@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix #count on a has_many :through association so that it recognizes the :uniq option. Closes #8801 [lifofifo]
+
 * Don't clobber includes passed to has_many.count [danger]
 
 * Make sure has_many uses :include when counting [danger]
