@@ -1333,6 +1333,8 @@ module ActiveRecord
           end
 
           add_conditions!(sql, options[:conditions], scope)
+          sql << " GROUP BY #{options[:group]} " if options[:group]
+
           if options[:order]
             if is_distinct
               connection.add_order_by_for_association_limiting!(sql, options)
@@ -1340,7 +1342,9 @@ module ActiveRecord
               sql << "ORDER BY #{options[:order]}"
             end
           end
+
           add_limit!(sql, options, scope)
+
           return sanitize_sql(sql)
         end
 

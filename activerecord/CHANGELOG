@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that eager loading queries should respect the :group option as well [DHH]
+
 * Improve performance and functionality of the postgresql adapter.  Closes #8049 [roderickvd]
 
 	For more information see: http://dev.rubyonrails.org/ticket/8049
@@ -13,7 +15,6 @@
  - Change exception raised when users use find with :select then try to access a skipped column.  Plugins could override missing_attribute() to lazily load the columns.
  - Move method definition to the class, instead of the instance
  - Always generate the readers, writers and predicate methods.
-
 
 * Perform a deep #dup on query cache results so that modifying activerecord attributes does not modify the cached attributes.  [Rick]
 
