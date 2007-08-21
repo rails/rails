@@ -1,6 +1,6 @@
 *SVN*
 
-* Fixed that eager loading queries should respect the :group option as well [DHH]
+* Fixed that eager loading queries and with_scope should respect the :group option [DHH]
 
 * Improve performance and functionality of the postgresql adapter.  Closes #8049 [roderickvd]
 

@@ -1112,8 +1112,7 @@ module ActiveRecord #:nodoc:
           add_joins!(sql, options, scope)
           add_conditions!(sql, options[:conditions], scope)
 
-          sql << " GROUP BY #{options[:group]} " if options[:group]
-
+          add_group!(sql, options[:group], scope)
           add_order!(sql, options[:order], scope)
           add_limit!(sql, options, scope)
           add_lock!(sql, options, scope)
@@ -1147,6 +1146,17 @@ module ActiveRecord #:nodoc:
           else
             sql << " ORDER BY #{scoped_order}" if scoped_order
           end
+        end
+        
+        def add_group!(sql, group, scope = :auto)
+          scope = scope(:find) if :auto == scope
+          scoped_group = scope[:group] if scope
+
+          if group
+            sql << " GROUP BY #{group}"
+          elsif scoped_group
+            sql << " GROUP BY #{scoped_group}"
+          end          
         end
 
         # The optional scope argument is for the current :find scope.
@@ -1383,7 +1393,7 @@ module ActiveRecord #:nodoc:
           method_scoping.assert_valid_keys([ :find, :create ])
 
           if f = method_scoping[:find]
-            f.assert_valid_keys([ :conditions, :joins, :select, :include, :from, :offset, :limit, :order, :readonly, :lock ])
+            f.assert_valid_keys([ :conditions, :joins, :select, :include, :from, :offset, :limit, :order, :group, :readonly, :lock ])
             set_readonly_option! f
           end
 

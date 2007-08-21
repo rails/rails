@@ -1292,8 +1292,7 @@ module ActiveRecord
           add_conditions!(sql, options[:conditions], scope)
           add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
 
-          sql << "GROUP BY #{options[:group]} " if options[:group]
- 
+          add_group!(sql, options[:group], scope)
           add_order!(sql, options[:order], scope)
           add_limit!(sql, options, scope) if using_limitable_reflections?(join_dependency.reflections)
           add_lock!(sql, options, scope)
@@ -1333,13 +1332,13 @@ module ActiveRecord
           end
 
           add_conditions!(sql, options[:conditions], scope)
-          sql << " GROUP BY #{options[:group]} " if options[:group]
+          add_group!(sql, options[:group], scope)
 
           if options[:order]
             if is_distinct
               connection.add_order_by_for_association_limiting!(sql, options)
             else
-              sql << "ORDER BY #{options[:order]}"
+              add_order!(sql, options[:order], scope)
             end
           end
 
