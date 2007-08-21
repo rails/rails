@@ -294,7 +294,7 @@ module ActiveRecord
       # ORDER BY clause for the passed order option.
       # PostgreSQL overrides this due to its stricter standards compliance.
       def add_order_by_for_association_limiting!(sql, options)
-        sql << "ORDER BY #{options[:order]}"
+        sql << " ORDER BY #{options[:order]}"
       end
 
       protected

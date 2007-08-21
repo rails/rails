@@ -505,7 +505,7 @@ begin
           order.map! {|s| $1 if s =~ / (.*)/}
           order = order.zip((0...order.size).to_a).map { |s,i| "alias_#{i}__ #{s}" }.join(', ')
 
-          sql << "ORDER BY #{order}"
+          sql << " ORDER BY #{order}"
         end
 
         private
