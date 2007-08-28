@@ -490,13 +490,11 @@ module ActiveRecord
 
         # can't use validates_each here, because it cannot cope with nonexistent attributes,
         # while errors.add_on_empty can
-        attr_names.each do |attr_name|
-          send(validation_method(configuration[:on])) do |record|
-            unless (configuration[:if] && !evaluate_condition(configuration[:if], record)) || (configuration[:unless] && evaluate_condition(configuration[:unless], record))
-              record.errors.add_on_blank(attr_name,configuration[:message])
-            end
-          end
-        end
+	send(validation_method(configuration[:on])) do |record|
+	  unless (configuration[:if] && !evaluate_condition(configuration[:if], record)) || (configuration[:unless] && evaluate_condition(configuration[:unless], record))
+	    record.errors.add_on_blank(attr_names, configuration[:message])
+	  end
+	end
       end
 
       # Validates that the specified attribute matches the length restrictions supplied. Only one option can be used at a time:
