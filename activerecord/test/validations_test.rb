@@ -95,6 +95,12 @@ class ValidationsTest < Test::Unit::TestCase
     end
   end
 
+  def test_exception_on_create_bang_many
+    assert_raises(ActiveRecord::RecordInvalid) do
+      Reply.create!([ { "title" => "OK" }, { "title" => "Wrong Create" }])
+    end
+  end
+
   def test_scoped_create_without_attributes
     Reply.with_scope(:create => {}) do
       assert_raises(ActiveRecord::RecordInvalid) { Reply.create! }

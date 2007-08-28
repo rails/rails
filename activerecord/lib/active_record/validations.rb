@@ -850,7 +850,7 @@ module ActiveRecord
       # so an exception is raised if the record is invalid.
       def create!(attributes = nil)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr) }
+          attributes.collect { |attr| create!(attr) }
         else
           object = new(attributes)
           object.save!
