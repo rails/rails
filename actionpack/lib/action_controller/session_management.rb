@@ -69,7 +69,7 @@ module ActionController #:nodoc:
       # All session options described for ActionController::Base.process_cgi
       # are valid arguments.
       def session(*args)
-        options = Hash === args.last ? args.pop : {}
+        options = args.extract_options!
 
         options[:disabled] = true if !args.empty?
         options[:only] = [*options[:only]].map { |o| o.to_s } if options[:only]

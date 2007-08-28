@@ -366,7 +366,7 @@ module ActiveRecord
       #   not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
       #   method, proc or string should return or evaluate to a true or false value.      
       def validates_each(*attrs)
-        options = attrs.last.is_a?(Hash) ? attrs.pop.symbolize_keys : {}
+        options = attrs.extract_options!.symbolize_keys
         attrs   = attrs.flatten
 
         # Declare the validation.
@@ -409,7 +409,7 @@ module ActiveRecord
       #   method, proc or string should return or evaluate to a true or false value.      
       def validates_confirmation_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:confirmation], :on => :save }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration.update(attr_names.extract_options!)
 
         attr_accessor *(attr_names.map { |n| "#{n}_confirmation" })
 
@@ -442,7 +442,7 @@ module ActiveRecord
       #   method, proc or string should return or evaluate to a true or false value.      
       def validates_acceptance_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save, :allow_nil => true, :accept => "1" }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration.update(attr_names.extract_options!)
 
         attr_accessor *attr_names
 
@@ -486,7 +486,7 @@ module ActiveRecord
       # new.
       def validates_presence_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:blank], :on => :save }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration.update(attr_names.extract_options!)
 
         # can't use validates_each here, because it cannot cope with nonexistent attributes,
         # while errors.add_on_empty can
@@ -534,7 +534,7 @@ module ActiveRecord
           :too_short    => ActiveRecord::Errors.default_error_messages[:too_short],
           :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length]
         }.merge(DEFAULT_VALIDATION_OPTIONS)
-        options.update(attrs.pop.symbolize_keys) if attrs.last.is_a?(Hash)
+        options.update(attrs.extract_options!.symbolize_keys)
 
         # Ensure that one and only one range option is specified.
         range_options = ALL_RANGE_OPTIONS & options.keys
@@ -617,7 +617,7 @@ module ActiveRecord
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_uniqueness_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken], :case_sensitive => true }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration.update(attr_names.extract_options!)
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
           if value.nil? || (configuration[:case_sensitive] || !columns_hash[attr_name.to_s].text?)
@@ -668,7 +668,7 @@ module ActiveRecord
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_format_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save, :with => nil }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration.update(attr_names.extract_options!)
 
         raise(ArgumentError, "A regular expression must be supplied as the :with option of the configuration hash") unless configuration[:with].is_a?(Regexp)
 
@@ -696,7 +696,7 @@ module ActiveRecord
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_inclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:inclusion], :on => :save }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration.update(attr_names.extract_options!)
 
         enum = configuration[:in] || configuration[:within]
 
@@ -726,7 +726,7 @@ module ActiveRecord
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_exclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:exclusion], :on => :save }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration.update(attr_names.extract_options!)
 
         enum = configuration[:in] || configuration[:within]
 
@@ -769,7 +769,7 @@ module ActiveRecord
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_associated(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration.update(attr_names.extract_options!)
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           record.errors.add(attr_name, configuration[:message]) unless
@@ -805,7 +805,8 @@ module ActiveRecord
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_numericality_of(*attr_names)
         configuration = { :on => :save, :only_integer => false, :allow_nil => false }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration.update(attr_names.extract_options!)
+
 
         numericality_options = ALL_NUMERICALITY_CHECKS.keys & configuration.keys
 
