@@ -5,8 +5,8 @@ module ActiveRecord
         base.extend(ClassMethods)
       end
       
-      # This act provides the capabilities for sorting and reordering a number of objects in a list.
-      # The class that has this specified needs to have a "position" column defined as an integer on
+      # This +acts_as+ extension provides the capabilities for sorting and reordering a number of objects in a list.
+      # The class that has this specified needs to have a +position+ column defined as an integer on
       # the mapped database table.
       #
       # Todo list example:
@@ -25,9 +25,9 @@ module ActiveRecord
       module ClassMethods
         # Configuration options are:
         #
-        # * +column+ - specifies the column name to use for keeping the position integer (default: position)
-        # * +scope+ - restricts what is to be considered a list. Given a symbol, it'll attach "_id" 
-        #   (if that hasn't been already) and use that as the foreign key restriction. It's also possible 
+        # * +column+ - specifies the column name to use for keeping the position integer (default: +position+)
+        # * +scope+ - restricts what is to be considered a list. Given a symbol, it'll attach <tt>_id</tt> 
+        #   (if it hasn't already been added) and use that as the foreign key restriction. It's also possible 
         #   to give it an entire string that is interpolated if you need a tighter scope than just a foreign key.
         #   Example: <tt>acts_as_list :scope => 'todo_list_id = #{todo_list_id} AND completed = 0'</tt>
         def acts_as_list(options = {})
@@ -71,7 +71,7 @@ module ActiveRecord
         
       # All the methods available to a record that has had <tt>acts_as_list</tt> specified. Each method works
       # by assuming the object to be the item in the list, so <tt>chapter.move_lower</tt> would move that chapter
-      # lower in the list of all chapters. Likewise, <tt>chapter.first?</tt> would return true if that chapter is
+      # lower in the list of all chapters. Likewise, <tt>chapter.first?</tt> would return +true+ if that chapter is
       # the first in the list of all chapters.
       module InstanceMethods
         # Insert the item at the given position (defaults to the top position of 1).
@@ -136,13 +136,13 @@ module ActiveRecord
           update_attribute position_column, self.send(position_column).to_i - 1
         end
   
-        # Return true if this object is the first in the list.
+        # Return +true+ if this object is the first in the list.
         def first?
           return false unless in_list?
           self.send(position_column) == 1
         end
         
-        # Return true if this object is the last in the list.
+        # Return +true+ if this object is the last in the list.
         def last?
           return false unless in_list?
           self.send(position_column) == bottom_position_in_list

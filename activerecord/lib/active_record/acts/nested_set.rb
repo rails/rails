@@ -5,12 +5,12 @@ module ActiveRecord
         base.extend(ClassMethods)              
       end  
 
-      # This acts provides Nested Set functionality.  Nested Set is similiar to Tree, but with
+      # This +acts_as+ extension provides Nested Set functionality.  Nested Set is similiar to Tree, but with
       # the added feature that you can select the children and all of their descendents with
       # a single query.  A good use case for this is a threaded post system, where you want
       # to display every reply to a comment without multiple selects.
       #
-      # A google search for "Nested Set" should point you in the direction to explain the
+      # A Google search for "Nested Set" should point you to in the right direction to explain the
       # database theory.  I figured out a bunch of this from
       # http://threebit.net/tutorials/nestedset/tutorial1.html
       #
@@ -55,9 +55,9 @@ module ActiveRecord
       # So, to get all children of an entry, you
       #     SELECT * WHERE CHILD.LEFT IS BETWEEN PARENT.LEFT AND PARENT.RIGHT
       #
-      # To get the count, it's (LEFT - RIGHT + 1)/2, etc.
+      # To get the count, it's <tt>(LEFT - RIGHT + 1)/2</tt>, etc.
       #
-      # To get the direct parent, it falls back to using the PARENT_ID field.   
+      # To get the direct parent, it falls back to using the +PARENT_ID+ field.   
       #
       # There are instance methods for all of these.
       #
@@ -65,17 +65,17 @@ module ActiveRecord
       # keeping data integrity is a pain, and both adding and removing an entry
       # require a full table write.        
       #
-      # This sets up a before_destroy trigger to prune the tree correctly if one of its
+      # This sets up a +before_destroy+ callback to prune the tree correctly if one of its
       # elements gets deleted.
       #
       module ClassMethods                      
         # Configuration options are:
         #
-        # * +parent_column+ - specifies the column name to use for keeping the position integer (default: parent_id)
-        # * +left_column+ - column name for left boundry data, default "lft"
-        # * +right_column+ - column name for right boundry data, default "rgt"
-        # * +scope+ - restricts what is to be considered a list. Given a symbol, it'll attach "_id" 
-        #   (if that hasn't been already) and use that as the foreign key restriction. It's also possible 
+        # * +parent_column+ - specifies the column name to use for keeping the position integer (default: +parent_id+)
+        # * +left_column+ - column name for left boundry data, default +lft+
+        # * +right_column+ - column name for right boundry data, default +rgt+
+        # * +scope+ - restricts what is to be considered a list. Given a symbol, it'll attach <tt>_id</tt> 
+        #   (if it hasn't already been added) and use that as the foreign key restriction. It's also possible 
         #   to give it an entire string that is interpolated if you need a tighter scope than just a foreign key.
         #   Example: <tt>acts_as_list :scope => 'todo_list_id = #{todo_list_id} AND completed = 0'</tt>
         def acts_as_nested_set(options = {})
@@ -115,19 +115,19 @@ module ActiveRecord
       end
       
       module InstanceMethods
-        # Returns true is this is a root node.  
+        # Returns +true+ is this is a root node.  
         def root?
           parent_id = self[parent_column]
           (parent_id == 0 || parent_id.nil?) && (self[left_col_name] == 1) && (self[right_col_name] > self[left_col_name])
         end                                                                                             
                                     
-        # Returns true is this is a child node
+        # Returns +true+ is this is a child node
         def child?                          
           parent_id = self[parent_column]
           !(parent_id == 0 || parent_id.nil?) && (self[left_col_name] > 1) && (self[right_col_name] > self[left_col_name])
         end     
         
-        # Returns true if we have no idea what this is
+        # Returns +true+ if we have no idea what this is
         def unknown?
           !root? && !child?
         end
