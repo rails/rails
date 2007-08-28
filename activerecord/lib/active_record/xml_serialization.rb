@@ -27,7 +27,7 @@ module ActiveRecord #:nodoc:
     # :except options are the same as for the #attributes method.
     # The default is to dasherize all column names, to disable this,
     # set :dasherize to false.  To not have the column type included
-    # in the XML output, set :skip_types to false.
+    # in the XML output, set :skip_types to true.
     #
     # For instance:
     #
