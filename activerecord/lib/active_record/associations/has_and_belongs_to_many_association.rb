@@ -14,7 +14,7 @@ module ActiveRecord
       end
 
       def create(attributes = {})
-        # Can't use Base.create since the foreign key may be a protected attribute.
+        # Can't use Base.create because the foreign key may be a protected attribute.
         if attributes.is_a?(Array)
           attributes.collect { |attr| create(attr) }
         else
@@ -138,8 +138,8 @@ module ActiveRecord
         end
 
         # Join tables with additional columns on top of the two foreign keys must be considered ambigious unless a select
-        # clause has been explicitly defined. Otherwise you can get broken records back, if, say, the join column also has
-        # and id column, which will then overwrite the id column of the records coming back.
+        # clause has been explicitly defined. Otherwise you can get broken records back, if, for example, the join column also has
+        # an id column. This will then overwrite the id column of the records coming back.
         def finding_with_ambigious_select?(select_clause)
           !select_clause && @owner.connection.columns(@reflection.options[:join_table], "Join Table Columns").size != 2
         end

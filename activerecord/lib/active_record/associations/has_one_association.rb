@@ -76,7 +76,7 @@ module ActiveRecord
         end
 
         def new_record(replace_existing)
-          # make sure we load the target first, if we plan on replacing the existing
+          # Make sure we load the target first, if we plan on replacing the existing
           # instance. Otherwise, if the target has not previously been loaded
           # elsewhere, the instance we create will get orphaned.
           load_target if replace_existing

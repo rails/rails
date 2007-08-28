@@ -67,7 +67,7 @@ module ActiveRecord
 
       [:push, :concat].each { |method| alias_method method, :<< }
 
-      # Remove +records+ from this association.  Does not destroy +records+.
+      # Removes +records+ from this association.  Does not destroy +records+.
       def delete(*records)
         records = flatten_deeper(records)
         records.each { |associate| raise_on_type_mismatch(associate) }

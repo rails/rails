@@ -70,7 +70,7 @@ module ActiveRecord
     #  end
     #  
     # Now it's possible to access attributes from the database through the value objects instead. If you choose to name the
-    # composition the same as the attributes name, it will be the only way to access that attribute. That's the case with our
+    # composition the same as the attribute's name, it will be the only way to access that attribute. That's the case with our
     # +balance+ attribute. You interact with the value objects just like you would any other attribute, though:
     #
     #   customer.balance = Money.new(20)     # sets the Money value object and the attribute
@@ -92,19 +92,19 @@ module ActiveRecord
     #
     # == Writing value objects
     #
-    # Value objects are immutable and interchangeable objects that represent a given value, such as a Money object representing
-    # $5. Two Money objects both representing $5 should be equal (through methods such as == and <=> from Comparable if ranking
-    # makes sense). This is unlike entity objects where equality is determined by identity. An entity class such as Customer can
+    # Value objects are immutable and interchangeable objects that represent a given value, such as a +Money+ object representing
+    # $5. Two +Money+ objects both representing $5 should be equal (through methods such as == and <=> from +Comparable+ if ranking
+    # makes sense). This is unlike entity objects where equality is determined by identity. An entity class such as +Customer+ can
     # easily have two different objects that both have an address on Hyancintvej. Entity identity is determined by object or
-    # relational unique identifiers (such as primary keys). Normal ActiveRecord::Base classes are entity objects.
+    # relational unique identifiers (such as primary keys). Normal <tt>ActiveRecord::Base</tt> classes are entity objects.
     #
-    # It's also important to treat the value objects as immutable. Don't allow the Money object to have its amount changed after
-    # creation. Create a new money object with the new value instead. This is exemplified by the Money#exchanged_to method that
+    # It's also important to treat the value objects as immutable. Don't allow the +Money+ object to have its amount changed after
+    # creation. Create a new +Money+ object with the new value instead. This is exemplified by the <tt>Money#exchanged_to</tt> method that
     # returns a new value object instead of changing its own values. Active Record won't persist value objects that have been
-    # changed through other means than the writer method.
+    # changed through means other than the writer method.
     #
     # The immutable requirement is enforced by Active Record by freezing any object assigned as a value object. Attempting to 
-    # change it afterwards will result in a TypeError.
+    # change it afterwards will result in a <tt>TypeError</tt>.
     # 
     # Read more about value objects on http://c2.com/cgi/wiki?ValueObject and on the dangers of not keeping value objects
     # immutable on http://c2.com/cgi/wiki?ValueObjectsShouldBeImmutable
@@ -119,8 +119,8 @@ module ActiveRecord
       # * <tt>:mapping</tt> - specifies a number of mapping arrays (attribute, parameter) that bind an attribute name
       #   to a constructor parameter on the value class.
       # * <tt>:allow_nil</tt> - specifies that the aggregate object will not be instantiated when all mapped
-      #   attributes are nil.  Setting the aggregate class to nil has the effect of writing nil to all mapped attributes.
-      #   This defaults to false.
+      #   attributes are +nil+.  Setting the aggregate class to +nil+ has the effect of writing +nil+ to all mapped attributes.
+      #   This defaults to +false+.
       #
       # Option examples:
       #   composed_of :temperature, :mapping => %w(reading celsius)
