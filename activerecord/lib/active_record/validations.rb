@@ -334,7 +334,7 @@ module ActiveRecord
       def evaluate_condition(condition, record)
         case condition
           when Symbol: record.send(condition)
-          when String: eval(condition, binding)
+          when String: eval(condition, record.send(:binding))
           else
             if condition_block?(condition)
               condition.call(record)
