@@ -1234,7 +1234,7 @@ module ActionController
       def load_routes!
         if defined?(RAILS_ROOT) && defined?(::ActionController::Routing::Routes) && self == ::ActionController::Routing::Routes
           load File.join("#{RAILS_ROOT}/config/routes.rb")
-          @routes_rb_last_modified=File.stat("#{RAILS_ROOT}/config/routes.rb").mtime
+          @routes_last_modified=File.stat("#{RAILS_ROOT}/config/routes.rb").mtime
         else
           add_route ":controller/:action/:id"
         end
