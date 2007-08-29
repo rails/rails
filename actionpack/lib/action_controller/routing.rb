@@ -1238,7 +1238,7 @@ module ActionController
         else
           add_route ":controller/:action/:id"
         end
-      end     
+      end
   
       def add_route(path, options = {})
         route = builder.build(path, options)
