@@ -92,7 +92,7 @@ module ActionController #:nodoc:
     end
 
     def host
-      host_with_port[/^[^:]+/]
+      host_with_port.sub(/:\d+$/, '')
     end
 
     def port

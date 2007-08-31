@@ -1,5 +1,7 @@
 *SVN*
 
+* request.host works with IPv6 addresses.  #9458 [yuya]
+
 * Fix bug where action caching sets the content type to the ActionCachePath object.  Closes #9282 [mindforge]
 
 * Find layouts even if they're not in the first view_paths directory.  Closes #9258 [caio]
