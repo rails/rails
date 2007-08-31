@@ -96,7 +96,7 @@ module ActionController #:nodoc:
         use(k, false)
       end
     
-      # Marks the entire flash or a single flash entry to be discarded by the end of the current action
+      # Marks the entire flash or a single flash entry to be discarded by the end of the current action:
       #
       #     flash.discard              # discard the entire flash at the end of the current action
       #     flash.discard(:warning)    # discard only the "warning" entry at the end of the current action

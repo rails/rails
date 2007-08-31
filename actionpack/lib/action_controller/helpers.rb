@@ -19,16 +19,16 @@ module ActionController #:nodoc:
     end
 
     # The Rails framework provides a large number of helpers for working with +assets+, +dates+, +forms+, 
-    # +numbers+ and <tt>Active Record objects</tt>, to name a few.  These helpers are available to all templates
+    # +numbers+ and +ActiveRecord+ objects, to name a few. These helpers are available to all templates
     # by default.
     #
     # In addition to using the standard template helpers provided in the Rails framework, creating custom helpers to
     # extract complicated logic or reusable functionality is strongly encouraged.  By default, the controller will 
     # include a helper whose name matches that of the controller, e.g., <tt>MyController</tt> will automatically
-    # include <tt>MyHelper</tt>.  
+    # include <tt>MyHelper</tt>.
     # 
     # Additional helpers can be specified using the +helper+ class method in <tt>ActionController::Base</tt> or any
-    # controller which inherits from it.  
+    # controller which inherits from it.
     #
     # ==== Examples
     # The +to_s+ method from the +Time+ class can be wrapped in a helper method to display a custom message if 
@@ -88,7 +88,7 @@ module ActionController #:nodoc:
       #   helper FooHelper # => includes FooHelper
       #
       # When the argument is the symbol <tt>:all</tt>, the controller will includes all helpers from 
-      # <tt>app/views/helpers/**/*.rb</tt> under RAILS_ROOT
+      # <tt>app/views/helpers/**/*.rb</tt> under +RAILS_ROOT+.
       #   helper :all
       #
       # Additionally, the +helper+ class method can receive and evaluate a block, making the methods defined available 
@@ -102,7 +102,7 @@ module ActionController #:nodoc:
       #     end
       #   end
       # 
-      # Finally, all the above styles can be mixed together, and the helper method can be invokved with a mix of
+      # Finally, all the above styles can be mixed together, and the +helper+ method can be invokved with a mix of
       # +symbols+, +strings+, +modules+ and blocks.
       #   helper(:three, BlindHelper) { def mice() 'mice' end }
       #
@@ -139,14 +139,14 @@ module ActionController #:nodoc:
         master_helper_module.module_eval(&block) if block_given?
       end
 
-      # Declare a controller method as a helper.  For example,
+      # Declare a controller method as a helper. For example, the following
+      # makes the +current_user+ controller method available to the view:
       #   class ApplicationController < ActionController::Base
       #     helper_method :current_user
       #     def current_user
       #       @current_user ||= User.find(session[:user])
       #     end
       #   end
-      # makes the +current_user+ controller method available in the view.
       def helper_method(*methods)
         methods.flatten.each do |method|
           master_helper_module.module_eval <<-end_eval
@@ -157,11 +157,11 @@ module ActionController #:nodoc:
         end
       end
 
-      # Declare a controller attribute as a helper.  For example,
+      # Declares helper accessors for controller attributes. For example, the
+      # following adds new +name+ and <tt>name=</tt> instance methods to a
+      # controller and makes them available to the view:
       #   helper_attr :name
       #   attr_accessor :name
-      # makes the name and name= controller methods available in the view.
-      # The is a convenience wrapper for helper_method.
       def helper_attr(*attrs)
         attrs.flatten.each { |attr| helper_method(attr, "#{attr}=") }
       end

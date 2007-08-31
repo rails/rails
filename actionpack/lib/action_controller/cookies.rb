@@ -44,8 +44,8 @@ module ActionController #:nodoc:
       update(@cookies)
     end
 
-    # Returns the value of the cookie by +name+ -- or nil if no such cookie exists. You set new cookies using either the cookie method
-    # or cookies[]= (for simple name/value cookies without options).
+    # Returns the value of the cookie by +name+ -- or nil if no such cookie exists. You set new cookies using cookies[]=
+    # (for simple name/value cookies without options).
     def [](name)
       @cookies[name.to_s].value.first if @cookies[name.to_s] && @cookies[name.to_s].respond_to?(:value)
     end

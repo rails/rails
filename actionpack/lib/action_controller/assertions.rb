@@ -39,7 +39,7 @@ module ActionController #:nodoc:
   #
   # == Testing named routes
   #
-  # If you're using named routes, they can be easily tested using the original named routes methods straight in the test case.
+  # If you're using named routes, they can be easily tested using the original named routes' methods straight in the test case.
   # Example:
   #
   #  assert_redirected_to page_url(:title => 'foo')

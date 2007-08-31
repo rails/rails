@@ -51,7 +51,7 @@ module ActionController
       # A reference to the response instance used by the last request.
       attr_reader :response
 
-      # Create an initialize a new Session instance.
+      # Create and initialize a new +Session+ instance.
       def initialize
         reset!
       end
