@@ -177,16 +177,10 @@ module ActiveRecord
     )
 
     def self.included(base) #:nodoc:
-      base.extend(ClassMethods)
-      base.class_eval do
-        class << self
-          include Observable
-          alias_method_chain :instantiate, :callbacks
-        end
+      base.extend Observable
 
-        [:initialize, :create_or_update, :valid?, :create, :update, :destroy].each do |method|
-          alias_method_chain method, :callbacks
-        end
+      [:create_or_update, :valid?, :create, :update, :destroy].each do |method|
+        base.send :alias_method_chain, method, :callbacks
       end
 
       CALLBACKS.each do |method|
@@ -199,35 +193,11 @@ module ActiveRecord
       end
     end
 
-    module ClassMethods #:nodoc:
-      def instantiate_with_callbacks(record)
-        object = instantiate_without_callbacks(record)
-
-        if object.respond_to_without_attributes?(:after_find)
-          object.send(:callback, :after_find)
-        end
-
-        if object.respond_to_without_attributes?(:after_initialize)
-          object.send(:callback, :after_initialize)
-        end
-
-        object
-      end
-    end
-
     # Is called when the object was instantiated by one of the finders, like <tt>Base.find</tt>.
     #def after_find() end
 
     # Is called after the object has been instantiated by a call to <tt>Base.new</tt>.
     #def after_initialize() end
-
-    def initialize_with_callbacks(attributes = nil) #:nodoc:
-      initialize_without_callbacks(attributes)
-      result = yield self if block_given?
-      callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
-      result
-    end
-    private :initialize_with_callbacks
 
     # Is called _before_ <tt>Base.save</tt> (regardless of whether it's a +create+ or +update+ save).
     def before_save() end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Performance: absorb instantiate and initialize_with_callbacks into the Base methods. [Jeremy Kemper]
+
 * Fixed that eager loading queries and with_scope should respect the :group option [DHH]
 
 * Improve performance and functionality of the postgresql adapter.  Closes #8049 [roderickvd]

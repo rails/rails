@@ -1095,6 +1095,15 @@ module ActiveRecord #:nodoc:
 
           object.instance_variable_set("@attributes", record)
           object.instance_variable_set("@attributes_cache", Hash.new)
+
+          if object.respond_to_without_attributes?(:after_find)
+            object.send(:callback, :after_find)
+          end
+
+          if object.respond_to_without_attributes?(:after_initialize)
+            object.send(:callback, :after_initialize)
+          end
+
           object
         end
 
@@ -1649,7 +1658,9 @@ module ActiveRecord #:nodoc:
         ensure_proper_type
         self.attributes = attributes unless attributes.nil?
         self.class.send(:scope, :create).each { |att,value| self.send("#{att}=", value) } if self.class.send(:scoped?, :create)
-        yield self if block_given?
+        result = yield self if block_given?
+        callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
+        result
       end
 
       # A model instance's primary key is always available as model.id
