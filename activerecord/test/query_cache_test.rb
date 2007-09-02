@@ -16,7 +16,13 @@ class QueryCacheTest < Test::Unit::TestCase
       assert_queries(1) {  Task.find(1); Task.find(1) }
     end
   end
-  
+
+  def test_count_queries_with_cache
+    Task.cache do
+      assert_queries(1) {  Task.count; Task.count }
+    end
+  end
+
   def test_query_cache_returned
     assert_not_equal ActiveRecord::QueryCache, Task.connection.class
     Task.cache do

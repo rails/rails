@@ -59,12 +59,13 @@ module ActiveRecord
           @query_cache[sql] = yield
         end
 
-        if result
-          # perform a deep #dup in case result is an array
-          result = result.collect { |row| row.dup } if result.is_a?(Array)
-          result.dup
+        case result
+        when Array
+          result.collect { |row| row.dup }
+        when Numeric, NilClass, FalseClass
+          result
         else
-          nil
+          result.dup
         end
       end
     
