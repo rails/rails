@@ -50,6 +50,10 @@ module ActionView
           "'#{js_options[:queue]}'"
         end if js_options[:queue]
         
+        [:endcolor, :direction, :startcolor, :scaleMode, :restorecolor].each do |option|
+          js_options[option] = "'#{js_options[option]}'" if js_options[option]
+        end
+
         if TOGGLE_EFFECTS.include? name.to_sym
           "Effect.toggle(#{element},'#{name.to_s.gsub(/^toggle_/,'')}',#{options_for_javascript(js_options)});"
         else

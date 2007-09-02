@@ -28,6 +28,8 @@ class ScriptaculousHelperTest < Test::Unit::TestCase
     assert_equal "new Effect.Fade(\"fademe\",{duration:4.0});", visual_effect(:fade, "fademe", :duration => 4.0)
     assert_equal "new Effect.Shake(element,{});", visual_effect(:shake)
     assert_equal "new Effect.DropOut(\"dropme\",{queue:'end'});", visual_effect(:drop_out, 'dropme', :queue => :end)
+    assert_equal "new Effect.Highlight(\"status\",{endcolor:'#EEEEEE'});", visual_effect(:highlight, 'status', :endcolor => '#EEEEEE')
+    assert_equal "new Effect.Highlight(\"status\",{restorecolor:'#500000', startcolor:'#FEFEFE'});", visual_effect(:highlight, 'status', :restorecolor => '#500000', :startcolor => '#FEFEFE')
 
     # chop the queue params into a comma separated list
     beginning, ending = 'new Effect.DropOut("dropme",{queue:{', '}});'
