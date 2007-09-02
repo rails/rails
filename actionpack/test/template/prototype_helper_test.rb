@@ -11,6 +11,16 @@ class Author
   end
 end
 
+class Article
+  attr_reader :id
+  attr_reader :author_id
+  def save; @id = 1; @author_id = 1 end
+  def new_record?; @id.nil? end
+  def name
+    @id.nil? ? 'new article' : "article ##{@id}"
+  end
+end
+
 class Author::Nested < Author; end
 
 
@@ -30,6 +40,7 @@ module BaseTest
   include ActionView::Helpers::FormHelper
   include ActionView::Helpers::CaptureHelper
   include ActionView::Helpers::RecordIdentificationHelper
+  include ActionController::PolymorphicRoutes
   
   def setup
     @template = nil
@@ -59,7 +70,8 @@ class PrototypeHelperTest < Test::Unit::TestCase
   include BaseTest
   
   def setup
-    @record = Author.new
+    @record = @author = Author.new
+    @article = Article.new
     super
   end
 
@@ -114,7 +126,7 @@ class PrototypeHelperTest < Test::Unit::TestCase
     _erbout = ''
     remote_form_for(@record, {:html => { :id => 'create-author' }}) {}
     
-    expected = %(<form action='#{authors_url}' onsubmit="new Ajax.Request('#{authors_url}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='new_author' id='create-author' method='post'></form>)
+    expected = %(<form action='#{authors_path}' onsubmit="new Ajax.Request('#{authors_path}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='new_author' id='create-author' method='post'></form>)
     assert_dom_equal expected, _erbout
   end
 
@@ -122,7 +134,7 @@ class PrototypeHelperTest < Test::Unit::TestCase
     _erbout = ''
     remote_form_for(@record) {}
     
-    expected = %(<form action='#{authors_url}' onsubmit="new Ajax.Request('#{authors_url}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='new_author' method='post' id='new_author'></form>)
+    expected = %(<form action='#{authors_path}' onsubmit="new Ajax.Request('#{authors_path}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='new_author' method='post' id='new_author'></form>)
     assert_dom_equal expected, _erbout
   end
 
@@ -131,7 +143,25 @@ class PrototypeHelperTest < Test::Unit::TestCase
     _erbout = ''
     remote_form_for(@record) {}
     
-    expected = %(<form action='#{author_url(@record)}' id='edit_author_1' method='post' onsubmit="new Ajax.Request('#{author_url(@record)}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='edit_author'><div style='margin:0;padding:0'><input name='_method' type='hidden' value='put' /></div></form>)
+    expected = %(<form action='#{author_path(@record)}' id='edit_author_1' method='post' onsubmit="new Ajax.Request('#{author_path(@record)}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='edit_author'><div style='margin:0;padding:0'><input name='_method' type='hidden' value='put' /></div></form>)
+    assert_dom_equal expected, _erbout
+  end
+
+  def test_remote_form_for_with_new_object_in_list
+    _erbout = ''
+    remote_form_for([@author, @article]) {}
+    
+    expected = %(<form action='#{author_articles_path(@author)}' onsubmit="new Ajax.Request('#{author_articles_path(@author)}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='new_article' method='post' id='new_article'></form>)
+    assert_dom_equal expected, _erbout
+  end
+  
+  def test_remote_form_for_with_existing_object_in_list
+    @author.save
+    @article.save
+    _erbout = ''
+    remote_form_for([@author, @article]) {}
+    
+    expected = %(<form action='#{author_article_path(@author, @article)}' id='edit_article_1' method='post' onsubmit="new Ajax.Request('#{author_article_path(@author, @article)}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='edit_article'><div style='margin:0;padding:0'><input name='_method' type='hidden' value='put' /></div></form>)
     assert_dom_equal expected, _erbout
   end
 
@@ -233,20 +263,20 @@ class PrototypeHelperTest < Test::Unit::TestCase
 
 
   protected
-    def author_url(record)
+    def author_path(record)
       "/authors/#{record.id}"
     end
     
-    def authors_url
+    def authors_path
       "/authors"
     end
-  
-    def polymorphic_path(record)
-      if record.new_record?
-        "/authors"
-      else
-        "/authors/#{record.id}"
-      end
+    
+    def author_articles_path(author)
+      "/authors/#{author.id}/articles"
+    end
+    
+    def author_article_path(author, article)
+      "/authors/#{author.id}/articles/#{article.id}"
     end
 end
 

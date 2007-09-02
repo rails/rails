@@ -180,16 +180,54 @@ module ActionView
         form_tag(options[:html].delete(:action) || url_for(options[:url]), options[:html], &block)
       end
 
-      # Works like form_remote_tag, but uses form_for semantics.
-      def remote_form_for(record_or_name, *args, &proc)
+      # Creates a form that will submit using XMLHttpRequest in the background 
+      # instead of the regular reloading POST arrangement and a scope around a 
+      # specific resource that is used as a base for questioning about
+      # values for the fields.  
+      #
+      # === Resource 
+      #
+      # Example:
+      #   <% remote_form_for(@post) do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # This will expand to be the same as:
+      #
+      #   <% remote_form_for :post, @post, :url => post_path(@post), :html => { :method => :put, :class => "edit_post", :id => "edit_post_45" } do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # === Nested Resource 
+      #
+      # Example:
+      #   <% remote_form_for([@post, @comment]) do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # This will expand to be the same as:
+      #
+      #   <% remote_form_for :comment, @comment, :url => post_comment_path(@post, @comment), :html => { :method => :put, :class => "edit_comment", :id => "edit_comment_45" } do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # If you don't need to attach a form to a resource, then check out form_remote_tag.
+      #
+      # See FormHelper#form_for for additional semantics.
+      def remote_form_for(record_or_name_or_array, *args, &proc)
         options = args.extract_options!
 
-        case record_or_name
+        case record_or_name_or_array
         when String, Symbol
-          object_name = record_or_name
+          object_name = record_or_name_or_array
+        when Array
+          object = record_or_name_or_array.last
+          object_name = ActionController::RecordIdentifier.singular_class_name(object)
+          apply_form_for_options!(record_or_name_or_array, options)
+          args.unshift object
         else
-          object      = record_or_name
-          object_name = ActionController::RecordIdentifier.singular_class_name(record_or_name)
+          object      = record_or_name_or_array
+          object_name = ActionController::RecordIdentifier.singular_class_name(record_or_name_or_array)
           apply_form_for_options!(object, options)
           args.unshift object
         end
