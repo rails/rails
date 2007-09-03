@@ -14,15 +14,15 @@ class CallerController < ActionController::Base
   end
 
   def calling_from_template
-    render_template "Ring, ring: <%= render_component(:controller => 'callee', :action => 'being_called') %>"
+    render :inline => "Ring, ring: <%= render_component(:controller => 'callee', :action => 'being_called') %>"
   end
 
   def internal_caller
-    render_template "Are you there? <%= render_component(:action => 'internal_callee') %>"
+    render :inline => "Are you there? <%= render_component(:action => 'internal_callee') %>"
   end
 
   def internal_callee
-    render_text "Yes, ma'am"
+    render :text => "Yes, ma'am"
   end
 
   def set_flash
@@ -38,7 +38,7 @@ class CallerController < ActionController::Base
   end
 
   def calling_redirected_as_string
-    render_template "<%= render_component(:controller => 'callee', :action => 'redirected') %>"
+    render :inline => "<%= render_component(:controller => 'callee', :action => 'redirected') %>"
   end
 
   def rescue_action(e) raise end
@@ -46,11 +46,11 @@ end
 
 class CalleeController < ActionController::Base
   def being_called
-    render_text "#{params[:name] || "Lady"} of the House, speaking"
+    render :text => "#{params[:name] || "Lady"} of the House, speaking"
   end
 
   def blowing_up
-    render_text "It's game over, man, just game over, man!", "500 Internal Server Error"
+    render :text => "It's game over, man, just game over, man!", :status => 500
   end
 
   def set_flash

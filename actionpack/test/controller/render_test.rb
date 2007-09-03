@@ -16,32 +16,32 @@ class TestController < ActionController::Base
   end
 
   def render_hello_world
-    render "test/hello_world"
+    render :template => "test/hello_world"
   end
 
   def render_hello_world_from_variable
     @person = "david"
-    render_text "hello #{@person}"
+    render :text => "hello #{@person}"
   end
 
   def render_action_hello_world
-    render_action "hello_world"
+    render :action => "hello_world"
   end
 
   def render_action_hello_world_with_symbol
-    render_action :hello_world
+    render :action => :hello_world
   end
 
   def render_text_hello_world
-    render_text "hello world"
+    render :text => "hello world"
   end
 
   def render_json_hello_world
-    render_json({:hello => 'world'}.to_json)
+    render :json => {:hello => 'world'}.to_json
   end
 
   def render_json_hello_world_with_callback
-    render_json({:hello => 'world'}.to_json, 'alert')
+    render :json => {:hello => 'world'}.to_json, :callback => 'alert'
   end
 
   def render_symbol_json
@@ -49,21 +49,20 @@ class TestController < ActionController::Base
   end
 
   def render_custom_code
-    render_text "hello world", "404 Moved"
-  end
-
-  def render_text_appendix
-    render_text "hello world"
-    render_text ", goodbye!", "404 Not Found", true
+    render :text => "hello world", :status => 404
   end
 
   def render_nothing_with_appendix
-    render_text "appended", nil, true
+    render :text => "appended"
+  end
+  
+  def render_invalid_args
+    render("test/hello")
   end
 
   def render_xml_hello
     @name = "David"
-    render "test/hello"
+    render :template => "test/hello"
   end
 
   def heading
@@ -75,34 +74,34 @@ class TestController < ActionController::Base
   end
 
   def layout_test
-    render_action "hello_world"
+    render :action => "hello_world"
   end
 
   def builder_layout_test
-    render_action "hello"
+    render :action => "hello"
   end
 
   def builder_partial_test
-    render_action "hello_world_container"
+    render :action => "hello_world_container"
   end
 
   def partials_list
     @test_unchanged = 'hello'
     @customers = [ Customer.new("david"), Customer.new("mary") ]
-    render_action "list"
+    render :action => "list"
   end
 
   def partial_only
-    render_partial
+    render :partial => true
   end
 
   def hello_in_a_string
     @customers = [ Customer.new("david"), Customer.new("mary") ]
-    render_text "How's there? #{render_to_string("test/list")}"
+    render :text => "How's there? " + render_to_string(:template => "test/list")
   end
 
   def accessing_params_in_template
-    render_template "Hello: <%= params[:name] %>"
+    render :inline => "Hello: <%= params[:name] %>"
   end
 
   def accessing_local_assigns_in_inline_template
@@ -184,7 +183,7 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_do_with_render
-    assert_deprecated_render { get :render_hello_world }
+    get :render_hello_world
     assert_template "test/hello_world"
   end
 
@@ -229,12 +228,7 @@ class RenderTest < Test::Unit::TestCase
   def test_do_with_render_custom_code
     get :render_custom_code
     assert_response 404
-  end
-
-  def test_do_with_render_text_appendix
-    get :render_text_appendix
-    assert_response 404
-    assert_equal 'hello world, goodbye!', @response.body
+    assert_equal 'hello world', @response.body
   end
 
   def test_do_with_render_nothing_with_appendix
@@ -242,7 +236,11 @@ class RenderTest < Test::Unit::TestCase
     assert_response 200
     assert_equal 'appended', @response.body
   end
-
+  
+  def test_attempt_to_render_with_invalid_arguments
+    assert_raises(ActionController::RenderError) { get :render_invalid_args }
+  end
+  
   def test_attempt_to_access_object_method
     assert_raises(ActionController::UnknownAction, "No action responded to [clone]") { get :clone }
   end
@@ -252,7 +250,7 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_render_xml
-    assert_deprecated_render { get :render_xml_hello }
+    get :render_xml_hello
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
   end
 
@@ -416,10 +414,7 @@ class RenderTest < Test::Unit::TestCase
   end
 
   protected
-    def assert_deprecated_render(&block)
-      assert_deprecated(/render/, &block)
-    end
-
+  
     def etag_for(text)
       %("#{Digest::MD5.hexdigest(text)}")
     end

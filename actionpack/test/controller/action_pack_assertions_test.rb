@@ -7,10 +7,10 @@ class ActionPackAssertionsController < ActionController::Base
   def nothing() head :ok end
 
   # a standard template
-  def hello_world() render "test/hello_world"; end
+  def hello_world() render :template => "test/hello_world"; end
 
   # a standard template
-  def hello_xml_world() render "test/hello_xml_world"; end
+  def hello_xml_world() render :template => "test/hello_xml_world"; end
 
   # a redirect to an internal location
   def redirect_internal() redirect_to "/nothing"; end
@@ -38,13 +38,13 @@ class ActionPackAssertionsController < ActionController::Base
   # putting stuff in the flash
   def flash_me
     flash['hello'] = 'my name is inigo montoya...'
-    render_text "Inconceivable!"
+    render :text => "Inconceivable!"
   end
 
   # we have a flash, but nothing is in it
   def flash_me_naked
     flash.clear
-    render_text "wow!"
+    render :text => "wow!"
   end
 
   # assign some template instance variables
@@ -54,11 +54,11 @@ class ActionPackAssertionsController < ActionController::Base
   end
 
   def render_based_on_parameters
-    render_text "Mr. #{params[:name]}"
+    render :text => "Mr. #{params[:name]}"
   end
 
   def render_url
-    render_text "<div>#{url_for(:action => 'flash_me', :only_path => true)}</div>"
+    render :text => "<div>#{url_for(:action => 'flash_me', :only_path => true)}</div>"
   end
 
   def render_text_with_custom_content_type
@@ -68,19 +68,19 @@ class ActionPackAssertionsController < ActionController::Base
   # puts something in the session
   def session_stuffing
     session['xmas'] = 'turkey'
-    render_text "ho ho ho"
+    render :text => "ho ho ho"
   end
 
   # raises exception on get requests
   def raise_on_get
     raise "get" if request.get?
-    render_text "request method: #{request.env['REQUEST_METHOD']}"
+    render :text => "request method: #{request.env['REQUEST_METHOD']}"
   end
 
   # raises exception on post requests
   def raise_on_post
     raise "post" if request.post?
-    render_text "request method: #{request.env['REQUEST_METHOD']}"
+    render :text => "request method: #{request.env['REQUEST_METHOD']}"
   end
 
   def get_valid_record
@@ -310,7 +310,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     process :nothing
     assert !@response.rendered_with_file?
 
-    assert_deprecated(/render/) { process :hello_world }
+    process :hello_world
     assert @response.rendered_with_file?
     assert 'hello_world', @response.rendered_file
   end
@@ -461,13 +461,13 @@ class ActionPackHeaderTest < Test::Unit::TestCase
   end
 
   def test_rendering_xml_sets_content_type
-    assert_deprecated(/render/) { process :hello_xml_world }
+    process :hello_xml_world
     assert_equal('application/xml; charset=utf-8', @response.headers['type'])
   end
 
   def test_rendering_xml_respects_content_type
     @response.headers['type'] = 'application/pdf'
-    assert_deprecated(/render/) { process :hello_xml_world }
+    process :hello_xml_world
     assert_equal('application/pdf; charset=utf-8', @response.headers['type'])
   end
 

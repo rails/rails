@@ -2,9 +2,6 @@ require File.dirname(__FILE__) + '/../../abstract_unit'
 
 class DeprecatedBaseMethodsTest < Test::Unit::TestCase
   class Target < ActionController::Base
-    def deprecated_render_parameters
-      render "fun/games/hello_world"
-    end
     
     def home_url(greeting)
       "http://example.com/#{greeting}"
@@ -23,14 +20,6 @@ class DeprecatedBaseMethodsTest < Test::Unit::TestCase
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
     @controller = Target.new
-  end
-
-  def test_deprecated_render_parameters
-    assert_deprecated("render('fun/games/hello_world')") do
-      get :deprecated_render_parameters
-    end
-
-    assert_equal "Living in a nested world", @response.body
   end
 
   def test_log_error_silences_deprecation_warnings

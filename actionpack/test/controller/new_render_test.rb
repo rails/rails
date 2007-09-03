@@ -152,7 +152,15 @@ class NewRenderTestController < ActionController::Base
   def partial_with_hash_object
     render :partial => "hash_object", :object => {:first_name => "Sam"}
   end
-
+  
+  def partial_hash_collection
+    render :partial => "hash_object", :collection => [ {:first_name => "Pratik"}, {:first_name => "Amy"} ]
+  end
+  
+  def partial_hash_collection_with_locals
+    render :partial => "hash_greeting", :collection => [ {:first_name => "Pratik"}, {:first_name => "Amy"} ], :locals => { :greeting => "Hola" }
+  end
+  
   def partial_with_implicit_local_assignment
     @customer = Customer.new("Marcel")
     render :partial => "customer"
@@ -164,7 +172,7 @@ class NewRenderTestController < ActionController::Base
   
   def hello_in_a_string
     @customers = [ Customer.new("david"), Customer.new("mary") ]
-    render :text =>  "How's there? #{render_to_string("test/list")}"
+    render :text =>  "How's there? " << render_to_string(:template => "test/list")
   end
   
   def render_to_string_with_assigns
@@ -203,7 +211,7 @@ class NewRenderTestController < ActionController::Base
   end
 
   def render_with_explicit_template
-    render "test/hello_world"
+    render :template => "test/hello_world"
   end
 
   def double_render
@@ -622,7 +630,7 @@ EOS
   end
 
   def test_render_with_explicit_template
-    assert_deprecated(/render/) { get :render_with_explicit_template }
+    get :render_with_explicit_template
     assert_response :success
   end
 
@@ -682,6 +690,16 @@ EOS
   def test_partial_with_hash_object
     get :partial_with_hash_object
     assert_equal "Sam", @response.body
+  end
+  
+  def test_hash_partial_collection
+    get :partial_hash_collection
+    assert_equal "PratikAmy", @response.body
+  end
+  
+  def test_partial_hash_collection_with_locals
+    get :partial_hash_collection_with_locals
+    assert_equal "Hola: PratikHola: Amy", @response.body
   end
 
   def test_partial_with_implicit_local_assignment

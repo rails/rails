@@ -33,7 +33,7 @@ class CookieTest < Test::Unit::TestCase
 
     def delete_cookie_with_path
       cookies.delete("user_name", :path => '/beaten')
-      render_text "hello world"
+      render :text => "hello world"
     end
 
     def rescue_action(e) 

@@ -103,13 +103,11 @@ module ActionView
   # As you can see, the :locals hash is shared between both the partial and its layout.
   module Partials
     private
-      # Deprecated, use render :partial
-      def render_partial(partial_path, local_assigns = nil, deprecated_local_assigns = nil) #:nodoc:
+      def render_partial(partial_path, object_assigns = nil, local_assigns = nil) #:nodoc:
         case partial_path
         when String, Symbol, NilClass
           path, partial_name = partial_pieces(partial_path)
-          object = extracting_object(partial_name, local_assigns, deprecated_local_assigns)
-          local_assigns = extract_local_assigns(local_assigns, deprecated_local_assigns)
+          object = extracting_object(partial_name, object_assigns)
           local_assigns = local_assigns ? local_assigns.clone : {}
           add_counter_to_local_assigns!(partial_name, local_assigns)
           add_object_to_local_assigns!(partial_name, local_assigns, object)
@@ -125,18 +123,17 @@ module ActionView
           if partial_path.any?
             path       = ActionController::RecordIdentifier.partial_path(partial_path.first)
             collection = partial_path
-            render_partial_collection(path, collection, nil, local_assigns.value)
+            render_partial_collection(path, collection, nil, object_assigns.value)
           else
             ""
           end
         else
           render_partial(
             ActionController::RecordIdentifier.partial_path(partial_path),
-            local_assigns, deprecated_local_assigns)
+            object_assigns, local_assigns)
         end
       end
 
-      # Deprecated, use render :partial, :collection
       def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = nil) #:nodoc:
         collection_of_partials = Array.new
         counter_name = partial_counter_name(partial_name)
@@ -174,18 +171,13 @@ module ActionView
         partial_name.split('/').last.split('.').first.intern
       end
 
-      def extracting_object(partial_name, local_assigns, deprecated_local_assigns)
+      def extracting_object(partial_name, object_assigns)
         variable_name = partial_variable_name(partial_name)
-        if local_assigns.is_a?(Hash) || local_assigns.nil?
+        if object_assigns.nil?
           controller.instance_variable_get("@#{variable_name}")
         else
-          # deprecated form where object could be passed in as second parameter
-          local_assigns
+          object_assigns
         end
-      end
-
-      def extract_local_assigns(local_assigns, deprecated_local_assigns)
-        local_assigns.is_a?(Hash) ? local_assigns : deprecated_local_assigns
       end
 
       def add_counter_to_local_assigns!(partial_name, local_assigns)

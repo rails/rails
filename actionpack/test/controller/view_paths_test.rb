@@ -20,7 +20,7 @@ class ViewLoadPathsTest < Test::Unit::TestCase
   
   class Test::SubController < ActionController::Base
     layout 'test/sub'
-    def hello_world; render 'test/hello_world'; end
+    def hello_world; render(:template => 'test/hello_world'); end
   end
   
   def setup

@@ -125,7 +125,7 @@ module ActionController #:nodoc:
         @template.instance_variable_set("@contents", @template.render_file(template_path_for_local_rescue(exception), false))
 
         response.content_type = Mime::HTML
-        render_file(rescues_path("layout"), response_code_for_rescue(exception))
+        render_for_file(rescues_path("layout"), response_code_for_rescue(exception))
       end
 
     private

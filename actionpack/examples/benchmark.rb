@@ -7,7 +7,7 @@ Person = Struct.new("Person", :name, :address, :age)
 
 class BenchmarkController < ActionController::Base
   def message
-    render_text "hello world"
+    render :text => "hello world"
   end
 
   def list

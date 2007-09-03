@@ -234,7 +234,7 @@ class FilterTest < Test::Unit::TestCase
     before_filter(AuditFilter)
 
     def show
-      render_text "hello"
+      render :text => "hello"
     end
   end
 
@@ -271,11 +271,11 @@ class FilterTest < Test::Unit::TestCase
     before_filter :second, :only => :foo
 
     def foo
-      render_text 'foo'
+      render :text => 'foo'
     end
 
     def bar
-      render_text 'bar'
+      render :text => 'bar'
     end
 
     protected
