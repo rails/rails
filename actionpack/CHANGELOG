@@ -1,5 +1,7 @@
 *SVN*
 
+* Make render :partial work with a :collection of Hashes, previously this wasn't possible due to backwards compatibility restrictions.  [lifofifo]
+
 * request.host works with IPv6 addresses.  #9458 [yuya]
 
 * Fix bug where action caching sets the content type to the ActionCachePath object.  Closes #9282 [mindforge]
