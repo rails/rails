@@ -6,7 +6,6 @@ require 'active_record/associations/has_one_association'
 require 'active_record/associations/has_many_association'
 require 'active_record/associations/has_many_through_association'
 require 'active_record/associations/has_and_belongs_to_many_association'
-require 'active_record/deprecated_associations'
 
 module ActiveRecord
   class HasManyThroughAssociationNotFoundError < ActiveRecordError #:nodoc:
@@ -625,13 +624,7 @@ module ActiveRecord
       #   alongside this object by calling their destroy method.  If set to <tt>:delete_all</tt> all associated
       #   objects are deleted *without* calling their destroy method.  If set to <tt>:nullify</tt> all associated
       #   objects' foreign keys are set to +NULL+ *without* calling their save callbacks.
-      #   NOTE: <tt>:dependent => true</tt> is deprecated and has been replaced with <tt>:dependent => :destroy</tt>. 
       #   May not be set if <tt>:exclusively_dependent</tt> is also set.
-      # * <tt>:exclusively_dependent</tt>   - Deprecated; equivalent to <tt>:dependent => :delete_all</tt>. If set to +true+ all
-      #   the associated objects are deleted in one SQL statement without having their
-      #   +before_destroy+ callback run. This should only be used on associations that depend solely on this class and don't need to do any
-      #   clean-up in +before_destroy+. The upside is that it's much faster, especially if there's a +counter_cache+ involved.
-      #   May not be set if <tt>:dependent</tt> is also set.
       # * <tt>:finder_sql</tt>  - specify a complete SQL statement to fetch the association. This is a good way to go for complex
       #   associations that depend on multiple tables. Note: When this option is used, +find_in_collection+ is _not_ added.
       # * <tt>:counter_sql</tt>  - specify a complete SQL statement to fetch the size of the association. If <tt>:finder_sql</tt> is
@@ -680,8 +673,6 @@ module ActiveRecord
           add_association_callbacks(reflection.name, reflection.options)
           collection_accessor_methods(reflection, HasManyAssociation)
         end
-
-        add_deprecated_api_for_has_many(reflection.name)
       end
 
       # Adds the following methods for retrieval and query of a single associated object:
@@ -747,10 +738,6 @@ module ActiveRecord
         association_constructor_method(:create, reflection, HasOneAssociation)
         
         configure_dependency_for_has_one(reflection)
-
-        # deprecated api
-        deprecated_has_association_method(reflection.name)
-        deprecated_association_comparison_method(reflection.name, reflection.class_name)
       end
 
       # Adds the following methods for retrieval and query for a single associated object for which this object holds an id:
@@ -838,10 +825,6 @@ module ActiveRecord
               end            
             EOF
           end
-      
-          # deprecated api
-          deprecated_has_association_method(reflection.name)
-          deprecated_association_comparison_method(reflection.name, reflection.class_name)
         end
 
         # Create the callbacks to update counter cache
@@ -884,10 +867,6 @@ module ActiveRecord
       #   An empty array is returned if none are found.
       # * <tt>collection<<(object, ...)</tt> - adds one or more objects to the collection by creating associations in the join table 
       #   (<tt>collection.push</tt> and <tt>collection.concat</tt> are aliases to this method).
-      # * <tt>collection.push_with_attributes(object, join_attributes)</tt> - adds one to the collection by creating an association in the join table that
-      #   also holds the attributes from <tt>join_attributes</tt> (should be a hash with the column names as keys). This can be used to have additional
-      #   attributes on the join, which will be injected into the associated objects when they are retrieved through the collection.
-      #   (<tt>collection.concat_with_attributes</tt> is an alias to this method). This method is now deprecated.
       # * <tt>collection.delete(object, ...)</tt> - removes one or more objects from the collection by removing their associations from the join table.  
       #   This does not destroy the objects.
       # * <tt>collection=objects</tt> - replaces the collection's content by deleting and adding objects as appropriate.
@@ -973,12 +952,6 @@ module ActiveRecord
         end_eval
 
         add_association_callbacks(reflection.name, options)
-        
-        # deprecated api
-        deprecated_collection_count_method(reflection.name)
-        deprecated_add_association_relation(reflection.name)
-        deprecated_remove_association_relation(reflection.name)
-        deprecated_has_collection_method(reflection.name)
       end
 
       private
@@ -1141,19 +1114,6 @@ module ActiveRecord
         end
 
         def configure_dependency_for_has_many(reflection)
-          if reflection.options[:dependent] == true
-            ::ActiveSupport::Deprecation.warn("The :dependent => true option is deprecated and will be removed from Rails 2.0.  Please use :dependent => :destroy instead.  See http://www.rubyonrails.org/deprecation for details.", caller)
-          end
-
-          if reflection.options[:dependent] && reflection.options[:exclusively_dependent]
-            raise ArgumentError, ':dependent and :exclusively_dependent are mutually exclusive options.  You may specify one or the other.'
-          end
-
-          if reflection.options[:exclusively_dependent]
-            reflection.options[:dependent] = :delete_all
-            ::ActiveSupport::Deprecation.warn("The :exclusively_dependent option is deprecated and will be removed from Rails 2.0.  Please use :dependent => :delete_all instead.  See http://www.rubyonrails.org/deprecation for details.", caller)
-          end
-
           # See HasManyAssociation#delete_records.  Dependent associations
           # delete children, otherwise foreign key is set to NULL.
 
@@ -1165,13 +1125,13 @@ module ActiveRecord
           dependent_conditions = dependent_conditions.collect {|where| "(#{where})" }.join(" AND ")
 
           case reflection.options[:dependent]
-            when :destroy, true
+            when :destroy
               module_eval "before_destroy '#{reflection.name}.each { |o| o.destroy }'"
             when :delete_all
               module_eval "before_destroy { |record| #{reflection.class_name}.delete_all(%(#{dependent_conditions})) }"
             when :nullify
               module_eval "before_destroy { |record| #{reflection.class_name}.update_all(%(#{reflection.primary_key_name} = NULL),  %(#{dependent_conditions})) }"
-            when nil, false
+            when nil
               # pass
             else
               raise ArgumentError, 'The :dependent option expects either :destroy, :delete_all, or :nullify'
@@ -1180,34 +1140,23 @@ module ActiveRecord
 
         def configure_dependency_for_has_one(reflection)
           case reflection.options[:dependent]
-            when :destroy, true
+            when :destroy
               module_eval "before_destroy '#{reflection.name}.destroy unless #{reflection.name}.nil?'"
             when :delete
               module_eval "before_destroy '#{reflection.class_name}.delete(#{reflection.name}.id) unless #{reflection.name}.nil?'"
             when :nullify
               module_eval "before_destroy '#{reflection.name}.update_attribute(\"#{reflection.primary_key_name}\", nil) unless #{reflection.name}.nil?'"
-            when nil, false
+            when nil
               # pass
             else
               raise ArgumentError, "The :dependent option expects either :destroy, :delete or :nullify."
           end
         end
-        
-        
-        def add_deprecated_api_for_has_many(association_name)
-          deprecated_collection_count_method(association_name)
-          deprecated_add_association_relation(association_name)
-          deprecated_remove_association_relation(association_name)
-          deprecated_has_collection_method(association_name)
-          deprecated_find_in_collection_method(association_name)
-          deprecated_collection_create_method(association_name)
-          deprecated_collection_build_method(association_name)
-        end
 
         def create_has_many_reflection(association_id, options, &extension)
           options.assert_valid_keys(
             :class_name, :table_name, :foreign_key,
-            :exclusively_dependent, :dependent,
+            :dependent,
             :select, :conditions, :include, :order, :group, :limit, :offset,
             :as, :through, :source, :source_type,
             :uniq,

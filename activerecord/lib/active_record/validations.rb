@@ -83,19 +83,6 @@ module ActiveRecord
       end
     end
 
-    # Will add an error message to each of the attributes in +attributes+ that has a length outside of the passed boundary +range+.
-    # If the length is above the boundary, the too_long_msg message will be used. If below, the too_short_msg.
-    def add_on_boundary_breaking(attributes, range, too_long_msg = @@default_error_messages[:too_long], too_short_msg = @@default_error_messages[:too_short])
-      for attr in [attributes].flatten
-        value = @base.respond_to?(attr.to_s) ? @base.send(attr.to_s) : @base[attr.to_s]
-        add(attr, too_short_msg % range.begin) if value && value.length < range.begin
-        add(attr, too_long_msg % range.end) if value && value.length > range.end
-      end
-    end
-
-    alias :add_on_boundry_breaking :add_on_boundary_breaking
-    deprecate :add_on_boundary_breaking => :validates_length_of, :add_on_boundry_breaking => :validates_length_of
-
     # Returns true if the specified +attribute+ has errors associated with it.
     #
     #   class Company < ActiveRecord::Base

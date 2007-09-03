@@ -183,29 +183,11 @@ end
 class TreeTest < Test::Unit::TestCase
   fixtures :mixins
 
-  def test_has_child
-    assert_deprecated 'has_children?' do
-      assert_equal true, mixins(:tree_1).has_children?
-      assert_equal true, mixins(:tree_2).has_children?
-      assert_equal false, mixins(:tree_3).has_children?
-      assert_equal false, mixins(:tree_4).has_children?
-    end
-  end
-
   def test_children
     assert_equal mixins(:tree_1).children, mixins(:tree_2, :tree_4)
     assert_equal mixins(:tree_2).children, [mixins(:tree_3)]
     assert_equal mixins(:tree_3).children, []
     assert_equal mixins(:tree_4).children, []
-  end
-
-  def test_has_parent
-    assert_deprecated 'has_parent?' do
-      assert_equal false, mixins(:tree_1).has_parent?
-      assert_equal true, mixins(:tree_2).has_parent?
-      assert_equal true, mixins(:tree_3).has_parent?
-      assert_equal true, mixins(:tree_4).has_parent?
-    end
   end
 
   def test_parent

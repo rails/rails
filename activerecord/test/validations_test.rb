@@ -651,18 +651,6 @@ class ValidationsTest < Test::Unit::TestCase
 
     assert_equal 'tu est trops petit hombre 10', t.errors['title']
   end
-  
-  def test_add_on_boundary_breaking_is_deprecated
-    t = Topic.new('title' => 'noreplies', 'content' => 'whatever')
-    class << t
-      def validate
-        errors.add_on_boundary_breaking('title', 1..6)
-      end
-    end
-    assert_deprecated 'add_on_boundary_breaking' do
-      assert !t.valid?
-    end
-  end
 
   def test_validates_size_of_association
     assert_nothing_raised { Topic.validates_size_of :replies, :minimum => 1 }
