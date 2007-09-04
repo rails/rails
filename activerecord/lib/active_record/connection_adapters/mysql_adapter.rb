@@ -92,6 +92,7 @@ module ActiveRecord
         @original_default = default
         super
         @default = nil if no_default_allowed? || missing_default_forged_as_empty_string?
+        @default = '' if @original_default == '' && no_default_allowed?
       end
 
       private

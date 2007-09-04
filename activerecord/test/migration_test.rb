@@ -748,7 +748,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       columns = Person.connection.columns(:binary_testings)
       data_column = columns.detect { |c| c.name == "data" }
 
-      assert_nil data_column.default
+      assert_equal '', data_column.default
 
       Person.connection.drop_table :binary_testings rescue nil
     end
