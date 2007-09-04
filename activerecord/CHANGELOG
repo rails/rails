@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix bug where unserializing an attribute attempts to modify a frozen @attributes hash for a deleted record.  [Rick]
+
 * Performance: absorb instantiate and initialize_with_callbacks into the Base methods. [Jeremy Kemper]
 
 * Fixed that eager loading queries and with_scope should respect the :group option [DHH]
