@@ -30,7 +30,7 @@ module ActionView
       end
 
       # If +text+ is longer than +length+, +text+ will be truncated to the length of 
-      # +length+ (defaults to 30) and the last three characters will be replaced with the +truncate_string+
+      # +length+ (defaults to 30) and the last characters will be replaced with the +truncate_string+
       # (defaults to "...").
       #
       # ==== Examples
