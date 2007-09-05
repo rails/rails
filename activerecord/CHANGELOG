@@ -1,6 +1,6 @@
 *SVN*
 
-* Fix bug where unserializing an attribute attempts to modify a frozen @attributes hash for a deleted record.  [Rick]
+* Fix bug where unserializing an attribute attempts to modify a frozen @attributes hash for a deleted record.  [Rick, marclove]
 
 * Performance: absorb instantiate and initialize_with_callbacks into the Base methods. [Jeremy Kemper]
 
