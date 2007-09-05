@@ -1504,6 +1504,18 @@ class RouteSetTest < Test::Unit::TestCase
       controller.send(:multi_url, 7, "hello", 5)
   end
 
+  def test_named_route_url_method_with_ordered_parameters_and_hash
+    controller = setup_named_route_test
+    assert_equal "http://named.route.test/people/go/7/hello/joe/5?baz=bar",
+      controller.send(:multi_url, 7, "hello", 5, :baz => "bar")
+  end
+  
+  def test_named_route_url_method_with_ordered_parameters_and_hash_ordered_parameters_override_hash
+    controller = setup_named_route_test
+    assert_equal "http://named.route.test/people/go/7/hello/joe/5?baz=bar",
+      controller.send(:multi_url, 7, "hello", 5, :foo => 666, :baz => "bar")
+  end
+  
   def test_draw_default_route
     ActionController::Routing.with_controllers(['users']) do
       set.draw do |map|

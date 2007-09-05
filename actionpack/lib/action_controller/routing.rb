@@ -1160,10 +1160,17 @@ module ActionController
                   # instead of
                   #
                   #   foo_url(:bar => bar, :baz => baz, :bang => bang)
-                  args.zip(#{segment_keys.inspect}).inject({}) do |h, (v, k)|
+                  #
+                  # Also allow options hash, so you can do
+                  #
+                  #   foo_url(bar, baz, bang, :sort_by => 'baz')
+                  #
+                  options = args.last.is_a?(Hash) ? args.pop : {}
+                  args = args.zip(#{segment_keys.inspect}).inject({}) do |h, (v, k)|
                     h[k] = v
                     h
                   end
+                  options.merge(args)
                 end
                 
                 url_for(#{hash_access_method}(opts))

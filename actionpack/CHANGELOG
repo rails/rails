@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow additional parameters to be passed to named route helpers when using positional arguments.  Closes #8930 [ian.w.white@gmail.com]
+
 * Make render :partial work with a :collection of Hashes, previously this wasn't possible due to backwards compatibility restrictions.  [lifofifo]
 
 * request.host works with IPv6 addresses.  #9458 [yuya]
