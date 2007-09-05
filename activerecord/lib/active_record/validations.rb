@@ -288,6 +288,7 @@ module ActiveRecord
       DEFAULT_VALIDATION_OPTIONS = {
         :on => :save,
         :allow_nil => false,
+        :allow_blank => false,
         :message => nil
       }.freeze
 
@@ -346,6 +347,7 @@ module ActiveRecord
       # Options:
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
       # * <tt>allow_nil</tt> - Skip validation if attribute is nil.
+      # * <tt>allow_blank</tt> - Skip validation if attribute is blank.
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       #   method, proc or string should return or evaluate to a true or false value.
@@ -362,7 +364,7 @@ module ActiveRecord
           unless (options[:if] && !evaluate_condition(options[:if], record)) || (options[:unless] && evaluate_condition(options[:unless], record))
             attrs.each do |attr|
               value = record.send(attr)
-              next if value.nil? && options[:allow_nil]
+              next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
               yield record, attr, value
             end
           end
@@ -490,6 +492,7 @@ module ActiveRecord
       #     validates_length_of :first_name, :maximum=>30
       #     validates_length_of :last_name, :maximum=>30, :message=>"less than %d if you don't mind"
       #     validates_length_of :fax, :in => 7..32, :allow_nil => true
+      #     validates_length_of :phone, :in => 7..32, :allow_blank => true
       #     validates_length_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
       #     validates_length_of :fav_bra_size, :minimum=>1, :too_short=>"please enter at least %d character"
       #     validates_length_of :smurf_leader, :is=>4, :message=>"papa is spelled with %d characters... don't play me."
@@ -502,6 +505,7 @@ module ActiveRecord
       # * <tt>within</tt> - A range specifying the minimum and maximum size of the attribute
       # * <tt>in</tt> - A synonym(or alias) for :within
       # * <tt>allow_nil</tt> - Attribute may be nil; skip validation.
+      # * <tt>allow_blank</tt> - Attribute may be blank; skip validation.
       #
       # * <tt>too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (maximum is %d characters)")
       # * <tt>too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is %d characters)")
@@ -596,6 +600,7 @@ module ActiveRecord
       # * <tt>scope</tt> - One or more columns by which to limit the scope of the uniquness constraint.
       # * <tt>case_sensitive</tt> - Looks for an exact match.  Ignored by non-text columns (true by default).
       # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
+      # * <tt>allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is: false)
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       #   method, proc or string should return or evaluate to a true or false value.
@@ -675,6 +680,7 @@ module ActiveRecord
       # * <tt>in</tt> - An enumerable object of available items
       # * <tt>message</tt> - Specifies a customer error message (default is: "is not included in the list")
       # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
+      # * <tt>allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is: false)
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       #   method, proc or string should return or evaluate to a true or false value.
@@ -705,6 +711,7 @@ module ActiveRecord
       # * <tt>in</tt> - An enumerable object of items that the value shouldn't be part of
       # * <tt>message</tt> - Specifies a customer error message (default is: "is reserved")
       # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
+      # * <tt>allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is: false)
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       #   method, proc or string should return or evaluate to a true or false value.
