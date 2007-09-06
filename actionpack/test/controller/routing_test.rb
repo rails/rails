@@ -22,7 +22,7 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
       map.connect ':controller/:action/:variable'
     end
 
-    safe, unsafe = %w(: @ & = + $ , ;), %w(^ / ? # [ ])
+    safe, unsafe = %w(: @ & = + $), %w(^ / ? # [ ] , ;)
     hex = unsafe.map { |char| '%' + char.unpack('H2').first.upcase }
 
     @segment = "#{safe}#{unsafe}".freeze
@@ -1024,42 +1024,6 @@ class RouteTest < Test::Unit::TestCase
     end
 end
 
-class MapperDeprecatedRouteTest < Test::Unit::TestCase
-  def setup
-    @set = mock("set")
-    @mapper = ActionController::Routing::RouteSet::Mapper.new(@set)    
-  end
-  
-  def test_should_add_new_and_deprecated_named_routes
-    @set.expects(:add_named_route).with("new", "path", {:a => "b"})
-    @set.expects(:add_deprecated_named_route).with("new", "old", "path", {:a => "b"})
-    @mapper.deprecated_named_route("new", "old", "path", {:a => "b"})
-  end
-  
-  def test_should_not_add_deprecated_named_route_if_both_are_the_same
-    @set.expects(:add_named_route).with("new", "path", {:a => "b"})
-    @set.expects(:add_deprecated_named_route).with("new", "new", "path", {:a => "b"}).never
-    @mapper.deprecated_named_route("new", "new", "path", {:a => "b"})
-  end
-end
-
-class RouteSetDeprecatedRouteTest < Test::Unit::TestCase
-  def setup
-    @set = ActionController::Routing::RouteSet.new
-  end
-
-  def test_should_add_deprecated_route
-    @set.expects(:add_named_route).with("old", "path", {:a => "b"})
-    @set.add_deprecated_named_route("new", "old", "path", {:a => "b"})
-  end
-  
-  def test_should_fire_deprecation_warning_on_access
-    @set.add_deprecated_named_route("new_outer_inner_path", "outer_new_inner_path", "/outers/:outer_id/inners/new", :controller => :inners)
-    ActiveSupport::Deprecation.expects(:warn)
-    @set.named_routes["outer_new_inner_path"]
-  end
-end
-
 end # uses_mocha
 
 class RouteBuilderTest < Test::Unit::TestCase
@@ -1211,22 +1175,6 @@ class RouteBuilderTest < Test::Unit::TestCase
     assert segments[2].optional?
     
     assert_equal nil, builder.warn_output # should only warn on the :person segment
-  end
-  
-  def test_comma_isnt_a_route_separator
-    segments = builder.segments_for_route_path '/books/:id,:action'
-    defaults = { :action => 'show' }
-    assert_raise(ArgumentError) do
-      builder.assign_route_options(segments, defaults, {})
-    end
-  end
-
-  def test_semicolon_isnt_a_route_separator
-    segments = builder.segments_for_route_path '/books/:id;:action'
-    defaults = { :action => 'show' }
-    assert_raise(ArgumentError) do
-      builder.assign_route_options(segments, defaults, {})
-    end
   end
   
   def test_segmentation_of_dot_path

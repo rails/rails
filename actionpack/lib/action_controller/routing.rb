@@ -247,7 +247,7 @@ module ActionController
   #  end
   #
   module Routing
-    SEPARATORS = %w( / . ? )
+    SEPARATORS = %w( / ; . , ? )
 
     HTTP_METHODS = [:get, :head, :post, :put, :delete]
 
@@ -548,7 +548,7 @@ module ActionController
     end
 
     class Segment #:nodoc:
-      RESERVED_PCHAR = ':@&=+$,;'
+      RESERVED_PCHAR = ':@&=+$'
       UNSAFE_PCHAR = Regexp.new("[^#{URI::REGEXP::PATTERN::UNRESERVED}#{RESERVED_PCHAR}]", false, 'N').freeze
 
       attr_accessor :is_optional
@@ -561,7 +561,7 @@ module ActionController
       def extraction_code
         nil
       end
-  
+
       # Continue generating string for the prior segments.
       def continue_string_structure(prior_segments)
         if prior_segments.empty?
@@ -1020,11 +1020,6 @@ module ActionController
           @set.add_named_route(name, path, options)
         end
         
-        def deprecated_named_route(name, deprecated_name, path, options = {})
-          named_route(name, path, options)
-          @set.add_deprecated_named_route(name, deprecated_name, path, options) unless deprecated_name == name
-        end
-        
         # Enables the use of resources in a module by setting the name_prefix, path_prefix, and namespace for the model.
         # Example:
         #
@@ -1057,7 +1052,7 @@ module ActionController
       class NamedRouteCollection #:nodoc:
         include Enumerable
 
-        attr_reader :routes, :helpers, :deprecated_named_routes
+        attr_reader :routes, :helpers
 
         def initialize
           clear!
@@ -1066,7 +1061,6 @@ module ActionController
         def clear!
           @routes = {}
           @helpers = []
-          @deprecated_named_routes = {}
           
           @module ||= Module.new
           @module.instance_methods.each do |selector|
@@ -1080,12 +1074,6 @@ module ActionController
         end
 
         def get(name)
-          if @deprecated_named_routes.has_key?(name.to_sym)
-            ActiveSupport::Deprecation.warn(
-              "The named route \"#{name}\" uses a format that has been deprecated. " +
-              "You should use \"#{@deprecated_named_routes[name]}\" instead", caller
-            )
-          end
           routes[name.to_sym]
         end
 
@@ -1257,11 +1245,6 @@ module ActionController
         # TODO - is options EVER used?
         name = options[:name_prefix] + name.to_s if options[:name_prefix]
         named_routes[name.to_sym] = add_route(path, options)
-      end
-  
-      def add_deprecated_named_route(name, deprecated_name, path, options = {})
-        add_named_route(deprecated_name, path, options)
-        named_routes.deprecated_named_routes[deprecated_name.to_sym] = name
       end
   
       def options_as_params(options)

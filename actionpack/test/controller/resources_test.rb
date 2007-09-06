@@ -149,7 +149,6 @@ class ResourcesTest < Test::Unit::TestCase
   
       assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
         actions.keys.each do |action|
-          assert_deprecated_named_route /thread_#{action}_messages/, "/threads/1/messages/#{action}", "thread_#{action}_messages_path", :action => action
           assert_named_route "/threads/1/messages/#{action}", "#{action}_thread_messages_path", :action => action
         end
       end
@@ -168,7 +167,6 @@ class ResourcesTest < Test::Unit::TestCase
   
       assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
         actions.keys.each do |action|
-          assert_deprecated_named_route /formatted_thread_#{action}_messages/, "/threads/1/messages/#{action}.xml", "formatted_thread_#{action}_messages_path", :action => action, :format => 'xml'
           assert_named_route "/threads/1/messages/#{action}.xml", "formatted_#{action}_thread_messages_path", :action => action, :format => 'xml'
         end
       end
@@ -232,7 +230,6 @@ class ResourcesTest < Test::Unit::TestCase
       end
 
       assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
-        assert_deprecated_named_route /thread_preview_new_message/, preview_path, :thread_preview_new_message_path, preview_options
         assert_named_route preview_path, :preview_new_thread_message_path, preview_options
       end
     end
@@ -247,7 +244,6 @@ class ResourcesTest < Test::Unit::TestCase
       end
 
       assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
-        assert_deprecated_named_route /formatted_thread_preview_new_message/, preview_path, :formatted_thread_preview_new_message_path, preview_options
         assert_named_route preview_path, :formatted_preview_new_thread_message_path, preview_options
       end
     end
@@ -313,25 +309,17 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
-  # NOTE from dchelimsky: http://dev.rubyonrails.org/ticket/8251 changes some of the
-  # named routes. In order to play nice, I didn't delete the old ones, which means
-  # that this test fails because until the old ones are deprecated and/or removed, there
-  # must be room for two names for the same route.
-  #
-  # From what I can tell this shouldn't matter - all the other
-  # tests in actionpack pass without this one passing. But I could be wrong ;)
-  #
-  # def test_restful_routes_dont_generate_duplicates
-    # with_restful_routing :messages do
-    #   routes = ActionController::Routing::Routes.routes
-    #   routes.each do |route|
-    #     routes.each do |r|
-    #       next if route === r # skip the comparison instance
-    #       assert distinct_routes?(route, r), "Duplicate Route: #{route}"
-    #     end
-    #   end
-    # end
-  # end
+  def test_restful_routes_dont_generate_duplicates
+    with_restful_routing :messages do
+      routes = ActionController::Routing::Routes.routes
+      routes.each do |route|
+        routes.each do |r|
+          next if route === r # skip the comparison instance
+          assert distinct_routes?(route, r), "Duplicate Route: #{route}"
+        end
+      end
+    end
+  end
 
   def test_should_create_singleton_resource_routes
     with_singleton_resources :account do
@@ -468,6 +456,50 @@ class ResourcesTest < Test::Unit::TestCase
       assert_raises(ActionController::MethodNotAllowed) do
         assert_recognizes(options.merge(:action => 'destroy'), :path => collection_path, :method => :delete)
       end
+    end
+  end
+
+  def test_resource_action_separator
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :messages, :collection => {:search => :get}, :new => {:preview => :any}, :name_prefix => 'thread_', :path_prefix => '/threads/:thread_id'
+        map.resource :account, :member => {:login => :get}, :new => {:preview => :any}, :name_prefix => 'admin_', :path_prefix => '/admin'
+      end
+      
+      action_separator = ActionController::Base.resource_action_separator
+      
+      assert_simply_restful_for :messages, :name_prefix => 'thread_', :path_prefix => 'threads/1/', :options => { :thread_id => '1' }
+      assert_named_route "/threads/1/messages#{action_separator}search", "search_thread_messages_path", {}
+      assert_named_route "/threads/1/messages/new", "new_thread_message_path", {}
+      assert_named_route "/threads/1/messages/new#{action_separator}preview", "preview_new_thread_message_path", {}
+      assert_singleton_restful_for :account, :name_prefix => 'admin_', :path_prefix => 'admin/'
+      assert_named_route "/admin/account#{action_separator}login", "login_admin_account_path", {}
+      assert_named_route "/admin/account/new", "new_admin_account_path", {}
+      assert_named_route "/admin/account/new#{action_separator}preview", "preview_new_admin_account_path", {}
+    end
+  end
+
+  def test_new_style_named_routes_for_resource
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :messages, :collection => {:search => :get}, :new => {:preview => :any}, :name_prefix => 'thread_', :path_prefix => '/threads/:thread_id'
+      end
+      assert_simply_restful_for :messages, :name_prefix => 'thread_', :path_prefix => 'threads/1/', :options => { :thread_id => '1' }
+      assert_named_route "/threads/1/messages/search", "search_thread_messages_path", {}
+      assert_named_route "/threads/1/messages/new", "new_thread_message_path", {}
+      assert_named_route "/threads/1/messages/new/preview", "preview_new_thread_message_path", {}
+    end
+  end
+
+  def test_new_style_named_routes_for_singleton_resource
+    with_routing do |set|
+      set.draw do |map|
+        map.resource :account, :member => {:login => :get}, :new => {:preview => :any}, :name_prefix => 'admin_', :path_prefix => '/admin'
+      end
+      assert_singleton_restful_for :account, :name_prefix => 'admin_', :path_prefix => 'admin/'
+      assert_named_route "/admin/account/login", "login_admin_account_path", {}
+      assert_named_route "/admin/account/new", "new_admin_account_path", {}
+      assert_named_route "/admin/account/new/preview", "preview_new_admin_account_path", {}
     end
   end
 
@@ -624,11 +656,6 @@ class ResourcesTest < Test::Unit::TestCase
       assert_named_route "#{full_prefix}/1",          "#{name_prefix}#{singular_name}_path",                options[:options].merge(:id => '1')
       assert_named_route "#{full_prefix}/1.xml",      "formatted_#{name_prefix}#{singular_name}_path",      options[:options].merge(:id => '1', :format => 'xml')
 
-      assert_potentially_deprecated_named_route name_prefix, /#{name_prefix}new_#{singular_name}/, "#{full_prefix}/new", "#{name_prefix}new_#{singular_name}_path", options[:options]
-      assert_potentially_deprecated_named_route name_prefix, /formatted_#{name_prefix}new_#{singular_name}/, "#{full_prefix}/new.xml", "formatted_#{name_prefix}new_#{singular_name}_path",  options[:options].merge(            :format => 'xml')
-      assert_potentially_deprecated_named_route name_prefix, /#{name_prefix}edit_#{singular_name}/, "#{full_prefix}/1/edit",     "#{name_prefix}edit_#{singular_name}_path",           options[:options].merge(:id => '1')
-      assert_potentially_deprecated_named_route name_prefix, /formatted_#{name_prefix}edit_#{singular_name}/, "#{full_prefix}/1/edit.xml", "formatted_#{name_prefix}edit_#{singular_name}_path", options[:options].merge(:id => '1', :format => 'xml')
-
       assert_named_route "#{full_prefix}/new",        "new_#{name_prefix}#{singular_name}_path",            options[:options]
       assert_named_route "#{full_prefix}/new.xml",    "formatted_new_#{name_prefix}#{singular_name}_path",  options[:options].merge(            :format => 'xml')
       assert_named_route "#{full_prefix}/1/edit",     "edit_#{name_prefix}#{singular_name}_path",           options[:options].merge(:id => '1')
@@ -686,11 +713,6 @@ class ResourcesTest < Test::Unit::TestCase
       assert_named_route "#{full_path}",          "#{name_prefix}#{singleton_name}_path",                options[:options]
       assert_named_route "#{full_path}.xml",      "formatted_#{name_prefix}#{singleton_name}_path",      options[:options].merge(:format => 'xml')
 
-      assert_potentially_deprecated_named_route name_prefix, /#{name_prefix}new_#{singleton_name}/, "#{full_path}/new", "#{name_prefix}new_#{singleton_name}_path",            options[:options]
-      assert_potentially_deprecated_named_route name_prefix, /formatted_#{name_prefix}new_#{singleton_name}/, "#{full_path}/new.xml",  "formatted_#{name_prefix}new_#{singleton_name}_path",  options[:options].merge(:format => 'xml')
-      assert_potentially_deprecated_named_route name_prefix, /#{name_prefix}edit_#{singleton_name}/, "#{full_path}/edit",     "#{name_prefix}edit_#{singleton_name}_path",           options[:options]
-      assert_potentially_deprecated_named_route name_prefix, /formatted_#{name_prefix}edit_#{singleton_name}/, "#{full_path}/edit.xml", "formatted_#{name_prefix}edit_#{singleton_name}_path", options[:options].merge(:format => 'xml')
-
       assert_named_route "#{full_path}/new",      "new_#{name_prefix}#{singleton_name}_path",            options[:options]
       assert_named_route "#{full_path}/new.xml",  "formatted_new_#{name_prefix}#{singleton_name}_path",  options[:options].merge(:format => 'xml')
       assert_named_route "#{full_path}/edit",     "edit_#{name_prefix}#{singleton_name}_path",           options[:options]
@@ -702,22 +724,6 @@ class ResourcesTest < Test::Unit::TestCase
       assert_equal expected, actual, "Error on route: #{route}(#{options.inspect})"
     end
     
-    def assert_deprecated_named_route(message, expected, route, options)
-      assert_deprecated message do
-        assert_named_route expected, route, options
-      end
-    end
-
-    # These are only deprecated if they have a name_prefix.
-    # See http://dev.rubyonrails.org/ticket/8251
-    def assert_potentially_deprecated_named_route(name_prefix, message, expected, route, options)
-      if name_prefix
-        assert_deprecated_named_route(message, expected, route, options)
-      else
-        assert_named_route expected, route, options
-      end
-    end
-
     def assert_resource_methods(expected, resource, action_method, method)
       assert_equal expected.length, resource.send("#{action_method}_methods")[method].size, "#{resource.send("#{action_method}_methods")[method].inspect}"
       expected.each do |action|
