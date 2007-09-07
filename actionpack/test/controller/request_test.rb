@@ -351,6 +351,10 @@ class RequestTest < Test::Unit::TestCase
     @request.env["CONTENT_TYPE"] = "application/xml; charset=UTF-8"
     assert_equal Mime::XML, @request.content_type
   end
+  
+  def test_user_agent
+    assert_not_nil @request.user_agent
+  end
 
   protected
     def set_request_method_to(method)

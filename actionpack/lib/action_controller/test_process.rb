@@ -23,7 +23,7 @@ module ActionController #:nodoc:
   class TestRequest < AbstractRequest #:nodoc:
     attr_accessor :cookies, :session_options
     attr_accessor :query_parameters, :request_parameters, :path, :session, :env
-    attr_accessor :host
+    attr_accessor :host, :user_agent
 
     def initialize(query_parameters = nil, request_parameters = nil, session = nil)
       @query_parameters   = query_parameters || {}
@@ -133,6 +133,7 @@ module ActionController #:nodoc:
       def initialize_default_values
         @host                    = "test.host"
         @request_uri             = "/"
+        @user_agent              = "Rails Testing"
         self.remote_addr         = "0.0.0.0"        
         @env["SERVER_PORT"]      = 80
         @env['REQUEST_METHOD']   = "GET"
