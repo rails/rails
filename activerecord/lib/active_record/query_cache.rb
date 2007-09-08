@@ -48,9 +48,8 @@ module ActiveRecord
       clear_query_cache
       @connection.delete(sql, name)
     end
-    
+
     private
-    
       def cache(sql)
         result = if @query_cache.has_key?(sql)
           log_info(sql, "CACHE", 0.0)
@@ -62,13 +61,15 @@ module ActiveRecord
         case result
         when Array
           result.collect { |row| row.dup }
-        when Fixnum, NilClass, FalseClass
+        when nil, Fixnum, Float, true, false
           result
         else
           result.dup
         end
+      rescue TypeError
+        result
       end
-    
+
       def method_missing(method, *arguments, &proc)
         @connection.send(method, *arguments, &proc)
       end
