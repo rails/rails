@@ -62,7 +62,7 @@ module ActiveRecord
         case result
         when Array
           result.collect { |row| row.dup }
-        when Numeric, NilClass, FalseClass
+        when Fixnum, NilClass, FalseClass
           result
         else
           result.dup

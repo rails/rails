@@ -4,6 +4,8 @@ require 'fixtures/reply'
 require 'fixtures/task'
 require 'fixtures/course'
 
+require 'active_record/query_cache'
+
 class QueryCacheTest < Test::Unit::TestCase
   fixtures :tasks
   

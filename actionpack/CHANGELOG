@@ -1,5 +1,7 @@
 *SVN*
 
+* Explicitly require active_record/query_cache before using it.  [Jeremy Kemper]
+
 * Fix layout overriding response status.  #9476 [lotswholetime]
 
 * Add fieldset_tag for generating fieldsets, closes #9477. [djanowski]

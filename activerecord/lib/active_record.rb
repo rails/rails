@@ -75,5 +75,4 @@ end
 
 require 'active_record/connection_adapters/abstract_adapter'
 
-require 'active_record/query_cache'
 require 'active_record/schema_dumper'
