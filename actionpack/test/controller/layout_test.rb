@@ -200,3 +200,22 @@ class LayoutExceptionRaised < Test::Unit::TestCase
     assert_equal ActionController::MissingTemplate, @response.template.exception.class
   end
 end
+
+class LayoutStatusIsRendered < LayoutTest
+  def hello
+    render :status => 401
+  end
+end
+
+class LayoutStatusIsRenderedTest < Test::Unit::TestCase
+  def setup
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+  end
+
+  def test_layout_status_is_rendered
+    @controller = LayoutStatusIsRendered.new
+    get :hello
+    assert_response 401
+  end
+end

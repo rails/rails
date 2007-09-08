@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix layout overriding response status.  #9476 [lotswholetime]
+
 * Add fieldset_tag for generating fieldsets, closes #9477. [djanowski]
 
 * Allow additional parameters to be passed to named route helpers when using positional arguments.  Closes #8930 [ian.w.white@gmail.com]
