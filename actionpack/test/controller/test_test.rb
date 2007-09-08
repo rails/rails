@@ -45,6 +45,16 @@ class TestTest < Test::Unit::TestCase
 </html>
 HTML
     end
+    
+    def test_xml_output
+      response.content_type = "application/xml"
+      render :text => <<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <area>area is an empty tag in HTML, raising an error if not in xml mode</area>
+</root>
+XML
+    end
 
     def test_only_one_param
       render :text => (params[:left] && params[:right]) ? "EEP, Both here!" : "OK"
@@ -300,6 +310,20 @@ HTML
         :only => { :tag => "a",
           :children => { :count => 1,
             :only => { :tag => "img" } } } }
+  end
+  
+  def test_should_not_impose_childless_html_tags_in_xml
+    process :test_xml_output
+
+    begin
+      $stderr = StringIO.new
+      assert_select 'area' #This will cause a warning if content is processed as HTML
+      $stderr.rewind && err = $stderr.read
+    ensure
+      $stderr = STDERR
+    end
+
+    assert err.empty?
   end
 
   def test_assert_tag_attribute_matching

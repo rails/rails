@@ -449,7 +449,8 @@ module ActionController #:nodoc:
     end
 
     def html_document
-      @html_document ||= HTML::Document.new(@response.body)
+      xml = @response.content_type =~ /xml$/
+      @html_document ||= HTML::Document.new(@response.body, false, xml)
     end
 
     def find_tag(conditions)
