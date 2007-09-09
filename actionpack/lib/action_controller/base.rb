@@ -380,18 +380,7 @@ module ActionController #:nodoc:
         write_inheritable_attribute(:hidden_actions, hidden_actions | names.collect { |n| n.to_s })
       end
       
-      # Deprecated. Use view_paths instead.
-      def template_root=(path)
-        prepend_view_path path
-        template_root
-      end
-      
-      # Deprecated. Use view_paths instead.
-      def template_root
-        view_paths.first
-      end
-      deprecate :template_root => :view_paths
-      
+
       @@view_paths = {}
       
       # View load paths determine the bases from which template references can be made. So a call to

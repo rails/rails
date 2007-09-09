@@ -70,16 +70,6 @@ class ViewLoadPathsTest < Test::Unit::TestCase
     assert_equal "Hello overridden world!", @response.body
   end
   
-  def test_template_root_deprecated
-    assert_deprecated(/template_root.*view_paths/) do
-      TestController.template_root = 'foo/bar'
-    end
-    assert_deprecated(/template_root.*view_paths/) do
-      assert_equal 'foo/bar', TestController.template_root
-      assert_equal ['foo/bar', LOAD_PATH_ROOT], TestController.view_paths
-    end
-  end
-  
   def test_inheritance
     original_load_paths = ActionController::Base.view_paths
     
