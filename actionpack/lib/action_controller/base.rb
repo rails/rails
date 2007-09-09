@@ -11,12 +11,16 @@ require 'set'
 module ActionController #:nodoc:
   class ActionControllerError < StandardError #:nodoc:
   end
+
   class SessionRestoreError < ActionControllerError #:nodoc:
   end
+
   class MissingTemplate < ActionControllerError #:nodoc:
   end
+
   class RenderError < ActionControllerError #:nodoc:
   end
+
   class RoutingError < ActionControllerError #:nodoc:
     attr_reader :failures
     def initialize(message, failures=[])
@@ -24,6 +28,7 @@ module ActionController #:nodoc:
       @failures = failures
     end
   end
+
   class MethodNotAllowed < ActionControllerError #:nodoc:
     attr_reader :allowed_methods
 
@@ -40,16 +45,22 @@ module ActionController #:nodoc:
       response.headers['Allow'] ||= allowed_methods_header
     end
   end
+
   class NotImplemented < MethodNotAllowed #:nodoc:
   end
+
   class UnknownController < ActionControllerError #:nodoc:
   end
+
   class UnknownAction < ActionControllerError #:nodoc:
   end
+
   class MissingFile < ActionControllerError #:nodoc:
   end
+
   class RenderError < ActionControllerError #:nodoc:
   end
+
   class SessionOverflowError < ActionControllerError #:nodoc:
     DEFAULT_MESSAGE = 'Your session data is larger than the data column in which it is to be stored. You must increase the size of your data column if you intend to store large data.'
 
@@ -57,6 +68,7 @@ module ActionController #:nodoc:
       super(message || DEFAULT_MESSAGE)
     end
   end
+
   class DoubleRenderError < ActionControllerError #:nodoc:
     DEFAULT_MESSAGE = "Render and/or redirect were called multiple times in this action. Please note that you may only call render OR redirect, and only once per action. Also note that neither redirect nor render terminate execution of the action, so if you want to exit an action after redirecting, you need to do something like \"redirect_to(...) and return\". Finally, note that to cause a before filter to halt execution of the rest of the filter chain, the filter must return false, explicitly, so \"render(...) and return false\"."
 
@@ -64,6 +76,7 @@ module ActionController #:nodoc:
       super(message || DEFAULT_MESSAGE)
     end
   end
+
   class RedirectBackError < ActionControllerError #:nodoc:
     DEFAULT_MESSAGE = 'No HTTP_REFERER was set in the request to this action, so redirect_to :back could not be called successfully. If this is a test, make sure to specify request.env["HTTP_REFERER"].'
 
@@ -71,6 +84,7 @@ module ActionController #:nodoc:
       super(message || DEFAULT_MESSAGE)
     end
   end
+
 
   # Action Controllers are the core of a web request in Rails. They are made up of one or more actions that are executed
   # on request and then either render a template or redirect to another action. An action is defined as a public method
@@ -371,7 +385,10 @@ module ActionController #:nodoc:
       # By default, all methods defined in ActionController::Base and included modules are hidden.
       # More methods can be hidden using <tt>hide_actions</tt>.
       def hidden_actions
-        write_inheritable_attribute(:hidden_actions, ActionController::Base.public_instance_methods) unless read_inheritable_attribute(:hidden_actions)
+        unless read_inheritable_attribute(:hidden_actions)
+          write_inheritable_attribute(:hidden_actions, ActionController::Base.public_instance_methods)
+        end
+
         read_inheritable_attribute(:hidden_actions)
       end
 
@@ -817,12 +834,17 @@ module ActionController #:nodoc:
           elsif partial = options[:partial]
             partial = default_template_name if partial == true
             add_variables_to_assigns
+
             if collection = options[:collection]
-              render_for_text(@template.send(:render_partial_collection, partial, collection, options[:spacer_template], options[:locals]),
-                              options[:status])
+              render_for_text(
+                @template.send(:render_partial_collection, partial, collection, 
+                options[:spacer_template], options[:locals]), options[:status]
+              )
             else
-              render_for_text(@template.send(:render_partial, partial, ActionView::Base::ObjectWrapper.new(options[:object]), options[:locals]), 
-                              options[:status])              
+              render_for_text(
+                @template.send(:render_partial, partial, 
+                ActionView::Base::ObjectWrapper.new(options[:object]), options[:locals]), options[:status]
+              )
             end
 
           elsif options[:update]
@@ -1012,8 +1034,8 @@ module ActionController #:nodoc:
         response.session = @_session
       end
 
-    private
 
+    private
       def render_for_file(template_path, status = nil, use_full_path = false, locals = {}) #:nodoc:
         add_variables_to_assigns
         assert_existence_of_template_file(template_path) if use_full_path
@@ -1035,7 +1057,9 @@ module ActionController #:nodoc:
       end
       
       def initialize_template_class(response)
-        raise "You must assign a template class through ActionController.template_class= before processing a request" unless @@template_class
+        unless @@template_class
+          raise "You must assign a template class through ActionController.template_class= before processing a request"
+        end
 
         response.template = ActionView::Base.new(view_paths, {}, self)
         response.template.extend self.class.master_helper_module

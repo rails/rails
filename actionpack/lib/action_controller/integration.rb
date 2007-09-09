@@ -152,27 +152,27 @@ module ActionController
       #
       # You can also perform POST, PUT, DELETE, and HEAD requests with #post,
       # #put, #delete, and #head.
-      def get(path, parameters=nil, headers=nil)
+      def get(path, parameters = nil, headers = nil)
         process :get, path, parameters, headers
       end
 
       # Performs a POST request with the given parameters. See get() for more details.
-      def post(path, parameters=nil, headers=nil)
+      def post(path, parameters = nil, headers = nil)
         process :post, path, parameters, headers
       end
 
       # Performs a PUT request with the given parameters. See get() for more details.
-      def put(path, parameters=nil, headers=nil)
+      def put(path, parameters = nil, headers = nil)
         process :put, path, parameters, headers
       end
 
       # Performs a DELETE request with the given parameters. See get() for more details.
-      def delete(path, parameters=nil, headers=nil)
+      def delete(path, parameters = nil, headers = nil)
         process :delete, path, parameters, headers
       end
 
       # Performs a HEAD request with the given parameters. See get() for more details.
-      def head(path, parameters=nil, headers=nil)
+      def head(path, parameters = nil, headers = nil)
         process :head, path, parameters, headers
       end
 
@@ -220,7 +220,7 @@ module ActionController
         end
 
         # Performs the actual request.
-        def process(method, path, parameters=nil, headers=nil)
+        def process(method, path, parameters = nil, headers = nil)
           data = requestify(parameters)
           path = interpret_uri(path) if path =~ %r{://}
           path = "/#{path}" unless path[0] == ?/
@@ -333,7 +333,6 @@ module ActionController
             "#{CGI.escape(prefix)}=#{CGI.escape(parameters.to_s)}"
           end
         end
-
     end
 
     # A module used to extend ActionController::Base, so that integration tests
