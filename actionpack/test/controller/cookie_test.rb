@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 
 class CookieTest < Test::Unit::TestCase
   class TestController < ActionController::Base
-    def authenticate_with_deprecated_writer
-      cookie "name" => "user_name", "value" => "david"
-    end
-
     def authenticate
       cookies["user_name"] = "david"
     end

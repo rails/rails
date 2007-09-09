@@ -1,5 +1,12 @@
 *SVN*
 
+* Removed deprecated methods [DHH]:
+
+  - ActionController::Base#keep_flash (use flash.keep instead)
+  - ActionController::Base#expire_matched_fragments (just call expire_fragment with a regular expression)
+  - ActionController::Base.template_root/= methods (use ActionController#Base.view_paths/= instead)
+  - ActionController::Base.cookie (use ActionController#Base.cookies[]= instead)
+
 * Removed the deprecated behavior of appending ".png" to image_tag/image_path calls without an existing extension [DHH]
 
 * Removed ActionController::Base.scaffold -- it went through the whole idea of scaffolding (card board walls you remove and tweak one by one). Use the scaffold generator instead (it does resources too now!) [DHH]

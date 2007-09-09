@@ -30,11 +30,6 @@ module ActionController #:nodoc:
       def cookies
         CookieJar.new(self)
       end
-
-      # Deprecated cookie writer method
-      def cookie(*options)
-        response.headers['cookie'] << CGI::Cookie.new(*options)
-      end
   end
 
   class CookieJar < Hash #:nodoc:
