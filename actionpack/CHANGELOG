@@ -1,5 +1,7 @@
 *SVN*
 
+* Removed the deprecated behavior of appending ".png" to image_tag/image_path calls without an existing extension [DHH]
+
 * Removed ActionController::Base.scaffold -- it went through the whole idea of scaffolding (card board walls you remove and tweak one by one). Use the scaffold generator instead (it does resources too now!) [DHH]
 
 * Optimise named route generation when using positional arguments.  [Koz]

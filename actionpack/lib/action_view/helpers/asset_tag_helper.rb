@@ -319,25 +319,17 @@ module ActionView
       # a filename without an extension is deprecated.
       #
       # ==== Examples
-      #   image_path("edit.png")  # => /images/edit.png
-      #   image_path("icons/edit.png")  # => /images/icons/edit.png
-      #   image_path("/icons/edit.png")  # => /icons/edit.png
+      #   image_path("edit")                                         # => /images/edit
+      #   image_path("edit.png")                                     # => /images/edit.png
+      #   image_path("icons/edit.png")                               # => /images/icons/edit.png
+      #   image_path("/icons/edit.png")                              # => /icons/edit.png
       #   image_path("http://www.railsapplication.com/img/edit.png") # => http://www.railsapplication.com/img/edit.png
       def image_path(source)
-        unless (source.split("/").last || source).include?(".") || source.blank?
-          ActiveSupport::Deprecation.warn(
-            "You've called image_path with a source that doesn't include an extension. " +
-            "In Rails 2.0, that will not result in .png automatically being appended. " +
-            "So you should call image_path('#{source}.png') instead", caller
-          )
-        end
-
-        compute_public_path(source, 'images', 'png')
+        compute_public_path(source, 'images')
       end
 
       # Returns an html image tag for the +source+. The +source+ can be a full
-      # path or a file that exists in your public images directory. Note that
-      # specifying a filename without the extension is now deprecated in Rails.
+      # path or a file that exists in your public images directory.
       #
       # ==== Options
       # You can add HTML attributes using the +options+. The +options+ supports
@@ -350,6 +342,8 @@ module ActionView
       #   value is not in the correct format.
       #
       # ==== Examples
+      #  image_tag("icon")  # =>
+      #    <img src="/images/icon" alt="Icon" />
       #  image_tag("icon.png")  # =>
       #    <img src="/images/icon.png" alt="Icon" />
       #  image_tag("icon.png", :size => "16x10", :alt => "Edit Entry")  # =>
@@ -380,8 +374,8 @@ module ActionView
         # roots. Rewrite the asset path for cache-busting asset ids. Include
         # a single or wildcarded asset host, if configured, with the correct
         # request protocol.
-        def compute_public_path(source, dir, ext, include_host = true)
-          source += ".#{ext}" if File.extname(source).blank?
+        def compute_public_path(source, dir, ext = nil, include_host = true)
+          source += ".#{ext}" if File.extname(source).blank? && ext
 
           if source =~ %r{^[-a-z]+://}
             source
