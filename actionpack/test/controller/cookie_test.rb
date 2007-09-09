@@ -45,11 +45,6 @@ class CookieTest < Test::Unit::TestCase
     @request.host = "www.nextangle.com"
   end
 
-  def test_setting_cookie_with_deprecated_writer
-    get :authenticate_with_deprecated_writer
-    assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "david") ], @response.headers["cookie"]
-  end
-
   def test_setting_cookie
     get :authenticate
     assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "david") ], @response.headers["cookie"]
