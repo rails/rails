@@ -59,7 +59,7 @@ Rake::RDocTask.new { |rdoc|
 }
 
 # Create compressed packages
-dist_dirs = [ "lib", "test", "examples" ]
+dist_dirs = [ "lib", "test" ]
 
 spec = Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
@@ -81,12 +81,10 @@ spec = Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.autorequire = 'action_controller'
 
-  s.files = [ "Rakefile", "install.rb", "README", "RUNNING_UNIT_TESTS", "CHANGELOG", "MIT-LICENSE", "examples/.htaccess" ]
+  s.files = [ "Rakefile", "install.rb", "README", "RUNNING_UNIT_TESTS", "CHANGELOG", "MIT-LICENSE" ]
   dist_dirs.each do |dir|
     s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   end
-  s.files.delete "examples/benchmark.rb"
-  s.files.delete "examples/benchmark_with_ar.fcgi"
 end
   
 Rake::GemPackageTask.new(spec) do |p|
