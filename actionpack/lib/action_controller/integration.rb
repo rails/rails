@@ -183,16 +183,7 @@ module ActionController
       # parameters are +nil+, a hash, or a url-encoded or multipart string;
       # the headers are a hash.  Keys are automatically upcased and prefixed
       # with 'HTTP_' if not already.
-      #
-      # This method used to omit the request_method parameter, assuming it
-      # was :post. This was deprecated in Rails 1.2.4. Always pass the request
-      # method as the first argument.
       def xml_http_request(request_method, path, parameters = nil, headers = nil)
-        unless request_method.is_a?(Symbol)
-          ActiveSupport::Deprecation.warn 'xml_http_request now takes the request_method (:get, :post, etc.) as the first argument. It used to assume :post, so add the :post argument to your existing method calls to silence this warning.'
-          request_method, path, parameters, headers = :post, request_method, path, parameters
-        end
-
         headers ||= {}
         headers['X-Requested-With'] = 'XMLHttpRequest'
         headers['Accept'] = 'text/javascript, text/html, application/xml, text/xml, */*'

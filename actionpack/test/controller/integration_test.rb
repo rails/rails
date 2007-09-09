@@ -130,16 +130,6 @@ class SessionTest < Test::Unit::TestCase
     @session.head(path,params,headers)
   end
 
-  def test_xml_http_request_deprecated_call
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    headers_after_xhr = headers.merge(
-      "X-Requested-With" => "XMLHttpRequest",
-      "Accept"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:post,path,params,headers_after_xhr)
-    assert_deprecated { @session.xml_http_request(path,params,headers) }
-  end
-
   def test_xml_http_request_get
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     headers_after_xhr = headers.merge(

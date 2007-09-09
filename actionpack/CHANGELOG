@@ -1,5 +1,7 @@
 *SVN*
 
+* Removed deprecated form of calling xml_http_request/xhr without the first argument being the http verb [DHH]
+
 * Removed deprecated methods [DHH]:
 
   - ActionController::Base#keep_flash (use flash.keep instead)
