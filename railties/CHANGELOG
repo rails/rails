@@ -1,5 +1,15 @@
 *SVN*
 
+* Use attribute pairs instead of the migration name to create add and remove column migrations.  Closes #9166 [lifofifo]
+
+	For example:
+
+	ruby script/generation migration AddSomeStuffToCustomers first_name:string last_name:string
+	
+	or
+	
+	ruby script/generation migration RemoveSomeStuffFromCustomers first_name:string last_name:string
+
 * Add ActiveResource to Rails::Info.  Closes #8741 [kampers]
 
 * use Gem.find_name instead of search when freezing gems.  Prevent false positives for other gems with rails in the name. Closes #8729 [wselman]

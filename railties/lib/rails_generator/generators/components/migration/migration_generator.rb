@@ -1,19 +1,19 @@
-class MigrationGenerator < Rails::Generator::NamedBase
+class MigrationGenerator < Rails::Generator::NamedBase  
   def manifest
     record do |m|
-      m.migration_template 'migration.rb', 'db/migrate'
+      m.migration_template 'migration.rb', 'db/migrate', :assigns => get_local_assigns
     end
   end
-
-  def auto_migration direction
-    case class_name.underscore
-    when /^(add|remove)_(.*)_(?:to|from)_(.*)/ then
-      action, col, tbl = $1, $2, $3.pluralize
-
-      unless (action == "add") ^ (direction == :up) then
-        %(\n    add_column :#{tbl}, :#{col}, :type, :null => :no?, :default => :maybe?)
+  
+  private
+  
+  def get_local_assigns
+    returning(assigns = {}) do
+      if class_name.underscore =~ /^(add|remove)_.*_(?:to|from)_(.*)/
+        assigns[:migration_action] = $1
+        assigns[:table_name]       = $2.pluralize
       else
-        %(\n    remove_column :#{tbl}, :#{col})
+        assigns[:attributes] = []
       end
     end
   end
