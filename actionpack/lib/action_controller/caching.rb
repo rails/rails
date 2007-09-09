@@ -421,12 +421,6 @@ module ActionController #:nodoc:
         end
       end
 
-      # Deprecated -- just call expire_fragment with a regular expression
-      def expire_matched_fragments(matcher = /.*/, options = nil) #:nodoc:
-        expire_fragment(matcher, options)
-      end
-      deprecate :expire_matched_fragments => :expire_fragment
-
 
       class UnthreadedMemoryStore #:nodoc:
         def initialize #:nodoc:
