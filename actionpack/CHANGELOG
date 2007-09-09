@@ -1,5 +1,7 @@
 *SVN*
 
+* Removed ActionController::Base.scaffold -- it went through the whole idea of scaffolding (card board walls you remove and tweak one by one). Use the scaffold generator instead (it does resources too now!) [DHH]
+
 * Optimise named route generation when using positional arguments.  [Koz]
 
   This change delivers significant performance benefits for the most
