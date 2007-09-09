@@ -1,5 +1,12 @@
 *SVN*
 
+* Optimise named route generation when using positional arguments.  [Koz]
+
+  This change delivers significant performance benefits for the most
+  common usage scenarios for modern rails applications by avoiding the
+  costly trip through url_for.  Initial benchmarks indicate this is
+  between 6 and 20 times as fast.
+
 * Explicitly require active_record/query_cache before using it.  [Jeremy Kemper]
 
 * Fix layout overriding response status.  #9476 [lotswholetime]

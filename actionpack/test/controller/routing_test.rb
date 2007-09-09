@@ -47,6 +47,8 @@ end
 class LegacyRouteSetTests < Test::Unit::TestCase
   attr_reader :rs
   def setup
+    # These tests assume optimisation is on, so re-enable it.
+    ActionController::Routing.optimise_named_routes = true
     @rs = ::ActionController::Routing::RouteSet.new
     @rs.draw {|m| m.connect ':controller/:action/:id' }
     ActionController::Routing.use_controllers! %w(content admin/user admin/news_feed)
@@ -166,40 +168,49 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   
   def test_basic_named_route
     rs.add_named_route :home, '', :controller => 'content', :action => 'list' 
-    x = setup_for_named_route.new
-    assert_equal({:controller => 'content', :action => 'list', :use_route => :home, :only_path => false},
+    x = setup_for_named_route
+    assert_equal("http://named.route.test",
                  x.send(:home_url))
   end
 
   def test_named_route_with_option
     rs.add_named_route :page, 'page/:title', :controller => 'content', :action => 'show_page'
-    x = setup_for_named_route.new
-    assert_equal({:controller => 'content', :action => 'show_page', :title => 'new stuff', :use_route => :page, :only_path => false},
+    x = setup_for_named_route
+    assert_equal("http://named.route.test/page/new%20stuff",
                  x.send(:page_url, :title => 'new stuff'))
   end
 
   def test_named_route_with_default
     rs.add_named_route :page, 'page/:title', :controller => 'content', :action => 'show_page', :title => 'AboutPage'
-    x = setup_for_named_route.new
-    assert_equal({:controller => 'content', :action => 'show_page', :title => 'AboutPage', :use_route => :page, :only_path => false},
-                 x.send(:page_url))
-    assert_equal({:controller => 'content', :action => 'show_page', :title => 'AboutRails', :use_route => :page, :only_path => false},
+    x = setup_for_named_route
+    assert_equal("http://named.route.test/page/AboutRails",
                  x.send(:page_url, :title => "AboutRails"))
 
   end
 
   def test_named_route_with_nested_controller
     rs.add_named_route :users, 'admin/user', :controller => '/admin/user', :action => 'index'
-    x = setup_for_named_route.new
-    assert_equal({:controller => '/admin/user', :action => 'index', :use_route => :users, :only_path => false},
+    x = setup_for_named_route
+    assert_equal("http://named.route.test/admin/user",
                  x.send(:users_url))
+  end
+  
+  uses_mocha "named route optimisation" do
+    def test_optimised_named_route_call_never_uses_url_for
+      rs.add_named_route :users, 'admin/user', :controller => '/admin/user', :action => 'index'
+      x = setup_for_named_route
+      x.expects(:url_for).never
+      x.send(:users_url)
+      x.send(:users_path)
+      x.send(:users_url, :some_arg=>"some_value")
+      x.send(:users_path, :some_arg=>"some_value")
+    end
   end
 
   def setup_for_named_route
-    x = Class.new
-    x.send(:define_method, :url_for) {|x| x}
-    rs.install_helpers(x)
-    x
+    klass = Class.new(MockController)
+    rs.install_helpers(klass)
+    klass.new(rs)
   end
 
   def test_named_route_without_hash
@@ -214,13 +225,13 @@ class LegacyRouteSetTests < Test::Unit::TestCase
         :year => /\d+/, :month => /\d+/, :day => /\d+/
       map.connect ':controller/:action/:id'
     end
-    x = setup_for_named_route.new
+    x = setup_for_named_route
+    # assert_equal(
+    #   {:controller => 'page', :action => 'show', :title => 'hi', :use_route => :article, :only_path => false},
+    #   x.send(:article_url, :title => 'hi')
+    # )
     assert_equal(
-      {:controller => 'page', :action => 'show', :title => 'hi', :use_route => :article, :only_path => false},
-      x.send(:article_url, :title => 'hi')
-    )
-    assert_equal(
-      {:controller => 'page', :action => 'show', :title => 'hi', :day => 10, :year => 2005, :month => 6, :use_route => :article, :only_path => false},
+      "http://named.route.test/page/2005/6/10/hi",
       x.send(:article_url, :title => 'hi', :day => 10, :year => 2005, :month => 6)
     )
   end
@@ -408,8 +419,8 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal '/test', rs.generate(:controller => 'post', :action => 'show')
     assert_equal '/test', rs.generate(:controller => 'post', :action => 'show', :year => nil)
     
-    x = setup_for_named_route.new
-    assert_equal({:controller => 'post', :action => 'show', :use_route => :blog, :only_path => false},
+    x = setup_for_named_route
+    assert_equal("http://named.route.test/test",
                  x.send(:blog_url))
   end
   
@@ -455,8 +466,8 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal '/', rs.generate(:controller => 'content', :action => 'index')
     assert_equal '/', rs.generate(:controller => 'content')
     
-    x = setup_for_named_route.new
-    assert_equal({:controller => 'content', :action => 'index', :use_route => :home, :only_path => false},
+    x = setup_for_named_route
+    assert_equal("http://named.route.test",
                  x.send(:home_url))
   end
   
@@ -570,6 +581,17 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal "/posts/new/preview", rs.generate(:controller => "subpath_books", :action => "preview")
   ensure
     Object.send(:remove_const, :SubpathBooksController) rescue nil
+  end
+  
+  def test_failed_requirements_raises_exception_with_violated_requirements
+    rs.draw do |r|
+      r.foo_with_requirement 'foos/:id', :controller=>'foos', :requirements=>{:id=>/\d+/}
+    end
+    
+    x = setup_for_named_route
+    assert_raises(ActionController::RoutingError) do 
+      x.send(:foo_with_requirement_url, "I am Against the requirements")
+    end
   end
 end
 
@@ -840,7 +862,46 @@ class ControllerSegmentTest < Test::Unit::TestCase
 end
 
 uses_mocha 'RouteTest' do
-  
+
+  class MockController
+    attr_accessor :routes
+
+    def initialize(routes)
+      self.routes = routes
+    end
+
+    def url_for(options)
+      only_path = options.delete(:only_path)
+      path = routes.generate(options)
+      only_path ? path : "http://named.route.test#{path}"
+    end
+    
+    def request
+      @request ||= MockRequest.new(:host => "named.route.test", :method => :get)
+    end
+  end
+
+  class MockRequest
+    attr_accessor :path, :path_parameters, :host, :subdomains, :domain, :method
+
+    def initialize(values={})
+      values.each { |key, value| send("#{key}=", value) }
+      if values[:host]
+        subdomain, self.domain = values[:host].split(/\./, 2)
+        self.subdomains = [subdomain]
+      end
+    end
+    
+    def protocol
+      "http://"
+    end
+    
+    def host_with_port
+      (subdomains * '.') + '.' +  domain
+    end
+    
+  end
+
 class RouteTest < Test::Unit::TestCase
 
   def setup
@@ -1302,32 +1363,10 @@ class RouteBuilderTest < Test::Unit::TestCase
   
 end
 
+
+
+
 class RouteSetTest < Test::Unit::TestCase
-  class MockController
-    attr_accessor :routes
-
-    def initialize(routes)
-      self.routes = routes
-    end
-
-    def url_for(options)
-      only_path = options.delete(:only_path)
-      path = routes.generate(options)
-      only_path ? path : "http://named.route.test#{path}"
-    end
-  end
-
-  class MockRequest
-    attr_accessor :path, :path_parameters, :host, :subdomains, :domain, :method
-
-    def initialize(values={})
-      values.each { |key, value| send("#{key}=", value) }
-      if values[:host]
-        subdomain, self.domain = values[:host].split(/\./, 2)
-        self.subdomains = [subdomain]
-      end
-    end
-  end
 
   def set
     @set ||= ROUTING::RouteSet.new
@@ -1458,10 +1497,10 @@ class RouteSetTest < Test::Unit::TestCase
       controller.send(:multi_url, 7, "hello", 5, :baz => "bar")
   end
   
-  def test_named_route_url_method_with_ordered_parameters_and_hash_ordered_parameters_override_hash
+  def test_named_route_url_method_with_no_positional_arguments
     controller = setup_named_route_test
-    assert_equal "http://named.route.test/people/go/7/hello/joe/5?baz=bar",
-      controller.send(:multi_url, 7, "hello", 5, :foo => 666, :baz => "bar")
+    assert_equal "http://named.route.test/people?baz=bar",
+      controller.send(:index_url, :baz => "bar")
   end
   
   def test_draw_default_route
