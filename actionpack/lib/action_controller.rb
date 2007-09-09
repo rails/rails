@@ -67,7 +67,6 @@ ActionController::Base.class_eval do
   include ActionController::Benchmarking
   include ActionController::Rescue
   include ActionController::MimeResponds
-  include ActionController::Scaffolding
   include ActionController::Helpers
   include ActionController::Cookies
   include ActionController::Caching
