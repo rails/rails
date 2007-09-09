@@ -369,16 +369,16 @@ module ActionView
       # <tt>legend</tt> will become the fieldset's title (optional as per W3C).
       #
       # === Examples
-      #   <% fieldset_tag do %>
+      #   <% field_set_tag do %>
       #     <p><%= text_field_tag 'name' %></p>
       #   <% end %>
       #   # => <fieldset><p><input id="name" name="name" type="text" /></p></fieldset>
       #
-      #   <% fieldset_tag 'Your details' do %>
+      #   <% field_set_tag 'Your details' do %>
       #     <p><%= text_field_tag 'name' %></p>
       #   <% end %>
       #   # => <fieldset><legend>Your details</legend><p><input id="name" name="name" type="text" /></p></fieldset>
-      def fieldset_tag(legend = nil, &block)
+      def field_set_tag(legend = nil, &block)
         content = capture(&block)
         concat(tag(:fieldset, {}, true), block.binding)
         concat(content_tag(:legend, legend), block.binding) unless legend.blank?
