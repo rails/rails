@@ -315,8 +315,7 @@ module ActionView
 
       # Computes the path to an image asset in the public images directory.
       # Full paths from the document root will be passed through.
-      # Used internally by image_tag to build the image path. Passing
-      # a filename without an extension is deprecated.
+      # Used internally by image_tag to build the image path.
       #
       # ==== Examples
       #   image_path("edit")                                         # => /images/edit
