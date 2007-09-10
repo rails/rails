@@ -394,7 +394,7 @@ module ActionController
           map_associations(resource, options)
 
           if block_given?
-            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, &block)
+            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, :namespace => options[:namespace], &block)
           end
         end
       end
@@ -411,7 +411,7 @@ module ActionController
           map_associations(resource, options)
 
           if block_given?
-            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, &block)
+            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, :namespace => options[:namespace], &block)
           end
         end
       end
@@ -419,14 +419,13 @@ module ActionController
       def map_associations(resource, options)
         path_prefix = "#{options.delete(:path_prefix)}#{resource.nesting_path_prefix}"
         name_prefix = "#{options.delete(:name_prefix)}#{resource.nesting_name_prefix}"
-        namespace = options.delete(:namespace)
 
         Array(options[:has_many]).each do |association|
-          resources(association, :path_prefix => path_prefix, :name_prefix => name_prefix, :namespace => namespace)
+          resources(association, :path_prefix => path_prefix, :name_prefix => name_prefix, :namespace => options[:namespace])
         end
 
         Array(options[:has_one]).each do |association|
-          resource(association, :path_prefix => path_prefix, :name_prefix => name_prefix, :namespace => namespace)
+          resource(association, :path_prefix => path_prefix, :name_prefix => name_prefix, :namespace => options[:namespace])
         end
       end
 
