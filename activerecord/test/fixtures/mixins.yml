@@ -59,15 +59,6 @@ recursively_cascaded_tree_4:
   type: RecursivelyCascadedTreeMixin
   parent_id: 5007
 
-# List mixins
-
-<% (1..4).each do |counter| %>  
-list_<%= counter %>:
-  id: <%= counter+1006 %>
-  pos: <%= counter  %>
-  type: ListMixin
-  parent_id: 5
-<% end %>
 
 # Nested set mixins
 
@@ -117,11 +108,3 @@ tree_<%= set[0] %>:
 
 <% end %>
 
-# subclasses of list items
-<% (1..4).each do |i| %>
-list_sub_<%= i %>:
-  id: <%= i + 5000 %>
-  pos: <%= i %>
-  parent_id: 5000
-  type: <%= (i % 2 == 1) ? ListMixinSub1 : ListMixinSub2 %> 
-<% end %>

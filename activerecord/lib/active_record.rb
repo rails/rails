@@ -66,7 +66,6 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Transactions
   include ActiveRecord::Reflection
   include ActiveRecord::Acts::Tree
-  include ActiveRecord::Acts::List
   include ActiveRecord::Acts::NestedSet
   include ActiveRecord::Calculations
   include ActiveRecord::XmlSerialization

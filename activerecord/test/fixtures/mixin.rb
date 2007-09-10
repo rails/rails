@@ -15,24 +15,6 @@ class RecursivelyCascadedTreeMixin < Mixin
   has_one :first_child, :class_name => 'RecursivelyCascadedTreeMixin', :foreign_key => :parent_id
 end
 
-class ListMixin < Mixin
-  acts_as_list :column => "pos", :scope => :parent
-
-  def self.table_name() "mixins" end
-end
-
-class ListMixinSub1 < ListMixin
-end
-
-class ListMixinSub2 < ListMixin
-end
-
-
-class ListWithStringScopeMixin < ActiveRecord::Base
-  acts_as_list :column => "pos", :scope => 'parent_id = #{parent_id}'
-
-  def self.table_name() "mixins" end
-end
 
 class NestedSet < Mixin
   acts_as_nested_set :scope => "root_id IS NULL"

@@ -1,5 +1,9 @@
 *SVN*
 
+* Remove acts_as_list.  To use it, install the plugin.  [josh, nzkoz]
+
+  http://dev.rubyonrails.org/svn/rails/plugins/acts_as_list/
+
 * Explicitly require active_record/query_cache before using it.  [Jeremy Kemper]
 
 * Fix bug where unserializing an attribute attempts to modify a frozen @attributes hash for a deleted record.  [Rick, marclove]
