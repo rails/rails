@@ -55,7 +55,6 @@ require 'action_controller/http_authentication'
 require 'action_controller/components'
 require 'action_controller/record_identifier'
 require 'action_controller/macros/auto_complete'
-require 'action_controller/macros/in_place_editing'
 
 require 'action_view'
 ActionController::Base.template_class = ActionView::Base
@@ -77,5 +76,4 @@ ActionController::Base.class_eval do
   include ActionController::Components
   include ActionController::RecordIdentifier
   include ActionController::Macros::AutoComplete
-  include ActionController::Macros::InPlaceEditing
 end

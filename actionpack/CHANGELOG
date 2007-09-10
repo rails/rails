@@ -1,5 +1,7 @@
 *SVN*
 
+* Moved ActionController::Macros::InPlaceEditing into the in_place_editor plugin on the official Rails svn #9513 [lifofifo]
+
 * Removed deprecated form of calling xml_http_request/xhr without the first argument being the http verb [DHH]
 
 * Removed deprecated methods [DHH]:
