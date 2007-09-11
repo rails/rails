@@ -5,7 +5,6 @@ require 'fixtures/comment'
 require 'fixtures/author'
 require 'fixtures/category'
 require 'fixtures/categorization'
-require 'fixtures/mixin'
 require 'fixtures/company'
 require 'fixtures/topic'
 require 'fixtures/reply'
@@ -53,16 +52,6 @@ class CascadedEagerLoadingTest < Test::Unit::TestCase
     assert_equal 5, authors[0].posts.size
   end
 
-  def test_eager_association_loading_with_acts_as_tree
-    roots = TreeMixin.find(:all, :include=>"children", :conditions=>"mixins.parent_id IS NULL", :order=>"mixins.id")
-    assert_equal mixins(:tree_1, :tree2_1, :tree3_1), roots
-    assert_no_queries do
-      assert_equal 2, roots[0].children.size
-      assert_equal 0, roots[1].children.size
-      assert_equal 0, roots[2].children.size
-    end
-  end
-
   def test_eager_association_loading_with_cascaded_three_levels_by_ping_pong
     firms = Firm.find(:all, :include=>{:account=>{:firm=>:account}}, :order=>"companies.id")
     assert_equal 2, firms.size
@@ -103,23 +92,7 @@ class CascadedEagerLoadingTest < Test::Unit::TestCase
       authors.first.posts.first.special_comments.first.post.very_special_comment
     end
   end
-
-  def test_eager_association_loading_with_recursive_cascading_three_levels_has_many
-    root_node = RecursivelyCascadedTreeMixin.find(:first, :include=>{:children=>{:children=>:children}}, :order => 'mixins.id')
-    assert_equal mixins(:recursively_cascaded_tree_4), assert_no_queries { root_node.children.first.children.first.children.first }
-  end
-
-  def test_eager_association_loading_with_recursive_cascading_three_levels_has_one
-    root_node = RecursivelyCascadedTreeMixin.find(:first, :include=>{:first_child=>{:first_child=>:first_child}}, :order => 'mixins.id')
-    assert_equal mixins(:recursively_cascaded_tree_4), assert_no_queries { root_node.first_child.first_child.first_child }
-  end
-
-  def test_eager_association_loading_with_recursive_cascading_three_levels_belongs_to
-    leaf_node = RecursivelyCascadedTreeMixin.find(:first, :include=>{:parent=>{:parent=>:parent}}, :order => 'mixins.id DESC')
-    assert_equal mixins(:recursively_cascaded_tree_1), assert_no_queries { leaf_node.parent.parent.parent }
-  end
 end
-
 
 require 'fixtures/vertex'
 require 'fixtures/edge'

@@ -1,5 +1,7 @@
 *SVN*
 
+* Moved acts_as_tree into a plugin of the same name on the official Rails svn #9514 [lifofifo]
+
 * Moved acts_as_nested_set into a plugin of the same name on the official Rails svn #9516 [josh]
 
 * Moved acts_as_list into a plugin of the same name on the official Rails svn [josh]

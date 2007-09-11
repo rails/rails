@@ -43,7 +43,6 @@ require 'active_record/associations'
 require 'active_record/aggregations'
 require 'active_record/transactions'
 require 'active_record/timestamp'
-require 'active_record/acts/tree'
 require 'active_record/locking/optimistic'
 require 'active_record/locking/pessimistic'
 require 'active_record/migration'
@@ -63,7 +62,6 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Aggregations
   include ActiveRecord::Transactions
   include ActiveRecord::Reflection
-  include ActiveRecord::Acts::Tree
   include ActiveRecord::Calculations
   include ActiveRecord::XmlSerialization
   include ActiveRecord::AttributeMethods

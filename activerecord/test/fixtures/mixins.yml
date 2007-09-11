@@ -1,71 +1,8 @@
-# tree mixins
-tree_1:
-  id: 1001
-  type: TreeMixin
-  parent_id:
-  
-tree_2:
-  id: 1002
-  type: TreeMixin
-  parent_id: 1001
-
-tree_3:
-  id: 1003
-  type: TreeMixin  
-  parent_id: 1002
-
-tree_4:
-  id: 1004
-  type: TreeMixin  
-  parent_id: 1001
-
-tree2_1:
-  id: 1005
-  type: TreeMixin
-  parent_id:
-
-tree3_1:
-  id: 1006
-  type: TreeMixin
-  parent_id:
-
-tree_without_order_1:
-  id: 1101
-  type: TreeMixinWithoutOrder
-  parent_id:
-
-tree_without_order_2:
-  id: 1100
-  type: TreeMixinWithoutOrder
-  parent_id:
-
-recursively_cascaded_tree_1:
-  id: 5005
-  type: RecursivelyCascadedTreeMixin
-  parent_id:
-
-recursively_cascaded_tree_2:
-  id: 5006
-  type: RecursivelyCascadedTreeMixin
-  parent_id: 5005
-
-recursively_cascaded_tree_3:
-  id: 5007
-  type: RecursivelyCascadedTreeMixin
-  parent_id: 5006
-
-recursively_cascaded_tree_4:
-  id: 5008
-  type: RecursivelyCascadedTreeMixin
-  parent_id: 5007
-
-
 # Nested set mixins
 
 <% (1..10).each do |counter| %>  
 set_<%= counter %>:
   id: <%= counter+3000 %>
-  type: NestedSet
 <% end %>
 
 # Big old set
