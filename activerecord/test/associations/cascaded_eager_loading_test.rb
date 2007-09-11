@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'active_record/acts/list'
 require 'fixtures/post'
 require 'fixtures/comment'
 require 'fixtures/author'

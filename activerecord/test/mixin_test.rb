@@ -1,6 +1,4 @@
 require 'abstract_unit'
-require 'active_record/acts/tree'
-require 'active_record/acts/nested_set'
 
 class Mixin < ActiveRecord::Base
 end
