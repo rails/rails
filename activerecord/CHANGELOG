@@ -1,8 +1,8 @@
 *SVN*
 
-* Remove acts_as_list.  To use it, install the plugin.  [josh, nzkoz]
+* Moved acts_as_nested_set into a plugin of the same name on the official Rails svn #9516 [josh]
 
-  http://dev.rubyonrails.org/svn/rails/plugins/acts_as_list/
+* Moved acts_as_list into a plugin of the same name on the official Rails svn [josh]
 
 * Explicitly require active_record/query_cache before using it.  [Jeremy Kemper]
 

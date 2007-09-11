@@ -43,3 +43,31 @@ end
 class NestedSetSubclass < NestedSetSuperclass
   
 end
+
+class NestedSet < Mixin
+  acts_as_nested_set :scope => "root_id IS NULL"
+  
+  def self.table_name() "mixins" end
+end
+
+class NestedSetWithStringScope < Mixin
+  acts_as_nested_set :scope => 'root_id = #{root_id}'
+  
+  def self.table_name() "mixins" end
+end
+
+class NestedSetWithSymbolScope < Mixin
+  acts_as_nested_set :scope => :root
+  
+  def self.table_name() "mixins" end
+end
+
+class NestedSetSuperclass < Mixin
+  acts_as_nested_set :scope => :root
+  
+  def self.table_name() "mixins" end
+end
+
+class NestedSetSubclass < NestedSetSuperclass
+  
+end
