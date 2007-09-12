@@ -45,6 +45,13 @@ module ActionView
       #     :url => { :action => "destroy", :id => post.id }
       #   link_to_remote(image_tag("refresh"), :update => "emails", 
       #     :url => { :action => "list_emails" })
+      # 
+      # You can override the generated HTML options by specifying a hash in
+      # <tt>options[:html]</tt>.
+      #  
+      #   link_to_remote "Delete this post", :update => "posts",
+      #     :url  => post_url(@post), :method => :delete, 
+      #     :html => { :class  => "destructive" } 
       #
       # You can also specify a hash for <tt>options[:update]</tt> to allow for
       # easy redirection of output to an other DOM element if a server-side 
@@ -129,8 +136,8 @@ module ActionView
       #                          default this is the current form, but
       #                          it could just as well be the ID of a
       #                          table row or any other DOM element.
-      def link_to_remote(name, options = {}, html_options = {})  
-        link_to_function(name, remote_function(options), html_options)
+      def link_to_remote(name, options = {}, html_options = nil)  
+        link_to_function(name, remote_function(options), html_options || options.delete(:html))
       end
 
       # Periodically calls the specified url (<tt>options[:url]</tt>) every 

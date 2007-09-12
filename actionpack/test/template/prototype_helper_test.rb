@@ -88,6 +88,11 @@ class PrototypeHelperTest < Test::Unit::TestCase
       link_to_remote("Remote outauthor", :failure => "alert(request.reponseText)", :url => { :action => "whatnot", :a => '10', :b => '20' })
   end
   
+  def test_link_to_remote_html_options
+    assert_dom_equal %(<a class=\"fine\" href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true}); return false;\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", { :url => { :action => "whatnot"  }, :html => { :class => "fine" } })
+  end
+  
   def test_periodically_call_remote
     assert_dom_equal %(<script type="text/javascript">\n//<![CDATA[\nnew PeriodicalExecuter(function() {new Ajax.Updater('schremser_bier', 'http://www.example.com/mehr_bier', {asynchronous:true, evalScripts:true})}, 10)\n//]]>\n</script>),
       periodically_call_remote(:update => "schremser_bier", :url => { :action => "mehr_bier" })
