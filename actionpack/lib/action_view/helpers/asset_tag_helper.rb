@@ -125,7 +125,7 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
       #     <script type="text/javascript" src="/javascripts/effects.js"></script>
       #     ...
-      #     <script type="text/javascript" src="/javascripts/application.js"></script> <!-- * see below -->
+      #     <script type="text/javascript" src="/javascripts/application.js"></script>
       #
       # * = The application.js file is only referenced if it exists
       #
