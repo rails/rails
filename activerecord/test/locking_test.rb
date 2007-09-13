@@ -119,6 +119,8 @@ class OptimisticLockingTest < Test::Unit::TestCase
     def add_counter_column_to(model)
       model.connection.add_column model.table_name, :test_count, :integer, :null => false, :default => 0
       model.reset_column_information
+      # OpenBase does not set a value to existing rows when adding a not null default column
+      model.update_all(:test_count => 0) if current_adapter?(:OpenBaseAdapter)
     end
 
     def remove_counter_column_from(model)
@@ -146,9 +148,9 @@ end
 # blocks, so separate script called by Kernel#system is needed.
 # (See exec vs. async_exec in the PostgreSQL adapter.)
 
-# TODO: The SQL Server and Sybase adapters currently have no support for pessimistic locking
+# TODO: The SQL Server, Sybase, and OpenBase adapters currently have no support for pessimistic locking
 
-unless current_adapter?(:SQLServerAdapter, :SybaseAdapter)
+unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :OpenBaseAdapter)
   class PessimisticLockingTest < Test::Unit::TestCase
     self.use_transactional_fixtures = false
     fixtures :people, :readers

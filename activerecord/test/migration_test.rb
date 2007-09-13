@@ -59,7 +59,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
 
       # Orcl nds shrt indx nms.  Sybs 2.
-      unless current_adapter?(:OracleAdapter, :SybaseAdapter)
+      # OpenBase does not have named indexes.  You must specify a single column name
+      unless current_adapter?(:OracleAdapter, :SybaseAdapter, :OpenBaseAdapter)
         assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
         assert_nothing_raised { Person.connection.remove_index("people", :column => ["last_name", "first_name"]) }
         assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
@@ -72,11 +73,15 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       # quoting
       # Note: changed index name from "key" to "key_idx" since "key" is a Firebird reserved word
-      assert_nothing_raised { Person.connection.add_index("people", ["key"], :name => "key_idx", :unique => true) }
-      assert_nothing_raised { Person.connection.remove_index("people", :name => "key_idx", :unique => true) }
-
+      # OpenBase does not have named indexes.  You must specify a single column name
+      unless current_adapter?(:OpenBaseAdapter)
+        assert_nothing_raised { Person.connection.add_index("people", ["key"], :name => "key_idx", :unique => true) }
+        assert_nothing_raised { Person.connection.remove_index("people", :name => "key_idx", :unique => true) }
+      end
+      
       # Sybase adapter does not support indexes on :boolean columns
-      unless current_adapter?(:SybaseAdapter)
+      # OpenBase does not have named indexes.  You must specify a single column
+      unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
         assert_nothing_raised { Person.connection.add_index("people", %w(last_name first_name administrator), :name => "named_admin") }
         assert_nothing_raised { Person.connection.remove_index("people", :name => "named_admin") }
       end
@@ -202,7 +207,12 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nothing_raised {Person.connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
 
       assert_raises(ActiveRecord::StatementInvalid) do
-        Person.connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
+        unless current_adapter?(:OpenBaseAdapter)
+          Person.connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
+        else
+          Person.connection.insert("INSERT INTO testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) VALUES (2, 'hello', NULL)",
+            "Testing Insert","id",2)
+        end
       end
     ensure
       Person.connection.drop_table :testings rescue nil
@@ -221,6 +231,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       # Do a manual insertion
       if current_adapter?(:OracleAdapter)
         Person.connection.execute "insert into people (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
+      elsif current_adapter?(:OpenBaseAdapter)
+        Person.connection.execute "insert into people (wealth) values ('12345678901234567890.0123456789')"
       else
         Person.connection.execute "insert into people (wealth) values (12345678901234567890.0123456789)"
       end
@@ -514,8 +526,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert !Reminder.table_exists?
 
       WeNeedReminders.up
-
-      assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
+      
+      assert Reminder.create("content" => "hello world", "remind_at" => Time.now)  
       assert_equal "hello world", Reminder.find(:first).content
 
       WeNeedReminders.down
@@ -773,7 +785,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert Person.column_methods_hash.include?(:last_name)			
 			assert_equal 2, ActiveRecord::Migrator.current_version
     end
-    
+
     def test_create_table_with_custom_sequence_name
       return unless current_adapter? :OracleAdapter
 

@@ -135,13 +135,21 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
 
   def test_eager_with_has_many_and_limit_and_conditions
-    posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => "posts.body = 'hello'", :order => "posts.id")
+    if current_adapter?(:OpenBaseAdapter)
+      posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => "FETCHBLOB(posts.body) = 'hello'", :order => "posts.id")
+    else
+      posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => "posts.body = 'hello'", :order => "posts.id")
+    end
     assert_equal 2, posts.size
     assert_equal [4,5], posts.collect { |p| p.id }
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_array
-    posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => [ "posts.body = ?", 'hello' ], :order => "posts.id")
+    if current_adapter?(:OpenBaseAdapter)
+      posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => [ "FETCHBLOB(posts.body) = ?", 'hello' ], :order => "posts.id")
+    else
+      posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => [ "posts.body = ?", 'hello' ], :order => "posts.id")
+    end
     assert_equal 2, posts.size
     assert_equal [4,5], posts.collect { |p| p.id }    
   end
@@ -399,6 +407,8 @@ class EagerAssociationTest < Test::Unit::TestCase
   def test_count_with_include
     if current_adapter?(:SQLServerAdapter, :SybaseAdapter)
       assert_equal 3, authors(:david).posts_with_comments.count(:conditions => "len(comments.body) > 15")
+    elsif current_adapter?(:OpenBaseAdapter)
+      assert_equal 3, authors(:david).posts_with_comments.count(:conditions => "length(FETCHBLOB(comments.body)) > 15")
     else
       assert_equal 3, authors(:david).posts_with_comments.count(:conditions => "length(comments.body) > 15")
     end

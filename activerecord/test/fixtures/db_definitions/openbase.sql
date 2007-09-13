@@ -1,5 +1,5 @@
 CREATE TABLE accounts (
-    id integer UNIQUE INDEX DEFAULT _rowid,
+    id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     firm_id integer,
     credit_limit integer
 )
@@ -8,7 +8,7 @@ CREATE PRIMARY KEY accounts (id)
 go
 
 CREATE TABLE funny_jokes (
-  id integer UNIQUE INDEX DEFAULT _rowid,
+  id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
   name char(50) DEFAULT NULL
 )
 go
@@ -16,7 +16,7 @@ CREATE PRIMARY KEY funny_jokes (id)
 go
 
 CREATE TABLE companies (
-    id integer UNIQUE INDEX DEFAULT _rowid,
+    id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     type char(50),
     ruby_type char(50),
     firm_id integer,
@@ -37,7 +37,7 @@ CREATE TABLE developers_projects (
 go
 
 CREATE TABLE developers (
-    id integer UNIQUE INDEX DEFAULT _rowid,
+    id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     name char(100),
     salary integer DEFAULT 70000,
     created_at datetime,
@@ -48,7 +48,7 @@ CREATE PRIMARY KEY developers (id)
 go
 
 CREATE TABLE projects (
-    id integer UNIQUE INDEX DEFAULT _rowid,
+    id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     name char(100),
     type char(255)
 ) 
@@ -57,7 +57,7 @@ CREATE PRIMARY KEY projects (id)
 go
 
 CREATE TABLE topics (
-    id integer UNIQUE INDEX DEFAULT _rowid,
+    id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     title char(255),
     author_name char(255),
     author_email_address char(255),
@@ -75,7 +75,7 @@ CREATE PRIMARY KEY topics (id)
 go
 
 CREATE TABLE customers (
-    id integer UNIQUE INDEX DEFAULT _rowid,
+    id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     name char,
     balance integer default 0,
     address_street char,
@@ -88,7 +88,7 @@ CREATE PRIMARY KEY customers (id)
 go
 
 CREATE TABLE orders (
-    id integer UNIQUE INDEX DEFAULT _rowid,
+    id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     name char,
     billing_customer_id integer,
     shipping_customer_id integer
@@ -98,7 +98,7 @@ CREATE PRIMARY KEY orders (id)
 go
 
 CREATE TABLE movies (
-    movieid integer UNIQUE INDEX DEFAULT _rowid,
+    movieid integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     name text
 ) 
 go
@@ -114,7 +114,7 @@ CREATE PRIMARY KEY subscribers (nick)
 go
 
 CREATE TABLE booleantests (
-    id integer UNIQUE INDEX DEFAULT _rowid,
+    id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     value boolean
 ) 
 go
@@ -131,12 +131,17 @@ CREATE TABLE defaults (
     fixed_time timestamp default '2004-01-01 00:00:00.000000-00',
     char1 char(1) default 'Y',
     char2 char(50) default 'a char field',
-    char3 text default 'a text field'
+    char3 text default 'a text field',
+    positive_integer integer default 1,
+    negative_integer integer default -1,
+    decimal_number money default 2.78
 ) 
+go
+CREATE PRIMARY KEY defaults (id)
 go
 
 CREATE TABLE auto_id_tests (
-    auto_id integer UNIQUE INDEX DEFAULT _rowid,
+    auto_id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     value integer
 ) 
 go
@@ -144,10 +149,12 @@ CREATE PRIMARY KEY auto_id_tests (auto_id)
 go
 
 CREATE TABLE entrants (
-  id integer UNIQUE INDEX ,
-  name text,
-  course_id integer
+  id integer NOT NULL UNIQUE INDEX,
+  name text NOT NULL,
+  course_id integer NOT NULL
 ) 
+go
+CREATE PRIMARY KEY entrants (id) 
 go
 
 CREATE TABLE colnametests (
@@ -155,9 +162,11 @@ CREATE TABLE colnametests (
   references integer NOT NULL
 ) 
 go
+CREATE PRIMARY KEY colnametests (id) 
+go
 
 CREATE TABLE mixins (
-  id integer UNIQUE INDEX DEFAULT _rowid,
+  id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
   parent_id integer,
   type char,  
   pos integer,
@@ -172,7 +181,7 @@ CREATE PRIMARY KEY mixins (id)
 go
 
 CREATE TABLE people (
-  id integer UNIQUE INDEX DEFAULT _rowid,
+  id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
   first_name text,
   lock_version integer default 0
 ) 
@@ -181,7 +190,7 @@ CREATE PRIMARY KEY people (id)
 go
 
 CREATE TABLE readers (
-    id integer UNIQUE INDEX DEFAULT _rowid,
+    id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     post_id integer NOT NULL,
     person_id integer NOT NULL
 )
@@ -190,7 +199,7 @@ CREATE PRIMARY KEY readers (id)
 go
 
 CREATE TABLE binaries ( 
-  id integer UNIQUE INDEX DEFAULT _rowid,
+  id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
   data object
 ) 
 go
@@ -228,7 +237,7 @@ CREATE TABLE authors (
 go
 
 CREATE TABLE tasks (
-  id integer UNIQUE INDEX DEFAULT _rowid,
+  id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
   starting datetime,
   ending datetime
 ) 
@@ -283,11 +292,11 @@ go
 
 CREATE TABLE numeric_data (
   id INTEGER NOT NULL DEFAULT _rowid,
-  bank_balance DECIMAL(10,2),
-  big_bank_balance DECIMAL(15,2),
-  world_population DECIMAL(10),
-  my_house_population DECIMAL(2),
-  decimal_number_with_default DECIMAL(3,2) DEFAULT 2.78
+  bank_balance MONEY,
+  big_bank_balance MONEY,
+  world_population longlong,
+  my_house_population longlong,
+  decimal_number_with_default MONEY DEFAULT 2.78
 );
 go
 CREATE PRIMARY KEY numeric_data (id)
