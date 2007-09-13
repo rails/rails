@@ -1631,8 +1631,8 @@ module ActiveRecord #:nodoc:
           # Inherit :readonly from finder scope if set.  Otherwise,
           # if :joins is not blank then :readonly defaults to true.
           unless options.has_key?(:readonly)
-            if scoped?(:find, :readonly)
-              options[:readonly] = scope(:find, :readonly)
+            if scoped_readonly = scope(:find, :readonly)
+              options[:readonly] = scoped_readonly
             elsif !options[:joins].blank? && !options[:select]
               options[:readonly] = true
             end
