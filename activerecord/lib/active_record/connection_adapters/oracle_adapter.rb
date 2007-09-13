@@ -573,8 +573,8 @@ begin
       alias :define_a_column_pre_ar :define_a_column
       def define_a_column(i)
         case do_ocicall(@ctx) { @parms[i - 1].attrGet(OCI_ATTR_DATA_TYPE) }
-        when 8    : @stmt.defineByPos(i, String, 65535) # Read LONG values
-        when 187  : @stmt.defineByPos(i, OraDate) # Read TIMESTAMP values
+        when 8;   @stmt.defineByPos(i, String, 65535) # Read LONG values
+        when 187; @stmt.defineByPos(i, OraDate) # Read TIMESTAMP values
         when 108
           if @parms[i - 1].attrGet(OCI_ATTR_TYPE_NAME) == 'XMLTYPE'
             @stmt.defineByPos(i, String, 65535)

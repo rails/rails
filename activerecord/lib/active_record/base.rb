@@ -1156,22 +1156,27 @@ module ActiveRecord #:nodoc:
             sql << " ORDER BY #{scoped_order}" if scoped_order
           end
         end
-        
-        def add_group!(sql, group, scope = :auto)
-          scope = scope(:find) if :auto == scope
-          scoped_group = scope[:group] if scope
 
+        def add_group!(sql, group, scope = :auto)
           if group
             sql << " GROUP BY #{group}"
-          elsif scoped_group
-            sql << " GROUP BY #{scoped_group}"
-          end          
+          else
+            scope = scope(:find) if :auto == scope
+            if scope && (scoped_group = scope[:group])
+              sql << " GROUP BY #{scoped_group}"
+            end
+          end
         end
 
         # The optional scope argument is for the current :find scope.
         def add_limit!(sql, options, scope = :auto)
           scope = scope(:find) if :auto == scope
-          options = options.reverse_merge(:limit => scope[:limit], :offset => scope[:offset]) if scope
+
+          if scope
+            options[:limit] ||= scope[:limit]
+            options[:offset] ||= scope[:offset]
+          end
+
           connection.add_limit_offset!(sql, options)
         end
 
@@ -1994,9 +1999,9 @@ module ActiveRecord #:nodoc:
 
       def convert_number_column_value(value)
         case value
-          when FalseClass: 0
-          when TrueClass:  1
-          when '':         nil
+          when FalseClass; 0
+          when TrueClass;  1
+          when '';         nil
           else value
         end
       end

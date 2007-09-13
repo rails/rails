@@ -321,8 +321,8 @@ module ActiveRecord
       # whether or not to validate the record.  See #validates_each.
       def evaluate_condition(condition, record)
         case condition
-          when Symbol: record.send(condition)
-          when String: eval(condition, record.send(:binding))
+          when Symbol; record.send(condition)
+          when String; eval(condition, record.send(:binding))
           else
             if condition_block?(condition)
               condition.call(record)

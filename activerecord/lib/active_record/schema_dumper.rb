@@ -54,8 +54,8 @@ HEADER
         @connection.tables.sort.each do |tbl|
           next if ["schema_info", ignore_tables].flatten.any? do |ignored|
             case ignored
-            when String: tbl == ignored
-            when Regexp: tbl =~ ignored
+            when String; tbl == ignored
+            when Regexp; tbl =~ ignored
             else
               raise StandardError, 'ActiveRecord::SchemaDumper.ignore_tables accepts an array of String and / or Regexp values.'
             end

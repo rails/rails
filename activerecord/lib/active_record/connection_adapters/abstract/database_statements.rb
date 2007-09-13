@@ -112,8 +112,8 @@ module ActiveRecord
       #   add_lock! 'SELECT * FROM suppliers', :lock => ' FOR UPDATE'
       def add_lock!(sql, options)
         case lock = options[:lock]
-          when true:   sql << ' FOR UPDATE'
-          when String: sql << " #{lock}"
+          when true;   sql << ' FOR UPDATE'
+          when String; sql << " #{lock}"
         end
       end
 
