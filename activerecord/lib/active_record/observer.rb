@@ -127,10 +127,6 @@ module ActiveRecord
   class Observer
     include Singleton
 
-    # Observer subclasses should be reloaded by the dispatcher in Rails
-    # when Dependencies.mechanism = :load.
-    include Reloadable::Deprecated
-
     class << self
       # Attaches the observer to the supplied model classes.
       def observe(*models)

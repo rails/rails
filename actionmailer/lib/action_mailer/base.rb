@@ -221,10 +221,6 @@ module ActionMailer #:nodoc:
     include AdvAttrAccessor, PartContainer
     include ActionController::UrlWriter if Object.const_defined?(:ActionController)
 
-    # Action Mailer subclasses should be reloaded by the dispatcher in Rails
-    # when Dependencies.mechanism = :load.
-    include Reloadable::Deprecated
-    
     private_class_method :new #:nodoc:
 
     class_inheritable_accessor :template_root

@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecation: removed Reloadable.  [Jeremy Kemper]
+
 * Make the utf-handler return the correct value for non-matching regular expressions. Closes #9049 [manfred]
 
 * Add ljust, rjust and center to utf8-handler. Closes #9165 [manfred]
