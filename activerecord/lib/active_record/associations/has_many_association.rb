@@ -125,14 +125,17 @@ module ActiveRecord
         end
 
         def delete_records(records)
-          if @reflection.options[:dependent]
-            records.each { |r| r.destroy }
-          else
-            ids = quoted_record_ids(records)
-            @reflection.klass.update_all(
-              "#{@reflection.primary_key_name} = NULL", 
-              "#{@reflection.primary_key_name} = #{@owner.quoted_id} AND #{@reflection.klass.primary_key} IN (#{ids})"
-            )
+          case @reflection.options[:dependent]
+            when :destroy
+              records.each(&:destroy)
+            when :delete_all
+              @reflection.klass.delete(records.map(&:id))
+            else
+              ids = quoted_record_ids(records)
+              @reflection.klass.update_all(
+                "#{@reflection.primary_key_name} = NULL", 
+                "#{@reflection.primary_key_name} = #{@owner.quoted_id} AND #{@reflection.klass.primary_key} IN (#{ids})"
+              )
           end
         end
 

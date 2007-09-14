@@ -961,6 +961,11 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 1, firm.clients.length
   end
 
+  def test_replace_with_less_and_dependent_nullify
+    num_companies = Company.count
+    companies(:rails_core).companies = []
+    assert_equal num_companies, Company.count
+  end
 
   def test_replace_with_new
     firm = Firm.find(:first)
