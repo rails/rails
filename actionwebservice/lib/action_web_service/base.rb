@@ -31,10 +31,6 @@ module ActionWebService # :nodoc:
   #     member :email,     :string
   #   end
   class Base
-    # Action WebService subclasses should be reloaded by the dispatcher in Rails
-    # when Dependencies.mechanism = :load.
-    include Reloadable::Deprecated
-
     # Whether to report exceptions back to the caller in the protocol's exception
     # format
     class_inheritable_option :web_service_exception_reporting, true

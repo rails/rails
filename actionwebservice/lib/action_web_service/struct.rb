@@ -19,10 +19,6 @@ module ActionWebService
   # Active Record model classes are already implicitly supported in method
   # signatures.
   class Struct
-    # Action WebService Struct subclasses should be reloaded by the dispatcher in Rails
-    # when Dependencies.mechanism = :load.
-    include Reloadable::Deprecated
-    
     # If a Hash is given as argument to an ActionWebService::Struct constructor,
     # it can contain initial values for the structure member.
     def initialize(values={})
