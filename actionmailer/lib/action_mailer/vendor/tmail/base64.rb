@@ -42,7 +42,7 @@ module TMail
     end
 
     def rb_decode( str, strict = false )
-      str.unpack('m')
+      str.unpack('m').first
     end
 
     begin

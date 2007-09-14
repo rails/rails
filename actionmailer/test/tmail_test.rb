@@ -16,6 +16,7 @@ class TMailMailTest < Test::Unit::TestCase
     mail = TMail::Mail.parse(fixture)
     assert_equal 2, mail.attachments.length
     assert_equal "image/png", mail.attachments.first.content_type
+    assert_equal 1902, mail.attachments.first.length
     assert_equal "application/pkcs7-signature", mail.attachments.last.content_type
   end
 end

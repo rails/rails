@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix attachment decoding when using the TMail C extension.  #7861 [orangechicken]
+
 * Increase mail delivery test coverage.  #8692 [kamal]
 
 * Register alternative template engines using ActionMailer::Base.register_template_extension('haml').  #7534 [cwd, Josh Peek]

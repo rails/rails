@@ -30,9 +30,41 @@ class QuotingTest < Test::Unit::TestCase
     mail = TMail::Mail.parse(IO.read("#{File.dirname(__FILE__)}/fixtures/raw_email_with_partially_quoted_subject"))
     assert_equal "Re: Test: \"\346\274\242\345\255\227\" mid \"\346\274\242\345\255\227\" tail", mail.subject
   end
+  
+  def test_rb_decode
+    encoded, decoded = expected_base64_strings
+    assert_equal decoded, TMail::Base64.rb_decode(encoded)
+  end
+  
+  def test_rb_encode
+    encoded, decoded = expected_base64_strings
+    assert_equal encoded.length, TMail::Base64.rb_encode(decoded).length
+  end
+  
+  def test_rb_decode_should_match_c_decode_if_available
+    encoded, decoded = expected_base64_strings
+    
+    begin
+      require 'tmail/base64.so'
+      assert_equal TMail::Base64.rb_decode(encoded), TMail::Base64.c_decode(encoded)
+    rescue LoadError
+      # No .so
+    end
+  end
+  
+  def test_rb_encode_should_match_c_encode_if_available
+    encoded, decoded = expected_base64_strings
+    
+    begin
+      require 'tmail/base64.so'
+      assert_equal TMail::Base64.rb_encode(decoded), TMail::Base64.c_encode(decoded)
+    rescue LoadError
+      # No .so
+    end
+  end
 
   private
-
+    
     # This whole thing *could* be much simpler, but I don't think Tempfile,
     # popen and others exist on all platforms (like Windows).
     def execute_in_sandbox(code)
@@ -53,5 +85,9 @@ class QuotingTest < Test::Unit::TestCase
     ensure
       File.delete(test_name) rescue nil
       File.delete(res_name) rescue nil
+    end
+    
+    def expected_base64_strings
+      [ File.read("#{File.dirname(__FILE__)}/fixtures/raw_base64_encoded_string"), File.read("#{File.dirname(__FILE__)}/fixtures/raw_base64_decoded_string") ]
     end
 end
