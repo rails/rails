@@ -114,7 +114,7 @@ module Dependencies #:nodoc:
     raise NameError, "#{path.inspect} is not a valid constant name!" unless
       /^(::)?([A-Z]\w*)(::[A-Z]\w*)*$/ =~ path
     
-    names = path.split('::')
+    names = path.to_s.split('::')
     names.shift if names.first.empty?
     
     # We can't use defined? because it will invoke const_missing for the parent
@@ -411,7 +411,7 @@ protected
     return false unless qualified_const_defined? const
     
     const = $1 if /\A::(.*)\Z/ =~ const.to_s
-    names = const.split('::')
+    names = const.to_s.split('::')
     if names.size == 1 # It's under Object
       parent = Object
     else
@@ -419,7 +419,7 @@ protected
     end
     
     log "removing constant #{const}"
-    parent.send :remove_const, names.last
+    parent.instance_eval { remove_const names.last }
     return true
   end
   
@@ -438,9 +438,11 @@ protected
   
 end
 
-Object.send(:define_method, :require_or_load)     { |file_name| Dependencies.require_or_load(file_name) } unless Object.respond_to?(:require_or_load)
-Object.send(:define_method, :require_dependency)  { |file_name| Dependencies.depend_on(file_name) }       unless Object.respond_to?(:require_dependency)
-Object.send(:define_method, :require_association) { |file_name| Dependencies.associate_with(file_name) }  unless Object.respond_to?(:require_association)
+Object.instance_eval do
+  define_method(:require_or_load)     { |file_name| Dependencies.require_or_load(file_name) } unless Object.respond_to?(:require_or_load)
+  define_method(:require_dependency)  { |file_name| Dependencies.depend_on(file_name) }       unless Object.respond_to?(:require_dependency)
+  define_method(:require_association) { |file_name| Dependencies.associate_with(file_name) }  unless Object.respond_to?(:require_association)
+end
 
 class Module #:nodoc:
   # Rename the original handler so we can chain it to the new one

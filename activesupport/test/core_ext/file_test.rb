@@ -6,9 +6,9 @@ class AtomicWriteTest < Test::Unit::TestCase
     contents  = "Atomic Text"
     File.atomic_write(file_name, Dir.pwd) do |file|
       file.write(contents)
-      assert !File.exists?(file_name)
+      assert !File.exist?(file_name)
     end
-    assert File.exists?(file_name)
+    assert File.exist?(file_name)
     assert_equal contents, File.read(file_name)
   ensure
     File.unlink(file_name) rescue nil
@@ -20,7 +20,7 @@ class AtomicWriteTest < Test::Unit::TestCase
       raise "something bad"
     end
   rescue
-    assert !File.exists?(file_name)
+    assert !File.exist?(file_name)
   end
   
   def file_name

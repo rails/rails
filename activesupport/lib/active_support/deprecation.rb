@@ -147,7 +147,9 @@ module ActiveSupport
     # Stand-in for @request, @attributes, @params, etc which emits deprecation
     # warnings on any method call (except #inspect).
     class DeprecatedInstanceVariableProxy #:nodoc:
-      instance_methods.each { |m| undef_method m unless m =~ /^__/ }
+      silence_warnings do
+        instance_methods.each { |m| undef_method m unless m =~ /^__/ }
+      end
 
       def initialize(instance, method, var = "@#{method}")
         @instance, @method, @var = instance, method, var

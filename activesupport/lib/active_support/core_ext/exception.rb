@@ -8,8 +8,8 @@ class Exception # :nodoc:
   
   def clean_backtrace
     backtrace.collect do |line|
-      Pathname.clean_within(TraceSubstitutions.inject(line) do |line, (regexp, sub)|
-        line.gsub regexp, sub
+      Pathname.clean_within(TraceSubstitutions.inject(line) do |result, (regexp, sub)|
+        result.gsub regexp, sub
       end)
     end
   end

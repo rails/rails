@@ -25,12 +25,14 @@ module ActiveSupport #:nodoc:
         def to_param
           join '/'
         end
-        
-        def self.included(klass) #:nodoc:
-          klass.send(:alias_method, :to_default_s, :to_s)
-          klass.send(:alias_method, :to_s, :to_formatted_s)
+
+        def self.included(base) #:nodoc:
+          base.class_eval do
+            alias_method :to_default_s, :to_s
+            alias_method :to_s, :to_formatted_s
+          end
         end
-        
+
         def to_formatted_s(format = :default)
           case format
             when :db

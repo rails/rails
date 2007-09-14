@@ -3,8 +3,10 @@ module ActiveSupport #:nodoc:
     module Float #:nodoc:
       module Rounding
         def self.included(base) #:nodoc:
-          base.send(:alias_method, :round_without_precision, :round)
-          base.send(:alias_method, :round, :round_with_precision)
+          base.class_eval do
+            alias_method :round_without_precision, :round
+            alias_method :round, :round_with_precision
+          end
         end
 
         # Rounds the float with the specified precision.

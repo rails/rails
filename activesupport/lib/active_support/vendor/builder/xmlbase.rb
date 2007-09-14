@@ -122,19 +122,19 @@ module Builder
     end
 
     def _capture_outer_self(block)
-      @self = eval("self", block)
+      @self = eval('self', block.instance_eval { binding })
     end
-    
+
     def _newline
       return if @indent == 0
       text! "\n"
     end
-    
+
     def _indent
       return if @indent == 0 || @level == 0
       text!(" " * (@level * @indent))
     end
-    
+
     def _nested_structures(block)
       @level += 1
       block.call(self)

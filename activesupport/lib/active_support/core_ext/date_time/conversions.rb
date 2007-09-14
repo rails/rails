@@ -3,11 +3,13 @@ module ActiveSupport #:nodoc:
     module DateTime #:nodoc:
       # Getting datetimes in different convenient string representations and other objects
       module Conversions
-        def self.included(klass)
-          klass.send(:alias_method, :to_datetime_default_s, :to_s)
-          klass.send(:alias_method, :to_s, :to_formatted_s)
-          klass.send(:alias_method, :default_inspect, :inspect)
-          klass.send(:alias_method, :inspect, :readable_inspect)
+        def self.included(base)
+          base.class_eval do
+            alias_method :to_datetime_default_s, :to_s
+            alias_method :to_s, :to_formatted_s
+            alias_method :default_inspect, :inspect
+            alias_method :inspect, :readable_inspect
+          end
         end
 
         def to_formatted_s(format = :default)

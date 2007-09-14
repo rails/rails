@@ -12,9 +12,11 @@ module ActiveSupport #:nodoc:
           :rfc822       => "%a, %d %b %Y %H:%M:%S %z"
         }
 
-        def self.included(klass)
-          klass.send(:alias_method, :to_default_s, :to_s)
-          klass.send(:alias_method, :to_s, :to_formatted_s)
+        def self.included(base)
+          base.class_eval do
+            alias_method :to_default_s, :to_s
+            alias_method :to_s, :to_formatted_s
+          end
         end
 
         def to_formatted_s(format = :default)

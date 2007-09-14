@@ -38,6 +38,7 @@ module Enumerable
   #
   def sum(identity = 0, &block)
     return identity unless size > 0
+
     if block_given?
       map(&block).sum
     else

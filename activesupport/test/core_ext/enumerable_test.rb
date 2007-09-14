@@ -8,8 +8,7 @@ end
 class EnumerableTests < Test::Unit::TestCase
   def test_group_by
     names = %w(marcel sam david jeremy)
-    klass = Class.new
-    klass.send(:attr_accessor, :name)
+    klass = Struct.new(:name)
     objects = (1..50).inject([]) do |people,|
       p = klass.new
       p.name = names.sort_by { rand }.first
@@ -38,10 +37,13 @@ class EnumerableTests < Test::Unit::TestCase
   end
 
   def test_nil_sums
-    assert_raise(TypeError) { [5, 15, nil].sum }
+    expected_raise = RUBY_VERSION < '1.9.0' ? TypeError : NoMethodError
+
+    assert_raise(expected_raise) { [5, 15, nil].sum }
 
     payments = [ Payment.new(5), Payment.new(15), Payment.new(10), Payment.new(nil) ]
-    assert_raise(TypeError) { payments.sum(&:price) }
+    assert_raise(expected_raise) { payments.sum(&:price) }
+
     assert_equal 60, payments.sum { |p| p.price.to_i * 2 }
   end
   

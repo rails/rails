@@ -17,8 +17,8 @@ class Class #:nodoc:
       
       # Skip this class if it does not match the current one bound to this name
       next unless parent.const_defined?(basename) && klass = parent.const_get(basename)
-      
-      parent.send :remove_const, basename unless parent == klass
+
+      parent.instance_eval { remove_const basename } unless parent == klass
     end
   end
 end

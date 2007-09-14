@@ -179,15 +179,15 @@ class ArrayToXmlTests < Test::Unit::TestCase
     assert_match(/^<\?xml [^>]*/, xml)
     assert_equal 0, xml.rindex(/<\?xml /)
   end
-  
+
   def test_to_xml_with_block
     xml = [
       { :name => "David", :age => 26, :age_in_millis => 820497600000 },
       { :name => "Jason", :age => 31, :age_in_millis => BigDecimal.new('1.0') }
-    ].to_xml(:skip_instruct => true, :indent => 0) do |xml|
-      xml.count 2
+    ].to_xml(:skip_instruct => true, :indent => 0) do |builder|
+      builder.count 2
     end
-    
+
     assert xml.include?(%(<count>2</count>)), xml
   end
 end

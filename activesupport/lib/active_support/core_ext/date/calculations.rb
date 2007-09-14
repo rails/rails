@@ -4,13 +4,15 @@ module ActiveSupport #:nodoc:
       # Enables the use of time calculations within Time itself
       module Calculations
         def self.included(base) #:nodoc:
-          base.send(:extend, ClassMethods)
-          
-          base.send(:alias_method, :plus_without_duration, :+)
-          base.send(:alias_method, :+, :plus_with_duration)
-          
-          base.send(:alias_method, :minus_without_duration, :-)
-          base.send(:alias_method, :-, :minus_with_duration)
+          base.extend ClassMethods
+
+          base.instance_eval do
+            alias_method :plus_without_duration, :+
+            alias_method :+, :plus_with_duration
+
+            alias_method :minus_without_duration, :-
+            alias_method :-, :minus_with_duration
+          end
         end
 
         module ClassMethods
