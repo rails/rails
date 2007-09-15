@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that setting request.format would also affect respond_to blocks [DHH]
+
 * Add option to force binary mode on tempfile used for fixture_file_upload.  #6380 [Jonathan Viney]
 
 * Fixed that resource namespaces wouldn't stick to all nested resources #9399 [pixeltrix]

@@ -35,6 +35,15 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def forced_xml
+    request.format = :xml
+
+    respond_to do |type|
+      type.html { render :text => "HTML"    }
+      type.xml  { render :text => "XML"     }
+    end
+  end
+
   def just_xml
     respond_to do |type|
       type.xml  { render :text => "XML" }
@@ -341,6 +350,14 @@ class MimeControllerTest < Test::Unit::TestCase
 
     get :html_xml_or_rss, :format => "rss"
     assert_equal "RSS", @response.body
+  end
+
+  def test_internally_forced_format
+    get :forced_xml
+    assert_equal "XML", @response.body
+
+    get :forced_xml, :format => "html"
+    assert_equal "XML", @response.body
   end
 
   def test_extension_synonyms

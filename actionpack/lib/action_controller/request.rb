@@ -12,9 +12,6 @@ module ActionController
     # such as { 'RAILS_ENV' => 'production' }.
     attr_reader :env
 
-    # The requested content type, such as :html or :xml.
-    attr_writer :format
-
     # The HTTP request method as a lowercase symbol, such as :get.
     # Note, HEAD is returned as :get since the two are functionally
     # equivalent from the application's perspective.
@@ -89,6 +86,23 @@ module ActionController
     #   GET /posts/5       | request.format => request.accepts.first (usually Mime::HTML for browsers)
     def format
       @format ||= parameters[:format] ? Mime::Type.lookup_by_extension(parameters[:format]) : accepts.first
+    end
+    
+    
+    # Sets the format by string extension, which can be used to force custom formats that are not controlled by the extension.
+    # Example:
+    #
+    #   class ApplicationController < ActionController::Base
+    #     before_filter :adjust_format_for_iphone
+    #   
+    #     private
+    #       def adjust_format_for_iphone
+    #         request.format = :iphone if request.env["HTTP_USER_AGENT"][/iPhone/]
+    #       end
+    #   end
+    def format=(extension)
+      parameters[:format] = extension.to_s
+      format
     end
 
     # Returns true if the request's "X-Requested-With" header contains
