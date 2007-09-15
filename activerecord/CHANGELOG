@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that altering join tables in migrations would fail w/ sqlite3 #7453 [TimoMihaljov/brandon]
+
 * Fix association writer with :dependent => :nullify.  #7314 [Jonathan Viney]
 
 * OpenBase: update for new lib and latest Rails. Support migrations.  #8748 [dcsesq]

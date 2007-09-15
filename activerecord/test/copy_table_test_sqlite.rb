@@ -42,6 +42,10 @@ class CopyTableTest < Test::Unit::TestCase
     end
   end
   
+  def test_copy_table_without_primary_key
+    test_copy_table('developers_projects', 'programmers_projects')
+  end
+  
 protected
   def copy_table(from, to, options = {})
     @connection.copy_table(from, to, {:temporary => true}.merge(options))

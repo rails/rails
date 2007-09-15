@@ -285,6 +285,7 @@ module ActiveRecord
         end
 
         def copy_table(from, to, options = {}) #:nodoc:
+          options = options.merge(:id => !columns(from).detect{|c| c.name == 'id'}.nil?)
           create_table(to, options) do |@definition|
             columns(from).each do |column|
               column_name = options[:rename] ?
@@ -296,7 +297,7 @@ module ActiveRecord
                 :limit => column.limit, :default => column.default,
                 :null => column.null)
             end
-            @definition.primary_key(primary_key(from))
+            @definition.primary_key(primary_key(from)) if primary_key(from)
             yield @definition if block_given?
           end
 
