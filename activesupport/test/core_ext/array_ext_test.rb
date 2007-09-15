@@ -200,3 +200,19 @@ class ArrayExtractOptionsTests < Test::Unit::TestCase
     assert_equal({:a=>:b}, [1, {:a=>:b}].extract_options!)
   end
 end
+
+uses_mocha "ArrayExtRandomTests" do
+
+class ArrayExtRandomTests < Test::Unit::TestCase
+  def test_random_element_from_array
+    assert_nil [].rand
+
+    Kernel.expects(:rand).with(1).returns(0)
+    assert_equal 'x', ['x'].rand
+
+    Kernel.expects(:rand).with(3).returns(1)
+    assert_equal 2, [1, 2, 3].rand
+  end
+end
+
+end

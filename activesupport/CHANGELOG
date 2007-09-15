@@ -1,5 +1,11 @@
 *SVN*
 
+* Added Array#rand #9170 [norbert]. Examples:
+
+    [].rand       # => nil
+    ['a'].rand    # => 'a'
+    [1,2,3].rand  # => 1 or 2 or 3
+
 * Deprecation: removed Reloadable.  [Jeremy Kemper]
 
 * Make the utf-handler return the correct value for non-matching regular expressions. Closes #9049 [manfred]

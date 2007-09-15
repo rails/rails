@@ -18,7 +18,6 @@ task :default => :test
 Rake::TestTask.new { |t| 
   t.pattern = 'test/**/*_test.rb'
   t.verbose = true
-  t.warning = true
 }
 
 # Create compressed packages
