@@ -1,5 +1,7 @@
 *SVN*
 
+* RubyGem database adapters: expects a gem named activerecord-<database>-adapter with active_record/connection_adapters/<database>_adapter.rb in its load path.  [Jeremy Kemper]
+
 * Added block-acceptance to JavaScriptHelper#javascript_tag #7527 [BobSilva/tarmo/rmm5t]
 
 * Fixed that altering join tables in migrations would fail w/ sqlite3 #7453 [TimoMihaljov/brandon]
