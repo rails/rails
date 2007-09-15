@@ -1,5 +1,7 @@
 *SVN*
 
+* Added block-acceptance to JavaScriptHelper#javascript_tag #7527 [BobSilva/tarmo/rmm5t]
+
 * Fixed that altering join tables in migrations would fail w/ sqlite3 #7453 [TimoMihaljov/brandon]
 
 * Fix association writer with :dependent => :nullify.  #7314 [Jonathan Viney]

@@ -156,7 +156,6 @@ module ActionView
       #   javascript_tag "alert('All is good')"
       #
       # Returns:
-      #
       #   <script type="text/javascript">
       #   //<![CDATA[
       #   alert('All is good')
@@ -164,9 +163,29 @@ module ActionView
       #   </script>
       #
       # +html_options+ may be a hash of attributes for the <script> tag. Example:
-      #   javascript_tag "alert('All is good')", :defer => 'true' # => <script defer="true" type="text/javascript">alert('All is good')</script>
-      def javascript_tag(content, html_options = {})
-        content_tag("script", javascript_cdata_section(content), html_options.merge(:type => Mime::JS))
+      #   javascript_tag "alert('All is good')", :defer => 'defer' 
+      #   # => <script defer="defer" type="text/javascript">alert('All is good')</script>
+      #
+      # Instead of passing the content as an argument, you can also use a block
+      # in which case, you pass your +html_options+ as the first parameter.
+      #   <% javascript_tag :defer => 'defer' do -%>
+      #     alert('All is good')
+      #   <% end -%>
+      def javascript_tag(content_or_options_with_block = nil, html_options = {}, &block)
+        if block_given?
+          html_options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
+          content = capture(&block)
+        else
+          content = content_or_options_with_block
+        end
+
+        javascript_tag = content_tag("script", javascript_cdata_section(content), html_options.merge(:type => Mime::JS))
+        
+        if block_given? && block_is_within_action_view?(block)
+          concat(javascript_tag, block.binding)
+        else
+          javascript_tag
+        end
       end
 
       def javascript_cdata_section(content) #:nodoc:
@@ -185,6 +204,11 @@ module ActionView
           "'#{option}'"
         end
         js_option
+      end
+
+    private
+      def block_is_within_action_view?(block)
+        eval("defined? _erbout", block.binding)
       end
     end
     

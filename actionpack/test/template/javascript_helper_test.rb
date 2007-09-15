@@ -91,6 +91,18 @@ class JavaScriptHelperTest < Test::Unit::TestCase
       javascript_tag("alert('hello')", :id => "the_js_tag")
   end
 
+  def test_javascript_tag_with_block
+    _erbout = ''
+    javascript_tag { _erbout.concat "alert('hello')" }
+    assert_dom_equal "<script type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>", _erbout
+  end
+
+  def test_javascript_tag_with_block_and_options
+    _erbout = ''
+    javascript_tag(:id => "the_js_tag") { _erbout.concat "alert('hello')" }
+    assert_dom_equal "<script id=\"the_js_tag\" type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>", _erbout
+  end
+
   def test_javascript_cdata_section
     assert_dom_equal "\n//<![CDATA[\nalert('hello')\n//]]>\n", javascript_cdata_section("alert('hello')")
   end
