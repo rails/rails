@@ -438,7 +438,7 @@ module ActionView
       #     <tr class="<%= cycle("even", "odd", :name => "row_class")
       #       <td>
       #         <% item.values.each do |value| %>
-      #           <!-- Create a named cycle "colors" -->
+      #           <%# Create a named cycle "colors" %>
       #           <span style="color:<%= cycle("red", "green", "blue", :name => "colors") -%>">
       #             <%= value %>
       #           </span>
