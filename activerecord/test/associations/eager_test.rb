@@ -103,6 +103,11 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_equal [2], posts.collect { |p| p.id }
   end
   
+  def test_eager_association_loading_with_explicit_join
+    posts = Post.find(:all, :include => :comments, :joins => "INNER JOIN authors ON posts.author_id = authors.id AND authors.name = 'Mary'", :limit => 1, :order => 'author_id')
+    assert_equal 1, posts.length
+  end
+  
   def test_eager_with_has_many_through
     posts_with_comments = people(:michael).posts.find(:all, :include => :comments)
     posts_with_author = people(:michael).posts.find(:all, :include => :author )
