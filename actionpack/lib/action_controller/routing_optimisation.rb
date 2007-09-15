@@ -62,11 +62,10 @@ module ActionController
             elements << '#{request.host_with_port}'
           end
 
-          # The last entry in route.segments appears to
-          # *always* be a 'divider segment' for '/'
-          # but we have assertions to ensure that we don't
-          # include the trailing slashes, so skip them
-          route.segments[0..-2].each do |segment|
+          # The last entry in route.segments appears to # *always* be a
+          # 'divider segment' for '/' but we have assertions to ensure that
+          # we don't include the trailing slashes, so skip them.
+          ((route.segments.size == 1 && kind == :path) ? route.segments : route.segments[0..-2]).each do |segment|
             if segment.is_a?(DynamicSegment)
               elements << "\#{URI.escape(args[#{idx}].to_param, ActionController::Routing::Segment::UNSAFE_PCHAR)}"
               idx += 1

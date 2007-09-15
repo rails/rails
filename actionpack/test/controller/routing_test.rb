@@ -218,7 +218,16 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       map.normal ':controller/:action/:id'
     end
   end
-
+     
+  def test_named_route_root
+    rs.draw do |map|
+      map.root :controller => "hello"
+    end                     
+    x = setup_for_named_route       
+    assert_equal("http://named.route.test", x.send(:root_url))
+    assert_equal("/", x.send(:root_path))
+  end
+  
   def test_named_route_with_regexps
     rs.draw do |map|
       map.article 'page/:year/:month/:day/:title', :controller => 'page', :action => 'show',
