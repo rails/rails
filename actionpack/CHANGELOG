@@ -1,6 +1,6 @@
 *SVN*
 
-* Fixed that setting request.format would also affect respond_to blocks [DHH]
+* Fixed that setting request.format should also affect respond_to blocks [DHH]
 
 * Add option to force binary mode on tempfile used for fixture_file_upload.  #6380 [Jonathan Viney]
 
