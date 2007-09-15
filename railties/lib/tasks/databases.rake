@@ -28,7 +28,6 @@ namespace :db do
             ActiveRecord::Base.establish_connection(config.merge({'database' => nil}))
             ActiveRecord::Base.connection.create_database(config['database'], {:charset => @charset, :collation => @collation})
             ActiveRecord::Base.establish_connection(config)
-            p "MySQL #{config['database']} database succesfully created"
           rescue
             $stderr.puts "Couldn't create database for #{config.inspect}"
           end
@@ -47,17 +46,18 @@ namespace :db do
     end
   end
 
-  desc 'Drops the database for the current environment'
-  task :drop => :environment do
-    config = ActiveRecord::Base.configurations[RAILS_ENV || 'development']
-    case config['adapter']
-    when 'mysql'
-      ActiveRecord::Base.connection.drop_database config['database']
-    when /^sqlite/
-      FileUtils.rm_f File.join(RAILS_ROOT, config['database'])
-    when 'postgresql'
-      `dropdb "#{config['database']}"`
+  namespace :drop do
+    desc 'Drops all the local databases defined in config/database.yml'
+    task :all => :environment do
+      ActiveRecord::Base.configurations.each_value do |config|
+        drop_database(config)
+      end
     end
+  end
+
+  desc 'Drops the database for the current RAILS_ENV'
+  task :drop => :environment do
+    drop_database(ActiveRecord::Base.configurations[RAILS_ENV || 'development'])
   end
 
   desc "Migrate the database through scripts in db/migrate. Target specific version with VERSION=x"
@@ -263,6 +263,17 @@ namespace :db do
       session_table = Inflector.pluralize(session_table) if ActiveRecord::Base.pluralize_table_names
       ActiveRecord::Base.connection.execute "DELETE FROM #{session_table}"
     end
+  end
+end
+
+def drop_database(config)
+  case config['adapter']
+  when 'mysql'
+    ActiveRecord::Base.connection.drop_database config['database']
+  when /^sqlite/
+    FileUtils.rm_f(File.join(RAILS_ROOT, config['database']))
+  when 'postgresql'
+    `dropdb "#{config['database']}"`
   end
 end
 

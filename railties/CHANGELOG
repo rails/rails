@@ -1,5 +1,7 @@
 *SVN*
 
+* Added db:drop:all to drop all databases declared in config/database.yml [DHH]
+
 * Use attribute pairs instead of the migration name to create add and remove column migrations.  Closes #9166 [lifofifo]
 
 	For example:
