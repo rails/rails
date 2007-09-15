@@ -56,7 +56,6 @@ module ActionController
           elements = []
           idx = 0
 
-
           if kind == :url
             elements << '#{request.protocol}'
             elements << '#{request.host_with_port}'
@@ -67,10 +66,10 @@ module ActionController
           # we don't include the trailing slashes, so skip them.
           ((route.segments.size == 1 && kind == :path) ? route.segments : route.segments[0..-2]).each do |segment|
             if segment.is_a?(DynamicSegment)
-              elements << "\#{URI.escape(args[#{idx}].to_param, ActionController::Routing::Segment::UNSAFE_PCHAR)}"
+              elements << segment.interpolation_chunk("args[#{idx}].to_param")
               idx += 1
             else
-              elements << segment.to_s
+              elements << segment.interpolation_chunk
             end
           end
           %("#{elements * ''}")

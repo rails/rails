@@ -718,8 +718,8 @@ module ActionController
         s << "\n#{expiry_statement}"
       end
   
-      def interpolation_chunk
-        "\#{URI.escape(#{local_name}.to_s, ActionController::Routing::Segment::UNSAFE_PCHAR)}"
+      def interpolation_chunk(value_code = "#{local_name}.to_s")
+        "\#{URI.escape(#{value_code}, ActionController::Routing::Segment::UNSAFE_PCHAR)}"
       end
   
       def string_structure(prior_segments)
@@ -776,8 +776,8 @@ module ActionController
       end
 
       # Don't URI.escape the controller name since it may contain slashes.
-      def interpolation_chunk
-        "\#{#{local_name}.to_s}"
+      def interpolation_chunk(value_code = "#{local_name}.to_s")
+        "\#{#{value_code}}"
       end
 
       # Make sure controller names like Admin/Content are correctly normalized to
@@ -799,8 +799,8 @@ module ActionController
       RESERVED_PCHAR = "#{Segment::RESERVED_PCHAR}/"
       UNSAFE_PCHAR = Regexp.new("[^#{URI::REGEXP::PATTERN::UNRESERVED}#{RESERVED_PCHAR}]", false, 'N').freeze
 
-      def interpolation_chunk
-        "\#{URI.escape(#{local_name}.to_s, ActionController::Routing::PathSegment::UNSAFE_PCHAR)}"
+      def interpolation_chunk(value_code = "#{local_name}.to_s")
+        "\#{URI.escape(#{value_code}, ActionController::Routing::PathSegment::UNSAFE_PCHAR)}"
       end
 
       def default
@@ -1150,34 +1150,33 @@ module ActionController
             @module.send(:protected, selector)
             helpers << selector
           end
-          
+
           def define_url_helper(route, name, kind, options)
             selector = url_helper_name(name, kind)
             # The segment keys used for positional paramters
-            
+
             hash_access_method = hash_access_name(name, kind)
-            
+
+            # allow ordered parameters to be associated with corresponding
+            # dynamic segments, so you can do
+            #
+            #   foo_url(bar, baz, bang)
+            #
+            # instead of
+            #
+            #   foo_url(:bar => bar, :baz => baz, :bang => bang)
+            #
+            # Also allow options hash, so you can do
+            #
+            #   foo_url(bar, baz, bang, :sort_by => 'baz')
+            #
             @module.send :module_eval, <<-end_eval # We use module_eval to avoid leaks
               def #{selector}(*args)
-
                 #{generate_optimisation_block(route, kind)}
-                
+
                 opts = if args.empty? || Hash === args.first
                   args.first || {}
                 else
-                  # allow ordered parameters to be associated with corresponding
-                  # dynamic segments, so you can do
-                  #
-                  #   foo_url(bar, baz, bang)
-                  #
-                  # instead of
-                  #
-                  #   foo_url(:bar => bar, :baz => baz, :bang => bang)
-                  #
-                  # Also allow options hash, so you can do
-                  #
-                  #   foo_url(bar, baz, bang, :sort_by => 'baz')
-                  #
                   options = args.last.is_a?(Hash) ? args.pop : {}
                   args = args.zip(#{route.segment_keys.inspect}).inject({}) do |h, (v, k)|
                     h[k] = v
@@ -1185,7 +1184,7 @@ module ActionController
                   end
                   options.merge(args)
                 end
-                
+
                 url_for(#{hash_access_method}(opts))
               end
             end_eval
@@ -1193,7 +1192,7 @@ module ActionController
             helpers << selector
           end
       end
-  
+
       attr_accessor :routes, :named_routes
   
       def initialize

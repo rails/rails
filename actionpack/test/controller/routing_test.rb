@@ -273,6 +273,14 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal [], results[:path]
   end
   
+  def test_paths_slashes_unescaped_with_ordered_parameters
+    rs.add_named_route :path, '/file/*path', :controller => 'content' 
+
+    # No / to %2F in URI, only for query params. 
+    x = setup_for_named_route 
+    assert_equal("/file/hello/world", x.send(:path_path, 'hello/world'))
+  end
+  
   def test_non_controllers_cannot_be_matched
     rs.draw do |map|
       map.connect ':controller/:action/:id'
