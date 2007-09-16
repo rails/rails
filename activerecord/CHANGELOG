@@ -1,5 +1,7 @@
 *SVN*
 
+* connection.select_rows 'sql' returns an array (rows) of arrays (field values).  #2329 [Michael Schuerig]
+
 * Eager loading respects explicit :joins.  #9496 [dasil003]
 
 * Extract Firebird, FrontBase, and OpenBase adapters into gems.  #9508, #9509, #9510 [Jeremy Kemper]

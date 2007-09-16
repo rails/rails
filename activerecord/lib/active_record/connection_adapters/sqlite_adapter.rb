@@ -165,6 +165,11 @@ module ActiveRecord
         result.nil? ? nil : result.first
       end
 
+      def select_rows(sql, name = nil)
+        execute(sql, name).map do |row|
+          (0...(row.size / 2)).map { |i| row[i] }
+        end
+      end
 
       def begin_db_transaction #:nodoc:
         catch_schema_changes { @connection.transaction }

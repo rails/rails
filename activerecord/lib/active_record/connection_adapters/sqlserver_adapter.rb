@@ -256,6 +256,25 @@ module ActiveRecord
         @connection.disconnect rescue nil
       end
 
+      def select_rows(sql, name = nil)
+        rows = []
+        repair_special_columns(sql)
+        log(sql, name) do
+          @connection.select_all(sql) do |row|
+            record = []
+            row.each do |col|
+              if col.is_a? DBI::Timestamp
+                record << col.to_time
+              else
+                record << col
+              end
+            end
+            rows << record
+          end
+        end
+        rows
+      end
+
       def columns(table_name, name = nil)
         return [] if table_name.blank?
         table_name = table_name.to_s if table_name.is_a?(Symbol)

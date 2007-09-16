@@ -23,9 +23,13 @@ module ActiveRecord
       # Returns an array of the values of the first column in a select:
       #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
       def select_values(sql, name = nil)
-        result = select_all(sql, name)
-        result.map{ |v| v.values.first }
+        result = select_rows(sql, name)
+        result.map { |v| v[0] }
       end
+
+      # Returns an array of arrays containing the field values.
+      # Order is the same as that returned by #columns.
+      def select_rows(sql, name = nil) end
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)

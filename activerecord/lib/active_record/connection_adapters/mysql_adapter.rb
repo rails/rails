@@ -247,6 +247,15 @@ module ActiveRecord
 
       # DATABASE STATEMENTS ======================================
 
+      def select_rows(sql, name = nil)
+        @connection.query_with_result = true
+        result = execute(sql, name)
+        rows = []
+        result.each { |row| rows << row }
+        result.free
+        rows
+      end
+
       def execute(sql, name = nil) #:nodoc:
         log(sql, name) { @connection.query(sql) }
       rescue ActiveRecord::StatementInvalid => exception

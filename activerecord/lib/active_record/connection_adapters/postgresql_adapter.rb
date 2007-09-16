@@ -367,6 +367,12 @@ module ActiveRecord
 
       # DATABASE STATEMENTS ======================================
 
+      # Executes a SELECT query and returns an array of rows. Each row is an
+      # array of field values.
+      def select_rows(sql, name = nil)
+        select_raw(sql, name).last
+      end
+
       # Executes an INSERT query and returns the new record's ID
       def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)        
         execute(sql, name)
@@ -755,16 +761,28 @@ module ActiveRecord
         # Executes a SELECT query and returns the results, performing any data type
         # conversions that require to be performed here instead of in PostgreSQLColumn.
         def select(sql, name = nil)
+          fields, rows = select_raw(sql, name)
+          result = []
+          for row in rows
+            row_hash = {}
+            fields.each_with_index do |f, i|
+              row_hash[f] = row[i]
+            end
+            result << row_hash
+          end
+          result
+        end
+
+        def select_raw(sql, name = nil)
           res = execute(sql, name)
           results = res.result
+          fields = []
           rows = []
           if results.length > 0
             fields = res.fields
             results.each do |row|
               hashed_row = {}
               row.each_index do |cell_index|
-                column = row[cell_index]
-
                 # If this is a money type column and there are any currency symbols,
                 # then strip them off. Indeed it would be prettier to do this in
                 # PostgresSQLColumn.string_to_decimal but would break form input
@@ -774,21 +792,21 @@ module ActiveRecord
                   # cases to consider (note the decimal seperators):
                   #  (1) $12,345,678.12        
                   #  (2) $12.345.678,12
-                  case column
+                  case column = row[cell_index]
                     when /^-?\D+[\d,]+\.\d{2}$/  # (1)
-                      column = column.gsub(/[^-\d\.]/, '')
+                      row[cell_index] = column.gsub(/[^-\d\.]/, '')
                     when /^-?\D+[\d\.]+,\d{2}$/  # (2)
-                      column = column.gsub(/[^-\d,]/, '').sub(/,/, '.')
+                      row[cell_index] = column.gsub(/[^-\d,]/, '').sub(/,/, '.')
                   end
                 end
 
                 hashed_row[fields[cell_index]] = column
               end
-              rows << hashed_row
+              rows << row
             end
           end
           res.clear
-          return rows
+          return fields, rows
         end
 
         # Returns the list of a table's column names, data types, and default values.

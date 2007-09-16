@@ -559,6 +559,16 @@ class FinderTest < Test::Unit::TestCase
     assert_equal ["37signals","Summit","Microsoft", "Flamboyant Software", "Ex Nihilo", "RailsCore", "Leetsoft", "Jadedpixel", "Odegy"], Company.connection.select_values("SELECT name FROM companies ORDER BY id")
   end
 
+  def test_select_rows
+    assert_equal(
+      [["1", nil, nil, "37signals"],
+       ["2", "1", "2", "Summit"],
+       ["3", "1", "1", "Microsoft"]],
+      Company.connection.select_rows("SELECT id, firm_id, client_of, name FROM companies ORDER BY id LIMIT 3"))
+    assert_equal [["1", "37signals"], ["2", "Summit"], ["3", "Microsoft"]],
+      Company.connection.select_rows("SELECT id, name FROM companies ORDER BY id LIMIT 3")
+  end
+
   protected
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)
