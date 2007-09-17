@@ -136,7 +136,7 @@ module ActiveRecord
       # Inserts the given fixture into the table. Overriden in adapters that require
       # something beyond a simple insert (eg. Oracle).
       def insert_fixture(fixture, table_name)
-        insert "INSERT INTO #{table_name} (#{fixture.key_list}) VALUES (#{fixture.value_list})", 'Fixture Insert'
+        execute "INSERT INTO #{table_name} (#{fixture.key_list}) VALUES (#{fixture.value_list})", 'Fixture Insert'
       end
 
       protected
