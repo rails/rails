@@ -58,7 +58,7 @@ module ActiveRecord
       def define_attribute_methods
         return if generated_methods?
         columns_hash.each do |name, column|
-          unless instance_methods.include?(name)
+          unless instance_method_already_defined?(name)
             if self.serialized_attributes[name]
               define_read_method_for_serialized_attribute(name)
             else
@@ -66,15 +66,22 @@ module ActiveRecord
             end
           end
 
-          unless instance_methods.include?("#{name}=")
+          unless instance_method_already_defined?("#{name}=")
             define_write_method(name.to_sym)
           end
 
-          unless instance_methods.include?("#{name}?")
+          unless instance_method_already_defined?("#{name}?")
             define_question_method(name)
           end
         end
       end
+
+      def instance_method_already_defined?(method_name)
+        method_defined?(method_name) || 
+          private_method_defined?(method_name) ||
+          protected_method_defined?(method_name)
+      end
+
       alias :define_read_methods :define_attribute_methods
 
 

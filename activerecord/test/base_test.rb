@@ -394,6 +394,13 @@ class BasicsTest < Test::Unit::TestCase
       assert_equal 9900, Topic.find(2).written_on.usec
     end
   end
+  
+  def test_custom_mutator
+    topic = Topic.find(1)
+    # This mutator is protected in the class definition
+    topic.send(:approved=, true)
+    assert topic.instance_variable_get("@custom_approved")
+  end
 
   def test_destroy
     topic = Topic.find(1)
