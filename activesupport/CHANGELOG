@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix JSON decoder with nested quotes and commas.  #9579 [zdennis]
+
 * Hash#to_xml doesn't double-unescape.  #8806 [Ezran]
 
 * Added Array#rand #9170 [norbert]. Examples:

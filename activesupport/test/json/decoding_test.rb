@@ -8,6 +8,8 @@ class TestJSONDecoding < Test::Unit::TestCase
     %({"returnTo":{"/categories":1}})          => {"returnTo" => {"/categories" => 1}},
     %({"returnTo":[1,"a"]})                    => {"returnTo" => [1, "a"]},
     %({"returnTo":[1,"\\"a\\",", "b"]})        => {"returnTo" => [1, "\"a\",", "b"]},
+    %({a: "'", "b": "5,000"})     => {"a" => "'", "b" => "5,000"},
+    %({a: "a's, b's and c's", "b": "5,000"})     => {"a" => "a's, b's and c's", "b" => "5,000"},
     %([])    => [],
     %({})    => {},
     %(1)     => 1,

@@ -15,19 +15,24 @@ module ActiveSupport
       end
       
       protected
+        
         # Ensure that ":" and "," are always followed by a space
         def convert_json_to_yaml(json) #:nodoc:
           scanner, quoting, marks = StringScanner.new(json), false, []
 
-          while scanner.scan_until(/(['":,]|\\.)/)
+          while scanner.scan_until(/(\\['"]|['":,\\]|\\.)/)
             case char = scanner[1]
             when '"', "'"
-              quoting = quoting == char ? false : char
-            when ":", ","
+              if !quoting
+                quoting = char
+              elsif quoting == char
+                quoting = false
+              end
+            when ":",","
               marks << scanner.pos - 1 unless quoting
             end
           end
-          
+
           if marks.empty?
             json
           else
