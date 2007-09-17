@@ -13,8 +13,8 @@ module ActionController
       def generate_optimisation_block(route, kind)
         return "" unless route.optimise?
         OPTIMISERS.inject("") do |memo, klazz|
-          optimiser = klazz.new(route, kind)
-          memo << "return #{optimiser.generation_code} if #{optimiser.guard_condition}\n"
+          memo << klazz.new(route, kind).source_code
+          memo
         end
       end
 
@@ -31,6 +31,18 @@ module ActionController
 
         def generation_code
           'nil'
+        end
+
+        def source_code
+          if applicable?
+            "return #{generation_code} if #{guard_condition}\n"
+          else
+            "\n"
+          end
+        end
+
+        def applicable?
+          true
         end
       end
 
@@ -88,6 +100,12 @@ module ActionController
         # but add an args.last.to_query on the end
         def generation_code
           super.insert(-2, '?#{args.last.to_query}')
+        end
+
+        # To avoid generating http://localhost/?host=foo.example.com we
+        # can't use this optimisation on routes without any segments
+        def applicable?
+          route.segment_keys.size > 0 
         end
       end
 

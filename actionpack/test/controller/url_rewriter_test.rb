@@ -151,6 +151,7 @@ class UrlWriterTests < Test::Unit::TestCase
 
   def test_named_route
     ActionController::Routing::Routes.draw do |map|
+      map.no_args '/this/is/verbose', :controller => 'home', :action => 'index'
       map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
       map.connect ':controller/:action/:id'
     end
@@ -163,6 +164,8 @@ class UrlWriterTests < Test::Unit::TestCase
       controller.send(:home_url, :host => 'www.basecamphq.com', :user => 'again')
       
     assert_equal("/home/sweet/home/alabama", controller.send(:home_path, :user => 'alabama', :host => 'unused'))
+    assert_equal("http://www.basecamphq.com/home/sweet/home/alabama", controller.send(:home_url, :user => 'alabama', :host => 'www.basecamphq.com'))
+    assert_equal("http://www.basecamphq.com/this/is/verbose", controller.send(:no_args_url, :host=>'www.basecamphq.com'))
   ensure
     ActionController::Routing::Routes.load!
   end
@@ -181,6 +184,7 @@ class UrlWriterTests < Test::Unit::TestCase
       controller.send(:url_for, :controller => 'brave', :action => 'new', :id => 'world', :only_path => true)
     
     assert_equal("/home/sweet/home/alabama", controller.send(:home_url, :user => 'alabama', :host => 'unused', :only_path => true))
+    assert_equal("/home/sweet/home/alabama", controller.send(:home_path, 'alabama'))
   ensure
     ActionController::Routing::Routes.load!
   end

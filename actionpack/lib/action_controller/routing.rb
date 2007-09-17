@@ -342,7 +342,7 @@ module ActionController
       # Indicates whether the routes should be optimised with the string interpolation
       # version of the named routes methods.
       def optimise?
-        @optimise
+        @optimise && ActionController::Routing::optimise_named_routes
       end
       
       def segment_keys
@@ -1004,8 +1004,7 @@ module ActionController
         # Routes cannot use the current string interpolation method
         # if there are user-supplied :requirements as the interpolation
         # code won't raise RoutingErrors when generating
-        route.optimise = !options.key?(:requirements) && ActionController::Routing.optimise_named_routes
-
+        route.optimise = !options.key?(:requirements) 
         if !route.significant_keys.include?(:action) && !route.requirements[:action]
           route.requirements[:action] = "index"
           route.significant_keys << :action
@@ -1119,7 +1118,16 @@ module ActionController
           routes.length
         end
 
-        def install(destinations = [ActionController::Base, ActionView::Base])
+        def reset!
+          old_routes = routes.dup
+          clear!
+          old_routes.each do |name, route|
+            add(name, route)
+          end
+        end
+
+        def install(destinations = [ActionController::Base, ActionView::Base], regenerate = false)
+          reset! if regenerate
           Array(destinations).each { |dest| dest.send :include, @module }
         end
 
@@ -1219,9 +1227,9 @@ module ActionController
         @routes_by_controller = nil
       end
       
-      def install_helpers(destinations = [ActionController::Base, ActionView::Base])
+      def install_helpers(destinations = [ActionController::Base, ActionView::Base], regenerate_code = false)
         Array(destinations).each { |d| d.send :include, Helpers }
-        named_routes.install(destinations)
+        named_routes.install(destinations, regenerate_code)
       end
 
       def empty?

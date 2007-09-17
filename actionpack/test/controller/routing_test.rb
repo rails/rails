@@ -189,7 +189,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   end
 
   def test_named_route_with_nested_controller
-    rs.add_named_route :users, 'admin/user', :controller => '/admin/user', :action => 'index'
+    rs.add_named_route :users, '/admin/user', :controller => '/admin/user', :action => 'index'
     x = setup_for_named_route
     assert_equal("http://named.route.test/admin/user",
                  x.send(:users_url))
@@ -198,12 +198,13 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   uses_mocha "named route optimisation" do
     def test_optimised_named_route_call_never_uses_url_for
       rs.add_named_route :users, 'admin/user', :controller => '/admin/user', :action => 'index'
+      rs.add_named_route :user, 'admin/user/:id', :controller=>'/admin/user', :action=>'show'
       x = setup_for_named_route
       x.expects(:url_for).never
       x.send(:users_url)
       x.send(:users_path)
-      x.send(:users_url, :some_arg=>"some_value")
-      x.send(:users_path, :some_arg=>"some_value")
+      x.send(:user_url, 2, :foo=>"bar")
+      x.send(:user_path, 3, :bar=>"foo")
     end
   end
 
