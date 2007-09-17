@@ -169,7 +169,7 @@ module ActiveSupport #:nodoc:
               case value.class.to_s
                 when 'Hash'
                   if value.has_key?("__content__")
-                    content = translate_xml_entities(value["__content__"])
+                    content = value["__content__"]
                     if parser = XML_PARSING[value["type"]]
                       if parser.arity == 2
                         XML_PARSING[value["type"]].call(content, value)
@@ -224,14 +224,6 @@ module ActiveSupport #:nodoc:
                 else
                   raise "can't typecast #{value.class.name} - #{value.inspect}"
               end
-            end
-
-            def translate_xml_entities(value)
-              value.gsub(/&lt;/,   "<").
-                    gsub(/&gt;/,   ">").
-                    gsub(/&quot;/, '"').
-                    gsub(/&apos;/, "'").
-                    gsub(/&amp;/,  "&")
             end
 
             def undasherize_keys(params)

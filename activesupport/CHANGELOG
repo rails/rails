@@ -1,5 +1,7 @@
 *SVN*
 
+* Hash#to_xml doesn't double-unescape.  #8806 [Ezran]
+
 * Added Array#rand #9170 [norbert]. Examples:
 
     [].rand       # => nil

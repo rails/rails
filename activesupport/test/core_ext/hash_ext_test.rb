@@ -643,6 +643,34 @@ class HashToXmlTest < Test::Unit::TestCase
       Hash.send(:typecast_xml_value, "")
     end
   end
+  
+  def test_escaping_to_xml
+    hash = { 
+      :bare_string        => 'First & Last Name', 
+      :pre_escaped_string => 'First &amp; Last Name'
+    }.stringify_keys
+    
+    expected_xml = '<person><bare-string>First &amp; Last Name</bare-string><pre-escaped-string>First &amp;amp; Last Name</pre-escaped-string></person>'
+    assert_equal expected_xml, hash.to_xml(@xml_options)
+  end
+  
+  def test_unescaping_from_xml
+    xml_string = '<person><bare-string>First &amp; Last Name</bare-string><pre-escaped-string>First &amp;amp; Last Name</pre-escaped-string></person>'
+    expected_hash = { 
+      :bare_string        => 'First & Last Name', 
+      :pre_escaped_string => 'First &amp; Last Name'
+    }.stringify_keys
+    assert_equal expected_hash, Hash.from_xml(xml_string)['person']
+  end
+  
+  def test_roundtrip_to_xml_from_xml
+    hash = { 
+      :bare_string        => 'First & Last Name', 
+      :pre_escaped_string => 'First &amp; Last Name'
+    }.stringify_keys
+
+    assert_equal hash, Hash.from_xml(hash.to_xml(@xml_options))['person']
+  end
 end
 
 class QueryTest < Test::Unit::TestCase
