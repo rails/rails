@@ -63,9 +63,8 @@ begin
           rows
         end
 
-        def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-          execute(sql, name = nil)
-          id_value || last_insert_id
+        def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+          super || last_insert_id
         end
 
         def execute(sql, name = nil)

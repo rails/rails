@@ -132,37 +132,18 @@ module ActiveRecord
         catch_schema_changes { log(sql, name) { @connection.execute(sql) } }
       end
 
-      def update(sql, name = nil) #:nodoc:
-        execute(sql, name)
+      def update_sql(sql, name = nil) #:nodoc:
+        super
         @connection.changes
       end
 
-      def delete(sql, name = nil) #:nodoc:
+      def delete_sql(sql, name = nil) #:nodoc:
         sql += " WHERE 1=1" unless sql =~ /WHERE/i
-        execute(sql, name)
-        @connection.changes
+        super sql, name
       end
 
-      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
-        execute(sql, name = nil)
-        id_value || @connection.last_insert_row_id
-      end
-
-      def select_all(sql, name = nil) #:nodoc:
-        execute(sql, name).map do |row|
-          record = {}
-          row.each_key do |key|
-            if key.is_a?(String)
-              record[key.sub(/^\w+\./, '')] = row[key]
-            end
-          end
-          record
-        end
-      end
-
-      def select_one(sql, name = nil) #:nodoc:
-        result = select_all(sql, name)
-        result.nil? ? nil : result.first
+      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
+        super || @connection.last_insert_row_id
       end
 
       def select_rows(sql, name = nil)
@@ -267,6 +248,18 @@ module ActiveRecord
 
 
       protected
+        def select(sql, name = nil) #:nodoc:
+          execute(sql, name).map do |row|
+            record = {}
+            row.each_key do |key|
+              if key.is_a?(String)
+                record[key.sub(/^\w+\./, '')] = row[key]
+              end
+            end
+            record
+          end
+        end
+
         def table_structure(table_name)
           returning structure = execute("PRAGMA table_info(#{table_name})") do
             raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?

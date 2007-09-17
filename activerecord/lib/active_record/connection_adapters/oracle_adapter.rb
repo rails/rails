@@ -223,11 +223,6 @@ begin
           id
         end
 
-        def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
-          execute(sql, name)
-          id_value
-        end
-
         def begin_db_transaction #:nodoc:
           @connection.autocommit = false
         end

@@ -8,6 +8,7 @@ require 'active_record/connection_adapters/abstract/schema_statements'
 require 'active_record/connection_adapters/abstract/database_statements'
 require 'active_record/connection_adapters/abstract/quoting'
 require 'active_record/connection_adapters/abstract/connection_specification'
+require 'active_record/connection_adapters/abstract/query_cache'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -22,6 +23,7 @@ module ActiveRecord
     # SchemaStatements#remove_column are very useful.
     class AbstractAdapter
       include Quoting, DatabaseStatements, SchemaStatements
+      include QueryCache
       @@row_even = true
 
       def initialize(connection, logger = nil) #:nodoc:

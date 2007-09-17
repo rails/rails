@@ -176,7 +176,7 @@ module ActiveRecord
         30
       end
 
-      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
         begin
           table_name = get_table_name(sql)
           col = get_identity_column(table_name)
@@ -194,9 +194,7 @@ module ActiveRecord
           end
 
           log(sql, name) do
-            execute(sql, name)
-            ident = select_one("SELECT @@IDENTITY AS last_id")["last_id"]
-            id_value || ident
+            super || select_value("SELECT @@IDENTITY AS last_id")
           end
         ensure
           if ii_enabled
@@ -219,7 +217,7 @@ module ActiveRecord
       def rollback_db_transaction() raw_execute "ROLLBACK TRAN" end
 
       def current_database
-        select_one("select DB_NAME() as name")["name"]
+        select_value("select DB_NAME() as name")
       end
 
       def tables(name = nil)

@@ -1,5 +1,7 @@
 *SVN*
 
+* Speed up and simplify query caching.  [Jeremy Kemper]
+
 * connection.select_rows 'sql' returns an array (rows) of arrays (field values).  #2329 [Michael Schuerig]
 
 * Eager loading respects explicit :joins.  #9496 [dasil003]

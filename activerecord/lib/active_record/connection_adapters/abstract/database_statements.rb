@@ -10,14 +10,15 @@ module ActiveRecord
       # Returns a record hash with the column names as keys and column values
       # as values.
       def select_one(sql, name = nil)
-        result = select(sql, name)
+        result = select_all(sql, name)
         result.first if result
       end
 
       # Returns a single value from a record
       def select_value(sql, name = nil)
-        result = select_one(sql, name)
-        result.nil? ? nil : result.values.first
+        if result = select_one(sql, name)
+          result.values.first
+        end
       end
 
       # Returns an array of the values of the first column in a select:
@@ -29,7 +30,9 @@ module ActiveRecord
 
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by #columns.
-      def select_rows(sql, name = nil) end
+      def select_rows(sql, name = nil)
+        raise NotImplementedError, "select_rows is an abstract method"
+      end
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
@@ -38,17 +41,17 @@ module ActiveRecord
 
       # Returns the last auto-generated ID from the affected table.
       def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        raise NotImplementedError, "insert is an abstract method"
+        insert_sql(sql, name, pk, id_value, sequence_name)
       end
 
       # Executes the update statement and returns the number of rows affected.
       def update(sql, name = nil)
-        execute(sql, name)
+        update_sql(sql, name)
       end
 
       # Executes the delete statement and returns the number of rows affected.
       def delete(sql, name = nil)
-        update(sql, name)
+        delete_sql(sql, name)
       end
 
       # Wrap a block in a transaction.  Returns result of block.
@@ -133,7 +136,7 @@ module ActiveRecord
       # Inserts the given fixture into the table. Overriden in adapters that require
       # something beyond a simple insert (eg. Oracle).
       def insert_fixture(fixture, table_name)
-        execute "INSERT INTO #{table_name} (#{fixture.key_list}) VALUES (#{fixture.value_list})", 'Fixture Insert'
+        insert "INSERT INTO #{table_name} (#{fixture.key_list}) VALUES (#{fixture.value_list})", 'Fixture Insert'
       end
 
       protected
@@ -141,6 +144,22 @@ module ActiveRecord
         # column values as values.
         def select(sql, name = nil)
           raise NotImplementedError, "select is an abstract method"
+        end
+
+        # Returns the last auto-generated ID from the affected table.
+        def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+          execute(sql, name)
+          id_value
+        end
+
+        # Executes the update statement and returns the number of rows affected.
+        def update_sql(sql, name = nil)
+          execute(sql, name)
+        end
+
+        # Executes the delete statement and returns the number of rows affected.
+        def delete_sql(sql, name = nil)
+          update_sql(sql, name)
         end
     end
   end

@@ -314,18 +314,15 @@ module ActiveRecord
         columns
       end
 
-      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        execute(sql, name)
-        id_value || select_one("SELECT @@IDENTITY AS Ident")["Ident"]
+      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+        super || select_value("SELECT @@IDENTITY AS Ident")
       end
 
-      def update(sql, name = nil)
+      def update_sql(sql, name = nil)
         execute(sql, name) do |handle|
           handle.rows
-        end || select_one("SELECT @@ROWCOUNT AS AffectedRows")["AffectedRows"]        
+        end || select_value("SELECT @@ROWCOUNT AS AffectedRows")
       end
-      
-      alias_method :delete, :update
 
       def execute(sql, name = nil)
         if sql =~ /^\s*INSERT/i && (table_name = query_requires_identity_insert?(sql))

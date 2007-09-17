@@ -11,13 +11,13 @@ module ActionController #:nodoc:
   # Note: To turn off all caching and sweeping, set Base.perform_caching = false.
   module Caching
     def self.included(base) #:nodoc:
-      base.send(:include, Pages, Actions, Fragments)
-      if defined?(ActiveRecord)
-        require 'active_record/query_cache'
-        base.send(:include, Sweeping, SqlCache)
-      end
-
       base.class_eval do
+        include Pages, Actions, Fragments
+
+        if defined? ActiveRecord
+          include Sweeping, SqlCache
+        end
+
         @@perform_caching = true
         cattr_accessor :perform_caching
       end

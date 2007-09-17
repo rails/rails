@@ -374,10 +374,9 @@ module ActiveRecord
       end
 
       # Executes an INSERT query and returns the new record's ID
-      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)        
-        execute(sql, name)
+      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
         table = sql.split(" ", 4)[2]
-        id_value || last_insert_id(table, sequence_name || default_sequence_name(table, pk))
+        super || last_insert_id(table, sequence_name || default_sequence_name(table, pk))
       end
 
       # Queries the database and returns the results in an Array or nil otherwise.
@@ -404,8 +403,8 @@ module ActiveRecord
       end
 
       # Executes an UPDATE query and returns the number of affected tuples.
-      def update(sql, name = nil)
-        execute(sql, name).cmdtuples
+      def update_sql(sql, name = nil)
+        super.cmdtuples
       end
 
       # Begins a transaction.

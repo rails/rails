@@ -36,6 +36,7 @@ end
 
 require 'active_record/base'
 require 'active_record/observer'
+require 'active_record/query_cache'
 require 'active_record/validations'
 require 'active_record/callbacks'
 require 'active_record/reflection'
@@ -52,6 +53,7 @@ require 'active_record/xml_serialization'
 require 'active_record/attribute_methods'
 
 ActiveRecord::Base.class_eval do
+  extend ActiveRecord::QueryCache
   include ActiveRecord::Validations
   include ActiveRecord::Locking::Optimistic
   include ActiveRecord::Locking::Pessimistic
