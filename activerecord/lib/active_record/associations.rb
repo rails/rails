@@ -1165,7 +1165,7 @@ module ActiveRecord
             :extend
           )
 
-          options[:extend] = create_extension_module(association_id, extension) if block_given?
+          options[:extend] = create_extension_modules(association_id, extension, options[:extend]) if block_given?
 
           create_reflection(:has_many, association_id, options, self)
         end
@@ -1203,7 +1203,7 @@ module ActiveRecord
             :extend
           )
 
-          options[:extend] = create_extension_module(association_id, extension) if block_given?
+          options[:extend] = create_extension_modules(association_id, extension, options[:extend]) if block_given?
 
           reflection = create_reflection(:has_and_belongs_to_many, association_id, options, self)
 
@@ -1346,14 +1346,14 @@ module ActiveRecord
           sql =~ /where/i ? " AND " : "WHERE "
         end
 
-        def create_extension_module(association_id, extension)
+        def create_extension_modules(association_id, block_extension, extensions)
           extension_module_name = "#{self.to_s}#{association_id.to_s.camelize}AssociationExtension"
 
           silence_warnings do
-            Object.const_set(extension_module_name, Module.new(&extension))
+            Object.const_set(extension_module_name, Module.new(&block_extension))
           end
-          
-          extension_module_name.constantize
+
+          Array(extensions).push(extension_module_name.constantize)
         end
 
         class JoinDependency # :nodoc:

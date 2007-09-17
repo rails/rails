@@ -1,5 +1,8 @@
 *SVN*
 
+* Associations macros accept extension blocks alongside modules.  #9346 [Josh
+Peek]
+
 * Speed up and simplify query caching.  [Jeremy Kemper]
 
 * connection.select_rows 'sql' returns an array (rows) of arrays (field values).  #2329 [Michael Schuerig]
