@@ -119,6 +119,14 @@ module ActionController
     # falling back to REMOTE_ADDR.  HTTP_X_FORWARDED_FOR may be a comma-
     # delimited list in the case of multiple chained proxies; the first is
     # the originating IP.
+    #
+    # Security note: Be aware that since remote_ip will check regular HTTP headers,
+    # it can be tricked by anyone setting those manually. In other words, people can
+    # pose as whatever IP address they like to this method. That doesn't matter if
+    # all your doing is using IP addresses for statistical or geographical information,
+    # but if you want to, for example, limit access to an administrative area by IP,
+    # you should instead use Request#remote_addr, which can't be spoofed (but also won't
+    # survive proxy forwards).
     def remote_ip
       return @env['HTTP_CLIENT_IP'] if @env.include? 'HTTP_CLIENT_IP'
 
