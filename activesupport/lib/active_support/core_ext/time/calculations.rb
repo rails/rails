@@ -63,7 +63,7 @@ module ActiveSupport #:nodoc:
             self.utc? ? :utc_time : :local_time,
             options[:year]  || self.year,
             options[:month] || self.month,
-            options[:day]   || options[:mday] || self.day, # mday is deprecated
+            options[:day]   || self.day,
             options[:hour]  || self.hour,
             options[:min]   || (options[:hour] ? 0 : self.min),
             options[:sec]   || ((options[:hour] || options[:min]) ? 0 : self.sec),
@@ -121,7 +121,7 @@ module ActiveSupport #:nodoc:
           max = ::Time.days_in_month(month, year)
           mday = max if mday > max
 
-          change(:year => year, :month => month, :mday => mday)
+          change(:year => year, :month => month, :day => mday)
         end
 
         # Returns a new Time representing the time a number of specified years ago
@@ -184,7 +184,7 @@ module ActiveSupport #:nodoc:
         # Returns a new Time representing the start of the month (1st of the month, 0:00)
         def beginning_of_month
           #self - ((self.mday-1).days + self.seconds_since_midnight)
-          change(:mday => 1,:hour => 0, :min => 0, :sec => 0, :usec => 0)
+          change(:day => 1,:hour => 0, :min => 0, :sec => 0, :usec => 0)
         end
         alias :at_beginning_of_month :beginning_of_month
 
@@ -192,7 +192,7 @@ module ActiveSupport #:nodoc:
         def end_of_month
           #self - ((self.mday-1).days + self.seconds_since_midnight)
           last_day = ::Time.days_in_month( self.month, self.year )
-          change(:mday => last_day,:hour => 0, :min => 0, :sec => 0, :usec => 0)
+          change(:day => last_day,:hour => 0, :min => 0, :sec => 0, :usec => 0)
         end
         alias :at_end_of_month :end_of_month
 		
@@ -204,7 +204,7 @@ module ActiveSupport #:nodoc:
 
         # Returns  a new Time representing the start of the year (1st of january, 0:00)
         def beginning_of_year
-          change(:month => 1,:mday => 1,:hour => 0, :min => 0, :sec => 0, :usec => 0)
+          change(:month => 1,:day => 1,:hour => 0, :min => 0, :sec => 0, :usec => 0)
         end
         alias :at_beginning_of_year :beginning_of_year
 

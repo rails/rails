@@ -87,7 +87,7 @@ module ActiveSupport #:nodoc:
           ::Date.new(
             options[:year]  || self.year,
             options[:month] || self.month,
-            options[:day]   || options[:mday] || self.day # mday is deprecated
+            options[:day]   || self.day
           )
         end
         

@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecation: remove deprecated :mday option from Time, Date, and DateTime#change.  [Jeremy Kemper]
+
 * Fix JSON decoder with nested quotes and commas.  #9579 [zdennis]
 
 * Hash#to_xml doesn't double-unescape.  #8806 [Ezran]
