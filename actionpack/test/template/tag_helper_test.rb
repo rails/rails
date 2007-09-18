@@ -13,7 +13,9 @@ class TagHelperTest < Test::Unit::TestCase
   end
 
   def test_tag_options
-    assert_match /\A<p class="(show|elsewhere)" \/>\z/, tag("p", "class" => "show", :class => "elsewhere")
+    str = tag("p", "class" => "show", :class => "elsewhere")
+    assert_match /class="show"/, str
+    assert_match /class="elsewhere"/, str
   end
 
   def test_tag_options_rejects_nil_option
