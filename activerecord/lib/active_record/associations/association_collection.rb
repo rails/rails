@@ -85,6 +85,7 @@ module ActiveRecord
       end
       
       def create(attrs = {})
+        ensure_owner_is_not_new
         record = @reflection.klass.send(:with_scope, :create => construct_scope[:create]) { @reflection.klass.create(attrs) }                
         @target ||= [] unless loaded?
         @target << record 
@@ -92,6 +93,7 @@ module ActiveRecord
       end
 
       def create!(attrs = {})
+        ensure_owner_is_not_new
         record = @reflection.klass.send(:with_scope, :create => construct_scope[:create]) { @reflection.klass.create!(attrs) }                
         @target ||= [] unless loaded?
         @target << record 
@@ -206,7 +208,14 @@ module ActiveRecord
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{@reflection.name}"
           @owner.class.read_inheritable_attribute(full_callback_name.to_sym) || []
-        end        
+        end   
+        
+        def ensure_owner_is_not_new
+          if @owner.new_record?
+            raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
+          end
+        end
+               
     end
   end
 end

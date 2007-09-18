@@ -576,6 +576,26 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 3, first_firm.plain_clients.length
     assert_equal 3, first_firm.plain_clients.size
   end
+  
+  def test_create_with_bang_on_has_many_when_parent_is_new_raises
+    assert_raises(ActiveRecord::RecordNotSaved) do 
+      firm = Firm.new
+      firm.plain_clients.create! :name=>"Whoever"
+    end
+  end
+
+  def test_regular_create_on_has_many_when_parent_is_new_raises
+    assert_raises(ActiveRecord::RecordNotSaved) do 
+      firm = Firm.new
+      firm.plain_clients.create :name=>"Whoever"
+    end
+  end
+  
+  def test_create_with_bang_on_habtm_when_parent_is_new_raises
+    assert_raises(ActiveRecord::RecordNotSaved) do 
+      Developer.new("name" => "Aredridel").projects.create!    
+    end
+  end
 
   def test_adding_a_mismatch_class
     assert_raises(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).clients_of_firm << nil }
@@ -1540,8 +1560,8 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
 
   def test_create_by_new_record
     devel = Developer.new(:name => "Marcel", :salary => 75000)
-    proj1 = devel.projects.create(:name => "Make bed")
-    proj2 = devel.projects.create(:name => "Lie in it")
+    proj1 = devel.projects.build(:name => "Make bed")
+    proj2 = devel.projects.build(:name => "Lie in it")
     assert_equal devel.projects.last, proj2
     assert proj2.new_record?
     devel.save

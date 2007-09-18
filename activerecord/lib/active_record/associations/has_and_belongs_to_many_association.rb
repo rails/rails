@@ -15,6 +15,7 @@ module ActiveRecord
 
       def create(attributes = {})
         # Can't use Base.create because the foreign key may be a protected attribute.
+        ensure_owner_is_not_new
         if attributes.is_a?(Array)
           attributes.collect { |attr| create(attr) }
         else
@@ -22,6 +23,18 @@ module ActiveRecord
           insert_record(record) unless @owner.new_record?
           record
         end
+      end
+      
+      def create!(attributes = {})
+        # Can't use Base.create! because the foreign key may be a protected attribute.
+        ensure_owner_is_not_new
+        if attributes.is_a?(Array)
+          attributes.collect { |attr| create(attr) }
+        else
+          record = build(attributes)
+          insert_record(record, true) unless @owner.new_record?
+          record
+        end        
       end
 
       def find_first
@@ -75,9 +88,13 @@ module ActiveRecord
           load_target.size
         end
 
-        def insert_record(record)
+        def insert_record(record, force=true)
           if record.new_record?
-            return false unless record.save
+            if force
+              record.save!
+            else
+              return false unless record.save
+            end
           end
 
           if @reflection.options[:insert_sql]
