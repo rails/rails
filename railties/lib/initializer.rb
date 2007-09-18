@@ -325,7 +325,9 @@ module Rails
 
     # Fires the user-supplied after_initialize block (Configuration#after_initialize)
     def after_initialize
-      configuration.after_initialize_block.call if configuration.after_initialize_block
+      configuration.after_initialize_blocks.each do |block|
+        block.call
+      end
     end
 
     def load_application_initializers
@@ -515,16 +517,16 @@ module Rails
       ::RAILS_ENV
     end
 
-    # Sets a block which will be executed after rails has been fully initialized.
+    # Adds a block which will be executed after rails has been fully initialized.
     # Useful for per-environment configuration which depends on the framework being
     # fully initialized.
     def after_initialize(&after_initialize_block)
-      @after_initialize_block = after_initialize_block
+      after_initialize_blocks << after_initialize_block if after_initialize_block
     end
 
-    # Returns the block set in Configuration#after_initialize
-    def after_initialize_block
-      @after_initialize_block
+    # Returns the blocks added with Configuration#after_initialize
+    def after_initialize_blocks
+      @after_initialize_blocks ||= []
     end
 
     # Add a preparation callback that will run before every request in development
