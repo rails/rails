@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecation: remove deprecated threaded_connections methods. Use allow_concurrency instead.  [Jeremy Kemper]
+
 * Associations macros accept extension blocks alongside modules.  #9346 [Josh
 Peek]
 

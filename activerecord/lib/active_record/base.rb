@@ -959,16 +959,6 @@ module ActiveRecord #:nodoc:
         object.is_a?(self)
       end      
 
-      # Deprecated 
-      def threaded_connections #:nodoc:
-        allow_concurrency
-      end
-
-      # Deprecated 
-      def threaded_connections=(value) #:nodoc:
-        self.allow_concurrency = value
-      end
-
       # Returns the base AR subclass that this class descends from. If A
       # extends AR::Base, A.base_class will return A. If B descends from A
       # through some arbitrarily deep hierarchy, B.base_class will return A.
