@@ -1220,6 +1220,9 @@ module ActiveRecord #:nodoc:
         #
         # This also enables you to initialize a record if it is not found, such as find_or_initialize_by_amount(amount) 
         # or find_or_create_by_user_and_password(user, password).
+        #
+        # Each dynamic finder or initializer/creator is also defined in the class after it is first invoked, so that future
+        # attempts to use it do not run through method_missing.
         def method_missing(method_id, *arguments)
           if match = /^find_(all_by|by)_([_a-zA-Z]\w*)$/.match(method_id.to_s)
             finder = determine_finder(match)
@@ -1227,45 +1230,45 @@ module ActiveRecord #:nodoc:
             attribute_names = extract_attribute_names_from_match(match)
             super unless all_attributes_exists?(attribute_names)
 
-            attributes = construct_attributes_from_arguments(attribute_names, arguments)
-
-            case extra_options = arguments[attribute_names.size]
-              when nil
-                options = { :conditions => attributes }
+            self.class_eval %{
+              def self.#{method_id}(*args) 
+                options = args.last.is_a?(Hash) ? args.pop : {}
+                attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
+                finder_options = { :conditions => attributes }
+                validate_find_options(options)
                 set_readonly_option!(options)
-                ActiveSupport::Deprecation.silence { send(finder, options) }
 
-              when Hash
-                finder_options = extra_options.merge(:conditions => attributes)
-                validate_find_options(finder_options)
-                set_readonly_option!(finder_options)
-
-                if extra_options[:conditions]
-                  with_scope(:find => { :conditions => extra_options[:conditions] }) do
-                    ActiveSupport::Deprecation.silence { send(finder, finder_options) }
+                if options[:conditions]
+                  with_scope(:find => finder_options) do
+                    ActiveSupport::Deprecation.silence { send(:#{finder}, options) }
                   end
                 else
-                  ActiveSupport::Deprecation.silence { send(finder, finder_options) }
+                  ActiveSupport::Deprecation.silence { send(:#{finder}, options.merge(finder_options)) }
                 end
-
-              else
-                raise ArgumentError, "Unrecognized arguments for #{method_id}: #{extra_options.inspect}"
-            end
+              end
+            }
+            send(method_id, *arguments)
           elsif match = /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/.match(method_id.to_s)
             instantiator = determine_instantiator(match)
             attribute_names = extract_attribute_names_from_match(match)
             super unless all_attributes_exists?(attribute_names)
 
-            if arguments[0].is_a?(Hash)
-              attributes = arguments[0].with_indifferent_access
-              find_attributes = attributes.slice(*attribute_names)
-            else
-              find_attributes = attributes = construct_attributes_from_arguments(attribute_names, arguments)
-            end
-            options = { :conditions => find_attributes }
-            set_readonly_option!(options)
+            self.class_eval %{
+              def self.#{method_id}(*args) 
+                if args[0].is_a?(Hash)
+                  attributes = args[0].with_indifferent_access
+                  find_attributes = attributes.slice(*[:#{attribute_names.join(',:')}])
+                else
+                  find_attributes = attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
+                end
+                
+                options = { :conditions => find_attributes }
+                set_readonly_option!(options)
 
-            find_initial(options) || send(instantiator, attributes)
+                find_initial(options) || send(:#{instantiator}, attributes)
+              end
+            }
+            send(method_id, *arguments)
           else
             super
           end
