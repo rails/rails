@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that default layouts did not take the format into account #9564 [lifofifo]
+
 * Fixed optimized route segment escaping.  #9562 [wildchild, Jeremy Kemper]
 
 * root_path returns '/' not ''.  #9563 [lifofifo]

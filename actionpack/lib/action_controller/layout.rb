@@ -234,7 +234,9 @@ module ActionController #:nodoc:
 
     protected
       def render_with_a_layout(options = nil, &block) #:nodoc:
-        template_with_options = options.is_a?(Hash)
+        if template_with_options = options.is_a?(Hash)
+          response.template.template_format = options[:content_type].to_sym if options[:content_type]
+        end
 
         if apply_layout?(template_with_options, options) && (layout = pick_layout(template_with_options, options))
           assert_existence_of_template_file(layout)
