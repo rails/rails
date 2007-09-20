@@ -1,5 +1,5 @@
 module ActiveRecord #:nodoc:
-  module XmlSerialization
+  module Serialization
     # Builds an XML document to represent the model.   Some configuration is
     # availble through +options+, however more complicated cases should use 
     # override ActiveRecord's to_xml.
@@ -124,15 +124,14 @@ module ActiveRecord #:nodoc:
       serializer = XmlSerializer.new(self, options)
       block_given? ? serializer.to_s(&block) : serializer.to_s
     end
+
+    def from_xml(xml)
+      self.attributes = Hash.from_xml(xml).values.first
+      self
+    end
   end
 
-  class XmlSerializer #:nodoc:
-    attr_reader :options
-    
-    def initialize(record, options = {})
-      @record, @options = record, options.dup
-    end
-    
+  class XmlSerializer < ActiveRecord::Serialization::Serializer #:nodoc:
     def builder
       @builder ||= begin
         options[:indent] ||= 2
@@ -164,17 +163,7 @@ module ActiveRecord #:nodoc:
     # level model can have both :except and :only set.  So if
     # :only is set, always delete :except.
     def serializable_attributes
-      attribute_names = @record.attribute_names
-
-      if options[:only]
-        options.delete(:except)
-        attribute_names = attribute_names & Array(options[:only]).collect { |n| n.to_s }
-      else
-        options[:except] = Array(options[:except]) | Array(@record.class.inheritance_column)
-        attribute_names = attribute_names - options[:except].collect { |n| n.to_s }
-      end
-      
-      attribute_names.collect { |name| Attribute.new(name, @record) }
+      serializable_attribute_names.collect { |name| Attribute.new(name, @record) }
     end
 
     def serializable_method_attributes
@@ -265,8 +254,6 @@ module ActiveRecord #:nodoc:
         yield builder if block_given?
       end
     end        
-    
-    alias_method :to_s, :serialize
 
     class Attribute #:nodoc:
       attr_reader :name, :value, :type

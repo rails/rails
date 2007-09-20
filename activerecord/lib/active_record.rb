@@ -49,7 +49,7 @@ require 'active_record/locking/pessimistic'
 require 'active_record/migration'
 require 'active_record/schema'
 require 'active_record/calculations'
-require 'active_record/xml_serialization'
+require 'active_record/serialization'
 require 'active_record/attribute_methods'
 
 ActiveRecord::Base.class_eval do
@@ -65,7 +65,7 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Transactions
   include ActiveRecord::Reflection
   include ActiveRecord::Calculations
-  include ActiveRecord::XmlSerialization
+  include ActiveRecord::Serialization
   include ActiveRecord::AttributeMethods
 end
 

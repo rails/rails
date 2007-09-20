@@ -158,6 +158,7 @@ module ActiveRecord
         end
       end
 
+
       protected
         def method_missing(method, *args, &block)
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))

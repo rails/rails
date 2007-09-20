@@ -1,25 +1,9 @@
 require 'abstract_unit'
+require 'fixtures/contact'
 require 'fixtures/post'
 require 'fixtures/author'
 require 'fixtures/tagging'
 require 'fixtures/comment'
-
-class Contact < ActiveRecord::Base
-  # mock out self.columns so no pesky db is needed for these tests
-  def self.columns() @columns ||= []; end
-  def self.column(name, sql_type = nil, default = nil, null = true)
-    columns << ActiveRecord::ConnectionAdapters::Column.new(name.to_s, default, sql_type.to_s, null)
-  end
-
-  column :name,        :string
-  column :age,         :integer
-  column :avatar,      :binary
-  column :created_at,  :datetime
-  column :awesome,     :boolean
-  column :preferences, :string
-  
-  serialize :preferences
-end
 
 class XmlSerializationTest < Test::Unit::TestCase
   def test_should_serialize_default_root
@@ -47,18 +31,6 @@ class XmlSerializationTest < Test::Unit::TestCase
     assert_match %r{<created_at},     @xml
   end
 
-  def test_should_allow_attribute_filtering
-    @xml = Contact.new.to_xml :only => [:age, :name]
-    assert_match %r{<name},          @xml
-    assert_match %r{<age},           @xml
-    assert_no_match %r{<created-at}, @xml
-    
-    @xml = Contact.new.to_xml :except => [:age, :name]
-    assert_no_match %r{<name},    @xml
-    assert_no_match %r{<age},     @xml
-    assert_match %r{<created-at}, @xml
-  end
-  
   def test_should_include_yielded_additions
     @xml = Contact.new.to_xml do |xml|
       xml.creator "David"

@@ -1,5 +1,12 @@
 *SVN*
 
+* Added ActiveRecord::Base#to_json/from_json (currently does not support :include like to_xml) [DHH]
+
+* Added ActiveRecord::Base#from_xml [DHH]. Example:
+
+    xml = "<person><name>David</name></person>"
+    Person.new.from_xml(xml).name # => "David"
+
 * Define dynamic finders as real methods after first usage. [bscofield]
 
 * Deprecation: remove deprecated threaded_connections methods. Use allow_concurrency instead.  [Jeremy Kemper]
