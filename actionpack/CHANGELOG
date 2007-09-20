@@ -1,5 +1,30 @@
 *SVN*
 
+* Added Mime::Type.register_alias for dealing with different formats using the same mime type [DHH]. Example:
+
+    class PostsController < ApplicationController
+      before_filter :adjust_format_for_iphone
+
+      def index
+        @posts = Post.find(:all)
+        
+        respond_to do |format|
+          format.html   # => renders index.html.erb and uses "text/html" as the content type
+          format.iphone # => renders index.iphone.erb and uses "text/html" as the content type
+        end
+      end
+
+
+      private
+        def adjust_format_for_iphone
+          if request.env["HTTP_USER_AGENT"] && request.env["HTTP_USER_AGENT"][/iPhone/]
+            request.format = :iphone
+          end
+        end
+    end
+
+* Added that render :json will automatically call .to_json unless it's being passed a string [DHH].
+
 * Autolink behaves well with emails embedded in URLs.  #7313 [Jeremy McAnally, tarmo]
 
 * Fixed that default layouts did not take the format into account #9564 [lifofifo]

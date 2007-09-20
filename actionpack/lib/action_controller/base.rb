@@ -826,6 +826,7 @@ module ActionController #:nodoc:
             render_for_text(xml.respond_to?(:to_xml) ? xml.to_xml : xml, options[:status])
 
           elsif json = options[:json]
+            json = json.to_json unless json.is_a?(String)
             json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
             response.content_type = Mime::JSON
             render_for_text(json, options[:status])
