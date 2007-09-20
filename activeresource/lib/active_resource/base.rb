@@ -155,7 +155,7 @@ module ActiveResource
       def site
         if defined?(@site)
           @site
-        elsif superclass != Object and superclass.site
+        elsif superclass != Object && superclass.site
           superclass.site.dup.freeze
         end
       end
@@ -167,12 +167,34 @@ module ActiveResource
         @site = site.nil? ? nil : create_site_uri_from(site)
       end
 
+      # Sets the format that attributes are sent and received in from a mime type reference. Example:
+      #
+      #   Person.format = :json
+      #   Person.find(1) # => GET /people/1.json
+      #
+      #   Person.format = ActiveResource::Formats::XmlFormat
+      #   Person.find(1) # => GET /people/1.xml
+      #
+      # Default format is :xml.
+      def format=(mime_type_reference_or_format)
+        format = mime_type_reference_or_format.is_a?(Symbol) ? 
+          ActiveResource::Formats[mime_type_reference_or_format] : mime_type_reference_or_format
+
+        write_inheritable_attribute("format", format)
+        connection.format = format
+      end
+      
+      # Returns the current format, default is ActiveResource::Formats::XmlFormat
+      def format # :nodoc:
+        read_inheritable_attribute("format") || ActiveResource::Formats[:xml]
+      end
+
       # An instance of ActiveResource::Connection that is the base connection to the remote service.
       # The +refresh+ parameter toggles whether or not the connection is refreshed at every request
       # or not (defaults to +false+).
       def connection(refresh = false)
-        if defined?(@connection) or superclass == Object
-          @connection = Connection.new(site) if refresh || @connection.nil?
+        if defined?(@connection) || superclass == Object
+          @connection = Connection.new(site, format) if refresh || @connection.nil?
           @connection
         else
           superclass.connection
@@ -252,7 +274,7 @@ module ActiveResource
       #
       def element_path(id, prefix_options = {}, query_options = nil)
         prefix_options, query_options = split_options(prefix_options) if query_options.nil?
-        "#{prefix(prefix_options)}#{collection_name}/#{id}.xml#{query_string(query_options)}"
+        "#{prefix(prefix_options)}#{collection_name}/#{id}.#{format.extension}#{query_string(query_options)}"
       end
 
       # Gets the collection path for the REST resources.  If the +query_options+ parameter is omitted, Rails
@@ -278,7 +300,7 @@ module ActiveResource
       #
       def collection_path(prefix_options = {}, query_options = nil)
         prefix_options, query_options = split_options(prefix_options) if query_options.nil?
-        "#{prefix(prefix_options)}#{collection_name}.xml#{query_string(query_options)}"
+        "#{prefix(prefix_options)}#{collection_name}.#{format.extension}#{query_string(query_options)}"
       end
 
       alias_method :set_primary_key, :primary_key=  #:nodoc:
@@ -781,7 +803,7 @@ module ActiveResource
       
       def load_attributes_from_response(response)
         if response['Content-size'] != "0" && response.body.strip.size > 0
-          load(connection.xml_from_response(response))
+          load(self.class.format.decode(response.body))
         end
       end
 

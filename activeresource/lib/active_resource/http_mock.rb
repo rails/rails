@@ -32,7 +32,12 @@ module ActiveResource
         pairs.each do |(path, response)|
           responses[path] = response
         end
-        yield Responder.new(responses) if block_given?
+
+        if block_given?
+          yield Responder.new(responses) 
+        else
+          Responder.new(responses)
+        end
       end
 
       def reset!
