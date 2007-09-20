@@ -305,7 +305,7 @@ module ActionView
       def auto_link(text, link = :all, href_options = {}, &block)
         return '' if text.blank?
         case link
-          when :all             then auto_link_urls(auto_link_email_addresses(text, &block), href_options, &block)
+          when :all             then auto_link_email_addresses(auto_link_urls(text, href_options, &block), &block)
           when :email_addresses then auto_link_email_addresses(text, &block)
           when :urls            then auto_link_urls(text, href_options, &block)
         end
@@ -534,8 +534,8 @@ module ActionView
                           [-\w]+                   # subdomain or domain
                           (?:\.[-\w]+)*            # remaining subdomains or domain
                           (?::\d+)?                # port
-                          (?:/(?:(?:[~\w\+%-]|(?:[,.;:][^\s$]))+)?)* # path
-                          (?:\?[\w\+%&=.;-]+)?     # query string
+                          (?:/(?:(?:[~\w\+@%-]|(?:[,.;:][^\s$]))+)?)* # path
+                          (?:\?[\w\+@%&=.;-]+)?     # query string
                           (?:\#[\w\-]*)?           # trailing anchor
                         )
                         ([[:punct:]]|\s|<|$)       # trailing text
@@ -560,10 +560,16 @@ module ActionView
         # Turns all email addresses into clickable links.  If a block is given,
         # each email is yielded and the result is used as the link text.
         def auto_link_email_addresses(text)
+          body = text.dup
           text.gsub(/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/) do
             text = $1
-            text = yield(text) if block_given?
-            %{<a href="mailto:#{$1}">#{text}</a>}
+            
+            if body.match(/<a\b[^>]*>(.*)(#{Regexp.escape(text)})(.*)<\/a>/)
+              text
+            else
+              display_text = (block_given?) ? yield(text) : text
+              %{<a href="mailto:#{text}">#{display_text}</a>}
+            end
           end
         end
     end

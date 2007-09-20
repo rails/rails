@@ -1,5 +1,7 @@
 *SVN*
 
+* Autolink behaves well with emails embedded in URLs.  #7313 [Jeremy McAnally, tarmo]
+
 * Fixed that default layouts did not take the format into account #9564 [lifofifo]
 
 * Fixed optimized route segment escaping.  #9562 [wildchild, Jeremy Kemper]
