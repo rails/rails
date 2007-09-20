@@ -3,7 +3,7 @@
 # Install the MySQL driver:
 #   gem install mysql
 # On MacOS X:
-#   gem install mysql -- --include=/usr/local/lib
+#   sudo gem install mysql -- --with-mysql-dir=/usr/local/mysql
 # On Windows:
 #   gem install mysql
 #       Choose the win32 build.
