@@ -157,7 +157,6 @@ class TextHelperTest < Test::Unit::TestCase
               http://www.rubyonrails.com/contact;new?with=query&string=params
               http://www.rubyonrails.com/~minam/contact;new?with=query&string=params
               http://en.wikipedia.org/wiki/Wikipedia:Today%27s_featured_picture_%28animation%29/January_20%2C_2007
-              http://www.mail-archive.com/rails@lists.rubyonrails.org/
             )
 
     urls.each do |url|
@@ -187,8 +186,6 @@ class TextHelperTest < Test::Unit::TestCase
     link8_result = %{<a href="#{link8_raw}">#{link8_raw}</a>}
     link9_raw    = 'http://business.timesonline.co.uk/article/0,,9065-2473189,00.html'
     link9_result = %{<a href="#{link9_raw}">#{link9_raw}</a>}
-    link10_raw    = 'http://www.mail-archive.com/ruby-talk@ruby-lang.org/'
-    link10_result = %{<a href="#{link10_raw}">#{link10_raw}</a>}
 
     assert_equal %(hello #{email_result}), auto_link("hello #{email_raw}", :email_addresses)
     assert_equal %(Go to #{link_result}), auto_link("Go to #{link_raw}", :urls)
@@ -228,7 +225,6 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal %(<p>#{link9_result} Link</p>), auto_link("<p>#{link9_raw} Link</p>")
     assert_equal %(Go to #{link9_result}.), auto_link(%(Go to #{link9_raw}.))
     assert_equal %(<p>Go to #{link9_result}. seriously, #{link9_result}? i think I'll say hello to #{email_result}. instead.</p>), auto_link(%(<p>Go to #{link9_raw}. seriously, #{link9_raw}? i think I'll say hello to #{email_raw}. instead.</p>))
-    assert_equal %(<p>#{link10_result} Link</p>), auto_link("<p>#{link10_raw} Link</p>")
     assert_equal '', auto_link(nil)
     assert_equal '', auto_link('')
   end
