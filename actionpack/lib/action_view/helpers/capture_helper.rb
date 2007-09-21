@@ -93,7 +93,7 @@ module ActionView
       # That will place <script> tags for Prototype, Scriptaculous, and application.js (if it exists)
       # on the page; this technique is useful if you'll only be using these scripts in a few views.
       #
-      # Also, note that content_for concatenates the blocks it is given for a particular
+      # Note that content_for concatenates the blocks it is given for a particular
       # identifier in order. For example:
       #
       #   <% content_for :navigation do %>
@@ -109,7 +109,11 @@ module ActionView
       # Then, in another template or layout, this code would render both links in order:
       #
       #   <ul><%= yield :navigation %></ul>
-      #      
+      #
+      # Lastly, simple content can be passed as a parameter:
+      #
+      #   <% content_for :script, javascript_include_tag(:defaults) %>
+      #
       # WARNING: content_for is ignored in caches. So you shouldn't use it
       # for elements that will be fragment cached.
       #
@@ -118,7 +122,9 @@ module ActionView
       # would be avaiable as <tt><%= @content_for_footer %></tt>. The preferred usage is now
       # <tt><%= yield :footer %></tt>.
       def content_for(name, content = nil, &block)
-        eval "@content_for_#{name} = (@content_for_#{name} || '') + capture(&block)"
+        existing_content_for = instance_variable_get("@content_for_#{name}").to_s
+        new_content_for      = existing_content_for + (block_given? ? capture(&block) : content)
+        instance_variable_set("@content_for_#{name}", new_content_for)
       end
 
       private
