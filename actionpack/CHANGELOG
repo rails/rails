@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't warn when a path segment precedes a required segment. Closes #9615. [Nicholas Seckar]
+
 * Fixed CaptureHelper#content_for to work with the optional content parameter instead of just the block #9434 [sandofsky/wildchild].
 
 * Added Mime::Type.register_alias for dealing with different formats using the same mime type [DHH]. Example:

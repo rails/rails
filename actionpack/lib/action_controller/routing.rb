@@ -819,12 +819,16 @@ module ActionController
         regexp || "(.*)"
       end
 
+      def optionality_implied?
+        true
+      end
+
       class Result < ::Array #:nodoc:
         def to_s() join '/' end 
         def self.new_escaped(strings)
           new strings.collect {|str| URI.unescape str}
         end     
-      end     
+      end
     end
 
     class RouteBuilder #:nodoc:
