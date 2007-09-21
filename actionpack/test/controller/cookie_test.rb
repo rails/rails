@@ -32,6 +32,10 @@ class CookieTest < Test::Unit::TestCase
       render :text => "hello world"
     end
 
+    def authenticate_with_http_only
+      cookies["user_name"] = { :value => "david", :http_only => true }
+    end
+
     def rescue_action(e) 
       raise unless ActionController::MissingTemplate # No templates here, and we don't care about the output 
     end
@@ -58,6 +62,12 @@ class CookieTest < Test::Unit::TestCase
   def test_setting_cookie_for_fourteen_days_with_symbols
     get :authenticate_for_fourten_days
     assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "david", "expires" => Time.local(2005, 10, 10)) ], @response.headers["cookie"]
+  end
+
+  def test_setting_cookie_with_http_only
+    get :authenticate_with_http_only
+    assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "david", "http_only" => true) ], @response.headers["cookie"]
+    assert_equal CGI::Cookie::new("name" => "user_name", "value" => "david", "path" => "/", "http_only" => true).to_s, @response.headers["cookie"].to_s
   end
 
   def test_multiple_cookies

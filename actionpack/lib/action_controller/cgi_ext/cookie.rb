@@ -3,6 +3,9 @@ CGI.module_eval { remove_const "Cookie" }
 # TODO: document how this differs from stdlib CGI::Cookie
 class CGI #:nodoc:
   class Cookie < DelegateClass(Array)
+    attr_accessor :name, :value, :path, :domain, :expires
+    attr_reader :secure, :http_only
+
     # Create a new CGI::Cookie object.
     #
     # The contents of the cookie can be specified as a +name+ and one
@@ -19,7 +22,9 @@ class CGI #:nodoc:
     # secure:: whether this cookie is a secure cookie or not (default to
     #          false).  Secure cookies are only transmitted to HTTPS
     #          servers.
-    #
+    # http_only:: whether this cookie can be accessed by client side scripts (e.g. document.cookie) or only over HTTP 
+    #             More details: http://msdn2.microsoft.com/en-us/library/system.web.httpcookie.httponly.aspx
+    #             Defaults to false.
     # These keywords correspond to attributes of the cookie object.
     def initialize(name = '', *value)
       if name.kind_of?(String)
@@ -28,6 +33,7 @@ class CGI #:nodoc:
         @domain = nil
         @expires = nil
         @secure = false
+        @http_only = false
         @path = nil
       else
         @name = name['name']
@@ -35,12 +41,11 @@ class CGI #:nodoc:
         @domain = name['domain']
         @expires = name['expires']
         @secure = name['secure'] || false
+        @http_only = name['http_only'] || false
         @path = name['path']
       end
 
-      unless @name
-        raise ArgumentError, "`name' required"
-      end
+      raise ArgumentError, "`name' required" unless @name
 
       # simple support for IE
       unless @path
@@ -55,45 +60,26 @@ class CGI #:nodoc:
       @_dc_obj = obj
     end
 
-    attr_accessor("name", "value", "path", "domain", "expires")
-    attr_reader("secure")
-
     # Set whether the Cookie is a secure cookie or not.
-    #
-    # +val+ must be a boolean.
     def secure=(val)
-      @secure = val if val == true or val == false
-      @secure
+      @secure = val == true
+    end
+
+    # Set whether the Cookie is an HTTP only cookie or not.
+    def http_only=(val)
+      @http_only = val == true
     end
 
     # Convert the Cookie to its string representation.
     def to_s
-      buf = ""
+      buf = ''
       buf << @name << '='
-
-      if @value.kind_of?(String)
-        buf << CGI::escape(@value)
-      else
-        buf << @value.collect{|v| CGI::escape(v) }.join("&")
-      end
-
-      if @domain
-        buf << '; domain=' << @domain
-      end
-
-      if @path
-        buf << '; path=' << @path
-      end
-
-      if @expires
-        buf << '; expires=' << CGI::rfc1123_date(@expires)
-      end
-
-      if @secure == true
-        buf << '; secure'
-      end
-
-      buf
+      buf << (@value.kind_of?(String) ? CGI::escape(@value) : @value.collect{|v| CGI::escape(v) }.join("&"))
+      buf << '; domain=' << @domain if @domain
+      buf << '; path=' << @path if @path
+      buf << '; expires=' << CGI::rfc1123_date(@expires) if @expires
+      buf << '; secure' if @secure
+      buf << '; HttpOnly' if @http_only
     end
 
     # Parse a raw cookie string into a hash of cookie-name=>Cookie

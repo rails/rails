@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for HTTP Only cookies (works in IE6+ and FF 2.0.5+) as an improvement for XSS attacks #8895 [lifo/Spakman]
+
 * Don't warn when a path segment precedes a required segment. Closes #9615. [Nicholas Seckar]
 
 * Fixed CaptureHelper#content_for to work with the optional content parameter instead of just the block #9434 [sandofsky/wildchild].

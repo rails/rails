@@ -23,7 +23,9 @@ module ActionController #:nodoc:
   # * <tt>domain</tt> - the domain for which this cookie applies.
   # * <tt>expires</tt> - the time at which this cookie expires, as a +Time+ object.
   # * <tt>secure</tt> - whether this cookie is a secure cookie or not (default to false).
-  #   Secure cookies are only transmitted to HTTPS servers.
+  #                     Secure cookies are only transmitted to HTTPS servers.
+  # * <tt>http_only</tt> - whether this cookie is accessible via scripting or only HTTP (defaults to false).
+  
   module Cookies
     protected
       # Returns the cookie container, which operates as described above.
