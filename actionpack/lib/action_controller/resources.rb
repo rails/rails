@@ -98,6 +98,10 @@ module ActionController
         @action_separator ||= Base.resource_action_separator
       end
 
+      def uncountable?
+        @singular.to_s == @plural.to_s
+      end
+
       protected
         def arrange_actions
           @collection_methods = arrange_actions_by_methods(options.delete(:collection))
@@ -441,8 +445,14 @@ module ActionController
 
       def map_default_collection_actions(map, resource)
         index_action_options = action_options_for("index", resource)
-        map.named_route("#{resource.name_prefix}#{resource.plural}", resource.path, index_action_options)
-        map.named_route("formatted_#{resource.name_prefix}#{resource.plural}", "#{resource.path}.:format", index_action_options)
+        index_route_name = "#{resource.name_prefix}#{resource.plural}"
+
+        if resource.uncountable?
+          index_route_name << "_index"
+        end
+
+        map.named_route(index_route_name, resource.path, index_action_options)
+        map.named_route("formatted_#{index_route_name}", "#{resource.path}.:format", index_action_options)
 
         create_action_options = action_options_for("create", resource)
         map.connect(resource.path, create_action_options)
