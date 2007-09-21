@@ -177,6 +177,9 @@ module Rails
     # If an array of plugin names is specified in config.plugins, only those plugins will be loaded
     # and they plugins will be loaded in that order. Otherwise, plugins are loaded in alphabetical
     # order.
+    #
+    # if config.plugins ends contains :all then the named plugins will be loaded in the given order and all other
+    # plugins will be loaded in alphabetical order
     def load_plugins
       configuration.plugin_locators.each do |locator|
         locator.new(self).each do |plugin|
@@ -339,8 +342,8 @@ module Rails
     private
       def ensure_all_registered_plugins_are_loaded!
         unless configuration.plugins.nil?
-          unless loaded_plugins == configuration.plugins
-            missing_plugins = configuration.plugins - loaded_plugins
+          if configuration.plugins.detect {|plugin| plugin != :all && !loaded_plugins.include?( plugin)}
+            missing_plugins = configuration.plugins - (loaded_plugins + [:all])
             raise LoadError, "Could not locate the following plugins: #{missing_plugins.to_sentence}"
           end
         end

@@ -1,5 +1,12 @@
 *SVN*
 
+* Added the :all option to config.plugins that'll include the rest of the plugins not already explicitly named #9613 [fcheung]. Example:
+
+    # Loads :classic_pagination before all the other plugins
+    config.plugins = [ :classic_pagination, :all ]
+
+* Removed deprecated task names, like clear_logs, in favor of the new namespaced style [DHH]
+
 * Support multiple config.after_initialize blocks so plugins and apps can more easily cooperate.  #9582 [zdennis]
 
 * Added db:drop:all to drop all databases declared in config/database.yml [DHH]

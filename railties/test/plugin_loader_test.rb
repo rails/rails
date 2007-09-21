@@ -14,6 +14,18 @@ class TestPluginLoader < Test::Unit::TestCase
     assert loader.send(:explicit_plugin_loading_order?)
   end
   
+  def test_enabled_if_not_named_explicitly
+    stubby_loader = loader_for(@valid_plugin_path)
+    acts_as_loader = loader_for('acts_as/acts_as_chunky_bacon')
+    
+    only_load_the_following_plugins! ['stubby', :all]
+    assert stubby_loader.send(:enabled?)
+    assert acts_as_loader.send(:enabled?)
+    
+    assert stubby_loader.send(:explicitly_enabled?)
+    assert !acts_as_loader.send(:explicitly_enabled?)
+  end
+  
   def test_determining_whether_a_given_plugin_is_loaded
     plugin_loader = loader_for(@valid_plugin_path)
     assert !plugin_loader.loaded?

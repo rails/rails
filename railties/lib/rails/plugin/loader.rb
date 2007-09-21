@@ -36,8 +36,16 @@ module Rails
       def enabled?
         !explicit_plugin_loading_order? || registered?
       end
-        
+      
+      def explicitly_enabled?
+        !explicit_plugin_loading_order? || explicitly_registered?
+      end
+      
       def registered?
+        explicit_plugin_loading_order? && registered_plugins_names_plugin?(name)
+      end
+
+      def explicitly_registered?
         explicit_plugin_loading_order? && registered_plugins.include?(name)
       end
       
@@ -52,6 +60,10 @@ module Rails
         # non empty, we load the named plugins in the order specified.
         def registered_plugins
           config.plugins
+        end
+        
+        def registered_plugins_names_plugin?(plugin_name)
+          registered_plugins.include?(plugin_name) || registered_plugins.include?(:all)
         end
         
         def explicit_plugin_loading_order?
@@ -104,16 +116,27 @@ module Rails
   
         # Evaluate in init.rb
         def evaluate
-          silence_warnings { eval(IO.read(init_path), binding, init_path)} if has_init_file?
+          silence_warnings { eval(IO.read(init_path), binding, init_path) } if has_init_file?
         end
       
         def <=>(other_plugin_loader)
           if explicit_plugin_loading_order?
-            if non_existent_plugin = [self, other_plugin_loader].detect {|plugin| !registered_plugins.include?(plugin.name)}
+            if non_existent_plugin = [self, other_plugin_loader].detect { |plugin| !registered_plugins_names_plugin?(plugin.name) }
               plugin_does_not_exist!(non_existent_plugin.name)
             end
             
-            registered_plugins.index(name) <=> registered_plugins.index(other_plugin_loader.name)
+            if !explicitly_enabled? && !other_plugin_loader.explicitly_enabled?
+              name <=> other_plugin_loader.name
+            elsif registered_plugins.include?(:all) && (!explicitly_enabled? || !other_plugin_loader.explicitly_enabled?)
+              effective_index = explicitly_enabled? ? registered_plugins.index(name) : registered_plugins.index(:all)
+              other_effective_index = other_plugin_loader.explicitly_enabled? ? 
+                registered_plugins.index(other_plugin_loader.name) : registered_plugins.index(:all)
+
+              effective_index <=> other_effective_index
+            else
+              registered_plugins.index(name) <=> registered_plugins.index(other_plugin_loader.name)
+            end
+            
           else
             name <=> other_plugin_loader.name
           end
