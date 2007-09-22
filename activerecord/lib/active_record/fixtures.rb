@@ -466,9 +466,7 @@ module Test #:nodoc:
       self.use_transactional_fixtures = false
       self.use_instantiated_fixtures = true
       self.pre_loaded_fixtures = false
-      
-      self.fixture_class_names = {}
-      
+            
       @@already_loaded_fixtures = {}
       self.fixture_class_names = {}
       
