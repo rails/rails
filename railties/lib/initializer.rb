@@ -271,7 +271,7 @@ module Rails
       end
     end
 
-    # Sets +ActionController::BaseEview_paths+ and +ActionMailer::Base#template_root+
+    # Sets +ActionController::Base#view_paths+ and +ActionMailer::Base#template_root+
     # (but only for those frameworks that are to be loaded). If the framework's
     # paths have already been set, it is not changed, otherwise it is
     # set to use Configuration#view_path.
