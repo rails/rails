@@ -41,8 +41,10 @@ module ActionController
           end
         end
 
+        # Temporarily disabled :url optimisation pending proper solution to 
+        # Issues around request.host etc.
         def applicable?
-          true
+          kind != :url
         end
       end
 
@@ -76,7 +78,7 @@ module ActionController
           # The last entry in route.segments appears to # *always* be a
           # 'divider segment' for '/' but we have assertions to ensure that
           # we don't include the trailing slashes, so skip them.
-          ((route.segments.size == 1 && kind == :path) ? route.segments : route.segments[0..-2]).each do |segment|
+          (route.segments.size == 1 ? route.segments : route.segments[0..-2]).each do |segment|
             if segment.is_a?(DynamicSegment)
               elements << segment.interpolation_chunk("args[#{idx}].to_param")
               idx += 1
@@ -105,7 +107,7 @@ module ActionController
         # To avoid generating http://localhost/?host=foo.example.com we
         # can't use this optimisation on routes without any segments
         def applicable?
-          route.segment_keys.size > 0 
+          super && route.segment_keys.size > 0 
         end
       end
 
