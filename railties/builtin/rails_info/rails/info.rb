@@ -19,7 +19,7 @@ module Rails
       end
 
       def components
-        %w( active_record action_pack action_web_service active_resource action_mailer active_support )
+        %w( active_record action_pack active_resource action_mailer active_support )
       end
       
       def component_version(component)
