@@ -129,4 +129,19 @@ class NumericExtSizeTest < Test::Unit::TestCase
       assert_equal right, left
     end
   end
+  
+  def test_units_as_bytes_independently
+    assert_equal 3145728, 3.megabytes
+    assert_equal 3145728, 3.megabyte
+    assert_equal 3072, 3.kilobytes
+    assert_equal 3072, 3.kilobyte
+    assert_equal 3221225472, 3.gigabytes
+    assert_equal 3221225472, 3.gigabyte
+    assert_equal 3298534883328, 3.terabytes
+    assert_equal 3298534883328, 3.terabyte
+    assert_equal 3377699720527872, 3.petabytes
+    assert_equal 3377699720527872, 3.petabyte
+    assert_equal 3458764513820540928, 3.exabytes
+    assert_equal 3458764513820540928, 3.exabyte
+  end
 end
