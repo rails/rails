@@ -1,5 +1,7 @@
 *SVN*
 
+* Added the possibility of using symbols in addition to concrete classes with ActiveRecord::Observer#observe #3998 [robbyrussell/tarmo]
+
 * Added ActiveRecord::Base#to_json/from_json (currently does not support :include like to_xml) [DHH]
 
 * Added ActiveRecord::Base#from_xml [DHH]. Example:

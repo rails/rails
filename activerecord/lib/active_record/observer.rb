@@ -84,10 +84,11 @@ module ActiveRecord
   #
   # Observers will by default be mapped to the class with which they share a name. So CommentObserver will
   # be tied to observing Comment, ProductManagerObserver to ProductManager, and so on. If you want to name your observer
-  # differently than the class you're interested in observing, you can use the Observer.observe class method:
+  # differently than the class you're interested in observing, you can use the Observer.observe class method which takes
+  # either the concrete class (Product) or a symbol for that class (:product):
   #
   #   class AuditObserver < ActiveRecord::Observer
-  #     observe Account
+  #     observe :account
   #
   #     def after_update(account)
   #       AuditTrail.new(account, "UPDATED")
@@ -97,7 +98,7 @@ module ActiveRecord
   # If the audit observer needs to watch more than one kind of object, this can be specified with multiple arguments:
   #
   #   class AuditObserver < ActiveRecord::Observer
-  #     observe Account, Balance
+  #     observe :account, :balance
   #
   #     def after_update(record)
   #       AuditTrail.new(record, "UPDATED")
@@ -130,6 +131,7 @@ module ActiveRecord
     class << self
       # Attaches the observer to the supplied model classes.
       def observe(*models)
+        models.flatten.collect! { |model| model.is_a?(Symbol) ? model.to_s.camelize.constantize : model }
         define_method(:observed_classes) { Set.new(models) }
       end
 
