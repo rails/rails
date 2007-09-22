@@ -77,7 +77,7 @@ class Initializer_after_initialize_with_no_block_environment_Test < Test::Unit::
     assert_equal "success", $test_after_initialize_block1, "should still get set"
   end
 
-  def test_should_have_called_the_first_after_initialize_block
+  def test_should_have_called_the_second_after_initialize_block
     assert_equal "congratulations", $test_after_initialize_block2
   end
 
