@@ -980,7 +980,7 @@ module ActionController
               warn "Route segment \"#{segment.to_s}\" cannot be optional because it precedes a required segment. This segment will be required."
             end
             segment.is_optional = false
-          elsif allow_optional & segment.respond_to?(:default) && segment.default
+          elsif allow_optional && segment.respond_to?(:default) && segment.default
             # if a segment has a default, then it is optional
             segment.is_optional = true
           end

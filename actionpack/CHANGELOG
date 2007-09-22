@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove use of & logic operator. Closes #8114. [watson]
+
 * Fixed JavaScriptHelper#escape_javascript to also escape closing tags #8023 [rubyruy]
 
 * Fixed TextHelper#word_wrap for multiline strings with extra carrier returns #8663 [seth]
