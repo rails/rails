@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove web_service generator. [Koz]
+
 * Added the :all option to config.plugins that'll include the rest of the plugins not already explicitly named #9613 [fcheung]. Example:
 
     # Loads :classic_pagination before all the other plugins
