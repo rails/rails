@@ -80,6 +80,7 @@ class CGI #:nodoc:
       buf << '; expires=' << CGI::rfc1123_date(@expires) if @expires
       buf << '; secure' if @secure
       buf << '; HttpOnly' if @http_only
+      buf
     end
 
     # Parse a raw cookie string into a hash of cookie-name=>Cookie
