@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed the placement of fixture files for nested models when generating through script/generate model #7547 [jkit]
+
 * Added TEMPLATE option to rake doc:app to set a custom output template #7737 [Jakob S]
 
 * Added VERBOSE option to rake db:migrate to turn off output #8204 [jbarnette]
