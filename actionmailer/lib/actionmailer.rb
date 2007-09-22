@@ -1,0 +1,1 @@
+require 'action_mailer'
