@@ -24,6 +24,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
   class MigrationTest < Test::Unit::TestCase
     self.use_transactional_fixtures = false
+    
+    fixtures :people
 
     def setup
       ActiveRecord::Migration.verbose = true
@@ -277,6 +279,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.add_column "people", "favorite_day", :date
       Person.connection.add_column "people", "moment_of_truth", :datetime
       Person.connection.add_column "people", "male", :boolean
+      Person.reset_column_information
 
       assert_nothing_raised do
         Person.create :first_name => 'bob', :last_name => 'bobsen',
@@ -373,6 +376,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       begin
         Person.connection.add_column "people", "girlfriend", :string
+        Person.reset_column_information
         Person.create :girlfriend => 'bobette'
 
         Person.connection.rename_column "people", "girlfriend", "exgirlfriend"
@@ -390,9 +394,11 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_rename_column_using_symbol_arguments
       begin
+        names_before = Person.find(:all).map(&:first_name)
         Person.connection.rename_column :people, :first_name, :nick_name
         Person.reset_column_information
         assert Person.column_names.include?("nick_name")
+        assert_equal names_before, Person.find(:all).map(&:nick_name)
       ensure
         Person.connection.remove_column("people","nick_name")
         Person.connection.add_column("people","first_name", :string)
@@ -401,9 +407,11 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_rename_column
       begin
+        names_before = Person.find(:all).map(&:first_name)
         Person.connection.rename_column "people", "first_name", "nick_name"
         Person.reset_column_information
         assert Person.column_names.include?("nick_name")
+        assert_equal names_before, Person.find(:all).map(&:nick_name)
       ensure
         Person.connection.remove_column("people","nick_name")
         Person.connection.add_column("people","first_name", :string)
@@ -479,7 +487,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       old_columns = Topic.connection.columns(Topic.table_name, "#{name} Columns")
       assert old_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
       assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, :default => false }
-      new_columns = Topic.connection.columns(Topic.table_name, "#{name} Columns")     
+      new_columns = Topic.connection.columns(Topic.table_name, "#{name} Columns")
       assert_nil new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
       assert new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == false }
       assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, :default => true }
@@ -781,6 +789,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     	assert_equal 4, ActiveRecord::Migrator.current_version
 			
 			ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations_with_missing_versions/', 2)
+			Person.reset_column_information
 			assert !Reminder.table_exists?
       assert Person.column_methods_hash.include?(:last_name)			
 			assert_equal 2, ActiveRecord::Migrator.current_version

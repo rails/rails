@@ -238,12 +238,13 @@ module ActiveRecord
             self.type    = type
             self.limit   = options[:limit] if options.include?(:limit)
             self.default = options[:default] if include_default
+            self.null    = options[:null] if options.include?(:null)
           end
         end
       end
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
-        alter_table(table_name, :rename => {column_name => new_column_name})
+        alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
       end
 
 
@@ -290,7 +291,7 @@ module ActiveRecord
                 (options[:rename][column.name] ||
                  options[:rename][column.name.to_sym] ||
                  column.name) : column.name
-
+              
               @definition.column(column_name, column.type,
                 :limit => column.limit, :default => column.default,
                 :null => column.null)
