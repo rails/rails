@@ -45,7 +45,7 @@ task :build_mysql_databases do
   %x( mysql -e "grant all on activerecord_unittest.* to rails@localhost" )
   %x( mysql -e "grant all on activerecord_unittest2.* to rails@localhost" )
   %x( mysql  activerecord_unittest < #{File.join(SCHEMA_PATH, 'mysql.sql')} )
-  %x( mysql  activerecord_unittest < #{File.join(SCHEMA_PATH, 'mysql2.sql')} )
+  %x( mysql  activerecord_unittest2 < #{File.join(SCHEMA_PATH, 'mysql2.sql')} )
 end
 
 desc 'Drop the MySQL test databases'
