@@ -145,8 +145,8 @@ module ActiveRecord
     end #  ClassMethods
 
 
-    # Allows access to the object attributes, which are held in the @attributes hash, as were
-    # they first-class methods. So a Person class with a name attribute can use Person#name and
+    # Allows access to the object attributes, which are held in the @attributes hash, as though they
+    # were first-class methods. So a Person class with a name attribute can use Person#name and
     # Person#name= and never directly use the attributes hash -- except for multiple assigns with
     # ActiveRecord#attributes=. A Milestone class can also ask Milestone#completed? to test that
     # the completed attribute is not nil or 0.
