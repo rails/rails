@@ -18,7 +18,7 @@ module ActionView
     #   image_tag("rails.png")
     #     => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
     #   stylesheet_include_tag("application")
-    #     => <link href="http://assets.example.com/stylesheets/application.css" media="screen" rel="Stylesheet" type="text/css" />
+    #     => <link href="http://assets.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
     #
     # This is useful since browsers typically open at most two connections to a single host,
     # which means your assets often wait in single file for their turn to load.  You can
@@ -29,7 +29,7 @@ module ActionView
     #   image_tag("rails.png")
     #     => <img src="http://assets0.example.com/images/rails.png" alt="Rails" />
     #   stylesheet_include_tag("application")
-    #     => <link href="http://assets3.example.com/stylesheets/application.css" media="screen" rel="Stylesheet" type="text/css" />
+    #     => <link href="http://assets3.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
     #
     # To do this, you can either setup four actual hosts, or you can use wildcard DNS to CNAME 
     # the wildcard to a single asset host.  You can read more about setting up your DNS CNAME records from
@@ -232,30 +232,30 @@ module ActionView
       #
       # ==== Examples
       #   stylesheet_link_tag "style" # =>
-      #     <link href="/stylesheets/style.css" media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "style.css" # =>
-      #     <link href="/stylesheets/style.css" media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "http://www.railsapplication.com/style.css" # =>
-      #     <link href="http://www.railsapplication.com/style.css" media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="http://www.railsapplication.com/style.css" media="screen" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "style", :media => "all" # =>
-      #     <link href="/stylesheets/style.css" media="all" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/style.css" media="all" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "style", :media => "print" # =>
-      #     <link href="/stylesheets/style.css" media="print" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/style.css" media="print" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "random.styles", "/css/stylish" # =>
-      #     <link href="/stylesheets/random.styles" media="screen" rel="Stylesheet" type="text/css" />
-      #     <link href="/css/stylish.css" media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/random.styles" media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/css/stylish.css" media="screen" rel="stylesheet" type="text/css" />
       #
       # You can also include all styles in the stylesheet directory using :all as the source:
       #
       #   stylesheet_link_tag :all # =>
-      #     <link href="/stylesheets/style1.css"  media="screen" rel="Stylesheet" type="text/css" />
-      #     <link href="/stylesheets/styleB.css"  media="screen" rel="Stylesheet" type="text/css" />
-      #     <link href="/stylesheets/styleX2.css" media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/style1.css"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/styleB.css"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/styleX2.css" media="screen" rel="stylesheet" type="text/css" />
       #
       # == Caching multiple stylesheets into one
       #
@@ -266,20 +266,20 @@ module ActionView
       #
       # ==== Examples
       #   stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
-      #     <link href="/stylesheets/style1.css"  media="screen" rel="Stylesheet" type="text/css" />
-      #     <link href="/stylesheets/styleB.css"  media="screen" rel="Stylesheet" type="text/css" />
-      #     <link href="/stylesheets/styleX2.css" media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/style1.css"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/styleB.css"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/styleX2.css" media="screen" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag :all, :cache => true # when ActionController::Base.perform_caching is true =>
-      #     <link href="/stylesheets/all.css"  media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/all.css"  media="screen" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when ActionController::Base.perform_caching is false =>
-      #     <link href="/stylesheets/shop.css"  media="screen" rel="Stylesheet" type="text/css" />
-      #     <link href="/stylesheets/cart.css"  media="screen" rel="Stylesheet" type="text/css" />
-      #     <link href="/stylesheets/checkout.css" media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/shop.css"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/cart.css"  media="screen" rel="stylesheet" type="text/css" />
+      #     <link href="/stylesheets/checkout.css" media="screen" rel="stylesheet" type="text/css" />
       #
       #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when ActionController::Base.perform_caching is true =>
-      #     <link href="/stylesheets/payment.css"  media="screen" rel="Stylesheet" type="text/css" />
+      #     <link href="/stylesheets/payment.css"  media="screen" rel="stylesheet" type="text/css" />
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
         cache   = options.delete("cache")
@@ -299,7 +299,7 @@ module ActionView
           end
 
           tag("link", {
-            "rel" => "Stylesheet", "type" => Mime::CSS, "media" => "screen",
+            "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen",
             "href" => stylesheet_path(joined_stylesheet_name)
           }.merge(options))
         else
@@ -307,7 +307,7 @@ module ActionView
 
           expand_stylesheet_sources(sources).collect do |source|
             tag("link", {
-              "rel" => "Stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => stylesheet_path(source)
+              "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => stylesheet_path(source)
             }.merge(options))
           end.join("\n")
         end
