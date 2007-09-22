@@ -10,4 +10,4 @@ Example
 Example goes here.
 
 
-Copyright (c) 2007 [name of plugin creator], released under the MIT license
+Copyright (c) <%= Date.today.year %> [name of plugin creator], released under the MIT license
