@@ -1,5 +1,7 @@
 *SVN*
 
+* Added FormHelper#label #8641 [jcoglan]
+
 * Added AtomFeedHelper (slightly improved from the atom_feed_helper plugin) [DHH]
 
 * Prevent errors when generating routes for uncountable resources, (i.e. sheep where plural == singluar).   map.resources :sheep now creates sheep_index_url for the collection and sheep_url for the specific item.  [Koz]

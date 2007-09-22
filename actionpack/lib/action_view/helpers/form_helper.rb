@@ -219,6 +219,25 @@ module ActionView
         yield builder.new(object_name, object, self, options, block)
       end
 
+      # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
+      # assigned to the template (identified by +object+). The text of label will default to the attribute name unless you specify
+      # it explicitly. Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
+      # onto the html as an HTML element attribute as in the example shown.
+      #
+      # ==== Examples
+      #   label(:post, :title)
+      #   #=> <label for="post_title">Title</label>
+      #
+      #   label(:post, :title, "A short title")
+      #   #=> <label for="post_title">A short title</label>
+      #
+      #   label(:post, :title, "A short title", :class => "title_label")
+      #   #=> <label for="post_title" class="title_label">A short title</label>
+      #
+      def label(object_name, method, text = nil, options = {})
+        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_label_tag(text, options)
+      end
+
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
       # hash with +options+.  These options will be tagged onto the html as an HTML element attribute as in the example
@@ -398,6 +417,14 @@ module ActionView
         end
       end
 
+      def to_label_tag(text = nil, options = {})
+        name_and_id = options.dup
+        add_default_name_and_id(name_and_id)
+        options["for"] = name_and_id["id"]
+        content = (text.blank? ? nil : text.to_s) || method_name.humanize
+        content_tag("label", content, options)
+      end
+
       def to_input_field_tag(field_type, options = {})
         options = options.stringify_keys
         options["size"] = options["maxlength"] || DEFAULT_FIELD_OPTIONS["size"] unless options.key?("size")
@@ -574,7 +601,7 @@ module ActionView
         @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc        
       end
       
-      (field_helpers - %w(check_box radio_button fields_for)).each do |selector|
+      (field_helpers - %w(label check_box radio_button fields_for)).each do |selector|
         src = <<-end_src
           def #{selector}(method, options = {})
             @template.send(#{selector.inspect}, @object_name, method, options.merge(:object => @object))
@@ -586,6 +613,10 @@ module ActionView
       def fields_for(name, *args, &block)
         name = "#{object_name}[#{name}]"
         @template.fields_for(name, *args, &block)
+      end
+
+      def label(method, text = nil, options = {})
+        @template.label(@object_name, method, text, options.merge(:object => @object))
       end
 
       def check_box(method, options = {}, checked_value = "1", unchecked_value = "0")

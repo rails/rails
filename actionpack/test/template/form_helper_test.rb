@@ -70,6 +70,19 @@ class FormHelperTest < Test::Unit::TestCase
     @controller = @controller.new
   end
 
+  def test_label
+    assert_dom_equal('<label for="post_title">Title</label>', label("post", "title"))
+    assert_dom_equal('<label for="post_title">The title goes here</label>', label("post", "title", "The title goes here"))
+    assert_dom_equal(
+      '<label class="title_label" for="post_title">Title</label>',
+      label("post", "title", nil, :class => 'title_label')
+    )
+  end
+  
+  def test_label_with_symbols
+    assert_dom_equal('<label for="post_title">Title</label>', label(:post, :title))
+  end
+
   def test_text_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />', text_field("post", "title")
@@ -275,6 +288,7 @@ class FormHelperTest < Test::Unit::TestCase
     _erbout = ''
 
     form_for(:post, @post, :html => { :id => 'create-post' }) do |f|
+      _erbout.concat f.label(:title)
       _erbout.concat f.text_field(:title)
       _erbout.concat f.text_area(:body)
       _erbout.concat f.check_box(:secret)
@@ -283,6 +297,7 @@ class FormHelperTest < Test::Unit::TestCase
 
     expected = 
       "<form action='http://www.example.com' id='create-post' method='post'>" +
+      "<label for='post_title'>Title</label>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
