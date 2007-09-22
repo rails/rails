@@ -104,15 +104,15 @@ module ActionView
       #   while spidering your site). Supported verbs are :post, :delete and :put.
       #   Note that if the user has JavaScript disabled, the request will fall back
       #   to using GET. If you are relying on the POST behavior, your should check
-      #   for it in your controllers action by using the request objects methods
+      #   for it in your controller's action by using the request object's methods
       #   for post?, delete? or put?.
       # * The +html_options+ will accept a hash of html attributes for the link tag.
       #
       # Note that if the user has JavaScript disabled, the request will fall back
       # to using GET. If :href=>'#' is used and the user has JavaScript disabled
       # clicking the link will have no effect. If you are relying on the POST 
-      # behavior, your should check for it in your controllers action by using the 
-      # request objects methods for post?, delete? or put?. 
+      # behavior, your should check for it in your controller's action by using the 
+      # request object's methods for post?, delete? or put?. 
       #
       # You can mix and match the +html_options+ with the exception of
       # :popup and :method which will raise an ActionView::ActionViewError
