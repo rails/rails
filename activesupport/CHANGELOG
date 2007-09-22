@@ -1,5 +1,7 @@
 *SVN*
 
+* Added call to inspect on non-string classes for the logger #8533 [codahale]
+
 * Deprecation: remove deprecated :mday option from Time, Date, and DateTime#change.  [Jeremy Kemper]
 
 * Fix JSON decoder with nested quotes and commas.  #9579 [zdennis]
