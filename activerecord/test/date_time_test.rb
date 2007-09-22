@@ -10,7 +10,7 @@ class DateTimeTest < Test::Unit::TestCase
     task.starting = now
     task.save!
 
-    assert_equal now, Task.find(task.id).starting
+    assert_equal now, Task.find(task.id).starting.to_datetime
   end
 
   def test_assign_empty_date_time
