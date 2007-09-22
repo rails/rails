@@ -92,11 +92,11 @@ module ActiveRecord
   # n MyNewMigration.
   #
   # To run migrations against the currently configured database, use
-  # <tt>rake migrate</tt>. This will update the database by running all of the
+  # <tt>rake db:migrate</tt>. This will update the database by running all of the
   # pending migrations, creating the <tt>schema_info</tt> table if missing.
   #
   # To roll the database back to a previous migration version, use
-  # <tt>rake migrate VERSION=X</tt> where <tt>X</tt> is the version to which
+  # <tt>rake db:migrate VERSION=X</tt> where <tt>X</tt> is the version to which
   # you wish to downgrade. If any of the migrations throw an
   # <tt>IrreversibleMigration</tt> exception, that step will fail and you'll
   # have some manual work to do.
