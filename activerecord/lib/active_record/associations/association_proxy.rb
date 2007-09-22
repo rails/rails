@@ -79,7 +79,7 @@ module ActiveRecord
 
       protected
         def dependent?
-          @reflection.options[:dependent] || false
+          @reflection.options[:dependent]
         end
         
         def quoted_record_ids(records)
