@@ -99,6 +99,11 @@ namespace :db do
     puts "Current version: #{ActiveRecord::Migrator.current_version}"
   end
 
+  desc "Print the current database migration version to the console"
+  task :version => :environment do
+    puts "VERSION=#{ActiveRecord::Migrator.current_version}"
+  end
+
   namespace :fixtures do
     desc "Load fixtures into the current environment's database.  Load specific fixtures using FIXTURES=x,y"
     task :load => :environment do
