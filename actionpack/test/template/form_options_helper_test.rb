@@ -140,7 +140,7 @@ class FormOptionsHelperTest < Test::Unit::TestCase
     )
   end
 
-  def test_html_option_groups_from_collection
+  def test_option_groups_from_collection_for_select
     @continents = [
       Continent.new("<Africa>", [Country.new("<sa>", "<South Africa>"), Country.new("so", "Somalia")] ),
       Continent.new("Europe", [Country.new("dk", "Denmark"), Country.new("ie", "Ireland")] )
