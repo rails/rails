@@ -2,8 +2,7 @@ require File.dirname(__FILE__) + "/abstract_unit"
 
 begin # rescue LoadError
 
-require 'mocha'
-require 'stubba'
+require_library_or_gem 'mocha'
   
 $:.unshift File.dirname(__FILE__) + "/mocks"
 
@@ -261,6 +260,6 @@ class RailsFCGIHandlerPeriodicGCTest < Test::Unit::TestCase
   end
 end
 
-rescue LoadError
-  $stderr.puts "Skipping dispatcher tests. `gem install mocha` and try again."
+rescue LoadError => e
+  $stderr.puts "Skipping dispatcher tests. `gem install mocha` and try again. (#{e})"
 end
