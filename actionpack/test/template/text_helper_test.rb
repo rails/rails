@@ -120,6 +120,10 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", 15))
   end
 
+  def test_word_wrap_with_extra_newlines
+    assert_equal("my very very\nvery long\nstring\n\nwith another\nline", word_wrap("my very very very long string\n\nwith another line", 15))
+  end
+
   def test_pluralization
     assert_equal("1 count", pluralize(1, "count"))
     assert_equal("2 counts", pluralize(2, "count"))

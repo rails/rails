@@ -161,7 +161,9 @@ module ActionView
       #   word_wrap('Once upon a time', 1)
       #   # => Once\nupon\na\ntime
       def word_wrap(text, line_width = 80)
-        text.gsub(/\n/, "\n\n").gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1\n").strip
+        text.split("\n").collect do |line|
+          line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1\n").strip : line
+        end * "\n"
       end
 
       begin
