@@ -108,16 +108,6 @@ class UrlHelperTest < Test::Unit::TestCase
   def test_link_tag_with_query_and_no_name
     assert_dom_equal "<a href=\"http://www.example.com?q1=v1&amp;q2=v2\">http://www.example.com?q1=v1&amp;q2=v2</a>", link_to(nil, "http://www.example.com?q1=v1&amp;q2=v2")
   end
-  
-  def test_link_tag_with_back
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show", nil, nil, {'HTTP_REFERER' => 'http://www.example.com/referer'})
-    assert_dom_equal "<a href=\"http://www.example.com/referer\">go back</a>", link_to('go back', :back)
-  end
-  
-  def test_link_tag_with_back_and_no_referer
-    @controller.request = RequestMock.new("http://www.example.com/weblog/show", nil, nil, {})
-    assert_dom_equal "<a href=\"javascript:history.back()\">go back</a>", link_to('go back', :back)
-  end
 
   def test_link_tag_with_img
     assert_dom_equal "<a href=\"http://www.example.com\"><img src='/favicon.jpg' /></a>", link_to("<img src='/favicon.jpg' />", "http://www.example.com")
