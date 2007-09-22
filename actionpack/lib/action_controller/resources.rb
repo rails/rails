@@ -234,9 +234,10 @@ module ActionController
     # * <tt>:new</tt> - same as :collection, but for actions that operate on the new resource action.
     # * <tt>:controller</tt> - specify the controller name for the routes.
     # * <tt>:singular</tt> - specify the singular name used in the member routes.
-    # * <tt>:path_prefix</tt> - set a prefix to the routes with required route variables.
     # * <tt>:requirements</tt> - set custom routing parameter requirements.
     # * <tt>:conditions</tt> - specify custom routing recognition conditions.  Resources sets the :method value for the method-specific routes.
+    # * <tt>:path_prefix</tt> - set a prefix to the routes with required route variables.
+    #
     #   Weblog comments usually belong to a post, so you might use resources like:
     #
     #     map.resources :articles
