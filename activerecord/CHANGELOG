@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that using version-targetted migrates would fail on loggers other than the default one #7430 [valeksenko]
+
 * Fixed rename_column for SQLite when using symbols for the column names #8616 [drodriguez]
 
 * Added the possibility of using symbols in addition to concrete classes with ActiveRecord::Observer#observe #3998 [robbyrussell/tarmo]
