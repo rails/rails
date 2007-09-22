@@ -78,9 +78,8 @@ module ActionController
               url[key] = value
             end
 
-            @response_diff = url[:expected].diff(url[:actual]) if url[:actual]
-            msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>), difference: <?>",
-                                url[:actual], @response_diff)
+            @response_diff = url[:actual].diff(url[:expected]) if url[:actual]
+            msg = build_message(message, "expected a redirect to <?>, found one to <?>, a difference of <?> ", url[:expected], url[:actual], @response_diff)
 
             assert_block(msg) do
               url[:expected].keys.all? do |k|
