@@ -220,6 +220,10 @@ class InflectorTest < Test::Unit::TestCase
     assert_equal "Plurals", Inflector.pluralize("Plurals")
   end
 
+  def test_pluralize_empty_string
+    assert_equal "", Inflector.pluralize("")
+  end
+
   SingularToPlural.each do |singular, plural|
     define_method "test_pluralize_#{singular}" do
       assert_equal(plural, Inflector.pluralize(singular))

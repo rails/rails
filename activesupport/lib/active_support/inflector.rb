@@ -106,7 +106,7 @@ module Inflector
   def pluralize(word)
     result = word.to_s.dup
 
-    if inflections.uncountables.include?(result.downcase)
+    if word.empty? || inflections.uncountables.include?(result.downcase)
       result
     else
       inflections.plurals.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
