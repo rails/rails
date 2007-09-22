@@ -82,6 +82,24 @@ class UrlHelperTest < Test::Unit::TestCase
   def test_link_tag_with_straight_url
     assert_dom_equal "<a href=\"http://www.example.com\">Hello</a>", link_to("Hello", "http://www.example.com")
   end
+  
+  def test_link_tag_without_host_option
+    ActionController::Base.class_eval { attr_accessor :url }
+    url = {:controller => 'weblog', :action => 'show'}
+    @controller = ActionController::Base.new
+    @controller.request = ActionController::TestRequest.new
+    @controller.url = ActionController::UrlRewriter.new(@controller.request, url)
+    assert_dom_equal(%q{<a href="/weblog/show">Test Link</a>}, link_to('Test Link', url))
+  end
+
+  def test_link_tag_with_host_option
+    ActionController::Base.class_eval { attr_accessor :url }
+    url = {:controller => 'weblog', :action => 'show', :host => 'www.example.com'}
+    @controller = ActionController::Base.new
+    @controller.request = ActionController::TestRequest.new
+    @controller.url = ActionController::UrlRewriter.new(@controller.request, url)
+    assert_dom_equal(%q{<a href="http://www.example.com/weblog/show">Test Link</a>}, link_to('Test Link', url))
+  end
 
   def test_link_tag_with_query
     assert_dom_equal "<a href=\"http://www.example.com?q1=v1&amp;q2=v2\">Hello</a>", link_to("Hello", "http://www.example.com?q1=v1&amp;q2=v2")
@@ -175,7 +193,7 @@ class UrlHelperTest < Test::Unit::TestCase
   def test_link_tag_using_post_javascript_and_popup
     assert_raises(ActionView::ActionViewError) { link_to("Hello", "http://www.example.com", :popup => true, :method => :post, :confirm => "Are you serious?") }
   end
-
+  
   def test_link_to_unless
     assert_equal "Showing", link_to_unless(true, "Showing", :action => "show", :controller => "weblog")
     assert_dom_equal "<a href=\"http://www.example.com\">Listing</a>", link_to_unless(false, "Listing", :action => "list", :controller => "weblog")
