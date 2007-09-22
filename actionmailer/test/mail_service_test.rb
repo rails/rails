@@ -245,6 +245,14 @@ class TestMailer < ActionMailer::Base
     body         "testing"
   end
 
+  def return_path
+    recipients   "no.one@nowhere.test"
+    subject      "return path test"
+    from         "some.one@somewhere.test"
+    body         "testing"
+    headers      "return-path" => "another@somewhere.test"
+  end
+
   class <<self
     attr_accessor :received_body
   end
@@ -857,6 +865,17 @@ EOF
     mail = TestMailer.create_custom_content_type_attributes
     assert_match %r{format=flowed}, mail['content-type'].to_s
     assert_match %r{charset=utf-8}, mail['content-type'].to_s
+  end
+
+  def test_return_path_with_create
+    mail = TestMailer.create_return_path
+    assert_equal "<another@somewhere.test>", mail['return-path'].to_s
+  end
+
+  def test_return_path_with_deliver
+    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.deliver_return_path
+    assert_match %r{^Return-Path: <another@somewhere.test>}, MockSMTP.deliveries[0][0]
   end
 end
 
