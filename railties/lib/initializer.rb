@@ -60,27 +60,26 @@ module Rails
     # Sequentially step through all of the available initialization routines,
     # in order:
     #
+    # * #check_ruby_version
     # * #set_load_path
     # * #require_frameworks
+    # * #set_autoload_paths
     # * #load_environment
+    # * #initialize_encoding
     # * #initialize_database
     # * #initialize_logger
     # * #initialize_framework_logging
     # * #initialize_framework_views
     # * #initialize_dependency_mechanism
     # * #initialize_whiny_nils
+    # * #initialize_temporary_directories
     # * #initialize_framework_settings
-    # * #load_environment
+    # * #add_support_load_paths
     # * #load_plugins
     # * #load_observers
     # * #initialize_routing
     # * #after_initialize
     # * #load_application_initializers
-    #
-    # (Note that #load_environment is invoked twice, once at the start and
-    # once at the end, to support the legacy configuration style where the
-    # environment could overwrite the defaults directly, instead of via the
-    # Configuration instance.
     def process
       check_ruby_version
       set_load_path
@@ -98,11 +97,6 @@ module Rails
       initialize_whiny_nils
       initialize_temporary_directories
       initialize_framework_settings
-
-      # Support for legacy configuration style where the environment
-      # could overwrite anything set from the defaults/global through
-      # the individual base class configurations.
-      load_environment
 
       add_support_load_paths
 
@@ -191,7 +185,7 @@ module Rails
     end
 
     # Loads the environment specified by Configuration#environment_path, which
-    # is typically one of development, testing, or production.
+    # is typically one of development, test, or production.
     def load_environment
       silence_warnings do
         return if @environment_loaded
