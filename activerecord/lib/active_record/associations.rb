@@ -1256,12 +1256,14 @@ module ActiveRecord
             throw :invalid_query
           end
         end
- 
+
         def select_limited_ids_list(options, join_dependency)
+          pk = columns_hash[primary_key]
+
           connection.select_all(
             construct_finder_sql_for_association_limiting(options, join_dependency),
             "#{name} Load IDs For Limited Eager Loading"
-          ).collect { |row| connection.quote(row[primary_key]) }.join(", ")
+          ).collect { |row| connection.quote(row[primary_key], pk) }.join(", ")
         end
 
         def construct_finder_sql_for_association_limiting(options, join_dependency)

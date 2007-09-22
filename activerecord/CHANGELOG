@@ -1,5 +1,7 @@
 *SVN*
 
+* Correctly quote id list for limited eager loading.  #7482 [tmacedo]
+
 * Fixed that using version-targetted migrates would fail on loggers other than the default one #7430 [valeksenko]
 
 * Fixed rename_column for SQLite when using symbols for the column names #8616 [drodriguez]
