@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed JavaScriptHelper#escape_javascript to also escape closing tags #8023 [rubyruy]
+
 * Fixed TextHelper#word_wrap for multiline strings with extra carrier returns #8663 [seth]
 
 * Fixed that setting the :host option in url_for would automatically turn off :only_path (since :host would otherwise not be shown) #9586 [Bounga]

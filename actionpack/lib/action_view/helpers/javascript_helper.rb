@@ -149,7 +149,7 @@ module ActionView
 
       # Escape carrier returns and single and double quotes for JavaScript segments.
       def escape_javascript(javascript)
-        (javascript || '').gsub('\\','\0\0').gsub(/\r\n|\n|\r/, "\\n").gsub(/["']/) { |m| "\\#{m}" }
+        (javascript || '').gsub('\\','\0\0').gsub('</','<\/').gsub(/\r\n|\n|\r/, "\\n").gsub(/["']/) { |m| "\\#{m}" }
       end
 
       # Returns a JavaScript tag with the +content+ inside. Example:
