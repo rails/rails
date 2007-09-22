@@ -1,8 +1,39 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
+class EmptyTrue
+  def empty?() true; end
+end
+
+class EmptyFalse
+  def empty?() false; end
+end
+
+class EmptyStripNotEmpty
+  def empty?() true; end
+  def strip() 'foo'; end
+end
+
+class EmptyStripEmpty
+  def empty?() true; end
+  def strip() ''; end
+end
+
+class NotEmptyStripNotEmpty
+  def empty?() false; end
+  def strip() 'foo'; end
+end
+
+class NotEmptyStripEmpty
+  def empty?() false; end
+  def strip() ''; end
+end
+
 class BlankTest < Test::Unit::TestCase
-  BLANK = [nil, false, '', '   ', "  \n\t  \r ", [], {}]
-  NOT   = [true, 0, 1, 'a', [nil], { nil => 0 }]
+  BLANK = [ EmptyTrue.new, EmptyStripNotEmpty.new, EmptyStripEmpty.new,
+            NotEmptyStripEmpty.new, nil, false, '', '   ', "  \n\t  \r ",
+            [], {} ]
+  NOT   = [ EmptyFalse.new, NotEmptyStripNotEmpty.new, Object.new, true,
+            0, 1, 'a', [nil], { nil => 0 } ]
   
   class EmptyObject
     def empty?
