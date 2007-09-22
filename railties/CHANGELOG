@@ -1,5 +1,7 @@
 *SVN*
 
+* Added TEMPLATE option to rake doc:app to set a custom output template #7737 [Jakob S]
+
 * Added VERBOSE option to rake db:migrate to turn off output #8204 [jbarnette]
 
 * Fixed that rake doc:app should use UTF-8 #8906 [farzy]
