@@ -383,7 +383,7 @@ module Dependencies #:nodoc:
   
   class LoadingModule #:nodoc:
     # Old style environment.rb referenced this method directly.  Please note, it doesn't
-    # actualy *do* anything any more.
+    # actually *do* anything any more.
     def self.root(*args)
       if defined?(RAILS_DEFAULT_LOGGER)
         RAILS_DEFAULT_LOGGER.warn "Your environment.rb uses the old syntax, it may not continue to work in future releases."

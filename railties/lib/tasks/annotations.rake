@@ -30,9 +30,9 @@ class SourceAnnotationExtractor
 
       if File.directory?(item)
         results.update(find_in(item))
-      elsif item =~ /\.r(?:b|xml|js)$/
+      elsif item =~ /\.(builder|(r(?:b|xml|js)))$/
         results.update(extract_annotations_from(item, /#\s*(#{tag}):?\s*(.*)$/))
-      elsif item =~ /\.rhtml$/
+      elsif item =~ /\.(rhtml|erb)$/
         results.update(extract_annotations_from(item, /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/))
       end
     end
