@@ -429,7 +429,10 @@ module Rails
     # The list of plugins to load. If this is set to <tt>nil</tt>, all plugins will
     # be loaded. If this is set to <tt>[]</tt>, no plugins will be loaded. Otherwise,
     # plugins will be loaded in the order specified.
-    attr_accessor :plugins
+    attr_reader :plugins
+    def plugins=(plugins)
+      @plugins = plugins.nil? ? nil : plugins.map { |p| p.to_sym }
+    end
 
     # The path to the root of the plugins directory. By default, it is in
     # <tt>vendor/plugins</tt>.

@@ -5,6 +5,8 @@
     # Loads :classic_pagination before all the other plugins
     config.plugins = [ :classic_pagination, :all ]
 
+* Added symbols as a legal way of specifying plugins in config.plugins #9629 [tom]
+
 * Removed deprecated task names, like clear_logs, in favor of the new namespaced style [DHH]
 
 * Support multiple config.after_initialize blocks so plugins and apps can more easily cooperate.  #9582 [zdennis]

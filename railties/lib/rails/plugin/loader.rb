@@ -13,7 +13,7 @@ module Rails
       def initialize(initializer, directory)
         @initializer = initializer
         @directory   = directory
-        @name        = File.basename(directory)
+        @name        = File.basename(directory).to_sym
       end
   
       def load
@@ -126,7 +126,7 @@ module Rails
             end
             
             if !explicitly_enabled? && !other_plugin_loader.explicitly_enabled?
-              name <=> other_plugin_loader.name
+              name.to_s <=> other_plugin_loader.name.to_s
             elsif registered_plugins.include?(:all) && (!explicitly_enabled? || !other_plugin_loader.explicitly_enabled?)
               effective_index = explicitly_enabled? ? registered_plugins.index(name) : registered_plugins.index(:all)
               other_effective_index = other_plugin_loader.explicitly_enabled? ? 
@@ -138,7 +138,7 @@ module Rails
             end
             
           else
-            name <=> other_plugin_loader.name
+            name.to_s <=> other_plugin_loader.name.to_s
           end
         end
     end
