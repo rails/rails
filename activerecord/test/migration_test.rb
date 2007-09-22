@@ -334,6 +334,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         Person.delete_all
 
         ActiveRecord::Migration.add_column :people, :intelligence_quotient, :tinyint
+        Person.reset_column_information
         Person.create :intelligence_quotient => 300
         jonnyg = Person.find(:first) 
         assert_equal 127, jonnyg.intelligence_quotient
