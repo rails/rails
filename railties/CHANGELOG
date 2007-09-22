@@ -1,5 +1,7 @@
 *SVN*
 
+* Added VERBOSE option to rake db:migrate to turn off output #8204 [jbarnette]
+
 * Fixed that rake doc:app should use UTF-8 #8906 [farzy]
 
 * Fixes rake annotations to search erb and builder files as well #9150 [m.langenberg]
