@@ -92,9 +92,13 @@ module Rails
         # 1.  Rails application.  If RAILS_ROOT is defined we know we're
         #     generating in the context of a Rails application, so search
         #     RAILS_ROOT/generators.
-        # 2.  User home directory.  Search ~/.rails/generators.
-        # 3.  RubyGems.  Search for gems named *_generator.
-        # 4.  Builtins.  Model, controller, mailer, scaffold.
+        # 2.  Look in plugins, either for generators/ or rails_generators/ 
+        #     directories within each plugin
+        # 3.  User home directory.  Search ~/.rails/generators.
+        # 4.  RubyGems.  Search for gems named *_generator, and look for 
+        #     generators within any RubyGem's 
+        #     /rails_generators/<generator_name>_generator.rb file.
+        # 5.  Builtins.  Model, controller, mailer, scaffold, and so on.
         def use_component_sources!
           reset_sources
           if defined? ::RAILS_ROOT

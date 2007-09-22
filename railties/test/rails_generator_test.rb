@@ -37,7 +37,7 @@ require 'rails_generator'
 
 
 class RailsGeneratorTest < Test::Unit::TestCase
-  BUILTINS = %w(controller mailer model scaffold)
+  BUILTINS = %w(controller integration_test mailer migration model observer plugin resource scaffold session_migration web_service)
   CAPITALIZED_BUILTINS = BUILTINS.map { |b| b.capitalize }
 
   def setup
@@ -45,8 +45,12 @@ class RailsGeneratorTest < Test::Unit::TestCase
   end
 
   def test_sources
-    expected = [:lib, :vendor, :plugins, :user, :RubyGems, :builtin]
-    expected.delete(:gem) unless Object.const_defined?(:Gem)
+    expected = [:lib, :vendor, 
+                :plugins, :plugins, # <plugin>/generators and <plugin>/rails_generators
+                :user, 
+                :RubyGems, :RubyGems, # gems named <x>_generator, gems containing /rails_generator/ folder
+                :builtin]
+    expected.delete(:RubyGems) unless Object.const_defined?(:Gem)
     assert_equal expected, Rails::Generator::Base.sources.map { |s| s.label }
   end
 
@@ -84,8 +88,8 @@ class RailsGeneratorTest < Test::Unit::TestCase
   end
 
   def test_generator_usage
-    BUILTINS.each do |name|
-      assert_raise(Rails::Generator::UsageError) {
+    (BUILTINS - ["session_migration"]).each do |name|
+      assert_raise(Rails::Generator::UsageError, "Generator '#{name}' should raise an error without arguments") {
         Rails::Generator::Base.instance(name)
       }
     end
