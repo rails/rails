@@ -1,5 +1,7 @@
 *SVN*
 
+* Print Rails version when starting console #7440 [eyematz]
+
 * Added rake db:version to get the current schema version from the command line #7521 [pelargir]
 
 * Fixed the placement of fixture files for nested models when generating through script/generate model #7547 [jkit]

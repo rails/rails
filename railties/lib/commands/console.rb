@@ -24,9 +24,9 @@ ENV['RAILS_ENV'] = case ARGV.first
 end
 
 if options[:sandbox]
-  puts "Loading #{ENV['RAILS_ENV']} environment in sandbox."
-  puts "Any modifications you make will be rolled back on exit."
+  puts "Loading #{ENV['RAILS_ENV']} environment in sandbox (Rails #{Rails::VERSION::STRING})"
+  puts "Any modifications you make will be rolled back on exit"
 else
-  puts "Loading #{ENV['RAILS_ENV']} environment."
+  puts "Loading #{ENV['RAILS_ENV']} environment (Rails #{Rails::VERSION::STRING})"
 end
 exec "#{options[:irb]} #{libs} --simple-prompt"
