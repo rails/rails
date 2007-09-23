@@ -60,6 +60,11 @@ module BaseTest
   end
 
 protected
+  
+  def request_forgery_protection_token
+    nil
+  end
+  
   def create_generator
     block = Proc.new { |*args| yield *args if block_given? } 
     JavaScriptGenerator.new self, &block

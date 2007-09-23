@@ -711,4 +711,8 @@ class FormHelperTest < Test::Unit::TestCase
     def post_path(post)
       "/posts/#{post.id}"
     end
+    
+    def request_forgery_protection_token
+      nil
+    end
 end

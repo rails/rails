@@ -1,5 +1,7 @@
 *SVN*
 
+* Merge csrf_killer plugin into rails.  Adds RequestForgeryProtection model that verifies session-specific _tokens for non-GET requests.  [Rick]
+
 * Secure #sanitize, #strip_tags, and #strip_links helpers against xss attacks.  Closes #8877. [Rick, lifofifo, Jacques Distler]
 
   This merges and renames the popular white_list helper (along with some css sanitizing from Jacques Distler version of the same plugin).

@@ -325,15 +325,15 @@ module ActionView
       #   strip_links('Blog: <a href="http://www.myblog.com/" class="nav" target=\"_blank\">Visit</a>.')
       #   # => Blog: Visit
       def strip_links(html)
-        # Stupid firefox treats '<href="http://whatever.com" onClick="alert()">something' as link! 
-        if html.index("<a") || html.index("<href")   
-          tokenizer = HTML::Tokenizer.new(html) 
-          result = ''
-          while token = tokenizer.next 
-            node = HTML::Node.parse(nil, 0, 0, token, false) 
-            result << node.to_s unless node.is_a?(HTML::Tag) && ["a", "href"].include?(node.name) 
-          end 
-          strip_links(result) # Recurse - handle all dirty nested links
+        if !html.blank? && html.index("<a") || html.index("<href")
+          tokenizer = HTML::Tokenizer.new(html)
+          result = returning [] do |result|
+            while token = tokenizer.next 
+              node = HTML::Node.parse(nil, 0, 0, token, false) 
+              result << node.to_s unless node.is_a?(HTML::Tag) && ["a", "href"].include?(node.name) 
+            end 
+          end
+          strip_links(result.join) # Recurse - handle all dirty nested links
         else
           html
         end
@@ -441,6 +441,7 @@ module ActionView
       # that of html-scanner.
       #
       # ==== Examples
+      #
       #   strip_tags("Strip <i>these</i> tags!")
       #   # => Strip these tags!
       #
@@ -450,22 +451,21 @@ module ActionView
       #   strip_tags("<div id='top-bar'>Welcome to my website!</div>")
       #   # => Welcome to my website!
       def strip_tags(html)     
-        return html if html.blank?
-        if html.index("<")
-          text = ""
-          tokenizer = HTML::Tokenizer.new(html)
+        return html if html.blank? || !html.index("<")
+        tokenizer = HTML::Tokenizer.new(html)
 
+        text = returning [] do |text|
           while token = tokenizer.next
             node = HTML::Node.parse(nil, 0, 0, token, false)
             # result is only the content of any Text nodes
             text << node.to_s if node.class == HTML::Text  
           end
-          # strip any comments, and if they have a newline at the end (ie. line with
-          # only a comment) strip that too
-          strip_tags(text.gsub(/<!--(.*?)-->[\n]?/m, "")) # Recurse - handle all dirty nested tags
-        else
-          html # already plain text
-        end 
+        end
+        
+        # strip any comments, and if they have a newline at the end (ie. line with
+        # only a comment) strip that too
+        # Recurse - handle all dirty nested tags
+        strip_tags(text.join.gsub(/<!--(.*?)-->[\n]?/m, ""))
       end
       
       # Creates a Cycle object whose _to_s_ method cycles through elements of an

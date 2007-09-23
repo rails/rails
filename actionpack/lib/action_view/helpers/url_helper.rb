@@ -472,6 +472,10 @@ module ActionView
             submit_function << "m.setAttribute('name', '_method'); m.setAttribute('value', '#{method}'); f.appendChild(m);"
           end
 
+          if request_forgery_protection_token
+            submit_function << "var s = document.createElement('input'); s.setAttribute('type', 'hidden'); "
+            submit_function << "s.setAttribute('name', '_token'); s.setAttribute('value', '#{escape_javascript form_token}'); f.appendChild(s);"
+          end
           submit_function << "f.submit();"
         end
 

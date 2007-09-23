@@ -20,7 +20,8 @@ module ActionController #:nodoc:
       'ActiveRecord::RecordInvalid'        => :unprocessable_entity,
       'ActiveRecord::RecordNotSaved'       => :unprocessable_entity,
       'ActionController::MethodNotAllowed' => :method_not_allowed,
-      'ActionController::NotImplemented'   => :not_implemented
+      'ActionController::NotImplemented'   => :not_implemented,
+      'ActionController::InvalidToken'     => :unprocessable_entity
     }
 
     DEFAULT_RESCUE_TEMPLATE = 'diagnostics'

@@ -328,6 +328,8 @@ module ActionView #:nodoc:
       @@sanitized_allowed_protocols.merge(attributes)
     end
 
+    delegate :request_forgery_protection_token, :to => :controller
+
     @@template_handlers = HashWithIndifferentAccess.new
  
     module CompiledTemplates #:nodoc:

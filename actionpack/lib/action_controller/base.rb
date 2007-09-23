@@ -326,6 +326,10 @@ module ActionController #:nodoc:
     # Controls the resource action separator
     @@resource_action_separator = "/"
     cattr_accessor :resource_action_separator
+    
+    # Sets the token parameter name for RequestForgery.  Calling #verify_token sets it to :_token by default
+    @@request_forgery_protection_token = nil
+    cattr_accessor :request_forgery_protection_token
 
     # Holds the request object that's primarily used to get environment variables through access like
     # <tt>request.env["REQUEST_URI"]</tt>.

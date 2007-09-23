@@ -401,10 +401,10 @@ module ActionView
               ''
             when /^post$/i, "", nil
               html_options["method"] = "post"
-              ''
+              request_forgery_protection_token ? content_tag(:div, token_tag, :style => 'margin:0;padding:0') : ''
             else
               html_options["method"] = "post"
-              content_tag(:div, tag(:input, :type => "hidden", :name => "_method", :value => method), :style => 'margin:0;padding:0')
+              content_tag(:div, tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag, :style => 'margin:0;padding:0')
           end
         end
         
@@ -418,6 +418,14 @@ module ActionView
           concat(form_tag_html(html_options), block.binding)
           concat(content, block.binding)
           concat("</form>", block.binding)
+        end
+
+        def token_tag
+          if request_forgery_protection_token.nil?
+            ''
+          else
+            tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => form_token)
+          end
         end
     end
   end

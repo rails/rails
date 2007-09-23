@@ -738,6 +738,15 @@ module ActionView
         elsif options[:with]
           js_options['parameters'] = options[:with]
         end
+        
+        if request_forgery_protection_token
+          if js_options['parameters']
+            js_options['parameters'] << " + '&"
+          else
+            js_options['parameters'] = "'"
+          end
+          js_options['parameters'] << "_token=' + encodeURIComponent('#{escape_javascript form_token}')"
+        end
       
         options_for_javascript(js_options)
       end
