@@ -324,63 +324,118 @@ module ActionView
       #
       #   strip_links('Blog: <a href="http://www.myblog.com/" class="nav" target=\"_blank\">Visit</a>.')
       #   # => Blog: Visit
-      def strip_links(text)
-        text.gsub(/<a\b.*?>(.*?)<\/a>/mi, '\1')
+      def strip_links(html)
+        # Stupid firefox treats '<href="http://whatever.com" onClick="alert()">something' as link! 
+        if html.index("<a") || html.index("<href")   
+          tokenizer = HTML::Tokenizer.new(html) 
+          result = ''
+          while token = tokenizer.next 
+            node = HTML::Node.parse(nil, 0, 0, token, false) 
+            result << node.to_s unless node.is_a?(HTML::Tag) && ["a", "href"].include?(node.name) 
+          end 
+          strip_links(result) # Recurse - handle all dirty nested links
+        else
+          html
+        end
       end
 
-      VERBOTEN_TAGS = %w(form script plaintext) unless defined?(VERBOTEN_TAGS)
-      VERBOTEN_ATTRS = /^on/i unless defined?(VERBOTEN_ATTRS)
-
-      # Sanitizes the +html+ by converting <form> and <script> tags into regular
-      # text, and removing all "on*" (e.g., onClick) attributes so that arbitrary Javascript
-      # cannot be executed. It also removes <tt>href</tt> and <tt>src</tt> attributes that start with
-      # "javascript:". You can modify what gets sanitized by defining VERBOTEN_TAGS
-      # and VERBOTEN_ATTRS before this Module is loaded.
+      # This #sanitize helper will html encode all tags and strip all attributes that aren't specifically allowed.  
+      # It also strips href/src tags with invalid protocols, like javascript: especially.  It does its best to counter any
+      # tricks that hackers may use, like throwing in unicode/ascii/hex values to get past the javascript: filters.  Check out
+      # the extensive test suite.
       #
-      # ==== Examples
-      #   sanitize('<script> do_nasty_stuff() </script>')
-      #   # => &lt;script> do_nasty_stuff() &lt;/script>
+      #   <%= sanitize @article.body %>
+      # 
+      # You can add or remove tags/attributes if you want to customize it a bit.  See ActionView::Base for full docs on the
+      # available options.  You can add tags/attributes for single uses of #sanitize by passing either the :attributes or :tags options:
       #
-      #   sanitize('<a href="javascript: sucker();">Click here for $100</a>')
-      #   # => <a>Click here for $100</a>
+      # Normal Use
       #
-      #   sanitize('<a href="#" onClick="kill_all_humans();">Click here!!!</a>')
-      #   # => <a href="#">Click here!!!</a>
+      #   <%= sanitize @article.body %>
       #
-      #   sanitize('<img src="javascript:suckers_run_this();" />')
-      #   # => <img />
-      def sanitize(html)
-        # only do this if absolutely necessary
-        if html.index("<")
+      # Custom Use
+      #
+      #   <%= sanitize @article.body, :tags => %w(table tr td), :attributes => %w(id class style)
+      # 
+      # Add table tags
+      #   
+      #   Rails::Initializer.run do |config|
+      #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
+      #   end
+      # 
+      # Remove tags
+      #   
+      #   Rails::Initializer.run do |config|
+      #     config.after_initialize do
+      #       ActionView::Base.sanitized_allowed_tags.delete 'div'
+      #     end
+      #   end
+      # 
+      # Change allowed attributes
+      # 
+      #   Rails::Initializer.run do |config|
+      #     config.action_view.sanitized_allowed_attributes = 'id', 'class', 'style'
+      #   end
+      # 
+      def sanitize(html, options = {})
+        return html if html.blank? || !html.include?('<')
+        attrs = options.key?(:attributes) ? Set.new(options[:attributes]).merge(sanitized_allowed_attributes) : sanitized_allowed_attributes
+        tags  = options.key?(:tags)       ? Set.new(options[:tags]      ).merge(sanitized_allowed_tags)       : sanitized_allowed_tags
+        returning [] do |new_text|
           tokenizer = HTML::Tokenizer.new(html)
-          new_text = ""
-
+          parent    = [] 
           while token = tokenizer.next
             node = HTML::Node.parse(nil, 0, 0, token, false)
             new_text << case node
               when HTML::Tag
-                if VERBOTEN_TAGS.include?(node.name)
-                  node.to_s.gsub(/</, "&lt;")
+                if node.closing == :close
+                  parent.shift
                 else
-                  if node.closing != :close
-                    node.attributes.delete_if { |attr,v| attr =~ VERBOTEN_ATTRS }
-                    %w(href src).each do |attr|
-                      node.attributes.delete attr if node.attributes[attr] =~ /^javascript:/i
-                    end
-                  end
-                  node.to_s
+                  parent.unshift node.name
                 end
+                node.attributes.keys.each do |attr_name|
+                  value = node.attributes[attr_name].to_s
+                  if !attrs.include?(attr_name) || contains_bad_protocols?(attr_name, value)
+                    node.attributes.delete(attr_name)
+                  else
+                    node.attributes[attr_name] = attr_name == 'style' ? sanitize_css(value) : CGI::escapeHTML(value)
+                  end
+                end if node.attributes
+                tags.include?(node.name) ? node : nil
               else
-                node.to_s.gsub(/</, "&lt;")
+                sanitized_bad_tags.include?(parent.first) ? nil : node.to_s.gsub(/</, "&lt;")
             end
           end
+        end.join
+      end
 
-          html = new_text
+      # Sanitizes a block of css code.  Used by #sanitize when it comes across a style attribute
+      def sanitize_css(style)
+        # disallow urls
+        style = style.to_s.gsub(/url\s*\(\s*[^\s)]+?\s*\)\s*/, ' ')
+
+        # gauntlet
+        if style !~ /^([:,;#%.\sa-zA-Z0-9!]|\w-\w|\'[\s\w]+\'|\"[\s\w]+\"|\([\d,\s]+\))*$/ ||
+            style !~ /^(\s*[-\w]+\s*:\s*[^:;]*(;|$))*$/
+          return ''
         end
 
-        html
+        returning [] do |clean|
+          style.scan(/([-\w]+)\s*:\s*([^:;]*)/) do |prop,val|
+            if sanitized_allowed_css_properties.include?(prop.downcase)
+              clean <<  prop + ': ' + val + ';'
+            elsif sanitized_shorthand_css_properties.include?(prop.split('-')[0].downcase) 
+              unless val.split().any? do |keyword|
+                !sanitized_allowed_css_keywords.include?(keyword) && 
+                  keyword !~ /^(#[0-9a-f]+|rgb\(\d+%?,\d*%?,?\d*%?\)?|\d{0,2}\.?\d{0,2}(cm|em|ex|in|mm|pc|pt|px|%|,|\))?)$/
+              end
+                clean << prop + ': ' + val + ';'
+              end
+            end
+          end
+        end.join(' ')
       end
-      
+
       # Strips all HTML tags from the +html+, including comments.  This uses the 
       # html-scanner tokenizer and so its HTML parsing ability is limited by 
       # that of html-scanner.
@@ -407,7 +462,7 @@ module ActionView
           end
           # strip any comments, and if they have a newline at the end (ie. line with
           # only a comment) strip that too
-          text.gsub(/<!--(.*?)-->[\n]?/m, "") 
+          strip_tags(text.gsub(/<!--(.*?)-->[\n]?/m, "")) # Recurse - handle all dirty nested tags
         else
           html # already plain text
         end 
@@ -573,6 +628,11 @@ module ActionView
               %{<a href="mailto:#{text}">#{display_text}</a>}
             end
           end
+        end
+
+        def contains_bad_protocols?(attr_name, value)
+          sanitized_uri_attributes.include?(attr_name) && 
+          (value =~ /(^[^\/:]*):|(&#0*58)|(&#x70)|(%|&#37;)3A/ && !sanitized_allowed_protocols.include?(value.split(sanitized_protocol_separator).first))
         end
     end
   end

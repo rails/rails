@@ -1,5 +1,10 @@
 *SVN*
 
+* Secure #sanitize, #strip_tags, and #strip_links helpers against xss attacks.  Closes #8877. [Rick, lifofifo, Jacques Distler]
+
+  This merges and renames the popular white_list helper (along with some css sanitizing from Jacques Distler version of the same plugin).
+  Also applied updated versions of #strip_tags and #strip_links from #8877.
+
 * Remove use of & logic operator. Closes #8114. [watson]
 
 * Fixed JavaScriptHelper#escape_javascript to also escape closing tags #8023 [rubyruy]
