@@ -1,4 +1,7 @@
 require "#{File.dirname(__FILE__)}/abstract_unit"
+
+uses_mocha 'dispatcher tests' do
+
 $:.unshift File.dirname(__FILE__) + "/../../actionmailer/lib"
 
 require 'stringio'
@@ -8,15 +11,6 @@ require 'dispatcher'
 require 'action_controller'
 require 'action_mailer'
 
-ACTION_MAILER_DEF = <<AM
-  class DispatcherTestMailer < ActionMailer::Base
-  end
-AM
-
-ACTION_CONTROLLER_DEF = <<AM
-  class DispatcherControllerTest < ActionController::Base
-  end
-AM
 
 class DispatcherTest < Test::Unit::TestCase
   def setup
@@ -26,75 +20,46 @@ class DispatcherTest < Test::Unit::TestCase
     Dispatcher.send(:preparation_callbacks).clear
     Dispatcher.send(:preparation_callbacks_run=, false)
 
-    Object.const_set :ApplicationController, nil
-    class << ActionController::Routing::Routes
-      alias_method :old_reload, :reload
-      def reload() end
-    end
+    Object.const_set 'ApplicationController', nil
   end
 
   def teardown
-    Object.send :remove_const, :ApplicationController
     ENV['REQUEST_METHOD'] = nil
-    class << ActionController::Routing::Routes
-      alias_method :reload, :old_reload
-    end
+    Object.send :remove_const, 'ApplicationController'
   end
 
-  def test_ac_subclasses_cleared_on_reset
-    Object.class_eval(ACTION_CONTROLLER_DEF)
-    assert_subclasses 1, ActionController::Base
+  def test_clears_dependencies_after_dispatch_if_in_loading_mode
+    Dependencies.stubs(:load?).returns(true)
+
+    ActionController::Routing::Routes.expects(:reload).once
+    Dependencies.expects(:clear).once
+
     dispatch
-
-    GC.start # force the subclass to be collected
-    assert_subclasses 0, ActionController::Base
   end
 
-  def test_am_subclasses_cleared_on_reset
-    Object.class_eval(ACTION_MAILER_DEF)
-    assert_subclasses 1, ActionMailer::Base
+  def test_clears_dependencies_after_dispatch_if_not_in_loading_mode
+    Dependencies.stubs(:load?).returns(false)
+
+    ActionController::Routing::Routes.expects(:reload).never
+    Dependencies.expects(:clear).never
+
     dispatch
-
-    GC.start # force the subclass to be collected
-    assert_subclasses 0, ActionMailer::Base
   end
 
+  def test_failsafe_response
+    CGI.expects(:new).raises('some multipart parsing failure')
 
-  INVALID_MULTIPART = [
-    'POST /foo HTTP/1.0',
-    'Host: example.com',
-    'Content-Type: multipart/form-data;boundary=foo'
-  ]
+    ActionController::Routing::Routes.stubs(:reload)
+    Dispatcher.stubs(:log_failsafe_exception)
 
-  EMPTY_CONTENT = (INVALID_MULTIPART + [
-    'Content-Length: 100',
-    nil, nil
-  ]).join("\r\n")
+    assert_nothing_raised { dispatch }
 
-  CONTENT_LENGTH_MISMATCH = (INVALID_MULTIPART + [
-    'Content-Length: 100',
-    nil, nil,
-    'foobar'
-  ]).join("\r\n")
-
-  NONINTEGER_CONTENT_LENGTH = (INVALID_MULTIPART + [
-    'Content-Length: abc',
-    nil, nil
-  ]).join("\r\n")
-
-  def test_bad_multipart_request
-    old_stdin = $stdin
-    [EMPTY_CONTENT, CONTENT_LENGTH_MISMATCH, NONINTEGER_CONTENT_LENGTH].each do |bad_request|
-      $stdin = StringIO.new(bad_request)
-      output = StringIO.new
-      assert_nothing_raised { dispatch output }
-      assert_equal "Status: 400 Bad Request\r\n", output.string
-    end
-  ensure
-    $stdin = old_stdin
+    assert_equal "Status: 400 Bad Request\r\nContent-Type: text/html\r\n\r\n<html><body><h1>400 Bad Request</h1></body></html>", @output.string
   end
-  
+
   def test_preparation_callbacks
+    ActionController::Routing::Routes.stubs(:reload)
+
     old_mechanism = Dependencies.mechanism
     
     a = b = c = nil
@@ -126,6 +91,8 @@ class DispatcherTest < Test::Unit::TestCase
   end
   
   def test_to_prepare_with_identifier_replaces
+    ActionController::Routing::Routes.stubs(:reload)
+
     a = b = nil
     Dispatcher.to_prepare(:unique_id) { a = b = 1 }
     Dispatcher.to_prepare(:unique_id) { a = 2 }
@@ -137,6 +104,12 @@ class DispatcherTest < Test::Unit::TestCase
 
   private
     def dispatch(output = @output)
+      controller = mock
+      controller.stubs(:process).returns(controller)
+      controller.stubs(:out).with(output).returns('response')
+
+      ActionController::Routing::Routes.stubs(:recognize).returns(controller)
+
       Dispatcher.dispatch(nil, {}, output)
     end
 
@@ -144,3 +117,5 @@ class DispatcherTest < Test::Unit::TestCase
       assert_equal howmany, klass.subclasses.size, message
     end
 end
+
+end # uses_mocha
