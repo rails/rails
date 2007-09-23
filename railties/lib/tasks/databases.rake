@@ -255,7 +255,7 @@ namespace :db do
       raise "Task unavailable to this database (no migration support)" unless ActiveRecord::Base.connection.supports_migrations?
       require 'rails_generator'
       require 'rails_generator/scripts/generate'
-      Rails::Generator::Scripts::Generate.new.run(["session_migration", ENV["MIGRATION"] || "AddSessions"])
+      Rails::Generator::Scripts::Generate.new.run(["session_migration", ENV["MIGRATION"] || "CreateSessions"])
     end
 
     desc "Clear the sessions table"
