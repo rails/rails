@@ -5,7 +5,7 @@ ActionController::Routing::Routes.draw do |map|
 end
 
 class RequestForgeryProtectionController < ActionController::Base
-  verify_token :only => :index, :secret => 'abc'
+  protect_from_forgery :only => :index, :secret => 'abc'
 
   def index
     render :inline => "<%= form_tag('/') {} %>"
@@ -27,7 +27,7 @@ class RequestForgeryProtectionControllerTest < Test::Unit::TestCase
       def session_id() '123' end
     end
     @token = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new('SHA1'), 'abc', '123')
-    ActionController::Base.request_forgery_protection_token = :_token
+    ActionController::Base.request_forgery_protection_token = :authenticity_token
   end
   
   def teardown
@@ -36,7 +36,7 @@ class RequestForgeryProtectionControllerTest < Test::Unit::TestCase
 
   def test_should_render_form_with_token_tag
     get :index
-    assert_select 'form>div>input[name=?][value=?]', '_token', @token
+    assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token
   end
 
   # Replace this with your real tests.
@@ -75,17 +75,17 @@ class RequestForgeryProtectionControllerTest < Test::Unit::TestCase
   end
   
   def test_should_allow_post_with_token
-    post :index, :_token => @token
+    post :index, :authenticity_token => @token
     assert_response :success
   end
   
   def test_should_allow_put_with_token
-    put :index, :_token => @token
+    put :index, :authenticity_token => @token
     assert_response :success
   end
   
   def test_should_allow_delete_with_token
-    delete :index, :_token => @token
+    delete :index, :authenticity_token => @token
     assert_response :success
   end
   
@@ -107,7 +107,7 @@ end
 
 # no token is given, assume the cookie store is used
 class CsrfCookieMonsterController < ActionController::Base
-  verify_token :only => :index
+  protect_from_forgery :only => :index
 
   def index
     render :inline => "<%= form_tag('/') {} %>"
@@ -137,7 +137,7 @@ class CsrfCookieMonsterControllerTest < Test::Unit::TestCase
       attr_reader :dbman
     end
     @token = Digest::SHA1.hexdigest("secure")
-    ActionController::Base.request_forgery_protection_token = :_token
+    ActionController::Base.request_forgery_protection_token = :authenticity_token
   end
   
   def teardown
@@ -146,7 +146,7 @@ class CsrfCookieMonsterControllerTest < Test::Unit::TestCase
 
   def test_should_render_form_with_token_tag
     get :index
-    assert_select 'form>div>input[name=?][value=?]', '_token', @token
+    assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token
   end
 
   # Replace this with your real tests.
@@ -185,17 +185,17 @@ class CsrfCookieMonsterControllerTest < Test::Unit::TestCase
   end
   
   def test_should_allow_post_with_token
-    post :index, :_token => @token
+    post :index, :authenticity_token => @token
     assert_response :success
   end
   
   def test_should_allow_put_with_token
-    put :index, :_token => @token
+    put :index, :authenticity_token => @token
     assert_response :success
   end
   
   def test_should_allow_delete_with_token
-    delete :index, :_token => @token
+    delete :index, :authenticity_token => @token
     assert_response :success
   end
   

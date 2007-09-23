@@ -289,7 +289,7 @@ class TextHelperTest < Test::Unit::TestCase
     assert_sanitized raw, %{src="javascript:bang" <img width="5">foo</img>, <span>bar</span>}
   end
 
-  ActionView::Base.sanitized_allowed_tags.each do |tag_name|
+  ActionView::Helpers::TextHelper.sanitized_allowed_tags.each do |tag_name|
     define_method "test_should_allow_#{tag_name}_tag" do
       assert_sanitized "start <#{tag_name} title=\"1\" onclick=\"foo\">foo <bad>bar</bad> baz</#{tag_name}> end", %(start <#{tag_name} title="1">foo bar baz</#{tag_name}> end)
     end
@@ -550,12 +550,5 @@ class TextHelperTest < Test::Unit::TestCase
 
   def assert_sanitized(text, expected = nil)
     assert_equal((expected || text), sanitize(text))
-  end
-
-  # pull in configuration values from ActionView::Base
-  [:sanitized_protocol_separator, :sanitized_protocol_attributes, :sanitized_bad_tags, :sanitized_allowed_tags, :sanitized_allowed_attributes, :sanitized_allowed_protocols, :sanitized_allowed_css_properties, :sanitized_allowed_css_keywords, :sanitized_shorthand_css_properties, :sanitized_uri_attributes].each do |attr|
-    define_method attr do
-      ActionView::Base.send(attr)
-    end
   end
 end

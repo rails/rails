@@ -745,7 +745,7 @@ module ActionView
           else
             js_options['parameters'] = "'"
           end
-          js_options['parameters'] << "_token=' + encodeURIComponent('#{escape_javascript form_token}')"
+          js_options['parameters'] << "#{request_forgery_protection_token}=' + encodeURIComponent('#{escape_javascript form_authenticity_token}')"
         end
       
         options_for_javascript(js_options)

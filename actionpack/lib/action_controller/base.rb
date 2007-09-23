@@ -327,7 +327,7 @@ module ActionController #:nodoc:
     @@resource_action_separator = "/"
     cattr_accessor :resource_action_separator
     
-    # Sets the token parameter name for RequestForgery.  Calling #verify_token sets it to :_token by default
+    # Sets the token parameter name for RequestForgery.  Calling #protect_from_forgery sets it to :authenticity_token by default
     @@request_forgery_protection_token = nil
     cattr_accessor :request_forgery_protection_token
 
