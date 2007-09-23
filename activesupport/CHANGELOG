@@ -1,5 +1,7 @@
 *SVN*
 
+* Object.subclasses_of includes anonymous subclasses.  [Jeremy Kemper]
+
 * Fixed that pluralizing an empty string should return the same empty string, not "s" #7720 [josh]
 
 * Added call to inspect on non-string classes for the logger #8533 [codahale]

@@ -97,7 +97,14 @@ class ClassExtTest < Test::Unit::TestCase
     classes = Object.subclasses_of(ClassI, ClassK)
     assert_equal %w(ClassJ Nested::ClassL), classes.collect(&:to_s).sort
   end
-  
+
+  def test_subclasses_of_doesnt_find_anonymous_classes
+    assert_equal [], Object.subclasses_of(Foo)
+    bar = Class.new(Foo)
+    assert_nothing_raised do
+      assert_equal [bar], Object.subclasses_of(Foo)
+    end
+  end
 end
 
 class ObjectTests < Test::Unit::TestCase
