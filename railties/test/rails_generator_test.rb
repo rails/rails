@@ -37,7 +37,7 @@ require 'rails_generator'
 
 
 class RailsGeneratorTest < Test::Unit::TestCase
-  BUILTINS = %w(controller integration_test mailer migration model observer plugin resource scaffold session_migration web_service)
+  BUILTINS = %w(controller integration_test mailer migration model observer plugin resource scaffold session_migration)
   CAPITALIZED_BUILTINS = BUILTINS.map { |b| b.capitalize }
 
   def setup

@@ -41,38 +41,72 @@ class RailsFCGIHandler
 
     # Start error timestamp at 11 seconds ago.
     @last_error_on = Time.now - 11
-
-    dispatcher_log :info, "starting"
   end
 
   def process!(provider = FCGI)
-    # Make a note of $" so we can safely reload this instance.
-    mark!
+    mark_features!
 
-    run_gc! if gc_request_period
+    dispatcher_log :info, 'starting'
+    process_each_request provider
+    dispatcher_log :info, 'stopping gracefully'
 
-    process_each_request!(provider)
-
-    GC.enable
-    dispatcher_log :info, "terminated gracefully"
-
-  rescue SystemExit => exit_error
-    dispatcher_log :info, "terminated by explicit exit"
-
-  rescue Exception => fcgi_error  # FCGI errors
-    # retry on errors that would otherwise have terminated the FCGI process,
-    # but only if they occur more than 10 seconds apart.
-    if !(SignalException === fcgi_error) && Time.now - @last_error_on > 10
-      @last_error_on = Time.now
-      dispatcher_error(fcgi_error, "almost killed by this error")
-      retry
+  rescue Exception => error
+    case error
+    when SystemExit
+      dispatcher_log :info, 'stopping after explicit exit'
+    when SignalException
+      dispatcher_error error, 'stopping after unhandled signal'
     else
-      dispatcher_error(fcgi_error, "killed by this error")
+      # Retry if exceptions occur more than 10 seconds apart.
+      if Time.now - @last_error_on > 10
+        @last_error_on = Time.now
+        dispatcher_error error, 'retrying after unhandled exception'
+        retry
+      else
+        dispatcher_error error, 'stopping after unhandled exception within 10 seconds of the last'
+      end
     end
   end
 
 
   protected
+    def process_each_request(provider)
+      cgi = nil
+
+      provider.each_cgi do |cgi|
+        process_request(cgi)
+
+        case when_ready
+          when :reload
+            reload!
+          when :restart
+            close_connection(cgi)
+            restart!
+          when :exit
+            close_connection(cgi)
+            break
+        end
+      end
+    rescue SignalException => signal
+      raise unless signal.message == 'SIGUSR1'
+      close_connection(cgi)
+    end
+
+    def process_request(cgi)
+      @when_ready = nil
+      gc_countdown
+
+      with_signal_handler 'USR1' do
+        begin
+          Dispatcher.dispatch(cgi)
+        rescue SignalException, SystemExit
+          raise
+        rescue Exception => error
+          dispatcher_error error, 'unhandled dispatch error'
+        end
+      end
+    end
+
     def logger
       @logger ||= Logger.new(@log_file_path)
     end
@@ -97,10 +131,12 @@ class RailsFCGIHandler
     end
 
     def install_signal_handler(signal, handler = nil)
-      handler ||= method("#{SIGNALS[signal]}_handler").to_proc
-      trap(signal, handler)
-    rescue ArgumentError
-      dispatcher_log :warn, "Ignoring unsupported signal #{signal}."
+      if SIGNALS.include?(signal) && self.class.method_defined?(name = "#{SIGNALS[signal]}_handler")
+        handler ||= method(name).to_proc
+        trap(signal, handler)
+      else
+        dispatcher_log :warn, "Ignoring unsupported signal #{signal}."
+      end
     end
 
     def with_signal_handler(signal)
@@ -111,12 +147,12 @@ class RailsFCGIHandler
     end
 
     def exit_now_handler(signal)
-      dispatcher_log :info, "asked to terminate immediately"
+      dispatcher_log :info, "asked to stop immediately"
       exit
     end
 
     def exit_handler(signal)
-      dispatcher_log :info, "asked to terminate ASAP"
+      dispatcher_log :info, "asked to stop ASAP"
       @when_ready = :exit
     end
 
@@ -128,38 +164,6 @@ class RailsFCGIHandler
     def restart_handler(signal)
       dispatcher_log :info, "asked to restart ASAP"
       @when_ready = :restart
-    end
-
-    def process_each_request!(provider)
-      cgi = nil
-      provider.each_cgi do |cgi|
-        with_signal_handler 'USR1' do
-          process_request(cgi)
-        end
-
-        case when_ready
-          when :reload
-            reload!
-          when :restart
-            close_connection(cgi)
-            restart!
-          when :exit
-            close_connection(cgi)
-            break
-        end
-
-        gc_countdown
-      end
-    rescue SignalException => signal
-      raise unless signal.message == 'SIGUSR1'
-      close_connection(cgi) if cgi
-    end
-
-    def process_request(cgi)
-      Dispatcher.dispatch(cgi)
-    rescue Exception => e  # errors from CGI dispatch
-      raise if SignalException === e
-      dispatcher_error(e)
     end
 
     def restart!
@@ -184,7 +188,8 @@ class RailsFCGIHandler
       dispatcher_log :info, "reloaded"
     end
 
-    def mark!
+    # Make a note of $" so we can safely reload this instance.
+    def mark_features!
       @features = $".clone
     end
 
@@ -201,12 +206,13 @@ class RailsFCGIHandler
 
     def gc_countdown
       if gc_request_period
+        @gc_request_countdown ||= gc_request_period
         @gc_request_countdown -= 1
         run_gc! if @gc_request_countdown <= 0
       end
     end
 
     def close_connection(cgi)
-      cgi.instance_variable_get("@request").finish
+      cgi.instance_variable_get("@request").finish if cgi
     end
 end
