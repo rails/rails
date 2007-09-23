@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce ActionController::Base.rescue_from to declare exception-handling methods. Cleaner style than the case-heavy rescue_action_in_public.  #9449 [norbert]
+
 * Rename some RequestForgeryProtection methods.  The class method is now #protect_from_forgery, and the default parameter is now 'authenticity_token'.  [Rick]
 
 * Merge csrf_killer plugin into rails.  Adds RequestForgeryProtection model that verifies session-specific _tokens for non-GET requests.  [Rick]

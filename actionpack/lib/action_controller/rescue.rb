@@ -41,6 +41,9 @@ module ActionController #:nodoc:
       base.rescue_templates = Hash.new(DEFAULT_RESCUE_TEMPLATE)
       base.rescue_templates.update DEFAULT_RESCUE_TEMPLATES
 
+      base.class_inheritable_hash :rescue_handlers
+      base.rescue_handlers = {}
+
       base.extend(ClassMethods)
       base.class_eval do
         alias_method_chain :perform_action, :rescue
@@ -51,6 +54,33 @@ module ActionController #:nodoc:
       def process_with_exception(request, response, exception)
         new.process(request, response, :rescue_action, exception)
       end
+
+      # Rescue exceptions raised in controller actions by passing at least one exception class and a :with option that contains the name of the method to be called to respond to the exception.
+      # Handler methods that take one argument will be called with the exception, so that the exception can be inspected when dealing with it.
+      #
+      # class ApplicationController < ActionController::Base
+      #   rescue_from User::NotAuthorized, :with => :deny_access # self defined exception
+      #   rescue_from ActiveRecord::RecordInvalid, :with => :show_errors
+      #
+      #   protected
+      #     def deny_access
+      #       ...
+      #     end
+      #
+      #     def show_errors(exception)
+      #       exception.record.new_record? ? ...
+      #     end
+      # end
+      def rescue_from(*klasses)
+        options = klasses.extract_options!
+        unless options.has_key?(:with) # allow nil
+          raise ArgumentError, "Need a handler. Supply an options hash that has a :with key as the last argument."
+        end
+
+        klasses.each do |klass|
+          rescue_handlers[klass.name] = options[:with]
+        end
+      end
     end
 
     protected
@@ -58,6 +88,8 @@ module ActionController #:nodoc:
       def rescue_action(exception)
         log_error(exception) if logger
         erase_results if performed?
+
+        return if rescue_action_with_handler(exception)
 
         # Let the exception alter the response if it wants.
         # For example, MethodNotAllowed sets the Allow header.
@@ -87,7 +119,6 @@ module ActionController #:nodoc:
         end
       end
 
-
       # Overwrite to implement public exception handling (for requests answering false to <tt>local_request?</tt>).  By
       # default will call render_optional_error_file.  Override this method to provide more user friendly error messages.s
       def rescue_action_in_public(exception) #:doc:
@@ -97,7 +128,7 @@ module ActionController #:nodoc:
       # Attempts to render a static error page based on the <tt>status_code</tt> thrown,
       # or just return headers if no such file exists. For example, if a 500 error is 
       # being handled Rails will first attempt to render the file at <tt>public/500.html</tt>. 
-      # If the file doesn't exist, the body of the response will be left empty
+      # If the file doesn't exist, the body of the response will be left empty.
       def render_optional_error_file(status_code)
         status = interpret_status(status_code)
         path = "#{RAILS_ROOT}/public/#{status[0,3]}.html"
@@ -129,6 +160,18 @@ module ActionController #:nodoc:
         render_for_file(rescues_path("layout"), response_code_for_rescue(exception))
       end
 
+      # Tries to rescue the exception by looking up and calling a registered handler.
+      def rescue_action_with_handler(exception)
+        if handler = handler_for_rescue(exception)
+          if handler.arity != 0
+            handler.call(exception)
+          else
+            handler.call
+          end
+          true # don't rely on the return value of the handler
+        end
+      end
+
     private
       def perform_action_with_rescue #:nodoc:
         perform_action_without_rescue
@@ -146,6 +189,12 @@ module ActionController #:nodoc:
 
       def response_code_for_rescue(exception)
         rescue_responses[exception.class.name]
+      end
+
+      def handler_for_rescue(exception)
+        if handler = rescue_handlers[exception.class.name]
+          method(handler)
+        end
       end
 
       def clean_backtrace(exception)
