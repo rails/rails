@@ -16,31 +16,27 @@ module ActionController
         add_default_actions
         set_prefixes
       end
-
+      
       def controller
         @controller ||= (options[:controller] || plural).to_s
       end
-
+      
       def path
         @path ||= "#{path_prefix}/#{plural}"
       end
-
+      
       def new_path
         @new_path ||= "#{path}/new"
       end
-
+      
       def member_path
         @member_path ||= "#{path}/:id"
       end
-
+      
       def nesting_path_prefix
         @nesting_path_prefix ||= "#{path}/:#{singular}_id"
       end
-
-      def action_separator
-        @action_separator ||= Base.resource_action_separator
-      end
-
+      
       protected
         def arrange_actions
           @collection_methods = arrange_actions_by_methods(options.delete(:collection))
@@ -328,14 +324,8 @@ module ActionController
         resource.collection_methods.each do |method, actions|
           actions.each do |action|
             action_options = action_options_for(action, resource, method)
-
-            unless resource.name_prefix.blank?
-              map.deprecated_named_route("#{action}_#{resource.name_prefix}#{resource.plural}", "#{resource.name_prefix}#{action}_#{resource.plural}")
-              map.deprecated_named_route("formatted_#{action}_#{resource.name_prefix}#{resource.plural}", "formatted_#{resource.name_prefix}#{action}_#{resource.plural}")
-            end
-
-            map.named_route("#{action}_#{resource.name_prefix}#{resource.plural}", "#{resource.path}#{resource.action_separator}#{action}", action_options)
-            map.named_route("formatted_#{action}_#{resource.name_prefix}#{resource.plural}", "#{resource.path}#{resource.action_separator}#{action}.:format", action_options)
+            map.named_route("#{resource.name_prefix}#{action}_#{resource.plural}", "#{resource.path};#{action}", action_options)
+            map.named_route("formatted_#{resource.name_prefix}#{action}_#{resource.plural}", "#{resource.path}.:format;#{action}", action_options)
           end
         end
       end
@@ -361,25 +351,11 @@ module ActionController
           actions.each do |action|
             action_options = action_options_for(action, resource, method)
             if action == :new
-
-              unless resource.name_prefix.blank?
-                map.deprecated_named_route("new_#{resource.name_prefix}#{resource.singular}", "#{resource.name_prefix}new_#{resource.singular}")
-                map.deprecated_named_route("formatted_new_#{resource.name_prefix}#{resource.singular}", "formatted_#{resource.name_prefix}new_#{resource.singular}")
-              end
-
-              map.named_route("new_#{resource.name_prefix}#{resource.singular}", resource.new_path, action_options)
-              map.named_route("formatted_new_#{resource.name_prefix}#{resource.singular}", "#{resource.new_path}.:format", action_options)
-
+              map.named_route("#{resource.name_prefix}new_#{resource.singular}", resource.new_path, action_options)
+              map.named_route("formatted_#{resource.name_prefix}new_#{resource.singular}", "#{resource.new_path}.:format", action_options)
             else
-
-              unless resource.name_prefix.blank?
-                map.deprecated_named_route("#{action}_new_#{resource.name_prefix}#{resource.singular}", "#{resource.name_prefix}#{action}_new_#{resource.singular}")
-                map.deprecated_named_route("formatted_#{action}_new_#{resource.name_prefix}#{resource.singular}", "formatted_#{resource.name_prefix}#{action}_new_#{resource.singular}")
-              end
-
-              map.named_route("#{action}_new_#{resource.name_prefix}#{resource.singular}", "#{resource.new_path}#{resource.action_separator}#{action}", action_options)
-              map.named_route("formatted_#{action}_new_#{resource.name_prefix}#{resource.singular}", "#{resource.new_path}#{resource.action_separator}#{action}.:format", action_options)
-
+              map.named_route("#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path};#{action}", action_options)
+              map.named_route("formatted_#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path}.:format;#{action}", action_options)
             end
           end
         end
@@ -389,15 +365,8 @@ module ActionController
         resource.member_methods.each do |method, actions|
           actions.each do |action|
             action_options = action_options_for(action, resource, method)
-
-            unless resource.name_prefix.blank?
-              map.deprecated_named_route("#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.name_prefix}#{action}_#{resource.singular}")
-              map.deprecated_named_route("formatted_#{action}_#{resource.name_prefix}#{resource.singular}", "formatted_#{resource.name_prefix}#{action}_#{resource.singular}")
-            end
-
-            map.named_route("#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action}", action_options)
-            map.named_route("formatted_#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action}.:format", action_options)
-
+            map.named_route("#{resource.name_prefix}#{action}_#{resource.singular}", "#{resource.member_path};#{action}", action_options)
+            map.named_route("formatted_#{resource.name_prefix}#{action}_#{resource.singular}", "#{resource.member_path}.:format;#{action}",action_options)
           end
         end
 

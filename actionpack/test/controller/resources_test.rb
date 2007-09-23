@@ -63,7 +63,7 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
-  def test_multiple_with_path_prefix
+  def test_multile_with_path_prefix
     with_restful_routing :messages, :comments, :path_prefix => '/thread/:thread_id' do
       assert_simply_restful_for :messages, :path_prefix => 'thread/5/', :options => { :thread_id => '5' }
       assert_simply_restful_for :comments, :path_prefix => 'thread/5/', :options => { :thread_id => '5' }
@@ -312,78 +312,6 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
-  def test_resource_action_separator
-    with_routing do |set|
-      set.draw do |map|
-        map.resources :messages, :collection => {:search => :get}, :new => {:preview => :any}, :name_prefix => 'thread_', :path_prefix => '/threads/:thread_id'
-        map.resource :account, :member => {:login => :get}, :new => {:preview => :any}, :name_prefix => 'admin_', :path_prefix => '/admin'
-      end
-      
-      action_separator = ActionController::Base.resource_action_separator
-      
-      assert_simply_restful_for :messages, :name_prefix => 'thread_', :path_prefix => 'threads/1/', :options => { :thread_id => '1' }
-      assert_named_route "/threads/1/messages#{action_separator}search", "search_thread_messages_path", {}
-      assert_named_route "/threads/1/messages/new", "new_thread_message_path", {}
-      assert_named_route "/threads/1/messages/new#{action_separator}preview", "preview_new_thread_message_path", {}
-      assert_singleton_restful_for :account, :name_prefix => 'admin_', :path_prefix => 'admin/'
-      assert_named_route "/admin/account#{action_separator}login", "login_admin_account_path", {}
-      assert_named_route "/admin/account/new", "new_admin_account_path", {}
-      assert_named_route "/admin/account/new#{action_separator}preview", "preview_new_admin_account_path", {}
-    end
-  end
-
-  def test_new_style_named_routes_for_resource
-    with_routing do |set|
-      set.draw do |map|
-        map.resources :messages, :collection => {:search => :get}, :new => {:preview => :any}, :name_prefix => 'thread_', :path_prefix => '/threads/:thread_id'
-      end
-      assert_simply_restful_for :messages, :name_prefix => 'thread_', :path_prefix => 'threads/1/', :options => { :thread_id => '1' }
-      assert_named_route "/threads/1/messages;search", "search_thread_messages_path", {}
-      assert_named_route "/threads/1/messages/new", "new_thread_message_path", {}
-      assert_named_route "/threads/1/messages/new;preview", "preview_new_thread_message_path", {}
-    end
-  end
-
-  def test_new_style_named_routes_for_singleton_resource
-    with_routing do |set|
-      set.draw do |map|
-        map.resource :account, :member => {:login => :get}, :new => {:preview => :any}, :name_prefix => 'admin_', :path_prefix => '/admin'
-      end
-      assert_singleton_restful_for :account, :name_prefix => 'admin_', :path_prefix => 'admin/'
-      assert_named_route "/admin/account;login", "login_admin_account_path", {}
-      assert_named_route "/admin/account/new", "new_admin_account_path", {}
-      assert_named_route "/admin/account/new;preview", "preview_new_admin_account_path", {}
-    end
-  end
-
-  def test_should_add_deprecated_named_routes_for_resource
-    with_routing do |set|
-      set.draw do |map|
-        map.resources :messages, :collection => {:search => :get}, :new => {:preview => :any}, :name_prefix => 'thread_', :path_prefix => '/threads/:thread_id'
-      end
-      assert_simply_restful_for :messages, :name_prefix => 'thread_', :path_prefix => 'threads/1/', :options => { :thread_id => '1' }
-      assert_deprecated do
-        assert_named_route "/threads/1/messages;search", "thread_search_messages_path", {}
-        assert_named_route "/threads/1/messages/new", "thread_new_message_path", {}
-        assert_named_route "/threads/1/messages/new;preview", "thread_preview_new_message_path", {}
-      end
-    end
-  end
-
-  def test_should_add_deprecated_named_routes_for_singleton_resource
-    with_routing do |set|
-      set.draw do |map|
-        map.resource :account, :member => {:login => :get}, :new => {:preview => :any}, :name_prefix => 'admin_', :path_prefix => '/admin'
-      end
-      assert_singleton_restful_for :account, :name_prefix => 'admin_', :path_prefix => 'admin/'
-      assert_deprecated do
-        assert_named_route "/admin/account;login", "admin_login_account_path", {}
-        assert_named_route "/admin/account/new", "admin_new_account_path", {}
-        assert_named_route "/admin/account/new;preview", "admin_preview_new_account_path", {}
-      end
-    end
-  end
-
   protected
     def with_restful_routing(*args)
       with_routing do |set|
@@ -417,7 +345,7 @@ class ResourcesTest < Test::Unit::TestCase
       member_path                = "#{collection_path}/1"
       new_path                   = "#{collection_path}/new"
       edit_member_path           = "#{member_path};edit"
-      formatted_edit_member_path = "#{member_path};edit.xml"
+      formatted_edit_member_path = "#{member_path}.xml;edit"
 
       with_options(options[:options]) do |controller|
         controller.assert_routing collection_path,            :action => 'index'
@@ -467,13 +395,13 @@ class ResourcesTest < Test::Unit::TestCase
       name_prefix = options[:name_prefix]
 
       assert_named_route "#{full_prefix}",            "#{name_prefix}#{controller_name}_path",              options[:options]
-      assert_named_route "#{full_prefix}/new",        "new_#{name_prefix}#{singular_name}_path",            options[:options]
+      assert_named_route "#{full_prefix}/new",        "#{name_prefix}new_#{singular_name}_path",            options[:options]
       assert_named_route "#{full_prefix}/1",          "#{name_prefix}#{singular_name}_path",                options[:options].merge(:id => '1')
-      assert_named_route "#{full_prefix}/1;edit",     "edit_#{name_prefix}#{singular_name}_path",           options[:options].merge(:id => '1')
+      assert_named_route "#{full_prefix}/1;edit",     "#{name_prefix}edit_#{singular_name}_path",           options[:options].merge(:id => '1')
       assert_named_route "#{full_prefix}.xml",        "formatted_#{name_prefix}#{controller_name}_path",    options[:options].merge(            :format => 'xml')
-      assert_named_route "#{full_prefix}/new.xml",    "formatted_new_#{name_prefix}#{singular_name}_path",  options[:options].merge(            :format => 'xml')
+      assert_named_route "#{full_prefix}/new.xml",    "formatted_#{name_prefix}new_#{singular_name}_path",  options[:options].merge(            :format => 'xml')
       assert_named_route "#{full_prefix}/1.xml",      "formatted_#{name_prefix}#{singular_name}_path",      options[:options].merge(:id => '1', :format => 'xml')
-      assert_named_route "#{full_prefix}/1;edit.xml", "formatted_edit_#{name_prefix}#{singular_name}_path", options[:options].merge(:id => '1', :format => 'xml')
+      assert_named_route "#{full_prefix}/1.xml;edit", "formatted_#{name_prefix}edit_#{singular_name}_path", options[:options].merge(:id => '1', :format => 'xml')
       yield options[:options] if block_given?
     end
 
@@ -483,7 +411,7 @@ class ResourcesTest < Test::Unit::TestCase
       full_path           = "/#{options[:path_prefix]}#{singleton_name}"
       new_path            = "#{full_path}/new"
       edit_path           = "#{full_path};edit"
-      formatted_edit_path = "#{full_path};edit.xml"
+      formatted_edit_path = "#{full_path}.xml;edit"
 
       with_options options[:options] do |controller|
         controller.assert_routing full_path,           :action => 'show'
@@ -520,14 +448,13 @@ class ResourcesTest < Test::Unit::TestCase
       options[:options].delete :action
 
       full_path = "/#{options[:path_prefix]}#{singleton_name}"
-      full_name = "#{options[:name_prefix]}#{singleton_name}"
 
-      assert_named_route "#{full_path}",          "#{full_name}_path",                options[:options]
-      assert_named_route "#{full_path}/new",      "new_#{full_name}_path",            options[:options]
-      assert_named_route "#{full_path};edit",     "edit_#{full_name}_path",           options[:options]
-      assert_named_route "#{full_path}.xml",      "formatted_#{full_name}_path",      options[:options].merge(:format => 'xml')
-      assert_named_route "#{full_path}/new.xml",  "formatted_new_#{full_name}_path",  options[:options].merge(:format => 'xml')
-      assert_named_route "#{full_path};edit.xml", "formatted_edit_#{full_name}_path", options[:options].merge(:format => 'xml')
+      assert_named_route "#{full_path}",          "#{singleton_name}_path",                options[:options]
+      assert_named_route "#{full_path}/new",      "new_#{singleton_name}_path",            options[:options]
+      assert_named_route "#{full_path};edit",     "edit_#{singleton_name}_path",           options[:options]
+      assert_named_route "#{full_path}.xml",      "formatted_#{singleton_name}_path",      options[:options].merge(:format => 'xml')
+      assert_named_route "#{full_path}/new.xml",  "formatted_new_#{singleton_name}_path",  options[:options].merge(:format => 'xml')
+      assert_named_route "#{full_path}.xml;edit", "formatted_edit_#{singleton_name}_path", options[:options].merge(:format => 'xml')
     end
 
     def assert_named_route(expected, route, options)

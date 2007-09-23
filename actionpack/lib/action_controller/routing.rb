@@ -989,10 +989,6 @@ module ActionController
         def named_route(name, path, options = {})
           @set.add_named_route(name, path, options)
         end
-        
-        def deprecated_named_route(name, deprecated_name, options = {})
-          @set.add_deprecated_named_route(name, deprecated_name)
-        end
 
         # Added deprecation notice for anyone who already added a named route called "root".
         # It'll be used as a shortcut for map.connect '' in Rails 2.0.
@@ -1023,7 +1019,7 @@ module ActionController
         def clear!
           @routes = {}
           @helpers = []
-
+          
           @module ||= Module.new
           @module.instance_methods.each do |selector|
             @module.send :remove_method, selector
@@ -1058,38 +1054,6 @@ module ActionController
 
         def install(destinations = [ActionController::Base, ActionView::Base])
           Array(destinations).each { |dest| dest.send :include, @module }
-        end
-        
-        def define_deprecated_named_route_methods(name, deprecated_name)
-
-          [:url, :path].each do |kind|
-            @module.send :module_eval, <<-end_eval # We use module_eval to avoid leaks
-
-              def #{url_helper_name(deprecated_name, kind)}(*args)
-
-                ActiveSupport::Deprecation.warn(
-                  'The named route "#{url_helper_name(deprecated_name, kind)}" uses a format that has been deprecated. ' +
-                  'You should use "#{url_helper_name(name, kind)}" instead.', caller
-                )
-
-                send :#{url_helper_name(name, kind)}, *args
-
-              end
-
-              def #{hash_access_name(deprecated_name, kind)}(*args)
-
-                ActiveSupport::Deprecation.warn(
-                  'The named route "#{hash_access_name(deprecated_name, kind)}" uses a format that has been deprecated. ' +
-                  'You should use "#{hash_access_name(name, kind)}" instead.', caller
-                )
-
-                send :#{hash_access_name(name, kind)}, *args
-
-              end
-
-            end_eval
-          end
-
         end
 
         private
@@ -1212,10 +1176,6 @@ module ActionController
   
       def add_named_route(name, path, options = {})
         named_routes[name] = add_route(path, options)
-      end
-      
-      def add_deprecated_named_route(name, deprecated_name)
-        named_routes.define_deprecated_named_route_methods(name, deprecated_name)
       end
   
       def options_as_params(options)

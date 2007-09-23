@@ -292,10 +292,6 @@ module ActionController #:nodoc:
     # Turn on +ignore_missing_templates+ if you want to unit test actions without making the associated templates.
     cattr_accessor :ignore_missing_templates
 
-    # Controls the resource action separator
-    @@resource_action_separator = ";"
-    cattr_accessor :resource_action_separator
-
     # Holds the request object that's primarily used to get environment variables through access like
     # <tt>request.env["REQUEST_URI"]</tt>.
     attr_internal :request
