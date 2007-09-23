@@ -1,5 +1,7 @@
 *SVN*
 
+* Added --skip-fixture option to script/generate model #6862 [sandofsky]
+
 * Print Rails version when starting console #7440 [eyematz]
 
 * Fixed the placement of fixture files for nested models when generating through script/generate model #7547 [jkit]
