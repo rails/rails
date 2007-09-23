@@ -7,7 +7,11 @@ module ActionView
     # and transforming strings, which can reduce the amount of inline Ruby code in 
     # your views. These helper methods extend ActionView making them callable 
     # within your template files.
-    module TextHelper      
+    module TextHelper
+      def self.included(base)
+        base.extend(ClassMethods)
+      end
+      
       # The preferred method of outputting text in your views is to use the 
       # <%= "text" %> eRuby syntax. The regular _puts_ and _print_ methods 
       # do not operate as expected in an eRuby code block. If you absolutely must 
@@ -562,7 +566,148 @@ module ActionView
           return value
         end
       end
+
+      # A regular expression of the valid characters used to separate protocols like
+      # the ':' in 'http://foo.com'
+      @@sanitized_protocol_separator = /:|(&#0*58)|(&#x70)|(%|&#37;)3A/
+      mattr_accessor :sanitized_protocol_separator, :instance_writer => false
       
+      # Specifies a Set of HTML attributes that can have URIs.
+      @@sanitized_uri_attributes = Set.new(%w(href src cite action longdesc xlink:href lowsrc))
+      mattr_reader :sanitized_uri_attributes
+      
+      # Specifies a Set of 'bad' tags that the #sanitize helper will remove completely, as opposed
+      # to just escaping harmless tags like &lt;font&gt;
+      @@sanitized_bad_tags = Set.new('script')
+      mattr_reader :sanitized_bad_tags
+      
+      # Specifies the default Set of tags that the #sanitize helper will allow unscathed.
+      @@sanitized_allowed_tags = Set.new(%w(strong em b i p code pre tt output samp kbd var sub 
+        sup dfn cite big small address hr br div span h1 h2 h3 h4 h5 h6 ul ol li dt dd abbr 
+        acronym a img blockquote del ins fieldset legend))
+      mattr_reader :sanitized_allowed_tags
+      
+      # Specifies the default Set of html attributes that the #sanitize helper will leave 
+      # in the allowed tag.
+      @@sanitized_allowed_attributes = Set.new(%w(href src width height alt cite datetime title class name xml:lang abbr))
+      mattr_reader :sanitized_allowed_attributes
+      
+      # Specifies the default Set of acceptable css properties that #sanitize and #sanitize_css will accept.
+      @@sanitized_allowed_css_properties = Set.new(%w(azimuth background-color border-bottom-color border-collapse 
+        border-color border-left-color border-right-color border-top-color clear color cursor direction display 
+        elevation float font font-family font-size font-style font-variant font-weight height letter-spacing line-height
+        overflow pause pause-after pause-before pitch pitch-range richness speak speak-header speak-numeral speak-punctuation
+        speech-rate stress text-align text-decoration text-indent unicode-bidi vertical-align voice-family volume white-space
+        width))
+      mattr_reader :sanitized_allowed_css_properties
+      
+      # Specifies the default Set of acceptable css keywords that #sanitize and #sanitize_css will accept.
+      @@sanitized_allowed_css_keywords = Set.new(%w(auto aqua black block blue bold both bottom brown center
+        collapse dashed dotted fuchsia gray green !important italic left lime maroon medium none navy normal
+        nowrap olive pointer purple red right solid silver teal top transparent underline white yellow))
+      mattr_reader :sanitized_allowed_css_keywords
+      
+      # Specifies the default Set of allowed shorthand css properties for the #sanitize and #sanitize_css helpers.
+      @@sanitized_shorthand_css_properties = Set.new(%w(background border margin padding))
+      mattr_reader :sanitized_shorthand_css_properties
+      
+      # Specifies the default Set of protocols that the #sanitize helper will leave in
+      # protocol attributes.
+      @@sanitized_allowed_protocols = Set.new(%w(ed2k ftp http https irc mailto news gopher nntp telnet webcal xmpp callto feed svn urn aim rsync tag ssh sftp rtsp afs))
+      mattr_reader :sanitized_allowed_protocols
+
+      module ClassMethods #:nodoc:
+        def self.extended(base)
+          class << base
+            # we want these to be class methods on ActionView::Base, they'll get mattr_readers for these below.
+            [:sanitized_protocol_separator, :sanitized_uri_attributes, :sanitized_bad_tags, :sanitized_allowed_tags,
+                :sanitized_allowed_attributes, :sanitized_allowed_css_properties, :sanitized_allowed_css_keywords,
+                :sanitized_shorthand_css_properties, :sanitized_allowed_protocols, :sanitized_protocol_separator=].each do |prop|
+              delegate prop, :to => TextHelper
+            end
+          end
+        end
+
+        # Adds valid HTML attributes that the #sanitize helper checks for URIs.
+        #
+        #   Rails::Initializer.run do |config|
+        #     config.action_view.sanitized_uri_attributes = 'lowsrc', 'target'
+        #   end
+        #
+        def sanitized_uri_attributes=(attributes)
+          Helpers::TextHelper.sanitized_uri_attributes.merge(attributes)
+        end
+
+        # Adds to the Set of 'bad' tags for the #sanitize helper.
+        #
+        #   Rails::Initializer.run do |config|
+        #     config.action_view.sanitized_bad_tags = 'embed', 'object'
+        #   end
+        #
+        def sanitized_bad_tags=(attributes)
+          Helpers::TextHelper.sanitized_bad_tags.merge(attributes)
+        end
+        # Adds to the Set of allowed tags for the #sanitize helper.
+        #
+        #   Rails::Initializer.run do |config|
+        #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
+        #   end
+        #
+        def sanitized_allowed_tags=(attributes)
+          Helpers::TextHelper.sanitized_allowed_tags.merge(attributes)
+        end
+
+        # Adds to the Set of allowed html attributes for the #sanitize helper.
+        #
+        #   Rails::Initializer.run do |config|
+        #     config.action_view.sanitized_allowed_attributes = 'onclick', 'longdesc'
+        #   end
+        #
+        def sanitized_allowed_attributes=(attributes)
+          Helpers::TextHelper.sanitized_allowed_attributes.merge(attributes)
+        end
+
+        # Adds to the Set of allowed css properties for the #sanitize and #sanitize_css heleprs.
+        #
+        #   Rails::Initializer.run do |config|
+        #     config.action_view.sanitized_allowed_css_properties = 'expression'
+        #   end
+        #
+        def sanitized_allowed_css_properties=(attributes)
+          Helpers::TextHelper.sanitized_allowed_css_properties.merge(attributes)
+        end
+
+        # Adds to the Set of allowed css keywords for the #sanitize and #sanitize_css helpers.
+        #
+        #   Rails::Initializer.run do |config|
+        #     config.action_view.sanitized_allowed_css_keywords = 'expression'
+        #   end
+        #
+        def sanitized_allowed_css_keywords=(attributes)
+          Helpers::TextHelper.sanitized_allowed_css_keywords.merge(attributes)
+        end
+
+        # Adds to the Set of allowed shorthand css properties for the #sanitize and #sanitize_css helpers.
+        #
+        #   Rails::Initializer.run do |config|
+        #     config.action_view.sanitized_shorthand_css_properties = 'expression'
+        #   end
+        #
+        def sanitized_shorthand_css_properties=(attributes)
+          Helpers::TextHelper.sanitized_shorthand_css_properties.merge(attributes)
+        end
+
+        # Adds to the Set of allowed protocols for the #sanitize helper.
+        #
+        #   Rails::Initializer.run do |config|
+        #     config.action_view.sanitized_allowed_protocols = 'ssh', 'feed'
+        #   end
+        #
+        def sanitized_allowed_protocols=(attributes)
+          Helpers::TextHelper.sanitized_allowed_protocols.merge(attributes)
+        end
+      end
+
       private
         # The cycle helpers need to store the cycles in a place that is
         # guaranteed to be reset every time a page is rendered, so it
