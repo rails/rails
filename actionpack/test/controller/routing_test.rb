@@ -49,11 +49,13 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   def setup
     # These tests assume optimisation is on, so re-enable it.
     ActionController::Routing.optimise_named_routes = true
+
     @rs = ::ActionController::Routing::RouteSet.new
     @rs.draw {|m| m.connect ':controller/:action/:id' }
+
     ActionController::Routing.use_controllers! %w(content admin/user admin/news_feed)
   end
-  
+
   def test_default_setup
     assert_equal({:controller => "content", :action => 'index'}, rs.recognize_path("/content"))
     assert_equal({:controller => "content", :action => 'list'}, rs.recognize_path("/content/list"))
@@ -226,7 +228,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     end                     
     x = setup_for_named_route       
     assert_equal("http://named.route.test/", x.send(:root_url))
-    assert_equal("/", x.send(:root_path))
+    assert_equal("/relative/", x.send(:root_path))
   end
   
   def test_named_route_with_regexps
@@ -279,7 +281,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
 
     # No / to %2F in URI, only for query params. 
     x = setup_for_named_route 
-    assert_equal("/file/hello/world", x.send(:path_path, 'hello/world'))
+    assert_equal("/relative/file/hello/world", x.send(:path_path, 'hello/world'))
   end
   
   def test_non_controllers_cannot_be_matched
@@ -918,6 +920,9 @@ uses_mocha 'RouteTest' do
       (subdomains * '.') + '.' +  domain
     end
     
+    def relative_url_root
+      '/relative'
+    end
   end
 
 class RouteTest < Test::Unit::TestCase

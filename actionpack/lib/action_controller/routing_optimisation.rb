@@ -75,6 +75,8 @@ module ActionController
             elements << '#{request.host_with_port}'
           end
 
+          elements << '#{request.relative_url_root if request && request.relative_url_root}'
+
           # The last entry in route.segments appears to # *always* be a
           # 'divider segment' for '/' but we have assertions to ensure that
           # we don't include the trailing slashes, so skip them.
