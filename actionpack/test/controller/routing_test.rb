@@ -22,7 +22,7 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
       map.connect ':controller/:action/:variable'
     end
 
-    safe, unsafe = %w(: @ & = + $), %w(^ / ? # [ ] , ;)
+    safe, unsafe = %w(: @ & = + $ , ;), %w(^ / ? # [ ])
     hex = unsafe.map { |char| '%' + char.unpack('H2').first.upcase }
 
     @segment = "#{safe}#{unsafe}".freeze
