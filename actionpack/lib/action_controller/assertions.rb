@@ -1,4 +1,3 @@
-require 'test/unit'
 require 'test/unit/assertions'
 
 module ActionController #:nodoc:
