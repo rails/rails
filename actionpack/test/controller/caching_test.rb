@@ -92,6 +92,15 @@ class PageCachingTest < Test::Unit::TestCase
     assert !File.exist?("#{FILE_STORE_PATH}/index.html")
   end
 
+  uses_mocha("should_cache_ok_at_custom_path") do
+    def test_should_cache_ok_at_custom_path
+      @request.expects(:path).returns("/index.html")
+      get :ok
+      assert_response :ok
+      assert File.exist?("#{FILE_STORE_PATH}/index.html")
+    end
+  end
+
   [:ok, :no_content, :found, :not_found].each do |status|
     [:get, :post, :put, :delete].each do |method|
       unless method == :get and status == :ok
