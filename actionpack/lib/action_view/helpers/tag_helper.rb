@@ -94,7 +94,7 @@ module ActionView
       #   escape_once("&lt;&lt; Accept & Checkout")
       #   # => "&lt;&lt; Accept &amp; Checkout"
       def escape_once(html)
-        fix_double_escape(html_escape(html.to_s))
+        html.to_s.gsub(/[\"><]|&(?!([a-zA-Z]+|(#\d+));)/) { |special| ERB::Util::HTML_ESCAPE[special] }
       end
 
       private
@@ -114,11 +114,6 @@ module ActionView
             end
             " #{attrs.sort * ' '}" unless attrs.empty?
           end
-        end
-
-        # Fix double-escaped entities, such as &amp;amp;, &amp;#123;, etc.
-        def fix_double_escape(escaped)
-          escaped.gsub(/&amp;([a-z]+|(#\d+));/i) { "&#{$1};" }
         end
 
         def block_is_within_action_view?(block)
