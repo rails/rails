@@ -89,8 +89,6 @@ module ActionController #:nodoc:
         log_error(exception) if logger
         erase_results if performed?
 
-        return if rescue_action_with_handler(exception)
-
         # Let the exception alter the response if it wants.
         # For example, MethodNotAllowed sets the Allow header.
         if exception.respond_to?(:handle_response!)
@@ -176,6 +174,8 @@ module ActionController #:nodoc:
       def perform_action_with_rescue #:nodoc:
         perform_action_without_rescue
       rescue Exception => exception  # errors from action performed
+        return if rescue_action_with_handler(exception)
+        
         rescue_action(exception)
       end
 
