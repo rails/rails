@@ -73,4 +73,8 @@ class TagHelperTest < Test::Unit::TestCase
       assert_equal %(<a href="#{escaped.gsub /&/, '&amp;'}" />), tag('a', :href => escaped)
     end
   end
+
+  def test_disable_escaping
+    assert_equal '<a href="&amp;" />', tag('a', { :href => '&amp;' }, false, false)
+  end
 end

@@ -1,5 +1,7 @@
 *SVN*
 
+* The tag helper may bypass escaping.  [Jeremy Kemper]
+
 * Cache asset ids.  [Jeremy Kemper]
 
 * Optimized named routes respect AbstractRequest.relative_url_root.  #9612 [danielmorrison, Jeremy Kemper]

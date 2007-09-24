@@ -11,9 +11,10 @@ module ActionView
       BOOLEAN_ATTRIBUTES = Set.new(%w(disabled readonly multiple))
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML 
-      # compliant. Setting +open+ to true will create an open tag compatible 
+      # compliant. Set +open+ to true to create an open tag compatible 
       # with HTML 4.0 and below. Add HTML attributes by passing an attributes 
-      # hash to +options+. 
+      # hash to +options+. Set +escape+ to false to disable attribute value
+      # escaping.
       #
       # ==== Options
       # The +options+ hash is used with attributes with no value like (<tt>disabled</tt> and 
@@ -30,16 +31,20 @@ module ActionView
       #   tag("input", { :type => 'text', :disabled => true }) 
       #   # => <input type="text" disabled="disabled" />
       #
-      #   tag("img", { :src => "open.png" })
-      #   # => <img src="open.png" />
-      def tag(name, options = nil, open = false)
-        "<#{name}#{tag_options(options) if options}" + (open ? ">" : " />")
+      #   tag("img", { :src => "open & shut.png" })
+      #   # => <img src="open &amp; shut.png" />
+      #
+      #   tag("img", { :src => "open &amp; shut.png" }, false, false)
+      #   # => <img src="open &amp; shut.png" />
+      def tag(name, options = nil, open = false, escape = true)
+        "<#{name}#{tag_options(options, escape) if options}" + (open ? ">" : " />")
       end
 
       # Returns an HTML block tag of type +name+ surrounding the +content+. Add
       # HTML attributes by passing an attributes hash to +options+. 
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +options+ as the second parameter.
+      # Set escape to false to disable attribute value escaping.
       #
       # ==== Options
       # The +options+ hash is used with attributes with no value like (<tt>disabled</tt> and 
@@ -58,15 +63,15 @@ module ActionView
       #     Hello world!
       #   <% end -%>
       #    # => <div class="strong"><p>Hello world!</p></div>
-      def content_tag(name, content_or_options_with_block = nil, options = nil, &block)
+      def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, &block)
         if block_given?
           options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
           content = capture(&block)
-          content_tag = content_tag_string(name, content, options)
+          content_tag = content_tag_string(name, content, options, escape)
           block_is_within_action_view?(block) ? concat(content_tag, block.binding) : content_tag
         else
           content = content_or_options_with_block
-          content_tag_string(name, content, options)
+          content_tag_string(name, content, options, escape)
         end
       end
 
@@ -98,19 +103,23 @@ module ActionView
       end
 
       private
-        def content_tag_string(name, content, options)
-          tag_options = tag_options(options) if options
+        def content_tag_string(name, content, options, escape = true)
+          tag_options = tag_options(options, escape) if options
           "<#{name}#{tag_options}>#{content}</#{name}>"
         end
 
-        def tag_options(options)
+        def tag_options(options, escape = true)
           unless options.blank?
             attrs = []
-            options.each do |key, value|
-              next unless value
-              key = key.to_s
-              value = BOOLEAN_ATTRIBUTES.include?(key) ? key : escape_once(value)
-              attrs << %(#{key}="#{value}")
+            if escape
+              options.each do |key, value|
+                next unless value
+                key = key.to_s
+                value = BOOLEAN_ATTRIBUTES.include?(key) ? key : escape_once(value)
+                attrs << %(#{key}="#{value}")
+              end
+            else
+              attrs = options.map { |key, value| %(#{key}="#{value}") }
             end
             " #{attrs.sort * ' '}" unless attrs.empty?
           end
