@@ -179,7 +179,7 @@ module ActionView
           joined_javascript_name = (cache == true ? "all" : cache) + ".js"
           joined_javascript_path = File.join(JAVASCRIPTS_DIR, joined_javascript_name)
 
-          if !File.exists?(joined_javascript_path)
+          if !file_exist?(joined_javascript_path)
             File.open(joined_javascript_path, "w+") do |cache|
               javascript_paths = expand_javascript_sources(sources).collect do |source|
                 compute_public_path(source, 'javascripts', 'js', false)
@@ -288,8 +288,7 @@ module ActionView
           joined_stylesheet_name = (cache == true ? "all" : cache) + ".css"
           joined_stylesheet_path = File.join(STYLESHEETS_DIR, joined_stylesheet_name)
 
-          @@file_exist_cache ||= {}
-          if !(@@file_exist_cache[joined_stylesheet_name] ||= File.exist?(joined_stylesheet_path))
+          if !file_exist?(joined_stylesheet_path)
             File.open(joined_stylesheet_path, "w+") do |cache|
               stylesheet_paths = expand_stylesheet_sources(sources).collect do |source|
                 compute_public_path(source, 'stylesheets', 'css', false) 
@@ -297,21 +296,19 @@ module ActionView
 
               cache.write(join_asset_file_contents(stylesheet_paths))
             end
-
-            @@file_exist_cache[joined_stylesheet_name] = true
           end
 
           tag("link", {
             "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen",
             "href" => html_escape(stylesheet_path(joined_stylesheet_name))
-          }.merge(options), false, true)
+          }.merge(options), false, false)
         else
           options.delete("cache")
 
           expand_stylesheet_sources(sources).collect do |source|
             tag("link", {
               "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => html_escape(stylesheet_path(source))
-            }.merge(options), false, true)
+            }.merge(options), false, false)
           end.join("\n")
         end
       end
@@ -371,6 +368,16 @@ module ActionView
       end
 
       private
+        def file_exist?(path)
+          @@file_exist_cache ||= {}
+          if !(@@file_exist_cache[path] ||= File.exist?(path))
+            @@file_exist_cache[path] = true
+            false
+          else
+            true
+          end
+        end
+
         # Add the .ext if not present. Return full URLs otherwise untouched.
         # Prefix with /dir/ if lacking a leading /. Account for relative URL
         # roots. Rewrite the asset path for cache-busting asset ids. Include
@@ -416,7 +423,7 @@ module ActionView
             asset_id
           else
             @@asset_id_cache[source] ||=
-              if File.exist?(path = File.join(ASSETS_DIR, source))
+              if file_exist?(path = File.join(ASSETS_DIR, source))
                 File.mtime(path).to_i.to_s
               else
                 ''
@@ -444,7 +451,7 @@ module ActionView
               sources[(sources.index(:defaults) + 1)..sources.length]
 
             sources.delete(:defaults)
-            sources << "application" if File.exists?(File.join(JAVASCRIPTS_DIR, "application.js"))
+            sources << "application" if file_exist?(File.join(JAVASCRIPTS_DIR, "application.js"))
           end
 
           sources
