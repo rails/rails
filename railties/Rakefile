@@ -66,7 +66,7 @@ PUBLIC_DIRS = %w( images javascripts stylesheets )
 TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/test )
 
 LOG_FILES    = %w( server.log development.log test.log production.log )
-HTML_FILES   = %w( 404.html 500.html index.html robots.txt favicon.ico images/rails.png
+HTML_FILES   = %w( 422.html 404.html 500.html index.html robots.txt favicon.ico images/rails.png
                    javascripts/prototype.js javascripts/application.js
                    javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js )
 BIN_FILES    = %w( about console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner process/inspector runner server plugin )

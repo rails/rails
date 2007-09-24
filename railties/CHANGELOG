@@ -1,5 +1,7 @@
 *SVN*
 
+* Added a default 422.html page to be rendered when ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved, or ActionController::InvalidToken is raised [DHH]
+
 * Added --skip-fixture option to script/generate model #6862 [sandofsky]
 
 * Print Rails version when starting console #7440 [eyematz]
