@@ -22,6 +22,19 @@ module ActionController #:nodoc:
       # the token doesn't match what was expected. And it will add a _token parameter to all forms that are automatically generated
       # by Rails. You can customize the error message given through public/422.html.
       #
+      # Learn more about CSRF (Cross-Site Request Forgery) attacks:
+      #
+      # * http://isc.sans.org/diary.html?storyid=1750
+      # * http://en.wikipedia.org/wiki/Cross-site_request_forgery
+      #
+      # Keep in mind, this is NOT a silver-bullet, plug 'n' play, warm security blanket for your rails application.  There are a few guidelines you
+      # should follow:
+      # 
+      # * Keep your GET requests safe and idempotent.  More reading material:
+      #   * http://www.xml.com/pub/a/2002/04/24/deviant.html
+      #   * http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.1.1
+      # * Make sure the session cookies that Rails creates are non-persistent.  Check in Firefox and look for "Expires: at end of session"
+      #
       # Example:
       #
       #   class FooController < ApplicationController
