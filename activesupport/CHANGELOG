@@ -1,5 +1,7 @@
 *SVN*
 
+* Object#instance_exec produces fewer garbage methods.  [Mauricio Fernandez]
+
 * Decode json strings as Dates/Times if they're using a YAML-compatible format.  Closes #9614 [Rick]
 
 * Fixed cache_page to use the request url instead of the routing options when picking a save path #8614 [josh]

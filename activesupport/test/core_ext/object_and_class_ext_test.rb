@@ -216,8 +216,15 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
   end
 
   def test_instance_exec_passes_arguments_to_block
-    block = Proc.new { |value| [self, value] }
-    assert_equal %w(hello goodbye), 'hello'.instance_exec('goodbye', &block)
+    assert_equal %w(hello goodbye), 'hello'.instance_exec('goodbye') { |v| [self, v] }
   end
 
+  def test_instance_exec_with_frozen_obj
+    assert_equal %w(olleh goodbye), 'hello'.freeze.instance_exec('goodbye') { |v| [reverse, v] }
+  end
+
+  def test_instance_exec_nested
+    assert_equal %w(goodbye olleh bar), 'hello'.instance_exec('goodbye') { |arg|
+      [arg] + instance_exec('bar') { |v| [reverse, v] } }
+  end
 end
