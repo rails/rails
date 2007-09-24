@@ -384,27 +384,31 @@ module ActionView
         # a single or wildcarded asset host, if configured, with the correct
         # request protocol.
         def compute_public_path(source, dir, ext = nil, include_host = true)
-          source += ".#{ext}" if File.extname(source).blank? && ext
+          @@computed_public_paths ||= {}
+          @@computed_public_paths["#{@controller.request.protocol}#{@controller.request.relative_url_root}#{dir}#{source}#{ext}#{include_host}"] ||=
+            begin
+              source += ".#{ext}" if File.extname(source).blank? && ext
 
-          if source =~ %r{^[-a-z]+://}
-            source
-          else
-            source = "/#{dir}/#{source}" unless source[0] == ?/
-            source = "#{@controller.request.relative_url_root}#{source}"
-            rewrite_asset_path!(source)
+              if source =~ %r{^[-a-z]+://}
+                source
+              else
+                source = "/#{dir}/#{source}" unless source[0] == ?/
+                source = "#{@controller.request.relative_url_root}#{source}"
+                rewrite_asset_path!(source)
 
-            if include_host
-              host = compute_asset_host(source)
+                if include_host
+                  host = compute_asset_host(source)
 
-              unless host.blank? or host =~ %r{^[-a-z]+://}
-                host = "#{@controller.request.protocol}#{host}"
+                  unless host.blank? or host =~ %r{^[-a-z]+://}
+                    host = "#{@controller.request.protocol}#{host}"
+                  end
+
+                  "#{host}#{source}"
+                else
+                  source
+                end
               end
-
-              "#{host}#{source}"
-            else
-              source
             end
-          end
         end
 
         # Pick an asset host for this source. Returns nil if no host is set,
