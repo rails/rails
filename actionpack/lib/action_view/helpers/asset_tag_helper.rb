@@ -409,9 +409,18 @@ module ActionView
         # Use the RAILS_ASSET_ID environment variable or the source's
         # modification time as its cache-busting asset id.
         def rails_asset_id(source)
-          ENV["RAILS_ASSET_ID"] ||
-            File.mtime(File.join(ASSETS_DIR, source)).to_i.to_s rescue ""
+          if asset_id = ENV["RAILS_ASSET_ID"]
+            asset_id
+          else
+            @@asset_id_cache[source] ||=
+              if File.exist?(path = File.join(ASSETS_DIR, source))
+                File.mtime(path).to_i.to_s
+              else
+                ''
+              end
+          end
         end
+        @@asset_id_cache = {}
 
         # Break out the asset path rewrite so you wish to put the asset id
         # someplace other than the query string.

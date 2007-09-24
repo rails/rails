@@ -1,5 +1,7 @@
 *SVN*
 
+* Cache asset ids.  [Jeremy Kemper]
+
 * Optimized named routes respect AbstractRequest.relative_url_root.  #9612 [danielmorrison, Jeremy Kemper]
 
 * Introduce ActionController::Base.rescue_from to declare exception-handling methods. Cleaner style than the case-heavy rescue_action_in_public.  #9449 [norbert]
