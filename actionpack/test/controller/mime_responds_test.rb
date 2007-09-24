@@ -115,11 +115,11 @@ class RespondToController < ActionController::Base
   end 
   
   def iphone_with_html_response_type 
-    Mime::Type.register("text/iphone", :iphone)
+    Mime::Type.register_alias("text/html", :iphone)
 
     respond_to do |type|
       type.html   { @type = "Firefox" }
-      type.iphone { @type = "iPhone"; render :content_type => Mime::HTML }
+      type.iphone { @type = "iPhone"  }
     end
 
     Mime.send :remove_const, :IPHONE
