@@ -223,7 +223,7 @@ class BaseTest < Test::Unit::TestCase
     assert matz.respond_to?(:name)
     assert matz.respond_to?(:name=)
     assert matz.respond_to?(:name?)
-    assert !matz.respond_to?(:java)
+    assert !matz.respond_to?(:super_scalable_stuff)
   end
 
   def test_find_by_id_with_custom_prefix
