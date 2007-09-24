@@ -288,7 +288,8 @@ module ActionView
           joined_stylesheet_name = (cache == true ? "all" : cache) + ".css"
           joined_stylesheet_path = File.join(STYLESHEETS_DIR, joined_stylesheet_name)
 
-          if !File.exists?(joined_stylesheet_path)
+          @@file_exist_cache ||= {}
+          if !(@@file_exist_cache[joined_stylesheet_name] ||= File.exist?(joined_stylesheet_path))
             File.open(joined_stylesheet_path, "w+") do |cache|
               stylesheet_paths = expand_stylesheet_sources(sources).collect do |source|
                 compute_public_path(source, 'stylesheets', 'css', false) 
@@ -296,19 +297,21 @@ module ActionView
 
               cache.write(join_asset_file_contents(stylesheet_paths))
             end
+
+            @@file_exist_cache[joined_stylesheet_name] = true
           end
 
           tag("link", {
             "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen",
-            "href" => stylesheet_path(joined_stylesheet_name)
-          }.merge(options))
+            "href" => html_escape(stylesheet_path(joined_stylesheet_name))
+          }.merge(options), false, true)
         else
           options.delete("cache")
 
           expand_stylesheet_sources(sources).collect do |source|
             tag("link", {
-              "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => stylesheet_path(source)
-            }.merge(options))
+              "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => html_escape(stylesheet_path(source))
+            }.merge(options), false, true)
           end.join("\n")
         end
       end
@@ -449,14 +452,14 @@ module ActionView
 
         def expand_stylesheet_sources(sources)
           if sources.first == :all
-            sources = Dir[File.join(STYLESHEETS_DIR, '*.css')].collect { |file| File.basename(file).split(".", 1).first }.sort
+            @@all_stylesheet_sources ||= Dir[File.join(STYLESHEETS_DIR, '*.css')].collect { |file| File.basename(file).split(".", 1).first }.sort
           else
             sources
           end
         end
 
         def join_asset_file_contents(paths)
-          paths.collect { |path| File.read(File.join(ASSETS_DIR, path.split("?").first)) }.join("\n\n")          
+          paths.collect { |path| File.read(File.join(ASSETS_DIR, path.split("?").first)) }.join("\n\n")
         end
     end
   end
