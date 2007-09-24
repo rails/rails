@@ -51,27 +51,27 @@ class RequestForgeryProtectionControllerTest < Test::Unit::TestCase
   end
   
   def test_should_not_allow_post_without_token
-    assert_raises(ActionController::InvalidToken) { post :index }
+    assert_raises(ActionController::InvalidAuthenticityToken) { post :index }
   end
   
   def test_should_not_allow_put_without_token
-    assert_raises(ActionController::InvalidToken) { put :index }
+    assert_raises(ActionController::InvalidAuthenticityToken) { put :index }
   end
   
   def test_should_not_allow_delete_without_token
-    assert_raises(ActionController::InvalidToken) { delete :index }
+    assert_raises(ActionController::InvalidAuthenticityToken) { delete :index }
   end
   
   def test_should_not_allow_xhr_post_without_token
-    assert_raises(ActionController::InvalidToken) { xhr :post, :index }
+    assert_raises(ActionController::InvalidAuthenticityToken) { xhr :post, :index }
   end
   
   def test_should_not_allow_xhr_put_without_token
-    assert_raises(ActionController::InvalidToken) { xhr :put, :index }
+    assert_raises(ActionController::InvalidAuthenticityToken) { xhr :put, :index }
   end
   
   def test_should_not_allow_xhr_delete_without_token
-    assert_raises(ActionController::InvalidToken) { xhr :delete, :index }
+    assert_raises(ActionController::InvalidAuthenticityToken) { xhr :delete, :index }
   end
   
   def test_should_allow_post_with_token
@@ -161,27 +161,27 @@ class CsrfCookieMonsterControllerTest < Test::Unit::TestCase
   end
   
   def test_should_not_allow_post_without_token
-    assert_raises(ActionController::InvalidToken) { post :index }
+    assert_raises(ActionController::InvalidAuthenticityToken) { post :index }
   end
   
   def test_should_not_allow_put_without_token
-    assert_raises(ActionController::InvalidToken) { put :index }
+    assert_raises(ActionController::InvalidAuthenticityToken) { put :index }
   end
   
   def test_should_not_allow_delete_without_token
-    assert_raises(ActionController::InvalidToken) { delete :index }
+    assert_raises(ActionController::InvalidAuthenticityToken) { delete :index }
   end
   
   def test_should_not_allow_xhr_post_without_token
-    assert_raises(ActionController::InvalidToken) { xhr :post, :index }
+    assert_raises(ActionController::InvalidAuthenticityToken) { xhr :post, :index }
   end
   
   def test_should_not_allow_xhr_put_without_token
-    assert_raises(ActionController::InvalidToken) { xhr :put, :index }
+    assert_raises(ActionController::InvalidAuthenticityToken) { xhr :put, :index }
   end
   
   def test_should_not_allow_xhr_delete_without_token
-    assert_raises(ActionController::InvalidToken) { xhr :delete, :index }
+    assert_raises(ActionController::InvalidAuthenticityToken) { xhr :delete, :index }
   end
   
   def test_should_allow_post_with_token

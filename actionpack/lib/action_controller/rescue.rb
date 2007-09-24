@@ -13,15 +13,15 @@ module ActionController #:nodoc:
 
     DEFAULT_RESCUE_RESPONSE = :internal_server_error
     DEFAULT_RESCUE_RESPONSES = {
-      'ActionController::RoutingError'     => :not_found,
-      'ActionController::UnknownAction'    => :not_found,
-      'ActiveRecord::RecordNotFound'       => :not_found,
-      'ActiveRecord::StaleObjectError'     => :conflict,
-      'ActiveRecord::RecordInvalid'        => :unprocessable_entity,
-      'ActiveRecord::RecordNotSaved'       => :unprocessable_entity,
-      'ActionController::MethodNotAllowed' => :method_not_allowed,
-      'ActionController::NotImplemented'   => :not_implemented,
-      'ActionController::InvalidToken'     => :unprocessable_entity
+      'ActionController::RoutingError'             => :not_found,
+      'ActionController::UnknownAction'            => :not_found,
+      'ActiveRecord::RecordNotFound'               => :not_found,
+      'ActiveRecord::StaleObjectError'             => :conflict,
+      'ActiveRecord::RecordInvalid'                => :unprocessable_entity,
+      'ActiveRecord::RecordNotSaved'               => :unprocessable_entity,
+      'ActionController::MethodNotAllowed'         => :method_not_allowed,
+      'ActionController::NotImplemented'           => :not_implemented,
+      'ActionController::InvalidAuthenticityToken' => :unprocessable_entity
     }
 
     DEFAULT_RESCUE_TEMPLATE = 'diagnostics'
