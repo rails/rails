@@ -77,7 +77,7 @@ class AppGenerator < Rails::Generator::Base
       m.file "dispatches/dispatch.fcgi", "public/dispatch.fcgi", dispatcher_options
 
       # HTML files
-      %w(404 500 index).each do |file|
+      %w(404 422 500 index).each do |file|
         m.template "html/#{file}.html", "public/#{file}.html"
       end
 
