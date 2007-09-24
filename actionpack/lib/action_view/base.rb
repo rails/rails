@@ -223,6 +223,10 @@ module ActionView #:nodoc:
     # Maps template paths / extensions to 
     @@cached_base_paths = {}
 
+    # Cache public asset paths
+    cattr_reader :computed_public_paths
+    @@computed_public_paths = {}
+
     @@templates_requiring_setup = Set.new(%w(builder rxml rjs))
 
     # Order of template handers checked by #file_exists? depending on the current #template_format

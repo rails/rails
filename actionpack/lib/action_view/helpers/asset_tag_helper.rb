@@ -384,8 +384,12 @@ module ActionView
         # a single or wildcarded asset host, if configured, with the correct
         # request protocol.
         def compute_public_path(source, dir, ext = nil, include_host = true)
-          @@computed_public_paths ||= {}
-          @@computed_public_paths["#{@controller.request.protocol}#{@controller.request.relative_url_root}#{dir}#{source}#{ext}#{include_host}"] ||=
+          cache_key = [ @controller.request.protocol,
+                        ActionController::Base.asset_host,
+                        @controller.request.relative_url_root,
+                        dir, source, ext, include_host ].join
+
+          ActionView::Base.computed_public_paths[cache_key] ||=
             begin
               source += ".#{ext}" if File.extname(source).blank? && ext
 
@@ -426,15 +430,15 @@ module ActionView
           if asset_id = ENV["RAILS_ASSET_ID"]
             asset_id
           else
-            @@asset_id_cache[source] ||=
-              if file_exist?(path = File.join(ASSETS_DIR, source))
-                File.mtime(path).to_i.to_s
-              else
-                ''
-              end
+            path = File.join(ASSETS_DIR, source)
+
+            if File.exist?(path)
+              File.mtime(path).to_i.to_s
+            else
+              ''
+            end
           end
         end
-        @@asset_id_cache = {}
 
         # Break out the asset path rewrite so you wish to put the asset id
         # someplace other than the query string.
