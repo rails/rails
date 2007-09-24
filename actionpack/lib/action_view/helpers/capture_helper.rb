@@ -61,7 +61,7 @@ module ActionView
       #
       # You can also use this syntax alongside an existing call to <tt>yield</tt> in a layout.  For example:
       #
-      #   <!-- This is the layout -->
+      #   <%# This is the layout %>
       #   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
       #   <head>
       #	    <title>My Website</title>
@@ -75,7 +75,7 @@ module ActionView
       # And now, we'll create a view that has a content_for call that
       # creates the <tt>script</tt> identifier.
       #
-      #   <!-- This is our view -->
+      #   <%# This is our view %>
       #   Please login!
       #
       #   <% content_for :script do %>
@@ -100,7 +100,7 @@ module ActionView
       #     <li><%= link_to 'Home', :action => 'index' %></li>
       #   <% end %>
       #
-      #   <!-- Add some other content, or use a different template: -->
+      #   <%#  Add some other content, or use a different template: %>
       # 
       #   <% content_for :navigation do %>
       #     <li><%= link_to 'Login', :action => 'login' %></li>
