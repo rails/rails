@@ -1,7 +1,7 @@
 require 'action_controller/integration'
 
 # work around the at_exit hook in test/unit, which kills IRB
-Test::Unit.run = Test::Unit.respond_to?(:run=)
+Test::Unit.run = true if Test::Unit.respond_to?(:run=)
 
 # reference the global "app" instance, created on demand. To recreate the
 # instance, pass a non-false value as the parameter.
