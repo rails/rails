@@ -116,7 +116,8 @@ class RespondToController < ActionController::Base
   
   def iphone_with_html_response_type 
     Mime::Type.register_alias("text/html", :iphone)
-
+    request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
+    
     respond_to do |type|
       type.html   { @type = "Firefox" }
       type.iphone { @type = "iPhone"  }
@@ -399,7 +400,7 @@ class MimeControllerTest < Test::Unit::TestCase
     
     get :iphone_with_html_response_type, :format => "iphone"
     assert_equal "text/html", @response.content_type
-    assert_equal "<html>Hello future from iPhone!</html>", @response.body
+    assert_equal "<html>Hello iPhone future from iPhone!</html>", @response.body
   end 
   
   def test_format_with_custom_response_type_and_request_headers

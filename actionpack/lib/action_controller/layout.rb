@@ -234,10 +234,9 @@ module ActionController #:nodoc:
 
     protected
       def render_with_a_layout(options = nil, &block) #:nodoc:
-        if template_with_options = options.is_a?(Hash)
-          response.template.template_format = options[:content_type].to_sym if options[:content_type]
-        end
-
+        template_with_options = options.is_a?(Hash)
+        set_template_format(options)
+        
         if apply_layout?(template_with_options, options) && (layout = pick_layout(template_with_options, options))
           assert_existence_of_template_file(layout)
 
@@ -305,6 +304,14 @@ module ActionController #:nodoc:
         view_paths.find do |path| 
           next unless template_path = Dir[File.join(path, 'layouts', layout_name) + ".*"].first
           self.class.send(:layout_directory_exists_cache)[File.dirname(template_path)]
+        end
+      end
+      
+      def set_template_format(options)
+        if options.is_a?(Hash) && options[:content_type]
+          response.template.template_format = options[:content_type].to_sym 
+        elsif params[:format]
+          response.template.template_format = Mime::Type.lookup(Mime::Type.lookup_by_extension(params[:format]).to_s).to_sym
         end
       end
   end
