@@ -240,11 +240,12 @@ module Rails
 
       unless logger = configuration.logger
         begin
-          logger = Logger.new(configuration.log_path)
-          logger.level = Logger.const_get(configuration.log_level.to_s.upcase)
-        rescue StandardError
-          logger = Logger.new(STDERR)
-          logger.level = Logger::WARN
+          logger = ActiveSupport::BufferedLogger.new(configuration.log_path)
+          logger.level = ActiveSupport::BufferedLogger.const_get(configuration.log_level.to_s.upcase)
+          logger.auto_flushing = false if configuration.environment == "production"
+        rescue StandardError =>e
+          logger = ActiveSupport::BufferedLogger.new(STDERR)
+          logger.level = ActiveSupport::BufferedLogger::WARN
           logger.warn(
             "Rails Error: Unable to access log file. Please ensure that #{configuration.log_path} exists and is chmod 0666. " +
             "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."

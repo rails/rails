@@ -38,13 +38,14 @@ class Dispatcher
         controller = ActionController::Routing::Routes.recognize(request)
         controller.process(request, response).out(output)
       end
-    rescue Exception => exception  # errors from CGI dispatch
+    rescue Exception => exception # errors from CGI dispatch
       failsafe_response(cgi, output, '500 Internal Server Error', exception) do
         controller ||= (ApplicationController rescue ActionController::Base)
         controller.process_with_exception(request, response, exception).out(output)
       end
     ensure
-      # Do not give a failsafe response here.
+      # Do not give a failsafe response here
+      flush_logger
       reset_after_dispatch
     end
 
@@ -165,8 +166,12 @@ class Dispatcher
         if defined?(RAILS_DEFAULT_LOGGER) && !RAILS_DEFAULT_LOGGER.nil?
           RAILS_DEFAULT_LOGGER
         else
-          Logger.new($stderr)
+          ActiveSupport::BufferedLogger.new($stderr)
         end
+      end
+      
+      def flush_logger
+        RAILS_DEFAULT_LOGGER.flush if defined?(RAILS_DEFAULT_LOGGER) && RAILS_DEFAULT_LOGGER.respond_to?(:flush)
       end
   end
 end

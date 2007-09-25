@@ -11,6 +11,8 @@ require File.dirname(__FILE__) + '/core_ext/class/attribute_accessors'
 # You can then specify the datetime format, for example:
 #
 #   logger.datetime_format = "%Y-%m-%d"
+#
+# Note: This logger is deprecated in favor of ActiveSupport::BufferedLogger
 class Logger
   # Set to false to disable the silencer
   cattr_accessor :silencer

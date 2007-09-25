@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed the default logger from Ruby's own Logger with the clean_logger extensions to ActiveSupport::BufferedLogger for performance reasons [DHH]. (You can change it back with config.logger = Logger.new("/path/to/log", level).)
+
 * Added a default 422.html page to be rendered when ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved, or ActionController::InvalidAuthenticityToken is raised [DHH]
 
 * Added --skip-fixture option to script/generate model #6862 [sandofsky]
