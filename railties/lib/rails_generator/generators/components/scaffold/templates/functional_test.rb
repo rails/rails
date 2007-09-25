@@ -16,7 +16,7 @@ class <%= controller_class_name %>ControllerTest < Test::Unit::TestCase
   def test_should_get_index
     get :index
     assert_response :success
-    assert assigns(:<%= table_name %>)
+    assert_not_nil assigns(:<%= table_name %>)
   end
 
   def test_should_get_new
