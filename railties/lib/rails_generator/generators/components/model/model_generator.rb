@@ -29,7 +29,7 @@ class ModelGenerator < Rails::Generator::NamedBase
 
   protected
     def banner
-      "Usage: #{$0} generate ModelName [field:type, field:type]"
+      "Usage: #{$0} #{spec.name} ModelName [field:type, field:type]"
     end
 
     def add_options!(opt)
