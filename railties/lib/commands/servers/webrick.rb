@@ -1,5 +1,6 @@
 require 'webrick'
 require 'optparse'
+require 'commands/servers/base'
 
 OPTIONS = {
   :port         => 3000,
