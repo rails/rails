@@ -133,7 +133,7 @@ class RespondToController < ActionController::Base
   protected
     def set_layout
       if ["all_types_with_layout", "iphone_with_html_response_type"].include?(action_name)
-        "standard"
+        "respond_to/layouts/standard"
       end
     end
 end
@@ -327,7 +327,7 @@ class MimeControllerTest < Test::Unit::TestCase
   def test_html_type_with_layout
     @request.env["HTTP_ACCEPT"] = "text/html"
     get :all_types_with_layout
-    assert_equal '<html>HTML for all_types_with_layout</html>', @response.body
+    assert_equal '<html><div id="html">HTML for all_types_with_layout</div></html>', @response.body
   end
 
   def test_xhr
@@ -396,17 +396,17 @@ class MimeControllerTest < Test::Unit::TestCase
   
   def test_format_with_custom_response_type
     get :iphone_with_html_response_type
-    assert_equal "<html>Hello future from Firefox!</html>", @response.body 
+    assert_equal '<html><div id="html">Hello future from Firefox!</div></html>', @response.body 
     
     get :iphone_with_html_response_type, :format => "iphone"
     assert_equal "text/html", @response.content_type
-    assert_equal "<html>Hello iPhone future from iPhone!</html>", @response.body
+    assert_equal '<html><div id="iphone">Hello iPhone future from iPhone!</div></html>', @response.body
   end 
   
   def test_format_with_custom_response_type_and_request_headers
     @request.env["HTTP_ACCEPT"] = "text/iphone"
     get :iphone_with_html_response_type
-    assert_equal "<html>Hello future from iPhone!</html>", @response.body
+    assert_equal '<html><div id="iphone">Hello iPhone future from iPhone!</div></html>', @response.body
     assert_equal "text/html", @response.content_type
   end 
 end
