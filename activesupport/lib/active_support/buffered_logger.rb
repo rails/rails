@@ -49,14 +49,19 @@ module ActiveSupport
       end
     end
 
+    def add(severity, message = nil, progname = nil, &block)
+      return if @level > severity
+      message = message || (block && block.call) || progname
+      message << "\n" unless message[-1] == ?\n
+      @buffer << message
+      flush if auto_flushing
+      message
+    end
+
     for severity in Severity.constants
       class_eval <<-EOT
-        def #{severity.downcase}(message)
-          return if @level > #{severity}
-          message << "\\n" unless message[-1] == ?\\n
-          @buffer << message
-          flush if auto_flushing
-          message
+        def #{severity.downcase}(message = nil, progname = nil, &block)
+          add(#{severity}, message, progname, &block)
         end
         
         def #{severity.downcase}?
