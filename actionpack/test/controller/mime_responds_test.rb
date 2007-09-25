@@ -126,6 +126,18 @@ class RespondToController < ActionController::Base
     Mime.send :remove_const, :IPHONE
   end
 
+  def iphone_with_html_response_type_without_layout
+    Mime::Type.register_alias("text/html", :iphone)
+    request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
+    
+    respond_to do |type|
+      type.html   { @type = "Firefox"; render :action => "iphone_with_html_response_type" }
+      type.iphone { @type = "iPhone" ; render :action => "iphone_with_html_response_type" }
+    end
+
+    Mime.send :remove_const, :IPHONE
+  end
+
   def rescue_action(e)
     raise
   end
@@ -134,6 +146,8 @@ class RespondToController < ActionController::Base
     def set_layout
       if ["all_types_with_layout", "iphone_with_html_response_type"].include?(action_name)
         "respond_to/layouts/standard"
+      elsif action_name == "iphone_with_html_response_type_without_layout"
+        "respond_to/layouts/missing"
       end
     end
 end
@@ -407,6 +421,16 @@ class MimeControllerTest < Test::Unit::TestCase
     @request.env["HTTP_ACCEPT"] = "text/iphone"
     get :iphone_with_html_response_type
     assert_equal '<html><div id="iphone">Hello iPhone future from iPhone!</div></html>', @response.body
+    assert_equal "text/html", @response.content_type
+  end 
+
+  def test_format_with_custom_response_type_and_request_headers_with_only_one_layout_present
+    get :iphone_with_html_response_type_without_layout
+    assert_equal '<html><div id="html_missing">Hello future from Firefox!</div></html>', @response.body 
+
+    @request.env["HTTP_ACCEPT"] = "text/iphone"
+    get :iphone_with_html_response_type_without_layout
+    assert_equal 'Hello iPhone future from iPhone!', @response.body
     assert_equal "text/html", @response.content_type
   end 
 end
