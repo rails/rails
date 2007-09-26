@@ -1,5 +1,7 @@
 *SVN*
 
+* Move Railties' Dispatcher to ActionController::Dispatcher, introduce before_ and after_dispatch callbacks, and warm up to non-CGI requests.  [Jeremy Kemper]
+
 * The tag helper may bypass escaping.  [Jeremy Kemper]
 
 * Cache asset ids.  [Jeremy Kemper]

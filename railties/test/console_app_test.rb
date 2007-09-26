@@ -2,6 +2,10 @@ require File.dirname(__FILE__) + '/abstract_unit'
 
 require 'action_controller' # console_app uses 'action_controller/integration'
 
+unless defined? ApplicationController
+  class ApplicationController < ActionController::Base; end
+end
+
 require 'dispatcher'
 require 'console_app'
 

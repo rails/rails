@@ -21,6 +21,8 @@ RUBY_FORGE_PROJECT = "rails"
 RUBY_FORGE_USER    = "webster132"
 
 
+task :default => :test
+
 ## This is required until the regular test task
 ## below passes.  It's not ideal, but at least
 ## we can see the failures

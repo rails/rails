@@ -1,31 +1,22 @@
-require "#{File.dirname(__FILE__)}/abstract_unit"
+require "#{File.dirname(__FILE__)}/../abstract_unit"
 
 uses_mocha 'dispatcher tests' do
 
-$:.unshift File.dirname(__FILE__) + "/../../actionmailer/lib"
-
-require 'stringio'
-require 'cgi'
-
-require 'dispatcher'
-require 'action_controller'
-require 'action_mailer'
-
+require 'action_controller/dispatcher'
 
 class DispatcherTest < Test::Unit::TestCase
+  Dispatcher = ActionController::Dispatcher
+
   def setup
     @output = StringIO.new
-    ENV['REQUEST_METHOD'] = "GET"
+    ENV['REQUEST_METHOD'] = 'GET'
 
-    Dispatcher.send(:preparation_callbacks).clear
-    Dispatcher.send(:preparation_callbacks_run=, false)
-
-    Object.const_set 'ApplicationController', nil
+    Dispatcher.callbacks[:prepare].clear
+    @dispatcher = Dispatcher.new(@output)
   end
 
   def teardown
     ENV['REQUEST_METHOD'] = nil
-    Object.send :remove_const, 'ApplicationController'
   end
 
   def test_clears_dependencies_after_dispatch_if_in_loading_mode
@@ -37,7 +28,7 @@ class DispatcherTest < Test::Unit::TestCase
     dispatch
   end
 
-  def test_clears_dependencies_after_dispatch_if_not_in_loading_mode
+  def test_leaves_dependencies_after_dispatch_if_not_in_loading_mode
     Dependencies.stubs(:load?).returns(false)
 
     ActionController::Routing::Routes.expects(:reload).never
@@ -57,47 +48,50 @@ class DispatcherTest < Test::Unit::TestCase
     assert_equal "Status: 400 Bad Request\r\nContent-Type: text/html\r\n\r\n<html><body><h1>400 Bad Request</h1></body></html>", @output.string
   end
 
-  def test_preparation_callbacks
-    ActionController::Routing::Routes.stubs(:reload)
+  def test_reload_application_sets_unprepared_if_loading_dependencies
+    Dependencies.stubs(:load?).returns(false)
+    ActionController::Routing::Routes.expects(:reload).never
+    @dispatcher.unprepared = false
+    @dispatcher.send(:reload_application)
+    assert !@dispatcher.unprepared
 
-    old_mechanism = Dependencies.mechanism
-    
+    Dependencies.stubs(:load?).returns(true)
+    ActionController::Routing::Routes.expects(:reload).once
+    @dispatcher.send(:reload_application)
+    assert @dispatcher.unprepared
+  end
+
+  def test_prepare_application_runs_callbacks_if_unprepared
     a = b = c = nil
     Dispatcher.to_prepare { a = b = c = 1 }
     Dispatcher.to_prepare { b = c = 2 }
     Dispatcher.to_prepare { c = 3 }
-    
-    Dispatcher.send :prepare_application
-    
+
+    # Skip the callbacks when already prepared.
+    @dispatcher.unprepared = false
+    @dispatcher.send :prepare_application
+    assert_nil a || b || c
+
+    # Perform the callbacks when unprepared.
+    @dispatcher.unprepared = true
+    @dispatcher.send :prepare_application
     assert_equal 1, a
     assert_equal 2, b
     assert_equal 3, c
-    
-    # When mechanism is :load, perform the callbacks each request:
-    Dependencies.mechanism = :load
-    a = b = c = nil
-    Dispatcher.send :prepare_application
-    assert_equal 1, a
-    assert_equal 2, b
-    assert_equal 3, c
-    
+
     # But when not :load, make sure they are only run once
     a = b = c = nil
-    Dependencies.mechanism = :not_load
-    Dispatcher.send :prepare_application
-    assert_equal nil, a || b || c
-  ensure
-    Dependencies.mechanism = old_mechanism
+    @dispatcher.send :prepare_application
+    assert_nil a || b || c
   end
-  
-  def test_to_prepare_with_identifier_replaces
-    ActionController::Routing::Routes.stubs(:reload)
 
+  def test_to_prepare_with_identifier_replaces
     a = b = nil
     Dispatcher.to_prepare(:unique_id) { a = b = 1 }
     Dispatcher.to_prepare(:unique_id) { a = 2 }
-    
-    Dispatcher.send :prepare_application
+
+    @dispatcher.unprepared = true
+    @dispatcher.send :prepare_application
     assert_equal 2, a
     assert_equal nil, b
   end
@@ -118,4 +112,4 @@ class DispatcherTest < Test::Unit::TestCase
     end
 end
 
-end # uses_mocha
+end

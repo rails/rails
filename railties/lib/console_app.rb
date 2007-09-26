@@ -23,7 +23,8 @@ end
 #reloads the environment
 def reload!
   puts "Reloading..."
-  returning Dispatcher.reset_application! do
-    Dispatcher.send :run_preparation_callbacks
-  end
+  dispatcher = ActionController::Dispatcher.new($stdout)
+  dispatcher.cleanup_application(true)
+  dispatcher.prepare_application(true)
+  true
 end
