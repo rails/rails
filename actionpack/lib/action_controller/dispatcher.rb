@@ -99,6 +99,12 @@ module ActionController
     after_dispatch :flush_logger
     after_dispatch :cleanup_application
 
+    if defined? ActiveRecord
+      to_prepare :activerecord_instantiate_observers do
+        ActiveRecord::Base.instantiate_observers
+      end
+    end
+
     def initialize(output, request = nil, response = nil)
       @output, @request, @response = output, request, response
     end
