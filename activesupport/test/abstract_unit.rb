@@ -1,6 +1,7 @@
 require 'test/unit'
 
 $:.unshift "#{File.dirname(__FILE__)}/../lib"
+$:.unshift File.dirname(__FILE__)
 require 'active_support'
 
 # Wrap tests that use Mocha and skip if unavailable.
