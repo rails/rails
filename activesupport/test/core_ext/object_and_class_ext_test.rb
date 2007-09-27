@@ -65,7 +65,7 @@ class ClassExtTest < Test::Unit::TestCase
 
   def test_subclasses_of_should_not_return_removed_classes
     # First create the removed class
-    old_class = Nested.send :remove_const, :ClassL
+    old_class = Nested.class_eval { remove_const :ClassL }
     new_class = Class.new(ClassK)
     Nested.const_set :ClassL, new_class
     assert_equal "Nested::ClassL", new_class.name # Sanity check
@@ -85,7 +85,7 @@ class ClassExtTest < Test::Unit::TestCase
     assert !const_missing
     assert_equal [ Nested::ClassL ], subclasses
     
-    removed = Nested.send :remove_const, :ClassL   # keep it in memory
+    removed = Nested.class_eval { remove_const :ClassL }  # keep it in memory
     subclasses = Object.subclasses_of ClassK
     assert !const_missing
     assert subclasses.empty?
@@ -188,7 +188,7 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
     assert_equal [], @dest.instance_variables
     @dest.copy_instance_variables_from(@source)
 
-    assert_equal %w(@bar @baz), @dest.instance_variables.sort
+    assert_equal %w(@bar @baz), @dest.instance_variables.sort.map(&:to_s)
     %w(@bar @baz).each do |name|
       assert_equal @source.instance_variable_get(name).object_id,
                    @dest.instance_variable_get(name).object_id
@@ -197,7 +197,7 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
 
   def test_copy_instance_variables_from_with_explicit_excludes
     @dest.copy_instance_variables_from(@source, ['@baz'])
-    assert !@dest.instance_variables.include?('@baz')
+    assert !@dest.instance_variable_defined?('@baz')
     assert_equal 'bar', @dest.instance_variable_get('@bar')
   end
 
@@ -210,8 +210,8 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
     end
 
     @dest.copy_instance_variables_from(@source)
-    assert !@dest.instance_variables.include?('@bar')
-    assert !@dest.instance_variables.include?('@quux')
+    assert !@dest.instance_variable_defined?('@bar')
+    assert !@dest.instance_variable_defined?('@quux')
     assert_equal 'baz', @dest.instance_variable_get('@baz')
   end
 

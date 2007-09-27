@@ -24,23 +24,9 @@ class Object
     ancestors = class << self; ancestors end
     ancestors.select { |mod| mod.class == Module } - [ Object, Kernel ]
   end
-  
-  def copy_instance_variables_from(object, exclude = []) #:nodoc:
-    exclude += object.protected_instance_variables if object.respond_to? :protected_instance_variables
-    
-    instance_variables = object.instance_variables - exclude.map { |name| name.to_s }
-    instance_variables.each { |name| instance_variable_set(name, object.instance_variable_get(name)) }
-  end
-  
+
   def extend_with_included_modules_from(object) #:nodoc:
     object.extended_by.each { |mod| extend mod }
-  end
-
-  def instance_values #:nodoc:
-    instance_variables.inject({}) do |values, name|
-      values[name[1..-1]] = instance_variable_get(name)
-      values
-    end
   end
 
   unless defined? instance_exec # 1.9
