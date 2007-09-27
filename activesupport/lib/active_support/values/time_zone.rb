@@ -76,7 +76,7 @@ class TimeZone
     # Create a new TimeZone instance with the given name and offset.
     def create(name, offset)
       zone = allocate
-      zone.send :initialize, name, offset
+      zone.send!(:initialize, name, offset)
       zone
     end
 
