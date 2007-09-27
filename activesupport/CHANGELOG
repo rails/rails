@@ -1,5 +1,7 @@
 *SVN*
 
+* BufferedLogger#add doesn't modify the message argument.  #9702 [eigentone]
+
 * Added ActiveSupport::BufferedLogger as a duck-typing alternative (albeit with no formatter) to the Ruby Logger, which provides a very nice speed bump (inspired by Ezra's buffered logger) [DHH]
 
 * Object#instance_exec produces fewer garbage methods.  [Mauricio Fernandez]

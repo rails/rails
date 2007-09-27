@@ -38,4 +38,10 @@ class BufferedLoggerTest < Test::Unit::TestCase
     @logger.add(Logger::DEBUG) {evaluated = true}
     assert evaluated == false  
   end
+  
+  def test_should_not_mutate_message
+    message_copy = @message.dup
+    @logger.info @message
+    assert_equal message_copy, @message
+  end
 end

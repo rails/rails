@@ -52,7 +52,9 @@ module ActiveSupport
     def add(severity, message = nil, progname = nil, &block)
       return if @level > severity
       message = message || (block && block.call) || progname
-      message << "\n" unless message[-1] == ?\n
+      # If a newline is nessesary then create a new message end with a new line.
+      # Ensures that the original message is not mutated.
+      message = "#{message}\n" unless message[-1] == ?\n
       @buffer << message
       flush if auto_flushing
       message
