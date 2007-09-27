@@ -17,6 +17,9 @@ module ActiveSupport #:nodoc:
             alias_method :to_s, :to_formatted_s
             alias_method :default_inspect, :inspect
             alias_method :inspect, :readable_inspect
+
+            # Ruby 1.9 has Date#to_time which converts to localtime only.
+            remove_method :to_time if base.instance_methods.include?(:to_time)
           end
         end
 
@@ -25,13 +28,13 @@ module ActiveSupport #:nodoc:
             if formatter.respond_to?(:call)
               formatter.call(self).to_s
             else
-              strftime(formatter).strip
+              strftime(formatter)
             end
           else
             to_default_s
           end
         end
-        
+
         # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005"
         def readable_inspect
           strftime("%a, %d %b %Y")
@@ -40,18 +43,18 @@ module ActiveSupport #:nodoc:
         # To be able to keep Times, Dates and DateTimes interchangeable on conversions
         def to_date
           self
-        end
+        end if RUBY_VERSION < '1.9'
 
         # Converts self to a Ruby Time object; time is set to beginning of day
         # Timezone can either be :local or :utc  (default :local)
         def to_time(form = :local)
           ::Time.send("#{form}_time", year, month, day)
         end
-        
+
         # Converts self to a Ruby DateTime object; time is set to beginning of day
         def to_datetime
           ::DateTime.civil(year, month, day, 0, 0, 0, 0, 0)
-        end
+        end if RUBY_VERSION < '1.9'
 
         def xmlschema
           to_time.xmlschema

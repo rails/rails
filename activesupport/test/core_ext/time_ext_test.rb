@@ -279,7 +279,8 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
 
   def test_to_s
     time = Time.utc(2005, 2, 21, 17, 44, 30)
-    assert_equal "Mon Feb 21 17:44:30 UTC 2005",    time.to_s
+    assert_equal time.to_default_s,                 time.to_s
+    assert_equal time.to_default_s,                 time.to_s(:doesnt_exist)
     assert_equal "2005-02-21 17:44:30",             time.to_s(:db)
     assert_equal "21 Feb 17:44",                    time.to_s(:short)
     assert_equal "17:44",                           time.to_s(:time)
@@ -381,10 +382,10 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   protected
-    def with_timezone new_tz='US/Eastern'
+    def with_timezone(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
       yield
     ensure
-      ENV['TZ'] = old_tz
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
     end
 end

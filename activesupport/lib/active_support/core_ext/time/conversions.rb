@@ -24,7 +24,7 @@ module ActiveSupport #:nodoc:
             if formatter.respond_to?(:call)
               formatter.call(self).to_s
             else
-              strftime(formatter).strip
+              strftime(formatter)
             end
           else
             to_default_s
