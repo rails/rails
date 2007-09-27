@@ -229,10 +229,10 @@ module Dependencies #:nodoc:
         from_mod = Object
       end
     end
-    
+
     # If we have an anonymous module, all we can do is attempt to load from Object.
-    from_mod = Object if from_mod.name.empty?
-    
+    from_mod = Object if from_mod.name.blank?
+
     unless qualified_const_defined?(from_mod.name) && from_mod.name.constantize.object_id == from_mod.object_id
       raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
     end
@@ -392,11 +392,9 @@ module Dependencies #:nodoc:
     end
   end
 
-protected
-  
   # Convert the provided const desc to a qualified constant name (as a string).
   # A module, class, symbol, or string may be provided.
-  def to_constant_name(desc)
+  def to_constant_name(desc) #:nodoc:
     name = case desc
       when String then desc.starts_with?('::') ? desc[2..-1] : desc
       when Symbol then desc.to_s
@@ -406,10 +404,10 @@ protected
       else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
     end
   end
-  
-  def remove_constant(const)
+
+  def remove_constant(const) #:nodoc:
     return false unless qualified_const_defined? const
-    
+
     const = $1 if /\A::(.*)\Z/ =~ const.to_s
     names = const.to_s.split('::')
     if names.size == 1 # It's under Object
@@ -417,12 +415,13 @@ protected
     else
       parent = (names[0..-2] * '::').constantize
     end
-    
+
     log "removing constant #{const}"
     parent.instance_eval { remove_const names.last }
     return true
   end
-  
+
+protected
   def log_call(*args)
     arg_str = args.collect(&:inspect) * ', '
     /in `([a-z_\?\!]+)'/ =~ caller(1).first
