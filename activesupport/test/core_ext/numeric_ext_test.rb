@@ -13,6 +13,7 @@ class NumericExtTimeAndDateTimeTest < Test::Unit::TestCase
     }
   end
 
+  # FIXME: ruby 1.9
   def test_units
     @seconds.each do |actual, expected|
       assert_equal expected, actual
