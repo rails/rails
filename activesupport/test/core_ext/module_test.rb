@@ -95,9 +95,9 @@ class ModuleTest < Test::Unit::TestCase
     assert_equal [Yz::Zy, Yz, Object], Yz::Zy::Cd.parents
     assert_equal [Yz, Object], Yz::Zy.parents
   end
-  
+
   def test_local_constants
-    assert_equal %w(Constant1 Constant3), Ab.local_constants.sort
+    assert_equal %w(Constant1 Constant3), Ab.local_constants.sort.map(&:to_s)
   end
 
   def test_as_load_path
@@ -108,8 +108,10 @@ end
 
 module BarMethodAliaser
   def self.included(foo_class)
-    foo_class.send :include, BarMethods
-    foo_class.alias_method_chain :bar, :baz
+    foo_class.class_eval do
+      include BarMethods
+      alias_method_chain :bar, :baz
+    end
   end
 end
 
@@ -129,7 +131,7 @@ module BarMethods
   def quux_with_baz=(v)
     send(:quux_without_baz=, v) << '_with_baz'
   end
-  
+
   def duck_with_orange
     duck_without_orange << '_with_orange'
   end
@@ -137,13 +139,12 @@ end
 
 class MethodAliasingTest < Test::Unit::TestCase
   def setup
-    Object.const_set(:FooClassWithBarMethod, Class.new)
-    FooClassWithBarMethod.send(:define_method, 'bar', Proc.new { 'bar' })
+    Object.const_set :FooClassWithBarMethod, Class.new { def bar() 'bar' end }
     @instance = FooClassWithBarMethod.new
   end
 
   def teardown
-    Object.send(:remove_const, :FooClassWithBarMethod)
+    Object.instance_eval { remove_const :FooClassWithBarMethod }
   end
 
   def test_alias_method_chain
@@ -156,7 +157,7 @@ class MethodAliasingTest < Test::Unit::TestCase
 
     assert_equal 'bar', @instance.bar
 
-    FooClassWithBarMethod.send(:include, BarMethodAliaser)
+    FooClassWithBarMethod.class_eval { include BarMethodAliaser }
 
     feature_aliases.each do |method|
       assert @instance.respond_to?(method)
@@ -167,10 +168,15 @@ class MethodAliasingTest < Test::Unit::TestCase
   end
 
   def test_alias_method_chain_with_punctuation_method
-    FooClassWithBarMethod.send(:define_method, 'quux!', Proc.new { 'quux' })
+    FooClassWithBarMethod.class_eval do
+      def quux!; 'quux' end
+    end
+
     assert !@instance.respond_to?(:quux_with_baz!)
-    FooClassWithBarMethod.send(:include, BarMethodAliaser)
-    FooClassWithBarMethod.alias_method_chain :quux!, :baz
+    FooClassWithBarMethod.class_eval do
+      include BarMethodAliaser
+      alias_method_chain :quux!, :baz
+    end
     assert @instance.respond_to?(:quux_with_baz!)
 
     assert_equal 'quux_with_baz', @instance.quux!
@@ -178,14 +184,17 @@ class MethodAliasingTest < Test::Unit::TestCase
   end
 
   def test_alias_method_chain_with_same_names_between_predicates_and_bang_methods
-    FooClassWithBarMethod.send(:define_method, 'quux!', Proc.new { 'quux!' })
-    FooClassWithBarMethod.send(:define_method, 'quux?', Proc.new { true })
-    FooClassWithBarMethod.send(:define_method, 'quux=', Proc.new { 'quux=' })
+    FooClassWithBarMethod.class_eval do
+      def quux!; 'quux!' end
+      def quux?; true end
+      def quux=(v); 'quux=' end
+    end
+
     assert !@instance.respond_to?(:quux_with_baz!)
     assert !@instance.respond_to?(:quux_with_baz?)
     assert !@instance.respond_to?(:quux_with_baz=)
 
-    FooClassWithBarMethod.send(:include, BarMethodAliaser)
+    FooClassWithBarMethod.class_eval { include BarMethodAliaser }
     assert @instance.respond_to?(:quux_with_baz!)
     assert @instance.respond_to?(:quux_with_baz?)
     assert @instance.respond_to?(:quux_with_baz=)
@@ -205,11 +214,13 @@ class MethodAliasingTest < Test::Unit::TestCase
   end
 
   def test_alias_method_chain_with_feature_punctuation
-    FooClassWithBarMethod.send(:define_method, 'quux', Proc.new { 'quux' })
-    FooClassWithBarMethod.send(:define_method, 'quux?', Proc.new { 'quux?' })
-    FooClassWithBarMethod.send(:include, BarMethodAliaser)
+    FooClassWithBarMethod.class_eval do
+      def quux; 'quux' end
+      def quux?; 'quux?' end
+      include BarMethodAliaser
+      alias_method_chain :quux, :baz!
+    end
 
-    FooClassWithBarMethod.alias_method_chain :quux, :baz!
     assert_nothing_raised do
       assert_equal 'quux_with_baz', @instance.quux_with_baz!
     end
@@ -220,54 +231,62 @@ class MethodAliasingTest < Test::Unit::TestCase
   end
 
   def test_alias_method_chain_yields_target_and_punctuation
-    FooClassWithBarMethod.send(:define_method, :quux?, Proc.new { })
-    FooClassWithBarMethod.send :include, BarMethods
-    block_called = false
-    FooClassWithBarMethod.alias_method_chain :quux?, :baz do |target, punctuation|
-      block_called = true
-      assert_equal 'quux', target
-      assert_equal '?', punctuation
+    args = nil
+
+    FooClassWithBarMethod.class_eval do
+      def quux?; end
+      include BarMethods
+
+      FooClassWithBarMethod.alias_method_chain :quux?, :baz do |target, punctuation|
+        args = [target, punctuation]
+      end
     end
-    assert block_called
+
+    assert_not_nil args
+    assert_equal 'quux', args[0]
+    assert_equal '?', args[1]
   end
-  
+
   def test_alias_method_chain_preserves_private_method_status
-    FooClassWithBarMethod.send(:define_method, 'duck', Proc.new { 'duck' })
-    FooClassWithBarMethod.send(:include, BarMethodAliaser)
-    FooClassWithBarMethod.send(:private, :duck)
-    
-    FooClassWithBarMethod.alias_method_chain :duck, :orange
-    
+    FooClassWithBarMethod.class_eval do
+      def duck; 'duck' end
+      include BarMethodAliaser
+      private :duck
+      alias_method_chain :duck, :orange
+    end
+
     assert_raises NoMethodError do
       @instance.duck
     end
-    
-    assert_equal 'duck_with_orange', @instance.send(:duck)
+
+    assert_equal 'duck_with_orange', @instance.instance_eval { duck }
     assert FooClassWithBarMethod.private_method_defined?(:duck)
   end
-  
+
   def test_alias_method_chain_preserves_protected_method_status
-    FooClassWithBarMethod.send(:define_method, 'duck', Proc.new { 'duck' })
-    FooClassWithBarMethod.send(:include, BarMethodAliaser)
-    FooClassWithBarMethod.send(:protected, :duck)
-    
-    FooClassWithBarMethod.alias_method_chain :duck, :orange
-    
+    FooClassWithBarMethod.class_eval do
+      def duck; 'duck' end
+      include BarMethodAliaser
+      protected :duck
+      alias_method_chain :duck, :orange
+    end
+
     assert_raises NoMethodError do
       @instance.duck
     end
-    
-    assert_equal 'duck_with_orange', @instance.send(:duck)
+
+    assert_equal 'duck_with_orange', @instance.instance_eval { duck }
     assert FooClassWithBarMethod.protected_method_defined?(:duck)
   end
-  
+
   def test_alias_method_chain_preserves_public_method_status
-    FooClassWithBarMethod.send(:define_method, 'duck', Proc.new { 'duck' })
-    FooClassWithBarMethod.send(:include, BarMethodAliaser)
-    FooClassWithBarMethod.send(:public, :duck)
-    
-    FooClassWithBarMethod.alias_method_chain :duck, :orange
-    
+    FooClassWithBarMethod.class_eval do
+      def duck; 'duck' end
+      include BarMethodAliaser
+      public :duck
+      alias_method_chain :duck, :orange
+    end
+
     assert_equal 'duck_with_orange', @instance.duck
     assert FooClassWithBarMethod.public_method_defined?(:duck)
   end
