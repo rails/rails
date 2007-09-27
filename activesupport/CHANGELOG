@@ -1,5 +1,7 @@
 *SVN*
 
+* Alias Object#send to send! for Ruby 1.9 forward compatibility.  [Jeremy Kemper]
+
 * Backport Object#instance_variable_defined? for Ruby < 1.8.6.  [Jeremy Kemper]
 
 * BufferedLogger#add doesn't modify the message argument.  #9702 [eigentone]

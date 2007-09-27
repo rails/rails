@@ -1,4 +1,9 @@
 class Object
+  unless respond_to?(:send!)
+    # Anticipating Ruby 1.9 neutering send
+    alias send! send
+  end
+
   # A Ruby-ized realization of the K combinator, courtesy of Mikael Brockman.
   #
   #   def foo
