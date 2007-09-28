@@ -203,7 +203,7 @@ module ActionView
         form_method = method.to_s == 'get' ? 'get' : 'post'
         
         request_token_tag = ''
-        if form_method == 'post' && request_forgery_protection_token
+        if form_method == 'post' && protect_against_forgery?
           request_token_tag = tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => form_authenticity_token)
         end
         
@@ -477,7 +477,7 @@ module ActionView
             submit_function << "m.setAttribute('name', '_method'); m.setAttribute('value', '#{method}'); f.appendChild(m);"
           end
 
-          if request_forgery_protection_token
+          if protect_against_forgery?
             submit_function << "var s = document.createElement('input'); s.setAttribute('type', 'hidden'); "
             submit_function << "s.setAttribute('name', '#{request_forgery_protection_token}'); s.setAttribute('value', '#{escape_javascript form_authenticity_token}'); f.appendChild(s);"
           end

@@ -328,8 +328,11 @@ module ActionController #:nodoc:
     cattr_accessor :resource_action_separator
     
     # Sets the token parameter name for RequestForgery.  Calling #protect_from_forgery sets it to :authenticity_token by default
-    @@request_forgery_protection_token = nil
     cattr_accessor :request_forgery_protection_token
+    
+    # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
+    class_inheritable_accessor :allow_forgery_protection
+    self.allow_forgery_protection = true
 
     # Holds the request object that's primarily used to get environment variables through access like
     # <tt>request.env["REQUEST_URI"]</tt>.

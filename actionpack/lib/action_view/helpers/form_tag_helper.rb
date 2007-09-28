@@ -401,7 +401,7 @@ module ActionView
               ''
             when /^post$/i, "", nil
               html_options["method"] = "post"
-              request_forgery_protection_token ? content_tag(:div, token_tag, :style => 'margin:0;padding:0') : ''
+              protect_against_forgery? ? content_tag(:div, token_tag, :style => 'margin:0;padding:0') : ''
             else
               html_options["method"] = "post"
               content_tag(:div, tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag, :style => 'margin:0;padding:0')
@@ -421,7 +421,7 @@ module ActionView
         end
 
         def token_tag
-          if request_forgery_protection_token.nil?
+          unless protect_against_forgery?
             ''
           else
             tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => form_authenticity_token)

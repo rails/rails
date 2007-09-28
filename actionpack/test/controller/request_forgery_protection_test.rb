@@ -125,6 +125,18 @@ class CsrfCookieMonsterController < ActionController::Base
   protect_from_forgery :only => :index
 end
 
+class FreeCookieController < CsrfCookieMonsterController
+  self.allow_forgery_protection = false
+  
+  def index
+    render :inline => "<%= form_tag('/') {} %>"
+  end
+  
+  def show_button
+    render :inline => "<%= button_to('New', '/') {} %>"
+  end  
+end
+
 class FakeSessionDbMan
   def self.generate_digest(data)
     Digest::SHA1.hexdigest("secure")
@@ -147,3 +159,29 @@ class CsrfCookieMonsterControllerTest < Test::Unit::TestCase
   end
 end
 
+class FreeCookieControllerTest < Test::Unit::TestCase
+  
+  def setup
+    @controller = FreeCookieController.new
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    @token      = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new('SHA1'), 'abc', '123')
+  end
+  
+  def test_should_not_render_form_with_token_tag
+    get :index
+    assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token, false
+  end
+  
+  def test_should_not_render_button_to_with_token_tag
+    get :show_button
+    assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token, false
+  end
+  
+  def test_should_allow_all_methods_without_token
+    [:post, :put, :delete].each do |method|
+      assert_nothing_raised { send(method, :index)}
+    end
+  end
+  
+end

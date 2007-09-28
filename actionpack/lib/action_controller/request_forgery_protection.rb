@@ -8,6 +8,7 @@ module ActionController #:nodoc:
         class_inheritable_accessor :request_forgery_protection_options
         self.request_forgery_protection_options = {}
         helper_method :form_authenticity_token
+        helper_method :protect_against_forgery?
       end
       base.extend(ClassMethods)
     end
@@ -48,6 +49,9 @@ module ActionController #:nodoc:
       #
       #     # uses one of the other session stores that uses a session_id value.
       #     protect_from_forgery :secret => 'my-little-pony', :except => :index
+      #
+      #     # you can disable csrf protection on controller-by-controller basis:
+      #     skip_before_filter :verify_authenticity_token
       #   end
       #
       # Valid Options:
@@ -75,9 +79,9 @@ module ActionController #:nodoc:
       # * is it a GET request?  Gets should be safe and idempotent
       # * Does the form_authenticity_token match the given _token value from the params?
       def verified_request?
-        request_forgery_protection_token.nil? ||
-          request.method == :get              ||
-          !verifiable_request_format?         ||
+        !protect_against_forgery?     ||
+          request.method == :get      ||
+          !verifiable_request_format? ||
           form_authenticity_token == params[request_forgery_protection_token]
       end
     
@@ -109,6 +113,10 @@ module ActionController #:nodoc:
       def authenticity_token_from_cookie_session
         session[:csrf_id] ||= CGI::Session.generate_unique_id
         session.dbman.generate_digest(session[:csrf_id])
+      end
+      
+      def protect_against_forgery?
+        allow_forgery_protection && request_forgery_protection_token
       end
   end
 end

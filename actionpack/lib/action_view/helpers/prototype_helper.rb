@@ -739,7 +739,7 @@ module ActionView
           js_options['parameters'] = options[:with]
         end
         
-        if request_forgery_protection_token
+        if protect_against_forgery?
           if js_options['parameters']
             js_options['parameters'] << " + '&"
           else

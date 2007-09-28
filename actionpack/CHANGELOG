@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow ability to disable request forgery protection, disable it in test mode by default.  Closes #9693 [lifofifo]
+
 * Avoid calling is_missing on LoadErrors. Closes #7460. [ntalbott]
 
 * Move Railties' Dispatcher to ActionController::Dispatcher, introduce before_ and after_dispatch callbacks, and warm up to non-CGI requests.  [Jeremy Kemper]

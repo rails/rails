@@ -89,8 +89,8 @@ class ScriptaculousHelperTest < Test::Unit::TestCase
     assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nDroppables.add(\"droptarget1\", {accept:['tshirts','mugs'], onDrop:function(element){new Ajax.Updater('infobox', 'http://www.example.com/', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}})\n//]]>\n</script>),
       drop_receiving_element("droptarget1", :accept => ['tshirts','mugs'], :update => 'infobox')
   end
-  
-  def request_forgery_protection_token
-    nil
+
+  def protect_against_forgery?
+    false
   end
 end

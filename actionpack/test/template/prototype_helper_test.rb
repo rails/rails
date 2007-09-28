@@ -65,6 +65,10 @@ protected
     nil
   end
   
+  def protect_against_forgery?
+    false
+  end
+  
   def create_generator
     block = Proc.new { |*args| yield *args if block_given? } 
     JavaScriptGenerator.new self, &block
