@@ -340,7 +340,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_equal 127, jonnyg.intelligence_quotient
         jonnyg.destroy
       ensure
-        ActiveRecord::Migration.remove_column :people, :intelligece_quotient rescue nil
+        ActiveRecord::Migration.remove_column :people, :intelligence_quotient rescue nil
       end
     end
 
@@ -578,7 +578,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal BigDecimal("1000234000567.95"), b.big_bank_balance
 
       # This one is fun. The 'value_of_e' field is defined as 'DECIMAL' with
-      # precision/scale explictly left out.  By the SQL standard, numbers
+      # precision/scale explicitly left out.  By the SQL standard, numbers
       # assigned to this field should be truncated but that's seldom respected.
       if current_adapter?(:PostgreSQLAdapter, :SQLite2Adapter)
         # - PostgreSQL changes the SQL spec on columns declared simply as

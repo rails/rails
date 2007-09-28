@@ -260,7 +260,7 @@ module Rails
         end
 
         # Generate a file for a Rails application using an ERuby template.
-        # Looks up and evalutes a template by name and writes the result.
+        # Looks up and evaluates a template by name and writes the result.
         #
         # The ERB template uses explicit trim mode to best control the
         # proliferation of whitespace in generated code.  <%- trims leading

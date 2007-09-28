@@ -46,7 +46,7 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal 86399,DateTime.civil(2005,1,1,23,59,59).seconds_since_midnight
   end
 
-  def test_begining_of_week
+  def test_beginning_of_week
     assert_equal DateTime.civil(2005,1,31), DateTime.civil(2005,2,4,10,10,10).beginning_of_week
     assert_equal DateTime.civil(2005,11,28), DateTime.civil(2005,11,28,0,0,0).beginning_of_week #monday
     assert_equal DateTime.civil(2005,11,28), DateTime.civil(2005,11,29,0,0,0).beginning_of_week #tuesday

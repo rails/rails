@@ -260,7 +260,7 @@ begin
         end
 
 
-        # Inserts the given fixture into the table. Overriden to properly handle lobs.
+        # Inserts the given fixture into the table. Overridden to properly handle lobs.
         def insert_fixture(fixture, table_name)
           super
 

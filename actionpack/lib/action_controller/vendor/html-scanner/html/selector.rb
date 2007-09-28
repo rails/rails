@@ -794,7 +794,7 @@ module HTML
     # eventually, and array of substitution values.
     #
     # This method is called from four places, so it helps to put it here
-    # for resue. The only logic deals with the need to detect comma
+    # for reuse. The only logic deals with the need to detect comma
     # separators (alternate) and apply them to the selector group of the
     # top selector.
     def next_selector(statement, values)

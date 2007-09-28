@@ -102,7 +102,7 @@ module ActionController #:nodoc:
       #     end
       #   end
       # 
-      # Finally, all the above styles can be mixed together, and the +helper+ method can be invokved with a mix of
+      # Finally, all the above styles can be mixed together, and the +helper+ method can be invoked with a mix of
       # +symbols+, +strings+, +modules+ and blocks.
       #   helper(:three, BlindHelper) { def mice() 'mice' end }
       #

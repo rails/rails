@@ -1,7 +1,7 @@
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module String #:nodoc:
-      # Define methods for handeling unicode data.
+      # Define methods for handling unicode data.
       module Unicode
         # +chars+ is a Unicode safe proxy for string methods. It creates and returns an instance of the
         # ActiveSupport::Multibyte::Chars class which encapsulates the original string. A Unicode safe version of all

@@ -127,7 +127,7 @@ class ComponentsTest < Test::Unit::TestCase
     test_internal_calling
   end
 
-  def test_component_as_string_redirect_renders_redirecte_action
+  def test_component_as_string_redirect_renders_redirected_action
     get :calling_redirected_as_string
 
     assert_equal "Lady of the House, speaking", @response.body

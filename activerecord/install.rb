@@ -18,7 +18,7 @@ unless $sitedir
   end
 end
 
-# the acual gruntwork
+# the actual gruntwork
 Dir.chdir("lib")
 
 Find.find("active_record", "active_record.rb") { |f|

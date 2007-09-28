@@ -1,7 +1,7 @@
 module ActiveRecord #:nodoc:
   module Serialization
     # Builds an XML document to represent the model.   Some configuration is
-    # availble through +options+, however more complicated cases should use 
+    # available through +options+, however more complicated cases should use 
     # override ActiveRecord's to_xml.
     #
     # By default the generated XML document will include the processing 

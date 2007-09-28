@@ -40,7 +40,7 @@ module Rails
   # directory.
   #
   # The filenames of the templates don't matter, but choose something that
-  # will be self-explatatory since you will be referencing these in the 
+  # will be self-explanatory since you will be referencing these in the 
   # +manifest+ method inside your generator subclass.
   #
   # 

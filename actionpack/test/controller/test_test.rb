@@ -225,9 +225,9 @@ XML
   def test_assert_tag_before
     process :test_html_output
 
-    # there is a tag preceeding a tag with id 'bar'
+    # there is a tag preceding a tag with id 'bar'
     assert_tag :before => { :attributes => { :id => "bar" } }
-    # there is no tag preceeding a 'form' tag
+    # there is no tag preceding a 'form' tag
     assert_no_tag :before => { :tag => "form" }
   end
 

@@ -15,7 +15,7 @@ module UTF8HandlingTest
     # This is an ASCII string with some russian strings and a ligature. It's nicely calibrated, because
     # slicing it at some specific bytes will kill your characters if you use standard Ruby routines.
     # It has both capital and standard letters, so that we can test case conversions easily.
-    # It has 26 charactes and 28 when the ligature gets split during normalization.
+    # It has 26 characters and 28 when the ligature gets split during normalization.
     @string =     "Abcd Блå ﬃ бла бла бла бла"
     @string_kd =  "Abcd Блå ffi бла бла бла бла"
     @string_kc =  "Abcd Блå ffi бла бла бла бла"

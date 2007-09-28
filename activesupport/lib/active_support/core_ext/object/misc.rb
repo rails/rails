@@ -37,7 +37,7 @@ class Object
   #     post.has_many :all_comments
   #   end
   #
-  # Can also be used with an explicit reciever:
+  # Can also be used with an explicit receiver:
   #
   #   map.with_options :controller => "people" do |people|
   #     people.connect "/people",     :action => "index"

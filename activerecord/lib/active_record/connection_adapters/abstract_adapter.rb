@@ -129,7 +129,7 @@ module ActiveRecord
           end
         rescue Exception => e
           # Log message and raise exception.
-          # Set last_verfication to 0, so that connection gets verified
+          # Set last_verification to 0, so that connection gets verified
           # upon reentering the request loop
           @last_verification = 0
           message = "#{e.class.name}: #{e.message}: #{sql}"

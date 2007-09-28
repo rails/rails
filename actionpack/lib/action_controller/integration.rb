@@ -304,7 +304,7 @@ module ActionController
           end
         end
 
-        # Get a temporarly URL writer object
+        # Get a temporary URL writer object
         def generic_url_rewriter
           cgi = MockCGI.new('REQUEST_METHOD' => "GET",
                             'QUERY_STRING'   => "",

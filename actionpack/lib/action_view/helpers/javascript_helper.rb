@@ -140,7 +140,7 @@ module ActionView
           javascript << "\n" << IO.read(filename)
         end
         
-        # load other librairies
+        # load other libraries
         (Dir.glob(File.join(JAVASCRIPT_PATH, '*')) - prototype_libs).each do |filename| 
           javascript << "\n" << IO.read(filename)
         end

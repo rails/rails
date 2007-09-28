@@ -3,7 +3,7 @@ require 'abstract_unit'
 class TestRecord < ActiveRecord::Base
 end
 
-class TestUnconnectedAdaptor < Test::Unit::TestCase
+class TestUnconnectedAdapter < Test::Unit::TestCase
   self.use_transactional_fixtures = false
 
   def setup

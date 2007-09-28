@@ -29,7 +29,7 @@ module ActiveSupport #:nodoc:
             end
           end
 
-          # Returns a new Time if requested year can be accomodated by Ruby's Time class
+          # Returns a new Time if requested year can be accommodated by Ruby's Time class
           # (i.e., if year is within either 1970..2038 or 1902..2038, depending on system architecture);
           # otherwise returns a DateTime
           def time_with_datetime_fallback(utc_or_local, year, month=1, day=1, hour=0, min=0, sec=0, usec=0)

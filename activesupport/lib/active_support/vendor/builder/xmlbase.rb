@@ -26,7 +26,7 @@ module Builder
     end
     
     # Create a tag named +sym+.  Other than the first argument which
-    # is the tag name, the arguements are the same as the tags
+    # is the tag name, the arguments are the same as the tags
     # implemented via <tt>method_missing</tt>.
     def tag!(sym, *args, &block)
       self.__send__(sym, *args, &block)

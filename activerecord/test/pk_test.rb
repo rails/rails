@@ -95,7 +95,7 @@ class PrimaryKeysTest < Test::Unit::TestCase
   def test_instance_update_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.find(1).save }
   end
-  def test_instance_destry_should_quote_pkey
+  def test_instance_destroy_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.find(1).destroy }
   end
 end

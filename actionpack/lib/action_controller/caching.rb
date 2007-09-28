@@ -291,7 +291,7 @@ module ActionController #:nodoc:
           end
           
           def extract_extension(file_path)
-            # Don't want just what comes after the last '.' to accomodate multi part extensions
+            # Don't want just what comes after the last '.' to accommodate multi part extensions
             # such as tar.gz.
             file_path[/^[^.]+\.(.+)$/, 1]
           end

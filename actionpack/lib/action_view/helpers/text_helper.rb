@@ -82,7 +82,7 @@ module ActionView
       end
 
       # Extracts an excerpt from +text+ that matches the first instance of +phrase+. 
-      # The +radius+ expands the excerpt on each side of the first occurance of +phrase+ by the number of characters
+      # The +radius+ expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
       # defined in +radius+ (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
       # then the +excerpt_string+ will be prepended/appended accordingly. If the +phrase+ 
       # isn't found, nil is returned.

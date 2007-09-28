@@ -515,7 +515,7 @@ module Commands
         o.on(         "--local", 
                       "List locally installed plugins.") {|@local| @remote = false}
         o.on(         "--remote",
-                      "List remotely availabled plugins. This is the default behavior",
+                      "List remotely available plugins. This is the default behavior",
                       "unless --local is provided.") {|@remote|}
       end
     end

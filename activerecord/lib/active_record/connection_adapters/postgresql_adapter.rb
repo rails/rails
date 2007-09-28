@@ -70,7 +70,7 @@ module ActiveRecord
   
         # Unescapes bytea output from a database to the binary string it represents.
         def self.binary_to_string(value)
-          # In each case, check if the value actually is escaped PostgresSQL bytea output
+          # In each case, check if the value actually is escaped PostgreSQL bytea output
           # or an unescaped Active Record attribute that was just written.
           if PGconn.respond_to?(:unescape_bytea)
             self.class.module_eval do
@@ -784,7 +784,7 @@ module ActiveRecord
               row.each_index do |cell_index|
                 # If this is a money type column and there are any currency symbols,
                 # then strip them off. Indeed it would be prettier to do this in
-                # PostgresSQLColumn.string_to_decimal but would break form input
+                # PostgreSQLColumn.string_to_decimal but would break form input
                 # fields that call value_before_type_cast.
                 if res.type(cell_index) == MONEY_COLUMN_TYPE_OID
                   # Because money output is formatted according to the locale, there are two

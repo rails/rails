@@ -1,4 +1,4 @@
-# sybase_adaptor.rb
+# sybase_adapter.rb
 # Author: John R. Sheets
 # 
 # 01 Mar 2006: Initial version.  Based on code from Will Sobel

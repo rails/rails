@@ -142,7 +142,7 @@ module ActiveRecord
 
       # Sets a new default value for a column.  If you want to set the default
       # value to +NULL+, you are out of luck.  You need to
-      # DatabaseStatements#execute the apppropriate SQL statement yourself.
+      # DatabaseStatements#execute the appropriate SQL statement yourself.
       # ===== Examples
       #  change_column_default(:suppliers, :qualification, 'new')
       #  change_column_default(:accounts, :authorized, 1)
@@ -237,7 +237,7 @@ module ActiveRecord
           execute "CREATE TABLE #{ActiveRecord::Migrator.schema_info_table_name} (version #{type_to_sql(:integer)})"
           execute "INSERT INTO #{ActiveRecord::Migrator.schema_info_table_name} (version) VALUES(0)"
         rescue ActiveRecord::StatementInvalid
-          # Schema has been intialized
+          # Schema has been initialized
         end
       end
 
@@ -255,7 +255,7 @@ module ActiveRecord
       def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
         if native = native_database_types[type]
           column_type_sql = native.is_a?(Hash) ? native[:name] : native
-          if type == :decimal # ignore limit, use precison and scale
+          if type == :decimal # ignore limit, use precision and scale
             precision ||= native[:precision]
             scale ||= native[:scale]
             if precision

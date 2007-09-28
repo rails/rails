@@ -36,7 +36,7 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2005,6,22), Date.new(2005,2,22).change(:month => 6)
   end
 
-  def test_begining_of_week
+  def test_beginning_of_week
     assert_equal Date.new(2005,1,31),  Date.new(2005,2,4).beginning_of_week
     assert_equal Date.new(2005,11,28), Date.new(2005,11,28).beginning_of_week #monday
     assert_equal Date.new(2005,11,28), Date.new(2005,11,29).beginning_of_week #tuesday

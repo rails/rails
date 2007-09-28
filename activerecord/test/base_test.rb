@@ -800,7 +800,7 @@ class BasicsTest < Test::Unit::TestCase
     assert_nil keyboard.id
   end
 
-  def test_customized_primary_key_remains_protected_when_refered_to_as_id
+  def test_customized_primary_key_remains_protected_when_referred_to_as_id
     subscriber = Subscriber.new(:id => 'webster123', :name => 'nice try')
     assert_nil subscriber.id
 

@@ -766,7 +766,7 @@ class DynamicSegmentTest < Test::Unit::TestCase
     
     eval(segment.expiry_statement)
   rescue RuntimeError
-    flunk "Expiry check should not have occured!"
+    flunk "Expiry check should not have occurred!"
   end
   
   def test_expiry_should_occur_according_to_expire_on

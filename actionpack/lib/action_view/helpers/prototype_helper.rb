@@ -511,7 +511,7 @@ module ActionView
           #                    element's existing content.
           # <tt>:bottom</tt>:: HTML is inserted inside the element, after the
           #                    element's existing content.
-          # <tt>:before</tt>:: HTML is inserted immediately preceeding the element.
+          # <tt>:before</tt>:: HTML is inserted immediately preceding the element.
           # <tt>:after</tt>::  HTML is inserted immediately following the element.
           #
           # +options_for_render+ may be either a string of HTML to insert, or a hash

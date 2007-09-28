@@ -1474,7 +1474,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_equal 1, project.access_level.to_i
   end
 
-  def test_hatbm_attribute_access_and_respond_to
+  def test_habtm_attribute_access_and_respond_to
     project = developers(:jamis).projects[0]
     assert project.has_attribute?("name")
     assert project.has_attribute?("joined_on")

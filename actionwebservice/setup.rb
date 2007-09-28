@@ -968,7 +968,7 @@ class ToplevelInstallerMulti < ToplevelInstaller
 
   def print_usage(f)
     super
-    f.puts 'Inluded packages:'
+    f.puts 'Included packages:'
     f.puts '  ' + @packages.sort.join(' ')
     f.puts
   end

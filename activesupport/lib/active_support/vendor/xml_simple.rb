@@ -121,7 +121,7 @@ class XmlSimple
   # Create a "global" cache.
   @@cache = Cache.new
 
-  # Creates and intializes a new XmlSimple object.
+  # Creates and initializes a new XmlSimple object.
   # 
   # defaults::
   #   Default values for options.

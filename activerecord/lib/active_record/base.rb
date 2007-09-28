@@ -150,7 +150,7 @@ module ActiveRecord #:nodoc:
   #     end
   #   end
   #
-  # You can alternatively use self[:attribute]=(value) and self[:attribute] instead of write_attribute(:attribute, vaule) and
+  # You can alternatively use self[:attribute]=(value) and self[:attribute] instead of write_attribute(:attribute, value) and
   # read_attribute(:attribute) as a shorter form.
   #
   # == Accessing attributes before they have been typecasted

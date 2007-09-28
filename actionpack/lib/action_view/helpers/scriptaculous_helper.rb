@@ -30,7 +30,7 @@ module ActionView
       # variable in the generated JavaScript execution context. This can be 
       # used for example with drop_receiving_element:
       #
-      #   <%= drop_receving_element (...), :loading => visual_effect(:fade) %>
+      #   <%= drop_receiving_element (...), :loading => visual_effect(:fade) %>
       #
       # This would fade the element that was dropped on the drop receiving 
       # element.

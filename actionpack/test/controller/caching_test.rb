@@ -2,7 +2,7 @@ require 'fileutils'
 require File.dirname(__FILE__) + '/../abstract_unit'
 
 CACHE_DIR = 'test_cache'
-# Don't change '/../temp/' cavalierly or you might hoze something you don't want hozed
+# Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
 FILE_STORE_PATH = File.join(File.dirname(__FILE__), '/../temp/', CACHE_DIR)
 ActionController::Base.page_cache_directory = FILE_STORE_PATH
 ActionController::Base.fragment_cache_store = :file_store, FILE_STORE_PATH

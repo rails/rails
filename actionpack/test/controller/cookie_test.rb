@@ -6,11 +6,11 @@ class CookieTest < Test::Unit::TestCase
       cookies["user_name"] = "david"
     end
 
-    def authenticate_for_fourten_days
+    def authenticate_for_fourteen_days
       cookies["user_name"] = { "value" => "david", "expires" => Time.local(2005, 10, 10) }
     end
 
-    def authenticate_for_fourten_days_with_symbols
+    def authenticate_for_fourteen_days_with_symbols
       cookies[:user_name] = { :value => "david", :expires => Time.local(2005, 10, 10) }
     end
 
@@ -55,12 +55,12 @@ class CookieTest < Test::Unit::TestCase
   end
 
   def test_setting_cookie_for_fourteen_days
-    get :authenticate_for_fourten_days
+    get :authenticate_for_fourteen_days
     assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "david", "expires" => Time.local(2005, 10, 10)) ], @response.headers["cookie"]
   end
 
   def test_setting_cookie_for_fourteen_days_with_symbols
-    get :authenticate_for_fourten_days
+    get :authenticate_for_fourteen_days
     assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "david", "expires" => Time.local(2005, 10, 10)) ], @response.headers["cookie"]
   end
 
