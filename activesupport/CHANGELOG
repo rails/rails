@@ -4,7 +4,7 @@
 
 * Backport Object#instance_variable_defined? for Ruby < 1.8.6.  [Jeremy Kemper]
 
-* BufferedLogger#add doesn't modify the message argument.  #9702 [eigentone]
+* BufferedLogger#add converts the message to a string.  #9702, #9724 [eigentone, DrMark, tomafro]
 
 * Added ActiveSupport::BufferedLogger as a duck-typing alternative (albeit with no formatter) to the Ruby Logger, which provides a very nice speed bump (inspired by Ezra's buffered logger) [DHH]
 

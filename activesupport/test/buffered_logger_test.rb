@@ -4,6 +4,7 @@ require 'stringio'
 class BufferedLoggerTest < Test::Unit::TestCase
   def setup
     @message = "A debug message"
+    @integer_message = 12345
     @output  = StringIO.new
     @logger  = ActiveSupport::BufferedLogger.new(@output)
   end
@@ -30,6 +31,18 @@ class BufferedLoggerTest < Test::Unit::TestCase
     @logger.level = Logger::INFO
     @logger.info {@message}
     assert @output.string.include?(@message)
+  end
+  
+  def test_should_convert_message_to_string
+    @logger.level = Logger::INFO
+    @logger.info @integer_message
+    assert @output.string.include?(@integer_message.to_s)
+  end
+  
+  def test_should_convert_message_to_string_when_passed_in_block
+    @logger.level = Logger::INFO
+    @logger.info {@integer_message}
+    assert @output.string.include?(@integer_message.to_s)
   end
   
   def test_should_not_evaluate_block_if_message_wont_be_logged
