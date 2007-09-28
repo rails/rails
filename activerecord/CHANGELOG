@@ -1,5 +1,7 @@
 *SVN*
 
+* Added fixture caching that'll speed up a normal fixture-powered test suite between 50% and 100% #9682 [frederick.cheung@gmail.com]
+
 * Correctly quote id list for limited eager loading.  #7482 [tmacedo]
 
 * Fixed that using version-targetted migrates would fail on loggers other than the default one #7430 [valeksenko]

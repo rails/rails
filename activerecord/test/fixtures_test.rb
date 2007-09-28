@@ -58,6 +58,7 @@ class FixturesTest < Test::Unit::TestCase
 
   if ActiveRecord::Base.connection.supports_migrations?
     def test_inserts_with_pre_and_suffix
+      Fixtures.reset_cache
       ActiveRecord::Base.connection.create_table :prefix_topics_suffix do |t|
         t.column :title, :string
         t.column :author_name, :string
@@ -423,5 +424,35 @@ class LoadAllFixturesTest < Test::Unit::TestCase
 
   def test_all_there
     assert_equal %w(developers people tasks), fixture_table_names.sort
+  end
+end
+
+class FasterFixturesTest < Test::Unit::TestCase
+  fixtures :categories, :authors
+  
+  def run(*args, &block)
+    Fixtures.reset_cache
+    super(*args, &block)
+  end
+  
+  def load_extra_fixture(name)
+    fixture = create_fixtures(name)
+    assert fixture.is_a?(Fixtures)
+    @loaded_fixtures[fixture.table_name] = fixture
+  end
+  
+  def test_cache
+    assert Fixtures.fixture_is_cached?(ActiveRecord::Base.connection, 'categories')
+    assert Fixtures.fixture_is_cached?(ActiveRecord::Base.connection, 'authors')
+    
+    assert_no_queries do
+      create_fixtures('categories')
+      create_fixtures('authors')
+    end
+    
+    load_extra_fixture('posts')
+    assert Fixtures.fixture_is_cached?(ActiveRecord::Base.connection, 'posts')
+    self.class.setup_fixture_accessors('posts')
+    assert_equal 'Welcome to the weblog', posts(:welcome).title
   end
 end

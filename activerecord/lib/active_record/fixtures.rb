@@ -218,6 +218,34 @@ end
 class Fixtures < YAML::Omap
   DEFAULT_FILTER_RE = /\.ya?ml$/
 
+  @@all_cached_fixtures = {}
+  
+  def self.reset_cache(connection=ActiveRecord::Base.connection)
+    @@all_cached_fixtures[connection.object_id] = {}
+  end
+  
+  def self.cache_for_connection(connection)
+    @@all_cached_fixtures[connection.object_id] ||= {}
+    @@all_cached_fixtures[connection.object_id]
+  end
+  
+  def self.fixture_is_cached?(connection, table_name)
+    cache_for_connection(connection)[table_name]
+  end
+
+  def self.cached_fixtures(connection, keys_to_fetch = nil)
+    if keys_to_fetch
+      fixtures = cache_for_connection(connection).values_at(*keys_to_fetch)
+    else
+      fixtures = cache_for_connection(connection).values
+    end
+    fixtures.size > 1 ? fixtures : fixtures.first
+  end
+
+  def self.cache_fixtures(connection, fixtures)
+    cache_for_connection(connection).merge! fixtures.index_by(&:table_name)
+  end
+  
   def self.instantiate_fixtures(object, table_name, fixtures, load_instances=true)
     object.instance_variable_set "@#{table_name.to_s.gsub('.','_')}", fixtures
     if load_instances
@@ -246,29 +274,34 @@ class Fixtures < YAML::Omap
     table_names = [table_names].flatten.map { |n| n.to_s }
     connection  = block_given? ? yield : ActiveRecord::Base.connection
 
-    ActiveRecord::Base.silence do
-      fixtures_map = {}
+    table_names_to_fetch = table_names.reject {|table_name| fixture_is_cached?(connection, table_name)}
+    
+    unless table_names_to_fetch.empty?
+      ActiveRecord::Base.silence do
+        fixtures_map = {}
 
-      fixtures = table_names.map do |table_name|
-        fixtures_map[table_name] = Fixtures.new(connection, File.split(table_name.to_s).last, class_names[table_name.to_sym], File.join(fixtures_directory, table_name.to_s))
-      end               
+        fixtures = table_names_to_fetch.map do |table_name|
+          fixtures_map[table_name] = Fixtures.new(connection, File.split(table_name.to_s).last, class_names[table_name.to_sym], File.join(fixtures_directory, table_name.to_s))
+        end               
 
-      all_loaded_fixtures.merge! fixtures_map  
+        all_loaded_fixtures.merge! fixtures_map  
 
-      connection.transaction(Thread.current['open_transactions'].to_i == 0) do
-        fixtures.reverse.each { |fixture| fixture.delete_existing_fixtures }
-        fixtures.each { |fixture| fixture.insert_fixtures }
+        connection.transaction(Thread.current['open_transactions'].to_i == 0) do
+          fixtures.reverse.each { |fixture| fixture.delete_existing_fixtures }
+          fixtures.each { |fixture| fixture.insert_fixtures }
 
-        # Cap primary key sequences to max(pk).
-        if connection.respond_to?(:reset_pk_sequence!)
-          table_names.each do |table_name|
-            connection.reset_pk_sequence!(table_name)
+          # Cap primary key sequences to max(pk).
+          if connection.respond_to?(:reset_pk_sequence!)
+            table_names.each do |table_name|
+              connection.reset_pk_sequence!(table_name)
+            end
           end
         end
+        
+        cache_fixtures(connection, fixtures)
       end
-
-      return fixtures.size > 1 ? fixtures : fixtures.first
     end
+    return cached_fixtures(connection, table_names)
   end
 
 
@@ -547,6 +580,10 @@ module Test #:nodoc:
 
         @fixture_cache = Hash.new
 
+        if !use_transactional_fixtures?
+          Fixtures.reset_cache #we don't want the test to use any of our cached data
+        end
+        
         # Load fixtures once and begin transaction.
         if use_transactional_fixtures?
           if @@already_loaded_fixtures[self.class]
@@ -573,6 +610,10 @@ module Test #:nodoc:
       def teardown_with_fixtures
         return unless defined?(ActiveRecord::Base) && !ActiveRecord::Base.configurations.blank?
 
+        if !use_transactional_fixtures?
+          Fixtures.reset_cache #the non transactional test may have fiddled with the data - dump caches
+        end
+        
         # Rollback changes if a transaction is active.
         if use_transactional_fixtures? && Thread.current['open_transactions'] != 0
           ActiveRecord::Base.connection.rollback_db_transaction

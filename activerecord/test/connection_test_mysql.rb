@@ -1,6 +1,7 @@
 require "#{File.dirname(__FILE__)}/abstract_unit"
 
 class MysqlConnectionTest < Test::Unit::TestCase
+  self.use_transactional_fixtures = false
   def setup
     @connection = ActiveRecord::Base.connection
   end
