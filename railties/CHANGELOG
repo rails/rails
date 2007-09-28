@@ -1,5 +1,7 @@
 *SVN*
 
+* Moved the SourceAnnotationExtractor to a separate file in case libraries try to load the rails rake tasks twice. [Rick]
+
 * Moved Dispatcher to ActionController::Dispatcher.  [Jeremy Kemper]
 
 * Changed the default logger from Ruby's own Logger with the clean_logger extensions to ActiveSupport::BufferedLogger for performance reasons [DHH]. (You can change it back with config.logger = Logger.new("/path/to/log", level).)
