@@ -5,6 +5,61 @@ ActionController::Routing::Routes.draw do |map|
   map.connect ':controller/:action/:id'
 end
 
+# simulates cookie session store
+class FakeSessionDbMan
+  def self.generate_digest(data)
+    Digest::SHA1.hexdigest("secure")
+  end
+end
+
+# common controller actions
+module RequestForgeryProtectionActions
+  def index
+    render :inline => "<%= form_tag('/') {} %>"
+  end
+  
+  def show_button
+    render :inline => "<%= button_to('New', '/') {} %>"
+  end
+  
+  def unsafe
+    render :text => 'pwn'
+  end
+  
+  def rescue_action(e) raise e end
+end
+
+# sample controllers
+class RequestForgeryProtectionController < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery :only => :index, :secret => 'abc'
+end
+
+class RequestForgeryProtectionWithoutSecretController < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery
+end
+
+# no token is given, assume the cookie store is used
+class CsrfCookieMonsterController < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery :only => :index
+end
+
+class FreeCookieController < CsrfCookieMonsterController
+  self.allow_forgery_protection = false
+  
+  def index
+    render :inline => "<%= form_tag('/') {} %>"
+  end
+  
+  def show_button
+    render :inline => "<%= button_to('New', '/') {} %>"
+  end
+end
+
+# common test methods
+
 module RequestForgeryProtectionTests
   def teardown
     ActionController::Base.request_forgery_protection_token = nil
@@ -85,26 +140,7 @@ module RequestForgeryProtectionTests
   end
 end
 
-module RequestForgeryProtectionActions
-  def index
-    render :inline => "<%= form_tag('/') {} %>"
-  end
-  
-  def show_button
-    render :inline => "<%= button_to('New', '/') {} %>"
-  end
-  
-  def unsafe
-    render :text => 'pwn'
-  end
-  
-  def rescue_action(e) raise e end
-end
-
-class RequestForgeryProtectionController < ActionController::Base
-  include RequestForgeryProtectionActions
-  protect_from_forgery :only => :index, :secret => 'abc'
-end
+# OK let's get our test on
 
 class RequestForgeryProtectionControllerTest < Test::Unit::TestCase
   include RequestForgeryProtectionTests
@@ -120,27 +156,22 @@ class RequestForgeryProtectionControllerTest < Test::Unit::TestCase
   end
 end
 
-# no token is given, assume the cookie store is used
-class CsrfCookieMonsterController < ActionController::Base
-  include RequestForgeryProtectionActions
-  protect_from_forgery :only => :index
-end
-
-class FreeCookieController < CsrfCookieMonsterController
-  self.allow_forgery_protection = false
-  
-  def index
-    render :inline => "<%= form_tag('/') {} %>"
+class RequestForgeryProtectionWithoutSecretControllerTest < Test::Unit::TestCase
+  def setup
+    @controller = RequestForgeryProtectionWithoutSecretController.new
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    class << @request.session
+      def session_id() '123' end
+    end
+    @token = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new('SHA1'), 'abc', '123')
+    ActionController::Base.request_forgery_protection_token = :authenticity_token
   end
   
-  def show_button
-    render :inline => "<%= button_to('New', '/') {} %>"
-  end  
-end
-
-class FakeSessionDbMan
-  def self.generate_digest(data)
-    Digest::SHA1.hexdigest("secure")
+  def test_should_raise_error_without_secret
+    assert_raises ActionController::InvalidAuthenticityToken do
+      get :index
+    end
   end
 end
 
@@ -150,18 +181,17 @@ class CsrfCookieMonsterControllerTest < Test::Unit::TestCase
     @controller = CsrfCookieMonsterController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
-    # simulate a cookie session store
-    @request.session.instance_variable_set(:@dbman, FakeSessionDbMan)
     class << @request.session
-      attr_reader :dbman
+      attr_accessor :dbman
     end
+    # simulate a cookie session store
+    @request.session.dbman = FakeSessionDbMan
     @token = Digest::SHA1.hexdigest("secure")
     ActionController::Base.request_forgery_protection_token = :authenticity_token
   end
 end
 
 class FreeCookieControllerTest < Test::Unit::TestCase
-  
   def setup
     @controller = FreeCookieController.new
     @request    = ActionController::TestRequest.new
@@ -184,5 +214,4 @@ class FreeCookieControllerTest < Test::Unit::TestCase
       assert_nothing_raised { send(method, :index)}
     end
   end
-  
 end

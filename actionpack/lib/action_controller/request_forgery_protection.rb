@@ -93,8 +93,12 @@ module ActionController #:nodoc:
       def form_authenticity_token
         @form_authenticity_token ||= if request_forgery_protection_options[:secret]
           authenticity_token_from_session_id
-        else
+        elsif session.respond_to?(:dbman) && session.dbman.respond_to?(:generate_digest)
           authenticity_token_from_cookie_session
+        elsif session.nil?
+          raise InvalidAuthenticityToken, "Request Forgery Protection requires a valid session.  Use #allow_forgery_protection to disable it, or use a valid session."
+        else
+          raise InvalidAuthenticityToken, "No :secret given to the #protect_from_forgery call.  Set that or use a session store capable of generating its own keys (Cookie Session Store)."
         end
       end
       

@@ -1,5 +1,7 @@
 *SVN*
 
+* Better error messages if you leave out the :secret option for request forgery protection.  Closes #9670 [rick]
+
 * Allow ability to disable request forgery protection, disable it in test mode by default.  Closes #9693 [lifofifo]
 
 * Avoid calling is_missing on LoadErrors. Closes #7460. [ntalbott]

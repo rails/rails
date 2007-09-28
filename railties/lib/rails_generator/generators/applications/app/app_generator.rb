@@ -43,7 +43,7 @@ class AppGenerator < Rails::Generator::Base
       m.file "README",         "README"
 
       # Application
-      m.template "helpers/application.rb",        "app/controllers/application.rb", :assigns => { :app_name => @app_name }
+      m.template "helpers/application.rb",        "app/controllers/application.rb", :assigns => { :app_name => @app_name, :app_secret => md5.hexdigest }
       m.template "helpers/application_helper.rb", "app/helpers/application_helper.rb"
       m.template "helpers/test_helper.rb",        "test/test_helper.rb"
 
