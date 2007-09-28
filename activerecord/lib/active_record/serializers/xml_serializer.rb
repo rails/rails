@@ -141,7 +141,7 @@ module ActiveRecord #:nodoc:
           builder.instruct!
           options[:skip_instruct] = true
         end
-        
+
         builder
       end
     end
@@ -150,7 +150,7 @@ module ActiveRecord #:nodoc:
       root = (options[:root] || @record.class.to_s.underscore).to_s
       dasherize? ? root.dasherize : root
     end
-    
+
     def dasherize?
       !options.has_key?(:dasherize) || options[:dasherize]
     end
@@ -179,47 +179,6 @@ module ActiveRecord #:nodoc:
       end
     end
 
-    def add_includes
-      if include_associations = options.delete(:include)
-        root_only_or_except = { :except => options[:except],
-                                :only => options[:only] }
-
-        include_has_options = include_associations.is_a?(Hash)
-
-        for association in include_has_options ? include_associations.keys : Array(include_associations)
-          association_options = include_has_options ? include_associations[association] : root_only_or_except
-
-          opts = options.merge(association_options)
-
-          case @record.class.reflect_on_association(association).macro
-          when :has_many, :has_and_belongs_to_many
-            records = @record.send(association).to_a
-            tag = association.to_s
-            tag = tag.dasherize if dasherize?
-            if records.empty?
-              builder.tag!(tag, :type => :array)
-            else
-              builder.tag!(tag, :type => :array) do
-                association_name = association.to_s.singularize
-                records.each do |record| 
-                  record.to_xml opts.merge(
-                    :root => association_name, 
-                    :type => (record.class.to_s.underscore == association_name ? nil : record.class.name)
-                  )
-                end
-              end
-            end
-          when :has_one, :belongs_to
-            if record = @record.send(association)
-              record.to_xml(opts.merge(:root => association))
-            end
-          end
-        end
-
-        options[:include] = include_associations
-      end
-    end
-
     def add_procs
       if procs = options.delete(:procs)
         [ *procs ].each do |proc|
@@ -227,7 +186,6 @@ module ActiveRecord #:nodoc:
         end
       end
     end
-
 
     def add_tag(attribute)
       builder.tag!(
@@ -237,30 +195,54 @@ module ActiveRecord #:nodoc:
       )
     end
 
+    def add_associations(association, records, opts)
+      if records.is_a?(Enumerable)
+        tag = association.to_s
+        tag = tag.dasherize if dasherize?
+        if records.empty?
+          builder.tag!(tag, :type => :array)
+        else
+          builder.tag!(tag, :type => :array) do
+            association_name = association.to_s.singularize
+            records.each do |record| 
+              record.to_xml opts.merge(
+                :root => association_name, 
+                :type => (record.class.to_s.underscore == association_name ? nil : record.class.name)
+              )
+            end
+          end
+        end
+      else
+        if record = @record.send(association)
+          record.to_xml(opts.merge(:root => association))
+        end
+      end
+    end
+
     def serialize
       args = [root]
       if options[:namespace]
         args << {:xmlns=>options[:namespace]}
       end
-      
+
       if options[:type]
         args << {:type=>options[:type]}
       end
-        
+
       builder.tag!(*args) do
         add_attributes
-        add_includes
+        add_includes { |association, records, opts| add_associations(association, records, opts) }
         add_procs
         yield builder if block_given?
       end
-    end        
+    end
 
     class Attribute #:nodoc:
       attr_reader :name, :value, :type
-    
+
       def initialize(name, record)
         @name, @record = name, record
-      
+
         @type  = compute_type
         @value = compute_value
       end
@@ -277,21 +259,21 @@ module ActiveRecord #:nodoc:
       def needs_encoding?
         ![ :binary, :date, :datetime, :boolean, :float, :integer ].include?(type)
       end
-    
+
       def decorations(include_types = true)
         decorations = {}
 
         if type == :binary
           decorations[:encoding] = 'base64'
         end
-      
+
         if include_types && type != :string
           decorations[:type] = type
         end
-      
+
         decorations
       end
-    
+
       protected
         def compute_type
           type = @record.class.serialized_attributes.has_key?(name) ? :yaml : @record.class.columns_hash[name].type
@@ -305,10 +287,10 @@ module ActiveRecord #:nodoc:
               type
           end
         end
-    
+
         def compute_value
           value = @record.send(name)
-        
+
           if formatter = Hash::XML_FORMATTING[type.to_s]
             value ? formatter.call(value) : nil
           else
