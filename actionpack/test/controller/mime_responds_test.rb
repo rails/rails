@@ -429,8 +429,76 @@ class MimeControllerTest < Test::Unit::TestCase
     assert_equal '<html><div id="html_missing">Hello future from Firefox!</div></html>', @response.body 
 
     @request.env["HTTP_ACCEPT"] = "text/iphone"
-    get :iphone_with_html_response_type_without_layout
-    assert_equal 'Hello iPhone future from iPhone!', @response.body
-    assert_equal "text/html", @response.content_type
+    assert_raises(ActionController::MissingTemplate) { get :iphone_with_html_response_type_without_layout }
   end 
 end
+
+class AbstractPostController < ActionController::Base
+  class << self
+    def view_paths
+      [ File.dirname(__FILE__) + "/../fixtures/post_test/" ]
+    end
+  end
+end
+
+# For testing layouts which are set automatically
+class PostController < AbstractPostController
+  around_filter :with_iphone
+  
+  def index
+    respond_to do |type|
+      type.html
+      type.iphone
+    end
+  end
+  
+  protected
+  
+  def with_iphone
+    Mime::Type.register_alias("text/html", :iphone)
+    request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
+    yield
+    Mime.send :remove_const, :IPHONE    
+  end
+  
+end                                               
+
+class SuperPostController < PostController  
+  def index
+    respond_to do |type|
+      type.html
+      type.iphone
+    end
+  end
+end
+
+class MimeControllerLayoutsTest < Test::Unit::TestCase
+  def setup
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+
+    @controller   = PostController.new
+    @request.host = "www.example.com"
+  end
+  
+  def test_missing_layout_renders_properly
+    get :index
+    assert_equal '<html><div id="html">Hello Firefox</div></html>', @response.body 
+
+    @request.env["HTTP_ACCEPT"] = "text/iphone"
+    get :index
+    assert_equal 'Hello iPhone', @response.body
+  end
+  
+  def test_format_with_inherited_layouts
+    @controller = SuperPostController.new
+    
+    get :index
+    assert_equal 'Super Firefox', @response.body
+    
+    @request.env["HTTP_ACCEPT"] = "text/iphone"
+    get :index
+    assert_equal '<html><div id="super_iphone">Super iPhone</div></html>', @response.body
+  end
+end
+  

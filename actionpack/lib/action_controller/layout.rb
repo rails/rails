@@ -167,17 +167,22 @@ module ActionController #:nodoc:
       # If a layout is specified, all rendered actions will have their result rendered  
       # when the layout<tt>yield</tt>'s. This layout can itself depend on instance variables assigned during action
       # performance and have access to them as any normal template would.
-      def layout(template_name, conditions = {})
+      def layout(template_name, conditions = {}, auto = false)
         add_layout_conditions(conditions)
         write_inheritable_attribute "layout", template_name
+        write_inheritable_attribute "auto_layout", auto
       end
 
       def layout_conditions #:nodoc:
         @layout_conditions ||= read_inheritable_attribute("layout_conditions")
       end
       
-      def default_layout #:nodoc:
-        @default_layout ||= read_inheritable_attribute("layout")
+      def default_layout(format) #:nodoc:
+        layout = read_inheritable_attribute("layout")                 
+        return layout unless read_inheritable_attribute("auto_layout")
+        @default_layout ||= {}
+        @default_layout[format] ||= default_layout_with_format(format, layout)
+        @default_layout[format]
       end
       
       def layout_list #:nodoc:
@@ -190,7 +195,7 @@ module ActionController #:nodoc:
         def inherited_with_layout(child)
           inherited_without_layout(child)
           layout_match = child.name.underscore.sub(/_controller$/, '').sub(/^controllers\//, '')
-          child.layout(layout_match) unless child.layout_list.grep(%r{layouts/#{layout_match}(\.[a-z][0-9a-z]*)+$}).empty?
+          child.layout(layout_match, {}, true) unless child.layout_list.grep(%r{layouts/#{layout_match}(\.[a-z][0-9a-z]*)+$}).empty?
         end
 
         def add_layout_conditions(conditions)
@@ -206,6 +211,15 @@ module ActionController #:nodoc:
             h[dirname] = File.directory? dirname
           end
         end
+        
+        def default_layout_with_format(format, layout)
+          list = layout_list
+          if list.grep(%r{layouts/#{layout}\.#{format}(\.[a-z][0-9a-z]*)+$}).empty?
+            (!list.grep(%r{layouts/#{layout}\.([a-z][0-9a-z]*)+$}).empty? && format == :html) ? layout : nil
+          else
+            layout
+          end
+        end
     end
 
     # Returns the name of the active layout. If the layout was specified as a method reference (through a symbol), this method
@@ -213,7 +227,7 @@ module ActionController #:nodoc:
     # object). If the layout was defined without a directory, layouts is assumed. So <tt>layout "weblog/standard"</tt> will return
     # weblog/standard, but <tt>layout "standard"</tt> will return layouts/standard.
     def active_layout(passed_layout = nil)
-      layout = passed_layout || self.class.default_layout
+      layout = passed_layout || self.class.default_layout(response.template.template_format)
       active_layout = case layout
         when String then layout
         when Symbol then send(layout)
@@ -235,7 +249,6 @@ module ActionController #:nodoc:
     protected
       def render_with_a_layout(options = nil, &block) #:nodoc:
         template_with_options = options.is_a?(Hash)
-        set_template_format(options)
         
         if apply_layout?(template_with_options, options) && (layout = pick_layout(template_with_options, options))
           assert_existence_of_template_file(layout)
@@ -304,14 +317,6 @@ module ActionController #:nodoc:
         view_paths.find do |path| 
           next unless template_path = Dir[File.join(path, 'layouts', layout_name) + ".*"].first
           self.class.send(:layout_directory_exists_cache)[File.dirname(template_path)]
-        end
-      end
-      
-      def set_template_format(options)
-        if options.is_a?(Hash) && options[:content_type]
-          response.template.template_format = options[:content_type].to_sym 
-        elsif params[:format]
-          response.template.template_format = Mime::Type.lookup(Mime::Type.lookup_by_extension(params[:format]).to_s).to_sym
         end
       end
   end
