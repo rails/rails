@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
+require 'digest/sha1'
 
 ActionController::Routing::Routes.draw do |map|
   map.connect ':controller/:action/:id'
