@@ -125,7 +125,7 @@ end
 #   ...
 #
 # By adding a "fixtures" method to the test case and passing it a list of symbols (only one is shown here tho), we trigger
-# the testing environment to automatically load the appropriate fixtures into the database before each test.  
+# the testing environment to automatically load the appropriate fixtures into the database before each test.
 # To ensure consistent data, the environment deletes the fixtures before running the load.
 #
 # In addition to being available in the database, the fixtures are also loaded into a hash stored in an instance variable
@@ -151,7 +151,7 @@ end
 #       self.use_instantiated_fixtures = false
 #
 #   - to keep the fixture instance (@web_sites) available, but do not automatically 'find' each instance:
-#       self.use_instantiated_fixtures = :no_instances 
+#       self.use_instantiated_fixtures = :no_instances
 #
 # Even if auto-instantiated fixtures are disabled, you can still access them
 # by name via special dynamic methods. Each method has the same name as the
@@ -183,7 +183,7 @@ end
 #
 # = Transactional fixtures
 #
-# TestCases can use begin+rollback to isolate their changes to the database instead of having to delete+insert for every test case. 
+# TestCases can use begin+rollback to isolate their changes to the database instead of having to delete+insert for every test case.
 # They can also turn off auto-instantiation of fixture data since the feature is costly and often unused.
 #
 #   class FooTest < Test::Unit::TestCase
@@ -203,32 +203,33 @@ end
 #     end
 #   end
 #   
-# If you preload your test database with all fixture data (probably in the Rakefile task) and use transactional fixtures, 
+# If you preload your test database with all fixture data (probably in the Rakefile task) and use transactional fixtures,
 # then you may omit all fixtures declarations in your test cases since all the data's already there and every case rolls back its changes.
 #
-# In order to use instantiated fixtures with preloaded data, set +self.pre_loaded_fixtures+ to true. This will provide 
+# In order to use instantiated fixtures with preloaded data, set +self.pre_loaded_fixtures+ to true. This will provide
 # access to fixture data for every table that has been loaded through fixtures (depending on the value of +use_instantiated_fixtures+)
 #
-# When *not* to use transactional fixtures: 
-#   1. You're testing whether a transaction works correctly. Nested transactions don't commit until all parent transactions commit, 
-#      particularly, the fixtures transaction which is begun in setup and rolled back in teardown. Thus, you won't be able to verify 
-#      the results of your transaction until Active Record supports nested transactions or savepoints (in progress.) 
-#   2. Your database does not support transactions. Every Active Record database supports transactions except MySQL MyISAM. 
+# When *not* to use transactional fixtures:
+#   1. You're testing whether a transaction works correctly. Nested transactions don't commit until all parent transactions commit,
+#      particularly, the fixtures transaction which is begun in setup and rolled back in teardown. Thus, you won't be able to verify
+#      the results of your transaction until Active Record supports nested transactions or savepoints (in progress.)
+#   2. Your database does not support transactions. Every Active Record database supports transactions except MySQL MyISAM.
 #      Use InnoDB, MaxDB, or NDB instead.
 class Fixtures < YAML::Omap
   DEFAULT_FILTER_RE = /\.ya?ml$/
 
   @@all_cached_fixtures = {}
-  
-  def self.reset_cache(connection=ActiveRecord::Base.connection)
+
+  def self.reset_cache(connection = nil)
+    connection ||= ActiveRecord::Base.connection
     @@all_cached_fixtures[connection.object_id] = {}
   end
-  
+
   def self.cache_for_connection(connection)
     @@all_cached_fixtures[connection.object_id] ||= {}
     @@all_cached_fixtures[connection.object_id]
   end
-  
+
   def self.fixture_is_cached?(connection, table_name)
     cache_for_connection(connection)[table_name]
   end
@@ -243,10 +244,10 @@ class Fixtures < YAML::Omap
   end
 
   def self.cache_fixtures(connection, fixtures)
-    cache_for_connection(connection).merge! fixtures.index_by(&:table_name)
+    cache_for_connection(connection).update(fixtures.index_by(&:table_name))
   end
-  
-  def self.instantiate_fixtures(object, table_name, fixtures, load_instances=true)
+
+  def self.instantiate_fixtures(object, table_name, fixtures, load_instances = true)
     object.instance_variable_set "@#{table_name.to_s.gsub('.','_')}", fixtures
     if load_instances
       ActiveRecord::Base.silence do
@@ -261,12 +262,12 @@ class Fixtures < YAML::Omap
     end
   end
 
-  def self.instantiate_all_loaded_fixtures(object, load_instances=true)
+  def self.instantiate_all_loaded_fixtures(object, load_instances = true)
     all_loaded_fixtures.each do |table_name, fixtures|
       Fixtures.instantiate_fixtures(object, table_name, fixtures, load_instances)
     end
   end
-  
+
   cattr_accessor :all_loaded_fixtures
   self.all_loaded_fixtures = {}
 
@@ -274,17 +275,17 @@ class Fixtures < YAML::Omap
     table_names = [table_names].flatten.map { |n| n.to_s }
     connection  = block_given? ? yield : ActiveRecord::Base.connection
 
-    table_names_to_fetch = table_names.reject {|table_name| fixture_is_cached?(connection, table_name)}
-    
+    table_names_to_fetch = table_names.reject { |table_name| fixture_is_cached?(connection, table_name) }
+
     unless table_names_to_fetch.empty?
       ActiveRecord::Base.silence do
         fixtures_map = {}
 
         fixtures = table_names_to_fetch.map do |table_name|
           fixtures_map[table_name] = Fixtures.new(connection, File.split(table_name.to_s).last, class_names[table_name.to_sym], File.join(fixtures_directory, table_name.to_s))
-        end               
+        end
 
-        all_loaded_fixtures.merge! fixtures_map  
+        all_loaded_fixtures.update(fixtures_map)
 
         connection.transaction(Thread.current['open_transactions'].to_i == 0) do
           fixtures.reverse.each { |fixture| fixture.delete_existing_fixtures }
@@ -297,19 +298,18 @@ class Fixtures < YAML::Omap
             end
           end
         end
-        
+
         cache_fixtures(connection, fixtures)
       end
     end
-    return cached_fixtures(connection, table_names)
+    cached_fixtures(connection, table_names)
   end
-
 
   attr_reader :table_name
 
   def initialize(connection, table_name, class_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
     @connection, @table_name, @fixture_path, @file_filter = connection, table_name, fixture_path, file_filter
-    @class_name = class_name || 
+    @class_name = class_name ||
                   (ActiveRecord::Base.pluralize_table_names ? @table_name.singularize.camelize : @table_name.camelize)
     @table_name = ActiveRecord::Base.table_name_prefix + @table_name + ActiveRecord::Base.table_name_suffix
     @table_name = class_name.table_name if class_name.respond_to?(:table_name)
@@ -323,58 +323,16 @@ class Fixtures < YAML::Omap
 
   def insert_fixtures
     values.each do |fixture|
-      @connection.insert_fixture fixture, @table_name
+      @connection.insert_fixture(fixture, @table_name)
     end
   end
-
 
   private
     def read_fixture_files
       if File.file?(yaml_file_path)
-        # YAML fixtures
-        yaml_string = ""
-        Dir["#{@fixture_path}/**/*.yml"].select {|f| test(?f,f) }.each do |subfixture_path|
-          yaml_string << IO.read(subfixture_path)
-        end
-        yaml_string << IO.read(yaml_file_path)
-
-        begin
-          yaml = YAML::load(erb_render(yaml_string))
-        rescue Exception=>boom
-          raise Fixture::FormatError, "a YAML error occurred parsing #{yaml_file_path}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at http://www.yaml.org/faq.html\nThe exact error was:\n  #{boom.class}: #{boom}"
-        end
-
-        if yaml
-          # If the file is an ordered map, extract its children.
-          yaml_value =
-            if yaml.respond_to?(:type_id) && yaml.respond_to?(:value)
-              yaml.value
-            else
-              [yaml]
-            end
-
-          yaml_value.each do |fixture|
-            fixture.each do |name, data|
-              unless data
-                raise Fixture::FormatError, "Bad data for #{@class_name} fixture named #{name} (nil)"
-              end
-
-              self[name] = Fixture.new(data, @class_name)
-            end
-          end
-        end
+        read_yaml_fixture_files
       elsif File.file?(csv_file_path)
-        # CSV fixtures
-        reader = CSV::Reader.create(erb_render(IO.read(csv_file_path)))
-        header = reader.shift
-        i = 0
-        reader.each do |row|
-          data = {}
-          row.each_with_index { |cell, j| data[header[j].to_s.strip] = cell.to_s.strip }
-          self["#{Inflector::underscore(@class_name)}_#{i+=1}"]= Fixture.new(data, @class_name)
-        end
-      elsif File.file?(deprecated_yaml_file_path)
-        raise Fixture::FormatError, ".yml extension required: rename #{deprecated_yaml_file_path} to #{yaml_file_path}"
+        read_csv_fixture_files
       else
         # Standard fixtures
         Dir.entries(@fixture_path).each do |file|
@@ -386,12 +344,47 @@ class Fixtures < YAML::Omap
       end
     end
 
-    def yaml_file_path
-      "#{@fixture_path}.yml"
+    def read_yaml_fixture_files
+      yaml_string = ""
+      Dir["#{@fixture_path}/**/*.yml"].select { |f| test(?f, f) }.each do |subfixture_path|
+        yaml_string << IO.read(subfixture_path)
+      end
+      yaml_string << IO.read(yaml_file_path)
+
+      if yaml = parse_yaml_string(yaml_string)
+        # If the file is an ordered map, extract its children.
+        yaml_value =
+          if yaml.respond_to?(:type_id) && yaml.respond_to?(:value)
+            yaml.value
+          else
+            [yaml]
+          end
+
+        yaml_value.each do |fixture|
+          fixture.each do |name, data|
+            unless data
+              raise Fixture::FormatError, "Bad data for #{@class_name} fixture named #{name} (nil)"
+            end
+
+            self[name] = Fixture.new(data, @class_name)
+          end
+        end
+      end
     end
 
-    def deprecated_yaml_file_path
-      "#{@fixture_path}.yaml"
+    def read_csv_fixture_files
+      reader = CSV::Reader.create(erb_render(IO.read(csv_file_path)))
+      header = reader.shift
+      i = 0
+      reader.each do |row|
+        data = {}
+        row.each_with_index { |cell, j| data[header[j].to_s.strip] = cell.to_s.strip }
+        self["#{Inflector::underscore(@class_name)}_#{i+=1}"]= Fixture.new(data, @class_name)
+      end
+    end
+
+    def yaml_file_path
+      "#{@fixture_path}.yml"
     end
 
     def csv_file_path
@@ -402,6 +395,12 @@ class Fixtures < YAML::Omap
       File.basename(@fixture_path).split(".").first
     end
 
+    def parse_yaml_string(fixture_content)
+      YAML::load(erb_render(fixture_content))
+    rescue => error
+      raise Fixture::FormatError, "a YAML error occurred parsing #{yaml_file_path}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at http://www.yaml.org/faq.html\nThe exact error was:\n  #{error.class}: #{error}"
+    end
+
     def erb_render(fixture_content)
       ERB.new(fixture_content).result
     end
@@ -409,9 +408,11 @@ end
 
 class Fixture #:nodoc:
   include Enumerable
-  class FixtureError < StandardError#:nodoc:
+
+  class FixtureError < StandardError #:nodoc:
   end
-  class FormatError < FixtureError#:nodoc:
+
+  class FormatError < FixtureError #:nodoc:
   end
 
   attr_reader :class_name
@@ -499,14 +500,14 @@ module Test #:nodoc:
       self.use_transactional_fixtures = false
       self.use_instantiated_fixtures = true
       self.pre_loaded_fixtures = false
-            
+
       @@already_loaded_fixtures = {}
       self.fixture_class_names = {}
-      
+
       def self.set_fixture_class(class_names = {})
         self.fixture_class_names = self.fixture_class_names.merge(class_names)
       end
-      
+
       def self.fixtures(*table_names)
         if table_names.first == :all
           table_names = Dir["#{fixture_path}/*.yml"] + Dir["#{fixture_path}/*.csv"]
@@ -520,8 +521,8 @@ module Test #:nodoc:
         setup_fixture_accessors(table_names)
       end
 
-      def self.require_fixture_classes(table_names=nil)
-        (table_names || fixture_table_names).each do |table_name| 
+      def self.require_fixture_classes(table_names = nil)
+        (table_names || fixture_table_names).each do |table_name|
           file_name = table_name.to_s
           file_name = file_name.singularize if ActiveRecord::Base.pluralize_table_names
           begin
@@ -539,7 +540,7 @@ module Test #:nodoc:
           define_method(table_name) do |*fixtures|
             force_reload = fixtures.pop if fixtures.last == true || fixtures.last == :reload
 
-            @fixture_cache[table_name] ||= Hash.new
+            @fixture_cache[table_name] ||= {}
 
             instances = fixtures.map do |fixture|
               @fixture_cache[table_name].delete(fixture) if force_reload
@@ -575,15 +576,11 @@ module Test #:nodoc:
         return unless defined?(ActiveRecord::Base) && !ActiveRecord::Base.configurations.blank?
 
         if pre_loaded_fixtures && !use_transactional_fixtures
-          raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_fixtures' 
+          raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_fixtures'
         end
 
-        @fixture_cache = Hash.new
+        @fixture_cache = {}
 
-        if !use_transactional_fixtures?
-          Fixtures.reset_cache #we don't want the test to use any of our cached data
-        end
-        
         # Load fixtures once and begin transaction.
         if use_transactional_fixtures?
           if @@already_loaded_fixtures[self.class]
@@ -594,9 +591,9 @@ module Test #:nodoc:
           end
           ActiveRecord::Base.send :increment_open_transactions
           ActiveRecord::Base.connection.begin_db_transaction
-
         # Load fixtures for every test.
         else
+          Fixtures.reset_cache
           @@already_loaded_fixtures[self.class] = nil
           load_fixtures
         end
@@ -604,16 +601,15 @@ module Test #:nodoc:
         # Instantiate fixtures for every test if requested.
         instantiate_fixtures if use_instantiated_fixtures
       end
-
       alias_method :setup, :setup_with_fixtures
 
       def teardown_with_fixtures
         return unless defined?(ActiveRecord::Base) && !ActiveRecord::Base.configurations.blank?
 
-        if !use_transactional_fixtures?
-          Fixtures.reset_cache #the non transactional test may have fiddled with the data - dump caches
+        unless use_transactional_fixtures?
+          Fixtures.reset_cache
         end
-        
+
         # Rollback changes if a transaction is active.
         if use_transactional_fixtures? && Thread.current['open_transactions'] != 0
           ActiveRecord::Base.connection.rollback_db_transaction
@@ -621,7 +617,6 @@ module Test #:nodoc:
         end
         ActiveRecord::Base.verify_active_connections!
       end
-
       alias_method :teardown, :teardown_with_fixtures
 
       def self.method_added(method)
@@ -681,6 +676,5 @@ module Test #:nodoc:
           use_instantiated_fixtures != :no_instances
         end
     end
-
   end
 end
