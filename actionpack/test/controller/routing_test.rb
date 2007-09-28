@@ -175,6 +175,15 @@ class LegacyRouteSetTests < Test::Unit::TestCase
                  x.send(:home_url))
   end
 
+  def test_basic_named_route_with_relative_url_root
+    rs.add_named_route :home, '', :controller => 'content', :action => 'list' 
+    x = setup_for_named_route
+    x.relative_url_root="/foo"
+    assert_equal("http://named.route.test/foo/",
+                 x.send(:home_url))
+    assert_equal "/foo/", x.send(:home_path)
+  end
+
   def test_named_route_with_option
     rs.add_named_route :page, 'page/:title', :controller => 'content', :action => 'show_page'
     x = setup_for_named_route
@@ -228,7 +237,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     end                     
     x = setup_for_named_route       
     assert_equal("http://named.route.test/", x.send(:root_url))
-    assert_equal("/relative/", x.send(:root_path))
+    assert_equal("/", x.send(:root_path))
   end
   
   def test_named_route_with_regexps
@@ -281,7 +290,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
 
     # No / to %2F in URI, only for query params. 
     x = setup_for_named_route 
-    assert_equal("/relative/file/hello/world", x.send(:path_path, 'hello/world'))
+    assert_equal("/file/hello/world", x.send(:path_path, 'hello/world'))
   end
   
   def test_non_controllers_cannot_be_matched
@@ -899,11 +908,16 @@ uses_mocha 'RouteTest' do
     def request
       @request ||= MockRequest.new(:host => "named.route.test", :method => :get)
     end
+    
+    def relative_url_root=(value)
+      request.relative_url_root=value
+    end
   end
 
   class MockRequest
-    attr_accessor :path, :path_parameters, :host, :subdomains, :domain, :method
-
+    attr_accessor :path, :path_parameters, :host, :subdomains, :domain,
+                  :method, :relative_url_root
+    
     def initialize(values={})
       values.each { |key, value| send("#{key}=", value) }
       if values[:host]
@@ -918,10 +932,6 @@ uses_mocha 'RouteTest' do
     
     def host_with_port
       (subdomains * '.') + '.' +  domain
-    end
-    
-    def relative_url_root
-      '/relative'
     end
   end
 

@@ -44,7 +44,7 @@ module ActionController
         # Temporarily disabled :url optimisation pending proper solution to 
         # Issues around request.host etc.
         def applicable?
-          kind != :url
+          true
         end
       end
 
@@ -60,9 +60,9 @@ module ActionController
           # if they're using foo_url(:id=>2) it's one 
           # argument, but we don't want to generate /foos/id2
           if number_of_arguments == 1
-            "args.size == 1 && !args.first.is_a?(Hash)"
+            "defined?(request) && args.size == 1 && !args.first.is_a?(Hash)"
           else
-            "args.size == #{number_of_arguments}"
+            "defined?(request) && args.size == #{number_of_arguments}"
           end
         end
 
@@ -97,7 +97,7 @@ module ActionController
       # argument
       class PositionalArgumentsWithAdditionalParams < PositionalArguments
         def guard_condition
-          "args.size == #{route.segment_keys.size + 1}"
+          "defined?(request) && args.size == #{route.segment_keys.size + 1}"
         end
 
         # This case uses almost the Use the same code as positional arguments, 

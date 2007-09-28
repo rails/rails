@@ -21,13 +21,9 @@ module ActionController
     self.default_url_options = {}
     
     def self.included(base) #:nodoc:
-      original_optimise = ActionController::Routing.optimise_named_routes
-      ActionController::Routing.optimise_named_routes = false
-      ActionController::Routing::Routes.install_helpers base, :regenerate
+      ActionController::Routing::Routes.install_helpers base 
       base.mattr_accessor :default_url_options
       base.default_url_options ||= default_url_options
-    ensure
-      ActionController::Routing.optimise_named_routes = original_optimise
     end
     
     # Generate a url based on the options provided, default_url_options and the 
