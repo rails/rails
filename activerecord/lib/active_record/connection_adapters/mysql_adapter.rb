@@ -408,7 +408,11 @@ module ActiveRecord
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
         unless options_include_default?(options)
-          options[:default] = select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")["Default"]
+          if result = select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")
+            options[:default] = result['Default']
+          else
+            raise "No such column: #{table_name}.#{column_name}"
+          end
         end
 
         change_column_sql = "ALTER TABLE #{table_name} CHANGE #{quote_column_name(column_name)} #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
