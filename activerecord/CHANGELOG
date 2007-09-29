@@ -1,5 +1,7 @@
 *2.0.0 [Preview Release]* (September 29th, 2007) [Includes duplicates of changes from 1.14.2 - 1.15.3]
 
+* Remove DB2 adapter since IBM chooses to maintain their own adapter instead.  [Jeremy Kemper]
+
 * Extract Oracle, SQLServer, and Sybase adapters into gems.  [Jeremy Kemper]
 
 * Added fixture caching that'll speed up a normal fixture-powered test suite between 50% and 100% #9682 [frederick.cheung@gmail.com]
