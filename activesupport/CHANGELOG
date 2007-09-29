@@ -1,4 +1,4 @@
-*SVN*
+*2.0.0 [Preview Release]* (September 29th, 2007)
 
 * Alias Object#send to send! for Ruby 1.9 forward compatibility.  [Jeremy Kemper]
 
@@ -162,13 +162,7 @@
 
 * Hash#to_query CGI-escapes its keys.  [Jeremy Kemper]
 
-* Deprecation: warn on stderr if RAILS_DEFAULT_LOGGER isn't set yet.  [Jeremy Kemper]
-
 * Optimize Class Inheritable Attributes so that unnecessary hashes are not created.  Closes #7472 [Bruce Perens]
-
-* Ruby 1.8-cvs and 1.9 define a private Time#to_date that overrides Active Support. Make it public to preserve compatibility.  [Jeremy Kemper]
-
-* Full test coverage for Inflector.  #7228 [Dan Kubb]
 
 * :db format for Date#to_s [Jeremy Kemper]
     Date.new(2007, 1, 27).to_s(:db) # => '2007-01-27'
@@ -194,6 +188,23 @@
 * Add Object#acts_like? and Time#acts_like_time? and Date#acts_like_date? to facilitate duck-typing. [Jamis Buck]
 
 * Make 1.months and friends accurate by introducing a Duration class.  #6835 [eventualbuddha]
+
+
+*1.4.2* (March 12th, 2007)
+
+* Ruby 1.8.6 and 1.9 define private Time#to_date and #to_datetime; make them
+public for compatibility.  [Jeremy Kemper]
+
+* Deprecation: warn on stderr if RAILS_DEFAULT_LOGGER isn't set yet.  [Jeremy Kemper]
+
+
+*1.4.1* (February 5th, 2007)
+
+* Optimize Class Inheritable Attributes so that unnecessary hashes are not created.  Closes #7472 [Bruce Perens]
+
+* Added :instance_writer option to #mattr_writer/accessor, #cattr_writer/accessor, and #class_inheritable_writer to skip the creation of the instance writer.  [Rick]
+
+* Full test coverage for Inflector.  #7228 [Dan Kubb]
 
 
 *1.4.0* (January 16th, 2007)
