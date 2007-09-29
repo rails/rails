@@ -33,7 +33,8 @@ module MysqlCompat #:nodoc:
       end_eval
     end
 
-    unless target.instance_methods.include?('all_hashes')
+    unless target.instance_methods.include?('all_hashes') ||
+           target.instance_methods.include?(:all_hashes)
       raise "Failed to defined #{target.name}#all_hashes method. Mysql::VERSION = #{Mysql::VERSION.inspect}"
     end
   end
