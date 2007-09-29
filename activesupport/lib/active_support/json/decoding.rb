@@ -45,11 +45,12 @@ module ActiveSupport
           if marks.empty?
             json
           else
-            ranges = ([0] + marks.map(&:succ)).zip(marks + [json.length])
-            output = ranges.collect! { |(left, right)| json[left..right] }.join(" ")
-            times.each do |pos|
-              output[pos-1] = ' '
-            end
+            # FIXME: multiple slow enumerations
+            output = ([0] + marks.map(&:succ)).
+                      zip(marks + [json.length]).
+                      map { |left, right| json[left..right] }.
+                      join(" ")
+            times.each { |pos| output[pos-1] = ' ' }
             output
           end
         end
