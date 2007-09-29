@@ -161,7 +161,7 @@ module ActionController #:nodoc:
             @responses[@order.first].call
             return
           else
-            if priority === @order
+            if @responses[priority]
               @responses[priority].call
               return # mime type match found, be happy and return
             end
