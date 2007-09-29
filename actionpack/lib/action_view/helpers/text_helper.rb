@@ -329,15 +329,15 @@ module ActionView
       #   strip_links('Blog: <a href="http://www.myblog.com/" class="nav" target=\"_blank\">Visit</a>.')
       #   # => Blog: Visit
       def strip_links(html)
-        if !html.blank? && html.index("<a") || html.index("<href")
+        if !html.blank? && (html.index("<a") || html.index("<href")) && html.index(">")
           tokenizer = HTML::Tokenizer.new(html)
           result = returning [] do |result|
             while token = tokenizer.next 
               node = HTML::Node.parse(nil, 0, 0, token, false) 
               result << node.to_s unless node.is_a?(HTML::Tag) && ["a", "href"].include?(node.name) 
             end 
-          end
-          strip_links(result.join) # Recurse - handle all dirty nested links
+          end.join
+          result == html ? result : strip_links(result) # Recurse - handle all dirty nested links
         else
           html
         end
@@ -468,8 +468,10 @@ module ActionView
         
         # strip any comments, and if they have a newline at the end (ie. line with
         # only a comment) strip that too
+        result = text.join.gsub(/<!--(.*?)-->[\n]?/m, "")
+        
         # Recurse - handle all dirty nested tags
-        strip_tags(text.join.gsub(/<!--(.*?)-->[\n]?/m, ""))
+        result == html ? result : strip_tags(result)
       end
       
       # Creates a Cycle object whose _to_s_ method cycles through elements of an
