@@ -32,8 +32,8 @@ module Test #:nodoc:
       #     post :delete, :id => ...
       #   end
       def assert_difference(expressions, difference = 1, message = nil, &block)
-        expression_evaluations = [expressions].flatten.collect{|expression| lambda { eval(expression, block.binding) } } 
-        
+        expression_evaluations = Array(expressions).collect{ |expression| lambda { eval(expression, block.send!(:binding)) } }
+
         original_values = expression_evaluations.inject([]) { |memo, expression| memo << expression.call }
         yield
         expression_evaluations.each_with_index do |expression, i|
