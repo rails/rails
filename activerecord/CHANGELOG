@@ -1,5 +1,7 @@
 *2.0.0 [Preview Release]* (September 29th, 2007) [Includes duplicates of changes from 1.14.2 - 1.15.3]
 
+* Extract Oracle, SQLServer, and Sybase adapters into gems.  [Jeremy Kemper]
+
 * Added fixture caching that'll speed up a normal fixture-powered test suite between 50% and 100% #9682 [frederick.cheung@gmail.com]
 
 * Correctly quote id list for limited eager loading.  #7482 [tmacedo]
