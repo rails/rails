@@ -636,6 +636,15 @@ module ActiveRecord #:nodoc:
         read_inheritable_attribute("attr_accessible")
       end
 
+       # Attributes listed as readonly can be set for a new record, but will be ignored in database updates afterwards.
+       def attr_readonly(*attributes)
+         write_inheritable_array("attr_readonly", attributes - (readonly_attributes || []))
+       end
+
+       # Returns an array of all the attributes that have been specified as readonly.
+       def readonly_attributes
+         read_inheritable_attribute("attr_readonly")
+       end
 
       # If you have an attribute that needs to be saved to the database as an object, and retrieved as the same object, 
       # then specify the name of that attribute using this method and it will be handled automatically.  
@@ -1953,7 +1962,7 @@ module ActiveRecord #:nodoc:
       def update
         connection.update(
           "UPDATE #{self.class.table_name} " +
-          "SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false))} " +
+          "SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false, false))} " +
           "WHERE #{connection.quote_column_name(self.class.primary_key)} = #{quote_value(id)}",
           "#{self.class.name} Update"
         )
@@ -2008,6 +2017,15 @@ module ActiveRecord #:nodoc:
           raise "Declare either attr_protected or attr_accessible for #{self.class}, but not both."
         end
       end
+      
+      # Removes attributes which have been marked as readonly.
+      def remove_readonly_attributes(attributes)
+        unless self.class.readonly_attributes.nil?
+          attributes.delete_if { |key, value| self.class.readonly_attributes.include?(key.gsub(/\(.+/,"").intern) }
+        else
+          attributes
+        end
+      end
 
       # The primary key and inheritance column can never be set by mass-assignment for security reasons.
       def attributes_protected_by_default
@@ -2018,13 +2036,14 @@ module ActiveRecord #:nodoc:
 
       # Returns copy of the attributes hash where all the values have been safely quoted for use in
       # an SQL statement.
-      def attributes_with_quotes(include_primary_key = true)
-        attributes.inject({}) do |quoted, (name, value)|
+      def attributes_with_quotes(include_primary_key = true, include_readonly_attributes = true)
+        quoted = attributes.inject({}) do |quoted, (name, value)|
           if column = column_for_attribute(name)
             quoted[name] = quote_value(value, column) unless !include_primary_key && column.primary
           end
           quoted
         end
+        include_readonly_attributes ? quoted : remove_readonly_attributes(quoted)
       end
 
       # Quote strings appropriately for SQL statements.

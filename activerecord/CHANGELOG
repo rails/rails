@@ -1,5 +1,16 @@
 *2.0.0 [Preview Release]* (September 29th, 2007) [Includes duplicates of changes from 1.14.2 - 1.15.3]
 
+* Add attr_readonly to specify columns that are skipped during a normal ActiveRecord #save operation. Closes #6896 [dcmanges]
+
+  class Comment < ActiveRecord::Base
+    # Automatically sets Article#comments_count as readonly.
+    belongs_to :article, :counter_cache => :comments_count
+  end
+
+  class Article < ActiveRecord::Base
+    attr_readonly :approved_comments_count
+  end
+
 * Make size for has_many :through use counter cache if it exists.  Closes #9734 [xaviershay]
 
 * Remove DB2 adapter since IBM chooses to maintain their own adapter instead.  [Jeremy Kemper]
