@@ -8,9 +8,6 @@ require 'fixtures/comment'
 
 class JsonSerializationTest < Test::Unit::TestCase
   def setup
-    # Quote all keys (so that we can test against strictly valid JSON).
-    ActiveSupport::JSON.unquote_hash_key_identifiers = false
-
     @contact = Contact.new(
       :name        => 'Konata Izumi',
       :age         => 16,
@@ -70,8 +67,6 @@ class DatabaseConnectedJsonEncodingTest < Test::Unit::TestCase
   fixtures :authors, :posts, :comments, :tags, :taggings
 
   def setup
-    ActiveSupport::JSON.unquote_hash_key_identifiers = false
-
     @david = authors(:david)
   end
 

@@ -1,5 +1,7 @@
 *2.0.0 [Preview Release]* (September 29th, 2007)
 
+* Fixed JSON encoding to use quoted keys according to the JSON standard #8762 [choonkat/chuyeow]
+
 * Alias Object#send to send! for Ruby 1.9 forward compatibility.  [Jeremy Kemper]
 
 * Backport Object#instance_variable_defined? for Ruby < 1.8.6.  [Jeremy Kemper]

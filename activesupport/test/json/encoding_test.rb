@@ -41,21 +41,12 @@ class TestJSONEncoding < Test::Unit::TestCase
     end
   end
 
-  def setup
-    unquote(false)
-  end
-  
-  def teardown
-    unquote(true)
-  end
-  
   def test_hash_encoding
     assert_equal %({\"a\": \"b\"}), { :a => :b }.to_json
     assert_equal %({\"a\": 1}), { 'a' => 1  }.to_json
     assert_equal %({\"a\": [1, 2]}), { 'a' => [1,2] }.to_json
-    
-    sorted_json  = 
-      '{' + {:a => :b, :c => :d}.to_json[1..-2].split(', ').sort.join(', ') + '}'
+
+    sorted_json = '{' + {:a => :b, :c => :d}.to_json[1..-2].split(', ').sort.join(', ') + '}'
     assert_equal %({\"a\": \"b\", \"c\": \"d\"}), sorted_json
   end
 
@@ -72,29 +63,14 @@ class TestJSONEncoding < Test::Unit::TestCase
     a << a
     assert_raises(ActiveSupport::JSON::CircularReferenceError) { a.to_json }
   end
-  
-  def test_unquote_hash_key_identifiers
+
+  def test_hash_key_identifiers_are_always_quoted
     values = {0 => 0, 1 => 1, :_ => :_, "$" => "$", "a" => "a", :A => :A, :A0 => :A0, "A0B" => "A0B"}
     assert_equal %w( "$" "A" "A0" "A0B" "_" "a" 0 1 ), object_keys(values.to_json)
-    unquote(true) { assert_equal %w( $ 0 1 A A0 A0B _ a ), object_keys(values.to_json) }
   end
-  
-  def test_unquote_hash_key_identifiers_ignores_javascript_reserved_words
-    values = {"hello" => "world", "this" => "that", "with" => "foo"}
-    unquote(true) { assert_equal %w( "this" "with" hello ), object_keys(values.to_json) }
-  end
-  
+
   protected
-    def unquote(value)
-      previous_value = ActiveSupport::JSON.unquote_hash_key_identifiers
-      ActiveSupport::JSON.unquote_hash_key_identifiers = value
-      yield if block_given?
-    ensure
-      ActiveSupport::JSON.unquote_hash_key_identifiers = previous_value if block_given?
-    end
-    
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
     end
-    
 end
