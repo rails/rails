@@ -91,7 +91,7 @@ class RailsEnvironment
     unless plugin.nil?
       plugin.install
     else
-      puts "plugin not found: #{name_uri_or_plugin}"
+      puts "Plugin not found: #{name_uri_or_plugin}"
     end
   end
  
@@ -239,10 +239,10 @@ class Plugin
 
     def install_using_http(options = {})
       root = rails_env.root
-      mkdir_p "#{root}/vendor/plugins"
-      Dir.chdir "#{root}/vendor/plugins" do
+      mkdir_p "#{root}/vendor/plugins/#{@name}"
+      Dir.chdir "#{root}/vendor/plugins/#{@name}" do
         puts "fetching from '#{uri}'" if $verbose
-        fetcher = RecursiveHTTPFetcher.new(uri)
+        fetcher = RecursiveHTTPFetcher.new(uri, -1)
         fetcher.quiet = true if options[:quiet]
         fetcher.fetch
       end
@@ -765,8 +765,9 @@ module Commands
       args.each do |name|
         ::Plugin.find(name).install(install_method, @options)
       end
-    rescue
+    rescue StandardError => e
       puts "Plugin not found: #{args.inspect}"
+      puts e.inspect if $verbose
       exit 1
     end
   end
@@ -853,7 +854,8 @@ end
  
 class RecursiveHTTPFetcher
   attr_accessor :quiet
-  def initialize(urls_to_fetch, cwd = ".")
+  def initialize(urls_to_fetch, level = 1, cwd = ".")
+    @level = level
     @cwd = cwd
     @urls_to_fetch = urls_to_fetch.to_a
     @quiet = false
@@ -907,12 +909,14 @@ class RecursiveHTTPFetcher
   end
   
   def fetch_dir(url)
-    push_d(File.basename(url))
+    @level += 1
+    push_d(File.basename(url)) if @level > 0
     open(url) do |stream|
       contents =  stream.read
       fetch(links(url, contents))
     end
-    pop_d
+    pop_d if @level > 0
+    @level -= 1
   end
 end
 

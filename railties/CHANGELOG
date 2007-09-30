@@ -1,5 +1,7 @@
 *2.0.0 [Preview Release]* (September 29th, 2007) [Includes duplicates of changes from 1.1.4 - 1.2.3]
 
+* Fixed that installing plugins from SVN repositories that use trunk/ will work #8188 [evan]
+
 * Moved the SourceAnnotationExtractor to a separate file in case libraries try to load the rails rake tasks twice. [Rick]
 
 * Moved Dispatcher to ActionController::Dispatcher.  [Jeremy Kemper]
