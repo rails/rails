@@ -15,11 +15,10 @@ you can do so with something like:
 
 == Dependency on ActiveRecord and database setup
 
-Test cases in test/controller/active_record_assertions.rb depend on having
-activerecord installed and configured in a particular way. See comment in the
-test file itself for details. If ActiveRecord is not in 
-actionpack/../activerecord directory, these tests are skipped. If activerecord
-is installed, but not configured as expected, the tests will fail.
+Test cases in the test/controller/active_record/ directory depend on having
+activerecord and sqlite installed. If ActiveRecord is not in 
+actionpack/../activerecord directory, or the sqlite rubygem is not installed,
+these tests are skipped.
 
 Other tests are runnable from a fresh copy of actionpack without any configuration.
 
