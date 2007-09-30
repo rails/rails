@@ -285,7 +285,8 @@ module ActiveRecord
 
         def copy_table(from, to, options = {}) #:nodoc:
           options = options.merge(:id => !columns(from).detect{|c| c.name == 'id'}.nil?)
-          create_table(to, options) do |@definition|
+          create_table(to, options) do |definition|
+            @definition = definition
             columns(from).each do |column|
               column_name = options[:rename] ?
                 (options[:rename][column.name] ||
