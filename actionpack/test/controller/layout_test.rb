@@ -180,8 +180,26 @@ class LayoutSetInResponseTest < Test::Unit::TestCase
     get :hello
     assert_nil @response.layout
   end
+
+  def test_exempt_from_layout_honored_by_render_template
+    ActionController::Base.exempt_from_layout :rhtml
+    @controller = RenderWithTemplateOptionController.new
+
+    assert @controller.send(:template_exempt_from_layout?, 'alt/hello.rhtml')
+
+    get :hello
+    assert_equal "alt/hello.rhtml", @response.body.strip
+
+  ensure
+    ActionController::Base.exempt_from_layout.delete(/\.rhtml$/)
+  end
 end
 
+class RenderWithTemplateOptionController < LayoutTest
+  def hello
+    render :template => 'alt/hello'
+  end
+end
 
 class SetsNonExistentLayoutFile < LayoutTest
   layout "nofile.rhtml"

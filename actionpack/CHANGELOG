@@ -1,5 +1,7 @@
 *2.0.0 [Preview Release]* (September 29th, 2007) [Includes duplicates of changes from 1.12.2 - 1.13.3]
 
+* Fixed that render template did not honor exempt_from_layout #9698 [pezra]
+
 * Better error messages if you leave out the :secret option for request forgery protection.  Closes #9670 [rick]
 
 * Allow ability to disable request forgery protection, disable it in test mode by default.  Closes #9693 [lifofifo]
