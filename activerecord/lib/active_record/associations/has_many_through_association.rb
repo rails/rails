@@ -100,7 +100,9 @@ module ActiveRecord
       # calling collection.size if it has. If it's more likely than not that the collection does have a size larger than zero
       # and you need to fetch that collection afterwards, it'll take one less SELECT query if you use length.
       def size
-        loaded? ? @target.size : count
+        return @owner.send(:read_attribute, cached_counter_attribute_name) if has_cached_counter?
+        return @target.size if loaded?
+        return count
       end
 
       # Calculate sum using SQL, not Enumerable
@@ -258,6 +260,14 @@ module ActiveRecord
         end
 
         alias_method :sql_conditions, :conditions
+
+        def has_cached_counter?
+          @owner.attribute_present?(cached_counter_attribute_name)
+        end
+
+        def cached_counter_attribute_name
+          "#{@reflection.name}_count"
+        end
     end
   end
 end
