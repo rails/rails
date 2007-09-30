@@ -1,5 +1,7 @@
 *2.0.0 [Preview Release]* (September 29th, 2007)
 
+* Fixed that La Paz was included in -25200 and -14400 offsets when it should only be in -14400 #9735 [bermi]
+
 * Fixed JSON encoding to use quoted keys according to the JSON standard #8762 [choonkat/chuyeow]
 
 * Alias Object#send to send! for Ruby 1.9 forward compatibility.  [Jeremy Kemper]
