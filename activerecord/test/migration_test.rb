@@ -170,7 +170,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     # SQL Server and Sybase will not allow you to add a NOT NULL column
     # to a table without specifying a default value, so the
     # following test must be skipped
-    unless current_adapter?(:SQLServerAdapter, :SybaseAdapter)
+    unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :SQLiteAdapter)
       def test_add_column_not_null_without_default
         Person.connection.create_table :testings do |t|
           t.column :foo, :string
@@ -209,7 +209,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_native_decimal_insert_manual_vs_automatic
       # SQLite3 always uses float in violation of SQL
       # 16 decimal places
-      correct_value = (current_adapter?(:SQLiteAdapter) ? '0.123456789012346E20' : '0012345678901234567890.0123456789').to_d
+      correct_value = '0012345678901234567890.0123456789'.to_d
 
       Person.delete_all
       Person.connection.add_column "people", "wealth", :decimal, :precision => '30', :scale => '10'
@@ -227,8 +227,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_kind_of BigDecimal, row.wealth
 
       # If this assert fails, that means the SELECT is broken!
-      assert_equal correct_value, row.wealth
-
+      unless current_adapter?(:SQLite3Adapter)
+        assert_equal correct_value, row.wealth
+      end
       # Reset to old state
       Person.delete_all
 
@@ -240,8 +241,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_kind_of BigDecimal, row.wealth
 
       # If these asserts fail, that means the INSERT (create function, or cast to SQL) is broken!
-      assert_equal correct_value, row.wealth
-
+      unless current_adapter?(:SQLite3Adapter)
+        assert_equal correct_value, row.wealth
+      end
       # Reset to old state
       Person.connection.del_column "people", "wealth" rescue nil
       Person.reset_column_information
@@ -267,10 +269,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       # Test for 30 significent digits (beyond the 16 of float), 10 of them
       # after the decimal place.
-      if current_adapter?(:SQLiteAdapter)
-        # SQLite3 uses float in violation of SQL. Test for 16 decimal places.
-        assert_equal BigDecimal.new('0.123456789012346E20'), bob.wealth
-      else
+      unless current_adapter?(:SQLite3Adapter)
         assert_equal BigDecimal.new("0012345678901234567890.0123456789"), bob.wealth
       end
 
