@@ -65,6 +65,14 @@ class MongrelSpawner < Spawner
       "-c #{OPTIONS[:rails_root]} " +
       "-l #{OPTIONS[:rails_root]}/log/mongrel.log"
 
+    # Add prefix functionality to spawner's call to mongrel_rails
+    # Digging through monrel's project subversion server, the earliest
+    # Tag that has prefix implemented in the bin/mongrel_rails file
+    # is 0.3.15 which also happens to be the earilest tag listed.
+    # References: http://mongrel.rubyforge.org/svn/tags
+    if Mongrel::Const::MONGREL_VERSION.to_f >=0.3 && !OPTIONS[:prefix].nil?
+      cmd = cmd + " --prefix #{OPTIONS[:prefix]}"
+    end
     system(cmd)
   end
   
@@ -121,7 +129,8 @@ OPTIONS = {
   :port        => 8000,
   :address     => '0.0.0.0',
   :instances   => 3,
-  :repeat      => nil
+  :repeat      => nil,
+  :prefix      => nil
 }
 
 ARGV.options do |opts|
@@ -182,6 +191,7 @@ ARGV.options do |opts|
   opts.on("-i", "--instances=number", Integer, "Number of instances (default: #{OPTIONS[:instances]})")            { |v| OPTIONS[:instances] = v }
   opts.on("-r", "--repeat=seconds",   Integer, "Repeat spawn attempts every n seconds (default: off)")             { |v| OPTIONS[:repeat] = v }
   opts.on("-e", "--environment=name", String,  "test|development|production (default: #{OPTIONS[:environment]})")  { |v| OPTIONS[:environment] = v }
+  opts.on("-P", "--prefix=path",      String,  "URL prefix for Rails app. [Used only with Mongrel > v0.3.15]: (default: #{OPTIONS[:prefix]})")         { |v| OPTIONS[:prefix] = v }
   opts.on("-n", "--process=name",     String,  "default: #{OPTIONS[:process]}")                                    { |v| OPTIONS[:process] = v }
   opts.on("-s", "--spawner=path",     String,  "default: #{OPTIONS[:spawner]}")                                    { |v| OPTIONS[:spawner] = v }
   opts.on("-d", "--dispatcher=path",  String,  "default: #{OPTIONS[:dispatcher]}") { |dispatcher| OPTIONS[:dispatcher] = File.expand_path(dispatcher) }
