@@ -1,3 +1,8 @@
+*SVN*
+
+* Removed calls to fixtures in generated tests as fixtures :all is now present by default in test_helper.rb [DHH]
+
+
 *2.0.0 [Preview Release]* (September 29th, 2007) [Includes duplicates of changes from 1.1.4 - 1.2.3]
 
 * Fixed that installing plugins from SVN repositories that use trunk/ will work #8188 [evan]
