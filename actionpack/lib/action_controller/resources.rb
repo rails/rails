@@ -2,48 +2,68 @@ module ActionController
   module Resources
     class Resource #:nodoc:
       attr_reader :collection_methods, :member_methods, :new_methods
-      attr_reader :path_prefix, :name_prefix
+      attr_reader :path_prefix, :new_name_prefix
       attr_reader :plural, :singular
       attr_reader :options
 
       def initialize(entities, options)
         @plural   = entities
         @singular = options[:singular] || plural.to_s.singularize
-        
+
         @options = options
 
         arrange_actions
         add_default_actions
         set_prefixes
       end
-      
+
       def controller
         @controller ||= (options[:controller] || plural).to_s
       end
-      
+
       def path
         @path ||= "#{path_prefix}/#{plural}"
       end
-      
+
       def new_path
         @new_path ||= "#{path}/new"
       end
-      
+
       def member_path
         @member_path ||= "#{path}/:id"
       end
-      
+
       def nesting_path_prefix
         @nesting_path_prefix ||= "#{path}/:#{singular}_id"
       end
-      
+
+      def deprecate_name_prefix?
+        @name_prefix.blank? && !@new_name_prefix.blank?
+      end
+
+      def name_prefix
+        deprecate_name_prefix? ? @new_name_prefix : @name_prefix
+      end
+
+      def old_name_prefix
+        @name_prefix
+      end
+
+      def nesting_name_prefix
+        "#{new_name_prefix}#{singular}_"
+      end
+
+      def action_separator
+        @action_separator ||= Base.resource_action_separator
+      end
+
       protected
         def arrange_actions
           @collection_methods = arrange_actions_by_methods(options.delete(:collection))
           @member_methods     = arrange_actions_by_methods(options.delete(:member))
           @new_methods        = arrange_actions_by_methods(options.delete(:new))
         end
-        
+
         def add_default_actions
           add_default_action(member_methods, :get, :edit)
           add_default_action(new_methods, :get, :new)
@@ -52,6 +72,7 @@ module ActionController
         def set_prefixes
           @path_prefix = options.delete(:path_prefix)
           @name_prefix = options.delete(:name_prefix)
+          @new_name_prefix = options.delete(:new_name_prefix)
         end
 
         def arrange_actions_by_methods(actions)
@@ -60,7 +81,7 @@ module ActionController
             flipped_hash
           end
         end
-        
+
         def add_default_action(collection, method, action)
           (collection[method] ||= []).unshift(action)
         end
@@ -178,11 +199,11 @@ module ActionController
     #
     #   The comment resources work the same, but must now include a value for :article_id.
     #   
-    #     comments_url(@article)
-    #     comment_url(@article, @comment)
+    #     article_comments_url(@article)
+    #     article_comment_url(@article, @comment)
     #
-    #     comments_url(:article_id => @article)
-    #     comment_url(:article_id => @article, :id => @comment)
+    #     article_comments_url(:article_id => @article)
+    #     article_comment_url(:article_id => @article, :id => @comment)
     #
     # * <tt>:name_prefix</tt> -- define a prefix for all generated routes, usually ending in an underscore.
     #   Use this if you have named routes that may clash.
@@ -192,7 +213,7 @@ module ActionController
     #
     # * <tt>:collection</tt> -- add named routes for other actions that operate on the collection.
     #   Takes a hash of <tt>#{action} => #{method}</tt>, where method is <tt>:get</tt>/<tt>:post</tt>/<tt>:put</tt>/<tt>:delete</tt>
-    #   or <tt>:any</tt> if the method does not matter.  These routes map to a URL like /messages;rss, with a route of rss_messages_url.
+    #   or <tt>:any</tt> if the method does not matter.  These routes map to a URL like /messages/rss, with a route of rss_messages_url.
     # * <tt>:member</tt> -- same as :collection, but for actions that operate on a specific member.
     # * <tt>:new</tt> -- same as :collection, but for actions that operate on the new resource action.
     #
@@ -204,19 +225,19 @@ module ActionController
     #   # --> GET /thread/7/messages/1
     #  
     #   map.resources :messages, :collection => { :rss => :get }
-    #   # --> GET /messages;rss (maps to the #rss action)
+    #   # --> GET /messages/rss (maps to the #rss action)
     #   #     also adds a named route called "rss_messages"
     # 
     #   map.resources :messages, :member => { :mark => :post }
-    #   # --> POST /messages/1;mark (maps to the #mark action)
+    #   # --> POST /messages/1/mark (maps to the #mark action)
     #   #     also adds a named route called "mark_message"
     # 
     #   map.resources :messages, :new => { :preview => :post }
-    #   # --> POST /messages/new;preview (maps to the #preview action)
+    #   # --> POST /messages/new/preview (maps to the #preview action)
     #   #     also adds a named route called "preview_new_message"
     # 
     #   map.resources :messages, :new => { :new => :any, :preview => :post }
-    #   # --> POST /messages/new;preview (maps to the #preview action)
+    #   # --> POST /messages/new/preview (maps to the #preview action)
     #   #     also adds a named route called "preview_new_message"
     #   # --> /messages/new can be invoked via any request method
     # 
@@ -235,9 +256,10 @@ module ActionController
     # /account profile.
     # 
     # See map.resources for general conventions.  These are the main differences:
-    #   - a singular name is given to map.resource.  The default controller name is taken from the singular name.
-    #   - To specify a custom plural name, use the :plural option.  There is no :singular option
-    #   - No default index, new, or create routes are created for the singleton resource controller.
+    #   - A singular name is given to map.resource.  The default controller name is taken from the singular name.
+    #   - There is no <tt>:collection</tt> option as there is only the singleton resource.
+    #   - There is no <tt>:singular</tt> option as the singular name is passed to map.resource.
+    #   - No default index route is created for the singleton resource controller.
     #   - When nesting singleton resources, only the singular name is used as the path prefix (example: 'account/messages/1')
     #
     # Example:
@@ -300,7 +322,7 @@ module ActionController
           map_member_actions(map, resource)
 
           if block_given?
-            with_options(:path_prefix => resource.nesting_path_prefix, &block)
+            with_options(:path_prefix => resource.nesting_path_prefix, :new_name_prefix => resource.nesting_name_prefix, &block)
           end
         end
       end
@@ -315,7 +337,7 @@ module ActionController
           map_member_actions(map, resource)
 
           if block_given?
-            with_options(:path_prefix => resource.nesting_path_prefix, &block)
+            with_options(:path_prefix => resource.nesting_path_prefix, :new_name_prefix => resource.nesting_name_prefix, &block)
           end
         end
       end
@@ -324,8 +346,21 @@ module ActionController
         resource.collection_methods.each do |method, actions|
           actions.each do |action|
             action_options = action_options_for(action, resource, method)
-            map.named_route("#{resource.name_prefix}#{action}_#{resource.plural}", "#{resource.path};#{action}", action_options)
-            map.named_route("formatted_#{resource.name_prefix}#{action}_#{resource.plural}", "#{resource.path}.:format;#{action}", action_options)
+
+            unless resource.old_name_prefix.blank?
+              map.deprecated_named_route("#{action}_#{resource.name_prefix}#{resource.plural}", "#{resource.old_name_prefix}#{action}_#{resource.plural}")
+              map.deprecated_named_route("formatted_#{action}_#{resource.name_prefix}#{resource.plural}", "formatted_#{resource.old_name_prefix}#{action}_#{resource.plural}")
+            end
+
+            if resource.deprecate_name_prefix?
+              map.deprecated_named_route("#{action}_#{resource.name_prefix}#{resource.plural}", "#{action}_#{resource.plural}")
+              map.deprecated_named_route("formatted_#{action}_#{resource.name_prefix}#{resource.plural}", "formatted_#{action}_#{resource.plural}")
+            end
+
+            map.named_route("#{action}_#{resource.name_prefix}#{resource.plural}", "#{resource.path}#{resource.action_separator}#{action}", action_options)
+            map.connect("#{resource.path};#{action}", action_options)
+            map.connect("#{resource.path}.:format;#{action}", action_options)
+            map.named_route("formatted_#{action}_#{resource.name_prefix}#{resource.plural}", "#{resource.path}#{resource.action_separator}#{action}.:format", action_options)
           end
         end
       end
@@ -334,6 +369,11 @@ module ActionController
         index_action_options = action_options_for("index", resource)
         map.named_route("#{resource.name_prefix}#{resource.plural}", resource.path, index_action_options)
         map.named_route("formatted_#{resource.name_prefix}#{resource.plural}", "#{resource.path}.:format", index_action_options)
+
+        if resource.deprecate_name_prefix?
+          map.deprecated_named_route("#{resource.name_prefix}#{resource.plural}", "#{resource.plural}")
+          map.deprecated_named_route("formatted_#{resource.name_prefix}#{resource.plural}", "formatted_#{resource.plural}")
+        end
 
         create_action_options = action_options_for("create", resource)
         map.connect(resource.path, create_action_options)
@@ -351,11 +391,37 @@ module ActionController
           actions.each do |action|
             action_options = action_options_for(action, resource, method)
             if action == :new
-              map.named_route("#{resource.name_prefix}new_#{resource.singular}", resource.new_path, action_options)
-              map.named_route("formatted_#{resource.name_prefix}new_#{resource.singular}", "#{resource.new_path}.:format", action_options)
+
+              unless resource.old_name_prefix.blank?
+                map.deprecated_named_route("new_#{resource.name_prefix}#{resource.singular}", "#{resource.old_name_prefix}new_#{resource.singular}")
+                map.deprecated_named_route("formatted_new_#{resource.name_prefix}#{resource.singular}", "formatted_#{resource.old_name_prefix}new_#{resource.singular}")
+              end
+
+              if resource.deprecate_name_prefix?
+                map.deprecated_named_route("new_#{resource.name_prefix}#{resource.singular}", "new_#{resource.singular}")
+                map.deprecated_named_route("formatted_new_#{resource.name_prefix}#{resource.singular}", "formatted_new_#{resource.singular}")
+              end
+
+              map.named_route("new_#{resource.name_prefix}#{resource.singular}", resource.new_path, action_options)
+              map.named_route("formatted_new_#{resource.name_prefix}#{resource.singular}", "#{resource.new_path}.:format", action_options)
+
             else
-              map.named_route("#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path};#{action}", action_options)
-              map.named_route("formatted_#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path}.:format;#{action}", action_options)
+
+              unless resource.old_name_prefix.blank?
+                map.deprecated_named_route("#{action}_new_#{resource.name_prefix}#{resource.singular}", "#{resource.old_name_prefix}#{action}_new_#{resource.singular}")
+                map.deprecated_named_route("formatted_#{action}_new_#{resource.name_prefix}#{resource.singular}", "formatted_#{resource.old_name_prefix}#{action}_new_#{resource.singular}")
+              end
+
+              if resource.deprecate_name_prefix?
+                map.deprecated_named_route("#{action}_new_#{resource.name_prefix}#{resource.singular}", "#{action}_new_#{resource.singular}")
+                map.deprecated_named_route("formatted_#{action}_new_#{resource.name_prefix}#{resource.singular}", "formatted_#{action}_new_#{resource.singular}")
+              end
+
+              map.named_route("#{action}_new_#{resource.name_prefix}#{resource.singular}", "#{resource.new_path}#{resource.action_separator}#{action}", action_options)
+              map.connect("#{resource.new_path};#{action}", action_options)
+              map.connect("#{resource.new_path}.:format;#{action}", action_options)
+              map.named_route("formatted_#{action}_new_#{resource.name_prefix}#{resource.singular}", "#{resource.new_path}#{resource.action_separator}#{action}.:format", action_options)
+
             end
           end
         end
@@ -365,14 +431,33 @@ module ActionController
         resource.member_methods.each do |method, actions|
           actions.each do |action|
             action_options = action_options_for(action, resource, method)
-            map.named_route("#{resource.name_prefix}#{action}_#{resource.singular}", "#{resource.member_path};#{action}", action_options)
-            map.named_route("formatted_#{resource.name_prefix}#{action}_#{resource.singular}", "#{resource.member_path}.:format;#{action}",action_options)
+
+            unless resource.old_name_prefix.blank?
+              map.deprecated_named_route("#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.old_name_prefix}#{action}_#{resource.singular}")
+              map.deprecated_named_route("formatted_#{action}_#{resource.name_prefix}#{resource.singular}", "formatted_#{resource.old_name_prefix}#{action}_#{resource.singular}")
+            end
+
+            if resource.deprecate_name_prefix?
+              map.deprecated_named_route("#{action}_#{resource.name_prefix}#{resource.singular}", "#{action}_#{resource.singular}")
+              map.deprecated_named_route("formatted_#{action}_#{resource.name_prefix}#{resource.singular}", "formatted_#{action}_#{resource.singular}")
+            end
+
+            map.named_route("#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action}", action_options)
+            map.connect("#{resource.member_path};#{action}", action_options)
+            map.connect("#{resource.member_path}.:format;#{action}", action_options)
+            map.named_route("formatted_#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action}.:format", action_options)
+
           end
         end
 
         show_action_options = action_options_for("show", resource)
         map.named_route("#{resource.name_prefix}#{resource.singular}", resource.member_path, show_action_options)
         map.named_route("formatted_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}.:format", show_action_options)
+
+        if resource.deprecate_name_prefix?
+          map.deprecated_named_route("#{resource.name_prefix}#{resource.singular}", "#{resource.singular}")
+          map.deprecated_named_route("formatted_#{resource.name_prefix}#{resource.singular}", "formatted_#{resource.singular}")
+        end
 
         update_action_options = action_options_for("update", resource)
         map.connect(resource.member_path, update_action_options)
