@@ -45,6 +45,10 @@ module ActiveSupport #:nodoc:
         def to_datetime
           self
         end
+        
+        def xmlschema
+          strftime("%Y-%m-%dT%H:%M:%S#{offset == 0 ? 'Z' : '%Z'}")
+        end
       end
     end
   end

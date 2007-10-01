@@ -182,8 +182,13 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 3, 31).last_month
   end
 
-  def test_xmlschema_is_available
-    assert_nothing_raised { DateTime.now.xmlschema }
+  def test_xmlschema
+    assert_equal '1880-02-28T15:15:10Z', DateTime.civil(1880, 2, 28, 15, 15, 10).xmlschema
+    assert_equal '1980-02-28T15:15:10Z', DateTime.civil(1980, 2, 28, 15, 15, 10).xmlschema
+    assert_equal '2080-02-28T15:15:10Z', DateTime.civil(2080, 2, 28, 15, 15, 10).xmlschema
+    assert_equal '1880-02-28T15:15:10-06:00', DateTime.civil(1880, 2, 28, 15, 15, 10, -0.25).xmlschema
+    assert_equal '1980-02-28T15:15:10-06:00', DateTime.civil(1980, 2, 28, 15, 15, 10, -0.25).xmlschema
+    assert_equal '2080-02-28T15:15:10-06:00', DateTime.civil(2080, 2, 28, 15, 15, 10, -0.25).xmlschema
   end
 
   def test_acts_like_time

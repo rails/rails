@@ -162,4 +162,20 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   def test_end_of_day
     assert_equal Time.local(2005,2,21,23,59,59), Date.new(2005,2,21).end_of_day
   end
+  
+  def test_xmlschema
+    with_timezone 'US/Eastern' do
+      assert_equal '1880-06-28T00:00:00-04:00', Date.new(1880, 6, 28).xmlschema
+      assert_equal '1980-06-28T00:00:00-04:00', Date.new(1980, 6, 28).xmlschema
+      assert_equal '2080-06-28T00:00:00-04:00', Date.new(2080, 6, 28).xmlschema
+    end
+  end
+
+  protected
+    def with_timezone(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end  
 end

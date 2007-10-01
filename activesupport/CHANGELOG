@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed Date#xmlschema for dates outside the range of what can be created with Time #9744 [gbuesing]
+
+
 *2.0.0 [Preview Release]* (September 29th, 2007)
 
 * Fixed that La Paz was included in -25200 and -14400 offsets when it should only be in -14400 #9735 [bermi]
