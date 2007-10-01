@@ -56,8 +56,7 @@ class SessionTest < Test::Unit::TestCase
 
     @session.expects(:get).with(path,args)
 
-    redirects = [true, true, false]
-    @session.stubs(:redirect?).returns(lambda { redirects.shift })
+    @session.stubs(:redirect?).returns(true).then.returns(true).then.returns(false)
     @session.expects(:follow_redirect!).times(2)
 
     @session.stubs(:status).returns(200)
@@ -69,8 +68,7 @@ class SessionTest < Test::Unit::TestCase
 
     @session.expects(:post).with(path,args)
 
-    redirects = [true, true, false]
-    @session.stubs(:redirect?).returns(lambda { redirects.shift })
+    @session.stubs(:redirect?).returns(true).then.returns(true).then.returns(false)
     @session.expects(:follow_redirect!).times(2)
 
     @session.stubs(:status).returns(200)
