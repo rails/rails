@@ -3,46 +3,58 @@ namespace :db do
     desc 'Create all the local databases defined in config/database.yml'
     task :all => :environment do
       ActiveRecord::Base.configurations.each_value do |config|
-        create_local_database(config)
+        # Skip entries that don't have a database key, such as the first entry here:
+        #
+        #  defaults: &defaults 
+        #    adapter: mysql 
+        #    username: root
+        #    password: 
+        #    host: localhost
+        #  
+        #  development: 
+        #    database: blog_development
+        #    <<: *defaults
+        next unless config['database']
+        # Only connect to local databases
+        if config['host'] == 'localhost' || config['host'].blank?
+          create_database(config)
+        else
+          p "This task only creates local databases. #{config['database']} is on a remote host."
+        end
       end
     end
   end
 
-  desc 'Create the local database defined in config/database.yml for the current RAILS_ENV'
+  desc 'Create the database defined in config/database.yml for the current RAILS_ENV'
   task :create => :environment do
-    create_local_database(ActiveRecord::Base.configurations[RAILS_ENV])
+    create_database(ActiveRecord::Base.configurations[RAILS_ENV])
   end
 
-  def create_local_database(config)
-    # Only connect to local databases
-    if config['host'] == 'localhost' || config['host'].blank?
-      begin
-        ActiveRecord::Base.establish_connection(config)
-        ActiveRecord::Base.connection
-      rescue
-        case config['adapter']
-        when 'mysql'
-          @charset   = ENV['CHARSET']   || 'utf8'
-          @collation = ENV['COLLATION'] || 'utf8_general_ci'
-          begin
-            ActiveRecord::Base.establish_connection(config.merge({'database' => nil}))
-            ActiveRecord::Base.connection.create_database(config['database'], {:charset => @charset, :collation => @collation})
-            ActiveRecord::Base.establish_connection(config)
-          rescue
-            $stderr.puts "Couldn't create database for #{config.inspect}"
-          end
-        when 'postgresql'
-          `createdb "#{config['database']}" -E utf8`
-        when 'sqlite'
-          `sqlite "#{config['database']}"`
-        when 'sqlite3'
-          `sqlite3 "#{config['database']}"`
+  def create_database(config)
+    begin
+      ActiveRecord::Base.establish_connection(config)
+      ActiveRecord::Base.connection
+    rescue
+      case config['adapter']
+      when 'mysql'
+        @charset   = ENV['CHARSET']   || 'utf8'
+        @collation = ENV['COLLATION'] || 'utf8_general_ci'
+        begin
+          ActiveRecord::Base.establish_connection(config.merge({'database' => nil}))
+          ActiveRecord::Base.connection.create_database(config['database'], {:charset => @charset, :collation => @collation})
+          ActiveRecord::Base.establish_connection(config)
+        rescue
+          $stderr.puts "Couldn't create database for #{config.inspect}"
         end
-      else
-        p "#{config['database']} already exists"
+      when 'postgresql'
+        `createdb "#{config['database']}" -E utf8`
+      when 'sqlite'
+        `sqlite "#{config['database']}"`
+      when 'sqlite3'
+        `sqlite3 "#{config['database']}"`
       end
     else
-      p "This task only creates local databases. #{config['database']} is on a remote host."
+      p "#{config['database']} already exists"
     end
   end
 
@@ -50,7 +62,14 @@ namespace :db do
     desc 'Drops all the local databases defined in config/database.yml'
     task :all => :environment do
       ActiveRecord::Base.configurations.each_value do |config|
-        drop_database(config)
+        # Skip entries that don't have a database key
+        next unless config['database']
+        # Only connect to local databases
+        if config['host'] == 'localhost' || config['host'].blank?
+          drop_database(config)
+        else
+          p "This task only drops local databases. #{config['database']} is on a remote host."
+        end
       end
     end
   end

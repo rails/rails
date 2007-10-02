@@ -1,5 +1,8 @@
 *SVN*
 
+* db:create works with remote databases whereas db:create:all only creates
+databases on localhost.  #9753 [Trevor Wennblom]
+
 * Removed calls to fixtures in generated tests as fixtures :all is now present by default in test_helper.rb [DHH]
 
 * Add --prefix option to script/server when using mongrel. [dacat]
