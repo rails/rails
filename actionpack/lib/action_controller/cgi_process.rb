@@ -13,8 +13,8 @@ module ActionController #:nodoc:
     #   (default). Additionally, there is CGI::Session::DRbStore and CGI::Session::ActiveRecordStore. Read more about these in
     #   lib/action_controller/session.
     # * <tt>:session_key</tt> - the parameter name used for the session id. Defaults to '_session_id'.
-    # * <tt>:session_id</tt> - the session id to use.  If not provided, then it is retrieved from the +session_key+ parameter
-    #   of the request, or automatically generated for a new session.
+    # * <tt>:session_id</tt> - the session id to use.  If not provided, then it is retrieved from the +session_key+ cookie, or 
+    #   automatically generated for a new session.
     # * <tt>:new_session</tt> - if true, force creation of a new session.  If not set, a new session is only created if none currently
     #   exists.  If false, a new session is never created, and if none currently exists and the +session_id+ option is not set,
     #   an ArgumentError is raised.
@@ -24,6 +24,8 @@ module ActionController #:nodoc:
     #   server.
     # * <tt>:session_secure</tt> - if +true+, this session will only work over HTTPS.
     # * <tt>:session_path</tt> - the path for which this session applies.  Defaults to the directory of the CGI script.
+    # * <tt>:cookie_only</tt> - if +true+ (the default), session IDs will only be accepted from cookies and not from
+    #   the query string or POST parameters. This protects against session fixation attacks.
     def self.process_cgi(cgi = CGI.new, session_options = {})
       new.process_cgi(cgi, session_options)
     end
@@ -34,18 +36,21 @@ module ActionController #:nodoc:
   end
 
   class CgiRequest < AbstractRequest #:nodoc:
-    attr_accessor :cgi, :session_options
+    attr_accessor :cgi, :session_options, :cookie_only
+    class SessionFixationAttempt < StandardError; end #:nodoc:
 
     DEFAULT_SESSION_OPTIONS = {
       :database_manager => CGI::Session::PStore,
       :prefix           => "ruby_sess.",
-      :session_path     => "/"
+      :session_path     => "/",
+      :cookie_only      => true
     } unless const_defined?(:DEFAULT_SESSION_OPTIONS)
 
     def initialize(cgi, session_options = {})
       @cgi = cgi
       @session_options = session_options
       @env = @cgi.send(:env_table)
+      @cookie_only = session_options.delete :cookie_only
       super()
     end
 
@@ -109,6 +114,9 @@ module ActionController #:nodoc:
           @session = Hash.new
         else
           stale_session_check! do
+            if @cookie_only && request_parameters[session_options_with_string_keys['session_key']]
+              raise SessionFixationAttempt
+            end
             case value = session_options_with_string_keys['new_session']
               when true
                 @session = new_session
