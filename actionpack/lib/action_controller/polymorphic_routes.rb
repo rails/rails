@@ -6,8 +6,8 @@ module ActionController
       namespace = extract_namespace(record_or_hash_or_array)
       
       args = case record_or_hash_or_array
-        when Hash:  [ record_or_hash_or_array ]
-        when Array: record_or_hash_or_array.dup
+        when Hash;  [ record_or_hash_or_array ]
+        when Array; record_or_hash_or_array.dup
         else        [ record_or_hash_or_array ]
       end
 
@@ -24,7 +24,7 @@ module ActionController
         end
       
       named_route = build_named_route_call(record_or_hash_or_array, namespace, inflection, options)
-      send(named_route, *args)
+      send!(named_route, *args)
     end
 
     def polymorphic_path(record_or_hash_or_array)
@@ -55,10 +55,10 @@ module ActionController
 
       def build_named_route_call(records, namespace, inflection, options = {})
         records = Array.new([extract_record(records)]) unless records.is_a?(Array)        
-        base_segment = "#{RecordIdentifier.send("#{inflection}_class_name", records.pop)}_"
+        base_segment = "#{RecordIdentifier.send!("#{inflection}_class_name", records.pop)}_"
 
         method_root = records.reverse.inject(base_segment) do |string, name|
-          segment = "#{RecordIdentifier.send("singular_class_name", name)}_"
+          segment = "#{RecordIdentifier.send!("singular_class_name", name)}_"
           segment << string
         end
 
@@ -67,8 +67,8 @@ module ActionController
 
       def extract_record(record_or_hash_or_array)
         case record_or_hash_or_array
-          when Array: record_or_hash_or_array.last
-          when Hash:  record_or_hash_or_array[:id]
+          when Array; record_or_hash_or_array.last
+          when Hash;  record_or_hash_or_array[:id]
           else        record_or_hash_or_array
         end
       end

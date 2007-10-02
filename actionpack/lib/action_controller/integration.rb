@@ -83,7 +83,7 @@ module ActionController
 
           # the helpers are made protected by default--we make them public for
           # easier access during testing and troubleshooting.
-          klass.send(:public, *Routing::Routes.named_routes.helpers)
+          klass.module_eval { public *Routing::Routes.named_routes.helpers }
           @named_routes_configured = true
         end
       end
@@ -252,7 +252,7 @@ module ActionController
           end
 
           unless ActionController::Base.respond_to?(:clear_last_instantiation!)
-            ActionController::Base.send(:include, ControllerCapture)
+            ActionController::Base.module_eval { include ControllerCapture }
           end
 
           ActionController::Base.clear_last_instantiation!
@@ -498,7 +498,7 @@ module ActionController
         reset! unless @integration_session
         # reset the html_document variable, but only for new get/post calls
         @html_document = nil unless %w(cookies assigns).include?(method)
-        returning @integration_session.send(method, *args) do
+        returning @integration_session.send!(method, *args) do
           copy_session_variables!
         end
       end
@@ -522,11 +522,11 @@ module ActionController
       self.class.fixture_table_names.each do |table_name|
         name = table_name.tr(".", "_")
         next unless respond_to?(name)
-        extras.send(:define_method, name) { |*args| delegate.send(name, *args) }
+        extras.send!(:define_method, name) { |*args| delegate.send(name, *args) }
       end
 
       # delegate add_assertion to the test case
-      extras.send(:define_method, :add_assertion) { test_result.add_assertion }
+      extras.send!(:define_method, :add_assertion) { test_result.add_assertion }
       session.extend(extras)
       session.delegate = self
       session.test_result = @_result
@@ -540,14 +540,14 @@ module ActionController
     def copy_session_variables! #:nodoc:
       return unless @integration_session
       %w(controller response request).each do |var|
-        instance_variable_set("@#{var}", @integration_session.send(var))
+        instance_variable_set("@#{var}", @integration_session.send!(var))
       end
     end
 
     # Delegate unhandled messages to the current session instance.
     def method_missing(sym, *args, &block)
       reset! unless @integration_session
-      returning @integration_session.send(sym, *args, &block) do
+      returning @integration_session.send!(sym, *args, &block) do
         copy_session_variables!
       end
     end

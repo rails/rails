@@ -1,3 +1,2 @@
 require 'bigdecimal'
-
-require File.dirname(__FILE__) + '/bigdecimal/formatting.rb'
+require 'active_support/core_ext/bigdecimal/conversions'

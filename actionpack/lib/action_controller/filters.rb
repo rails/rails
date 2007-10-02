@@ -1,8 +1,10 @@
 module ActionController #:nodoc:
   module Filters #:nodoc:
     def self.included(base)
-      base.extend(ClassMethods)
-      base.send(:include, ActionController::Filters::InstanceMethods)
+      base.class_eval do
+        extend ClassMethods
+        include ActionController::Filters::InstanceMethods
+      end
     end
 
     # Filters enable controllers to run shared pre and post processing code for its actions. These filters can be used to do
@@ -440,7 +442,7 @@ module ActionController #:nodoc:
         def run(controller)
           # only filters returning false are halted.
           if false == @filter.call(controller)
-            controller.send :halt_filter_chain, @filter, :returned_false
+            controller.send! :halt_filter_chain, @filter, :returned_false
           end
         end
 
@@ -466,7 +468,7 @@ module ActionController #:nodoc:
 
       class SymbolFilter < Filter #:nodoc:
         def call(controller, &block)
-          controller.send(@filter, &block)
+          controller.send!(@filter, &block)
         end
       end
 
@@ -656,7 +658,7 @@ module ActionController #:nodoc:
           return filter unless filter_responds_to_before_and_after(filter)
           Proc.new do |controller, action|
             if filter.before(controller) == false
-              controller.send :halt_filter_chain, filter, :returned_false
+              controller.send! :halt_filter_chain, filter, :returned_false
             else
               begin
                 action.call

@@ -357,7 +357,7 @@ module ActionController #:nodoc:
     alias local_path path
 
     def method_missing(method_name, *args, &block) #:nodoc:
-      @tempfile.send(method_name, *args, &block)
+      @tempfile.send!(method_name, *args, &block)
     end
   end
 
@@ -379,7 +379,7 @@ module ActionController #:nodoc:
       # Sanity check for required instance variables so we can give an
       # understandable error message.
       %w(@controller @request @response).each do |iv_name|
-        if !instance_variables.include?(iv_name) || instance_variable_get(iv_name).nil?
+        if !(instance_variables.include?(iv_name) || instance_variables.include?(iv_name.to_sym)) || instance_variable_get(iv_name).nil?
           raise "#{iv_name} is nil: make sure you set it in your test's setup method."
         end
       end
@@ -402,7 +402,7 @@ module ActionController #:nodoc:
     def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
       @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
       @request.env['HTTP_ACCEPT'] = 'text/javascript, text/html, application/xml, text/xml, */*'
-      returning self.send(request_method, action, parameters, session, flash) do
+      returning send!(request_method, action, parameters, session, flash) do
         @request.env.delete 'HTTP_X_REQUESTED_WITH'
         @request.env.delete 'HTTP_ACCEPT'
       end
@@ -444,7 +444,7 @@ module ActionController #:nodoc:
 
     def build_request_uri(action, parameters)
       unless @request.env['REQUEST_URI']
-        options = @controller.send(:rewrite_options, parameters)
+        options = @controller.send!(:rewrite_options, parameters)
         options.update(:only_path => true, :action => action)
 
         url = ActionController::UrlRewriter.new(@request, parameters)
@@ -466,7 +466,7 @@ module ActionController #:nodoc:
     end
 
     def method_missing(selector, *args)
-      return @controller.send(selector, *args) if ActionController::Routing::Routes.named_routes.helpers.include?(selector)
+      return @controller.send!(selector, *args) if ActionController::Routing::Routes.named_routes.helpers.include?(selector)
       return super
     end
     
@@ -502,15 +502,15 @@ module ActionController #:nodoc:
     #
     def with_routing
       real_routes = ActionController::Routing::Routes
-      ActionController::Routing.send :remove_const, :Routes
+      ActionController::Routing.module_eval { remove_const :Routes }
 
       temporary_routes = ActionController::Routing::RouteSet.new
-      ActionController::Routing.send :const_set, :Routes, temporary_routes
-  
+      ActionController::Routing.module_eval { const_set :Routes, temporary_routes }
+
       yield temporary_routes
     ensure
       if ActionController::Routing.const_defined? :Routes
-        ActionController::Routing.send(:remove_const, :Routes) 
+        ActionController::Routing.module_eval { remove_const :Routes }
       end
       ActionController::Routing.const_set(:Routes, real_routes) if real_routes
     end

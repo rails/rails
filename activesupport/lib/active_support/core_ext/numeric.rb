@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/numeric/time'
-require File.dirname(__FILE__) + '/numeric/bytes'
+require 'active_support/core_ext/numeric/time'
+require 'active_support/core_ext/numeric/bytes'
 
 class Numeric #:nodoc:
   include ActiveSupport::CoreExtensions::Numeric::Time 

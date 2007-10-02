@@ -580,7 +580,7 @@ module ActionView
       
       # Specifies a Set of 'bad' tags that the #sanitize helper will remove completely, as opposed
       # to just escaping harmless tags like &lt;font&gt;
-      @@sanitized_bad_tags = Set.new('script')
+      @@sanitized_bad_tags = Set.new(%w(script))
       mattr_reader :sanitized_bad_tags
       
       # Specifies the default Set of tags that the #sanitize helper will allow unscathed.

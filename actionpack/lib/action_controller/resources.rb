@@ -513,15 +513,17 @@ module ActionController
         default_options = { :action => action.to_s }
         require_id = !resource.kind_of?(SingletonResource)
         case default_options[:action]
-          when "index", "new" : default_options.merge(add_conditions_for(resource.conditions, method || :get)).merge(resource.requirements)
-          when "create"       : default_options.merge(add_conditions_for(resource.conditions, method || :post)).merge(resource.requirements)
-          when "show", "edit" : default_options.merge(add_conditions_for(resource.conditions, method || :get)).merge(resource.requirements(require_id))
-          when "update"       : default_options.merge(add_conditions_for(resource.conditions, method || :put)).merge(resource.requirements(require_id))
-          when "destroy"      : default_options.merge(add_conditions_for(resource.conditions, method || :delete)).merge(resource.requirements(require_id))
+          when "index", "new"; default_options.merge(add_conditions_for(resource.conditions, method || :get)).merge(resource.requirements)
+          when "create";       default_options.merge(add_conditions_for(resource.conditions, method || :post)).merge(resource.requirements)
+          when "show", "edit"; default_options.merge(add_conditions_for(resource.conditions, method || :get)).merge(resource.requirements(require_id))
+          when "update";       default_options.merge(add_conditions_for(resource.conditions, method || :put)).merge(resource.requirements(require_id))
+          when "destroy";      default_options.merge(add_conditions_for(resource.conditions, method || :delete)).merge(resource.requirements(require_id))
           else                  default_options.merge(add_conditions_for(resource.conditions, method)).merge(resource.requirements)
         end
       end
   end
 end
 
-ActionController::Routing::RouteSet::Mapper.send :include, ActionController::Resources
+class ActionController::Routing::RouteSet::Mapper
+  include ActionController::Resources
+end

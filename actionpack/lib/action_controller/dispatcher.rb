@@ -71,7 +71,7 @@ module ActionController
         end
 
         def log_failsafe_exception(status, exception)
-          message = "/!\ FAILSAFE /!\  #{Time.now}\n  Status: #{status}\n"
+          message = "/!\\ FAILSAFE /!\\  #{Time.now}\n  Status: #{status}\n"
           message << "  #{exception}\n    #{exception.backtrace.join("\n    ")}" if exception
           failsafe_logger.fatal message
         end
@@ -136,7 +136,12 @@ module ActionController
     end
 
     def prepare_application(force = false)
-      require_dependency 'application' unless defined?(::ApplicationController)
+      begin
+        require_dependency 'application' unless defined?(::ApplicationController)
+      rescue LoadError => error
+        raise unless error.message =~ /application\.rb/
+      end
+
       ActiveRecord::Base.verify_active_connections! if defined?(ActiveRecord)
 
       if unprepared || force
@@ -166,10 +171,10 @@ module ActionController
       end
 
       def run_callbacks(kind, enumerator = :each)
-        callbacks[kind].send(enumerator) do |callback|
+        callbacks[kind].send!(enumerator) do |callback|
           case callback
           when Proc; callback.call(self)
-          when String, Symbol; send(callback)
+          when String, Symbol; send!(callback)
           when Array; callback[1].call(self)
           else raise ArgumentError, "Unrecognized callback #{callback.inspect}"
           end

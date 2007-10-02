@@ -157,9 +157,9 @@ class TestController < ActionController::Base
   private
     def determine_layout
       case action_name
-        when "layout_test":         "layouts/standard"
-        when "builder_layout_test": "layouts/builder"
-        when "render_symbol_json":  "layouts/standard"  # to make sure layouts don't interfere
+        when "layout_test";         "layouts/standard"
+        when "builder_layout_test"; "layouts/builder"
+        when "render_symbol_json";  "layouts/standard"  # to make sure layouts don't interfere
       end
     end
 end

@@ -68,7 +68,7 @@ module ActionController #:nodoc:
       # See ActionView::Helpers (link:classes/ActionView/Helpers.html) for more about making your own helper modules
       # available to the templates.
       def add_template_helper(helper_module) #:nodoc:
-        master_helper_module.send(:include, helper_module)
+        master_helper_module.module_eval { include helper_module }
       end
 
       # The +helper+ class method can take a series of helper module names, a block, or both.
@@ -169,10 +169,12 @@ module ActionController #:nodoc:
 
       private
         def default_helper_module!
-          module_name = name.sub(/Controller$|$/, 'Helper')
-          module_path = module_name.split('::').map { |m| m.underscore }.join('/')
-          require_dependency module_path
-          helper module_name.constantize
+          unless name.blank?
+            module_name = name.sub(/Controller$|$/, 'Helper')
+            module_path = module_name.split('::').map { |m| m.underscore }.join('/')
+            require_dependency module_path
+            helper module_name.constantize
+          end
         rescue MissingSourceFile => e
           raise unless e.is_missing? module_path
           logger.debug("#{name}: missing default helper path #{module_path}") if logger
@@ -186,8 +188,8 @@ module ActionController #:nodoc:
 
           begin
             child.master_helper_module = Module.new
-            child.master_helper_module.send :include, master_helper_module
-            child.send :default_helper_module!
+            child.master_helper_module.send! :include, master_helper_module
+            child.send! :default_helper_module!
           rescue MissingSourceFile => e
             raise unless e.is_missing?("helpers/#{child.controller_path}_helper")
           end

@@ -1,5 +1,5 @@
 require 'logger'
-require File.dirname(__FILE__) + '/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/class/attribute_accessors'
 
 # Extensions to the built in Ruby logger.
 #

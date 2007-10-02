@@ -109,7 +109,7 @@ module ActionController
     # "XMLHttpRequest". (The Prototype Javascript library sends this header with
     # every Ajax request.)
     def xml_http_request?
-      not /XMLHttpRequest/i.match(@env['HTTP_X_REQUESTED_WITH']).nil?
+      !(@env['HTTP_X_REQUESTED_WITH'] !~ /XMLHttpRequest/i)
     end
     alias xhr? :xml_http_request?
 
@@ -120,13 +120,10 @@ module ActionController
     # delimited list in the case of multiple chained proxies; the first is
     # the originating IP.
     #
-    # Security note: Be aware that since remote_ip will check regular HTTP headers,
-    # it can be tricked by anyone setting those manually. In other words, people can
-    # pose as whatever IP address they like to this method. That doesn't matter if
-    # all your doing is using IP addresses for statistical or geographical information,
-    # but if you want to, for example, limit access to an administrative area by IP,
-    # you should instead use Request#remote_addr, which can't be spoofed (but also won't
-    # survive proxy forwards).
+    # Security note: do not use if IP spoofing is a concern for your
+    # application. Since remote_ip checks HTTP headers for addresses forwarded
+    # by proxies, the client may send any IP. remote_addr can't be spoofed but
+    # also doesn't work behind a proxy, since it's always the proxy's IP.
     def remote_ip
       return @env['HTTP_CLIENT_IP'] if @env.include? 'HTTP_CLIENT_IP'
 
@@ -222,7 +219,13 @@ module ActionController
         unless (env_qs = @env['QUERY_STRING']).nil? || env_qs.empty?
           uri << '?' << env_qs
         end
-        @env['REQUEST_URI'] = uri
+
+        if uri.nil?
+          @env.delete('REQUEST_URI')
+          uri
+        else
+          @env['REQUEST_URI'] = uri
+        end
       end
     end
 

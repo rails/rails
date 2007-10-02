@@ -1,3 +1,3 @@
-require File.dirname(__FILE__) + '/object/extending'
-require File.dirname(__FILE__) + '/object/instance_variables'
-require File.dirname(__FILE__) + '/object/misc'
+require 'active_support/core_ext/object/extending'
+require 'active_support/core_ext/object/instance_variables'
+require 'active_support/core_ext/object/misc'

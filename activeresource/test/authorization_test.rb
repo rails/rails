@@ -20,7 +20,7 @@ class AuthorizationTest < Test::Unit::TestCase
   end
 
   def test_authorization_header
-    authorization_header = @authenticated_conn.send(:authorization_header)
+    authorization_header = @authenticated_conn.send!(:authorization_header)
     assert_equal @authorization_request_header['Authorization'], authorization_header['Authorization']
     authorization = authorization_header["Authorization"].to_s.split
     
@@ -30,7 +30,7 @@ class AuthorizationTest < Test::Unit::TestCase
   
   def test_authorization_header_with_username_but_no_password
     @conn = ActiveResource::Connection.new("http://david:@localhost")
-    authorization_header = @conn.send(:authorization_header)
+    authorization_header = @conn.send!(:authorization_header)
     authorization = authorization_header["Authorization"].to_s.split
     
     assert_equal "Basic", authorization[0]
@@ -39,7 +39,7 @@ class AuthorizationTest < Test::Unit::TestCase
   
   def test_authorization_header_with_password_but_no_username
     @conn = ActiveResource::Connection.new("http://:test123@localhost")
-    authorization_header = @conn.send(:authorization_header)
+    authorization_header = @conn.send!(:authorization_header)
     authorization = authorization_header["Authorization"].to_s.split
     
     assert_equal "Basic", authorization[0]
@@ -76,7 +76,7 @@ class AuthorizationTest < Test::Unit::TestCase
   protected
     def assert_response_raises(klass, code)
       assert_raise(klass, "Expected response code #{code} to raise #{klass}") do
-        @conn.send(:handle_response, Response.new(code))
+        @conn.send!(:handle_response, Response.new(code))
       end
     end
 end

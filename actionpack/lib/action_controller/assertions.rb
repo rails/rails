@@ -46,7 +46,7 @@ module ActionController #:nodoc:
     def self.included(klass)
       %w(response selector tag dom routing model).each do |kind|
         require "action_controller/assertions/#{kind}_assertions"
-        klass.send :include, const_get("#{kind.camelize}Assertions")
+        klass.module_eval { include const_get("#{kind.camelize}Assertions") }
       end
     end
 

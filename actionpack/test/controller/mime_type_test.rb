@@ -35,7 +35,8 @@ class MimeTypeTest < Test::Unit::TestCase
       Mime::GIF
       assert_equal Mime::GIF, Mime::SET.last
     end
-    Mime.send :remove_const, :GIF
+  ensure
+    Mime.module_eval { remove_const :GIF if const_defined?(:GIF) }
   end
   
   def test_type_convenience_methods

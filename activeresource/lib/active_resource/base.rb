@@ -604,7 +604,7 @@ module ActiveResource
     #   next_invoice.customer
     #   # => That Company
     def dup
-      returning new do |resource|
+      returning self.class.new do |resource|
         resource.attributes     = @attributes
         resource.prefix_options = @prefix_options
       end
@@ -848,7 +848,7 @@ module ActiveResource
       end
 
       def split_options(options = {})
-        self.class.send(:split_options, options)
+        self.class.send!(:split_options, options)
       end
 
       def method_missing(method_symbol, *arguments) #:nodoc:

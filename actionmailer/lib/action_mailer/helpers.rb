@@ -49,7 +49,7 @@ module ActionMailer
               begin
                 require_dependency(file_name)
               rescue LoadError => load_error
-                requiree = / -- (.*?)(\.rb)?$/.match(load_error).to_a[1]
+                requiree = / -- (.*?)(\.rb)?$/.match(load_error.message).to_a[1]
                 msg = (requiree == file_name) ? "Missing helper file helpers/#{file_name}.rb" : "Can't load file: #{requiree}"
                 raise LoadError.new(msg).copy_blame!(load_error)
               end
@@ -72,7 +72,7 @@ module ActionMailer
         methods.flatten.each do |method|
           master_helper_module.module_eval <<-end_eval
             def #{method}(*args, &block)
-              controller.send(%(#{method}), *args, &block)
+              controller.send!(%(#{method}), *args, &block)
             end
           end_eval
         end
@@ -92,7 +92,7 @@ module ActionMailer
           inherited_without_helper(child)
           begin
             child.master_helper_module = Module.new
-            child.master_helper_module.send :include, master_helper_module
+            child.master_helper_module.send! :include, master_helper_module
             child.helper child.name.underscore
           rescue MissingSourceFile => e
             raise unless e.is_missing?("helpers/#{child.name.underscore}_helper")

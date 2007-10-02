@@ -1,5 +1,5 @@
 %w(keys indifferent_access reverse_merge conversions diff slice except).each do |ext|
-  require "#{File.dirname(__FILE__)}/hash/#{ext}"
+  require "active_support/core_ext/hash/#{ext}"
 end
 
 class Hash #:nodoc:

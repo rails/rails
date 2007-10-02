@@ -1,2 +1,1 @@
-require File.dirname(__FILE__) + '/test/difference'
-
+require 'active_support/core_ext/test/unit/assertions'

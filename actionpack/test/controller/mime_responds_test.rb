@@ -85,8 +85,8 @@ class RespondToController < ActionController::Base
       type.html   { render :text => "HTML"   }
       type.mobile { render :text => "Mobile" }
     end
-
-    Mime.send :remove_const, :MOBILE
+  ensure
+    Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
   end
 
   def custom_constant_handling_without_block
@@ -97,7 +97,8 @@ class RespondToController < ActionController::Base
       type.mobile
     end
 
-    Mime.send :remove_const, :MOBILE    
+  ensure
+    Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
   end
 
   def handle_any
@@ -123,7 +124,8 @@ class RespondToController < ActionController::Base
       type.iphone { @type = "iPhone"  }
     end
 
-    Mime.send :remove_const, :IPHONE
+  ensure
+    Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
   end
 
   def iphone_with_html_response_type_without_layout
@@ -135,7 +137,8 @@ class RespondToController < ActionController::Base
       type.iphone { @type = "iPhone" ; render :action => "iphone_with_html_response_type" }
     end
 
-    Mime.send :remove_const, :IPHONE
+  ensure
+    Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
   end
 
   def rescue_action(e)
@@ -444,24 +447,23 @@ end
 # For testing layouts which are set automatically
 class PostController < AbstractPostController
   around_filter :with_iphone
-  
+
   def index
     respond_to do |type|
       type.html
       type.iphone
     end
   end
-  
+
   protected
-  
-  def with_iphone
-    Mime::Type.register_alias("text/html", :iphone)
-    request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
-    yield
-    Mime.send :remove_const, :IPHONE    
-  end
-  
-end                                               
+    def with_iphone
+      Mime::Type.register_alias("text/html", :iphone)
+      request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
+      yield
+    ensure
+      Mime.module_eval { remove_const :IPHONE if const_defined?(:IPHONE) }
+    end
+end
 
 class SuperPostController < PostController  
   def index

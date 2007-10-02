@@ -59,9 +59,9 @@ module Mime
       end
 
       def register(string, symbol, mime_type_synonyms = [], extension_synonyms = [], skip_lookup = false)
-        Mime.send :const_set, symbol.to_s.upcase, Type.new(string, symbol, mime_type_synonyms)
+        Mime.instance_eval { const_set symbol.to_s.upcase, Type.new(string, symbol, mime_type_synonyms) }
 
-        SET << Mime.send(:const_get, symbol.to_s.upcase)
+        SET << Mime.const_get(symbol.to_s.upcase)
 
         ([string] + mime_type_synonyms).each { |string| LOOKUP[string] = SET.last } unless skip_lookup
         ([symbol.to_s] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext] = SET.last }

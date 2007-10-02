@@ -1,7 +1,9 @@
 module ActionController #:nodoc:
   module MimeResponds #:nodoc:
     def self.included(base)
-      base.send(:include, ActionController::MimeResponds::InstanceMethods)
+      base.module_eval do
+        include ActionController::MimeResponds::InstanceMethods
+      end
     end
 
     module InstanceMethods

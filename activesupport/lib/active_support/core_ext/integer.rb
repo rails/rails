@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/integer/even_odd'
-require File.dirname(__FILE__) + '/integer/inflections'
+require 'active_support/core_ext/integer/even_odd'
+require 'active_support/core_ext/integer/inflections'
 
 class Integer #:nodoc:
   include ActiveSupport::CoreExtensions::Integer::EvenOdd

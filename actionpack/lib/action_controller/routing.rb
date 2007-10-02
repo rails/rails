@@ -1092,7 +1092,7 @@ module ActionController
           
           @module ||= Module.new
           @module.instance_methods.each do |selector|
-            @module.send :remove_method, selector
+            @module.class_eval { remove_method selector }
           end
         end
 
@@ -1132,7 +1132,9 @@ module ActionController
 
         def install(destinations = [ActionController::Base, ActionView::Base], regenerate = false)
           reset! if regenerate
-          Array(destinations).each { |dest| dest.send :include, @module }
+          Array(destinations).each do |dest|
+            dest.send! :include, @module
+          end
         end
 
         private
@@ -1154,12 +1156,12 @@ module ActionController
           
           def define_hash_access(route, name, kind, options)
             selector = hash_access_name(name, kind)
-            @module.send :module_eval, <<-end_eval # We use module_eval to avoid leaks
+            @module.module_eval <<-end_eval # We use module_eval to avoid leaks
               def #{selector}(options = nil)
                 options ? #{options.inspect}.merge(options) : #{options.inspect}
               end
+              protected :#{selector}
             end_eval
-            @module.send(:protected, selector)
             helpers << selector
           end
 
@@ -1182,7 +1184,7 @@ module ActionController
             #
             #   foo_url(bar, baz, bang, :sort_by => 'baz')
             #
-            @module.send :module_eval, <<-end_eval # We use module_eval to avoid leaks
+            @module.module_eval <<-end_eval # We use module_eval to avoid leaks
               def #{selector}(*args)
                 #{generate_optimisation_block(route, kind)}
 
@@ -1199,8 +1201,8 @@ module ActionController
 
                 url_for(#{hash_access_method}(opts))
               end
+              protected :#{selector}
             end_eval
-            @module.send(:protected, selector)
             helpers << selector
           end
       end
@@ -1232,7 +1234,7 @@ module ActionController
       end
       
       def install_helpers(destinations = [ActionController::Base, ActionView::Base], regenerate_code = false)
-        Array(destinations).each { |d| d.send :include, Helpers }
+        Array(destinations).each { |d| d.module_eval { include Helpers } }
         named_routes.install(destinations, regenerate_code)
       end
 
@@ -1362,7 +1364,7 @@ module ActionController
           if generate_all
             # Used by caching to expire all paths for a resource
             return routes.collect do |route|
-              route.send(method, options, merged, expire_on)
+              route.send!(method, options, merged, expire_on)
             end.compact
           end
           
@@ -1370,7 +1372,7 @@ module ActionController
           routes = routes_by_controller[controller][action][options.keys.sort_by { |x| x.object_id }]
 
           routes.each do |route|
-            results = route.send(method, options, merged, expire_on)
+            results = route.send!(method, options, merged, expire_on)
             return results if results && (!results.is_a?(Array) || results.first)
           end
         end

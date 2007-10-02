@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/float/rounding'
+require 'active_support/core_ext/float/rounding'
 
 class Float #:nodoc:
   include ActiveSupport::CoreExtensions::Float::Rounding

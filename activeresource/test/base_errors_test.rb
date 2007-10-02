@@ -29,13 +29,13 @@ class BaseErrorsTest < Test::Unit::TestCase
   def test_should_iterate_over_errors
     errors = []
     @person.errors.each { |attribute, message| errors << [attribute, message] }
-    assert_equal ["name", "can't be blank"], errors.first
+    assert errors.include?(["name", "can't be blank"])
   end
 
   def test_should_iterate_over_full_errors
     errors = []
     @person.errors.each_full { |message| errors << message }
-    assert_equal "Name can't be blank", errors.first
+    assert errors.include?("Name can't be blank")
   end
 
   def test_should_format_full_errors

@@ -25,9 +25,8 @@ module ActionController #:nodoc:
   # See docs on the FlashHash class for more details about the flash.
   module Flash
     def self.included(base)
-      base.send :include, InstanceMethods
-
       base.class_eval do
+        include InstanceMethods
         alias_method_chain :assign_shortcuts, :flash
         alias_method_chain :process_cleanup,  :flash
         alias_method_chain :reset_session,    :flash

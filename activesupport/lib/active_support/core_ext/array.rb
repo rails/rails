@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/array/conversions'
-require File.dirname(__FILE__) + '/array/extract_options'
-require File.dirname(__FILE__) + '/array/grouping'
-require File.dirname(__FILE__) + '/array/random_access'
+require 'active_support/core_ext/array/conversions'
+require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/array/grouping'
+require 'active_support/core_ext/array/random_access'
 
 class Array #:nodoc:
   include ActiveSupport::CoreExtensions::Array::Conversions

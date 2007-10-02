@@ -93,16 +93,16 @@ class ExemptFromLayoutTest < Test::Unit::TestCase
   end
 
   def test_rjs_exempt_from_layout
-    assert @controller.send(:template_exempt_from_layout?, 'test.rjs')
+    assert @controller.send!(:template_exempt_from_layout?, 'test.rjs')
   end
 
   def test_rhtml_and_rxml_not_exempt_from_layout
-    assert !@controller.send(:template_exempt_from_layout?, 'test.rhtml')
-    assert !@controller.send(:template_exempt_from_layout?, 'test.rxml')
+    assert !@controller.send!(:template_exempt_from_layout?, 'test.rhtml')
+    assert !@controller.send!(:template_exempt_from_layout?, 'test.rxml')
   end
 
   def test_other_extension_not_exempt_from_layout
-    assert !@controller.send(:template_exempt_from_layout?, 'test.random')
+    assert !@controller.send!(:template_exempt_from_layout?, 'test.random')
   end
 
   def test_add_extension_to_exempt_from_layout
@@ -110,20 +110,20 @@ class ExemptFromLayoutTest < Test::Unit::TestCase
       assert_nothing_raised do
         ActionController::Base.exempt_from_layout ext
       end
-      assert @controller.send(:template_exempt_from_layout?, "test.#{ext}")
+      assert @controller.send!(:template_exempt_from_layout?, "test.#{ext}")
     end
   end
 
   def test_add_regexp_to_exempt_from_layout
     ActionController::Base.exempt_from_layout /\.rdoc/
-    assert @controller.send(:template_exempt_from_layout?, 'test.rdoc')
+    assert @controller.send!(:template_exempt_from_layout?, 'test.rdoc')
   end
 
   def test_rhtml_exempt_from_layout_status_should_prevent_layout_render
     ActionController::Base.exempt_from_layout :rhtml
     
-    assert @controller.send(:template_exempt_from_layout?, 'test.rhtml')
-    assert @controller.send(:template_exempt_from_layout?, 'hello.rhtml')
+    assert @controller.send!(:template_exempt_from_layout?, 'test.rhtml')
+    assert @controller.send!(:template_exempt_from_layout?, 'hello.rhtml')
 
     get :hello
     assert_equal 'hello.rhtml', @response.body

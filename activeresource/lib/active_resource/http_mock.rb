@@ -75,7 +75,7 @@ module ActiveResource
     attr_accessor :path, :method, :body, :headers
 
     def initialize(method, path, body = nil, headers = {})
-      @method, @path, @body, @headers = method, path, body, headers
+      @method, @path, @body, @headers = method, path, body, headers.dup
       @headers.update('Content-Type' => 'application/xml')
     end
 

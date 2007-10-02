@@ -194,8 +194,10 @@ module ActionController #:nodoc:
       private
         def inherited_with_layout(child)
           inherited_without_layout(child)
-          layout_match = child.name.underscore.sub(/_controller$/, '').sub(/^controllers\//, '')
-          child.layout(layout_match, {}, true) unless child.layout_list.grep(%r{layouts/#{layout_match}(\.[a-z][0-9a-z]*)+$}).empty?
+          unless child.name.blank?
+            layout_match = child.name.underscore.sub(/_controller$/, '').sub(/^controllers\//, '')
+            child.layout(layout_match, {}, true) unless child.layout_list.grep(%r{layouts/#{layout_match}(\.[a-z][0-9a-z]*)+$}).empty?
+          end
         end
 
         def add_layout_conditions(conditions)
@@ -230,7 +232,7 @@ module ActionController #:nodoc:
       layout = passed_layout || self.class.default_layout(response.template.template_format)
       active_layout = case layout
         when String then layout
-        when Symbol then send(layout)
+        when Symbol then send!(layout)
         when Proc   then layout.call(self)
       end
       
@@ -316,7 +318,7 @@ module ActionController #:nodoc:
       def layout_directory?(layout_name)
         view_paths.find do |path| 
           next unless template_path = Dir[File.join(path, 'layouts', layout_name) + ".*"].first
-          self.class.send(:layout_directory_exists_cache)[File.dirname(template_path)]
+          self.class.send!(:layout_directory_exists_cache)[File.dirname(template_path)]
         end
       end
   end

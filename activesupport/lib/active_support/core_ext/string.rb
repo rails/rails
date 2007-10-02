@@ -1,9 +1,9 @@
-require File.dirname(__FILE__) + '/string/inflections'
-require File.dirname(__FILE__) + '/string/conversions'
-require File.dirname(__FILE__) + '/string/access'
-require File.dirname(__FILE__) + '/string/starts_ends_with'
-require File.dirname(__FILE__) + '/string/iterators' unless 'test'.respond_to?(:each_char)
-require File.dirname(__FILE__) + '/string/unicode'
+require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/string/conversions'
+require 'active_support/core_ext/string/access'
+require 'active_support/core_ext/string/starts_ends_with'
+require 'active_support/core_ext/string/iterators' unless 'test'.respond_to?(:each_char)
+require 'active_support/core_ext/string/unicode'
 
 class String #:nodoc:
   include ActiveSupport::CoreExtensions::String::Access

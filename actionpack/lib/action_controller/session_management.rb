@@ -8,10 +8,11 @@ end
 module ActionController #:nodoc:
   module SessionManagement #:nodoc:
     def self.included(base)
-      base.extend(ClassMethods)
-      
-      base.send :alias_method_chain, :process, :session_management_support
-      base.send :alias_method_chain, :process_cleanup, :session_management_support
+      base.class_eval do
+        extend ClassMethods
+        alias_method_chain :process, :session_management_support
+        alias_method_chain :process_cleanup, :session_management_support
+      end
     end
 
     module ClassMethods

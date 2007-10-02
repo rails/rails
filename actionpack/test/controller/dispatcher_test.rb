@@ -52,12 +52,12 @@ class DispatcherTest < Test::Unit::TestCase
     Dependencies.stubs(:load?).returns(false)
     ActionController::Routing::Routes.expects(:reload).never
     @dispatcher.unprepared = false
-    @dispatcher.send(:reload_application)
+    @dispatcher.send!(:reload_application)
     assert !@dispatcher.unprepared
 
     Dependencies.stubs(:load?).returns(true)
     ActionController::Routing::Routes.expects(:reload).once
-    @dispatcher.send(:reload_application)
+    @dispatcher.send!(:reload_application)
     assert @dispatcher.unprepared
   end
 
@@ -69,19 +69,19 @@ class DispatcherTest < Test::Unit::TestCase
 
     # Skip the callbacks when already prepared.
     @dispatcher.unprepared = false
-    @dispatcher.send :prepare_application
+    @dispatcher.send! :prepare_application
     assert_nil a || b || c
 
     # Perform the callbacks when unprepared.
     @dispatcher.unprepared = true
-    @dispatcher.send :prepare_application
+    @dispatcher.send! :prepare_application
     assert_equal 1, a
     assert_equal 2, b
     assert_equal 3, c
 
     # But when not :load, make sure they are only run once
     a = b = c = nil
-    @dispatcher.send :prepare_application
+    @dispatcher.send! :prepare_application
     assert_nil a || b || c
   end
 
@@ -91,7 +91,7 @@ class DispatcherTest < Test::Unit::TestCase
     Dispatcher.to_prepare(:unique_id) { a = 2 }
 
     @dispatcher.unprepared = true
-    @dispatcher.send :prepare_application
+    @dispatcher.send! :prepare_application
     assert_equal 2, a
     assert_equal nil, b
   end

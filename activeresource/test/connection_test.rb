@@ -13,7 +13,7 @@ class ConnectionTest < Test::Unit::TestCase
     @people_empty = [ ].to_xml(:root => 'people-empty-elements')
     @matz = @matz.to_xml(:root => 'person')
     @david = @david.to_xml(:root => 'person')
-    @header = {'key' => 'value'}
+    @header = {'key' => 'value'}.freeze
 
     @default_request_headers = { 'Content-Type' => 'application/xml' }
     ActiveResource::HttpMock.respond_to do |mock|
@@ -156,6 +156,6 @@ class ConnectionTest < Test::Unit::TestCase
     end
 
     def handle_response(response)
-      @conn.send(:handle_response, response)
+      @conn.send!(:handle_response, response)
     end
 end

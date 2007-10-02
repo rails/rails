@@ -63,9 +63,9 @@ class HashExtTest < Test::Unit::TestCase
 
     hashes.each do |name, hash|
       method_map.sort_by { |m| m.to_s }.each do |meth, expected|
-        assert_equal(expected, hash.send(meth, 'a'),
+        assert_equal(expected, hash.send!(meth, 'a'),
                      "Calling #{name}.#{meth} 'a'")
-        assert_equal(expected, hash.send(meth, :a),
+        assert_equal(expected, hash.send!(meth, :a),
                      "Calling #{name}.#{meth} :a")
       end
     end
@@ -640,7 +640,7 @@ class HashToXmlTest < Test::Unit::TestCase
   
   def test_empty_string_works_for_typecast_xml_value    
     assert_nothing_raised do
-      Hash.send(:typecast_xml_value, "")
+      Hash.send!(:typecast_xml_value, "")
     end
   end
   

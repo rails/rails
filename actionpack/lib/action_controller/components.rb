@@ -36,20 +36,20 @@ module ActionController #:nodoc:
   # So to repeat: Components are a special-purpose approach that can often be replaced with better use of partials and filters.
   module Components
     def self.included(base) #:nodoc:
-      base.send :include, InstanceMethods
-      base.extend(ClassMethods)
-
-      base.helper do
-        def render_component(options)
-          @controller.send(:render_component_as_string, options)
-        end
-      end
-
-      # If this controller was instantiated to process a component request,
-      # +parent_controller+ points to the instantiator of this controller.
-      base.send :attr_accessor, :parent_controller
-
       base.class_eval do
+        include InstanceMethods
+        extend ClassMethods
+
+        helper do
+          def render_component(options)
+            @controller.send!(:render_component_as_string, options)
+          end
+        end
+
+        # If this controller was instantiated to process a component request,
+        # +parent_controller+ points to the instantiator of this controller.
+        attr_accessor :parent_controller
+
         alias_method_chain :process_cleanup, :components
         alias_method_chain :set_session_options, :components
         alias_method_chain :flash, :components

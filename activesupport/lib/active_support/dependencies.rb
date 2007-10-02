@@ -1,7 +1,7 @@
 require 'set'
-require File.dirname(__FILE__) + '/core_ext/module/attribute_accessors'
-require File.dirname(__FILE__) + '/core_ext/load_error'
-require File.dirname(__FILE__) + '/core_ext/kernel'
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/load_error'
+require 'active_support/core_ext/kernel'
 
 module Dependencies #:nodoc:
   extend self
