@@ -1,3 +1,7 @@
+*SVN*
+
+* Only accept session ids from cookies, prevents session fixation attacks.  [bradediger] 
+
 *2.0.0 [Preview Release]* (September 29th, 2007) [Includes duplicates of changes from 1.12.2 - 1.13.3]
 
 * Fixed that render template did not honor exempt_from_layout #9698 [pezra]
