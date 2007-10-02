@@ -1,8 +1,8 @@
 *SVN*
 
+* Only accept session ids from cookies, prevents session fixation attacks.  [bradediger]
+
 * Change the resource seperator from ; to / change the generated routes to use the new-style named routes.  e.g.  new_group_user_path(@group) instead of group_new_user_path(@group). [pixeltrix]
-
-
 
 * Integration tests: introduce methods for other HTTP methods.  #6353 [caboose]
 
