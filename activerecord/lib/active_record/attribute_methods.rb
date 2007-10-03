@@ -76,18 +76,11 @@ module ActiveRecord
         end
       end
 
-      def instance_method_already_defined?(method_name)
-        method_defined?(method_name) || 
-          private_method_defined?(method_name) ||
-          protected_method_defined?(method_name)
-      end
-      
       def instance_method_already_implemented?(method_name)
-        if instance_method_already_defined?(method_name) 
-          # method is defined but maybe its a simple library or kernel method
-          # which we could simply override:
-          @@_overrideable_method_names ||= Set.new(Object.instance_methods + Kernel.methods)
-          @@_overrideable_method_names.include?(method_name) ? false : true
+        if method_defined?(method_name) || private_method_defined?(method_name) || protected_method_defined?(method_name)
+          # method is defined but maybe its a simple Kernel:: method which we could simply override
+          @@_overrideable_kernel_methods ||= Set.new(Kernel.methods)
+          !@@_overrideable_kernel_methods.include?(method_name)
         else
           false
         end
