@@ -1,5 +1,9 @@
 *SVN*
 
+* Add a new rake task to aid debugging of named routes.  
+
+  rake routes
+
 * use Gem.find_name instead of search when freezing gems.  Prevent false positives for other gems with rails in the name. Closes #8729 [wselman]
 
 * Fix syntax error in dispatcher than wrecked failsafe responses.  #8625 [mtitorenko]
