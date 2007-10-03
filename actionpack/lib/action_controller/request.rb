@@ -205,6 +205,15 @@ module ActionController
       parts[0..-(tld_length+2)]
     end
 
+    # Return the query string, accounting for server idiosyncracies.
+    def query_string
+      if uri = @env['REQUEST_URI']
+        uri.split('?', 2)[1] || ''
+      else
+        @env['QUERY_STRING'] || ''
+      end
+    end
+
     # Return the request URI, accounting for server idiosyncracies.
     # WEBrick includes the full URL. IIS leaves REQUEST_URI blank.
     def request_uri
