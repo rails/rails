@@ -485,6 +485,7 @@ module ActionController #:nodoc:
         end
       end
 
+    begin
       require_library_or_gem 'memcache'
       class MemCacheStore < MemoryStore #:nodoc:
         attr_reader :addresses
@@ -497,6 +498,9 @@ module ActionController #:nodoc:
           @data = MemCache.new(*addresses)
         end
       end
+    rescue LoadError
+      # MemCache wasn't available so neither can the store be
+    end
 
       class UnthreadedFileStore #:nodoc:
         attr_reader :cache_path
