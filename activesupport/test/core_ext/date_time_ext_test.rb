@@ -186,9 +186,9 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal '1880-02-28T15:15:10Z', DateTime.civil(1880, 2, 28, 15, 15, 10).xmlschema
     assert_equal '1980-02-28T15:15:10Z', DateTime.civil(1980, 2, 28, 15, 15, 10).xmlschema
     assert_equal '2080-02-28T15:15:10Z', DateTime.civil(2080, 2, 28, 15, 15, 10).xmlschema
-    assert_equal '1880-02-28T15:15:10-06:00', DateTime.civil(1880, 2, 28, 15, 15, 10, -0.25).xmlschema
-    assert_equal '1980-02-28T15:15:10-06:00', DateTime.civil(1980, 2, 28, 15, 15, 10, -0.25).xmlschema
-    assert_equal '2080-02-28T15:15:10-06:00', DateTime.civil(2080, 2, 28, 15, 15, 10, -0.25).xmlschema
+    assert_match(/^1880-02-28T15:15:10-06:?00$/, DateTime.civil(1880, 2, 28, 15, 15, 10, -0.25).xmlschema)
+    assert_match(/^1980-02-28T15:15:10-06:?00$/, DateTime.civil(1980, 2, 28, 15, 15, 10, -0.25).xmlschema)
+    assert_match(/^2080-02-28T15:15:10-06:?00$/, DateTime.civil(2080, 2, 28, 15, 15, 10, -0.25).xmlschema)
   end
 
   def test_acts_like_time

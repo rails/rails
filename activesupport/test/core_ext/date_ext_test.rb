@@ -165,9 +165,9 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   
   def test_xmlschema
     with_timezone 'US/Eastern' do
-      assert_equal '1880-06-28T00:00:00-04:00', Date.new(1880, 6, 28).xmlschema
-      assert_equal '1980-06-28T00:00:00-04:00', Date.new(1980, 6, 28).xmlschema
-      assert_equal '2080-06-28T00:00:00-04:00', Date.new(2080, 6, 28).xmlschema
+      assert_match(/^1880-06-28T00:00:00-04:?00$/, Date.new(1880, 6, 28).xmlschema)
+      assert_match(/^1980-06-28T00:00:00-04:?00$/, Date.new(1980, 6, 28).xmlschema)
+      assert_match(/^2080-06-28T00:00:00-04:?00$/, Date.new(2080, 6, 28).xmlschema)
     end
   end
 
