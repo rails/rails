@@ -907,6 +907,11 @@ module ActiveRecord #:nodoc:
         end
       end
 
+      def finder_needs_type_condition? #:nodoc:
+        # This is like this because benchmarking justifies the strange :false stuff
+        :true == (@finder_needs_type_condition ||= descends_from_active_record? ? :false : :true)
+      end
+
       # Returns a string like 'Post id:integer, title:string, body:text'
       def inspect
         if self == Base
@@ -1199,9 +1204,9 @@ module ActiveRecord #:nodoc:
           segments = []
           segments << sanitize_sql(scope[:conditions]) if scope && !scope[:conditions].blank?
           segments << sanitize_sql(conditions) unless conditions.blank?
-          segments << type_condition unless descends_from_active_record?
-          segments.compact!
-          sql << "WHERE (#{segments.join(") AND (")}) " unless segments.all?(&:blank?)
+          segments << type_condition if finder_needs_type_condition?
+          segments.delete_if{|s| s.blank?}
+          sql << "WHERE (#{segments.join(") AND (")}) " unless segments.empty?
         end
 
         def type_condition
