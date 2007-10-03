@@ -256,11 +256,6 @@ module ActionController
     mattr_accessor :controller_paths
     self.controller_paths = []
     
-    # Indicates whether or not optimise the generated named
-    # route helper methods
-    mattr_accessor :optimise_named_routes
-    self.optimise_named_routes = true
-    
     # A helper module to hold URL related helpers.
     module Helpers
       include PolymorphicRoutes
@@ -342,7 +337,7 @@ module ActionController
       # Indicates whether the routes should be optimised with the string interpolation
       # version of the named routes methods.
       def optimise?
-        @optimise && ActionController::Routing::optimise_named_routes
+        @optimise && ActionController::Base::optimise_named_routes
       end
       
       def segment_keys
@@ -718,8 +713,8 @@ module ActionController
         s << "\n#{expiry_statement}"
       end
   
-      def interpolation_chunk(value_code = "#{local_name}.to_s")
-        "\#{URI.escape(#{value_code}, ActionController::Routing::Segment::UNSAFE_PCHAR)}"
+      def interpolation_chunk(value_code = "#{local_name}")
+        "\#{URI.escape(#{value_code}.to_s, ActionController::Routing::Segment::UNSAFE_PCHAR)}"
       end
   
       def string_structure(prior_segments)
@@ -776,8 +771,8 @@ module ActionController
       end
 
       # Don't URI.escape the controller name since it may contain slashes.
-      def interpolation_chunk(value_code = "#{local_name}.to_s")
-        "\#{#{value_code}}"
+      def interpolation_chunk(value_code = "#{local_name}")
+        "\#{#{value_code}.to_s}"
       end
 
       # Make sure controller names like Admin/Content are correctly normalized to
@@ -799,8 +794,8 @@ module ActionController
       RESERVED_PCHAR = "#{Segment::RESERVED_PCHAR}/"
       UNSAFE_PCHAR = Regexp.new("[^#{URI::REGEXP::PATTERN::UNRESERVED}#{RESERVED_PCHAR}]", false, 'N').freeze
 
-      def interpolation_chunk(value_code = "#{local_name}.to_s")
-        "\#{URI.escape(#{value_code}, ActionController::Routing::PathSegment::UNSAFE_PCHAR)}"
+      def interpolation_chunk(value_code = "#{local_name}")
+        "\#{URI.escape(#{value_code}.to_s, ActionController::Routing::PathSegment::UNSAFE_PCHAR)}"
       end
 
       def default

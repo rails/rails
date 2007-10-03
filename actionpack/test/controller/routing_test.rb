@@ -48,7 +48,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   attr_reader :rs
   def setup
     # These tests assume optimisation is on, so re-enable it.
-    ActionController::Routing.optimise_named_routes = true
+    ActionController::Base.optimise_named_routes = true
 
     @rs = ::ActionController::Routing::RouteSet.new
     @rs.draw {|m| m.connect ':controller/:action/:id' }
@@ -850,6 +850,11 @@ class DynamicSegmentTest < Test::Unit::TestCase
   def test_interpolation_chunk_should_replace_value
     a_value = 'Hi'
     assert_equal a_value, eval(%("#{segment.interpolation_chunk}"))
+  end
+  
+  def test_interpolation_chunk_should_accept_nil
+    a_value = nil
+    assert_equal '', eval(%("#{segment.interpolation_chunk('a_value')}"))
   end
   
   def test_value_regexp_should_be_nil_without_regexp

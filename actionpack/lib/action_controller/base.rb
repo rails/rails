@@ -329,7 +329,12 @@ module ActionController #:nodoc:
     
     # Sets the token parameter name for RequestForgery.  Calling #protect_from_forgery sets it to :authenticity_token by default
     cattr_accessor :request_forgery_protection_token
-    
+
+    # Indicates whether or not optimise the generated named
+    # route helper methods
+    cattr_accessor :optimise_named_routes
+    self.optimise_named_routes = true
+
     # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
     class_inheritable_accessor :allow_forgery_protection
     self.allow_forgery_protection = true

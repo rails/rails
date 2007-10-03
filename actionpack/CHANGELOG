@@ -1,5 +1,11 @@
 *SVN*
 
+* Move ActionController::Routing.optimise_named_routes to ActionController::Base.optimise_named_routes.  Now you can set it in the config. [Rick]
+
+  config.action_controller.optimise_named_routes = false
+
+* ActionController::Routing::DynamicSegment#interpolation_chunk should call #to_s on all values before calling URI.escape.  [Rick]
+
 * Only accept session ids from cookies, prevents session fixation attacks.  [bradediger] 
 
 *2.0.0 [Preview Release]* (September 29th, 2007) [Includes duplicates of changes from 1.12.2 - 1.13.3]
