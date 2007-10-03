@@ -1,5 +1,7 @@
 *SVN*
 
+* BufferedLogger#auto_flushing = N flushes the log every N messages. Buffers with an array instead of string.  [Jeremy Kemper]
+
 * Fixed Date#xmlschema for dates outside the range of what can be created with Time #9744 [gbuesing]
 
 

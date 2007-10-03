@@ -29,13 +29,14 @@ module ActiveSupport
       end
     end
 
-    attr_accessor :level, :auto_flushing
+    attr_accessor :level
+    attr_reader :auto_flushing
     attr_reader :buffer
 
     def initialize(log, level = DEBUG)
       @level         = level
-      @buffer        = ""
-      @auto_flushing = true
+      @buffer        = []
+      @auto_flushing = 1
 
       if log.respond_to?(:write)
         @log = log
@@ -56,7 +57,7 @@ module ActiveSupport
       # Ensures that the original message is not mutated.
       message = "#{message}\n" unless message[-1] == ?\n
       @buffer << message
-      flush if auto_flushing
+      auto_flush if auto_flushing
       message
     end
 
@@ -72,9 +73,25 @@ module ActiveSupport
       EOT
     end
 
+    # Set the auto-flush period. Set to true to flush after every log message,
+    # to an integer to flush every N messages, or to false, nil, or zero to
+    # never auto-flush. If you turn auto-flushing off, be sure to regularly
+    # flush the log yourself -- it will eat up memory until you do.
+    def auto_flushing=(period)
+      case period
+      when true
+        @auto_flushing = 1
+      when 0
+        @auto_flushing = false
+      when false, nil, Integer
+        @auto_flushing = period
+      else
+        raise ArgumentError, "Unrecognized auto_flushing period: #{period.inspect}"
+      end
+    end
+
     def flush
-      return if @buffer.size == 0
-      @log.write(@buffer.slice!(0..-1))
+      @log.write(@buffer.slice!(0..-1)) unless @buffer.empty?
     end
 
     def close
@@ -82,5 +99,10 @@ module ActiveSupport
       @log.close if @log.respond_to?(:close)
       @log = nil
     end
+
+    protected
+      def auto_flush
+        flush if @buffer.size >= @auto_flushing
+      end
   end
 end
