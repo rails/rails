@@ -9,7 +9,7 @@
 
 begin
   require 'cgi/session'
-  require 'memcache'
+  require_library_or_gem 'memcache'
 
   class CGI
     class Session

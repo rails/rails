@@ -485,6 +485,7 @@ module ActionController #:nodoc:
         end
       end
 
+      require_library_or_gem 'memcache'
       class MemCacheStore < MemoryStore #:nodoc:
         attr_reader :addresses
 
