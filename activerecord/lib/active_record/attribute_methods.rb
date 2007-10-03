@@ -58,7 +58,7 @@ module ActiveRecord
       def define_attribute_methods
         return if generated_methods?
         columns_hash.each do |name, column|
-          unless instance_method_already_defined?(name)
+          unless instance_method_already_implemented?(name)
             if self.serialized_attributes[name]
               define_read_method_for_serialized_attribute(name)
             else
@@ -66,11 +66,11 @@ module ActiveRecord
             end
           end
 
-          unless instance_method_already_defined?("#{name}=")
+          unless instance_method_already_implemented?("#{name}=")
             define_write_method(name.to_sym)
           end
 
-          unless instance_method_already_defined?("#{name}?")
+          unless instance_method_already_implemented?("#{name}?")
             define_question_method(name)
           end
         end
@@ -81,7 +81,18 @@ module ActiveRecord
           private_method_defined?(method_name) ||
           protected_method_defined?(method_name)
       end
-
+      
+      def instance_method_already_implemented?(method_name)
+        if instance_method_already_defined?(method_name) 
+          # method is defined but maybe its a simple library or kernel method
+          # which we could simply override:
+          @@_overrideable_method_names ||= Set.new(Object.instance_methods + Kernel.methods)
+          @@_overrideable_method_names.include?(method_name) ? false : true
+        else
+          false
+        end
+      end
+      
       alias :define_read_methods :define_attribute_methods
 
 
