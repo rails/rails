@@ -71,6 +71,19 @@ class BufferedLoggerTest < Test::Unit::TestCase
       @logger.flush
       assert !@output.string.empty?, @logger.buffer.size
     end
+
+    define_method "test_disabling_auto_flush_with_#{disable.inspect}_should_flush_at_max_buffer_size_as_failsafe" do
+      @logger.auto_flushing = disable
+      assert_equal ActiveSupport::BufferedLogger::MAX_BUFFER_SIZE, @logger.auto_flushing
+
+      (ActiveSupport::BufferedLogger::MAX_BUFFER_SIZE - 1).times do
+        @logger.info 'wait for it..'
+        assert @output.string.empty?, @output.string
+      end
+
+      @logger.info 'there it is.'
+      assert !@output.string.empty?, @logger.buffer.size
+    end
   end
 
   def test_should_auto_flush_every_n_messages

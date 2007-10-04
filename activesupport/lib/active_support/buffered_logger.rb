@@ -11,6 +11,8 @@ module ActiveSupport
     end
     include Severity
 
+    MAX_BUFFER_SIZE = 1000
+
     # Set to false to disable the silencer
     cattr_accessor :silencer
     self.silencer = true
@@ -57,7 +59,7 @@ module ActiveSupport
       # Ensures that the original message is not mutated.
       message = "#{message}\n" unless message[-1] == ?\n
       @buffer << message
-      auto_flush if auto_flushing
+      auto_flush
       message
     end
 
@@ -78,16 +80,13 @@ module ActiveSupport
     # never auto-flush. If you turn auto-flushing off, be sure to regularly
     # flush the log yourself -- it will eat up memory until you do.
     def auto_flushing=(period)
-      case period
-      when true
-        @auto_flushing = 1
-      when 0
-        @auto_flushing = false
-      when false, nil, Integer
-        @auto_flushing = period
-      else
-        raise ArgumentError, "Unrecognized auto_flushing period: #{period.inspect}"
-      end
+      @auto_flushing =
+        case period
+        when true;                1
+        when false, nil, 0;       MAX_BUFFER_SIZE
+        when Integer;             period
+        else raise ArgumentError, "Unrecognized auto_flushing period: #{period.inspect}"
+        end
     end
 
     def flush

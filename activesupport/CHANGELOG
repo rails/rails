@@ -2,7 +2,7 @@
 
 * Hash#to_json takes :only or :except options to specific or omit certain hash keys. Enumerable#to_json passes through its options to each element.  #9751 [Chu Yeow]
 
-* BufferedLogger#auto_flushing = N flushes the log every N messages. Buffers with an array instead of string.  [Jeremy Kemper]
+* BufferedLogger#auto_flushing = N flushes the log every N messages. Buffers with an array instead of string. Disabling auto_flushing still flushes when the buffer hits a maximum size, as a failsafe against memory-gobbling.  [Jeremy Kemper]
 
 * Fixed Date#xmlschema for dates outside the range of what can be created with Time #9744 [Geoff Buesing]
 
