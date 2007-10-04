@@ -1,8 +1,10 @@
 *SVN*
 
+* Hash#to_json takes :only or :except options to specific or omit certain hash keys. Enumerable#to_json passes through its options to each element.  #9751 [Chu Yeow]
+
 * BufferedLogger#auto_flushing = N flushes the log every N messages. Buffers with an array instead of string.  [Jeremy Kemper]
 
-* Fixed Date#xmlschema for dates outside the range of what can be created with Time #9744 [gbuesing]
+* Fixed Date#xmlschema for dates outside the range of what can be created with Time #9744 [Geoff Buesing]
 
 
 *2.0.0 [Preview Release]* (September 29th, 2007)

@@ -69,8 +69,29 @@ class TestJSONEncoding < Test::Unit::TestCase
     assert_equal %w( "$" "A" "A0" "A0B" "_" "a" 0 1 ), object_keys(values.to_json)
   end
 
+  def test_hash_should_allow_key_filtering_with_only
+    assert_equal %({"a": 1}), { 'a' => 1, :b => 2, :c => 3 }.to_json(:only => 'a')
+  end
+
+  def test_hash_should_allow_key_filtering_with_except
+    assert_equal %({"b": 2}), { 'foo' => 'bar', :b => 2, :c => 3 }.to_json(:except => ['foo', :c])
+  end
+
   protected
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
     end
+end
+
+uses_mocha 'JsonOptionsTests' do
+  class JsonOptionsTests < Test::Unit::TestCase
+    def test_enumerable_should_passthrough_options_to_elements
+      json_options = { :include => :posts }
+      ActiveSupport::JSON.expects(:encode).with(1, json_options)
+      ActiveSupport::JSON.expects(:encode).with(2, json_options)
+      ActiveSupport::JSON.expects(:encode).with('foo', json_options)
+
+      [1, 2, 'foo'].to_json(json_options)
+    end
+  end
 end

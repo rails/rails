@@ -1,6 +1,6 @@
 module ActiveRecord #:nodoc:
   module Serialization
-    def to_json(options = {}, &block)
+    def to_json(options = {})
       JsonSerializer.new(self, options).to_s
     end
 

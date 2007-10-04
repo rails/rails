@@ -68,11 +68,12 @@ class DatabaseConnectedJsonEncodingTest < Test::Unit::TestCase
 
   def setup
     @david = authors(:david)
+    @mary = authors(:mary)
   end
 
   def test_includes_uses_association_name
     json = @david.to_json(:include => :posts)
-    
+
     assert_match %r{"posts": \[}, json
 
     assert_match %r{"id": 1}, json
@@ -139,5 +140,38 @@ class DatabaseConnectedJsonEncodingTest < Test::Unit::TestCase
     assert !@david.posts.first.respond_to?(:favorite_quote)
     assert_match %r{"favorite_quote": "Constraints are liberating"}, json
     assert_equal %r{"favorite_quote": }.match(json).size, 1
+  end
+
+  def test_should_allow_only_option_for_list_of_authors
+    authors = [@david, @mary]
+
+    assert_equal %([{"name": "David"}, {"name": "Mary"}]), authors.to_json(:only => :name)
+  end
+
+  def test_should_allow_except_option_for_list_of_authors
+    authors = [@david, @mary]
+
+    assert_equal %([{"id": 1}, {"id": 2}]), authors.to_json(:except => [:name, :author_address_id])
+  end
+
+  def test_should_allow_includes_for_list_of_authors
+    authors = [@david, @mary]
+    json = authors.to_json(
+      :only => :name,
+      :include => {
+        :posts => { :only => :id }
+      }
+    )
+
+    assert_equal %([{"name": "David", "posts": [{"id": 1}, {"id": 2}, {"id": 4}, {"id": 5}, {"id": 6}]}, {"name": "Mary", "posts": [{"id": 7}]}]), json
+  end
+
+  def test_should_allow_options_for_hash_of_authors
+    authors_hash = {
+      1 => @david,
+      2 => @mary
+    }
+
+    assert_equal %({1: {"name": "David"}}), authors_hash.to_json(:only => [1, :name])
   end
 end

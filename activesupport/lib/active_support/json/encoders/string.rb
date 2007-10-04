@@ -17,7 +17,7 @@ module ActiveSupport
 end
 
 class String
-  def to_json #:nodoc:
+  def to_json(options = nil) #:nodoc:
     '"' + gsub(/[\010\f\n\r\t"\\><]/) { |s|
       ActiveSupport::JSON::Encoding::ESCAPED_CHARS[s]
     }.gsub(/([\xC0-\xDF][\x80-\xBF]|
