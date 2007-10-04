@@ -152,6 +152,9 @@ module Rails
     # ActionPack, ActionMailer, and ActiveResource) are loaded.
     def require_frameworks
       configuration.frameworks.each { |framework| require(framework.to_s) }
+    rescue LoadError => e
+      # re-raise because Mongrel would swallow it
+      raise e.to_s
     end
 
     # Add the load paths used by support functions such as the info controller
@@ -545,16 +548,14 @@ module Rails
     end
 
     def framework_paths
-      # TODO: Don't include dirs for frameworks that are not used
-      %w(
-        railties
-        railties/lib
-        actionpack/lib
-        activesupport/lib
-        activerecord/lib
-        activeresource/lib
-        actionmailer/lib
-      ).map { |dir| "#{framework_root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+      paths = %w(railties railties/lib activesupport/lib)
+      paths << 'actionpack/lib' if frameworks.include? :action_controller or frameworks.include? :action_view
+      
+      [:active_record, :action_mailer, :active_resource, :action_web_service].each do |framework|
+        paths << "#{framework.to_s.gsub('_', '')}/lib" if frameworks.include? framework
+      end
+      
+      paths.map { |dir| "#{framework_root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
     end
 
     private

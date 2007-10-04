@@ -82,3 +82,56 @@ class Initializer_after_initialize_with_no_block_environment_Test < Test::Unit::
   end
 
 end
+
+uses_mocha 'framework paths' do
+  class ConfigurationFrameworkPathsTests < Test::Unit::TestCase
+    def setup
+      @config = Rails::Configuration.new
+      @config.frameworks.clear
+      
+      File.stubs(:directory?).returns(true)
+      @config.stubs(:framework_root_path).returns('')
+    end
+
+    def test_minimal
+      expected = %w(
+        /railties
+        /railties/lib
+        /activesupport/lib
+      )
+      assert_equal expected, @config.framework_paths
+    end
+
+    def test_actioncontroller_or_actionview_add_actionpack
+      @config.frameworks << :action_controller
+      assert_framework_path '/actionpack/lib'
+      
+      @config.frameworks = [:action_view]
+      assert_framework_path '/actionpack/lib'
+    end
+
+    def test_paths_for_ar_ares_and_mailer
+      [:active_record, :action_mailer, :active_resource, :action_web_service].each do |framework|
+        @config.frameworks = [framework]
+        assert_framework_path "/#{framework.to_s.gsub('_', '')}/lib"
+      end
+    end
+
+    def test_unknown_framework_raises_error
+      @config.frameworks << :action_foo
+      initializer = Rails::Initializer.new @config
+      initializer.expects(:require).raises(LoadError)
+
+      assert_raise RuntimeError do
+        initializer.send :require_frameworks
+      end
+    end
+
+    protected
+
+      def assert_framework_path(path)
+        assert @config.framework_paths.include?(path),
+          "<#{path.inspect}> not found among <#{@config.framework_paths.inspect}>"
+      end
+  end
+end
