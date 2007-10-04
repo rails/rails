@@ -1,3 +1,8 @@
+*SVN*
+
+* Try loading activerecord-<adaptername>-adapter gem before trying a plain require so you can use custom gems for the bundled adapters. Also stops gems from requiring an adapter from an old Active Record gem.  [Jeremy Kemper, Derrick Spell]
+
+
 *2.0.0 [Preview Release]* (September 29th, 2007) [Includes duplicates of changes from 1.14.2 - 1.15.3]
 
 * Add attr_readonly to specify columns that are skipped during a normal ActiveRecord #save operation. Closes #6896 [dcmanges]
