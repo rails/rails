@@ -1,4 +1,4 @@
-*SVN*
+*1.15.4* (October 4th, 2007)
 
 * Fix #count on a has_many :through association so that it recognizes the :uniq option. Closes #8801 [lifofifo]
 
