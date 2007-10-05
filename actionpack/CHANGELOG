@@ -1,4 +1,4 @@
-*SVN*
+*1.13.4* (October 4th, 2007)
 
 * Only accept session ids from cookies, prevents session fixation attacks.  [bradediger]
 

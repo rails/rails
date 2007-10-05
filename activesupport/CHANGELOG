@@ -1,4 +1,4 @@
-*SVN*
+*1.4.3* (October 4th, 2007)
 
 * Demote Hash#to_xml to use XmlSimple#xml_in_string so it can't read files or stdin.  #8453 [candlerb, Jeremy Kemper]
 
