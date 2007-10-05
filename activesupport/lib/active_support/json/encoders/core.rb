@@ -23,12 +23,14 @@ module ActiveSupport
         "\n" =>    '\n',
         "\r" =>    '\r',
         "\t" =>    '\t',
-        '"' =>     '\"',
-        '\\' =>    '\\\\'
+        '"'  =>    '\"',
+        '\\' =>    '\\\\',
+        '<'  =>    '\\074',
+        '>'  =>    '\\076'
       }
       
       define_encoder String do |string|
-        '"' + string.gsub(/[\010\f\n\r\t"\\]/) { |s|
+        '"' + string.gsub(/[\010\f\n\r\t"\\<>]/) { |s|
           ESCAPED_CHARS[s]
         }.gsub(/([\xC0-\xDF][\x80-\xBF]|
                  [\xE0-\xEF][\x80-\xBF]{2}|

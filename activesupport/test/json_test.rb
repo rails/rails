@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/abstract_unit'
 
-class Foo
+class JsonFoo
   def initialize(a, b)
     @a, @b = a, b
   end
@@ -14,7 +14,7 @@ class TestJSONEmitters < Test::Unit::TestCase
                    [ 2.5,   %(2.5)   ]]
 
   StringTests   = [[ 'this is the string',     %("this is the string")         ],
-                   [ 'a "string" with quotes', %("a \\"string\\" with quotes") ]]
+                   [ 'a "string" with quotes<script>', %("a \\"string\\" with quotes\\074script\\076") ]]
 
   ArrayTests    = [[ ['a', 'b', 'c'],          %([\"a\", \"b\", \"c\"])          ],
                    [ [1, 'a', :b, nil, false], %([1, \"a\", \"b\", null, false]) ]]
@@ -23,7 +23,7 @@ class TestJSONEmitters < Test::Unit::TestCase
                    [ :this,  %("this") ],
                    [ :"a b", %("a b")  ]]
 
-  ObjectTests   = [[ Foo.new(1, 2), %({\"a\": 1, \"b\": 2}) ]]
+  ObjectTests   = [[ JsonFoo.new(1, 2), %({\"a\": 1, \"b\": 2}) ]]
 
   VariableTests = [[ ActiveSupport::JSON::Variable.new('foo'), 'foo'],
                    [ ActiveSupport::JSON::Variable.new('alert("foo")'), 'alert("foo")']]
@@ -71,8 +71,18 @@ class TestJSONEmitters < Test::Unit::TestCase
   
   def test_unquote_hash_key_identifiers
     values = {0 => 0, 1 => 1, :_ => :_, "$" => "$", "a" => "a", :A => :A, :A0 => :A0, "A0B" => "A0B"}    
-    assert_equal %({"a": "a", 0: 0, "_": "_", 1: 1, "$": "$", "A": "A", "A0B": "A0B", "A0": "A0"}), values.to_json
-    unquote(true) { assert_equal %({a: "a", 0: 0, _: "_", 1: 1, $: "$", A: "A", A0B: "A0B", A0: "A0"}), values.to_json }
+    
+    assert_equal %({"a": "a"}), {"a"=>"a"}.to_json
+    assert_equal %({0: 0}),   { 0 => 0 }.to_json
+    assert_equal %({"_": "_"}), {:_ =>:_ }.to_json
+    assert_equal %({"$": "$"}), {"$"=>"$"}.to_json
+    
+    unquote(true) do
+      assert_equal %({a: "a"}), {"a"=>"a"}.to_json
+      assert_equal %({0: 0}),   { 0 => 0 }.to_json
+      assert_equal %({_: "_"}), {:_ =>:_ }.to_json
+      assert_equal %({$: "$"}), {"$"=>"$"}.to_json
+    end
   end
   
   protected
