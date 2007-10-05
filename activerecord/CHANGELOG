@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't call attr_readonly on polymorphic belongs_to associations, in case it matches the name of some other non-ActiveRecord class/module.  [Rick]
+
 * Try loading activerecord-<adaptername>-adapter gem before trying a plain require so you can use custom gems for the bundled adapters. Also stops gems from requiring an adapter from an old Active Record gem.  [Jeremy Kemper, Derrick Spell]
 
 
