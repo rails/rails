@@ -260,12 +260,12 @@ desc "Generate documentation for the framework and for the empty application"
 task :generate_documentation => [ :generate_app_doc, :generate_rails_framework_doc ]
 
 task :generate_rails_framework_doc do
-  system %{cd #{PKG_DESTINATION}; rake apidoc}
+  system %{cd #{PKG_DESTINATION}; rake doc:rails}
 end
 
 task :generate_app_doc do
   File.cp "doc/README_FOR_APP", "#{PKG_DESTINATION}/doc/README_FOR_APP"
-  system %{cd #{PKG_DESTINATION}; rake appdoc}
+  system %{cd #{PKG_DESTINATION}; rake doc:app}
 end
 
 Rake::RDocTask.new { |rdoc|
