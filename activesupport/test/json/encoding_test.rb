@@ -29,9 +29,9 @@ class TestJSONEncoding < Test::Unit::TestCase
                    [ ActiveSupport::JSON::Variable.new('alert("foo")'), 'alert("foo")']]
   RegexpTests   = [[ /^a/, '/^a/' ], [/^\w{1,2}[a-z]+/ix, '/^\\w{1,2}[a-z]+/ix']]
 
-  DateTests     = [[ Date.new(2005,1,1), %("01/01/2005") ]]
-  TimeTests     = [[ Time.at(0), %("#{Time.at(0).strftime('%m/%d/%Y %H:%M:%S %Z')}") ]]
-  DateTimeTests = [[ DateTime.new(0), %("#{DateTime.new(0).strftime('%m/%d/%Y %H:%M:%S %Z')}") ]]
+  DateTests     = [[ Date.new(2005,2,1), %("2005/02/01") ]]
+  TimeTests     = [[ Time.utc(2005,2,1,15,15,10), %("2005/02/01 15:15:10 +0000") ]]
+  DateTimeTests = [[ DateTime.civil(2005,2,1,15,15,10), %("2005/02/01 15:15:10 +0000") ]]
 
   constants.grep(/Tests$/).each do |class_tests|
     define_method("test_#{class_tests[0..-6].downcase}") do
