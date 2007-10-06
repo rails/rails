@@ -719,7 +719,9 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
   private
     def process(name)
       File.open(File.join(FIXTURE_PATH, name), 'rb') do |file|
-        ActionController::AbstractRequest.parse_multipart_form_parameters(file, 'AaB03x', file.stat.size, {})
+        params = ActionController::AbstractRequest.parse_multipart_form_parameters(file, 'AaB03x', file.stat.size, {})
+        assert_equal 0, file.pos  # file was rewound after reading
+        params
       end
     end
 end

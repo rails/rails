@@ -598,6 +598,7 @@ module ActionController
           end
           raise EOFError, "bad boundary end of body part" unless boundary_end=~/--/
 
+          body.rewind if body.respond_to?(:rewind)
           params
         end
     end
