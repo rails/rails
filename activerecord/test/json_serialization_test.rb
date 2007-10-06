@@ -163,7 +163,10 @@ class DatabaseConnectedJsonEncodingTest < Test::Unit::TestCase
       }
     )
 
-    assert_equal %([{"name": "David", "posts": [{"id": 1}, {"id": 2}, {"id": 4}, {"id": 5}, {"id": 6}]}, {"name": "Mary", "posts": [{"id": 7}]}]), json
+    ['"name": "David"', '"posts": [', '{"id": 1}', '{"id": 2}', '{"id": 4}',
+     '{"id": 5}', '{"id": 6}', '"name": "Mary"', '"posts": [{"id": 7}]'].each do |fragment|
+      assert json.include?(fragment), json
+     end
   end
 
   def test_should_allow_options_for_hash_of_authors
