@@ -309,3 +309,10 @@ CREATE TABLE mixed_case_monkeys (
 go
 CREATE PRIMARY KEY mixed_case_monkeys (monkeyID)
 go
+
+CREATE TABLE minimalistics (
+  id INTEGER NOT NULL DEFAULT _rowid
+);
+go
+CREATE PRIMARY KEY minimalistics (id)
+go

@@ -1968,9 +1968,11 @@ module ActiveRecord #:nodoc:
       # Updates the associated record with values matching those of the instance attributes.
       # Returns the number of affected rows.
       def update
+        quoted_attributes = attributes_with_quotes(false, false)
+        return 0 if quoted_attributes.empty?
         connection.update(
           "UPDATE #{self.class.table_name} " +
-          "SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false, false))} " +
+          "SET #{quoted_comma_pair_list(connection, quoted_attributes)} " +
           "WHERE #{connection.quote_column_name(self.class.primary_key)} = #{quote_value(id)}",
           "#{self.class.name} Update"
         )
@@ -1983,13 +1985,18 @@ module ActiveRecord #:nodoc:
           self.id = connection.next_sequence_value(self.class.sequence_name)
         end
 
-        self.id = connection.insert(
+        quoted_attributes = attributes_with_quotes
+
+        statement = if quoted_attributes.empty?
+          connection.empty_insert_statement(self.class.table_name)
+        else
           "INSERT INTO #{self.class.table_name} " +
           "(#{quoted_column_names.join(', ')}) " +
-          "VALUES(#{attributes_with_quotes.values.join(', ')})",
-          "#{self.class.name} Create",
-          self.class.primary_key, self.id, self.class.sequence_name
-        )
+          "VALUES(#{quoted_attributes.values.join(', ')})"
+        end
+
+        self.id = connection.insert(statement, "#{self.class.name} Create",
+          self.class.primary_key, self.id, self.class.sequence_name)
 
         @new_record = false
         id

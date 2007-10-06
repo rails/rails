@@ -241,3 +241,7 @@ CREATE TABLE mixed_case_monkeys (
   [monkeyID] int NOT NULL IDENTITY(1, 1),
   [fleaCount] int default NULL
 );
+
+CREATE TABLE minimalistics (
+  id int NOT NULL IDENTITY(1, 1) PRIMARY KEY
+);

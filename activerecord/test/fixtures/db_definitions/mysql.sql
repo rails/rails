@@ -232,3 +232,7 @@ CREATE TABLE mixed_case_monkeys (
  `fleaCount` int(11),
  PRIMARY KEY (`monkeyID`)
 ) TYPE=InnoDB;
+
+CREATE TABLE `minimalistics` (
+  `id` INTEGER NOT NULL auto_increment PRIMARY KEY
+);

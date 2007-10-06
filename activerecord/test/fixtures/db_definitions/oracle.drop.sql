@@ -31,6 +31,7 @@ drop table keyboards;
 drop table legacy_things;
 drop table numeric_data;
 drop table mixed_case_monkeys;
+drop table minimalistics;
 
 drop sequence accounts_seq;
 drop sequence funny_jokes_seq;
@@ -63,3 +64,4 @@ drop sequence keyboards_seq;
 drop sequence legacy_things_seq;
 drop sequence numeric_data_seq;
 drop sequence mixed_case_monkeys_seq;
+drop sequence minimalistics_seq;

@@ -31,6 +31,7 @@ DROP TABLE defaults;
 DROP TABLE legacy_things;
 DROP TABLE numeric_data;
 DROP TABLE mixed_case_monkeys;
+DROP TABLE minimalistics;
 
 DROP DOMAIN D_BOOLEAN;
 
@@ -61,3 +62,4 @@ DROP GENERATOR defaults_seq;
 DROP GENERATOR legacy_things_seq;
 DROP GENERATOR numeric_data_seq;
 DROP GENERATOR mixed_case_monkeys_seq;
+DROP GENERATOR minimalistics_seq;

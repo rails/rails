@@ -266,3 +266,8 @@ CREATE TABLE mixed_case_monkeys (
  "fleaCount" integer
 );
 SET UNIQUE FOR mixed_case_monkeys("monkeyID");
+
+CREATE TABLE minimalistics (
+  "id" integer NOT NULL
+);
+SET UNIQUE FOR minimalistics("id");

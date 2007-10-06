@@ -323,3 +323,8 @@ CREATE TABLE mixed_case_monkeys (
  "fleaCount" INTEGER
 );
 create sequence mixed_case_monkeys_seq minvalue 10000;
+
+CREATE TABLE minimalistics (
+ id INTEGER NOT NULL PRIMARY KEY
+);
+create sequence minimalistics_seq minvalue 10000;

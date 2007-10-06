@@ -215,4 +215,8 @@ CREATE TABLE mixed_case_monkeys (
   [fleaCount] numeric(9,0)
 );
 
+CREATE TABLE minimalistics (
+  id numeric(9,0) IDENTITY PRIMARY KEY
+);
+
 go

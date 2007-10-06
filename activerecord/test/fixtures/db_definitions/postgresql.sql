@@ -285,3 +285,7 @@ CREATE TABLE postgresql_oids (
   id SERIAL PRIMARY KEY,
   obj_id OID
 );
+
+CREATE TABLE minimalistics (
+  id serial primary key
+);

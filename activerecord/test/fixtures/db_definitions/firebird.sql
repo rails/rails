@@ -302,3 +302,9 @@ CREATE TABLE mixed_case_monkeys (
 );
 CREATE GENERATOR mixed_case_monkeys_seq;
 SET GENERATOR mixed_case_monkeys_seq TO 10000;
+
+CREATE TABLE minimalistics (
+  id BIGINT NOT NULL
+);
+CREATE GENERATOR minimalistics_seq;
+SET GENERATOR minimalistics_seq TO 10000;

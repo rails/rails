@@ -213,3 +213,7 @@ CREATE TABLE mixed_case_monkeys (
  'monkeyID' INTEGER NOT NULL PRIMARY KEY,
  'fleaCount' INTEGER
 );
+
+CREATE TABLE minimalistics (
+  'id' INTEGER NOT NULL PRIMARY KEY
+);
