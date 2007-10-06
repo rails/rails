@@ -29,11 +29,14 @@ module ActiveRecord #:nodoc:
   end
   class StaleObjectError < ActiveRecordError #:nodoc:
   end
-  class ConfigurationError < StandardError #:nodoc:
+  class ConfigurationError < ActiveRecordError #:nodoc:
   end
-  class ReadOnlyRecord < StandardError #:nodoc:
+  class ReadOnlyRecord < ActiveRecordError #:nodoc:
   end
-  class Rollback < StandardError #:nodoc:
+  class Rollback < ActiveRecordError #:nodoc:
+  end
+  
+  class DangerousAttributeError < ActiveRecordError #:nodoc:
   end
   
   # Raised when you've tried to access a column, which wasn't

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix that ActiveRecord would create attribute methods and override custom attribute getters if the method is also defined in Kernel.methods. [Rick]
+
 * Don't call attr_readonly on polymorphic belongs_to associations, in case it matches the name of some other non-ActiveRecord class/module.  [Rick]
 
 * Try loading activerecord-<adaptername>-adapter gem before trying a plain require so you can use custom gems for the bundled adapters. Also stops gems from requiring an adapter from an old Active Record gem.  [Jeremy Kemper, Derrick Spell]
@@ -45,8 +47,7 @@
 
 * Deprecation: remove deprecated threaded_connections methods. Use allow_concurrency instead.  [Jeremy Kemper]
 
-* Associations macros accept extension blocks alongside modules.  #9346 [Josh
-Peek]
+* Associations macros accept extension blocks alongside modules.  #9346 [Josh Peek]
 
 * Speed up and simplify query caching.  [Jeremy Kemper]
 
