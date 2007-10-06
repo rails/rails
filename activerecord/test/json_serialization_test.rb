@@ -23,7 +23,7 @@ class JsonSerializationTest < Test::Unit::TestCase
 
     assert_match %r{"name": "Konata Izumi"}, json
     assert_match %r{"age": 16}, json
-    assert_match %r{"created_at": #{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}}, json
+    assert json.include?(%("created_at": #{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
     assert_match %r{"awesome": true}, json
     assert_match %r{"preferences": \{"shows": "anime"\}}, json
   end
@@ -34,7 +34,7 @@ class JsonSerializationTest < Test::Unit::TestCase
     assert_match %r{"name": "Konata Izumi"}, json
     assert_match %r{"age": 16}, json
     assert_no_match %r{"awesome": true}, json
-    assert_no_match %r{"created_at": #{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}}, json
+    assert !json.include?(%("created_at": #{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
     assert_no_match %r{"preferences": \{"shows": "anime"\}}, json
   end
 
@@ -44,7 +44,7 @@ class JsonSerializationTest < Test::Unit::TestCase
     assert_no_match %r{"name": "Konata Izumi"}, json
     assert_no_match %r{"age": 16}, json
     assert_match %r{"awesome": true}, json
-    assert_match %r{"created_at": #{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}}, json
+    assert json.include?(%("created_at": #{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
     assert_match %r{"preferences": \{"shows": "anime"\}}, json
   end
 
