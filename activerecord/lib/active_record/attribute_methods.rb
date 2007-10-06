@@ -1,10 +1,13 @@
 module ActiveRecord
   module AttributeMethods #:nodoc:
     DEFAULT_SUFFIXES = %w(= ? _before_type_cast)
+    ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]
 
     def self.included(base)
       base.extend ClassMethods
       base.attribute_method_suffix *DEFAULT_SUFFIXES
+      base.cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
+      base.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
     end
 
     # Declare and check for suffixed attribute methods.
@@ -88,6 +91,23 @@ module ActiveRecord
       
       alias :define_read_methods :define_attribute_methods
 
+      # +cache_attributes+ allows you to declare which converted attribute values should
+      # be cached. Usually caching only pays off for attributes with expensive conversion
+      # methods, like date columns (e.g. created_at, updated_at).
+      def cache_attributes(*attribute_names)
+        attribute_names.each {|attr| cached_attributes << attr.to_s}
+      end
+
+      # returns the attributes where
+      def cached_attributes
+        @cached_attributes ||=
+          columns.select{|c| attribute_types_cached_by_default.include?(c.type)}.map(&:name).to_set
+      end
+
+      def cache_attribute?(attr_name)
+        cached_attributes.include?(attr_name)
+      end
+
       private
         # Suffixes a, ?, c become regexp /(a|\?|c)$/
         def rebuild_attribute_method_regexp
@@ -109,7 +129,10 @@ module ActiveRecord
             access_code = access_code.insert(0, "missing_attribute('#{attr_name}', caller) unless @attributes.has_key?('#{attr_name}'); ")
           end
           
-          evaluate_attribute_method attr_name, "def #{symbol}; @attributes_cache['#{attr_name}'] ||= begin; #{access_code}; end; end"
+          if cache_attribute?(attr_name)
+            access_code = "@attributes_cache['#{attr_name}'] ||= (#{access_code})"
+          end
+          evaluate_attribute_method attr_name, "def #{symbol}; #{access_code}; end"
         end
 
         # Define read method for serialized attribute.
