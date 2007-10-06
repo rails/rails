@@ -459,36 +459,16 @@ module ActionController
             when Array
               value.map { |v| get_typed_value(v) }
             else
-              # This is an uploaded file.
-              if value.respond_to?(:original_filename) && !value.original_filename.blank?
-                unless value.respond_to?(:full_original_filename)
-                  class << value
-                    alias_method :full_original_filename, :original_filename
-
-                    # Take the basename of the upload's original filename.
-                    # This handles the full Windows paths given by Internet Explorer
-                    # (and perhaps other broken user agents) without affecting
-                    # those which give the lone filename.
-                    # The Windows regexp is adapted from Perl's File::Basename.
-                    def original_filename
-                      if md = /^(?:.*[:\\\/])?(.*)/m.match(full_original_filename)
-                        md.captures.first
-                      else
-                        File.basename full_original_filename
-                      end
-                    end
-                  end
+              if value.is_a?(UploadedFile)
+                # Uploaded file
+                if value.original_filename
+                  value
+                # Multipart param
+                else
+                  result = value.read
+                  value.rewind
+                  result
                 end
-
-                # Return the same value after overriding original_filename.
-                value
-
-              # Multipart values may have content type, but no filename.
-              elsif value.respond_to?(:read)
-                result = value.read
-                value.rewind
-                result
-
               # Unknown value, neither string nor multipart.
               else
                 raise "Unknown form value: #{value.inspect}"
@@ -524,9 +504,9 @@ module ActionController
             head = nil
             content =
               if 10240 < content_length
-                Tempfile.new("CGI")
+                UploadedTempfile.new("CGI")
               else
-                StringIO.new
+                UploadedStringIO.new
               end
             content.binmode if defined? content.binmode
 
@@ -568,25 +548,21 @@ module ActionController
 
             content.rewind
 
-            /Content-Disposition:.* filename=(?:"((?:\\.|[^\"])*)"|([^;]*))/ni.match(head)
-            filename = ($1 or $2 or "")
-            if /Mac/ni.match(env['HTTP_USER_AGENT']) and
-                /Mozilla/ni.match(env['HTTP_USER_AGENT']) and
-                (not /MSIE/ni.match(env['HTTP_USER_AGENT']))
-              filename = CGI.unescape(filename)
+            head =~ /Content-Disposition:.* filename=(?:"((?:\\.|[^\"])*)"|([^;]*))/ni
+            if filename = $1 || $2
+              if /Mac/ni.match(env['HTTP_USER_AGENT']) and
+                  /Mozilla/ni.match(env['HTTP_USER_AGENT']) and
+                  (not /MSIE/ni.match(env['HTTP_USER_AGENT']))
+                filename = CGI.unescape(filename)
+              end
+              content.original_path = filename.dup
             end
 
-            /Content-Type: ([^\r]*)/ni.match(head)
-            content_type = ($1 or "")
+            head =~ /Content-Type: ([^\r]*)/ni
+            content.content_type = $1.dup if $1
 
-            (class << content; self; end).class_eval do
-              alias local_path path
-              define_method(:original_filename) {filename.dup.taint}
-              define_method(:content_type) {content_type.dup.taint}
-            end
-
-            /Content-Disposition:.* name="?([^\";]*)"?/ni.match(head)
-            name = $1.dup
+            head =~ /Content-Disposition:.* name="?([^\";]*)"?/ni
+            name = $1.dup if $1
 
             if params.has_key?(name)
               params[name].push(content)
@@ -694,5 +670,41 @@ module ActionController
       def type_conflict!(klass, value)
         raise TypeError, "Conflicting types for parameter containers. Expected an instance of #{klass} but found an instance of #{value.class}. This can be caused by colliding Array and Hash parameters like qs[]=value&qs[key]=value."
       end
+  end
+
+  module UploadedFile
+    def self.included(base)
+      base.class_eval do
+        attr_accessor :original_path, :content_type
+        alias_method :local_path, :path
+      end
+    end
+
+    # Take the basename of the upload's original filename.
+    # This handles the full Windows paths given by Internet Explorer
+    # (and perhaps other broken user agents) without affecting
+    # those which give the lone filename.
+    # The Windows regexp is adapted from Perl's File::Basename.
+    def original_filename
+      unless defined? @original_filename
+        @original_filename =
+          unless original_path.blank?
+            if original_path =~ /^(?:.*[:\\\/])?(.*)/m
+              $1
+            else
+              File.basename original_path
+            end
+          end
+      end
+      @original_filename
+    end
+  end
+
+  class UploadedStringIO < StringIO
+    include UploadedFile
+  end
+
+  class UploadedTempfile < Tempfile
+    include UploadedFile
   end
 end

@@ -527,21 +527,29 @@ class UrlEncodedRequestParameterParsingTest < Test::Unit::TestCase
     assert_equal expected_output, ActionController::AbstractRequest.parse_request_parameters(input)
   end
 
+  UploadedStringIO = ActionController::UploadedStringIO
+  class MockUpload < UploadedStringIO
+    def initialize(content_type, original_path, *args)
+      self.content_type = content_type
+      self.original_path = original_path
+      super *args
+    end
+  end
+
   def test_parse_params_from_multipart_upload
-    mockup = Struct.new(:content_type, :original_filename, :read, :rewind)
-    file = mockup.new('img/jpeg', 'foo.jpg')
-    ie_file = mockup.new('img/jpeg', 'c:\\Documents and Settings\\foo\\Desktop\\bar.jpg')
-    non_file_text_part = mockup.new('text/plain', '', 'abc')
+    file = MockUpload.new('img/jpeg', 'foo.jpg')
+    ie_file = MockUpload.new('img/jpeg', 'c:\\Documents and Settings\\foo\\Desktop\\bar.jpg')
+    non_file_text_part = MockUpload.new('text/plain', '', 'abc')
 
     input = {
-      "something" => [ StringIO.new("") ],
-      "array_of_stringios" => [[ StringIO.new("One"), StringIO.new("Two") ]],
-      "mixed_types_array" => [[ StringIO.new("Three"), "NotStringIO" ]],
-      "mixed_types_as_checkboxes[strings][nested]" => [[ file, "String", StringIO.new("StringIO")]],
-      "ie_mixed_types_as_checkboxes[strings][nested]" => [[ ie_file, "String", StringIO.new("StringIO")]],
-      "products[string]" => [ StringIO.new("Apple Computer") ],
+      "something" => [ UploadedStringIO.new("") ],
+      "array_of_stringios" => [[ UploadedStringIO.new("One"), UploadedStringIO.new("Two") ]],
+      "mixed_types_array" => [[ UploadedStringIO.new("Three"), "NotStringIO" ]],
+      "mixed_types_as_checkboxes[strings][nested]" => [[ file, "String", UploadedStringIO.new("StringIO")]],
+      "ie_mixed_types_as_checkboxes[strings][nested]" => [[ ie_file, "String", UploadedStringIO.new("StringIO")]],
+      "products[string]" => [ UploadedStringIO.new("Apple Computer") ],
       "products[file]" => [ file ],
-      "ie_products[string]" => [ StringIO.new("Microsoft") ],
+      "ie_products[string]" => [ UploadedStringIO.new("Microsoft") ],
       "ie_products[file]" => [ ie_file ],
       "text_part" => [non_file_text_part]
     }
@@ -695,7 +703,7 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
     file = params['file']
     assert_kind_of StringIO, file
     assert_equal 'file.csv', file.original_filename
-    assert_equal '', file.content_type
+    assert_nil file.content_type
     assert_equal 'contents', file.read
 
     file = params['flowers']
