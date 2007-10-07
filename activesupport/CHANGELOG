@@ -1,6 +1,6 @@
 *SVN*
 
-* String#to_xs uses the fast_xs extension if available for Builder speedup.  [Jeremy Kemper]
+* String#to_xs uses Eric Wong's fast_xs extension, if available, for Builder speedup.  http://bogomips.org/fast_xs/  [Jeremy Kemper]
 
 * Introduce BasicObject as Builder::BlankSlate for Ruby 1.9 forward compatibility.  [Jeremy Kemper]
 
