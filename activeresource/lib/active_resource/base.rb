@@ -550,6 +550,11 @@ module ActiveResource
       attributes[self.class.primary_key] = id
     end
 
+    # Allows ActiveResource objects to be used as parameters in ActionPack URL generation.
+    def to_param
+      id && id.to_s
+    end
+
     # Test for equality.  Resource are equal if and only if +other+ is the same object or 
     # is an instance of the same class, is not +new?+, and has the same +id+.
     #

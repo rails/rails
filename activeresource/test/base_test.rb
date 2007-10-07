@@ -444,4 +444,11 @@ class BaseTest < Test::Unit::TestCase
     assert xml.include?('<name>Matz</name>')
     assert xml.include?('<id type="integer">1</id>')
   end
+
+  def test_to_param_quacks_like_active_record
+    new_person = Person.new
+    assert_nil new_person.to_param
+    matz = Person.find(1)
+    assert_equal '1', matz.to_param
+  end
 end
