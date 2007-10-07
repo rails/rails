@@ -304,7 +304,9 @@ module Rails
     # Sets +ActiveRecord::Base#whiny_protected_attributes+ which determines whether to
     # raise on mass-assigning attributes protected with +attr_protected+/+attr_accessible+.
     def initialize_whiny_protected_attributes
-      ActiveRecord::Base.whiny_protected_attributes = configuration.whiny_protected_attributes
+      if configuration.frameworks.include?(:active_record)
+        ActiveRecord::Base.whiny_protected_attributes = configuration.whiny_protected_attributes
+      end
     end
 
     def initialize_temporary_directories
