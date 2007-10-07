@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix url_for, redirect_to, etc. with :controller => :symbol instead of 'string'.  #8562, #9525 [Justin Lynn, Tarmo Tänav, shoe]
+
 * Use #require_library_or_gem to load the memcache library for the MemCache session and fragment cache stores.  Closes #8662. [Rick]
 
 * Move ActionController::Routing.optimise_named_routes to ActionController::Base.optimise_named_routes.  Now you can set it in the config. [Rick]

@@ -1325,6 +1325,9 @@ module ActionController
         options = options_as_params(options)
         expire_on = build_expiry(options, recall)
 
+        if options[:controller]
+          options[:controller] = options[:controller].to_s
+        end
         # if the controller has changed, make sure it changes relative to the
         # current controller module, if any. In other words, if we're currently
         # on admin/get, and the new controller is 'set', the new controller

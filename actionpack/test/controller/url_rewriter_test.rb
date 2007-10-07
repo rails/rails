@@ -234,6 +234,10 @@ class UrlWriterTests < Test::Unit::TestCase
     assert_equal params[3], { 'query[person][position][]' => 'art director' }.to_query
   end
 
+  def test_path_generation_for_symbol_parameter_keys
+    assert_generates("/image", :controller=> :image)
+  end
+
   private
     def extract_params(url)
       url.split('?', 2).last.split('&')
