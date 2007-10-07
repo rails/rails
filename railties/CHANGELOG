@@ -1,5 +1,9 @@
 *SVN*
 
+* Extend the console +helper+ method to allow you to include custom helpers.  e.g:
+  >> helper :posts
+  >> helper.some_method_from_posts_helper(Post.find(1))
+
 * db:create works with remote databases whereas db:create:all only creates
 databases on localhost.  #9753 [Trevor Wennblom]
 
