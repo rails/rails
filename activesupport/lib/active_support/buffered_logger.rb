@@ -70,7 +70,7 @@ module ActiveSupport
         end
         
         def #{severity.downcase}?
-          @level == #{severity}
+          #{severity} >= @level
         end
       EOT
     end

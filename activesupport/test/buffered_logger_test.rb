@@ -85,6 +85,13 @@ class BufferedLoggerTest < Test::Unit::TestCase
       assert !@output.string.empty?, @logger.buffer.size
     end
   end
+  
+  def test_should_know_if_its_loglevel_is_below_a_given_level
+    ActiveSupport::BufferedLogger::Severity.constants.each do |level|
+      @logger.level = ActiveSupport::BufferedLogger::Severity.const_get(level) - 1
+      assert @logger.send("#{level.downcase}?"), "didn't know if it was #{level.downcase}? or below"
+    end
+  end
 
   def test_should_auto_flush_every_n_messages
     @logger.auto_flushing = 5
