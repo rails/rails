@@ -47,6 +47,8 @@ spec = Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.has_rdoc = true
 
+  s.add_dependency('builder', '~> 2.1.2')
+
   s.author = "David Heinemeier Hansson"
   s.email = "david@loudthinking.com"
   s.homepage = "http://www.rubyonrails.org"

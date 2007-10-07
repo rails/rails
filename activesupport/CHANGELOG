@@ -1,5 +1,7 @@
 *SVN*
 
+* Unbundle Builder in favor of a gem dependency.  [Jeremy Kemper]
+
 * Disambiguate Time, Date, and DateTime#to_json formatting.  #9750 [Geoff Buesing, Chu Yeow]
 
 * Hash#to_json takes :only or :except options to specific or omit certain hash keys. Enumerable#to_json passes through its options to each element.  #9751 [Chu Yeow]
