@@ -1,6 +1,6 @@
 *SVN*
 
-* Raise ProtectedAttributeAssignmentError in development and test environments when mass-assigning to an attr_protected attribute.  #9699 [Henrik N]
+* Raise ProtectedAttributeAssignmentError in development and test environments when mass-assigning to an attr_protected attribute.  #9802 [Henrik N]
 
 * MySQL: speedup date/time parsing.  [Jeremy Kemper]
 
