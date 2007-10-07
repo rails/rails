@@ -24,7 +24,7 @@
 $:.unshift(File.dirname(__FILE__))
 $:.unshift(File.dirname(__FILE__) + "/active_support/vendor")
 
-require 'builder'
+require 'active_support/basic_object'
 
 require 'active_support/inflector'
 

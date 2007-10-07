@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce BasicObject as Builder::BlankSlate for Ruby 1.9 forward compatibility.  [Jeremy Kemper]
+
 * Unbundle Builder in favor of a gem dependency.  [Jeremy Kemper]
 
 * Disambiguate Time, Date, and DateTime#to_json formatting.  #9750 [Geoff Buesing, Chu Yeow]
