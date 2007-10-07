@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow change_column to set NOT NULL in the PostgreSQL adapter [tarmo]
+
 * Fix that ActiveRecord would create attribute methods and override custom attribute getters if the method is also defined in Kernel.methods. [Rick]
 
 * Don't call attr_readonly on polymorphic belongs_to associations, in case it matches the name of some other non-ActiveRecord class/module.  [Rick]

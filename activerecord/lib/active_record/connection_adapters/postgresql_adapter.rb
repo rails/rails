@@ -579,22 +579,11 @@ module ActiveRecord
         default = options[:default]
         notnull = options[:null] == false
 
-        quoted_column_name = quote_column_name(column_name)
-
         # Add the column.
-        execute("ALTER TABLE #{table_name} ADD COLUMN #{quoted_column_name} #{type_to_sql(type, options[:limit])}")
+        execute("ALTER TABLE #{table_name} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit])}")
 
-        # Set optional default. If not null, update nulls to the new default.
-        if options_include_default?(options)
-          change_column_default(table_name, column_name, default)
-          if notnull
-            execute("UPDATE #{table_name} SET #{quoted_column_name}=#{quote(default, options[:column])} WHERE #{quoted_column_name} IS NULL")
-          end
-        end
-
-        if notnull
-          execute("ALTER TABLE #{table_name} ALTER #{quoted_column_name} SET NOT NULL")
-        end
+        change_column_default(table_name, column_name, default) if options_include_default?(options)
+        change_column_null(table_name, column_name, false, default) if notnull
       end
 
       # Changes the column of a table.
@@ -612,14 +601,20 @@ module ActiveRecord
           commit_db_transaction
         end
 
-        if options_include_default?(options)
-          change_column_default(table_name, column_name, options[:default])
-        end
+        change_column_default(table_name, column_name, options[:default]) if options_include_default?(options)
+        change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
       end
 
       # Changes the default value of a table column.
       def change_column_default(table_name, column_name, default)
         execute "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote(default)}"
+      end
+
+      def change_column_null(table_name, column_name, null, default = nil)
+        unless null || default.nil?
+          execute("UPDATE #{table_name} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+        end
+        execute("ALTER TABLE #{table_name} ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL")
       end
 
       # Renames a column in a table.

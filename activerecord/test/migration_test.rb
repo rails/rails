@@ -42,7 +42,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       Reminder.reset_column_information
 
       %w(last_name key bio age height wealth birthday favorite_day
-         moment_of_truth male administrator).each do |column|
+         moment_of_truth male administrator funny).each do |column|
         Person.connection.remove_column('people', column) rescue nil
       end
       Person.connection.remove_column("people", "first_name") rescue nil
@@ -449,6 +449,20 @@ if ActiveRecord::Base.connection.supports_migrations?
         ActiveRecord::Base.connection.drop_table :octopuses rescue nil
         ActiveRecord::Base.connection.drop_table :octopi rescue nil
       end
+    end
+    
+    unless current_adapter?(:SQLiteAdapter)
+    def test_change_column_nullability
+      Person.connection.add_column "people", "funny", :boolean
+      Person.reset_column_information
+      assert Person.columns_hash["funny"].null, "Column 'funny' must initially allow nulls"
+      Person.connection.change_column "people", "funny", :boolean, :null => false, :default => true
+      Person.reset_column_information
+      assert !Person.columns_hash["funny"].null, "Column 'funny' must *not* allow nulls at this point"
+      Person.connection.change_column "people", "funny", :boolean, :null => true
+      Person.reset_column_information
+      assert Person.columns_hash["funny"].null, "Column 'funny' must allow nulls again at this point"
+    end
     end
 
     def test_rename_table_with_an_index
