@@ -92,76 +92,82 @@ module ActiveRecord
         Base.human_attribute_name(@name)
       end
 
-      # Used to convert from Strings to BLOBs
-      def self.string_to_binary(value)
-        value
-      end
-
-      # Used to convert from BLOBs to Strings
-      def self.binary_to_string(value)
-        value
-      end
-
-      def self.string_to_date(string)
-        return string unless string.is_a?(String)
-        date_array = ParseDate.parsedate(string)
-        # treat 0000-00-00 as nil
-        Date.new(date_array[0], date_array[1], date_array[2]) rescue nil
-      end
-
-      def self.string_to_time(string)
-        return string unless string.is_a?(String)
-        time_hash = Date._parse(string)
-        time_hash[:sec_fraction] = microseconds(time_hash)
-        time_array = time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)
-        # treat 0000-00-00 00:00:00 as nil
-        begin
-          Time.send(Base.default_timezone, *time_array)
-        rescue
-          zone_offset = if Base.default_timezone == :local then DateTime.now.offset else 0 end
-          # Append zero calendar reform start to account for dates skipped by calendar reform
-          DateTime.new(*time_array[0..5] << zone_offset << 0) rescue nil
-        end
-      end
-
-      def self.string_to_dummy_time(string)
-        return string unless string.is_a?(String)
-        return nil if string.empty?
-        time_hash = Date._parse(string)
-        time_hash[:sec_fraction] = microseconds(time_hash)
-        # pad the resulting array with dummy date information
-        time_array = [2000, 1, 1]
-        time_array += time_hash.values_at(:hour, :min, :sec, :sec_fraction)
-        Time.send(Base.default_timezone, *time_array) rescue nil
-      end
-
-      # convert something to a boolean
-      def self.value_to_boolean(value)
-        if value == true || value == false
+      class << self
+        # Used to convert from Strings to BLOBs
+        def string_to_binary(value)
           value
-        else
-          %w(true t 1).include?(value.to_s.downcase)
         end
-      end
 
-      # convert something to a BigDecimal
-      def self.value_to_decimal(value)
-        if value.is_a?(BigDecimal)
+        # Used to convert from BLOBs to Strings
+        def binary_to_string(value)
           value
-        elsif value.respond_to?(:to_d)
-          value.to_d
-        else
-          value.to_s.to_d
         end
+
+        def string_to_date(string)
+          return string unless string.is_a?(String)
+          new_date *ParseDate.parsedate(string)[0..2]
+        end
+
+        def string_to_time(string)
+          return string unless string.is_a?(String)
+          return nil if string.empty?
+          time_hash = Date._parse(string)
+          time_hash[:sec_fraction] = microseconds(time_hash)
+          new_time *time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)
+        end
+
+        def string_to_dummy_time(string)
+          return string unless string.is_a?(String)
+          return nil if string.empty?
+
+          string_to_time "2000-01-01 #{string}"
+        end
+
+        # convert something to a boolean
+        def value_to_boolean(value)
+          if value == true || value == false
+            value
+          else
+            %w(true t 1).include?(value.to_s.downcase)
+          end
+        end
+
+        # convert something to a BigDecimal
+        def value_to_decimal(value)
+          if value.is_a?(BigDecimal)
+            value
+          elsif value.respond_to?(:to_d)
+            value.to_d
+          else
+            value.to_s.to_d
+          end
+        end
+
+        protected
+          # '0.123456' -> 123456
+          # '1.123456' -> 123456
+          def microseconds(time)
+            ((time[:sec_fraction].to_f % 1) * 1_000_000).to_i
+          end
+
+          def new_date(year, mon, mday)
+            Date.new(year, mon, mday) unless year == 0
+          end
+
+          def new_time(year, mon, mday, hour, min, sec, microsec)
+            # Treat 0000-00-00 00:00:00 as nil.
+            return nil if year == 0
+
+            Time.send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec)
+          # Over/underflow to DateTime
+          rescue ArgumentError, TypeError
+            zone_offset = if Base.default_timezone == :local then DateTime.now.offset else 0 end
+            # Append zero calendar reform start to account for dates skipped by calendar reform
+            DateTime.new(year, mon, mday, hour, min, sec, zone_offset, 0)
+          end
       end
 
       private
-        # '0.123456' -> 123456
-        # '1.123456' -> 123456
-        def self.microseconds(time)
-          ((time[:sec_fraction].to_f % 1) * 1_000_000).to_i
-        end
-
         def extract_limit(sql_type)
           $1.to_i if sql_type =~ /\((.*)\)/
         end

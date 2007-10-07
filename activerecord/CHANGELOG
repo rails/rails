@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL: speedup date/time parsing.  [Jeremy Kemper]
+
 * Fix calling .clear on a has_many :dependent=>:delete_all association. [tarmo]
 
 * Allow change_column to set NOT NULL in the PostgreSQL adapter [tarmo]

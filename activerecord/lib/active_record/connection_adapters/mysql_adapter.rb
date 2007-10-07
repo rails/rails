@@ -94,11 +94,41 @@ module ActiveRecord
       TYPES_DISALLOWING_DEFAULT = Set.new([:binary, :text])
       TYPES_ALLOWING_EMPTY_STRING_DEFAULT = Set.new([:string])
 
+      module Format
+        DATE = /\A(\d{4})-(\d\d)-(\d\d)\z/
+        DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(?:\.(\d{6}))?\z/
+      end
+
       def initialize(name, default, sql_type = nil, null = true)
         @original_default = default
         super
         @default = nil if no_default_allowed? || missing_default_forged_as_empty_string?
         @default = '' if @original_default == '' && no_default_allowed?
+      end
+
+      class << self
+        def string_to_date(string)
+          return string unless string.is_a?(String)
+          return nil if string.empty?
+
+          if string =~ Format::DATE
+            new_date $1.to_i, $2.to_i, $3.to_i
+          else
+            new_date *ParseDate.parsedate(string)[0..2]
+          end
+        end
+
+        def string_to_time(string)
+          return string unless string.is_a?(String)
+          return nil if string.empty?
+
+          if string =~ Format::DATETIME
+            new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, $7.to_i
+          else
+            time_hash = Date._parse(string)
+            new_time *(time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec) << microseconds(time_hash))
+          end
+        end
       end
 
       private
