@@ -91,19 +91,23 @@ module ActiveRecord
 
   module ConnectionAdapters
     class MysqlColumn < Column #:nodoc:
-      TYPES_DISALLOWING_DEFAULT = Set.new([:binary, :text])
-      TYPES_ALLOWING_EMPTY_STRING_DEFAULT = Set.new([:string])
-
       module Format
         DATE = /\A(\d{4})-(\d\d)-(\d\d)\z/
         DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(?:\.(\d{6}))?\z/
       end
 
-      def initialize(name, default, sql_type = nil, null = true)
-        @original_default = default
-        super
-        @default = nil if no_default_allowed? || missing_default_forged_as_empty_string?
-        @default = '' if @original_default == '' && no_default_allowed?
+      def extract_default(default)
+        if type == :binary || type == :text
+          if default.blank?
+            default
+          else
+            raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
+          end
+        elsif missing_default_forged_as_empty_string?(default)
+          nil
+        else
+          super
+        end
       end
 
       class << self
@@ -114,7 +118,7 @@ module ActiveRecord
           if string =~ Format::DATE
             new_date $1.to_i, $2.to_i, $3.to_i
           else
-            new_date *ParseDate.parsedate(string)[0..2]
+            super
           end
         end
 
@@ -125,8 +129,7 @@ module ActiveRecord
           if string =~ Format::DATETIME
             new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, $7.to_i
           else
-            time_hash = Date._parse(string)
-            new_time *(time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec) << microseconds(time_hash))
+            super
           end
         end
       end
@@ -145,13 +148,8 @@ module ActiveRecord
         #
         # Test whether the column has default '', is not null, and is not
         # a type allowing default ''.
-        def missing_default_forged_as_empty_string?
-          !null && @original_default == '' && !TYPES_ALLOWING_EMPTY_STRING_DEFAULT.include?(type)
-        end
-
-        # MySQL 5.0 does not allow text and binary columns to have defaults
-        def no_default_allowed?
-          TYPES_DISALLOWING_DEFAULT.include?(type)
+        def missing_default_forged_as_empty_string?(default)
+          type != :string && !null && default == ''
         end
     end
 

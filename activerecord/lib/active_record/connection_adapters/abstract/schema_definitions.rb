@@ -19,7 +19,7 @@ module ActiveRecord
         @name, @sql_type, @null = name, sql_type, null
         @limit, @precision, @scale  = extract_limit(sql_type), extract_precision(sql_type), extract_scale(sql_type) 
         @type = simplified_type(sql_type)
-        @default = type_cast(default)
+        @default = extract_default(default)
 
         @primary = nil
       end
@@ -92,6 +92,10 @@ module ActiveRecord
         Base.human_attribute_name(@name)
       end
 
+      def extract_default(default)
+        type_cast(default)
+      end
+
       class << self
         # Used to convert from Strings to BLOBs
         def string_to_binary(value)
@@ -105,14 +109,17 @@ module ActiveRecord
 
         def string_to_date(string)
           return string unless string.is_a?(String)
+
           new_date *ParseDate.parsedate(string)[0..2]
         end
 
         def string_to_time(string)
           return string unless string.is_a?(String)
           return nil if string.empty?
+
           time_hash = Date._parse(string)
           time_hash[:sec_fraction] = microseconds(time_hash)
+
           new_time *time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)
         end
 
@@ -151,19 +158,21 @@ module ActiveRecord
           end
 
           def new_date(year, mon, mday)
-            Date.new(year, mon, mday) unless year == 0
+            if year && year != 0
+              Date.new(year, mon, mday) rescue nil
+            end
           end
 
           def new_time(year, mon, mday, hour, min, sec, microsec)
             # Treat 0000-00-00 00:00:00 as nil.
-            return nil if year == 0
+            return nil if year.nil? || year == 0
 
             Time.send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec)
           # Over/underflow to DateTime
           rescue ArgumentError, TypeError
             zone_offset = if Base.default_timezone == :local then DateTime.now.offset else 0 end
             # Append zero calendar reform start to account for dates skipped by calendar reform
-            DateTime.new(year, mon, mday, hour, min, sec, zone_offset, 0)
+            DateTime.new(year, mon, mday, hour, min, sec, zone_offset, 0) rescue nil
           end
       end
 
