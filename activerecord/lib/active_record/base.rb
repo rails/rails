@@ -35,10 +35,11 @@ module ActiveRecord #:nodoc:
   end
   class Rollback < ActiveRecordError #:nodoc:
   end
-  
+  class ProtectedAttributeAssignmentError < ActiveRecordError #:nodoc:
+  end
   class DangerousAttributeError < ActiveRecordError #:nodoc:
   end
-  
+
   # Raised when you've tried to access a column, which wasn't
   # loaded by your finder.  Typically this is because :select
   # has been specified
@@ -327,13 +328,13 @@ module ActiveRecord #:nodoc:
     cattr_accessor :table_name_suffix, :instance_writer => false
     @@table_name_suffix = ""
 
-    # Indicates whether or not table names should be the pluralized versions of the corresponding class names.
+    # Indicates whether table names should be the pluralized versions of the corresponding class names.
     # If true, the default table name for a +Product+ class will be +products+. If false, it would just be +product+.
     # See table_name for the full rules on table/class naming. This is true, by default.
     cattr_accessor :pluralize_table_names, :instance_writer => false
     @@pluralize_table_names = true
 
-    # Determines whether or not to use ANSI codes to colorize the logging statements committed by the connection adapter. These colors
+    # Determines whether to use ANSI codes to colorize the logging statements committed by the connection adapter. These colors
     # make it much easier to overview things during debugging (when used through a reader like +tail+ and on a black background), but
     # may complicate matters if you use software like syslog. This is true, by default.
     cattr_accessor :colorize_logging, :instance_writer => false
@@ -344,7 +345,7 @@ module ActiveRecord #:nodoc:
     cattr_accessor :default_timezone, :instance_writer => false
     @@default_timezone = :local
 
-    # Determines whether or not to use a connection for each thread, or a single shared connection for all threads.
+    # Determines whether to use a connection for each thread, or a single shared connection for all threads.
     # Defaults to false. Set to true if you're writing a threaded application.
     cattr_accessor :allow_concurrency, :instance_writer => false
     @@allow_concurrency = false
@@ -357,6 +358,11 @@ module ActiveRecord #:nodoc:
     # adapters for, e.g., your development and test environments.
     cattr_accessor :schema_format , :instance_writer => false
     @@schema_format = :ruby
+
+    # Determines whether to raise an exception on mass-assignment to protected
+    # attribute. Defaults to true.
+    cattr_accessor :whiny_protected_attributes, :instance_writer => false
+    @@whiny_protected_attributes = true
 
     class << self # Class methods
       # Find operates with three different retrieval approaches:
@@ -2022,17 +2028,31 @@ module ActiveRecord #:nodoc:
       end
 
       def remove_attributes_protected_from_mass_assignment(attributes)
-        if self.class.accessible_attributes.nil? && self.class.protected_attributes.nil?
-          attributes.reject { |key, value| attributes_protected_by_default.include?(key.gsub(/\(.+/, "")) }
-        elsif self.class.protected_attributes.nil?
-          attributes.reject { |key, value| !self.class.accessible_attributes.include?(key.gsub(/\(.+/, "").intern) || attributes_protected_by_default.include?(key.gsub(/\(.+/, "")) }
-        elsif self.class.accessible_attributes.nil?
-          attributes.reject { |key, value| self.class.protected_attributes.include?(key.gsub(/\(.+/,"").intern) || attributes_protected_by_default.include?(key.gsub(/\(.+/, "")) }
-        else
-          raise "Declare either attr_protected or attr_accessible for #{self.class}, but not both."
+        safe_attributes =
+          if self.class.accessible_attributes.nil? && self.class.protected_attributes.nil?
+            attributes.reject { |key, value| attributes_protected_by_default.include?(key.gsub(/\(.+/, "")) }
+          elsif self.class.protected_attributes.nil?
+            attributes.reject { |key, value| !self.class.accessible_attributes.include?(key.gsub(/\(.+/, "").intern) || attributes_protected_by_default.include?(key.gsub(/\(.+/, "")) }
+          elsif self.class.accessible_attributes.nil?
+            attributes.reject { |key, value| self.class.protected_attributes.include?(key.gsub(/\(.+/,"").intern) || attributes_protected_by_default.include?(key.gsub(/\(.+/, "")) }
+          else
+            raise "Declare either attr_protected or attr_accessible for #{self.class}, but not both."
+          end
+
+        removed_attributes = attributes.keys - safe_attributes.keys
+
+        if removed_attributes.any?
+          error_message = "Can't mass-assign these protected attributes: #{removed_attributes.join(', ')}"
+          if self.class.whiny_protected_attributes
+            raise ProtectedAttributeAssignmentError, error_message
+          else
+            logger.error error_message
+          end
         end
+
+        safe_attributes
       end
-      
+
       # Removes attributes which have been marked as readonly.
       def remove_readonly_attributes(attributes)
         unless self.class.readonly_attributes.nil?

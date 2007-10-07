@@ -67,6 +67,13 @@ end
 class BasicsTest < Test::Unit::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics
 
+  # whiny_protected_attributes is turned off since several tests were
+  # not written with it in mind, and would otherwise raise exceptions
+  # as an irrelevant side-effect.
+  def setup
+    ActiveRecord::Base.whiny_protected_attributes = false
+  end
+
   def test_table_exists
     assert !NonExistentTable.table_exists?
     assert Topic.table_exists?
@@ -860,6 +867,17 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal [ :name, :address, :phone_number  ], TightDescendant.accessible_attributes
   end
   
+  def test_whiny_protected_attributes
+    ActiveRecord::Base.whiny_protected_attributes = true
+    assert_raise(ActiveRecord::ProtectedAttributeAssignmentError) do
+      LoosePerson.create!(:administrator => true)
+    end
+    ActiveRecord::Base.whiny_protected_attributes = false
+    assert_nothing_raised do
+      LoosePerson.create!(:administrator => true)
+    end
+  end
+
   def test_readonly_attributes
     assert_equal [ :title ], ReadonlyTitlePost.readonly_attributes
     
