@@ -628,11 +628,11 @@ module ActionView
       end
       
       def error_message_on(method, prepend_text = "", append_text = "", css_class = "formError")
-        @template.error_message_on(@object_name, method, prepend_text, append_text, css_class)
+        @template.error_message_on(@object, method, prepend_text, append_text, css_class)
       end      
 
       def error_messages(options = {})
-        @template.error_messages_for(@object_name, options)
+        @template.error_messages_for(@object_name, options.merge(:object => @object))
       end
       
       def submit(value = "Save changes", options = {})

@@ -76,16 +76,21 @@ module ActionView
 
       # Returns a string containing the error message attached to the +method+ on the +object+ if one exists.
       # This error message is wrapped in a <tt>DIV</tt> tag, which can be extended to include a +prepend_text+ and/or +append_text+
-      # (to properly explain the error), and a +css_class+ to style it accordingly. As an example, let's say you have a model
+      # (to properly explain the error), and a +css_class+ to style it accordingly. +object+ should either be the name of an instance variable or
+      # the actual object. As an example, let's say you have a model
       # +post+ that has an error message on the +title+ attribute:
       #
       #   <%= error_message_on "post", "title" %> =>
       #     <div class="formError">can't be empty</div>
       #
+      #   <%= error_message_on @post, "title" %> =>
+      #     <div class="formError">can't be empty</div>
+      #
       #   <%= error_message_on "post", "title", "Title simply ", " (or it won't work).", "inputError" %> =>
       #     <div class="inputError">Title simply can't be empty (or it won't work).</div>
       def error_message_on(object, method, prepend_text = "", append_text = "", css_class = "formError")
-        if (obj = instance_variable_get("@#{object}")) && (errors = obj.errors.on(method))
+        if (obj = (object.respond_to?(:errors) ? object : instance_variable_get("@#{object}"))) &&
+          (errors = obj.errors.on(method))
           content_tag("div", "#{prepend_text}#{errors.is_a?(Array) ? errors.first : errors}#{append_text}", :class => css_class)
         else 
           ''
@@ -101,6 +106,8 @@ module ActionView
       # * <tt>header_tag</tt> - Used for the header of the error div (default: h2)
       # * <tt>id</tt> - The id of the error div (default: errorExplanation)
       # * <tt>class</tt> - The class of the error div (default: errorExplanation)
+      # * <tt>object</tt> - The object (or array of objects) for which to display errors, 
+      # if you need to escape the instance variable convention
       # * <tt>object_name</tt> - The object name to use in the header, or
       # any text that you prefer. If <tt>object_name</tt> is not set, the name of
       # the first object will be used.
@@ -114,12 +121,21 @@ module ActionView
       #
       #   error_messages_for 'user_common', 'user', :object_name => 'user'
       #
+      # If the objects cannot be located as instance variables, you can add an extra +object+ paremeter which gives the actual
+      # object (or array of objects to use)
+      #
+      #   error_messages_for 'user', :object => @question.user
+      #
       # NOTE: This is a pre-packaged presentation of the errors with embedded strings and a certain HTML structure. If what
       # you need is significantly different from the default presentation, it makes plenty of sense to access the object.errors
       # instance yourself and set it up. View the source of this method to see how easy it is.
       def error_messages_for(*params)
         options = params.extract_options!.symbolize_keys
-        objects = params.collect {|object_name| instance_variable_get("@#{object_name}") }.compact
+        if object = options.delete(:object)
+          objects = [object].flatten
+        else
+          objects = params.collect {|object_name| instance_variable_get("@#{object_name}") }.compact
+        end
         count   = objects.inject(0) {|sum, object| sum + object.errors.count }
         unless count.zero?
           html = {}
