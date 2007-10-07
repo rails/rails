@@ -831,7 +831,8 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
     assert_equal 0, firm.exclusively_dependent_clients_of_firm.size
     assert_equal 0, firm.exclusively_dependent_clients_of_firm(true).size
-    assert_equal [3], Client.destroyed_client_ids[firm.id]
+    # no destroy-filters should have been called
+    assert_equal [], Client.destroyed_client_ids[firm.id]
 
     # Should be destroyed since the association is exclusively dependent.
     assert Client.find_by_id(client_id).nil?
