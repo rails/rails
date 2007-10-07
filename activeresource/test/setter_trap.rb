@@ -1,6 +1,4 @@
-require 'builder'
-
-class SetterTrap < Builder::BlankSlate
+class SetterTrap < BasicObject
   class << self
     def rollback_sets(obj)
       returning yield(setter_trap = new(obj)) do
