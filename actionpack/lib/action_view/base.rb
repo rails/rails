@@ -1,4 +1,5 @@
 require 'erb'
+require 'builder'
 
 class ERB
   module Util

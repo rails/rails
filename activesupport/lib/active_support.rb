@@ -24,6 +24,8 @@
 $:.unshift(File.dirname(__FILE__))
 $:.unshift(File.dirname(__FILE__) + "/active_support/vendor")
 
+require 'rubygems'
+
 require 'active_support/basic_object'
 
 require 'active_support/inflector'

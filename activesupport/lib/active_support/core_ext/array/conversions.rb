@@ -1,3 +1,5 @@
+require 'builder'
+
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Array #:nodoc:

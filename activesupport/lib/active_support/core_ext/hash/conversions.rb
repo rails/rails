@@ -2,6 +2,7 @@ require 'date'
 require 'xml_simple'
 require 'cgi'
 require 'base64'
+require 'builder'
 
 # Extensions needed for Hash#to_query
 class Object
