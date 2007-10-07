@@ -6,6 +6,11 @@ module ActiveRecord
   module ConnectionAdapters #:nodoc:
     # An abstract definition of a column in a table.
     class Column
+      module Format
+        ISO_DATE = /\A(\d{4})-(\d\d)-(\d\d)\z/
+        ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
+      end
+
       attr_reader :name, :default, :type, :limit, :null, :sql_type, :precision, :scale
       attr_accessor :primary
 
@@ -109,18 +114,16 @@ module ActiveRecord
 
         def string_to_date(string)
           return string unless string.is_a?(String)
+          return nil if string.empty?
 
-          new_date *ParseDate.parsedate(string)[0..2]
+          fast_string_to_date(string) || fallback_string_to_date(string)
         end
 
         def string_to_time(string)
           return string unless string.is_a?(String)
           return nil if string.empty?
 
-          time_hash = Date._parse(string)
-          time_hash[:sec_fraction] = microseconds(time_hash)
-
-          new_time *time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)
+          fast_string_to_time(string) || fallback_string_to_time(string)
         end
 
         def string_to_dummy_time(string)
@@ -173,6 +176,31 @@ module ActiveRecord
             zone_offset = if Base.default_timezone == :local then DateTime.now.offset else 0 end
             # Append zero calendar reform start to account for dates skipped by calendar reform
             DateTime.new(year, mon, mday, hour, min, sec, zone_offset, 0) rescue nil
+          end
+
+          def fast_string_to_date(string)
+            if string =~ Format::ISO_DATE
+              new_date $1.to_i, $2.to_i, $3.to_i
+            end
+          end
+
+          # Doesn't handle time zones.
+          def fast_string_to_time(string)
+            if string =~ Format::ISO_DATETIME
+              microsec = ($7.to_f * 10e6).to_i
+              new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
+            end
+          end
+
+          def fallback_string_to_date(string)
+            new_date *ParseDate.parsedate(string)[0..2]
+          end
+
+          def fallback_string_to_time(string)
+            time_hash = Date._parse(string)
+            time_hash[:sec_fraction] = microseconds(time_hash)
+
+            new_time *time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)
           end
       end
 

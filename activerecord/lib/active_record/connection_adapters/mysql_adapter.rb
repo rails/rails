@@ -91,11 +91,6 @@ module ActiveRecord
 
   module ConnectionAdapters
     class MysqlColumn < Column #:nodoc:
-      module Format
-        DATE = /\A(\d{4})-(\d\d)-(\d\d)\z/
-        DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(?:\.(\d{6}))?\z/
-      end
-
       def extract_default(default)
         if type == :binary || type == :text
           if default.blank?
@@ -107,30 +102,6 @@ module ActiveRecord
           nil
         else
           super
-        end
-      end
-
-      class << self
-        def string_to_date(string)
-          return string unless string.is_a?(String)
-          return nil if string.empty?
-
-          if string =~ Format::DATE
-            new_date $1.to_i, $2.to_i, $3.to_i
-          else
-            super
-          end
-        end
-
-        def string_to_time(string)
-          return string unless string.is_a?(String)
-          return nil if string.empty?
-
-          if string =~ Format::DATETIME
-            new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, $7.to_i
-          else
-            super
-          end
         end
       end
 
