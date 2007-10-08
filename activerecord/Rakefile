@@ -34,84 +34,108 @@ for adapter in %w( mysql postgresql sqlite sqlite3 firebird sqlserver sqlserver_
     t.pattern = "test/**/*_test{,_#{adapter_short}}.rb"
     t.verbose = true
   }
+
+  namespace adapter do
+    task :test => "test_#{adapter}"
+  end
 end
 
 SCHEMA_PATH = File.join(File.dirname(__FILE__), *%w(test fixtures db_definitions))
 
-desc 'Build the MySQL test databases'
-task :build_mysql_databases do 
-  %x( mysqladmin  create activerecord_unittest )
-  %x( mysqladmin  create activerecord_unittest2 )
-  %x( mysql -e "grant all on activerecord_unittest.* to rails@localhost" )
-  %x( mysql -e "grant all on activerecord_unittest2.* to rails@localhost" )
-  %x( mysql  activerecord_unittest < #{File.join(SCHEMA_PATH, 'mysql.sql')} )
-  %x( mysql  activerecord_unittest2 < #{File.join(SCHEMA_PATH, 'mysql2.sql')} )
+namespace :mysql do
+  desc 'Build the MySQL test databases'
+  task :build_databases do
+    %x( mysqladmin  create activerecord_unittest )
+    %x( mysqladmin  create activerecord_unittest2 )
+    %x( mysql -e "grant all on activerecord_unittest.* to rails@localhost" )
+    %x( mysql -e "grant all on activerecord_unittest2.* to rails@localhost" )
+    %x( mysql  activerecord_unittest < #{File.join(SCHEMA_PATH, 'mysql.sql')} )
+    %x( mysql  activerecord_unittest2 < #{File.join(SCHEMA_PATH, 'mysql2.sql')} )
+  end
+
+  desc 'Drop the MySQL test databases'
+  task :drop_databases do
+    %x( mysqladmin -f drop activerecord_unittest )
+    %x( mysqladmin -f drop activerecord_unittest2 )
+  end
+
+  desc 'Rebuild the MySQL test databases'
+  task :rebuild_databases => [:drop_databases, :build_databases]
 end
 
-desc 'Drop the MySQL test databases'
-task :drop_mysql_databases do 
-  %x( mysqladmin -f drop activerecord_unittest )
-  %x( mysqladmin -f drop activerecord_unittest2 )
-end
-
-desc 'Rebuild the MySQL test databases'
+task :build_mysql_databases => 'mysql:build_databases'
+task :drop_mysql_databases => 'mysql:drop_databases'
 task :rebuild_mysql_databases => [:drop_mysql_databases, :build_mysql_databases]
 
-desc 'Build the PostgreSQL test databases'
-task :build_postgresql_databases do 
-  %x( createdb -U postgres activerecord_unittest )
-  %x( createdb -U postgres activerecord_unittest2 )
-  %x( psql activerecord_unittest -f #{File.join(SCHEMA_PATH, 'postgresql.sql')} postgres )
-  %x( psql activerecord_unittest2 -f #{File.join(SCHEMA_PATH, 'postgresql2.sql')}  postgres )
+
+namespace :postgresql do
+  desc 'Build the PostgreSQL test databases'
+  task :build_databases do
+    %x( createdb -U postgres activerecord_unittest )
+    %x( createdb -U postgres activerecord_unittest2 )
+    %x( psql activerecord_unittest -f #{File.join(SCHEMA_PATH, 'postgresql.sql')} postgres )
+    %x( psql activerecord_unittest2 -f #{File.join(SCHEMA_PATH, 'postgresql2.sql')}  postgres )
+  end
+
+  desc 'Drop the PostgreSQL test databases'
+  task :drop_databases do
+    %x( dropdb -U postgres activerecord_unittest )
+    %x( dropdb -U postgres activerecord_unittest2 )
+  end
+
+  desc 'Rebuild the PostgreSQL test databases'
+  task :rebuild_databases => [:drop_databases, :build_databases]
 end
 
-desc 'Drop the PostgreSQL test databases'
-task :drop_postgresql_databases do 
-  %x( dropdb -U postgres activerecord_unittest )
-  %x( dropdb -U postgres activerecord_unittest2 )
-end
-
-desc 'Rebuild the PostgreSQL test databases'
+task :build_postgresql_databases => 'postgresql:build_databases'
+task :drop_postgresql_databases => 'postgresql:drop_databases'
 task :rebuild_postgresql_databases => [:drop_postgresql_databases, :build_postgresql_databases]
 
-desc 'Build the FrontBase test databases'
-task :build_frontbase_databases => :rebuild_frontbase_databases 
 
-desc 'Rebuild the FrontBase test databases'
-task :rebuild_frontbase_databases do
-  build_frontbase_database = Proc.new do |db_name, sql_definition_file|
-    %(
-      STOP DATABASE #{db_name};
-      DELETE DATABASE #{db_name};
-      CREATE DATABASE #{db_name};
+namespace :frontbase do
+  desc 'Build the FrontBase test databases'
+  task :build_databases => :rebuild_frontbase_databases
 
-      CONNECT TO #{db_name} AS SESSION_NAME USER _SYSTEM;
-      SET COMMIT FALSE;
+  desc 'Rebuild the FrontBase test databases'
+  task :rebuild_databases do
+    build_frontbase_database = Proc.new do |db_name, sql_definition_file|
+      %(
+        STOP DATABASE #{db_name};
+        DELETE DATABASE #{db_name};
+        CREATE DATABASE #{db_name};
 
-      CREATE USER RAILS;
-      CREATE SCHEMA RAILS AUTHORIZATION RAILS;
-      COMMIT;
+        CONNECT TO #{db_name} AS SESSION_NAME USER _SYSTEM;
+        SET COMMIT FALSE;
 
-      SET SESSION AUTHORIZATION RAILS;
-      SCRIPT '#{sql_definition_file}';
+        CREATE USER RAILS;
+        CREATE SCHEMA RAILS AUTHORIZATION RAILS;
+        COMMIT;
 
-      COMMIT;
+        SET SESSION AUTHORIZATION RAILS;
+        SCRIPT '#{sql_definition_file}';
 
-      DISCONNECT ALL; 
-    )
+        COMMIT;
+
+        DISCONNECT ALL;
+      )
+    end
+    create_activerecord_unittest  = build_frontbase_database['activerecord_unittest',  File.join(SCHEMA_PATH, 'frontbase.sql')]
+    create_activerecord_unittest2 = build_frontbase_database['activerecord_unittest2', File.join(SCHEMA_PATH, 'frontbase2.sql')]
+    execute_frontbase_sql = Proc.new do |sql|
+      system(<<-SHELL)
+      /Library/FrontBase/bin/sql92 <<-SQL
+      #{sql}
+      SQL
+      SHELL
+    end
+    execute_frontbase_sql[create_activerecord_unittest]
+    execute_frontbase_sql[create_activerecord_unittest2]
   end
-  create_activerecord_unittest  = build_frontbase_database['activerecord_unittest',  File.join(SCHEMA_PATH, 'frontbase.sql')]
-  create_activerecord_unittest2 = build_frontbase_database['activerecord_unittest2', File.join(SCHEMA_PATH, 'frontbase2.sql')]
-  execute_frontbase_sql = Proc.new do |sql| 
-    system(<<-SHELL)
-    /Library/FrontBase/bin/sql92 <<-SQL
-    #{sql}
-    SQL
-    SHELL
-  end
-  execute_frontbase_sql[create_activerecord_unittest]
-  execute_frontbase_sql[create_activerecord_unittest2]
 end
+
+task :build_frontbase_databases => 'frontbase:build_databases'
+task :rebuild_frontbase_databases => 'frontbase:rebuild_databases'
+
 
 # Generate the RDoc documentation
 
@@ -148,7 +172,7 @@ spec = Gem::Specification.new do |s|
   dist_dirs.each do |dir|
     s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   end
-  
+
   s.add_dependency('activesupport', '= 1.4.3' + PKG_BUILD)
 
   s.files.delete "test/fixtures/fixture_database.sqlite"
@@ -161,13 +185,13 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc = true
   s.extra_rdoc_files = %w( README )
   s.rdoc_options.concat ['--main',  'README']
-  
+
   s.author = "David Heinemeier Hansson"
   s.email = "david@loudthinking.com"
   s.homepage = "http://www.rubyonrails.org"
   s.rubyforge_project = "activerecord"
 end
-  
+
 Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
   p.need_tar = true
@@ -188,10 +212,10 @@ task :lines do
       codelines += 1
     end
     puts "L: #{sprintf("%4d", lines)}, LOC #{sprintf("%4d", codelines)} | #{file_name}"
-    
+
     total_lines     += lines
     total_codelines += codelines
-    
+
     lines, codelines = 0, 0
   end
 
@@ -202,13 +226,13 @@ end
 # Publishing ------------------------------------------------------
 
 desc "Publish the beta gem"
-task :pgem => [:package] do 
+task :pgem => [:package] do
   Rake::SshFilePublisher.new("davidhh@wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
   `ssh davidhh@wrath.rubyonrails.org './gemupdate.sh'`
 end
 
 desc "Publish the API documentation"
-task :pdoc => [:rdoc] do 
+task :pdoc => [:rdoc] do
   Rake::SshDirPublisher.new("davidhh@wrath.rubyonrails.org", "public_html/ar", "doc").upload
 end
 
