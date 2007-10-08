@@ -28,4 +28,10 @@ class Topic < ActiveRecord::Base
     def destroy_children
       self.class.delete_all "parent_id = #{id}"
     end
+
+    def after_initialize
+      if self.new_record?
+        self.author_email_address = 'test@test.com'
+      end
+    end
 end

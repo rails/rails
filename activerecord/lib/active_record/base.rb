@@ -1751,9 +1751,9 @@ module ActiveRecord #:nodoc:
       def clone
         attrs = self.attributes_before_type_cast
         attrs.delete(self.class.primary_key)
-        self.class.new do |record|
-          record.send :instance_variable_set, '@attributes', attrs
-        end
+        record = self.class.new
+        record.send :instance_variable_set, '@attributes', attrs
+        record
       end
 
       # Updates a single attribute and saves the record. This is especially useful for boolean flags on existing records.
