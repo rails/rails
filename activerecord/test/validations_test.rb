@@ -21,6 +21,18 @@ class ProtectedPerson < ActiveRecord::Base
   attr_protected :first_name
 end
 
+class UniqueReply < Reply
+  validates_uniqueness_of :content, :scope => 'parent_id'
+end
+
+class SillyUniqueReply < UniqueReply
+end
+
+class Topic < ActiveRecord::Base
+  has_many :unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
+  has_many :silly_unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
+end
+
 class ValidationsTest < Test::Unit::TestCase
   fixtures :topics, :developers
 
@@ -317,6 +329,21 @@ class ValidationsTest < Test::Unit::TestCase
 
     t2 = Topic.create("title" => "I'm unique too!")
     r3 = t2.replies.create "title" => "r3", "content" => "hello world"
+    assert r3.valid?, "Saving r3"
+  end
+
+  def test_validate_uniqueness_scoped_to_defining_class
+    t = Topic.create("title" => "What, me worry?")
+
+    r1 = t.unique_replies.create "title" => "r1", "content" => "a barrel of fun"
+    assert r1.valid?, "Saving r1"
+
+    r2 = t.silly_unique_replies.create "title" => "r2", "content" => "a barrel of fun"
+    assert !r2.valid?, "Saving r2"
+
+    # Should succeed as validates_uniqueness_of only applies to
+    # UniqueReply and it's subclasses
+    r3 = t.replies.create "title" => "r2", "content" => "a barrel of fun"
     assert r3.valid?, "Saving r3"
   end
 

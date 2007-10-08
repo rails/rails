@@ -619,6 +619,7 @@ module ActiveRecord
             condition_sql = "LOWER(#{record.class.table_name}.#{attr_name}) #{attribute_condition(value)}"
             condition_params = [value.downcase]
           end
+
           if scope = configuration[:scope]
             Array(scope).map do |scope_item|
               scope_value = record.send(scope_item)
@@ -626,11 +627,13 @@ module ActiveRecord
               condition_params << scope_value
             end
           end
+
           unless record.new_record?
             condition_sql << " AND #{record.class.table_name}.#{record.class.primary_key} <> ?"
             condition_params << record.send(:id)
           end
-          if record.class.find(:first, :conditions => [condition_sql, *condition_params])
+
+          if find(:first, :conditions => [condition_sql, *condition_params])
             record.errors.add(attr_name, configuration[:message])
           end
         end

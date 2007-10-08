@@ -1,5 +1,7 @@
 *SVN*
 
+* validates_uniqueness_of behaves well with single-table inheritance.  #3833 [Gabriel Gironda, rramdas, François Beausoleil, Josh Peek, Tarmo Tänav]
+
 * Raise ProtectedAttributeAssignmentError in development and test environments when mass-assigning to an attr_protected attribute.  #9802 [Henrik N]
 
 * Speedup database date/time parsing.  [Jeremy Kemper, Tarmo Tänav]
@@ -1786,7 +1788,7 @@ during calendar reform.  #7649, #7724 [fedot, Geoff Buesing]
 
 * MySQL: more robust test for nullified result hashes.  #3124 [Stefan Kaes]
 
-* Reloading an instance refreshes its aggregations as well as its associations.  #3024 [FranÃ§ois Beausolei]
+* Reloading an instance refreshes its aggregations as well as its associations.  #3024 [François Beausoleil]
 
 * Fixed that using :include together with :conditions array in Base.find would cause NoMethodError #2887 [Paul Hammmond]
 
