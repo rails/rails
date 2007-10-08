@@ -72,7 +72,6 @@ module Rails
     # * #initialize_framework_views
     # * #initialize_dependency_mechanism
     # * #initialize_whiny_nils
-    # * #initialize_whiny_protected_attributes
     # * #initialize_temporary_directories
     # * #initialize_framework_settings
     # * #add_support_load_paths
@@ -96,7 +95,6 @@ module Rails
       initialize_framework_views
       initialize_dependency_mechanism
       initialize_whiny_nils
-      initialize_whiny_protected_attributes
       initialize_temporary_directories
       initialize_framework_settings
 
@@ -300,14 +298,6 @@ module Rails
     def initialize_whiny_nils
       require('active_support/whiny_nil') if configuration.whiny_nils
     end
-    
-    # Sets +ActiveRecord::Base#whiny_protected_attributes+ which determines whether to
-    # raise on mass-assigning attributes protected with +attr_protected+/+attr_accessible+.
-    def initialize_whiny_protected_attributes
-      if configuration.frameworks.include?(:active_record)
-        ActiveRecord::Base.whiny_protected_attributes = configuration.whiny_protected_attributes
-      end
-    end
 
     def initialize_temporary_directories
       if configuration.frameworks.include?(:action_controller)
@@ -433,11 +423,6 @@ module Rails
     # Set to +true+ if you want to be warned (noisily) when you try to invoke
     # any method of +nil+. Set to +false+ for the standard Ruby behavior.
     attr_accessor :whiny_nils
-    
-    # The default value of +true+ means an exception will be raised on attempts
-    # to mass-assign to protected attributes. Set to +false+ to discard them
-    # without raising (an error will be logged instead).
-    attr_accessor :whiny_protected_attributes
 
     # The list of plugins to load. If this is set to <tt>nil</tt>, all plugins will
     # be loaded. If this is set to <tt>[]</tt>, no plugins will be loaded. Otherwise,
@@ -486,7 +471,6 @@ module Rails
       self.controller_paths             = default_controller_paths
       self.cache_classes                = default_cache_classes
       self.whiny_nils                   = default_whiny_nils
-      self.whiny_protected_attributes   = default_whiny_protected_attributes
       self.plugins                      = default_plugins
       self.plugin_paths                 = default_plugin_paths
       self.plugin_locators              = default_plugin_locators
@@ -645,10 +629,6 @@ module Rails
 
       def default_whiny_nils
         false
-      end
-      
-      def default_whiny_protected_attributes
-        true
       end
 
       def default_plugins

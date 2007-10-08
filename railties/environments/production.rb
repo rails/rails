@@ -18,4 +18,4 @@ config.action_controller.perform_caching             = true
 # config.action_mailer.raise_delivery_errors = false
 
 # Disable raising errors when mass-assigning to a protected attribute
-config.whiny_protected_attributes = false
+config.active_record.whiny_protected_attributes = false
