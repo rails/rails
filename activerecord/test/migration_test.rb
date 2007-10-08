@@ -429,6 +429,16 @@ if ActiveRecord::Base.connection.supports_migrations?
         Person.connection.add_column("people", "first_name", :string) rescue nil
       end
     end
+    
+    def test_change_type_of_not_null_column
+      assert_nothing_raised do
+        Topic.connection.change_column "topics", "written_on", :datetime, :null => false
+        Topic.reset_column_information
+        
+        Topic.connection.change_column "topics", "written_on", :datetime, :null => false
+        Topic.reset_column_information
+      end
+    end
 
     def test_rename_table
       begin
