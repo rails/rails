@@ -1,5 +1,7 @@
 *SVN*
 
+* belongs_to infers the foreign key from the association name instead of from the class name.  [Jeremy Kemper]
+
 * PostgreSQL: support multiline default values.  #7533 [Carl Lerche, aguynamedryan, Rein Henrichs, Tarmo Tänav]
 
 * MySQL: fix change_column on not-null columns that don't accept dfeault values of ''.  #6663 [Jonathan Viney, Tarmo Tänav]

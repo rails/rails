@@ -1617,7 +1617,7 @@ module ActiveRecord
                             klass.quote_value(reflection.options[:source_type])
                           ]
                         else
-                          second_key = source_reflection.options[:foreign_key] || klass.to_s.foreign_key
+                          second_key = source_reflection.primary_key_name
                         end
                       end
 
