@@ -1,3 +1,8 @@
+*SVN*
+
+* Move custom inflections example so available before route generation.  #6829 [dcmanges, Nate, piotrb]
+
+
 *1.2.4* (October 4th, 2007)
 
 * Add a new rake task to aid debugging of named routes.  
