@@ -136,6 +136,12 @@ module ActionView
       #     ...
       #   <% end %>
       #
+      # And for namespaced routes, like admin_post_url: 
+      #
+      #   <% form_for([:admin, @post]) do |f| %>
+      #    ...
+      #   <% end %>
+      #
       # === Customized form builders
       #
       # You can also build forms using a customized FormBuilder class. Subclass FormBuilder and override or define some more helpers,
