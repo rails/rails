@@ -160,45 +160,45 @@ module ActiveRecord
         def self.extract_value_from_default(default)
           case default
             # Numeric types
-            when /^-?\d+(\.\d*)?$/
+            when /\A-?\d+(\.\d*)?\z/
               default
             # Character types
-            when /^'(.*)'::(?:character varying|bpchar|text)$/
+            when /\A'(.*)'::(?:character varying|bpchar|text)\z/m
               $1
             # Binary data types
-            when /^'(.*)'::bytea$/
+            when /\A'(.*)'::bytea\z/m
               $1
             # Date/time types
-            when /^'(.+)'::(?:time(?:stamp)? with(?:out)? time zone|date)$/
+            when /\A'(.+)'::(?:time(?:stamp)? with(?:out)? time zone|date)\z/
               $1
-            when /^'(.*)'::interval$/
+            when /\A'(.*)'::interval\z/
               $1
             # Boolean type
-            when /^true$/
+            when 'true'
               true
-            when /^false$/
+            when 'false'
               false
             # Geometric types
-            when /^'(.*)'::(?:point|line|lseg|box|"?path"?|polygon|circle)$/
+            when /\A'(.*)'::(?:point|line|lseg|box|"?path"?|polygon|circle)\z/
               $1
             # Network address types
-            when /^'(.*)'::(?:cidr|inet|macaddr)$/
+            when /\A'(.*)'::(?:cidr|inet|macaddr)\z/
               $1
             # Bit string types
-            when /^B'(.*)'::"?bit(?: varying)?"?$/
+            when /\AB'(.*)'::"?bit(?: varying)?"?\z/
               $1
             # XML type
-            when /^'(.*)'::xml$/
+            when /\A'(.*)'::xml\z/m
               $1
             # Arrays
-            when /^'(.*)'::"?\D+"?\[\]$/
+            when /\A'(.*)'::"?\D+"?\[\]\z/
               $1
             # Object identifier types
-            when /^-?\d+$/
+            when /\A-?\d+\z/
               $1
             else
               # Anything else is blank, some user type, or some function
-              # and we can't know the value of that, so return nil.            
+              # and we can't know the value of that, so return nil.
               nil
           end
         end

@@ -57,4 +57,10 @@ class DefaultTest < Test::Unit::TestCase
       assert_equal BigDecimal.new("2.78"), default.decimal_number
     end
   end
+
+  if current_adapter?(:PostgreSQLAdapter)
+    def test_multiline_default_text
+      assert_equal "--- []\n\n", Default.columns_hash['multiline_default'].default
+    end
+  end
 end
