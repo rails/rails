@@ -25,6 +25,13 @@ $:.unshift(File.dirname(__FILE__))
 $:.unshift(File.dirname(__FILE__) + "/active_support/vendor")
 
 require 'rubygems'
+begin
+  require 'builder'
+rescue LoadError
+  $stderr.puts 'Builder has been unbundled from Active Support in Rails 2.0.'
+  $stderr.puts 'Please `gem install builder`'
+  raise
+end
 
 require 'active_support/basic_object'
 
