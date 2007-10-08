@@ -64,9 +64,38 @@ please visit: http://wiki.rubyonrails.com/rails/pages/FastCGI
 
 == Debugging Rails
 
-Have "tail -f" commands running on the server.log and development.log. Rails will
-automatically display debugging and runtime information to these files. Debugging
-info will also be shown in the browser on requests from 127.0.0.1.
+Sometimes your application goes wrong.  Fortunately there are a lot of tools that
+will help you debug it and get it back on the rails.
+
+First area to check is the application log files.  Have "tail -f" commands running
+on the server.log and development.log. Rails will automatically display debugging
+and runtime information to these files. Debugging info will also be shown in the
+browser on requests from 127.0.0.1.
+
+You can also log your own messages directly into the log file from your code using
+the Ruby logger class from inside your controllers. Example:
+
+  class WeblogController < ActionController::Base
+    def destroy
+      @weblog = Weblog.find(params[:id])
+      @weblog.destroy
+      logger.info("#{Time.now} Destroyed Weblog ID ##{@weblog.id}!")
+    end
+  end
+
+The result will be a message in your log file along the lines of:
+
+  Mon Oct 08 14:22:29 +1000 2007 Destroyed Weblog ID #1
+
+More information on how to use the logger is at http://www.ruby-doc.org/core/
+
+Also, Ruby documentation can be found at http://www.ruby-lang.org/ including:
+
+* The Learning Ruby (Pickaxe) Book: http://www.ruby-doc.org/docs/ProgrammingRuby/
+* Learn to Program: http://pine.fm/LearnToProgram/  (a beginners guide)
+
+These two online (and free) books will bring you up to speed on the Ruby language
+and also on programming in general.
 
 
 == Breakpoints
