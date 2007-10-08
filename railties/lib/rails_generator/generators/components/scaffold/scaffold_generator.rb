@@ -39,6 +39,7 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       m.directory(File.join('app/controllers', controller_class_path))
       m.directory(File.join('app/helpers', controller_class_path))
       m.directory(File.join('app/views', controller_class_path, controller_file_name))
+      m.directory(File.join('app/views/layouts', controller_class_path))
       m.directory(File.join('test/functional', controller_class_path))
       m.directory(File.join('test/unit', class_path))
 
