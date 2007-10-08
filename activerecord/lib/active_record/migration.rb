@@ -36,11 +36,11 @@ module ActiveRecord
   #   class AddSystemSettings < ActiveRecord::Migration
   #     def self.up
   #       create_table :system_settings do |t|
-  #         t.column :name,     :string
-  #         t.column :label,    :string
-  #         t.column :value,    :text
-  #         t.column :type,     :string
-  #         t.column :position, :integer
+  #         t.string  :name
+  #         t.string  :label
+  #         t.text  :value
+  #         t.string  :type
+  #         t.integer  :position
   #       end
   #
   #       SystemSetting.create :name => "notice", :label => "Use notice?", :value => 1
