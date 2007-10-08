@@ -86,8 +86,9 @@ module ActionView
       # of +options+. See the valid options in the documentation for
       # url_for. It's also possible to pass a string instead
       # of an options hash to get a link tag that uses the value of the string as the
-      # href for the link. If nil is passed as a name, the link itself will become
-      # the name.
+      # href for the link, or use +:back+ to link to the referrer - a JavaScript back
+      # link will be used in place of a referrer if none exists. If nil is passed as
+      # a name, the link itself will become the name.
       #
       # ==== Options
       # * <tt>:confirm => 'question?'</tt> -- This will add a JavaScript confirm
@@ -134,7 +135,14 @@ module ActionView
       #        var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); 
       #        m.setAttribute('value', 'delete'); f.appendChild(m);f.submit(); };return false;">Delete Image</a>
       def link_to(name, options = {}, html_options = nil)
-        url = options.is_a?(String) ? options : self.url_for(options)
+        url = case options
+          when String
+            options
+          when :back
+            @controller.request.env["HTTP_REFERER"] || 'javascript:history.back()'
+          else
+            self.url_for(options)
+          end
 
         if html_options
           html_options = html_options.stringify_keys
