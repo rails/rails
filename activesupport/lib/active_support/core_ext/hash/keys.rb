@@ -43,6 +43,13 @@ module ActiveSupport #:nodoc:
         alias_method :to_options,  :symbolize_keys
         alias_method :to_options!, :symbolize_keys!
 
+        # Validate all keys in a hash match *valid keys, raising ArgumentError on a mismatch.
+        # Note that keys are NOT treated indifferently, meaning if you use strings for keys but assert symbol
+        # as keys, this will fail.
+        # examples:
+        #   { :name => "Rob", :years => "28" }.assert_valid_keys(:name, :age) # => raises "ArgumentError: Unknown key(s): years"
+        #   { :name => "Rob", :age => "28" }.assert_valid_keys("name", "age") # => raises "ArgumentError: Unknown key(s): years, name"
+        #   { :name => "Rob", :age => "28" }.assert_valid_keys(:name, :age) # => passes, raises nothing
         def assert_valid_keys(*valid_keys)
           unknown_keys = keys - [valid_keys].flatten
           raise(ArgumentError, "Unknown key(s): #{unknown_keys.join(", ")}") unless unknown_keys.empty?
