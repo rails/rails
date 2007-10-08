@@ -25,6 +25,10 @@ class TestTest < Test::Unit::TestCase
       render :text => request.request_uri
     end
 
+    def test_query_string
+      render :text => request.query_string
+    end
+
     def test_html_output
       render :text => <<HTML
 <html>
@@ -141,6 +145,17 @@ XML
     @request.set_REQUEST_URI "/explicit/uri"
     process :test_uri, :id => 7
     assert_equal "/explicit/uri", @response.body
+  end
+
+  def test_process_with_query_string
+    process :test_query_string, :q => 'test'
+    assert_equal "q=test", @response.body
+  end
+
+  def test_process_with_query_string_with_explicit_uri
+    @request.set_REQUEST_URI "/explicit/uri?q=test?extra=question"
+    process :test_query_string
+    assert_equal "q=test?extra=question", @response.body
   end
 
   def test_multiple_calls
