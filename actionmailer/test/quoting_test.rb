@@ -3,6 +3,44 @@ require 'tmail'
 require 'tempfile'
 
 class QuotingTest < Test::Unit::TestCase
+  
+  # Move some tests from TMAIL here
+  def test_unquote_quoted_printable
+    a ="=?ISO-8859-1?Q?[166417]_Bekr=E6ftelse_fra_Rejsefeber?=" 
+    b = TMail::Unquoter.unquote_and_convert_to(a, 'utf-8')
+    assert_equal "[166417] Bekr\303\246ftelse fra Rejsefeber", b
+  end
+
+  def test_unquote_base64
+    a ="=?ISO-8859-1?B?WzE2NjQxN10gQmVrcuZmdGVsc2UgZnJhIFJlanNlZmViZXI=?="
+    b = TMail::Unquoter.unquote_and_convert_to(a, 'utf-8')
+    assert_equal "[166417] Bekr\303\246ftelse fra Rejsefeber", b
+  end
+
+  def test_unquote_without_charset
+    a ="[166417]_Bekr=E6ftelse_fra_Rejsefeber" 
+    b = TMail::Unquoter.unquote_and_convert_to(a, 'utf-8')
+    assert_equal "[166417]_Bekr=E6ftelse_fra_Rejsefeber", b
+  end  
+  
+  def test_unqoute_multiple
+    a ="=?utf-8?q?Re=3A_=5B12=5D_=23137=3A_Inkonsistente_verwendung_von_=22Hin?==?utf-8?b?enVmw7xnZW4i?=" 
+    b = TMail::Unquoter.unquote_and_convert_to(a, 'utf-8')
+    assert_equal "Re: [12] #137: Inkonsistente verwendung von \"Hinzuf\303\274gen\"", b
+  end
+  
+  def test_unqoute_in_the_middle
+    a ="Re: Photos =?ISO-8859-1?Q?Brosch=FCre_Rand?=" 
+    b = TMail::Unquoter.unquote_and_convert_to(a, 'utf-8')
+    assert_equal "Re: Photos Brosch\303\274re Rand", b
+  end
+  
+  def test_unqoute_iso
+    a ="=?ISO-8859-1?Q?Brosch=FCre_Rand?=" 
+    b = TMail::Unquoter.unquote_and_convert_to(a, 'iso-8859-1')
+    assert_equal "Brosch\374re Rand", b
+  end
+    
   def test_quote_multibyte_chars
     original = "\303\246 \303\270 and \303\245"
 
@@ -18,7 +56,8 @@ class QuotingTest < Test::Unit::TestCase
     unquoted = TMail::Unquoter.unquote_and_convert_to(result, nil)
     assert_equal unquoted, original
   end
-
+  
+  
   # test an email that has been created using \r\n newlines, instead of
   # \n newlines.
   def test_email_quoted_with_0d0a
@@ -62,7 +101,7 @@ class QuotingTest < Test::Unit::TestCase
       # No .so
     end
   end
-
+  
   private
     
     # This whole thing *could* be much simpler, but I don't think Tempfile,
@@ -91,3 +130,4 @@ class QuotingTest < Test::Unit::TestCase
       [ File.read("#{File.dirname(__FILE__)}/fixtures/raw_base64_encoded_string"), File.read("#{File.dirname(__FILE__)}/fixtures/raw_base64_decoded_string") ]
     end
 end
+
