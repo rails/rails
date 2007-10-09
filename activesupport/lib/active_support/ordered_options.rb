@@ -1,26 +1,31 @@
 # OrderedHash is namespaced to prevent conflicts with other implementations
 module ActiveSupport
-  class OrderedHash < Array #:nodoc:
-    def []=(key, value)
-      if pair = assoc(key)
-        pair.pop
-        pair << value
-      else
-        self << [key, value]
+  # Hash is ordered in Ruby 1.9!
+  if RUBY_VERSION >= '1.9'
+    OrderedHash = ::Hash
+  else
+    class OrderedHash < Array #:nodoc:
+      def []=(key, value)
+        if pair = assoc(key)
+          pair.pop
+          pair << value
+        else
+          self << [key, value]
+        end
       end
-    end
 
-    def [](key)
-      pair = assoc(key)
-      pair ? pair.last : nil
-    end
+      def [](key)
+        pair = assoc(key)
+        pair ? pair.last : nil
+      end
 
-    def keys
-      collect { |key, value| key }
-    end
+      def keys
+        collect { |key, value| key }
+      end
 
-    def values
-      collect { |key, value| value }
+      def values
+        collect { |key, value| value }
+      end
     end
   end
 end
