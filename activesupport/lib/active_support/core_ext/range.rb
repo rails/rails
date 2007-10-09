@@ -1,7 +1,7 @@
 require 'active_support/core_ext/range/conversions'
-require File.dirname(__FILE__) + '/range/overlaps'
-require File.dirname(__FILE__) + '/range/include_range'
-require File.dirname(__FILE__) + '/range/blockless_step'
+require 'active_support/core_ext/range/overlaps'
+require 'active_support/core_ext/range/include_range'
+require 'active_support/core_ext/range/blockless_step'
 
 class Range #:nodoc:
   include ActiveSupport::CoreExtensions::Range::Conversions

@@ -1,13 +1,12 @@
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Range #:nodoc:
-      # Check if a Range includes another Range
+      # Check if a Range includes another Range.
       module IncludeRange
+        def self.included(base) #:nodoc:
+          base.alias_method_chain :include?, :range
+        end
 
-        def self.included(klass) #:nodoc:
-          klass.send(:alias_method_chain, :include?, :range)
-        end        
-        
         def include_with_range?(value)
           if value.is_a?(::Range)
             operator = exclude_end? ? :< : :<=
@@ -17,7 +16,6 @@ module ActiveSupport #:nodoc:
             include_without_range?(value)
           end
         end
-        
       end
     end
   end

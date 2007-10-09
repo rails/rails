@@ -1,24 +1,21 @@
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Range #:nodoc:
-      # Return and array when step is called without a block
+      # Return an array when step is called without a block.
       module BlocklessStep
+        def self.included(base) #:nodoc:
+          base.alias_method_chain :step, :blockless
+        end
 
-        def self.included(klass) #:nodoc:
-          klass.send(:alias_method, :step_with_block, :step)
-          klass.send(:alias_method, :step, :step_without_block)
-        end        
-        
-        def step_without_block(value, &block)
+        def step_with_blockless(value, &block)
           if block_given?
-            step_with_block(value, &block)
+            step_without_blockless(value, &block)
           else
             returning [] do |array|
-              step_with_block(value) {|step| array << step }
+              step_without_blockless(value) { |step| array << step }
             end
           end
         end
-
       end
     end
   end
