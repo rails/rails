@@ -63,7 +63,7 @@ module ActiveRecord
             
             #{scope_condition_method}
             
-            after_destroy  :remove_from_list
+            before_destroy :remove_from_list
             before_create  :add_to_list_bottom
           EOV
         end
@@ -121,7 +121,10 @@ module ActiveRecord
         
         # Removes the item from the list.
         def remove_from_list
-          decrement_positions_on_lower_items if in_list?
+          if in_list?
+            decrement_positions_on_lower_items
+            update_attribute position_column, nil
+          end
         end
 
         # Increase the position of this item without adjusting the rest of the list.

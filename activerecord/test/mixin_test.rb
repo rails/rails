@@ -211,6 +211,53 @@ class ListTest < Test::Unit::TestCase
     assert_equal [new2, new1, new3], ListMixin.find(:all, :conditions => 'parent_id IS NULL', :order => 'pos')
   end
 
+  def test_remove_from_list_should_then_fail_in_list?
+    assert_equal true, mixins(:list_1).in_list?
+    mixins(:list_1).remove_from_list
+    assert_equal false, mixins(:list_1).in_list?
+  end
+
+  def test_remove_from_list_should_set_position_to_nil
+    assert_equal [mixins(:list_1),
+                  mixins(:list_2),
+                  mixins(:list_3),
+                  mixins(:list_4)],
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
+
+    mixins(:list_2).remove_from_list
+
+    assert_equal [mixins(:list_2, :reload),
+                  mixins(:list_1, :reload),
+                  mixins(:list_3, :reload),
+                  mixins(:list_4, :reload)],
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
+
+    assert_equal 1, mixins(:list_1).pos
+    assert_equal nil, mixins(:list_2).pos
+    assert_equal 2, mixins(:list_3).pos
+    assert_equal 3, mixins(:list_4).pos
+  end
+
+  def test_remove_before_destroy_does_not_shift_lower_items_twice
+    assert_equal [mixins(:list_1),
+                  mixins(:list_2),
+                  mixins(:list_3),
+                  mixins(:list_4)],
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
+
+    mixins(:list_2).remove_from_list
+    mixins(:list_2).destroy
+
+  assert_equal [mixins(:list_1, :reload),
+                mixins(:list_3, :reload),
+                mixins(:list_4, :reload)],
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
+
+    assert_equal 1, mixins(:list_1).pos
+    assert_equal 2, mixins(:list_3).pos
+    assert_equal 3, mixins(:list_4).pos
+  end
+
 end
 
 class TreeTest < Test::Unit::TestCase
