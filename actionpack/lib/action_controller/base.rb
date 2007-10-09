@@ -987,32 +987,47 @@ module ActionController #:nodoc:
       #   redirect_to "/images/screenshot.jpg"
       #   redirect_to :back
       #
-      # The redirection happens as a "302 Moved" header.
+      # The redirection happens as a "302 Moved" header unless otherwise specified. 
+      #
+      # Examples:
+      #   redirect_to post_url(@post), :status=>:found
+      #   redirect_to :action=>'atom', :status=>:moved_permanently
+      #   redirect_to post_url(@post), :status=>301
+      #   redirect_to :action=>'atom', :status=>302
       #
       # When using <tt>redirect_to :back</tt>, if there is no referrer,
       # RedirectBackError will be raised. You may specify some fallback
       # behavior for this case by rescuing RedirectBackError.
-      def redirect_to(options = {}) #:doc:
+      def redirect_to(options = {}, response_status = {}) #:doc: 
+        
+        if options.is_a?(Hash) && options[:status] 
+          status = options.delete(:status) 
+        elsif response_status[:status] 
+          status = response_status[:status] 
+        else 
+          status = 302 
+        end
+        
         case options
           when %r{^\w+://.*}
             raise DoubleRenderError if performed?
-            logger.info("Redirected to #{options}") if logger
-            response.redirect(options)
+            logger.info("Redirected to #{options}") if logger && logger.info?
+            response.redirect(options, interpret_status(status))
             response.redirected_to = options
             @performed_redirect = true
 
           when String
-            redirect_to(request.protocol + request.host_with_port + options)
+            redirect_to(request.protocol + request.host_with_port + options, :status=>status)
 
           when :back
-            request.env["HTTP_REFERER"] ? redirect_to(request.env["HTTP_REFERER"]) : raise(RedirectBackError)
+            request.env["HTTP_REFERER"] ? redirect_to(request.env["HTTP_REFERER"], :status=>status) : raise(RedirectBackError)
 
           when Hash
-            redirect_to(url_for(options))
+            redirect_to(url_for(options), :status=>status)
             response.redirected_to = options
 
           else
-            redirect_to(url_for(options))
+            redirect_to(url_for(options), :status=>status)
         end
       end
 

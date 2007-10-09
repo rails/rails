@@ -28,8 +28,8 @@ module ActionController
       charset.blank? ? nil : charset.strip.split("=")[1]
     end
 
-    def redirect(to_url, permanently = false)
-      self.headers["Status"]   = "302 Found" unless headers["Status"] == "301 Moved Permanently"
+    def redirect(to_url, response_status)
+      self.headers["Status"] = response_status
       self.headers["Location"] = to_url
 
       self.body = "<html><body>You are being <a href=\"#{to_url}\">redirected</a>.</body></html>"
