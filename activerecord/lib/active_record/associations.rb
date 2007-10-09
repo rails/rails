@@ -624,7 +624,6 @@ module ActiveRecord
       #   alongside this object by calling their destroy method.  If set to <tt>:delete_all</tt> all associated
       #   objects are deleted *without* calling their destroy method.  If set to <tt>:nullify</tt> all associated
       #   objects' foreign keys are set to +NULL+ *without* calling their save callbacks.
-      #   May not be set if <tt>:exclusively_dependent</tt> is also set.
       # * <tt>:finder_sql</tt>  - specify a complete SQL statement to fetch the association. This is a good way to go for complex
       #   associations that depend on multiple tables. Note: When this option is used, +find_in_collection+ is _not_ added.
       # * <tt>:counter_sql</tt>  - specify a complete SQL statement to fetch the size of the association. If <tt>:finder_sql</tt> is
@@ -705,7 +704,7 @@ module ActiveRecord
       #   SQL fragment, such as <tt>rank = 5</tt>.
       # * <tt>:order</tt>       - specify the order from which the associated object will be picked at the top. Specified as
       #   an <tt>ORDER BY</tt> SQL fragment, such as <tt>last_name, first_name DESC</tt>
-      # * <tt>:dependent</tt>   - if set to <tt>:destroy</tt> (or +true+), the associated object is destroyed when this object is. If set to
+      # * <tt>:dependent</tt>   - if set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
       #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method. If set to <tt>:nullify</tt>, the associated
       #   object's foreign key is set to +NULL+. Also, association is assigned.
       # * <tt>:foreign_key</tt> - specify the foreign key used for the association. By default this is guessed to be the name
@@ -1117,43 +1116,42 @@ module ActiveRecord
           []
         end
 
+        # See HasManyAssociation#delete_records.  Dependent associations
+        # delete children, otherwise foreign key is set to NULL.
         def configure_dependency_for_has_many(reflection)
-          # See HasManyAssociation#delete_records.  Dependent associations
-          # delete children, otherwise foreign key is set to NULL.
+          if reflection.options.include?(:dependent)
+            # Add polymorphic type if the :as option is present
+            dependent_conditions = []
+            dependent_conditions << "#{reflection.primary_key_name} = \#{record.quoted_id}"
+            dependent_conditions << "#{reflection.options[:as]}_type = '#{base_class.name}'" if reflection.options[:as]
+            dependent_conditions << sanitize_sql(reflection.options[:conditions]) if reflection.options[:conditions]
+            dependent_conditions = dependent_conditions.collect {|where| "(#{where})" }.join(" AND ")
 
-          # Add polymorphic type if the :as option is present
-          dependent_conditions = []
-          dependent_conditions << "#{reflection.primary_key_name} = \#{record.quoted_id}"
-          dependent_conditions << "#{reflection.options[:as]}_type = '#{base_class.name}'" if reflection.options[:as]
-          dependent_conditions << sanitize_sql(reflection.options[:conditions]) if reflection.options[:conditions]
-          dependent_conditions = dependent_conditions.collect {|where| "(#{where})" }.join(" AND ")
-
-          case reflection.options[:dependent]
-            when :destroy
-              module_eval "before_destroy '#{reflection.name}.each { |o| o.destroy }'"
-            when :delete_all
-              module_eval "before_destroy { |record| #{reflection.class_name}.delete_all(%(#{dependent_conditions})) }"
-            when :nullify
-              module_eval "before_destroy { |record| #{reflection.class_name}.update_all(%(#{reflection.primary_key_name} = NULL),  %(#{dependent_conditions})) }"
-            when nil
-              # pass
-            else
-              raise ArgumentError, 'The :dependent option expects either :destroy, :delete_all, or :nullify'
+            case reflection.options[:dependent]
+              when :destroy
+                module_eval "before_destroy '#{reflection.name}.each { |o| o.destroy }'"
+              when :delete_all
+                module_eval "before_destroy { |record| #{reflection.class_name}.delete_all(%(#{dependent_conditions})) }"
+              when :nullify
+                module_eval "before_destroy { |record| #{reflection.class_name}.update_all(%(#{reflection.primary_key_name} = NULL),  %(#{dependent_conditions})) }"
+              else
+                raise ArgumentError, "The :dependent option expects either :destroy, :delete_all, or :nullify (#{reflection.options[:dependent].inspect})"
+            end
           end
         end
 
         def configure_dependency_for_has_one(reflection)
-          case reflection.options[:dependent]
-            when :destroy
-              module_eval "before_destroy '#{reflection.name}.destroy unless #{reflection.name}.nil?'"
-            when :delete
-              module_eval "before_destroy '#{reflection.class_name}.delete(#{reflection.name}.id) unless #{reflection.name}.nil?'"
-            when :nullify
-              module_eval "before_destroy '#{reflection.name}.update_attribute(\"#{reflection.primary_key_name}\", nil) unless #{reflection.name}.nil?'"
-            when nil
-              # pass
-            else
-              raise ArgumentError, "The :dependent option expects either :destroy, :delete or :nullify."
+          if reflection.options.include?(:dependent)
+            case reflection.options[:dependent]
+              when :destroy
+                module_eval "before_destroy '#{reflection.name}.destroy unless #{reflection.name}.nil?'"
+              when :delete
+                module_eval "before_destroy '#{reflection.class_name}.delete(#{reflection.name}.id) unless #{reflection.name}.nil?'"
+              when :nullify
+                module_eval "before_destroy '#{reflection.name}.update_attribute(\"#{reflection.primary_key_name}\", nil) unless #{reflection.name}.nil?'"
+              else
+                raise ArgumentError, "The :dependent option expects either :destroy, :delete or :nullify (#{reflection.options[:dependent].inspect})"
+            end
           end
         end
 
