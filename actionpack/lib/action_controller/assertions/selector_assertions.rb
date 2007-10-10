@@ -561,6 +561,8 @@ module ActionController
           # RJS encodes double quotes and line breaks.
           unescaped= rjs_string.gsub('\"', '"')
           unescaped.gsub!('\n', "\n")
+          unescaped.gsub!('\076', '>')
+          unescaped.gsub!('\074', '<')
           # RJS encodes non-ascii characters.
           unescaped.gsub!(RJS_PATTERN_UNICODE_ESCAPED_CHAR) {|u| [$1.hex].pack('U*')}
           unescaped
