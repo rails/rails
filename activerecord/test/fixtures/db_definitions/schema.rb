@@ -75,4 +75,9 @@ ActiveRecord::Schema.define do
       t.column :real_number, :real
     end
   end
+
+  create_table :audit_logs, :force => true do |t|
+    t.column :message, :string, :null=>false
+    t.column :developer_id, :integer, :null=>false
+  end
 end

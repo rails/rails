@@ -101,6 +101,10 @@ class AssociationProxyTest < Test::Unit::TestCase
     assert !david.projects.loaded?
   end
 
+  def test_save_on_parent_saves_children
+    developer = Developer.create :name => "Bryan", :salary => 50_000
+    assert_equal 1, developer.reload.audit_logs.size
+  end
 end
 
 class HasOneAssociationsTest < Test::Unit::TestCase

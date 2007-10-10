@@ -41,8 +41,18 @@ class Developer < ActiveRecord::Base
 
   has_and_belongs_to_many :special_projects, :join_table => 'developers_projects', :association_foreign_key => 'project_id'
 
+  has_many :audit_logs
+
   validates_inclusion_of :salary, :in => 50000..200000
   validates_length_of    :name, :within => 3..20
+
+  before_create do |developer|
+    developer.audit_logs.build :message => "Computer created"
+  end
+end
+
+class AuditLog < ActiveRecord::Base
+  belongs_to :developer
 end
 
 DeveloperSalary = Struct.new(:amount)
