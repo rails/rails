@@ -994,12 +994,15 @@ module ActiveRecord
           after_callback = <<-end_eval
             association = instance_variable_get("@#{association_name}")
 
-            if association.respond_to?(:loaded?) && association.loaded?
-              if @new_record_before_save
-                records_to_save = association
-              else
-                records_to_save = association.select { |record| record.new_record? }
-              end
+            records_to_save = if @new_record_before_save
+              association
+            elsif association.respond_to?(:loaded?) && association.loaded?
+              association.select { |record| record.new_record? }
+            else
+              []
+            end
+
+            if !records_to_save.blank?
               records_to_save.each { |record| association.send(:insert_record, record) }
               association.send(:construct_sql)   # reconstruct the SQL queries now that we know the owner's id
             end

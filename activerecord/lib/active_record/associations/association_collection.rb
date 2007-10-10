@@ -91,7 +91,11 @@ module ActiveRecord
           attributes.collect { |attr| create(attr) }
         else
           record = build(attributes)
-          record.save unless @owner.new_record?
+          if @owner.new_record?
+            ActiveSupport::Deprecation.warn("Calling .create on a has_many association without saving its owner will not work in rails 2.0, you probably want .build instead")
+          else
+            record.save
+          end
           record
         end
       end

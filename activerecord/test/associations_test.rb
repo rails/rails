@@ -95,6 +95,11 @@ class AssociationProxyTest < Test::Unit::TestCase
     david.update_attribute(:created_at, Time.now)
     assert !david.projects.loaded?
   end
+
+  def test_save_on_parent_saves_children
+    developer = Developer.create :name => "Bryan", :salary => 50_000
+    assert_equal 1, developer.reload.audit_logs.size
+  end
 end
 
 class HasOneAssociationsTest < Test::Unit::TestCase
@@ -591,6 +596,13 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 3, first_firm.plain_clients.size
   end
   
+  def test_regular_create_on_has_many_when_parent_is_new_raises
+    assert_deprecated(/.build instead/) do
+      firm = Firm.new
+      firm.plain_clients.create :name=>"Whoever"
+    end
+  end
+
   def test_adding_a_mismatch_class
     assert_raises(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).clients_of_firm << nil }
     assert_raises(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).clients_of_firm << 1 }

@@ -57,4 +57,9 @@ ActiveRecord::Schema.define do
   create_table :lock_without_defaults_cust, :force => true do |t|
     t.column :custom_lock_version, :integer
   end
+  
+  create_table :audit_logs, :force => true do |t|
+    t.column :message, :string, :null=>false
+    t.column :developer_id, :integer, :null=>false
+  end
 end

@@ -631,7 +631,7 @@ class ValidationsTest < Test::Unit::TestCase
     t = Topic.new('title' => 'noreplies', 'content' => 'whatever')
     assert !t.save
     assert t.errors.on(:replies)
-    t.replies.create('title' => 'areply', 'content' => 'whateveragain')
+    t.replies.build('title' => 'areply', 'content' => 'whateveragain')
     assert t.valid?
   end
 
@@ -824,7 +824,7 @@ class ValidationsTest < Test::Unit::TestCase
       t = Topic.new('title' => 'あいうえお', 'content' => 'かきくけこ')
       assert !t.save
       assert t.errors.on(:replies)
-      t.replies.create('title' => 'あいうえお', 'content' => 'かきくけこ')
+      t.replies.build('title' => 'あいうえお', 'content' => 'かきくけこ')
       assert t.valid?
     end
   end
