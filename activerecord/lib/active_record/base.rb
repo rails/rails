@@ -1269,7 +1269,7 @@ module ActiveRecord #:nodoc:
                   ActiveSupport::Deprecation.silence { send(:#{finder}, options.merge(finder_options)) }
                 end
               end
-            }
+            }, __FILE__, __LINE__
             send(method_id, *arguments)
           elsif match = /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/.match(method_id.to_s)
             instantiator = determine_instantiator(match)
@@ -1284,13 +1284,20 @@ module ActiveRecord #:nodoc:
                 else
                   find_attributes = attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
                 end
-                
+                                
                 options = { :conditions => find_attributes }
                 set_readonly_option!(options)
 
-                find_initial(options) || send(:#{instantiator}, attributes)
+                record = find_initial(options)
+                if record.nil?
+                  record = self.new { |r| r.send(:attributes=, attributes, false) } 
+                  #{'record.save' if instantiator == :create}
+                  record
+                else
+                  record                
+                end
               end
-            }
+            }, __FILE__, __LINE__
             send(method_id, *arguments)
           else
             super
@@ -1841,14 +1848,16 @@ module ActiveRecord #:nodoc:
       # matching the attribute names (which again matches the column names). Sensitive attributes can be protected
       # from this form of mass-assignment by using the +attr_protected+ macro. Or you can alternatively
       # specify which attributes *can* be accessed in with the +attr_accessible+ macro. Then all the
-      # attributes not included in that won't be allowed to be mass-assigned.
-      def attributes=(new_attributes)
+      # attributes not included in that won't be allowed to be mass-assigned. 
+      def attributes=(new_attributes, guard_protected_attributes = true)
         return if new_attributes.nil?
         attributes = new_attributes.dup
         attributes.stringify_keys!
 
         multi_parameter_attributes = []
-        remove_attributes_protected_from_mass_assignment(attributes).each do |k, v|
+        attributes = remove_attributes_protected_from_mass_assignment(attributes) if guard_protected_attributes
+        
+        attributes.each do |k, v|
           k.include?("(") ? multi_parameter_attributes << [ k, v ] : send(k + "=", v)
         end
 

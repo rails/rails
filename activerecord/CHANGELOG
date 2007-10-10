@@ -1,5 +1,7 @@
 *SVN*
 
+* find_and_(initialize|create)_by methods can now properly initialize protected attributes [Tobias Luetke]
+
 * belongs_to infers the foreign key from the association name instead of from the class name.  [Jeremy Kemper]
 
 * PostgreSQL: support multiline default values.  #7533 [Carl Lerche, aguynamedryan, Rein Henrichs, Tarmo Tänav]

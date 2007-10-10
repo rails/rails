@@ -469,6 +469,22 @@ class FinderTest < Test::Unit::TestCase
     assert_equal "38signals", sig38.name
     assert sig38.new_record?
   end
+  
+  def test_find_or_initialize_from_one_attribute_should_set_attribute_even_when_protected
+    c = Company.find_or_initialize_by_name_and_rating("Fortune 1000", 1000)
+    assert_equal "Fortune 1000", c.name
+    assert_equal 1000, c.rating
+    assert c.valid?
+    assert c.new_record?    
+  end
+
+  def test_find_or_create_from_one_attribute_should_set_attribute_even_when_protected
+    c = Company.find_or_create_by_name_and_rating("Fortune 1000", 1000)
+    assert_equal "Fortune 1000", c.name
+    assert_equal 1000, c.rating
+    assert c.valid?
+    assert !c.new_record?    
+  end
 
   def test_dynamic_find_or_initialize_from_one_attribute_caches_method
     class << Company; self; end.send(:remove_method, :find_or_initialize_by_name) if Company.respond_to?(:find_or_initialize_by_name)    
