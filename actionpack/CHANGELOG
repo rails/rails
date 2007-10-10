@@ -1,5 +1,7 @@
 *SVN*
 
+* rescue_from accepts :with => lambda { |exception| ... } or a normal block.  #9827 [lifofifo]
+
 * Add :status to redirect_to allowing users to choose their own response code without manually setting headers. #8297 [codahale, chasgrundy]
 
 * Add link_to :back which uses your referrer with a fallback to a javascript link. #7366 [eventualbuddha, tarmo]

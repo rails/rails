@@ -71,10 +71,10 @@ module ActionController #:nodoc:
       #       exception.record.new_record? ? ...
       #     end
       # end
-      def rescue_from(*klasses)
+      def rescue_from(*klasses, &block)
         options = klasses.extract_options!
-        unless options.has_key?(:with) # allow nil
-          raise ArgumentError, "Need a handler. Supply an options hash that has a :with key as the last argument."
+        unless options.has_key?(:with)
+          block_given? ? options[:with] = block : raise(ArgumentError, "Need a handler. Supply an options hash that has a :with key as the last argument.")
         end
 
         klasses.each do |klass|
@@ -192,8 +192,11 @@ module ActionController #:nodoc:
       end
 
       def handler_for_rescue(exception)
-        if handler = rescue_handlers[exception.class.name]
+        case handler = rescue_handlers[exception.class.name]
+        when Symbol
           method(handler)
+        when Proc
+          handler.bind(self)
         end
       end
 

@@ -9,8 +9,31 @@ class RescueController < ActionController::Base
   class RecordInvalid < StandardError
   end
 
+  class NotAllowed < StandardError
+  end
+
+  class InvalidRequest < StandardError
+  end
+
+  class BadGateway < StandardError
+  end
+
+  class ResourceUnavailable < StandardError
+  end
+
   rescue_from NotAuthorized, :with => :deny_access
   rescue_from RecordInvalid, :with => :show_errors
+
+  rescue_from NotAllowed, :with => proc { head :forbidden }
+  rescue_from InvalidRequest, :with => proc { |exception| render :text => exception.message }
+
+  rescue_from BadGateway do
+    head :status => 502
+  end
+
+  rescue_from ResourceUnavailable do |exception|
+    render :text => exception.message
+  end
 
   def raises
     render :text => 'already rendered'
@@ -29,10 +52,26 @@ class RescueController < ActionController::Base
     raise NotAuthorized
   end
 
+  def not_allowed
+    raise NotAllowed
+  end
+
+  def invalid_request
+    raise InvalidRequest
+  end
+
   def record_invalid
     raise RecordInvalid
   end
   
+  def bad_gateway
+    raise BadGateway
+  end
+
+  def resource_unavailable
+    raise ResourceUnavailable
+  end
+
   def missing_template
   end
 
@@ -243,6 +282,26 @@ class RescueTest < Test::Unit::TestCase
   def test_rescue_handler_with_argument
     @controller.expects(:show_errors).once.with { |e| e.is_a?(Exception) }
     get :record_invalid
+  end
+
+  def test_proc_rescue_handler
+    get :not_allowed
+    assert_response :forbidden
+  end
+
+  def test_proc_rescue_handle_with_argument
+    get :invalid_request
+    assert_equal "RescueController::InvalidRequest", @response.body
+  end
+
+  def test_block_rescue_handler
+    get :bad_gateway
+    assert_response 502
+  end
+
+  def test_block_rescue_handler_with_argument
+    get :resource_unavailable
+    assert_equal "RescueController::ResourceUnavailable", @response.body
   end
 
   protected
