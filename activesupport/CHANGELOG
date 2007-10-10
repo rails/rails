@@ -1,5 +1,7 @@
 *SVN*
 
+* Rebundle Builder 2.1.2 but prefer a newer RubyGem if available.  [Jeremy Kemper]
+
 * Add Range#overlaps?(range), Range#include?(range), and Range#step without a block. [brandon]
 
 * Correct BufferedLogger#level? checks.  #9806 [wildchild, Johan Sorensen]

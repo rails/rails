@@ -1,8 +1,8 @@
 require 'date'
-require 'xml_simple'
 require 'cgi'
 require 'base64'
 require 'builder'
+require 'xmlsimple'
 
 # Extensions needed for Hash#to_query
 class Object
