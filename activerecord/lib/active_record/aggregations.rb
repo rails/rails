@@ -153,7 +153,7 @@ module ActiveRecord
             "true"
           end
 
-          module_eval <<-end_eval
+          module_eval <<-end_eval, __FILE__, __LINE__
             def #{name}(force_reload = false)
               if (@#{name}.nil? || force_reload) && #{allow_nil_condition}
                 @#{name} = #{class_name}.new(#{mapping.collect { |pair| "read_attribute(\"#{pair.first}\")"}.join(", ")})
@@ -161,13 +161,13 @@ module ActiveRecord
               return @#{name}
             end
           end_eval
-        end        
-        
+        end
+
         def writer_method(name, class_name, mapping, allow_nil)
           mapping = (Array === mapping.first ? mapping : [ mapping ])
 
           if allow_nil
-            module_eval <<-end_eval
+            module_eval <<-end_eval, __FILE__, __LINE__
               def #{name}=(part)
                 if part.nil?
                   #{mapping.collect { |pair| "@attributes[\"#{pair.first}\"] = nil" }.join("\n")}
@@ -178,7 +178,7 @@ module ActiveRecord
               end
             end_eval
           else
-            module_eval <<-end_eval
+            module_eval <<-end_eval, __FILE__, __LINE__
               def #{name}=(part)
                 @#{name} = part.freeze
                 #{mapping.collect{ |pair| "@attributes[\"#{pair.first}\"] = part.#{pair.last}" }.join("\n")}
