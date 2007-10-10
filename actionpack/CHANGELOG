@@ -1,5 +1,9 @@
 *SVN*
 
+* Changed SanitizeHelper#sanitize to only allow the custom attributes and tags when specified in the call [DHH]
+
+* Extracted sanitization methods from TextHelper to SanitizeHelper [DHH]
+
 * rescue_from accepts :with => lambda { |exception| ... } or a normal block.  #9827 [lifofifo]
 
 * Add :status to redirect_to allowing users to choose their own response code without manually setting headers. #8297 [codahale, chasgrundy]
