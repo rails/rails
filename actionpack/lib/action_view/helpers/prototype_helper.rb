@@ -867,7 +867,7 @@ module ActionView
         true
       end
 
-      def to_json
+      def to_json(options = nil)
         @variable
       end
       
