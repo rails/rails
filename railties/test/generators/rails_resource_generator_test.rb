@@ -71,7 +71,7 @@ class RailsResourceGeneratorTest < Test::Unit::TestCase
     end
   end
 
-    def teardown
+  def teardown
     FileUtils.rm_rf "#{RAILS_ROOT}/app"
     FileUtils.rm_rf "#{RAILS_ROOT}/test"
     FileUtils.rm_rf "#{RAILS_ROOT}/config"
