@@ -69,6 +69,7 @@ module ActionController
               end
 
               if value.respond_to?(:[]) && value['controller']
+                value['controller'] = value['controller'].to_s
                 if key == :actual && value['controller'].first != '/' && !value['controller'].include?('/')
                   new_controller_path = ActionController::Routing.controller_relative_to(value['controller'], @controller.class.controller_path)
                   value['controller'] = new_controller_path if value['controller'] != new_controller_path && ActionController::Routing.possible_controllers.include?(new_controller_path)

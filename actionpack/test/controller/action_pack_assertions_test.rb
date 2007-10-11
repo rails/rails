@@ -19,6 +19,8 @@ class ActionPackAssertionsController < ActionController::Base
 
   def redirect_to_controller() redirect_to :controller => "elsewhere", :action => "flash_me"; end
 
+  def redirect_to_controller_with_symbol() redirect_to :controller => :elsewhere, :action => :flash_me; end
+
   def redirect_to_path() redirect_to '/some/path' end
 
   def redirect_to_named_route() redirect_to route_one_url end
@@ -553,6 +555,17 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   def test_redirected_to_url_full_url
     process :redirect_to_path
     assert_redirected_to 'http://test.host/some/path'
+  end
+
+  def test_assert_redirection_with_symbol
+    process :redirect_to_controller_with_symbol
+    assert_nothing_raised {
+      assert_redirected_to :controller => "elsewhere", :action => "flash_me"
+    }
+    process :redirect_to_controller_with_symbol
+    assert_nothing_raised {
+      assert_redirected_to :controller => :elsewhere, :action => :flash_me
+    }
   end
 
   def test_redirected_to_with_nested_controller
