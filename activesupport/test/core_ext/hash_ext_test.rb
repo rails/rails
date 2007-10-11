@@ -470,3 +470,40 @@ class HashToXmlTest < Test::Unit::TestCase
     end
   end
 end
+
+class QueryTest < Test::Unit::TestCase
+  def test_simple_conversion
+    assert_query_equal 'a=10', :a => 10
+  end
+
+  def test_cgi_escaping
+    assert_query_equal 'a%3Ab=c+d', 'a:b' => 'c d'
+  end
+
+  def test_nil_parameter_value
+    empty = Object.new 
+    def empty.to_param; nil end
+    assert_query_equal 'a=', 'a' => empty
+  end
+
+  def test_nested_conversion
+    assert_query_equal 'person%5Bname%5D=Nicholas&person%5Blogin%5D=seckar',
+      :person => {:name => 'Nicholas', :login => 'seckar'}
+  end
+  
+  def test_multiple_nested
+    assert_query_equal 'account%5Bperson%5D%5Bid%5D=20&person%5Bid%5D=10',
+      :person => {:id => 10}, :account => {:person => {:id => 20}}
+  end
+  
+  def test_array_values
+    assert_query_equal 'person%5Bid%5D%5B%5D=10&person%5Bid%5D%5B%5D=20',
+      :person => {:id => [10, 20]}
+  end
+
+  private
+    def assert_query_equal(expected, actual, message = nil)
+      assert_equal expected.split('&').sort, actual.to_query.split('&').sort
+    end
+end
+

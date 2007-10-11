@@ -23,15 +23,6 @@ class UrlRewriterTests < Test::Unit::TestCase
       @rewriter.rewrite(:controller => 'c', :action => 'a', :id => 'i', :anchor => 'anchor')
     )
   end
-  
-  private
-    def split_query_string(str)
-      [str[0].chr] + str[1..-1].split(/&/).sort
-    end
-  
-    def assert_query_equal(q1, q2)
-      assert_equal(split_query_string(q1), split_query_string(q2))
-    end
 end
 
 class UrlWriterTests < Test::Unit::TestCase
@@ -123,5 +114,54 @@ class UrlWriterTests < Test::Unit::TestCase
   ensure
     ActionController::Routing::Routes.load!
   end
-  
+
+  def test_one_parameter
+    assert_equal('/c/a?param=val',
+      W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :param => 'val')
+    )
+  end
+
+  def test_two_parameters
+    url = W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :p1 => 'X1', :p2 => 'Y2')
+    params = extract_params(url)
+    assert_equal params[0], { :p1 => 'X1' }.to_query
+    assert_equal params[1], { :p2 => 'Y2' }.to_query
+  end
+
+  def test_hash_parameter
+    url = W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :query => {:name => 'Bob', :category => 'prof'})
+    params = extract_params(url)
+    assert_equal params[0], { 'query[category]' => 'prof' }.to_query
+    assert_equal params[1], { 'query[name]'     => 'Bob'  }.to_query
+  end
+
+  def test_array_parameter
+    url = W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :query => ['Bob', 'prof'])
+    params = extract_params(url)
+    assert_equal params[0], { 'query[]' => 'Bob'  }.to_query
+    assert_equal params[1], { 'query[]' => 'prof' }.to_query
+  end
+
+  def test_hash_recursive_parameters
+    url = W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :query => {:person => {:name => 'Bob', :position => 'prof'}, :hobby => 'piercing'})
+    params = extract_params(url)
+    assert_equal params[0], { 'query[hobby]'            => 'piercing' }.to_query
+    assert_equal params[1], { 'query[person][name]'     => 'Bob'      }.to_query
+    assert_equal params[2], { 'query[person][position]' => 'prof'     }.to_query
+  end
+
+  def test_hash_recursive_and_array_parameters
+    url = W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :id => 101, :query => {:person => {:name => 'Bob', :position => ['prof', 'art director']}, :hobby => 'piercing'})
+    assert_match %r(^/c/a/101), url
+    params = extract_params(url)
+    assert_equal params[0], { 'query[hobby]'              => 'piercing'     }.to_query
+    assert_equal params[1], { 'query[person][name]'       => 'Bob'          }.to_query
+    assert_equal params[2], { 'query[person][position][]' => 'art director' }.to_query
+    assert_equal params[3], { 'query[person][position][]' => 'prof'         }.to_query
+  end
+
+  private
+    def extract_params(url)
+      url.split('?', 2).last.split('&')
+    end
 end

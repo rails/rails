@@ -1,3 +1,8 @@
+*SVN*
+
+* Backport: allow array and hash query parameters. Array route parameters are converted/to/a/path as before.  #6765, #7047, #7462 [bgipsy, Jeremy McAnally, Dan Kubb, brendan, Diego Algorta Casamayou]
+
+
 *1.4.3* (October 4th, 2007)
 
 * Demote Hash#to_xml to use XmlSimple#xml_in_string so it can't read files or stdin.  #8453 [candlerb, Jeremy Kemper]

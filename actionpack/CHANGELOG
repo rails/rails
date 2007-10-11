@@ -1,5 +1,7 @@
 *SVN*
 
+* Backport: allow array and hash query parameters. Array route parameters are converted/to/a/path as before.  #6765, #7047, #7462 [bgipsy, Jeremy McAnally, Dan Kubb, brendan, Diego Algorta Casamayou]
+
 * Fix in place editor's setter action with non-string fields.  #7418 [Andreas]
 
 

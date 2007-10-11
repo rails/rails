@@ -1,5 +1,23 @@
 require 'date'
 require 'xml_simple'
+require 'cgi'
+ 
+# Extensions needed for Hash#to_query
+class Object
+  def to_param #:nodoc:
+    to_s
+  end
+
+  def to_query(key) #:nodoc:
+    "#{CGI.escape(key.to_s)}=#{CGI.escape(to_param.to_s)}"
+  end
+end
+
+class Array
+  def to_query(key) #:nodoc:
+    collect { |value| value.to_query("#{key}[]") }.sort * '&'
+  end
+end
 
 # Locked down XmlSimple#xml_in_string
 class XmlSimple
@@ -46,6 +64,12 @@ module ActiveSupport #:nodoc:
 
         def self.included(klass)
           klass.extend(ClassMethods)
+        end
+
+        def to_query(namespace = nil)
+          collect do |key, value|
+            value.to_query(namespace ? "#{namespace}[#{key}]" : key)
+          end.sort * '&'
         end
 
         def to_xml(options = {})
