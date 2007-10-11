@@ -93,9 +93,9 @@ module Rails
         private
           # Ask the user interactively whether to force collision.
           def force_file_collision?(destination, src, dst, file_options = {}, &block)
-            $stdout.print "overwrite #{destination}? [Ynaqd] "
-            case $stdin.gets
-              when /d/i
+            $stdout.print "overwrite #{destination}? (enter \"h\" for help) [Ynaqdh] "
+            case $stdin.gets.chomp
+              when /\Ad\z/i
                 Tempfile.open(File.basename(destination), File.dirname(dst)) do |temp|
                   temp.write render_file(src, file_options, &block)
                   temp.rewind
@@ -103,14 +103,24 @@ module Rails
                 end
                 puts "retrying"
                 raise 'retry diff'
-              when /a/i
+              when /\Aa\z/i
                 $stdout.puts "forcing #{spec.name}"
                 options[:collision] = :force
-              when /q/i
+              when /\Aq\z/i
                 $stdout.puts "aborting #{spec.name}"
                 raise SystemExit
-              when /n/i then :skip
-              else :force
+              when /\An\z/i then :skip
+              when /\Ay\z/i then :force
+              else
+                $stdout.puts <<-HELP
+Y - yes, overwrite
+n - no, do not overwrite
+a - all, overwrite this and all others
+q - quit, abort
+d - diff, show the differences between the old and the new
+h - help, show this help
+HELP
+                raise 'retry'
             end
           rescue
             retry
