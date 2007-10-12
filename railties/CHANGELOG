@@ -1,4 +1,4 @@
-*1.2.5* (October 11th, 2007)
+*1.2.5* (October 12th, 2007)
 
 * Correct RAILS_GEM_VERSION regexp. Use =version gem requirement instead of ~>version so you don't get surprised by a beta gem in production. This change means upgrading to 1.2.5 will require a boot.rb upgrade.  [Jeremy Kemper]
 
