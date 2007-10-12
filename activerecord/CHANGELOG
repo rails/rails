@@ -1,3 +1,8 @@
+*1.15.5* (October 11th, 2007)
+
+* Depend on Action Pack 1.4.4
+
+
 *1.15.4* (October 4th, 2007)
 
 * Fix #count on a has_many :through association so that it recognizes the :uniq option. Closes #8801 [lifofifo]
