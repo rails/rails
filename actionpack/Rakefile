@@ -76,7 +76,7 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc = true
   s.requirements << 'none'
 
-  s.add_dependency('activesupport', '= 1.4.3' + PKG_BUILD)
+  s.add_dependency('activesupport', '= 1.4.4' + PKG_BUILD)
 
   s.require_path = 'lib'
   s.autorequire = 'action_controller'
