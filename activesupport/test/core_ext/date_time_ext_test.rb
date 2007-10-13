@@ -168,8 +168,11 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
   def test_advance
     assert_equal DateTime.civil(2006,2,28,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(:years => 1)
     assert_equal DateTime.civil(2005,6,28,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(:months => 4)
+    assert_equal DateTime.civil(2005,3,21,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(:weeks => 3)
+    assert_equal DateTime.civil(2005,3,5,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(:days => 5)
     assert_equal DateTime.civil(2012,9,28,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(:years => 7, :months => 7)
     assert_equal DateTime.civil(2013,10,3,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :days => 5)
+    assert_equal DateTime.civil(2013,10,17,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :weeks => 2, :days => 5)
     assert_equal DateTime.civil(2001,12,27,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(:years => -3, :months => -2, :days => -1)
     assert_equal DateTime.civil(2005,2,28,15,15,10), DateTime.civil(2004,2,29,15,15,10).advance(:years => 1) #leap day plus one year
     assert_equal DateTime.civil(2005,2,28,20,15,10), DateTime.civil(2005,2,28,15,15,10).advance(:hours => 5)
@@ -177,7 +180,7 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2005,2,28,15,15,19), DateTime.civil(2005,2,28,15,15,10).advance(:seconds => 9)
     assert_equal DateTime.civil(2005,2,28,20,22,19), DateTime.civil(2005,2,28,15,15,10).advance(:hours => 5, :minutes => 7, :seconds => 9)
     assert_equal DateTime.civil(2005,2,28,10,8,1), DateTime.civil(2005,2,28,15,15,10).advance(:hours => -5, :minutes => -7, :seconds => -9)
-    assert_equal DateTime.civil(2013,10,3,20,22,19), DateTime.civil(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :days => 5, :hours => 5, :minutes => 7, :seconds => 9)
+    assert_equal DateTime.civil(2013,10,17,20,22,19), DateTime.civil(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :weeks => 2, :days => 5, :hours => 5, :minutes => 7, :seconds => 9)
 
   end
 

@@ -28,7 +28,7 @@ module ActiveSupport #:nodoc:
         end
 
         # Uses Date to provide precise Time calculations for years, months, and days.  The +options+ parameter takes a hash with
-        # any of these keys: :years, :months, :days, :hours, :minutes, :seconds.
+        # any of these keys: :years, :months, :weeks, :days, :hours, :minutes, :seconds.
         def advance(options)
           d = to_date.advance(options)
           datetime_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
