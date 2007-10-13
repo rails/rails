@@ -50,7 +50,7 @@ module ActiveSupport
                       zip(marks + [json.length]).
                       map { |left, right| json[left..right] }.
                       join(" ")
-            times.each { |pos| output[pos-1] = ' ' }
+            times.each { |i| output[i-1] = ' ' }
             output
           end
         end
