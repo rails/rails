@@ -64,11 +64,11 @@ module ActiveSupport
     end
 
     for severity in Severity.constants
-      class_eval <<-EOT
+      class_eval <<-EOT, __FILE__, __LINE__
         def #{severity.downcase}(message = nil, progname = nil, &block)
           add(#{severity}, message, progname, &block)
         end
-        
+
         def #{severity.downcase}?
           #{severity} >= @level
         end
