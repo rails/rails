@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure that custom inflections are picked up by map.resources.  #9815 [mislav]
+
 * Changed SanitizeHelper#sanitize to only allow the custom attributes and tags when specified in the call [DHH]
 
 * Extracted sanitization methods from TextHelper to SanitizeHelper [DHH]

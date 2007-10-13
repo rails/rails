@@ -196,11 +196,13 @@ module ActionController
   #
   # == Route globbing
   #
-  # Specifying <tt>*[string]</tt> as part of a rule like :
+  # Specifying <tt>*[string]</tt> as part of a rule like:
   #
   #  map.connect '*path' , :controller => 'blog' , :action => 'unrecognized?'
   #
-  # will glob all remaining parts of the route that were not recognized earlier. This idiom must appear at the end of the path. The globbed values are in <tt>params[:path]</tt> in this case.  
+  # will glob all remaining parts of the route that were not recognized earlier. This idiom
+  # must appear at the end of the path. The globbed values are in <tt>params[:path]</tt> in
+  # this case.
   #
   # == Reloading routes
   #
@@ -208,7 +210,8 @@ module ActionController
   #
   #  ActionController::Routing::Routes.reload
   #
-  # This will clear all named routes and reload routes.rb
+  # This will clear all named routes and reload routes.rb if the file has been modified from
+  # last load. To absolutely force reloading, use +reload!+.
   #
   # == Testing Routes
   #
@@ -1248,12 +1251,12 @@ module ActionController
       alias reload! load!
       
       def reload
-        if @routes_last_modified
-          mtime=File.stat("#{RAILS_ROOT}/config/routes.rb").mtime
+        if @routes_last_modified && defined?(RAILS_ROOT)
+          mtime = File.stat("#{RAILS_ROOT}/config/routes.rb").mtime
           # if it hasn't been changed, then just return
           return if mtime == @routes_last_modified
           # if it has changed then record the new time and fall to the load! below
-          @routes_last_modified=mtime
+          @routes_last_modified = mtime
         end
         load!
       end
@@ -1261,7 +1264,7 @@ module ActionController
       def load_routes!
         if defined?(RAILS_ROOT) && defined?(::ActionController::Routing::Routes) && self == ::ActionController::Routing::Routes
           load File.join("#{RAILS_ROOT}/config/routes.rb")
-          @routes_last_modified=File.stat("#{RAILS_ROOT}/config/routes.rb").mtime
+          @routes_last_modified = File.stat("#{RAILS_ROOT}/config/routes.rb").mtime
         else
           add_route ":controller/:action/:id"
         end
@@ -1455,5 +1458,15 @@ module ActionController
     end
 
     Routes = RouteSet.new
+
+    ::Inflector.module_eval do
+      def inflections_with_route_reloading(&block)
+        returning(inflections_without_route_reloading(&block)) {
+          ActionController::Routing::Routes.reload! if block_given?
+        }
+      end
+
+      alias_method_chain :inflections, :route_reloading
+    end
   end
 end
