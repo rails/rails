@@ -112,12 +112,14 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
   def test_years_ago
     assert_equal DateTime.civil(2004,6,5,10),  DateTime.civil(2005,6,5,10,0,0).years_ago(1)
     assert_equal DateTime.civil(1998,6,5,10), DateTime.civil(2005,6,5,10,0,0).years_ago(7)
+    assert_equal DateTime.civil(2003,2,28,10), DateTime.civil(2004,2,29,10,0,0).years_ago(1) # 1 year ago from leap day
   end
 
   def test_years_since
     assert_equal DateTime.civil(2006,6,5,10),  DateTime.civil(2005,6,5,10,0,0).years_since(1)
     assert_equal DateTime.civil(2012,6,5,10),  DateTime.civil(2005,6,5,10,0,0).years_since(7)
     assert_equal DateTime.civil(2182,6,5,10),  DateTime.civil(2005,6,5,10,0,0).years_since(177)
+    assert_equal DateTime.civil(2005,2,28,10), DateTime.civil(2004,2,29,10,0,0).years_since(1) # 1 year since leap day
   end
 
   def test_last_year

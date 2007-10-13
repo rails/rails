@@ -103,12 +103,12 @@ module ActiveSupport #:nodoc:
 
         # Returns a new Date/DateTime representing the time a number of specified years ago
         def years_ago(years)
-          change(:year => self.year - years)
+          advance(:years => -years)
         end
 
         # Returns a new Date/DateTime representing the time a number of specified years in the future
         def years_since(years)
-          change(:year => self.year + years)
+          advance(:years => years)
         end
 
         # Short-hand for years_ago(1)

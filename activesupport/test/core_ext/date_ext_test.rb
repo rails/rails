@@ -94,12 +94,14 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   def test_years_ago
     assert_equal Date.new(2004,6,5),  Date.new(2005,6,5).years_ago(1)
     assert_equal Date.new(1998,6,5), Date.new(2005,6,5).years_ago(7)
+    assert_equal Date.new(2003,2,28), Date.new(2004,2,29).years_ago(1) # 1 year ago from leap day
   end
 
   def test_years_since
     assert_equal Date.new(2006,6,5),  Date.new(2005,6,5).years_since(1)
     assert_equal Date.new(2012,6,5),  Date.new(2005,6,5).years_since(7)
     assert_equal Date.new(2182,6,5),  Date.new(2005,6,5).years_since(177)
+    assert_equal Date.new(2005,2,28), Date.new(2004,2,29).years_since(1) # 1 year since leap day
   end
 
   def test_last_year

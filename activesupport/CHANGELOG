@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix Date#years_ago and #years_since from leap days.  #9864 [Geoff Buesing]
+
 * Refactor Time and Date#months_since and #months_ago to use #advance.  #9863 [Geoff Buesing]
 
 * Rebundle Builder 2.1.2 but prefer a newer RubyGem if available.  [Jeremy Kemper]
