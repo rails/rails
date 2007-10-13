@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix Time#years_ago and #years_since from leap days.  #9865 [Geoff Buesing]
+
 * Time and DateTime#advance accept :hours, :minutes, and :seconds options.  #9825 [Geoff Buesing]
 
 * Fix Date#years_ago and #years_since from leap days.  #9864 [Geoff Buesing]

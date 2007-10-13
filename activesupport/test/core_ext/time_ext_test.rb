@@ -119,11 +119,13 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   def test_years_ago
     assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).years_ago(1)
     assert_equal Time.local(1998,6,5,10), Time.local(2005,6,5,10,0,0).years_ago(7)
+    assert_equal Time.local(2003,2,28,10), Time.local(2004,2,29,10,0,0).years_ago(1) # 1 year ago from leap day
   end
 
   def test_years_since
     assert_equal Time.local(2006,6,5,10),  Time.local(2005,6,5,10,0,0).years_since(1)
     assert_equal Time.local(2012,6,5,10),  Time.local(2005,6,5,10,0,0).years_since(7)
+    assert_equal Time.local(2005,2,28,10), Time.local(2004,2,29,10,0,0).years_since(1) # 1 year since leap day
     # Failure because of size limitations of numeric?
     # assert_equal Time.local(2182,6,5,10),  Time.local(2005,6,5,10,0,0).years_since(177)
   end
