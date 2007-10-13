@@ -103,6 +103,10 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2006,1,5,10),  DateTime.civil(2005,6,5,10,0,0).months_since(7)
     assert_equal DateTime.civil(2006,6,5,10),  DateTime.civil(2005,6,5,10,0,0).months_since(12)
     assert_equal DateTime.civil(2007,6,5,10),  DateTime.civil(2005,6,5,10,0,0).months_since(24)
+    assert_equal DateTime.civil(2005,4,30,10),  DateTime.civil(2005,3,31,10,0,0).months_since(1)
+    assert_equal DateTime.civil(2005,2,28,10),  DateTime.civil(2005,1,29,10,0,0).months_since(1)
+    assert_equal DateTime.civil(2005,2,28,10),  DateTime.civil(2005,1,30,10,0,0).months_since(1)
+    assert_equal DateTime.civil(2005,2,28,10),  DateTime.civil(2005,1,31,10,0,0).months_since(1)
   end
 
   def test_years_ago

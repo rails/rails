@@ -93,30 +93,12 @@ module ActiveSupport #:nodoc:
         
         # Returns a new Date/DateTime representing the time a number of specified months ago
         def months_ago(months)
-          months_since(-months)
+          advance(:months => -months)
         end
 
+        # Returns a new Date/DateTime representing the time a number of specified months in the future
         def months_since(months)
-          year, month, day = self.year, self.month, self.day
-
-          month += months
-
-          # in case months is negative
-          while month < 1
-           month += 12
-           year -= 1
-          end
-
-          # in case months is positive
-          while month > 12
-           month -= 12
-           year += 1
-          end
-
-          max = ::Time.days_in_month(month, year)
-          day = max if day > max
-
-          change(:year => year, :month => month, :day => day)
+          advance(:months => months)
         end
 
         # Returns a new Date/DateTime representing the time a number of specified years ago
@@ -124,6 +106,7 @@ module ActiveSupport #:nodoc:
           change(:year => self.year - years)
         end
 
+        # Returns a new Date/DateTime representing the time a number of specified years in the future
         def years_since(years)
           change(:year => self.year + years)
         end

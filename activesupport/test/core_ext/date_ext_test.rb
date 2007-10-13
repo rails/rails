@@ -85,6 +85,10 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2006,1,5),  Date.new(2005,6,5).months_since(7)
     assert_equal Date.new(2006,6,5),  Date.new(2005,6,5).months_since(12)
     assert_equal Date.new(2007,6,5),  Date.new(2005,6,5).months_since(24)
+    assert_equal Date.new(2005,4,30),  Date.new(2005,3,31).months_since(1)
+    assert_equal Date.new(2005,2,28),  Date.new(2005,1,29).months_since(1)
+    assert_equal Date.new(2005,2,28),  Date.new(2005,1,30).months_since(1)
+    assert_equal Date.new(2005,2,28),  Date.new(2005,1,31).months_since(1)
   end
 
   def test_years_ago
