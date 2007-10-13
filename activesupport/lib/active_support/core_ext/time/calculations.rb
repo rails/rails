@@ -72,10 +72,12 @@ module ActiveSupport #:nodoc:
         end
 
         # Uses Date to provide precise Time calculations for years, months, and days.  The +options+ parameter takes a hash with
-        # any of these keys: :months, :days, :years.
+        # any of these keys: :years, :months, :days, :hours, :minutes, :seconds.
         def advance(options)
           d = to_date.advance(options)
-          change(options.merge(:year => d.year, :month => d.month, :day => d.day))
+          time_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
+          seconds_to_advance = (options[:seconds] || 0) + (options[:minutes] || 0) * 60 + (options[:hours] || 0) * 3600
+          seconds_to_advance == 0 ? time_advanced_by_date : time_advanced_by_date.since(seconds_to_advance)
         end
 
         # Returns a new Time representing the time a number of seconds ago, this is basically a wrapper around the Numeric extension
