@@ -131,7 +131,8 @@ module ActiveRecord
     class << self
       # Attaches the observer to the supplied model classes.
       def observe(*models)
-        models.flatten.collect! { |model| model.is_a?(Symbol) ? model.to_s.camelize.constantize : model }
+        models.flatten!
+        models.collect! { |model| model.is_a?(Symbol) ? model.to_s.camelize.constantize : model }
         define_method(:observed_classes) { Set.new(models) }
       end
 

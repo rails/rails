@@ -27,7 +27,7 @@ class TopicManualObserver
 end
 
 class TopicaObserver < ActiveRecord::Observer
-  def self.observed_class() Topic end
+  observe :topic
   
   attr_reader :topic
   

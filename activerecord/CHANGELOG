@@ -1,5 +1,7 @@
 *SVN*
 
+* Observers can observe model names as symbols properly now.  Closes #9869  [queso]
+
 * find_and_(initialize|create)_by methods can now properly initialize protected attributes [Tobias Luetke]
 
 * belongs_to infers the foreign key from the association name instead of from the class name.  [Jeremy Kemper]
