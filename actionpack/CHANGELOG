@@ -1,5 +1,7 @@
 *SVN*
 
+* error_messages_for also takes :message and :header_message options which defaults to the old "There were problems with the following fields:" and "<count> errors prohibited this <object_name> from being saved".  #8270 [rmm5t, zach-inglis-lt3]
+
 * Make sure that custom inflections are picked up by map.resources.  #9815 [mislav]
 
 * Changed SanitizeHelper#sanitize to only allow the custom attributes and tags when specified in the call [DHH]

@@ -106,11 +106,10 @@ module ActionView
       # * <tt>header_tag</tt> - Used for the header of the error div (default: h2)
       # * <tt>id</tt> - The id of the error div (default: errorExplanation)
       # * <tt>class</tt> - The class of the error div (default: errorExplanation)
-      # * <tt>object</tt> - The object (or array of objects) for which to display errors, 
-      # if you need to escape the instance variable convention
-      # * <tt>object_name</tt> - The object name to use in the header, or
-      # any text that you prefer. If <tt>object_name</tt> is not set, the name of
-      # the first object will be used.
+      # * <tt>object</tt> - The object (or array of objects) for which to display errors, if you need to escape the instance variable convention
+      # * <tt>object_name</tt> - The object name to use in the header, or any text that you prefer. If <tt>object_name</tt> is not set, the name of the first object will be used.
+      # * <tt>header_message</tt> - The message in the header of the error div.  Pass +nil+ or an empty string to avoid the header message altogether. (default: X errors prohibited this object from being saved)
+      # * <tt>message</tt> - The explanation message after the header message and before the error list.  Pass +nil+ or an empty string to avoid the explanation message altogether.  (default: There were problems with the following fields:)
       #
       # To specify the display for one object, you simply provide its name as a parameter.  For example, for the +User+ model:
       # 
@@ -147,14 +146,17 @@ module ActionView
               html[key] = 'errorExplanation'
             end
           end
-          header_message = "#{pluralize(count, 'error')} prohibited this #{(options[:object_name] || params.first).to_s.gsub('_', ' ')} from being saved"
+          options[:object_name] ||= params.first
+          options[:header_message] = "#{pluralize(count, 'error')} prohibited this #{options[:object_name].to_s.gsub('_', ' ')} from being saved" unless options.include?(:header_message)
+          options[:message] ||= 'There were problems with the following fields:' unless options.include?(:message)
           error_messages = objects.map {|object| object.errors.full_messages.map {|msg| content_tag(:li, msg) } }
-          content_tag(:div,
-            content_tag(options[:header_tag] || :h2, header_message) <<
-              content_tag(:p, 'There were problems with the following fields:') <<
-              content_tag(:ul, error_messages),
-            html
-          )
+
+          contents = ''
+          contents << content_tag(options[:header_tag] || :h2, options[:header_message]) unless options[:header_message].blank?
+          contents << content_tag(:p, options[:message]) unless options[:message].blank?
+          contents << content_tag(:ul, error_messages)
+
+          content_tag(:div, contents, html)
         else
           ''
         end

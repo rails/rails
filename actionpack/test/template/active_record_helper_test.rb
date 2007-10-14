@@ -207,6 +207,14 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
 
     # should space object name
     assert_dom_equal %(<div class="errorExplanation" id="errorExplanation"><h2>2 errors prohibited this chunky bacon from being saved</h2><p>There were problems with the following fields:</p><ul><li>User email can't be empty</li><li>Author name can't be empty</li></ul></div>), error_messages_for(:user, :post, :object_name => "chunky_bacon")
+
+    # hide header and explanation messages with nil or empty string
+    assert_dom_equal %(<div class="errorExplanation" id="errorExplanation"><ul><li>User email can't be empty</li><li>Author name can't be empty</li></ul></div>), error_messages_for(:user, :post, :header_message => nil, :message => "")
+
+    # override header and explanation messages
+    header_message = "Yikes! Some errors"
+    message = "Please fix the following fields and resubmit:"
+    assert_dom_equal %(<div class="errorExplanation" id="errorExplanation"><h2>#{header_message}</h2><p>#{message}</p><ul><li>User email can't be empty</li><li>Author name can't be empty</li></ul></div>), error_messages_for(:user, :post, :header_message => header_message, :message => message)
   end
   
   def test_error_messages_for_non_instance_variable
