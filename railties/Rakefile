@@ -312,10 +312,10 @@ spec = Gem::Specification.new do |s|
   EOF
 
   s.add_dependency('rake', '>= 0.7.2')
-  s.add_dependency('activesupport',    '= 1.4.3' + PKG_BUILD)
-  s.add_dependency('activerecord',     '= 1.15.4' + PKG_BUILD)
-  s.add_dependency('actionpack',       '= 1.13.4' + PKG_BUILD)
-  s.add_dependency('actionmailer',     '= 1.3.4' + PKG_BUILD)
+  s.add_dependency('activesupport',    '= 1.4.4' + PKG_BUILD)
+  s.add_dependency('activerecord',     '= 1.15.5' + PKG_BUILD)
+  s.add_dependency('actionpack',       '= 1.13.5' + PKG_BUILD)
+  s.add_dependency('actionmailer',     '= 1.3.5' + PKG_BUILD)
   s.add_dependency('activeresource',   '= 0.9.0' + PKG_BUILD)
 
   s.rdoc_options << '--exclude' << '.'
