@@ -1,7 +1,6 @@
 require "#{File.dirname(__FILE__)}/../../abstract_unit"
 require 'action_controller/cgi_process'
 require 'action_controller/cgi_ext'
-require "mocha"
 
 
 class CGI::Session
@@ -11,8 +10,9 @@ class CGI::Session
 end
 
 
-class MemCacheStoreTest < Test::Unit::TestCase
+uses_mocha 'MemCacheStore tests' do
 
+class MemCacheStoreTest < Test::Unit::TestCase
   SESSION_KEY_RE = /^session:[0-9a-z]+/
   CONN_TEST_KEY = 'connection_test'
   MULTI_TEST_KEY = '0123456789'
@@ -176,3 +176,5 @@ class MemCacheStoreTest < Test::Unit::TestCase
     cgi
   end
 end
+
+end # uses_mocha
