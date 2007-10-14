@@ -16,7 +16,7 @@ Rails::Initializer.run do |config|
   # Skip frameworks you're not going to use (only works if using vendor/rails)
   # config.frameworks -= [ :active_resource, :action_mailer ]
 
-  # Only load the plugins named here, in the order given. By default all plugins in vendor/plugins are loaded, in alphabetical order
+  # Only load the plugins named here, in the order given. By default, all plugins in vendor/plugins are loaded in alphabetical order.
   # :all can be used as a placeholder for all plugins not explicitly named.
   # config.plugins = [ :exception_notification, :ssl_requirement, :all ]
 
@@ -53,5 +53,5 @@ Rails::Initializer.run do |config|
   # See Rails::Configuration for more options
 
   # Application configuration should go into files in config/initializers
-  # -- all .rb files in that directory is automatically loaded
+  # -- all .rb files in that directory are automatically loaded
 end
