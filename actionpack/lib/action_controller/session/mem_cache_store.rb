@@ -57,26 +57,22 @@ begin
           @expires = options['expires'] || 0
           @session_key = "session:#{id}"
           @session_data = {}
+          # Add this key to the store if haven't done so yet
+          unless @cache.get(@session_key)
+            @cache.add(@session_key, @session_data, @expires)
+          end
         end
 
         # Restore session state from the session's memcache entry.
         #
         # Returns the session state as a hash.
         def restore
-          begin
-            @session_data = @cache[@session_key] || {}
-          rescue
-            @session_data = {}
-          end
+          @session_data = @cache[@session_key] || {}
         end
 
         # Save session state to the session's memcache entry.
         def update
-          begin
-            @cache.set(@session_key, @session_data, @expires)
-          rescue
-            # Ignore session update failures.
-          end
+          @cache.set(@session_key, @session_data, @expires)
         end
       
         # Update and close the session's memcache entry.
@@ -86,17 +82,14 @@ begin
 
         # Delete the session's memcache entry.
         def delete
-          begin
-            @cache.delete(@session_key)
-          rescue
-            # Ignore session delete failures.
-          end
+          @cache.delete(@session_key)
           @session_data = {}
         end
         
         def data
           @session_data
         end
+
       end
     end
   end
