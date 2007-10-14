@@ -775,8 +775,11 @@ module ActiveRecord
       #   destroyed. This requires that a column named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging +Comment+ class)
       #   is used on the associate class (such as a +Post+ class). You can also specify a custom counter cache column by providing 
       #   a column name instead of a +true+/+false+ value to this option (e.g., <tt>:counter_cache => :my_custom_counter</tt>.)
+      #   Note: Specifying a counter_cache will add it to that model's list of readonly attributes using #attr_readonly.
       # * <tt>:include</tt>  - specify second-order associations that should be eager loaded when this object is loaded.
       # * <tt>:polymorphic</tt> - specify this association is a polymorphic association by passing +true+.
+      #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute 
+      #   to the attr_readonly list in the associated classes (e.g. class Post; attr_readonly :comments_count; end).
       #
       # Option examples:
       #   belongs_to :firm, :foreign_key => "client_of"

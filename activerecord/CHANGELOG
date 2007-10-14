@@ -1,5 +1,7 @@
 *SVN*
 
+* Add notes to documentation regarding attr_readonly behavior with counter caches and polymorphic associations.  Closes #9835 [saimonmoore, rick]
+
 * Observers can observe model names as symbols properly now.  Closes #9869  [queso]
 
 * find_and_(initialize|create)_by methods can now properly initialize protected attributes [Tobias Luetke]
