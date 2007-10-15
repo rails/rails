@@ -66,7 +66,7 @@ end
 
 task :build_mysql_databases => 'mysql:build_databases'
 task :drop_mysql_databases => 'mysql:drop_databases'
-task :rebuild_mysql_databases => [:drop_mysql_databases, :build_mysql_databases]
+task :rebuild_mysql_databases => 'mysql:rebuild_databases'
 
 
 namespace :postgresql do
@@ -90,7 +90,7 @@ end
 
 task :build_postgresql_databases => 'postgresql:build_databases'
 task :drop_postgresql_databases => 'postgresql:drop_databases'
-task :rebuild_postgresql_databases => [:drop_postgresql_databases, :build_postgresql_databases]
+task :rebuild_postgresql_databases => 'postgresql:rebuild_databases'
 
 
 namespace :frontbase do
@@ -136,6 +136,37 @@ end
 
 task :build_frontbase_databases => 'frontbase:build_databases'
 task :rebuild_frontbase_databases => 'frontbase:rebuild_databases'
+
+
+namespace :sqlserver do
+  desc 'Build the SQL Server test databases'
+  task :build_databases do
+    # Define a user named 'rails' in SQL Server with all privileges granted
+    # Use an empty password for user 'rails', or alternatively use the OSQLPASSWORD environment variable
+    # which allows you to set a default password for the current session.
+    %x( osql -S localhost -U rails -Q "create database activerecord_unittest" -P )
+    %x( osql -S localhost -U rails -Q "create database activerecord_unittest2" -P )
+    %x( osql -S localhost -U rails -d activerecord_unittest -Q "exec sp_grantdbaccess 'rails'" -P )
+    %x( osql -S localhost -U rails -d activerecord_unittest2 -Q "exec sp_grantdbaccess 'rails'" -P )
+    %x( osql -S localhost -U rails -d activerecord_unittest -Q "grant BACKUP DATABASE, BACKUP LOG, CREATE DEFAULT, CREATE FUNCTION, CREATE PROCEDURE, CREATE RULE, CREATE TABLE, CREATE VIEW to 'rails';" -P )
+    %x( osql -S localhost -U rails -d activerecord_unittest2 -Q "grant BACKUP DATABASE, BACKUP LOG, CREATE DEFAULT, CREATE FUNCTION, CREATE PROCEDURE, CREATE RULE, CREATE TABLE, CREATE VIEW to 'rails';" -P )
+    %x( osql -S localhost -U rails -d activerecord_unittest -i #{File.join(SCHEMA_PATH, 'sqlserver.sql')} -n -P )
+    %x( osql -S localhost -U rails -d activerecord_unittest2 -i #{File.join(SCHEMA_PATH, 'sqlserver2.sql')} -n -P )
+  end
+
+  desc 'Drop the SQL Server test databases'
+  task :drop_databases do
+    %x( osql -S localhost -U rails -Q "drop database activerecord_unittest" -P )
+    %x( osql -S localhost -U rails -Q "drop database activerecord_unittest2" -P )
+  end
+
+  desc 'Rebuild the SQL Server test databases'
+  task :rebuild_databases => [:drop_databases, :build_databases]
+end
+
+task :build_sqlserver_databases => 'sqlserver:build_databases'
+task :drop_sqlserver_databases => 'sqlserver:drop_databases'
+task :rebuild_sqlserver_databases => 'sqlserver:rebuild_databases'
 
 
 # Generate the RDoc documentation
