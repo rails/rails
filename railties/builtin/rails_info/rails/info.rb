@@ -89,7 +89,7 @@ module Rails
     end
   
     # Versions of each Rails component (Active Record, Action Pack, 
-    # Action Web Service, Active Resource, Action Mailer, and Active Support).
+    # Active Resource, Action Mailer, and Active Support).
     components.each do |component|
       property "#{component.titlecase} version" do 
         component_version(component)

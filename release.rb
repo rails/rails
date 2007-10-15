@@ -1,7 +1,7 @@
 #!/usr/local/bin/ruby
 
 VERSION  = ARGV.first
-PACKAGES = %w( activesupport activerecord actionpack actionmailer actionwebservice )
+PACKAGES = %w(activesupport activerecord actionpack actionmailer activeresource)
 
 # Checkout source
 `rm -rf release && svn export http://dev.rubyonrails.org/svn/rails/trunk release`

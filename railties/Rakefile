@@ -73,7 +73,7 @@ HTML_FILES   = %w( 422.html 404.html 500.html index.html robots.txt favicon.ico 
                    javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js )
 BIN_FILES    = %w( about console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner process/inspector runner server plugin )
 
-VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport actionwebservice railties )
+VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport activeresource railties )
 
 
 desc "Generates a fresh Rails package with documentation"
