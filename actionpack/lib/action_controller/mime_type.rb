@@ -52,7 +52,7 @@ module Mime
         EXTENSION_LOOKUP[extension]
       end
 
-      # Registers an alias that's not usd on mime type lookup, but can be referenced directly. Especially useful for
+      # Registers an alias that's not used on mime type lookup, but can be referenced directly. Especially useful for
       # rendering different HTML versions depending on the user agent, like an iPhone.
       def register_alias(string, symbol, extension_synonyms = [])
         register(string, symbol, [], extension_synonyms, true)

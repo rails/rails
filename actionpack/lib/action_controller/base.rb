@@ -748,16 +748,22 @@ module ActionController #:nodoc:
       #
       # === Rendering JSON
       #
-      # Rendering JSON sets the content type to text/x-json and optionally wraps the JSON in a callback. It is expected
-      # that the response will be eval'd for use as a data structure.
+      # Rendering JSON sets the content type to application/json and optionally wraps the JSON in a callback. It is expected
+      # that the response will be parsed (or eval'd) for use as a data structure.
       #
-      #   # Renders '{name: "David"}'
+      #   # Renders '{"name": "David"}'
       #   render :json => {:name => "David"}.to_json
       #
-      # Sometimes the result isn't handled directly by a script (such as when the request comes from a SCRIPT tag),
-      # so the callback option is provided for these cases.
+      # It's not necessary to call <tt>to_json</tt> on the object you want to render, since <tt>render</tt> will
+      # automatically do that for you:
       #
-      #   # Renders 'show({name: "David"})'
+      #   # Also renders '{"name": "David"}'
+      #   render :json => {:name => "David"}
+      #
+      # Sometimes the result isn't handled directly by a script (such as when the request comes from a SCRIPT tag),
+      # so the <tt>:callback</tt> option is provided for these cases.
+      #
+      #   # Renders 'show({"name": "David"})'
       #   render :json => {:name => "David"}.to_json, :callback => 'show'
       #
       # === Rendering an inline template
