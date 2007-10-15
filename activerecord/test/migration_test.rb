@@ -548,7 +548,19 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.reset_column_information
       assert_equal "Tester", Person.new.first_name
     end
-    
+
+    def test_change_column_quotes_column_names
+      Person.connection.create_table :testings do |t|
+        t.column :select, :string
+      end
+
+      assert_nothing_raised { Person.connection.change_column :testings, :select, :string, :limit => 10 }
+
+      assert_nothing_raised { Person.connection.execute "insert into testings (#{Person.connection.quote_column_name('select')}) values ('7 chars')" }
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+
     def test_change_column_default_to_null
       Person.connection.change_column_default "people", "first_name", nil
       Person.reset_column_information
