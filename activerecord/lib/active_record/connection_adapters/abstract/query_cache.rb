@@ -74,13 +74,10 @@ module ActiveRecord
               @query_cache[sql] = yield
             end
 
-          case result
-          when Array
+          if Array === result
             result.collect { |row| row.dup }
-          when nil, Fixnum, Float, true, false
-            result
           else
-            result.dup
+            result.duplicable? ? result.dup : result
           end
         rescue TypeError
           result
