@@ -315,7 +315,16 @@ module ActionView
       # <tt>:url</tt>::       +url_for+-style options for the action to call
       #                       when the field has changed.
       # <tt>:function</tt>::  Instead of making a remote call to a URL, you
-      #                       can specify a function to be called instead.
+      #                       can specify javascript code to be called instead.
+      #                       Note that the value of this option is used as the
+      #                       *body* of the javascript function, a function definition
+      #                       with parameters named element and value will be generated for you
+      #                       for example:
+      #                         observe_field("glass", :frequency => 1, :function => "alert('Element changed')")
+      #                       will generate:
+      #                         new Form.Element.Observer('glass', 1, function(element, value) {alert('Element changed')})
+      #                       The element parameter is the DOM element being observed, and the value is its value at the
+      #                       time the observer is triggered.
       # 
       # Additional options are:
       # <tt>:frequency</tt>:: The frequency (in seconds) at which changes to
