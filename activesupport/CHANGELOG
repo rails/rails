@@ -1,5 +1,7 @@
 *SVN*
 
+* object.duplicable? returns true if object.dup is safe. False for nil, true, false, symbols, and numbers; true otherwise.  #9333 [sur]
+
 * Time, Date and DateTime #advance accept :weeks option.  #9866 [Geoff Buesing]
 
 * Fix Time#years_ago and #years_since from leap days.  #9865 [Geoff Buesing]
