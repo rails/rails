@@ -1,5 +1,7 @@
 *SVN*
 
+* Multibyte: String#slice supports regexp argument.  #9646 [yob]
+
 * object.duplicable? returns true if object.dup is safe. False for nil, true, false, symbols, and numbers; true otherwise.  #9333 [sur]
 
 * Time, Date and DateTime #advance accept :weeks option.  #9866 [Geoff Buesing]

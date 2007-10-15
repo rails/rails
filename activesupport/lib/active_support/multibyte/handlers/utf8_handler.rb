@@ -255,6 +255,8 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
         elsif args[0].kind_of? Range
           cps = u_unpack(str).slice(*args)
           cps.nil? ? nil : cps.pack('U*')
+        elsif args[0].kind_of? Regexp
+          str.slice(*args)
         elsif args.size == 1 && args[0].kind_of?(Numeric)
           u_unpack(str)[args[0]]
         else
