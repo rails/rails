@@ -1,13 +1,13 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 one:
-  id: 1
+  <%= class_name.constantize.primary_key %>: 1
 <% for attribute in attributes -%>
   <%= attribute.name %>: <%= attribute.default %>
 <% end -%>
   created_at: <%= Time.now.to_s(:db) %>
   updated_at: <%= Time.now.to_s(:db) %>
 two:
-  id: 2
+  <%= class_name.constantize.primary_key %>: 2
 <% for attribute in attributes -%>
   <%= attribute.name %>: <%= attribute.default %>
 <% end -%>

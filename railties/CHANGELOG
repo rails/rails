@@ -1,5 +1,7 @@
 *SVN*
 
+* Generated fixtures use the actual primary key instead of id.  #4343 [Frederick Ros, Tarmo Tänav]
+
 * Extend the console +helper+ method to allow you to include custom helpers.  e.g:
   >> helper :posts
   >> helper.some_method_from_posts_helper(Post.find(1))
