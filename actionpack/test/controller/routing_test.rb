@@ -874,6 +874,28 @@ class DynamicSegmentTest < Test::Unit::TestCase
     assert_kind_of String, segment.regexp_chunk
   end
   
+  def test_build_pattern_non_optional_with_no_captures
+    # Non optioanl
+    a_segment = ROUTING::DynamicSegment.new
+    a_segment.regexp = /\d+/ #number_of_captures is 0
+    assert_equal "(\\d+)stuff", a_segment.build_pattern('stuff')
+  end
+
+  def test_build_pattern_non_optional_with_captures
+    # Non optioanl
+    a_segment = ROUTING::DynamicSegment.new
+    a_segment.regexp = /(\d+)(.*?)/ #number_of_captures is 2
+    assert_equal "((\\d+)(.*?))stuff", a_segment.build_pattern('stuff')
+  end
+
+  def test_optionality_implied
+    a_segment = ROUTING::DynamicSegment.new
+    a_segment.key = :id
+    assert a_segment.optionality_implied?
+
+    a_segment.key = :action
+    assert a_segment.optionality_implied?
+  end
 end
 
 class ControllerSegmentTest < Test::Unit::TestCase
