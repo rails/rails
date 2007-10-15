@@ -41,7 +41,7 @@ module ActionWebService # :nodoc:
             allowed_methods = self.class.web_service_api ? (self.class.web_service_api.allowed_http_methods || []) : [ :post ]
             allowed_methods = allowed_methods.map{|m| m.to_s.upcase }
             if !allowed_methods.include?(method)
-              render_text("#{method} not supported", "500 #{method} not supported")
+              render :text => "#{method} not supported", :status=>500
               return
             end
             exception = nil
@@ -101,7 +101,7 @@ module ActionWebService # :nodoc:
                 message = "Exception raised"
                 backtrace = ""
               end
-              render_text("Internal protocol error: #{message}#{backtrace}", "500 Internal Protocol Error")
+              render :text => "Internal protocol error: #{message}#{backtrace}", :status => 500
             end
           end
 
@@ -158,7 +158,7 @@ module ActionWebService # :nodoc:
               log_error(e) unless logger.nil?
             end
           when :post
-            render_text('POST not supported', '500 POST not supported')
+            render :text => 'POST not supported', :status => 500
           end
         end
 

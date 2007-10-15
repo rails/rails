@@ -5,7 +5,7 @@ ActionController::Routing::Routes.draw do |map|
   map.connect ':controller/:action/:id'
 end
 
-ActionController::Base.view_load_paths = [ '.' ]
+ActionController::Base.view_paths = [ '.' ]
 
 class ScaffoldPerson < ActionWebService::Struct
   member :id,     :int

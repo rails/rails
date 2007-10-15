@@ -109,15 +109,15 @@ module ActionWebService
               customized_template = "\#{self.class.controller_path}/#{action_name}/\#{action}"
               default_template = scaffold_path(action)
               if template_exists?(customized_template)
-                content = @template.render_file(customized_template)
+                content = @template.render :file => customized_template
               else
-                content = @template.render_file(default_template, false)
+                content = @template.render :file => default_template
               end
               @template.instance_variable_set("@content_for_layout", content)
               if self.active_layout.nil?
-                render_file(scaffold_path("layout"))
+                render :file => scaffold_path("layout")
               else
-                render_file(self.active_layout, "200 OK", true)
+                render :file => self.active_layout
               end
             end
 
