@@ -22,10 +22,11 @@ PKG_FILES = FileList[
 ].exclude(/\bCVS\b|~$/)
 
 
-desc "Default Task"
-task :default => [ :test_mysql, :test_sqlite, :test_sqlite3, :test_postgresql ]
+desc 'Run mysql, sqlite, and postgresql tests by default'
+task :default => :test
 
-# Run the unit tests
+desc 'Run mysql, sqlite, and postgresql tests'
+task :test => %w(test_mysql test_sqlite test_sqlite3 test_postgresql)
 
 for adapter in %w( mysql postgresql sqlite sqlite3 firebird sqlserver sqlserver_odbc db2 oracle sybase openbase frontbase )
   Rake::TestTask.new("test_#{adapter}") { |t|
