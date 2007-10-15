@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 
 class DuplicableTest < Test::Unit::TestCase
   NO  = [nil, false, true, :symbol, 1, 2.3, BigDecimal.new('4.56')]
-  YES = ['1', Object.new, /foo/, [], {}]
+  YES = ['1', Object.new, /foo/, [], {}, Time.now]
 
   def test_duplicable
     NO.each do |v|
