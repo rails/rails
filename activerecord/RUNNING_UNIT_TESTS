@@ -29,16 +29,5 @@ you can do so with:
    
 That'll run the base suite using the MySQL-Ruby adapter.
 
-== Faster tests
-
-If you are using a database that supports transactions, you can set the
-"AR_TX_FIXTURES" environment variable to "yes" to use transactional fixtures.
-This gives a very large speed boost. With rake:
-
-  rake AR_TX_FIXTURES=yes
-
-Or, by hand:
-
-  AR_TX_FIXTURES=yes ruby -I connections/native_sqlite3 base_test.rb
 
 
