@@ -1,5 +1,7 @@
 *SVN*
 
+* Alias association #build to #new so it behaves predictably.  #8787 [lifofifo]
+
 * Add notes to documentation regarding attr_readonly behavior with counter caches and polymorphic associations.  Closes #9835 [saimonmoore, rick]
 
 * Observers can observe model names as symbols properly now.  Closes #9869  [queso]

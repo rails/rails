@@ -88,6 +88,7 @@ module ActiveRecord
       def build(attrs = nil)
         raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, @reflection.through_reflection)
       end
+      alias_method :new, :build
 
       def create!(attrs = nil)
         @reflection.klass.transaction do
