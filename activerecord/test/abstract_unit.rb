@@ -62,7 +62,7 @@ end
 
 ActiveRecord::Base.connection.class.class_eval do
   unless defined? IGNORED_SQL
-    IGNORED_SQL = [/^PRAGMA/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/]
+    IGNORED_SQL = [/^PRAGMA/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/]
 
     def execute_with_counting(sql, name = nil, &block)
       $query_count ||= 0
