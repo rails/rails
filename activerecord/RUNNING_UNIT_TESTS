@@ -23,16 +23,11 @@ Rake can be found at http://rake.rubyforge.org
 == Running by hand
 
 Unit tests are located in test directory. If you only want to run a single test suite, 
-or don't want to bother with Rake, you can do so with something like:
+you can do so with:
 
-   cd test; ruby -I "connections/native_mysql" base_test.rb
+   rake test_mysql TEST=base_test.rb
    
-That'll run the base suite using the MySQL-Ruby adapter. Change the adapter
-and test suite name as needed.
-
-You can also run all the suites on a specific adapter with:
-
-   cd test; all.sh "connections/native_mysql"
+That'll run the base suite using the MySQL-Ruby adapter.
 
 == Faster tests
 
@@ -46,19 +41,4 @@ Or, by hand:
 
   AR_TX_FIXTURES=yes ruby -I connections/native_sqlite3 base_test.rb
 
-== Testing with Oracle
-
-In order to allow for testing against Oracle using an "arunit" schema within an existing
-Oracle database, the database name and tns connection string must be set in environment
-variables prior to running the unit tests.
-
-  $ export ARUNIT_DB_NAME=MYDB
-  $ export ARUNIT_DB=MYDB
-
-The ARUNIT_DB_NAME variable should be set to the name by which the database knows
-itself, ie., what will be returned by the query:
-
-  select sys_context('userenv','db_name') db from dual
-
-And the ARUNIT_DB variable should be set to the tns connection string.
 
