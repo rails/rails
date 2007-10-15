@@ -572,7 +572,8 @@ module ActionView #:nodoc:
         if template_requires_setup?(extension)
           body = case extension.to_sym
             when :rxml, :builder
-              "controller.response.content_type ||= Mime::XML\n" +
+              content_type_handler = (controller.respond_to?(:response) ? "controller.response" : "controller")
+              "#{content_type_handler}.content_type ||= Mime::XML\n" +
               "xml = Builder::XmlMarkup.new(:indent => 2)\n" +
               template +
               "\nxml.target!\n"

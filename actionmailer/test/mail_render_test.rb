@@ -15,6 +15,12 @@ class RenderMailer < ActionMailer::Base
     body       render(:file => "signed_up", :body => { :recipient => recipient })
   end
 
+  def rxml_template(recipient)
+    recipients recipient
+    subject    "rendering rxml template"
+    from       "tester@example.com"
+  end
+
   def initialize_defaults(method_name)
     super
     mailer_name "test_mailer"
@@ -54,6 +60,11 @@ class RenderHelperTest < Test::Unit::TestCase
   def test_file_template
     mail = RenderMailer.create_file_template(@recipient)
     assert_equal "Hello there, \n\nMr. test@localhost", mail.body.strip
+  end
+
+  def test_rxml_template
+    mail = RenderMailer.deliver_rxml_template(@recipient)
+    assert_equal "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<test/>", mail.body.strip
   end
 end
 
