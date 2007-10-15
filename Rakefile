@@ -2,7 +2,7 @@ require 'rake'
 
 env = %(PKG_BUILD="#{ENV['PKG_BUILD']}") if ENV['PKG_BUILD']
 
-PROJECTS = %w(actionmailer actionpack activerecord activeresource activesupport)
+PROJECTS = %w(activesupport actionpack actionmailer activeresource activerecord)
 
 Dir["#{File.dirname(__FILE__)}/*/lib/*/version.rb"].each do |version_path|
   require version_path
