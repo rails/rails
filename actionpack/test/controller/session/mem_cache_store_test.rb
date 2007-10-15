@@ -11,6 +11,7 @@ end
 
 
 uses_mocha 'MemCacheStore tests' do
+if defined? MemCache::MemCacheError
 
 class MemCacheStoreTest < Test::Unit::TestCase
   SESSION_KEY_RE = /^session:[0-9a-z]+/
@@ -177,4 +178,5 @@ class MemCacheStoreTest < Test::Unit::TestCase
   end
 end
 
+end # defined? MemCache
 end # uses_mocha

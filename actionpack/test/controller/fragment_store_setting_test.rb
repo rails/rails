@@ -24,14 +24,16 @@ class FragmentCacheStoreSettingTest < Test::Unit::TestCase
     )
     assert_equal "druby://localhost:9192", ActionController::Base.fragment_cache_store.address
   end
-  
-  def test_mem_cache_fragment_cache_store
-    ActionController::Base.fragment_cache_store = :mem_cache_store, "localhost"
-    assert_kind_of(
-      ActionController::Caching::Fragments::MemCacheStore,
-      ActionController::Base.fragment_cache_store
-    )
-    assert_equal %w(localhost), ActionController::Base.fragment_cache_store.addresses
+
+  if defined? CGI::Session::MemCacheStore
+    def test_mem_cache_fragment_cache_store
+      ActionController::Base.fragment_cache_store = :mem_cache_store, "localhost"
+      assert_kind_of(
+        ActionController::Caching::Fragments::MemCacheStore,
+        ActionController::Base.fragment_cache_store
+      )
+      assert_equal %w(localhost), ActionController::Base.fragment_cache_store.addresses
+    end
   end
 
   def test_object_assigned_fragment_cache_store
