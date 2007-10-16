@@ -100,9 +100,8 @@ module ActionController #:nodoc:
         # matches the triggering url.
         def caches_page(*actions)
           return unless perform_caching
-          actions.each do |action|
-            class_eval "after_filter { |c| c.cache_page if c.action_name == '#{action}' }"
-          end
+          actions = actions.map(&:to_s)
+          after_filter { |c| c.cache_page if actions.include?(c.action_name) }
         end
 
         private

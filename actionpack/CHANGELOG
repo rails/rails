@@ -1,5 +1,7 @@
 *SVN*
 
+* caches_page uses a single after_filter instead of one per action.  #9891 [lifofifo]
+
 * Update Prototype to 1.6.0_rc1 and script.aculo.us to 1.8.0 preview 0.  [sam, madrobby]
 
 * Dispatcher: fix that to_prepare should only run once in production.  #9889 [Nathaniel Talbott]
