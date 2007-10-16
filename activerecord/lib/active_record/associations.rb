@@ -1083,10 +1083,10 @@ module ActiveRecord
               []
             end
 
-            if !records_to_save.blank?
-              records_to_save.each { |record| association.send(:insert_record, record) }
-              association.send(:construct_sql)   # reconstruct the SQL queries now that we know the owner's id
-            end
+            records_to_save.each { |record| association.send(:insert_record, record) } unless records_to_save.blank?
+            
+            # reconstruct the SQL queries now that we know the owner's id
+            association.send(:construct_sql) if association.respond_to?(:construct_sql)
           end_eval
 
           # Doesn't use after_save as that would save associations added in after_create/after_update twice
