@@ -24,7 +24,7 @@ module ActiveSupport #:nodoc:
         # Return a new hash with all keys converted to symbols.
         def symbolize_keys
           inject({}) do |options, (key, value)|
-            options[key.to_sym] = value
+            options[key.to_sym || key] = value
             options
           end
         end
@@ -32,8 +32,8 @@ module ActiveSupport #:nodoc:
         # Destructively convert all keys to symbols.
         def symbolize_keys!
           keys.each do |key|
-            unless key.is_a?(Symbol)
-              self[key.to_sym] = self[key]
+            unless key.is_a?(Symbol) || (new_key = key.to_sym).nil?
+              self[new_key] = self[key]
               delete(key)
             end
           end

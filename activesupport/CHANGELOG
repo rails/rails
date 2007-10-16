@@ -1,5 +1,7 @@
 *SVN*
 
+* Hash#symbolize_keys behaves well with integer keys.  #9890 [PotatoSalad]
+
 * Multibyte: String#slice supports regexp argument.  #9646 [yob]
 
 * object.duplicable? returns true if object.dup is safe. False for nil, true, false, symbols, and numbers; true otherwise.  #9333 [sur]

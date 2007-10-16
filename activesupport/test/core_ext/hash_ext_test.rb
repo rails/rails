@@ -5,6 +5,7 @@ class HashExtTest < Test::Unit::TestCase
     @strings = { 'a' => 1, 'b' => 2 }
     @symbols = { :a  => 1, :b  => 2 }
     @mixed   = { :a  => 1, 'b' => 2 }
+    @fixnums = {  0  => 1,  1  => 2 }
   end
 
   def test_methods
@@ -31,6 +32,11 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal @symbols, @mixed.dup.symbolize_keys!
 
     assert_raises(NoMethodError) { { [] => 1 }.symbolize_keys }
+  end
+
+  def test_symbolize_keys_preserves_fixnum_keys
+    assert_equal @fixnums, @fixnums.symbolize_keys
+    assert_equal @fixnums, @fixnums.dup.symbolize_keys!
   end
 
   def test_stringify_keys
