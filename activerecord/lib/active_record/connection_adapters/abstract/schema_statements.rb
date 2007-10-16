@@ -87,39 +87,39 @@ module ActiveRecord
       #  )
       #
       # See also TableDefinition#column for details on how to create columns.
-      def create_table(name, options = {})
+      def create_table(table_name, options = {})
         table_definition = TableDefinition.new(self)
         table_definition.primary_key(options[:primary_key] || "id") unless options[:id] == false
 
         yield table_definition
 
         if options[:force]
-          drop_table(name, options) rescue nil
+          drop_table(table_name, options) rescue nil
         end
 
         create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
-        create_sql << "#{name} ("
+        create_sql << "#{quote_table_name(table_name)} ("
         create_sql << table_definition.to_sql
         create_sql << ") #{options[:options]}"
         execute create_sql
       end
-      
+
       # Renames a table.
       # ===== Example
       #  rename_table('octopuses', 'octopi')
-      def rename_table(name, new_name)
+      def rename_table(table_name, new_name)
         raise NotImplementedError, "rename_table is not implemented"
       end
 
       # Drops a table from the database.
-      def drop_table(name, options = {})
-        execute "DROP TABLE #{name}"
+      def drop_table(table_name, options = {})
+        execute "DROP TABLE #{quote_table_name(table_name)}"
       end
 
       # Adds a new column to the named table.
       # See TableDefinition#column for details of the options you can use.
       def add_column(table_name, column_name, type, options = {})
-        add_column_sql = "ALTER TABLE #{table_name} ADD #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+        add_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ADD #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
         add_column_options!(add_column_sql, options)
         execute(add_column_sql)
       end
@@ -128,7 +128,7 @@ module ActiveRecord
       # ===== Examples
       #  remove_column(:suppliers, :qualification)
       def remove_column(table_name, column_name)
-        execute "ALTER TABLE #{table_name} DROP #{quote_column_name(column_name)}"
+        execute "ALTER TABLE #{quote_table_name(table_name)} DROP #{quote_column_name(column_name)}"
       end
 
       # Changes the column's definition according to the new options.
@@ -194,7 +194,7 @@ module ActiveRecord
           index_type = options
         end
         quoted_column_names = column_names.map { |e| quote_column_name(e) }.join(", ")
-        execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{table_name} (#{quoted_column_names})"
+        execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{quoted_column_names})"
       end
 
       # Remove the given index from the table.
@@ -234,8 +234,8 @@ module ActiveRecord
       # The migrations module handles this automatically.
       def initialize_schema_information
         begin
-          execute "CREATE TABLE #{ActiveRecord::Migrator.schema_info_table_name} (version #{type_to_sql(:integer)})"
-          execute "INSERT INTO #{ActiveRecord::Migrator.schema_info_table_name} (version) VALUES(0)"
+          execute "CREATE TABLE #{quote_table_name(ActiveRecord::Migrator.schema_info_table_name)} (version #{type_to_sql(:integer)})"
+          execute "INSERT INTO #{quote_table_name(ActiveRecord::Migrator.schema_info_table_name)} (version) VALUES(0)"
         rescue ActiveRecord::StatementInvalid
           # Schema has been initialized
         end
@@ -244,7 +244,7 @@ module ActiveRecord
       def dump_schema_information #:nodoc:
         begin
           if (current_schema = ActiveRecord::Migrator.current_version) > 0
-            return "INSERT INTO #{ActiveRecord::Migrator.schema_info_table_name} (version) VALUES (#{current_schema})" 
+            return "INSERT INTO #{quote_table_name(ActiveRecord::Migrator.schema_info_table_name)} (version) VALUES (#{current_schema})" 
           end
         rescue ActiveRecord::StatementInvalid 
           # No Schema Info

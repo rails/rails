@@ -63,6 +63,12 @@ module ActiveRecord
         rt
       end
 
+      # QUOTING ==================================================
+
+      # Override to return the quoted table name if the database needs it
+      def quote_table_name(name)
+        name
+      end
 
       # CONNECTION MANAGEMENT ====================================
 

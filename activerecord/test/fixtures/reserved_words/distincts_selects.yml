@@ -1,0 +1,11 @@
+distincts_selects1:
+  distinct_id: 1
+  select_id: 1
+
+distincts_selects2:
+  distinct_id: 1
+  select_id: 2
+
+distincts_selects3:
+  distinct_id: 2
+  select_id: 3

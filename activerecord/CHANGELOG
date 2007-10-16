@@ -1,5 +1,7 @@
 *SVN*
 
+* Quote table names. Defaults to column quoting.  #4593 [Justin Lynn, gwcoffey, eadz, Dmitry V. Sabanin, Jeremy Kemper]
+
 * Alias association #build to #new so it behaves predictably.  #8787 [lifofifo]
 
 * Add notes to documentation regarding attr_readonly behavior with counter caches and polymorphic associations.  Closes #9835 [saimonmoore, rick]

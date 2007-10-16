@@ -318,7 +318,7 @@ class Fixtures < YAML::Omap
   end
 
   def delete_existing_fixtures
-    @connection.delete "DELETE FROM #{@table_name}", 'Fixture Delete'
+    @connection.delete "DELETE FROM #{@connection.quote_table_name(table_name)}", 'Fixture Delete'
   end
 
   def insert_fixtures

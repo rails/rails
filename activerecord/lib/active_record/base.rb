@@ -531,7 +531,7 @@ module ActiveRecord #:nodoc:
       # calling the destroy method). Example:
       #   Post.delete_all "person_id = 5 AND (category = 'Something' OR category = 'Else')"
       def delete_all(conditions = nil)
-        sql = "DELETE FROM #{table_name} "
+        sql = "DELETE FROM #{quoted_table_name} "
         add_conditions!(sql, conditions, scope(:find))
         connection.delete(sql, "#{name} Delete all")
       end
@@ -1033,7 +1033,7 @@ module ActiveRecord #:nodoc:
       
         def find_one(id, options)
           conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
-          options.update :conditions => "#{table_name}.#{connection.quote_column_name(primary_key)} = #{quote_value(id,columns_hash[primary_key])}#{conditions}"
+          options.update :conditions => "#{quoted_table_name}.#{connection.quote_column_name(primary_key)} = #{quote_value(id,columns_hash[primary_key])}#{conditions}"
 
           # Use find_every(options).first since the primary key condition
           # already ensures we have a single record. Using find_initial adds
@@ -1048,7 +1048,7 @@ module ActiveRecord #:nodoc:
         def find_some(ids, options)
           conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
           ids_list   = ids.map { |id| quote_value(id,columns_hash[primary_key]) }.join(',')
-          options.update :conditions => "#{table_name}.#{connection.quote_column_name(primary_key)} IN (#{ids_list})#{conditions}"
+          options.update :conditions => "#{quoted_table_name}.#{connection.quote_column_name(primary_key)} IN (#{ids_list})#{conditions}"
 
           result = find_every(options)
 
@@ -1126,8 +1126,8 @@ module ActiveRecord #:nodoc:
 
         def construct_finder_sql(options)
           scope = scope(:find)
-          sql  = "SELECT #{(scope && scope[:select]) || options[:select] || (options[:joins] && table_name + '.*') || '*'} "
-          sql << "FROM #{(scope && scope[:from]) || options[:from] || table_name} "
+          sql  = "SELECT #{(scope && scope[:select]) || options[:select] || (options[:joins] && quoted_table_name + '.*') || '*'} "
+          sql << "FROM #{(scope && scope[:from]) || options[:from] || quoted_table_name} "
 
           add_joins!(sql, options, scope)
           add_conditions!(sql, options[:conditions], scope)
@@ -1220,8 +1220,8 @@ module ActiveRecord #:nodoc:
 
         def type_condition
           quoted_inheritance_column = connection.quote_column_name(inheritance_column)
-          type_condition = subclasses.inject("#{table_name}.#{quoted_inheritance_column} = '#{name.demodulize}' ") do |condition, subclass|
-            condition << "OR #{table_name}.#{quoted_inheritance_column} = '#{subclass.name.demodulize}' "
+          type_condition = subclasses.inject("#{quoted_table_name}.#{quoted_inheritance_column} = '#{name.demodulize}' ") do |condition, subclass|
+            condition << "OR #{quoted_table_name}.#{quoted_inheritance_column} = '#{subclass.name.demodulize}' "
           end
 
           " (#{type_condition}) "
@@ -1572,7 +1572,7 @@ module ActiveRecord #:nodoc:
         #     # => "age BETWEEN 13 AND 18"
         def sanitize_sql_hash_for_conditions(attrs)
           conditions = attrs.map do |attr, value|
-            "#{table_name}.#{connection.quote_column_name(attr)} #{attribute_condition(value)}"
+            "#{quoted_table_name}.#{connection.quote_column_name(attr)} #{attribute_condition(value)}"
           end.join(' AND ')
 
           replace_bind_variables(conditions, expand_range_bind_variables(attrs.values))
@@ -1742,7 +1742,7 @@ module ActiveRecord #:nodoc:
       def destroy
         unless new_record?
           connection.delete <<-end_sql, "#{self.class.name} Destroy"
-            DELETE FROM #{self.class.table_name}
+            DELETE FROM #{self.class.quoted_table_name}
             WHERE #{connection.quote_column_name(self.class.primary_key)} = #{quoted_id}
           end_sql
         end
@@ -1986,7 +1986,7 @@ module ActiveRecord #:nodoc:
         quoted_attributes = attributes_with_quotes(false, false)
         return 0 if quoted_attributes.empty?
         connection.update(
-          "UPDATE #{self.class.table_name} " +
+          "UPDATE #{self.class.quoted_table_name} " +
           "SET #{quoted_comma_pair_list(connection, quoted_attributes)} " +
           "WHERE #{connection.quote_column_name(self.class.primary_key)} = #{quote_value(id)}",
           "#{self.class.name} Update"
@@ -2005,7 +2005,7 @@ module ActiveRecord #:nodoc:
         statement = if quoted_attributes.empty?
           connection.empty_insert_statement(self.class.table_name)
         else
-          "INSERT INTO #{self.class.table_name} " +
+          "INSERT INTO #{self.class.quoted_table_name} " +
           "(#{quoted_column_names.join(', ')}) " +
           "VALUES(#{quoted_attributes.values.join(', ')})"
         end
@@ -2178,6 +2178,10 @@ module ActiveRecord #:nodoc:
         attributes.keys.collect do |column_name|
           self.class.connection.quote_column_name(column_name)
         end
+      end
+
+      def self.quoted_table_name
+        self.connection.quote_table_name(self.table_name)
       end
 
       def quote_columns(quoter, hash)
