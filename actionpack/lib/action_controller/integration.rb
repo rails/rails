@@ -288,7 +288,7 @@ module ActionController
           end
 
           (@headers['set-cookie'] || [] ).each do |string|
-            name, value = string.match(/^(.*?)=(.*?);/)[1,2]
+            name, value = string.match(/^([^=]*)=([^;]*);/)[1,2]
             @cookies[name] = value
           end
 
