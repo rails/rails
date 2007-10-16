@@ -1,5 +1,7 @@
 *SVN*
 
+* Update Prototype to 1.6.0_rc1 and script.aculo.us to 1.8.0 preview 0.  [sam, madrobby]
+
 * Dispatcher: fix that to_prepare should only run once in production.  #9889 [Nathaniel Talbott]
 
 * Memcached sessions: add session data on initialization; don't silently discard exceptions; add unit tests.  #9823 [kamk]

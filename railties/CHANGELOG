@@ -1,5 +1,7 @@
 *SVN*
 
+* Update Prototype to 1.6.0_rc1 and script.aculo.us to 1.8.0 preview 0.  [sam, madrobby]
+
 * Generated fixtures use the actual primary key instead of id.  #4343 [Frederick Ros, Tarmo Tänav]
 
 * Extend the console +helper+ method to allow you to include custom helpers.  e.g:
