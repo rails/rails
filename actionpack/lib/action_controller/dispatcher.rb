@@ -91,7 +91,8 @@ module ActionController
     cattr_accessor :callbacks
     self.callbacks = Hash.new { |h, k| h[k] = [] }
 
-    attr_accessor_with_default :unprepared, true
+    cattr_accessor :unprepared
+    self.unprepared = true
 
 
     before_dispatch :reload_application

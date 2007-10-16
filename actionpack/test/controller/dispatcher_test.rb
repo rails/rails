@@ -96,6 +96,14 @@ class DispatcherTest < Test::Unit::TestCase
     assert_equal nil, b
   end
 
+  def test_to_prepare_only_runs_once_if_not_loading_dependencies
+    Dependencies.stubs(:load?).returns(false)
+    called = 0
+    Dispatcher.to_prepare(:unprepared_test) { called += 1 }
+    2.times { dispatch }
+    assert_equal 1, called
+  end
+
   private
     def dispatch(output = @output)
       controller = mock
