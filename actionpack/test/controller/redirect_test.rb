@@ -162,11 +162,11 @@ class RedirectTest < Test::Unit::TestCase
     begin
       assert_redirected_to :action => "other_host", :only_path => true
     rescue Test::Unit::AssertionFailedError => err
-      redirection_msg, diff_msg = err.message.scan(/<\{[^\}]+\}>/).collect { |s| s[2..-3] }
+      expected_msg, redirection_msg, diff_msg = err.message.scan(/<\{[^\}]+\}>/).collect { |s| s[2..-3] }
       assert_match %r("only_path"=>false),        redirection_msg
       assert_match %r("host"=>"other.test.host"), redirection_msg
       assert_match %r("action"=>"other_host"),    redirection_msg
-      assert_match %r("only_path"=>true),         diff_msg
+      assert_match %r("only_path"=>false),        diff_msg
       assert_match %r("host"=>"other.test.host"), diff_msg
     end
   end
