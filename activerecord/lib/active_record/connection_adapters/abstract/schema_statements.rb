@@ -81,7 +81,7 @@ module ActiveRecord
       #    t.column :supplier_id, :integer
       #  end
       # generates:
-      #  CREATE TABLE categories_suppliers_join (
+      #  CREATE TABLE categories_suppliers (
       #    category_id int,
       #    supplier_id int
       #  )
