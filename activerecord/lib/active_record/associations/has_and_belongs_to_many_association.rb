@@ -8,33 +8,15 @@ module ActiveRecord
 
       def build(attributes = {})
         load_target
-        record = @reflection.klass.new(attributes)
-        @target << record
-        record
+        build_record(attributes)
       end
 
       def create(attributes = {})
-        # Can't use Base.create because the foreign key may be a protected attribute.
-        ensure_owner_is_not_new
-        if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr) }
-        else
-          record = build(attributes)
-          insert_record(record) unless @owner.new_record?
-          record
-        end
+        create_record(attributes) { |record| insert_record(record) }
       end
       
       def create!(attributes = {})
-        # Can't use Base.create! because the foreign key may be a protected attribute.
-        ensure_owner_is_not_new
-        if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr) }
-        else
-          record = build(attributes)
-          insert_record(record, true) unless @owner.new_record?
-          record
-        end        
+        create_record(attributes) { |record| insert_record(record, true) }
       end
 
       def find_first
@@ -159,6 +141,19 @@ module ActiveRecord
         # an id column. This will then overwrite the id column of the records coming back.
         def finding_with_ambiguous_select?(select_clause)
           !select_clause && @owner.connection.columns(@reflection.options[:join_table], "Join Table Columns").size != 2
+        end
+
+      private
+        def create_record(attributes)
+          # Can't use Base.create because the foreign key may be a protected attribute.
+          ensure_owner_is_not_new
+          if attributes.is_a?(Array)
+            attributes.collect { |attr| create(attr) }
+          else
+            record = build(attributes)
+            yield(record)
+            record
+          end
         end
     end
   end

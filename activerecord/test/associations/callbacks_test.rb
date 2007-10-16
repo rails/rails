@@ -60,6 +60,29 @@ class AssociationCallbacksTest < Test::Unit::TestCase
                   "after_adding#{@thinking.id}", "after_adding_proc#{@thinking.id}"], @david.post_log
   end
 
+  def test_has_many_callbacks_with_create
+    morten = Author.create :name => "Morten"
+    post = morten.posts_with_proc_callbacks.create! :title => "Hello", :body => "How are you doing?"
+    assert_equal ["before_adding<new>", "after_adding#{post.id}"], morten.post_log
+  end
+
+  def test_has_many_callbacks_with_create!
+    morten = Author.create! :name => "Morten"
+    post = morten.posts_with_proc_callbacks.create :title => "Hello", :body => "How are you doing?"
+    assert_equal ["before_adding<new>", "after_adding#{post.id}"], morten.post_log
+  end
+
+  def test_has_many_callbacks_for_save_on_parent
+    jack = Author.new :name => "Jack"
+    post = jack.posts_with_callbacks.build :title => "Call me back!", :body => "Before you wake up and after you sleep"
+
+    callback_log = ["before_adding<new>", "after_adding#{jack.posts_with_callbacks.first.id}"]
+    assert_equal callback_log, jack.post_log
+    assert jack.save
+    assert_equal 1, jack.posts_with_callbacks.count
+    assert_equal callback_log, jack.post_log
+  end
+
   def test_has_and_belongs_to_many_add_callback
     david = developers(:david)
     ar = projects(:active_record)
@@ -96,6 +119,17 @@ class AssociationCallbacksTest < Test::Unit::TestCase
     log_array = activerecord.developers_with_callbacks.collect {|d| ["before_removing#{d.id}","after_removing#{d.id}"]}.flatten.sort
     assert activerecord.developers_with_callbacks.clear
     assert_equal log_array, activerecord.developers_log.sort
+  end
+
+  def test_has_many_and_belongs_to_many_callbacks_for_save_on_parent
+    project = Project.new :name => "Callbacks"
+    project.developers_with_callbacks.build :name => "Jack", :salary => 95000
+
+    callback_log = ["before_adding<new>", "after_adding<new>"]
+    assert_equal callback_log, project.developers_log
+    assert project.save
+    assert_equal 1, project.developers_with_callbacks.count
+    assert_equal callback_log, project.developers_log
   end
 
   def test_dont_add_if_before_callback_raises_exception

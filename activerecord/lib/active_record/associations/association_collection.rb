@@ -85,19 +85,15 @@ module ActiveRecord
       end
       
       def create(attrs = {})
-        ensure_owner_is_not_new
-        record = @reflection.klass.send(:with_scope, :create => construct_scope[:create]) { @reflection.klass.create(attrs) }                
-        @target ||= [] unless loaded?
-        @target << record 
-        record
+        if attrs.is_a?(Array)
+          attrs.collect { |attr| create(attr) }
+        else
+          create_record(attrs) { |record| record.save }
+        end
       end
 
       def create!(attrs = {})
-        ensure_owner_is_not_new
-        record = @reflection.klass.send(:with_scope, :create => construct_scope[:create]) { @reflection.klass.create!(attrs) }                
-        @target ||= [] unless loaded?
-        @target << record 
-        record
+        create_record(attrs) { |record| record.save! }
       end
 
       # Returns the size of the collection by executing a SELECT COUNT(*) query if the collection hasn't been loaded and
@@ -189,6 +185,27 @@ module ActiveRecord
         end
 
       private
+
+        def create_record(attrs, &block)
+          ensure_owner_is_not_new
+          record = @reflection.klass.send(:with_scope, :create => construct_scope[:create]) { @reflection.klass.new(attrs) }
+          add_record_to_target_with_callbacks(record, &block)
+        end
+
+        def build_record(attrs, &block)
+          record = @reflection.klass.new(attrs)
+          add_record_to_target_with_callbacks(record, &block)
+        end
+
+        def add_record_to_target_with_callbacks(record)
+          callback(:before_add, record)
+          yield(record) if block_given?
+          @target ||= [] unless loaded?
+          @target << record
+          callback(:after_add, record)
+          record
+        end
+
         def callback(method, record)
           callbacks_for(method).each do |callback|
             case callback

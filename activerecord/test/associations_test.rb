@@ -595,6 +595,13 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     end
   end
   
+  def test_create_with_bang_on_has_many_raises_when_record_not_saved
+    assert_raises(ActiveRecord::RecordInvalid) do
+      firm = Firm.find(:first)
+      firm.plain_clients.create!
+    end
+  end
+
   def test_create_with_bang_on_habtm_when_parent_is_new_raises
     assert_raises(ActiveRecord::RecordNotSaved) do 
       Developer.new("name" => "Aredridel").projects.create!    
