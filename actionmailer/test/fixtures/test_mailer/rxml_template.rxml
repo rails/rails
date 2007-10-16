@@ -1,0 +1,2 @@
+xml.instruct!
+xml.test
