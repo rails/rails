@@ -10,6 +10,8 @@ require 'fixtures/order'
 require 'fixtures/category'
 require 'fixtures/post'
 require 'fixtures/author'
+require 'fixtures/person'
+require 'fixtures/reader'
 
 
 class AssociationsTest < Test::Unit::TestCase
@@ -20,6 +22,14 @@ class AssociationsTest < Test::Unit::TestCase
     assert_raise(ArgumentError, 'ActiveRecord should have barked on bad collection keys') do
       Class.new(ActiveRecord::Base).has_many(:wheels, :name => 'wheels')
     end
+  end
+  
+  def test_should_construct_new_finder_sql_after_create
+    person = Person.new
+    assert_equal [], person.readers.find(:all)
+    person.save!
+    reader = Reader.create! :person => person, :post => Post.new(:title => "foo", :body => "bar")
+    assert_equal [reader], person.readers.find(:all)
   end
 
   def test_force_reload
