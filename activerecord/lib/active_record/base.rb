@@ -1570,9 +1570,21 @@ module ActiveRecord #:nodoc:
         #     # => "status IS NULL and group_id IN (1,2,3)"
         #   { :age => 13..18 }
         #     # => "age BETWEEN 13 AND 18"
+        #   { 'other_records.id' => 7 }
+        #     # => "`other_records`.`id` = 7"
         def sanitize_sql_hash_for_conditions(attrs)
           conditions = attrs.map do |attr, value|
-            "#{quoted_table_name}.#{connection.quote_column_name(attr)} #{attribute_condition(value)}"
+            attr = attr.to_s
+
+            # Extract table name from qualified attribute names.
+            if attr.include?('.')
+              table_name, attr = attr.split('.', 2)
+              table_name = connection.quote_table_name(table_name)
+            else
+              table_name = quoted_table_name
+            end
+
+            "#{table_name}.#{connection.quote_column_name(attr)} #{attribute_condition(value)}"
           end.join(' AND ')
 
           replace_bind_variables(conditions, expand_range_bind_variables(attrs.values))

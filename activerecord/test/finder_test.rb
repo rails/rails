@@ -160,6 +160,11 @@ class FinderTest < Test::Unit::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :approved => true }) }
   end
 
+  def test_find_on_hash_conditions_with_explicit_table_name
+    assert Topic.find(1, :conditions => { 'topics.approved' => false })
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { 'topics.approved' => true }) }
+  end
+
   def test_find_on_association_proxy_conditions
     assert_equal [1, 2, 3, 5, 6, 7, 8, 9, 10], Comment.find_all_by_post_id(authors(:david).posts).map(&:id).sort
   end
