@@ -190,7 +190,7 @@ class FixturesTest < Test::Unit::TestCase
 
   def test_binary_in_fixtures
     assert_equal 1, @binaries.size
-    data = File.read(BINARY_FIXTURE_PATH).freeze
+    data = File.open(BINARY_FIXTURE_PATH, "rb").read.freeze
     assert_equal data, @flowers.data
   end
 end
