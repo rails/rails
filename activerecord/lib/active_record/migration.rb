@@ -8,6 +8,12 @@ module ActiveRecord
     end
   end
 
+  class IllegalMigrationNameError < ActiveRecordError#:nodoc:
+    def initialize(name)
+      super("Illegal name for migration file: #{name}\n\t(only lower case letters, numbers, and '_' allowed)")
+    end
+  end
+
   # Migrations can manage the evolution of a schema used by several physical databases. It's a solution
   # to the common problem of adding a field to make a new feature work in your local database, but being unsure of how to
   # push that change to other developers and to the production server. With migrations, you can describe the transformations
@@ -364,7 +370,9 @@ module ActiveRecord
 
       def migration_files
         files = Dir["#{@migrations_path}/[0-9]*_*.rb"].sort_by do |f|
-          migration_version_and_name(f).first.to_i
+          m = migration_version_and_name(f)
+          raise IllegalMigrationNameError.new(f) unless m
+          m.first.to_i
         end
         down? ? files.reverse : files
       end
