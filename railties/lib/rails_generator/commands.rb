@@ -70,7 +70,7 @@ module Rails
           end
 
           def current_migration_number
-            Dir.glob("#{@migration_directory}/[0-9]*.rb").inject(0) do |max, file_path|
+            Dir.glob("#{RAILS_ROOT}/#{@migration_directory}/[0-9]*_*.rb").inject(0) do |max, file_path|
               n = File.basename(file_path).split('_', 2).first.to_i
               if n > max then n else max end
             end
