@@ -8,20 +8,23 @@ unless defined?(Rails::Initializer)
   else
     require 'rubygems'
 
-    environment_without_comments = IO.readlines(File.dirname(__FILE__) + '/environment.rb').reject { |l| l =~ /^#/ }.join
-    environment_without_comments =~ /[^#]RAILS_GEM_VERSION = '([\d.]+)'/
-    rails_gem_version = $1
+    rails_gem_version =
+      if defined? RAILS_GEM_VERSION
+        RAILS_GEM_VERSION
+      else
+        File.read("#{File.dirname(__FILE__)}/environment.rb") =~ /^[^#]*RAILS_GEM_VERSION\s+=\s+'([\d.]+)'/
+        $1
+      end
 
-    if version = defined?(RAILS_GEM_VERSION) ? RAILS_GEM_VERSION : rails_gem_version
-      # Asking for 1.1.6 will give you 1.1.6.5206, if available -- makes it easier to use beta gems
-      rails_gem = Gem.cache.search('rails', "~>#{version}.0").sort_by { |g| g.version.version }.last
+    if rails_gem_version
+      rails_gem = Gem.cache.search('rails', "=#{rails_gem_version}.0").sort_by { |g| g.version.version }.last
 
       if rails_gem
         gem "rails", "=#{rails_gem.version.version}"
         require rails_gem.full_gem_path + '/lib/initializer'
       else
-        STDERR.puts %(Cannot find gem for Rails ~>#{version}.0:
-    Install the missing gem with 'gem install -v=#{version} rails', or
+        STDERR.puts %(Cannot find gem for Rails =#{rails_gem_version}.0:
+    Install the missing gem with 'gem install -v=#{rails_gem_version} rails', or
     change environment.rb to define RAILS_GEM_VERSION with your desired version.
   )
         exit 1
