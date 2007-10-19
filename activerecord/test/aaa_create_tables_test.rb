@@ -23,14 +23,22 @@ class AAACreateTablesTest < Test::Unit::TestCase
   end
   
   def test_drop_and_create_courses_table
-    recreate Course, '2' unless use_migrations?
+    if Course.connection.supports_migrations?
+      eval(File.read("#{File.dirname(__FILE__)}/fixtures/db_definitions/schema2.rb"))
+    end
+    recreate Course, '2' unless use_migrations_for_courses?
     assert true
   end
 
   private
     def use_migrations?
-      coursesSQL = ActiveRecord::Base.connection.adapter_name.downcase + "2.sql"
-      not File.exists? "#{@base_path}/#{coursesSQL}"
+      unittest_sql_filename = ActiveRecord::Base.connection.adapter_name.downcase + ".sql"
+      not File.exists? "#{@base_path}/#{unittest_sql_filename}"
+    end
+
+    def use_migrations_for_courses?
+      unittest2_sql_filename = ActiveRecord::Base.connection.adapter_name.downcase + "2.sql"
+      not File.exists? "#{@base_path}/#{unittest2_sql_filename}"
     end
 
     def recreate(base, suffix = nil)
