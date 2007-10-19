@@ -894,6 +894,30 @@ if ActiveRecord::Base.connection.supports_migrations?
         end
       end
       
+      def test_timestamps_creates_updated_at_and_created_at
+        with_new_table do |t|
+          t.expects(:column).with(:created_at, :datetime)
+          t.expects(:column).with(:updated_at, :datetime)
+          t.timestamps
+        end
+      end
+      
+      def test_integer_creates_integer_column
+        with_new_table do |t|
+          t.expects(:column).with(:foo, 'integer', {})
+          t.expects(:column).with(:bar, 'integer', {})
+          t.integer :foo, :bar
+        end
+      end
+      
+      def test_string_creates_string_column
+        with_new_table do |t|
+          t.expects(:column).with(:foo, 'string', {})
+          t.expects(:column).with(:bar, 'string', {})
+          t.string :foo, :bar
+        end
+      end
+      
       protected
       def with_new_table
         Person.connection.create_table :delete_me do |t|
