@@ -868,7 +868,42 @@ if ActiveRecord::Base.connection.supports_migrations?
         Person.connection.execute("select suitably_short_seq.nextval from dual")
       end
     end
-
   end
+
+  uses_mocha 'Sexy migration tests' do
+    class SexyMigrationsTest < Test::Unit::TestCase
+      def test_references_column_type_adds_id
+        with_new_table do |t|
+          t.expects(:column).with('customer_id', :integer, {})
+          t.references :customer
+        end
+      end
+ 
+      def test_references_column_type_with_polymarphic_adds_type
+        with_new_table do |t|
+          t.expects(:column).with('taggable_type', :string, {})
+          t.expects(:column).with('taggable_id', :integer, {})
+          t.references :taggable, :polymorphic => true
+        end
+      end
+      
+      def test_belongs_to_works_like_references
+        with_new_table do |t|
+          t.expects(:column).with('customer_id', :integer, {})
+          t.belongs_to :customer
+        end
+      end
+      
+      protected
+      def with_new_table
+        Person.connection.create_table :delete_me do |t|
+          yield t
+        end
+      ensure
+        Person.connection.drop_table :delete_me rescue nil
+      end
+      
+    end # SexyMigrationsTest
+  end # uses_mocha
 end
 

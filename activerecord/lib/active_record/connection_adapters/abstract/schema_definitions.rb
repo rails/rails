@@ -393,6 +393,24 @@ module ActiveRecord
       #
       # There's a short-hand method for each of the type values declared at the top. And then there's 
       # TableDefinition#timestamps that'll add created_at and updated_at as datetimes.
+      #
+      # TableDefinition#references will add an appropriately-named _id column, plus a corresponding _type
+      # column if the :polymorphic option is supplied. If :polymorphic is a hash of options, these will be
+      # used when creating the _type column. So what can be written like this:
+      #
+      #   create_table :taggings do |t|
+      #     t.integer :tag_id, :tagger_id, :taggable_id
+      #     t.string  :tagger_type
+      #     t.string  :taggable_type, :default => 'Photo'
+      #   end
+      #
+      # Can also be written as follows using references:
+      #
+      #   create_table :taggings do |t|
+      #     t.references :tag
+      #     t.references :tagger, :polymorphic => true
+      #     t.references :taggable, :polymorphic => { :default => 'Photo' }
+      #   end
       def column(name, type, options = {})
         column = self[name] || ColumnDefinition.new(@base, name, type)
         column.limit = options[:limit] || native[type.to_sym][:limit] if options[:limit] or native[type.to_sym]
@@ -419,6 +437,18 @@ module ActiveRecord
         column(:created_at, :datetime)
         column(:updated_at, :datetime)
       end
+
+      def references(*args)
+        options = args.extract_options!
+        polymorphic = options.delete(:polymorphic)
+        args.each do |col|
+          column("#{col}_id", :integer, options)
+          unless polymorphic.nil?
+            column("#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : {})
+          end
+        end
+      end
+      alias :belongs_to :references
 
       # Returns a String whose contents are the column definitions
       # concatenated together.  This string can then be pre and appended to
