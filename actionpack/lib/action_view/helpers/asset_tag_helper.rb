@@ -90,6 +90,7 @@ module ActionView
       def javascript_path(source)
         compute_public_path(source, 'javascripts', 'js')
       end
+      alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
       JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls'] unless const_defined?(:JAVASCRIPT_DEFAULT_SOURCES)
       @@javascript_default_sources = JAVASCRIPT_DEFAULT_SOURCES.dup
@@ -190,11 +191,11 @@ module ActionView
           end
 
           content_tag("script", "", {
-            "type" => Mime::JS, "src" => javascript_path(joined_javascript_name)
+            "type" => Mime::JS, "src" => path_to_javascript(joined_javascript_name)
           }.merge(options))
         else
           expand_javascript_sources(sources).collect do |source|
-            content_tag("script", "", { "type" => Mime::JS, "src" => javascript_path(source) }.merge(options))
+            content_tag("script", "", { "type" => Mime::JS, "src" => path_to_javascript(source) }.merge(options))
           end.join("\n")
         end
       end
@@ -225,6 +226,7 @@ module ActionView
       def stylesheet_path(source)
         compute_public_path(source, 'stylesheets', 'css')
       end
+      alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with a stylesheet_path named route
 
       # Returns a stylesheet link tag for the sources specified as arguments. If
       # you don't specify an extension, .css will be appended automatically.
@@ -300,14 +302,14 @@ module ActionView
 
           tag("link", {
             "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen",
-            "href" => html_escape(stylesheet_path(joined_stylesheet_name))
+            "href" => html_escape(path_to_stylesheet(joined_stylesheet_name))
           }.merge(options), false, false)
         else
           options.delete("cache")
 
           expand_stylesheet_sources(sources).collect do |source|
             tag("link", {
-              "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => html_escape(stylesheet_path(source))
+              "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => html_escape(path_to_stylesheet(source))
             }.merge(options), false, false)
           end.join("\n")
         end
