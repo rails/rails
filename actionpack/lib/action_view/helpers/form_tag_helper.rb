@@ -361,7 +361,7 @@ module ActionView
       #   image_submit_tag("agree.png"), :disabled => true, :class => "agree-disagree-button"
       #   # => <input class="agree-disagree-button" disabled="disabled" src="/images/agree.png" type="image" />
       def image_submit_tag(source, options = {})
-        tag :input, { "type" => "image", "src" => image_path(source) }.update(options.stringify_keys)
+        tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options.stringify_keys)
       end
 
       # Creates a field set for grouping HTML form elements.

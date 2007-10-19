@@ -326,6 +326,7 @@ module ActionView
       def image_path(source)
         compute_public_path(source, 'images')
       end
+      alias_method :path_to_image, :image_path # aliased to avoid conflicts with an image_path named route
 
       # Returns an html image tag for the +source+. The +source+ can be a full
       # path or a file that exists in your public images directory.
@@ -356,7 +357,7 @@ module ActionView
       def image_tag(source, options = {})
         options.symbolize_keys!
 
-        options[:src] = image_path(source)
+        options[:src] = path_to_image(source)
         options[:alt] ||= File.basename(options[:src], '.*').split('.').first.capitalize
 
         if options[:size]

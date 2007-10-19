@@ -158,6 +158,10 @@ class AssetTagHelperTest < Test::Unit::TestCase
     ImagePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
   
+  def test_path_to_image_alias_for_image_path
+    ImagePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
   def test_image_tag
     ImageLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
