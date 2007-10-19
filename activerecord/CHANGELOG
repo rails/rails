@@ -1,5 +1,8 @@
 *SVN*
 
+* Complete the assimilation of Sexy Migrations from ErrFree [Chris Wanstrath, PJ Hyett]
+	http://errtheblog.com/post/2381
+
 * Qualified column names work in hash conditions, like :conditions => { 'comments.created_at' => ... }.  #9733 [danger]
 
 * Fix regression where the association would not construct new finder SQL on save causing bogus queries for "WHERE owner_id = NULL" even after owner was saved.  #8713 [Bryan Helmkamp]
