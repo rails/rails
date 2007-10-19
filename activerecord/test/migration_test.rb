@@ -879,7 +879,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         end
       end
  
-      def test_references_column_type_with_polymarphic_adds_type
+      def test_references_column_type_with_polymorphic_adds_type
         with_new_table do |t|
           t.expects(:column).with('taggable_type', :string, {})
           t.expects(:column).with('taggable_id', :integer, {})
