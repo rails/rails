@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure that cookies handle array values correctly.  Closes #9937 [queso]
+
 * Make sure resource routes don't clash with internal helpers like javascript_path, image_path etc.  #9928 [gbuesing]
 
 * caches_page uses a single after_filter instead of one per action.  #9891 [lifofifo]
