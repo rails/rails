@@ -209,7 +209,7 @@ module ActiveRecord
       end
 
       def quote_table_name(name) #:nodoc:
-        quote_column_name(name)
+        quote_column_name(name).gsub('.', '`.`')
       end
 
       def quote_string(string) #:nodoc:

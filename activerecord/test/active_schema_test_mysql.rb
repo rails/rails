@@ -32,6 +32,10 @@ class ActiveSchemaTest < Test::Unit::TestCase
     assert_equal "ALTER TABLE `people` ADD `key` varchar(32)", add_column(:people, :key, :string, :limit => 32)
   end
 
+  def test_drop_table_with_specific_database
+    assert_equal "DROP TABLE `otherdb`.`people`", drop_table('otherdb.people')
+  end
+  
   private
     def method_missing(method_symbol, *arguments)
       ActiveRecord::Base.connection.send(method_symbol, *arguments)

@@ -1,5 +1,9 @@
 *SVN*
 
+* Ensure that mysql quotes table names with database names correctly.  Closes #9911 [crayz]
+
+  "foo.bar" => "`foo`.`bar`"  
+
 * Complete the assimilation of Sexy Migrations from ErrFree [Chris Wanstrath, PJ Hyett]
 	http://errtheblog.com/post/2381
 
