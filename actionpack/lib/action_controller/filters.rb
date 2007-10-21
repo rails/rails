@@ -7,7 +7,7 @@ module ActionController #:nodoc:
       end
     end
 
-    # Filters enable controllers to run shared pre and post processing code for its actions. These filters can be used to do
+    # Filters enable controllers to run shared pre- and post-processing code for its actions. These filters can be used to do
     # authentication, caching, or auditing before the intended action is performed. Or to do localization or output
     # compression after the action has been performed. Filters have access to the request, response, and all the instance
     # variables set by other filters in the chain or by the action (in the case of after filters).
@@ -36,7 +36,7 @@ module ActionController #:nodoc:
     #   end
     #
     # Now any actions performed on the BankController will have the audit method called before. On the VaultController,
-    # first the audit method is called, then the verify_credentials method. If the audit method returns false, then
+    # first the audit method is called, then the verify_credentials method. If the audit method renders or redirects, then
     # verify_credentials and the intended action are never called.
     #
     # == Filter types
@@ -65,7 +65,7 @@ module ActionController #:nodoc:
     # Or just as a quick test. It works like this:
     #
     #   class WeblogController < ActionController::Base
-    #     before_filter { |controller| false if controller.params["stop_action"] }
+    #     before_filter { |controller| head(400) if controller.params["stop_action"] }
     #   end
     #
     # As you can see, the block expects to be passed the controller after it has assigned the request to the internal variables.
@@ -90,7 +90,7 @@ module ActionController #:nodoc:
     #     prepend_before_filter :ensure_items_in_cart, :ensure_items_in_stock
     #
     # The filter chain for the CheckoutController is now <tt>:ensure_items_in_cart, :ensure_items_in_stock,</tt>
-    # <tt>:verify_open_shop</tt>. So if either of the ensure filters return false, we'll never get around to see if the shop
+    # <tt>:verify_open_shop</tt>. So if either of the ensure filters renders or redirects, we'll never get around to see if the shop
     # is open or not.
     #
     # You may pass multiple filter arguments of each type as well as a filter block.
@@ -142,23 +142,20 @@ module ActionController #:nodoc:
     #   around_filter Authorizer.new
     #
     #   class Authorizer
-    #     # This will run before the action. Returning false aborts the action.
+    #     # This will run before the action. Redirecting aborts the action.
     #     def before(controller)
-    #       if user.authorized?
-    #         return true
-    #       else
-    #         redirect_to login_url
-    #         return false
+    #       unless user.authorized?
+    #         redirect_to(login_url)
     #       end
     #     end
     #
-    #     # This will run after the action if and only if before returned true.
+    #     # This will run after the action if and only if before did not render or redirect.
     #     def after(controller)
     #     end
     #   end
     #
     # If the filter has before and after methods, the before method will be
-    # called before the action. If before returns false, the filter chain is
+    # called before the action. If before renders or redirects, the filter chain is
     # halted and after will not be run. See Filter Chain Halting below for
     # an example.
     #
@@ -218,8 +215,8 @@ module ActionController #:nodoc:
     # <tt>before_filter</tt> and <tt>around_filter</tt> may halt the request
     # before a controller action is run. This is useful, for example, to deny
     # access to unauthenticated users or to redirect from http to https.
-    # Simply return false from the filter or call render or redirect.
-    # After filters will not be executed if the filter chain is halted.
+    # Simply call render or redirect. After filters will not be executed if the filter 
+    # chain is halted.
     #
     # Around filters halt the request unless the action block is called.
     # Given these filters
@@ -244,7 +241,7 @@ module ActionController #:nodoc:
     #   #after (actual filter code is run, unless the around filter does not yield)
     #
     # If #around returns before yielding, #after will still not be run. The #before
-    # filter and controller action will not be run. If #before returns false,
+    # filter and controller action will not be run. If #before renders or redirects,
     # the second half of #around and will still run but #after and the
     # action will not. If #around fails to yield, #after will not be run.
     module ClassMethods
@@ -441,8 +438,9 @@ module ActionController #:nodoc:
 
         def run(controller)
           # only filters returning false are halted.
-          if false == @filter.call(controller)
-            controller.send! :halt_filter_chain, @filter, :returned_false
+          @filter.call(controller)
+          if controller.send!(:performed?)
+            controller.send!(:halt_filter_chain, @filter, :rendered_or_redirected)
           end
         end
 
@@ -657,8 +655,10 @@ module ActionController #:nodoc:
         def proxy_before_and_after_filter(filter) #:nodoc:
           return filter unless filter_responds_to_before_and_after(filter)
           Proc.new do |controller, action|
-            if filter.before(controller) == false
-              controller.send! :halt_filter_chain, filter, :returned_false
+            filter.before(controller)
+
+            if controller.send!(:performed?)
+              controller.send!(:halt_filter_chain, filter, :rendered_or_redirected)
             else
               begin
                 action.call
@@ -710,6 +710,7 @@ module ActionController #:nodoc:
         while chain[index]
           filter, index = skip_excluded_filters(chain, index)
           break unless filter # end of call chain reached
+
           case filter.type
           when :before
             filter.run(self)  # invoke before filter
@@ -717,25 +718,31 @@ module ActionController #:nodoc:
             break if @before_filter_chain_aborted
           when :around
             yielded = false
+
             filter.call(self) do
               yielded = true
               # all remaining before and around filters will be run in this call
               index = call_filters(chain, index.next, nesting.next)
             end
+
             halt_filter_chain(filter, :did_not_yield) unless yielded
+
             break
           else
             break  # no before or around filters left
           end
         end
+
         index
       end
 
       def run_after_filters(chain, index)
         seen_after_filter = false
+
         while chain[index]
           filter, index = skip_excluded_filters(chain, index)
           break unless filter # end of call chain reached
+
           case filter.type
           when :after
             seen_after_filter = true
@@ -744,8 +751,10 @@ module ActionController #:nodoc:
             # implementation error or someone has mucked with the filter chain
             raise ActionControllerError, "filter #{filter.inspect} was in the wrong place!" if seen_after_filter
           end
+
           index = index.next
         end
+
         index.next
       end
 

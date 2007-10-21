@@ -44,7 +44,9 @@ class FilterTest < Test::Unit::TestCase
     (1..3).each do |i|
       define_method "try_#{i}" do
         instance_variable_set :@try, i
-        action_name != "fail_#{i}"
+        if action_name == "fail_#{i}"
+          head(404)
+        end
       end
     end
   end
@@ -823,7 +825,7 @@ class YieldingAroundFiltersTest < Test::Unit::TestCase
   def test_first_filter_in_multiple_before_filter_chain_halts
     controller = ::FilterTest::TestMultipleFiltersController.new
     response = test_process(controller, 'fail_1')
-    assert_equal '', response.body
+    assert_equal ' ', response.body
     assert_equal 1, controller.instance_variable_get(:@try)
     assert controller.instance_variable_get(:@before_filter_chain_aborted)
   end
@@ -831,7 +833,7 @@ class YieldingAroundFiltersTest < Test::Unit::TestCase
   def test_second_filter_in_multiple_before_filter_chain_halts
     controller = ::FilterTest::TestMultipleFiltersController.new
     response = test_process(controller, 'fail_2')
-    assert_equal '', response.body
+    assert_equal ' ', response.body
     assert_equal 2, controller.instance_variable_get(:@try)
     assert controller.instance_variable_get(:@before_filter_chain_aborted)
   end
@@ -839,7 +841,7 @@ class YieldingAroundFiltersTest < Test::Unit::TestCase
   def test_last_filter_in_multiple_before_filter_chain_halts
     controller = ::FilterTest::TestMultipleFiltersController.new
     response = test_process(controller, 'fail_3')
-    assert_equal '', response.body
+    assert_equal ' ', response.body
     assert_equal 3, controller.instance_variable_get(:@try)
     assert controller.instance_variable_get(:@before_filter_chain_aborted)
   end

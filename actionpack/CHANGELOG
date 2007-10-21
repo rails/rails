@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed before_filter halting to happen automatically on render or redirect but no longer on simply returning false [DHH]
+
 * Ensure that cookies handle array values correctly.  Closes #9937 [queso]
 
 * Make sure resource routes don't clash with internal helpers like javascript_path, image_path etc.  #9928 [gbuesing]
