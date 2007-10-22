@@ -461,8 +461,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
     
-    unless current_adapter?(:SQLiteAdapter)
     def test_change_column_nullability
+      Person.delete_all 
       Person.connection.add_column "people", "funny", :boolean
       Person.reset_column_information
       assert Person.columns_hash["funny"].null, "Column 'funny' must initially allow nulls"
@@ -472,7 +472,6 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.change_column "people", "funny", :boolean, :null => true
       Person.reset_column_information
       assert Person.columns_hash["funny"].null, "Column 'funny' must allow nulls again at this point"
-    end
     end
 
     def test_rename_table_with_an_index
