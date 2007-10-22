@@ -275,7 +275,7 @@ module ActionController
 
     # Returns both GET and POST parameters in a single hash.
     def parameters
-      @parameters ||= request_parameters.update(query_parameters).update(path_parameters).with_indifferent_access
+      @parameters ||= request_parameters.merge(query_parameters).update(path_parameters).with_indifferent_access
     end
 
     def path_parameters=(parameters) #:nodoc:

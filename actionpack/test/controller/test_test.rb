@@ -108,7 +108,7 @@ XML
 
   def test_raw_post_handling
     params = {:page => {:name => 'page name'}, 'some key' => 123}
-    get :render_raw_post, params.dup
+    post :render_raw_post, params.dup
 
     assert_equal params.to_query, @response.body
   end
@@ -116,7 +116,7 @@ XML
   def test_body_stream
     params = { :page => { :name => 'page name' }, 'some key' => 123 }
 
-    get :render_body, params.dup
+    post :render_body, params.dup
 
     assert_equal params.to_query, @response.body
   end

@@ -355,6 +355,15 @@ class RequestTest < Test::Unit::TestCase
   def test_user_agent
     assert_not_nil @request.user_agent
   end
+  
+  def test_parameters
+    @request.instance_eval { @request_parameters = { "foo" => 1 } }
+    @request.instance_eval { @query_parameters = { "bar" => 2 } }
+    
+    assert_equal({"foo" => 1, "bar" => 2}, @request.parameters)
+    assert_equal({"foo" => 1}, @request.request_parameters)
+    assert_equal({"bar" => 2}, @request.query_parameters)
+  end
 
   protected
     def set_request_method_to(method)
