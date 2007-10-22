@@ -626,9 +626,9 @@ class FinderTest < Test::Unit::TestCase
       [["1", nil, nil, "37signals"],
        ["2", "1", "2", "Summit"],
        ["3", "1", "1", "Microsoft"]],
-      Company.connection.select_rows("SELECT id, firm_id, client_of, name FROM companies ORDER BY id LIMIT 3"))
+      Company.connection.select_rows("SELECT id, firm_id, client_of, name FROM companies WHERE id IN (1,2,3) ORDER BY id").map! {|i| i.map! {|j| j.to_s unless j.nil?}})
     assert_equal [["1", "37signals"], ["2", "Summit"], ["3", "Microsoft"]],
-      Company.connection.select_rows("SELECT id, name FROM companies ORDER BY id LIMIT 3")
+      Company.connection.select_rows("SELECT id, name FROM companies WHERE id IN (1,2,3) ORDER BY id").map! {|i| i.map! {|j| j.to_s unless j.nil?}}
   end
 
   protected
