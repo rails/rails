@@ -122,68 +122,57 @@ module ActiveRecord
       #   attributes are +nil+.  Setting the aggregate class to +nil+ has the effect of writing +nil+ to all mapped attributes.
       #   This defaults to +false+.
       #
+      # An optional block can be passed to convert the argument that is passed to the writer method into an instance of
+      # <tt>:class_name</tt>. The block will only be called if the arguement is not already an instance of <tt>:class_name</tt>.
+      #
       # Option examples:
       #   composed_of :temperature, :mapping => %w(reading celsius)
-      #   composed_of :balance, :class_name => "Money", :mapping => %w(balance amount)
+      #   composed_of(:balance, :class_name => "Money", :mapping => %w(balance amount)) {|balance| balance.to_money }
       #   composed_of :address, :mapping => [ %w(address_street street), %w(address_city city) ]
       #   composed_of :gps_location
       #   composed_of :gps_location, :allow_nil => true
       #
-      def composed_of(part_id, options = {})
+      def composed_of(part_id, options = {}, &block)
         options.assert_valid_keys(:class_name, :mapping, :allow_nil)
 
         name        = part_id.id2name
         class_name  = options[:class_name] || name.camelize
         mapping     = options[:mapping]    || [ name, name ]
+        mapping     = [ mapping ] unless mapping.first.is_a?(Array)
         allow_nil   = options[:allow_nil]  || false
 
         reader_method(name, class_name, mapping, allow_nil)
-        writer_method(name, class_name, mapping, allow_nil)
+        writer_method(name, class_name, mapping, allow_nil, block)
         
         create_reflection(:composed_of, part_id, options, self)
       end
 
       private
         def reader_method(name, class_name, mapping, allow_nil)
-          mapping = (Array === mapping.first ? mapping : [ mapping ])
-
-          allow_nil_condition = if allow_nil
-            mapping.collect { |pair| "!read_attribute(\"#{pair.first}\").nil?"}.join(" || ")
-          else
-            "true"
+          module_eval do
+            define_method(name) do |*args|
+              force_reload = args.first || false
+              if (instance_variable_get("@#{name}").nil? || force_reload) && (!allow_nil || mapping.any? {|pair| !read_attribute(pair.first).nil? })
+                instance_variable_set("@#{name}", class_name.constantize.new(*mapping.collect {|pair| read_attribute(pair.first)}))
+              end
+              return instance_variable_get("@#{name}")
+            end
           end
 
-          module_eval <<-end_eval, __FILE__, __LINE__
-            def #{name}(force_reload = false)
-              if (@#{name}.nil? || force_reload) && #{allow_nil_condition}
-                @#{name} = #{class_name}.new(#{mapping.collect { |pair| "read_attribute(\"#{pair.first}\")"}.join(", ")})
-              end
-              return @#{name}
-            end
-          end_eval
         end
 
-        def writer_method(name, class_name, mapping, allow_nil)
-          mapping = (Array === mapping.first ? mapping : [ mapping ])
-
-          if allow_nil
-            module_eval <<-end_eval, __FILE__, __LINE__
-              def #{name}=(part)
-                @#{name} = part.freeze
-                if part.nil?
-                  #{mapping.collect { |pair| "@attributes[\"#{pair.first}\"] = nil" }.join("\n")}
-                else
-                  #{mapping.collect { |pair| "@attributes[\"#{pair.first}\"] = part.#{pair.last}" }.join("\n")}
-                end
+        def writer_method(name, class_name, mapping, allow_nil, conversion)
+          module_eval do
+            define_method("#{name}=") do |part|
+              if part.nil? && allow_nil
+                mapping.each { |pair| @attributes[pair.first] = nil }
+                instance_variable_set("@#{name}", nil)
+              else
+                part = conversion.call(part) unless part.is_a?(class_name.constantize) || conversion.nil?
+                mapping.each { |pair| @attributes[pair.first] = part.send(pair.last) }
+                instance_variable_set("@#{name}", part.freeze)
               end
-            end_eval
-          else
-            module_eval <<-end_eval, __FILE__, __LINE__
-              def #{name}=(part)
-                @#{name} = part.freeze
-                #{mapping.collect{ |pair| "@attributes[\"#{pair.first}\"] = part.#{pair.last}" }.join("\n")}
-              end
-            end_eval
+            end
           end
         end
     end

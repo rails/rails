@@ -1,5 +1,7 @@
 *SVN*
 
+* Assigning an instance of a foreign class to a composed_of aggregate calls an optional conversion block. Refactor and simplify composed_of implementation.  #6322 [brandon, Chris Cruft]
+
 * Assigning nil to a composed_of aggregate also sets its immediate value to nil.  #9843 [Chris Cruft]
 
 * Ensure that mysql quotes table names with database names correctly.  Closes #9911 [crayz]

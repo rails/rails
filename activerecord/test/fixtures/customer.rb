@@ -1,6 +1,6 @@
 class Customer < ActiveRecord::Base
   composed_of :address, :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country) ], :allow_nil => true
-  composed_of :balance, :class_name => "Money", :mapping => %w(balance amount)
+  composed_of(:balance, :class_name => "Money", :mapping => %w(balance amount)) { |balance| balance.to_money }
   composed_of :gps_location, :allow_nil => true
 end
 
