@@ -289,4 +289,10 @@ ActiveRecord::Schema.define do
     t.column :message, :string, :null=>false
     t.column :developer_id, :integer, :null=>false
   end
+
+  create_table :inept_wizards, :force => true do |t|
+    t.column :name, :string, :null => false
+    t.column :city, :string, :null => false
+    t.column :type, :string
+  end
 end

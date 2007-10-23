@@ -33,6 +33,22 @@ class Topic < ActiveRecord::Base
   has_many :silly_unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
 end
 
+class Wizard < ActiveRecord::Base
+  self.abstract_class = true
+
+  validates_uniqueness_of :name
+end
+
+class IneptWizard < Wizard
+  validates_uniqueness_of :city
+end
+
+class Conjurer < IneptWizard
+end
+
+class Thaumaturgist < IneptWizard
+end
+
 class ValidationsTest < Test::Unit::TestCase
   fixtures :topics, :developers
 
@@ -400,6 +416,35 @@ class ValidationsTest < Test::Unit::TestCase
     t2.title = nil
     assert t2.valid?, "should validate with nil"
     assert t2.save, "should save with nil"
+  end
+
+  def test_validate_straight_inheritance_uniqueness
+    w1 = IneptWizard.create(:name => "Rincewind", :city => "Ankh-Morpork")
+    assert w1.valid?, "Saving w1"
+
+    # Should use validation from base class (which is abstract)
+    w2 = IneptWizard.new(:name => "Rincewind", :city => "Quirm")
+    assert !w2.valid?, "w2 shouldn't be valid"
+    assert w2.errors.on(:name), "Should have errors for name"
+    assert_equal "has already been taken", w2.errors.on(:name), "Should have uniqueness message for name"
+
+    w3 = Conjurer.new(:name => "Rincewind", :city => "Quirm")
+    assert !w3.valid?, "w3 shouldn't be valid"
+    assert w3.errors.on(:name), "Should have errors for name"
+    assert_equal "has already been taken", w3.errors.on(:name), "Should have uniqueness message for name"
+
+    w4 = Conjurer.create(:name => "The Amazing Bonko", :city => "Quirm")
+    assert w4.valid?, "Saving w4"
+
+    w5 = Thaumaturgist.new(:name => "The Amazing Bonko", :city => "Lancre")
+    assert !w5.valid?, "w5 shouldn't be valid"
+    assert w5.errors.on(:name), "Should have errors for name"
+    assert_equal "has already been taken", w5.errors.on(:name), "Should have uniqueness message for name"
+
+    w6 = Thaumaturgist.new(:name => "Mustrum Ridcully", :city => "Quirm")
+    assert !w6.valid?, "w6 shouldn't be valid"
+    assert w6.errors.on(:city), "Should have errors for city"
+    assert_equal "has already been taken", w6.errors.on(:city), "Should have uniqueness message for city"
   end
 
   def test_validate_format

@@ -29,7 +29,8 @@
 
 * MySQL: fix change_column on not-null columns that don't accept dfeault values of ''.  #6663 [Jonathan Viney, Tarmo Tänav]
 
-* validates_uniqueness_of behaves well with single-table inheritance.  #3833 [Gabriel Gironda, rramdas, François Beausoleil, Josh Peek, Tarmo Tänav]
+* validates_uniqueness_of behaves well with abstract superclasses and
+single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Beausoleil, Josh Peek, Tarmo Tänav, pat]
 
 * Raise ProtectedAttributeAssignmentError in development and test environments when mass-assigning to an attr_protected attribute.  #9802 [Henrik N]
 
