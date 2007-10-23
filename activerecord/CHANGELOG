@@ -1,5 +1,7 @@
 *SVN*
 
+* Assigning nil to a composed_of aggregate also sets its immediate value to nil.  #9843 [Chris Cruft]
+
 * Ensure that mysql quotes table names with database names correctly.  Closes #9911 [crayz]
 
   "foo.bar" => "`foo`.`bar`"  

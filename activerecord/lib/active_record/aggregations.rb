@@ -148,7 +148,7 @@ module ActiveRecord
           mapping = (Array === mapping.first ? mapping : [ mapping ])
 
           allow_nil_condition = if allow_nil
-            mapping.collect { |pair| "!read_attribute(\"#{pair.first}\").nil?"}.join(" && ")
+            mapping.collect { |pair| "!read_attribute(\"#{pair.first}\").nil?"}.join(" || ")
           else
             "true"
           end
@@ -169,10 +169,10 @@ module ActiveRecord
           if allow_nil
             module_eval <<-end_eval, __FILE__, __LINE__
               def #{name}=(part)
+                @#{name} = part.freeze
                 if part.nil?
                   #{mapping.collect { |pair| "@attributes[\"#{pair.first}\"] = nil" }.join("\n")}
                 else
-                  @#{name} = part.freeze
                   #{mapping.collect { |pair| "@attributes[\"#{pair.first}\"] = part.#{pair.last}" }.join("\n")}
                 end
               end
