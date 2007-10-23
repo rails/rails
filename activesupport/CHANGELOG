@@ -1,5 +1,7 @@
 *SVN*
 
+* Hash#to_xml handles symbol values.  #9954 [Assaf]
+
 * Hash#symbolize_keys behaves well with integer keys.  #9890 [PotatoSalad]
 
 * Multibyte: String#slice supports regexp argument.  #9646 [yob]

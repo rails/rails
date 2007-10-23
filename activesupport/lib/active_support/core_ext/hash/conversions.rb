@@ -47,6 +47,7 @@ module ActiveSupport #:nodoc:
     module Hash #:nodoc:
       module Conversions
         XML_TYPE_NAMES = {
+          "Symbol"     => "symbol",
           "Fixnum"     => "integer",
           "Bignum"     => "integer",
           "BigDecimal" => "decimal",
@@ -59,14 +60,18 @@ module ActiveSupport #:nodoc:
         } unless defined?(XML_TYPE_NAMES)
 
         XML_FORMATTING = {
+          "symbol"   => Proc.new { |symbol| symbol.to_s },
           "date"     => Proc.new { |date| date.to_s(:db) },
           "datetime" => Proc.new { |time| time.xmlschema },
           "binary"   => Proc.new { |binary| Base64.encode64(binary) },
           "yaml"     => Proc.new { |yaml| yaml.to_yaml }
         } unless defined?(XML_FORMATTING)
 
+        # TODO: use Time.xmlschema instead of Time.parse;
+        #       use regexp instead of Date.parse
         unless defined?(XML_PARSING)
           XML_PARSING = {
+            "symbol"       => Proc.new  { |symbol|  symbol.to_sym },
             "date"         => Proc.new  { |date|    ::Date.parse(date) },
             "datetime"     => Proc.new  { |time|    ::Time.parse(time).utc },
             "integer"      => Proc.new  { |integer| integer.to_i },
