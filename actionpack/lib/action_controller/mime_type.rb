@@ -1,7 +1,7 @@
 module Mime
   SET              = []
-  EXTENSION_LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) unless k == "" }
-  LOOKUP           = Hash.new { |h, k| h[k] = Type.new(k) unless k == "" }
+  EXTENSION_LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
+  LOOKUP           = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
 
   # Encapsulates the notion of a mime type. Can be used at render time, for example, with:
   #

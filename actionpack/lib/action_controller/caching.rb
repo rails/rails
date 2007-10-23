@@ -251,7 +251,7 @@ module ActionController #:nodoc:
 
         private
           def set_content_type!(controller, extension)
-            controller.response.content_type = Mime::EXTENSION_LOOKUP[extension].to_s if extension
+            controller.response.content_type = Mime::Type.lookup_by_extension(extension).to_s if extension
           end
 
           def path_options_for(controller, options)
