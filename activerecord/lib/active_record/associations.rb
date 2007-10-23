@@ -1293,12 +1293,10 @@ module ActiveRecord
           add_conditions!(sql, options[:conditions], scope)
           add_group!(sql, options[:group], scope)
 
-          if options[:order]
-            if is_distinct
-              connection.add_order_by_for_association_limiting!(sql, options)
-            else
-              add_order!(sql, options[:order], scope)
-            end
+          if options[:order] && is_distinct
+            connection.add_order_by_for_association_limiting!(sql, options)
+          else
+            add_order!(sql, options[:order], scope)
           end
 
           add_limit!(sql, options, scope)

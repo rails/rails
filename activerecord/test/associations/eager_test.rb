@@ -250,6 +250,15 @@ class EagerAssociationTest < Test::Unit::TestCase
       assert_equal count, posts.size
     end
   end
+
+  def test_eager_with_scoped_order_using_association_limiting_without_explicit_scope
+    posts_with_explicit_order = Post.find(:all, :conditions => 'comments.id', :include => :comments, :order => 'posts.id DESC', :limit => 2)
+    posts_with_scoped_order = Post.with_scope(:find => {:order => 'posts.id DESC'}) do
+      Post.find(:all, :conditions => 'comments.id', :include => :comments, :limit => 2)
+    end
+    assert_equal posts_with_explicit_order, posts_with_scoped_order
+  end
+
   def test_eager_association_loading_with_habtm
     posts = Post.find(:all, :include => :categories, :order => "posts.id")
     assert_equal 2, posts[0].categories.size

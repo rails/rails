@@ -1,5 +1,7 @@
 *SVN*
 
+* Limited eager loading no longer ignores scoped :order. Closes #9561 [danger, josh]
+
 * Assigning an instance of a foreign class to a composed_of aggregate calls an optional conversion block. Refactor and simplify composed_of implementation.  #6322 [brandon, Chris Cruft]
 
 * Assigning nil to a composed_of aggregate also sets its immediate value to nil.  #9843 [Chris Cruft]
