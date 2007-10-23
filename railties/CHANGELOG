@@ -1,5 +1,7 @@
 *SVN*
 
+* config/boot.rb correctly detects RAILS_GEM_VERSION.  #9834 [alexch, thewoolleyman]
+
 * Fixed incorrect migration number if script/generate executed outside of Rails root #7080 [jeremymcanally]
 
 * Update Prototype to 1.6.0_rc1 and script.aculo.us to 1.8.0 preview 0.  [sam, madrobby]
@@ -14,6 +16,7 @@
 databases on localhost.  #9753 [Trevor Wennblom]
 
 * Removed calls to fixtures in generated tests as fixtures :all is now present by default in test_helper.rb [DHH]
+
 
 * Add --prefix option to script/server when using mongrel. [dacat]
 
