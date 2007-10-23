@@ -486,7 +486,7 @@ module ActionView
         end
         options["checked"] = "checked" if checked
         add_default_name_and_id(options)
-        tag("input", options) << tag("input", "name" => options["name"], "type" => "hidden", "value" => unchecked_value)
+        tag("input", options) << tag("input", "name" => options["name"], "type" => "hidden", "value" => options['disabled'] && checked ? checked_value : unchecked_value)
       end
 
       def to_date_tag()

@@ -172,6 +172,13 @@ class FormHelperTest < Test::Unit::TestCase
     )
   end
 
+  def test_checkbox_disabled_still_submits_checked_value
+    assert_dom_equal(
+      '<input checked="checked" disabled="disabled" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="1" />',
+      check_box("post", "secret", { :disabled => :true })
+    )
+  end
+
   def test_radio_button
     assert_dom_equal('<input checked="checked" id="post_title_hello_world" name="post[title]" type="radio" value="Hello World" />',
       radio_button("post", "title", "Hello World")
