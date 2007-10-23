@@ -1230,7 +1230,7 @@ module ActionController #:nodoc:
       def template_exempt_from_layout?(template_name = default_template_name)
         extension = @template && @template.pick_template_extension(template_name)
         name_with_extension = !template_name.include?('.') && extension ? "#{template_name}.#{extension}" : template_name
-        extension == :rjs || @@exempt_from_layout.any? { |ext| name_with_extension =~ ext }
+        @@exempt_from_layout.any? { |ext| name_with_extension =~ ext }
       end
 
       def assert_existence_of_template_file(template_name)
