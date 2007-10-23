@@ -91,6 +91,8 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
     setup_post
     setup_user
 
+    @response = ActionController::TestResponse.new
+    
     @controller = Object.new
     def @controller.url_for(options)
       options = options.symbolize_keys
@@ -137,6 +139,13 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
       %(<form action="update/1" method="post"><input id="post_id" name="post[id]" type="hidden" value="1" /><p><label for="post_title">Title</label><br /><input id="post_title" name="post[title]" size="30" type="text" value="Hello World" /></p>\n<p><label for="post_body">Body</label><br /><div class="fieldWithErrors"><textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea></div></p><input name="commit" type="submit" value="Update" /></form>),
       form("post")
     )
+  end
+
+  def test_form_with_action_option
+    @response.body = form("post", :action => "sign")
+    assert_select "form[action=sign]" do |form|
+      assert_select "input[type=submit][value=Sign]"
+    end
   end
 
   def test_form_with_date

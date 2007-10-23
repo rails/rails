@@ -1,5 +1,7 @@
 *SVN*
 
+* Added tests for options to ActiveRecordHelper#form. Closes #7213 [richcollins, mikong, mislav]
+
 * Changed before_filter halting to happen automatically on render or redirect but no longer on simply returning false [DHH]
 
 * Ensure that cookies handle array values correctly.  Closes #9937 [queso]
