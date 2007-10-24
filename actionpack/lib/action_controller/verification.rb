@@ -98,10 +98,7 @@ module ActionController #:nodoc:
           options[:redirect_to] = self.send!(options[:redirect_to]) if options[:redirect_to].is_a? Symbol
           redirect_to(options[:redirect_to]) if options[:redirect_to]
         end
-        return false
       end
-
-      true
     end
     private :verify_action
   end

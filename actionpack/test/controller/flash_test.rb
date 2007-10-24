@@ -70,7 +70,6 @@ class FlashTest < Test::Unit::TestCase
       flash["foo"] = "bar"
       redirect_to :action => "std_action"
       @flash_copy = {}.update(flash)
-      false
     end
   end
 

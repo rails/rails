@@ -93,9 +93,7 @@ module ActionController
       end
 
       def authenticate(controller, &login_procedure)
-        if authorization(controller.request).blank?
-          false
-        else
+        unless authorization(controller.request).blank?
           login_procedure.call(*user_name_and_password(controller.request))
         end
       end
@@ -122,7 +120,6 @@ module ActionController
       def authentication_request(controller, realm)
         controller.headers["WWW-Authenticate"] = %(Basic realm="#{realm.gsub(/"/, "")}")
         controller.send! :render, :text => "HTTP Basic: Access denied.\n", :status => :unauthorized
-        return false
       end
     end
   end
