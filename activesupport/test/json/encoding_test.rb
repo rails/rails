@@ -45,6 +45,7 @@ class TestJSONEncoding < Test::Unit::TestCase
     assert_equal %({\"a\": \"b\"}), { :a => :b }.to_json
     assert_equal %({\"a\": 1}), { 'a' => 1  }.to_json
     assert_equal %({\"a\": [1, 2]}), { 'a' => [1,2] }.to_json
+    assert_equal %({1: 2}), { 1 => 2 }.to_json
 
     sorted_json = '{' + {:a => :b, :c => :d}.to_json[1..-2].split(', ').sort.join(', ') + '}'
     assert_equal %({\"a\": \"b\", \"c\": \"d\"}), sorted_json

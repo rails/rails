@@ -1,5 +1,7 @@
 *SVN*
 
+* Document Enumerable and Hash #to_json.  #9970 [Chu Yeow]
+
 * Hash#to_xml handles symbol values.  #9954 [Assaf]
 
 * Hash#symbolize_keys behaves well with integer keys.  #9890 [PotatoSalad]
