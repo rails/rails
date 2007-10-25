@@ -87,7 +87,7 @@ module ActionController
     end
 
     def default_uri
-      '/benchmarks/hello'
+      '/'
     end
 
     def env
@@ -126,11 +126,11 @@ module ActionController
       OptionParser.new do |opt|
         opt.banner = "USAGE: #{$0} uri [options]"
 
-        opt.on('-u', '--uri [URI]', 'Request URI. Defaults to http://localhost:3000/benchmarks/hello') { |v| options[:uri] = v }
+        opt.on('-u', '--uri [URI]', 'Request URI. Defaults to http://localhost:3000/') { |v| options[:uri] = v }
         opt.on('-n', '--times [0000]', 'How many requests to process. Defaults to 1000.') { |v| options[:n] = v.to_i }
+        opt.on('-b', '--benchmark', 'Benchmark instead of profiling') { |v| options[:benchmark] = v }
         opt.on('--method [GET]', 'HTTP request method. Defaults to GET.') { |v| options[:method] = v.upcase }
         opt.on('--fixture [FILE]', 'Path to POST fixture file') { |v| options[:fixture] = v }
-        opt.on('--benchmark', 'Benchmark instead of profiling') { |v| options[:benchmark] = v }
         opt.on('--open [CMD]', 'Command to open profile results. Defaults to "open %s &"') { |v| options[:open] = v }
         opt.on('-h', '--help', 'Show this help') { puts opt; exit }
 
