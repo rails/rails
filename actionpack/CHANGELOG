@@ -1,5 +1,7 @@
 *SVN*
 
+* Partials also set 'object' to the default partial variable.  #8823 [Nick Retallack, Jeremy Kemper]
+
 * Request profiler.  [Jeremy Kemper]
 
 * Disabled checkboxes don't submit a form value.  #9301 [vladr, robinjfisher]

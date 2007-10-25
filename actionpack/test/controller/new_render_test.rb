@@ -689,12 +689,12 @@ EOS
 
   def test_partial_with_hash_object
     get :partial_with_hash_object
-    assert_equal "Sam", @response.body
+    assert_equal "Sam\nmaS\n", @response.body
   end
   
   def test_hash_partial_collection
     get :partial_hash_collection
-    assert_equal "PratikAmy", @response.body
+    assert_equal "Pratik\nkitarP\nAmy\nymA\n", @response.body
   end
   
   def test_partial_hash_collection_with_locals
