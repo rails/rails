@@ -89,10 +89,23 @@ module ActiveRecord
       
       # Clears the cache which maps classes 
       def clear_reloadable_connections!
-        @@active_connections.each do |name, conn|
-          if conn.requires_reloading?
-            conn.disconnect!
-            @@active_connections.delete(name)
+        if @@allow_concurrency
+          # With concurrent connections @@active_connections is
+          # a hash keyed by thread id.
+          @@active_connections.each do |thread_id, conns|
+            conns.each do |name, conn|
+              if conn.requires_reloading?
+                conn.disconnect!
+                @@active_connections[thread_id].delete(name)
+              end
+            end
+          end
+        else
+          @@active_connections.each do |name, conn|
+            if conn.requires_reloading?
+              conn.disconnect!
+              @@active_connections.delete(name)
+            end
           end
         end
       end
