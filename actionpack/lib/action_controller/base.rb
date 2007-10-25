@@ -70,7 +70,7 @@ module ActionController #:nodoc:
   end
 
   class DoubleRenderError < ActionControllerError #:nodoc:
-    DEFAULT_MESSAGE = "Render and/or redirect were called multiple times in this action. Please note that you may only call render OR redirect, and only once per action. Also note that neither redirect nor render terminate execution of the action, so if you want to exit an action after redirecting, you need to do something like \"redirect_to(...) and return\". Finally, note that to cause a before filter to halt execution of the rest of the filter chain, the filter must return false, explicitly, so \"render(...) and return false\"."
+    DEFAULT_MESSAGE = "Render and/or redirect were called multiple times in this action. Please note that you may only call render OR redirect, and at most once per action. Also note that neither redirect nor render terminate execution of the action, so if you want to exit an action after redirecting, you need to do something like \"redirect_to(...) and return\". Finally, note that to cause a before filter to halt execution of the rest of the filter chain, the filter must return false, explicitly, so \"render(...) and return false\"."
 
     def initialize(message = nil)
       super(message || DEFAULT_MESSAGE)
@@ -226,7 +226,7 @@ module ActionController #:nodoc:
   #
   # == Calling multiple redirects or renders
   #
-  # An action should conclude with a single render or redirect. Attempting to try to do either again will result in a DoubleRenderError:
+  # An action may contain only a single render or a single redirect. Attempting to try to do either again will result in a DoubleRenderError:
   #
   #   def do_something
   #     redirect_to :action => "elsewhere"
@@ -1125,15 +1125,19 @@ module ActionController #:nodoc:
         end
       end
 
+      def default_render #:nodoc:
+        render
+      end
+
       def perform_action
         if self.class.action_methods.include?(action_name)
           send(action_name)
-          render unless performed?
+          default_render unless performed?
         elsif respond_to? :method_missing
           method_missing action_name
-          render unless performed?
+          default_render unless performed?
         elsif template_exists? && template_public?
-          render
+          default_render
         else
           raise UnknownAction, "No action responded to #{action_name}", caller
         end
