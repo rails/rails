@@ -1,5 +1,7 @@
 *SVN*
 
+* Request profiler.  [Jeremy Kemper]
+
 * config/boot.rb correctly detects RAILS_GEM_VERSION.  #9834 [alexch, thewoolleyman]
 
 * Fixed incorrect migration number if script/generate executed outside of Rails root #7080 [jeremymcanally]

@@ -1,5 +1,7 @@
 *SVN*
 
+* Request profiler.  [Jeremy Kemper]
+
 * Disabled checkboxes don't submit a form value.  #9301 [vladr, robinjfisher]
 
 * Added tests for options to ActiveRecordHelper#form. Closes #7213 [richcollins, mikong, mislav]
