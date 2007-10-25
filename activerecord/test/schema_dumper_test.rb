@@ -110,6 +110,13 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
         output = standard_dump
         assert_match %r{t.text\s+"body",\s+:default => "",\s+:null => false$}, output
       end
+
+      def test_mysql_schema_dump_should_honor_nonstandard_primary_keys
+        output = standard_dump
+        match = output.match(%r{create_table "movies"(.*)do})
+        assert_not_nil(match, "nonstandardpk table not found")
+        assert_match %r(:primary_key => "movieid"), match[1], "non-standard primary key not preserved"
+      end
     end
 
     def test_schema_dump_includes_decimal_options
