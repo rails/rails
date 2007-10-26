@@ -408,43 +408,39 @@ module ActionController #:nodoc:
         write_inheritable_attribute(:hidden_actions, hidden_actions | names.map(&:to_s))
       end
 
-
-      @@view_paths = {}
-
-      # View load paths determine the bases from which template references can be made. So a call to
-      # render("test/template") will be looked up in the view load paths array and the closest match will be
-      # returned.
-      def view_paths=(value)
-        @@view_paths[name] = value
-      end
-
-      # View load paths for controller.
+      ## View load paths determine the bases from which template references can be made. So a call to
+      ## render("test/template") will be looked up in the view load paths array and the closest match will be
+      ## returned.
       def view_paths
-        if paths = @@view_paths[name]
-          paths
-        else
-          if superclass.respond_to?(:view_paths)
-            superclass.view_paths.dup.freeze
-          else
-            @@view_paths[name] = []
-          end
-        end
+        @view_paths || superclass.view_paths
       end
-      
+
+      def view_paths=(value)
+        @view_paths = value
+      end
+
       # Adds a view_path to the front of the view_paths array.
       # If the current class has no view paths, copy them from 
       # the superclass
+      #
+      #   ArticleController.prepend_view_path("views/default")
+      #   ArticleController.prepend_view_path(["views/default", "views/custom"])
+      #
       def prepend_view_path(path)
-        self.view_paths = view_paths.dup if view_paths.frozen?
-        view_paths.unshift(path)
+        @view_paths = superclass.view_paths.dup if @view_paths.nil?
+        view_paths.unshift(*path)
       end
       
       # Adds a view_path to the end of the view_paths array.
       # If the current class has no view paths, copy them from 
       # the superclass
+      #
+      #   ArticleController.append_view_path("views/default")
+      #   ArticleController.append_view_path(["views/default", "views/custom"])
+      #
       def append_view_path(path)
-        self.view_paths = view_paths.dup if view_paths.frozen?
-        view_paths << path
+        @view_paths = superclass.view_paths.dup if @view_paths.nil?
+        view_paths.push(*path)
       end
       
       # Replace sensitive paramater data from the request log.
@@ -631,9 +627,16 @@ module ActionController #:nodoc:
         request.session_options && request.session_options[:disabled] != false
       end
 
+      
+      self.view_paths = []
+      
       # View load paths for controller.
       def view_paths
-        self.class.view_paths
+        (@template || self.class).view_paths
+      end
+    
+      def view_paths=(value)
+        (@template || self.class).view_paths = value
       end
       
     protected

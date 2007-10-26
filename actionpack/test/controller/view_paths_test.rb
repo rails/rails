@@ -4,6 +4,8 @@ class ViewLoadPathsTest < Test::Unit::TestCase
   
   LOAD_PATH_ROOT = File.join(File.dirname(__FILE__), '..', 'fixtures')
 
+  ActionController::Base.view_paths = [ LOAD_PATH_ROOT ]
+
   class TestController < ActionController::Base
     def self.controller_path() "test" end
     def rescue_action(e) raise end
@@ -24,7 +26,7 @@ class ViewLoadPathsTest < Test::Unit::TestCase
   end
   
   def setup
-    TestController.view_paths = [ LOAD_PATH_ROOT ]
+    TestController.view_paths = nil
     @controller = TestController.new
     @request  = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
@@ -41,6 +43,22 @@ class ViewLoadPathsTest < Test::Unit::TestCase
   
   def test_template_load_path_was_set_correctly
     assert_equal [ LOAD_PATH_ROOT ], @controller.view_paths
+  end
+  
+  def test_template_appends_path_correctly
+    TestController.append_view_path 'foo'
+    assert_equal [LOAD_PATH_ROOT, 'foo'], @controller.view_paths
+    
+    TestController.append_view_path(%w(bar baz))
+    assert_equal [LOAD_PATH_ROOT, 'foo', 'bar', 'baz'], @controller.view_paths
+  end
+  
+  def test_template_prepends_path_correctly
+    TestController.prepend_view_path 'baz'
+    assert_equal ['baz', LOAD_PATH_ROOT], @controller.view_paths
+    
+    TestController.prepend_view_path(%w(foo bar))
+    assert_equal ['foo', 'bar', 'baz', LOAD_PATH_ROOT], @controller.view_paths
   end
   
   def test_view_paths
@@ -85,11 +103,9 @@ class ViewLoadPathsTest < Test::Unit::TestCase
     assert_equal A.view_paths,   B.view_paths
     assert_equal original_load_paths, C.view_paths
     
-    e = assert_raises(TypeError) { C.view_paths << 'c/path' }
-    assert_equal "can't modify frozen array", e.message
-    
     C.view_paths = []
     assert_nothing_raised { C.view_paths << 'c/path' }
+    assert_equal ['c/path'], C.view_paths
   end
   
 end
