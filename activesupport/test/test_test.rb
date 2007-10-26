@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/abstract_unit'
-
+require 'active_support/test_case'
 class AssertDifferenceTest < Test::Unit::TestCase
   def setup
     @object = Class.new do
@@ -64,8 +64,10 @@ class AssertDifferenceTest < Test::Unit::TestCase
   end
 end
 
-# This should always pass
-
+# These should always pass
 class NotTestingThingsTest < Test::Unit::TestCase
   include ActiveSupport::Testing::Default
+end
+
+class AlsoDoingNothingTest < ActiveSupport::TestCase
 end
