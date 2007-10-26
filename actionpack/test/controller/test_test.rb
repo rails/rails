@@ -1,5 +1,6 @@
 require "#{File.dirname(__FILE__)}/../abstract_unit"
 require "#{File.dirname(__FILE__)}/fake_controllers"
+require "action_controller/test_case"
 
 class TestTest < Test::Unit::TestCase
   class TestController < ActionController::Base
@@ -580,3 +581,34 @@ class CleanBacktraceTest < Test::Unit::TestCase
     assert !caught.backtrace.empty?
   end
 end
+
+class InferringClassNameTest < Test::Unit::TestCase
+  def test_determine_controller_class
+    assert_equal ContentController, determine_class("ContentControllerTest")
+  end
+
+  def test_determine_controller_class_with_nonsense_name
+    assert_raises ActionController::NonInferrableControllerError do
+      determine_class("HelloGoodBye")
+    end
+  end
+
+  def test_determine_controller_class_with_sensible_name_where_no_controller_exists
+    assert_raises ActionController::NonInferrableControllerError do
+      determine_class("NoControllerWithThisNameTest")
+    end
+  end
+
+  private
+    def determine_class(name)
+      ActionController::TestCase.determine_default_controller_class(name)
+    end
+end
+
+class CrazyNameTest < ActionController::TestCase
+  tests ContentController
+  def test_controller_class_can_be_set_manually_not_just_inferred
+    assert_equal ContentController, self.class.controller_class
+  end
+end
+

@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce a new test case class for functional tests.  ActionController::TestCase. [Koz]
+
 * Fix incorrect path in helper rdoc. Closes #9926 [viktor tron]
 
 * Partials also set 'object' to the default partial variable.  #8823 [Nick Retallack, Jeremy Kemper]

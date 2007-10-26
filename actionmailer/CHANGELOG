@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce a new base test class for testing Mailers.  ActionMailer::TestCase [Koz]
+
 * Fix silent failure of rxml templates.  #9879 [jstewart]
 
 

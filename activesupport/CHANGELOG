@@ -1,5 +1,10 @@
 *SVN*
 
+* Introduce a base class for all test cases used by rails applications. ActiveSupport::TestCase [Koz]
+
+  The intention is to use this to reduce the amount of monkeypatching / overriding that 
+  is done to test/unit's classes.
+
 * Document Enumerable and Hash #to_json.  #9970 [Chu Yeow]
 
 * Hash#to_xml handles symbol values.  #9954 [Assaf]

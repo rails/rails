@@ -1,21 +1,7 @@
 require File.dirname(__FILE__) + '<%= '/..' * class_nesting_depth %>/../test_helper'
 
-class <%= class_name %>Test < Test::Unit::TestCase
-  FIXTURES_PATH = File.dirname(__FILE__) + '<%= '/..' * class_nesting_depth %>/../fixtures'
-  CHARSET = "utf-8"
-
-  include ActionMailer::Quoting
-
-  def setup
-    ActionMailer::Base.delivery_method = :test
-    ActionMailer::Base.perform_deliveries = true
-    ActionMailer::Base.deliveries = []
-
-    @expected = TMail::Mail.new
-    @expected.set_content_type "text", "plain", { "charset" => CHARSET }
-    @expected.mime_version = '1.0'
-  end
-
+class <%= class_name %>Test < ActionMailer::TestCase
+  tests <%= class_name %>
 <% for action in actions -%>
   def test_<%= action %>
     @expected.subject = '<%= class_name %>#<%= action %>'
@@ -26,12 +12,10 @@ class <%= class_name %>Test < Test::Unit::TestCase
   end
 
 <% end -%>
-  private
-    def read_fixture(action)
-      IO.readlines("#{FIXTURES_PATH}/<%= file_path %>/#{action}")
-    end
-
-    def encode(subject)
-      quoted_printable(subject, CHARSET)
-    end
+<% if actions.blank? -%>
+  # replace this with your real tests
+  def test_truth
+    assert true
+  end
+<% end -%>
 end

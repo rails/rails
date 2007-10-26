@@ -8,13 +8,38 @@ class TestHelperMailer < ActionMailer::Base
   end
 end
 
-class TestHelperTest < Test::Unit::TestCase
-  def setup
-    ActionMailer::Base.delivery_method = :test
-    ActionMailer::Base.perform_deliveries = true
-    ActionMailer::Base.deliveries = []
+class TestHelperMailerTest < ActionMailer::TestCase
+
+  def test_setup_sets_right_action_mailer_options
+    assert_equal :test, ActionMailer::Base.delivery_method
+    assert ActionMailer::Base.perform_deliveries
+    assert_equal [], ActionMailer::Base.deliveries
+  end
+
+  def test_setup_creates_the_expected_mailer
+    assert @expected.is_a?(TMail::Mail)
+    assert_equal "1.0", @expected.mime_version
+    assert_equal "text/plain", @expected.content_type
+  end
+
+  def test_mailer_class_is_correctly_inferred
+    assert_equal TestHelperMailer, self.class.mailer_class
+  end
+
+  def test_determine_default_mailer_raises_correct_error
+    assert_raises(ActionMailer::NonInferrableMailerError) do
+      self.class.determine_default_mailer("NotAMailerTest")
+    end
   end
   
+  def test_charset_is_utf_8
+    assert_equal "utf-8", charset
+  end
+
+  def test_encode
+    assert_equal "=?utf-8?Q?=0aasdf=0a?=", encode("\nasdf\n")
+  end
+
   def test_assert_emails
     assert_nothing_raised do
       assert_emails 1 do

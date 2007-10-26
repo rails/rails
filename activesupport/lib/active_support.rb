@@ -45,3 +45,5 @@ require 'active_support/json'
 
 require 'active_support/multibyte'
 
+require 'active_support/testing'
+
