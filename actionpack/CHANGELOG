@@ -1,5 +1,7 @@
 *SVN*
 
+* Make documentation comment for mime responders match documentation example.  Closes #9357 [yon]
+
 * Introduce a new test case class for functional tests.  ActionController::TestCase. [Koz]
 
 * Fix incorrect path in helper rdoc. Closes #9926 [viktor tron]

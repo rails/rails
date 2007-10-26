@@ -54,7 +54,7 @@ module ActionController #:nodoc:
       #   end
       #
       # If the client wants HTML, we just redirect them back to the person list. If they want Javascript
-      # (wants.js), then it is an RJS request and we render the RJS template associated with this action.
+      # (format.js), then it is an RJS request and we render the RJS template associated with this action.
       # Lastly, if the client wants XML, we render the created person as XML, but with a twist: we also
       # include the person's company in the rendered XML, so you get something like this:
       #
