@@ -535,6 +535,22 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { firm.clients.find(2, 99) }
   end
 
+  def test_find_string_ids_when_using_finder_sql
+    firm = Firm.find(:first)
+
+    client = firm.clients_using_finder_sql.find("2")
+    assert_kind_of Client, client
+
+    client_ary = firm.clients_using_finder_sql.find(["2"])
+    assert_kind_of Array, client_ary
+    assert_equal client, client_ary.first
+
+    client_ary = firm.clients_using_finder_sql.find("2", "3")
+    assert_kind_of Array, client_ary
+    assert_equal 2, client_ary.size
+    assert_equal client, client_ary.first
+  end
+
   def test_find_all
     firm = Firm.find(:first)
     assert_equal 2, firm.clients.find(:all, :conditions => "#{QUOTED_TYPE} = 'Client'").length
