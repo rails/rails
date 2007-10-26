@@ -7,7 +7,6 @@ silence_warnings { RAILS_ENV = "test" }
 require 'test/unit'
 require 'active_support/test_case'
 require 'active_record/fixtures'
-require 'active_record/test_case'
 require 'action_controller/test_case'
 require 'action_controller/test_process'
 require 'action_controller/integration'
