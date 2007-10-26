@@ -6,7 +6,7 @@ silence_warnings do
     alias_method :title_before_type_cast, :title unless respond_to?(:title_before_type_cast)
     alias_method :body_before_type_cast, :body unless respond_to?(:body_before_type_cast)
     alias_method :author_name_before_type_cast, :author_name unless respond_to?(:author_name_before_type_cast)
-
+    
     def new_record=(boolean)
       @new_record = boolean
     end
@@ -53,6 +53,7 @@ class FormHelperTest < Test::Unit::TestCase
     end
     def @post.id; 123; end
     def @post.id_before_type_cast; 123; end
+    def @post.to_param; '123'; end
 
     @post.title       = "Hello World"
     @post.author_name = ""

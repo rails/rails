@@ -1,5 +1,7 @@
 *SVN*
 
+* FormHelper's auto_index should use #to_param instead of #id_before_type_cast.  Closes #9994 [mattly]
+
 * Doc typo fixes for ActiveRecordHelper. Closes #9973 [mikong]
 
 * Make example parameters in restful routing docs idiomatic. Closes #9993 [danger]
