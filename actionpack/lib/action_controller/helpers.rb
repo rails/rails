@@ -87,8 +87,8 @@ module ActionController #:nodoc:
       # When the argument is a +Module+, it will be included directly in the template class.
       #   helper FooHelper # => includes FooHelper
       #
-      # When the argument is the symbol <tt>:all</tt>, the controller will includes all helpers from 
-      # <tt>app/views/helpers/**/*.rb</tt> under +RAILS_ROOT+.
+      # When the argument is the symbol <tt>:all</tt>, the controller will include all helpers from 
+      # <tt>app/helpers/**/*.rb</tt> under +RAILS_ROOT+.
       #   helper :all
       #
       # Additionally, the +helper+ class method can receive and evaluate a block, making the methods defined available 
