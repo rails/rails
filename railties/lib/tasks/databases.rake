@@ -86,6 +86,13 @@ namespace :db do
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
+  desc 'Rolls the schema back to the previous version. Specify the number of steps with STEP=n'
+  task :rollback => :environment do
+    step = ENV['STEP'] ? ENV['STEP'].to_i : 1
+    version = ActiveRecord::Migrator.current_version - step
+    ActiveRecord::Migrator.migrate('db/migrate/', version)
+  end
+
   desc 'Drops, creates and then migrates the database for the current environment. Target specific version with VERSION=x'
   task :reset => ['db:drop', 'db:create', 'db:migrate']
 

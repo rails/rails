@@ -1,5 +1,7 @@
 *SVN*
 
+* Added db:rollback to rollback the schema one version (or multiple as specified by STEP) [Jeffrey Allan Hardy]
+
 * Fix typo in test_helper. Closes #9925 [viktor tron]
 
 * Request profiler.  [Jeremy Kemper]
