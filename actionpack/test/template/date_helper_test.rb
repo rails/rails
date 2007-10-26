@@ -13,6 +13,9 @@ class DateHelperTest < Test::Unit::TestCase
       def id_before_type_cast
         123
       end
+      def to_param
+        '123'
+      end
     end
   end
 

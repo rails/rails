@@ -591,6 +591,7 @@ module ActionController
         def unescape_rjs(rjs_string)
           # RJS encodes double quotes and line breaks.
           unescaped= rjs_string.gsub('\"', '"')
+          unescaped.gsub!(/\\\//, '/')
           unescaped.gsub!('\n', "\n")
           unescaped.gsub!('\076', '>')
           unescaped.gsub!('\074', '<')
