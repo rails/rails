@@ -63,3 +63,9 @@ class AssertDifferenceTest < Test::Unit::TestCase
     def default_test; end
   end
 end
+
+# This should always pass
+
+class NotTestingThingsTest < Test::Unit::TestCase
+  include ActiveSupport::Testing::Default
+end
