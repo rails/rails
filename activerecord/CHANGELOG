@@ -1,5 +1,7 @@
 *SVN*
 
+* Add docs explaining how to protect all attributes using attr_accessible with no arguments. Closes #9631 [boone, rmm5t]
+
 * Update add_index documentation to use new options api. Closes #9787 [kamal]
 
 * Allow find on a has_many association defined with :finder_sql to accept id arguments as strings like regular find does. Closes #9916 [krishna]

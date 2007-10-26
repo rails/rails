@@ -623,6 +623,8 @@ module ActiveRecord #:nodoc:
       #
       #   customer.credit_rating = "Average"
       #   customer.credit_rating # => "Average"
+      #
+      # To start from an all-closed default and enable attributes as needed, have a look at attr_accessible.
       def attr_protected(*attributes)
         write_inheritable_array("attr_protected", attributes - (protected_attributes || []))
       end
@@ -634,7 +636,21 @@ module ActiveRecord #:nodoc:
 
       # If this macro is used, only those attributes named in it will be accessible for mass-assignment, such as
       # <tt>new(attributes)</tt> and <tt>attributes=(attributes)</tt>. This is the more conservative choice for mass-assignment
-      # protection. If you'd rather start from an all-open default and restrict attributes as needed, have a look at
+      # protection.
+      #
+      # Example:
+      #
+      #   class Customer < ActiveRecord::Base
+      #     attr_accessible :phone, :email
+      #   end
+      #
+      # Passing an empty argument list protects all attributes:
+      #
+      #   class Product < ActiveRecord::Base
+      #     attr_accessible # none
+      #   end
+      #
+      # If you'd rather start from an all-open default and restrict attributes as needed, have a look at
       # attr_protected.
       def attr_accessible(*attributes)
         write_inheritable_array("attr_accessible", attributes - (accessible_attributes || []))
