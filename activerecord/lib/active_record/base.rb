@@ -1428,7 +1428,7 @@ module ActiveRecord #:nodoc:
           method_scoping.assert_valid_keys([ :find, :create ])
 
           if f = method_scoping[:find]
-            f.assert_valid_keys([ :conditions, :joins, :select, :include, :from, :offset, :limit, :order, :group, :readonly, :lock ])
+            f.assert_valid_keys(VALID_FIND_OPTIONS)
             set_readonly_option! f
           end
 
