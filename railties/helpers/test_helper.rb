@@ -29,7 +29,7 @@ class Test::Unit::TestCase
   # need to change this line to explicitly name the order you desire.
   #
   # Note: You'll currently still have to declare fixtures explicitly in integration tests
-  # -- they do not yet inherent this setting
+  # -- they do not yet inherit this setting
   fixtures :all
 
   # Add more helper methods to be used by all tests here...

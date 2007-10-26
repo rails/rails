@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix typo in test_helper. Closes #9925 [viktor tron]
+
 * Request profiler.  [Jeremy Kemper]
 
 * config/boot.rb correctly detects RAILS_GEM_VERSION.  #9834 [alexch, thewoolleyman]
