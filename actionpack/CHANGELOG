@@ -1,5 +1,7 @@
 *SVN*
 
+* Make example parameters in restful routing docs idiomatic. Closes #9993 [danger]
+
 * Make documentation comment for mime responders match documentation example.  Closes #9357 [yon]
 
 * Introduce a new test case class for functional tests.  ActionController::TestCase. [Koz]
