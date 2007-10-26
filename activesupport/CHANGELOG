@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix JSON encoding/decoding bugs dealing with /'s.  Closes #9990 [Rick, theamazingrando]
+
 * Introduce a base class for all test cases used by rails applications. ActiveSupport::TestCase [Koz]
 
   The intention is to use this to reduce the amount of monkeypatching / overriding that 

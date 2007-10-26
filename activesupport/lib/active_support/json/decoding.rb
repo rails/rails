@@ -43,7 +43,7 @@ module ActiveSupport
           end
 
           if marks.empty?
-            json
+            json.gsub(/\\\//, '/')
           else
             # FIXME: multiple slow enumerations
             output = ([0] + marks.map(&:succ)).
@@ -51,6 +51,7 @@ module ActiveSupport
                       map { |left, right| json[left..right] }.
                       join(" ")
             times.each { |i| output[i-1] = ' ' }
+            output.gsub!(/\\\//, '/')
             output
           end
         end
