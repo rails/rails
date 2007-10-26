@@ -1,5 +1,7 @@
 *SVN*
 
+* Update add_index documentation to use new options api. Closes #9787 [kamal]
+
 * Allow find on a has_many association defined with :finder_sql to accept id arguments as strings like regular find does. Closes #9916 [krishna]
 
 * Use VALID_FIND_OPTIONS when resolving :find scoping rather than hard coding the list of valid find options. Closes #9443 [sur]
