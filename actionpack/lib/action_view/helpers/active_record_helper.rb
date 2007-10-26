@@ -10,7 +10,7 @@ module ActionView
   module Helpers
     # The Active Record Helper makes it easier to create forms for records kept in instance variables. The most far-reaching is the form
     # method that creates a complete form for all the basic content types of the record (not associations or aggregations, though). This
-    # is a great of making the record quickly available for editing, but likely to prove lackluster for a complicated real-world form.
+    # is a great way of making the record quickly available for editing, but likely to prove lackluster for a complicated real-world form.
     # In that case, it's better to use the input method and the specialized form methods in link:classes/ActionView/Helpers/FormHelper.html
     module ActiveRecordHelper
       # Returns a default input tag for the type of object returned by the method. For example, let's say you have a model
@@ -116,7 +116,7 @@ module ActionView
       #   error_messages_for 'user'
       #
       # To specify more than one object, you simply list them; optionally, you can add an extra +object_name+ parameter, which
-      # be the name in the header.
+      # will be the name used in the header message.
       #
       #   error_messages_for 'user_common', 'user', :object_name => 'user'
       #
