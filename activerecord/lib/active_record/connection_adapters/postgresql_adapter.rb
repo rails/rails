@@ -364,6 +364,14 @@ module ActiveRecord
         end
       end
 
+      # REFERENTIAL INTEGRITY ====================================
+
+      def disable_referential_integrity(&block) #:nodoc:
+        execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
+        yield
+      ensure
+        execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
+      end
 
       # DATABASE STATEMENTS ======================================
 

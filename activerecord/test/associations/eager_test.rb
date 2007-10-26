@@ -252,9 +252,9 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
 
   def test_eager_with_scoped_order_using_association_limiting_without_explicit_scope
-    posts_with_explicit_order = Post.find(:all, :conditions => 'comments.id', :include => :comments, :order => 'posts.id DESC', :limit => 2)
+    posts_with_explicit_order = Post.find(:all, :conditions => 'comments.id is not null', :include => :comments, :order => 'posts.id DESC', :limit => 2)
     posts_with_scoped_order = Post.with_scope(:find => {:order => 'posts.id DESC'}) do
-      Post.find(:all, :conditions => 'comments.id', :include => :comments, :limit => 2)
+      Post.find(:all, :conditions => 'comments.id is not null', :include => :comments, :limit => 2)
     end
     assert_equal posts_with_explicit_order, posts_with_scoped_order
   end

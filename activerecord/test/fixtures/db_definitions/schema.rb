@@ -295,4 +295,33 @@ ActiveRecord::Schema.define do
     t.column :city, :string, :null => false
     t.column :type, :string
   end
+
+  create_table :parrots, :force => true do |t|
+    t.column :name, :string
+    t.column :created_at, :datetime
+    t.column :created_on, :datetime
+    t.column :updated_at, :datetime
+    t.column :updated_on, :datetime
+  end
+
+  create_table :pirates, :force => true do |t|
+    t.column :catchphrase, :string
+    t.column :parrot_id, :integer
+    t.column :created_on, :datetime
+    t.column :updated_on, :datetime
+  end
+
+  create_table :parrots_pirates, :id => false, :force => true do |t|
+    t.column :parrot_id, :integer
+    t.column :pirate_id, :integer
+  end
+
+  create_table :treasures, :force => true do |t|
+    t.column :name, :string
+  end
+
+  create_table :parrots_treasures, :id => false, :force => true do |t|
+    t.column :parrot_id, :integer
+    t.column :treasure_id, :integer
+  end
 end

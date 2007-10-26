@@ -70,6 +70,13 @@ module ActiveRecord
         name
       end
 
+      # REFERENTIAL INTEGRITY ====================================
+
+      # Override to turn off referential integrity while executing +&block+
+      def disable_referential_integrity(&block)
+        yield
+      end
+
       # CONNECTION MANAGEMENT ====================================
 
       # Is this connection active and ready to perform queries?

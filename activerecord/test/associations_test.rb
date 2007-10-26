@@ -548,7 +548,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     client_ary = firm.clients_using_finder_sql.find("2", "3")
     assert_kind_of Array, client_ary
     assert_equal 2, client_ary.size
-    assert_equal client, client_ary.first
+    assert client_ary.include?(client)
   end
 
   def test_find_all

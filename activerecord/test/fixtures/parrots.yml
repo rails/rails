@@ -1,0 +1,16 @@
+george:
+  name: "Curious George"
+  treasures: diamond, sapphire
+
+louis:
+  name: "King Louis"
+  treasures: [diamond, sapphire]
+
+frederick:
+  name: $LABEL
+
+DEFAULTS: &DEFAULTS
+  treasures: sapphire, ruby
+
+davey:
+  <<: *DEFAULTS

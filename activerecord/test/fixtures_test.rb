@@ -7,6 +7,9 @@ require 'fixtures/reply'
 require 'fixtures/joke'
 require 'fixtures/course'
 require 'fixtures/category'
+require 'fixtures/parrot'
+require 'fixtures/pirate'
+require 'fixtures/treasure'
 
 class FixturesTest < Test::Unit::TestCase
   self.use_instantiated_fixtures = true
@@ -444,5 +447,85 @@ class FasterFixturesTest < Test::Unit::TestCase
     assert Fixtures.fixture_is_cached?(ActiveRecord::Base.connection, 'posts')
     self.class.setup_fixture_accessors('posts')
     assert_equal 'Welcome to the weblog', posts(:welcome).title
+  end
+end
+
+class FoxyFixturesTest < Test::Unit::TestCase
+  fixtures :parrots, :parrots_pirates, :pirates, :treasures
+
+  def test_identifies_strings
+    assert_equal(Fixtures.identify("foo"), Fixtures.identify("foo"))
+    assert_not_equal(Fixtures.identify("foo"), Fixtures.identify("FOO"))
+  end
+
+  def test_identifies_symbols
+    assert_equal(Fixtures.identify(:foo), Fixtures.identify(:foo))
+  end
+
+  TIMESTAMP_COLUMNS = %w(created_at created_on updated_at updated_on)
+
+  def test_populates_timestamp_columns
+    TIMESTAMP_COLUMNS.each do |property|
+      assert_not_nil(parrots(:george).send(property), "should set #{property}")
+    end
+  end
+
+  def test_populates_all_columns_with_the_same_time
+    last = nil
+
+    TIMESTAMP_COLUMNS.each do |property|
+      current = parrots(:george).send(property)
+      last ||= current
+
+      assert_equal(last, current)
+      last = current
+    end
+  end
+
+  def test_only_populates_columns_that_exist
+    assert_not_nil(pirates(:blackbeard).created_on)
+    assert_not_nil(pirates(:blackbeard).updated_on)
+  end
+
+  def test_preserves_existing_fixture_data
+    assert_equal(2.weeks.ago.to_date, pirates(:redbeard).created_on.to_date)
+    assert_equal(2.weeks.ago.to_date, pirates(:redbeard).updated_on.to_date)
+  end
+
+  def test_generates_unique_ids
+    assert_not_nil(parrots(:george).id)
+    assert_not_equal(parrots(:george).id, parrots(:louis).id)
+  end
+
+  def test_resolves_belongs_to_symbols
+    assert_equal(parrots(:george), pirates(:blackbeard).parrot)
+  end
+
+  def test_supports_join_tables
+    assert(pirates(:blackbeard).parrots.include?(parrots(:george)))
+    assert(pirates(:blackbeard).parrots.include?(parrots(:louis)))
+    assert(parrots(:george).pirates.include?(pirates(:blackbeard)))
+  end
+
+  def test_supports_inline_habtm
+    assert(parrots(:george).treasures.include?(treasures(:diamond)))
+    assert(parrots(:george).treasures.include?(treasures(:sapphire)))
+    assert(!parrots(:george).treasures.include?(treasures(:ruby)))
+  end
+
+  def test_supports_yaml_arrays
+    assert(parrots(:louis).treasures.include?(treasures(:diamond)))
+    assert(parrots(:louis).treasures.include?(treasures(:sapphire)))
+  end
+
+  def test_strips_DEFAULTS_key
+    assert_raise(StandardError) { parrots(:DEFAULTS) }
+
+    # this lets us do YAML defaults and not have an extra fixture entry
+    %w(sapphire ruby).each { |t| assert(parrots(:davey).treasures.include?(treasures(t))) }
+  end
+
+  def test_supports_label_interpolation
+    assert_equal("frederick", parrots(:frederick).name)
   end
 end

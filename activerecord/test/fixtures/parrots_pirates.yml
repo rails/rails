@@ -1,0 +1,7 @@
+george_blackbeard:
+  parrot_id: <%= Fixtures.identify(:george) %>
+  pirate_id: <%= Fixtures.identify(:blackbeard) %>
+
+louis_blackbeard:
+  parrot_id: <%= Fixtures.identify(:louis) %>
+  pirate_id: <%= Fixtures.identify(:blackbeard) %>

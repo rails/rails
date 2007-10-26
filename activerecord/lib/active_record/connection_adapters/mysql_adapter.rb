@@ -224,6 +224,18 @@ module ActiveRecord
         "0"
       end
 
+      # REFERENTIAL INTEGRITY ====================================
+
+      def disable_referential_integrity(&block) #:nodoc:
+        old = select_value("SELECT @@FOREIGN_KEY_CHECKS")
+
+        begin
+          update("SET FOREIGN_KEY_CHECKS = 0")
+          yield
+        ensure
+          update("SET FOREIGN_KEY_CHECKS = #{old}")
+        end
+      end
 
       # CONNECTION MANAGEMENT ====================================
 
