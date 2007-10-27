@@ -290,6 +290,15 @@ ActiveRecord::Schema.define do
     t.column :developer_id, :integer, :null=>false
   end
 
+  create_table :books, :force => true do |t|
+    t.column :name, :string
+  end
+
+  create_table :citations, :force => true do |t|
+    t.column :book1_id, :integer
+    t.column :book2_id, :integer
+  end
+
   create_table :inept_wizards, :force => true do |t|
     t.column :name, :string, :null => false
     t.column :city, :string, :null => false

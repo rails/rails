@@ -71,18 +71,24 @@ module ActiveRecord
       def delete(*records)
         records = flatten_deeper(records)
         records.each { |associate| raise_on_type_mismatch(associate) }
-        records.reject! { |associate| @target.delete(associate) if associate.new_record? }
-        return if records.empty?
-        
-        @delete_join_finder ||= "find_all_by_#{@reflection.source_reflection.association_foreign_key}"
+
         through = @reflection.through_reflection
-        through.klass.transaction do
-          records.each do |associate|
-            joins = @owner.send(through.name).send(@delete_join_finder, associate.id)
-            @owner.send(through.name).delete(joins)
+        raise ActiveRecord::HasManyThroughCantDissociateNewRecords.new(@owner, through) if @owner.new_record?
+
+        load_target
+
+        klass = through.klass
+        klass.transaction do
+          flatten_deeper(records).each do |associate|
+            raise_on_type_mismatch(associate)
+            raise ActiveRecord::HasManyThroughCantDissociateNewRecords.new(@owner, through) unless associate.respond_to?(:new_record?) && !associate.new_record?
+
+            @owner.send(through.name).proxy_target.delete(klass.delete_all(construct_join_attributes(associate)))
             @target.delete(associate)
           end
         end
+
+        self
       end
 
       def build(attrs = nil)
