@@ -93,3 +93,21 @@ class AggregationsTest < Test::Unit::TestCase
     assert_raises(NoMethodError) { customers(:david).balance = nil }
   end
 end
+
+class OverridingAggregationsTest < Test::Unit::TestCase
+  class Name; end
+  class DifferentName; end
+
+  class Person   < ActiveRecord::Base
+    composed_of :composed_of, :mapping => %w(person_first_name first_name)
+  end
+
+  class DifferentPerson < Person
+    composed_of :composed_of, :class_name => 'DifferentName', :mapping => %w(different_person_first_name first_name)
+  end
+
+  def test_composed_of_aggregation_redefinition_reflections_should_differ_and_not_inherited
+    assert_not_equal Person.reflect_on_aggregation(:composed_of),
+                     DifferentPerson.reflect_on_aggregation(:composed_of)
+  end
+end

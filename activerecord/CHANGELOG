@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow association redefinition in subclasses.  #9346 [wildchild]
+
 * Fix has_many :through delete with custom foreign keys.  #6466 [naffis]
 
 * Fix regression where the association would not construct new finder SQL on save causing bogus queries for "WHERE owner_id = NULL" even after owner was saved.  #8713 [Bryan Helmkamp]
