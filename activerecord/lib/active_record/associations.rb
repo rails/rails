@@ -955,7 +955,7 @@ module ActiveRecord
         # Don't use a before_destroy callback since users' before_destroy
         # callbacks will be executed after the association is wiped out.
         old_method = "destroy_without_habtm_shim_for_#{reflection.name}"
-        class_eval <<-end_eval
+        class_eval <<-end_eval unless method_defined?(old_method)
           alias_method :#{old_method}, :destroy_without_callbacks
           def destroy_without_callbacks
             #{reflection.name}.clear
@@ -1351,7 +1351,9 @@ module ActiveRecord
             defined_callbacks = options[callback_name.to_sym]
             if options.has_key?(callback_name.to_sym)
               class_inheritable_reader full_callback_name.to_sym
-              write_inheritable_array(full_callback_name.to_sym, [defined_callbacks].flatten)
+              write_inheritable_attribute(full_callback_name.to_sym, [defined_callbacks].flatten)
+            else
+              write_inheritable_attribute(full_callback_name.to_sym, [])
             end
           end
         end

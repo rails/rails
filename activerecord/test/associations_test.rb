@@ -1932,3 +1932,68 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     end
   end
 end
+
+
+class OverridingAssociationsTest < Test::Unit::TestCase
+  class Person < ActiveRecord::Base; end
+  class DifferentPerson < ActiveRecord::Base; end
+
+  class PeopleList < ActiveRecord::Base
+    has_and_belongs_to_many :has_and_belongs_to_many, :before_add => :enlist
+    has_many :has_many, :before_add => :enlist
+    belongs_to :belongs_to
+    has_one :has_one
+  end
+
+  class DifferentPeopleList < PeopleList
+    # Different association with the same name, callbacks should be omitted here.
+    has_and_belongs_to_many :has_and_belongs_to_many, :class_name => 'DifferentPerson'
+    has_many :has_many, :class_name => 'DifferentPerson'
+    belongs_to :belongs_to, :class_name => 'DifferentPerson'
+    has_one :has_one, :class_name => 'DifferentPerson'
+  end
+
+  def test_habtm_association_redefinition_callbacks_should_differ_and_not_inherited
+    # redeclared association on AR descendant should not inherit callbacks from superclass
+    callbacks = PeopleList.read_inheritable_attribute(:before_add_for_has_and_belongs_to_many)
+    assert_equal([:enlist], callbacks)
+    callbacks = DifferentPeopleList.read_inheritable_attribute(:before_add_for_has_and_belongs_to_many)
+    assert_equal([], callbacks)
+  end
+
+  def test_has_many_association_redefinition_callbacks_should_differ_and_not_inherited
+    # redeclared association on AR descendant should not inherit callbacks from superclass
+    callbacks = PeopleList.read_inheritable_attribute(:before_add_for_has_many)
+    assert_equal([:enlist], callbacks)
+    callbacks = DifferentPeopleList.read_inheritable_attribute(:before_add_for_has_many)
+    assert_equal([], callbacks)
+  end
+
+  def test_habtm_association_redefinition_reflections_should_differ_and_not_inherited
+    assert_not_equal(
+      PeopleList.reflect_on_association(:has_and_belongs_to_many),
+      DifferentPeopleList.reflect_on_association(:has_and_belongs_to_many)
+    )
+  end
+
+  def test_has_many_association_redefinition_reflections_should_differ_and_not_inherited
+    assert_not_equal(
+      PeopleList.reflect_on_association(:has_many),
+      DifferentPeopleList.reflect_on_association(:has_many)
+    )
+  end
+
+  def test_belongs_to_association_redefinition_reflections_should_differ_and_not_inherited
+    assert_not_equal(
+      PeopleList.reflect_on_association(:belongs_to),
+      DifferentPeopleList.reflect_on_association(:belongs_to)
+    )
+  end
+
+  def test_has_one_association_redefinition_reflections_should_differ_and_not_inherited
+    assert_not_equal(
+      PeopleList.reflect_on_association(:has_one),
+      DifferentPeopleList.reflect_on_association(:has_one)
+    )
+  end
+end

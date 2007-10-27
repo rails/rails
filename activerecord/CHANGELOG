@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow association redefinition in subclasses.  #9346 [wildchild]
+
 * Fix has_many :through delete with custom foreign keys.  #6466 [naffis]
 
 * Foxy fixtures, from rathole (http://svn.geeksomnia.com/rathole/trunk/README)
