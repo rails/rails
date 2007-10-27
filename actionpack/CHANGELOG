@@ -103,7 +103,7 @@
 
 * Fixed that setting the :host option in url_for would automatically turn off :only_path (since :host would otherwise not be shown) #9586 [Bounga]
 
-* Added FormHelper#label #8641 [jcoglan]
+* Added FormHelper#label.  #8641, #9850 [jcoglan, jarkko]
 
 * Added AtomFeedHelper (slightly improved from the atom_feed_helper plugin) [DHH]
 

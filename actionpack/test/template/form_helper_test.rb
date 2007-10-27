@@ -273,6 +273,10 @@ class FormHelperTest < Test::Unit::TestCase
   def test_auto_index
     pid = @post.id
     assert_dom_equal(
+      "<label for=\"post_#{pid}_title\">Title</label>",
+      label("post[]", "title")
+    )
+    assert_dom_equal(
       "<input id=\"post_#{pid}_title\" name=\"post[#{pid}][title]\" size=\"30\" type=\"text\" value=\"Hello World\" />", text_field("post[]","title")
     )
     assert_dom_equal(
@@ -361,6 +365,7 @@ class FormHelperTest < Test::Unit::TestCase
     _erbout = ''
     
     form_for("post[]", @post) do |f|
+      _erbout.concat f.label(:title)
       _erbout.concat f.text_field(:title)
       _erbout.concat f.text_area(:body)
       _erbout.concat f.check_box(:secret)
@@ -368,6 +373,7 @@ class FormHelperTest < Test::Unit::TestCase
     
     expected = 
       "<form action='http://www.example.com' method='post'>" +
+      "<label for=\"post_123_title\">Title</label>" +
       "<input name='post[123][title]' size='30' type='text' id='post_123_title' value='Hello World' />" +
       "<textarea name='post[123][body]' id='post_123_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[123][secret]' checked='checked' type='checkbox' id='post_123_secret' value='1' />" +
@@ -430,10 +436,12 @@ class FormHelperTest < Test::Unit::TestCase
   def test_fields_for_object_with_bracketed_name
     _erbout = ''
     fields_for("author[post]", @post) do |f|
+      _erbout.concat f.label(:title)
       _erbout.concat f.text_field(:title)
     end
 
-    assert_dom_equal "<input name='author[post][title]' size='30' type='text' id='author_post_title' value='Hello World' />",
+    assert_dom_equal "<label for=\"author_post_title\">Title</label>" +
+    "<input name='author[post][title]' size='30' type='text' id='author_post_title' value='Hello World' />",
       _erbout
   end
 
