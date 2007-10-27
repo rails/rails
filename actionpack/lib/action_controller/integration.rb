@@ -124,17 +124,18 @@ module ActionController
       # Performs a GET request, following any subsequent redirect. Note that
       # the redirects are followed until the response is not a redirect--this
       # means you may run into an infinite loop if your redirect loops back to
-      # itself.
-      def get_via_redirect(path, args={})
-        get path, args
+      # itself. Headers are treated in the same way as #get.
+      def get_via_redirect(path, args={}, headers = {})
+        get path, args, headers
         follow_redirect! while redirect?
         status
       end
 
       # Performs a POST request, following any subsequent redirect. This is
-      # vulnerable to infinite loops, the same as #get_via_redirect.
-      def post_via_redirect(path, args={})
-        post path, args
+      # vulnerable to infinite loops, the same as #get_via_redirect. Headers are
+      # treated in the same way as #get.
+      def post_via_redirect(path, args={}, headers = {})
+        post path, args, headers
         follow_redirect! while redirect?
         status
       end

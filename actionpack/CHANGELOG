@@ -1,5 +1,7 @@
 *SVN*
 
+* Integration tests: get_ and post_via_redirect take a headers hash.  #9130 [simonjefford]
+
 * Simplfy #view_paths implementation.  ActionView templates get the exact object, not a dup.  [Rick]
 
 * Update tests for ActiveSupport's JSON escaping change.  [rick]

@@ -50,27 +50,27 @@ class SessionTest < Test::Unit::TestCase
   end
 
   def test_get_via_redirect
-    path = "/somepath"; args = {:id => '1'}
+    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
 
-    @session.expects(:get).with(path,args)
+    @session.expects(:get).with(path,args,headers)
 
     @session.stubs(:redirect?).returns(true, true, false)
     @session.expects(:follow_redirect!).times(2)
 
     @session.stubs(:status).returns(200)
-    assert_equal 200, @session.get_via_redirect(path, args)
+    assert_equal 200, @session.get_via_redirect(path, args, headers)
   end
 
   def test_post_via_redirect
-    path = "/somepath"; args = {:id => '1'}
+    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
 
-    @session.expects(:post).with(path,args)
+    @session.expects(:post).with(path,args,headers)
 
     @session.stubs(:redirect?).returns(true, true, false)
     @session.expects(:follow_redirect!).times(2)
 
     @session.stubs(:status).returns(200)
-    assert_equal 200, @session.post_via_redirect(path, args)
+    assert_equal 200, @session.post_via_redirect(path, args, headers)
   end
 
   def test_url_for_with_controller
