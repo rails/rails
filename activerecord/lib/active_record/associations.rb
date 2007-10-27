@@ -50,6 +50,12 @@ module ActiveRecord
     end
   end
 
+  class HasManyThroughCantDissociateNewRecords < ActiveRecordError #:nodoc:
+    def initialize(owner, reflection)
+      super("Cannot dissociate new records through '#{owner.class.name}##{reflection.name}' on '#{reflection.source_reflection.class_name rescue nil}##{reflection.source_reflection.name rescue nil}'. Both records must have an id in order to delete the has_many :through record associating them.")
+    end
+  end
+  
   class EagerLoadPolymorphicError < ActiveRecordError #:nodoc:
     def initialize(reflection)
       super("Can not eagerly load the polymorphic association #{reflection.name.inspect}")
