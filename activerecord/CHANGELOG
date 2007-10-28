@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure that << works on has_many associations on unsaved records.  Closes #9989 [hasmanyjosh]
+
 * Allow association redefinition in subclasses.  #9346 [wildchild]
 
 * Fix has_many :through delete with custom foreign keys.  #6466 [naffis]

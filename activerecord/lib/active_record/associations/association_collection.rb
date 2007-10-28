@@ -17,6 +17,7 @@ module ActiveRecord
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def <<(*records)
         result = true
+        load_target if @owner.new_record?
 
         @owner.transaction do
           flatten_deeper(records).each do |record|

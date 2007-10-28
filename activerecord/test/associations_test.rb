@@ -103,6 +103,13 @@ class AssociationProxyTest < Test::Unit::TestCase
     assert david.categories.include?(categories(:technology))
   end
 
+  def test_push_does_not_lose_additions_to_new_record
+    josh = Author.new(:name => "Josh")
+    josh.posts << Post.new(:title => "New on Edge", :body => "More cool stuff!")
+    assert josh.posts.loaded?
+    assert_equal 1, josh.posts.size
+  end
+
   def test_save_on_parent_does_not_load_target
     david = developers(:david)
 
