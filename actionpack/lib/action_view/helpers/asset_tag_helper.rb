@@ -387,10 +387,18 @@ module ActionView
         # a single or wildcarded asset host, if configured, with the correct
         # request protocol.
         def compute_public_path(source, dir, ext = nil, include_host = true)
-          cache_key = [ @controller.request.protocol,
-                        ActionController::Base.asset_host,
-                        @controller.request.relative_url_root,
-                        dir, source, ext, include_host ].join
+          has_request = @controller.respond_to?(:request)
+
+          cache_key =
+            if has_request
+              [ @controller.request.protocol,
+                ActionController::Base.asset_host,
+                @controller.request.relative_url_root,
+                dir, source, ext, include_host ].join
+            else
+              [ ActionController::Base.asset_host,
+                dir, source, ext, include_host ].join
+            end
 
           ActionView::Base.computed_public_paths[cache_key] ||=
             begin
@@ -400,13 +408,15 @@ module ActionView
                 source
               else
                 source = "/#{dir}/#{source}" unless source[0] == ?/
-                source = "#{@controller.request.relative_url_root}#{source}"
+                if has_request
+                  source = "#{@controller.request.relative_url_root}#{source}"
+                end
                 rewrite_asset_path!(source)
 
                 if include_host
                   host = compute_asset_host(source)
 
-                  unless host.blank? or host =~ %r{^[-a-z]+://}
+                  if has_request && !host.blank? && host !~ %r{^[-a-z]+://}
                     host = "#{@controller.request.protocol}#{host}"
                   end
 
