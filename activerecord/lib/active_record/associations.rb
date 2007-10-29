@@ -1402,7 +1402,34 @@ module ActiveRecord
               end
               construct(@base_records_hash[primary_id], @associations, join_associations.dup, row)
             end
+            remove_duplicate_results!(join_base.active_record, @base_records_in_order, @associations)
             return @base_records_in_order
+          end
+
+          def remove_duplicate_results!(base, records, associations)
+            case associations
+              when Symbol, String
+                reflection = base.reflections[associations]
+                if reflection && [:has_many, :has_and_belongs_to_many].include?(reflection.macro)
+                  records.each { |record| record.send(reflection.name).target.uniq! }
+                end
+              when Array
+                associations.each do |association|
+                  remove_duplicate_results!(base, records, association)
+                end
+              when Hash
+                associations.keys.each do |name|
+                  reflection = base.reflections[name]
+                  is_collection = [:has_many, :has_and_belongs_to_many].include?(reflection.macro)
+
+                  parent_records = records.map do |record|
+                    next unless record.send(reflection.name)
+                    is_collection ? record.send(reflection.name).target.uniq! : record.send(reflection.name)
+                  end.flatten.compact
+
+                  remove_duplicate_results!(reflection.class_name.constantize, parent_records, associations[name]) unless parent_records.empty?
+                end
+            end
           end
 
           def aliased_table_names_for(table_name)
@@ -1461,7 +1488,7 @@ module ActiveRecord
 
                   return nil if record.id.to_s != join.parent.record_id(row).to_s or row[join.aliased_primary_key].nil?
                   association = join.instantiate(row)
-                  collection.target.push(association) unless collection.target.include?(association)
+                  collection.target.push(association)
                 when :has_one
                   return if record.id.to_s != join.parent.record_id(row).to_s
                   association = join.instantiate(row) unless row[join.aliased_primary_key].nil?

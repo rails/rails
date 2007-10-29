@@ -1,5 +1,7 @@
 *SVN*
 
+* Associations: speedup duplicate record check.  #10011 [lifofifo]
+
 * Make sure that << works on has_many associations on unsaved records.  Closes #9989 [hasmanyjosh]
 
 * Allow association redefinition in subclasses.  #9346 [wildchild]
