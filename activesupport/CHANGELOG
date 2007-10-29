@@ -1,5 +1,7 @@
 *SVN*
 
+* Add new superclass_delegating_accessors.  Similar to class inheritable attributes but with subtly different semantics. [Koz, tarmo]
+
 * Change JSON to encode %w(< > &) as 4 digit hex codes to be in compliance with the JSON spec.  Closes #9975 [josh, chuyeow, tpope]
 
 * Fix JSON encoding/decoding bugs dealing with /'s.  Closes #9990 [Rick, theamazingrando]
