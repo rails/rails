@@ -380,9 +380,11 @@ module ActiveRecord #:nodoc:
       # * <tt>:group</tt>: An attribute name by which the result should be grouped. Uses the GROUP BY SQL-clause.
       # * <tt>:limit</tt>: An integer determining the limit on the number of rows that should be returned.
       # * <tt>:offset</tt>: An integer determining the offset from where the rows should be fetched. So at 5, it would skip rows 0 through 4.
-      # * <tt>:joins</tt>: An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
-      #   The records will be returned read-only since they will have attributes that do not correspond to the table's columns.
+      # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
+      #    or names associations in the same form used for the :include option.
+      #   If the value is a string, then the records will be returned read-only since they will have attributes that do not correspond to the table's columns.
       #   Pass :readonly => false to override.
+      #   See adding joins for associations under Association.
       # * <tt>:include</tt>: Names associations that should be loaded alongside using LEFT OUTER JOINs. The symbols named refer
       #   to already defined associations. See eager loading under Associations.
       # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you for example want to do a join, but not
@@ -428,8 +430,17 @@ module ActiveRecord #:nodoc:
       #   end
       def find(*args)
         options = args.extract_options!
+        # Note:  we extract any :joins option with a non-string value from the options, and turn it into
+        #  an internal option :ar_joins.  This allows code called from her to find the ar_joins, and
+        #  it bypasses marking the result as read_only.
+        #  A normal string join marks the result as read-only because it contains attributes from joined tables
+        #  which are not in the base table and therefore prevent the result from being saved.
+        #  In the case of an ar_join, the JoinDependency created to instantiate the results eliminates these
+        #  bogus attributes.  See JoinDependency#instantiate, and JoinBase#instantiate in associations.rb.
+        options, ar_joins = *extract_ar_join_from_options(options)
         validate_find_options(options)
         set_readonly_option!(options)
+        options[:ar_joins] = ar_joins if ar_joins
 
         case args.first
           when :first then find_initial(options)
@@ -1020,8 +1031,17 @@ module ActiveRecord #:nodoc:
           find_every(options).first
         end
 
+        # If options contains :joins, with a non-string value
+        #  remove it from options
+        # return the updated or unchanged options, and the ar_join value or nil
+        def extract_ar_join_from_options(options)
+          new_options = options.dup
+          join_option = new_options.delete(:joins)
+          (join_option && !join_option.kind_of?(String)) ? [new_options, join_option] : [options, nil]
+        end
+
         def find_every(options)
-          records = scoped?(:find, :include) || options[:include] ?
+          records = scoped?(:find, :include) || options[:include] || scoped?(:find, :ar_joins) || (options[:ar_joins]) ?
             find_with_associations(options) : 
             find_by_sql(construct_finder_sql(options))
 
@@ -1445,7 +1465,13 @@ module ActiveRecord #:nodoc:
 
           if f = method_scoping[:find]
             f.assert_valid_keys(VALID_FIND_OPTIONS)
+            # see note about :joins and :ar_joins in ActiveRecord::Base#find
+            f, ar_joins = *extract_ar_join_from_options(f)
             set_readonly_option! f
+            if ar_joins
+              f[:ar_joins] = ar_joins
+              method_scoping[:find] = f
+            end
           end
 
           # Merge scopings
@@ -1458,7 +1484,7 @@ module ActiveRecord #:nodoc:
                       merge = hash[method][key] && params[key] # merge if both scopes have the same key
                       if key == :conditions && merge
                         hash[method][key] = [params[key], hash[method][key]].collect{ |sql| "( %s )" % sanitize_sql(sql) }.join(" AND ")
-                      elsif key == :include && merge
+                      elsif ([:include, :ar_joins].include?(key)) && merge
                         hash[method][key] = merge_includes(hash[method][key], params[key]).uniq
                       else
                         hash[method][key] = hash[method][key] || params[key]

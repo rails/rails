@@ -1,5 +1,12 @@
 *SVN*
 
+* Introduce finder :joins with associations. Same :include syntax but with inner rather than outer joins.  #10012 [RubyRedRick]
+    # Find users with an avatar
+    User.find(:all, :joins => :avatar)
+
+    # Find posts with a high-rated comment.
+    Post.find(:all, :joins => :comments, :conditions => 'comments.rating > 3')
+
 * Associations: speedup duplicate record check.  #10011 [lifofifo]
 
 * Make sure that << works on has_many associations on unsaved records.  Closes #9989 [hasmanyjosh]
