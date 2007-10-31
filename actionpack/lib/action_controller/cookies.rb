@@ -27,6 +27,10 @@ module ActionController #:nodoc:
   # * <tt>http_only</tt> - whether this cookie is accessible via scripting or only HTTP (defaults to false).
   
   module Cookies
+    def self.included(base)
+      base.helper_method :cookies
+    end
+
     protected
       # Returns the cookie container, which operates as described above.
       def cookies
