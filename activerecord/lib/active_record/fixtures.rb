@@ -769,12 +769,12 @@ end
 module Test #:nodoc:
   module Unit #:nodoc:
     class TestCase #:nodoc:
-      class_inheritable_accessor :fixture_path
-      class_inheritable_accessor :fixture_table_names
-      class_inheritable_accessor :fixture_class_names
-      class_inheritable_accessor :use_transactional_fixtures
-      class_inheritable_accessor :use_instantiated_fixtures   # true, false, or :no_instances
-      class_inheritable_accessor :pre_loaded_fixtures
+      superclass_delegating_accessor :fixture_path
+      superclass_delegating_accessor :fixture_table_names
+      superclass_delegating_accessor :fixture_class_names
+      superclass_delegating_accessor :use_transactional_fixtures
+      superclass_delegating_accessor :use_instantiated_fixtures   # true, false, or :no_instances
+      superclass_delegating_accessor :pre_loaded_fixtures
 
       self.fixture_table_names = []
       self.use_transactional_fixtures = false

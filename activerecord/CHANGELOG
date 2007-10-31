@@ -1,5 +1,7 @@
 *SVN*
 
+* Make fixtures work with the new test subclasses. [tarmo, Koz]
+
 * Introduce finder :joins with associations. Same :include syntax but with inner rather than outer joins.  #10012 [RubyRedRick]
     # Find users with an avatar
     User.find(:all, :joins => :avatar)

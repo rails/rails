@@ -417,7 +417,7 @@ class FixturesBrokenRollbackTest < Test::Unit::TestCase
 end
 
 class LoadAllFixturesTest < Test::Unit::TestCase
-  write_inheritable_attribute :fixture_path, File.join(File.dirname(__FILE__), '/fixtures/all')
+  self.fixture_path= File.join(File.dirname(__FILE__), '/fixtures/all')
   fixtures :all
 
   def test_all_there
@@ -527,5 +527,15 @@ class FoxyFixturesTest < Test::Unit::TestCase
 
   def test_supports_label_interpolation
     assert_equal("frederick", parrots(:frederick).name)
+  end
+end
+
+class ActiveSupportSubclassWithFixturesTest < ActiveSupport::TestCase
+  fixtures :parrots
+
+  # This seemingly useless assertion catches a bug that caused the fixtures
+  # setup code call nil[]
+  def test_foo
+    assert_equal parrots(:louis), Parrot.find_by_name("King Louis")
   end
 end
