@@ -167,7 +167,7 @@ module ActiveRecord
           if operation == 'count'
             if merged_includes.any?
               options[:distinct] = true
-              column_name = options[:select] || [table_name, primary_key] * '.'
+              column_name = options[:select] || [connection.quote_table_name(table_name), primary_key] * '.'
             end
 
             if options[:distinct]
@@ -182,7 +182,7 @@ module ActiveRecord
 
           sql << ", #{options[:group_field]} AS #{options[:group_alias]}" if options[:group]
           sql << " FROM (SELECT DISTINCT #{column_name}" if use_workaround
-          sql << " FROM #{table_name} "
+          sql << " FROM #{connection.quote_table_name(table_name)} "
           if merged_includes.any?
             join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_includes, options[:joins], options[:ar_joins])
             sql << join_dependency.join_associations.collect{|join| join.association_join }.join

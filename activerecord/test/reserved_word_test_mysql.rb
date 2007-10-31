@@ -141,6 +141,11 @@ class MysqlReservedWordTest < Test::Unit::TestCase
     assert_nothing_raised { Group.table_exists? }
     assert_nothing_raised { Group.columns }
   end
+  
+  # Calculations
+  def test_calculations_work_with_reserved_words
+    assert_nothing_raised { Group.count }
+  end
 
   #the following functions were added to DRY test cases
 
