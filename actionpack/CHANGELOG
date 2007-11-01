@@ -23,6 +23,12 @@
 * Partials also set 'object' to the default partial variable.  #8823 [Nick Retallack, Jeremy Kemper]
 
 * Request profiler.  [Jeremy Kemper]
+    $ cat login_session.rb
+    get_with_redirect '/'
+    say "GET / => #{path}"
+    post_with_redirect '/sessions', :username => 'john', :password => 'doe'
+    say "POST /sessions => #{path}"
+    $ ./script/performance/request -n 10 login_session.rb
 
 * Disabled checkboxes don't submit a form value.  #9301 [vladr, robinjfisher]
 
