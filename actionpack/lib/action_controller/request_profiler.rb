@@ -1,39 +1,46 @@
 require 'optparse'
+require 'action_controller/integration'
 
 module ActionController
   class RequestProfiler
-    # CGI with stubbed environment and standard input.
-    class StubCGI < CGI
-      attr_accessor :env_table, :stdinput
-
-      def initialize(env_table, stdinput)
-        @env_table = env_table
-        super
-        @stdinput = stdinput
-      end
-    end
-
-    # Stripped-down dispatcher.
+    # Wrap up the integration session runner.
     class Sandbox
-      attr_accessor :env, :body
+      include Integration::Runner
 
-      def self.benchmark(n, env, body)
-        Benchmark.realtime { n.times { new(env, body).dispatch } }
+      def self.benchmark(n, script)
+        new(script).benchmark(n)
       end
 
-      def initialize(env, body)
-        @env, @body = env, body
+      def initialize(script_path)
+        @quiet = false
+        define_run_method(File.read(script_path))
+        reset!
       end
 
-      def dispatch
-        cgi = StubCGI.new(env, StringIO.new(body))
-
-        request = CgiRequest.new(cgi)
-        response = CgiResponse.new(cgi)
-
-        controller = Routing::Routes.recognize(request)
-        controller.process(request, response)
+      def benchmark(n)
+        @quiet = true
+        print '  '
+        result = Benchmark.realtime do
+          n.times do |i|
+            run
+            print i % 10 == 0 ? 'x' : '.'
+            $stdout.flush
+          end
+        end
+        puts
+        result
+      ensure
+        @quiet = false
       end
+
+      def say(message)
+        puts "  #{message}" unless @quiet
+      end
+
+      private
+        def define_run_method(script)
+          instance_eval "def run; #{script}; end", __FILE__, __LINE__
+        end
     end
 
 
@@ -51,90 +58,58 @@ module ActionController
     end
 
     def run
-      warmup
-      options[:benchmark] ? benchmark : profile
+      sandbox = Sandbox.new(options[:script])
+
+      puts 'Warming up once'
+
+      elapsed = warmup(sandbox)
+      puts '%.2f sec, %d requests, %d req/sec' % [elapsed, sandbox.request_count, sandbox.request_count / elapsed]
+      puts "\n#{options[:benchmark] ? 'Benchmarking' : 'Profiling'} #{options[:n]}x"
+
+      options[:benchmark] ? benchmark(sandbox) : profile(sandbox)
     end
 
-    def profile
+    def profile(sandbox)
       load_ruby_prof
 
-      results = RubyProf.profile { benchmark }
+      results = RubyProf.profile { benchmark(sandbox) }
 
       show_profile_results results
       results
     end
 
-    def benchmark
-      puts '%d req/sec' % (options[:n] / Sandbox.benchmark(options[:n], env, body))
+    def benchmark(sandbox)
+      sandbox.request_count = 0
+      elapsed = sandbox.benchmark(options[:n]).to_f
+      count = sandbox.request_count.to_i
+      puts '%.2f sec, %d requests, %d req/sec' % [elapsed, count, count / elapsed]
     end
 
-    def warmup
-      puts "#{options[:benchmark] ? 'Benchmarking' : 'Profiling'} #{options[:n]}x"
-      puts "\nrequest headers: #{env.to_yaml}"
-
-      response = Sandbox.new(env, body).dispatch
-
-      puts "\nresponse body: #{response.body[0...100]}#{'[...]' if response.body.size > 100}"
-      puts "\nresponse headers: #{response.headers.to_yaml}"
-      puts
+    def warmup(sandbox)
+      Benchmark.realtime { sandbox.run }
     end
-
-
-    def uri
-      URI.parse(options[:uri])
-    rescue URI::InvalidURIError
-      URI.parse(default_uri)
-    end
-
-    def default_uri
-      '/'
-    end
-
-    def env
-      @env ||= default_env
-    end
-
-    def default_env
-      defaults = {
-        'HTTP_HOST'      => "#{uri.host || 'localhost'}:#{uri.port || 3000}",
-        'REQUEST_URI'    => uri.path,
-        'REQUEST_METHOD' => method,
-        'CONTENT_LENGTH' => body.size }
-
-      if fixture = options[:fixture]
-        defaults['CONTENT_TYPE'] = "multipart/form-data; boundary=#{extract_multipart_boundary(fixture)}"
-      end
-
-      defaults
-    end
-
-    def method
-      options[:method] || (options[:fixture] ? 'POST' : 'GET')
-    end
-
-    def body
-      options[:fixture] ? File.read(options[:fixture]) : ''
-    end
-
 
     def default_options
-      { :n => 1000, :open => 'open %s &' }
+      { :n => 100, :open => 'open %s &' }
     end
 
     # Parse command-line options
     def parse_options(args)
       OptionParser.new do |opt|
-        opt.banner = "USAGE: #{$0} uri [options]"
+        opt.banner = "USAGE: #{$0} [options] [session script path]"
 
-        opt.on('-u', '--uri [URI]', 'Request URI. Defaults to http://localhost:3000/') { |v| options[:uri] = v }
-        opt.on('-n', '--times [0000]', 'How many requests to process. Defaults to 1000.') { |v| options[:n] = v.to_i }
+        opt.on('-n', '--times [0000]', 'How many requests to process. Defaults to 100.') { |v| options[:n] = v.to_i }
         opt.on('-b', '--benchmark', 'Benchmark instead of profiling') { |v| options[:benchmark] = v }
-        opt.on('--method [GET]', 'HTTP request method. Defaults to GET.') { |v| options[:method] = v.upcase }
-        opt.on('--fixture [FILE]', 'Path to POST fixture file') { |v| options[:fixture] = v }
         opt.on('--open [CMD]', 'Command to open profile results. Defaults to "open %s &"') { |v| options[:open] = v }
         opt.on('-h', '--help', 'Show this help') { puts opt; exit }
 
         opt.parse args
+
+        if args.empty?
+          puts opt
+          exit
+        end
+        options[:script] = args.pop
       end
     end
 
@@ -146,10 +121,6 @@ module ActionController
         rescue LoadError
           abort '`gem install ruby-prof` to use the profiler'
         end
-      end
-
-      def extract_multipart_boundary(path)
-        File.open(path) { |f| f.readline }
       end
 
       def show_profile_results(results)
