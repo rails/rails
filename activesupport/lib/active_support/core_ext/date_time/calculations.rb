@@ -5,6 +5,16 @@ module ActiveSupport #:nodoc:
     module DateTime #:nodoc:
       # Enables the use of time calculations within DateTime itself
       module Calculations
+        def self.included(base) #:nodoc:
+          base.extend ClassMethods
+        end
+
+        module ClassMethods
+          # DateTimes aren't aware of DST rules, so use a consistent non-DST offset when creating a DateTime with an offset in the local zone
+          def local_offset
+            ::Time.local(2007).utc_offset.to_r / 86400
+          end
+        end
 
         # Seconds since midnight: DateTime.now.seconds_since_midnight
         def seconds_since_midnight

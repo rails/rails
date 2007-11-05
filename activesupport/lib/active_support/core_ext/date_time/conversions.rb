@@ -35,10 +35,9 @@ module ActiveSupport #:nodoc:
         end
 
         # Attempts to convert self to a Ruby Time object; returns self if out of range of Ruby Time class
-        # If self.offset is 0, then will attempt to cast as a utc time; otherwise will attempt to cast in local time zone
+        # If self has an offset other than 0, self will just be returned unaltered, since there's no clean way to map it to a Time
         def to_time
-          method = if self.offset == 0 then 'utc' else 'local' end
-          ::Time.send(method, year, month, day, hour, min, sec) rescue self
+          self.offset == 0 ? ::Time.utc_time(year, month, day, hour, min, sec) : self
         end        
 
         # To be able to keep Times, Dates and DateTimes interchangeable on conversions

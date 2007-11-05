@@ -312,7 +312,9 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal "17:44",                           time.to_s(:time)
     assert_equal "February 21, 2005 17:44",         time.to_s(:long)
     assert_equal "February 21st, 2005 17:44",       time.to_s(:long_ordinal)
-    assert_equal "Mon, 21 Feb 2005 17:44:30 +0000", time.to_s(:rfc822)
+    with_timezone "UTC" do 
+      assert_equal "Mon, 21 Feb 2005 17:44:30 +0000", time.to_s(:rfc822)
+    end
   end
 
   def test_custom_date_format
@@ -387,8 +389,8 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
 
   def test_local_time
     assert_equal Time.local_time(2005, 2, 21, 17, 44, 30), Time.local(2005, 2, 21, 17, 44, 30)
-    assert_equal Time.local_time(2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, DateTime.now.offset, 0)
-    assert_equal Time.local_time(1901, 2, 21, 17, 44, 30), DateTime.civil(1901, 2, 21, 17, 44, 30, DateTime.now.offset, 0)
+    assert_equal Time.local_time(2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, DateTime.local_offset, 0)
+    assert_equal Time.local_time(1901, 2, 21, 17, 44, 30), DateTime.civil(1901, 2, 21, 17, 44, 30, DateTime.local_offset, 0)
   end
 
   def test_next_month_on_31st

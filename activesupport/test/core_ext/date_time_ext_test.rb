@@ -35,8 +35,9 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
   # FIXME: ruby 1.9 compat
   def test_to_time
     assert_equal Time.utc(2005, 2, 21, 10, 11, 12), DateTime.new(2005, 2, 21, 10, 11, 12, 0, 0).to_time
-    assert_equal Time.local(2005, 2, 21, 10, 11, 12), DateTime.new(2005, 2, 21, 10, 11, 12, Rational(-5, 24), 0).to_time
     assert_equal Time.utc_time(2039, 2, 21, 10, 11, 12), DateTime.new(2039, 2, 21, 10, 11, 12, 0, 0).to_time
+    # DateTimes with offsets other than 0 are returned unaltered
+    assert_equal DateTime.new(2005, 2, 21, 10, 11, 12, Rational(-5, 24)), DateTime.new(2005, 2, 21, 10, 11, 12, Rational(-5, 24)).to_time
   end
 
   def test_seconds_since_midnight
@@ -211,4 +212,21 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
   def test_acts_like_time
     assert DateTime.new.acts_like_time?
   end
+
+  def test_local_offset
+    with_timezone 'US/Eastern' do
+      assert_equal Rational(-5, 24), DateTime.local_offset
+    end
+    with_timezone 'US/Central' do
+      assert_equal Rational(-6, 24), DateTime.local_offset
+    end
+  end
+
+  protected
+    def with_timezone(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end
 end
