@@ -173,7 +173,7 @@ module ActiveRecord
             Time.send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec)
           # Over/underflow to DateTime
           rescue ArgumentError, TypeError
-            zone_offset = if Base.default_timezone == :local then DateTime.now.offset else 0 end
+            zone_offset = Base.default_timezone == :local ? DateTime.local_offset : 0
             # Append zero calendar reform start to account for dates skipped by calendar reform
             DateTime.new(year, mon, mday, hour, min, sec, zone_offset, 0) rescue nil
           end
