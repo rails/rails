@@ -52,7 +52,7 @@ module ActiveRecord #:nodoc:
     #     <id type="integer">1</id>
     #     <rating type="integer">1</rating>
     #     <name>37signals</name>
-    #     <clients>
+    #     <clients type="array">
     #       <client>
     #         <rating type="integer">1</rating>
     #         <name>Summit</name>
