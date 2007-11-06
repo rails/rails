@@ -50,8 +50,8 @@ module ActiveRecord
     # though <tt>transaction</tt> is called on the <tt>Account</tt> class:
     #
     #   Account.transaction do
-    #     balance.save
-    #     account.save
+    #     balance.save!
+    #     account.save!
     #   end
     #
     # == Transactions are not distributed across database connections
