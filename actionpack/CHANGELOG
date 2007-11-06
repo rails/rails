@@ -1,5 +1,7 @@
 *SVN*
 
+* Explain how to use the :href option for link_to_remote to degrade gracefully in the absence of JavaScript. Closes #8911 [vlad]
+
 * Disambiguate :size option for text area tag. Closes #8955 [redbeard]
 
 * Fix broken tag in assert_tag documentation. Closes #9037 [mfazekas]

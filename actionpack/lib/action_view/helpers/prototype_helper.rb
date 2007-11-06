@@ -136,6 +136,17 @@ module ActionView
       #                          default this is the current form, but
       #                          it could just as well be the ID of a
       #                          table row or any other DOM element.
+      #
+      # You can generate a link that uses AJAX in the general case, while 
+      # degrading gracefully to plain link behavior in the absence of
+      # JavaScript by setting <tt>html_options[:href]</tt> to an alternate URL.
+      # Note the extra curly braces around the <tt>options</tt> hash separate
+      # it as the second parameter from <tt>html_options</tt>, the third.
+      #
+      # Example:
+      #   link_to_remote "Delete this post",
+      #     { :update => "posts", :url => { :action => "destroy", :id => post.id } },
+      #     :href => url_for(:action => "destroy", :id => post.id)
       def link_to_remote(name, options = {}, html_options = nil)  
         link_to_function(name, remote_function(options), html_options || options.delete(:html))
       end
