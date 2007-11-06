@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix syntax error in documentation example for cycle method. Closes #8735 [foca]
+
 * Document :with option for link_to_remote. Closes #8765 [ryanb]
 
 * Document :minute_step option for time_select. Closes #8814 [brupm]
