@@ -1,5 +1,7 @@
 *SVN*
 
+* Disambiguate :size option for text area tag. Closes #8955 [redbeard]
+
 * Fix broken tag in assert_tag documentation. Closes #9037 [mfazekas]
 
 * Add documentation for route conditions. Closes #9041 [innu, manfred]
