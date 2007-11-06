@@ -1,5 +1,7 @@
 *SVN*
 
+* Enhance explanation with more examples for attr_accessible macro. Closes #8095 [fearoffish, Marcel Molina]
+
 * Update association/method mapping table to refected latest collection methods for has_many :through. Closes #8772 [lifofifo]
 
 * Explain semantics of having several different AR instances in a transaction block. Closes #9036 [jacobat, Marcel Molina]

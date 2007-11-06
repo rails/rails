@@ -645,24 +645,31 @@ module ActiveRecord #:nodoc:
         read_inheritable_attribute("attr_protected")
       end
 
-      # If this macro is used, only those attributes named in it will be accessible for mass-assignment, such as
-      # <tt>new(attributes)</tt> and <tt>attributes=(attributes)</tt>. This is the more conservative choice for mass-assignment
-      # protection.
+      # Similar to the attr_protected macro, this protects attributes of your model from mass-assignment, 
+      # such as <tt>new(attributes)</tt> and <tt>attributes=(attributes)</tt>
+      # however, it does it in the opposite way.  This locks all attributes and only allows access to the 
+      # attributes specified.  Assignment to attributes not in this list will be ignored and need to be set 
+      # using the direct writer methods instead.  This is meant to protect sensitive attributes from being 
+      # overwritten by URL/form hackers. If you'd rather start from an all-open default and restrict 
+      # attributes as needed, have a look at attr_protected.
+      # 
+      # ==== Options
       #
-      # Example:
+      # <tt>*attributes</tt>   A comma separated list of symbols that represent columns _not_ to be protected
+      #
+      # ==== Examples
       #
       #   class Customer < ActiveRecord::Base
-      #     attr_accessible :phone, :email
+      #     attr_accessible :name, :nickname
       #   end
       #
-      # Passing an empty argument list protects all attributes:
+      #   customer = Customer.new(:name => "David", :nickname => "Dave", :credit_rating => "Excellent")
+      #   customer.credit_rating # => nil
+      #   customer.attributes = { :name => "Jolly fellow", :credit_rating => "Superb" }
+      #   customer.credit_rating # => nil
       #
-      #   class Product < ActiveRecord::Base
-      #     attr_accessible # none
-      #   end
-      #
-      # If you'd rather start from an all-open default and restrict attributes as needed, have a look at
-      # attr_protected.
+      #   customer.credit_rating = "Average"
+      #   customer.credit_rating # => "Average"
       def attr_accessible(*attributes)
         write_inheritable_array("attr_accessible", attributes - (accessible_attributes || []))
       end
