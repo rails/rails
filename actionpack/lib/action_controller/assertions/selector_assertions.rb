@@ -326,14 +326,16 @@ module ActionController
       # that update or insert an element with that identifier.
       #
       # Use the first argument to narrow down assertions to only statements
-      # of that type. Possible values are +:replace+, +:replace_html+, +:show+,
-      # +:hide+, +:toggle+, +:remove+ and +:insert_html+.
+      # of that type. Possible values are <tt>:replace</tt>, <tt>:replace_html</tt>, 
+      # <tt>:show</tt>, <tt>:hide</tt>, <tt>:toggle</tt>, <tt>:remove</tt> and
+      # <tt>:insert_html</tt>.
       #
-      # Use the argument +:insert+ followed by an insertion position to narrow
+      # Use the argument <tt>:insert</tt> followed by an insertion position to narrow
       # down the assertion to only statements that insert elements in that
-      # position. Possible values are +:top+, +:bottom+, +:before+ and +:after+.
+      # position. Possible values are <tt>:top</tt>, <tt>:bottom</tt>, <tt>:before</tt>
+      # and <tt>:after</tt>.
       #
-      # Using the +:remove+ statement, you will be able to pass a block, but it will
+      # Using the <tt>:remove</tt> statement, you will be able to pass a block, but it will
       # be ignored as there is no HTML passed for this statement.
       #
       # === Using blocks

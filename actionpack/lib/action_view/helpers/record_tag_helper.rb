@@ -38,7 +38,7 @@ module ActionView
       #    <tr id="foo_person_123" class="person">...
       #
       # content_tag_for also accepts a hash of options, which will be converted to
-      # additional HTML attributes. If you specify a +:class+ value, it will be combined
+      # additional HTML attributes. If you specify a <tt>:class</tt> value, it will be combined
       # with the default class name for your object. For example:
       #
       #    <% content_tag_for(:li, @person, :class => "bar") %>...

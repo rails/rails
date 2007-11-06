@@ -6,10 +6,10 @@ module ActionController
     module ResponseAssertions
       # Asserts that the response is one of the following types:
       #
-      # * <tt>:success</tt>: Status code was 200
-      # * <tt>:redirect</tt>: Status code was in the 300-399 range
-      # * <tt>:missing</tt>: Status code was 404
-      # * <tt>:error</tt>:  Status code was in the 500-599 range
+      # * <tt>:success</tt>   - Status code was 200
+      # * <tt>:redirect</tt>  - Status code was in the 300-399 range
+      # * <tt>:missing</tt>   - Status code was 404
+      # * <tt>:error</tt>     - Status code was in the 500-599 range
       #
       # You can also pass an explicit status number like assert_response(501)
       # or its symbolic equivalent assert_response(:not_implemented).

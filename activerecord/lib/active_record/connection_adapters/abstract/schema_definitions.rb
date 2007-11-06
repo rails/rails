@@ -300,17 +300,17 @@ module ActiveRecord
       # <tt>:date</tt>, <tt>:binary</tt>, <tt>:boolean</tt>.
       #
       # Available options are (none of these exists by default):
-      # * <tt>:limit</tt>:
+      # * <tt>:limit</tt> -
       #   Requests a maximum column length (<tt>:string</tt>, <tt>:text</tt>,
       #   <tt>:binary</tt> or <tt>:integer</tt> columns only)
-      # * <tt>:default</tt>:
+      # * <tt>:default</tt> -
       #   The column's default value. Use nil for NULL.
-      # * <tt>:null</tt>:
+      # * <tt>:null</tt> -
       #   Allows or disallows +NULL+ values in the column.  This option could
       #   have been named <tt>:null_allowed</tt>.
-      # * <tt>:precision</tt>:
+      # * <tt>:precision</tt> -
       #   Specifies the precision for a <tt>:decimal</tt> column. 
-      # * <tt>:scale</tt>:
+      # * <tt>:scale</tt> -
       #   Specifies the scale for a <tt>:decimal</tt> column. 
       #
       # Please be aware of different RDBMS implementations behavior with

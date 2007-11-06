@@ -5,8 +5,8 @@ module ActiveSupport #:nodoc:
     module Array #:nodoc:
       module Conversions
         # Converts the array to comma-seperated sentence where the last element is joined by the connector word. Options:
-        # * <tt>:connector</tt>: The word used to join the last element in arrays with two or more elements (default: "and")
-        # * <tt>:skip_last_comma</tt>: Set to true to return "a, b and c" instead of "a, b, and c".
+        # * <tt>:connector</tt> - The word used to join the last element in arrays with two or more elements (default: "and")
+        # * <tt>:skip_last_comma</tt> - Set to true to return "a, b and c" instead of "a, b, and c".
         def to_sentence(options = {})
           options.assert_valid_keys(:connector, :skip_last_comma)
           options.reverse_merge! :connector => 'and', :skip_last_comma => false
