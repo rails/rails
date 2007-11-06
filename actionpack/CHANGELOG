@@ -1,5 +1,7 @@
 *SVN*
 
+* Update Prototype to 1.6.0 and script.aculo.us to 1.8.0.  [sam, madrobby]
+
 * Expose the cookie jar as a helper method (before the view would just get the raw cookie hash) [DHH]
 
 * Integration tests: get_ and post_via_redirect take a headers hash.  #9130 [simonjefford]

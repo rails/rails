@@ -1,4 +1,4 @@
-/*  Prototype JavaScript framework, version 1.6.0_rc1
+/*  Prototype JavaScript framework, version 1.6.0
  *  (c) 2005-2007 Sam Stephenson
  *
  *  Prototype is freely distributable under the terms of an MIT-style license.
@@ -7,7 +7,7 @@
  *--------------------------------------------------------------------------*/
 
 var Prototype = {
-  Version: '1.6.0_rc1',
+  Version: '1.6.0',
 
   Browser: {
     IE:     !!(window.attachEvent && !window.opera),
@@ -21,8 +21,9 @@ var Prototype = {
     XPath: !!document.evaluate,
     ElementExtensions: !!window.HTMLElement,
     SpecificElementExtensions:
+      document.createElement('div').__proto__ &&
       document.createElement('div').__proto__ !==
-       document.createElement('form').__proto__
+        document.createElement('form').__proto__
   },
 
   ScriptFragment: '<script[^>]*>([\\S\\s]*?)<\/script>',
@@ -74,10 +75,14 @@ var Class = {
 
 Class.Methods = {
   addMethods: function(source) {
-    var ancestor = this.superclass && this.superclass.prototype;
+    var ancestor   = this.superclass && this.superclass.prototype;
+    var properties = Object.keys(source);
 
-    for (var property in source) {
-      var value = source[property];
+    if (!Object.keys({ toString: true }).length)
+      properties.push("toString", "valueOf");
+
+    for (var i = 0, length = properties.length; i < length; i++) {
+      var property = properties[i], value = source[property];
       if (ancestor && Object.isFunction(value) &&
           value.argumentNames().first() == "$super") {
         var method = value, value = Object.extend((function(m) {
@@ -561,7 +566,7 @@ var Template = Class.create({
 
       var ctx = object, expr = match[3];
       var pattern = /^([^.[]+|\[((?:.*?[^\\])?)\])(\.|\[|$)/, match = pattern.exec(expr);
-      if (match == null) return '';
+      if (match == null) return before;
 
       while (match != null) {
         var comp = match[1].startsWith('[') ? match[2].gsub('\\\\]', ']') : match[1];
@@ -1092,6 +1097,7 @@ var Hash = Class.create(Enumerable, (function() {
   }
 })());
 
+Hash.prototype.toTemplateReplacements = Hash.prototype.toObject;
 Hash.from = $H;
 var ObjectRange = Class.create(Enumerable, {
   initialize: function(start, end, exclusive) {
@@ -1399,8 +1405,10 @@ Ajax.Response = Class.create({
 
   _getHeaderJSON: function() {
     var json = this.getHeader('X-JSON');
+    if (!json) return null;
+    json = decodeURIComponent(escape(json));
     try {
-      return json ? json.evalJSON(this.request.options.sanitizeJSON) : null;
+      return json.evalJSON(this.request.options.sanitizeJSON);
     } catch (e) {
       this.request.dispatchException(e);
     }
@@ -1408,11 +1416,11 @@ Ajax.Response = Class.create({
 
   _getResponseJSON: function() {
     var options = this.request.options;
+    if (!options.evalJSON || (options.evalJSON != 'force' &&
+      !(this.getHeader('Content-type') || '').include('application/json')))
+        return null;
     try {
-      if (options.evalJSON == 'force' || (options.evalJSON &&
-          (this.getHeader('Content-type') || '').include('application/json')))
-        return this.transport.responseText.evalJSON(options.sanitizeJSON);
-      return null;
+      return this.transport.responseText.evalJSON(options.sanitizeJSON);
     } catch (e) {
       this.request.dispatchException(e);
     }
@@ -1817,7 +1825,7 @@ Element.Methods = {
     if (!(element = $(element))) return;
     var elementClassName = element.className;
     return (elementClassName.length > 0 && (elementClassName == className ||
-      elementClassName.match(new RegExp("(^|\\s)" + className + "(\\s|$)"))));
+      new RegExp("(^|\\s)" + className + "(\\s|$)").test(elementClassName)));
   },
 
   addClassName: function(element, className) {
@@ -1859,6 +1867,20 @@ Element.Methods = {
 
   descendantOf: function(element, ancestor) {
     element = $(element), ancestor = $(ancestor);
+
+    if (element.compareDocumentPosition)
+      return (element.compareDocumentPosition(ancestor) & 8) === 8;
+
+    if (element.sourceIndex && !Prototype.Browser.Opera) {
+      var e = element.sourceIndex, a = ancestor.sourceIndex,
+       nextAncestor = ancestor.nextSibling;
+      if (!nextAncestor) {
+        do { ancestor = ancestor.parentNode; }
+        while (!(nextAncestor = ancestor.nextSibling) && ancestor.parentNode);
+      }
+      if (nextAncestor) return (e > a && e < nextAncestor.sourceIndex);
+    }
+
     while (element = element.parentNode)
       if (element == ancestor) return true;
     return false;
@@ -2248,7 +2270,11 @@ else if (Prototype.Browser.IE) {
       return filter.replace(/alpha\([^\)]*\)/gi,'');
     }
     element = $(element);
-    if (!element.currentStyle.hasLayout) element.style.zoom = 1;
+    var currentStyle = element.currentStyle;
+    if ((currentStyle && !currentStyle.hasLayout) ||
+      (!currentStyle && element.style.zoom == 'normal'))
+        element.style.zoom = 1;
+
     var filter = element.getStyle('filter'), style = element.style;
     if (value == 1 || value === '') {
       (filter = stripAlpha(filter)) ?
@@ -2344,7 +2370,7 @@ else if (Prototype.Browser.IE) {
   })(Element._attributeTranslations.read.values);
 }
 
-else if (Prototype.Browser.Gecko) {
+else if (Prototype.Browser.Gecko && /rv:1\.8\.0/.test(navigator.userAgent)) {
   Element.Methods.setOpacity = function(element, value) {
     element = $(element);
     element.style.opacity = (value == 1) ? 0.999999 :
@@ -3121,6 +3147,7 @@ Object.extend(Selector, {
     },
 
     attrPresence: function(nodes, root, attr) {
+      if (!nodes) nodes = root.getElementsByTagName("*");
       var results = [];
       for (var i = 0, node; node = nodes[i]; i++)
         if (Element.hasAttribute(node, attr)) results.push(node);
@@ -3684,24 +3711,27 @@ Object.extend(Event, {
 });
 
 Event.Methods = (function() {
+  var isButton;
+
   if (Prototype.Browser.IE) {
-    function isButton(event, code) {
-      return event.button == ({ 0: 1, 1: 4, 2: 2 })[code];
-    }
+    var buttonMap = { 0: 1, 1: 4, 2: 2 };
+    isButton = function(event, code) {
+      return event.button == buttonMap[code];
+    };
 
   } else if (Prototype.Browser.WebKit) {
-    function isButton(event, code) {
+    isButton = function(event, code) {
       switch (code) {
         case 0: return event.which == 1 && !event.metaKey;
         case 1: return event.which == 1 && event.metaKey;
         default: return false;
       }
-    }
+    };
 
   } else {
-    function isButton(event, code) {
+    isButton = function(event, code) {
       return event.which ? (event.which === code + 1) : (event.button === code);
-    }
+    };
   }
 
   return {
@@ -3735,6 +3765,7 @@ Event.Methods = (function() {
       Event.extend(event);
       event.preventDefault();
       event.stopPropagation();
+      event.stopped = true;
     }
   };
 })();
@@ -3784,7 +3815,7 @@ Object.extend(Event, (function() {
   }
 
   function getDOMEventName(eventName) {
-    if (eventName && eventName.match(/:/)) return "dataavailable";
+    if (eventName && eventName.include(':')) return "dataavailable";
     return eventName;
   }
 
@@ -3803,8 +3834,9 @@ Object.extend(Event, (function() {
     if (c.pluck("handler").include(handler)) return false;
 
     var wrapper = function(event) {
-      if (event.eventName && event.eventName != eventName)
-        return false;
+      if (!Event || !Event.extend ||
+        (event.eventName && event.eventName != eventName))
+          return false;
 
       Event.extend(event);
       handler.call(element, event)

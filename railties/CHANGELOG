@@ -1,5 +1,7 @@
 *SVN*
 
+* Update Prototype to 1.6.0 and script.aculo.us to 1.8.0.  [sam, madrobby]
+
 * Added db:rollback to rollback the schema one version (or multiple as specified by STEP) [Jeffrey Allan Hardy]
 
 * Fix typo in test_helper. Closes #9925 [viktor tron]
