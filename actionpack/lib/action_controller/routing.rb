@@ -204,6 +204,24 @@ module ActionController
   # must appear at the end of the path. The globbed values are in <tt>params[:path]</tt> in
   # this case.
   #
+  # == Route conditions
+  #
+  # With conditions you can define restrictions on routes. Currently the only valid condition is <tt>:method</tt>.
+  #
+  # * <tt>:method</tt> - Allows you to specify which method can access the route. Possible values are <tt>:post</tt>,
+  #   <tt>:get</tt>, <tt>:put</tt>, <tt>:delete</tt> and <tt>:any</tt>. The default value is <tt>:any</tt>, 
+  #   <tt>:any</tt> means that any method can access the route.
+  #
+  # Example:
+  #
+  #   map.connect 'post/:id', :controller => 'posts', :action => 'show',
+  #               :conditions => { :method => :get }
+  #   map.connect 'post/:id', :controller => 'posts', :action => 'create_comment',
+  #               :conditions => { :method => :post }
+  #
+  # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
+  # URL will route to the <tt>show</tt> action.
+  # 
   # == Reloading routes
   #
   # You can reload routes if you feel you must:

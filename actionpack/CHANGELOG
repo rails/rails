@@ -1,5 +1,7 @@
 *SVN*
 
+* Add documentation for route conditions. Closes #9041 [innu, manfred]
+
 * Fix typo left over from previous typo fix in url helper. Closes #9414 [Henrik N]
 
 * Fixed that ActionController::CgiRequest#host_with_port() should handle standard port #10082 [moro]
