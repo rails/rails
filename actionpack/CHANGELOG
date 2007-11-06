@@ -1,5 +1,7 @@
 *SVN*
 
+* Document :minute_step option for time_select. Closes #8814 [brupm]
+
 * Explain how to use the :href option for link_to_remote to degrade gracefully in the absence of JavaScript. Closes #8911 [vlad]
 
 * Disambiguate :size option for text area tag. Closes #8955 [redbeard]

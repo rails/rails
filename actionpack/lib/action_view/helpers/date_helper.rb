@@ -175,6 +175,9 @@ module ActionView
       #   # the submission_time attribute. 
       #   time_select("entry", "submission_time", :include_seconds => true)
       #
+      #   # You can set the :minute_step to 15 which will give you: 00, 15, 30 and 45.
+      #   time_select 'game', 'game_time', {:minute_step => 15}
+      #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
       # Note: If the day is not included as an option but the month is, the day will be set to the 1st to ensure that all month
