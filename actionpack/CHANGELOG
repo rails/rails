@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that ActionController::CgiRequest#host_with_port() should handle standard port #10082 [moro]
+
 * Update Prototype to 1.6.0 and script.aculo.us to 1.8.0.  [sam, madrobby]
 
 * Expose the cookie jar as a helper method (before the view would just get the raw cookie hash) [DHH]

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added --skip-timestamps to generators that produce models #10036 [tpope]
+
 * Update Prototype to 1.6.0 and script.aculo.us to 1.8.0.  [sam, madrobby]
 
 * Added db:rollback to rollback the schema one version (or multiple as specified by STEP) [Jeffrey Allan Hardy]
@@ -25,8 +27,8 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Removed calls to fixtures in generated tests as fixtures :all is now present by default in test_helper.rb [DHH]
 
-
 * Add --prefix option to script/server when using mongrel. [dacat]
+
 
 *2.0.0 [Preview Release]* (September 29th, 2007) [Includes duplicates of changes from 1.1.4 - 1.2.3]
 

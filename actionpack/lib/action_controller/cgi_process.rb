@@ -82,7 +82,7 @@ module ActionController #:nodoc:
       @cgi.cookies.freeze
     end
 
-    def host_with_port
+    def host_with_port_without_standard_port_handling
       if forwarded = env["HTTP_X_FORWARDED_HOST"]
         forwarded.split(/,\s?/).last
       elsif http_host = env['HTTP_HOST']
@@ -95,11 +95,11 @@ module ActionController #:nodoc:
     end
 
     def host
-      host_with_port.sub(/:\d+$/, '')
+      host_with_port_without_standard_port_handling.sub(/:\d+$/, '')
     end
 
     def port
-      if host_with_port =~ /:(\d+)$/
+      if host_with_port_without_standard_port_handling =~ /:(\d+)$/
         $1.to_i
       else
         standard_port
