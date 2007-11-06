@@ -1,5 +1,7 @@
 *SVN*
 
+* Update Schema documentation to use updated sexy migration notation. Closes #10086 [sjgman9]
+
 * Make fixtures work with the new test subclasses. [tarmo, Koz]
 
 * Introduce finder :joins with associations. Same :include syntax but with inner rather than outer joins.  #10012 [RubyRedRick]

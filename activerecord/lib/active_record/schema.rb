@@ -8,16 +8,16 @@ module ActiveRecord
   #
   #   ActiveRecord::Schema.define do
   #     create_table :authors do |t|
-  #       t.column :name, :string, :null => false
+  #       t.string :name, :null => false
   #     end
   #
   #     add_index :authors, :name, :unique
   #
   #     create_table :posts do |t|
-  #       t.column :author_id, :integer, :null => false
-  #       t.column :subject, :string
-  #       t.column :body, :text
-  #       t.column :private, :boolean, :default => false
+  #       t.integer :author_id, :null => false
+  #       t.string :subject
+  #       t.text :body
+  #       t.boolean :private, :default => false
   #     end
   #
   #     add_index :posts, :author_id
