@@ -125,7 +125,7 @@ module ActiveRecord
     #   ----------------------------------+-------+----------+----------
     #   #others                           |   X   |    X     |    X
     #   #others=(other,other,...)         |   X   |    X     |    
-    #   #other_ids                        |   X   |    X     |    
+    #   #other_ids                        |   X   |    X     |    X
     #   #other_ids=(id,id,...)            |   X   |    X     |    
     #   #others<<                         |   X   |    X     |    X
     #   #others.push                      |   X   |    X     |    X
@@ -133,15 +133,15 @@ module ActiveRecord
     #   #others.build(attributes={})      |   X   |    X     |    X
     #   #others.create(attributes={})     |   X   |    X     |    
     #   #others.create!(attributes={})    |   X   |    X     |    X
-    #   #others.size                      |   X   |    X     |    
-    #   #others.length                    |   X   |    X     |    
-    #   #others.count                     |       |    X     |    
+    #   #others.size                      |   X   |    X     |    X
+    #   #others.length                    |   X   |    X     |    X
+    #   #others.count                     |       |    X     |    X
     #   #others.sum(args*,&block)         |   X   |    X     |    X
-    #   #others.empty?                    |   X   |    X     |    
+    #   #others.empty?                    |   X   |    X     |    X
     #   #others.clear                     |   X   |    X     |    
     #   #others.delete(other,other,...)   |   X   |    X     |    X
     #   #others.delete_all                |   X   |    X     |    
-    #   #others.destroy_all               |   X   |    X     |    
+    #   #others.destroy_all               |   X   |    X     |    X
     #   #others.find(*args)               |   X   |    X     |    X
     #   #others.find_first                |   X   |          |    
     #   #others.uniq                      |   X   |    X     |    
