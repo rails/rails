@@ -4,20 +4,19 @@ require 'action_view/helpers/tag_helper'
 
 module ActionView
   module Helpers
-    # Form helpers are designed to make working with models much easier than just standard html elements by
-    # providing a set of methods for creating forms based on your models.  This helper generates the HTML for forms,
-    # providing a method for each sort of input (e.g., text, password, select, and so on).  When the form is 
-    # submitted (i.e., when the user hits the submit button or <tt>form.submit</tt> is called via JavaScript), the form 
-    # inputs will be bundled into the <tt>params</tt> object and passed back to the controller.
+    # Form helpers are designed to make working with models much easier compared to using just standard HTML
+    # elements by providing a set of methods for creating forms based on your models. This helper generates the HTML
+    # for forms, providing a method for each sort of input (e.g., text, password, select, and so on). When the form
+    # is submitted (i.e., when the user hits the submit button or <tt>form.submit</tt> is called via JavaScript), the form inputs will be bundled into the <tt>params</tt> object and passed back to the controller.
     #
-    # There are two types of form helpers: those that specifically work with model attributes and those that don't.  
+    # There are two types of form helpers: those that specifically work with model attributes and those that don't.
     # This helper deals with those that work with model attributes; to see an example of form helpers that don't work
     # with model attributes, check the ActionView::Helpers::FormTagHelper documentation.
     #
-    # The core method of this helper, form_for, gives you the ability to create a form for a model instance; 
+    # The core method of this helper, form_for, gives you the ability to create a form for a model instance;
     # for example, let's say that you have a model <tt>Person</tt> and want to create a new instance of it:
     #
-    #     # Note: a @person variable will have been created in the controller. 
+    #     # Note: a @person variable will have been created in the controller.
     #     # For example: @person = Person.new
     #     <% form_for :person, @person, :url => { :action => "create" } do |f| %>
     #       <%= f.text_field :first_name %>
@@ -36,15 +35,15 @@ module ActionView
     # The <tt>params</tt> object created when this form is submitted would look like:
     #
     #     {"action"=>"create", "controller"=>"persons", "person"=>{"first_name"=>"William", "last_name"=>"Smith"}}
-    # 
+    #
     # The params hash has a nested <tt>person</tt> value, which can therefore be accessed with <tt>params[:person]</tt> in the controller.
     # If were editing/updating an instance (e.g., <tt>Person.find(1)</tt> rather than <tt>Person.new</tt> in the controller), the objects
     # attribute values are filled into the form (e.g., the <tt>person_first_name</tt> field would have that person's first name in it).
-    #    
+    #
     # If the object name contains square brackets the id for the object will be inserted. For example:
     #
     #   <%= text_field "person[]", "name" %> 
-    # 
+    #
     # ...will generate the following ERb.
     #
     #   <input type="text" id="person_<%= @person.id %>_name" name="person[<%= @person.id %>][name]" value="<%= @person.name %>" />
@@ -62,7 +61,7 @@ module ActionView
     # link:classes/ActionView/Helpers/DateHelper.html, and link:classes/ActionView/Helpers/ActiveRecordHelper.html
     module FormHelper
       # Creates a form and a scope around a specific model object that is used as a base for questioning about
-      # values for the fields.  
+      # values for the fields.
       #
       #   <% form_for :person, @person, :url => { :action => "update" } do |f| %>
       #     First name: <%= f.text_field :first_name %>
@@ -71,13 +70,13 @@ module ActionView
       #     Admin?    : <%= f.check_box :admin %>
       #   <% end %>
       #
-      # Worth noting is that the form_for tag is called in a ERb evaluation block, not an ERb output block. So that's <tt><% %></tt>, 
+      # Worth noting is that the form_for tag is called in a ERb evaluation block, not an ERb output block. So that's <tt><% %></tt>,
       # not <tt><%= %></tt>. Also worth noting is that form_for yields a <tt>form_builder</tt> object, in this example as <tt>f</tt>, which emulates
       # the API for the stand-alone FormHelper methods, but without the object name. So instead of <tt>text_field :person, :name</tt>,
-      # you get away with <tt>f.text_field :name</tt>. 
+      # you get away with <tt>f.text_field :name</tt>.
       #
-      # Even further, the form_for method allows you to more easily escape the instance variable convention.  So while the stand-alone 
-      # approach would require <tt>text_field :person, :name, :object => person</tt> 
+      # Even further, the form_for method allows you to more easily escape the instance variable convention. So while the stand-alone
+      # approach would require <tt>text_field :person, :name, :object => person</tt>
       # to work with local variables instead of instance ones, the form_for calls remain the same. You simply declare once with 
       # <tt>:person, person</tt> and all subsequent field calls save <tt>:person</tt> and <tt>:object => person</tt>.
       #
@@ -91,11 +90,11 @@ module ActionView
       #     Admin?    : <%= check_box_tag "person[admin]", @person.company.admin? %>
       #   <% end %>
       #
-      # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base.
-      # Like FormOptionHelper#collection_select and DateHelper#datetime_select.
+      # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base,
+      # like FormOptionHelper#collection_select and DateHelper#datetime_select.
       #
       # HTML attributes for the form tag can be given as :html => {...}. For example:
-      #     
+      #
       #   <% form_for :person, @person, :html => {:id => 'person_form'} do |f| %>
       #     ...
       #   <% end %>
@@ -145,15 +144,15 @@ module ActionView
       # === Customized form builders
       #
       # You can also build forms using a customized FormBuilder class. Subclass FormBuilder and override or define some more helpers,
-      # then use your custom builder.  For example, let's say you made a helper to automatically add labels to form inputs.
-      #   
+      # then use your custom builder. For example, let's say you made a helper to automatically add labels to form inputs.
+      #
       #   <% form_for :person, @person, :url => { :action => "update" }, :builder => LabellingFormBuilder do |f| %>
       #     <%= f.text_field :first_name %>
       #     <%= f.text_field :last_name %>
       #     <%= text_area :person, :biography %>
       #     <%= check_box_tag "person[admin]", @person.company.admin? %>
       #   <% end %>
-      # 
+      #
       # In many cases you will want to wrap the above in another helper, so you could do something like the following:
       #
       #   def labelled_form_for(name, object, options, &proc)
@@ -188,7 +187,7 @@ module ActionView
 
       def apply_form_for_options!(object_or_array, options) #:nodoc:
         object = object_or_array.is_a?(Array) ? object_or_array.last : object_or_array
-        
+
         html_options =
           if object.respond_to?(:new_record?) && object.new_record?
             { :class  => dom_class(object, :new),  :id => dom_id(object), :method => :post }
@@ -208,7 +207,7 @@ module ActionView
       #   <% form_for :person, @person, :url => { :action => "update" } do |person_form| %>
       #     First name: <%= person_form.text_field :first_name %>
       #     Last name : <%= person_form.text_field :last_name %>
-      #     
+      #
       #     <% fields_for :permission, @person.permission do |permission_fields| %>
       #       Admin?  : <%= permission_fields.check_box :admin %>
       #     <% end %>
@@ -228,7 +227,7 @@ module ActionView
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). The text of label will default to the attribute name unless you specify
       # it explicitly. Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
-      # onto the html as an HTML element attribute as in the example shown.
+      # onto the HTML as an HTML element attribute as in the example shown.
       #
       # ==== Examples
       #   label(:post, :title)
@@ -246,7 +245,7 @@ module ActionView
 
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
-      # hash with +options+.  These options will be tagged onto the html as an HTML element attribute as in the example
+      # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
       # shown.
       #
       # ==== Examples
@@ -268,7 +267,7 @@ module ActionView
 
       # Returns an input tag of the "password" type tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
-      # hash with +options+.  These options will be tagged onto the html as an HTML element attribute as in the example
+      # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
       # shown.
       #
       # ==== Examples
@@ -290,7 +289,7 @@ module ActionView
 
       # Returns a hidden input tag tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
-      # hash with +options+.  These options will be tagged onto the html as an html element attribute as in the example
+      # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
       # shown.
       #
       # ==== Examples 
@@ -301,14 +300,14 @@ module ActionView
       #   # => <input type="hidden" id="post_tag_list" name="post[tag_list]" value="#{@post.tag_list}" />
       #
       #   hidden_field(:user, :token)
-      #   # => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}" />   
+      #   # => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}" />
       def hidden_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_input_field_tag("hidden", options)
       end
 
       # Returns an file upload input tag tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
-      # hash with +options+.  These options will be tagged onto the html as an html element attribute as in the example
+      # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
       # shown.
       #
       # ==== Examples
@@ -456,7 +455,7 @@ module ActionView
         end
         options["checked"]  = "checked" if checked
         pretty_tag_value    = tag_value.to_s.gsub(/\s/, "_").gsub(/\W/, "").downcase
-        options["id"]     ||= defined?(@auto_index) ?             
+        options["id"]     ||= defined?(@auto_index) ?
           "#{@object_name}_#{@auto_index}_#{@method_name}_#{pretty_tag_value}" :
           "#{@object_name}_#{@method_name}_#{pretty_tag_value}"
         add_default_name_and_id(options)
@@ -510,11 +509,11 @@ module ActionView
         tag_text << " selected" if value
         tag_text << ">True</option></select>"
       end
-      
+
       def to_content_tag(tag_name, options = {})
         content_tag(tag_name, value(object), options)
       end
-      
+
       def object
         @object || (@template_object.instance_variable_get("@#{@object_name}") rescue nil)
       end
@@ -526,12 +525,12 @@ module ActionView
       def value_before_type_cast(object)
         self.class.value_before_type_cast(object, @method_name)
       end
-      
+
       class << self
         def value(object, method_name)
           object.send method_name unless object.nil?
         end
-        
+
         def value_before_type_cast(object, method_name)
           unless object.nil?
             object.respond_to?(method_name + "_before_type_cast") ?
@@ -539,7 +538,7 @@ module ActionView
             object.send(method_name)
           end
         end
-        
+
         def check_box_checked?(value, checked_value)
           case value
           when TrueClass, FalseClass
@@ -554,7 +553,7 @@ module ActionView
             value.to_i != 0
           end
         end
-        
+
         def radio_button_checked?(value, checked_value)
           value.to_s == checked_value.to_s
         end
@@ -604,9 +603,9 @@ module ActionView
       attr_accessor :object_name, :object, :options
 
       def initialize(object_name, object, template, options, proc)
-        @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc        
+        @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc
       end
-      
+
       (field_helpers - %w(label check_box radio_button fields_for)).each do |selector|
         src = <<-end_src
           def #{selector}(method, options = {})
@@ -628,19 +627,19 @@ module ActionView
       def check_box(method, options = {}, checked_value = "1", unchecked_value = "0")
         @template.check_box(@object_name, method, options.merge(:object => @object), checked_value, unchecked_value)
       end
-      
+
       def radio_button(method, tag_value, options = {})
         @template.radio_button(@object_name, method, tag_value, options.merge(:object => @object))
       end
-      
+
       def error_message_on(method, prepend_text = "", append_text = "", css_class = "formError")
         @template.error_message_on(@object, method, prepend_text, append_text, css_class)
-      end      
+      end
 
       def error_messages(options = {})
         @template.error_messages_for(@object_name, options.merge(:object => @object))
       end
-      
+
       def submit(value = "Save changes", options = {})
         @template.submit_tag(value, options.reverse_merge(:id => "#{object_name}_submit"))
       end
