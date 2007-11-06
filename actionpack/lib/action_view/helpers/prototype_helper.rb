@@ -136,6 +136,14 @@ module ActionView
       #                          default this is the current form, but
       #                          it could just as well be the ID of a
       #                          table row or any other DOM element.
+      # <tt>:with</tt>::         A JavaScript expression specifying
+      #                          the parameters for the XMLHttpRequest.
+      #                          Any expressions should return a valid
+      #                          URL query string.
+      #
+      #                          Example:
+      #                          
+      #                            :with => "'name=' + $('name').value"
       #
       # You can generate a link that uses AJAX in the general case, while 
       # degrading gracefully to plain link behavior in the absence of
