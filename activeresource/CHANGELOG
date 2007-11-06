@@ -1,3 +1,5 @@
+* Update XML documentation examples to include explicit type attributes. Closes #9754 [hasmanyjosh]
+
 *2.0.0 [Preview Release]* (September 29th, 2007)
 
 * Added one-off declarations of mock behavior [DHH]. Example:

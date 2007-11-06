@@ -14,9 +14,9 @@ module ActiveResource
   # Person maps to the resources people, very similarly to Active Record) and a +site+ value, which holds the
   # URI of the resources.
   # 
-  # 		class Person < ActiveResource::Base
-  # 		  self.site = "http://api.people.com:3000/"
-  # 		end
+  #     class Person < ActiveResource::Base
+  #       self.site = "http://api.people.com:3000/"
+  #     end
   # 
   # Now the Person class is mapped to RESTful resources located at <tt>http://api.people.com:3000/people/</tt>, and
   # you can now use Active Resource's lifecycles methods to manipulate resources.  
@@ -26,19 +26,19 @@ module ActiveResource
   # Active Resource exposes methods for creating, finding, updating, and deleting resources
   # from REST web services.
   # 
-  # 	ryan = Person.new(:first => 'Ryan', :last => 'Daigle')
-  # 	ryan.save  #=> true
-  # 	ryan.id  #=> 2
-  # 	Person.exists?(ryan.id)  #=> true
-  # 	ryan.exists?  #=> true
+  #   ryan = Person.new(:first => 'Ryan', :last => 'Daigle')
+  #   ryan.save  #=> true
+  #   ryan.id  #=> 2
+  #   Person.exists?(ryan.id)  #=> true
+  #   ryan.exists?  #=> true
   # 
-  # 	ryan = Person.find(1)
-  # 	# => Resource holding our newly create Person object
+  #   ryan = Person.find(1)
+  #   # => Resource holding our newly create Person object
   # 
-  # 	ryan.first = 'Rizzle'
-  # 	ryan.save  #=> true
+  #   ryan.first = 'Rizzle'
+  #   ryan.save  #=> true
   # 
-  # 	ryan.destroy  #=> true
+  #   ryan.destroy  #=> true
   #
   # As you can see, these are very similar to Active Record's lifecycle methods for database records.
   # You can read more about each of these methods in their respective documentation.
@@ -48,10 +48,10 @@ module ActiveResource
   # Since simple CRUD/lifecycle methods can't accomplish every task, Active Resource also supports
   # defining your own custom REST methods.
   # 
-  #   Person.new(:name => 'Ryan).post(:register) 						
+  #   Person.new(:name => 'Ryan).post(:register)
   #   # => { :id => 1, :name => 'Ryan', :position => 'Clerk' }
   #
-  #   Person.find(1).put(:promote, :position => 'Manager')		
+  #   Person.find(1).put(:promote, :position => 'Manager')
   #   # => { :id => 1, :name => 'Ryan', :position => 'Manager' }
   # 
   # For more information on creating and using custom REST methods, see the 
@@ -61,13 +61,13 @@ module ActiveResource
   #
   # You can validate resources client side by overriding validation methods in the base class.
   # 
-  # 		class Person < ActiveResource::Base
-  # 		   self.site = "http://api.people.com:3000/"
-  # 		   protected
-  # 		     def validate
-  # 		       errors.add("last", "has invalid characters") unless last =~ /[a-zA-Z]*/
-  # 		     end
-  # 		end
+  #     class Person < ActiveResource::Base
+  #        self.site = "http://api.people.com:3000/"
+  #        protected
+  #          def validate
+  #            errors.add("last", "has invalid characters") unless last =~ /[a-zA-Z]*/
+  #          end
+  #     end
   # 
   # See the ActiveResource::Validations documentation for more information.
   #
@@ -137,7 +137,7 @@ module ActiveResource
   #   # is requested with invalid values, the response is:
   #   #
   #   # Response (422):
-  #   # <errors><error>First cannot be empty</error></errors>
+  #   # <errors type="array"><error>First cannot be empty</error></errors>
   #   #
   #
   #   ryan.errors.invalid?(:first)  #=> true

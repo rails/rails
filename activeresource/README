@@ -60,7 +60,7 @@ for a request for a single element - the XML of that item is expected in respons
 
    # Expects a response of
    #
-   # <person><id>1</id><attribute1>value1</attribute1><attribute2>..</attribute2></person>
+   # <person><id type="integer">1</id><attribute1>value1</attribute1><attribute2>..</attribute2></person>
    #
    # for GET http://api.people.com:3000/people/1.xml
    #
@@ -88,9 +88,9 @@ Collections can also be requested in a similar fashion
 
    # Expects a response of
    #
-   # <people>
-   #  <person><id>1</id><first>Ryan</first></person>
-   #  <person><id>2</id><first>Jim</first></person>
+   # <people type="array">
+   #  <person><id type="integer">1</id><first>Ryan</first></person>
+   #  <person><id type="integer">2</id><first>Jim</first></person>
    # </people>
    #
    # for GET http://api.people.com:3000/people.xml
