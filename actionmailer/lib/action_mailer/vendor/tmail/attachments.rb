@@ -1,3 +1,9 @@
+=begin rdoc
+
+= Attachment handling class
+
+=end
+
 require 'stringio'
 
 module TMail

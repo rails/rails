@@ -1,6 +1,8 @@
-#
-# obsolete.rb
-#
+=begin rdoc
+
+= Obsolete methods that are depriciated
+
+=end
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #

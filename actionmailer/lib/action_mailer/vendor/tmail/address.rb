@@ -1,5 +1,8 @@
-#
-# address.rb
+=begin rdoc
+
+= Address handling class
+
+=end
 #
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
@@ -51,6 +54,7 @@ module TMail
           raise SyntaxError, 'empty word in domain' if s.empty?
         end
       end
+
       @local = local
       @domain = domain
       @name   = nil
@@ -95,7 +99,6 @@ module TMail
     end
 
     alias address  spec
-
 
     def ==( other )
       other.respond_to? :spec and self.spec == other.spec

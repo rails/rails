@@ -1,3 +1,8 @@
+=begin rdoc
+
+= Quoting methods
+
+=end
 module TMail
   class Mail
     def subject(to_charset = 'utf-8')

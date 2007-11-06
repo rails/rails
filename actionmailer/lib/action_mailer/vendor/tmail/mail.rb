@@ -1,6 +1,8 @@
-#
-# mail.rb
-#
+=begin rdoc
+
+= Mail class
+
+=end
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
@@ -27,7 +29,7 @@
 # with permission of Minero Aoki.
 #++
 
-require 'tmail/facade'
+require 'tmail/interface'
 require 'tmail/encode'
 require 'tmail/header'
 require 'tmail/port'
@@ -36,7 +38,6 @@ require 'tmail/utils'
 require 'tmail/attachments'
 require 'tmail/quoting'
 require 'socket'
-
 
 module TMail
 
@@ -53,6 +54,7 @@ module TMail
       def parse( str )
         new(StringPort.new(str))
       end
+
     end
 
     def initialize( port = nil, conf = DEFAULT_CONFIG )
@@ -355,6 +357,19 @@ module TMail
     end
 
     def body=( str )
+      # Sets the body of the email to a new (encoded) string.
+      # 
+      # We also reparses the email if the body is ever reassigned, this is a performance hit, however when
+      # you assign the body, you usually want to be able to make sure that you can access the attachments etc.
+      # 
+      # Usage:
+      # 
+      #  mail.body = "Hello, this is\nthe body text"
+      #  # => "Hello, this is\nthe body"
+      #  mail.body
+      #  # => "Hello, this is\nthe body"
+      @body_parsed = false
+      parse_body(StringInput.new(str))
       parse_body
       @body_port.wopen {|f| f.write str }
       str

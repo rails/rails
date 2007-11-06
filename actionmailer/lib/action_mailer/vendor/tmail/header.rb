@@ -1,5 +1,10 @@
-#
-# header.rb
+=begin rdoc
+
+= Header handling class
+
+=end
+# RFC #822 ftp://ftp.isi.edu/in-notes/rfc822.txt
+# 
 #
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
@@ -76,6 +81,7 @@ module TMail
 
       @illegal = false
       @parsed = false
+      
       if intern
         @parsed = true
         parse_init
@@ -129,7 +135,7 @@ module TMail
 
     include StrategyInterface
 
-    def accept( strategy, dummy1 = nil, dummy2 = nil )
+    def accept( strategy )
       ensure_parsed
       do_accept strategy
       strategy.terminate
@@ -207,6 +213,7 @@ module TMail
     end
 
     def do_parse
+      quote_boundary
       obj = Parser.parse(self.class::PARSE_TYPE, @body, @comments)
       set obj if obj
     end
@@ -739,12 +746,17 @@ module TMail
 
     def params
       ensure_parsed
+      unless @params.blank?
+        @params.each do |k, v|
+          @params[k] = unquote(v)
+        end
+      end
       @params
     end
 
     def []( key )
       ensure_parsed
-      @params and @params[key]
+      @params and unquote(@params[key])
     end
 
     def []=( key, val )
@@ -835,12 +847,17 @@ module TMail
 
     def params
       ensure_parsed
+      unless @params.blank?
+        @params.each do |k, v|
+          @params[k] = unquote(v)
+        end
+      end
       @params
     end
 
     def []( key )
       ensure_parsed
-      @params and @params[key]
+      @params and unquote(@params[key])
     end
 
     def []=( key, val )
@@ -867,7 +884,7 @@ module TMail
       @params.each do |k,v|
         strategy.meta ';'
         strategy.space
-        strategy.kv_pair k, v
+        strategy.kv_pair k, unquote(v)
       end
     end
       

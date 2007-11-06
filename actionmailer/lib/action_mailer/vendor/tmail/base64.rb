@@ -1,6 +1,8 @@
-#
-# base64.rb
-#
+=begin rdoc
+
+= Base64 handling class
+
+=end
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #

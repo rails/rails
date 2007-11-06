@@ -1,6 +1,8 @@
-#
-# encode.rb
-#
+=begin rdoc
+
+= Text Encoding class
+
+=end
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
@@ -50,23 +52,25 @@ module TMail
       end
     end
     module_function :create_dest
-
+    
     def encoded( eol = "\r\n", charset = 'j', dest = nil )
       accept_strategy Encoder, eol, charset, dest
     end
-
+    
     def decoded( eol = "\n", charset = 'e', dest = nil )
+      # Turn the E-Mail into a string and return it with all
+      # encoded characters decoded.  alias for to_s
       accept_strategy Decoder, eol, charset, dest
     end
-
+    
     alias to_s decoded
-  
+    
     def accept_strategy( klass, eol, charset, dest = nil )
       dest ||= ''
-      accept klass.new(create_dest(dest), charset, eol)
+      accept klass.new( create_dest(dest), charset, eol )
       dest
     end
-
+    
   end
 
 
@@ -141,6 +145,7 @@ module TMail
     end
 
     def kv_pair( k, v )
+      v = dquote(v) unless token_safe?(v)
       @f << k << '=' << v
     end
 
@@ -190,7 +195,16 @@ module TMail
       @f = StrategyInterface.create_dest(dest)
       @opt = OPTIONS[$KCODE]
       @eol = eol
+      @preserve_quotes = true
       reset
+    end
+
+    def preserve_quotes=( bool )
+      @preserve_quotes
+    end
+    
+    def preserve_quotes
+      @preserve_quotes
     end
 
     def normalize_encoding( str )

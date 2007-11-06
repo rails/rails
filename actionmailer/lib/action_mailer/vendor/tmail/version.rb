@@ -1,5 +1,8 @@
+#
+# version.rb
+#
 #--
-# Copyright (c) 2004-2007 David Heinemeier Hansson
+# Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -19,42 +22,17 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+# Note: Originally licensed under LGPL v2+. Using MIT license for Rails
+# with permission of Minero Aoki.
 #++
 
-unless defined?(ActionController)
-  begin
-    $:.unshift "#{File.dirname(__FILE__)}/../../actionpack/lib"
-    require 'action_controller'
-  rescue LoadError
-    require 'rubygems'
-    gem 'actionpack', '>= 1.12.5'
+module TMail #:nodoc:
+  module VERSION #:nodoc:
+    MAJOR = 1
+    MINOR = 1
+    TINY  = 0
+
+    STRING = [MAJOR, MINOR, TINY].join('.')
   end
 end
-
-# attempt to load the TMail gem
-begin
-  require 'rubygems'
-  gem 'TMail', '> 1.1.0'
-  require 'tmail'
-rescue Gem::LoadError
-  # no gem, fall back to vendor copy
-end
-
-$:.unshift(File.dirname(__FILE__) + "/action_mailer/vendor/")
-
-require 'tmail'
-require 'action_mailer/base'
-require 'action_mailer/helpers'
-require 'action_mailer/mail_helper'
-require 'action_mailer/quoting'
-require 'action_mailer/test_helper'
-require 'net/smtp'
-
-ActionMailer::Base.class_eval do
-  include ActionMailer::Quoting
-  include ActionMailer::Helpers
-
-  helper MailHelper
-end
-
-silence_warnings { TMail::Encoder.const_set("MAX_LINE_LEN", 200) }

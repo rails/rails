@@ -1,6 +1,8 @@
-#
-# stringio.rb
-#
+=begin rdoc
+
+= String handling class
+
+=end
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
@@ -218,7 +220,7 @@ class StringOutput#:nodoc:
   alias pos size
 
   def inspect
-    "#<#{self.class}:#{@dest ? 'open' : 'closed'},#{id}>"
+    "#<#{self.class}:#{@dest ? 'open' : 'closed'},#{object_id}>"
   end
 
   def print( *args )

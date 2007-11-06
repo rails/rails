@@ -1,5 +1,7 @@
 *SVN*
 
+* Update TMail to v1.1.0.  Use an updated version of TMail if available.  [mikel]
+
 * Introduce a new base test class for testing Mailers.  ActionMailer::TestCase [Koz]
 
 * Fix silent failure of rxml templates.  #9879 [jstewart]

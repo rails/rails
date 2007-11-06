@@ -1,6 +1,8 @@
-#
-# config.rb
-#
+=begin rdoc
+
+= Configuration Class
+
+=end
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #

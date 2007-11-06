@@ -1,6 +1,8 @@
-#
-# net.rb
-#
+=begin rdoc
+
+= Net provides SMTP wrapping
+
+=end
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #

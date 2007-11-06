@@ -1,6 +1,8 @@
-#
-# mailbox.rb
-#
+=begin rdoc
+
+= Mailbox and Mbox interaction class
+
+=end
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
