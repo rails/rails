@@ -41,6 +41,19 @@ module ActiveRecord
     #     transaction.rollback! # rolls back the transaction that was otherwise going to be successful
     #   end
     #
+    # == Different ActiveRecord classes in a single transaction
+    #
+    # Though the transaction class method is called on some ActiveRecord class,
+    # the objects within the transaction block need not all be instances of
+    # that class.
+    # In this example a <tt>Balance</tt> record is transactionally saved even
+    # though <tt>transaction</tt> is called on the <tt>Account</tt> class:
+    #
+    #   Account.transaction do
+    #     balance.save
+    #     account.save
+    #   end
+    #
     # == Transactions are not distributed across database connections
     #
     # A transaction acts on a single database connection.  If you have

@@ -1,5 +1,7 @@
 *SVN*
 
+* Explain semantics of having several different AR instances in a transaction block. Closes #9036 [jacobat, Marcel Molina]
+
 * Update Schema documentation to use updated sexy migration notation. Closes #10086 [sjgman9]
 
 * Make fixtures work with the new test subclasses. [tarmo, Koz]
