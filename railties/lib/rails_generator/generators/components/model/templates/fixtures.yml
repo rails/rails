@@ -4,12 +4,16 @@ one:
 <% for attribute in attributes -%>
   <%= attribute.name %>: <%= attribute.default %>
 <% end -%>
+<% unless options[:skip_timestamps] -%>
   created_at: <%= Time.now.to_s(:db) %>
   updated_at: <%= Time.now.to_s(:db) %>
+<% end -%>
 two:
   <%= class_name.constantize.primary_key %>: 2
 <% for attribute in attributes -%>
   <%= attribute.name %>: <%= attribute.default %>
 <% end -%>
+<% unless options[:skip_timestamps] -%>
   created_at: <%= Time.now.to_s(:db) %>
   updated_at: <%= Time.now.to_s(:db) %>
+<% end -%>
