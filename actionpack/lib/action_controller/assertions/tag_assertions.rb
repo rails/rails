@@ -37,8 +37,8 @@ module ActionController
       #     to match on the children, and only matching children will be
       #     counted.
       # * <tt>:content</tt>: the textual content of the node must match the
-      #     given value. This will not match HTML tags in the body of a
-      #     tag--only text.
+      #   given value. This will not match HTML tags in the body of a
+      #   tag--only text.
       #
       # Conditions are matched using the following algorithm:
       #
@@ -90,7 +90,7 @@ module ActionController
       #              :descendant => { :tag => "span",
       #                               :child => /hello world/ }
       #
-      # <strong>Please note</strong: #assert_tag and #assert_no_tag only work
+      # <b>Please note</b>: #assert_tag and #assert_no_tag only work
       # with well-formed XHTML. They recognize a few tags as implicitly self-closing
       # (like br and hr and such) but will not work correctly with tags
       # that allow optional closing tags (p, li, td). <em>You must explicitly

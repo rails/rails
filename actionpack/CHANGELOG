@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix broken tag in assert_tag documentation. Closes #9037 [mfazekas]
+
 * Add documentation for route conditions. Closes #9041 [innu, manfred]
 
 * Fix typo left over from previous typo fix in url helper. Closes #9414 [Henrik N]
