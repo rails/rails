@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed handling of non-domain hosts #9479 [purp]
+
 * Fix syntax error in documentation example for cycle method. Closes #8735 [foca]
 
 * Document :with option for link_to_remote. Closes #8765 [ryanb]

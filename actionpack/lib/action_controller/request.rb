@@ -191,7 +191,7 @@ module ActionController
     # Returns the domain part of a host, such as rubyonrails.org in "www.rubyonrails.org". You can specify
     # a different <tt>tld_length</tt>, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
     def domain(tld_length = 1)
-      return nil if !/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.match(host).nil? or host.nil?
+      return nil unless named_host?(host)
 
       host.split('.').last(1 + tld_length).join('.')
     end
@@ -200,7 +200,7 @@ module ActionController
     # You can specify a different <tt>tld_length</tt>, such as 2 to catch ["www"] instead of ["www", "rubyonrails"]
     # in "www.rubyonrails.co.uk".
     def subdomains(tld_length = 1)
-      return [] unless host
+      return [] unless named_host?(host)
       parts = host.split('.')
       parts[0..-(tld_length+2)]
     end
@@ -385,6 +385,10 @@ module ActionController
           "content_length" => content_length,
           "exception" => "#{e.message} (#{e.class})",
           "backtrace" => e.backtrace }
+      end
+
+      def named_host?(host)
+        !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
       end
 
     class << self

@@ -51,6 +51,12 @@ class RequestTest < Test::Unit::TestCase
     @request.host = "192.168.1.200"
     assert_nil @request.domain
 
+    @request.host = "foo.192.168.1.200"
+    assert_nil @request.domain
+
+    @request.host = "192.168.1.200.com"
+    assert_equal "200.com", @request.domain
+
     @request.host = nil
     assert_nil @request.domain
   end
@@ -67,6 +73,15 @@ class RequestTest < Test::Unit::TestCase
 
     @request.host = "foobar.foobar.com"
     assert_equal %w( foobar ), @request.subdomains
+
+    @request.host = "192.168.1.200"
+    assert_equal [], @request.subdomains
+
+    @request.host = "foo.192.168.1.200"
+    assert_equal [], @request.subdomains
+
+    @request.host = "192.168.1.200.com"
+    assert_equal %w( 192 168 1 ), @request.subdomains
 
     @request.host = nil
     assert_equal [], @request.subdomains
