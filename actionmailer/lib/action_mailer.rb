@@ -31,23 +31,15 @@ unless defined?(ActionController)
   end
 end
 
-# attempt to load the TMail gem
-begin
-  require 'rubygems'
-  gem 'TMail', '> 1.1.0'
-  require 'tmail'
-rescue Gem::LoadError
-  # no gem, fall back to vendor copy
-end
-
-$:.unshift(File.dirname(__FILE__) + "/action_mailer/vendor/")
-
+require 'action_mailer/vendor'
 require 'tmail'
+
 require 'action_mailer/base'
 require 'action_mailer/helpers'
 require 'action_mailer/mail_helper'
 require 'action_mailer/quoting'
 require 'action_mailer/test_helper'
+
 require 'net/smtp'
 
 ActionMailer::Base.class_eval do
