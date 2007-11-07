@@ -335,13 +335,16 @@ module ActionView
       #
       # ==== Options
       # You can add HTML attributes using the +options+. The +options+ supports
-      # two additional keys for convienence and conformance:
+      # three additional keys for convienence and conformance:
       #
       # * <tt>:alt</tt>  - If no alt text is given, the file name part of the
       #   +source+ is used (capitalized and without the extension)
       # * <tt>:size</tt> - Supplied as "{Width}x{Height}", so "30x45" becomes
       #   width="30" and height="45". <tt>:size</tt> will be ignored if the
       #   value is not in the correct format.
+      # * <tt>:mouseover</tt> - Set an alternate image to be used when the onmouseover
+      #   event is fired, and sets the original image to be replaced onmouseout.
+      #   This can be used to implement an easy image toggle that fires on onmouseover.
       #
       # ==== Examples
       #  image_tag("icon")  # =>
@@ -356,15 +359,23 @@ module ActionView
       #    <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
       #  image_tag("/icons/icon.gif", :class => "menu_icon") # =>
       #    <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
+      #  image_tag("mouse.png", :mouseover => "/images/mouse_over.png") # => 
+      #    <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
+      #  image_tag("mouse.png", :mouseover => image_path("mouse_over.png")) # => 
+      #    <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
       def image_tag(source, options = {})
         options.symbolize_keys!
 
         options[:src] = path_to_image(source)
         options[:alt] ||= File.basename(options[:src], '.*').split('.').first.capitalize
 
-        if options[:size]
-          options[:width], options[:height] = options[:size].split("x") if options[:size] =~ %r{^\d+x\d+$}
-          options.delete(:size)
+        if size = options.delete(:size)
+          options[:width], options[:height] = size.split("x") if size =~ %r{^\d+x\d+$}
+        end
+
+        if mouseover = options.delete(:mouseover)
+          options[:onmouseover]	= "this.src='#{image_path(mouseover)}'"
+          options[:onmouseout]	= "this.src='#{image_path(options[:src])}'"
         end
 
         tag("img", options)

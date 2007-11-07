@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :mouseover short-cut to AssetTagHelper#image_tag for doing easy image swaps #6893 [joost]
+
 * Fixed handling of non-domain hosts #9479 [purp]
 
 * Fix syntax error in documentation example for cycle method. Closes #8735 [foca]
