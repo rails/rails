@@ -40,11 +40,15 @@ class ActionMailerUrlTest < Test::Unit::TestCase
   end
 
   def setup
-    ActionMailer::Base.delivery_method = :test
+    set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true
     ActionMailer::Base.deliveries = []
 
     @recipient = 'test@localhost'
+  end
+
+  def teardown
+    restore_delivery_method
   end
 
   def test_signed_up_with_url

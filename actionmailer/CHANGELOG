@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow ActionMailer subclasses to individually set their delivery method (so two subclasses can have different delivery methods) #10033 [zdennis]
+
 * Update TMail to v1.1.0.  Use an updated version of TMail if available.  [mikel]
 
 * Introduce a new base test class for testing Mailers.  ActionMailer::TestCase [Koz]

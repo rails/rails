@@ -38,3 +38,12 @@ def uses_mocha(test_name)
 rescue Gem::LoadError
   $stderr.puts "Skipping #{test_name} tests (Mocha >= 0.5 is required). `gem install mocha` and try again."
 end
+
+def set_delivery_method(delivery_method)
+  @old_delivery_method = ActionMailer::Base.delivery_method
+  ActionMailer::Base.delivery_method = delivery_method
+end
+
+def restore_delivery_method
+  ActionMailer::Base.delivery_method = @old_delivery_method
+end

@@ -282,7 +282,7 @@ class ActionMailerTest < Test::Unit::TestCase
 
   # Replacing logger work around for mocha bug. Should be fixed in mocha 0.3.3
   def setup
-    ActionMailer::Base.delivery_method = :test
+    set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true
     ActionMailer::Base.raise_delivery_errors = true
     ActionMailer::Base.deliveries = []
@@ -290,9 +290,10 @@ class ActionMailerTest < Test::Unit::TestCase
     @original_logger = TestMailer.logger
     @recipient = 'test@localhost'
   end
-  
+
   def teardown
     TestMailer.logger = @original_logger
+    restore_delivery_method
   end
 
   def test_nested_parts
@@ -902,9 +903,13 @@ class MethodNamingTest < Test::Unit::TestCase
   end
 
   def setup
-    ActionMailer::Base.delivery_method = :test
+    set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true
     ActionMailer::Base.deliveries = []
+  end
+
+  def teardown
+    restore_delivery_method
   end
 
   def test_send_method

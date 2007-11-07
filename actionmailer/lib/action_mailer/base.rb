@@ -248,8 +248,8 @@ module ActionMailer #:nodoc:
     @@raise_delivery_errors = true
     cattr_accessor :raise_delivery_errors
 
-    @@delivery_method = :smtp
-    cattr_accessor :delivery_method
+    superclass_delegating_accessor :delivery_method
+    self.delivery_method = :smtp
     
     @@perform_deliveries = true
     cattr_accessor :perform_deliveries
