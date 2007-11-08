@@ -86,7 +86,7 @@ This Mailman can be the target for Postfix. In Rails, you would use the runner l
 
 The Base class has the full list of configuration options. Here's an example:
 
-ActionMailer::Base.server_settings = {
+ActionMailer::Base.smtp_settings = {
   :address=>'smtp.yourserver.com',    # default: localhost
   :port=>'25',                        # default: 25
   :user_name=>'user',
