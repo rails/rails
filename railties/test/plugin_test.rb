@@ -119,6 +119,17 @@ uses_mocha "Plugin Tests" do
       z = plugin_for("path/z")
       assert_equal [a, b, z], [b, z, a].sort
     end
+    
+    def test_should_only_be_loaded_once
+      plugin = plugin_for(@valid_plugin_path)
+      assert !plugin.loaded?
+      plugin.expects(:evaluate_init_rb)
+      assert_nothing_raised do
+        plugin.send(:load, @initializer)
+        plugin.send(:load, @initializer)
+      end
+      assert plugin.loaded?
+    end
   
     private
   

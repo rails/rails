@@ -34,6 +34,7 @@ module Rails
 
     # Evaluates a plugin's init.rb file
     def load(initializer)
+      return if loaded?
       report_nonexistant_or_empty_plugin! unless valid?
       evaluate_init_rb(initializer)
       @loaded = true
