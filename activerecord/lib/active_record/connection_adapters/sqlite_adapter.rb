@@ -34,7 +34,7 @@ module ActiveRecord
 
           # Allow database path relative to RAILS_ROOT, but only if
           # the database path is not the special path that tells
-          # Sqlite build a database only in memory.
+          # Sqlite to build a database only in memory.
           if Object.const_defined?(:RAILS_ROOT) && ':memory:' != config[:database]
             config[:database] = File.expand_path(config[:database], RAILS_ROOT)
           end

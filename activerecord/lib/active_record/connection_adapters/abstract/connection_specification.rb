@@ -243,7 +243,7 @@ module ActiveRecord
     end
 
     # Locate the connection of the nearest super class. This can be an
-    # active or defined connections: if it is the latter, it will be
+    # active or defined connection: if it is the latter, it will be
     # opened and set as the active connection for the class it was defined
     # for (not necessarily the current class).
     def self.retrieve_connection #:nodoc:
@@ -264,15 +264,15 @@ module ActiveRecord
       conn or raise ConnectionNotEstablished
     end
 
-    # Returns true if a connection that's accessible to this class have already been opened.
+    # Returns true if a connection that's accessible to this class has already been opened.
     def self.connected?
       active_connections[active_connection_name] ? true : false
     end
 
     # Remove the connection for this class. This will close the active
     # connection and the defined connection (if they exist). The result
-    # can be used as argument for establish_connection, for easy
-    # re-establishing of the connection.
+    # can be used as an argument for establish_connection, for easily
+    # re-establishing the connection.
     def self.remove_connection(klass=self)
       spec = @@defined_connections[klass.name]
       konn = active_connections[klass.name]

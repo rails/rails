@@ -1,6 +1,6 @@
 module ActiveRecord
-  # Active Record automatically timestamps create and update if the table has fields
-  # created_at/created_on or updated_at/updated_on.
+  # Active Record automatically timestamps create and update operations if the table has fields
+  # named created_at/created_on or updated_at/updated_on.
   #
   # Timestamping can be turned off by setting
   #   <tt>ActiveRecord::Base.record_timestamps = false</tt>

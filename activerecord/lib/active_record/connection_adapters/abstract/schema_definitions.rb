@@ -272,7 +272,7 @@ module ActiveRecord
     end
 
     # Represents a SQL table in an abstract way.
-    # Columns are stored as ColumnDefinition in the #columns attribute.
+    # Columns are stored as a ColumnDefinition in the #columns attribute.
     class TableDefinition
       attr_accessor :columns
 
@@ -451,7 +451,7 @@ module ActiveRecord
       alias :belongs_to :references
 
       # Returns a String whose contents are the column definitions
-      # concatenated together.  This string can then be pre and appended to
+      # concatenated together.  This string can then be prepended and appended to
       # to generate the final SQL to create the table.
       def to_sql
         @columns * ', '

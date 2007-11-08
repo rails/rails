@@ -32,9 +32,9 @@ module ActiveRecord
   #     end
   #   end
   #
-  # This migration will add a boolean flag to the accounts table and remove it again, if you're backing out of the migration.
+  # This migration will add a boolean flag to the accounts table and remove it if you're backing out of the migration.
   # It shows how all migrations have two class methods +up+ and +down+ that describes the transformations required to implement
-  # or remove the migration. These methods can consist of both the migration specific methods, like add_column and remove_column,
+  # or remove the migration. These methods can consist of both the migration specific methods like add_column and remove_column,
   # but may also contain regular Ruby code for generating data needed for the transformations.
   #
   # Example of a more complex migration that also needs to initialize data:
@@ -78,9 +78,9 @@ module ActiveRecord
   # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes the column to a different type using the same
   #   parameters as add_column.
   # * <tt>remove_column(table_name, column_name)</tt>: Removes the column named +column_name+ from the table called +table_name+.
-  # * <tt>add_index(table_name, column_names, options)</tt>: Add a new index with the name of the column. Other options include
+  # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index with the name of the column. Other options include
   #   :name and :unique (e.g. { :name => "users_name_index", :unique => true }).
-  # * <tt>remove_index(table_name, index_name)</tt>: Remove the index specified by +index_name+.
+  # * <tt>remove_index(table_name, index_name)</tt>: Removes the index specified by +index_name+.
   #
   # == Irreversible transformations
   #
@@ -94,9 +94,9 @@ module ActiveRecord
   # To generate a new migration, use <tt>script/generate migration MyNewMigration</tt>
   # where MyNewMigration is the name of your migration. The generator will
   # create a file <tt>nnn_my_new_migration.rb</tt> in the <tt>db/migrate/</tt>
-  # directory, where <tt>nnn</tt> is the next largest migration number.
+  # directory where <tt>nnn</tt> is the next largest migration number.
   # You may then edit the <tt>self.up</tt> and <tt>self.down</tt> methods of
-  # n MyNewMigration.
+  # MyNewMigration.
   #
   # To run migrations against the currently configured database, use
   # <tt>rake db:migrate</tt>. This will update the database by running all of the

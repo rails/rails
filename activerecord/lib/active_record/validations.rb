@@ -15,7 +15,7 @@ module ActiveRecord
   end
 
   # Active Record validation is reported to and from this object, which is used by Base#save to
-  # determine whether the object in a valid state to be saved. See usage example in Validations.
+  # determine whether the object is in a valid state to be saved. See usage example in Validations.
   class Errors
     include Enumerable
 
@@ -45,7 +45,7 @@ module ActiveRecord
       :even => "must be even"
     }
 
-    # Holds a hash with all the default error messages, such that they can be replaced by your own copy or localizations.
+    # Holds a hash with all the default error messages that can be replaced by your own copy or localizations.
     cattr_accessor :default_error_messages
 
 
@@ -118,7 +118,7 @@ module ActiveRecord
 
     alias :[] :on
 
-    # Returns errors assigned to base object through add_to_base according to the normal rules of on(attribute).
+    # Returns errors assigned to the base object through add_to_base according to the normal rules of on(attribute).
     def on_base
       on(:base)
     end

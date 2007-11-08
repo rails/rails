@@ -12,7 +12,7 @@ end
 class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
 end
 
-# Fixtures are a way of organizing data that you want to test against; in short, sample data. They come in 3 flavours:
+# Fixtures are a way of organizing data that you want to test against; in short, sample data. They come in 3 flavors:
 #
 #   1.  YAML fixtures
 #   2.  CSV fixtures
@@ -21,7 +21,7 @@ end
 # = YAML fixtures
 #
 # This type of fixture is in YAML format and the preferred default. YAML is a file format which describes data structures
-# in a non-verbose, humanly-readable format. It ships with Ruby 1.8.1+.
+# in a non-verbose, human-readable format. It ships with Ruby 1.8.1+.
 #
 # Unlike single-file fixtures, YAML fixtures are stored in a single file per model, which are placed in the directory appointed
 # by <tt>Test::Unit::TestCase.fixture_path=(path)</tt> (this is automatically configured for Rails, so you can just
@@ -82,7 +82,7 @@ end
 #
 # = Single-file fixtures
 #
-# This type of fixtures was the original format for Active Record that has since been deprecated in favor of the YAML and CSV formats.
+# This type of fixture was the original format for Active Record that has since been deprecated in favor of the YAML and CSV formats.
 # Fixtures for this format are created by placing text files in a sub-directory (with the name of the model) to the directory
 # appointed by <tt>Test::Unit::TestCase.fixture_path=(path)</tt> (this is automatically configured for Rails, so you can just
 # put your files in <your-rails-app>/test/fixtures/<your-model-name>/ -- like <your-rails-app>/test/fixtures/web_sites/ for the WebSite
@@ -106,7 +106,7 @@ end
 # = Using Fixtures
 #
 # Since fixtures are a testing construct, we use them in our unit and functional tests.  There are two ways to use the
-# fixtures, but first let's take a look at a sample unit test found:
+# fixtures, but first let's take a look at a sample unit test:
 #
 #   require 'web_site'
 #
@@ -124,7 +124,7 @@ end
 #     fixtures :web_sites # add more by separating the symbols with commas
 #   ...
 #
-# By adding a "fixtures" method to the test case and passing it a list of symbols (only one is shown here tho), we trigger
+# By adding a "fixtures" method to the test case and passing it a list of symbols (only one is shown here though), we trigger
 # the testing environment to automatically load the appropriate fixtures into the database before each test.
 # To ensure consistent data, the environment deletes the fixtures before running the load.
 #
@@ -212,7 +212,7 @@ end
 # When *not* to use transactional fixtures:
 #   1. You're testing whether a transaction works correctly. Nested transactions don't commit until all parent transactions commit,
 #      particularly, the fixtures transaction which is begun in setup and rolled back in teardown. Thus, you won't be able to verify
-#      the results of your transaction until Active Record supports nested transactions or savepoints (in progress.)
+#      the results of your transaction until Active Record supports nested transactions or savepoints (in progress).
 #   2. Your database does not support transactions. Every Active Record database supports transactions except MySQL MyISAM.
 #      Use InnoDB, MaxDB, or NDB instead.
 #
@@ -260,7 +260,7 @@ end
 #
 # Specifying foreign keys in fixtures can be very fragile, not to
 # mention difficult to read. Since ActiveRecord can figure out the ID of
-# and fixture from its label, you can specify FK's by label instead of ID.
+# any fixture from its label, you can specify FK's by label instead of ID.
 #
 # === belongs_to
 #
