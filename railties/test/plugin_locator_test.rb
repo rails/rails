@@ -1,61 +1,69 @@
 require File.dirname(__FILE__) + '/plugin_test_helper'
 
-class TestPluginFileSystemLocator < Test::Unit::TestCase
-  def setup
-    configuration = Rails::Configuration.new
-    # We need to add our testing plugin directory to the plugin paths so
-    # the locator knows where to look for our plugins
-    configuration.plugin_paths << plugin_fixture_root_path
-    @initializer = Rails::Initializer.new(configuration)
-    @locator     = new_locator
-  end
+uses_mocha "Plugin Locator Tests" do
+
+  class PluginLocatorTest < Test::Unit::TestCase
   
-  def test_no_plugins_are_loaded_if_the_configuration_has_an_empty_plugin_list
-    only_load_the_following_plugins! []
-    assert_equal [], @locator.plugins
-  end
+    def test_should_require_subclasses_to_implement_the_plugins_method
+      assert_raises(RuntimeError) do
+        Rails::Plugin::Locator.new(nil).plugins
+      end
+    end
   
-  def test_only_the_specified_plugins_are_located_in_the_order_listed
-    plugin_names = [:stubby, :acts_as_chunky_bacon]
-    only_load_the_following_plugins! plugin_names
-    assert_equal plugin_names, @locator.plugin_names
-  end
+    def test_should_iterator_over_plugins_returned_by_plugins_when_calling_each
+      locator = Rails::Plugin::Locator.new(nil)
+      locator.stubs(:plugins).returns([:a, :b, :c])
+      plugin_consumer = mock
+      plugin_consumer.expects(:consume).with(:a)
+      plugin_consumer.expects(:consume).with(:b)
+      plugin_consumer.expects(:consume).with(:c)
+    
+      locator.each do |plugin|
+        plugin_consumer.consume(plugin)
+      end
+    end
   
-  def test_all_plugins_are_loaded_when_registered_plugin_list_is_untouched
-    failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-    assert_equal [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @locator.plugin_names, failure_tip
   end
+
+
+  class PluginFileSystemLocatorTest < Test::Unit::TestCase
+    def setup
+      @configuration = Rails::Configuration.new
+      # We need to add our testing plugin directory to the plugin paths so
+      # the locator knows where to look for our plugins
+      @configuration.plugin_paths << plugin_fixture_root_path
+      @initializer       = Rails::Initializer.new(@configuration)
+      @locator           = Rails::Plugin::FileSystemLocator.new(@initializer)
+      @valid_plugin_path = plugin_fixture_path('default/stubby')
+      @empty_plugin_path = plugin_fixture_path('default/empty')
+    end
+
+    def test_should_return_rails_plugin_instances_when_calling_create_plugin_with_a_valid_plugin_directory
+      assert_kind_of Rails::Plugin, @locator.send(:create_plugin, @valid_plugin_path)  
+    end
   
-  def test_all_plugins_loaded_when_all_is_used
-    plugin_names = [:stubby, :acts_as_chunky_bacon, :all]
-    only_load_the_following_plugins! plugin_names
-    failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-    assert_equal [:stubby, :acts_as_chunky_bacon, :a, :plugin_with_no_lib_dir], @locator.plugin_names, failure_tip
-  end
+    def test_should_return_nil_when_calling_create_plugin_with_an_invalid_plugin_directory
+      assert_nil @locator.send(:create_plugin, @empty_plugin_path)  
+    end
   
-  def test_all_plugins_loaded_after_all
-    plugin_names = [:stubby, :all, :acts_as_chunky_bacon]
-    only_load_the_following_plugins! plugin_names
-    failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-    assert_equal [:stubby, :a, :plugin_with_no_lib_dir, :acts_as_chunky_bacon], @locator.plugin_names, failure_tip
-  end
+    def test_should_return_all_plugins_found_under_the_set_plugin_paths
+      assert_equal ["a", "acts_as_chunky_bacon", "plugin_with_no_lib_dir", "stubby"], @locator.plugins.map(&:name)
+    end
   
-  def test_plugin_names_may_be_strings
-    plugin_names = ['stubby', 'acts_as_chunky_bacon', :a, :plugin_with_no_lib_dir]
-    only_load_the_following_plugins! plugin_names
-    failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-    assert_equal [:stubby, :acts_as_chunky_bacon, :a, :plugin_with_no_lib_dir], @locator.plugin_names, failure_tip
-  end
+    def test_should_find_plugins_only_under_the_plugin_paths_set_in_configuration
+      @configuration.plugin_paths = [File.join(plugin_fixture_root_path, "default")]
+      assert_equal ["acts_as_chunky_bacon", "plugin_with_no_lib_dir", "stubby"], @locator.plugins.map(&:name)
+    
+      @configuration.plugin_paths = [File.join(plugin_fixture_root_path, "alternate")]
+      assert_equal ["a"], @locator.plugins.map(&:name)
+    end
   
-  def test_registering_a_plugin_name_that_does_not_exist_raises_a_load_error
-    only_load_the_following_plugins! [:stubby, :acts_as_a_non_existant_plugin]
-    assert_raises(LoadError) do
-      @initializer.load_plugins
+    def test_should_not_raise_any_error_and_return_no_plugins_if_the_plugin_path_value_does_not_exist
+      @configuration.plugin_paths = ["some_missing_directory"]
+      assert_nothing_raised do
+        assert @locator.plugins.empty?
+      end
     end
   end
-  
-  private
-    def new_locator(initializer = @initializer)
-      Rails::Plugin::FileSystemLocator.new(initializer)
-    end   
-end
+
+end # uses_mocha

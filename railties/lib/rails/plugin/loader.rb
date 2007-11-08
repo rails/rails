@@ -1,146 +1,150 @@
+require "rails/plugin"
+
 module Rails
-  module Plugin
+  class Plugin
     class Loader
-      include Comparable
-      attr_reader :initializer, :directory, :name
-  
-      class << self
-        def load(*args)
-          new(*args).load
-        end
-      end
-  
-      def initialize(initializer, directory)
+      attr_reader :initializer
+
+      # Creates a new Plugin::Loader instance, associated with the given
+      # Rails::Initializer. This default implementation automatically locates
+      # all plugins, and adds all plugin load paths, when it is created. The plugins
+      # are then fully loaded (init.rb is evaluated) when load_plugins is called.
+      #
+      # It is the loader's responsibilty to ensure that only the plugins specified
+      # in the configuration are actually loaded, and that the order defined
+      # is respected.
+      def initialize(initializer)
         @initializer = initializer
-        @directory   = directory
-        @name        = File.basename(directory).to_sym
-      end
-  
-      def load
-        return false if loaded?
-        report_nonexistant_or_empty_plugin!
-        add_to_load_path!
-        register_plugin_as_loaded
-        evaluate
-        true
-      end
-  
-      def loaded?
-        initializer.loaded_plugins.include?(name)
-      end
-  
-      def plugin_path?
-        File.directory?(directory) && (has_lib_directory? || has_init_file?)
       end
       
-      def enabled?
-        !explicit_plugin_loading_order? || registered?
-      end
-      
-      def explicitly_enabled?
-        !explicit_plugin_loading_order? || explicitly_registered?
-      end
-      
-      def registered?
-        explicit_plugin_loading_order? && registered_plugins_names_plugin?(name)
+      # Returns the plugins to be loaded, in the order they should be loaded.
+      def plugins
+        @plugins ||= all_plugins.select { |plugin| should_load?(plugin) }.sort { |p1, p2| order_plugins(p1, p2) }
       end
 
-      def explicitly_registered?
-        explicit_plugin_loading_order? && registered_plugins.include?(name)
+      # Returns all the plugins that could be found by the current locators.
+      def all_plugins
+        @all_plugins ||= locate_plugins
+        @all_plugins
+      end
+    
+      def load_plugins
+        plugins.each do |plugin| 
+          plugin.load(initializer)
+          register_plugin_as_loaded(plugin)
+        end
+        ensure_all_registered_plugins_are_loaded!
       end
       
-      def plugin_does_not_exist!(plugin_name = name)
-        raise LoadError, "Can not find the plugin named: #{plugin_name}"
-      end
+      # Adds the load paths for every plugin into the $LOAD_PATH. Plugin load paths are
+      # added *after* the application's <tt>lib</tt> directory, to ensure that an application
+      # can always override code within a plugin.
+      #
+      # Plugin load paths are also added to Dependencies.load_paths, and Dependencies.load_once_paths.  
+      def add_plugin_load_paths
+        plugins.each do |plugin|
+          plugin.load_paths.each do |path|
+            $LOAD_PATH.insert(application_lib_index + 1, path)
+            Dependencies.load_paths      << path
+            Dependencies.load_once_paths << path
+          end
+        end
+        $LOAD_PATH.uniq!
+      end      
       
-      private
+      protected
+      
+        # The locate_plugins method uses each class in config.plugin_locators to
+        # find the set of all plugins available to this Rails application.
+        def locate_plugins
+          configuration.plugin_locators.map { |locator|
+            locator.new(initializer).plugins
+          }.flatten
+          # TODO: sorting based on config.plugins
+        end
+
+        def register_plugin_as_loaded(plugin)
+          initializer.loaded_plugins << plugin
+        end
+
+        def configuration
+          initializer.configuration
+        end
+        
+        def should_load?(plugin)
+          # uses Plugin#name and Plugin#valid?
+          enabled?(plugin) && plugin.valid?
+        end
+
+        def order_plugins(plugin_a, plugin_b)
+          if !explicit_plugin_loading_order?
+            plugin_a <=> plugin_b
+          else
+            if !explicitly_enabled?(plugin_a) && !explicitly_enabled?(plugin_b)
+              plugin_a <=> plugin_b
+            else
+              effective_order_of(plugin_a) <=> effective_order_of(plugin_b)
+            end            
+          end
+        end
+        
+        def effective_order_of(plugin)
+          if explicitly_enabled?(plugin)
+            registered_plugin_names.index(plugin.name) 
+          else
+            registered_plugin_names.index('all')
+          end        
+        end
+
+        def application_lib_index
+          $LOAD_PATH.index(File.join(RAILS_ROOT, 'lib')) || 0
+        end      
+
+        def enabled?(plugin)
+          !explicit_plugin_loading_order? || registered?(plugin)
+        end
+
+        def explicit_plugin_loading_order?
+          !registered_plugin_names.nil?
+        end
+
+        def registered?(plugin)
+          explicit_plugin_loading_order? && registered_plugins_names_plugin?(plugin)
+        end
+
+        def explicitly_enabled?(plugin)
+          !explicit_plugin_loading_order? || explicitly_registered?(plugin)
+        end
+
+        def explicitly_registered?(plugin)
+          explicit_plugin_loading_order? && registered_plugin_names.include?(plugin.name)
+        end
+      
+        def registered_plugins_names_plugin?(plugin)
+          registered_plugin_names.include?(plugin.name) || registered_plugin_names.include?('all')
+        end
+        
         # The plugins that have been explicitly listed with config.plugins. If this list is nil
         # then it means the client does not care which plugins or in what order they are loaded, 
         # so we load all in alphabetical order. If it is an empty array, we load no plugins, if it is
         # non empty, we load the named plugins in the order specified.
-        def registered_plugins
-          config.plugins
+        def registered_plugin_names
+          configuration.plugins ? configuration.plugins.map(&:to_s) : nil
         end
         
-        def registered_plugins_names_plugin?(plugin_name)
-          registered_plugins.include?(plugin_name) || registered_plugins.include?(:all)
+        def loaded?(plugin_name)
+          initializer.loaded_plugins.detect { |plugin| plugin.name == plugin_name.to_s }
         end
         
-        def explicit_plugin_loading_order?
-          !registered_plugins.nil?
-        end
-        
-        def report_nonexistant_or_empty_plugin!
-          plugin_does_not_exist! unless plugin_path?
-        end
-        
-        def lib_path
-          File.join(directory, 'lib')
-        end
-  
-        def init_path
-          File.join(directory, 'init.rb')
-        end
-  
-        def has_lib_directory?
-          File.directory?(lib_path)
-        end
-  
-        def has_init_file?
-          File.file?(init_path)
-        end
-  
-        def add_to_load_path!
-          # Add lib to load path *after* the application lib, to allow
-          # application libraries to override plugin libraries.
-          if has_lib_directory?
-            application_lib_index = $LOAD_PATH.index(application_library_path) || 0
-            $LOAD_PATH.insert(application_lib_index + 1, lib_path)
-            Dependencies.load_paths      << lib_path
-            Dependencies.load_once_paths << lib_path
-          end
-        end
-      
-        def application_library_path
-          File.join(RAILS_ROOT, 'lib')
-        end
-  
-        # Allow plugins to reference the current configuration object
-        def config
-          initializer.configuration
-        end
-  
-        def register_plugin_as_loaded
-          initializer.loaded_plugins << name
-        end
-  
-        # Evaluate in init.rb
-        def evaluate
-          silence_warnings { eval(IO.read(init_path), binding, init_path) } if has_init_file?
-        end
-      
-        def <=>(other_plugin_loader)
+        def ensure_all_registered_plugins_are_loaded!
           if explicit_plugin_loading_order?
-            if non_existent_plugin = [self, other_plugin_loader].detect { |plugin| !registered_plugins_names_plugin?(plugin.name) }
-              plugin_does_not_exist!(non_existent_plugin.name)
+            if configuration.plugins.detect {|plugin| plugin != :all && !loaded?(plugin) }
+              missing_plugins = configuration.plugins - (plugins + [:all])
+              raise LoadError, "Could not locate the following plugins: #{missing_plugins.to_sentence}"
             end
-            
-            if !explicitly_enabled? && !other_plugin_loader.explicitly_enabled?
-              name.to_s <=> other_plugin_loader.name.to_s
-            elsif registered_plugins.include?(:all) && (!explicitly_enabled? || !other_plugin_loader.explicitly_enabled?)
-              effective_index = explicitly_enabled? ? registered_plugins.index(name) : registered_plugins.index(:all)
-              other_effective_index = other_plugin_loader.explicitly_enabled? ? 
-                registered_plugins.index(other_plugin_loader.name) : registered_plugins.index(:all)
-
-              effective_index <=> other_effective_index
-            else
-              registered_plugins.index(name) <=> registered_plugins.index(other_plugin_loader.name)
-            end
-            
-          else
-            name.to_s <=> other_plugin_loader.name.to_s
           end
         end
+  
     end
   end
 end

@@ -1,90 +1,140 @@
 require File.dirname(__FILE__) + '/plugin_test_helper'
 
-class TestPluginLoader < Test::Unit::TestCase
-  def setup
-    @initializer       = Rails::Initializer.new(Rails::Configuration.new)
-    @valid_plugin_path = plugin_fixture_path('default/stubby')
-    @empty_plugin_path = plugin_fixture_path('default/empty')
-  end
-  
-  def test_determining_if_the_plugin_order_has_been_explicitly_set
-    loader = loader_for(@valid_plugin_path)
-    assert !loader.send(:explicit_plugin_loading_order?)
-    only_load_the_following_plugins! %w(stubby acts_as_chunky_bacon)
-    assert loader.send(:explicit_plugin_loading_order?)
-  end
-  
-  def test_enabled_if_not_named_explicitly
-    stubby_loader = loader_for(@valid_plugin_path)
-    acts_as_loader = loader_for('acts_as/acts_as_chunky_bacon')
+uses_mocha "Plugin Loader Tests" do
+
+  class TestPluginLoader < Test::Unit::TestCase
+    ORIGINAL_LOAD_PATH = $LOAD_PATH.dup
     
-    only_load_the_following_plugins! ['stubby', :all]
-    assert stubby_loader.send(:enabled?)
-    assert acts_as_loader.send(:enabled?)
-    
-    assert stubby_loader.send(:explicitly_enabled?)
-    assert !acts_as_loader.send(:explicitly_enabled?)
-  end
-  
-  def test_determining_whether_a_given_plugin_is_loaded
-    plugin_loader = loader_for(@valid_plugin_path)
-    assert !plugin_loader.loaded?
-    assert_nothing_raised do
-      plugin_loader.send(:register_plugin_as_loaded)
+    def setup
+      reset_load_path!
+      
+      @configuration     = Rails::Configuration.new
+      @configuration.plugin_paths << plugin_fixture_root_path
+      @initializer       = Rails::Initializer.new(@configuration)
+      @valid_plugin_path = plugin_fixture_path('default/stubby')
+      @empty_plugin_path = plugin_fixture_path('default/empty')
+      
+      @loader = Rails::Plugin::Loader.new(@initializer)
     end
-    assert plugin_loader.loaded?
-  end
-  
-  def test_if_a_path_is_a_plugin_path
-    # This is a plugin path, with a lib dir
-    assert loader_for(@valid_plugin_path).plugin_path?
-    # This just has an init.rb and no lib dir
-    assert loader_for(plugin_fixture_path('default/plugin_with_no_lib_dir')).plugin_path?
-    # This would be a plugin path, but the directory is empty
-    assert !loader_for(plugin_fixture_path('default/empty')).plugin_path?
-    # This is a non sense path
-    assert !loader_for(plugin_fixture_path('default/this_directory_does_not_exist')).plugin_path?
-  end
-  
-  def test_if_you_try_to_load_a_non_plugin_path_you_get_a_load_error
-    # This path is fine so nothing is raised
-    assert_nothing_raised do
-      loader_for(@valid_plugin_path).send(:report_nonexistant_or_empty_plugin!)
+
+    def test_should_locate_plugins_by_asking_each_locator_specifed_in_configuration_for_its_plugins_result
+      locator_1 = stub(:plugins => [:a, :b, :c])
+      locator_2 = stub(:plugins => [:d, :e, :f])
+      locator_class_1 = stub(:new => locator_1)
+      locator_class_2 = stub(:new => locator_2)
+      @configuration.plugin_locators = [locator_class_1, locator_class_2]
+      assert_equal [:a, :b, :c, :d, :e, :f], @loader.send(:locate_plugins)
     end
     
-    # This is an empty path so it raises
-    assert_raises(LoadError) do
-      loader_for(@empty_plugin_path).send(:report_nonexistant_or_empty_plugin!)
+    def test_should_memoize_the_result_of_locate_plugins_as_all_plugins
+      plugin_list = [:a, :b, :c]
+      @loader.expects(:locate_plugins).once.returns(plugin_list)
+      assert_equal plugin_list, @loader.all_plugins
+      assert_equal plugin_list, @loader.all_plugins # ensuring that locate_plugins isn't called again
     end
     
-    assert_raises(LoadError) do
-      loader_for('this_is_not_a_plugin_directory').send(:report_nonexistant_or_empty_plugin!)
+    def test_should_return_empty_array_if_configuration_plugins_is_empty
+      @configuration.plugins = []
+      assert_equal [], @loader.plugins
     end
+    
+    def test_should_find_all_availble_plugins_and_return_as_all_plugins
+      failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
+      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.all_plugins, failure_tip      
+    end
+
+    def test_should_return_all_plugins_as_plugins_when_registered_plugin_list_is_untouched
+      failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
+      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.plugins, failure_tip
+    end
+    
+    def test_should_return_all_plugins_as_plugins_when_registered_plugin_list_is_nil
+      @configuration.plugins = nil
+      failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
+      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.plugins, failure_tip
+    end
+
+    def test_should_return_specific_plugins_named_in_config_plugins_array_if_set
+      plugin_names = [:acts_as_chunky_bacon, :stubby]
+      only_load_the_following_plugins! plugin_names
+      assert_plugins plugin_names, @loader.plugins
+    end
+    
+    def test_should_respect_the_order_of_plugins_given_in_configuration
+      plugin_names = [:stubby, :acts_as_chunky_bacon]
+      only_load_the_following_plugins! plugin_names
+      assert_plugins plugin_names, @loader.plugins      
+    end
+    
+    def test_should_load_all_plugins_in_natural_order_when_all_is_used
+      only_load_the_following_plugins! [:all]
+      failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
+      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.plugins, failure_tip
+    end
+    
+    def test_should_load_specified_plugins_in_order_and_then_all_remaining_plugins_when_all_is_used
+      only_load_the_following_plugins! [:stubby, :acts_as_chunky_bacon, :all]
+      failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
+      assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :plugin_with_no_lib_dir], @loader.plugins, failure_tip
+    end
+    
+    def test_should_be_able_to_specify_loading_of_plugins_loaded_after_all
+      only_load_the_following_plugins!  [:stubby, :all, :acts_as_chunky_bacon]
+      failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
+      assert_plugins [:stubby, :a, :plugin_with_no_lib_dir, :acts_as_chunky_bacon], @loader.plugins, failure_tip
+    end
+
+    def test_should_accept_plugin_names_given_as_strings
+      only_load_the_following_plugins! ['stubby', 'acts_as_chunky_bacon', :a, :plugin_with_no_lib_dir]
+      failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
+      assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :plugin_with_no_lib_dir], @loader.plugins, failure_tip
+    end
+    
+    def test_should_add_plugin_load_paths_to_global_LOAD_PATH_array
+      only_load_the_following_plugins! [:stubby, :acts_as_chunky_bacon]
+      stubbed_application_lib_index_in_LOAD_PATHS = 5
+      @loader.stubs(:application_lib_index).returns(stubbed_application_lib_index_in_LOAD_PATHS)
+      
+      @loader.add_plugin_load_paths
+      
+      assert $LOAD_PATH.index(File.join(plugin_fixture_path('default/stubby'), 'lib')) >= stubbed_application_lib_index_in_LOAD_PATHS
+      assert $LOAD_PATH.index(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib')) >= stubbed_application_lib_index_in_LOAD_PATHS    
+    end   
+    
+    def test_should_add_plugin_load_paths_to_Dependencies_load_paths
+      only_load_the_following_plugins! [:stubby, :acts_as_chunky_bacon]
+
+      @loader.add_plugin_load_paths
+      
+      assert Dependencies.load_paths.include?(File.join(plugin_fixture_path('default/stubby'), 'lib'))
+      assert Dependencies.load_paths.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))    
+    end
+    
+    def test_should_add_plugin_load_paths_to_Dependencies_load_once_paths
+      only_load_the_following_plugins! [:stubby, :acts_as_chunky_bacon]
+
+      @loader.add_plugin_load_paths
+      
+      assert Dependencies.load_once_paths.include?(File.join(plugin_fixture_path('default/stubby'), 'lib'))
+      assert Dependencies.load_once_paths.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))    
+    end
+    
+    def test_should_add_all_load_paths_from_a_plugin_to_LOAD_PATH_array
+      plugin_load_paths = ["a", "b"]
+      plugin = stub(:load_paths => plugin_load_paths)
+      @loader.stubs(:plugins).returns([plugin])
+      
+      @loader.add_plugin_load_paths
+      
+      plugin_load_paths.each { |path| assert $LOAD_PATH.include?(path) }
+    end
+    
+    private
+    
+      def reset_load_path!
+        $LOAD_PATH.clear
+        ORIGINAL_LOAD_PATH.each { |path| $LOAD_PATH << path }        
+      end
   end
-  
-  def test_loading_a_plugin_gives_the_init_file_access_to_all_it_needs
-    failure_tip = "Perhaps someone has written another test that loads this same plugin and therefore makes the StubbyMixin constant defined already."
-    assert !defined?(StubbyMixin), failure_tip
-    assert !added_to_load_path?(@valid_plugin_path)
-    # The init.rb of this plugin raises if it doesn't have access to all the things it needs
-    assert_nothing_raised do
-      loader_for(@valid_plugin_path).load
-    end
-    assert added_to_load_path?(@valid_plugin_path)
-    assert defined?(StubbyMixin)
-  end
-  
-  private
-    def loader_for(path, initializer = @initializer)
-      Rails::Plugin::Loader.new(initializer, path)
-    end
-    
-    def plugin_fixture_path(path)
-      File.join(plugin_fixture_root_path, path)
-    end
-    
-    def added_to_load_path?(path)
-      $LOAD_PATH.grep(/#{path}/).size == 1
-    end
     
 end

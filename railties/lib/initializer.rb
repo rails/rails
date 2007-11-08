@@ -34,7 +34,7 @@ module Rails
 
     # The set of loaded plugins.
     attr_reader :loaded_plugins
-
+    
     # Runs the initializer. By default, this will invoke the #process method,
     # which simply executes all of the initialization routines. Alternately,
     # you can specify explicitly which initialization routine you want:
@@ -64,6 +64,7 @@ module Rails
     # * #set_load_path
     # * #require_frameworks
     # * #set_autoload_paths
+    # * add_plugin_load_paths
     # * #load_environment
     # * #initialize_encoding
     # * #initialize_database
@@ -83,9 +84,10 @@ module Rails
     def process
       check_ruby_version
       set_load_path
-
+      
       require_frameworks
       set_autoload_paths
+      add_plugin_load_paths
       load_environment
 
       initialize_encoding
@@ -161,14 +163,20 @@ module Rails
     def add_support_load_paths
     end
 
+    # Adds all load paths from plugins to the global set of load paths, so that
+    # code from plugins can be required (explicitly or automatically via Dependencies).
+    def add_plugin_load_paths
+      plugin_loader.add_plugin_load_paths
+    end
+
     # Loads all plugins in <tt>config.plugin_paths</tt>.  <tt>plugin_paths</tt>
     # defaults to <tt>vendor/plugins</tt> but may also be set to a list of
     # paths, such as
     #   config.plugin_paths = ["#{RAILS_ROOT}/lib/plugins", "#{RAILS_ROOT}/vendor/plugins"]
     #
-    # Each plugin discovered in <tt>plugin_paths</tt> is initialized:
-    # * add its +lib+ directory, if present, to the beginning of the load path
-    # * evaluate <tt>init.rb</tt> if present
+    # In the default implementation, as each plugin discovered in <tt>plugin_paths</tt> is initialized:
+    # * its +lib+ directory, if present, is added to the load path (immediately after the applications lib directory)
+    # * <tt>init.rb</tt> is evalutated, if present
     #
     # After all plugins are loaded, duplicates are removed from the load path.
     # If an array of plugin names is specified in config.plugins, only those plugins will be loaded
@@ -178,13 +186,11 @@ module Rails
     # if config.plugins ends contains :all then the named plugins will be loaded in the given order and all other
     # plugins will be loaded in alphabetical order
     def load_plugins
-      configuration.plugin_locators.each do |locator|
-        locator.new(self).each do |plugin|
-          plugin.load
-        end
-      end
-      ensure_all_registered_plugins_are_loaded!
-      $LOAD_PATH.uniq!
+      plugin_loader.load_plugins
+    end
+
+    def plugin_loader
+      @plugin_loader ||= configuration.plugin_loader.new(self)
     end
 
     # Loads the environment specified by Configuration#environment_path, which
@@ -337,15 +343,6 @@ module Rails
       end
     end
 
-    private
-      def ensure_all_registered_plugins_are_loaded!
-        unless configuration.plugins.nil?
-          if configuration.plugins.detect {|plugin| plugin != :all && !loaded_plugins.include?( plugin)}
-            missing_plugins = configuration.plugins - (loaded_plugins + [:all])
-            raise LoadError, "Could not locate the following plugins: #{missing_plugins.to_sentence}"
-          end
-        end
-      end
   end
 
   # The Configuration class holds all the parameters for the Initializer and

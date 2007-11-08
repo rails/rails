@@ -1,5 +1,7 @@
 *SVN*
 
+* Refactor Plugin Loader.  Add plugin lib paths early, and add lots of tests.  Closes #9795 [lazyatom]
+
 * Added --skip-timestamps to generators that produce models #10036 [tpope]
 
 * Update Prototype to 1.6.0 and script.aculo.us to 1.8.0.  [sam, madrobby]
