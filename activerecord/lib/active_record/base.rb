@@ -35,8 +35,6 @@ module ActiveRecord #:nodoc:
   end
   class Rollback < ActiveRecordError #:nodoc:
   end
-  class ProtectedAttributeAssignmentError < ActiveRecordError #:nodoc:
-  end
   class DangerousAttributeError < ActiveRecordError #:nodoc:
   end
 
@@ -358,11 +356,6 @@ module ActiveRecord #:nodoc:
     # adapters for, e.g., your development and test environments.
     cattr_accessor :schema_format , :instance_writer => false
     @@schema_format = :ruby
-
-    # Determines whether to raise an exception on mass-assignment to protected
-    # attributes. Defaults to true.
-    cattr_accessor :whiny_protected_attributes, :instance_writer => false
-    @@whiny_protected_attributes = true
 
     class << self # Class methods
       # Find operates with three different retrieval approaches:
@@ -2101,12 +2094,7 @@ module ActiveRecord #:nodoc:
         removed_attributes = attributes.keys - safe_attributes.keys
 
         if removed_attributes.any?
-          error_message = "Can't mass-assign these protected attributes: #{removed_attributes.join(', ')}"
-          if self.class.whiny_protected_attributes
-            raise ProtectedAttributeAssignmentError, error_message
-          else
-            logger.error error_message
-          end
+          logger.debug "WARNING: Can't mass-assign these protected attributes: #{removed_attributes.join(', ')}"
         end
 
         safe_attributes

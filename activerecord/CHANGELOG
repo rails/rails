@@ -82,7 +82,7 @@
 * validates_uniqueness_of behaves well with abstract superclasses and
 single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Beausoleil, Josh Peek, Tarmo Tänav, pat]
 
-* Raise ProtectedAttributeAssignmentError in development and test environments when mass-assigning to an attr_protected attribute.  #9802 [Henrik N]
+* Warn about protected attribute assigments in development and test environments when mass-assigning to an attr_protected attribute.  #9802 [Henrik N]
 
 * Speedup database date/time parsing.  [Jeremy Kemper, Tarmo Tänav]
 
