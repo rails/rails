@@ -323,7 +323,6 @@ spec = Gem::Specification.new do |s|
 
   s.files = PKG_FILES.to_a.delete_if {|f| f.include?('.svn')}
   s.require_path = 'lib'
-
   s.bindir = "bin"                               # Use these for applications.
   s.executables = ["rails"]
   s.default_executable = "rails"
