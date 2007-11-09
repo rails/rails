@@ -1,0 +1,21 @@
+Active Model
+==============
+
+Totally experimental library that aims to extract common model mixins from
+ActiveRecord for use in ActiveResource (and other similar libraries).  
+This is in a very rough state (no autotest or spec rake tasks set up yet),
+so please excuse the mess.  
+
+Here's what I plan to extract:
+  * ActiveModel::Observing 
+  * ActiveModel::Callbacks
+  * ActiveModel::Validations
+
+	# for ActiveResource params and ActiveRecord options
+  * ActiveModel::Scoping
+
+	# to_json, to_xml, etc
+  * ActiveModel::Serialization
+
+I'm trying to keep ActiveRecord compatibility where possible, but I'm
+annotating the spots where I'm diverging a bit.
