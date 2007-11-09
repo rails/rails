@@ -1431,10 +1431,6 @@ module ActiveRecord
             end
           end
 
-          def aliased_table_names_for(table_name)
-            joins.select{|join| join.table_name == table_name }.collect{|join| join.aliased_table_name}
-          end
-
           protected
             def build(associations, parent = nil)
               parent ||= @joins.last
