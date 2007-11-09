@@ -1,7 +1,7 @@
 module ActiveResource
   module VERSION #:nodoc:
-    MAJOR = 0
-    MINOR = 9
+    MAJOR = 1
+    MINOR = 99
     TINY  = 0
 
     STRING = [MAJOR, MINOR, TINY].join('.')
