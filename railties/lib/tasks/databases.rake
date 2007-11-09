@@ -93,8 +93,8 @@ namespace :db do
     ActiveRecord::Migrator.migrate('db/migrate/', version)
   end
 
-  desc 'Drops, creates and then migrates the database for the current environment. Target specific version with VERSION=x'
-  task :reset => ['db:drop', 'db:create', 'db:migrate']
+  desc 'Drops and recreates the database from db/schema.rb for the current environment.'
+  task :reset => ['db:drop', 'db:create', 'db:schema:load']
 
   desc "Retrieves the charset for the current environment's database"
   task :charset => :environment do

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that db:reset would use migrations instead of loading db/schema.rb [DHH]
+
 * Ensure the plugin loader only loads plugins once.  Closes #10102 [haruki_zaemon]
 
 * Refactor Plugin Loader.  Add plugin lib paths early, and add lots of tests.  Closes #9795 [lazyatom]
