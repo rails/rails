@@ -1247,7 +1247,7 @@ module ActiveRecord
 
         def construct_finder_sql_with_included_associations(options, join_dependency)
           scope = scope(:find)
-          sql = "SELECT #{column_aliases(join_dependency)} FROM #{(scope && scope[:from]) || options[:from] || table_name} "
+          sql = "SELECT #{column_aliases(join_dependency)} FROM #{connection.quote_table_name((scope && scope[:from]) || options[:from] || table_name)} "
           sql << join_dependency.join_associations.collect{|join| join.association_join }.join
  
           add_joins!(sql, options, scope)
@@ -1264,7 +1264,7 @@ module ActiveRecord
  
         def add_limited_ids_condition!(sql, options, join_dependency)
           unless (id_list = select_limited_ids_list(options, join_dependency)).empty?
-            sql << "#{condition_word(sql)} #{table_name}.#{primary_key} IN (#{id_list}) "
+            sql << "#{condition_word(sql)} #{connection.quote_table_name table_name}.#{primary_key} IN (#{id_list}) "
           else
             throw :invalid_query
           end
@@ -1284,11 +1284,11 @@ module ActiveRecord
           is_distinct = !options[:joins].blank? || include_eager_conditions?(options) || include_eager_order?(options)
           sql = "SELECT "
           if is_distinct
-            sql << connection.distinct("#{table_name}.#{primary_key}", options[:order])
+            sql << connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", options[:order])
           else
             sql << primary_key
           end
-          sql << " FROM #{table_name} "
+          sql << " FROM #{connection.quote_table_name table_name} "
 
           if is_distinct
             sql << join_dependency.join_associations.collect(&:association_join).join
@@ -1340,7 +1340,7 @@ module ActiveRecord
 
         def column_aliases(join_dependency)
           join_dependency.joins.collect{|join| join.column_names_with_alias.collect{|column_name, aliased_name|
-              "#{join.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"}}.flatten.join(", ")
+              "#{connection.quote_table_name join.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"}}.flatten.join(", ")
         end
 
         def add_association_callbacks(association_name, options)
@@ -1593,16 +1593,21 @@ module ActiveRecord
             end
 
             def association_join
+              connection = reflection.active_record.connection
               join = case reflection.macro
                 when :has_and_belongs_to_many
                   " #{join_type} %s ON %s.%s = %s.%s " % [
                      table_alias_for(options[:join_table], aliased_join_table_name),
-                     aliased_join_table_name,
+                     connection.quote_table_name(aliased_join_table_name),
                      options[:foreign_key] || reflection.active_record.to_s.foreign_key,
-                     parent.aliased_table_name, reflection.active_record.primary_key] +
+                     connection.quote_table_name(parent.aliased_table_name),
+		     reflection.active_record.primary_key] +
                   " #{join_type} %s ON %s.%s = %s.%s " % [
-                     table_name_and_alias, aliased_table_name, klass.primary_key,
-                     aliased_join_table_name, options[:association_foreign_key] || klass.to_s.foreign_key
+                     table_name_and_alias,
+		     connection.quote_table_name(aliased_table_name),
+		     klass.primary_key,
+                     connection.quote_table_name(aliased_join_table_name),
+		     options[:association_foreign_key] || klass.to_s.foreign_key
                      ]
                 when :has_many, :has_one
                   case
@@ -1615,8 +1620,8 @@ module ActiveRecord
                       if through_reflection.options[:as] # has_many :through against a polymorphic join
                         jt_foreign_key = through_reflection.options[:as].to_s + '_id'
                         jt_as_extra = " AND %s.%s = %s" % [
-                          aliased_join_table_name,
-                          reflection.active_record.connection.quote_column_name(through_reflection.options[:as].to_s + '_type'),
+                          connection.quote_table_name(aliased_join_table_name),
+                          connection.quote_column_name(through_reflection.options[:as].to_s + '_type'),
                           klass.quote_value(parent.active_record.base_class.name)
                         ]
                       else
@@ -1629,8 +1634,8 @@ module ActiveRecord
                           first_key   = "#{source_reflection.options[:as]}_id" 
                           second_key  = options[:foreign_key] || primary_key 
                           as_extra    = " AND %s.%s = %s" % [
-                            aliased_table_name,
-                            reflection.active_record.connection.quote_column_name("#{source_reflection.options[:as]}_type"),  
+                            connection.quote_table_name(aliased_table_name),
+                            connection.quote_column_name("#{source_reflection.options[:as]}_type"),
                             klass.quote_value(source_reflection.active_record.base_class.name) 
                           ]
                         else
@@ -1640,8 +1645,8 @@ module ActiveRecord
                         
                         unless through_reflection.klass.descends_from_active_record?
                           jt_sti_extra = " AND %s.%s = %s" % [
-                            aliased_join_table_name,
-                            reflection.active_record.connection.quote_column_name(through_reflection.active_record.inheritance_column),
+                            connection.quote_table_name(aliased_join_table_name),
+                            connection.quote_column_name(through_reflection.active_record.inheritance_column),
                             through_reflection.klass.quote_value(through_reflection.klass.name.demodulize)]
                         end
                       when :belongs_to
@@ -1649,8 +1654,8 @@ module ActiveRecord
                         if reflection.options[:source_type]
                           second_key = source_reflection.association_foreign_key
                           jt_source_extra = " AND %s.%s = %s" % [
-                            aliased_join_table_name,
-                            reflection.active_record.connection.quote_column_name(reflection.source_reflection.options[:foreign_type]),
+                            connection.quote_table_name(aliased_join_table_name),
+                            connection.quote_column_name(reflection.source_reflection.options[:foreign_type]),
                             klass.quote_value(reflection.options[:source_type])
                           ]
                         else
@@ -1660,44 +1665,56 @@ module ActiveRecord
 
                       " #{join_type} %s ON (%s.%s = %s.%s%s%s%s) " % [
                         table_alias_for(through_reflection.klass.table_name, aliased_join_table_name),
-                        parent.aliased_table_name, reflection.active_record.connection.quote_column_name(parent.primary_key),
-                        aliased_join_table_name, reflection.active_record.connection.quote_column_name(jt_foreign_key), 
+                        connection.quote_table_name(parent.aliased_table_name),
+			connection.quote_column_name(parent.primary_key),
+                        connection.quote_table_name(aliased_join_table_name),
+			connection.quote_column_name(jt_foreign_key),
                         jt_as_extra, jt_source_extra, jt_sti_extra
                       ] +
                       " #{join_type} %s ON (%s.%s = %s.%s%s) " % [
                         table_name_and_alias, 
-                        aliased_table_name, reflection.active_record.connection.quote_column_name(first_key),
-                        aliased_join_table_name, reflection.active_record.connection.quote_column_name(second_key),
+                        connection.quote_table_name(aliased_table_name),
+			connection.quote_column_name(first_key),
+                        connection.quote_table_name(aliased_join_table_name),
+			connection.quote_column_name(second_key),
                         as_extra
                       ]
 
                     when reflection.options[:as] && [:has_many, :has_one].include?(reflection.macro)
                       " #{join_type} %s ON %s.%s = %s.%s AND %s.%s = %s" % [
                         table_name_and_alias,
-                        aliased_table_name, "#{reflection.options[:as]}_id",
-                        parent.aliased_table_name, parent.primary_key,
-                        aliased_table_name, "#{reflection.options[:as]}_type",
+                        connection.quote_table_name(aliased_table_name),
+			"#{reflection.options[:as]}_id",
+                        connection.quote_table_name(parent.aliased_table_name),
+			parent.primary_key,
+                        connection.quote_table_name(aliased_table_name),
+			"#{reflection.options[:as]}_type",
                         klass.quote_value(parent.active_record.base_class.name)
                       ]
                     else
                       foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
                       " #{join_type} %s ON %s.%s = %s.%s " % [
                         table_name_and_alias,
-                        aliased_table_name, foreign_key,
-                        parent.aliased_table_name, parent.primary_key
+                        aliased_table_name,
+			foreign_key,
+                        parent.aliased_table_name,
+			parent.primary_key
                       ]
                   end
                 when :belongs_to
                   " #{join_type} %s ON %s.%s = %s.%s " % [
-                     table_name_and_alias, aliased_table_name, reflection.klass.primary_key,
-                     parent.aliased_table_name, options[:foreign_key] || klass.to_s.foreign_key
+                     table_name_and_alias,
+		     connection.quote_table_name(aliased_table_name),
+		     reflection.klass.primary_key,
+                     connection.quote_table_name(parent.aliased_table_name),
+		     options[:foreign_key] || klass.to_s.foreign_key
                     ]
                 else
                   ""
               end || ''
               join << %(AND %s.%s = %s ) % [
-                aliased_table_name, 
-                reflection.active_record.connection.quote_column_name(klass.inheritance_column), 
+                connection.quote_table_name(aliased_table_name),
+                connection.quote_column_name(klass.inheritance_column),
                 klass.quote_value(klass.name.demodulize)] unless klass.descends_from_active_record?
 
               [through_reflection, reflection].each do |ref|
@@ -1714,7 +1731,7 @@ module ActiveRecord
               end
               
               def table_alias_for(table_name, table_alias)
-                "#{table_name} #{table_alias if table_name != table_alias}".strip
+	         "#{reflection.active_record.connection.quote_table_name(table_name)} #{table_alias if table_name != table_alias}".strip
               end
 
               def table_name_and_alias

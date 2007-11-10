@@ -10,30 +10,30 @@ class InnerJoinAssociationTest < Test::Unit::TestCase
 
   def test_construct_finder_sql_creates_inner_joins
     sql = Author.send(:construct_finder_sql, :joins => :posts)
-    assert_match /INNER JOIN posts ON posts.author_id = authors.id/, sql
+    assert_match /INNER JOIN `?posts`? ON `?posts`?.author_id = authors.id/, sql
   end
   
   def test_construct_finder_sql_cascades_inner_joins
     sql = Author.send(:construct_finder_sql, :joins => {:posts => :comments})
-    assert_match /INNER JOIN posts ON posts.author_id = authors.id/, sql
-    assert_match /INNER JOIN comments ON comments.post_id = posts.id/, sql
+    assert_match /INNER JOIN `?posts`? ON `?posts`?.author_id = authors.id/, sql
+    assert_match /INNER JOIN `?comments`? ON `?comments`?.post_id = posts.id/, sql
   end
   
   def test_construct_finder_sql_inner_joins_through_associations
     sql = Author.send(:construct_finder_sql, :joins => :categorized_posts)
-    assert_match /INNER JOIN categorizations.*INNER JOIN posts/, sql
+    assert_match /INNER JOIN `?categorizations`?.*INNER JOIN `?posts`?/, sql
   end
   
   def test_construct_finder_sql_applies_association_conditions
     sql = Author.send(:construct_finder_sql, :joins => :categories_like_general, :conditions => "TERMINATING_MARKER")
-    assert_match /INNER JOIN categories ON.*AND.*'General'.*TERMINATING_MARKER/, sql
+    assert_match /INNER JOIN `?categories`? ON.*AND.*`?General`?.*TERMINATING_MARKER/, sql
   end
 
   def test_construct_finder_sql_unpacks_nested_joins
     sql = Author.send(:construct_finder_sql, :joins => {:posts => [[:comments]]})
     assert_no_match /inner join.*inner join.*inner join/i, sql, "only two join clauses should be present"
-    assert_match /INNER JOIN posts ON posts.author_id = authors.id/, sql
-    assert_match /INNER JOIN comments ON comments.post_id = posts.id/, sql
+    assert_match /INNER JOIN `?posts`? ON `?posts`?.author_id = authors.id/, sql
+    assert_match /INNER JOIN `?comments`? ON `?comments`?.post_id = `?posts`?.id/, sql
   end
 
   def test_construct_finder_sql_ignores_empty_joins_hash

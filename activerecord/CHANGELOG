@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure that column names are quoted.  Closes #10134 [wesley.moxam]
+
 * Smattering of grammatical fixes to documentation. Closes #10083 [BobSilva]
 
 * Enhance explanation with more examples for attr_accessible macro. Closes #8095 [fearoffish, Marcel Molina]

@@ -147,6 +147,10 @@ class MysqlReservedWordTest < Test::Unit::TestCase
     assert_nothing_raised { Group.count }
   end
 
+  def test_associations_work_with_reserved_words
+    assert_nothing_raised { Select.find(:all, :include => [:groups]) }
+  end
+
   #the following functions were added to DRY test cases
 
   private
