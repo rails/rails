@@ -1,5 +1,7 @@
 *SVN*
 
+* Only load ActionMailer::TestCase if ActionMailer is loaded.  Closes #10137 [defunkt]
+
 * Fixed that db:reset would use migrations instead of loading db/schema.rb [DHH]
 
 * Ensure the plugin loader only loads plugins once.  Closes #10102 [haruki_zaemon]
