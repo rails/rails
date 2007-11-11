@@ -85,7 +85,7 @@ module ActiveRecord
   # == Irreversible transformations
   #
   # Some transformations are destructive in a manner that cannot be reversed. Migrations of that kind should raise
-  # an <tt>IrreversibleMigration</tt> exception in their +down+ method.
+  # an <tt>ActiveRecord::IrreversibleMigration</tt> exception in their +down+ method.
   #
   # == Running migrations from within Rails
   #
@@ -105,7 +105,7 @@ module ActiveRecord
   # To roll the database back to a previous migration version, use
   # <tt>rake db:migrate VERSION=X</tt> where <tt>X</tt> is the version to which
   # you wish to downgrade. If any of the migrations throw an
-  # <tt>IrreversibleMigration</tt> exception, that step will fail and you'll
+  # <tt>ActiveRecord::IrreversibleMigration</tt> exception, that step will fail and you'll
   # have some manual work to do.
   #
   # == Database support
@@ -124,7 +124,7 @@ module ActiveRecord
   #
   #     def self.down
   #       # not much we can do to restore deleted data
-  #       raise IrreversibleMigration
+  #       raise ActiveRecord::IrreversibleMigration, "Can't recover the deleted tags"
   #     end
   #   end
   #
