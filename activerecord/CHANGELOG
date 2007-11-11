@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix HasManyThrough Association so it uses :conditions on the HasMany Association.  Closes #9729 [danger]
+
 * Ensure that column names are quoted.  Closes #10134 [wesley.moxam]
 
 * Smattering of grammatical fixes to documentation. Closes #10083 [BobSilva]

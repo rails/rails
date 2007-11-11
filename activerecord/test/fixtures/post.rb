@@ -16,6 +16,7 @@ class Post < ActiveRecord::Base
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, :class_name => "VerySpecialComment", :include => :post
   has_many :special_comments
+  has_many :nonexistant_comments, :class_name => 'Comment', :conditions => 'comments.id < 0'
 
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, :join_table => "categories_posts", :association_foreign_key => 'category_id'

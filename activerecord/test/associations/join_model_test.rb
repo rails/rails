@@ -410,6 +410,12 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     authors(:david).author_favorites.create :favorite_author => new_author
     assert_equal new_author, authors(:david).reload.favorite_authors.first
   end
+  
+  def test_has_many_through_uses_conditions_specified_on_the_has_many_association
+    author = Author.find(:first)
+    assert !author.comments.blank?
+    assert author.nonexistant_comments.blank?
+  end
 
   def test_has_many_through_uses_correct_attributes
     assert_nil posts(:thinking).tags.find_by_name("General").attributes["tag_id"]
