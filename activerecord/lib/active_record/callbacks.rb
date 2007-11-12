@@ -143,7 +143,7 @@ module ActiveRecord
   #     before_destroy 'self.class.delete_all "parent_id = #{id}"'
   #   end
   #
-  # Notice that single plings (') are used so the <tt>#{id}</tt> part isn't evaluated until the callback is triggered. Also note that these
+  # Notice that single quotes (') are used so the <tt>#{id}</tt> part isn't evaluated until the callback is triggered. Also note that these
   # inline callbacks can be stacked just like the regular ones:
   #
   #   class Topic < ActiveRecord::Base
