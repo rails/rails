@@ -119,7 +119,7 @@ module ActionView
           else
             render("#{path}/_#{partial_name}", local_assigns)
           end
-        when Array, ActiveRecord::Associations::AssociationCollection
+        when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Associations::HasManyThroughAssociation
           if partial_path.any?
             path       = ActionController::RecordIdentifier.partial_path(partial_path.first)
             collection = partial_path

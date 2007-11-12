@@ -14,6 +14,11 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
       render :partial => @topic.replies
     end
     
+    def render_with_has_many_through_association
+      @developer = Developer.find(:first)
+      render :partial => @developer.topics
+    end
+    
     def render_with_belongs_to_association
       @reply = Reply.find(1)
       render :partial => @reply.topic
@@ -45,6 +50,11 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
   def test_rendering_partial_with_has_many_association
     get :render_with_has_many_association
     assert_template 'replies/_reply'
+  end
+  
+  def test_rendering_partial_with_has_many_association
+    get :render_with_has_many_through_association
+    assert_template 'topics/_topic'
   end
   
   def test_rendering_partial_with_belongs_to_association
