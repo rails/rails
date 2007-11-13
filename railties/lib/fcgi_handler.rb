@@ -133,7 +133,12 @@ class RailsFCGIHandler
     def install_signal_handler(signal, handler = nil)
       if SIGNALS.include?(signal) && self.class.method_defined?(name = "#{SIGNALS[signal]}_handler")
         handler ||= method(name).to_proc
-        trap(signal, handler)
+
+        begin
+          trap(signal, handler)
+        rescue ArgumentError
+          dispatcher_log :warn, "Ignoring unsupported signal #{signal}."
+        end
       else
         dispatcher_log :warn, "Ignoring unsupported signal #{signal}."
       end
