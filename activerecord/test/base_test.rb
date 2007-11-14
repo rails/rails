@@ -1555,7 +1555,7 @@ class BasicsTest < Test::Unit::TestCase
     assert xml.include?(%(<written-on type="datetime">#{written_on_in_current_timezone}</written-on>))
     assert xml.include?(%(<content type="yaml">--- Have a nice day\n</content>))
     assert xml.include?(%(<author-email-address>david@loudthinking.com</author-email-address>))
-    assert xml.match(%(<parent-id type="integer"></parent-id>))
+    assert xml.include?(%(<parent-id nil="true" type="integer"></parent-id>))
     if current_adapter?(:SybaseAdapter, :SQLServerAdapter, :OracleAdapter)
       assert xml.include?(%(<last-read type="datetime">#{last_read_in_current_timezone}</last-read>))
     else

@@ -1,5 +1,7 @@
 *SVN*
 
+* Base#to_xml supports the nil="true" attribute like Hash#to_xml.  #8268 [Catfish]
+
 * Change plings to the more conventional quotes in the documentation. Closes #10104 [danger]
 
 * Fix HasManyThrough Association so it uses :conditions on the HasMany Association.  Closes #9729 [danger]

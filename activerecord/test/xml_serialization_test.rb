@@ -78,29 +78,43 @@ class NilXmlSerializationTest < Test::Unit::TestCase
   end
 
   def test_should_serialize_string
-    assert_match %r{<name></name>},     @xml
+    assert_match %r{<name nil="true"></name>},     @xml
   end
   
   def test_should_serialize_integer
-    assert_match %r{<age type="integer"></age>}, @xml
+    assert %r{<age (.*)></age>}.match(@xml)
+    attributes = $1
+    assert_match %r{nil="true"}, attributes
+    assert_match %r{type="integer"}, attributes
   end
   
   def test_should_serialize_binary
-    assert_match %r{></avatar>},                     @xml
-    assert_match %r{<avatar(.*)(type="binary")},     @xml
-    assert_match %r{<avatar(.*)(encoding="base64")}, @xml
+    assert %r{<avatar (.*)></avatar>}.match(@xml)
+    attributes = $1
+    assert_match %r{type="binary"}, attributes
+    assert_match %r{encoding="base64"}, attributes
+    assert_match %r{nil="true"}, attributes
   end
   
   def test_should_serialize_datetime
-    assert_match %r{<created-at type=\"datetime\"></created-at>}, @xml
+    assert %r{<created-at (.*)></created-at>}.match(@xml)
+    attributes = $1
+    assert_match %r{nil="true"}, attributes
+    assert_match %r{type="datetime"}, attributes
   end
   
   def test_should_serialize_boolean
-    assert_match %r{<awesome type=\"boolean\"></awesome>}, @xml
+    assert %r{<awesome (.*)></awesome>}.match(@xml)
+    attributes = $1
+    assert_match %r{type="boolean"}, attributes
+    assert_match %r{nil="true"}, attributes
   end
   
   def test_should_serialize_yaml
-    assert_match %r{<preferences type=\"yaml\"></preferences>}, @xml
+    assert %r{<preferences(.*)></preferences>}.match(@xml)
+    attributes = $1
+    assert_match %r{type="yaml"}, attributes
+    assert_match %r{nil="true"}, attributes
   end
 end
 

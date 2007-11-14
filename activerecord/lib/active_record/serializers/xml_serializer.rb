@@ -271,6 +271,10 @@ module ActiveRecord #:nodoc:
           decorations[:type] = type
         end
 
+        if value.nil?
+          decorations[:nil] = true
+        end
+
         decorations
       end
 
