@@ -5,7 +5,7 @@
 # On MacOS X:
 #   sudo gem install mysql -- --with-mysql-dir=/usr/local/mysql
 # On MacOS X Leopard:
-#   sudo ARCHFLAGS="-arch i386" gem install mysql -- --with-mysql-dir=/usr/local/mysql
+#   sudo env ARCHFLAGS="-arch i386" gem install mysql -- --with-mysql-dir=/usr/local/mysql
 #       This sets the ARCHFLAGS environment variable to your native architecture
 # On Windows:
 #   gem install mysql
