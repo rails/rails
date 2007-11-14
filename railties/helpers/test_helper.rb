@@ -25,8 +25,6 @@ class Test::Unit::TestCase
   self.use_instantiated_fixtures  = false
 
   # Setup all fixtures in test/fixtures/*.(yml|csv) for all tests in alphabetical order.
-  # If you need to control the loading order (due to foreign key constraints etc), you'll
-  # need to change this line to explicitly name the order you desire.
   #
   # Note: You'll currently still have to declare fixtures explicitly in integration tests
   # -- they do not yet inherit this setting
