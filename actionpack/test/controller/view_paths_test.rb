@@ -27,6 +27,7 @@ class ViewLoadPathsTest < Test::Unit::TestCase
   
   def setup
     TestController.view_paths = nil
+    ActionView::Base.cache_template_extensions = false
     @controller = TestController.new
     @request  = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
@@ -39,6 +40,7 @@ class ViewLoadPathsTest < Test::Unit::TestCase
   
   def teardown
     ActiveSupport::Deprecation.behavior = @old_behavior
+    ActionView::Base.cache_template_extensions = true
   end
   
   def test_template_load_path_was_set_correctly
