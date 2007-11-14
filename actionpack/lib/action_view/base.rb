@@ -386,7 +386,7 @@ module ActionView #:nodoc:
     #
     def full_template_path(template_path, extension)
       if @@cache_template_extensions
-        (@@cached_base_paths[template_path] ||= {})[extension.to_s] = find_full_template_path(template_path, extension)
+        (@@cached_base_paths[template_path] ||= {})[extension.to_s] ||= find_full_template_path(template_path, extension)
       else
         find_full_template_path(template_path, extension)
       end
