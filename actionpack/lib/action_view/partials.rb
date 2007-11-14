@@ -112,7 +112,7 @@ module ActionView
           add_counter_to_local_assigns!(partial_name, local_assigns)
           add_object_to_local_assigns!(partial_name, local_assigns, object)
 
-          if logger
+          if logger && logger.debug?
             ActionController::Base.benchmark("Rendered #{path}/_#{partial_name}", Logger::DEBUG, false) do
               render("#{path}/_#{partial_name}", local_assigns)
             end
