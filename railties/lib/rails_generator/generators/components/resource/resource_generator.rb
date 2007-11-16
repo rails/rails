@@ -41,7 +41,7 @@ class ResourceGenerator < Rails::Generator::NamedBase
       m.directory(File.join('test/functional', controller_class_path))
       m.directory(File.join('test/unit', class_path))
 
-      m.dependency 'model', [singular_name] + @args, :collision => :skip
+      m.dependency 'model', [name] + @args, :collision => :skip
 
       m.template(
         'controller.rb', File.join('app/controllers', controller_class_path, "#{controller_file_name}_controller.rb")
