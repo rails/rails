@@ -2,7 +2,7 @@
 #
 # Install the ruby-postgres driver:
 #   gem install ruby-postgres
-# On MacOS X:
+# On Mac OS X:
 #   gem install ruby-postgres -- --include=/usr/local/pgsql
 # On Windows:
 #   gem install ruby-postgres

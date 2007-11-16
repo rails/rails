@@ -2,9 +2,9 @@
 #
 # Install the MySQL driver:
 #   gem install mysql
-# On MacOS X:
+# On Mac OS X:
 #   sudo gem install mysql -- --with-mysql-dir=/usr/local/mysql
-# On MacOS X Leopard:
+# On Mac OS X Leopard:
 #   sudo env ARCHFLAGS="-arch i386" gem install mysql -- --with-mysql-config=/usr/local/mysql/bin/mysql_config
 #       This sets the ARCHFLAGS environment variable to your native architecture
 # On Windows:
