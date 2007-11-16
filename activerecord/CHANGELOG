@@ -1,5 +1,7 @@
 *SVN*
 
+* attr_readonly behaves well with optimistic locking.  #10188 [Nick Bugajski]
+
 * Base#to_xml supports the nil="true" attribute like Hash#to_xml.  #8268 [Catfish]
 
 * Change plings to the more conventional quotes in the documentation. Closes #10104 [danger]
