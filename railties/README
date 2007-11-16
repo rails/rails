@@ -174,9 +174,6 @@ app/helpers
 config
   Configuration files for the Rails environment, the routing map, the database, and other dependencies.
 
-components
-  Self-contained mini-applications that can bundle together controllers, models, and views.
-
 db
   Contains the database schema in schema.rb.  db/migrate contains all
   the sequence of Migrations for your schema.
