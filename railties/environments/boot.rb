@@ -55,7 +55,7 @@ module Rails
 
     def load_rails_gem
       if version = self.class.gem_version
-        gem 'rails', "=#{version}"
+        gem 'rails', version
       else
         gem 'rails'
       end
@@ -93,7 +93,7 @@ module Rails
       end
 
       def parse_gem_version(text)
-        $1 if text =~ /^[^#]*RAILS_GEM_VERSION\s*=\s*'([\d.]+)'/
+        $1 if text =~ /^[^#]*RAILS_GEM_VERSION\s*=\s*'([!~<>=]*\s*[\d.]+)'/
       end
 
       private

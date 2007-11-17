@@ -96,7 +96,7 @@ class GemBootTest < Test::Unit::TestCase
     GemBoot.stubs(:gem_version).returns('0.0.1')
 
     boot = GemBoot.new
-    boot.expects(:gem).with('rails', '=0.0.1')
+    boot.expects(:gem).with('rails', '0.0.1')
     boot.load_rails_gem
   end
 
@@ -112,7 +112,7 @@ class GemBootTest < Test::Unit::TestCase
     GemBoot.stubs(:gem_version).returns('0.0.1')
 
     boot = GemBoot.new
-    boot.expects(:gem).with('rails', '=0.0.1').raises(Gem::LoadError, 'missing rails 0.0.1 gem')
+    boot.expects(:gem).with('rails', '0.0.1').raises(Gem::LoadError, 'missing rails 0.0.1 gem')
     STDERR.expects(:puts)
     boot.expects(:exit).with(1)
     boot.load_rails_gem
@@ -153,6 +153,18 @@ class ParseGemVersionTest < Test::Unit::TestCase
     assert_equal "1.2.3", parse("#RAILS_GEM_VERSION = '9.8.7'\nRAILS_GEM_VERSION = '1.2.3'")
     assert_equal "1.2.3", parse("# RAILS_GEM_VERSION = '9.8.7'\nRAILS_GEM_VERSION = '1.2.3'")
     assert_equal "1.2.3", parse("RAILS_GEM_VERSION = '1.2.3'\n# RAILS_GEM_VERSION = '9.8.7'")
+  end
+
+  def test_should_allow_advanced_rubygems_version_specifications
+    # See http://rubygems.org/read/chapter/16
+    assert_equal "=1.2.3", parse("RAILS_GEM_VERSION = '=1.2.3'") # equal sign
+    assert_equal "= 1.2.3", parse("RAILS_GEM_VERSION = '= 1.2.3'") # with space
+    assert_equal "!=1.2.3", parse("RAILS_GEM_VERSION = '!=1.2.3'") # not equal
+    assert_equal ">1.2.3", parse("RAILS_GEM_VERSION = '>1.2.3'") # greater than
+    assert_equal "<1.2.3", parse("RAILS_GEM_VERSION = '<1.2.3'") # less than
+    assert_equal ">=1.2.3", parse("RAILS_GEM_VERSION = '>=1.2.3'") # greater than or equal
+    assert_equal "<=1.2.3", parse("RAILS_GEM_VERSION = '<=1.2.3'") # less than or equal
+    assert_equal "~>1.2.3.0", parse("RAILS_GEM_VERSION = '~>1.2.3.0'") # approximately greater than
   end
 
   private
