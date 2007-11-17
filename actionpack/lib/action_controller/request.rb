@@ -166,7 +166,7 @@ module ActionController
     # Returns a host:port string for this request, such as example.com or
     # example.com:8080.
     def host_with_port
-      host + port_string
+      @host_with_port ||= host + port_string
     end
 
     # Returns the port number of this request as an integer.

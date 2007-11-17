@@ -252,11 +252,13 @@ class RequestTest < Test::Unit::TestCase
   end
 
 
-  def test_host_with_port
+  def test_host_with_default_port
     @request.host = "rubyonrails.org"
     @request.port = 80
     assert_equal "rubyonrails.org", @request.host_with_port
-
+  end
+  
+  def test_host_with_non_default_port
     @request.host = "rubyonrails.org"
     @request.port = 81
     assert_equal "rubyonrails.org:81", @request.host_with_port

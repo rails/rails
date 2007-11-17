@@ -248,15 +248,21 @@ class ActionCacheTest < Test::Unit::TestCase
     @request.host = 'jamis.hostname.com'
     get :index
     jamis_cache = content_to_cache
-
+    
+    reset!
+    
     @request.host = 'david.hostname.com'
     get :index
     david_cache = content_to_cache
     assert_not_equal jamis_cache, @response.body
 
+    reset!
+
     @request.host = 'jamis.hostname.com'
     get :index
     assert_equal jamis_cache, @response.body
+
+    reset!
 
     @request.host = 'david.hostname.com'
     get :index
