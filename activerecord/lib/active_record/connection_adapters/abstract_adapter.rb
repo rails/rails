@@ -127,7 +127,7 @@ module ActiveRecord
       protected
         def log(sql, name)
           if block_given?
-            if @logger and @logger.level <= Logger::INFO
+            if @logger and @logger.debug?
               result = nil
               seconds = Benchmark.realtime { result = yield }
               @runtime += seconds
