@@ -78,9 +78,6 @@ module ActionController
 
         unless defined? @named_routes_configured
           # install the named routes in this session instance.
-          # But we have to disable the optimisation code so that we can
-          # generate routes without @request being initialized
-          Base.optimise_named_routes=false
           Routing::Routes.reload!
           klass = class<<self; self; end
           Routing::Routes.install_helpers(klass)
