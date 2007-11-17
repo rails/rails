@@ -11,10 +11,27 @@ class BootTest < Test::Unit::TestCase
     assert_nil Rails.boot!
   end
 
-  def test_boot_picks_and_runs_if_not_booted
+  def test_boot_preinitializes_then_picks_and_runs_if_not_booted
     Rails.expects(:booted?).returns(false)
+    Rails.expects(:preinitialize)
     Rails.expects(:pick_boot).returns(mock(:run => 'result'))
     assert_equal 'result', Rails.boot!
+  end
+
+  def test_preinitialize_does_not_raise_exception_if_preinitializer_file_does_not_exist
+    Rails.stubs(:preinitializer_path).returns('/there/is/no/such/file')
+
+    assert_nothing_raised { Rails.preinitialize }
+  end
+
+  def test_load_preinitializer_loads_preinitializer_file
+    Rails.stubs(:preinitializer_path).returns("#{File.dirname(__FILE__)}/fixtures/environment_with_constant.rb")
+
+    assert_nil $initialize_test_set_from_env
+    Rails.preinitialize
+    assert_equal "success", $initialize_test_set_from_env
+  ensure
+    $initialize_test_set_from_env = nil
   end
 
   def test_boot_vendor_rails_by_default

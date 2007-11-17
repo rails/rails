@@ -1,5 +1,7 @@
 *SVN*
 
+* Load config/preinitializer.rb, if present, before loading the environment.  #9943 [Chad Woolley]
+
 * FastCGI handler ignores unsupported signals like USR2 on Windows.  [Grzegorz Derebecki]
 
 * Only load ActionMailer::TestCase if ActionMailer is loaded.  Closes #10137 [defunkt]
