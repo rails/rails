@@ -287,7 +287,7 @@ module ActionView #:nodoc:
             raise ActionViewError, "No #{template_handler_preferences.to_sentence} template found for #{template_path} in #{view_paths.inspect}"
           end
           template_file_name = full_template_path(template_path, template_extension)
-          template_extension = template_extension.gsub(/^\w+\./, '') # strip off any formats
+          template_extension = template_extension.gsub(/^.+\./, '') # strip off any formats
         end
       else
         template_file_name = template_path
@@ -490,7 +490,9 @@ module ActionView #:nodoc:
 
       # Determines the template's file extension, such as rhtml, rxml, or rjs.
       def find_template_extension_for(template_path)
-        find_template_extension_from_handler(template_path, true) || find_template_extension_from_handler(template_path)
+        find_template_extension_from_handler(template_path, true) ||
+        find_template_extension_from_handler(template_path) ||
+        find_template_extension_from_first_render()
       end
 
       def find_template_extension_from_handler(template_path, formatted = nil)
@@ -510,6 +512,12 @@ module ActionView #:nodoc:
           end
         end
         nil
+      end
+      
+      # Determine the template extension from the <tt>@first_render</tt> filename
+      def find_template_extension_from_first_render
+        extension = @first_render.to_s.sub /^\w+\.?/, ''
+        extension.blank? ? nil : extension
       end
 
       # This method reads a template file.

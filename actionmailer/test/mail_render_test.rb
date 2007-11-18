@@ -20,6 +20,12 @@ class RenderMailer < ActionMailer::Base
     subject    "rendering rxml template"
     from       "tester@example.com"
   end
+  
+  def included_subtemplate(recipient)
+    recipients recipient
+    subject    "Including another template in the one being rendered"
+    from       "tester@example.com"
+  end
 
   def initialize_defaults(method_name)
     super
@@ -69,6 +75,11 @@ class RenderHelperTest < Test::Unit::TestCase
   def test_rxml_template
     mail = RenderMailer.deliver_rxml_template(@recipient)
     assert_equal "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<test/>", mail.body.strip
+  end
+  
+  def test_included_subtemplate
+    mail = RenderMailer.deliver_included_subtemplate(@recipient)
+    assert_equal "Hey Ho, let's go!", mail.body.strip
   end
 end
 

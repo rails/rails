@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that partials would be broken when using text.plain.erb as the extension #10130 [java]
+
 * Update README to use new smtp settings configuration API. Closes #10060 [psq]
 
 * Allow ActionMailer subclasses to individually set their delivery method (so two subclasses can have different delivery methods) #10033 [zdennis]
