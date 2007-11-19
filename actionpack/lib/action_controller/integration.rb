@@ -78,7 +78,6 @@ module ActionController
 
         unless defined? @named_routes_configured
           # install the named routes in this session instance.
-          Routing::Routes.reload!
           klass = class<<self; self; end
           Routing::Routes.install_helpers(klass)
 
