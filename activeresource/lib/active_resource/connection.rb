@@ -127,16 +127,13 @@ module ActiveResource
         end
       end
 
-      # Creates new (or uses currently instantiated) Net::HTTP instance for communication with
+      # Creates new Net::HTTP instance for communication with
       # remote service and resources.
       def http
-        unless @http
-          @http             = Net::HTTP.new(@site.host, @site.port)
-          @http.use_ssl     = @site.is_a?(URI::HTTPS)
-          @http.verify_mode = OpenSSL::SSL::VERIFY_NONE if @http.use_ssl
-        end
-
-        @http
+        http             = Net::HTTP.new(@site.host, @site.port)
+        http.use_ssl     = @site.is_a?(URI::HTTPS)
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE if http.use_ssl
+        http
       end
 
       def default_header
