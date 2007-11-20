@@ -547,6 +547,17 @@ class ValidationsTest < Test::Unit::TestCase
     assert Topic.create("title" => "abcde").valid?
   end
 
+  def test_validates_inclusion_of_with_formatted_message
+    Topic.validates_inclusion_of( :title, :in => %w( a b c d e f g ), :message => "option %s is not in the list" )
+
+    assert Topic.create("title" => "a", "content" => "abc").valid?
+
+    t = Topic.create("title" => "uhoh", "content" => "abc")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "option uhoh is not in the list", t.errors["title"]
+  end
+
   def test_numericality_with_allow_nil_and_getter_method
     Developer.validates_numericality_of( :salary, :allow_nil => true)
     developer = Developer.new("name" => "michael", "salary" => nil)
@@ -559,6 +570,17 @@ class ValidationsTest < Test::Unit::TestCase
 
     assert Topic.create("title" => "something", "content" => "abc").valid?
     assert !Topic.create("title" => "monkey", "content" => "abc").valid?
+  end
+
+  def test_validates_exclusion_of_with_formatted_message
+    Topic.validates_exclusion_of( :title, :in => %w( abe monkey ), :message => "option %s is restricted" )
+
+    assert Topic.create("title" => "something", "content" => "abc")
+
+    t = Topic.create("title" => "monkey")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "option monkey is restricted", t.errors["title"]
   end
 
   def test_validates_length_of_using_minimum
