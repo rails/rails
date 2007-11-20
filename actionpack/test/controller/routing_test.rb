@@ -212,11 +212,19 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       rs.add_named_route :user, 'admin/user/:id', :controller=>'/admin/user', :action=>'show'
       x = setup_for_named_route
       x.expects(:url_for).never
-      # x.send(:users_url)
+      x.send(:users_url)
       x.send(:users_path)
-      # x.send(:user_url, 2, :foo=>"bar")
+      x.send(:user_url, 2, :foo=>"bar")
       x.send(:user_path, 3, :bar=>"foo")
     end
+    
+    def test_optimized_named_route_with_host 
+     	rs.add_named_route :pages, 'pages', :controller => 'content', :action => 'show_page', :host => 'foo.com' 
+     	x = setup_for_named_route 
+     	x.expects(:url_for).with(:host => 'foo.com', :only_path => false, :controller => 'content', :action => 'show_page', :use_route => :pages).once
+      x.send(:pages_url)
+    end
+    
   end
 
   def setup_for_named_route

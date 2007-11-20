@@ -273,6 +273,8 @@ module ActionController
 
     HTTP_METHODS = [:get, :head, :post, :put, :delete]
 
+    ALLOWED_REQUIREMENTS_FOR_OPTIMISATION = [:controller, :action].to_set
+
     # The root paths which may contain controller files
     mattr_accessor :controller_paths
     self.controller_paths = []
@@ -353,6 +355,7 @@ module ActionController
         @segments = []
         @requirements = {}
         @conditions = {}
+        @optimise = true
       end
 
       # Indicates whether the routes should be optimised with the string interpolation
@@ -1021,13 +1024,16 @@ module ActionController
         route.requirements = requirements
         route.conditions = conditions
 
-        # Routes cannot use the current string interpolation method
-        # if there are user-supplied :requirements as the interpolation
-        # code won't raise RoutingErrors when generating
-        route.optimise = !options.key?(:requirements)
         if !route.significant_keys.include?(:action) && !route.requirements[:action]
           route.requirements[:action] = "index"
           route.significant_keys << :action
+        end
+
+        # Routes cannot use the current string interpolation method
+        # if there are user-supplied :requirements as the interpolation
+        # code won't raise RoutingErrors when generating
+        if options.key?(:requirements) || route.requirements.keys.to_set != Routing::ALLOWED_REQUIREMENTS_FOR_OPTIMISATION
+          route.optimise = false
         end
 
         if !route.significant_keys.include?(:controller)
