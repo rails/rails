@@ -528,6 +528,11 @@ class FoxyFixturesTest < Test::Unit::TestCase
   def test_supports_label_interpolation
     assert_equal("frederick", parrots(:frederick).name)
   end
+
+  def test_supports_polymorphic_belongs_to
+    assert_equal(pirates(:redbeard), treasures(:sapphire).looter)
+    assert_equal(parrots(:louis), treasures(:ruby).looter)
+  end
 end
 
 class ActiveSupportSubclassWithFixturesTest < ActiveSupport::TestCase

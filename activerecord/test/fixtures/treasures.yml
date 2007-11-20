@@ -3,6 +3,8 @@ diamond:
 
 sapphire:
   name: $LABEL
+  looter: redbeard (Pirate)
 
 ruby:
   name: $LABEL
+  looter: louis (Parrot)

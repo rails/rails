@@ -301,6 +301,31 @@ end
 # a target *label* for the *association* (monkey: george) rather than
 # a target *id* for the *FK* (monkey_id: 1).
 #
+# ==== Polymorphic belongs_to
+#
+# Supporting polymorphic relationships is a little bit more complicated, since
+# ActiveRecord needs to know what type your association is pointing at. Something
+# like this should look familiar:
+#
+#   ### in fruit.rb
+#
+#   belongs_to :eater, :polymorphic => true
+#
+#   ### in fruits.yml
+#
+#   apple:
+#     id: 1
+#     name: apple
+#     eater_id: 1
+#     eater_type: Monkey
+#
+# Can we do better? You bet!
+#
+#   apple:
+#     eater: george (Monkey)
+#
+# Just provide the polymorphic target type and ActiveRecord will take care of the rest.
+#
 # === has_and_belongs_to_many
 #
 # Time to give our monkey some fruit.
@@ -556,6 +581,16 @@ class Fixtures < YAML::Omap
           case association.macro
           when :belongs_to
             if value = row.delete(association.name.to_s)
+              if association.options[:polymorphic]
+                if value.sub!(/\s*\(([^\)]*)\)\s*$/, "")
+                  target_type = $1
+                  target_type_name = (association.options[:foreign_type] || "#{association.name}_type").to_s
+
+                  # support polymorphic belongs_to as "label (Type)"
+                  row[target_type_name] = target_type
+                end
+              end
+
               fk_name = (association.options[:foreign_key] || "#{association.name}_id").to_s
               row[fk_name] = Fixtures.identify(value)
             end
