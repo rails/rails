@@ -1,6 +1,0 @@
-#!/usr/bin/env ruby
-require 'test/unit'
-$:.unshift(File.dirname(__FILE__) + '/../lib')
-args = Dir[File.join(File.dirname(__FILE__), '*_test.rb')] + Dir[File.join(File.dirname(__FILE__), 'ws/*_test.rb')]
-(r = Test::Unit::AutoRunner.new(true)).process_args(args)
-exit r.run
