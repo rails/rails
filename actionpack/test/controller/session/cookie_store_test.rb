@@ -4,6 +4,19 @@ require 'action_controller/cgi_ext'
 
 require 'stringio'
 
+
+class CGI::Session::CookieStore
+  def ensure_secret_secure_with_test_hax(secret)
+    if secret == CookieStoreTest.default_session_options['secret']
+      return true
+    else
+      ensure_secret_secure_without_test_hax(secret)
+    end
+  end
+  alias_method_chain :ensure_secret_secure, :test_hax
+end
+
+
 # Expose for tests.
 class CGI
   attr_reader :output_cookies, :output_hidden
@@ -45,6 +58,12 @@ class CookieStoreTest < Test::Unit::TestCase
 
   def test_raises_argument_error_if_missing_secret
     [nil, ''].each do |blank|
+      assert_raise(ArgumentError, blank.inspect) { new_session 'secret' => blank }
+    end
+  end
+
+  def test_raises_argument_error_if_secret_is_probably_insecure
+    ["password", "secret", "12345678901234567890123456789"].each do |blank|
       assert_raise(ArgumentError, blank.inspect) { new_session 'secret' => blank }
     end
   end

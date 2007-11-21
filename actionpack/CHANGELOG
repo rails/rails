@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure that cookie sessions use a secret that is at least 30 chars in length. [Koz]
+
 * Fixed that partial rendering should look at the type of the first render to determine its own type if no other clues are available (like when using text.plain.erb as the extension in AM) #10130 [java]
 
 * Fixed that has_many :through associations should render as collections too #9051 [mathie/danger]

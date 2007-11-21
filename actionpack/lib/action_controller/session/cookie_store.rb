@@ -53,9 +53,7 @@ class CGI::Session::CookieStore
     end
 
     # The secret option is required.
-    if options['secret'].blank?
-      raise ArgumentError, 'A secret is required to generate an integrity hash for cookie session data. Use config.action_controller.session = { :session_key => "_myapp_session", :secret => "some secret phrase" } in config/environment.rb'
-    end
+    ensure_secret_secure(options['secret'])
 
     # Keep the session and its secret on hand so we can read and write cookies.
     @session, @secret = session, options['secret']
@@ -76,6 +74,22 @@ class CGI::Session::CookieStore
     # set our own data cookie.
     options['no_hidden'] = true
     options['no_cookies'] = true
+  end
+
+  # To prevent users from using something insecure like "Password" we make sure that the
+  # secret they've provided is at least 30 characters in length.
+  def ensure_secret_secure(secret)
+    # There's no way we can do this check if they've provided a proc for the
+    # secret.
+    return true if secret.is_a?(Proc)
+
+    if secret.blank?
+      raise ArgumentError, 'A secret is required to generate an integrity hash for cookie session data. Use config.action_controller.session = { :session_key => "_myapp_session", :secret => "some secret phrase" } in config/environment.rb'
+    end
+
+    if secret.length < 30
+      raise ArgumentError, "Secret should be something secure, like #{CGI::Session.generate_unique_id}.  The value you provided: [#{secret}]"
+    end
   end
 
   # Restore session data from the cookie.

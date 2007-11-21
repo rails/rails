@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
+
 class SessionFixationTest < Test::Unit::TestCase
   class MockCGI < CGI #:nodoc:
     attr_accessor :stdoutput, :env_table
@@ -12,7 +13,7 @@ class SessionFixationTest < Test::Unit::TestCase
   end
 
   class TestController < ActionController::Base
-    session :session_key => '_myapp_session_id', :secret => 'secret', :except => :default_session_key
+    session :session_key => '_myapp_session_id', :secret => CGI::Session.generate_unique_id, :except => :default_session_key
     session :cookie_only => false, :only => :allow_session_fixation
 
     def default_session_key
