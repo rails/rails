@@ -483,6 +483,16 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal [companies(:first_client), companies(:second_client)], companies(:first_firm).clients_sorted_desc.find_all_by_type('Client', :order => 'id')
   end
 
+  def test_dynamic_find_all_should_respect_association_limit
+    assert_equal 1, companies(:first_firm).limited_clients.find(:all, :conditions => "type = 'Client'").length
+    assert_equal 1, companies(:first_firm).limited_clients.find_all_by_type('Client').length
+  end
+
+  def test_dynamic_find_all_limit_should_override_association_limit
+    assert_equal 2, companies(:first_firm).limited_clients.find(:all, :conditions => "type = 'Client'", :limit => 9_000).length
+    assert_equal 2, companies(:first_firm).limited_clients.find_all_by_type('Client', :limit => 9_000).length
+  end
+
   def test_triple_equality
     assert !(Array === Firm.find(:first).clients)
     assert Firm.find(:first).clients === Array
@@ -1118,6 +1128,16 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   def test_dynamic_find_all_order_should_override_association_order_for_through
     assert_equal [Comment.find(3), Comment.find(6), Comment.find(7), Comment.find(10)], authors(:david).comments_desc.find(:all, :conditions => "comments.type = 'SpecialComment'", :order => 'comments.id')
     assert_equal [Comment.find(3), Comment.find(6), Comment.find(7), Comment.find(10)], authors(:david).comments_desc.find_all_by_type('SpecialComment', :order => 'comments.id')
+  end
+
+  def test_dynamic_find_all_should_respect_association_limit_for_through
+    assert_equal 1, authors(:david).limited_comments.find(:all, :conditions => "comments.type = 'SpecialComment'").length
+    assert_equal 1, authors(:david).limited_comments.find_all_by_type('SpecialComment').length
+  end
+
+  def test_dynamic_find_all_order_should_override_association_limit_for_through
+    assert_equal 4, authors(:david).limited_comments.find(:all, :conditions => "comments.type = 'SpecialComment'", :limit => 9_000).length
+    assert_equal 4, authors(:david).limited_comments.find_all_by_type('SpecialComment', :limit => 9_000).length
   end
 
 end
@@ -1862,6 +1882,16 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
 
     assert_equal [low_id_jamis, middle_id_jamis, high_id_jamis], projects(:active_record).developers.find(:all, :conditions => "name = 'Jamis'", :order => 'id')
     assert_equal [low_id_jamis, middle_id_jamis, high_id_jamis], projects(:active_record).developers.find_all_by_name('Jamis', :order => 'id')
+  end
+
+  def test_dynamic_find_all_should_respect_association_limit
+    assert_equal 1, projects(:active_record).limited_developers.find(:all, :conditions => "name = 'Jamis'").length
+    assert_equal 1, projects(:active_record).limited_developers.find_all_by_name('Jamis').length
+  end
+
+  def test_dynamic_find_all_order_should_override_association_limit
+    assert_equal 2, projects(:active_record).limited_developers.find(:all, :conditions => "name = 'Jamis'", :limit => 9_000).length
+    assert_equal 2, projects(:active_record).limited_developers.find_all_by_name('Jamis', :limit => 9_000).length
   end
 
   def test_new_with_values_in_collection

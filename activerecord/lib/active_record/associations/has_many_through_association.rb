@@ -236,7 +236,8 @@ module ActiveRecord
                          :conditions  => construct_conditions,
                          :joins       => construct_joins,
                          :select      => construct_select,
-                         :order       => @reflection.options[:order] } }
+                         :order       => @reflection.options[:order],
+                         :limit       => @reflection.options[:limit] } }
         end
 
         def construct_sql

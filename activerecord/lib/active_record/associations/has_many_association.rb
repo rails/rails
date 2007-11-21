@@ -167,7 +167,7 @@ module ActiveRecord
         def construct_scope
           create_scoping = {}
           set_belongs_to_association_for(create_scoping)
-          { :find => { :conditions => @finder_sql, :readonly => false, :order => @reflection.options[:order] }, :create => create_scoping }
+          { :find => { :conditions => @finder_sql, :readonly => false, :order => @reflection.options[:order], :limit => @reflection.options[:limit] }, :create => create_scoping }
         end
     end
   end

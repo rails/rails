@@ -1,5 +1,7 @@
 *SVN*
 
+* Dynamic finders on association collections respect association :order and :limit.  #10211, #10227 [Patrick Joyce, Rick Olson, Jack Danger Canty]
+
 * Add 'foxy' support for fixtures of polymorphic associations. #10183 [jbarnette, David Lowenfels]
 
 * validates_inclusion_of and validates_exclusion_of allow formatted :message strings.  #8132 [devrieda, Mike Naberezny]

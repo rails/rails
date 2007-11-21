@@ -133,7 +133,11 @@ module ActiveRecord
         end
 
         def construct_scope
-          { :find => { :conditions => @finder_sql, :joins => @join_sql, :readonly => false, :order => @reflection.options[:order] } }
+          { :find => {  :conditions => @finder_sql,
+                        :joins => @join_sql,
+                        :readonly => false,
+                        :order => @reflection.options[:order],
+                        :limit => @reflection.options[:limit] } }
         end
 
         # Join tables with additional columns on top of the two foreign keys must be considered ambiguous unless a select
