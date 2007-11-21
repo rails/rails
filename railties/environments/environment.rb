@@ -34,6 +34,8 @@ Rails::Initializer.run do |config|
 
   # Your secret key for verifying cookie session data integrity.
   # If you change this key, all old sessions will become invalid!
+  # Make sure the secret is at least 30 characters and all random, 
+  # no regular words or you'll be exposed to dictionary attacks.
   config.action_controller.session = {
     :session_key => '_<%= app_name %>_session',
     :secret      => '<%= app_secret %>'
