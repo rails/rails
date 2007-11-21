@@ -887,7 +887,7 @@ class RecursiveHTTPFetcher
     contents.scan(/href\s*=\s*\"*[^\">]*/i) do |link|
       link = link.sub(/href="/i, "")
       next if link =~ /svnindex.xsl$/
-      next if link =~ /^http/i || link =~ /^\./
+      next if link =~ /^(\w*:|)\/\// || link =~ /^\./
       links << File.join(base_url, link)
     end
     links
