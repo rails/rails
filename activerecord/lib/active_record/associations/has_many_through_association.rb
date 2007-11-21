@@ -235,7 +235,8 @@ module ActiveRecord
             :find   => { :from        => construct_from,
                          :conditions  => construct_conditions,
                          :joins       => construct_joins,
-                         :select      => construct_select } }
+                         :select      => construct_select,
+                         :order       => @reflection.options[:order] } }
         end
 
         def construct_sql

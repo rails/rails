@@ -15,6 +15,7 @@ class Author < ActiveRecord::Base
     end
   end
   has_many :comments, :through => :posts
+  has_many :comments_desc, :through => :posts, :source => :comments, :order => 'comments.id DESC'
   has_many :funky_comments, :through => :posts, :source => :comments
 
   has_many :special_posts
