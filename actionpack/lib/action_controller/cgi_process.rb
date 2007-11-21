@@ -36,13 +36,14 @@ module ActionController #:nodoc:
   end
 
   class CgiRequest < AbstractRequest #:nodoc:
-    attr_accessor :cgi, :session_options, :cookie_only
+    attr_accessor :cgi, :session_options
     class SessionFixationAttempt < StandardError; end #:nodoc:
 
     DEFAULT_SESSION_OPTIONS = {
       :database_manager => CGI::Session::PStore,
       :prefix           => "ruby_sess.",
       :session_path     => "/",
+      :session_key      => "_session_id",
       :cookie_only      => true
     } unless const_defined?(:DEFAULT_SESSION_OPTIONS)
 
@@ -50,8 +51,11 @@ module ActionController #:nodoc:
       @cgi = cgi
       @session_options = session_options
       @env = @cgi.send(:env_table)
-      @cookie_only = session_options.delete :cookie_only
       super()
+    end
+
+    def cookie_only?
+      session_options_with_string_keys['cookie_only']
     end
 
     def query_string
@@ -114,7 +118,7 @@ module ActionController #:nodoc:
           @session = Hash.new
         else
           stale_session_check! do
-            if @cookie_only && request_parameters[session_options_with_string_keys['session_key']]
+            if cookie_only? && request_parameters[session_options_with_string_keys['session_key']]
               raise SessionFixationAttempt
             end
             case value = session_options_with_string_keys['new_session']
