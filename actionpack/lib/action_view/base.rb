@@ -516,8 +516,7 @@ module ActionView #:nodoc:
       
       # Determine the template extension from the <tt>@first_render</tt> filename
       def find_template_extension_from_first_render
-        extension = @first_render.to_s.sub /^\w+\.?/, ''
-        extension.blank? ? nil : extension
+        File.basename(@first_render.to_s)[/^[^.]+\.(.+)$/, 1]
       end
 
       # This method reads a template file.
