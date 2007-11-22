@@ -162,16 +162,25 @@ module ActionController #:nodoc:
   # For removing objects from the session, you can either assign a single key to nil, like <tt>session[:person] = nil</tt>, or you can
   # remove the entire session with reset_session.
   #
-  # By default, sessions are stored on the file system in <tt>RAILS_ROOT/tmp/sessions</tt>. Any object can be placed in the session
-  # (as long as it can be Marshalled). But remember that 1000 active sessions each storing a 50kb object could lead to a 50MB store on the filesystem.
-  # In other words, think carefully about size and caching before resorting to the use of the session on the filesystem.
+  # Sessions are stored in a browser cookie that's crytographically signed, but unencrypted, by default. This prevents
+  # the user from tampering with the session but also allows him to see its contents.
   #
-  # An alternative to storing sessions on disk is to use ActiveRecordStore to store sessions in your database, which can solve problems
-  # caused by storing sessions in the file system and may speed up your application. To use ActiveRecordStore, uncomment the line:
+  # Do not put secret information in session!
+  #
+  # Other options for session storage are:
+  #
+  # ActiveRecordStore: sessions are stored in your database, which works better than PStore with multiple app servers and,
+  # unlike CookieStore, hides your session contents from the user. To use ActiveRecordStore, set
   #
   #   config.action_controller.session_store = :active_record_store
   #
   # in your <tt>environment.rb</tt> and run <tt>rake db:sessions:create</tt>.
+  #
+  # MemCacheStore: sessions are stored as entries in your memcached cache.  Set the session store type in <tt>environment.rb</tt>:
+  #
+  #   config.action_controller.session_store = :mem_cache_store
+  #
+  #  This assumes that memcached has been installed and configured properly.  See the MemCacheStore docs for more information.
   #
   # == Responses
   #
