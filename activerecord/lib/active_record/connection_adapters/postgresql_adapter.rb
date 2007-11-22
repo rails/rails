@@ -75,7 +75,7 @@ module ActiveRecord
           if PGconn.respond_to?(:unescape_bytea)
             self.class.module_eval do
               define_method(:binary_to_string) do |value|
-                if value =~ /\\\\\d{3}/
+                if value =~ /\\\d{3}/
                   PGconn.unescape_bytea(value)
                 else
                   value
@@ -85,7 +85,7 @@ module ActiveRecord
           else
             self.class.module_eval do
               define_method(:binary_to_string) do |value|
-                if value =~ /\\\\\d{3}/
+                if value =~ /\\\d{3}/
                   result = ''
                   i, max = 0, value.size
                   while i < max
