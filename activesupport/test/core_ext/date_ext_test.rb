@@ -23,6 +23,8 @@ class DateExtCalculationsTest < Test::Unit::TestCase
 
   def test_to_datetime
     assert_equal DateTime.civil(2005, 2, 21), Date.new(2005, 2, 21).to_datetime
+    assert_equal 0, Date.new(2005, 2, 21).to_datetime.offset # use UTC offset
+    assert_equal ::Date::ITALY, Date.new(2005, 2, 21).to_datetime.start # use Ruby's default start value
   end
 
   def test_to_date

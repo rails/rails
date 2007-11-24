@@ -53,7 +53,7 @@ module ActiveSupport #:nodoc:
 
         # Converts self to a Ruby DateTime object; time is set to beginning of day
         def to_datetime
-          ::DateTime.civil(year, month, day, 0, 0, 0, 0, 0)
+          ::DateTime.civil(year, month, day, 0, 0, 0, 0)
         end if RUBY_VERSION < '1.9'
 
         def xmlschema

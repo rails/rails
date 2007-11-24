@@ -83,8 +83,16 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:local)
     assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time
     assert_equal Time.local_time(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time(:local)
-    assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
+  end
+  
+  def test_string_to_datetime
     assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_datetime
+    assert_equal 0, "2039-02-27 23:50".to_datetime.offset # use UTC offset
+    assert_equal ::Date::ITALY, "2039-02-27 23:50".to_datetime.start # use Ruby's default start value
+  end
+  
+  def test_string_to_date
+    assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
   end
 
   def test_access

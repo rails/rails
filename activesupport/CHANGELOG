@@ -1,5 +1,7 @@
 *SVN*
 
+* Time#time_with_datetime_fallback, Time#to_datetime, Date#to_datetime and String#to_datetime honor Ruby's default calendar reform setting. #10201 [Geoff Buesing]
+
 * Change Time and DateTime #end_of_month to return last second of month instead of beginning of last day of month. Closes #10200 [Geoff Buesing]
 
 * Speedup String#blank?  [Jeremy Kemper, Koz]

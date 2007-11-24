@@ -286,7 +286,7 @@ if ActiveRecord::Base.connection.supports_migrations?
           :bio => "I was born ....", :age => 18, :height => 1.78,
           :wealth => BigDecimal.new("12345678901234567890.0123456789"),
           :birthday => 18.years.ago, :favorite_day => 10.days.ago,
-          :moment_of_truth => "1582-10-10 21:40:18", :male => true
+          :moment_of_truth => "1782-10-10 21:40:18", :male => true
       end
 
       bob = Person.find(:first)
@@ -323,6 +323,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_equal DateTime.now.offset, bob.moment_of_truth.offset
         assert_not_equal 0, bob.moment_of_truth.offset
         assert_not_equal "Z", bob.moment_of_truth.zone
+        assert_equal DateTime::ITALY, bob.moment_of_truth.start
       end
 
       assert_equal TrueClass, bob.male?.class

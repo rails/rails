@@ -15,7 +15,7 @@ module ActiveSupport #:nodoc:
         end
         
         def to_datetime
-          ::DateTime.civil(*ParseDate.parsedate(self)[0..5].map {|arg| arg || 0} << 0 << 0)
+          ::DateTime.civil(*ParseDate.parsedate(self)[0..5].map {|arg| arg || 0} << 0)
         end
       end
     end

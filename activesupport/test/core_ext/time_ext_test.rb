@@ -334,6 +334,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     with_timezone 'NZ' do
       assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, Rational(Time.local(2005, 2, 21, 17, 44, 30).utc_offset, 86400), 0)
     end
+    assert_equal ::Date::ITALY, Time.utc(2005, 2, 21, 17, 44, 30).to_datetime.start # use Ruby's default start value
   end
 
   def test_to_time
@@ -378,6 +379,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.time_with_datetime_fallback(:utc, 2039), DateTime.civil(2039, 1, 1, 0, 0, 0, 0, 0)
     assert_equal Time.time_with_datetime_fallback(:utc, 2005, 2, 21, 17, 44, 30, 1), Time.utc(2005, 2, 21, 17, 44, 30, 1) #with usec
     assert_equal Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1), DateTime.civil(2039, 2, 21, 17, 44, 30, 0, 0)
+    assert_equal ::Date::ITALY, Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1).start # use Ruby's default start value
   end
 
   def test_utc_time

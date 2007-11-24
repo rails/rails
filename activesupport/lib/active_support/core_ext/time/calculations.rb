@@ -36,7 +36,7 @@ module ActiveSupport #:nodoc:
             ::Time.send(utc_or_local, year, month, day, hour, min, sec, usec)
           rescue
             offset = utc_or_local.to_sym == :local ? ::DateTime.local_offset : 0
-            ::DateTime.civil(year, month, day, hour, min, sec, offset, 0)
+            ::DateTime.civil(year, month, day, hour, min, sec, offset)
           end
 
           # wraps class method time_with_datetime_fallback with utc_or_local == :utc

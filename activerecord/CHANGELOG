@@ -1,5 +1,7 @@
 *SVN*
 
+* DateTimes use Ruby's default calendar reform setting. #10201 [Geoff Buesing]
+
 * Dynamic finders on association collections respect association :order and :limit.  #10211, #10227 [Patrick Joyce, Rick Olson, Jack Danger Canty]
 
 * Add 'foxy' support for fixtures of polymorphic associations. #10183 [jbarnette, David Lowenfels]

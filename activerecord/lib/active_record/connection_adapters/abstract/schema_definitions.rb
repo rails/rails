@@ -174,8 +174,7 @@ module ActiveRecord
           # Over/underflow to DateTime
           rescue ArgumentError, TypeError
             zone_offset = Base.default_timezone == :local ? DateTime.local_offset : 0
-            # Append zero calendar reform start to account for dates skipped by calendar reform
-            DateTime.new(year, mon, mday, hour, min, sec, zone_offset, 0) rescue nil
+            DateTime.civil(year, mon, mday, hour, min, sec, zone_offset) rescue nil
           end
 
           def fast_string_to_date(string)
