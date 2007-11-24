@@ -25,7 +25,7 @@ require 'openssl'       # to generate the HMAC message digest
 #             CGI::Session instance as an argument. It's important that the
 #             secret is not vulnerable to a dictionary attack. Therefore,
 #             you should choose a secret consisting of random numbers and
-#             letters and preferably more than 30 characters.
+#             letters and more than 30 characters.
 #
 #             Example:  :secret => '449fe2e7daee471bffae2fd8dc02313d'
 #                       :secret => Proc.new { User.current_user.secret_key }
@@ -38,6 +38,7 @@ require 'openssl'       # to generate the HMAC message digest
 class CGI::Session::CookieStore
   # Cookies can typically store 4096 bytes.
   MAX = 4096
+  SECRET_MIN_LENGTH = 30 # characters
 
   # Raised when storing more than 4K of session data.
   class CookieOverflow < StandardError; end
@@ -84,11 +85,11 @@ class CGI::Session::CookieStore
     return true if secret.is_a?(Proc)
 
     if secret.blank?
-      raise ArgumentError, 'A secret is required to generate an integrity hash for cookie session data. Use config.action_controller.session = { :session_key => "_myapp_session", :secret => "some secret phrase" } in config/environment.rb'
+      raise ArgumentError, %Q{A secret is required to generate an integrity hash for cookie session data. Use config.action_controller.session = { :session_key => "_myapp_session", :secret => "some secret phrase of at least #{SECRET_MIN_LENGTH} characters" } in config/environment.rb}
     end
 
-    if secret.length < 30
-      raise ArgumentError, "Secret should be something secure, like #{CGI::Session.generate_unique_id}.  The value you provided: [#{secret}]"
+    if secret.length < SECRET_MIN_LENGTH
+      raise ArgumentError, %Q{Secret should be something secure, like "#{CGI::Session.generate_unique_id}".  The value you provided, "#{secret}", is shorter than the minimum length of #{SECRET_MIN_LENGTH} characters}
     end
   end
 
