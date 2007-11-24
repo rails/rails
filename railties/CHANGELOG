@@ -1,3 +1,9 @@
+*1.2.6* (November 24th, 2007)
+
+* Fix :cookie_only to correctly avoid session fixation attacks (CVE-2007-6077)
+
+* Fix regression where the association would not construct new finder SQL on save causing bogus queries for "WHERE owner_id = NULL" even after owner was saved. 
+
 *1.2.5* (October 12th, 2007)
 
 * Correct RAILS_GEM_VERSION regexp. Use =version gem requirement instead of ~>version so you don't get surprised by a beta gem in production. This change means upgrading to 1.2.5 will require a boot.rb upgrade.  [Jeremy Kemper]
