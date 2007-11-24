@@ -1,3 +1,10 @@
+*1.2.6* (November 24th, 2007)
+
+* Depend on Action Pack 1.13.6
+
+* Depend on Active Record 1.15.6
+
+
 *1.2.5* (October 12th, 2007)
 
 * Depend on Action Pack 1.13.5

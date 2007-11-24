@@ -1,4 +1,4 @@
-*SVN*
+*1.15.6* (November 24th, 2007)
 
 * Allow association redefinition in subclasses.  #9346 [wildchild]
 
