@@ -157,7 +157,7 @@ module ActiveSupport #:nodoc:
         # Returns a new Date/DateTime representing the end of the month (last day of the month; DateTime objects will have time set to 0:00)
         def end_of_month
           last_day = ::Time.days_in_month( self.month, self.year )
-          self.acts_like?(:time) ? change(:day => last_day,:hour => 0, :min => 0, :sec => 0) : change(:day => last_day)
+          self.acts_like?(:time) ? change(:day => last_day, :hour => 23, :min => 59, :sec => 59) : change(:day => last_day)
         end
         alias :at_end_of_month :end_of_month
 

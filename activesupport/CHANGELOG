@@ -1,5 +1,7 @@
 *SVN*
 
+* Change Time and DateTime #end_of_month to return last second of month instead of beginning of last day of month. Closes #10200 [Geoff Buesing]
+
 * Speedup String#blank?  [Jeremy Kemper, Koz]
 
 * Add documentation for Hash#diff. Closes #9306 [tarmo]

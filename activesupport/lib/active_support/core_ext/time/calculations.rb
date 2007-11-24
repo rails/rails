@@ -177,7 +177,7 @@ module ActiveSupport #:nodoc:
         def end_of_month
           #self - ((self.mday-1).days + self.seconds_since_midnight)
           last_day = ::Time.days_in_month( self.month, self.year )
-          change(:day => last_day,:hour => 0, :min => 0, :sec => 0, :usec => 0)
+          change(:day => last_day, :hour => 23, :min => 59, :sec => 59, :usec => 0)
         end
         alias :at_end_of_month :end_of_month
 		

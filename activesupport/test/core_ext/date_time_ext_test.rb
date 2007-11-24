@@ -78,10 +78,9 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_end_of_month
-    assert_equal DateTime.civil(2005,3,31,0,0,0), DateTime.civil(2005,3,20,10,10,10).end_of_month
-    assert_equal DateTime.civil(2005,2,28,0,0,0), DateTime.civil(2005,2,20,10,10,10).end_of_month
-    assert_equal DateTime.civil(2005,4,30,0,0,0), DateTime.civil(2005,4,20,10,10,10).end_of_month
-
+    assert_equal DateTime.civil(2005,3,31,23,59,59), DateTime.civil(2005,3,20,10,10,10).end_of_month
+    assert_equal DateTime.civil(2005,2,28,23,59,59), DateTime.civil(2005,2,20,10,10,10).end_of_month
+    assert_equal DateTime.civil(2005,4,30,23,59,59), DateTime.civil(2005,4,20,10,10,10).end_of_month
   end
 
   def test_beginning_of_year
