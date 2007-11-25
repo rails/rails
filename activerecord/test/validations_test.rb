@@ -25,6 +25,10 @@ class UniqueReply < Reply
   validates_uniqueness_of :content, :scope => 'parent_id'
 end
 
+class PlagiarizedReply < Reply
+  validates_acceptance_of :author_name
+end
+
 class SillyUniqueReply < UniqueReply
 end
 
@@ -290,6 +294,11 @@ class ValidationsTest < Test::Unit::TestCase
 
     t.terms_of_service = "I agree."
     assert t.save
+  end
+
+  def test_validates_acceptance_of_as_database_column
+    reply = PlagiarizedReply.create("author_name" => "Dan Brown")
+    assert_equal "Dan Brown", reply["author_name"]
   end
 
   def test_validate_presences

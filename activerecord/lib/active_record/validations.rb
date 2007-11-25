@@ -414,8 +414,8 @@ module ActiveRecord
       #     validates_acceptance_of :eula, :message => "must be abided"
       #   end
       #
-      # The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed only if
-      # terms_of_service is not nil and by default on save.
+      # If the database column does not exist, the terms_of_service attribute is entirely virtual. This check is
+      # performed only if terms_of_service is not nil and by default on save.
       #
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "must be accepted")
@@ -433,7 +433,7 @@ module ActiveRecord
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save, :allow_nil => true, :accept => "1" }
         configuration.update(attr_names.extract_options!)
 
-        attr_accessor *attr_names
+        attr_accessor *attr_names.reject { |name| column_names.include? name.to_s }
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
           record.errors.add(attr_name, configuration[:message]) unless value == configuration[:accept]
