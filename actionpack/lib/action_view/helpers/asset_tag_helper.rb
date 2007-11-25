@@ -38,6 +38,27 @@ module ActionView
     # Note: This is purely a browser performance optimization and is not meant
     # for server load balancing. See http://www.die.net/musings/page_load_time/
     # for background.
+    #
+    # === Using asset timestamps
+    #
+    # By default, Rails will prepend all asset paths with that asset's timestamp. This allows you to set a cache-expiration date for the
+    # asset far into the future, but still be able to instantly invalidate it by simply updating the file (and hence updating the timestamp,
+    # which then updates the URL as the timestamp is part of that, which in turn busts the cache).
+    #
+    # It's the responsibility of the web server you use to set the far-future expiration date on cache assets that you need to take 
+    # advantage of this feature. Here's an example for Apache:
+    #
+    # # Asset Expiration
+    # ExpiresActive On
+    # <FilesMatch "\.(ico|gif|jpe?g|png|js|css)$">
+    #   ExpiresDefault "access plus 1 year"
+    # </FilesMatch>
+    #
+    # Also note that in order for this to work, all your application servers must return the same timestamps. This means that they must 
+    # have their clocks synchronized. If one of them drift out of synch, you'll see different timestamps at random and the cache won't
+    # work. Which means that the browser will request the same assets over and over again even thought they didn't change. You can use
+    # something like Live HTTP Headers for Firefox to verify that the cache is indeed working (and that the assets are not being 
+    # requested over and over).
     module AssetTagHelper
       ASSETS_DIR      = defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/public" : "public"
       JAVASCRIPTS_DIR = "#{ASSETS_DIR}/javascripts"
