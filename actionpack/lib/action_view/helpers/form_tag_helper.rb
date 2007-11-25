@@ -320,8 +320,8 @@ module ActionView
       #   submit_tag nil, :class => "form_submit"
       #   # => <input class="form_submit" name="commit" type="submit" />
       #
-      #   submit_tag "Edit", :disable_width => "Editing...", :class => 'edit-button'
-      #   # => <input class="edit-button" disable_width="Editing..." name="commit" type="submit" value="Edit" />
+      #   submit_tag "Edit", :disable_with => "Editing...", :class => 'edit-button'
+      #   # => <input class="edit-button" disable_with="Editing..." name="commit" type="submit" value="Edit" />
       def submit_tag(value = "Save changes", options = {})
         options.stringify_keys!
         
