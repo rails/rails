@@ -574,8 +574,8 @@ class Fixtures < YAML::Omap
           row[key] = label if value == "$LABEL"
         end
 
-        # generate a primary key
-        row[primary_key_name] = Fixtures.identify(label)
+        # generate a primary key if necessary
+        row[primary_key_name] = Fixtures.identify(label) if has_primary_key?
 
         model_class.reflect_on_all_associations.each do |association|
           case association.macro
@@ -633,6 +633,10 @@ class Fixtures < YAML::Omap
       @primary_key_name ||= model_class && model_class.primary_key
     end
 
+    def has_primary_key?
+      model_class && model_class.columns.any? { |c| c.name == primary_key_name }
+    end
+    
     def timestamp_column_names
       @timestamp_column_names ||= %w(created_at created_on updated_at updated_on).select do |name|
         column_names.include?(name)

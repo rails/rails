@@ -1,0 +1,4 @@
+blackbeard_to_redbeard:
+  pirate_id: <%= Fixtures.identify(:blackbeard) %>
+  target_id: <%= Fixtures.identify(:redbeard) %>
+  weight: 10

@@ -10,6 +10,7 @@ require 'fixtures/category'
 require 'fixtures/parrot'
 require 'fixtures/pirate'
 require 'fixtures/treasure'
+require 'fixtures/matey'
 
 class FixturesTest < Test::Unit::TestCase
   self.use_instantiated_fixtures = true
@@ -451,7 +452,7 @@ class FasterFixturesTest < Test::Unit::TestCase
 end
 
 class FoxyFixturesTest < Test::Unit::TestCase
-  fixtures :parrots, :parrots_pirates, :pirates, :treasures
+  fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys
 
   def test_identifies_strings
     assert_equal(Fixtures.identify("foo"), Fixtures.identify("foo"))
@@ -532,6 +533,12 @@ class FoxyFixturesTest < Test::Unit::TestCase
   def test_supports_polymorphic_belongs_to
     assert_equal(pirates(:redbeard), treasures(:sapphire).looter)
     assert_equal(parrots(:louis), treasures(:ruby).looter)
+  end
+  
+  def test_only_generates_a_pk_if_necessary
+    m = Matey.find(:first)
+    m.pirate = pirates(:blackbeard)
+    m.target = pirates(:redbeard)
   end
 end
 
