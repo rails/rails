@@ -174,20 +174,9 @@ module ActiveSupport #:nodoc:
             def typecast_xml_value(value)
               case value.class.to_s
                 when 'Hash'
-                  if value.has_key?("__content__")
-                    content = value["__content__"]
-                    if parser = XML_PARSING[value["type"]]
-                      if parser.arity == 2
-                        XML_PARSING[value["type"]].call(content, value)
-                      else
-                        XML_PARSING[value["type"]].call(content)
-                      end
-                    else
-                      content
-                    end
-                  elsif value['type'] == 'array'
+                  if value['type'] == 'array'
                     child_key, entries = value.detect { |k,v| k != 'type' }   # child_key is throwaway
-                    if entries.nil?
+                    if entries.nil? || (c = value['__content__'] && c.blank?)
                       []
                     else
                       case entries.class.to_s   # something weird with classes not matching here.  maybe singleton methods breaking is_a?
@@ -198,6 +187,17 @@ module ActiveSupport #:nodoc:
                       else
                         raise "can't typecast #{entries.inspect}"
                       end
+                    end
+                  elsif value.has_key?("__content__")
+                    content = value["__content__"]
+                    if parser = XML_PARSING[value["type"]]
+                      if parser.arity == 2
+                        XML_PARSING[value["type"]].call(content, value)
+                      else
+                        XML_PARSING[value["type"]].call(content)
+                      end
+                    else
+                      content
                     end
                   elsif value['type'] == 'string' && value['nil'] != 'true'
                     ""

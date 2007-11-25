@@ -549,6 +549,17 @@ class HashToXmlTest < Test::Unit::TestCase
     assert_equal expected_blog_hash, Hash.from_xml(blog_xml)
   end
 
+  def test_empty_array_with_whitespace_from_xml
+    blog_xml = <<-XML
+      <blog>
+        <posts type="array">
+        </posts>
+      </blog>
+    XML
+    expected_blog_hash = {"blog" => {"posts" => []}}
+    assert_equal expected_blog_hash, Hash.from_xml(blog_xml)
+  end
+
   def test_array_with_one_entry_from_xml
     blog_xml = <<-XML
       <blog>
