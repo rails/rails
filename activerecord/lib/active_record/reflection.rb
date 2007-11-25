@@ -82,7 +82,7 @@ module ActiveRecord
         @name
       end
 
-      # Returns the name of the macro, so it would return :composed_of for
+      # Returns the type of the macro, so it would return :composed_of for
       # "composed_of :balance, :class_name => 'Money'" or :has_many for "has_many :clients".
       def macro
         @macro
