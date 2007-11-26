@@ -265,7 +265,7 @@ module ActionView #:nodoc:
     end
 
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil)#:nodoc:
-      @view_paths = view_paths.respond_to?(:find) ? view_paths : [*view_paths].compact
+      @view_paths = view_paths.respond_to?(:find) ? view_paths.dup : [*view_paths].compact
       @assigns = assigns_for_first_render
       @assigns_added = nil
       @controller = controller
@@ -470,6 +470,26 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
 
     def template_handler_preferences
       TEMPLATE_HANDLER_PREFERENCES[template_format] || DEFAULT_TEMPLATE_HANDLER_PREFERENCE
+    end
+
+    # Adds a view_path to the front of the view_paths array.
+    # This change affects the current request only.
+    #
+    #   @template.prepend_view_path("views/default")
+    #   @template.prepend_view_path(["views/default", "views/custom"])
+    #
+    def prepend_view_path(path)
+      @view_paths.unshift(*path)
+    end
+    
+    # Adds a view_path to the end of the view_paths array.
+    # This change affects the current request only.
+    #
+    #   @template.append_view_path("views/default")
+    #   @template.append_view_path(["views/default", "views/custom"])
+    #
+    def append_view_path(path)
+      @view_paths.push(*path)
     end
 
     private

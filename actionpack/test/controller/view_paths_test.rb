@@ -47,7 +47,7 @@ class ViewLoadPathsTest < Test::Unit::TestCase
     assert_equal [ LOAD_PATH_ROOT ], @controller.view_paths
   end
   
-  def test_template_appends_path_correctly
+  def test_controller_appends_view_path_correctly
     TestController.append_view_path 'foo'
     assert_equal [LOAD_PATH_ROOT, 'foo'], @controller.view_paths
     
@@ -55,12 +55,36 @@ class ViewLoadPathsTest < Test::Unit::TestCase
     assert_equal [LOAD_PATH_ROOT, 'foo', 'bar', 'baz'], @controller.view_paths
   end
   
-  def test_template_prepends_path_correctly
+  def test_controller_prepends_view_path_correctly
     TestController.prepend_view_path 'baz'
     assert_equal ['baz', LOAD_PATH_ROOT], @controller.view_paths
     
     TestController.prepend_view_path(%w(foo bar))
     assert_equal ['foo', 'bar', 'baz', LOAD_PATH_ROOT], @controller.view_paths
+  end
+  
+  def test_template_appends_view_path_correctly
+    @controller.instance_variable_set :@template, ActionView::Base.new(TestController.view_paths, {}, @controller)
+    class_view_paths = TestController.view_paths
+
+    @controller.append_view_path 'foo'
+    assert_equal [LOAD_PATH_ROOT, 'foo'], @controller.view_paths
+    
+    @controller.append_view_path(%w(bar baz))
+    assert_equal [LOAD_PATH_ROOT, 'foo', 'bar', 'baz'], @controller.view_paths
+    assert_equal class_view_paths, TestController.view_paths
+  end
+  
+  def test_template_prepends_view_path_correctly
+    @controller.instance_variable_set :@template, ActionView::Base.new(TestController.view_paths, {}, @controller)
+    class_view_paths = TestController.view_paths
+    
+    @controller.prepend_view_path 'baz'
+    assert_equal ['baz', LOAD_PATH_ROOT], @controller.view_paths
+    
+    @controller.prepend_view_path(%w(foo bar))
+    assert_equal ['foo', 'bar', 'baz', LOAD_PATH_ROOT], @controller.view_paths
+    assert_equal class_view_paths, TestController.view_paths
   end
   
   def test_view_paths

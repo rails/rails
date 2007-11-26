@@ -430,7 +430,7 @@ module ActionController #:nodoc:
 
       # Adds a view_path to the front of the view_paths array.
       # If the current class has no view paths, copy them from 
-      # the superclass
+      # the superclass.  This change will be visible for all future requests.
       #
       #   ArticleController.prepend_view_path("views/default")
       #   ArticleController.prepend_view_path(["views/default", "views/custom"])
@@ -442,7 +442,7 @@ module ActionController #:nodoc:
       
       # Adds a view_path to the end of the view_paths array.
       # If the current class has no view paths, copy them from 
-      # the superclass
+      # the superclass. This change will be visible for all future requests.
       #
       #   ArticleController.append_view_path("views/default")
       #   ArticleController.append_view_path(["views/default", "views/custom"])
@@ -636,7 +636,6 @@ module ActionController #:nodoc:
         request.session_options && request.session_options[:disabled] != false
       end
 
-      
       self.view_paths = []
       
       # View load paths for controller.
@@ -647,7 +646,27 @@ module ActionController #:nodoc:
       def view_paths=(value)
         (@template || self.class).view_paths = value
       end
+
+      # Adds a view_path to the front of the view_paths array.
+      # This change affects the current request only.
+      #
+      #   self.prepend_view_path("views/default")
+      #   self.prepend_view_path(["views/default", "views/custom"])
+      #
+      def prepend_view_path(path)
+        (@template || self.class).prepend_view_path(path)
+      end
       
+      # Adds a view_path to the end of the view_paths array.
+      # This change affects the current request only.
+      #
+      #   self.append_view_path("views/default")
+      #   self.append_view_path(["views/default", "views/custom"])
+      #
+      def append_view_path(path)
+        (@template || self.class).append_view_path(path)
+      end
+
     protected
       # Renders the content that will be returned to the browser as the response body.
       #
