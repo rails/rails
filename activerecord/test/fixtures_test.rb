@@ -562,11 +562,16 @@ class FoxyFixturesTest < Test::Unit::TestCase
     assert_equal(pirates(:redbeard), treasures(:sapphire).looter)
     assert_equal(parrots(:louis), treasures(:ruby).looter)
   end
-  
+
   def test_only_generates_a_pk_if_necessary
     m = Matey.find(:first)
     m.pirate = pirates(:blackbeard)
     m.target = pirates(:redbeard)
+  end
+
+  def test_supports_sti
+    assert_kind_of DeadParrot, parrots(:polly)
+    assert_equal pirates(:blackbeard), parrots(:polly).killer
   end
 end
 

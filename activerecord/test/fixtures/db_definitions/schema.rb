@@ -307,6 +307,8 @@ ActiveRecord::Schema.define do
 
   create_table :parrots, :force => true do |t|
     t.column :name, :string
+    t.column :parrot_sti_class, :string
+    t.column :killer_id, :integer
     t.column :created_at, :datetime
     t.column :created_on, :datetime
     t.column :updated_at, :datetime

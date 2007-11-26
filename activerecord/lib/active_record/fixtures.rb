@@ -581,7 +581,15 @@ class Fixtures < YAML::Omap
           row[primary_key_name] = Fixtures.identify(label)
         end
 
-        model_class.reflect_on_all_associations.each do |association|
+        # If STI is used, find the correct subclass for association reflection
+        reflection_class =
+          if row.include?(inheritance_column_name)
+            row[inheritance_column_name].constantize rescue model_class
+          else
+            model_class
+          end
+
+        reflection_class.reflect_on_all_associations.each do |association|
           case association.macro
           when :belongs_to
             # Do not replace association name with association foreign key if they are named the same
@@ -648,6 +656,10 @@ class Fixtures < YAML::Omap
       @timestamp_column_names ||= %w(created_at created_on updated_at updated_on).select do |name|
         column_names.include?(name)
       end
+    end
+
+    def inheritance_column_name
+      @inheritance_column_name ||= model_class && model_class.inheritance_column
     end
 
     def column_names

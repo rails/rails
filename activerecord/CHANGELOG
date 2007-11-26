@@ -1,5 +1,7 @@
 *SVN*
 
+* Foxy fixtures: support single-table inheritance.  #10234 [tom]
+
 * Foxy fixtures: allow mixed usage to make migration easier and more attractive.  #10004 [lotswholetime]
 
 * Make the record_timestamps class-inheritable so it can be set per model.  #10004 [tmacedo]
