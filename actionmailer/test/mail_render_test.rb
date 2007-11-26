@@ -26,6 +26,13 @@ class RenderMailer < ActionMailer::Base
     subject    "Including another template in the one being rendered"
     from       "tester@example.com"
   end
+  
+  def included_old_subtemplate(recipient)
+    recipients recipient
+    subject    "Including another template in the one being rendered"
+    from       "tester@example.com"
+    body       render(:inline => "Hello, <%= render \"subtemplate\" %>", :body => { :world => "Earth" })
+  end
 
   def initialize_defaults(method_name)
     super
@@ -80,6 +87,12 @@ class RenderHelperTest < Test::Unit::TestCase
   def test_included_subtemplate
     mail = RenderMailer.deliver_included_subtemplate(@recipient)
     assert_equal "Hey Ho, let's go!", mail.body.strip
+  end
+  
+  def test_deprecated_old_subtemplate
+    assert_raises ActionView::ActionViewError do
+      RenderMailer.deliver_included_old_subtemplate(@recipient)
+    end
   end
 end
 

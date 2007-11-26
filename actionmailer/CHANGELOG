@@ -1,5 +1,10 @@
 *SVN*
 
+* Update ActionMailer so it treats ActionView the same way that ActionController does.  Closes #10244 [rick]
+
+  * Pass the template_root as an array as ActionView's view_path
+  * Request templates with the "#{mailer_name}/#{action}" as opposed to just "#{action}"
+
 * Fixed that partials would be broken when using text.plain.erb as the extension #10130 [java]
 
 * Update README to use new smtp settings configuration API. Closes #10060 [psq]
