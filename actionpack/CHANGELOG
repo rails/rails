@@ -1,5 +1,7 @@
 *SVN*
 
+* Refactor sanitizer helpers into HTML classes and make it easy to swap them out with custom implementations.  Closes #10129.  [rick]
+
 * Add deprecation for old subtemplate syntax for ActionMailer templates, use render :partial [rick]
 
 * Fix TemplateError so it doesn't bomb on exceptions while running tests [rick]
