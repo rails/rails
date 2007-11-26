@@ -764,11 +764,11 @@ module ActionController #:nodoc:
       #   render :text => "Explosion!", :status => 500
       #
       #   # Renders the clear text "Hi there!" within the current active layout (if one exists)
-      #   render :text => "Explosion!", :layout => true
+      #   render :text => "Hi there!", :layout => true
       #
       #   # Renders the clear text "Hi there!" within the layout
       #   # placed in "app/views/layouts/special.r(html|xml)"
-      #   render :text => "Explosion!", :layout => "special"
+      #   render :text => "Hi there!", :layout => "special"
       #
       # The :text option can also accept a Proc object, which can be used to manually control the page generation. This should
       # generally be avoided, as it violates the separation between code and content, and because almost everything that can be
