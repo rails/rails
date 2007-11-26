@@ -1,5 +1,7 @@
 *SVN*
 
+* Make the record_timestamps class-inheritable so it can be set per model.  #10004 [tmacedo]
+
 * Allow validates_acceptance_of to use a real attribute instead of only virtual (so you can record that the acceptance occured) #7457 [ambethia]
 
 * DateTimes use Ruby's default calendar reform setting. #10201 [Geoff Buesing]
