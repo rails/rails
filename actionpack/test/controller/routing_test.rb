@@ -1994,6 +1994,26 @@ class RouteSetTest < Test::Unit::TestCase
     assert_equal("index", request.path_parameters[:action])
   end
   
+  def test_setting_root_in_namespace_using_symbol
+    assert_nothing_raised do
+      set.draw do |map|
+        map.namespace :admin do |admin|
+          admin.root :controller => 'home'
+        end
+      end
+    end
+  end
+  
+  def test_setting_root_in_namespace_using_string
+    assert_nothing_raised do
+      set.draw do |map|
+        map.namespace 'admin' do |admin|
+          admin.root :controller => 'home'
+        end
+      end
+    end
+  end
+  
 end
 
 class RoutingTest < Test::Unit::TestCase
