@@ -81,9 +81,9 @@ module ActionView
 
     private
       def strip_base_path(path)
-        File.expand_path(path).
-          gsub(/^#{Regexp.escape File.expand_path(RAILS_ROOT)}/, '').
-          gsub(@base_path, "")
+        stripped_path = File.expand_path(path).gsub(@base_path, "")
+        stripped_path.gsub!(/^#{Regexp.escape File.expand_path(RAILS_ROOT)}/, '') if defined?(RAILS_ROOT)
+        stripped_path
       end
 
       def source_location
