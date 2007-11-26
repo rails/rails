@@ -1,5 +1,7 @@
 *SVN*
 
+* Add deprecation for old subtemplate syntax for ActionMailer templates, use render :partial [rick]
+
 * Fix TemplateError so it doesn't bomb on exceptions while running tests [rick]
 
 * Fixed that named routes living under resources shouldn't have double slashes #10198 [isaacfeliu]
