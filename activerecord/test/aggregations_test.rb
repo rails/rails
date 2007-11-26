@@ -20,7 +20,7 @@ class AggregationsTest < Test::Unit::TestCase
   def test_change_single_value_object
     customers(:david).balance = Money.new(100)
     customers(:david).save
-    assert_equal 100, Customer.find(1).balance.amount
+    assert_equal 100, customers(:david).reload.balance.amount
   end
   
   def test_immutable_value_objects

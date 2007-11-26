@@ -563,10 +563,12 @@ class Fixtures < YAML::Omap
     each do |label, fixture|
       row = fixture.to_hash
 
-      if model_class && model_class < ActiveRecord::Base && !row[primary_key_name]
-        # fill in timestamp columns if they aren't specified
-        timestamp_column_names.each do |name|
-          row[name] = now unless row.key?(name)
+      if model_class && model_class < ActiveRecord::Base
+        # fill in timestamp columns if they aren't specified and the model is set to record_timestamps
+        if model_class.record_timestamps
+          timestamp_column_names.each do |name|
+            row[name] = now unless row.key?(name)
+          end
         end
 
         # interpolate the fixture label
@@ -575,12 +577,17 @@ class Fixtures < YAML::Omap
         end
 
         # generate a primary key if necessary
-        row[primary_key_name] = Fixtures.identify(label) if has_primary_key?
+        if has_primary_key_column? && !row.include?(primary_key_name)
+          row[primary_key_name] = Fixtures.identify(label)
+        end
 
         model_class.reflect_on_all_associations.each do |association|
           case association.macro
           when :belongs_to
-            if value = row.delete(association.name.to_s)
+            # Do not replace association name with association foreign key if they are named the same
+            fk_name = (association.options[:foreign_key] || "#{association.name}_id").to_s
+
+            if association.name.to_s != fk_name && value = row.delete(association.name.to_s)
               if association.options[:polymorphic]
                 if value.sub!(/\s*\(([^\)]*)\)\s*$/, "")
                   target_type = $1
@@ -591,7 +598,6 @@ class Fixtures < YAML::Omap
                 end
               end
 
-              fk_name = (association.options[:foreign_key] || "#{association.name}_id").to_s
               row[fk_name] = Fixtures.identify(value)
             end
           when :has_and_belongs_to_many
@@ -601,7 +607,7 @@ class Fixtures < YAML::Omap
 
               targets.each do |target|
                 join_fixtures["#{label}_#{target}"] = Fixture.new(
-                  { association.primary_key_name => Fixtures.identify(label),
+                  { association.primary_key_name => row[primary_key_name],
                     association.association_foreign_key => Fixtures.identify(target) }, nil)
               end
             end
@@ -633,10 +639,11 @@ class Fixtures < YAML::Omap
       @primary_key_name ||= model_class && model_class.primary_key
     end
 
-    def has_primary_key?
-      model_class && model_class.columns.any? { |c| c.name == primary_key_name }
+    def has_primary_key_column?
+      @has_primary_key_column ||= model_class && primary_key_name &&
+        model_class.columns.find { |c| c.name == primary_key_name }
     end
-    
+
     def timestamp_column_names
       @timestamp_column_names ||= %w(created_at created_on updated_at updated_on).select do |name|
         column_names.include?(name)

@@ -9,6 +9,11 @@ louis:
 frederick:
   name: $LABEL
 
+polly:
+  id: 4
+  name: $LABEL
+  treasures: sapphire, ruby
+
 DEFAULTS: &DEFAULTS
   treasures: sapphire, ruby
 

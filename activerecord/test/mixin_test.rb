@@ -78,10 +78,17 @@ class TouchTest < Test::Unit::TestCase
   def test_create_turned_off
     Mixin.record_timestamps = false
 
-    assert_nil mixins(:set_1).updated_at
-    mixins(:set_1).save
-    assert_nil mixins(:set_1).updated_at
+    mixin = Mixin.new
 
+    assert_nil mixin.updated_at
+    mixin.save
+    assert_nil mixin.updated_at
+
+  # Make sure Mixin.record_timestamps gets reset, even if this test fails,
+  # so that other tests do not fail because Mixin.record_timestamps == false
+  rescue Exception => e
+    raise e
+  ensure
     Mixin.record_timestamps = true
   end
 

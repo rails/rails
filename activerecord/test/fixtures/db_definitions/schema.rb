@@ -335,10 +335,18 @@ ActiveRecord::Schema.define do
     t.column :parrot_id, :integer
     t.column :treasure_id, :integer
   end
-  
+
   create_table :mateys, :id => false, :force => true do |t|
     t.column :pirate_id, :integer
     t.column :target_id, :integer
     t.column :weight, :integer
+  end
+
+  create_table :ships, :force => true do |t|
+    t.string :name
+    t.datetime :created_at
+    t.datetime :created_on
+    t.datetime :updated_at
+    t.datetime :updated_on
   end
 end
