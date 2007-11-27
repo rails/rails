@@ -41,7 +41,7 @@ module ActionView
     #
     # === Using asset timestamps
     #
-    # By default, Rails will prepend all asset paths with that asset's timestamp. This allows you to set a cache-expiration date for the
+    # By default, Rails will append all asset paths with that asset's timestamp. This allows you to set a cache-expiration date for the
     # asset far into the future, but still be able to instantly invalidate it by simply updating the file (and hence updating the timestamp,
     # which then updates the URL as the timestamp is part of that, which in turn busts the cache).
     #
@@ -55,7 +55,7 @@ module ActionView
     # </FilesMatch>
     #
     # Also note that in order for this to work, all your application servers must return the same timestamps. This means that they must 
-    # have their clocks synchronized. If one of them drift out of synch, you'll see different timestamps at random and the cache won't
+    # have their clocks synchronized. If one of them drift out of sync, you'll see different timestamps at random and the cache won't
     # work. Which means that the browser will request the same assets over and over again even thought they didn't change. You can use
     # something like Live HTTP Headers for Firefox to verify that the cache is indeed working (and that the assets are not being 
     # requested over and over).
