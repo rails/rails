@@ -1,6 +1,20 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 require 'bigdecimal'
 
+class ArrayExtAccessTests < Test::Unit::TestCase
+  def test_from
+    assert_equal %w( a b c d ), %w( a b c d ).from(0)
+    assert_equal %w( c d ), %w( a b c d ).from(2)
+    assert_nil %w( a b c d ).from(10)
+  end
+
+  def test_to
+    assert_equal %w( a ), %w( a b c d ).to(0)
+    assert_equal %w( a b c ), %w( a b c d ).to(2)
+    assert_equal %w( a b c d ), %w( a b c d ).to(10)
+  end
+end
+
 class ArrayExtToParamTests < Test::Unit::TestCase
   def test_string_array
     assert_equal '', %w().to_param
