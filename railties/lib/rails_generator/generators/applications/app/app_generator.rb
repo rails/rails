@@ -1,5 +1,6 @@
 require 'rbconfig'
 require 'digest/md5' 
+require 'rails_generator/secret_key_generator'
 
 class AppGenerator < Rails::Generator::Base
   DEFAULT_SHEBANG = File.join(Config::CONFIG['bindir'],
@@ -33,6 +34,9 @@ class AppGenerator < Rails::Generator::Base
     md5 << String($$)
     md5 << @app_name
 
+    # Do our best to generate a secure secret key for CookieStore
+    secret = Rails::SecretKeyGenerator.new(@app_name).generate_secret
+
     record do |m|
       # Root directory and all subdirectories.
       m.directory ''
@@ -61,7 +65,7 @@ class AppGenerator < Rails::Generator::Base
 
       # Environments
       m.file "environments/boot.rb",    "config/boot.rb"
-      m.template "environments/environment.rb", "config/environment.rb", :assigns => { :freeze => options[:freeze], :app_name => @app_name, :app_secret => md5.hexdigest }
+      m.template "environments/environment.rb", "config/environment.rb", :assigns => { :freeze => options[:freeze], :app_name => @app_name, :app_secret => secret }
       m.file "environments/production.rb",  "config/environments/production.rb"
       m.file "environments/development.rb", "config/environments/development.rb"
       m.file "environments/test.rb",        "config/environments/test.rb"
