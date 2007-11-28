@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure the optimisation code for routes doesn't get used if :host, :anchor or :port are provided in the hash arguments. [pager, Koz] #10292
+
 * Added protection from trailing slashes on page caching #10229 [devrieda]
 
 * Asset timestamps are appended, not prepended. Closes #10276 [mnaberez]
