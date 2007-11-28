@@ -1,5 +1,7 @@
 *SVN*
 
+* Added protection from trailing slashes on page caching #10229 [devrieda]
+
 * Asset timestamps are appended, not prepended. Closes #10276 [mnaberez]
 
 * Minor inconsistency in description of render example. Closes #10029 [ScottSchram]

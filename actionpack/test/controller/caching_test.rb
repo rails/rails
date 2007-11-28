@@ -35,6 +35,10 @@ class PageCachingTestController < ActionController::Base
     expire_page("/index.html")
     head :ok
   end
+  
+  def trailing_slash
+    render :text => "Sneak attack"
+  end
 end
 
 class PageCachingTest < Test::Unit::TestCase
@@ -90,6 +94,16 @@ class PageCachingTest < Test::Unit::TestCase
 
     get :expire_custom_path
     assert !File.exist?("#{FILE_STORE_PATH}/index.html")
+  end
+  
+  def test_should_cache_without_trailing_slash_on_url
+    @controller.class.cache_page 'cached content', '/page_caching_test/trailing_slash'
+    assert File.exist?("#{FILE_STORE_PATH}/page_caching_test/trailing_slash.html")
+  end
+
+  def test_should_cache_with_trailing_slash_on_url
+    @controller.class.cache_page 'cached content', '/page_caching_test/trailing_slash/'
+    assert File.exist?("#{FILE_STORE_PATH}/page_caching_test/trailing_slash.html")
   end
 
   uses_mocha("should_cache_ok_at_custom_path") do
