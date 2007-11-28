@@ -672,7 +672,7 @@ module ActiveRecord #:nodoc:
 
        # Attributes listed as readonly can be set for a new record, but will be ignored in database updates afterwards.
        def attr_readonly(*attributes)
-         write_inheritable_array("attr_readonly", attributes - (readonly_attributes || []))
+         write_inheritable_attribute("attr_readonly", Set.new(attributes.map(&:to_s)) + (readonly_attributes || []))
        end
 
        # Returns an array of all the attributes that have been specified as readonly.
@@ -2103,7 +2103,7 @@ module ActiveRecord #:nodoc:
       # Removes attributes which have been marked as readonly.
       def remove_readonly_attributes(attributes)
         unless self.class.readonly_attributes.nil?
-          attributes.delete_if { |key, value| self.class.readonly_attributes.include?(key.gsub(/\(.+/,"").intern) }
+          attributes.delete_if { |key, value| self.class.readonly_attributes.include?(key.gsub(/\(.+/,"")) }
         else
           attributes
         end

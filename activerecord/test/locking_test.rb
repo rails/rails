@@ -99,7 +99,7 @@ class OptimisticLockingTest < Test::Unit::TestCase
   end
 
   def test_readonly_attributes
-    assert_equal [ :first_name ], ReadonlyFirstNamePerson.readonly_attributes
+    assert_equal Set.new([ 'first_name' ]), ReadonlyFirstNamePerson.readonly_attributes
 
     p = ReadonlyFirstNamePerson.create(:first_name => "unchangeable name")
     p.reload

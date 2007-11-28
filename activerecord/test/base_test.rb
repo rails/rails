@@ -856,7 +856,7 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_readonly_attributes
-    assert_equal [ :title ], ReadonlyTitlePost.readonly_attributes
+    assert_equal Set.new([ 'title' ]), ReadonlyTitlePost.readonly_attributes
     
     post = ReadonlyTitlePost.create(:title => "cannot change this", :body => "changeable")
     post.reload
