@@ -100,7 +100,7 @@ module ActionController
           "defined?(request) && request && args.size == #{route.segment_keys.size + 1} && !args.last.has_key?(:anchor) && !args.last.has_key?(:port) && !args.last.has_key?(:host)"
         end
 
-        # This case uses almost the Use the same code as positional arguments, 
+        # This case uses almost the same code as positional arguments, 
         # but add an args.last.to_query on the end
         def generation_code
           super.insert(-2, '?#{args.last.to_query}')
