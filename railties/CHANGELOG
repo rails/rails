@@ -1,5 +1,7 @@
 *2.0.0 [RC2]* (November 28th, 2007)
 
+* Update to Prototype -r8232.  [sam]
+
 * Introduce SecretKeyGenerator for more secure session secrets than CGI::Session's pseudo-random id generator. Consider extracting to Active Support later.  #10286 [Hongli Lai]
 
 * RAILS_GEM_VERSION may be set to any valid gem version specifier.  #10057 [Chad Woolley, Chu Yeow]
