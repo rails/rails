@@ -1,4 +1,4 @@
-*SVN*
+*2.0.0 [RC2]* (November 28th, 2007)
 
 * Introduce SecretKeyGenerator for more secure session secrets than CGI::Session's pseudo-random id generator. Consider extracting to Active Support later.  #10286 [Hongli Lai]
 

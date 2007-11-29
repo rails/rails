@@ -1,4 +1,4 @@
-*SVN*
+*2.0.0 [RC2]* (November 28th, 2007)
 
 * Make sure the optimisation code for routes doesn't get used if :host, :anchor or :port are provided in the hash arguments. [pager, Koz] #10292
 
@@ -123,6 +123,7 @@
 * ActionController::Routing::DynamicSegment#interpolation_chunk should call #to_s on all values before calling URI.escape.  [Rick]
 
 * Only accept session ids from cookies, prevents session fixation attacks.  [bradediger] 
+
 
 *2.0.0 [Preview Release]* (September 29th, 2007) [Includes duplicates of changes from 1.12.2 - 1.13.3]
 

@@ -1,6 +1,9 @@
+*2.0.0 [RC2]* (November 28th, 2007)
+
 * Don't cache net/http object so that ActiveResource is more thread-safe.  Closes #10142 [kou]
 
 * Update XML documentation examples to include explicit type attributes. Closes #9754 [hasmanyjosh]
+
 
 *2.0.0 [Preview Release]* (September 29th, 2007)
 

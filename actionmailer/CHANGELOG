@@ -1,4 +1,4 @@
-*SVN*
+*2.0.0 [RC2]* (November 28th, 2007)
 
 * Update ActionMailer so it treats ActionView the same way that ActionController does.  Closes #10244 [rick]
 
