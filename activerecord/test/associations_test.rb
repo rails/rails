@@ -122,6 +122,23 @@ class AssociationProxyTest < Test::Unit::TestCase
     developer = Developer.create :name => "Bryan", :salary => 50_000
     assert_equal 1, developer.reload.audit_logs.size
   end
+
+  def test_failed_reload_returns_nil
+    p = setup_dangling_association
+    assert_nil p.author.reload
+  end
+
+  def test_failed_reset_returns_nil
+    p = setup_dangling_association
+    assert_nil p.author.reset
+  end
+
+  def setup_dangling_association
+    josh = Author.create(:name => "Josh")
+    p = Post.create(:title => "New on Edge", :body => "More cool stuff!", :author => josh)
+    josh.destroy
+    p
+  end
 end
 
 class HasOneAssociationsTest < Test::Unit::TestCase

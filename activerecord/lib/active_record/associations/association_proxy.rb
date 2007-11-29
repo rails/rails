@@ -46,8 +46,8 @@ module ActiveRecord
       alias :sql_conditions :conditions
       
       def reset
-        @target = nil
         @loaded = false
+        @target = nil
       end
 
       def reload
