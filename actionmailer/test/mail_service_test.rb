@@ -210,6 +210,16 @@ class TestMailer < ActionMailer::Base
     attachment :content_type => "application/octet-stream",:filename => "test.txt", :body => "test abcdefghijklmnopqstuvwxyz"
   end
   
+  def nested_multipart_with_body(recipient)
+    recipients   recipient
+    subject      "nested multipart with body"
+    from         "test@example.com"
+    content_type "multipart/mixed"
+    part :content_type => "multipart/alternative", :content_disposition => "inline", :body => "Nothing to see here." do |p|
+      p.part :content_type => "text/html", :body => "<b>test</b> HTML<br/>"
+    end
+  end
+
   def attachment_with_custom_header(recipient)
     recipients   recipient
     subject      "custom header in attachment"
@@ -308,6 +318,19 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_equal "text/plain", created.parts.first.parts.first.content_type
     assert_equal "text/html", created.parts.first.parts[1].content_type
     assert_equal "application/octet-stream", created.parts[1].content_type
+  end
+
+  def test_nested_parts_with_body
+    created = nil
+    assert_nothing_raised { created = TestMailer.create_nested_multipart_with_body(@recipient)}
+    assert_equal 1,created.parts.size
+    assert_equal 2,created.parts.first.parts.size
+
+    assert_equal "multipart/mixed", created.content_type
+    assert_equal "multipart/alternative", created.parts.first.content_type
+    assert_equal "Nothing to see here.", created.parts.first.parts.first.body
+    assert_equal "text/plain", created.parts.first.parts.first.content_type
+    assert_equal "text/html", created.parts.first.parts[1].content_type
   end
 
   def test_attachment_with_custom_header

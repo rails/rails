@@ -84,11 +84,8 @@ module ActionMailer
         end        
       else
         if String === body
-          part = TMail::Mail.new
-          part.body = body
-          part.set_content_type(real_content_type, nil, ctype_attrs)
-          part.set_content_disposition "inline"
-          m.parts << part
+          @parts.unshift Part.new(:charset => charset, :body => @body, :content_type => 'text/plain')
+          @body = nil
         end
           
         @parts.each do |p|
