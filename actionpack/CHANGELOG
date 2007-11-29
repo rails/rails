@@ -1,5 +1,7 @@
 *2.0.0 [RC2]* (November 28th, 2007)
 
+* Raise UnknownHttpMethod exception for unknown HTTP methods. Closes #10303 [tarmo]
+
 * Update to Prototype -r8232.  [sam]
 
 * Make sure the optimisation code for routes doesn't get used if :host, :anchor or :port are provided in the hash arguments. [pager, Koz] #10292

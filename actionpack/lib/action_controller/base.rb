@@ -85,6 +85,8 @@ module ActionController #:nodoc:
     end
   end
 
+  class UnknownHttpMethod < ActionControllerError #:nodoc:
+  end
 
   # Action Controllers are the core of a web request in Rails. They are made up of one or more actions that are executed
   # on request and then either render a template or redirect to another action. An action is defined as a public method
