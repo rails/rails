@@ -12,7 +12,8 @@ module ActionController #:nodoc:
     # parameters being set, or without certain session values existing.
     #
     # When a verification is violated, values may be inserted into the flash, and
-    # a specified redirection is triggered.
+    # a specified redirection is triggered. If no specific action is configured,
+    # verification failures will by default result in a 400 Bad Request response.
     #
     # Usage:
     #
@@ -81,7 +82,7 @@ module ActionController #:nodoc:
       prereqs_invalid =
         [*options[:params] ].find { |v| params[v].nil?  } ||
         [*options[:session]].find { |v| session[v].nil? } ||
-        [*options[:flash]  ].find { |v| flash[v].nil?    }
+        [*options[:flash]  ].find { |v| flash[v].nil?   }
       
       if !prereqs_invalid && options[:method]
         prereqs_invalid ||= 
@@ -93,13 +94,21 @@ module ActionController #:nodoc:
       if prereqs_invalid
         flash.update(options[:add_flash]) if options[:add_flash]
         response.headers.update(options[:add_headers]) if options[:add_headers]
+
         unless performed?
-          render(options[:render]) if options[:render]
-          options[:redirect_to] = self.send!(options[:redirect_to]) if options[:redirect_to].is_a? Symbol
-          redirect_to(options[:redirect_to]) if options[:redirect_to]
+          case
+          when options[:render]
+            render(options[:render])
+          when options[:redirect_to]
+            options[:redirect_to] = self.send!(options[:redirect_to]) if options[:redirect_to].is_a?(Symbol)
+            redirect_to(options[:redirect_to])
+          else
+            head(:bad_request)
+          end
         end
       end
     end
+
     private :verify_action
   end
 end

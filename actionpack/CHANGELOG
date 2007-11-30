@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed that verification violations with no specified action didn't halt the chain (now they do with a 400 Bad Request) [DHH]
+
+
 *2.0.0 [RC2]* (November 28th, 2007)
 
 * Raise UnknownHttpMethod exception for unknown HTTP methods. Closes #10303 [tarmo]

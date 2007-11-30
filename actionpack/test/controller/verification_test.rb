@@ -37,6 +37,8 @@ class VerificationTest < Test::Unit::TestCase
     verify :only => :guarded_one_for_named_route_test, :params => "one",
            :redirect_to => :foo_url
 
+    verify :only => :no_default_action, :params => "santa"
+
     def guarded_one
       render :text => "#{params[:one]}"
     end
@@ -87,6 +89,10 @@ class VerificationTest < Test::Unit::TestCase
     
     def must_be_post
       render :text => "Was a post!"
+    end
+    
+    def no_default_action
+      # Will never run
     end
     
     protected
@@ -227,6 +233,11 @@ class VerificationTest < Test::Unit::TestCase
   def test_guarded_post_and_calls_render_succeeds
     post :must_be_post
     assert_equal "Was a post!", @response.body
+  end
+    
+  def test_default_failure_should_be_a_bad_request
+    post :no_default_action
+    assert_response :bad_request
   end
     
   def test_guarded_post_and_calls_render_fails_and_sets_allow_header
