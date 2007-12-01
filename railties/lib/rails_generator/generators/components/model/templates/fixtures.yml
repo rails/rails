@@ -1,19 +1,19 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+<% unless attributes.empty? -%>
 one:
-  <%= class_name.constantize.primary_key %>: 1
 <% for attribute in attributes -%>
   <%= attribute.name %>: <%= attribute.default %>
 <% end -%>
-<% unless options[:skip_timestamps] -%>
-  created_at: <%= Time.now.to_s(:db) %>
-  updated_at: <%= Time.now.to_s(:db) %>
-<% end -%>
+
 two:
-  <%= class_name.constantize.primary_key %>: 2
 <% for attribute in attributes -%>
   <%= attribute.name %>: <%= attribute.default %>
 <% end -%>
-<% unless options[:skip_timestamps] -%>
-  created_at: <%= Time.now.to_s(:db) %>
-  updated_at: <%= Time.now.to_s(:db) %>
+<% else -%>
+# one:
+#   column: value
+#
+# two:
+#   column: value
 <% end -%>

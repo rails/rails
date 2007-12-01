@@ -1,3 +1,8 @@
+*SVN*
+
+* Generated fixtures should not specify ids since theyre expected to be foxy fixtures #10330 [jbarnette]
+
+
 *2.0.0 [RC2]* (November 28th, 2007)
 
 * Update to Prototype -r8232.  [sam]
