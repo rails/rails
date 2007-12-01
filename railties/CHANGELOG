@@ -1,5 +1,7 @@
 *SVN*
 
+* Added db:fixtures:identity as a way of locating what ID a foxy fixture was assigned #10332 [jbarnette]
+
 * Generated fixtures should not specify ids since theyre expected to be foxy fixtures #10330 [jbarnette]
 
 
