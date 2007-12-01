@@ -595,6 +595,10 @@ module ActiveRecord
       # When the record is created, a check is performed to make sure that no record exists in the database with the given value for the specified
       # attribute (that maps to a column). When the record is updated, the same check is made but disregarding the record itself.
       #
+      # Because this check is performed outside the database there is still a chance that duplicate values
+      # will be inserted in two parrallel transactions.  To guarantee against this you should create a 
+      # unique index on the field. See +create_index+ for more information.
+      #
       # Configuration options:
       # * <tt>message</tt> - Specifies a custom error message (default is: "has already been taken")
       # * <tt>scope</tt> - One or more columns by which to limit the scope of the uniquness constraint.
