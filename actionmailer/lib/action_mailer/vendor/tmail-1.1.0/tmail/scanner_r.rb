@@ -44,7 +44,7 @@ module TMail
     }
 
     alnum      = 'a-zA-Z0-9'
-    atomsyms   = %q[  _#!$%&`'*+-{|}~^@/=?  ].strip
+    atomsyms   = %q[  _#!$%&`'*+-{|}~^/=?  ].strip
     tokensyms  = %q[  _#!$%&`'*+-{|}~^@.    ].strip
 
     atomchars  = alnum + Regexp.quote(atomsyms)
