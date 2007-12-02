@@ -38,6 +38,10 @@ class ArrayExtToSentenceTests < Test::Unit::TestCase
 
   def test_to_sentence_with_connector
     assert_equal "one, two, and also three", ['one', 'two', 'three'].to_sentence(:connector => 'and also')
+    assert_equal "one, two, three", ['one', 'two', 'three'].to_sentence(:connector => '')
+    assert_equal "one, two, three", ['one', 'two', 'three'].to_sentence(:connector => nil)
+    assert_equal "one, two,  three", ['one', 'two', 'three'].to_sentence(:connector => ' ')
+    assert_equal "one, two, and  three", ['one', 'two', 'three'].to_sentence(:connector => 'and ')
   end
 
   def test_to_sentence_with_skip_last_comma
@@ -46,11 +50,13 @@ class ArrayExtToSentenceTests < Test::Unit::TestCase
 
   def test_two_elements
     assert_equal "one and two", ['one', 'two'].to_sentence
+    assert_equal "one two", ['one', 'two'].to_sentence(:connector => '')
   end
 
   def test_one_element
     assert_equal "one", ['one'].to_sentence
   end
+
 end
 
 class ArrayExtToSTests < Test::Unit::TestCase

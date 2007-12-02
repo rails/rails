@@ -10,16 +10,17 @@ module ActiveSupport #:nodoc:
         def to_sentence(options = {})
           options.assert_valid_keys(:connector, :skip_last_comma)
           options.reverse_merge! :connector => 'and', :skip_last_comma => false
-          
+          options[:connector] = "#{options[:connector]} " unless options[:connector].nil? || options[:connector].strip == ''
+
           case length
-          	when 0
-          		""
+            when 0
+              ""
             when 1
               self[0]
             when 2
-              "#{self[0]} #{options[:connector]} #{self[1]}"
+              "#{self[0]} #{options[:connector]}#{self[1]}"
             else
-              "#{self[0...-1].join(', ')}#{options[:skip_last_comma] ? '' : ','} #{options[:connector]} #{self[-1]}"
+              "#{self[0...-1].join(', ')}#{options[:skip_last_comma] ? '' : ','} #{options[:connector]}#{self[-1]}"
           end
         end
 
@@ -47,7 +48,7 @@ module ActiveSupport #:nodoc:
               to_default_s
           end
         end
-        
+
         def to_xml(options = {})
           raise "Not all elements respond to to_xml" unless all? { |e| e.respond_to? :to_xml }
 
