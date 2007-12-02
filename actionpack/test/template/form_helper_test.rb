@@ -489,6 +489,28 @@ class FormHelperTest < Test::Unit::TestCase
     assert_dom_equal expected, _erbout
   end
 
+  def test_form_for_and_fields_for_with_object
+    _erbout = ''
+
+    form_for(:post, @post, :html => { :id => 'create-post' }) do |post_form|
+      _erbout.concat post_form.text_field(:title)
+      _erbout.concat post_form.text_area(:body)
+
+      post_form.fields_for(@comment) do |comment_fields|
+        _erbout.concat comment_fields.text_field(:name)
+      end
+    end
+
+    expected = 
+      "<form action='http://www.example.com' id='create-post' method='post'>" +
+      "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[comment][name]' type='text' id='post_comment_name' value='new comment' size='30' />" +
+      "</form>"
+
+    assert_dom_equal expected, _erbout
+  end
+
   class LabelledFormBuilder < ActionView::Helpers::FormBuilder
     (field_helpers - %w(hidden_field)).each do |selector|
       src = <<-END_SRC

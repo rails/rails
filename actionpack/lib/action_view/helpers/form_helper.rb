@@ -639,8 +639,20 @@ module ActionView
         class_eval src, __FILE__, __LINE__
       end
 
-      def fields_for(name, *args, &block)
-        name = "#{object_name}[#{name}]"
+      def fields_for(record_or_name_or_array, *args, &block)
+        case record_or_name_or_array
+        when String, Symbol
+          name = "#{object_name}[#{record_or_name_or_array}]"
+        when Array
+          object = record_or_name_or_array.last
+          name = "#{object_name}[#{ActionController::RecordIdentifier.singular_class_name(object)}]"
+          args.unshift(object)
+        else
+          object = record_or_name_or_array
+          name = "#{object_name}[#{ActionController::RecordIdentifier.singular_class_name(object)}]"
+          args.unshift(object)
+        end
+        
         @template.fields_for(name, *args, &block)
       end
 
