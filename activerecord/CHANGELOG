@@ -1,3 +1,5 @@
+* Fix documentation typo introduced in [8250]. Closes #10339 [Henrik N]
+
 *2.0.0 [RC2]* (November 28th, 2007)
 
 * Foxy fixtures: support single-table inheritance.  #10234 [tom]

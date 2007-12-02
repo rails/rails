@@ -596,7 +596,7 @@ module ActiveRecord
       # attribute (that maps to a column). When the record is updated, the same check is made but disregarding the record itself.
       #
       # Because this check is performed outside the database there is still a chance that duplicate values
-      # will be inserted in two parrallel transactions.  To guarantee against this you should create a 
+      # will be inserted in two parallel transactions.  To guarantee against this you should create a 
       # unique index on the field. See +create_index+ for more information.
       #
       # Configuration options:
