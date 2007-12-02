@@ -1,5 +1,7 @@
 *SVN*
 
+* Added the same record identification guessing rules to fields_for as form_for has [DHH]
+
 * Fixed that verification violations with no specified action didn't halt the chain (now they do with a 400 Bad Request) [DHH]
 
 

@@ -204,21 +204,45 @@ module ActionView
       # fields_for suitable for specifying additional model objects in the same form:
       #
       # ==== Examples
-      #   <% form_for :person, @person, :url => { :action => "update" } do |person_form| %>
+      #   <% form_for @person, :url => { :action => "update" } do |person_form| %>
       #     First name: <%= person_form.text_field :first_name %>
       #     Last name : <%= person_form.text_field :last_name %>
       #
-      #     <% fields_for :permission, @person.permission do |permission_fields| %>
+      #     <% fields_for @person.permission do |permission_fields| %>
       #       Admin?  : <%= permission_fields.check_box :admin %>
       #     <% end %>
       #   <% end %>
       #
+      # ...or if you have an object that needs to be represented as a different parameter, like a Client that acts as a Person:
+      #
+      #   <% fields_for :person, @client do |permission_fields| %>
+      #     Admin?: <%= permission_fields.check_box :admin %>
+      #   <% end %>
+      #
+      # ...or if you don't have an object, just a name of the parameter
+      #
+      #   <% fields_for :person do |permission_fields| %>
+      #     Admin?: <%= permission_fields.check_box :admin %>
+      #   <% end %>
+      #
       # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base,
       # like FormOptionHelper#collection_select and DateHelper#datetime_select.
-      def fields_for(object_name, *args, &block)
+      def fields_for(record_or_name_or_array, *args, &block)
         raise ArgumentError, "Missing block" unless block_given?
         options = args.extract_options!
-        object  = args.first
+
+        case record_or_name_or_array
+        when String, Symbol
+          object_name = record_or_name_or_array
+          object = args.first
+        when Array
+          object = record_or_name_or_array.last
+          object_name = ActionController::RecordIdentifier.singular_class_name(object)
+          apply_form_for_options!(record_or_name_or_array, options)
+        else
+          object = record_or_name_or_array
+          object_name = ActionController::RecordIdentifier.singular_class_name(object)
+        end
 
         builder = options[:builder] || ActionView::Base.default_form_builder
         yield builder.new(object_name, object, self, options, block)
