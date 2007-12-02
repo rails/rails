@@ -15,7 +15,7 @@ class TestJSONEncoding < Test::Unit::TestCase
 
   StringTests   = [[ 'this is the <string>',     %("this is the \\u003Cstring\\u003E")],
                    [ 'a "string" with quotes & an ampersand', %("a \\"string\\" with quotes \\u0026 an ampersand") ],
-                   [ 'http://test.host/posts/1', %("http:\\/\\/test.host\\/posts\\/1")]]
+                   [ 'http://test.host/posts/1', %("http://test.host/posts/1")]]
 
   ArrayTests    = [[ ['a', 'b', 'c'],          %([\"a\", \"b\", \"c\"])          ],
                    [ [1, 'a', :b, nil, false], %([1, \"a\", \"b\", null, false]) ]]
