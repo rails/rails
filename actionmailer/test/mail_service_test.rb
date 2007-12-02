@@ -852,12 +852,6 @@ EOF
     assert_nothing_raised { mail.body }
   end
 
-  def test_decode_message_with_unquoted_atchar_in_header
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email11")
-    mail = TMail::Mail.parse(fixture)
-    assert_not_nil mail.from
-  end
-
   def test_empty_header_values_omitted
     result = TestMailer.create_unnamed_attachment(@recipient).encoded
     assert_match %r{Content-Type: application/octet-stream[^;]}, result

@@ -70,36 +70,14 @@ class QuotingTest < Test::Unit::TestCase
     assert_equal "Re: Test: \"\346\274\242\345\255\227\" mid \"\346\274\242\345\255\227\" tail", mail.subject
   end
   
-  def test_rb_decode
+  def test_decode
     encoded, decoded = expected_base64_strings
-    assert_equal decoded, TMail::Base64.rb_decode(encoded)
+    assert_equal decoded, TMail::Base64.decode(encoded)
   end
   
-  def test_rb_encode
+  def test_encode
     encoded, decoded = expected_base64_strings
-    assert_equal encoded.length, TMail::Base64.rb_encode(decoded).length
-  end
-  
-  def test_rb_decode_should_match_c_decode_if_available
-    encoded, decoded = expected_base64_strings
-    
-    begin
-      require 'tmail/base64.so'
-      assert_equal TMail::Base64.rb_decode(encoded), TMail::Base64.c_decode(encoded)
-    rescue LoadError
-      # No .so
-    end
-  end
-  
-  def test_rb_encode_should_match_c_encode_if_available
-    encoded, decoded = expected_base64_strings
-    
-    begin
-      require 'tmail/base64.so'
-      assert_equal TMail::Base64.rb_encode(decoded), TMail::Base64.c_encode(decoded)
-    rescue LoadError
-      # No .so
-    end
+    assert_equal encoded.length, TMail::Base64.encode(decoded).length
   end
   
   private
