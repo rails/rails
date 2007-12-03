@@ -117,7 +117,7 @@ class RespondToController < ActionController::Base
   
   def iphone_with_html_response_type 
     Mime::Type.register_alias("text/html", :iphone)
-    request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
+    request.format = :iphone if request.env["HTTP_ACCEPT"] == "text/iphone"
     
     respond_to do |type|
       type.html   { @type = "Firefox" }
