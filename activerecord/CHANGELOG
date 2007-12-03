@@ -1,4 +1,9 @@
+*SVN*
+
+* Fixed that to_xml should not automatically pass :procs to associations included with :include #10162 [chuyeow]
+
 * Fix documentation typo introduced in [8250]. Closes #10339 [Henrik N]
+
 
 *2.0.0 [RC2]* (November 28th, 2007)
 

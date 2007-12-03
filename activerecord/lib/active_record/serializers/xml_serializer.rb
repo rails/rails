@@ -1,12 +1,12 @@
 module ActiveRecord #:nodoc:
   module Serialization
     # Builds an XML document to represent the model.   Some configuration is
-    # available through +options+, however more complicated cases should 
+    # available through +options+, however more complicated cases should
     # override ActiveRecord's to_xml.
     #
-    # By default the generated XML document will include the processing 
+    # By default the generated XML document will include the processing
     # instruction and all object's attributes.  For example:
-    #    
+    #
     #   <?xml version="1.0" encoding="UTF-8"?>
     #   <topic>
     #     <title>The First Topic</title>
@@ -42,7 +42,7 @@ module ActiveRecord #:nodoc:
     #     <parent-id></parent-id>
     #     <last-read type="date">2004-04-15</last-read>
     #   </topic>
-    # 
+    #
     # To include first level associations use :include
     #
     #   firm.to_xml :include => [ :account, :clients ]
@@ -189,8 +189,8 @@ module ActiveRecord #:nodoc:
 
     def add_tag(attribute)
       builder.tag!(
-        dasherize? ? attribute.name.dasherize : attribute.name, 
-        attribute.value.to_s, 
+        dasherize? ? attribute.name.dasherize : attribute.name,
+        attribute.value.to_s,
         attribute.decorations(!options[:skip_types])
       )
     end
@@ -204,9 +204,9 @@ module ActiveRecord #:nodoc:
         else
           builder.tag!(tag, :type => :array) do
             association_name = association.to_s.singularize
-            records.each do |record| 
+            records.each do |record|
               record.to_xml opts.merge(
-                :root => association_name, 
+                :root => association_name,
                 :type => (record.class.to_s.underscore == association_name ? nil : record.class.name)
               )
             end
@@ -231,7 +231,9 @@ module ActiveRecord #:nodoc:
 
       builder.tag!(*args) do
         add_attributes
+        procs = options.delete(:procs)
         add_includes { |association, records, opts| add_associations(association, records, opts) }
+        options[:procs] = procs
         add_procs
         yield builder if block_given?
       end
