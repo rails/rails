@@ -1737,4 +1737,9 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal %("#{t.written_on.to_s(:db)}"), t.attribute_for_inspect(:written_on)
     assert_equal '"This is some really long content, longer than 50 ch..."', t.attribute_for_inspect(:content)
   end
+  
+  def test_becomes
+    assert_kind_of Reply, topics(:first).becomes(Reply)
+    assert_equal "The First Topic", topics(:first).becomes(Reply).title
+  end
 end

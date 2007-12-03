@@ -1,5 +1,9 @@
 *SVN*
 
+* Added ActiveRecord::Base#becomes to turn a record into one of another class (mostly relevant for STIs) [DHH]. Example:
+
+    render :partial => @client.becomes(Company) # renders companies/company instead of clients/client
+
 * Fixed that to_xml should not automatically pass :procs to associations included with :include #10162 [chuyeow]
 
 * Fix documentation typo introduced in [8250]. Closes #10339 [Henrik N]

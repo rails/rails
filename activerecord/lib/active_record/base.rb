@@ -1806,6 +1806,20 @@ module ActiveRecord #:nodoc:
         record
       end
 
+      # Returns an instance of the specified klass with the attributes of the current record. This is mostly useful in relation to
+      # single-table inheritance structures where you want a subclass to appear as the superclass. This can be used along with record
+      # identification in Action Pack to allow, say, Client < Company to do something like render :partial => @client.becomes(Company)
+      # to render that instance using the companies/company partial instead of clients/client.
+      #
+      # Note: The new instance will share a link to the same attributes as the original class. So any change to the attributes in either
+      # instance will affect the other.
+      def becomes(klass)
+        returning klass.new do |became|
+          became.instance_variable_set("@attributes", @attributes)
+          became.instance_variable_set("@new_record", new_record?)
+        end
+      end
+
       # Updates a single attribute and saves the record. This is especially useful for boolean flags on existing records.
       # Note: This method is overwritten by the Validation module that'll make sure that updates made with this method
       # aren't subjected to validation checks. Hence, attributes can be updated even if the full object isn't valid.
