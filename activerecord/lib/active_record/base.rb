@@ -1816,6 +1816,7 @@ module ActiveRecord #:nodoc:
       def becomes(klass)
         returning klass.new do |became|
           became.instance_variable_set("@attributes", @attributes)
+          became.instance_variable_set("@attributes_cache", @attributes_cache)
           became.instance_variable_set("@new_record", new_record?)
         end
       end
