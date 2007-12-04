@@ -1,5 +1,7 @@
 *SVN*
 
+* Update script.aculo.us to 1.8.0.1.  [madrobby]
+
 * Add 'disabled' attribute to <OPTION> separators used in time zone and country selects.  Closes #10354 [hasmanyjosh]
 
 * Added the same record identification guessing rules to fields_for as form_for has [DHH]

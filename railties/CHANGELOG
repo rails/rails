@@ -1,5 +1,7 @@
 *SVN*
 
+* Update script.aculo.us to 1.8.0.1.  [madrobby]
+
 * Added db:fixtures:identity as a way of locating what ID a foxy fixture was assigned #10332 [jbarnette]
 
 * Generated fixtures should not specify ids since theyre expected to be foxy fixtures #10330 [jbarnette]
