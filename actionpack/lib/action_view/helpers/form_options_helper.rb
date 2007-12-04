@@ -249,7 +249,7 @@ module ActionView
 
         if priority_countries
           country_options += options_for_select(priority_countries, selected)
-          country_options += "<option value=\"\">-------------</option>\n"
+          country_options += "<option value=\"\" disabled=\"disabled\">-------------</option>\n"
         end
 
         return country_options + options_for_select(COUNTRIES, selected)
@@ -280,7 +280,7 @@ module ActionView
 
         if priority_zones
           zone_options += options_for_select(convert_zones[priority_zones], selected)
-          zone_options += "<option value=\"\">-------------</option>\n"
+          zone_options += "<option value=\"\" disabled=\"disabled\">-------------</option>\n"
 
           zones = zones.reject { |z| priority_zones.include?( z ) }
         end
