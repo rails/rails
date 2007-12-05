@@ -118,7 +118,7 @@ module ActiveRecord #:nodoc:
   # question mark is supposed to represent. In those cases, you can resort to named bind variables instead. That's done by replacing
   # the question marks with symbols and supplying a hash with values for the matching symbol keys:
   #
-  #   Company.find(:first, [
+  #   Company.find(:first, :conditions => [
   #     "id = :id AND name = :name AND division = :division AND created_at > :accounting_date",
   #     { :id => 3, :name => "37signals", :division => "First", :accounting_date => '2005-01-01' }
   #   ])
@@ -184,12 +184,12 @@ module ActiveRecord #:nodoc:
   # Dynamic attribute-based finders are a cleaner way of getting (and/or creating) objects by simple queries without turning to SQL. They work by
   # appending the name of an attribute to <tt>find_by_</tt> or <tt>find_all_by_</tt>, so you get finders like Person.find_by_user_name,
   # Person.find_all_by_last_name, Payment.find_by_transaction_id. So instead of writing
-  # <tt>Person.find(:first, ["user_name = ?", user_name])</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
-  # And instead of writing <tt>Person.find(:all, ["last_name = ?", last_name])</tt>, you just do <tt>Person.find_all_by_last_name(last_name)</tt>.
+  # <tt>Person.find(:first, :conditions => ["user_name = ?", user_name])</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
+  # And instead of writing <tt>Person.find(:all, :conditions => ["last_name = ?", last_name])</tt>, you just do <tt>Person.find_all_by_last_name(last_name)</tt>.
   #
   # It's also possible to use multiple attributes in the same find by separating them with "_and_", so you get finders like
   # <tt>Person.find_by_user_name_and_password</tt> or even <tt>Payment.find_by_purchaser_and_state_and_country</tt>. So instead of writing
-  # <tt>Person.find(:first, ["user_name = ? AND password = ?", user_name, password])</tt>, you just do
+  # <tt>Person.find(:first, :conditions => ["user_name = ? AND password = ?", user_name, password])</tt>, you just do
   # <tt>Person.find_by_user_name_and_password(user_name, password)</tt>.
   #
   # It's even possible to use all the additional parameters to find. For example, the full interface for Payment.find_all_by_amount

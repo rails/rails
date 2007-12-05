@@ -1,5 +1,7 @@
 *SVN*
 
+* Documentation for find incorrectly omits the :conditions option from various examples. Closes #7923 [mattwestcott]
+
 * Document options and add examples for update. Closes #7985 [fearoffish]
 
 * Document options and add examples for delete. Closes #7986 [fearoffish]
