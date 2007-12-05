@@ -25,9 +25,9 @@ module ActionView
       # 23 hrs, 59 mins, 29 secs <-> 47 hrs, 59 mins, 29 secs                     # => 1 day
       # 47 hrs, 59 mins, 29 secs <-> 29 days, 23 hrs, 59 mins, 29 secs            # => [2..29] days
       # 29 days, 23 hrs, 59 mins, 30 secs <-> 59 days, 23 hrs, 59 mins, 29 secs   # => about 1 month
-      # 59 days, 23 hrs, 59 mins, 30 secs <-> 1 yr minus 31 secs                  # => [2..12] months
-      # 1 yr minus 30 secs <-> 2 yrs minus 31 secs                                # => about 1 year
-      # 2 yrs minus 30 secs <-> max time or date                                  # => over [2..X] years
+      # 59 days, 23 hrs, 59 mins, 30 secs <-> 1 yr minus 1 sec                    # => [2..12] months
+      # 1 yr <-> 2 yrs minus 1 secs                                               # => about 1 year
+      # 2 yrs <-> max time or date                                                # => over [2..X] years
       #
       # With include_seconds = true and the difference < 1 minute 29 seconds
       # 0-4   secs      # => less than 5 seconds
@@ -56,7 +56,6 @@ module ActionView
       #   distance_of_time_in_words(to_time, from_time, true)     # => over 6 years
       #   distance_of_time_in_words(Time.now, Time.now)           # => less than a minute
       #
-      # Note: Rails calculates one year as 365.25 days.
       def distance_of_time_in_words(from_time, to_time = 0, include_seconds = false)
         from_time = from_time.to_time if from_time.respond_to?(:to_time)
         to_time = to_time.to_time if to_time.respond_to?(:to_time)
