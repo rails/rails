@@ -521,12 +521,27 @@ module ActiveRecord #:nodoc:
         id.is_a?(Array) ? id.each { |id| destroy(id) } : find(id).destroy
       end
 
-      # Updates all records with the SET-part of an SQL update statement in +updates+ and returns an integer with the number of rows updated.
-      # A subset of the records can be selected by specifying +conditions+. Example:
-      #   Billing.update_all "category = 'authorized', approved = 1", "author = 'David'"
+      # Updates all records with details given if they match a set of conditions supplied, limits and order can
+      # also be supplied.
       #
-      # Optional :order and :limit options may be given as the third parameter,
-      # but their behavior is database-specific.
+      # ==== Options
+      #
+      # +updates+     A String of column and value pairs that will be set on any records that match conditions
+      # +conditions+  An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. 
+      #               See conditions in the intro for more info.
+      # +options+     Additional options are :limit and/or :order, see the examples for usage.
+      #
+      # ==== Examples
+      #
+      #   # Update all billing objects with the 3 different attributes given
+      #   Billing.update_all( "category = 'authorized', approved = 1, author = 'David'" )
+      #   
+      #   # Update records that match our conditions
+      #   Billing.update_all( "author = 'David'", "title LIKE '%Rails%'" )
+      #
+      #   # Update records that match our conditions but limit it to 5 ordered by date
+      #   Billing.update_all( "author = 'David'", "title LIKE '%Rails%'", 
+      #                         :order => 'created_at', :limit => 5 )
       def update_all(updates, conditions = nil, options = {})
         sql  = "UPDATE #{table_name} SET #{sanitize_sql_for_assignment(updates)} "
         scope = scope(:find)

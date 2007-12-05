@@ -1,5 +1,7 @@
 *SVN*
 
+* Document options and add examples for update_all. Closes #7990 [fearoffish]
+
 * Document options for update_counters. Closes #8091 [fearoffish]
 
 * Add documentation about the virtual attribute added by validates_confirmation_of and its behavior. Closes #8815 [JEG2, matt, kampers]
