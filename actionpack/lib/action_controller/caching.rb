@@ -307,25 +307,28 @@ module ActionController #:nodoc:
     #     <%= render :partial => "topic", :collection => Topic.find(:all) %>
     #   <% end %>
     #
-    # This cache will bind to the name of action that called it. So you would be able to invalidate it using
-    # <tt>expire_fragment(:controller => "topics", :action => "list")</tt> -- if that was the controller/action used. This is not too helpful
-    # if you need to cache multiple fragments per action or if the action itself is cached using <tt>caches_action</tt>. So instead we should
-    # qualify the name of the action used with something like:
+    # This cache will bind to the name of the action that called it, so if this code was part of the view for the topics/list action, you would 
+    # be able to invalidate it using <tt>expire_fragment(:controller => "topics", :action => "list")</tt>. 
+    # 
+    # This default behavior is of limited use if you need to cache multiple fragments per action or if the action itself is cached using 
+    # <tt>caches_action</tt>, so we also have the option to qualify the name of the cached fragment with something like:
     #
     #   <% cache(:action => "list", :action_suffix => "all_topics") do %>
     #
-    # That would result in a name such as "/topics/list/all_topics", which wouldn't conflict with any action cache and neither with another
-    # fragment using a different suffix. Note that the URL doesn't have to really exist or be callable. We're just using the url_for system
-    # to generate unique cache names that we can refer to later for expirations. The expiration call for this example would be
-    # <tt>expire_fragment(:controller => "topics", :action => "list", :action_suffix => "all_topics")</tt>.
+    # That would result in a name such as "/topics/list/all_topics", avoiding conflicts with the action cache and with any fragments that use a 
+    # different suffix. Note that the URL doesn't have to really exist or be callable - the url_for system is just used to generate unique 
+    # cache names that we can refer to when we need to expire the cache. 
+    # 
+    # The expiration call for this example is:
+    # 
+    #   expire_fragment(:controller => "topics", :action => "list", :action_suffix => "all_topics")
     #
     # == Fragment stores
     #
-    # In order to use the fragment caching, you need to designate where the caches should be stored. This is done by assigning a fragment store
-    # of which there are four different kinds:
+    # By default, cached fragments are stored in memory. The available store options are:
     #
-    # * FileStore: Keeps the fragments on disk in the +cache_path+, which works well for all types of environments and shares the fragments for
-    #   all the web server processes running off the same application directory.
+    # * FileStore: Keeps the fragments on disk in the +cache_path+, which works well for all types of environments and allows all 
+    #   processes running from the same application directory to access the cached content.
     # * MemoryStore: Keeps the fragments in memory, which is fine for WEBrick and for FCGI (if you don't care that each FCGI process holds its
     #   own fragment store). It's not suitable for CGI as the process is thrown away at the end of each request. It can potentially also take
     #   up a lot of memory since each process keeps all the caches in memory.
@@ -347,6 +350,7 @@ module ActionController #:nodoc:
           @@fragment_cache_store = MemoryStore.new
           cattr_reader :fragment_cache_store
 
+          # Defines the storage option for cached fragments
           def self.fragment_cache_store=(store_option)
             store, *parameters = *([ store_option ].flatten)
             @@fragment_cache_store = if store.is_a?(Symbol)
@@ -360,6 +364,9 @@ module ActionController #:nodoc:
         end
       end
 
+      # Given a name (as described in <tt>expire_fragment</tt>), returns a key suitable for use in reading, 
+      # writing, or expiring a cached fragment. If the name is a hash, the generated name is the return
+      # value of url_for on that hash (without the protocol).
       def fragment_cache_key(name)
         name.is_a?(Hash) ? url_for(name).split("://").last : name
       end
@@ -379,6 +386,7 @@ module ActionController #:nodoc:
         end
       end
 
+      # Writes <tt>content</tt> to the location signified by <tt>name</tt> (see <tt>expire_fragment</tt> for acceptable formats)
       def write_fragment(name, content, options = nil)
         return unless perform_caching
 
@@ -389,6 +397,7 @@ module ActionController #:nodoc:
         content
       end
 
+      # Reads a cached fragment from the location signified by <tt>name</tt> (see <tt>expire_fragment</tt> for acceptable formats)
       def read_fragment(name, options = nil)
         return unless perform_caching
 
@@ -405,8 +414,8 @@ module ActionController #:nodoc:
       #     %r{pages/\d*/notes}
       #   Ensure you do not specify start and finish in the regex (^$) because
       #   the actual filename matched looks like ./cache/filename/path.cache
-      #   Regexp expiration is not supported on caches which can't iterate over
-      #   all keys, such as memcached.
+      #   Regexp expiration is only supported on caches that can iterate over
+      #   all keys (unlike memcached).
       def expire_fragment(name, options = nil)
         return unless perform_caching
 
