@@ -383,9 +383,12 @@ module ActiveRecord
       #     <%= password_field "person", "password" %>
       #     <%= password_field "person", "password_confirmation" %>
       #
-      # The person has to already have a password attribute (a column in the people table), but the password_confirmation is virtual.
-      # It exists only as an in-memory variable for validating the password. This check is performed only if password_confirmation
-      # is not nil and by default on save.
+      # The added +password_confirmation+ attribute is virtual; it exists only as an in-memory attribute for validating the password.
+      # To achieve this, the validation adds acccessors to the model for the confirmation attribute. NOTE: This check is performed
+      # only if +password_confirmation+ is not nil, and by default only on save. To require confirmation, make sure to add a presence
+      # check for the confirmation attribute:
+      #
+      #   validates_presence_of :password_confirmation, :if => :password_changed?
       #
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "doesn't match confirmation")
