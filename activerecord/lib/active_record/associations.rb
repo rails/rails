@@ -415,10 +415,10 @@ module ActiveRecord
     #     has_many :assets, :as => :attachable, :dependent => :destroy
     #   end
     #
-    #   class GuestPost < ActiveRecord::Base
+    #   class GuestPost < Post
     #   end
     #
-    #   class MemberPost < ActiveRecord::Base
+    #   class MemberPost < Post
     #   end
     #
     # == Caching

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix typo in documentation for polymorphic associations w/STI. Closes #7461 [johnjosephbachir]
+
 * Reveal that the type option in migrations can be any supported column type for your database but also include caveat about agnosticism. Closes #7531 [adamwiggins, mikong]
 
 * More complete documentation for find_by_sql. Closes #7912 [fearoffish]
