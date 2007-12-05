@@ -4,7 +4,7 @@ module ActionController
   class NonInferrableControllerError < ActionControllerError
     def initialize(name)
       super "Unable to determine the controller to test from #{name}. " +
-        "You'll need to specify it using tests YourController in your " +
+        "You'll need to specify it using 'tests YourController' in your " +
         "test case definition"
     end
   end

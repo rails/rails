@@ -1,5 +1,7 @@
 *SVN*
 
+* When a NonInferrableControllerError is raised, make the proposed fix clearer in the error message. Closes #10199 [danger]
+
 * Update Prototype to 1.6.0.1.  [sam]
 
 * Update script.aculo.us to 1.8.0.1.  [madrobby]
