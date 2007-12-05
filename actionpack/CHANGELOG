@@ -1,5 +1,7 @@
 *SVN*
 
+* Add examples in the documentation for various assertions. Closes #9938 [zapnap]
+
 * When a NonInferrableControllerError is raised, make the proposed fix clearer in the error message. Closes #10199 [danger]
 
 * Update Prototype to 1.6.0.1.  [sam]
