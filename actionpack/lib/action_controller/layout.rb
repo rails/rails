@@ -165,7 +165,7 @@ module ActionController #:nodoc:
     # variable. The preferred notation now is to use <tt>yield</tt>, as documented above.
     module ClassMethods
       # If a layout is specified, all rendered actions will have their result rendered  
-      # when the layout<tt>yield</tt>'s. This layout can itself depend on instance variables assigned during action
+      # when the layout <tt>yield</tt>s. This layout can itself depend on instance variables assigned during action
       # performance and have access to them as any normal template would.
       def layout(template_name, conditions = {}, auto = false)
         add_layout_conditions(conditions)
