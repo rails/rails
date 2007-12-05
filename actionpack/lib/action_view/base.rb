@@ -276,7 +276,7 @@ module ActionView #:nodoc:
     # it's relative to the view_paths array, otherwise it's absolute. The hash in <tt>local_assigns</tt> 
     # is made available as local variables.
     def render_file(template_path, use_full_path = true, local_assigns = {}) #:nodoc:
-      if defined?(ActionMailer) && controller.is_a?(ActionMailer::Base) && !template_path.include?("/")
+      if defined?(ActionMailer) && defined?(ActionMailer::Base) && controller.is_a?(ActionMailer::Base) && !template_path.include?("/")
         raise ActionViewError, <<-END_ERROR
 Due to changes in ActionMailer, you need to provide the mailer_name along with the template name.
 
