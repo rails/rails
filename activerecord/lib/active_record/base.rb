@@ -721,14 +721,23 @@ module ActiveRecord #:nodoc:
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the inheritance hierarchy descending
       # directly from ActiveRecord. So if the hierarchy looks like: Reply < Message < ActiveRecord, then Message is used
-      # to guess the table name from even when called on Reply. The rules used to do the guess are handled by the Inflector class
+      # to guess the table name even when called on Reply. The rules used to do the guess are handled by the Inflector class
       # in Active Support, which knows almost all common English inflections. You can add new inflections in config/initializers/inflections.rb.
       #
       # Nested classes are given table names prefixed by the singular form of
-      # the parent's table name. Example:
+      # the parent's table name. Enclosing modules are not considered. Examples:
+      #
+      #   class Invoice < ActiveRecord::Base; end;
       #   file                  class               table_name
       #   invoice.rb            Invoice             invoices
-      #   invoice/lineitem.rb   Invoice::Lineitem   invoice_lineitems
+      #
+      #   class Invoice < ActiveRecord::Base; class Lineitem < ActiveRecord::Base; end; end;
+      #   file                  class               table_name
+      #   invoice.rb            Invoice::Lineitem   invoice_lineitems
+      #
+      #   module Invoice; class Lineitem < ActiveRecord::Base; end; end;
+      #   file                  class               table_name
+      #   invoice/lineitem.rb   Invoice::Lineitem   lineitems
       #
       # Additionally, the class-level table_name_prefix is prepended and the
       # table_name_suffix is appended.  So if you have "myapp_" as a prefix,

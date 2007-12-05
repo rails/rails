@@ -1,5 +1,7 @@
 *SVN*
 
+* Give examples for what tables should be called for models inside a module namespace. Closes #10288 [scott_willson]
+
 * Document the :message option for validates_associated. Closes #10357 [dylans]
 
 * Document automatically generated predicate methods for attributes. Closes #10373 [chuyeow]
