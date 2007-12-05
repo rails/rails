@@ -432,6 +432,8 @@ module ActiveRecord
         EOV
       end
       
+      # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and 
+      # <tt>:updated_at</tt> to the table.
       def timestamps
         column(:created_at, :datetime)
         column(:updated_at, :datetime)
