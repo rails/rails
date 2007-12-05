@@ -1,5 +1,7 @@
 *SVN*
 
+* More complete documentation for find_by_sql. Closes #7912 [fearoffish]
+
 * Document API for exists?'s parameter and provide examples of usage. Closes #7913 [fearoffish]
 
 * Document API for create's attributes parameter and provide examples. Closes #7915 [fearoffish]

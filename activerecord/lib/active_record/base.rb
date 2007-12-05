@@ -454,9 +454,29 @@ module ActiveRecord #:nodoc:
         end
       end
       
-      # Works like find(:all), but requires a complete SQL string. Examples:
-      #   Post.find_by_sql "SELECT p.*, c.author FROM posts p, comments c WHERE p.id = c.post_id"
-      #   Post.find_by_sql ["SELECT * FROM posts WHERE author = ? AND created > ?", author_id, start_date]
+      #
+      # Executes a custom sql query against your database and returns all the results.  The results will 
+      # be returned as an array with columns requested encapsulated as attributes of the model you call 
+      # this method from.  If you call +Product.find_by_sql+ then the results will be returned in a Product 
+      # object with the attributes you specified in the SQL query.
+      #
+      # If you call a complicated SQL query which spans multiple tables the columns specified by the 
+      # SELECT will be attributes of the model, whether or not they are columns of the corresponding 
+      # table.
+      #
+      # The +sql+ parameter is a full sql query as a string.  It will be called as is, there will be 
+      # no database agnostic conversions performed.  This should be a last resort because using, for example,  
+      # MySQL specific terms will lock you to using that particular database engine or require you to 
+      # change your call if you switch engines
+      #
+      # ==== Examples
+      #   # A simple sql query spanning multiple tables
+      #   Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
+      #   > [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "first_name"=>"Quentin"}>, ...]
+      #
+      #   # You can use the same string replacement techniques as you can with ActiveRecord#find
+      #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
+      #   > [#<Post:0x36bff9c @attributes={"first_name"=>"The Cheap Man Buys Twice"}>, ...]
       def find_by_sql(sql)
         connection.select_all(sanitize_sql(sql), "#{name} Load").collect! { |record| instantiate(record) }
       end
