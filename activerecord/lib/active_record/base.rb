@@ -486,16 +486,20 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Finds the record from the passed +id+, instantly saves it with the passed +attributes+ (if the validation permits it),
-      # and returns it. If the save fails under validations, the unsaved object is still returned.
+      # Updates an object (or multiple objects) and saves it to the database, if validations pass.
+      # The resulting object is returned whether the object was saved successfully to the database or not.
       #
-      # The arguments may also be given as arrays in which case the update method is called for each pair of +id+ and 
-      # +attributes+ and an array of objects is returned.
+      # ==== Options
       #
-      # Example of updating one record:
+      # +id+          This should be the id or an array of ids to be updated
+      # +attributes+  This should be a Hash of attributes to be set on the object, or an array of Hashes.
+      #
+      # ==== Examples
+      #
+      #   # Updating one record:
       #   Person.update(15, {:user_name => 'Samuel', :group => 'expert'})
       # 
-      # Example of updating multiple records:
+      #   # Updating multiple records:
       #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy"} } 	
       #   Person.update(people.keys, people.values)
       def update(id, attributes)
