@@ -40,7 +40,7 @@ class EagerAssociationTest < Test::Unit::TestCase
   def test_with_two_tables_in_from_without_getting_double_quoted
     posts = Post.find(:all,
       :select     => "posts.*",
-      :from       => "posts, authors",
+      :from       => "authors, posts",
       :include    => :comments,
       :conditions => "posts.author_id = authors.id"
     )
