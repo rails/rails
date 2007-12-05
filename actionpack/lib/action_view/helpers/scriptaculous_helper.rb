@@ -77,7 +77,7 @@ module ActionView
       # attributes in the form "string_identifier". For example, "item_1". Only
       # the identifier part of the id attribute will be serialized.
       # 
-      # Addtional +options+ are:
+      # Additional +options+ are:
       #
       # <tt>:format</tt>::               A regular expression to determine what to send
       #                                  as the serialized id to the server (the default
