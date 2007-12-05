@@ -461,9 +461,18 @@ module ActiveRecord #:nodoc:
         connection.select_all(sanitize_sql(sql), "#{name} Load").collect! { |record| instantiate(record) }
       end
 
-      # Returns true if the given +id+ represents the primary key of a record in the database, false otherwise.
-      # You can also pass a set of SQL conditions. 
-      # Example:
+      # Checks whether a record exists in the database that matches conditions given.  These conditions 
+      # can either be a single integer representing a primary key id to be found, or a condition to be 
+      # matched like using ActiveRecord#find.
+      #
+      # The +id_or_conditions+ parameter can be an Integer or a String if you want to search the primary key 
+      # column of the table for a matching id, or if you're looking to match against a condition you can use 
+      # an Array or a Hash.
+      #
+      # Possible gotcha: You can't pass in a condition as a string e.g. "name = 'Jamie'", this would be 
+      # sanitized and then queried against the primary key column as "id = 'name = \'Jamie"
+      #
+      # ==== Examples
       #   Person.exists?(5)
       #   Person.exists?('5')
       #   Person.exists?(:name => "David")
