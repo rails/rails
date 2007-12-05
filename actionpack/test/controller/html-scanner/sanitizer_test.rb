@@ -106,7 +106,13 @@ class SanitizerTest < Test::Unit::TestCase
   end
 
   def test_should_allow_custom_tags_with_attributes
-    text = %(<fieldset foo="bar">foo</fieldset>)
+    text = %(<blockquote cite="http://example.com/">foo</blockquote>)
+    sanitizer = HTML::WhiteListSanitizer.new
+    assert_equal(text, sanitizer.sanitize(text))
+  end
+
+  def test_should_allow_custom_tags_with_custom_attributes
+    text = %(<blockquote foo="bar">Lorem ipsum</blockquote>)
     sanitizer = HTML::WhiteListSanitizer.new
     assert_equal(text, sanitizer.sanitize(text, :attributes => ['foo']))
   end
