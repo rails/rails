@@ -1,5 +1,7 @@
 *SVN*
 
+* Add many examples to assertion documentation. Closes #7803 [jeremymcanally]
+
 * Document the supported options for sortable_element. Closes #8820 [berkelep]
 
 * Add examples in the documentation for various assertions. Closes #9938 [zapnap]
