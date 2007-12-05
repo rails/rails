@@ -2026,25 +2026,28 @@ module ActiveRecord #:nodoc:
         id.hash
       end
 
-      # Just freeze the attributes hash, such that associations are still accessible even on destroyed records.
+      # Freeze the attributes hash such that associations are still accessible, even on destroyed records.
       def freeze
         @attributes.freeze; self
       end
 
+      # Returns +true+ if the attributes hash has been frozen.
       def frozen?
         @attributes.frozen?
       end
 
-      # Records loaded through joins with piggy-back attributes will be marked as read only as they cannot be saved and return true to this query.
+      # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
+      # attributes will be marked as read only since they cannot be saved.
       def readonly?
         @readonly == true
       end
 
-      def readonly! #:nodoc:
+      # Marks this record as read only.
+      def readonly!
         @readonly = true
       end
 
-      # Nice pretty inspect.
+      # Returns the contents of the record as a nicely formatted string.
       def inspect
         attributes_as_nice_string = self.class.column_names.collect { |name|
           if has_attribute?(name) || new_record?

@@ -1,5 +1,7 @@
 *SVN*
 
+* Add documentation for freeze and readonly related methods. Closes #8878 [pelargir, jeremymcanally]
+
 * Document the timestamps schema definition method. Closes #9000 [mikong]
 
 * Give examples for what tables should be called for models inside a module namespace. Closes #10288 [scott_willson]
