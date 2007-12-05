@@ -515,8 +515,25 @@ module ActiveRecord #:nodoc:
         delete_all([ "#{connection.quote_column_name(primary_key)} IN (?)", id ])
       end
 
-      # Destroys the record with the given +id+ by instantiating the object and calling #destroy (all the callbacks are the triggered).
-      # If an array of ids is provided, all of them are destroyed.
+      # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
+      # therefore all callbacks and filters are fired off before the object is deleted.  This method is
+      # less efficient than ActiveRecord#delete but allows cleanup methods and other actions to be run.
+      # 
+      # This essentially finds the object (or multiple objects) with the given id, creates a new object 
+      # from the attributes, and then calls destroy on it.
+      #
+      # ==== Options
+      # 
+      # +id+  Can be either an Integer or an Array of Integers
+      #
+      # ==== Examples
+      #
+      #   # Destroy a single object
+      #   Todo.destroy(1)
+      #   
+      #   # Destroy multiple objects
+      #   todos = [1,2,3]
+      #   Todo.destroy(todos)
       def destroy(id)
         id.is_a?(Array) ? id.each { |id| destroy(id) } : find(id).destroy
       end
