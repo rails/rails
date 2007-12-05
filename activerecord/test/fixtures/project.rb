@@ -1,5 +1,6 @@
 class Project < ActiveRecord::Base
   has_and_belongs_to_many :developers, :uniq => true, :order => 'developers.name desc, developers.id desc'
+  has_and_belongs_to_many :selected_developers, :class_name => "Developer", :select => "developers.*", :uniq => true
   has_and_belongs_to_many :non_unique_developers, :order => 'developers.name desc, developers.id desc', :class_name => 'Developer'
   has_and_belongs_to_many :limited_developers, :class_name => "Developer", :limit => 1
   has_and_belongs_to_many :developers_named_david, :class_name => "Developer", :conditions => "name = 'David'", :uniq => true

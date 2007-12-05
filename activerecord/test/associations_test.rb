@@ -1998,6 +1998,12 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_raises(ActiveRecord::ReadOnlyRecord) { david.save! }
   end
 
+  def test_updating_attributes_on_rich_associations_with_limited_find_from_reflection
+    david = projects(:action_controller).selected_developers.first
+    david.name = "DHH"
+    assert_nothing_raised { david.save! }
+  end
+
 
   def test_updating_attributes_on_rich_associations_with_limited_find
     david = projects(:action_controller).developers.find(:all, :select => "developers.*").first
