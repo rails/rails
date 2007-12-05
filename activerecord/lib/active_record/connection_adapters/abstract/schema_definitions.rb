@@ -292,11 +292,16 @@ module ActiveRecord
       end
 
       # Instantiates a new column for the table.
-      # The +type+ parameter must be one of the following values:
+      # The +type+ parameter is normally one of the migrations native types,
+      # which is one of the following:
       # <tt>:primary_key</tt>, <tt>:string</tt>, <tt>:text</tt>,
       # <tt>:integer</tt>, <tt>:float</tt>, <tt>:decimal</tt>,
       # <tt>:datetime</tt>, <tt>:timestamp</tt>, <tt>:time</tt>,
       # <tt>:date</tt>, <tt>:binary</tt>, <tt>:boolean</tt>.
+      #
+      # You may use a type not in this list as long as it is supported by your
+      # database (for example, "polygon" in MySQL), but this will not be database
+      # agnostic and should usually be avoided.
       #
       # Available options are (none of these exists by default):
       # * <tt>:limit</tt> -
