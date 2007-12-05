@@ -474,8 +474,17 @@ module ActiveRecord #:nodoc:
         false
       end
 
-      # Creates an object, instantly saves it as a record (if the validation permits it), and returns it. If the save
-      # fails under validations, the unsaved object is still returned.
+      # Creates an object (or multiple objects) and saves it to the database, if validations pass.  
+      # The resulting object is returned whether the object was saved successfully to the database or not.
+      #
+      # The +attributes+ parameter can be either be a Hash or an Array of Hashes.  These Hashes describe the
+      # attributes on the objects that are to be created.
+      #
+      # ==== Examples
+      #   # Create a single new object
+      #   User.create(:first_name => 'Jamie')
+      #   # Create an Array of new objects
+      #   User.create([{:first_name => 'Jamie'}, {:first_name => 'Jeremy'}])
       def create(attributes = nil)
         if attributes.is_a?(Array)
           attributes.collect { |attr| create(attr) }

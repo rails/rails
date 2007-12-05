@@ -1,5 +1,7 @@
 *SVN*
 
+* Document API for create's attributes parameter and provide examples. Closes #7915 [fearoffish]
+
 * Documentation for find incorrectly omits the :conditions option from various examples. Closes #7923 [mattwestcott]
 
 * Document options and add examples for update. Closes #7985 [fearoffish]
