@@ -1247,7 +1247,7 @@ module ActiveRecord
 
         def construct_finder_sql_with_included_associations(options, join_dependency)
           scope = scope(:find)
-          sql = "SELECT #{column_aliases(join_dependency)} FROM #{connection.quote_table_name((scope && scope[:from]) || options[:from] || table_name)} "
+          sql = "SELECT #{column_aliases(join_dependency)} FROM #{(scope && scope[:from]) || options[:from] || quoted_table_name} "
           sql << join_dependency.join_associations.collect{|join| join.association_join }.join
  
           add_joins!(sql, options, scope)
