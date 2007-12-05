@@ -76,10 +76,65 @@ module ActionView
       # Important: For this to work, the sortable elements must have id
       # attributes in the form "string_identifier". For example, "item_1". Only
       # the identifier part of the id attribute will be serialized.
+      # 
+      # Addtional +options+ are:
       #
+      # <tt>:format</tt>::               A regular expression to determine what to send
+      #                                  as the serialized id to the server (the default
+      #                                  is <tt>/^[^_]*_(.*)$/</tt>).
+      #                                  
+      # <tt>:constraint</tt>::           Whether to constrain the dragging to either <tt>:horizontal</tt>
+      #                                  or <tt>:vertical</tt> (or false to make it unconstrained).
+      #                                   
+      # <tt>:overlap</tt>::              Calculate the item overlap in the <tt>:horizontal</tt> or 
+      #                                  <tt>:vertical</tt> direction.
+      #                                   
+      # <tt>:tag</tt>::                  Which children of the container element to treat as
+      #                                  sortable (default is <tt>li</tt>).
+      #                                  
+      # <tt>:containment</tt>::          Takes an element or array of elements to treat as
+      #                                  potential drop targets (defaults to the original
+      #                                  target element).
+      #                                  
+      # <tt>:only</tt>::                 A CSS class name or arry of class names used to filter
+      #                                  out child elements as candidates.
+      #                                  
+      # <tt>:scroll</tt>::               Determines whether to scroll the list during drag
+      #                                  operationsif the list runs past the visual border.
+      #                                  
+      # <tt>:tree</tt>::                 Determines whether to treat nested lists as part of the
+      #                                  main sortable list. This means that you can create multi-
+      #                                  layer lists, and not only sort items at the same level,
+      #                                  but drag and sort items between levels.
+      #                                  
+      # <tt>:hoverclass</tt>::           If set, the Droppable will have this additional CSS class
+      #                                  when an accepted Draggable is hovered over it.                         
+      #                                 
+      # <tt>:handle</tt>::               Sets whether the element should only be draggable by an
+      #                                  embedded handle. The value may be a string referencing a
+      #                                  CSS class value (as of script.aculo.us V1.5). The first
+      #                                  child/grandchild/etc. element found within the element
+      #                                  that has this CSS class value will be used as the handle.
       #
-      # You can change the behaviour with various options, see
-      # http://script.aculo.us for more documentation.
+      # <tt>:ghosting</tt>::             Clones the element and drags the clone, leaving the original
+      #                                  in place until the clone is dropped (defaut is <tt>false</tt>).
+      #       
+      # <tt>:dropOnEmpty</tt>::          If set to true, the Sortable container will be made into
+      #                                  a Droppable, that can receive a Draggable (as according to
+      #                                  the containment rules) as a child element when there are no
+      #                                  more elements inside (defaut is <tt>false</tt>).
+      #       
+      # <tt>:onChange</tt>::             Called whenever the sort order changes while dragging. When
+      #                                  dragging from one Sortable to another, the callback is
+      #                                  called once on each Sortable. Gets the affected element as
+      #                                  its parameter.
+      #                                 
+      # <tt>:onUpdate</tt>::             Called when the drag ends and the Sortable's order is
+      #                                  changed in any way. When dragging from one Sortable to
+      #                                  another, the callback is called once on each Sortable. Gets
+      #                                  the container as its parameter.
+      #                                                                                         
+      # See http://script.aculo.us for more documentation.
       def sortable_element(element_id, options = {})
         javascript_tag(sortable_element_js(element_id, options).chop!)
       end
