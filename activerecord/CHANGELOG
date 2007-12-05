@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that habtm associations should be able to set :select as part of their definition and have that honored [DHH]
+
 * Document how the :include option can be used in Calculations::calculate.  Closes #7446 [adamwiggins, ultimoamore]
 
 * Fix typo in documentation for polymorphic associations w/STI. Closes #7461 [johnjosephbachir]
@@ -7,34 +9,6 @@
 * Reveal that the type option in migrations can be any supported column type for your database but also include caveat about agnosticism. Closes #7531 [adamwiggins, mikong]
 
 * More complete documentation for find_by_sql. Closes #7912 [fearoffish]
-
-* Document API for exists?'s parameter and provide examples of usage. Closes #7913 [fearoffish]
-
-* Document API for create's attributes parameter and provide examples. Closes #7915 [fearoffish]
-
-* Documentation for find incorrectly omits the :conditions option from various examples. Closes #7923 [mattwestcott]
-
-* Document options and add examples for update. Closes #7985 [fearoffish]
-
-* Document options and add examples for delete. Closes #7986 [fearoffish]
-
-* Document options and add examples for destroy. Closes #7988 [fearoffish]
-
-* Document options and add examples for update_all. Closes #7990 [fearoffish]
-
-* Document options for update_counters. Closes #8091 [fearoffish]
-
-* Add documentation about the virtual attribute added by validates_confirmation_of and its behavior. Closes #8815 [JEG2, matt, kampers]
-
-* Add documentation for freeze and readonly related methods. Closes #8878 [pelargir, jeremymcanally]
-
-* Document the timestamps schema definition method. Closes #9000 [mikong]
-
-* Give examples for what tables should be called for models inside a module namespace. Closes #10288 [scott_willson]
-
-* Document the :message option for validates_associated. Closes #10357 [dylans]
-
-* Document automatically generated predicate methods for attributes. Closes #10373 [chuyeow]
 
 * Added ActiveRecord::Base#becomes to turn a record into one of another class (mostly relevant for STIs) [DHH]. Example:
 
