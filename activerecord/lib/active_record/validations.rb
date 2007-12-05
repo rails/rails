@@ -777,6 +777,7 @@ module ActiveRecord
       # is both present and guaranteed to be valid, you also need to use validates_presence_of.
       #
       # Configuration options:
+      # * <tt>message</tt> - A custom error message (default is: "is invalid")
       # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
