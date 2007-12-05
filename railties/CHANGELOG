@@ -1,5 +1,7 @@
 *SVN*
 
+* Add warning to documentation about using transactional fixtures when the code under test uses transactions itself. Closes #7548 [thijsv]
+
 * Update Prototype to 1.6.0.1.  [sam]
 
 * Update script.aculo.us to 1.8.0.1.  [madrobby]
