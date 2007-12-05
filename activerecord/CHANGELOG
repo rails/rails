@@ -1,5 +1,7 @@
 *SVN*
 
+* Document how the :include option can be used in Calculations::calculate.  Closes #7446 [adamwiggins, ultimoamore]
+
 * Fix typo in documentation for polymorphic associations w/STI. Closes #7461 [johnjosephbachir]
 
 * Reveal that the type option in migrations can be any supported column type for your database but also include caveat about agnosticism. Closes #7531 [adamwiggins, mikong]
