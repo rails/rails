@@ -42,7 +42,8 @@ class EagerAssociationTest < Test::Unit::TestCase
       :select     => "posts.*",
       :from       => "authors, posts",
       :include    => :comments,
-      :conditions => "posts.author_id = authors.id"
+      :conditions => "posts.author_id = authors.id",
+      :order      => "posts.id"
     )
 
     assert_equal 2, posts.first.comments.size
