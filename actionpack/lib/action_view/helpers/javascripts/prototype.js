@@ -1,4 +1,4 @@
-/*  Prototype JavaScript framework, version 1.6.0
+/*  Prototype JavaScript framework, version 1.6.0.1
  *  (c) 2005-2007 Sam Stephenson
  *
  *  Prototype is freely distributable under the terms of an MIT-style license.
@@ -7,7 +7,7 @@
  *--------------------------------------------------------------------------*/
 
 var Prototype = {
-  Version: '1.6.0',
+  Version: '1.6.0.1',
 
   Browser: {
     IE:     !!(window.attachEvent && !window.opera),
@@ -2194,22 +2194,46 @@ if (!document.createRange || Prototype.Browser.Opera) {
 }
 
 if (Prototype.Browser.Opera) {
-  Element.Methods._getStyle = Element.Methods.getStyle;
-  Element.Methods.getStyle = function(element, style) {
-    switch(style) {
-      case 'left':
-      case 'top':
-      case 'right':
-      case 'bottom':
-        if (Element._getStyle(element, 'position') == 'static') return null;
-      default: return Element._getStyle(element, style);
+  Element.Methods.getStyle = Element.Methods.getStyle.wrap(
+    function(proceed, element, style) {
+      switch (style) {
+        case 'left': case 'top': case 'right': case 'bottom':
+          if (proceed(element, 'position') === 'static') return null;
+        case 'height': case 'width':
+          // returns '0px' for hidden elements; we want it to return null
+          if (!Element.visible(element)) return null;
+
+          // returns the border-box dimensions rather than the content-box
+          // dimensions, so we subtract padding and borders from the value
+          var dim = parseInt(proceed(element, style), 10);
+
+          if (dim !== element['offset' + style.capitalize()])
+            return dim + 'px';
+
+          var properties;
+          if (style === 'height') {
+            properties = ['border-top-width', 'padding-top',
+             'padding-bottom', 'border-bottom-width'];
+          }
+          else {
+            properties = ['border-left-width', 'padding-left',
+             'padding-right', 'border-right-width'];
+          }
+          return properties.inject(dim, function(memo, property) {
+            var val = proceed(element, property);
+            return val === null ? memo : memo - parseInt(val, 10);
+          }) + 'px';
+        default: return proceed(element, style);
+      }
     }
-  };
-  Element.Methods._readAttribute = Element.Methods.readAttribute;
-  Element.Methods.readAttribute = function(element, attribute) {
-    if (attribute == 'title') return element.title;
-    return Element._readAttribute(element, attribute);
-  };
+  );
+
+  Element.Methods.readAttribute = Element.Methods.readAttribute.wrap(
+    function(proceed, element, attribute) {
+      if (attribute === 'title') return element.title;
+      return proceed(element, attribute);
+    }
+  );
 }
 
 else if (Prototype.Browser.IE) {
@@ -2380,7 +2404,7 @@ else if (Prototype.Browser.WebKit) {
   };
 
   // Safari returns margins on body which is incorrect if the child is absolutely
-  // positioned.  For performance reasons, redefine Position.cumulativeOffset for
+  // positioned.  For performance reasons, redefine Element#cumulativeOffset for
   // KHTML/WebKit only.
   Element.Methods.cumulativeOffset = function(element) {
     var valueT = 0, valueL = 0;
@@ -2669,10 +2693,11 @@ Element.addMethods = function(methods) {
 document.viewport = {
   getDimensions: function() {
     var dimensions = { };
+    var B = Prototype.Browser;
     $w('width height').each(function(d) {
       var D = d.capitalize();
-      dimensions[d] = self['inner' + D] ||
-       (document.documentElement['client' + D] || document.body['client' + D]);
+      dimensions[d] = (B.WebKit && !document.evaluate) ? self['inner' + D] :
+        (B.Opera) ? document.body['client' + D] : document.documentElement['client' + D];
     });
     return dimensions;
   },

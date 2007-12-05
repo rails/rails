@@ -1,5 +1,7 @@
 *SVN*
 
+* Update Prototype to 1.6.0.1.  [sam]
+
 * Update script.aculo.us to 1.8.0.1.  [madrobby]
 
 * Add 'disabled' attribute to <OPTION> separators used in time zone and country selects.  Closes #10354 [hasmanyjosh]
