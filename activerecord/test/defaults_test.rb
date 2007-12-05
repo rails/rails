@@ -31,7 +31,8 @@ class DefaultTest < Test::Unit::TestCase
 
       assert_equal 0, klass.columns_hash['zero'].default
       assert !klass.columns_hash['zero'].null
-      assert_equal nil, klass.columns_hash['omit'].default
+      # 0 in MySQL 4, nil in 5.
+      assert [0, nil].include?(klass.columns_hash['omit'].default)
       assert !klass.columns_hash['omit'].null
 
       assert_raise(ActiveRecord::StatementInvalid) { klass.create! }
