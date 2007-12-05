@@ -574,7 +574,19 @@ module ActiveRecord #:nodoc:
       # with the given ID, altering the given hash of counters by the amount
       # given by the corresponding value:
       #
+      # ==== Options
+      # 
+      # +id+        The id of the object you wish to update a counter on
+      # +counters+  An Array of Hashes containing the names of the fields 
+      #             to update as keys and the amount to update the field by as
+      #             values
+      # 
+      # ==== Examples
+      # 
+      #   # For the Post with id of 5, decrement the comment_count by 1, and 
+      #   # increment the action_count by 1
       #   Post.update_counters 5, :comment_count => -1, :action_count => 1
+      #   # Executes the following SQL:
       #   # UPDATE posts
       #   #    SET comment_count = comment_count - 1,
       #   #        action_count = action_count + 1

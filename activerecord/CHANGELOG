@@ -1,5 +1,7 @@
 *SVN*
 
+* Document options for update_counters. Closes #8091 [fearoffish]
+
 * Add documentation about the virtual attribute added by validates_confirmation_of and its behavior. Closes #8815 [JEG2, matt, kampers]
 
 * Add documentation for freeze and readonly related methods. Closes #8878 [pelargir, jeremymcanally]
