@@ -5,6 +5,7 @@ class Module
   # or string).  At least one method and the :to option are required.
   #
   # Delegation is particularly useful with Active Record associations:
+  #
   #   class Greeter < ActiveRecord::Base
   #     def hello()   "hello"   end
   #     def goodbye() "goodbye" end
@@ -25,6 +26,25 @@ class Module
   #   end
   #
   #   Foo.new.goodbye # => "goodbye"
+  #
+  # Methods can be delegated to instance variables, class variables, or constants
+  # by providing the variable as a symbol:
+  #   class Foo
+  #     CONSTANT_ARRAY = [0,1,2,3]
+  #     @@class_array  = [4,5,6,7]
+  #     
+  #     def initialize
+  #       @instance_array = [8,9,10,11]
+  #     end
+  #     delegate :sum, :to => :CONSTANT_ARRAY
+  #     delegate :min, :to => :@@class_array
+  #     delegate :max, :to => :@instance_array
+  #   end
+  #
+  #   Foo.new.sum # => 6
+  #   Foo.new.min # => 4
+  #   Foo.new.max # => 11
+  #
   def delegate(*methods)
     options = methods.pop
     unless options.is_a?(Hash) && to = options[:to]
