@@ -227,7 +227,7 @@ module ActionController #:nodoc:
           # assume they should exist at this point. An early raised exception
           # could trigger some other handler and the array could include
           # precisely a string whose corresponding constant has not yet been
-          # seen. This is why we are tolerant to unkown constants.
+          # seen. This is why we are tolerant to unknown constants.
           #
           # Note that this tolerance only matters if the exception was given as
           # a string, otherwise a NameError will be raised by the interpreter

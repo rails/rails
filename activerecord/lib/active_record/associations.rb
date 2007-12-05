@@ -266,7 +266,7 @@ module ActiveRecord
     #
     # === Association callbacks
     #
-    # Similiar to the normal callbacks that hook into the lifecycle of an Active Record object, you can also define callbacks that get
+    # Similar to the normal callbacks that hook into the lifecycle of an Active Record object, you can also define callbacks that get
     # triggered when you add an object to or remove an object from an association collection. Example:
     #
     #   class Project

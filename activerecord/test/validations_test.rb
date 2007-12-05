@@ -367,7 +367,7 @@ class ValidationsTest < Test::Unit::TestCase
     assert !r2.valid?, "Saving r2"
 
     # Should succeed as validates_uniqueness_of only applies to
-    # UniqueReply and it's subclasses
+    # UniqueReply and its subclasses
     r3 = t.replies.create "title" => "r2", "content" => "a barrel of fun"
     assert r3.valid?, "Saving r3"
   end

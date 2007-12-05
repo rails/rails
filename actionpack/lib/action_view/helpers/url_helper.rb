@@ -331,7 +331,7 @@ module ActionView
       # also used as the name of the link unless +name+ is specified. Additional
       # HTML attributes for the link can be passed in +html_options+.
       #
-      # mail_to has several methods for hindering email harvestors and customizing
+      # mail_to has several methods for hindering email harvesters and customizing
       # the email itself by passing special keys to +html_options+.
       #
       # ==== Options

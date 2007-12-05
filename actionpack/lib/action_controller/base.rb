@@ -164,7 +164,7 @@ module ActionController #:nodoc:
   # For removing objects from the session, you can either assign a single key to nil, like <tt>session[:person] = nil</tt>, or you can
   # remove the entire session with reset_session.
   #
-  # Sessions are stored in a browser cookie that's crytographically signed, but unencrypted, by default. This prevents
+  # Sessions are stored in a browser cookie that's cryptographically signed, but unencrypted, by default. This prevents
   # the user from tampering with the session but also allows him to see its contents.
   #
   # Do not put secret information in session!
@@ -293,7 +293,7 @@ module ActionController #:nodoc:
     # The param_parsers hash lets you register handlers which will process the http body and add parameters to the
     # <tt>params</tt> hash. These handlers are invoked for post and put requests.
     #
-    # By default application/xml is enabled. A XmlSimple class with the same param name as the root will be instanciated
+    # By default application/xml is enabled. A XmlSimple class with the same param name as the root will be instantiated
     # in the <tt>params</tt>. This allows XML requests to mask themselves as regular form submissions, so you can have one
     # action serve both regular forms and web service requests.
     #
@@ -454,10 +454,10 @@ module ActionController #:nodoc:
         view_paths.push(*path)
       end
       
-      # Replace sensitive paramater data from the request log.
-      # Filters paramaters that have any of the arguments as a substring.
+      # Replace sensitive parameter data from the request log.
+      # Filters parameters that have any of the arguments as a substring.
       # Looks in all subhashes of the param hash for keys to filter.
-      # If a block is given, each key and value of the paramater hash and all
+      # If a block is given, each key and value of the parameter hash and all
       # subhashes is passed to it, the value or key
       # can be replaced using String#replace or similar method.
       #
@@ -590,7 +590,7 @@ module ActionController #:nodoc:
       # However, you might ask why the action from the current request, 'contacts', isn't carried over into the new URL. The
       # answer has to do with the order in which the parameters appear in the generated path. In a nutshell, since the
       # value that appears in the slot for <tt>:first</tt> is not equal to default value for <tt>:first</tt> we stop using
-      # defaults. On it's own, this rule can account for much of the typical Rails URL behavior.
+      # defaults. On its own, this rule can account for much of the typical Rails URL behavior.
       #  
       # Although a convenience, defaults can occasionally get in your way. In some cases a default persists longer than desired.
       # The default may be cleared by adding <tt>:name => nil</tt> to <tt>url_for</tt>'s options.

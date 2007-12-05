@@ -79,7 +79,7 @@ module ActiveRecord
         end
       end
 
-      # Check to see if the method is defined in the model or any of it's subclasses that also derive from ActiveRecord.
+      # Check to see if the method is defined in the model or any of its subclasses that also derive from ActiveRecord.
       # Raise DangerousAttributeError if the method is defined by ActiveRecord though.
       def instance_method_already_implemented?(method_name)
         return true if method_name =~ /^id(=$|\?$|$)/

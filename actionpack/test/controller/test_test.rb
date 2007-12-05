@@ -214,7 +214,7 @@ XML
   def test_assert_tag_descendant
     process :test_html_output
 
-    # there is a tag with a decendant 'li' tag
+    # there is a tag with a descendant 'li' tag
     assert_tag :descendant => { :tag => "li" }
     # there is no tag with a descendant 'html' tag
     assert_no_tag :descendant => { :tag => "html" }

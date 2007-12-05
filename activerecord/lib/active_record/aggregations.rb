@@ -123,7 +123,7 @@ module ActiveRecord
       #   This defaults to +false+.
       #
       # An optional block can be passed to convert the argument that is passed to the writer method into an instance of
-      # <tt>:class_name</tt>. The block will only be called if the arguement is not already an instance of <tt>:class_name</tt>.
+      # <tt>:class_name</tt>. The block will only be called if the argument is not already an instance of <tt>:class_name</tt>.
       #
       # Option examples:
       #   composed_of :temperature, :mapping => %w(reading celsius)

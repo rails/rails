@@ -29,7 +29,7 @@ Rake::TestTask.new { |t|
 }
 
 
-# Genereate the RDoc documentation
+# Generate the RDoc documentation
 Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Action Mailer -- Easy email delivery and testing"

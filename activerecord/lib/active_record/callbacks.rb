@@ -164,7 +164,7 @@ module ActiveRecord
   # If <tt>Base#save!</tt> is called it will raise a +RecordNotSaved+ exception.
   # Nothing will be appended to the errors object.
   #
-  # == Cancelling callbacks
+  # == Canceling callbacks
   #
   # If a <tt>before_*</tt> callback returns +false+, all the later callbacks and the associated action are cancelled. If an <tt>after_*</tt> callback returns
   # +false+, all the later callbacks are cancelled. Callbacks are generally run in the order they are defined, with the exception of callbacks

@@ -882,14 +882,14 @@ class DynamicSegmentTest < Test::Unit::TestCase
   end
   
   def test_build_pattern_non_optional_with_no_captures
-    # Non optioanl
+    # Non optional
     a_segment = ROUTING::DynamicSegment.new
     a_segment.regexp = /\d+/ #number_of_captures is 0
     assert_equal "(\\d+)stuff", a_segment.build_pattern('stuff')
   end
 
   def test_build_pattern_non_optional_with_captures
-    # Non optioanl
+    # Non optional
     a_segment = ROUTING::DynamicSegment.new
     a_segment.regexp = /(\d+)(.*?)/ #number_of_captures is 2
     assert_equal "((\\d+)(.*?))stuff", a_segment.build_pattern('stuff')

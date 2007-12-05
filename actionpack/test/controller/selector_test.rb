@@ -85,11 +85,11 @@ class SelectorTest < Test::Unit::TestCase
     assert_equal 2, @matches.size
     assert_equal "2", @matches[0].attributes["id"]
     assert_equal "3", @matches[1].attributes["id"]
-    # Match alement with attribute value.
+    # Match element with attribute value.
     select("*[title=foo]")
     assert_equal 1, @matches.size
     assert_equal "3", @matches[0].attributes["id"]
-    # Match alement with attribute and attribute value.
+    # Match element with attribute and attribute value.
     select("[bar=foo][title]")
     assert_equal 1, @matches.size
     assert_equal "2", @matches[0].attributes["id"]

@@ -8,7 +8,7 @@ module ActionController
     # :requirements, we can just build up a string and return it.
     # 
     # To support building optimisations for other common cases, the 
-    # generation code is seperated into several classes 
+    # generation code is separated into several classes 
     module Optimisation
       def generate_optimisation_block(route, kind)
         return "" unless route.optimise?
