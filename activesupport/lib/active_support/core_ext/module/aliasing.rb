@@ -50,7 +50,7 @@ class Module
   #     # has a title attribute
   #   end
   #
-  #   class Email < ActiveRecord::Base
+  #   class Email < Content
   #     alias_attribute :subject, :title
   #   end
   #
