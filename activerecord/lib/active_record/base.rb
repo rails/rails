@@ -155,6 +155,20 @@ module ActiveRecord #:nodoc:
   # You can alternatively use self[:attribute]=(value) and self[:attribute] instead of write_attribute(:attribute, value) and
   # read_attribute(:attribute) as a shorter form.
   #
+  # == Attribute query methods
+  #
+  # In addition to the basic accessors, query methods are also automatically available on the Active Record object.
+  # Query methods allow you to test whether an attribute value is present.
+  # 
+  # For example, an Active Record User with the <tt>name</tt> attribute has a <tt>name?</tt> method that you can call
+  # to determine whether the user has a name:
+  #
+  #   user = User.new(:name => "David")
+  #   user.name? # => true
+  #
+  #   anonymous = User.new(:name => "")
+  #   anonymous.name? # => false
+  #
   # == Accessing attributes before they have been typecasted
   #
   # Sometimes you want to be able to read the raw attribute data without having the column-determined typecast run its course first.
