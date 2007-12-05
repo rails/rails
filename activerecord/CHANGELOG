@@ -1,5 +1,7 @@
 *SVN*
 
+* Document options and add examples for delete. Closes #7986 [fearoffish]
+
 * Document options and add examples for destroy. Closes #7988 [fearoffish]
 
 * Document options and add examples for update_all. Closes #7990 [fearoffish]
