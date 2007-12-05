@@ -1024,6 +1024,7 @@ module ActionController #:nodoc:
       #   redirect_to post
       #   redirect_to "http://www.rubyonrails.org"
       #   redirect_to "/images/screenshot.jpg"
+      #   redirect_to articles_url
       #   redirect_to :back
       #
       # The redirection happens as a "302 Moved" header unless otherwise specified. 
