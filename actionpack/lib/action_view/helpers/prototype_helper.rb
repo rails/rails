@@ -531,8 +531,23 @@ module ActionView
       #                       you can specify it instead to be "blur" or "focus" or
       #                       any other event.
       #
-      # Additionally, you may specify any of the options documented in
-      # link_to_remote.
+      # Additionally, you may specify any of the options documented in the
+      # <em>Common options</em> section at the top of this document.
+      #
+      # Example:
+      #
+      #   # Sends params: {:title => 'Title of the book'} when the book_title input
+      #   # field is changed.
+      #   observe_field 'book_title',
+      #     :url => 'http://example.com/books/edit/1',
+      #     :with => 'title'
+      #    
+      #   # Sends params: {:book_title => 'Title of the book'} when the focus leaves
+      #   # the input field.
+      #   observe_field 'book_title',
+      #     :url => 'http://example.com/books/edit/1',
+      #     :on => 'blur'
+      #
       def observe_field(field_id, options = {})
         if options[:frequency] && options[:frequency] > 0
           build_observer('Form.Element.Observer', field_id, options)
@@ -967,6 +982,12 @@ module ActionView
       # Yields a JavaScriptGenerator and returns the generated JavaScript code.
       # Use this to update multiple elements on a page in an Ajax response.
       # See JavaScriptGenerator for more information.
+      #
+      # Example:
+      #
+      #   update_page do |page|
+      #     page.hide 'spinner'
+      #   end
       def update_page(&block)
         JavaScriptGenerator.new(@template, &block).to_s
       end

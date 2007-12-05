@@ -1,5 +1,7 @@
 *SVN*
 
+* Add documentation examples to prototype helper. Closes #7211 [manfred]
+
 * Enhance documentation coverage for fragment caching. Closes #7315 [bscofield]
 
 * Fix typo in number helper docs. Closes #7582 [josh]
