@@ -1,4 +1,4 @@
-*SVN*
+*2.0.0* (December 6th, 2007)
 
 * Add warning to documentation about using transactional fixtures when the code under test uses transactions itself. Closes #7548 [thijsv]
 
@@ -9,9 +9,6 @@
 * Added db:fixtures:identity as a way of locating what ID a foxy fixture was assigned #10332 [jbarnette]
 
 * Generated fixtures should not specify ids since theyre expected to be foxy fixtures #10330 [jbarnette]
-
-
-*2.0.0 [RC2]* (November 28th, 2007)
 
 * Update to Prototype -r8232.  [sam]
 

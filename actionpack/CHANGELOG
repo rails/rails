@@ -1,4 +1,4 @@
-*SVN*
+*2.0.0* (December 6th, 2007)
 
 * Fixed send_file/binary_content for testing #8044 [tolsen]
 
@@ -13,9 +13,6 @@
 * Added the same record identification guessing rules to fields_for as form_for has [DHH]
 
 * Fixed that verification violations with no specified action didn't halt the chain (now they do with a 400 Bad Request) [DHH]
-
-
-*2.0.0 [RC2]* (November 28th, 2007)
 
 * Raise UnknownHttpMethod exception for unknown HTTP methods. Closes #10303 [tarmo]
 

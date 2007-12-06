@@ -1,4 +1,4 @@
-*2.0.0 [RC2]* (November 28th, 2007)
+*2.0.0* (December 6th, 2007)
 
 * Added Array#from and Array#to that behaves just from String#from and String#to [DHH]
 
@@ -62,9 +62,6 @@
 * BufferedLogger#auto_flushing = N flushes the log every N messages. Buffers with an array instead of string. Disabling auto_flushing still flushes when the buffer hits a maximum size, as a failsafe against memory-gobbling.  [Jeremy Kemper]
 
 * Fixed Date#xmlschema for dates outside the range of what can be created with Time #9744 [Geoff Buesing]
-
-
-*2.0.0 [Preview Release]* (September 29th, 2007)
 
 * Fixed that La Paz was included in -25200 and -14400 offsets when it should only be in -14400 #9735 [bermi]
 
