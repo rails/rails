@@ -350,6 +350,10 @@ module ActiveRecord
       end
     end
 
+    def pending_migrations
+      migration_classes.select { |m| m.version > current_version }
+    end
+
     private
       def migration_classes
         migrations = migration_files.inject([]) do |migrations, migration_file|

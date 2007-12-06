@@ -1,5 +1,7 @@
 *2.0.0* (December 6th, 2007)
 
+* The test task stops with a warning if you have pending migrations.  #10377 [Josh Knowles]
+
 * Add warning to documentation about using transactional fixtures when the code under test uses transactions itself. Closes #7548 [thijsv]
 
 * Update Prototype to 1.6.0.1.  [sam]
