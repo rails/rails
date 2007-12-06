@@ -768,7 +768,7 @@ module ActionView
           #
           #   # Replace an existing person
           #
-          #   # Generates: Element.replace("person_45", "<!-- Contents of partial -->");
+          #   # Generates: Element.replace("person_45", "-- Contents of partial --");
           #   page.replace 'person_45', :partial => 'person', :object => @person
           #
           def replace(id, *options_for_render)
