@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that the truncation of strings longer than 50 chars should use inspect so newlines etc are escaped #10385 [norbert]
+
 * Fixed that habtm associations should be able to set :select as part of their definition and have that honored [DHH]
 
 * Document how the :include option can be used in Calculations::calculate.  Closes #7446 [adamwiggins, ultimoamore]

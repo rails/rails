@@ -2079,7 +2079,7 @@ module ActiveRecord #:nodoc:
         value = read_attribute(attr_name)
 
         if value.is_a?(String) && value.length > 50
-          %("#{value[0..50]}...")
+          "#{value[0..50]}...".inspect
         elsif value.is_a?(Date) || value.is_a?(Time)
           %("#{value.to_s(:db)}")
         else

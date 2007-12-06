@@ -1732,10 +1732,10 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_attribute_for_inspect
     t = topics(:first)
-    t.content = %(This is some really long content, longer than 50 characters, so I can test that text is truncated correctly by the new ActiveRecord::Base#inspect method! Yay! BOOM!)
+    t.title = "The First Topic Now Has A Title With\nNewlines And More Than 50 Characters"
 
     assert_equal %("#{t.written_on.to_s(:db)}"), t.attribute_for_inspect(:written_on)
-    assert_equal '"This is some really long content, longer than 50 ch..."', t.attribute_for_inspect(:content)
+    assert_equal '"The First Topic Now Has A Title With\nNewlines And M..."', t.attribute_for_inspect(:title)
   end
   
   def test_becomes
