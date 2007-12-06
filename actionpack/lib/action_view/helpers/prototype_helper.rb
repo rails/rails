@@ -715,7 +715,7 @@ module ActionView
           #
           #   # Insert the rendered 'navigation' partial just before the DOM
           #   # element with ID 'content'.
-          #   # Generates: new Insertion.Before("content", "<!-- Contents of 'navigation' partial -->");
+          #   # Generates: new Insertion.Before("content", "-- Contents of 'navigation' partial --");
           #   insert_html :before, 'content', :partial => 'navigation'
           #
           #   # Add a list item to the bottom of the <ul> with ID 'list'.
@@ -734,7 +734,7 @@ module ActionView
           #
           #   # Replace the HTML of the DOM element having ID 'person-45' with the
           #   # 'person' partial for the appropriate object.
-          #   # Generates:  Element.update("person-45", "<!-- Contents of 'person' partial -->");
+          #   # Generates:  Element.update("person-45", "-- Contents of 'person' partial --");
           #   replace_html 'person-45', :partial => 'person', :object => @person
           #
           def replace_html(id, *options_for_render)
