@@ -588,7 +588,13 @@ module ActionController
           end
           raise EOFError, "bad boundary end of body part" unless boundary_end=~/--/
 
-          body.rewind if body.respond_to?(:rewind)
+	  begin
+            body.rewind if body.respond_to?(:rewind)
+	  rescue Errno::ESPIPE
+            # Handles exceptions raised by input streams that cannot be rewound
+            # such as when using plain CGI under Apache
+	  end
+
           params
         end
     end

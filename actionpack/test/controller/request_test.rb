@@ -736,6 +736,16 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
     assert ('a' * 20480) == file.read
   end
 
+  uses_mocha "test_no_rewind_stream" do
+    def test_no_rewind_stream
+      # Ensures that parse_multipart_form_parameters works with streams that cannot be rewound
+      file = File.open(File.join(FIXTURE_PATH, 'large_text_file'), 'rb')
+      file.expects(:rewind).raises(Errno::ESPIPE)
+      params = ActionController::AbstractRequest.parse_multipart_form_parameters(file, 'AaB03x', file.stat.size, {})
+      assert_not_equal 0, file.pos  # file was not rewound after reading
+    end
+  end
+
   def test_binary_file
     params = process('binary_file')
     assert_equal %w(file flowers foo), params.keys.sort
