@@ -4,13 +4,15 @@ require 'fixtures/task'
 
 class DateTimeTest < Test::Unit::TestCase
   def test_saves_both_date_and_time
-    now = 200.years.ago.to_datetime
+    time_values = [1807, 2, 10, 15, 30, 45]
+    now = DateTime.civil(*time_values)
 
     task = Task.new
     task.starting = now
     task.save!
-
-    assert_equal now, Task.find(task.id).starting.to_datetime
+    
+    # check against Time.local_time, since some platforms will return a Time instead of a DateTime
+    assert_equal Time.local_time(*time_values), Task.find(task.id).starting
   end
 
   def test_assign_empty_date_time
