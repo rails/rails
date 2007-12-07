@@ -1,3 +1,8 @@
+*2.0.1* (December 7th, 2007)
+
+* Fixed Active Record bug
+
+
 *2.0.0* (December 6th, 2007)
 
 * The test task stops with a warning if you have pending migrations.  #10377 [Josh Knowles]

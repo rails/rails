@@ -1,4 +1,4 @@
-*2.0.0* (December 6th, 2007)
+*2.0.1* (December 7th, 2007)
 
 * Don't cache net/http object so that ActiveResource is more thread-safe.  Closes #10142 [kou]
 

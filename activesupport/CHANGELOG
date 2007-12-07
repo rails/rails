@@ -1,4 +1,4 @@
-*2.0.0* (December 6th, 2007)
+*2.0.1* (December 7th, 2007)
 
 * Added Array#from and Array#to that behaves just from String#from and String#to [DHH]
 
