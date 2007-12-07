@@ -1,4 +1,4 @@
-#!/usr/local/bin/ruby
+#!/usr/bin/env ruby
 
 VERSION  = ARGV.first
 PACKAGES = %w(activesupport activerecord actionpack actionmailer activeresource)

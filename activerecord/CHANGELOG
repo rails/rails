@@ -1,3 +1,8 @@
+*2.0.1* (December 7th, 2007)
+
+* Removed query cache rescue as it could cause code to be run twice (closes #10408) [DHH]
+
+
 *2.0.0* (December 6th, 2007)
 
 * Anchor DateTimeTest to fixed DateTime instead of a variable value based on Time.now#advance#to_datetime, so that this test passes on 64-bit platforms running Ruby 1.8.6+ [Geoff Buesing]

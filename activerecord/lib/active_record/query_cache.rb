@@ -7,8 +7,6 @@ module ActiveRecord
       else
         connection.cache(&block)
       end
-    rescue
-      yield # if the database is not present, don't let the cache spoil the party
     end
 
     # Disable the query cache within the block if Active Record is configured.
