@@ -943,19 +943,9 @@ module ActionController #:nodoc:
           raise ArgumentError, "too many arguments to head"
         elsif args.empty?
           raise ArgumentError, "too few arguments to head"
-        elsif args.length == 2
-          status = args.shift
-          options = args.shift
-        elsif args.first.is_a?(Hash)
-          options = args.first
-        else
-          status = args.first
-          options = {}
         end
-
-        raise ArgumentError, "head requires an options hash" if !options.is_a?(Hash)
-
-        status = interpret_status(status || options.delete(:status) || :ok)
+        options = args.extract_options!
+        status = interpret_status(args.shift || options.delete(:status) || :ok)
 
         options.each do |key, value|
           headers[key.to_s.dasherize.split(/-/).map { |v| v.capitalize }.join("-")] = value.to_s

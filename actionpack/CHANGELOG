@@ -1,3 +1,7 @@
+*SVN*
+
+* Clean up some cruft around ActionController::Base#head.  Closes #10417 [ssoroka]
+
 *2.0.1* (December 7th, 2007)
 
 * Fixed send_file/binary_content for testing #8044 [tolsen]
