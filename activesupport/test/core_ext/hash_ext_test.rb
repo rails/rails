@@ -205,6 +205,14 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal 1, h[:first]
   end
 
+  def test_to_options_on_indifferent_preserves_hash
+    h = HashWithIndifferentAccess.new
+    h['first'] = 1
+    h.to_options!
+    assert_equal 1, h['first']
+  end
+
+
   def test_indifferent_subhashes
     h = {'user' => {'id' => 5}}.with_indifferent_access
     ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
