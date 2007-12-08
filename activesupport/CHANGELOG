@@ -1,3 +1,7 @@
+*SVN*
+
+* Refactor of Hash#symbolize_keys! to use Hash#replace.  Closes #10420 [ReinH]
+
 * Fix HashWithIndifferentAccess#to_options! so it doesn't clear the options hash.  Closes #10419 [ReinH]
 
 *2.0.1* (December 7th, 2007)

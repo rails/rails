@@ -31,13 +31,7 @@ module ActiveSupport #:nodoc:
 
         # Destructively convert all keys to symbols.
         def symbolize_keys!
-          keys.each do |key|
-            unless key.is_a?(Symbol) || (new_key = key.to_sym).nil?
-              self[new_key] = self[key]
-              delete(key)
-            end
-          end
-          self
+          self.replace(self.symbolize_keys)
         end
 
         alias_method :to_options,  :symbolize_keys
