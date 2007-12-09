@@ -1,8 +1,14 @@
+*SVN*
+
+* Update rails:freeze:gems to work with RubyGems 0.9.5.  [Jeremy Kemper]
+
+
 *1.2.6* (November 24th, 2007)
 
 * Fix :cookie_only to correctly avoid session fixation attacks (CVE-2007-6077)
 
 * Fix regression where the association would not construct new finder SQL on save causing bogus queries for "WHERE owner_id = NULL" even after owner was saved. 
+
 
 *1.2.5* (October 12th, 2007)
 
