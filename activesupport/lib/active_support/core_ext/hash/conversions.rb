@@ -4,23 +4,6 @@ require 'base64'
 require 'builder'
 require 'xmlsimple'
 
-# Extensions needed for Hash#to_query
-class Object
-  def to_param #:nodoc:
-    to_s
-  end
-
-  def to_query(key) #:nodoc:
-    "#{CGI.escape(key.to_s)}=#{CGI.escape(to_param.to_s)}"
-  end
-end
-
-class Array
-  def to_query(key) #:nodoc:
-    collect { |value| value.to_query("#{key}[]") } * '&'
-  end
-end
-
 # Locked down XmlSimple#xml_in_string
 class XmlSimple
   # Same as xml_in but doesn't try to smartly shoot itself in the foot.
@@ -100,6 +83,13 @@ module ActiveSupport #:nodoc:
           klass.extend(ClassMethods)
         end
 
+        # Converts a hash into a string suitable for use as a URL query string. An optional <tt>namespace</tt> can be
+        # passed to enclose the param names (see example below).
+        #
+        # ==== Example:
+        #   { :name => 'David', :nationality => 'Danish' }.to_query # => "name=David&nationality=Danish"
+        #
+        #   { :name => 'David', :nationality => 'Danish' }.to_query('user') # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
         def to_query(namespace = nil)
           collect do |key, value|
             value.to_query(namespace ? "#{namespace}[#{key}]" : key)
