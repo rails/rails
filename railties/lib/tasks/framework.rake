@@ -4,6 +4,7 @@ namespace :rails do
     task :gems do
       deps = %w(actionpack activerecord actionmailer activesupport activeresource)
       require 'rubygems'
+      require 'rubygems/gem_runner'
       Gem.manage_gems
 
       rails = (version = ENV['VERSION']) ?
@@ -21,14 +22,19 @@ namespace :rails do
       rm_rf   "vendor/rails"
       mkdir_p "vendor/rails"
 
-      chdir("vendor/rails") do
-        rails.dependencies.select { |g| deps.include? g.name }.each do |g|
-          Gem::GemRunner.new.run(["unpack", "-v", "#{g.version_requirements}", "#{g.name}"])
-          mv(Dir.glob("#{g.name}*").first, g.name)
-        end
+      begin
+        chdir("vendor/rails") do
+          rails.dependencies.select { |g| deps.include? g.name }.each do |g|
+            Gem::GemRunner.new.run(["unpack", g.name, "--version", g.version_requirements.to_s])
+            mv(Dir.glob("#{g.name}*").first, g.name)
+          end
 
-        Gem::GemRunner.new.run(["unpack", "-v", "=#{version}", "rails"])
-        FileUtils.mv(Dir.glob("rails*").first, "railties")
+          Gem::GemRunner.new.run(["unpack", "rails", "--version", "=#{version}"])
+          FileUtils.mv(Dir.glob("rails*").first, "railties")
+        end
+      rescue Exception
+        rm_rf "vendor/rails"
+        raise
       end
     end
 

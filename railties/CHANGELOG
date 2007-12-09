@@ -1,3 +1,8 @@
+*SVN*
+
+* Update rails:freeze:gems to work with RubyGems 0.9.5.  [Jeremy Kemper]
+
+
 *2.0.1* (December 7th, 2007)
 
 * Fixed Active Record bug
