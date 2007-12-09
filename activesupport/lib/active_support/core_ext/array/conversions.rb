@@ -16,7 +16,7 @@ module ActiveSupport #:nodoc:
             when 0
               ""
             when 1
-              self[0]
+              self[0].to_s
             when 2
               "#{self[0]} #{options[:connector]}#{self[1]}"
             else

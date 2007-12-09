@@ -33,7 +33,6 @@ class ArrayExtToSentenceTests < Test::Unit::TestCase
     assert_equal "one", ['one'].to_sentence
     assert_equal "one and two", ['one', 'two'].to_sentence
     assert_equal "one, two, and three", ['one', 'two', 'three'].to_sentence
-
   end
 
   def test_to_sentence_with_connector
@@ -57,6 +56,9 @@ class ArrayExtToSentenceTests < Test::Unit::TestCase
     assert_equal "one", ['one'].to_sentence
   end
 
+  def test_one_non_string_element
+    assert_equal '1', [1].to_sentence
+  end
 end
 
 class ArrayExtToSTests < Test::Unit::TestCase
