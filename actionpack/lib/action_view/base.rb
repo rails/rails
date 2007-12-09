@@ -1,16 +1,3 @@
-require 'erb'
-require 'builder'
-
-class ERB
-  module Util
-    HTML_ESCAPE = { '&' => '&amp;', '"' => '&quot;', '>' => '&gt;', '<' => '&lt;' }
-
-    def html_escape(s)
-      s.to_s.gsub(/[&\"><]/) { |special| HTML_ESCAPE[special] }
-    end
-  end
-end
-
 module ActionView #:nodoc:
   class ActionViewError < StandardError #:nodoc:
   end
@@ -228,15 +215,8 @@ module ActionView #:nodoc:
     cattr_reader :computed_public_paths
     @@computed_public_paths = {}
 
-    @@templates_requiring_setup = Set.new(%w(builder rxml rjs))
-
-    # Order of template handers checked by #file_exists? depending on the current #template_format
-    DEFAULT_TEMPLATE_HANDLER_PREFERENCE = [:erb, :rhtml, :builder, :rxml, :javascript, :delegate]
-    TEMPLATE_HANDLER_PREFERENCES = {
-      :js       => [:javascript, :erb, :rhtml, :builder, :rxml, :delegate],
-      :xml      => [:builder, :rxml, :erb, :rhtml, :javascript, :delegate],
-      :delegate => [:delegate]
-    }
+    @@template_handlers = {}
+    @@default_template_handlers = nil
 
     class ObjectWrapper < Struct.new(:value) #:nodoc:
     end
@@ -260,9 +240,25 @@ module ActionView #:nodoc:
     # local assigns available to the template. The #render method ought to
     # return the rendered template as a string.
     def self.register_template_handler(extension, klass)
-      TEMPLATE_HANDLER_PREFERENCES[extension.to_sym] = TEMPLATE_HANDLER_PREFERENCES[:delegate]
-      @@template_handlers[extension] = klass
+      @@template_handlers[extension.to_sym] = klass
     end
+
+    def self.register_default_template_handler(extension, klass)
+      register_template_handler(extension, klass)
+      @@default_template_handlers = klass
+    end
+
+    def self.handler_for_extension(extension)
+      @@template_handlers[extension.to_sym] || @@default_template_handlers
+    end
+
+    register_default_template_handler :erb, TemplateHandlers::ERB
+    register_template_handler :rjs, TemplateHandlers::RJS
+    register_template_handler :builder, TemplateHandlers::Builder
+
+    # TODO: Depreciate old template extensions
+    register_template_handler :rhtml, TemplateHandlers::ERB
+    register_template_handler :rxml, TemplateHandlers::Builder
 
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil)#:nodoc:
       @view_paths = view_paths.respond_to?(:find) ? view_paths.dup : [*view_paths].compact
@@ -297,7 +293,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         else
           template_extension = pick_template_extension(template_path).to_s
           unless template_extension
-            raise ActionViewError, "No #{template_handler_preferences.to_sentence} template found for #{template_path} in #{view_paths.inspect}"
+            raise ActionViewError, "No template found for #{template_path} in #{view_paths.inspect}"
           end
           template_file_name = full_template_path(template_path, template_extension)
           template_extension = template_extension.gsub(/^.+\./, '') # strip off any formats
@@ -359,11 +355,13 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
     # Renders the +template+ which is given as a string as either erb or builder depending on <tt>template_extension</tt>.
     # The hash in <tt>local_assigns</tt> is made available as local variables.
     def render_template(template_extension, template, file_path = nil, local_assigns = {}) #:nodoc:
-      if handler = @@template_handlers[template_extension]
+      handler = self.class.handler_for_extension(template_extension)
+
+      if template_handler_is_compilable?(handler)
+        compile_and_render_template(template_extension, template, file_path, local_assigns)
+      else
         template ||= read_template_file(file_path, template_extension) # Make sure that a lazyily-read template is loaded.
         delegate_render(handler, template, local_assigns)
-      else
-        compile_and_render_template(template_extension, template, file_path, local_assigns)
       end
     end
 
@@ -422,31 +420,6 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       end
     end
 
-    def delegate_template_exists?(template_path)#:nodoc:
-      delegate = @@template_handlers.find { |k,| template_exists?(template_path, k) }
-      delegate && delegate.first.to_sym
-    end
-
-    def erb_template_exists?(template_path)#:nodoc:
-      template_exists?(template_path, :erb)
-    end
-
-    def builder_template_exists?(template_path)#:nodoc:
-      template_exists?(template_path, :builder)
-    end
-
-    def rhtml_template_exists?(template_path)#:nodoc:
-      template_exists?(template_path, :rhtml)
-    end
-
-    def rxml_template_exists?(template_path)#:nodoc:
-      template_exists?(template_path, :rxml)
-    end
-
-    def javascript_template_exists?(template_path)#:nodoc:
-      template_exists?(template_path, :rjs)
-    end
-
     def file_exists?(template_path)#:nodoc:
       template_file_name, template_file_extension = path_and_extension(template_path)
       if template_file_extension
@@ -466,10 +439,6 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       return @template_format if @template_format
       format = controller && controller.respond_to?(:request) && controller.request.parameters[:format]
       @template_format = format.blank? ? :html : format.to_sym
-    end
-
-    def template_handler_preferences
-      TEMPLATE_HANDLER_PREFERENCES[template_format] || DEFAULT_TEMPLATE_HANDLER_PREFERENCE
     end
 
     # Adds a view_path to the front of the view_paths array.
@@ -530,17 +499,9 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
 
       def find_template_extension_from_handler(template_path, formatted = nil)
         checked_template_path = formatted ? "#{template_path}.#{template_format}" : template_path
-        template_handler_preferences.each do |template_type|
-          extension =
-            case template_type
-              when :javascript
-                template_exists?(checked_template_path, :rjs) && :rjs
-              when :delegate
-                delegate_template_exists?(checked_template_path)
-              else
-                template_exists?(checked_template_path, template_type) && template_type
-            end
-          if extension
+
+        @@template_handlers.each do |extension,|
+          if template_exists?(checked_template_path, extension)
             return formatted ? "#{template_format}.#{extension}" : extension.to_s
           end
         end
@@ -567,6 +528,14 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
 
       def delegate_render(handler, template, local_assigns)
         handler.new(self).render(template, local_assigns)
+      end
+
+      def delegate_compile(handler, template)
+        handler.new(self).compile(template)
+      end
+
+      def template_handler_is_compilable?(handler)
+        handler.new(self).respond_to?(:compile)
       end
 
       # Assigns instance variables from the controller to the view.
@@ -609,21 +578,9 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
 
       # Method to create the source code for a given template.
       def create_template_source(extension, template, render_symbol, locals)
-        if template_requires_setup?(extension)
-          body = case extension.to_sym
-            when :rxml, :builder
-              content_type_handler = (controller.respond_to?(:response) ? "controller.response" : "controller")
-              "#{content_type_handler}.content_type ||= Mime::XML\n" +
-              "xml = Builder::XmlMarkup.new(:indent => 2)\n" +
-              template +
-              "\nxml.target!\n"
-            when :rjs
-              "controller.response.content_type ||= Mime::JS\n" +
-              "update_page do |page|\n#{template}\nend"
-          end
-        else
-          body = ERB.new(template, nil, @@erb_trim_mode).src
-        end
+        # TODO: Have handler passed to this method because was already looked up in render_template
+        handler = self.class.handler_for_extension(extension)
+        body = delegate_compile(handler, template)
 
         @@template_args[render_symbol] ||= {}
         locals_keys = @@template_args[render_symbol].keys | locals
@@ -635,10 +592,6 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         end
 
         "def #{render_symbol}(local_assigns)\n#{locals_code}#{body}\nend"
-      end
-
-      def template_requires_setup?(extension) #:nodoc:
-        @@templates_requiring_setup.include? extension.to_s
       end
 
       def assign_method_name(extension, template, file_name)
@@ -666,6 +619,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         render_symbol = assign_method_name(extension, template, file_name)
         render_source = create_template_source(extension, template, render_symbol, local_assigns.keys)
 
+        # TODO: Push line_offset logic into appropriate TemplateHandler class
         line_offset = @@template_args[render_symbol].size
         if extension
           case extension.to_sym
@@ -695,5 +649,3 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       end
   end
 end
-
-require 'action_view/template_error'
