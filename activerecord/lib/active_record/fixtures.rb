@@ -9,7 +9,12 @@ module YAML #:nodoc:
   end
 end
 
-class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
+if defined? ActiveRecord
+  class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
+  end
+else
+  class FixtureClassNotFound < StandardError #:nodoc:
+  end
 end
 
 # Fixtures are a way of organizing data that you want to test against; in short, sample data. They come in 3 flavors:
