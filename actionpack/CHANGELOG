@@ -1,5 +1,7 @@
 *SVN*
 
+* render :xml and :json preserve custom content types.  #10388 [jmettraux, Chu Yeow]
+
 * Refactor Action View template handlers.  #10437 [Josh Peek]
 
 * Fix DoubleRenderError message and leave out mention of returning false from filters.  Closes #10380 [fcheung]

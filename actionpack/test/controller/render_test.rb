@@ -44,6 +44,10 @@ class TestController < ActionController::Base
     render :json => {:hello => 'world'}.to_json, :callback => 'alert'
   end
 
+  def render_json_with_custom_content_type
+    render :json => {:hello => 'world'}.to_json, :content_type => 'text/javascript'
+  end
+
   def render_symbol_json
     render :json => {:hello => 'world'}.to_json
   end
@@ -63,6 +67,10 @@ class TestController < ActionController::Base
   def render_xml_hello
     @name = "David"
     render :template => "test/hello"
+  end
+
+  def render_xml_with_custom_content_type
+    render :xml => "<blah/>", :content_type => "application/atomsvc+xml"
   end
 
   def heading
@@ -199,56 +207,62 @@ class RenderTest < Test::Unit::TestCase
     assert_template "test/hello_world"
   end
 
-  def test_do_with_render
+  def test_render
     get :render_hello_world
     assert_template "test/hello_world"
   end
 
-  def test_do_with_render_from_variable
+  def test_render_from_variable
     get :render_hello_world_from_variable
     assert_equal "hello david", @response.body
   end
 
-  def test_do_with_render_action
+  def test_render_action
     get :render_action_hello_world
     assert_template "test/hello_world"
   end
 
-  def test_do_with_render_action_with_symbol
+  def test_render_action_with_symbol
     get :render_action_hello_world_with_symbol
     assert_template "test/hello_world"
   end
 
-  def test_do_with_render_text
+  def test_render_text
     get :render_text_hello_world
     assert_equal "hello world", @response.body
   end
 
-  def test_do_with_render_json
+  def test_render_json
     get :render_json_hello_world
     assert_equal '{"hello": "world"}', @response.body
     assert_equal 'application/json', @response.content_type
   end
 
-  def test_do_with_render_json_with_callback
+  def test_render_json_with_callback
     get :render_json_hello_world_with_callback
     assert_equal 'alert({"hello": "world"})', @response.body
     assert_equal 'application/json', @response.content_type
   end
 
-  def test_do_with_render_symbol_json
+  def test_render_json_with_custom_content_type
+    get :render_json_with_custom_content_type
+    assert_equal '{"hello": "world"}', @response.body
+    assert_equal 'text/javascript', @response.content_type
+  end
+
+  def test_render_symbol_json
     get :render_symbol_json
     assert_equal '{"hello": "world"}', @response.body
     assert_equal 'application/json', @response.content_type
   end
 
-  def test_do_with_render_custom_code
+  def test_render_custom_code
     get :render_custom_code
     assert_response 404
     assert_equal 'hello world', @response.body
   end
 
-  def test_do_with_render_nothing_with_appendix
+  def test_render_nothing_with_appendix
     get :render_nothing_with_appendix
     assert_response 200
     assert_equal 'appended', @response.body
@@ -269,6 +283,7 @@ class RenderTest < Test::Unit::TestCase
   def test_render_xml
     get :render_xml_hello
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
+    assert_equal "application/xml", @response.content_type
   end
 
   def test_render_xml_with_default
@@ -433,6 +448,11 @@ class RenderTest < Test::Unit::TestCase
   def test_should_render_with_alternate_default_render
     xhr :get, :render_alternate_default
     assert_equal %(Element.replace("foo", "partial html");), @response.body
+  end
+
+  def test_should_render_xml_but_keep_custom_content_type
+    get :render_xml_with_custom_content_type
+    assert_equal "application/atomsvc+xml", @response.content_type
   end
 
   protected
