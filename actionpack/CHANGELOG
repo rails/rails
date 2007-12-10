@@ -4,7 +4,7 @@
 
 * Refactor Action View template handlers.  #10437 [Josh Peek]
 
-* Fix DoubleRenderError message and leave out mention of returning false from filters.  Closes #10380 [Fred Cheung]
+* Fix DoubleRenderError message and leave out mention of returning false from filters.  Closes #10380 [Frederick Cheung]
 
 * Clean up some cruft around ActionController::Base#head.  Closes #10417 [ssoroka]
 
@@ -138,7 +138,7 @@
 
 * Add link_to :back which uses your referrer with a fallback to a javascript link. #7366 [eventualbuddha, tarmo]
 
-* error_messages_for and friends also work with local variables.  #9699 [Fred Cheung]
+* error_messages_for and friends also work with local variables.  #9699 [Frederick Cheung]
 
 * Fix url_for, redirect_to, etc. with :controller => :symbol instead of 'string'.  #8562, #9525 [Justin Lynn, Tarmo Tänav, shoe]
 
