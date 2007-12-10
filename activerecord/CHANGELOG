@@ -59,7 +59,7 @@
 
 * Enhance explanation with more examples for attr_accessible macro. Closes #8095 [fearoffish, Marcel Molina]
 
-* Update association/method mapping table to refected latest collection methods for has_many :through. Closes #8772 [lifofifo]
+* Update association/method mapping table to refected latest collection methods for has_many :through. Closes #8772 [Pratik Naik]
 
 * Explain semantics of having several different AR instances in a transaction block. Closes #9036 [jacobat, Marcel Molina]
 
@@ -74,7 +74,7 @@
     # Find posts with a high-rated comment.
     Post.find(:all, :joins => :comments, :conditions => 'comments.rating > 3')
 
-* Associations: speedup duplicate record check.  #10011 [lifofifo]
+* Associations: speedup duplicate record check.  #10011 [Pratik Naik]
 
 * Make sure that << works on has_many associations on unsaved records.  Closes #9989 [hasmanyjosh]
 
@@ -116,11 +116,11 @@
 
 * Fix regression where the association would not construct new finder SQL on save causing bogus queries for "WHERE owner_id = NULL" even after owner was saved.  #8713 [Bryan Helmkamp]
 
-* Refactor association create and build so before & after callbacks behave consistently.  #8854 [lifofifo, mortent]
+* Refactor association create and build so before & after callbacks behave consistently.  #8854 [Pratik Naik, mortent]
 
 * Quote table names. Defaults to column quoting.  #4593 [Justin Lynn, gwcoffey, eadz, Dmitry V. Sabanin, Jeremy Kemper]
 
-* Alias association #build to #new so it behaves predictably.  #8787 [lifofifo]
+* Alias association #build to #new so it behaves predictably.  #8787 [Pratik Naik]
 
 * Add notes to documentation regarding attr_readonly behavior with counter caches and polymorphic associations.  Closes #9835 [saimonmoore, rick]
 
@@ -210,9 +210,9 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
 
 * OpenBase: update for new lib and latest Rails. Support migrations.  #8748 [dcsesq]
 
-* Moved acts_as_tree into a plugin of the same name on the official Rails svn #9514 [lifofifo]
+* Moved acts_as_tree into a plugin of the same name on the official Rails svn.  #9514 [Pratik Naik]
 
-* Moved acts_as_nested_set into a plugin of the same name on the official Rails svn #9516 [josh]
+* Moved acts_as_nested_set into a plugin of the same name on the official Rails svn.  #9516 [Josh Peek]
 
 * Moved acts_as_list into a plugin of the same name on the official Rails svn [josh]
 
@@ -240,7 +240,7 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
 
 * Perform a deep #dup on query cache results so that modifying activerecord attributes does not modify the cached attributes.  [Rick]
 
-# Ensure that has_many :through associations use a count query instead of loading the target when #size is called.  Closes #8800 [lifo]
+# Ensure that has_many :through associations use a count query instead of loading the target when #size is called.  Closes #8800 [Pratik Naik]
 
 * Added :unless clause to validations #8003 [monki]. Example: 
 
@@ -252,11 +252,11 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
     validates_presence_of :username, :unless => using_open_id?
     validates_presence_of :password, :unless => using_open_id?
 
-* Fix #count on a has_many :through association so that it recognizes the :uniq option.  Closes #8801 [lifofifo]
+* Fix #count on a has_many :through association so that it recognizes the :uniq option.  Closes #8801 [Pratik Naik]
 
-* Fix and properly document/test count(column_name) usage. Closes #8999 [lifofifo]
+* Fix and properly document/test count(column_name) usage. Closes #8999 [Pratik Naik]
 
-* Remove deprecated count(conditions=nil, joins=nil) usage.  Closes #8993 [lifofifo]
+* Remove deprecated count(conditions=nil, joins=nil) usage.  Closes #8993 [Pratik Naik]
 
 * Change belongs_to so that the foreign_key assumption is taken from the association name, not the class name.  Closes #8992 [hasmanyjosh]
 
@@ -266,21 +266,21 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
   NEW
     belongs_to :visitor, :class_name => 'User' # => inferred foreign_key is visitor_id
 
-* Remove spurious tests from deprecated_associations_test, most of these aren't deprecated, and are duplicated in associations_test.  Closes #8987 [lifofifo]
+* Remove spurious tests from deprecated_associations_test, most of these aren't deprecated, and are duplicated in associations_test.  Closes #8987 [Pratik Naik]
 
-* Make create! on a has_many :through association return the association object.  Not the collection.  Closes #8786 [lifofifo]
+* Make create! on a has_many :through association return the association object.  Not the collection.  Closes #8786 [Pratik Naik]
 
 * Move from select * to select tablename.* to avoid clobbering IDs. Closes #8889 [dasil003]
 
 * Don't call unsupported methods on associated objects when using :include, :method with to_xml #7307, [manfred, jwilger]
 
-* Define collection singular ids method for has_many :through associations.  #8763 [lifofifo]
+* Define collection singular ids method for has_many :through associations.  #8763 [Pratik Naik]
 
 * Array attribute conditions work with proxied association collections.  #8318 [kamal, theamazingrando]
 
-* Fix polymorphic has_one associations declared in an abstract class.  #8638 [lifofifo, daxhuiberts]
+* Fix polymorphic has_one associations declared in an abstract class.  #8638 [Pratik Naik, Dax Huiberts]
 
-* Fixed validates_associated should not stop on the first error #4276 [mrj/manfred/josh]
+* Fixed validates_associated should not stop on the first error.  #4276 [mrj, Manfred Stienstra, Josh Peek]
 
 * Rollback if commit raises an exception.  #8642 [kik, Jeremy Kemper]
 

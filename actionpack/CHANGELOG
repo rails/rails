@@ -116,7 +116,7 @@
 
 * Make sure resource routes don't clash with internal helpers like javascript_path, image_path etc.  #9928 [gbuesing]
 
-* caches_page uses a single after_filter instead of one per action.  #9891 [lifofifo]
+* caches_page uses a single after_filter instead of one per action.  #9891 [Pratik Naik]
 
 * Update Prototype to 1.6.0_rc1 and script.aculo.us to 1.8.0 preview 0.  [sam, madrobby]
 
@@ -132,7 +132,7 @@
 
 * Extracted sanitization methods from TextHelper to SanitizeHelper [DHH]
 
-* rescue_from accepts :with => lambda { |exception| ... } or a normal block.  #9827 [lifofifo]
+* rescue_from accepts :with => lambda { |exception| ... } or a normal block.  #9827 [Pratik Naik]
 
 * Add :status to redirect_to allowing users to choose their own response code without manually setting headers. #8297 [codahale, chasgrundy]
 
@@ -159,7 +159,7 @@
 
 * Better error messages if you leave out the :secret option for request forgery protection.  Closes #9670 [rick]
 
-* Allow ability to disable request forgery protection, disable it in test mode by default.  Closes #9693 [lifofifo]
+* Allow ability to disable request forgery protection, disable it in test mode by default.  Closes #9693 [Pratik Naik]
 
 * Avoid calling is_missing on LoadErrors. Closes #7460. [ntalbott]
 
@@ -177,7 +177,7 @@
 
 * Merge csrf_killer plugin into rails.  Adds RequestForgeryProtection model that verifies session-specific _tokens for non-GET requests.  [Rick]
 
-* Secure #sanitize, #strip_tags, and #strip_links helpers against xss attacks.  Closes #8877. [Rick, lifofifo, Jacques Distler]
+* Secure #sanitize, #strip_tags, and #strip_links helpers against xss attacks.  Closes #8877. [Rick, Pratik Naik, Jacques Distler]
 
   This merges and renames the popular white_list helper (along with some css sanitizing from Jacques Distler version of the same plugin).
   Also applied updated versions of #strip_tags and #strip_links from #8877.
@@ -196,7 +196,7 @@
 
 * Prevent errors when generating routes for uncountable resources, (i.e. sheep where plural == singluar).   map.resources :sheep now creates sheep_index_url for the collection and sheep_url for the specific item.  [Koz]
 
-* Added support for HTTP Only cookies (works in IE6+ and FF 2.0.5+) as an improvement for XSS attacks #8895 [lifo/Spakman]
+* Added support for HTTP Only cookies (works in IE6+ and FF 2.0.5+) as an improvement for XSS attacks #8895 [Pratik Naik, Spakman]
 
 * Don't warn when a path segment precedes a required segment. Closes #9615. [Nicholas Seckar]
 
@@ -229,13 +229,13 @@
 
 * Autolink behaves well with emails embedded in URLs.  #7313 [Jeremy McAnally, tarmo]
 
-* Fixed that default layouts did not take the format into account #9564 [lifofifo]
+* Fixed that default layouts did not take the format into account #9564 [Pratik Naik]
 
 * Fixed optimized route segment escaping.  #9562 [wildchild, Jeremy Kemper]
 
 * Added block acceptance to JavaScriptHelper#javascript_tag.  #7527 [Bob Silva, Tarmo Tänav, rmm5t]
 
-* root_path returns '/' not ''.  #9563 [lifofifo]
+* root_path returns '/' not ''.  #9563 [Pratik Naik]
 
 * Fixed that setting request.format should also affect respond_to blocks [DHH]
 
@@ -243,9 +243,9 @@
 
 * Fixed that resource namespaces wouldn't stick to all nested resources #9399 [pixeltrix]
 
-* Moved ActionController::Macros::AutoComplete into the auto_complete plugin on the official Rails svn #9512 [lifofifo]
+* Moved ActionController::Macros::AutoComplete into the auto_complete plugin on the official Rails svn.  #9512 [Pratik Naik]
 
-* Moved ActionController::Macros::InPlaceEditing into the in_place_editor plugin on the official Rails svn #9513 [lifofifo]
+* Moved ActionController::Macros::InPlaceEditing into the in_place_editor plugin on the official Rails svn.  #9513 [Pratik Naik]
 
 * Removed deprecated form of calling xml_http_request/xhr without the first argument being the http verb [DHH]
 
@@ -275,7 +275,7 @@
 
 * Allow additional parameters to be passed to named route helpers when using positional arguments.  Closes #8930 [ian.w.white@gmail.com]
 
-* Make render :partial work with a :collection of Hashes, previously this wasn't possible due to backwards compatibility restrictions.  [lifofifo]
+* Make render :partial work with a :collection of Hashes, previously this wasn't possible due to backwards compatibility restrictions.  [Pratik Naik]
 
 * request.host works with IPv6 addresses.  #9458 [yuya]
 
@@ -327,7 +327,7 @@
 
 * Fixed that HTTP authentication should work if the header is called REDIRECT_X_HTTP_AUTHORIZATION as well #6754 [mislaw]
 
-* Don't mistakenly interpret the request uri as the query string.  #8731 [lifofifo, Jeremy Kemper]
+* Don't mistakenly interpret the request uri as the query string.  #8731 [Pratik Naik, Jeremy Kemper]
 
 * Make ActionView#view_paths an attr_accessor for real this time.  Also, don't perform an unnecessary #compact on the @view_paths array in #initialize.  Closes #8582 [dasil003, julik, rick]
 
