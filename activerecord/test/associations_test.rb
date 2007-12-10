@@ -133,6 +133,13 @@ class AssociationProxyTest < Test::Unit::TestCase
     assert_nil p.author.reset
   end
 
+  def test_reload_returns_assocition
+    david = developers(:david)
+    assert_nothing_raised do
+      assert_equal david.projects, david.projects.reload.reload
+    end
+  end
+
   def setup_dangling_association
     josh = Author.create(:name => "Josh")
     p = Post.create(:title => "New on Edge", :body => "More cool stuff!", :author => josh)
