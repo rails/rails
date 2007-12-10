@@ -154,7 +154,7 @@ module ActionController #:nodoc:
       def render_optional_error_file(status_code)
         status = interpret_status(status_code)
         path = "#{RAILS_ROOT}/public/#{status[0,3]}.html"
-        if File.exists?(path)
+        if File.exist?(path)
           render :file => path, :status => status
         else
           head status

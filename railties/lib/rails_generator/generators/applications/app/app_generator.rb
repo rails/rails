@@ -128,7 +128,7 @@ class AppGenerator < Rails::Generator::Base
     end
 
     def mysql_socket_location
-      MYSQL_SOCKET_LOCATIONS.find { |f| File.exists?(f) } unless RUBY_PLATFORM =~ /(:?mswin|mingw)/
+      MYSQL_SOCKET_LOCATIONS.find { |f| File.exist?(f) } unless RUBY_PLATFORM =~ /(:?mswin|mingw)/
     end
 
 

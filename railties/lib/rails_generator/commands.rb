@@ -207,7 +207,7 @@ HELP
           # Determine full paths for source and destination files.
           source              = source_path(relative_source)
           destination         = destination_path(relative_destination)
-          destination_exists  = File.exists?(destination)
+          destination_exists  = File.exist?(destination)
 
           # If source and destination are identical then we're done.
           if destination_exists and identical?(source, destination, &block)
@@ -306,7 +306,7 @@ HELP
         # Always directories which exist.
         def directory(relative_path)
           path = destination_path(relative_path)
-          if File.exists?(path)
+          if File.exist?(path)
             logger.exists relative_path
           else
             logger.create relative_path
@@ -415,7 +415,7 @@ end_message
         # Remove a file if it exists and is a file.
         def file(relative_source, relative_destination, file_options = {})
           destination = destination_path(relative_destination)
-          if File.exists?(destination)
+          if File.exist?(destination)
             logger.rm relative_destination
             unless options[:pretend]
               if options[:svn]
@@ -450,7 +450,7 @@ end_message
           until parts.empty?
             partial = File.join(parts)
             path = destination_path(partial)
-            if File.exists?(path)
+            if File.exist?(path)
               if Dir[File.join(path, '*')].empty?
                 logger.rmdir partial
                 unless options[:pretend]

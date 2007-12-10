@@ -77,7 +77,7 @@ module GeneratorTestHelper
 
   # asserts that the given file exists
   def assert_file_exists(path)
-    assert File.exists?("#{RAILS_ROOT}/#{path}"),"The file '#{path}' should exist"
+    assert File.exist?("#{RAILS_ROOT}/#{path}"),"The file '#{path}' should exist"
   end
 
   # asserts that the given class source file was generated.
@@ -158,7 +158,7 @@ module GeneratorTestHelper
   # It takes the name of the migration as a parameter.
   def assert_skipped_migration(name)
     migration_file = "#{RAILS_ROOT}/db/migrate/001_#{name.to_s.underscore}.rb"
-    assert !File.exists?(migration_file), "should not create migration #{migration_file}"
+    assert !File.exist?(migration_file), "should not create migration #{migration_file}"
   end
 
   # asserts that the given resource was added to the routes.

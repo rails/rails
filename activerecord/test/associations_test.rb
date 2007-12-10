@@ -55,7 +55,7 @@ class AssociationsTest < Test::Unit::TestCase
   def test_storing_in_pstore
     require "tmpdir"
     store_filename = File.join(Dir.tmpdir, "ar-pstore-association-test")
-    File.delete(store_filename) if File.exists?(store_filename)
+    File.delete(store_filename) if File.exist?(store_filename)
     require "pstore"
     apple = Firm.create("name" => "Apple")
     natural = Client.new("name" => "Natural Company")

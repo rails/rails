@@ -141,7 +141,7 @@ module Rails
       end
 
       def self.supports_urandom?
-        File.exists?('/dev/urandom')
+        File.exist?('/dev/urandom')
       end
 
       def self.supports_openssl?

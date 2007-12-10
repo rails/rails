@@ -33,12 +33,12 @@ class AAACreateTablesTest < Test::Unit::TestCase
   private
     def use_migrations?
       unittest_sql_filename = ActiveRecord::Base.connection.adapter_name.downcase + ".sql"
-      not File.exists? "#{@base_path}/#{unittest_sql_filename}"
+      not File.exist? "#{@base_path}/#{unittest_sql_filename}"
     end
 
     def use_migrations_for_courses?
       unittest2_sql_filename = ActiveRecord::Base.connection.adapter_name.downcase + "2.sql"
-      not File.exists? "#{@base_path}/#{unittest2_sql_filename}"
+      not File.exist? "#{@base_path}/#{unittest2_sql_filename}"
     end
 
     def recreate(base, suffix = nil)

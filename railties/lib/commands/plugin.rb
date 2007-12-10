@@ -214,12 +214,12 @@ class Plugin
 
     def run_install_hook
       install_hook_file = "#{rails_env.root}/vendor/plugins/#{name}/install.rb"
-      load install_hook_file if File.exists? install_hook_file
+      load install_hook_file if File.exist? install_hook_file
     end
 
     def run_uninstall_hook
       uninstall_hook_file = "#{rails_env.root}/vendor/plugins/#{name}/uninstall.rb"
-      load uninstall_hook_file if File.exists? uninstall_hook_file
+      load uninstall_hook_file if File.exist? uninstall_hook_file
     end
 
     def install_using_export(options = {})
