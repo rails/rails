@@ -54,6 +54,12 @@ module ActionController #:nodoc:
       #     skip_before_filter :verify_authenticity_token
       #   end
       #
+      # If you are upgrading from Rails 1.x, disable forgery protection to
+      # simplify your tests. Add this to config/environments/test.rb:
+      #
+      #   # Disable request forgery protection in test environment
+      #   config.action_controller.allow_forgery_protection = false
+      #
       # Valid Options:
       #
       # * <tt>:only/:except</tt> - passed to the before_filter call.  Set which actions are verified.
