@@ -243,17 +243,17 @@ module ActionView #:nodoc:
       @@template_handlers[extension.to_sym] = klass
     end
 
+    def self.template_handler_extensions
+      @@template_handler_extensions ||= @@template_handlers.keys.map(&:to_s).sort
+    end
+
     def self.register_default_template_handler(extension, klass)
       register_template_handler(extension, klass)
       @@default_template_handlers = klass
     end
 
     def self.handler_for_extension(extension)
-      @@template_handlers[extension.to_sym] || @@default_template_handlers
-    end
-
-    def self.template_handler_extensions
-      @@template_handler_extensions ||= @@template_handlers.keys.map(&:to_s).sort
+      (extension && @@template_handlers[extension.to_sym]) || @@default_template_handlers
     end
 
     register_default_template_handler :erb, TemplateHandlers::ERB
@@ -332,7 +332,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       elsif options == :update
         update_page(&block)
       elsif options.is_a?(Hash)
-        options = options.reverse_merge(:type => :erb, :locals => {}, :use_full_path => true)
+        options = options.reverse_merge(:locals => {}, :use_full_path => true)
 
         if options[:layout]
           path, partial_name = partial_pieces(options.delete(:layout))
@@ -362,35 +362,10 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       handler = self.class.handler_for_extension(template_extension)
 
       if template_handler_is_compilable?(handler)
-        compile_and_render_template(template_extension, template, file_path, local_assigns)
+        compile_and_render_template(handler, template, file_path, local_assigns)
       else
         template ||= read_template_file(file_path, template_extension) # Make sure that a lazyily-read template is loaded.
         delegate_render(handler, template, local_assigns)
-      end
-    end
-
-    # Render the provided template with the given local assigns. If the template has not been rendered with the provided
-    # local assigns yet, or if the template has been updated on disk, then the template will be compiled to a method.
-    #
-    # Either, but not both, of template and file_path may be nil. If file_path is given, the template
-    # will only be read if it has to be compiled.
-    #
-    def compile_and_render_template(extension, template = nil, file_path = nil, local_assigns = {}) #:nodoc:
-      # convert string keys to symbols if requested
-      local_assigns = local_assigns.symbolize_keys if @@local_assigns_support_string_keys
-
-      # compile the given template, if necessary
-      if compile_template?(template, file_path, local_assigns)
-        template ||= read_template_file(file_path, extension)
-        compile_template(extension, template, file_path, local_assigns)
-      end
-
-      # Get the method name for this template and run it
-      method_name = @@method_names[file_path || template]
-      evaluate_assigns
-
-      send(method_name, local_assigns) do |*name|
-        instance_variable_get "@content_for_#{name.first || 'layout'}"
       end
     end
 
@@ -581,9 +556,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       end
 
       # Method to create the source code for a given template.
-      def create_template_source(extension, template, render_symbol, locals)
-        # TODO: Have handler passed to this method because was already looked up in render_template
-        handler = self.class.handler_for_extension(extension)
+      def create_template_source(handler, template, render_symbol, locals)
         body = delegate_compile(handler, template)
 
         @@template_args[render_symbol] ||= {}
@@ -598,13 +571,13 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         "def #{render_symbol}(local_assigns)\n#{locals_code}#{body}\nend"
       end
 
-      def assign_method_name(extension, template, file_name)
+      def assign_method_name(handler, template, file_name)
         method_key = file_name || template
-        @@method_names[method_key] ||= compiled_method_name(extension, template, file_name)
+        @@method_names[method_key] ||= compiled_method_name(handler, template, file_name)
       end
 
-      def compiled_method_name(extension, template, file_name)
-        ['_run', extension, compiled_method_name_file_path_segment(file_name)].compact.join('_').to_sym
+      def compiled_method_name(handler, template, file_name)
+        ['_run', handler.to_s.demodulize.underscore, compiled_method_name_file_path_segment(file_name)].compact.join('_').to_sym
       end
 
       def compiled_method_name_file_path_segment(file_name)
@@ -619,25 +592,14 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       end
 
       # Compile and evaluate the template's code
-      def compile_template(extension, template, file_name, local_assigns)
-        render_symbol = assign_method_name(extension, template, file_name)
-        render_source = create_template_source(extension, template, render_symbol, local_assigns.keys)
+      def compile_template(handler, template, file_name, local_assigns)
+        render_symbol = assign_method_name(handler, template, file_name)
+        render_source = create_template_source(handler, template, render_symbol, local_assigns.keys)
+        line_offset   = @@template_args[render_symbol].size + handler.line_offset
 
-        # TODO: Push line_offset logic into appropriate TemplateHandler class
-        line_offset = @@template_args[render_symbol].size
-        if extension
-          case extension.to_sym
-          when :builder, :rxml, :rjs
-            line_offset += 2
-          end
-        end
-        
         begin
-          unless file_name.blank?
-            CompiledTemplates.module_eval(render_source, file_name, -line_offset)
-          else
-            CompiledTemplates.module_eval(render_source, 'compiled-template', -line_offset)
-          end
+          file_name = 'compiled-template' if file_name.blank?
+          CompiledTemplates.module_eval(render_source, file_name, -line_offset)
         rescue Exception => e  # errors from template code
           if logger
             logger.debug "ERROR: compiling #{render_symbol} RAISED #{e}"
@@ -650,6 +612,31 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
 
         @@compile_time[render_symbol] = Time.now
         # logger.debug "Compiled template #{file_name || template}\n  ==> #{render_symbol}" if logger
+      end
+
+      # Render the provided template with the given local assigns. If the template has not been rendered with the provided
+      # local assigns yet, or if the template has been updated on disk, then the template will be compiled to a method.
+      #
+      # Either, but not both, of template and file_path may be nil. If file_path is given, the template
+      # will only be read if it has to be compiled.
+      #
+      def compile_and_render_template(handler, template = nil, file_path = nil, local_assigns = {}) #:nodoc:
+        # convert string keys to symbols if requested
+        local_assigns = local_assigns.symbolize_keys if @@local_assigns_support_string_keys
+
+        # compile the given template, if necessary
+        if compile_template?(template, file_path, local_assigns)
+          template ||= read_template_file(file_path, nil)
+          compile_template(handler, template, file_path, local_assigns)
+        end
+
+        # Get the method name for this template and run it
+        method_name = @@method_names[file_path || template]
+        evaluate_assigns
+
+        send(method_name, local_assigns) do |*name|
+          instance_variable_get "@content_for_#{name.first || 'layout'}"
+        end
       end
   end
 end

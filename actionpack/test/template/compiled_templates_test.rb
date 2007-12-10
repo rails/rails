@@ -95,11 +95,13 @@ class CompiledTemplateTests < Test::Unit::TestCase
     assert v.send(:compile_template?, nil, @b, {})
     assert v.send(:compile_template?, nil, @s, {}) unless windows
 
+    @handler = ActionView::Base.handler_for_extension(:rhtml)
+
     # All templates are rendered at t+2
     Time.expects(:now).times(windows ? 2 : 3).returns(t + 2.seconds)
-    v.compile_and_render_template(:rhtml, '', @a)
-    v.compile_and_render_template(:rhtml, '', @b)
-    v.compile_and_render_template(:rhtml, '', @s) unless windows
+    v.send(:compile_and_render_template, @handler, '', @a)
+    v.send(:compile_and_render_template, @handler, '', @b)
+    v.send(:compile_and_render_template, @handler, '', @s) unless windows
     a_n = v.method_names[@a]
     b_n = v.method_names[@b]
     s_n = v.method_names[@s] unless windows
@@ -117,9 +119,9 @@ class CompiledTemplateTests < Test::Unit::TestCase
     assert !v.send(:compile_template?, nil, @a, {})
     assert !v.send(:compile_template?, nil, @b, {})
     assert !v.send(:compile_template?, nil, @s, {}) unless windows
-    v.compile_and_render_template(:rhtml, '', @a)
-    v.compile_and_render_template(:rhtml, '', @b)
-    v.compile_and_render_template(:rhtml, '', @s)  unless windows
+    v.send(:compile_and_render_template, @handler, '', @a)
+    v.send(:compile_and_render_template, @handler, '', @b)
+    v.send(:compile_and_render_template, @handler, '', @s)  unless windows
     # none of the files have changed since last compile
     assert v.compile_time[a_n] < t + 3.seconds
     assert v.compile_time[b_n] < t + 3.seconds
@@ -142,9 +144,9 @@ class CompiledTemplateTests < Test::Unit::TestCase
 
     # Only the symlink template gets rendered at t+3
     Time.stubs(:now).returns(t + 3.seconds) unless windows
-    v.compile_and_render_template(:rhtml, '', @a)
-    v.compile_and_render_template(:rhtml, '', @b)
-    v.compile_and_render_template(:rhtml, '', @s) unless windows
+    v.send(:compile_and_render_template, @handler, '', @a)
+    v.send(:compile_and_render_template, @handler, '', @b)
+    v.send(:compile_and_render_template, @handler, '', @s) unless windows
     # the symlink has changed since last compile
     assert v.compile_time[a_n] < t + 3.seconds
     assert v.compile_time[b_n] < t + 3.seconds
@@ -167,9 +169,9 @@ class CompiledTemplateTests < Test::Unit::TestCase
     assert v.send(:compile_template?, nil, @s, {}) unless windows
 
     Time.expects(:now).times(windows ? 1 : 2).returns(t + 5.seconds)
-    v.compile_and_render_template(:rhtml, '', @a)
-    v.compile_and_render_template(:rhtml, '', @b)
-    v.compile_and_render_template(:rhtml, '', @s) unless windows
+    v.send(:compile_and_render_template, @handler, '', @a)
+    v.send(:compile_and_render_template, @handler, '', @b)
+    v.send(:compile_and_render_template, @handler, '', @s) unless windows
     # the file at the end of the symlink has changed since last compile
     # both the symlink and the file at the end of it should be recompiled
     assert v.compile_time[a_n] < t + 5.seconds

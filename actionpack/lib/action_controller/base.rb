@@ -862,7 +862,7 @@ module ActionController #:nodoc:
 
           elsif inline = options[:inline]
             add_variables_to_assigns
-            render_for_text(@template.render_template(options[:type] || :erb, inline, nil, options[:locals] || {}), options[:status])
+            render_for_text(@template.render_template(options[:type], inline, nil, options[:locals] || {}), options[:status])
 
           elsif action_name = options[:action]
             template = default_template_name(action_name.to_s)
