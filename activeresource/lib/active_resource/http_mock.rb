@@ -34,7 +34,7 @@ module ActiveResource
         end
 
         if block_given?
-          yield Responder.new(responses) 
+          yield Responder.new(responses)
         else
           Responder.new(responses)
         end
@@ -102,6 +102,17 @@ module ActiveResource
     def initialize(body, message = 200, headers = {})
       @body, @message, @headers = body, message.to_s, headers
       @code = @message[0,3].to_i
+
+      resp_cls = Net::HTTPResponse::CODE_TO_OBJ[@code.to_s]
+      if resp_cls && !resp_cls.body_permitted?
+        @body = nil
+      end
+
+      if @body.nil?
+        self['Content-Length'] = "0"
+      else
+        self['Content-Length'] = body.size.to_s
+      end
     end
 
     def success?
@@ -115,7 +126,7 @@ module ActiveResource
     def []=(key, value)
       headers[key] = value
     end
-    
+
     def ==(other)
       if (other.is_a?(Response))
         other.body == body && other.message == message && other.headers == headers
