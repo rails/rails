@@ -1,5 +1,7 @@
 *SVN*
 
+* RAILS_GEM_VERSION may be double-quoted also.  #10443 [James Cox]
+
 * Update rails:freeze:gems to work with RubyGems 0.9.5.  [Jeremy Kemper]
 
 
@@ -40,7 +42,7 @@
 
 * Refactor Plugin Loader.  Add plugin lib paths early, and add lots of tests.  Closes #9795 [lazyatom]
 
-* Added --skip-timestamps to generators that produce models #10036 [tpope]
+* Added --skip-timestamps to generators that produce models #10036 [Tim Pope]
 
 * Update Prototype to 1.6.0 and script.aculo.us to 1.8.0.  [sam, madrobby]
 

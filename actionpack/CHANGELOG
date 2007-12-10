@@ -387,7 +387,7 @@
 
 * auto_complete_field takes a :method option so you can GET or POST.  #8120 [zapnap]
 
-* Added option to suppress :size when using :maxlength for FormTagHelper#text_field #3112 [rails@tpope.info]
+* Added option to suppress :size when using :maxlength for FormTagHelper#text_field #3112 [Tim Pope]
 
 * catch possible WSOD when trying to render a missing partial. Closes #8454 [Catfish]
 
@@ -577,7 +577,7 @@
 
 * Ensure that render_text only adds string content to the body of the response [DHH]
 
-* Return the string representation from an Xml Builder when rendering a partial. Closes #5044 [tpope] 
+* Return the string representation from an Xml Builder when rendering a partial. Closes #5044 [Tim Pope]
 
 * Fixed that parameters from XML should also be presented in a hash with indifferent access [DHH]
 
@@ -938,7 +938,7 @@ superclass' view_paths.  [Rick]
 
 * Deprecate JavaScriptHelper#update_element_function, which is superseeded by RJS [Thomas Fuchs]
 
-* pluralize helper interprets nil as zero.  #6474 [pope]
+* pluralize helper interprets nil as zero.  #6474 [Tim Pope]
 
 * Fix invalid test fixture exposed by stricter Ruby 1.8.5 multipart parsing.  #6524 [Bob Silva]
 
