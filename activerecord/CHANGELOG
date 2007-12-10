@@ -171,7 +171,7 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
 
 * Extract Oracle, SQLServer, and Sybase adapters into gems.  [Jeremy Kemper]
 
-* Added fixture caching that'll speed up a normal fixture-powered test suite between 50% and 100% #9682 [frederick.cheung@gmail.com]
+* Added fixture caching that'll speed up a normal fixture-powered test suite between 50% and 100% #9682 [Fred Cheung]
 
 * Correctly quote id list for limited eager loading.  #7482 [tmacedo]
 
