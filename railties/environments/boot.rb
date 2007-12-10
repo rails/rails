@@ -93,7 +93,7 @@ module Rails
       end
 
       def parse_gem_version(text)
-        $1 if text =~ /^[^#]*RAILS_GEM_VERSION\s*=\s*'([!~<>=]*\s*[\d.]+)'/
+        $1 if text =~ /^[^#]*RAILS_GEM_VERSION\s*=\s*["']([!~<>=]*\s*[\d.]+)["']/
       end
 
       private

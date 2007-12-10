@@ -128,6 +128,11 @@ class ParseGemVersionTest < Test::Unit::TestCase
     assert_equal nil, parse(nil)
   end
 
+  def test_should_accept_either_single_or_double_quotes
+    assert_equal "1.2.3", parse("RAILS_GEM_VERSION = '1.2.3'")
+    assert_equal "1.2.3", parse('RAILS_GEM_VERSION = "1.2.3"')
+  end
+
   def test_should_return_nil_if_no_lines_match
     assert_equal nil, parse('nothing matches on this line\nor on this line')
   end
