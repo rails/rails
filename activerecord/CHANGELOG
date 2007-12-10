@@ -25,7 +25,7 @@
 
     render :partial => @client.becomes(Company) # renders companies/company instead of clients/client
 
-* Fixed that to_xml should not automatically pass :procs to associations included with :include #10162 [chuyeow]
+* Fixed that to_xml should not automatically pass :procs to associations included with :include #10162 [Chu Yeow]
 
 * Fix documentation typo introduced in [8250]. Closes #10339 [Henrik N]
 
@@ -181,7 +181,7 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
 
 * Added the possibility of using symbols in addition to concrete classes with ActiveRecord::Observer#observe #3998 [robbyrussell/tarmo]
 
-* Added ActiveRecord::Base#to_json/from_json [DHH/chuyeow]
+* Added ActiveRecord::Base#to_json/from_json [DHH, Chu Yeow]
 
 * Added ActiveRecord::Base#from_xml [DHH]. Example:
 
