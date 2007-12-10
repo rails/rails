@@ -4,7 +4,11 @@ class OrderedHashTest < Test::Unit::TestCase
   def setup
     @keys =   %w( blue   green  red    pink   orange )
     @values = %w( 000099 009900 aa0000 cc0066 cc6633 )
-    @ordered_hash = ActiveSupport::OrderedHash.new(@keys.zip(@values).to_a)
+    @ordered_hash = ActiveSupport::OrderedHash.new
+
+    @keys.each_with_index do |key, index|
+      @ordered_hash[key] = @values[index]
+    end
   end
 
   def test_order

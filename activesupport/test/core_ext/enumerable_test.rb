@@ -37,7 +37,7 @@ class EnumerableTests < Test::Unit::TestCase
   end
 
   def test_nil_sums
-    expected_raise = RUBY_VERSION < '1.9.0' ? TypeError : NoMethodError
+    expected_raise = TypeError
 
     assert_raise(expected_raise) { [5, 15, nil].sum }
 

@@ -25,7 +25,7 @@ class DelegatingAttributesTest < Test::Unit::TestCase
     # The class and instance should have an accessor, but there
     # should be no mutator
     assert single_class.respond_to?(:only_reader)
-    assert single_class.public_instance_methods.include?("only_reader")
+    assert single_class.public_instance_methods.map(&:to_s).include?("only_reader")
     assert !single_class.respond_to?(:only_reader=)
   end
 
@@ -45,8 +45,8 @@ class DelegatingAttributesTest < Test::Unit::TestCase
     # the instance should have an accessor only
     assert single_class.respond_to?(:both)
     assert single_class.respond_to?(:both=)
-    assert single_class.public_instance_methods.include?("both")
-    assert !single_class.public_instance_methods.include?("both=")
+    assert single_class.public_instance_methods.map(&:to_s).include?("both")
+    assert !single_class.public_instance_methods.map(&:to_s).include?("both=")
   end
 
   def test_working_with_simple_attributes
