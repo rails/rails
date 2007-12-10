@@ -437,13 +437,6 @@ module ActiveRecord #:nodoc:
       #   end
       def find(*args)
         options = args.extract_options!
-        # Note:  we extract any :joins option with a non-string value from the options, and turn it into
-        #  an internal option :ar_joins.  This allows code called from here to find the ar_joins, and
-        #  it bypasses marking the result as read_only.
-        #  A normal string join marks the result as read-only because it contains attributes from joined tables
-        #  which are not in the base table and therefore prevent the result from being saved.
-        #  In the case of an ar_join, the JoinDependency created to instantiate the results eliminates these
-        #  bogus attributes.  See JoinDependency#instantiate, and JoinBase#instantiate in associations.rb.
         validate_find_options(options)
         set_readonly_option!(options)
 
