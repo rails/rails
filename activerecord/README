@@ -65,20 +65,6 @@ A short rundown of the major features:
     end
 
   {Learn more}[link:classes/ActiveRecord/Validations.html]
-
-
-* Acts that can make records work as lists or trees:
-
-    class Item < ActiveRecord::Base
-      belongs_to   :list
-      acts_as_list :scope => :list
-    end
-    
-    item.move_higher
-    item.move_to_bottom
-
-  Learn about {acts_as_list}[link:classes/ActiveRecord/Acts/List/ClassMethods.html], {the instance methods acts_as_list provides}[link:classes/ActiveRecord/Acts/List/InstanceMethods.html], and
-  {acts_as_tree}[link:classes/ActiveRecord/Acts/Tree/ClassMethods.html]
  
 * Callbacks as methods or queues on the entire lifecycle (instantiation, saving, destroying, validating, etc).
 
