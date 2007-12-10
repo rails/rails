@@ -17,8 +17,6 @@ module ActiveRecord #:nodoc:
   end
   class ConnectionNotEstablished < ActiveRecordError #:nodoc:
   end
-  class ConnectionFailed < ActiveRecordError #:nodoc:
-  end
   class RecordNotFound < ActiveRecordError #:nodoc:
   end
   class RecordNotSaved < ActiveRecordError #:nodoc:
