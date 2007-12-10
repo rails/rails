@@ -163,7 +163,7 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Scaffold generator tests.  #8443 [pelle]
 
-* Generated scaffold functional tests use assert_difference.  #8421 [norbert]
+* Generated scaffold functional tests use assert_difference.  #8421 [Norbert Crombach]
 
 * Update to Prototype 1.5.1.  [Sam Stephenson]
 

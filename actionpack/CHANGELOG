@@ -171,7 +171,7 @@
 
 * Optimized named routes respect AbstractRequest.relative_url_root.  #9612 [danielmorrison, Jeremy Kemper]
 
-* Introduce ActionController::Base.rescue_from to declare exception-handling methods. Cleaner style than the case-heavy rescue_action_in_public.  #9449 [norbert]
+* Introduce ActionController::Base.rescue_from to declare exception-handling methods. Cleaner style than the case-heavy rescue_action_in_public.  #9449 [Norbert Crombach]
 
 * Rename some RequestForgeryProtection methods.  The class method is now #protect_from_forgery, and the default parameter is now 'authenticity_token'.  [Rick]
 
@@ -307,7 +307,7 @@
 
 * Allow you to delete cookies with options. Closes #3685 [Josh Peek, Chris Wanstrath]
 
-* Allow you to render views with periods in the name.  Closes #8076 [norbert]
+* Allow you to render views with periods in the name.  Closes #8076 [Norbert Crombach]
 
   render :partial => 'show.html.erb'
 
@@ -375,7 +375,7 @@
 
 * Wordsmith resources documentation.  #8484 [marclove]
 
-* Fix syntax error in code example for routing documentation. #8377. [norbert]
+* Fix syntax error in code example for routing documentation. #8377. [Norbert Crombach]
 
 * Routing: respond with 405 Method Not Allowed status when the route path matches but the HTTP method does not.  #6953 [Josh Peek, defeated, Dan Kubb, Coda Hale]
 
@@ -491,7 +491,7 @@
 
 * Enhance documentation and add examples for url_for. [jeremymcanally]
 
-* Fix documentation typo in routes. [norbert, pam]
+* Fix documentation typo in routes. [Norbert Crombach, pam]
 
 * Sweep flash when filter chain is halted. [Caio Chassot <lists@v2studio.com>]
 

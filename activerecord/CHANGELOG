@@ -9,7 +9,8 @@
 
 * Fixed that the Query Cache should just be ignored if the database is misconfigured (so that the "About your applications environment" works even before the database has been created) [DHH]
 
-* Fixed that the truncation of strings longer than 50 chars should use inspect so newlines etc are escaped #10385 [norbert]
+* Fixed that the truncation of strings longer than 50 chars should use inspect
+so newlines etc are escaped #10385 [Norbert Crombach]
 
 * Fixed that habtm associations should be able to set :select as part of their definition and have that honored [DHH]
 

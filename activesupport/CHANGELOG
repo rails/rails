@@ -99,7 +99,7 @@
 
 * Hash#to_xml doesn't double-unescape.  #8806 [Ezran]
 
-* Added Array#rand #9170 [norbert]. Examples:
+* Added Array#rand #9170 [Norbert Crombach]. Examples:
 
     [].rand       # => nil
     ['a'].rand    # => 'a'
@@ -115,7 +115,7 @@
 
 * Add support for []= on ActiveSupport::Multibyte::Chars. Closes #9142. [ewan, manfred]
 
-* Added Array#extract_options! to encapsulate the pattern of getting an options hash out of a variable number of parameters #8759 [norbert].
+* Added Array#extract_options! to encapsulate the pattern of getting an options hash out of a variable number of parameters.  #8759 [Norbert Crombach]
 
 * Let alias_attribute work with attributes with initial capital letters (legacy columns etc).  Closes #8596 [mpalmer]
 
