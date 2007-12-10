@@ -1,6 +1,6 @@
 *SVN*
 
-* Document Active Record exceptions.  #10444 [Michael Klishin]
+* Documentation: Active Record exceptions, destroy_all and delete_all.  #10444, #10447 [Michael Klishin]
 
 
 *2.0.1* (December 7th, 2007)

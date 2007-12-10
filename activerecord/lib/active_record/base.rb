@@ -678,16 +678,39 @@ module ActiveRecord #:nodoc:
         connection.update(sql, "#{name} Update")
       end
 
-      # Destroys the objects for all the records that match the +conditions+ by instantiating each object and calling
-      # the destroy method. Example:
+      # Destroys the records matching +conditions+ by instantiating each record and calling the destroy method.
+      # This means at least 2*N database queries to destroy N records, so avoid destroy_all if you are deleting
+      # many records. If you want to simply delete records without worrying about dependent associations or
+      # callbacks, use the much faster +delete_all+ method instead.
+      #
+      # ==== Options
+      #
+      # +conditions+   Conditions are specified the same way as with +find+ method.
+      #
+      # ==== Example
+      #
       #   Person.destroy_all "last_login < '2004-04-04'"
+      #
+      # This loads and destroys each person one by one, including its dependent associations and before_ and
+      # after_destroy callbacks.
       def destroy_all(conditions = nil)
         find(:all, :conditions => conditions).each { |object| object.destroy }
       end
 
-      # Deletes all the records that match the +conditions+ without instantiating the objects first (and hence not
-      # calling the destroy method). Example:
+      # Deletes the records matching +conditions+ without instantiating the records first, and hence not
+      # calling the destroy method and invoking callbacks. This is a single SQL query, much more efficient
+      # than destroy_all.
+      #
+      # ==== Options
+      #
+      # +conditions+   Conditions are specified the same way as with +find+ method.
+      #
+      # ==== Example
+      #
       #   Post.delete_all "person_id = 5 AND (category = 'Something' OR category = 'Else')"
+      #
+      # This deletes the affected posts all at once with a single DELETE query. If you need to destroy dependent
+      # associations or call your before_ or after_destroy callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
         sql = "DELETE FROM #{quoted_table_name} "
         add_conditions!(sql, conditions, scope(:find))
