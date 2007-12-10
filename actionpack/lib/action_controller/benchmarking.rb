@@ -75,15 +75,16 @@ module ActionController #:nodoc:
     
     private
       def rendering_runtime(runtime)
-        " | Rendering: #{sprintf("%.5f", @rendering_runtime)} (#{sprintf("%d", (@rendering_runtime * 100) / runtime)}%)"
+        percentage = @rendering_runtime * 100 / runtime
+        " | Rendering: %.5f (%d%%)" % [@rendering_runtime, percentage.to_i]
       end
 
       def active_record_runtime(runtime)
         db_runtime    = ActiveRecord::Base.connection.reset_runtime
         db_runtime    += @db_rt_before_render if @db_rt_before_render
         db_runtime    += @db_rt_after_render if @db_rt_after_render
-        db_percentage = (db_runtime * 100) / runtime
-        " | DB: #{sprintf("%.5f", db_runtime)} (#{sprintf("%d", db_percentage)}%)"
+        db_percentage = db_runtime * 100 / runtime
+        " | DB: %.5f (%d%%)" % [db_runtime, db_percentage.to_i]
       end
   end
 end
