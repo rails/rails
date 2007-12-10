@@ -1,5 +1,7 @@
 *SVN*
 
+* TimeZone#to_s uses UTC rather than GMT.  #1689 [Chu Yeow]
+
 * Refactor of Hash#symbolize_keys! to use Hash#replace.  Closes #10420 [ReinH]
 
 * Fix HashWithIndifferentAccess#to_options! so it doesn't clear the options hash.  Closes #10419 [ReinH]

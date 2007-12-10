@@ -67,7 +67,7 @@ class TimeZoneTest < Test::Unit::TestCase
 
   def test_to_s
     zone = TimeZone.create( "Test", 4200 )
-    assert_equal "(GMT+01:10) Test", zone.to_s
+    assert_equal "(UTC+01:10) Test", zone.to_s
   end
 
   def test_all_sorted
