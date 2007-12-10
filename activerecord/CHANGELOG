@@ -1,3 +1,8 @@
+*SVN*
+
+* Document Active Record exceptions.  #10444 [Michael Klishin]
+
+
 *2.0.1* (December 7th, 2007)
 
 * Removed query cache rescue as it could cause code to be run twice (closes #10408) [DHH]
