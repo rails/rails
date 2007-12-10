@@ -34,7 +34,7 @@ class TimeZoneTest < Test::Unit::TestCase
   end
 
   def test_adjust_negative
-    zone = TimeZone.create( "Test", -4200 )
+    zone = TimeZone.create( "Test", -4200 ) # 4200s == 70 mins
     assert_equal Time.utc(2004,7,24,23,55,0), zone.adjust(Time.utc(2004,7,25,1,5,0))
   end
 
