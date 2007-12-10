@@ -65,7 +65,7 @@
 
 * Update Schema documentation to use updated sexy migration notation. Closes #10086 [sjgman9]
 
-* Make fixtures work with the new test subclasses. [tarmo, Koz]
+* Make fixtures work with the new test subclasses. [Tarmo Tänav, Koz]
 
 * Introduce finder :joins with associations. Same :include syntax but with inner rather than outer joins.  #10012 [RubyRedRick]
     # Find users with an avatar
@@ -93,13 +93,13 @@
 
 * Add docs explaining how to protect all attributes using attr_accessible with no arguments. Closes #9631 [boone, rmm5t]
 
-* Update add_index documentation to use new options api. Closes #9787 [kamal]
+* Update add_index documentation to use new options api. Closes #9787 [Kamal Fariz Mahyuddin]
 
 * Allow find on a has_many association defined with :finder_sql to accept id arguments as strings like regular find does. Closes #9916 [krishna]
 
 * Use VALID_FIND_OPTIONS when resolving :find scoping rather than hard coding the list of valid find options. Closes #9443 [sur]
 
-* Limited eager loading no longer ignores scoped :order. Closes #9561 [danger, josh]
+* Limited eager loading no longer ignores scoped :order. Closes #9561 [danger, Josh Peek]
 
 * Assigning an instance of a foreign class to a composed_of aggregate calls an optional conversion block. Refactor and simplify composed_of implementation.  #6322 [brandon, Chris Cruft]
 
@@ -141,9 +141,9 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
 
 * Speedup database date/time parsing.  [Jeremy Kemper, Tarmo Tänav]
 
-* Fix calling .clear on a has_many :dependent=>:delete_all association. [tarmo]
+* Fix calling .clear on a has_many :dependent=>:delete_all association. [Tarmo Tänav]
 
-* Allow change_column to set NOT NULL in the PostgreSQL adapter [tarmo]
+* Allow change_column to set NOT NULL in the PostgreSQL adapter [Tarmo Tänav]
 
 * Fix that ActiveRecord would create attribute methods and override custom attribute getters if the method is also defined in Kernel.methods. [Rick]
 
@@ -179,7 +179,7 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
 
 * Fixed rename_column for SQLite when using symbols for the column names #8616 [drodriguez]
 
-* Added the possibility of using symbols in addition to concrete classes with ActiveRecord::Observer#observe #3998 [robbyrussell/tarmo]
+* Added the possibility of using symbols in addition to concrete classes with ActiveRecord::Observer#observe.  #3998 [Robby Russell, Tarmo Tänav]
 
 * Added ActiveRecord::Base#to_json/from_json [DHH, Chu Yeow]
 
@@ -214,7 +214,7 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
 
 * Moved acts_as_nested_set into a plugin of the same name on the official Rails svn.  #9516 [Josh Peek]
 
-* Moved acts_as_list into a plugin of the same name on the official Rails svn [josh]
+* Moved acts_as_list into a plugin of the same name on the official Rails svn.  [Josh Peek]
 
 * Explicitly require active_record/query_cache before using it.  [Jeremy Kemper]
 
@@ -276,7 +276,7 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
 
 * Define collection singular ids method for has_many :through associations.  #8763 [Pratik Naik]
 
-* Array attribute conditions work with proxied association collections.  #8318 [kamal, theamazingrando]
+* Array attribute conditions work with proxied association collections.  #8318 [Kamal Fariz Mahyuddin, theamazingrando]
 
 * Fix polymorphic has_one associations declared in an abstract class.  #8638 [Pratik Naik, Dax Huiberts]
 
@@ -284,7 +284,7 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
 
 * Rollback if commit raises an exception.  #8642 [kik, Jeremy Kemper]
 
-* Update tests' use of fixtures for the new collections api.  #8726 [kamal]
+* Update tests' use of fixtures for the new collections api.  #8726 [Kamal Fariz Mahyuddin]
 
 * Save associated records only if the association is already loaded.  #8713 [blaine]
 
@@ -294,7 +294,7 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
 
 * Fixtures: people(:technomancy, :josh) returns both fixtures.  #7880 [technomancy, Josh Peek]
 
-* Calculations support non-numeric foreign keys.  #8154 [kamal]
+* Calculations support non-numeric foreign keys.  #8154 [Kamal Fariz Mahyuddin]
 
 * with_scope is protected.  #8524 [Josh Peek]
 
@@ -330,7 +330,7 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
 
 * Load database adapters on demand. Eliminates config.connection_adapters and RAILS_CONNECTION_ADAPTERS. Add your lib directory to the $LOAD_PATH and put your custom adapter in lib/active_record/connection_adapters/adaptername_adapter.rb. This way you can provide custom adapters as plugins or gems without modifying Rails. [Jeremy Kemper]
 
-* Ensure that associations with :dependent => :delete_all respect :conditions option.  Closes #8034 [danger, joshpeek, Rick]
+* Ensure that associations with :dependent => :delete_all respect :conditions option.  Closes #8034 [danger, Josh Peek, Rick]
 
 * belongs_to assignment creates a new proxy rather than modifying its target in-place.  #8412 [mmangino@elevatedrails.com]
 
@@ -733,7 +733,7 @@ during calendar reform.  #7649, #7724 [fedot, Geoff Buesing]
 
 * Fixed to_xml with :include misbehaviors when invoked on array of model instances #5690 [alexkwolfe@gmail.com]
 
-* Added support for conditions on Base.exists? #5689 [josh@joshpeek.com]. Examples:
+* Added support for conditions on Base.exists? #5689 [Josh Peek]. Examples:
 
     assert (Topic.exists?(:author_name => "David")) 
  	  assert (Topic.exists?(:author_name => "Mary", :approved => true)) 
@@ -1190,7 +1190,7 @@ during calendar reform.  #7649, #7724 [fedot, Geoff Buesing]
 
 * Fixed to_xml with :include misbehaviors when invoked on array of model instances #5690 [alexkwolfe@gmail.com]
 
-* Added support for conditions on Base.exists? #5689 [josh@joshpeek.com]. Examples:
+* Added support for conditions on Base.exists? #5689 [Josh Peek]. Examples:
 
     assert (Topic.exists?(:author_name => "David")) 
  	  assert (Topic.exists?(:author_name => "Mary", :approved => true)) 

@@ -24,7 +24,7 @@
 
 * Fixed that verification violations with no specified action didn't halt the chain (now they do with a 400 Bad Request) [DHH]
 
-* Raise UnknownHttpMethod exception for unknown HTTP methods. Closes #10303 [tarmo]
+* Raise UnknownHttpMethod exception for unknown HTTP methods. Closes #10303 [Tarmo Tänav]
 
 * Update to Prototype -r8232.  [sam]
 
@@ -136,7 +136,7 @@
 
 * Add :status to redirect_to allowing users to choose their own response code without manually setting headers. #8297 [codahale, chasgrundy]
 
-* Add link_to :back which uses your referrer with a fallback to a javascript link. #7366 [eventualbuddha, tarmo]
+* Add link_to :back which uses your referrer with a fallback to a javascript link. #7366 [eventualbuddha, Tarmo Tänav]
 
 * error_messages_for and friends also work with local variables.  #9699 [Frederick Cheung]
 
@@ -227,7 +227,7 @@
 
 * Added that render :json will automatically call .to_json unless it's being passed a string [DHH].
 
-* Autolink behaves well with emails embedded in URLs.  #7313 [Jeremy McAnally, tarmo]
+* Autolink behaves well with emails embedded in URLs.  #7313 [Jeremy McAnally, Tarmo Tänav]
 
 * Fixed that default layouts did not take the format into account #9564 [Pratik Naik]
 
@@ -305,7 +305,7 @@
   this behaviour are advised to put the code in question after a yield statement in an around filter.
   
 
-* Allow you to delete cookies with options. Closes #3685 [josh, Chris Wanstrath]
+* Allow you to delete cookies with options. Closes #3685 [Josh Peek, Chris Wanstrath]
 
 * Allow you to render views with periods in the name.  Closes #8076 [norbert]
 
@@ -321,9 +321,9 @@
 
 * Give the legacy X-POST_DATA_FORMAT header greater precedence during params parsing for backward compatibility.  [Jeremy Kemper]
 
-* Fixed that link_to with an href of # when using :method will not allow for click-through without JavaScript #7037 [stevenbristol/josh]
+* Fixed that link_to with an href of # when using :method will not allow for click-through without JavaScript #7037 [Steven Bristol, Josh Peek]
 
-* Fixed that radio_button_tag should generate unique ids #3353 [BobSilva/rebecca/josh]
+* Fixed that radio_button_tag should generate unique ids #3353 [Bob Silva, Rebecca, Josh Peek]
 
 * Fixed that HTTP authentication should work if the header is called REDIRECT_X_HTTP_AUTHORIZATION as well #6754 [mislaw]
 
@@ -355,7 +355,7 @@
 
 * Routing: map.resource :logo routes to LogosController so the controller may be reused for multiple nestings or namespaces.  [Jeremy Kemper]
 
-* render :partial recognizes Active Record associations as Arrays.  #8538 [kamal]
+* render :partial recognizes Active Record associations as Arrays.  #8538 [Kamal Fariz Mahyuddin]
 
 * Routing: drop semicolon and comma as route separators.  [Jeremy Kemper]
 
@@ -3816,7 +3816,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Fixed that cached template loading would still check the file system to see if the file existed #258 [Andreas Schwarz]
 
-* Added options to tailor header tag, div id, and div class on ActiveRecordHelper#error_messages_for [josh]
+* Added options to tailor header tag, div id, and div class on ActiveRecordHelper#error_messages_for [Josh Peek]
 
 * Added graceful handling of non-alphanumeric names and misplaced brackets in input parameters [Jeremy Kemper]
 

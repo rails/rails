@@ -16,9 +16,9 @@
 
 * Speedup String#blank?  [Jeremy Kemper, Koz]
 
-* Add documentation for Hash#diff. Closes #9306 [tarmo]
+* Add documentation for Hash#diff. Closes #9306 [Tarmo Tänav]
 
-* Add new superclass_delegating_accessors.  Similar to class inheritable attributes but with subtly different semantics. [Koz, tarmo]
+* Add new superclass_delegating_accessors.  Similar to class inheritable attributes but with subtly different semantics. [Koz, Tarmo Tänav]
 
 * Change JSON to encode %w(< > &) as 4 digit hex codes to be in compliance with the JSON spec.  Closes #9975 [Josh Peek, Chu Yeow, Tim Pope]
 
@@ -85,11 +85,11 @@
 
 * Decode json strings as Dates/Times if they're using a YAML-compatible format.  Closes #9614 [Rick]
 
-* Fixed cache_page to use the request url instead of the routing options when picking a save path #8614 [josh]
+* Fixed cache_page to use the request url instead of the routing options when picking a save path.  #8614 [Josh Peek]
 
 * Object.subclasses_of includes anonymous subclasses.  [Jeremy Kemper]
 
-* Fixed that pluralizing an empty string should return the same empty string, not "s" #7720 [josh]
+* Fixed that pluralizing an empty string should return the same empty string, not "s".  #7720 [Josh Peek]
 
 * Added call to inspect on non-string classes for the logger #8533 [codahale]
 

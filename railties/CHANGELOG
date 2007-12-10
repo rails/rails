@@ -129,7 +129,7 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Default to plural table name in Rails Generator if ActiveRecord is not present.  Closes #8963 [evan]
 
-* Added rake routes for listing all the defined routes in the system #8795 [josh]
+* Added rake routes for listing all the defined routes in the system.  #8795 [Josh Peek]
 
 * db:create creates the database for the current environment if it's on localhost. db:create:all creates local databases for all environments.  #8783 [matt]
 
@@ -141,7 +141,7 @@ databases on localhost.  #9753 [Trevor Wennblom]
 
 * Added --skip-migration option to scaffold and resource generators #8656 [Michael Glaesemann]
 
-* Fix that FCGIs would leave log files open when asked to shut down by USR2 #3028 [sebastian.kanthak/josh]
+* Fix that FCGIs would leave log files open when asked to shut down by USR2.  #3028 [Sebastian Kanthak, Josh Peek]
 
 * Fixed that dispatcher preparation callbacks only run once in production mode.  Mock Routes.reload so that dispatcher preparation callback tests run. [Rick]
 
