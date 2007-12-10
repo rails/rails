@@ -202,9 +202,9 @@ module ActionView
           joined_javascript_path = File.join(JAVASCRIPTS_DIR, joined_javascript_name)
 
           write_asset_file_contents(joined_javascript_path, compute_javascript_paths(sources))
-          javascript_tag(joined_javascript_name, options)
+          javascript_src_tag(joined_javascript_name, options)
         else
-          expand_javascript_sources(sources).collect { |source| javascript_tag(source, options) }.join("\n")
+          expand_javascript_sources(sources).collect { |source| javascript_src_tag(source, options) }.join("\n")
         end
       end
 
@@ -461,7 +461,7 @@ module ActionView
           source << "?#{asset_id}" if !asset_id.blank?
         end
 
-        def javascript_tag(source, options)
+        def javascript_src_tag(source, options)
           content_tag("script", "", { "type" => Mime::JS, "src" => path_to_javascript(source) }.merge(options))
         end
 

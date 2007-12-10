@@ -1,6 +1,6 @@
 *SVN*
 
-* Ensure asset cache directories are automatically created.  #10337 [Josh Peek]
+* Ensure asset cache directories are automatically created.  #10337 [Josh Peek, Chu Yeow]
 
 * render :xml and :json preserve custom content types.  #10388 [jmettraux, Chu Yeow]
 
