@@ -241,11 +241,11 @@ class NewRenderTestController < ActionController::Base
   end
 
   def hello_world_from_rxml_using_action
-    render :action => "hello_world.builder"
+    render :action => "hello_world_from_rxml.builder"
   end
 
   def hello_world_from_rxml_using_template
-    render :template => "test/hello_world.builder"
+    render :template => "test/hello_world_from_rxml.builder"
   end
 
   def head_with_location_header

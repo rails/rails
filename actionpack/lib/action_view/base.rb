@@ -252,6 +252,10 @@ module ActionView #:nodoc:
       @@template_handlers[extension.to_sym] || @@default_template_handlers
     end
 
+    def self.template_handler_extensions
+      @@template_handler_extensions ||= @@template_handlers.keys.map(&:to_s).sort
+    end
+
     register_default_template_handler :erb, TemplateHandlers::ERB
     register_template_handler :rjs, TemplateHandlers::RJS
     register_template_handler :builder, TemplateHandlers::Builder
@@ -500,7 +504,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       def find_template_extension_from_handler(template_path, formatted = nil)
         checked_template_path = formatted ? "#{template_path}.#{template_format}" : template_path
 
-        @@template_handlers.each do |extension,|
+        self.class.template_handler_extensions.each do |extension|
           if template_exists?(checked_template_path, extension)
             return formatted ? "#{template_format}.#{extension}" : extension.to_s
           end
