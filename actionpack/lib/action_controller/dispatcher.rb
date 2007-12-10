@@ -4,7 +4,7 @@ module ActionController
   class Dispatcher
     class << self
       # Backward-compatible class method takes CGI-specific args. Deprecated
-      # in favor of Dispatcher.new(output, request, response).dispatch!
+      # in favor of Dispatcher.new(output, request, response).dispatch.
       def dispatch(cgi = nil, session_options = CgiRequest::DEFAULT_SESSION_OPTIONS, output = $stdout)
         new(output).dispatch_cgi(cgi, session_options)
       end
