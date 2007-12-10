@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure asset cache directories are automatically created.  #10337 [Josh Peek]
+
 * render :xml and :json preserve custom content types.  #10388 [jmettraux, Chu Yeow]
 
 * Refactor Action View template handlers.  #10437 [Josh Peek]
@@ -7,6 +9,7 @@
 * Fix DoubleRenderError message and leave out mention of returning false from filters.  Closes #10380 [Frederick Cheung]
 
 * Clean up some cruft around ActionController::Base#head.  Closes #10417 [ssoroka]
+
 
 *2.0.1* (December 7th, 2007)
 
