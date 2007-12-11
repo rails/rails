@@ -550,9 +550,8 @@ module ActiveRecord #:nodoc:
       #   Person.exists?(:name => "David")
       #   Person.exists?(['name LIKE ?', "%#{query}%"])
       def exists?(id_or_conditions)
-        !find(:first, :select => "#{table_name}.#{primary_key}", :conditions => expand_id_conditions(id_or_conditions)).nil?
-      rescue ActiveRecord::ActiveRecordError
-        false
+        !find(:first, :select => "#{quoted_table_name}.#{primary_key}",
+              :conditions => expand_id_conditions(id_or_conditions)).nil?
       end
 
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.

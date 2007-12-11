@@ -1,5 +1,7 @@
 *SVN*
 
+* Base.exists? doesn't rescue exceptions to avoid hiding SQL errors.  #10458 [Michael Klishin]
+
 * Documentation: Active Record exceptions, destroy_all and delete_all.  #10444, #10447 [Michael Klishin]
 
 
