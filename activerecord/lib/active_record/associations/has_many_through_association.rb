@@ -148,7 +148,8 @@ module ActiveRecord
             :include    => @reflection.options[:include] || @reflection.source_reflection.options[:include]
           )
 
-          @reflection.options[:uniq] ? records.to_set.to_a : records
+          records.uniq! if @reflection.options[:uniq]
+          records
         end
 
         # Construct attributes for associate pointing to owner.

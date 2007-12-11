@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure that the :uniq option for has_many :through associations retains the order.  #10463 [remvee]
+
 * Base.exists? doesn't rescue exceptions to avoid hiding SQL errors.  #10458 [Michael Klishin]
 
 * Documentation: Active Record exceptions, destroy_all and delete_all.  #10444, #10447 [Michael Klishin]
