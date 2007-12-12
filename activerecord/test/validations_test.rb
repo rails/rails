@@ -301,6 +301,14 @@ class ValidationsTest < Test::Unit::TestCase
     assert_equal "Dan Brown", reply["author_name"]
   end
 
+  def test_validates_acceptance_of_with_non_existant_table 
+    Object.const_set :IncorporealModel, Class.new(ActiveRecord::Base) 
+ 
+    assert_nothing_raised ActiveRecord::StatementInvalid do 
+      IncorporealModel.validates_acceptance_of(:incorporeal_column) 
+    end 
+  end 
+
   def test_validate_presences
     Topic.validates_presence_of(:title, :content)
 

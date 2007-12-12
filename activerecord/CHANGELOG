@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix that validates_acceptance_of still works for non-existent tables (useful for bootstrapping new databases).  Closes #10474 [hasmanyjosh]
+
 * Ensure that the :uniq option for has_many :through associations retains the order.  #10463 [remvee]
 
 * Base.exists? doesn't rescue exceptions to avoid hiding SQL errors.  #10458 [Michael Klishin]

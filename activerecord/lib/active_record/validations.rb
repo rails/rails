@@ -429,7 +429,7 @@ module ActiveRecord
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:confirmation], :on => :save }
         configuration.update(attr_names.extract_options!)
 
-        attr_accessor *(attr_names.map { |n| "#{n}_confirmation" })
+        attr_accessor(*(attr_names.map { |n| "#{n}_confirmation" }))
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           record.errors.add(attr_name, configuration[:message]) unless record.send("#{attr_name}_confirmation").nil? or value == record.send("#{attr_name}_confirmation")
@@ -462,7 +462,13 @@ module ActiveRecord
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save, :allow_nil => true, :accept => "1" }
         configuration.update(attr_names.extract_options!)
 
-        attr_accessor *attr_names.reject { |name| column_names.include? name.to_s }
+        db_cols = begin
+          column_names
+        rescue ActiveRecord::StatementInvalid
+          []
+        end
+        names = attr_names.reject { |name| db_cols.include?(name.to_s) }
+        attr_accessor(*names)
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
           record.errors.add(attr_name, configuration[:message]) unless value == configuration[:accept]
