@@ -446,11 +446,10 @@ module ActiveRecord #:nodoc:
       # * <tt>:group</tt>: An attribute name by which the result should be grouped. Uses the GROUP BY SQL-clause.
       # * <tt>:limit</tt>: An integer determining the limit on the number of rows that should be returned.
       # * <tt>:offset</tt>: An integer determining the offset from where the rows should be fetched. So at 5, it would skip rows 0 through 4.
-      # * <tt>:joins</tt>: An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (Rarely needed).
-      #   Accepts named associations in the form of :include, which will perform an INNER JOIN on the associated table(s).
-      #   The records will be returned read-only since they will have attributes that do not correspond to the table's columns.
+      # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed)
+      #   or named associations in the same form used for the :include option, which will perform an INNER JOIN on the associated table(s).
+      #   If the value is a string, then the records will be returned read-only since they will have attributes that do not correspond to the table's columns.
       #   Pass :readonly => false to override.
-      #   See adding joins for associations under Associations.
       # * <tt>:include</tt>: Names associations that should be loaded alongside using LEFT OUTER JOINs. The symbols named refer
       #   to already defined associations. See eager loading under Associations.
       # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you, for example, want to do a join but not

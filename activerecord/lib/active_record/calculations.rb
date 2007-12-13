@@ -15,12 +15,10 @@ module ActiveRecord
       # The third approach, count using options, accepts an option hash as the only parameter. The options are:
       #
       # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro.
-      # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
-      #    or names associations in the same form used for the :include option.
+      # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed)
+      #   or named associations in the same form used for the :include option, which will perform an INNER JOIN on the associated table(s).
       #   If the value is a string, then the records will be returned read-only since they will have attributes that do not correspond to the table's columns.
       #   Pass :readonly => false to override.
-      #   See adding joins for associations under Associations.
-      #
       # * <tt>:include</tt>: Named associations that should be loaded alongside using LEFT OUTER JOINs. The symbols named refer
       #   to already defined associations. When using named associations, count returns the number of DISTINCT items for the model you're counting.
       #   See eager loading under Associations.
