@@ -268,6 +268,10 @@ module ActionController
   #    #...
   #  end
   #
+  # == View a list of all your routes
+  #
+  # Run <tt>rake routes</tt>.
+  #
   module Routing
     SEPARATORS = %w( / . ? )
 
