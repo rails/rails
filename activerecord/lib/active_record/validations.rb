@@ -451,7 +451,8 @@ module ActiveRecord
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
       # * <tt>allow_nil</tt> - Skip validation if attribute is nil. (default is true)
       # * <tt>accept</tt> - Specifies value that is considered accepted.  The default value is a string "1", which
-      #   makes it easy to relate to an HTML checkbox.
+      #   makes it easy to relate to an HTML checkbox. This should be set to 'true' if you are validating a database
+      #   column, since the attribute is typecast from "1" to <tt>true</tt> before validation.
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       #   method, proc or string should return or evaluate to a true or false value.
