@@ -124,7 +124,8 @@ module ActionController #:nodoc:
     #   class WeblogController < ActionController::Base
     #     layout "weblog_standard"
     #
-    # If no directory is specified for the template name, the template will by default by looked for in +app/views/layouts/+.
+    # If no directory is specified for the template name, the template will by default be looked for in +app/views/layouts/+. 
+    # Otherwise, it will be looked up relative to the template root.
     #
     # == Conditional layouts
     #
