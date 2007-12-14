@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that functional tests generated for scaffolds should use fixture calls instead of hard-coded IDs #10435 [boone]
+
 * Added db:migrate:redo and db:migrate:reset for rerunning existing migrations #10431, #10432  [matt]
 
 * RAILS_GEM_VERSION may be double-quoted also.  #10443 [James Cox]
