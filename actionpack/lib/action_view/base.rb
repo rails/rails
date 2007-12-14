@@ -404,7 +404,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       if template_file_extension
         template_exists?(template_file_name, template_file_extension)
       else
-        pick_template_extension(template_path)
+        template_exists?(template_file_name, pick_template_extension(template_path))
       end
     end
 

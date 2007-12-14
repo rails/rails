@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that ActionView#file_exists? would be incorrect if @first_render is set #10569 [dbussink]
+
 * Added that Array#to_param calls to_param on all it's elements #10473 [brandon]
 
 * Ensure asset cache directories are automatically created.  #10337 [Josh Peek, Chu Yeow]
