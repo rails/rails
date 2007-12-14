@@ -1,6 +1,6 @@
 *SVN*
 
-* Added db:migrate:redo for rerunning existing migrations #10431 [matt]
+* Added db:migrate:redo and db:migrate:reset for rerunning existing migrations #10431, #10432  [matt]
 
 * RAILS_GEM_VERSION may be double-quoted also.  #10443 [James Cox]
 

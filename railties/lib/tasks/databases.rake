@@ -89,6 +89,9 @@ namespace :db do
   namespace :migrate do
     desc  'Rollbacks the database one migration and re migrate up. If you want to rollback more than one step, define STEP=x'
     task :redo => [ 'db:rollback', 'db:migrate' ]
+
+    desc 'Resets your database using your migrations for the current environment'
+    task :reset => ["db:drop", "db:create", "db:migrate"]
   end
 
   desc 'Rolls the schema back to the previous version. Specify the number of steps with STEP=n'
