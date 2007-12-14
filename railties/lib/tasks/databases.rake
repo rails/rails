@@ -16,7 +16,7 @@ namespace :db do
         #    <<: *defaults
         next unless config['database']
         # Only connect to local databases
-        if config['host'] == 'localhost' || config['host'].blank?
+        if %w( 127.0.0.1 localhost ).include?(config['host']) || config['host'].blank?
           create_database(config)
         else
           p "This task only creates local databases. #{config['database']} is on a remote host."

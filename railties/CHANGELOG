@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that local database creation should consider 127.0.0.1 local #9026 [parcelbrat]
+
 * Fixed that functional tests generated for scaffolds should use fixture calls instead of hard-coded IDs #10435 [boone]
 
 * Added db:migrate:redo and db:migrate:reset for rerunning existing migrations #10431, #10432  [matt]
