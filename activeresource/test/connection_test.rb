@@ -38,6 +38,15 @@ class ConnectionTest < Test::Unit::TestCase
       assert_equal expected, handle_response(expected)
     end
 
+    # 400 is a bad request (e.g. malformed URI or missing request parameter)
+    assert_response_raises ActiveResource::BadRequest, 400
+
+    # 401 is an unauthorized request
+    assert_response_raises ActiveResource::UnauthorizedAccess, 401
+
+    # 403 is a forbidden requst (and authorizing will not help)
+    assert_response_raises ActiveResource::ForbiddenAccess, 403
+
     # 404 is a missing resource.
     assert_response_raises ActiveResource::ResourceNotFound, 404
 
@@ -51,7 +60,7 @@ class ConnectionTest < Test::Unit::TestCase
     assert_response_raises ActiveResource::ResourceInvalid, 422
 
     # 4xx are client errors.
-    [401, 499].each do |code|
+    [402, 499].each do |code|
       assert_response_raises ActiveResource::ClientError, code
     end
 

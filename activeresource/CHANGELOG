@@ -1,5 +1,7 @@
 *SVN*
 
+* Added more specific exceptions for 400, 401, and 403 (all descending from ClientError so existing rescues will work) #10326 [trek]
+
 * Correct empty response handling.  #10445 [seangeo]
 
 

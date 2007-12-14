@@ -26,6 +26,15 @@ module ActiveResource
   # 4xx Client Error
   class ClientError < ConnectionError; end # :nodoc:
   
+  # 400 Bad Request
+  class BadRequest < ClientError; end # :nodoc
+  
+  # 401 Unauthorized
+  class UnauthorizedAccess < ClientError; end # :nodoc
+  
+  # 403 Forbidden
+  class ForbiddenAccess < ClientError; end # :nodoc
+  
   # 404 Not Found
   class ResourceNotFound < ClientError; end # :nodoc:
   
@@ -110,6 +119,12 @@ module ActiveResource
             raise(Redirection.new(response))
           when 200...400
             response
+          when 400
+            raise(BadRequest.new(response))
+          when 401
+            raise(UnauthorizedAccess.new(response))
+          when 403
+            raise(ForbiddenAccess.new(response))
           when 404
             raise(ResourceNotFound.new(response))
           when 405
