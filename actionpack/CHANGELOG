@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that Array#to_param calls to_param on all it's elements #10473 [brandon]
+
 * Ensure asset cache directories are automatically created.  #10337 [Josh Peek, Chu Yeow]
 
 * render :xml and :json preserve custom content types.  #10388 [jmettraux, Chu Yeow]

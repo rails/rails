@@ -16,6 +16,12 @@ class ArrayExtAccessTests < Test::Unit::TestCase
 end
 
 class ArrayExtToParamTests < Test::Unit::TestCase
+  class ToParam < String
+    def to_param
+      "#{self}1"
+    end
+  end
+  
   def test_string_array
     assert_equal '', %w().to_param
     assert_equal 'hello/world', %w(hello world).to_param
@@ -24,6 +30,10 @@ class ArrayExtToParamTests < Test::Unit::TestCase
 
   def test_number_array
     assert_equal '10/20', [10, 20].to_param
+  end
+  
+  def test_to_param_array
+    assert_equal 'custom1/param1', [ToParam.new('custom'), ToParam.new('param')].to_param
   end
 end
 
