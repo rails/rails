@@ -1,5 +1,7 @@
 *SVN*
 
+* Added db:migrate:redo for rerunning existing migrations #10431 [matt]
+
 * RAILS_GEM_VERSION may be double-quoted also.  #10443 [James Cox]
 
 * Update rails:freeze:gems to work with RubyGems 0.9.5.  [Jeremy Kemper]

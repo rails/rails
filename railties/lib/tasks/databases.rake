@@ -86,6 +86,11 @@ namespace :db do
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
+  namespace :migrate do
+    desc  'Rollbacks the database one migration and re migrate up. If you want to rollback more than one step, define STEP=x'
+    task :redo => [ 'db:rollback', 'db:migrate' ]
+  end
+
   desc 'Rolls the schema back to the previous version. Specify the number of steps with STEP=n'
   task :rollback => :environment do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
