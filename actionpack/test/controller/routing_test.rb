@@ -2,6 +2,12 @@ require "#{File.dirname(__FILE__)}/../abstract_unit"
 require "#{File.dirname(__FILE__)}/fake_controllers"
 require 'action_controller/routing'
 
+class MilestonesController < ActionController::Base
+  def index() head :ok end
+  alias_method :show, :index
+  def rescue_action(e) raise e end
+end
+
 RunTimeTests = ARGV.include? 'time'
 ROUTING = ActionController::Routing
 
@@ -2023,14 +2029,14 @@ class RouteSetTest < Test::Unit::TestCase
   def test_named_route_in_nested_resource
     set.draw do |map|
       map.resources :projects do |project|
-        project.comments 'comments', :controller => 'comments', :action => 'index'
+        project.milestones 'milestones', :controller => 'milestones', :action => 'index'
       end
     end
     
-    request.path = "/projects/1/comments"
+    request.path = "/projects/1/milestones"
     request.method = :get
     assert_nothing_raised { set.recognize(request) }
-    assert_equal("comments", request.path_parameters[:controller])
+    assert_equal("milestones", request.path_parameters[:controller])
     assert_equal("index", request.path_parameters[:action])
   end
   
