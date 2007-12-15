@@ -1,5 +1,7 @@
 *SVN*
 
+* Make the Fixtures Test::Unit enhancements more supporting for double-loaded test cases.  Closes #10379 [brynary]
+
 * Fix that validates_acceptance_of still works for non-existent tables (useful for bootstrapping new databases).  Closes #10474 [hasmanyjosh]
 
 * Ensure that the :uniq option for has_many :through associations retains the order.  #10463 [remvee]

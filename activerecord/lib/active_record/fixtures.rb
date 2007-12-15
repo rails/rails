@@ -916,6 +916,8 @@ module Test #:nodoc:
       end
 
       def setup_with_fixtures
+        return if @fixtures_setup
+        @fixtures_setup = true
         return unless defined?(ActiveRecord::Base) && !ActiveRecord::Base.configurations.blank?
 
         if pre_loaded_fixtures && !use_transactional_fixtures
@@ -947,6 +949,8 @@ module Test #:nodoc:
       alias_method :setup, :setup_with_fixtures
 
       def teardown_with_fixtures
+        return if @fixtures_teardown
+        @fixtures_teardown = true
         return unless defined?(ActiveRecord::Base) && !ActiveRecord::Base.configurations.blank?
 
         unless use_transactional_fixtures?
@@ -963,24 +967,31 @@ module Test #:nodoc:
       alias_method :teardown, :teardown_with_fixtures
 
       def self.method_added(method)
+        return if @__disable_method_added__
+        @__disable_method_added__ = true
+        
         case method.to_s
         when 'setup'
           unless method_defined?(:setup_without_fixtures)
             alias_method :setup_without_fixtures, :setup
-            define_method(:setup) do
+            define_method(:full_setup) do
               setup_with_fixtures
               setup_without_fixtures
             end
           end
+          alias_method :setup, :full_setup
         when 'teardown'
           unless method_defined?(:teardown_without_fixtures)
             alias_method :teardown_without_fixtures, :teardown
-            define_method(:teardown) do
+            define_method(:full_teardown) do
               teardown_without_fixtures
               teardown_with_fixtures
             end
           end
+          alias_method :teardown, :full_teardown
         end
+        
+        @__disable_method_added__ = false
       end
 
       private
