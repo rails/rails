@@ -10,14 +10,14 @@ module ActiveSupport #:nodoc:
         def multiple_of?(number)
           self % number == 0
         end
-        
+
         def even?
           multiple_of? 2
-        end
-        
+        end if RUBY_VERSION < '1.9'
+
         def odd?
           !even?
-        end
+        end if RUBY_VERSION < '1.9'
       end
     end
   end

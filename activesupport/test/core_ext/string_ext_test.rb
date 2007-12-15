@@ -143,15 +143,23 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal %w(hello), hash.keys
   end
 
-  def test_starts_ends_with
+  def test_starts_ends_with_alias
     s = "hello"
     assert s.starts_with?('h')
     assert s.starts_with?('hel')
     assert !s.starts_with?('el')
 
+    assert s.start_with?('h')
+    assert s.start_with?('hel')
+    assert !s.start_with?('el')
+
     assert s.ends_with?('o')
     assert s.ends_with?('lo')
     assert !s.ends_with?('el')
+
+    assert s.end_with?('o')
+    assert s.end_with?('lo')
+    assert !s.end_with?('el')
   end
 
   # FIXME: Ruby 1.9
