@@ -4,9 +4,9 @@
 
 * Added that Array#to_param calls to_param on all it's elements #10473 [brandon]
 
-* Ensure asset cache directories are automatically created.  #10337 [Josh Peek, Chu Yeow]
+* Ensure asset cache directories are automatically created.  #10337 [Josh Peek, Cheah Chu Yeow]
 
-* render :xml and :json preserve custom content types.  #10388 [jmettraux, Chu Yeow]
+* render :xml and :json preserve custom content types.  #10388 [jmettraux, Cheah Chu Yeow]
 
 * Refactor Action View template handlers.  #10437, #10455 [Josh Peek]
 

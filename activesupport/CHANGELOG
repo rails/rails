@@ -1,6 +1,6 @@
 *SVN*
 
-* TimeZone#to_s uses UTC rather than GMT.  #1689 [Chu Yeow]
+* TimeZone#to_s uses UTC rather than GMT.  #1689 [Cheah Chu Yeow]
 
 * Refactor of Hash#symbolize_keys! to use Hash#replace.  Closes #10420 [ReinH]
 
@@ -23,7 +23,7 @@
 
 * Add new superclass_delegating_accessors.  Similar to class inheritable attributes but with subtly different semantics. [Koz, Tarmo Tänav]
 
-* Change JSON to encode %w(< > &) as 4 digit hex codes to be in compliance with the JSON spec.  Closes #9975 [Josh Peek, Chu Yeow, Tim Pope]
+* Change JSON to encode %w(< > &) as 4 digit hex codes to be in compliance with the JSON spec.  Closes #9975 [Josh Peek, Cheah Chu Yeow, Tim Pope]
 
 * Fix JSON encoding/decoding bugs dealing with /'s.  Closes #9990 [Rick, theamazingrando]
 
@@ -32,7 +32,7 @@
   The intention is to use this to reduce the amount of monkeypatching / overriding that 
   is done to test/unit's classes.
 
-* Document Enumerable and Hash #to_json.  #9970 [Chu Yeow]
+* Document Enumerable and Hash #to_json.  #9970 [Cheah Chu Yeow]
 
 * Hash#to_xml handles symbol values.  #9954 [Assaf]
 
@@ -64,9 +64,9 @@
 
 * Unbundle Builder in favor of a gem dependency.  [Jeremy Kemper]
 
-* Disambiguate Time, Date, and DateTime#to_json formatting.  #9750 [Geoff Buesing, Chu Yeow]
+* Disambiguate Time, Date, and DateTime#to_json formatting.  #9750 [Geoff Buesing, Cheah Chu Yeow]
 
-* Hash#to_json takes :only or :except options to specific or omit certain hash keys. Enumerable#to_json passes through its options to each element.  #9751 [Chu Yeow]
+* Hash#to_json takes :only or :except options to specific or omit certain hash keys. Enumerable#to_json passes through its options to each element.  #9751 [Cheah Chu Yeow]
 
 * BufferedLogger#auto_flushing = N flushes the log every N messages. Buffers with an array instead of string. Disabling auto_flushing still flushes when the buffer hits a maximum size, as a failsafe against memory-gobbling.  [Jeremy Kemper]
 
@@ -74,7 +74,7 @@
 
 * Fixed that La Paz was included in -25200 and -14400 offsets when it should only be in -14400 #9735 [bermi]
 
-* Fixed JSON encoding to use quoted keys according to the JSON standard.  #8762 [choonkat, Chu Yeow]
+* Fixed JSON encoding to use quoted keys according to the JSON standard.  #8762 [choonkat, Cheah Chu Yeow]
 
 * Alias Object#send to send! for Ruby 1.9 forward compatibility.  [Jeremy Kemper]
 
