@@ -177,10 +177,8 @@ module ActionController #:nodoc:
           end
         rescue MissingSourceFile => e
           raise unless e.is_missing? module_path
-          logger.debug("#{name}: missing default helper path #{module_path}") if logger
         rescue NameError => e
           raise unless e.missing_name? module_name
-          logger.debug("#{name}: missing default helper module #{module_name}") if logger
         end
 
         def inherited_with_helper(child)
