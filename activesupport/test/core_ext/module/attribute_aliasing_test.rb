@@ -3,11 +3,15 @@ require File.dirname(__FILE__) + '/../../abstract_unit'
 module AttributeAliasing
   class Content
     attr_accessor :title, :Data
-  
+
+    def initialize
+      @title, @Data = nil, nil
+    end
+
     def title?
       !title.nil?
     end
-    
+
     def Data?
       !self.Data.nil?
     end

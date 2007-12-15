@@ -145,7 +145,7 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal updated_with_mixed[:a], 1
     assert_equal updated_with_mixed['b'], 2
 
-    assert [updated_with_strings, updated_with_symbols, updated_with_mixed].all? {|hash| hash.keys.size == 2}
+    assert [updated_with_strings, updated_with_symbols, updated_with_mixed].all? { |h| h.keys.size == 2 }
   end
 
   def test_indifferent_merging
@@ -371,8 +371,8 @@ class HashToXmlTest < Test::Unit::TestCase
   end
 
   def test_one_level_with_yielding
-    xml = { :name => "David", :street => "Paulina" }.to_xml(@xml_options) do |xml|
-      xml.creator("Rails")
+    xml = { :name => "David", :street => "Paulina" }.to_xml(@xml_options) do |x|
+      x.creator("Rails")
     end
 
     assert_equal "<person>", xml.first(8)

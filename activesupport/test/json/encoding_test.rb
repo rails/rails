@@ -53,11 +53,10 @@ class TestJSONEncoding < Test::Unit::TestCase
   end
 
   def test_utf8_string_encoded_properly_when_kcode_is_utf8
-    old_kcode, $KCODE = $KCODE, 'UTF8'
-    assert_equal '"\\u20ac2.99"', '€2.99'.to_json
-    assert_equal '"\\u270e\\u263a"', '✎☺'.to_json
-  ensure
-    $KCODE = old_kcode
+    with_kcode 'UTF8' do
+      assert_equal '"\\u20ac2.99"', '€2.99'.to_json
+      assert_equal '"\\u270e\\u263a"', '✎☺'.to_json
+    end
   end
 
   def test_exception_raised_when_encoding_circular_reference
@@ -80,6 +79,19 @@ class TestJSONEncoding < Test::Unit::TestCase
   end
 
   protected
+    def with_kcode(code)
+      if RUBY_VERSION < '1.9'
+        begin
+          old_kcode, $KCODE = $KCODE, 'UTF8'
+          yield
+        ensure
+          $KCODE = old_kcode
+        end
+      else
+        yield
+      end
+    end
+
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
     end
