@@ -15,7 +15,6 @@ class DurationTest < Test::Unit::TestCase
     assert_nothing_raised { Date.today - Date.today }
   end
 
-  # FIXME: ruby 1.9
   def test_plus_with_time
     assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
   end
