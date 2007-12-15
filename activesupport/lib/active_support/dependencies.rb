@@ -216,7 +216,7 @@ module Dependencies #:nodoc:
   end
   
   # Load the constant named +const_name+ which is missing from +from_mod+. If
-  # it is not possible to laod the constant into from_mod, try its parent module
+  # it is not possible to load the constant into from_mod, try its parent module
   # using const_missing.
   def load_missing_constant(from_mod, const_name)
     log_call from_mod, const_name
@@ -236,7 +236,7 @@ module Dependencies #:nodoc:
     unless qualified_const_defined?(from_mod.name) && from_mod.name.constantize.object_id == from_mod.object_id
       raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
     end
-    
+
     raise ArgumentError, "#{from_mod} is not missing constant #{const_name}!" if from_mod.const_defined?(const_name)
     
     qualified_name = qualified_name_for from_mod, const_name
@@ -460,21 +460,26 @@ class Module #:nodoc:
 end
 
 class Class
-  def const_missing(class_id)
+  def const_missing(const_name)
+    # Bypass entire lookup process if we can get the constant from Object.
+    # This is useful for Ruby 1.9 where Module#const_defined? looks up the
+    # ancestors in the chain for the constant.
+    return ::Object.const_get(const_name) if ::Object.const_defined?(const_name)
+
     if [Object, Kernel].include?(self) || parent == self
       super
     else
       begin
         begin
-          Dependencies.load_missing_constant self, class_id
+          Dependencies.load_missing_constant self, const_name
         rescue NameError
-          parent.send :const_missing, class_id
+          parent.send :const_missing, const_name
         end
       rescue NameError => e
         # Make sure that the name we are missing is the one that caused the error
-        parent_qualified_name = Dependencies.qualified_name_for parent, class_id
+        parent_qualified_name = Dependencies.qualified_name_for parent, const_name
         raise unless e.missing_name? parent_qualified_name
-        qualified_name = Dependencies.qualified_name_for self, class_id
+        qualified_name = Dependencies.qualified_name_for self, const_name
         raise NameError.new("uninitialized constant #{qualified_name}").copy_blame!(e)
       end
     end
