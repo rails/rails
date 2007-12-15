@@ -450,7 +450,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       # Asserts the existence of a template.
       def template_exists?(template_path, extension)
         file_path = full_template_path(template_path, extension)
-        !file_path.blank? && @@method_names.has_key?(file_path) || FileTest.exists?(file_path)
+        !file_path.blank? && @@method_names.has_key?(file_path) || File.exist?(file_path)
       end
 
       # Splits the path and extension from the given template_path and returns as an array.
@@ -584,7 +584,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         if file_name
           s = File.expand_path(file_name)
           s.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}/, '') if defined?(RAILS_ROOT)
-          s.gsub!(/([^a-zA-Z0-9_])/) { $1[0].to_s }
+          s.gsub!(/([^a-zA-Z0-9_])/) { $1.ord }
           s
         else
           (@@inline_template_count += 1).to_s
