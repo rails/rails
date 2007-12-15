@@ -9,6 +9,7 @@ module Fun
 end
 
 
+# FIXME: crashes Ruby 1.9
 class TestController < ActionController::Base
   layout :determine_layout
 
