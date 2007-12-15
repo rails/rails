@@ -461,11 +461,6 @@ end
 
 class Class
   def const_missing(const_name)
-    # Bypass entire lookup process if we can get the constant from Object.
-    # This is useful for Ruby 1.9 where Module#const_defined? looks up the
-    # ancestors in the chain for the constant.
-    return ::Object.const_get(const_name) if ::Object.const_defined?(const_name)
-
     if [Object, Kernel].include?(self) || parent == self
       super
     else
