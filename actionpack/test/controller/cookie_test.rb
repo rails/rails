@@ -67,7 +67,7 @@ class CookieTest < Test::Unit::TestCase
   def test_setting_cookie_with_http_only
     get :authenticate_with_http_only
     assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "david", "http_only" => true) ], @response.headers["cookie"]
-    assert_equal CGI::Cookie::new("name" => "user_name", "value" => "david", "path" => "/", "http_only" => true).to_s, @response.headers["cookie"].to_s
+    assert_equal CGI::Cookie::new("name" => "user_name", "value" => "david", "path" => "/", "http_only" => true).to_s, @response.headers["cookie"][0].to_s
   end
 
   def test_multiple_cookies

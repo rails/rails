@@ -50,8 +50,8 @@ module ActionController #:nodoc:
     def [](name)
       cookie = @cookies[name.to_s]
       if cookie && cookie.respond_to?(:value)
-        cookie.size > 1 ? cookie.value : cookie.value.to_s
-      end 
+        cookie.size > 1 ? cookie.value : cookie.value[0]
+      end
     end
 
     def []=(name, options)
