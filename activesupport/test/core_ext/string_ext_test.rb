@@ -78,6 +78,11 @@ class StringInflectionsTest < Test::Unit::TestCase
     end
   end
 
+  def test_ord
+    assert_equal 97, 'a'.ord
+    assert_equal 97, 'abc'.ord
+  end
+
   def test_string_to_time
     assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time
     assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:local)
