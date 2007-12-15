@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
+# FIXME: crashes Ruby 1.9
 class FilterTest < Test::Unit::TestCase
   class TestController < ActionController::Base
     before_filter :ensure_login
