@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
-silence_warnings { ActionController::Helpers::HELPERS_DIR = File.dirname(__FILE__) + '/../fixtures/helpers' }
+ActionController::Helpers::HELPERS_DIR.replace File.dirname(__FILE__) + '/../fixtures/helpers'
 
 class TestController < ActionController::Base
   attr_accessor :delegate_attr
@@ -130,23 +130,25 @@ class HelperTest < Test::Unit::TestCase
   end
 
   def test_all_helpers
+    methods = ApplicationController.master_helper_module.instance_methods.map(&:to_s)
+
     # abc_helper.rb
-    assert ApplicationController.master_helper_module.instance_methods.include?("bare_a")
+    assert methods.include?('bare_a')
 
     # fun/games_helper.rb
-    assert ApplicationController.master_helper_module.instance_methods.include?("stratego")
+    assert methods.include?('stratego')
 
     # fun/pdf_helper.rb
-    assert ApplicationController.master_helper_module.instance_methods.include?("foobar")
+    assert methods.include?('foobar')
   end
 
   private
     def expected_helper_methods
-      TestHelper.instance_methods
+      TestHelper.instance_methods.map(&:to_s)
     end
 
     def master_helper_methods
-      @controller_class.master_helper_module.instance_methods
+      @controller_class.master_helper_module.instance_methods.map(&:to_s)
     end
 
     def missing_methods
