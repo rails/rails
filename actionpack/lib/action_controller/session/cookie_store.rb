@@ -34,6 +34,9 @@ require 'openssl'       # to generate the HMAC message digest
 #             defaults to 'SHA1' but may be any digest provided by OpenSSL,
 #             such as 'MD5', 'RIPEMD160', 'SHA256', etc.
 #
+# To generate a secret key for an existing application, run
+# `rake generate:secret` and set the key in config/environment.rb
+#
 # Note that changing digest or secret invalidates all existing sessions!
 class CGI::Session::CookieStore
   # Cookies can typically store 4096 bytes.
