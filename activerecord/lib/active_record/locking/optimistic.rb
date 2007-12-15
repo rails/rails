@@ -70,7 +70,7 @@ module ActiveRecord
           return update_without_lock unless locking_enabled?
 
           lock_col = self.class.locking_column
-          previous_value = send(lock_col)
+          previous_value = send(lock_col).to_i
           send(lock_col + '=', previous_value + 1)
 
           begin

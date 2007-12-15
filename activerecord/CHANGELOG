@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure optimistic locking handles nil #lock_version values properly.  Closes #10510 [rick]
+
 * Make the Fixtures Test::Unit enhancements more supporting for double-loaded test cases.  Closes #10379 [brynary]
 
 * Fix that validates_acceptance_of still works for non-existent tables (useful for bootstrapping new databases).  Closes #10474 [hasmanyjosh]
