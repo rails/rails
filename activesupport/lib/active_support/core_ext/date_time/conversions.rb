@@ -9,6 +9,10 @@ module ActiveSupport #:nodoc:
             alias_method :to_s, :to_formatted_s
             alias_method :default_inspect, :inspect
             alias_method :inspect, :readable_inspect
+
+            # Ruby 1.9 has DateTime#to_time which internally relies on Time. We define our own #to_time which allows
+            # DateTimes outside the range of what can be created with Time.
+            remove_method :to_time if base.instance_methods.include?(:to_time)
           end
         end
 
@@ -38,16 +42,16 @@ module ActiveSupport #:nodoc:
         # If self has an offset other than 0, self will just be returned unaltered, since there's no clean way to map it to a Time
         def to_time
           self.offset == 0 ? ::Time.utc_time(year, month, day, hour, min, sec) : self
-        end        
+        end
 
         # To be able to keep Times, Dates and DateTimes interchangeable on conversions
         def to_datetime
           self
         end
-        
+
         def xmlschema
-          strftime("%Y-%m-%dT%H:%M:%S#{offset == 0 ? 'Z' : '%Z'}")
-        end
+          strftime("%Y-%m-%dT%H:%M:%S%Z")
+        end if RUBY_VERSION < '1.9'
       end
     end
   end

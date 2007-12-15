@@ -20,6 +20,9 @@ module ActiveSupport #:nodoc:
 
             # Ruby 1.9 has Date#to_time which converts to localtime only.
             remove_method :to_time if base.instance_methods.include?(:to_time)
+
+            # Ruby 1.9 has Date#xmlschema which converts to a string without the time component.
+            remove_method :xmlschema if base.instance_methods.include?(:xmlschema)
           end
         end
 
