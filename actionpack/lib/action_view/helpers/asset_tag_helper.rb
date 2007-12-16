@@ -31,13 +31,39 @@ module ActionView
     #   stylesheet_include_tag("application")
     #     => <link href="http://assets3.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
     #
-    # To do this, you can either setup four actual hosts, or you can use wildcard DNS to CNAME 
+    # To do this, you can either setup 4 actual hosts, or you can use wildcard DNS to CNAME 
     # the wildcard to a single asset host.  You can read more about setting up your DNS CNAME records from
     # your ISP.
     #
     # Note: This is purely a browser performance optimization and is not meant
     # for server load balancing. See http://www.die.net/musings/page_load_time/
     # for background.
+    #
+    # Alternatively, you can exert more control over the asset host by setting <tt>asset_host</tt> to a proc
+    # that takes a single source argument. This is useful if you are unable to setup 4 actual hosts or have
+    # fewer/more than 4 hosts. The example proc below generates http://assets1.example.com and
+    # http://assets2.example.com randomly.
+    #
+    #   ActionController::Base.asset_host = Proc.new { |source| "http://assets#{rand(2) + 1}.example.com" }
+    #   image_tag("rails.png")
+    #     => <img src="http://assets2.example.com/images/rails.png" alt="Rails" />
+    #   stylesheet_include_tag("application")
+    #     => <link href="http://assets1.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+    #
+    # The proc takes a single <tt>source</tt> parameter which is the path of the source asset. This can be used to
+    # generate a particular asset host depending on the asset path.
+    #
+    #    ActionController::Base.asset_host = Proc.new { |source|
+    #      if source.starts_with?('/images')
+    #        "http://images.example.com"
+    #      else
+    #        "http://assets.example.com"
+    #      end
+    #    }
+    #   image_tag("rails.png")
+    #     => <img src="http://images.example.com/images/rails.png" alt="Rails" />
+    #   stylesheet_include_tag("application")
+    #     => <link href="http://assets.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
     #
     # === Using asset timestamps
     #
@@ -385,19 +411,18 @@ module ActionView
         # Add the .ext if not present. Return full URLs otherwise untouched.
         # Prefix with /dir/ if lacking a leading /. Account for relative URL
         # roots. Rewrite the asset path for cache-busting asset ids. Include
-        # a single or wildcarded asset host, if configured, with the correct
-        # request protocol.
+        # asset host, if configured, with the correct request protocol.
         def compute_public_path(source, dir, ext = nil, include_host = true)
           has_request = @controller.respond_to?(:request)
 
           cache_key =
             if has_request
               [ @controller.request.protocol,
-                ActionController::Base.asset_host,
+                ActionController::Base.asset_host.to_s,
                 @controller.request.relative_url_root,
                 dir, source, ext, include_host ].join
             else
-              [ ActionController::Base.asset_host,
+              [ ActionController::Base.asset_host.to_s,
                 dir, source, ext, include_host ].join
             end
 
@@ -430,11 +455,16 @@ module ActionView
         end
 
         # Pick an asset host for this source. Returns nil if no host is set,
-        # the host if no wildcard is set, or the host interpolated with the
-        # numbers 0-3 if it contains %d. The number is the source hash mod 4.
+        # the host if no wildcard is set, the host interpolated with the
+        # numbers 0-3 if it contains %d (the number is the source hash mod 4),
+        # or the value returned from invoking the proc if it's a proc.
         def compute_asset_host(source)
           if host = ActionController::Base.asset_host
-            host % (source.hash % 4)
+            if host.is_a?(Proc)
+              host.call(source)
+            else
+              host % (source.hash % 4)
+            end
           end
         end
 
