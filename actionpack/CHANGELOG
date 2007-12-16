@@ -1,4 +1,4 @@
-*SVN*
+*2.0.2* (December 16th, 2007)
 
 * Fixed that ActionView#file_exists? would be incorrect if @first_render is set #10569 [dbussink]
 
