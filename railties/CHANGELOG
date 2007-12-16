@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed the default database from mysql to sqlite3, so now running "rails myapp" will have a config/database.yml that's setup for SQLite3 (which in OS X Leopard is installed by default, so is the gem, so everything Just Works with no database configuration at all). To get a Rails application preconfigured for MySQL, just run "rails -d mysql myapp" [DHH]
+
 * Turned on ActionView::Base.cache_template_loading by default in config/environments/production.rb to prevent file system stat calls for every template loading to see if it changed (this means that you have to restart the application to see template changes in production mode) [DHH]
 
 * Introduce `rake secret` to output a crytographically secure secret key for use with cookie sessions #xxxx [update from Trac]

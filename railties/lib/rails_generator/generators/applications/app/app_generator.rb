@@ -8,7 +8,7 @@ class AppGenerator < Rails::Generator::Base
 
   DATABASES = %w(mysql oracle postgresql sqlite2 sqlite3 frontbase)
 
-  default_options   :db => (ENV["RAILS_DEFAULT_DATABASE"] || "mysql"),
+  default_options   :db => (ENV["RAILS_DEFAULT_DATABASE"] || "sqlite3"),
     :shebang => DEFAULT_SHEBANG, :freeze => false
   mandatory_options :source => "#{File.dirname(__FILE__)}/../../../../.."
 
