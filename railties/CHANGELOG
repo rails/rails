@@ -1,6 +1,8 @@
 *SVN*
 
-* Introduce `rake generate:secret` to output a crytographically secure secret key for use with cookie sessions.  #xxxx [update from Trac]
+* Turned on ActionView::Base.cache_template_loading by default in config/environments/production.rb to prevent file system stat calls for every template loading to see if it changed (this means that you have to restart the application to see template changes in production mode) [DHH]
+
+* Introduce `rake secret` to output a crytographically secure secret key for use with cookie sessions #xxxx [update from Trac]
 
 * Fixed that local database creation should consider 127.0.0.1 local #9026 [parcelbrat]
 
