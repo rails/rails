@@ -1,4 +1,4 @@
-# MySQL (default setup).  Versions 4.1 and 5.0 are recommended.
+# MySQL.  Versions 4.1 and 5.0 are recommended.
 #
 # Install the MySQL driver:
 #   gem install mysql
