@@ -11,7 +11,7 @@ end
 desc 'Run all tests by default'
 task :default => :test
 
-%w(test docs package pgem release).each do |task_name|
+%w(test rdoc package pgem release).each do |task_name|
   desc "Run #{task_name} task for all projects"
   task task_name do
     PROJECTS.each do |project|

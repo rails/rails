@@ -5,7 +5,7 @@ class ERB
     HTML_ESCAPE = { '&' => '&amp;', '"' => '&quot;', '>' => '&gt;', '<' => '&lt;' }
 
     def html_escape(s)
-      s.to_s.gsub(/[&\"><]/) { |special| HTML_ESCAPE[special] }
+      s.to_s.gsub(/[&"><]/) { |special| HTML_ESCAPE[special] }
     end
   end
 end

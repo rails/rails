@@ -287,8 +287,8 @@ module ActionView
       #
       # ==== Examples
       #   auto_link("Go to http://www.rubyonrails.org and say hello to david@loudthinking.com") 
-      #   # => "Go to <a href="http://www.rubyonrails.org">http://www.rubyonrails.org</a> and
-      #   #     say hello to <a href="mailto:david@loudthinking.com">david@loudthinking.com</a>"
+      #   # => "Go to <a href=\"http://www.rubyonrails.org\">http://www.rubyonrails.org</a> and
+      #   #     say hello to <a href=\"mailto:david@loudthinking.com\">david@loudthinking.com</a>"
       #
       #   auto_link("Visit http://www.loudthinking.com/ or e-mail david@loudthinking.com", :urls)
       #   # => "Visit <a href=\"http://www.loudthinking.com/\">http://www.loudthinking.com/</a> 

@@ -49,28 +49,49 @@ class SessionTest < Test::Unit::TestCase
     assert_equal 200, @session.follow_redirect!
   end
 
-  def test_get_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+  def test_request_via_redirect_uses_given_method
+    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
+    @session.expects(:put).with(path, args, headers)
+    @session.stubs(:redirect?).returns(false)
+    @session.request_via_redirect(:put, path, args, headers)
+  end
 
-    @session.expects(:get).with(path,args,headers)
-
+  def test_request_via_redirect_follows_redirects
+    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
     @session.stubs(:redirect?).returns(true, true, false)
     @session.expects(:follow_redirect!).times(2)
+    @session.request_via_redirect(:get, path, args, headers)
+  end
 
+  def test_request_via_redirect_returns_status
+    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
+    @session.stubs(:redirect?).returns(false)
     @session.stubs(:status).returns(200)
-    assert_equal 200, @session.get_via_redirect(path, args, headers)
+    assert_equal 200, @session.request_via_redirect(:get, path, args, headers)
+  end
+
+  def test_get_via_redirect
+    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    @session.expects(:request_via_redirect).with(:get, path, args, headers)
+    @session.get_via_redirect(path, args, headers)
   end
 
   def test_post_via_redirect
     path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    @session.expects(:request_via_redirect).with(:post, path, args, headers)
+    @session.post_via_redirect(path, args, headers)
+  end
 
-    @session.expects(:post).with(path,args,headers)
+  def test_put_via_redirect
+    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    @session.expects(:request_via_redirect).with(:put, path, args, headers)
+    @session.put_via_redirect(path, args, headers)
+  end
 
-    @session.stubs(:redirect?).returns(true, true, false)
-    @session.expects(:follow_redirect!).times(2)
-
-    @session.stubs(:status).returns(200)
-    assert_equal 200, @session.post_via_redirect(path, args, headers)
+  def test_delete_via_redirect
+    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    @session.expects(:request_via_redirect).with(:delete, path, args, headers)
+    @session.delete_via_redirect(path, args, headers)
   end
 
   def test_url_for_with_controller
@@ -178,6 +199,15 @@ class SessionTest < Test::Unit::TestCase
     )
     @session.expects(:process).with(:head,path,params,headers_after_xhr)
     @session.xml_http_request(:head,path,params,headers)
+  end
+  
+  def test_xml_http_request_override_accept
+    path = "/index"; params = "blah"; headers = {:location => 'blah', "Accept" => "application/xml"}
+    headers_after_xhr = headers.merge(
+      "X-Requested-With" => "XMLHttpRequest"
+    )
+    @session.expects(:process).with(:post,path,params,headers_after_xhr)
+    @session.xml_http_request(:post,path,params,headers)
   end
 end
 

@@ -1,4 +1,20 @@
-*SVN*
+*2.0.2* (December 16th, 2007)
+
+* Added delete_via_redirect and put_via_redirect to integration testing #10497 [philodespotos]
+
+* Allow headers['Accept'] to be set by hand when calling xml_http_request #10461 [BMorearty]
+
+* Added OPTIONS to list of default accepted HTTP methods #10449 [holoway]
+
+* Added option to pass proc to ActionController::Base.asset_host for maximum configurability #10521 [chuyeow]. Example:
+
+    ActionController::Base.asset_host = Proc.new { |source|
+      if source.starts_with?('/images')
+        "http://images.example.com"
+      else
+        "http://assets.example.com"
+      end
+    }
 
 * Fixed that ActionView#file_exists? would be incorrect if @first_render is set #10569 [dbussink]
 
