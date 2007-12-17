@@ -16,9 +16,9 @@ libs << " -r console_sandbox" if options[:sandbox]
 libs << " -r console_with_helpers"
 
 ENV['RAILS_ENV'] = case ARGV.first
-  when "p": "production"
-  when "d": "development"
-  when "t": "test"
+  when "p"; "production"
+  when "d"; "development"
+  when "t"; "test"
   else
     ARGV.first || ENV['RAILS_ENV'] || 'development'
 end

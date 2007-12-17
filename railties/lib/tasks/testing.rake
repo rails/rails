@@ -13,11 +13,11 @@ def recent_tests(source_pattern, test_path, touched_since = 10.minutes.ago)
 
       # For modified files in app/ run the tests for it. ex. /test/functional/account_controller.rb
       test = "#{modified_test_path}/#{source_file}_test.rb"
-      tests.push test if File.exists?(test)
+      tests.push test if File.exist?(test)
 
       # For modified files in app, run tests in subdirs too. ex. /test/functional/account/*_test.rb
       test = "#{modified_test_path}/#{File.basename(path, '.rb').sub("_controller","")}"
-      FileList["#{test}/*_test.rb"].each { |f| tests.push f } if File.exists?(test)
+      FileList["#{test}/*_test.rb"].each { |f| tests.push f } if File.exist?(test)
 		
       return tests
 

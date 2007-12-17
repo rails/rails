@@ -31,7 +31,7 @@ def listener_socket(number)
   File.expand_path(File.join(File.dirname(__FILE__), "../log/drb_gateway/listener_#{number}.sock"))
 end
 
-unless File.exists? TrackerSocket
+unless File.exist? TrackerSocket
   message "Starting tracker and #{Listeners} listeners"
   fork do
     Process.setsid
@@ -62,7 +62,7 @@ unless File.exists? TrackerSocket
   ready = false
   10.times do
     sleep 0.5
-    break if (ready = File.exists?(TrackerSocket) && File.exists?(listener_socket(0)))
+    break if (ready = File.exist?(TrackerSocket) && File.exist?(listener_socket(0)))
   end
 
   if ready

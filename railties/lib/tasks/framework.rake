@@ -105,7 +105,7 @@ namespace :rails do
       require 'railties_path'  
       project_dir = RAILS_ROOT + '/public/javascripts/'
       scripts = Dir[RAILTIES_PATH + '/html/javascripts/*.js']
-      scripts.reject!{|s| File.basename(s) == 'application.js'} if File.exists?(project_dir + 'application.js')
+      scripts.reject!{|s| File.basename(s) == 'application.js'} if File.exist?(project_dir + 'application.js')
       FileUtils.cp(scripts, project_dir)
     end
 

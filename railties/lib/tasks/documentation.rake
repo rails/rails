@@ -65,11 +65,11 @@ namespace :doc do
         options << '-T html'
 
         files.include("#{plugin_base}/lib/**/*.rb")
-        if File.exists?("#{plugin_base}/README")
+        if File.exist?("#{plugin_base}/README")
           files.include("#{plugin_base}/README")    
           options << "--main '#{plugin_base}/README'"
         end
-        files.include("#{plugin_base}/CHANGELOG") if File.exists?("#{plugin_base}/CHANGELOG")
+        files.include("#{plugin_base}/CHANGELOG") if File.exist?("#{plugin_base}/CHANGELOG")
 
         options << files.to_s
 
