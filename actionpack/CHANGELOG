@@ -1,5 +1,7 @@
 *2.0.2* (December 16th, 2007)
 
+* Added delete_via_redirect and put_via_redirect to integration testing #10497 [philodespotos]
+
 * Allow headers['Accept'] to be set by hand when calling xml_http_request #10461 [BMorearty]
 
 * Added OPTIONS to list of default accepted HTTP methods #10449 [holoway]
