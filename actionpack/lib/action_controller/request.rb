@@ -4,7 +4,7 @@ require 'strscan'
 
 module ActionController
   # HTTP methods which are accepted by default. 
-  ACCEPTED_HTTP_METHODS = Set.new(%w( get head put post delete ))
+  ACCEPTED_HTTP_METHODS = Set.new(%w( get head put post delete options ))
 
   # CgiRequest and TestRequest provide concrete implementations.
   class AbstractRequest
