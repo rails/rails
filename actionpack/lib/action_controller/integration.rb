@@ -187,7 +187,7 @@ module ActionController
       def xml_http_request(request_method, path, parameters = nil, headers = nil)
         headers ||= {}
         headers['X-Requested-With'] = 'XMLHttpRequest'
-        headers['Accept'] = 'text/javascript, text/html, application/xml, text/xml, */*'
+        headers['Accept'] ||= 'text/javascript, text/html, application/xml, text/xml, */*'
 
         process(request_method, path, parameters, headers)
       end
