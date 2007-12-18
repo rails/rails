@@ -1,7 +1,6 @@
 require 'cgi'
 require 'cgi/session'
 require 'digest/md5'
-require 'base64'
 
 class CGI
   class Session
@@ -80,8 +79,8 @@ class CGI
             find_by_session_id(session_id)
           end
 
-          def marshal(data)   Base64.encode64(Marshal.dump(data)) if data end
-          def unmarshal(data) Marshal.load(Base64.decode64(data)) if data end
+          def marshal(data)   ActiveSupport::Base64.encode64(Marshal.dump(data)) if data end
+          def unmarshal(data) Marshal.load(ActiveSupport::Base64.decode64(data)) if data end
 
           def create_table!
             connection.execute <<-end_sql
@@ -155,8 +154,8 @@ class CGI
       # The database connection, table name, and session id and data columns
       # are configurable class attributes.  Marshaling and unmarshaling
       # are implemented as class methods that you may override.  By default,
-      # marshaling data is +Base64.encode64(Marshal.dump(data))+ and
-      # unmarshaling data is +Marshal.load(Base64.decode64(data))+.
+      # marshaling data is +ActiveSupport::Base64.encode64(Marshal.dump(data))+ and
+      # unmarshaling data is +Marshal.load(ActiveSupport::Base64.decode64(data))+.
       #
       # This marshaling behavior is intended to store the widest range of
       # binary session data in a +text+ column.  For higher performance,
@@ -190,8 +189,8 @@ class CGI
             end
           end
 
-          def marshal(data)   Base64.encode64(Marshal.dump(data)) if data end
-          def unmarshal(data) Marshal.load(Base64.decode64(data)) if data end
+          def marshal(data)   ActiveSupport::Base64.encode64(Marshal.dump(data)) if data end
+          def unmarshal(data) Marshal.load(ActiveSupport::Base64.decode64(data)) if data end
 
           def create_table!
             @@connection.execute <<-end_sql

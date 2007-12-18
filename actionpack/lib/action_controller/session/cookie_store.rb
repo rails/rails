@@ -1,6 +1,5 @@
 require 'cgi'
 require 'cgi/session'
-require 'base64'        # to convert Marshal.dump to ASCII
 require 'openssl'       # to generate the HMAC message digest
 
 # This cookie-based session store is the Rails default. Sessions typically
@@ -130,7 +129,7 @@ class CGI::Session::CookieStore
   private
     # Marshal a session hash into safe cookie data. Include an integrity hash.
     def marshal(session)
-      data = Base64.encode64(Marshal.dump(session)).chop
+      data = ActiveSupport::Base64.encode64(Marshal.dump(session)).chop
       CGI.escape "#{data}--#{generate_digest(data)}"
     end
 
@@ -142,7 +141,7 @@ class CGI::Session::CookieStore
           delete
           raise TamperedWithCookie
         end
-        Marshal.load(Base64.decode64(data))
+        Marshal.load(ActiveSupport::Base64.decode64(data))
       end
     end
 

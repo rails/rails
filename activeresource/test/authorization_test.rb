@@ -1,5 +1,4 @@
 require "#{File.dirname(__FILE__)}/abstract_unit"
-require 'base64'
 
 class AuthorizationTest < Test::Unit::TestCase
   Response = Struct.new(:code)
@@ -25,7 +24,7 @@ class AuthorizationTest < Test::Unit::TestCase
     authorization = authorization_header["Authorization"].to_s.split
     
     assert_equal "Basic", authorization[0]
-    assert_equal ["david", "test123"], Base64.decode64(authorization[1]).split(":")[0..1]
+    assert_equal ["david", "test123"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
   end
   
   def test_authorization_header_with_username_but_no_password
@@ -34,7 +33,7 @@ class AuthorizationTest < Test::Unit::TestCase
     authorization = authorization_header["Authorization"].to_s.split
     
     assert_equal "Basic", authorization[0]
-    assert_equal ["david"], Base64.decode64(authorization[1]).split(":")[0..1]
+    assert_equal ["david"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
   end
   
   def test_authorization_header_with_password_but_no_username
@@ -43,7 +42,7 @@ class AuthorizationTest < Test::Unit::TestCase
     authorization = authorization_header["Authorization"].to_s.split
     
     assert_equal "Basic", authorization[0]
-    assert_equal ["", "test123"], Base64.decode64(authorization[1]).split(":")[0..1]
+    assert_equal ["", "test123"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
   end
   
   def test_get

@@ -1,6 +1,6 @@
 *SVN*
 
-* Ruby 1.9 compatibility.  #1689, #10466, #10468 [Cheah Chu Yeow, Pratik Naik, Jeremy Kemper]
+* Ruby 1.9 compatibility.  #1689, #10466, #10468, #10554 [Cheah Chu Yeow, Pratik Naik, Jeremy Kemper, Dirkjan Bussink]
 
 * TimeZone#to_s uses UTC rather than GMT.  #1689 [Cheah Chu Yeow]
 

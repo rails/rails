@@ -1,5 +1,3 @@
-require 'base64'
-
 module ActionController
   module HttpAuthentication
     # Makes it dead easy to do HTTP Basic authentication.
@@ -110,11 +108,11 @@ module ActionController
       end
     
       def decode_credentials(request)
-        Base64.decode64(authorization(request).split.last || '')
+        ActiveSupport::Base64.decode64(authorization(request).split.last || '')
       end
 
       def encode_credentials(user_name, password)
-        "Basic #{Base64.encode64("#{user_name}:#{password}")}"
+        "Basic #{ActiveSupport::Base64.encode64("#{user_name}:#{password}")}"
       end
 
       def authentication_request(controller, realm)

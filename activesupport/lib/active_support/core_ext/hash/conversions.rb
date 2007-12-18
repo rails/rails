@@ -1,6 +1,5 @@
 require 'date'
 require 'cgi'
-require 'base64'
 require 'builder'
 require 'xmlsimple'
 
@@ -46,7 +45,7 @@ module ActiveSupport #:nodoc:
           "symbol"   => Proc.new { |symbol| symbol.to_s },
           "date"     => Proc.new { |date| date.to_s(:db) },
           "datetime" => Proc.new { |time| time.xmlschema },
-          "binary"   => Proc.new { |binary| Base64.encode64(binary) },
+          "binary"   => Proc.new { |binary| ActiveSupport::Base64.encode64(binary) },
           "yaml"     => Proc.new { |yaml| yaml.to_yaml }
         } unless defined?(XML_FORMATTING)
 

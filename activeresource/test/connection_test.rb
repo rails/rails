@@ -1,5 +1,4 @@
 require "#{File.dirname(__FILE__)}/abstract_unit"
-require 'base64'
 
 class ConnectionTest < Test::Unit::TestCase
   ResponseCodeStub = Struct.new(:code)
