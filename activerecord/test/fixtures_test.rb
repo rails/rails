@@ -324,22 +324,6 @@ class MultipleFixturesTest < Test::Unit::TestCase
   end
 end
 
-# This is to reproduce a bug where if a TestCase is loaded
-# twice by Ruby, it loses its fixture setup hook.
-class_def = <<-CODE
-  class DoubleLoadedTestCase < Test::Unit::TestCase
-    fixtures :topics
-
-    def setup
-    end
-  
-    def test_should_properly_setup_fixtures
-      assert_nothing_raised { topics(:first) }
-    end
-  end
-CODE
-2.times { eval(class_def) }
-
 class OverlappingFixturesTest < Test::Unit::TestCase
   fixtures :topics, :developers
   fixtures :developers, :accounts
