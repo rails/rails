@@ -324,6 +324,30 @@ class MultipleFixturesTest < Test::Unit::TestCase
   end
 end
 
+class SetupTest < Test::Unit::TestCase
+  # fixtures :topics
+  
+  def setup
+    @first = true
+  end
+  
+  def test_nothing
+  end
+end
+
+class SetupSubclassTest < SetupTest
+  def setup
+    super
+    @second = true
+  end
+  
+  def test_subclassing_should_preserve_setups
+    assert @first
+    assert @second
+  end
+end
+
+
 class OverlappingFixturesTest < Test::Unit::TestCase
   fixtures :topics, :developers
   fixtures :developers, :accounts
