@@ -90,7 +90,7 @@ module ActiveSupport
     end
 
     def flush
-      @log.write(@buffer.slice!(0..-1).to_s) unless @buffer.empty?
+      @log.write(@buffer.slice!(0..-1).join) unless @buffer.empty?
     end
 
     def close
