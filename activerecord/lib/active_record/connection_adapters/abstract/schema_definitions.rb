@@ -417,7 +417,11 @@ module ActiveRecord
       #   end
       def column(name, type, options = {})
         column = self[name] || ColumnDefinition.new(@base, name, type)
-        column.limit = options[:limit] || native[type.to_sym][:limit] if options[:limit] or native[type.to_sym]
+        if options[:limit]
+          column.limit = options[:limit]
+        elsif native[type.to_sym].is_a?(Hash)
+          column.limit = native[type.to_sym][:limit]
+        end
         column.precision = options[:precision]
         column.scale = options[:scale]
         column.default = options[:default]

@@ -1,3 +1,8 @@
+*SVN*
+
+* Ruby 1.9 compatibility.  [Jeremy Kemper]
+
+
 *2.0.2* (December 16th, 2007)
 
 * Ensure optimistic locking handles nil #lock_version values properly.  Closes #10510 [rick]
