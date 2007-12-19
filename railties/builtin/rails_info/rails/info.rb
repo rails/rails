@@ -3,14 +3,16 @@ module Rails
     mattr_accessor :properties
     class << (@@properties = [])
       def names
-        map {|(name, )| name}
+        map { |name, value| name }
       end
-      
+
       def value_for(property_name)
-        find {|(name, )| name == property_name}.last rescue nil
+        if property = find { |name, value| name == property_name }
+          property.last
+        end
       end
     end
-  
+
     class << self #:nodoc:
       def property(name, value = nil)
         value ||= yield

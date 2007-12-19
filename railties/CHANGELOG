@@ -1,6 +1,6 @@
 *SVN*
 
-* Ruby 1.9 compatibility.  #1689 [Cheah Chu Yeow]
+* Ruby 1.9 compatibility.  #1689, #10546 [Cheah Chu Yeow, frederico]
 
 
 *2.0.2* (December 16th, 2007)
