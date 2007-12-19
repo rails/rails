@@ -303,6 +303,7 @@ PKG_FILES = FileList[
 ] - [ 'test' ]
 
 spec = Gem::Specification.new do |s|
+  s.platform = Gem::Platform::RUBY
   s.name = 'rails'
   s.version = PKG_VERSION
   s.summary = "Web-application framework with template engine, control-flow layer, and ORM."

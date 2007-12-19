@@ -39,6 +39,7 @@ Rake::RDocTask.new { |rdoc|
 }
 
 spec = Gem::Specification.new do |s|
+  s.platform = Gem::Platform::RUBY
   s.name = PKG_NAME
   s.version = PKG_VERSION
   s.summary = "Support and utility classes used by the Rails framework."

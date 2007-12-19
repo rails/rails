@@ -52,6 +52,7 @@ Rake::RDocTask.new { |rdoc|
 dist_dirs = [ "lib", "test", "examples", "dev-utils" ]
 
 spec = Gem::Specification.new do |s|
+  s.platform = Gem::Platform::RUBY
   s.name = PKG_NAME
   s.version = PKG_VERSION
   s.summary = "Think Active Record for web resources."
