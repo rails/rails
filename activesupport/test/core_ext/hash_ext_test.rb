@@ -6,6 +6,11 @@ class HashExtTest < Test::Unit::TestCase
     @symbols = { :a  => 1, :b  => 2 }
     @mixed   = { :a  => 1, 'b' => 2 }
     @fixnums = {  0  => 1,  1  => 2 }
+    if RUBY_VERSION < '1.9.0'
+      @illegal_symbols = { "\0" => 1, "" => 2, [] => 3 }
+    else
+      @illegal_symbols = { [] => 3 }
+    end
   end
 
   def test_methods
@@ -22,16 +27,17 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal @symbols, @symbols.symbolize_keys
     assert_equal @symbols, @strings.symbolize_keys
     assert_equal @symbols, @mixed.symbolize_keys
-
-    assert_raises(NoMethodError) { { [] => 1 }.symbolize_keys }
   end
 
   def test_symbolize_keys!
     assert_equal @symbols, @symbols.dup.symbolize_keys!
     assert_equal @symbols, @strings.dup.symbolize_keys!
     assert_equal @symbols, @mixed.dup.symbolize_keys!
+  end
 
-    assert_raises(NoMethodError) { { [] => 1 }.symbolize_keys }
+  def test_symbolize_keys_preserves_keys_that_cant_be_symbolized
+    assert_equal @illegal_symbols, @illegal_symbols.symbolize_keys
+    assert_equal @illegal_symbols, @illegal_symbols.dup.symbolize_keys!
   end
 
   def test_symbolize_keys_preserves_fixnum_keys
