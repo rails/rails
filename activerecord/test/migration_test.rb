@@ -431,6 +431,44 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
     
+    def test_rename_column_with_an_index
+      ActiveRecord::Base.connection.create_table(:hats) do |table|
+        table.column :hat_name, :string, :limit => 100
+        table.column :hat_size, :integer
+      end
+      Person.connection.add_index :people, :first_name
+      assert_nothing_raised do
+        Person.connection.rename_column "hats", "hat_name", "name"
+      end
+    ensure
+      ActiveRecord::Base.connection.drop_table(:hats)
+    end
+
+    def test_remove_column_with_index
+      ActiveRecord::Base.connection.create_table(:hats) do |table|
+        table.column :hat_name, :string, :limit => 100
+        table.column :hat_size, :integer
+      end
+      ActiveRecord::Base.connection.add_index "hats", "hat_size"
+
+      assert_nothing_raised { Person.connection.remove_column("hats", "hat_size") }
+    ensure
+      ActiveRecord::Base.connection.drop_table(:hats)
+    end
+
+    def test_remove_column_with_multi_column_index
+      ActiveRecord::Base.connection.create_table(:hats) do |table|
+        table.column :hat_name, :string, :limit => 100
+        table.column :hat_size, :integer
+        table.column :hat_style, :string, :limit => 100
+      end
+      ActiveRecord::Base.connection.add_index "hats", ["hat_style", "hat_size"], :unique => true
+
+      assert_nothing_raised { Person.connection.remove_column("hats", "hat_size") }
+    ensure
+      ActiveRecord::Base.connection.drop_table(:hats)
+    end
+
     def test_change_type_of_not_null_column
       assert_nothing_raised do
         Topic.connection.change_column "topics", "written_on", :datetime, :null => false

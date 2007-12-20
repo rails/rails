@@ -304,13 +304,13 @@ module ActiveRecord
             yield @definition if block_given?
           end
 
-          copy_table_indexes(from, to)
+          copy_table_indexes(from, to, options[:rename] || {})
           copy_table_contents(from, to,
             @definition.columns.map {|column| column.name},
             options[:rename] || {})
         end
 
-        def copy_table_indexes(from, to) #:nodoc:
+        def copy_table_indexes(from, to, rename = {}) #:nodoc:
           indexes(from).each do |index|
             name = index.name
             if to == "altered_#{from}"
@@ -319,10 +319,17 @@ module ActiveRecord
               name = name[5..-1]
             end
 
-            # index name can't be the same
-            opts = { :name => name.gsub(/_(#{from})_/, "_#{to}_") }
-            opts[:unique] = true if index.unique
-            add_index(to, index.columns, opts)
+            to_column_names = columns(to).map(&:name)
+            columns = index.columns.map {|c| rename[c] || c }.select do |column|
+              to_column_names.include?(column)
+            end
+
+            unless columns.empty?
+              # index name can't be the same
+              opts = { :name => name.gsub(/_(#{from})_/, "_#{to}_") }
+              opts[:unique] = true if index.unique
+              add_index(to, columns, opts)
+            end
           end
         end
 
