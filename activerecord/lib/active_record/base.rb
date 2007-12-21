@@ -1175,13 +1175,13 @@ module ActiveRecord #:nodoc:
       #     project.milestones << Milestone.find(:all)
       #   end
       #
-      # The benchmark is only recorded if the current level of the logger matches the <tt>log_level</tt>, which makes it
-      # easy to include benchmarking statements in production software that will remain inexpensive because the benchmark
-      # will only be conducted if the log level is low enough.
+      # The benchmark is only recorded if the current level of the logger is less than or equal to the <tt>log_level</tt>,
+      # which makes it easy to include benchmarking statements in production software that will remain inexpensive because
+      # the benchmark will only be conducted if the log level is low enough.
       #
       # The logging of the multiple statements is turned off unless <tt>use_silence</tt> is set to false.
       def benchmark(title, log_level = Logger::DEBUG, use_silence = true)
-        if logger && logger.level == log_level
+        if logger && logger.level <= log_level
           result = nil
           seconds = Benchmark.realtime { result = use_silence ? silence { yield } : yield }
           logger.add(log_level, "#{title} (#{'%.5f' % seconds})")

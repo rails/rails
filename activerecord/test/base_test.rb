@@ -1742,4 +1742,57 @@ class BasicsTest < Test::Unit::TestCase
     assert_kind_of Reply, topics(:first).becomes(Reply)
     assert_equal "The First Topic", topics(:first).becomes(Reply).title
   end
+
+  def test_silence_sets_log_level_to_error_in_block
+    original_logger = ActiveRecord::Base.logger
+    log = StringIO.new
+    ActiveRecord::Base.logger = Logger.new(log)
+    ActiveRecord::Base.logger.level = Logger::DEBUG
+    ActiveRecord::Base.silence do
+      ActiveRecord::Base.logger.warn "warn"
+      ActiveRecord::Base.logger.error "error"
+    end
+    assert_equal "error\n", log.string
+  ensure
+    ActiveRecord::Base.logger = original_logger
+  end
+
+  def test_silence_sets_log_level_back_to_level_before_yield
+    original_logger = ActiveRecord::Base.logger
+    log = StringIO.new
+    ActiveRecord::Base.logger = Logger.new(log)
+    ActiveRecord::Base.logger.level = Logger::WARN
+    ActiveRecord::Base.silence do
+    end
+    assert_equal Logger::WARN, ActiveRecord::Base.logger.level
+  ensure
+    ActiveRecord::Base.logger = original_logger
+  end
+
+  def test_benchmark_with_log_level
+    original_logger = ActiveRecord::Base.logger
+    log = StringIO.new
+    ActiveRecord::Base.logger = Logger.new(log)
+    ActiveRecord::Base.logger.level = Logger::WARN
+    ActiveRecord::Base.benchmark("Debug Topic Count", Logger::DEBUG) { Topic.count }
+    ActiveRecord::Base.benchmark("Warn Topic Count",  Logger::WARN)  { Topic.count }
+    ActiveRecord::Base.benchmark("Error Topic Count", Logger::ERROR) { Topic.count }
+    assert_no_match /Debug Topic Count/, log.string
+    assert_match /Warn Topic Count/, log.string
+    assert_match /Error Topic Count/, log.string
+  ensure
+    ActiveRecord::Base.logger = original_logger
+  end
+
+  def test_benchmark_with_use_silence
+    original_logger = ActiveRecord::Base.logger
+    log = StringIO.new
+    ActiveRecord::Base.logger = Logger.new(log)
+    ActiveRecord::Base.benchmark("Logging", Logger::DEBUG, true) { ActiveRecord::Base.logger.debug "Loud" }
+    ActiveRecord::Base.benchmark("Logging", Logger::DEBUG, false)  { ActiveRecord::Base.logger.debug "Quiet" }
+    assert_no_match /Loud/, log.string
+    assert_match /Quiet/, log.string
+  ensure
+    ActiveRecord::Base.logger = original_logger
+  end
 end
