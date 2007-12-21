@@ -167,14 +167,15 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert !s.end_with?('el')
   end
 
-  # FIXME: Ruby 1.9
-  def test_each_char_with_utf8_string_when_kcode_is_utf8
-    old_kcode, $KCODE = $KCODE, 'UTF8'
-    '€2.99'.each_char do |char|
-      assert_not_equal 1, char.length
-      break
+  if RUBY_VERSION < '1.9'
+    def test_each_char_with_utf8_string_when_kcode_is_utf8
+      old_kcode, $KCODE = $KCODE, 'UTF8'
+      '€2.99'.each_char do |char|
+        assert_not_equal 1, char.length
+        break
+      end
+    ensure
+      $KCODE = old_kcode
     end
-  ensure
-    $KCODE = old_kcode
   end
 end
