@@ -125,7 +125,7 @@ module ActiveSupport::Multibyte #:nodoc:
         end
       else
         def utf8_pragma?
-          !@string.nil? && (Encoding.default_external == Encoding::UTF_8)
+          false
         end
       end
   end

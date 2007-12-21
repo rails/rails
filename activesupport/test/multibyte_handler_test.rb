@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/abstract_unit'
+require 'abstract_unit'
 
-$KCODE = 'UTF8'
+$KCODE = 'UTF8' if RUBY_VERSION < '1.9'
 
 class String
   # Unicode Inspect returns the codepoints of the string in hex

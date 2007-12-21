@@ -1,7 +1,8 @@
-require File.dirname(__FILE__) + '/abstract_unit'
+require 'abstract_unit'
 require 'open-uri'
 
-$KCODE = 'UTF8'
+$KCODE = 'UTF8' if RUBY_VERSION < '1.9'
+
 UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::UNICODE_VERSION}/ucd"
 UNIDATA_FILE = '/NormalizationTest.txt'
 CACHE_DIR = File.dirname(__FILE__) + '/cache'
