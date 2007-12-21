@@ -1,3 +1,8 @@
+*SVN*
+
+* Add :default option to time_zone_select.  #10590 [Matt Aimonetti]
+
+
 *2.0.2* (December 16th, 2007)
 
 * Added delete_via_redirect and put_via_redirect to integration testing #10497 [philodespotos]
