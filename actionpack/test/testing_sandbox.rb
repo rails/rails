@@ -1,11 +1,15 @@
 module TestingSandbox
   # Temporarily replaces KCODE for the block
   def with_kcode(kcode)
-    old_kcode, $KCODE = $KCODE, kcode
-    begin
+    if RUBY_VERSION < '1.9'
+      old_kcode, $KCODE = $KCODE, kcode
+      begin
+        yield
+      ensure
+        $KCODE = old_kcode
+      end
+    else
       yield
-    ensure
-      $KCODE = old_kcode
     end
   end
 end

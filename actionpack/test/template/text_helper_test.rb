@@ -1,5 +1,5 @@
-require "#{File.dirname(__FILE__)}/../abstract_unit"
-require "#{File.dirname(__FILE__)}/../testing_sandbox"
+require 'abstract_unit'
+require 'testing_sandbox'
 
 class TextHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TextHelper
@@ -36,16 +36,26 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal str[0...27] + "...", truncate(str)
   end
 
-  def test_truncate_multibyte
-    with_kcode 'none' do
-      assert_equal "\354\225\210\353\205\225\355...", truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", 10) 
+  if RUBY_VERSION < '1.9.0'
+    def test_truncate_multibyte
+      with_kcode 'none' do
+        assert_equal "\354\225\210\353\205\225\355...", truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", 10) 
+      end
+      with_kcode 'u' do
+        assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...",
+          truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244", 10)
+      end
     end
-    with_kcode 'u' do
-      assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...",
-        truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244", 10)
+  else
+    def test_truncate_multibyte
+      assert_equal "\354\225\210\353\205\225\355...",
+        truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", 10)
+
+      assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding('UTF-8'),
+        truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8'), 10)
     end
   end
-  
+
   def test_highlighter
     assert_equal(
       "This is a <strong class=\"highlight\">beautiful</strong> morning",
@@ -103,15 +113,22 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal('...is a beautiful? morn...', excerpt('This is a beautiful? morning', 'beautiful', 5))
   end
 
-  def test_excerpt_with_utf8
-    with_kcode('u') do
-      assert_equal("...ﬃciency could not be h...", excerpt("That's why eﬃciency could not be helped", 'could', 8))
+  if RUBY_VERSION < '1.9'
+    def test_excerpt_with_utf8
+      with_kcode('u') do
+        assert_equal("...ﬃciency could not be h...", excerpt("That's why eﬃciency could not be helped", 'could', 8))
+      end
+      with_kcode('none') do
+        assert_equal("...\203ciency could not be h...", excerpt("That's why eﬃciency could not be helped", 'could', 8))
+      end
     end
-    with_kcode('none') do
+  else
+    def test_excerpt_with_utf8
+      assert_equal("...ﬃciency could not be h...".force_encoding('UTF-8'), excerpt("That's why eﬃciency could not be helped".force_encoding('UTF-8'), 'could', 8))
       assert_equal("...\203ciency could not be h...", excerpt("That's why eﬃciency could not be helped", 'could', 8))
     end
   end
-    
+
   def test_word_wrap
     assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", 15))
   end
