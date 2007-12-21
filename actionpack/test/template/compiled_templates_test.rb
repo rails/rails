@@ -64,8 +64,12 @@ class CompiledTemplateTests < Test::Unit::TestCase
 
   def test_mtime
     t1 = Time.now
+
     test_compile_source_single_method
-    assert (t1..Time.now).include?(ct.mtime('doubling method', [:a]))
+    mtime = ct.mtime('doubling method', [:a])
+
+    assert mtime < Time.now
+    assert mtime > t1
   end
 
   uses_mocha 'test_compile_time' do
