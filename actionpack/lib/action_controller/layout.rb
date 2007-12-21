@@ -29,18 +29,20 @@ module ActionController #:nodoc:
     #
     #   // The header part of this layout
     #   <%= yield %>
-    #   // The footer part of this layout -->
+    #   // The footer part of this layout
     #
     # And then you have content pages that look like this:
     #
     #    hello world
     #
-    # Not a word about common structures. At rendering time, the content page is computed and then inserted in the layout, 
-    # like this:
+    # At rendering time, the content page is computed and then inserted in the layout, like this:
     #
     #   // The header part of this layout
     #   hello world
-    #   // The footer part of this layout -->
+    #   // The footer part of this layout
+    #
+    # NOTE: The old notation for rendering the view from a layout was to expose the magic <tt>@content_for_layout</tt> instance
+    # variable. The preferred notation now is to use <tt>yield</tt>, as documented above.
     #
     # == Accessing shared variables
     #
@@ -124,7 +126,7 @@ module ActionController #:nodoc:
     #   class WeblogController < ActionController::Base
     #     layout "weblog_standard"
     #
-    # If no directory is specified for the template name, the template will by default be looked for in +app/views/layouts/+. 
+    # If no directory is specified for the template name, the template will by default be looked for in <tt>app/views/layouts/</tt>.
     # Otherwise, it will be looked up relative to the template root.
     #
     # == Conditional layouts
@@ -149,23 +151,20 @@ module ActionController #:nodoc:
     # == Using a different layout in the action render call
     # 
     # If most of your actions use the same layout, it makes perfect sense to define a controller-wide layout as described above.
-    # Some times you'll have exceptions, though, where one action wants to use a different layout than the rest of the controller.
-    # This is possible using the <tt>render</tt> method. It's just a bit more manual work as you'll have to supply fully
-    # qualified template and layout names as this example shows:
+    # Sometimes you'll have exceptions where one action wants to use a different layout than the rest of the controller.
+    # You can do this by passing a <tt>:layout</tt> option to the <tt>render</tt> call. For example:
     #
     #   class WeblogController < ActionController::Base
+    #     layout "weblog_standard"
+    #
     #     def help
-    #       render :action => "help/index", :layout => "help"
+    #       render :action => "help", :layout => "help"
     #     end
     #   end
     #
-    # As you can see, you pass the template as the first parameter, the status code as the second ("200" is OK), and the layout
-    # as the third.
-    #
-    # NOTE: The old notation for rendering the view from a layout was to expose the magic <tt>@content_for_layout</tt> instance 
-    # variable. The preferred notation now is to use <tt>yield</tt>, as documented above.
+    # This will render the help action with the "help" layout instead of the controller-wide "weblog_standard" layout.
     module ClassMethods
-      # If a layout is specified, all rendered actions will have their result rendered  
+      # If a layout is specified, all rendered actions will have their result rendered
       # when the layout <tt>yield</tt>s. This layout can itself depend on instance variables assigned during action
       # performance and have access to them as any normal template would.
       def layout(template_name, conditions = {}, auto = false)
