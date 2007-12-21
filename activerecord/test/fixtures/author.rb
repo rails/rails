@@ -105,5 +105,5 @@ end
 
 class AuthorFavorite < ActiveRecord::Base
   belongs_to :author
-  belongs_to :favorite_author, :class_name => "Author", :foreign_key => 'favorite_author_id'
+  belongs_to :favorite_author, :class_name => "Author"
 end

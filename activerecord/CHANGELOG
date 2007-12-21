@@ -1,5 +1,7 @@
 *SVN*
 
+* Eager belongs_to :include infers the foreign key from the association name rather than the class name.  #10517 [Jonathan Viney]
+
 * SQLite: fix rename_ and remove_column for columns with unique indexes.  #10576 [Brandon Keepers]
 
 * Ruby 1.9 compatibility.  [Jeremy Kemper]

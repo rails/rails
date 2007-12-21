@@ -772,8 +772,8 @@ module ActiveRecord
       # * <tt>:order</tt>       - specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
       #   such as <tt>last_name, first_name DESC</tt>
       # * <tt>:foreign_key</tt> - specify the foreign key used for the association. By default this is guessed to be the name
-      #   of the associated class in lower-case and +_id+ suffixed. So a +Person+ class that makes a +belongs_to+ association to a
-      #   +Boss+ class will use +boss_id+ as the default +foreign_key+.
+      #   of the association with an +_id+ suffix. So a class that defines a +belongs_to :person+ association will use +person_id+ as the default +foreign_key+.
+      #   Similarly, +belongs_to :favorite_person, :class_name => "Person"+ will use a foreign key of +favorite_person_id+.
       # * <tt>:counter_cache</tt> - caches the number of belonging objects on the associate class through the use of +increment_counter+ 
       #   and +decrement_counter+. The counter cache is incremented when an object of this class is created and decremented when it's
       #   destroyed. This requires that a column named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging +Comment+ class)
@@ -1707,7 +1707,7 @@ module ActiveRecord
 		     connection.quote_table_name(aliased_table_name),
 		     reflection.klass.primary_key,
                      connection.quote_table_name(parent.aliased_table_name),
-		     options[:foreign_key] || klass.to_s.foreign_key
+		     options[:foreign_key] || reflection.primary_key_name
                     ]
                 else
                   ""

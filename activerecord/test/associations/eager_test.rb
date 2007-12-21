@@ -115,6 +115,11 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_equal [2], posts.collect { |p| p.id }
   end
   
+  def test_eager_association_loading_with_belongs_to_inferred_foreign_key_from_association_name
+    author_favorite = AuthorFavorite.find(:first, :include => :favorite_author)
+    assert_equal authors(:mary), assert_no_queries { author_favorite.favorite_author }
+  end
+
   def test_eager_association_loading_with_explicit_join
     posts = Post.find(:all, :include => :comments, :joins => "INNER JOIN authors ON posts.author_id = authors.id AND authors.name = 'Mary'", :limit => 1, :order => 'author_id')
     assert_equal 1, posts.length
