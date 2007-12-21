@@ -10,7 +10,7 @@ module ActiveResource
       end
 
       for method in [ :post, :put, :get, :delete ]
-        module_eval <<-EOE
+        module_eval <<-EOE, __FILE__, __LINE__
           def #{method}(path, request_headers = {}, body = nil, status = 200, response_headers = {})
             @responses[Request.new(:#{method}, path, nil, request_headers)] = Response.new(body || "", status, response_headers)
           end
@@ -47,21 +47,21 @@ module ActiveResource
     end
 
     for method in [ :post, :put ]
-      module_eval <<-EOE
+      module_eval <<-EOE, __FILE__, __LINE__
         def #{method}(path, body, headers)
           request = ActiveResource::Request.new(:#{method}, path, body, headers)
           self.class.requests << request
-          self.class.responses[request] || raise(InvalidRequestError.new("No response recorded for: \#{request.inspect}"))
+          self.class.responses[request] || raise(InvalidRequestError.new("No response recorded for \#{request}"))
         end
       EOE
     end
 
     for method in [ :get, :delete ]
-      module_eval <<-EOE
+      module_eval <<-EOE, __FILE__, __LINE__
         def #{method}(path, headers)
           request = ActiveResource::Request.new(:#{method}, path, nil, headers)
           self.class.requests << request
-          self.class.responses[request] || raise(InvalidRequestError.new("No response recorded for: \#{request.inspect}"))
+          self.class.responses[request] || raise(InvalidRequestError.new("No response recorded for \#{request}"))
         end
       EOE
     end
@@ -75,8 +75,7 @@ module ActiveResource
     attr_accessor :path, :method, :body, :headers
 
     def initialize(method, path, body = nil, headers = {})
-      @method, @path, @body, @headers = method, path, body, headers.dup
-      @headers.update('Content-Type' => 'application/xml')
+      @method, @path, @body, @headers = method, path, body, headers.reverse_merge('Content-Type' => 'application/xml')
     end
 
     def ==(other_request)
