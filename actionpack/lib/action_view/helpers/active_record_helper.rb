@@ -149,7 +149,7 @@ module ActionView
           options[:object_name] ||= params.first
           options[:header_message] = "#{pluralize(count, 'error')} prohibited this #{options[:object_name].to_s.gsub('_', ' ')} from being saved" unless options.include?(:header_message)
           options[:message] ||= 'There were problems with the following fields:' unless options.include?(:message)
-          error_messages = objects.map {|object| object.errors.full_messages.map {|msg| content_tag(:li, msg) } }
+          error_messages = objects.sum {|object| object.errors.full_messages.map {|msg| content_tag(:li, msg) } }.join
 
           contents = ''
           contents << content_tag(options[:header_tag] || :h2, options[:header_message]) unless options[:header_message].blank?
