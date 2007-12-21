@@ -5,7 +5,7 @@ require 'set'
 module ActiveResource
   # ActiveResource::Base is the main class for mapping RESTful resources as models in a Rails application.
   #
-  # For an outline of what Active Resource is capable of, see link:files/README.html.
+  # For an outline of what Active Resource is capable of, see link:files/vendor/rails/activeresource/README.html.
   #
   # == Automated mapping
   #
@@ -33,7 +33,7 @@ module ActiveResource
   #   ryan.exists?  #=> true
   # 
   #   ryan = Person.find(1)
-  #   # => Resource holding our newly create Person object
+  #   # => Resource holding our newly created Person object
   # 
   #   ryan.first = 'Rizzle'
   #   ryan.save  #=> true
@@ -46,15 +46,26 @@ module ActiveResource
   # === Custom REST methods
   #
   # Since simple CRUD/lifecycle methods can't accomplish every task, Active Resource also supports
-  # defining your own custom REST methods.
-  # 
-  #   Person.new(:name => 'Ryan).post(:register)
+  # defining your own custom REST methods. To invoke them, Active Resource provides the <tt>get</tt>,
+  # <tt>post</tt>, <tt>post</tt> and <tt>put</tt> methods where you can specify a custom REST method
+  # name to invoke.
+  #
+  #   # POST to the custom 'register' REST method, i.e. POST /people/new/register.xml.
+  #   Person.new(:name => 'Ryan').post(:register)
   #   # => { :id => 1, :name => 'Ryan', :position => 'Clerk' }
   #
+  #   # PUT an update by invoking the 'promote' REST method, i.e. PUT /people/1/promote.xml?position=Manager.
   #   Person.find(1).put(:promote, :position => 'Manager')
   #   # => { :id => 1, :name => 'Ryan', :position => 'Manager' }
+  #
+  #   # GET all the positions available, i.e. GET /people/positions.xml.
+  #   Person.get(:positions)
+  #   # => [{:name => 'Manager'}, {:name => 'Clerk'}]
+  #
+  #   # DELETE to 'fire' a person, i.e. DELETE /people/1/fire.xml.
+  #   Person.find(1).delete(:fire)
   # 
-  # For more information on creating and using custom REST methods, see the 
+  # For more information on using custom REST methods, see the
   # ActiveResource::CustomMethods documentation.
   #
   # == Validations
@@ -87,12 +98,12 @@ module ActiveResource
   # == Errors & Validation
   #
   # Error handling and validation is handled in much the same manner as you're used to seeing in
-  # Active Record.  Both the response code in the Http response and the body of the response are used to
+  # Active Record.  Both the response code in the HTTP response and the body of the response are used to
   # indicate that an error occurred.
   # 
   # === Resource errors
   # 
-  # When a get is requested for a resource that does not exist, the HTTP +404+ (Resource Not Found)
+  # When a GET is requested for a resource that does not exist, the HTTP <tt>404</tt> (Resource Not Found)
   # response code will be returned from the server which will raise an ActiveResource::ResourceNotFound
   # exception.
   # 
@@ -100,7 +111,7 @@ module ActiveResource
   #   ryan = Person.find(999) # => Raises ActiveResource::ResourceNotFound
   #   # => Response = 404
   # 
-  # +404+ is just one of the HTTP error response codes that ActiveResource will handle with its own exception. The 
+  # <tt>404</tt> is just one of the HTTP error response codes that ActiveResource will handle with its own exception. The
   # following HTTP response codes will also result in these exceptions:
   # 
   # 200 - 399:: Valid response, no exception
@@ -125,8 +136,8 @@ module ActiveResource
   # 
   # Active Resource supports validations on resources and will return errors if any these validations fail
   # (e.g., "First name can not be blank" and so on).  These types of errors are denoted in the response by 
-  # a response code of +422+ and an XML representation of the validation errors.  The save operation will 
-  # then fail (with a +false+ return value) and the validation errors can be accessed on the resource in question.
+  # a response code of <tt>422</tt> and an XML representation of the validation errors.  The save operation will
+  # then fail (with a <tt>false</tt> return value) and the validation errors can be accessed on the resource in question.
   # 
   #   ryan = Person.find(1)
   #   ryan.first #=> ''
@@ -191,7 +202,7 @@ module ActiveResource
 
       # An instance of ActiveResource::Connection that is the base connection to the remote service.
       # The +refresh+ parameter toggles whether or not the connection is refreshed at every request
-      # or not (defaults to +false+).
+      # or not (defaults to <tt>false</tt>).
       def connection(refresh = false)
         if defined?(@connection) || superclass == Object
           @connection = Connection.new(site, format) if refresh || @connection.nil?
@@ -371,6 +382,9 @@ module ActiveResource
       #
       #   Person.find(:one, :from => :leader)                    
       #   # => GET /people/leader.xml
+      #
+      #   Person.find(:all, :from => :developers, :params => { :language => 'ruby' })
+      #   # => GET /people/developers.xml?language=ruby
       #
       #   Person.find(:one, :from => "/companies/1/manager.xml") 
       #   # => GET /companies/1/manager.xml
@@ -687,9 +701,9 @@ module ActiveResource
     #
     # indent:: Set the indent level for the XML output (default is +2+).
     # dasherize:: Boolean option to determine whether or not element names should
-    #             replace underscores with dashes (default is +false+).
+    #             replace underscores with dashes (default is <tt>false</tt>).
     # skip_instruct::  Toggle skipping the +instruct!+ call on the XML builder 
-    #                  that generates the XML declaration (default is +false+).
+    #                  that generates the XML declaration (default is <tt>false</tt>).
     #
     # ==== Examples
     #   my_group = SubsidiaryGroup.find(:first)
@@ -769,8 +783,8 @@ module ActiveResource
     alias_method :respond_to_without_attributes?, :respond_to?
 
     # A method to determine if an object responds to a message (e.g., a method call). In Active Resource, a +Person+ object with a
-    # +name+ attribute can answer +true+ to +my_person.respond_to?("name")+, +my_person.respond_to?("name=")+, and
-    # +my_person.respond_to?("name?")+.
+    # +name+ attribute can answer <tt>true</tt> to <tt>my_person.respond_to?("name")</tt>, <tt>my_person.respond_to?("name=")</tt>, and
+    # <tt>my_person.respond_to?("name?")</tt>.
     def respond_to?(method, include_priv = false)
       method_name = method.to_s
       if attributes.nil?
