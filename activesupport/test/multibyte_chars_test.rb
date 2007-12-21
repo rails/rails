@@ -1,6 +1,15 @@
 require 'abstract_unit'
 
-$KCODE = 'UTF8' if RUBY_VERSION < '1.9'
+if RUBY_VERSION >= '1.9'
+  class CharsTest < Test::Unit::TestCase
+    def test_chars_returns_self
+      str = 'abc'
+      assert_equal str.object_id, str.chars.object_id
+    end
+  end
+else
+
+$KCODE = 'UTF8'
 
 class CharsTest < Test::Unit::TestCase
   
@@ -174,4 +183,6 @@ class CharsTest < Test::Unit::TestCase
       $KCODE = old_kcode
     end
   end
+end
+
 end

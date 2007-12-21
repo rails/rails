@@ -119,14 +119,8 @@ module ActiveSupport::Multibyte #:nodoc:
       
       # +utf8_pragma+ checks if it can send this string to the handlers. It makes sure @string isn't nil and $KCODE is
       # set to 'UTF8'.
-      if RUBY_VERSION < '1.9'
-        def utf8_pragma?
-          !@string.nil? && ($KCODE == 'UTF8')
-        end
-      else
-        def utf8_pragma?
-          false
-        end
+      def utf8_pragma?
+        !@string.nil? && ($KCODE == 'UTF8')
       end
   end
 end

@@ -1,6 +1,8 @@
 require 'abstract_unit'
 
-$KCODE = 'UTF8' if RUBY_VERSION < '1.9'
+if RUBY_VERSION < '1.9'
+
+$KCODE = 'UTF8'
 
 class String
   # Unicode Inspect returns the codepoints of the string in hex
@@ -364,4 +366,6 @@ class UTF8HandlingTestPure < Test::Unit::TestCase
     common_setup
     @handler = ::ActiveSupport::Multibyte::Handlers::UTF8Handler
   end
+end
+
 end
