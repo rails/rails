@@ -341,7 +341,7 @@ module ActionView
               %(<option value="#{leading_zero_on_single_digits(second)}">#{leading_zero_on_single_digits(second)}</option>\n)
             )
           end
-          select_html(options[:field_name] || 'second', second_options, options)
+          select_html(options[:field_name] || 'second', second_options.join, options)
         end
       end
 
@@ -375,7 +375,7 @@ module ActionView
               %(<option value="#{leading_zero_on_single_digits(minute)}">#{leading_zero_on_single_digits(minute)}</option>\n)
             )
           end
-          select_html(options[:field_name] || 'minute', minute_options, options)
+          select_html(options[:field_name] || 'minute', minute_options.join, options)
          end
       end
 
@@ -408,7 +408,7 @@ module ActionView
               %(<option value="#{leading_zero_on_single_digits(hour)}">#{leading_zero_on_single_digits(hour)}</option>\n)
             )
           end
-          select_html(options[:field_name] || 'hour', hour_options, options)
+          select_html(options[:field_name] || 'hour', hour_options.join, options)
         end
       end
 
@@ -441,7 +441,7 @@ module ActionView
               %(<option value="#{day}">#{day}</option>\n)
             )
           end
-          select_html(options[:field_name] || 'day', day_options, options)
+          select_html(options[:field_name] || 'day', day_options.join, options)
         end
       end
 
@@ -501,7 +501,7 @@ module ActionView
               %(<option value="#{month_number}">#{month_name}</option>\n)
             )
           end
-          select_html(options[:field_name] || 'month', month_options, options)
+          select_html(options[:field_name] || 'month', month_options.join, options)
         end
       end
 
@@ -543,7 +543,7 @@ module ActionView
               %(<option value="#{year}">#{year}</option>\n)
             )
           end
-          select_html(options[:field_name] || 'year', year_options, options)
+          select_html(options[:field_name] || 'year', year_options.join, options)
         end
       end
 
