@@ -389,9 +389,8 @@ module ActionView
         email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.has_key?("replace_dot")
 
         if encode == "javascript"
-          tmp = "document.write('#{content_tag("a", name || email_address, html_options.merge({ "href" => "mailto:"+email_address+extras }))}');"
-          for i in 0...tmp.length
-            string << sprintf("%%%x",tmp[i])
+          "document.write('#{content_tag("a", name || email_address, html_options.merge({ "href" => "mailto:"+email_address+extras }))}');".each_byte do |c|
+            string << sprintf("%%%x", c)
           end
           "<script type=\"#{Mime::JS}\">eval(unescape('#{string}'))</script>"
         elsif encode == "hex"
@@ -403,12 +402,9 @@ module ActionView
           protocol = 'mailto:'
           protocol.each_byte { |c| string << sprintf("&#%d;", c) }
 
-          for i in 0...email_address.length
-            if email_address[i,1] =~ /\w/
-              string << sprintf("%%%x",email_address[i])
-            else
-              string << email_address[i,1]
-            end
+          email_address.each_byte do |c|
+            char = c.chr
+            string << (char =~ /\w/ ? sprintf("%%%x", c) : char)
           end
           content_tag "a", name || email_address_encoded, html_options.merge({ "href" => "#{string}#{extras}" })
         else
