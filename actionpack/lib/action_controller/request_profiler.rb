@@ -13,7 +13,7 @@ module ActionController
 
       def initialize(script_path)
         @quiet = false
-        define_run_method(File.read(script_path))
+        define_run_method(script_path)
         reset!
       end
 
@@ -38,8 +38,9 @@ module ActionController
       end
 
       private
-        def define_run_method(script)
-          instance_eval "def run; #{script}; end", __FILE__, __LINE__
+        def define_run_method(script_path)
+          script = File.read(script_path)
+          instance_eval "def run; #{script}; end", script_path, 1
         end
     end
 
