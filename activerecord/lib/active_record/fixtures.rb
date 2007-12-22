@@ -438,7 +438,7 @@ end
 #
 # Any fixture labeled "DEFAULTS" is safely ignored.
 
-class Fixtures < YAML::Omap
+class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
   DEFAULT_FILTER_RE = /\.ya?ml$/
 
   @@all_cached_fixtures = {}
@@ -467,7 +467,7 @@ class Fixtures < YAML::Omap
   end
 
   def self.cache_fixtures(connection, fixtures)
-    cache_for_connection(connection).update(fixtures.index_by(&:table_name))
+    cache_for_connection(connection).update(fixtures.index_by { |f| f.table_name })
   end
 
   def self.instantiate_fixtures(object, table_name, fixtures, load_instances = true)
