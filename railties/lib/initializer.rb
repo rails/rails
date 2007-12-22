@@ -217,11 +217,15 @@ module Rails
       end
     end
 
-    # This initialization sets $KCODE to 'u' to enable the multibyte safe operations.
-    # Plugin authors supporting other encodings should override this behaviour and
-    # set the relevant +default_charset+ on ActionController::Base
+    # For Ruby 1.8, this initialization sets $KCODE to 'u' to enable the
+    # multibyte safe operations. Plugin authors supporting other encodings
+    # should override this behaviour and set the relevant +default_charset+
+    # on ActionController::Base.
+    #
+    # For Ruby 1.9, this does nothing. Specify the default encoding in the Ruby
+    # shebang line if you don't want UTF-8.
     def initialize_encoding
-      $KCODE='u'
+      $KCODE='u' if RUBY_VERSION < '1.9'
     end
 
     # This initialization routine does nothing unless <tt>:active_record</tt>
