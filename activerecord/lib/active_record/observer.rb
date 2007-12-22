@@ -170,7 +170,7 @@ module ActiveRecord
       end
 
       def observed_subclasses
-        observed_classes.collect(&:subclasses).flatten
+        observed_classes.sum { |klass| klass.send(:subclasses) }
       end
 
       def add_observer!(klass)
