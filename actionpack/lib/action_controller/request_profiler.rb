@@ -20,13 +20,14 @@ module ActionController
       def benchmark(n)
         @quiet = true
         print '  '
+
         result = Benchmark.realtime do
           n.times do |i|
             run
-            reset!
             print_progress(i)
           end
         end
+
         puts
         result
       ensure
@@ -40,7 +41,8 @@ module ActionController
       private
         def define_run_method(script_path)
           script = File.read(script_path)
-          instance_eval "def run; #{script}; end", script_path, 1
+          source = "def run\n#{script}\nreset!\nend"
+          instance_eval source, script_path, 1
         end
 
         def print_progress(i)
@@ -94,10 +96,7 @@ module ActionController
     end
 
     def warmup(sandbox)
-      Benchmark.realtime do
-        sandbox.run
-        sandbox.reset!
-      end
+      Benchmark.realtime { sandbox.run }
     end
 
     def default_options
@@ -109,7 +108,7 @@ module ActionController
       OptionParser.new do |opt|
         opt.banner = "USAGE: #{$0} [options] [session script path]"
 
-        opt.on('-n', '--times [0000]', 'How many requests to process. Defaults to 100.') { |v| options[:n] = v.to_i }
+        opt.on('-n', '--times [100]', 'How many requests to process. Defaults to 100.') { |v| options[:n] = v.to_i if v }
         opt.on('-b', '--benchmark', 'Benchmark instead of profiling') { |v| options[:benchmark] = v }
         opt.on('--open [CMD]', 'Command to open profile results. Defaults to "open %s &"') { |v| options[:open] = v }
         opt.on('-h', '--help', 'Show this help') { puts opt; exit }
