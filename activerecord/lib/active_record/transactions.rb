@@ -73,14 +73,12 @@ module ActiveRecord
     # trigger a ROLLBACK when raised, but not be re-raised by the transaction block.
     module ClassMethods
       def transaction(&block)
-        previous_handler = trap('TERM') { raise TransactionError, "Transaction aborted" }
         increment_open_transactions
 
         begin
           connection.transaction(Thread.current['start_db_transaction'], &block)
         ensure
           decrement_open_transactions
-          trap('TERM', previous_handler)
         end
       end
 
