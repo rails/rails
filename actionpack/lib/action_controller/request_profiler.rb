@@ -23,8 +23,8 @@ module ActionController
         result = Benchmark.realtime do
           n.times do |i|
             run
-            print i % 10 == 0 ? 'x' : '.'
-            $stdout.flush
+            reset!
+            print_progress(i)
           end
         end
         puts
@@ -41,6 +41,13 @@ module ActionController
         def define_run_method(script_path)
           script = File.read(script_path)
           instance_eval "def run; #{script}; end", script_path, 1
+        end
+
+        def print_progress(i)
+          print "\n  " if i % 60 == 0
+          print ' ' if i % 10 == 0
+          print '.'
+          $stdout.flush
         end
     end
 
@@ -87,7 +94,10 @@ module ActionController
     end
 
     def warmup(sandbox)
-      Benchmark.realtime { sandbox.run }
+      Benchmark.realtime do
+        sandbox.run
+        sandbox.reset!
+      end
     end
 
     def default_options
