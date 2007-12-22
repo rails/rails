@@ -1,6 +1,7 @@
-require 'dispatcher'
 require 'stringio'
 require 'uri'
+
+require 'action_controller/dispatcher'
 require 'action_controller/test_process'
 
 module ActionController
@@ -276,7 +277,7 @@ module ActionController
           ActionController::Base.clear_last_instantiation!
 
           cgi = StubCGI.new(env, data)
-          Dispatcher.dispatch(cgi, ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, cgi.stdoutput)
+          ActionController::Dispatcher.dispatch(cgi, ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, cgi.stdoutput)
           @result = cgi.stdoutput.string
           @request_count += 1
 
