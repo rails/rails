@@ -33,10 +33,10 @@ module ActiveRecord
 
           if ids.size == 1
             id = ids.first.to_i
-            record = load_target.detect { |record| id == record.id }
+            record = load_target.detect { |r| id == r.id }
             expects_array ? [record] : record
           else
-            load_target.select { |record| ids.include?(record.id) }
+            load_target.select { |r| ids.include?(r.id) }
           end
         else
           conditions = "#{@finder_sql}"
@@ -84,19 +84,19 @@ module ActiveRecord
           else
             columns = @owner.connection.columns(@reflection.options[:join_table], "#{@reflection.options[:join_table]} Columns")
 
-            attributes = columns.inject({}) do |attributes, column|
+            attributes = columns.inject({}) do |attrs, column|
               case column.name
                 when @reflection.primary_key_name
-                  attributes[column.name] = @owner.quoted_id
+                  attrs[column.name] = @owner.quoted_id
                 when @reflection.association_foreign_key
-                  attributes[column.name] = record.quoted_id
+                  attrs[column.name] = record.quoted_id
                 else
-                  if record.attributes.has_key?(column.name)
+                  if record.has_attribute?(column.name)
                     value = @owner.send(:quote_value, record[column.name], column)
-                    attributes[column.name] = value unless value.nil?
+                    attrs[column.name] = value unless value.nil?
                   end
               end
-              attributes
+              attrs
             end
 
             sql =

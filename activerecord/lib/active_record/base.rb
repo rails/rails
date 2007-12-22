@@ -592,7 +592,7 @@ module ActiveRecord #:nodoc:
       def update(id, attributes)
         if id.is_a?(Array)
           idx = -1
-          id.collect { |id| idx += 1; update(id, attributes[idx]) }
+          id.collect { |one_id| idx += 1; update(one_id, attributes[idx]) }
         else
           object = find(id)
           object.update_attributes(attributes)
@@ -642,7 +642,11 @@ module ActiveRecord #:nodoc:
       #   todos = [1,2,3]
       #   Todo.destroy(todos)
       def destroy(id)
-        id.is_a?(Array) ? id.each { |id| destroy(id) } : find(id).destroy
+        if id.is_a?(Array)
+          id.map { |one_id| destroy(one_id) }
+        else
+          find(id).destroy
+        end
       end
 
       # Updates all records with details given if they match a set of conditions supplied, limits and order can
@@ -1075,9 +1079,9 @@ module ActiveRecord #:nodoc:
 
       # Returns an array of column objects for the table associated with this class.
       def columns
-        unless @columns
+        unless defined?(@columns) && @columns
           @columns = connection.columns(table_name, "#{name} Columns")
-          @columns.each {|column| column.primary = column.name == primary_key}
+          @columns.each { |column| column.primary = column.name == primary_key }
         end
         @columns
       end
@@ -1217,7 +1221,7 @@ module ActiveRecord #:nodoc:
       # Returns whether this class is a base AR class.  If A is a base class and
       # B descends from A, then B.base_class will return B.
       def abstract_class?
-        abstract_class == true
+        defined?(@abstract_class) && @abstract_class == true
       end
 
       private
@@ -1428,7 +1432,7 @@ module ActiveRecord #:nodoc:
           case join
           when Symbol, Hash, Array
             join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, join, nil)
-            sql << " #{join_dependency.join_associations.collect{|join| join.association_join }.join} "
+            sql << " #{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join} "
           else
             sql << " #{join} "
           end
@@ -1962,7 +1966,7 @@ module ActiveRecord #:nodoc:
 
       # Returns true if this object hasn't been saved yet -- that is, a record for the object doesn't exist yet.
       def new_record?
-        @new_record
+        defined?(@new_record) && @new_record
       end
 
       # * No record exists: Creates a new record with values matching those of the object attributes.
@@ -2213,7 +2217,7 @@ module ActiveRecord #:nodoc:
       # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
       # attributes will be marked as read only since they cannot be saved.
       def readonly?
-        @readonly == true
+        defined?(@readonly) && @readonly == true
       end
 
       # Marks this record as read only.
@@ -2334,11 +2338,11 @@ module ActiveRecord #:nodoc:
       # Returns a copy of the attributes hash where all the values have been safely quoted for use in
       # an SQL statement.
       def attributes_with_quotes(include_primary_key = true, include_readonly_attributes = true)
-        quoted = attributes.inject({}) do |quoted, (name, value)|
+        quoted = attributes.inject({}) do |result, (name, value)|
           if column = column_for_attribute(name)
-            quoted[name] = quote_value(value, column) unless !include_primary_key && column.primary
+            result[name] = quote_value(value, column) unless !include_primary_key && column.primary
           end
-          quoted
+          result
         end
         include_readonly_attributes ? quoted : remove_readonly_attributes(quoted)
       end
@@ -2454,9 +2458,9 @@ module ActiveRecord #:nodoc:
       end
 
       def clone_attributes(reader_method = :read_attribute, attributes = {})
-        self.attribute_names.inject(attributes) do |attributes, name|
-          attributes[name] = clone_attribute_value(reader_method, name)
-          attributes
+        self.attribute_names.inject(attributes) do |attrs, name|
+          attrs[name] = clone_attribute_value(reader_method, name)
+          attrs
         end
       end
 

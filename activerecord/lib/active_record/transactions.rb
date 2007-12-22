@@ -15,7 +15,7 @@ module ActiveRecord
       end
     end
 
-    # Transactions are protective blocks where SQL statements are only permanent if they can all succeed as one atomic action. 
+    # Transactions are protective blocks where SQL statements are only permanent if they can all succeed as one atomic action.
     # The classic example is a transfer between two accounts where you can only have a deposit if the withdrawal succeeded and
     # vice versa. Transactions enforce the integrity of the database and guard the data against program errors or database break-downs.
     # So basically you should use transaction blocks whenever you have a number of statements that must be executed together or
@@ -116,7 +116,7 @@ module ActiveRecord
     def rollback_active_record_state!
       id_present = has_attribute?(self.class.primary_key)
       previous_id = id
-      previous_new_record = @new_record
+      previous_new_record = new_record?
       yield
     rescue Exception
       @new_record = previous_new_record
@@ -125,7 +125,7 @@ module ActiveRecord
       else
         @attributes.delete(self.class.primary_key)
         @attributes_cache.delete(self.class.primary_key)
-      end  
+      end
       raise
     end
   end

@@ -230,7 +230,7 @@ module ActiveRecord
       # recursively. We use @ignore_new_methods as a guard to indicate whether
       # it is safe for the call to proceed.
       def singleton_method_added(sym) #:nodoc:
-        return if @ignore_new_methods
+        return if defined?(@ignore_new_methods) && @ignore_new_methods
 
         begin
           @ignore_new_methods = true
@@ -356,15 +356,14 @@ module ActiveRecord
 
     private
       def migration_classes
-        migrations = migration_files.inject([]) do |migrations, migration_file|
+        classes = migration_files.inject([]) do |migrations, migration_file|
           load(migration_file)
           version, name = migration_version_and_name(migration_file)
           assert_unique_migration_version(migrations, version.to_i)
           migrations << migration_class(name, version.to_i)
-        end
+        end.sort_by(&:version)
 
-        sorted = migrations.sort_by { |m| m.version }
-        down? ? sorted.reverse : sorted
+        down? ? classes.reverse : classes
       end
 
       def assert_unique_migration_version(migrations, version)

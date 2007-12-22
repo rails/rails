@@ -192,14 +192,14 @@ module ActiveRecord
           end
 
           def fallback_string_to_date(string)
-            new_date *ParseDate.parsedate(string)[0..2]
+            new_date(*ParseDate.parsedate(string)[0..2])
           end
 
           def fallback_string_to_time(string)
             time_hash = Date._parse(string)
             time_hash[:sec_fraction] = microseconds(time_hash)
 
-            new_time *time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)
+            new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction))
           end
       end
 

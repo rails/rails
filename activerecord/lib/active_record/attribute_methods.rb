@@ -5,7 +5,7 @@ module ActiveRecord
 
     def self.included(base)
       base.extend ClassMethods
-      base.attribute_method_suffix *DEFAULT_SUFFIXES
+      base.attribute_method_suffix(*DEFAULT_SUFFIXES)
       base.cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
       base.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
     end

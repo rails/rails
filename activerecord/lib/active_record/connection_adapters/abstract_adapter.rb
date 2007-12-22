@@ -30,6 +30,7 @@ module ActiveRecord
         @connection, @logger = connection, logger
         @runtime = 0
         @last_verification = 0
+        @query_cache_enabled = false
       end
 
       # Returns the human-readable name of the adapter.  Use mixed case - one

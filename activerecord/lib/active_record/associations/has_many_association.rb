@@ -41,10 +41,10 @@ module ActiveRecord
 
           if ids.size == 1
             id = ids.first
-            record = load_target.detect { |record| id == record.id }
+            record = load_target.detect { |r| id == r.id }
             expects_array ? [ record ] : record
           else
-            load_target.select { |record| ids.include?(record.id) }
+            load_target.select { |r| ids.include?(r.id) }
           end
         else
           conditions = "#{@finder_sql}"

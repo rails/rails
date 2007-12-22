@@ -262,12 +262,31 @@ module ActiveRecord
         end
 
         def conditions
-          @conditions ||= [
-            (interpolate_sql(@reflection.klass.send(:sanitize_sql, @reflection.options[:conditions])) if @reflection.options[:conditions]),
-            (interpolate_sql(@reflection.active_record.send(:sanitize_sql, @reflection.through_reflection.options[:conditions])) if @reflection.through_reflection.options[:conditions]),
-            (interpolate_sql(@reflection.active_record.send(:sanitize_sql, @reflection.source_reflection.options[:conditions])) if @reflection.source_reflection.options[:conditions]),
-            ("#{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.klass.inheritance_column} = #{@reflection.klass.quote_value(@reflection.through_reflection.klass.name.demodulize)}" unless @reflection.through_reflection.klass.descends_from_active_record?)
-          ].compact.collect { |condition| "(#{condition})" }.join(' AND ') unless (!@reflection.options[:conditions] && !@reflection.through_reflection.options[:conditions]  && !@reflection.source_reflection.options[:conditions] && @reflection.through_reflection.klass.descends_from_active_record?)
+          @conditions = build_conditions unless defined?(@conditions)
+          @conditions
+        end
+
+        def build_conditions
+          association_conditions = @reflection.options[:conditions]
+          through_conditions = @reflection.through_reflection.options[:conditions]
+          source_conditions = @reflection.source_reflection.options[:conditions]
+          uses_sti = !@reflection.through_reflection.klass.descends_from_active_record?
+
+          if association_conditions || through_conditions || source_conditions || uses_sti
+            all = []
+
+            [association_conditions, through_conditions, source_conditions].each do |conditions|
+              all << interpolate_sql(sanitize_sql(conditions)) if conditions
+            end
+
+            all << build_sti_condition if uses_sti
+
+            all.map { |sql| "(#{sql})" } * ' AND '
+          end
+        end
+
+        def build_sti_condition
+          "#{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.klass.inheritance_column} = #{@reflection.klass.quote_value(@reflection.through_reflection.klass.name.demodulize)}"
         end
 
         alias_method :sql_conditions, :conditions

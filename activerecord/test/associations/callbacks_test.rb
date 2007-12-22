@@ -128,7 +128,7 @@ class AssociationCallbacksTest < Test::Unit::TestCase
     callback_log = ["before_adding<new>", "after_adding<new>"]
     assert_equal callback_log, project.developers_log
     assert project.save
-    assert_equal 1, project.developers_with_callbacks.count
+    assert_equal 1, project.developers_with_callbacks.size
     assert_equal callback_log, project.developers_log
   end
 

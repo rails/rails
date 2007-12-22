@@ -71,7 +71,7 @@ module ActiveRecord
       # also be used to "borrow" the connection to do database work unrelated
       # to any of the specific Active Records.
       def connection
-        if @active_connection_name && (conn = active_connections[@active_connection_name])
+        if defined?(@active_connection_name) && (conn = active_connections[@active_connection_name])
           conn
         else
           # retrieve_connection sets the cache key.

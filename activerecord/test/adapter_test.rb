@@ -76,6 +76,7 @@ class AdapterTest < Test::Unit::TestCase
     assert_equal 'dbo_posts',  @connection.table_alias_for('dbo.posts')
 
     class << @connection
+      remove_method :table_alias_length
       alias_method :table_alias_length, :old_table_alias_length
     end
   end
