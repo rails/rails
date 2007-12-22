@@ -32,4 +32,10 @@ class Module
       ! inherited.key?(const) || inherited[const].object_id != const_get(const).object_id
     end
   end
+
+  # Returns the names of the constants defined locally rather than the
+  # constants themselves. See <tt>local_constants</tt>.
+  def local_constant_names
+    local_constants.map(&:to_s)
+  end
 end
