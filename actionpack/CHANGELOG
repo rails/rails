@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix HTML Sanitizer to allow trailing spaces in CSS style attributes.  Closes #10566 [wesley.moxam]
+
 * Add :default option to time_zone_select.  #10590 [Matt Aimonetti]
 
 

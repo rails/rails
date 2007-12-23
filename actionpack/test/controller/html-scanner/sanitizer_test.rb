@@ -203,6 +203,12 @@ class SanitizerTest < Test::Unit::TestCase
     assert_equal expected, sanitize_css(raw)
   end
 
+  def test_should_sanitize_with_trailing_space
+	raw = "display:block; "
+	expected = "display: block;"
+	assert_equal expected, sanitize_css(raw)
+  end
+
   def test_should_sanitize_xul_style_attributes
     raw = %(-moz-binding:url('http://ha.ckers.org/xssmoz.xml#xss'))
     assert_equal '', sanitize_css(raw)

@@ -107,7 +107,7 @@ module HTML
 
       # gauntlet
       if style !~ /^([:,;#%.\sa-zA-Z0-9!]|\w-\w|\'[\s\w]+\'|\"[\s\w]+\"|\([\d,\s]+\))*$/ ||
-          style !~ /^(\s*[-\w]+\s*:\s*[^:;]*(;|$))*$/
+          style !~ /^(\s*[-\w]+\s*:\s*[^:;]*(;|$)\s*)*$/
         return ''
       end
 
