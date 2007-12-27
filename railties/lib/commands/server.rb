@@ -18,7 +18,11 @@ server = case ARGV.first
     ARGV.shift
   else
     if defined?(Mongrel)
-      "mongrel"
+      if Mongrel.respond_to?(:log)
+        "new_mongrel"
+      else
+        "mongrel"
+      end
     elsif RUBY_PLATFORM !~ /(:?mswin|mingw)/ && !silence_stderr { `lighttpd -version` }.blank? && defined?(FCGI)
       "lighttpd"
     else
@@ -31,7 +35,7 @@ case server
     puts "=> Booting WEBrick..."
   when "lighttpd"
     puts "=> Booting lighttpd (use 'script/server webrick' to force WEBrick)"
-  when "mongrel"
+  when "mongrel", "new_mongrel"
     puts "=> Booting Mongrel (use 'script/server webrick' to force WEBrick)"
 end
 

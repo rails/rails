@@ -2,6 +2,8 @@ module ActionController
   # Dispatches requests to the appropriate controller and takes care of
   # reloading the app after each request when Dependencies.load? is true.
   class Dispatcher
+    @@guard = Mutex.new
+
     class << self
       # Backward-compatible class method takes CGI-specific args. Deprecated
       # in favor of Dispatcher.new(output, request, response).dispatch.
@@ -111,12 +113,16 @@ module ActionController
     end
 
     def dispatch
-      run_callbacks :before
-      handle_request
-    rescue Exception => exception
-      failsafe_rescue exception
-    ensure
-      run_callbacks :after, :reverse_each
+      @@guard.synchronize do
+        begin
+          run_callbacks :before
+          handle_request
+        rescue Exception => exception
+          failsafe_rescue exception
+        ensure
+          run_callbacks :after, :reverse_each
+        end
+      end
     end
 
     def dispatch_cgi(cgi, session_options)

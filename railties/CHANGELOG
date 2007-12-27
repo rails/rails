@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce native mongrel handler and push mutex into dispatcher.  [Jeremy Kemper]
+
 * Ruby 1.9 compatibility.  #1689, #10546 [Cheah Chu Yeow, frederico]
 
 
