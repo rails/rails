@@ -16,7 +16,7 @@ class DispatcherTest < Test::Unit::TestCase
   end
 
   def teardown
-    ENV['REQUEST_METHOD'] = nil
+    ENV.delete 'REQUEST_METHOD'
   end
 
   def test_clears_dependencies_after_dispatch_if_in_loading_mode

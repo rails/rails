@@ -473,7 +473,7 @@ module ActionController
             when Array
               value.map { |v| get_typed_value(v) }
             else
-              if value.is_a?(UploadedFile)
+              if value.respond_to? :original_filename
                 # Uploaded file
                 if value.original_filename
                   value
@@ -498,7 +498,7 @@ module ActionController
         def read_multipart(body, boundary, content_length, env)
           params = Hash.new([])
           boundary = "--" + boundary
-          quoted_boundary = Regexp.quote(boundary, "n")
+          quoted_boundary = Regexp.quote(boundary)
           buf = ""
           bufsize = 10 * 1024
           boundary_end=""
