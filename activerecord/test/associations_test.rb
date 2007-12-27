@@ -2033,7 +2033,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_get_ids
-    assert_equal projects(:active_record, :action_controller).map(&:id), developers(:david).project_ids
+    assert_equal projects(:active_record, :action_controller).map(&:id).sort, developers(:david).project_ids.sort
     assert_equal [projects(:active_record).id], developers(:jamis).project_ids
   end
 
