@@ -1,4 +1,4 @@
-require 'parsedate'
+require 'date'
 
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
@@ -12,15 +12,15 @@ module ActiveSupport #:nodoc:
 
         # Form can be either :utc (default) or :local.
         def to_time(form = :utc)
-          ::Time.send("#{form}_time", *ParseDate.parsedate(self)[0..5].map {|arg| arg || 0})
+          ::Time.send("#{form}_time", *::Date._parse(self, false).values_at(:year, :mon, :mday, :hour, :min, :sec).map { |arg| arg || 0 })
         end
 
         def to_date
-          ::Date.new(*ParseDate.parsedate(self)[0..2])
+          ::Date.new(*::Date._parse(self, false).values_at(:year, :mon, :mday))
         end
 
         def to_datetime
-          ::DateTime.civil(*ParseDate.parsedate(self)[0..5].map {|arg| arg || 0} << 0)
+          ::DateTime.civil(*::Date._parse(self, false).values_at(:year, :mon, :mday, :hour, :min, :sec).map { |arg| arg || 0 })
         end
       end
     end
