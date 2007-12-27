@@ -1066,6 +1066,11 @@ module ActionView
 
     # Converts chained method calls on DOM proxy elements into JavaScript chains 
     class JavaScriptProxy < BasicObject #:nodoc:
+      if ::RUBY_VERSION >= '1.9'
+        undef_method :==
+        undef_method :equal?
+      end
+
       def initialize(generator, root = nil)
         @generator = generator
         @generator << root if root
