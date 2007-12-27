@@ -1866,10 +1866,13 @@ module ActiveRecord #:nodoc:
         end
 
         def expand_range_bind_variables(bind_vars) #:nodoc:
-          bind_vars.each_with_index do |var, index|
-            bind_vars[index, 1] = [var.first, var.last] if var.is_a?(Range)
+          bind_vars.sum do |var|
+            if var.is_a?(Range)
+              [var.first, var.last]
+            else
+              [var]
+            end
           end
-          bind_vars
         end
 
         def quote_bound_value(value) #:nodoc:

@@ -150,7 +150,7 @@ class ValidationsTest < Test::Unit::TestCase
 
   def test_create_with_exceptions_using_scope_and_empty_attributes
     assert_nothing_raised do
-      ProtectedPerson.with_scope( :create => { :first_name => "Mary" } ) do        
+      ProtectedPerson.with_scope( :create => { :first_name => "Mary" } ) do
         person = ProtectedPerson.create!
         assert_equal person.first_name, "Mary", "should be ok when no attributes are passed to create!"
       end
@@ -301,13 +301,13 @@ class ValidationsTest < Test::Unit::TestCase
     assert_equal "Dan Brown", reply["author_name"]
   end
 
-  def test_validates_acceptance_of_with_non_existant_table 
-    Object.const_set :IncorporealModel, Class.new(ActiveRecord::Base) 
- 
-    assert_nothing_raised ActiveRecord::StatementInvalid do 
-      IncorporealModel.validates_acceptance_of(:incorporeal_column) 
-    end 
-  end 
+  def test_validates_acceptance_of_with_non_existant_table
+    Object.const_set :IncorporealModel, Class.new(ActiveRecord::Base)
+
+    assert_nothing_raised ActiveRecord::StatementInvalid do
+      IncorporealModel.validates_acceptance_of(:incorporeal_column)
+    end
+  end
 
   def test_validate_presences
     Topic.validates_presence_of(:title, :content)
@@ -384,22 +384,22 @@ class ValidationsTest < Test::Unit::TestCase
     Reply.validates_uniqueness_of(:author_name, :scope => [:author_email_address, :parent_id])
 
     t = Topic.create("title" => "The earth is actually flat!")
- 
+
     r1 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're crazy!", "content" => "Crazy reply"
     assert r1.valid?, "Saving r1"
-    
+
     r2 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're crazy!", "content" => "Crazy reply again..."
-    assert !r2.valid?, "Saving r2. Double reply by same author." 
-    
+    assert !r2.valid?, "Saving r2. Double reply by same author."
+
     r2.author_email_address = "jeremy_alt_email@rubyonrails.com"
-    assert r2.save, "Saving r2 the second time." 
-    
+    assert r2.save, "Saving r2 the second time."
+
     r3 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy_alt_email@rubyonrails.com", "title" => "You're wrong", "content" => "It's cubic"
     assert !r3.valid?, "Saving r3"
-    
+
     r3.author_name = "jj"
     assert r3.save, "Saving r3 the second time."
-    
+
     r3.author_name = "jeremy"
     assert !r3.save, "Saving r3 the third time."
   end
@@ -480,7 +480,7 @@ class ValidationsTest < Test::Unit::TestCase
 
     assert_raise(ArgumentError) { Topic.validates_format_of(:title, :content) }
   end
-  
+
   # testing ticket #3142
   def test_validate_format_numeric
     Topic.validates_format_of(:title, :content, :with => /^[1-9][0-9]*$/, :message => "is bad data")
@@ -849,18 +849,8 @@ class ValidationsTest < Test::Unit::TestCase
     assert_equal "hoo 5", t.errors["title"]
   end
 
-  def kcode_scope(kcode)
-    orig_kcode = $KCODE
-    $KCODE = kcode
-    begin
-      yield
-    ensure
-      $KCODE = orig_kcode
-    end
-  end
-
   def test_validates_length_of_using_minimum_utf8
-    kcode_scope('UTF8') do
+    with_kcode('UTF8') do
       Topic.validates_length_of :title, :minimum => 5
 
       t = Topic.create("title" => "一二三四五", "content" => "whatever")
@@ -874,7 +864,7 @@ class ValidationsTest < Test::Unit::TestCase
   end
 
   def test_validates_length_of_using_maximum_utf8
-    kcode_scope('UTF8') do
+    with_kcode('UTF8') do
       Topic.validates_length_of :title, :maximum => 5
 
       t = Topic.create("title" => "一二三四五", "content" => "whatever")
@@ -888,7 +878,7 @@ class ValidationsTest < Test::Unit::TestCase
   end
 
   def test_validates_length_of_using_within_utf8
-    kcode_scope('UTF8') do
+    with_kcode('UTF8') do
       Topic.validates_length_of(:title, :content, :within => 3..5)
 
       t = Topic.new("title" => "一二", "content" => "12三四五六七")
@@ -902,7 +892,7 @@ class ValidationsTest < Test::Unit::TestCase
   end
 
   def test_optionally_validates_length_of_using_within_utf8
-    kcode_scope('UTF8') do
+    with_kcode('UTF8') do
       Topic.validates_length_of :title, :content, :within => 3..5, :allow_nil => true
 
       t = Topic.create('title' => '一二三', 'content' => '一二三四五')
@@ -914,7 +904,7 @@ class ValidationsTest < Test::Unit::TestCase
   end
 
   def test_optionally_validates_length_of_using_within_on_create_utf8
-    kcode_scope('UTF8') do
+    with_kcode('UTF8') do
       Topic.validates_length_of :title, :content, :within => 5..10, :on => :create, :too_long => "長すぎます: %d"
 
       t = Topic.create("title" => "一二三四五六七八九十A", "content" => "whatever")
@@ -937,7 +927,7 @@ class ValidationsTest < Test::Unit::TestCase
   end
 
   def test_optionally_validates_length_of_using_within_on_update_utf8
-    kcode_scope('UTF8') do    
+    with_kcode('UTF8') do
       Topic.validates_length_of :title, :content, :within => 5..10, :on => :update, :too_short => "短すぎます: %d"
 
       t = Topic.create("title" => "一二三4", "content" => "whatever")
@@ -960,7 +950,7 @@ class ValidationsTest < Test::Unit::TestCase
   end
 
   def test_validates_length_of_using_is_utf8
-    kcode_scope('UTF8') do
+    with_kcode('UTF8') do
       Topic.validates_length_of :title, :is => 5
 
       t = Topic.create("title" => "一二345", "content" => "whatever")
@@ -974,7 +964,7 @@ class ValidationsTest < Test::Unit::TestCase
   end
 
   def test_validates_size_of_association_utf8
-    kcode_scope('UTF8') do
+    with_kcode('UTF8') do
       assert_nothing_raised { Topic.validates_size_of :replies, :minimum => 1 }
       t = Topic.new('title' => 'あいうえお', 'content' => 'かきくけこ')
       assert !t.save
@@ -1222,7 +1212,7 @@ class ValidationsTest < Test::Unit::TestCase
     r = Reply.create("title" => "A reply", "content" => "with content!")
     assert !r.valid?
     assert r.errors.on(:topic)
-    
+
     r.topic = Topic.find :first
     assert r.valid?
   end
@@ -1245,8 +1235,8 @@ class ValidationsTest < Test::Unit::TestCase
     assert_equal "can't be blank", t.errors.on("title").first
  end
 
-  # previous implementation of validates_presence_of eval'd the 
-  # string with the wrong binding, this regression test is to 
+  # previous implementation of validates_presence_of eval'd the
+  # string with the wrong binding, this regression test is to
   # ensure that it works correctly
   def test_validation_with_if_as_string
     Topic.validates_presence_of(:title)
@@ -1266,6 +1256,20 @@ class ValidationsTest < Test::Unit::TestCase
     t.author_name = "Hubert J. Farnsworth"
     assert t.valid?, "A topic with an important title and author should be valid"
   end
+
+  private
+    def with_kcode(kcode)
+      if RUBY_VERSION < '1.9'
+        orig_kcode, $KCODE = $KCODE, kcode
+        begin
+          yield
+        ensure
+          $KCODE = orig_kcode
+        end
+      else
+        yield
+      end
+    end
 end
 
 
