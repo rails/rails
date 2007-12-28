@@ -1,5 +1,7 @@
 *SVN*
 
+* remove multiple enumerations from ActiveSupport::JSON#convert_json_to_yaml when dealing with date/time values.  [rick]
+
 * Hash#symbolize_keys skips keys that can't be symbolized.  #10500 [Brad Greenlee]
 
 * Ruby 1.9 compatibility.  #1689, #10466, #10468, #10554 [Cheah Chu Yeow, Pratik Naik, Jeremy Kemper, Dirkjan Bussink]
