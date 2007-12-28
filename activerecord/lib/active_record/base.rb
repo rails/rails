@@ -1487,7 +1487,7 @@ module ActiveRecord #:nodoc:
 
             self.class_eval %{
               def self.#{method_id}(*args)
-                options = args.last.is_a?(Hash) ? args.pop : {}
+                options = args.extract_options!
                 attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
                 finder_options = { :conditions => attributes }
                 validate_find_options(options)
