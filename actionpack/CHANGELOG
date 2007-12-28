@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure that test case setup is run even if overridden.  #10382 [Josh Peek]
+
 * Fix HTML Sanitizer to allow trailing spaces in CSS style attributes.  Closes #10566 [wesley.moxam]
 
 * Add :default option to time_zone_select.  #10590 [Matt Aimonetti]
