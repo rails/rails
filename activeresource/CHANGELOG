@@ -1,5 +1,7 @@
 *SVN*
 
+* Support agnostic formats when calling custom methods.  Closes #10635 [joerichsen]
+
 * Document custom methods.  #10589 [Cheah Chu Yeow]
 
 * Ruby 1.9 compatibility.  [Jeremy Kemper]
