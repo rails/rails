@@ -64,6 +64,13 @@ class FormatTest < Test::Unit::TestCase
     end
   end
   
+  def test_setting_format_before_site
+    resource = Class.new(ActiveResource::Base)
+    resource.format = :json
+    resource.site   = 'http://37s.sunrise.i:3000'
+    assert_equal ActiveResource::Formats[:json], resource.connection.format
+  end
+  
   private
     def using_format(klass, mime_type_reference)
       previous_format = klass.format

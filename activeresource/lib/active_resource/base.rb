@@ -192,7 +192,7 @@ module ActiveResource
           ActiveResource::Formats[mime_type_reference_or_format] : mime_type_reference_or_format
 
         write_inheritable_attribute("format", format)
-        connection.format = format
+        connection.format = format if site
       end
       
       # Returns the current format, default is ActiveResource::Formats::XmlFormat
