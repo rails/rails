@@ -44,10 +44,23 @@ module ActionController
       end
     end
 
-    def setup
+    def setup_with_controller
       @controller = self.class.controller_class.new
       @request    = TestRequest.new
       @response   = TestResponse.new
     end
-  end
+    alias_method :setup, :setup_with_controller
+
+    def self.method_added(method)
+      if method.to_s == 'setup'
+        unless method_defined?(:setup_without_controller)
+          alias_method :setup_without_controller, :setup
+          define_method(:setup) do
+            setup_with_controller
+            setup_without_controller
+          end
+        end
+      end
+    end
+ end
 end
