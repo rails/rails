@@ -16,7 +16,7 @@ module ActionMailer
           define_method(name) do |*parameters|
             raise ArgumentError, "expected 0 or 1 parameters" unless parameters.length <= 1
             if parameters.empty?
-              if instance_variables.include?(ivar)
+              if instance_variable_names.include?(ivar)
                 instance_variable_get(ivar)
               end
             else

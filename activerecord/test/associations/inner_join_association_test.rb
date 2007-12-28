@@ -67,7 +67,7 @@ class InnerJoinAssociationTest < Test::Unit::TestCase
   def test_find_with_implicit_inner_joins_does_not_set_associations
     authors = Author.find(:all, :select => 'authors.*', :joins => :posts)
     assert !authors.empty?, "expected authors to be non-empty"
-    assert authors.all? {|a| !a.send(:instance_variables).include?("@posts")}, "expected no authors to have the @posts association loaded"
+    assert authors.all? {|a| !a.send(:instance_variable_names).include?("@posts")}, "expected no authors to have the @posts association loaded"
   end
   
   def test_count_honors_implicit_inner_joins

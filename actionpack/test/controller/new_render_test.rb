@@ -495,6 +495,7 @@ class NewRenderTest < Test::Unit::TestCase
     ActionController::Base.protected_variables_cache = nil
 
     get :hello_world
+    assert !assigns.include?('_request'), '_request should not be in assigns'
     assert !assigns.include?('request'), 'request should not be in assigns'
 
     ActionController::Base.view_controller_internals = true

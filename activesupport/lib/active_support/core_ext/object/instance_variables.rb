@@ -13,6 +13,10 @@ class Object
     end
   end
 
+  def instance_variable_names
+    instance_variables.map(&:to_s)
+  end
+
   def copy_instance_variables_from(object, exclude = []) #:nodoc:
     exclude += object.protected_instance_variables if object.respond_to? :protected_instance_variables
 

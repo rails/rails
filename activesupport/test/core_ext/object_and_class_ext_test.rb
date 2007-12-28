@@ -182,6 +182,10 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
     @source.instance_variable_set(:@baz, 'baz')
   end
 
+  def test_instance_variable_names
+    assert_equal %w(@bar @baz), @source.instance_variable_names.sort
+  end
+
   def test_instance_variable_defined
     assert @source.instance_variable_defined?('@bar')
     assert @source.instance_variable_defined?(:@bar)

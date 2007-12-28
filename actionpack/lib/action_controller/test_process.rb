@@ -373,7 +373,7 @@ module ActionController #:nodoc:
       # Sanity check for required instance variables so we can give an
       # understandable error message.
       %w(@controller @request @response).each do |iv_name|
-        if !(instance_variables.include?(iv_name) || instance_variables.include?(iv_name.to_sym)) || instance_variable_get(iv_name).nil?
+        if !(instance_variable_names.include?(iv_name) || instance_variable_names.include?(iv_name.to_sym)) || instance_variable_get(iv_name).nil?
           raise "#{iv_name} is nil: make sure you set it in your test's setup method."
         end
       end
