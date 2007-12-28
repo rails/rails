@@ -72,23 +72,23 @@ class AssociationsTest < Test::Unit::TestCase
     end
   end
 end
-
+ 
 class AssociationProxyTest < Test::Unit::TestCase
   fixtures :authors, :posts, :categorizations, :categories, :developers, :projects, :developers_projects
-
+  
   def test_proxy_accessors
     welcome = posts(:welcome)
     assert_equal  welcome, welcome.author.proxy_owner
     assert_equal  welcome.class.reflect_on_association(:author), welcome.author.proxy_reflection
     welcome.author.class  # force load target
     assert_equal  welcome.author, welcome.author.proxy_target
-
+  
     david = authors(:david)
     assert_equal  david, david.posts.proxy_owner
     assert_equal  david.class.reflect_on_association(:posts), david.posts.proxy_reflection
     david.posts.first   # force load target
     assert_equal  david.posts, david.posts.proxy_target
-
+  
     assert_equal  david, david.posts_with_extension.testing_proxy_owner
     assert_equal  david.class.reflect_on_association(:posts_with_extension), david.posts_with_extension.testing_proxy_reflection
     david.posts_with_extension.first   # force load target
@@ -98,9 +98,27 @@ class AssociationProxyTest < Test::Unit::TestCase
   def test_push_does_not_load_target
     david = authors(:david)
 
+    david.posts << (post = Post.new(:title => "New on Edge", :body => "More cool stuff!"))
+    assert !david.posts.loaded?
+    assert david.posts.include?(post)
+  end
+
+  def test_push_has_many_through_does_not_load_target
+    david = authors(:david)
+
     david.categories << categories(:technology)
     assert !david.categories.loaded?
     assert david.categories.include?(categories(:technology))
+  end
+  
+  def test_push_followed_by_save_does_not_load_target
+    david = authors(:david)
+
+    david.posts << (post = Post.new(:title => "New on Edge", :body => "More cool stuff!"))
+    assert !david.posts.loaded?
+    david.save
+    assert !david.posts.loaded?
+    assert david.posts.include?(post)
   end
 
   def test_push_does_not_lose_additions_to_new_record
@@ -772,7 +790,13 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert companies(:first_firm).save
     assert_equal 3, companies(:first_firm).clients_of_firm(true).size
   end
-
+  
+  def test_build_followed_by_save_does_not_load_target
+    new_client = companies(:first_firm).clients_of_firm.build("name" => "Another Client")
+    assert companies(:first_firm).save
+    assert !companies(:first_firm).clients_of_firm.loaded?
+  end
+  
   def test_build_without_loading_association
     first_topic = topics(:first)
     Reply.column_names
@@ -823,6 +847,12 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   def test_create_many
     companies(:first_firm).clients_of_firm.create([{"name" => "Another Client"}, {"name" => "Another Client II"}])
     assert_equal 3, companies(:first_firm).clients_of_firm(true).size
+  end
+
+  def test_create_followed_by_save_does_not_load_target
+    new_client = companies(:first_firm).clients_of_firm.create("name" => "Another Client")
+    assert companies(:first_firm).save
+    assert !companies(:first_firm).clients_of_firm.loaded?
   end
 
   def test_find_or_initialize

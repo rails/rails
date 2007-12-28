@@ -1079,8 +1079,10 @@ module ActiveRecord
             if association.respond_to?(:loaded?)
               if new_record?
                 association
-              else
+              elsif association.loaded?
                 association.select { |record| record.new_record? }
+              else
+                association.target.select { |record| record.new_record? }
               end.each do |record|
                 errors.add "#{association_name}" unless record.valid?
               end
@@ -1097,6 +1099,8 @@ module ActiveRecord
               association
             elsif association.respond_to?(:loaded?) && association.loaded?
               association.select { |record| record.new_record? }
+            elsif association.respond_to?(:loaded?) && !association.loaded?
+              association.target.select { |record| record.new_record? }
             else
               []
             end
