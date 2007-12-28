@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix that auto_link looks for ='s in url paths (Amazon urls have them).  Closes #10640 [bgreenlee]
+
 * Ensure that test case setup is run even if overridden.  #10382 [Josh Peek]
 
 * Fix HTML Sanitizer to allow trailing spaces in CSS style attributes.  Closes #10566 [wesley.moxam]
