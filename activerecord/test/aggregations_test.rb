@@ -25,7 +25,7 @@ class AggregationsTest < Test::Unit::TestCase
   
   def test_immutable_value_objects
     customers(:david).balance = Money.new(100)
-    assert_raises(TypeError) {  customers(:david).balance.instance_eval { @amount = 20 } }
+    assert_raise(ActiveSupport::FrozenObjectError) { customers(:david).balance.instance_eval { @amount = 20 } }
   end  
   
   def test_inferred_mapping
@@ -90,7 +90,7 @@ class AggregationsTest < Test::Unit::TestCase
   end
   
   def test_nil_raises_error_when_allow_nil_is_false
-    assert_raises(NoMethodError) { customers(:david).balance = nil }
+    assert_raise(NoMethodError) { customers(:david).balance = nil }
   end
 
   def test_allow_nil_address_loaded_when_only_some_attributes_are_nil

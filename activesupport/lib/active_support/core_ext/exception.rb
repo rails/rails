@@ -1,3 +1,11 @@
+module ActiveSupport
+  if RUBY_VERSION >= '1.9'
+    FrozenObjectError = RuntimeError
+  else
+    FrozenObjectError = TypeError
+  end
+end
+
 class Exception # :nodoc:
   def clean_message
     Pathname.clean_within message

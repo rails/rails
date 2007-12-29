@@ -743,7 +743,7 @@ class BasicsTest < Test::Unit::TestCase
     client.destroy
     assert client.frozen?
     assert_kind_of Firm, client.firm
-    assert_raises(TypeError) { client.name = "something else" }
+    assert_raises(ActiveSupport::FrozenObjectError) { client.name = "something else" }
   end
   
   def test_update_attribute
@@ -1682,19 +1682,19 @@ class BasicsTest < Test::Unit::TestCase
   
   def test_except_attributes
     assert_equal(
-      %w( author_name type id approved replies_count bonus_time written_on content author_email_address parent_id last_read), 
-      topics(:first).attributes(:except => :title).keys
+      %w( author_name type id approved replies_count bonus_time written_on content author_email_address parent_id last_read).sort,
+      topics(:first).attributes(:except => :title).keys.sort
     )
 
     assert_equal(
-      %w( replies_count bonus_time written_on content author_email_address parent_id last_read), 
-      topics(:first).attributes(:except => [ :title, :id, :type, :approved, :author_name ]).keys
+      %w( replies_count bonus_time written_on content author_email_address parent_id last_read).sort,
+      topics(:first).attributes(:except => [ :title, :id, :type, :approved, :author_name ]).keys.sort
     )
   end
   
   def test_include_attributes
     assert_equal(%w( title ), topics(:first).attributes(:only => :title).keys)
-    assert_equal(%w( title author_name type id approved ), topics(:first).attributes(:only => [ :title, :id, :type, :approved, :author_name ]).keys)
+    assert_equal(%w( title author_name type id approved ).sort, topics(:first).attributes(:only => [ :title, :id, :type, :approved, :author_name ]).keys.sort)
   end
   
   def test_type_name_with_module_should_handle_beginning
