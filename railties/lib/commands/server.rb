@@ -14,15 +14,11 @@ rescue Exception
 end
 
 server = case ARGV.first
-  when "lighttpd", "mongrel", "webrick"
+  when "lighttpd", "mongrel", "new_mongrel", "webrick"
     ARGV.shift
   else
     if defined?(Mongrel)
-      if Mongrel.respond_to?(:log)
-        "new_mongrel"
-      else
-        "mongrel"
-      end
+      "mongrel"
     elsif RUBY_PLATFORM !~ /(:?mswin|mingw)/ && !silence_stderr { `lighttpd -version` }.blank? && defined?(FCGI)
       "lighttpd"
     else
