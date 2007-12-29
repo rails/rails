@@ -87,7 +87,10 @@ class ControllerInstanceTests < Test::Unit::TestCase
     # Mocha adds some public instance methods to Object that would be
     # considered actions, so explicitly hide_action them.
     def hide_mocha_methods_from_controller(controller)
-      mocha_methods = [:expects, :metaclass, :mocha, :mocha_inspect, :reset_mocha, :stubba_object, :stubba_method, :stubs, :verify, :__metaclass__, :__is_a__]
+      mocha_methods = [
+        :expects, :mocha, :mocha_inspect, :reset_mocha, :stubba_object,
+        :stubba_method, :stubs, :verify, :__metaclass__, :__is_a__, :to_matcher,
+      ]
       controller.class.send!(:hide_action, *mocha_methods)
     end
 end
