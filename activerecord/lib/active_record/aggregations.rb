@@ -155,7 +155,7 @@ module ActiveRecord
               if (instance_variable_get("@#{name}").nil? || force_reload) && (!allow_nil || mapping.any? {|pair| !read_attribute(pair.first).nil? })
                 instance_variable_set("@#{name}", class_name.constantize.new(*mapping.collect {|pair| read_attribute(pair.first)}))
               end
-              return instance_variable_get("@#{name}")
+              instance_variable_get("@#{name}")
             end
           end
 
