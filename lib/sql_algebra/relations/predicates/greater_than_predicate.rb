@@ -1,0 +1,2 @@
+class GreaterThanPredicate < BinaryPredicate
+end

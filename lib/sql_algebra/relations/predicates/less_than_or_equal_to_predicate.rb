@@ -1,0 +1,2 @@
+class LessThanOrEqualToPredicate < BinaryPredicate
+end
