@@ -8,6 +8,12 @@ describe BinaryPredicate do
     @attribute2 = Attribute.new(@relation2, :attribute_name)
   end
   
+  describe BinaryPredicate, '#initialize' do
+    it "requires that both columns come from the same relation" do
+      pending
+    end
+  end
+  
   describe BinaryPredicate, '==' do
     before do
       class ConcreteBinaryPredicate < BinaryPredicate
