@@ -20,10 +20,16 @@ describe JoinOperation, 'between two relations' do
   describe JoinOperation, 'on' do
     before do
       @predicate = Predicate.new
+      @join_operation = JoinOperation.new(@relation1, @relation2)
+      class << @join_operation
+        def relation_class
+          JoinRelation
+        end
+      end
     end
     
-    it "manufactures a JoinRelation" do
-      JoinOperation.new(@relation1, @relation2).on(@predicate).should == JoinRelation.new(@relation1, @relation2, @predicate)
+    it "manufactures a join relation of the appropriate type" do
+      @join_operation.on(@predicate).should == JoinRelation.new(@relation1, @relation2, @predicate)
     end
   end
 end

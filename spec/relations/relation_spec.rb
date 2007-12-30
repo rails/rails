@@ -4,17 +4,31 @@ describe Relation do
   before do
     @relation1 = TableRelation.new(:foo)
     @relation2 = TableRelation.new(:bar)
+    @attribute1 = Attribute.new(@relation1, :id)
+    @attribute2 = Attribute.new(@relation1, :name)
   end
   
-  describe Relation, '*' do
-    it "manufactures a JoinOperation between those two relations" do
-      (@relation1 * @relation2).should == JoinOperation.new(@relation1, @relation2)
+  describe Relation, 'joins' do
+    describe Relation, '<=>' do
+      it "manufactures an inner join operation between those two relations" do
+        (@relation1 <=> @relation2).should == InnerJoinOperation.new(@relation1, @relation2)
+      end
+    end
+    
+    describe Relation, '<<' do
+      it "manufactures a left outer join operation between those two relations" do
+        (@relation1 << @relation2).should == LeftOuterJoinOperation.new(@relation1, @relation2)
+      end      
     end
   end
   
   describe Relation, '[]' do
-    it "manufactures a attribute" do
+    it "manufactures an attribute when given a symbol" do
       @relation1[:id].should be_eql(Attribute.new(@relation1, :id))
+    end
+    
+    it "manufactures a range relation when given a range" do
+      @relation1[1..2].should == RangeRelation.new(@relation1, 1..2)
     end
     
     it "raises an error if the named attribute is not part of the relation" do
@@ -23,21 +37,12 @@ describe Relation do
   end
   
   describe Relation, '#include?' do
-    before do
-      @attribute = Attribute.new(@relation1, :id)
-    end
-    
     it "manufactures an inclusion predicate" do
-      @relation1.include?(@attribute).should == RelationInclusionPredicate.new(@attribute, @relation1)
+      @relation1.include?(@attribute1).should == RelationInclusionPredicate.new(@attribute1, @relation1)
     end
   end
   
   describe Relation, '#project' do
-    before do
-      @attribute1 = Attribute.new(@relation1, :id)
-      @attribute2 = Attribute.new(@relation1, :name)
-    end
-    
     it "only allows projecting attributes in the relation" do
       pending
     end
@@ -46,18 +51,24 @@ describe Relation do
       pending
     end
     
-    it "manufactures a projected relation" do
-      @relation1.project(@attribute1, @attribute2).should == ProjectedRelation(@relation1, @attribute1, @attribute2)
+    it "manufactures a projection relation" do
+      @relation1.project(@attribute1, @attribute2).should == ProjectionRelation.new(@relation1, @attribute1, @attribute2)
     end
   end
   
   describe Relation, '#select' do
     before do
-      @predicate = EqualityPredicate.new()
+      @predicate = EqualityPredicate.new(@attribute1, @attribute2)
     end
     
-    it "manufactures a selected relation" do
-      @relation1.select(@attribute1, @attribute2).should == SelectedRelation(@relation1, @attribute1, @attribute2)
+    it "manufactures a selection relation" do
+      @relation1.select(@attribute1, @attribute2).should == SelectionRelation.new(@relation1, @attribute1, @attribute2)
     end
-  end 
+  end
+  
+  describe Relation, 'order' do
+    it "manufactures an order relation" do
+      @relation1.order(@attribute1, @attribute2).should == OrderRelation.new(@relation1, @attribute1, @attribute2)
+    end
+  end
 end

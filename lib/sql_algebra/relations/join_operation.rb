@@ -6,7 +6,7 @@ class JoinOperation
   end
   
   def on(*predicates)
-    JoinRelation.new(relation1, relation2, *predicates)
+    relation_class.new(relation1, relation2, *predicates)
   end
   
   def ==(other)
