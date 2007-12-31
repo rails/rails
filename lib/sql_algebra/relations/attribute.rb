@@ -33,7 +33,7 @@ class Attribute
     MatchPredicate.new(self, regexp)
   end
   
-  def to_sql(ignore_builder_because_i_can_only_exist_atomically)
+  def to_sql(ignore_builder_because_i_can_only_exist_atomically = nil)
     ColumnBuilder.new(relation.table, attribute_name)
   end
 end

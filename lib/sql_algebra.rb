@@ -29,9 +29,9 @@ require 'sql_algebra/predicates/match_predicate'
 
 require 'sql_algebra/extensions/range'
 
+require 'sql_algebra/sql_builder/sql_builder_adapter'
 require 'sql_algebra/sql_builder/sql_builder'
 require 'sql_algebra/sql_builder/select_builder'
-require 'sql_algebra/sql_builder/where_builder'
 require 'sql_algebra/sql_builder/joins_builder'
 require 'sql_algebra/sql_builder/join_builder'
 require 'sql_algebra/sql_builder/inner_join_builder'
