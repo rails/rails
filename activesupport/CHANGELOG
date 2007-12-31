@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed the implementation of Enumerable#group_by to use a double array approach instead of a hash such that the insert order is honored [DHH/Marcel]
+
 * remove multiple enumerations from ActiveSupport::JSON#convert_json_to_yaml when dealing with date/time values.  [rick]
 
 * Hash#symbolize_keys skips keys that can't be symbolized.  #10500 [Brad Greenlee]
