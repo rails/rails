@@ -8,4 +8,10 @@ class ProjectionRelation < Relation
   def ==(other)
     relation == other.relation and attributes.eql?(other.attributes)
   end
+  
+  def to_sql(builder = SelectBuilder.new)
+    relation.to_sql(builder).call do
+      select attributes.collect { |a| a.to_sql(self) }
+    end
+  end
 end
