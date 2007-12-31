@@ -1,12 +1,12 @@
 require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
-describe JoinOperation, 'between two relations' do
+describe 'between two relations' do
   before do
     @relation1 = TableRelation.new(:foo)
     @relation2 = TableRelation.new(:bar)
   end
   
-  describe JoinOperation, '==' do
+  describe '==' do
     it "obtains if the relations of both joins are identical" do
       JoinOperation.new(@relation1, @relation2).should == JoinOperation.new(@relation1, @relation2)
       JoinOperation.new(@relation1, @relation2).should_not == JoinOperation.new(@relation1, @relation1)
@@ -17,7 +17,7 @@ describe JoinOperation, 'between two relations' do
     end
   end
 
-  describe JoinOperation, 'on' do
+  describe 'on' do
     before do
       @predicate = Predicate.new
       @join_operation = JoinOperation.new(@relation1, @relation2)

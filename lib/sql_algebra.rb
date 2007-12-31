@@ -37,3 +37,6 @@ require 'sql_algebra/sql_builder/join_builder'
 require 'sql_algebra/sql_builder/inner_join_builder'
 require 'sql_algebra/sql_builder/left_outer_join_builder'
 require 'sql_algebra/sql_builder/equals_condition_builder'
+require 'sql_algebra/sql_builder/column_builder'
+require 'sql_algebra/sql_builder/conditions_builder'
+

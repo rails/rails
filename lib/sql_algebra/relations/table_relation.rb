@@ -5,8 +5,8 @@ class TableRelation < Relation
     @table = table
   end
   
-  def to_sql
-    SelectBuilder.new do
+  def to_sql(builder = SelectBuilder.new)
+    builder.call do
       select :*
       from table
     end

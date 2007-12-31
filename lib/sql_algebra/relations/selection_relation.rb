@@ -9,4 +9,12 @@ class SelectionRelation < Relation
   def ==(other)
     relation == other.relation and predicate == other.predicate
   end
+  
+  def to_sql(builder = SelectBuilder.new)
+    relation.to_sql(builder).call do
+      where do
+        predicate.to_sql(self)
+      end
+    end
+  end
 end

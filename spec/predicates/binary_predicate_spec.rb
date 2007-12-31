@@ -4,22 +4,22 @@ describe BinaryPredicate do
   before do
     @relation1 = TableRelation.new(:foo)
     @relation2 = TableRelation.new(:bar)
-    @attribute1 = Attribute.new(@relation1, :attribute_name)
-    @attribute2 = Attribute.new(@relation2, :attribute_name)
+    @attribute1 = Attribute.new(@relation1, :attribute_name1)
+    @attribute2 = Attribute.new(@relation2, :attribute_name2)
+    class ConcreteBinaryPredicate < BinaryPredicate
+      def predicate_name
+        :equals
+      end
+    end
   end
   
-  describe BinaryPredicate, '#initialize' do
+  describe '#initialize' do
     it "requires that both columns come from the same relation" do
       pending
     end
   end
   
-  describe BinaryPredicate, '==' do
-    before do
-      class ConcreteBinaryPredicate < BinaryPredicate
-      end
-    end
-    
+  describe '==' do
     it "obtains if attribute1 and attribute2 are identical" do
       BinaryPredicate.new(@attribute1, @attribute2).should == BinaryPredicate.new(@attribute1, @attribute2)
       BinaryPredicate.new(@attribute1, @attribute2).should_not == BinaryPredicate.new(@attribute1, @attribute1)
@@ -28,6 +28,14 @@ describe BinaryPredicate do
     it "obtains if the concrete type of the BinaryPredicates are identical" do
       ConcreteBinaryPredicate.new(@attribute1, @attribute2).should == ConcreteBinaryPredicate.new(@attribute1, @attribute2)
       BinaryPredicate.new(@attribute1, @attribute2).should_not == ConcreteBinaryPredicate.new(@attribute1, @attribute2)
+    end
+  end
+  
+  describe '#to_sql' do
+    it '' do
+      ConcreteBinaryPredicate.new(@attribute1, @attribute2).to_sql.should == ConditionsBuilder.new do
+        equals 'foo.attribute_name1', 'bar.attribute_name2'
+      end
     end
   end
 end
