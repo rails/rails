@@ -29,4 +29,5 @@ require 'sql_algebra/predicates/match_predicate'
 
 require 'sql_algebra/extensions/range'
 
-require 'sql_algebra/sql/select'
+require 'sql_algebra/sql_builder/sql_builder'
+require 'sql_algebra/sql_builder/select_builder'

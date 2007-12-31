@@ -6,6 +6,9 @@ class TableRelation < Relation
   end
   
   def to_sql
-    Select.new(:*).from(table)
+    SelectBuilder.new do
+      select :*
+      from table
+    end
   end
 end
