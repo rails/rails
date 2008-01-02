@@ -277,7 +277,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   def test_next_week
     with_timezone 'US/Eastern' do
       assert_equal Time.local(2005,2,28), Time.local(2005,2,22,15,15,10).next_week
-      assert_equal Time.local(2005,2,29), Time.local(2005,2,22,15,15,10).next_week(:tuesday)
+      assert_equal Time.local(2005,3,1), Time.local(2005,2,22,15,15,10).next_week(:tuesday)
       assert_equal Time.local(2005,3,4), Time.local(2005,2,22,15,15,10).next_week(:friday)
       assert_equal Time.local(2006,10,30), Time.local(2006,10,23,0,0,0).next_week
       assert_equal Time.local(2006,11,1), Time.local(2006,10,23,0,0,0).next_week(:wednesday)
