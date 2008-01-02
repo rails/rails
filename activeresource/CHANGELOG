@@ -1,5 +1,7 @@
 *SVN*
 
+* find_or_create_resource_for handles module nesting.  #10646 [xavier]
+
 * Allow setting ActiveResource::Base#format before #site.  [rick]
 
 * Support agnostic formats when calling custom methods.  Closes #10635 [joerichsen]

@@ -845,17 +845,26 @@ module ActiveResource
         find_or_create_resource_for(name.to_s.singularize)
       end
       
+      # Tries to find a resource in a non empty list of nested modules
+      # Raises a NameError if it was not found in any of the given nested modules
+      def find_resource_in_modules(resource_name, module_names)
+        receiver = Object
+        namespaces = module_names[0, module_names.size-1].map do |module_name|
+          receiver = receiver.const_get(module_name)
+        end
+        if namespace = namespaces.reverse.detect { |ns| ns.const_defined?(resource_name) }
+          return namespace.const_get(resource_name)
+        else
+          raise NameError
+        end
+      end
+
       # Tries to find a resource for a given name; if it fails, then the resource is created
       def find_or_create_resource_for(name)
         resource_name = name.to_s.camelize
-
-        # FIXME: Make it generic enough to support any depth of module nesting
-        if (ancestors = self.class.name.split("::")).size > 1
-          begin
-            ancestors.first.constantize.const_get(resource_name)
-          rescue NameError
-            self.class.const_get(resource_name)
-          end
+        ancestors = self.class.name.split("::")
+        if ancestors.size > 1
+          find_resource_in_modules(resource_name, ancestors)
         else
           self.class.const_get(resource_name)
         end
