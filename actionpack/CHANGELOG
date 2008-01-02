@@ -1,5 +1,7 @@
 *SVN*
 
+* Correct indentation in tests.  Closes #10671 [l.guidi]
+
 * Fix that auto_link looks for ='s in url paths (Amazon urls have them).  Closes #10640 [bgreenlee]
 
 * Ensure that test case setup is run even if overridden.  #10382 [Josh Peek]

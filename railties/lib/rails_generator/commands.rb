@@ -310,26 +310,26 @@ HELP
             logger.exists relative_path
           else
             logger.create relative_path
-	    unless options[:pretend]
-	      FileUtils.mkdir_p(path)
+	          unless options[:pretend]
+	            FileUtils.mkdir_p(path)
 	      
-	      # Subversion doesn't do path adds, so we need to add
-	      # each directory individually.
-	      # So stack up the directory tree and add the paths to
-	      # subversion in order without recursion.
-	      if options[:svn]
-		stack=[relative_path]
-		until File.dirname(stack.last) == stack.last # dirname('.') == '.'
-		  stack.push File.dirname(stack.last)
-		end
-		stack.reverse_each do |rel_path|
-		  svn_path = destination_path(rel_path)
-		  system("svn add -N #{svn_path}") unless File.directory?(File.join(svn_path, '.svn'))
-		end
-	      end
-	    end
-	  end
-	end
+	            # Subversion doesn't do path adds, so we need to add
+	            # each directory individually.
+	            # So stack up the directory tree and add the paths to
+	            # subversion in order without recursion.
+	            if options[:svn]
+		            stack=[relative_path]
+		            until File.dirname(stack.last) == stack.last # dirname('.') == '.'
+		              stack.push File.dirname(stack.last)
+		            end
+		            stack.reverse_each do |rel_path|
+		              svn_path = destination_path(rel_path)
+		              system("svn add -N #{svn_path}") unless File.directory?(File.join(svn_path, '.svn'))
+		            end
+	            end
+            end
+          end
+        end
 
         # Display a README.
         def readme(*relative_sources)
