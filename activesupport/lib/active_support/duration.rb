@@ -82,7 +82,7 @@ module ActiveSupport
               t.advance(type => sign * number)
             end
           else
-            raise ArgumentError, "expected a time or date, got #{time.inspect}"
+            raise ::ArgumentError, "expected a time or date, got #{time.inspect}"
           end
         end
       end

@@ -6,6 +6,11 @@ module ActiveSupport
     class BasicObject < ::BasicObject
       undef_method :==
       undef_method :equal?
+
+      # Let ActiveSupport::BasicObject at least raise exceptions.
+      def raise(*args)
+        ::Object.send(:raise, *args)
+      end
     end
   else
     require 'blankslate'

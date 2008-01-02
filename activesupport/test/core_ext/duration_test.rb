@@ -18,4 +18,15 @@ class DurationTest < Test::Unit::TestCase
   def test_plus_with_time
     assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
   end
+
+  def test_argument_error
+    begin
+      1.second.ago('')
+      flunk("no exception was raised")
+    rescue ArgumentError => e
+      assert_equal 'expected a time or date, got ""', e.message, "ensure ArgumentError is not being raised by dependencies.rb"
+    rescue Exception
+      flunk("ArgumentError should be raised, but we got #{$!.class} instead")
+    end
+  end
 end
