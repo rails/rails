@@ -704,7 +704,8 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
           end
 
         yaml_value.each do |fixture|
-          fixture.each do |name, data|
+          raise Fixture::FormatError, "Bad data for #{@class_name} fixture named #{fixture}" unless fixture.respond_to?(:each)
+	  fixture.each do |name, data|
             unless data
               raise Fixture::FormatError, "Bad data for #{@class_name} fixture named #{name} (nil)"
             end
@@ -877,6 +878,7 @@ module Test #:nodoc:
       end
 
       def self.setup_fixture_accessors(table_names = nil)
+        table_names = [table_names] if table_names && !table_names.respond_to?(:each)
         (table_names || fixture_table_names).each do |table_name|
           table_name = table_name.to_s.tr('.', '_')
 

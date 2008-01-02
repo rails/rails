@@ -6,7 +6,7 @@
 
 * SQLite: fix rename_ and remove_column for columns with unique indexes.  #10576 [Brandon Keepers]
 
-* Ruby 1.9 compatibility.  [Jeremy Kemper]
+* Ruby 1.9 compatibility.  #10655 [Jeremy Kemper, Dirkjan Bussink]
 
 
 *2.0.2* (December 16th, 2007)
