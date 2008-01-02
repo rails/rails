@@ -12,7 +12,10 @@ class BinaryPredicate < Predicate
   
   def to_sql(builder = ConditionsBuilder.new)
     builder.call do
-      send(predicate_name, attribute1.to_sql(self), attribute2.to_sql(self))
+      send(predicate_name) do
+        attribute1.to_sql(self)
+        attribute2.to_sql(self)
+      end
     end
   end
 end

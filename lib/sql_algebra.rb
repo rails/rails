@@ -28,6 +28,7 @@ require 'sql_algebra/predicates/relation_inclusion_predicate'
 require 'sql_algebra/predicates/match_predicate'
 
 require 'sql_algebra/extensions/range'
+require 'sql_algebra/extensions/object'
 
 require 'sql_algebra/sql_builder/sql_builder_adapter'
 require 'sql_algebra/sql_builder/sql_builder'
@@ -37,6 +38,6 @@ require 'sql_algebra/sql_builder/join_builder'
 require 'sql_algebra/sql_builder/inner_join_builder'
 require 'sql_algebra/sql_builder/left_outer_join_builder'
 require 'sql_algebra/sql_builder/equals_condition_builder'
-require 'sql_algebra/sql_builder/column_builder'
 require 'sql_algebra/sql_builder/conditions_builder'
-
+require 'sql_algebra/sql_builder/order_builder'
+require 'sql_algebra/sql_builder/selects_builder'

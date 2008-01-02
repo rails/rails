@@ -12,7 +12,9 @@ class OrderRelation < Relation
   def to_sql(builder = SelectBuilder.new)
     relation.to_sql(builder).call do
       attributes.each do |attribute|
-        order_by attribute.to_sql(self)
+        order_by do
+          attribute.to_sql(self)
+        end
       end
     end
   end

@@ -11,7 +11,9 @@ class ProjectionRelation < Relation
   
   def to_sql(builder = SelectBuilder.new)
     relation.to_sql(builder).call do
-      select attributes.collect { |a| a.to_sql(self) }
+      select do
+        attributes.collect { |a| a.to_sql(self) }
+      end
     end
   end
 end

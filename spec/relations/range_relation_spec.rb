@@ -21,7 +21,7 @@ describe RangeRelation do
       range_size = @range2.last - @range2.first + 1
       range_start = @range2.first
       RangeRelation.new(@relation1, @range2).to_sql.to_s.should == SelectBuilder.new do
-        select :*
+        select { all } 
         from :foo
         limit range_size
         offset range_start

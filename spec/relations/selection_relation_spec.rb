@@ -29,10 +29,13 @@ describe SelectionRelation do
   describe '#to_sql' do
     it "manufactures sql with where clause conditions" do
       SelectionRelation.new(@relation1, @predicate1).to_sql.should == SelectBuilder.new do
-        select :*
+        select { all }
         from :foo
         where do
-          equals 'foo.id', 'bar.foo_id'
+          equals do
+            column :foo, :id
+            column :bar, :foo_id
+          end
         end
       end
     end

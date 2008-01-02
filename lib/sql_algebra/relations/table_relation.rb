@@ -7,7 +7,7 @@ class TableRelation < Relation
   
   def to_sql(builder = SelectBuilder.new)
     builder.call do
-      select :*
+      select { all }
       from table
     end
   end

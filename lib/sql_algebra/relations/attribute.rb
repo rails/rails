@@ -1,8 +1,8 @@
 class Attribute
-  attr_reader :relation, :attribute_name
+  attr_reader :relation, :attribute_name, :aliaz
   
-  def initialize(relation, attribute_name)
-    @relation, @attribute_name = relation, attribute_name
+  def initialize(relation, attribute_name, aliaz = nil)
+    @relation, @attribute_name, @aliaz = relation, attribute_name, aliaz
   end
   
   def eql?(other)
@@ -33,7 +33,9 @@ class Attribute
     MatchPredicate.new(self, regexp)
   end
   
-  def to_sql(ignore_builder_because_i_can_only_exist_atomically = nil)
-    ColumnBuilder.new(relation.table, attribute_name)
+  def to_sql(builder = SelectsBuilder.new)
+    builder.call do
+      column relation.table, attribute_name, aliaz
+    end
   end
 end

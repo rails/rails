@@ -16,12 +16,14 @@ describe OrderRelation do
     end
   end
   
-  describe '#to_s' do
+  describe '#to_sql' do
     it "manufactures sql with an order clause" do
       OrderRelation.new(@relation1, @attribute1).to_sql.should == SelectBuilder.new do
-        select :*
+        select { all }
         from :foo
-        order_by 'foo.foo'
+        order_by do
+          column :foo, :foo
+        end
       end
     end
   end

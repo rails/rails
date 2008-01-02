@@ -30,14 +30,20 @@ describe 'between two relations' do
     
     it 'manufactures sql joining the two tables on the predicate, merging the selects' do
       ConcreteJoinRelation.new(@relation1, @relation2, @predicate).to_sql.to_s.should == SelectBuilder.new do
-        select :*
+        select { all }
         from :foo do
           inner_join :bar do
-            equals 'foo.a', 'bar.b'
+            equals do
+              column :foo, :a
+              column :bar, :b
+            end
           end
         end
         where do
-          equals 'foo.c', 'bar.d'
+          equals do
+            column :foo, :c
+            column :bar, :d
+          end
         end
       end.to_s
     end

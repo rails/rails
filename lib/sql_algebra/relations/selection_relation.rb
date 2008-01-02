@@ -17,4 +17,6 @@ class SelectionRelation < Relation
       end
     end
   end
+  
+  delegate :[], :to => :relation
 end

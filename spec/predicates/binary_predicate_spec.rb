@@ -32,9 +32,12 @@ describe BinaryPredicate do
   end
   
   describe '#to_sql' do
-    it '' do
+    it 'manufactures correct sql' do
       ConcreteBinaryPredicate.new(@attribute1, @attribute2).to_sql.should == ConditionsBuilder.new do
-        equals 'foo.attribute_name1', 'bar.attribute_name2'
+        equals do
+          column :foo, :attribute_name1
+          column :bar, :attribute_name2
+        end
       end
     end
   end
