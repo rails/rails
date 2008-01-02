@@ -1,5 +1,7 @@
 *SVN*
 
+* Optimize ActiveRecord::Base#exists? to use #select_all instead of #find.  Closes #10605 [jamesh, fcheung, protocool]
+
 * Don't unnecessarily load has_many associations in after_update callbacks.  Closes #6822 [stopdropandrew, canadaduane]
 
 * Eager belongs_to :include infers the foreign key from the association name rather than the class name.  #10517 [Jonathan Viney]

@@ -548,8 +548,14 @@ module ActiveRecord #:nodoc:
       #   Person.exists?(:name => "David")
       #   Person.exists?(['name LIKE ?', "%#{query}%"])
       def exists?(id_or_conditions)
-        !find(:first, :select => "#{quoted_table_name}.#{primary_key}",
-              :conditions => expand_id_conditions(id_or_conditions)).nil?
+        connection.select_all(
+          construct_finder_sql(
+            :select     => "#{quoted_table_name}.#{primary_key}", 
+            :conditions => expand_id_conditions(id_or_conditions), 
+            :limit      => 1
+          ), 
+          "#{name} Exists"
+        ).size > 0
       end
 
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
