@@ -343,7 +343,7 @@ def drop_database(config)
   when 'mysql'
     ActiveRecord::Base.connection.drop_database config['database']
   when /^sqlite/
-    FileUtils.rm_f(File.join(RAILS_ROOT, config['database']))
+    FileUtils.rm(File.join(RAILS_ROOT, config['database']))
   when 'postgresql'
     `dropdb "#{config['database']}"`
   end

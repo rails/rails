@@ -1,5 +1,7 @@
 *SVN*
 
+* SQLite: db:drop:all doesn't fail silently if the database is already open.  #10577 [Cheah Chu Yeow, mrichman]
+
 * Introduce native mongrel handler and push mutex into dispatcher.  [Jeremy Kemper]
 
 * Ruby 1.9 compatibility.  #1689, #10546 [Cheah Chu Yeow, frederico]
