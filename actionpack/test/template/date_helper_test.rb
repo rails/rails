@@ -1395,7 +1395,7 @@ class DateHelperTest < Test::Unit::TestCase
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
     expected << %(<option value=""></option>\n)
-    2002.upto(2012) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
+    (Time.now.year - 5).upto(Time.now.year + 5) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
     expected << "</select>\n"
     expected << %{<select id="post_updated_at_2i" name="post[updated_at(2i)]">\n}
     expected << %(<option value=""></option>\n)
