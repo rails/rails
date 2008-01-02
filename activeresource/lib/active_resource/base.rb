@@ -47,7 +47,7 @@ module ActiveResource
   #
   # Since simple CRUD/lifecycle methods can't accomplish every task, Active Resource also supports
   # defining your own custom REST methods. To invoke them, Active Resource provides the <tt>get</tt>,
-  # <tt>post</tt>, <tt>post</tt> and <tt>put</tt> methods where you can specify a custom REST method
+  # <tt>post</tt>, <tt>put</tt> and <tt>delete</tt> methods where you can specify a custom REST method
   # name to invoke.
   #
   #   # POST to the custom 'register' REST method, i.e. POST /people/new/register.xml.
