@@ -16,11 +16,7 @@ namespace :db do
         #    <<: *defaults
         next unless config['database']
         # Only connect to local databases
-        if %w( 127.0.0.1 localhost ).include?(config['host']) || config['host'].blank?
-          create_database(config)
-        else
-          p "This task only creates local databases. #{config['database']} is on a remote host."
-        end
+        local_database?(config) { create_database(config) }
       end
     end
   end
@@ -65,11 +61,7 @@ namespace :db do
         # Skip entries that don't have a database key
         next unless config['database']
         # Only connect to local databases
-        if config['host'] == 'localhost' || config['host'].blank?
-          drop_database(config)
-        else
-          p "This task only drops local databases. #{config['database']} is on a remote host."
-        end
+        local_database?(config) { drop_database(config) }
       end
     end
   end
@@ -78,6 +70,15 @@ namespace :db do
   task :drop => :environment do
     drop_database(ActiveRecord::Base.configurations[RAILS_ENV || 'development'])
   end
+
+  def local_database?(config, &block)
+    if %w( 127.0.0.1 localhost ).include?(config['host']) || config['host'].blank?
+      yield
+    else
+      puts "This task only modifies local databases. #{config['database']} is on a remote host."
+    end
+  end
+
 
   desc "Migrate the database through scripts in db/migrate. Target specific version with VERSION=x. Turn off output with VERBOSE=false."
   task :migrate => :environment do
