@@ -97,7 +97,7 @@ A short rundown of the major features:
 
     class WeblogController < ActionController::Base
       before_filter :authenticate, :cache, :audit
-      after_filter { |c| c.response.body = GZip::compress(c.response.body) }
+      after_filter { |c| c.response.body = Gzip::compress(c.response.body) }
       after_filter LocalizeFilter
       
       def index

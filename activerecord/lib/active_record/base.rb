@@ -1959,6 +1959,22 @@ module ActiveRecord #:nodoc:
         # We can't use alias_method here, because method 'id' optimizes itself on the fly.
         (id = self.id) ? id.to_s : nil # Be sure to stringify the id for routes
       end
+      
+      # Returns a cache key that can be used to identify this record. Examples:
+      #
+      #   Product.new.cache_key     # => "products/new"
+      #   Product.find(5).cache_key # => "products/5" (updated_at not available)
+      #   Person.find(5).cache_key  # => "people/5-20071224150000" (updated_at available)
+      def cache_key
+        case 
+        when new_record?
+          "#{self.class.name.tableize}/new"
+        when self[:updated_at]
+          "#{self.class.name.tableize}/#{id}-#{updated_at.to_s(:number)}"
+        else
+          "#{self.class.name.tableize}/#{id}"
+        end
+      end
 
       def id_before_type_cast #:nodoc:
         read_attribute_before_type_cast(self.class.primary_key)

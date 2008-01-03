@@ -5,7 +5,7 @@ CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
 FILE_STORE_PATH = File.join(File.dirname(__FILE__), '/../temp/', CACHE_DIR)
 ActionController::Base.page_cache_directory = FILE_STORE_PATH
-ActionController::Base.fragment_cache_store = :file_store, FILE_STORE_PATH
+ActionController::Base.cache_store = :file_store, FILE_STORE_PATH
 
 class PageCachingTestController < ActionController::Base
   caches_page :ok, :no_content, :found, :not_found
@@ -343,7 +343,7 @@ class ActionCacheTest < Test::Unit::TestCase
     end
 
     def assert_cache_exists(path)
-      full_path = File.join(FILE_STORE_PATH, path + '.cache')
+      full_path = File.join(FILE_STORE_PATH, "views", path + '.cache')
       assert File.exist?(full_path), "#{full_path.inspect} does not exist."
     end
 end
@@ -355,8 +355,8 @@ end
 class FragmentCachingTest < Test::Unit::TestCase
   def setup
     ActionController::Base.perform_caching = true
-    @store = ActionController::Caching::Fragments::UnthreadedMemoryStore.new
-    ActionController::Base.fragment_cache_store = @store
+    @store = ActiveSupport::Cache::MemoryStore.new
+    ActionController::Base.cache_store = @store
     @controller = FragmentCachingTestController.new
     @params = {:controller => 'posts', :action => 'index'}
     @request = ActionController::TestRequest.new
@@ -368,57 +368,57 @@ class FragmentCachingTest < Test::Unit::TestCase
   end
 
   def test_fragement_cache_key
-    assert_equal 'what a key', @controller.fragment_cache_key('what a key')
-    assert_equal( "test.host/fragment_caching_test/some_action",
+    assert_equal 'views/what a key', @controller.fragment_cache_key('what a key')
+    assert_equal( "views/test.host/fragment_caching_test/some_action",
                   @controller.fragment_cache_key(:controller => 'fragment_caching_test',:action => 'some_action'))
   end
 
   def test_read_fragment__with_caching_enabled
-    @store.write('name', 'value')
+    @store.write('views/name', 'value')
     assert_equal 'value', @controller.read_fragment('name')
   end
 
   def test_read_fragment__with_caching_disabled
     ActionController::Base.perform_caching = false
-    @store.write('name', 'value')
+    @store.write('views/name', 'value')
     assert_nil @controller.read_fragment('name')
   end
 
   def test_write_fragment__with_caching_enabled
-    assert_nil @store.read('name')
+    assert_nil @store.read('views/name')
     assert_equal 'value', @controller.write_fragment('name', 'value')
-    assert_equal 'value', @store.read('name')
+    assert_equal 'value', @store.read('views/name')
   end
 
   def test_write_fragment__with_caching_disabled
-    assert_nil @store.read('name')
+    assert_nil @store.read('views/name')
     ActionController::Base.perform_caching = false
     assert_equal nil, @controller.write_fragment('name', 'value')
-    assert_nil @store.read('name')
+    assert_nil @store.read('views/name')
   end
 
   def test_expire_fragment__with_simple_key
-    @store.write('name', 'value')
+    @store.write('views/name', 'value')
     @controller.expire_fragment 'name'
-    assert_nil @store.read('name')
+    assert_nil @store.read('views/name')
   end
 
   def test_expire_fragment__with__regexp
-    @store.write('name', 'value')
-    @store.write('another_name', 'another_value')
-    @store.write('primalgrasp', 'will not expire ;-)')
+    @store.write('views/name', 'value')
+    @store.write('views/another_name', 'another_value')
+    @store.write('views/primalgrasp', 'will not expire ;-)')
 
     @controller.expire_fragment /name/
 
-    assert_nil @store.read('name')
-    assert_nil @store.read('another_name')
-    assert_equal 'will not expire ;-)', @store.read('primalgrasp')
+    assert_nil @store.read('views/name')
+    assert_nil @store.read('views/another_name')
+    assert_equal 'will not expire ;-)', @store.read('views/primalgrasp')
   end
 
   def test_fragment_for__with_disabled_caching
     ActionController::Base.perform_caching = false
 
-    @store.write('expensive', 'fragment content')
+    @store.write('views/expensive', 'fragment content')
     fragment_computed = false
 
     buffer = 'generated till now -> '
@@ -430,7 +430,7 @@ class FragmentCachingTest < Test::Unit::TestCase
 
 
   def test_fragment_for
-    @store.write('expensive', 'fragment content')
+    @store.write('views/expensive', 'fragment content')
     fragment_computed = false
 
     buffer = 'generated till now -> '
@@ -441,7 +441,7 @@ class FragmentCachingTest < Test::Unit::TestCase
   end
 
   def test_cache_erb_fragment
-    @store.write('expensive', 'fragment content')
+    @store.write('views/expensive', 'fragment content')
     _erbout = 'generated till now -> '
 
     assert_equal( 'generated till now -> fragment content',
@@ -449,7 +449,7 @@ class FragmentCachingTest < Test::Unit::TestCase
   end
 
   def test_cache_rxml_fragment
-    @store.write('expensive', 'fragment content')
+    @store.write('views/expensive', 'fragment content')
     xml = 'generated till now -> '
     class << xml; def target!; to_s; end; end
 
@@ -458,7 +458,7 @@ class FragmentCachingTest < Test::Unit::TestCase
   end
 
   def test_cache_rjs_fragment
-    @store.write('expensive', 'fragment content')
+    @store.write('views/expensive', 'fragment content')
     page = 'generated till now -> '
 
     assert_equal( 'generated till now -> fragment content',
@@ -466,7 +466,7 @@ class FragmentCachingTest < Test::Unit::TestCase
   end
 
   def test_cache_rjs_fragment_debug_mode_does_not_interfere
-    @store.write('expensive', 'fragment content')
+    @store.write('views/expensive', 'fragment content')
     page = 'generated till now -> '
 
     begin

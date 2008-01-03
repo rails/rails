@@ -1,5 +1,11 @@
 *SVN*
 
+* Added ActiveSupport::Gzip.decompress/compress(source) as an easy wrapper for Zlib [Tobias Luetke]
+
+* Included MemCache-Client to make the improved ActiveSupport::Cache::MemCacheStore work out of the box [Bob Cottrell, Eric Hodel]
+
+* Added ActiveSupport::Cache::* framework as an extraction from ActionController::Caching::Fragments::* [DHH]
+
 * Fixed String#titleize to work for strings with 's too #10571 [trek]
 
 * Changed the implementation of Enumerable#group_by to use a double array approach instead of a hash such that the insert order is honored [DHH/Marcel]

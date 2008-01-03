@@ -1,5 +1,11 @@
 *SVN*
 
+* All fragment cache keys are now by default prefixed with the "views/" namespace [DHH]
+
+* Moved the caching stores from ActionController::Caching::Fragments::* to ActiveSupport::Cache::*. If you're explicitly referring to a store, like ActionController::Caching::Fragments::MemoryStore, you need to update that reference with ActiveSupport::Cache::MemoryStore [DHH]
+
+* Deprecated ActionController::Base.fragment_cache_store for ActionController::Base.cache_store [DHH]
+
 * Made fragment caching in views work for rjs and builder as well #6642 [zsombor]
 
 * Fixed rendering of partials with layout when done from site layout #9209 [antramm]

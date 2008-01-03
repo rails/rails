@@ -7,6 +7,7 @@ module ActiveSupport #:nodoc:
           :short        => "%e %b",
           :long         => "%B %e, %Y",
           :db           => "%Y-%m-%d",
+          :number       => "%Y%m%d",
           :long_ordinal => lambda { |date| date.strftime("%B #{date.day.ordinalize}, %Y") }, # => "April 25th, 2007"
           :rfc822       => "%e %b %Y"
         }

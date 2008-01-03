@@ -58,29 +58,7 @@ module Rails
     end
 
     # Sequentially step through all of the available initialization routines,
-    # in order:
-    #
-    # * #check_ruby_version
-    # * #set_load_path
-    # * #require_frameworks
-    # * #set_autoload_paths
-    # * add_plugin_load_paths
-    # * #load_environment
-    # * #initialize_encoding
-    # * #initialize_database
-    # * #initialize_logger
-    # * #initialize_framework_logging
-    # * #initialize_framework_views
-    # * #initialize_dependency_mechanism
-    # * #initialize_whiny_nils
-    # * #initialize_temporary_directories
-    # * #initialize_framework_settings
-    # * #add_support_load_paths
-    # * #load_plugins
-    # * #load_observers
-    # * #initialize_routing
-    # * #after_initialize
-    # * #load_application_initializers
+    # in order (view execution order in source).
     def process
       check_ruby_version
       set_load_path
@@ -92,12 +70,17 @@ module Rails
 
       initialize_encoding
       initialize_database
+
+      initialize_cache
+      initialize_framework_caches
+
       initialize_logger
       initialize_framework_logging
+
       initialize_framework_views
       initialize_dependency_mechanism
       initialize_whiny_nils
-      initialize_temporary_directories
+      initialize_temporary_session_directory
       initialize_framework_settings
 
       add_support_load_paths
@@ -239,6 +222,18 @@ module Rails
       end
     end
 
+    def initialize_cache
+      unless defined?(RAILS_CACHE)
+        silence_warnings { Object.const_set "RAILS_CACHE", ActiveSupport::Cache.lookup_store(configuration.cache_store) }
+      end
+    end
+
+    def initialize_framework_caches
+      if configuration.frameworks.include?(:action_controller)
+        ActionController::Base.cache_store ||= RAILS_CACHE
+      end
+    end
+
     # If the +RAILS_DEFAULT_LOGGER+ constant is already set, this initialization
     # routine does nothing. If the constant is not set, and Configuration#logger
     # is not +nil+, this also does nothing. Otherwise, a new logger instance
@@ -277,6 +272,8 @@ module Rails
       for framework in ([ :active_record, :action_controller, :action_mailer ] & configuration.frameworks)
         framework.to_s.camelize.constantize.const_get("Base").logger ||= RAILS_DEFAULT_LOGGER
       end
+      
+      RAILS_CACHE.logger ||= RAILS_DEFAULT_LOGGER
     end
 
     # Sets +ActionController::Base#view_paths+ and +ActionMailer::Base#template_root+
@@ -309,15 +306,10 @@ module Rails
       require('active_support/whiny_nil') if configuration.whiny_nils
     end
 
-    def initialize_temporary_directories
+    def initialize_temporary_session_directory
       if configuration.frameworks.include?(:action_controller)
         session_path = "#{configuration.root_path}/tmp/sessions/"
         ActionController::Base.session_options[:tmpdir] = File.exist?(session_path) ? session_path : Dir::tmpdir
-
-        cache_path = "#{configuration.root_path}/tmp/cache/"
-        if File.exist?(cache_path)
-          ActionController::Base.fragment_cache_store = :file_store, cache_path
-        end
       end
     end
 
@@ -417,6 +409,9 @@ module Rails
     # specifically set the logger to use via this accessor and it will be
     # used directly.
     attr_accessor :logger
+
+    # The specific cache store to use. By default, the ActiveSupport::Cache::Store will be used.
+    attr_accessor :cache_store
 
     # The root of the application's views. (Defaults to <tt>app/views</tt>.)
     attr_accessor :view_path
@@ -646,6 +641,14 @@ module Rails
 
       def default_plugin_loader
         Plugin::Loader
+      end
+      
+      def default_cache_store
+        if File.exist?("#{root_path}/tmp/cache/")
+          [ :file_store, "#{root_path}/tmp/cache/" ]
+        else
+          :memory_store
+        end
       end
   end
 end

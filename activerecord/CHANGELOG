@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActiveRecord::Base.cache_key to make it easier to cache Active Records in combination with the new ActiveSupport::Cache::* libraries [DHH]
+
 * Make sure CSV fixtures are compatible with ruby 1.9's new csv implementation. [JEG2]
 
 * Added by parameter to increment, decrement, and their bang varieties so you can do player1.increment!(:points, 5) #10542 [Sam]

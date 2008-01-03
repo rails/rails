@@ -94,6 +94,8 @@ module ActiveSupport #:nodoc:
             value.to_query(namespace ? "#{namespace}[#{key}]" : key)
           end.sort * '&'
         end
+        
+        alias_method :to_param, :to_query
 
         def to_xml(options = {})
           options[:indent] ||= 2
