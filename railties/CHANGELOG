@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that rails:update is run when you do rails:freeze:edge to ensure you also get the latest JS and config files #10565 [jeff]
+
 * SQLite: db:drop:all doesn't fail silently if the database is already open.  #10577 [Cheah Chu Yeow, mrichman]
 
 * Introduce native mongrel handler and push mutex into dispatcher.  [Jeremy Kemper]
