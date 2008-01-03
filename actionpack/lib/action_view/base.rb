@@ -338,11 +338,13 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
           path, partial_name = partial_pieces(options.delete(:layout))
 
           if block_given?
-            @content_for_layout = capture(&block)
-            concat(render(options.merge(:partial => "#{path}/#{partial_name}")), block.binding)
+            wrap_content_for_layout capture(&block) do 
+              concat(render(options.merge(:partial => "#{path}/#{partial_name}")), block.binding)
+            end
           else
-            @content_for_layout = render(options)
-            render(options.merge(:partial => "#{path}/#{partial_name}"))
+            wrap_content_for_layout render(options) do
+              render(options.merge(:partial => "#{path}/#{partial_name}"))
+            end
           end
         elsif options[:file]
           render_file(options[:file], options[:use_full_path], options[:locals])
@@ -441,6 +443,12 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
     end
 
     private
+      def wrap_content_for_layout(content)
+        original_content_for_layout = @content_for_layout
+        @content_for_layout = content
+        returning(yield) { @content_for_layout = original_content_for_layout }
+      end
+  
       def find_full_template_path(template_path, extension)
         file_name = "#{template_path}.#{extension}"
         base_path = find_base_path_for(file_name)

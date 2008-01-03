@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed rendering of partials with layout when done from site layout #9209 [antramm]
+
 * Fix atom_feed_helper to comply with the atom spec.  Closes #10672 [xaviershay]
 
   * The tags created do not contain a date (http://feedvalidator.org/docs/error/InvalidTAG.html)
