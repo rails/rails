@@ -2052,28 +2052,28 @@ module ActiveRecord #:nodoc:
         save!
       end
 
-      # Initializes the +attribute+ to zero if nil and adds one. Only makes sense for number-based attributes. Returns self.
-      def increment(attribute)
+      # Initializes the +attribute+ to zero if nil and adds the value passed as +by+ (default is one). Only makes sense for number-based attributes. Returns self.
+      def increment(attribute, by = 1)
         self[attribute] ||= 0
-        self[attribute] += 1
+        self[attribute] += by
         self
       end
 
       # Increments the +attribute+ and saves the record.
-      def increment!(attribute)
-        increment(attribute).update_attribute(attribute, self[attribute])
+      def increment!(attribute, by = 1)
+        increment(attribute, by).update_attribute(attribute, self[attribute])
       end
 
-      # Initializes the +attribute+ to zero if nil and subtracts one. Only makes sense for number-based attributes. Returns self.
-      def decrement(attribute)
+      # Initializes the +attribute+ to zero if nil and subtracts the value passed as +by+ (default is one). Only makes sense for number-based attributes. Returns self.
+      def decrement(attribute, by = 1)
         self[attribute] ||= 0
-        self[attribute] -= 1
+        self[attribute] -= by
         self
       end
 
       # Decrements the +attribute+ and saves the record.
-      def decrement!(attribute)
-        decrement(attribute).update_attribute(attribute, self[attribute])
+      def decrement!(attribute, by = 1)
+        decrement(attribute, by).update_attribute(attribute, self[attribute])
       end
 
       # Turns an +attribute+ that's currently true into false and vice versa. Returns self.

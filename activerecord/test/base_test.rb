@@ -1275,6 +1275,15 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal 1, topics(:first).parent_id
   end
   
+  def test_increment_attribute_by
+    assert_equal 50, accounts(:signals37).credit_limit
+    accounts(:signals37).increment! :credit_limit, 5
+    assert_equal 55, accounts(:signals37, :reload).credit_limit    
+
+    accounts(:signals37).increment(:credit_limit, 1).increment!(:credit_limit, 3)
+    assert_equal 59, accounts(:signals37, :reload).credit_limit
+  end
+  
   def test_decrement_attribute
     assert_equal 50, accounts(:signals37).credit_limit
 
@@ -1283,6 +1292,15 @@ class BasicsTest < Test::Unit::TestCase
   
     accounts(:signals37).decrement(:credit_limit).decrement!(:credit_limit)
     assert_equal 47, accounts(:signals37, :reload).credit_limit
+  end
+  
+  def test_decrement_attribute_by
+    assert_equal 50, accounts(:signals37).credit_limit
+    accounts(:signals37).decrement! :credit_limit, 5
+    assert_equal 45, accounts(:signals37, :reload).credit_limit    
+
+    accounts(:signals37).decrement(:credit_limit, 1).decrement!(:credit_limit, 3)
+    assert_equal 41, accounts(:signals37, :reload).credit_limit
   end
   
   def test_toggle_attribute
