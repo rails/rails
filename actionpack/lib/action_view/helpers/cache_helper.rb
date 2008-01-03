@@ -32,7 +32,21 @@ module ActionView
       #      <i>Topics listed alphabetically</i>
       #    <% end %>
       def cache(name = {}, &block)
-        @controller.cache_erb_fragment(block, name)
+        template_extension = first_render[/\.(\w+)$/, 1].to_sym
+        case template_extension
+        when :erb, :rhtml
+          @controller.cache_erb_fragment(block, name)
+        when :rjs
+          @controller.cache_rjs_fragment(block, name)
+        when :builder, :rxml
+          @controller.cache_rxml_fragment(block, name)
+        else
+          # do a last ditch effort for those brave souls using
+          # different template engines. This should give plugin
+          # writters a simple hook.
+          raise "fragment caching not supported for #{template_extension} files." unless @controller.respond_to?("cache_#{template_extension}_fragment")
+          @controller.send "cache_#{template_extension}_fragment", block, name
+        end
       end
     end
   end

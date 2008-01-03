@@ -371,11 +371,10 @@ module ActionController #:nodoc:
         name.is_a?(Hash) ? url_for(name).split("://").last : name
       end
 
-      # Called by CacheHelper#cache
-      def cache_erb_fragment(block, name = {}, options = nil)
+      def fragment_for(block, name = {}, options = nil) #:nodoc:
         unless perform_caching then block.call; return end
 
-        buffer = eval(ActionView::Base.erb_variable, block.binding)
+        buffer = yield
 
         if cache = read_fragment(name, options)
           buffer.concat(cache)
@@ -385,6 +384,33 @@ module ActionController #:nodoc:
           write_fragment(name, buffer[pos..-1], options)
         end
       end
+
+      # Called by CacheHelper#cache
+      def cache_rxml_fragment(block, name = {}, options = nil) #:nodoc:
+        fragment_for(block, name, options) do
+          eval('xml.target!', block.binding)
+        end
+      end
+      
+      # Called by CacheHelper#cache
+      def cache_rjs_fragment(block, name = {}, options = nil) #:nodoc:
+        fragment_for(block, name, options) do
+          begin
+            debug_mode, ActionView::Base.debug_rjs = ActionView::Base.debug_rjs, false
+            eval('page.to_s', block.binding)
+          ensure
+            ActionView::Base.debug_rjs = debug_mode
+          end
+        end
+      end
+      
+      # Called by CacheHelper#cache
+      def cache_erb_fragment(block, name = {}, options = nil) #:nodoc:
+        fragment_for(block, name, options) do
+          eval(ActionView::Base.erb_variable, block.binding)
+        end
+      end
+
 
       # Writes <tt>content</tt> to the location signified by <tt>name</tt> (see <tt>expire_fragment</tt> for acceptable formats)
       def write_fragment(name, content, options = nil)
