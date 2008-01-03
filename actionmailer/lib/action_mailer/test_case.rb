@@ -33,7 +33,7 @@ module ActionMailer
       end
     end
 
-    def setup
+    def setup_with_mailer
       ActionMailer::Base.delivery_method = :test
       ActionMailer::Base.perform_deliveries = true
       ActionMailer::Base.deliveries = []
@@ -41,6 +41,19 @@ module ActionMailer
       @expected = TMail::Mail.new
       @expected.set_content_type "text", "plain", { "charset" => charset }
       @expected.mime_version = '1.0'
+    end
+    alias_method :setup, :setup_with_mailer
+
+    def self.method_added(method)
+      if method.to_s == 'setup'
+        unless method_defined?(:setup_without_mailer)
+          alias_method :setup_without_mailer, :setup
+          define_method(:setup) do
+            setup_with_mailer
+            setup_without_mailer
+          end
+        end
+      end
     end
 
     private
