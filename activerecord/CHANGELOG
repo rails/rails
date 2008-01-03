@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure CSV fixtures are compatible with ruby 1.9's new csv implementation. [JEG2]
+
 * Added by parameter to increment, decrement, and their bang varieties so you can do player1.increment!(:points, 5) #10542 [Sam]
 
 * Optimize ActiveRecord::Base#exists? to use #select_all instead of #find.  Closes #10605 [jamesh, fcheung, protocool]

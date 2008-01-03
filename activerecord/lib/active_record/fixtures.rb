@@ -717,7 +717,7 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
     end
 
     def read_csv_fixture_files
-      reader = CSV::Reader.create(erb_render(IO.read(csv_file_path)))
+      reader = CSV.parse(erb_render(IO.read(csv_file_path)))
       header = reader.shift
       i = 0
       reader.each do |row|
