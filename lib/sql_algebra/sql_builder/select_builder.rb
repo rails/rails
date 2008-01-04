@@ -7,7 +7,6 @@ class SelectBuilder < SqlBuilder
     @table = table
     @joins = JoinsBuilder.new(&block)
   end
-  delegate :inner_join, :left_outer_join, :to => :@joins
   
   def where(&block)
     @conditions ||= ConditionsBuilder.new
