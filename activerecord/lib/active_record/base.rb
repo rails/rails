@@ -680,8 +680,8 @@ module ActiveRecord #:nodoc:
         sql  = "UPDATE #{table_name} SET #{sanitize_sql_for_assignment(updates)} "
         scope = scope(:find)
         add_conditions!(sql, conditions, scope)
-        add_order!(sql, options[:order], scope)
-        add_limit!(sql, options, scope)
+        add_order!(sql, options[:order], nil)
+        add_limit!(sql, options, nil)
         connection.update(sql, "#{name} Update")
       end
 

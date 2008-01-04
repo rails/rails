@@ -596,6 +596,13 @@ class BasicsTest < Test::Unit::TestCase
     end
   end
 
+  def test_update_all_ignores_order_limit_from_association
+    author = Author.find(1)
+    assert_nothing_raised do
+      assert_equal author.posts_with_comments_and_categories.length, author.posts_with_comments_and_categories.update_all("body = 'bulk update!'")
+    end
+  end
+
   def test_update_many
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
     updated = Topic.update(topic_data.keys, topic_data.values)
