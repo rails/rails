@@ -487,6 +487,22 @@ module ActiveRecord
     # When eager loaded, conditions are interpolated in the context of the model class, not the model instance.  Conditions are lazily interpolated
     # before the actual model exists.
     #
+    # Eager loading is not possible with polymorphic associations. Given
+    #
+    #   class Address < ActiveRecord::Base
+    #     belongs_to :addressable, :polymorphic => true
+    #   end
+    #
+    # a call that tries to eager load the addressable model
+    #
+    #   Address.find(:all, :include => :addressable)   # INVALID
+    #
+    # will raise <tt>ActiveRecord::EagerLoadPolymorphicError</tt>. The reason is that the parent model's type
+    # is a column value so its corresponding table name cannot be put in the FROM/JOIN clauses of that early query.
+    #
+    # It does work the other way around though: if the <tt>User</tt> model is <tt>addressable</tt> you can eager load
+    # their addresses with <tt>:include</tt> just fine, every piece needed to construct the query is known beforehand.
+    #
     # == Table Aliasing
     #
     # ActiveRecord uses table aliasing in the case that a table is referenced multiple times in a join.  If a table is referenced only once,
@@ -783,6 +799,7 @@ module ActiveRecord
       #   a column name instead of a +true+/+false+ value to this option (e.g., <tt>:counter_cache => :my_custom_counter</tt>.)
       #   Note: Specifying a counter_cache will add it to that model's list of readonly attributes using #attr_readonly.
       # * <tt>:include</tt>  - specify second-order associations that should be eager loaded when this object is loaded.
+      #   Not allowed if the association is polymorphic.
       # * <tt>:polymorphic</tt> - specify this association is a polymorphic association by passing +true+.
       #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute
       #   to the attr_readonly list in the associated classes (e.g. class Post; attr_readonly :comments_count; end).
