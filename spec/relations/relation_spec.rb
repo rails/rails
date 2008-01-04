@@ -30,10 +30,6 @@ describe Relation do
     it "manufactures a range relation when given a range" do
       @relation1[1..2].should == RangeRelation.new(@relation1, 1..2)
     end
-    
-    it "raises an error if the named attribute is not part of the relation" do
-      pending
-    end
   end
   
   describe Relation, '#include?' do
@@ -43,10 +39,6 @@ describe Relation do
   end
   
   describe Relation, '#project' do
-    it "only allows projecting attributes in the relation" do
-      pending
-    end
-    
     it "collapses identical projections" do
       pending
     end

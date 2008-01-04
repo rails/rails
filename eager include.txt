@@ -1,0 +1,49 @@
+User.find( :all, :include => { :photos => :camera } )
+
+User.reflection[:photos].klass.reflection[:camera]
+
+users_photos_camera = User.relation << User.reflections[:photos].relation << Photo.reflections[:camera].relation
+
+users_photos_camera.each do |record|
+  User.bring_forth(record, :photos => :camera)
+end
+
+def User.bring_forth(record, included = { :photos => :camera })
+  user = @cache[ record % 'users.id' ] || User.instantiate(record % User.attributes)
+  user.photos.bring_forth(record, :camera)
+end
+
+def User.photos.bring_forth(record, included = :camera)
+  photo = @cache[ record % 'photos.id' ] || Photo.instantiate(record % Photo.attributes)
+  photo.camera.bring_forth(record)
+end
+
+def User.photos.camera.bring_forth(record, included = nil)
+  camera = @cache [ record % 'cameras.id' ] || Camera.instantiate(record % Camera.attributes)
+end
+
+###########################
+
+# first, rename the attributes to remove ambiguity (analogous to c0_t0 stuff)
+eager_loaded_user_cameras = @user_cameras.rename(
+  @user.attributes => @user.attributes.prefixed,
+  @photos.attributes => ...,
+  @cameras.attributes => ...,
+)
+
+# second, bring forth!!
+class Repository
+  def bring_forth(record, includes = [])
+    object = cache.get(record % klass.primary_key) { Klass.instantiate(record % Klass.attributes) }
+    includes.each do |include|
+      case include
+        when Symbol
+          object.send(association = include).bring_forth(record)
+        when Hash
+          include.each do |association, nested_associations|
+            object.send(association).bring_forth(record, nested_associations)
+          end
+      end
+    end
+  end
+end

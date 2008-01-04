@@ -4,8 +4,8 @@ describe ProjectionRelation do
   before do
     @relation1 = TableRelation.new(:foo)
     @relation2 = TableRelation.new(:bar)
-    @attribute1 = @relation1[:foo]
-    @attribute2 = @relation2[:bar]
+    @attribute1 = @relation1[:id]
+    @attribute2 = @relation2[:id]
   end
   
   describe '==' do
@@ -18,12 +18,12 @@ describe ProjectionRelation do
   
   describe '#to_sql' do
     it "manufactures sql with a limited select clause" do
-      ProjectionRelation.new(@relation1, @attribute1).to_sql.should == SelectBuilder.new do
+      ProjectionRelation.new(@relation1, @attribute1).to_sql.to_s.should == SelectBuilder.new do
         select do
-          column :foo, :foo
+          column :foo, :id
         end
         from :foo
-      end
+      end.to_s
     end
   end
 end

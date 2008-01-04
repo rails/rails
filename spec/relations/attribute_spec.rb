@@ -57,6 +57,7 @@ describe Attribute do
     end
   end
   
+  
   describe '#to_sql' do
     it "manufactures a column" do
       Attribute.new(@relation1, :attribute_name, :alias).to_sql.should == SelectsBuilder.new do

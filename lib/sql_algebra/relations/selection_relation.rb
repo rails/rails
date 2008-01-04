@@ -1,4 +1,4 @@
-class SelectionRelation < Relation
+class SelectionRelation < CompoundRelation
   attr_reader :relation, :predicate
   
   def initialize(relation, *predicates)
@@ -10,13 +10,7 @@ class SelectionRelation < Relation
     relation == other.relation and predicate == other.predicate
   end
   
-  def to_sql(builder = SelectBuilder.new)
-    relation.to_sql(builder).call do
-      where do
-        predicate.to_sql(self)
-      end
-    end
+  def selects
+    [predicate]
   end
-  
-  delegate :[], :to => :relation
 end

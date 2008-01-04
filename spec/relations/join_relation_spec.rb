@@ -4,7 +4,7 @@ describe 'between two relations' do
   before do
     @relation1 = TableRelation.new(:foo)
     @relation2 = TableRelation.new(:bar)
-    @predicate = EqualityPredicate.new(@relation1[:a], @relation2[:b])
+    @predicate = EqualityPredicate.new(@relation1[:id], @relation2[:id])
   end
   
   describe '==' do
@@ -20,9 +20,9 @@ describe 'between two relations' do
   
   describe '#to_sql' do
     before do
-      @relation1 = @relation1.select(@relation1[:c] == @relation2[:d])
+      @relation1 = @relation1.select(@relation1[:id] == @relation2[:foo_id])
       class ConcreteJoinRelation < JoinRelation
-        def join_name
+        def join_type
           :inner_join
         end
       end
@@ -30,19 +30,25 @@ describe 'between two relations' do
     
     it 'manufactures sql joining the two tables on the predicate, merging the selects' do
       ConcreteJoinRelation.new(@relation1, @relation2, @predicate).to_sql.to_s.should == SelectBuilder.new do
-        select { all }
+        select do
+          column :foo, :name
+          column :foo, :id
+          column :bar, :name
+          column :bar, :foo_id
+          column :bar, :id
+        end
         from :foo do
           inner_join :bar do
             equals do
-              column :foo, :a
-              column :bar, :b
+              column :foo, :id
+              column :bar, :id
             end
           end
         end
         where do
           equals do
-            column :foo, :c
-            column :bar, :d
+            column :foo, :id
+            column :bar, :foo_id
           end
         end
       end.to_s

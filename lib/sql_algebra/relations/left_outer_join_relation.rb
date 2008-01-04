@@ -1,5 +1,5 @@
 class LeftOuterJoinRelation < JoinRelation
-  def join_name
+  def join_type
     :left_outer_join
   end
 end

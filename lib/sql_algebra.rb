@@ -1,8 +1,10 @@
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'rubygems'
-require 'active_support'
+require 'activesupport'
+require 'activerecord'
 
 require 'sql_algebra/relations/relation'
+require 'sql_algebra/relations/compound_relation'
 require 'sql_algebra/relations/table_relation'
 require 'sql_algebra/relations/join_operation'
 require 'sql_algebra/relations/inner_join_operation'
@@ -15,6 +17,7 @@ require 'sql_algebra/relations/projection_relation'
 require 'sql_algebra/relations/selection_relation'
 require 'sql_algebra/relations/order_relation'
 require 'sql_algebra/relations/range_relation'
+require 'sql_algebra/relations/join'
 
 require 'sql_algebra/predicates/predicate'
 require 'sql_algebra/predicates/binary_predicate'
@@ -30,7 +33,6 @@ require 'sql_algebra/predicates/match_predicate'
 require 'sql_algebra/extensions/range'
 require 'sql_algebra/extensions/object'
 
-require 'sql_algebra/sql_builder/sql_builder_adapter'
 require 'sql_algebra/sql_builder/sql_builder'
 require 'sql_algebra/sql_builder/select_builder'
 require 'sql_algebra/sql_builder/joins_builder'

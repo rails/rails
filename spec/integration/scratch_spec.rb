@@ -2,27 +2,17 @@ require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
 describe 'Relational Algebra' do
   before do
-    User = TableRelation.new(:users)
-    Photo = TableRelation.new(:photos)
-    Camera = TableRelation.new(:cameras)
-    user = User.select(User[:id] == 1)
-    @user_photos = (user << Photo).on(user[:id] == Photo[:user_id])
+    @users = TableRelation.new(:users)
+    @photos = TableRelation.new(:photos)
+    @cameras = TableRelation.new(:cameras)
+    @user = @users.select(@users[:id] == 1)
+    @user_photos = (@user << @photos).on(@user[:id] == @photos[:user_id])
+    @user_cameras = (@user_photos << @cameras).on(@user_photos[:camera_id] == @cameras[:id])
   end
   
   it 'simulates User.has_many :photos' do
-    @user_photos.to_sql.should == SelectBuilder.new do
-      select { all }
-      from :users do
-        left_outer_join :photos do
-          equals { column :users, :id; column :photos, :user_id }
-        end
-      end
-      where do
-        equals { column :users, :id; value 1 }
-      end
-    end
-    @user_photos.to_sql.to_s.should be_like("""
-      SELECT *
+    @user_photos.project(*@photos.attributes).to_sql.to_s.should be_like("""
+      SELECT photos.id, photos.user_id, photos.camera_id
       FROM users
         LEFT OUTER JOIN photos
           ON users.id = photos.user_id
@@ -31,7 +21,16 @@ describe 'Relational Algebra' do
     """)
   end
   
-  it 'simulating a User.has_many :cameras :through => :photos' do
-    user_cameras = (@user_photos << Camera).on(@user_photos[:camera_id] == Camera[:id])
+  it 'simulates a User.has_many :cameras :through => :photos' do
+    @user_cameras.project(*@cameras.attributes).to_sql.to_s.should be_like("""
+      SELECT cameras.id
+      FROM users
+        LEFT OUTER JOIN photos
+          ON users.id = photos.user_id
+        LEFT OUTER JOIN cameras
+          ON photos.camera_id = cameras.id
+      WHERE
+        users.id = 1
+    """)
   end
 end
