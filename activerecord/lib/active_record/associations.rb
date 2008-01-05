@@ -130,7 +130,7 @@ module ActiveRecord
     #   #others<<                         |   X   |    X     |    X
     #   #others.push                      |   X   |    X     |    X
     #   #others.concat                    |   X   |    X     |    X
-    #   #others.build(attributes={})      |   X   |    X     |    X
+    #   #others.build(attributes={})      |   X   |    X     |
     #   #others.create(attributes={})     |   X   |    X     |
     #   #others.create!(attributes={})    |   X   |    X     |    X
     #   #others.size                      |   X   |    X     |    X
