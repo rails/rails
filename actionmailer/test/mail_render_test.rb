@@ -1,4 +1,4 @@
-require "#{File.dirname(__FILE__)}/abstract_unit"
+require 'abstract_unit'
 
 class RenderMailer < ActionMailer::Base
   def inline_template(recipient)
