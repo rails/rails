@@ -54,8 +54,6 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       m.template('layout.html.erb', File.join('app/views/layouts', controller_class_path, "#{controller_file_name}.html.erb"))
       m.template('style.css', 'public/stylesheets/scaffold.css')
 
-      m.dependency 'model', [name] + @args, :collision => :skip
-
       m.template(
         'controller.rb', File.join('app/controllers', controller_class_path, "#{controller_file_name}_controller.rb")
       )
@@ -64,6 +62,8 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       m.template('helper.rb',          File.join('app/helpers',     controller_class_path, "#{controller_file_name}_helper.rb"))
 
       m.route_resources controller_file_name
+
+      m.dependency 'model', [name] + @args, :collision => :skip
     end
   end
 
