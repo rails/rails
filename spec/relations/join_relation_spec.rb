@@ -1,6 +1,6 @@
 require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
-describe 'between two relations' do
+describe JoinRelation do
   before do
     @relation1 = TableRelation.new(:foo)
     @relation2 = TableRelation.new(:bar)
@@ -15,6 +15,13 @@ describe 'between two relations' do
   
     it 'is commutative on the relations' do
       JoinRelation.new(@relation1, @relation2, @predicate).should == JoinRelation.new(@relation2, @relation1, @predicate)
+    end
+  end
+  
+  describe '#qualify' do
+    it 'distributes over the relations and predicates' do
+      JoinRelation.new(@relation1, @relation2, @predicate).qualify. \
+        should == JoinRelation.new(@relation1.qualify, @relation2.qualify, @predicate.qualify)
     end
   end
   

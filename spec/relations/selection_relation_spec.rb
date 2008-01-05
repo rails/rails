@@ -27,7 +27,7 @@ describe SelectionRelation do
   end
   
   describe '#qualify' do
-    it "manufactures a selection relation with qualified predicates and qualified relation" do
+    it "distributes over the relation and predicates" do
       SelectionRelation.new(@relation1, @predicate1).qualify. \
         should == SelectionRelation.new(@relation1.qualify, @predicate1.qualify)
     end

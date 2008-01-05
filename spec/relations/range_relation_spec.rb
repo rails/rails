@@ -17,7 +17,7 @@ describe RangeRelation do
   end
   
   describe '#qualify' do
-    it "manufactures a range relation with a qualified relation and a qualified range" do
+    it "distributes over the relation and attributes" do
       pending
     end
   end

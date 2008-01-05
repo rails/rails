@@ -17,7 +17,7 @@ describe ProjectionRelation do
   end
   
   describe '#qualify' do
-    it "manufactures a projection relation with qualified attributes and qualified relation" do
+    it "distributes over teh relation and attributes" do
       ProjectionRelation.new(@relation1, @attribute1).qualify. \
         should == ProjectionRelation.new(@relation1.qualify, @attribute1.qualify)
     end

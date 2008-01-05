@@ -17,7 +17,7 @@ describe OrderRelation do
   end
   
   describe '#qualify' do
-    it "manufactures an order relation with qualified attributes and qualified relation" do
+    it "distributes over the relation and attributes" do
       OrderRelation.new(@relation1, @attribute1).qualify. \
         should == OrderRelation.new(@relation1.qualify, @attribute1.qualify)
     end

@@ -12,10 +12,6 @@ describe RenameRelation do
         should == RenameRelation.new(RenameRelation.new(@relation, @relation[:id] => :humpty), @relation[:name] => :dumpty)
     end
 
-    it "make this test less brittle wrt/ hash order" do
-      pending
-    end
-    
     it "raises an exception if the alias provided is already used" do
       pending
     end
@@ -48,7 +44,7 @@ describe RenameRelation do
   end
   
   describe '#qualify' do
-    it "manufactures a rename relation with an identical attribute and alias, but with a qualified relation" do
+    it "distributes over the relation and renames" do
       RenameRelation.new(@relation, @relation[:id] => :schmid).qualify. \
         should == RenameRelation.new(@relation.qualify, @relation[:id].qualify => :schmid)
     end

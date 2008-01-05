@@ -32,7 +32,7 @@ describe BinaryPredicate do
   end
   
   describe '#qualify' do
-    it "manufactures an equality predicate with qualified attributes" do
+    it "distributes over the predicates and attributes" do
       ConcreteBinaryPredicate.new(@attribute1, @attribute2).qualify. \
         should == ConcreteBinaryPredicate.new(@attribute1.qualify, @attribute2.qualify)
     end
