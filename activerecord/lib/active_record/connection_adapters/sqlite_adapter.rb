@@ -192,7 +192,7 @@ module ActiveRecord
       end
 
       def indexes(table_name, name = nil) #:nodoc:
-        execute("PRAGMA index_list(#{table_name})", name).map do |row|
+        execute("PRAGMA index_list(#{quote_table_name(table_name)})", name).map do |row|
           index = IndexDefinition.new(table_name, row['name'])
           index.unique = row['unique'] != '0'
           index.columns = execute("PRAGMA index_info('#{index.name}')").map { |col| col['name'] }
@@ -265,7 +265,7 @@ module ActiveRecord
         end
 
         def table_structure(table_name)
-          returning structure = execute("PRAGMA table_info(#{table_name})") do
+          returning structure = execute("PRAGMA table_info(#{quote_table_name(table_name)})") do
             raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
           end
         end
@@ -340,8 +340,9 @@ module ActiveRecord
           columns = columns.find_all{|col| from_columns.include?(column_mappings[col])}
           quoted_columns = columns.map { |col| quote_column_name(col) } * ','
 
-          @connection.execute "SELECT * FROM #{from}" do |row|
-            sql = "INSERT INTO #{to} (#{quoted_columns}) VALUES ("
+          quoted_to = quote_table_name(to)
+          @connection.execute "SELECT * FROM #{quote_table_name(from)}" do |row|
+            sql = "INSERT INTO #{quoted_to} (#{quoted_columns}) VALUES ("
             sql << columns.map {|col| quote row[column_mappings[col]]} * ', '
             sql << ')'
             @connection.execute sql

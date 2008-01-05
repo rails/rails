@@ -351,4 +351,8 @@ ActiveRecord::Schema.define do
     t.datetime :updated_at
     t.datetime :updated_on
   end
+
+  create_table 'warehouse-things', :force => true do |t|
+    t.integer :value
+  end
 end

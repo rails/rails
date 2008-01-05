@@ -100,7 +100,7 @@ module ActiveRecord
             end
 
             sql =
-              "INSERT INTO #{@reflection.options[:join_table]} (#{@owner.send(:quoted_column_names, attributes).join(', ')}) " +
+              "INSERT INTO #{@owner.connection.quote_table_name @reflection.options[:join_table]} (#{@owner.send(:quoted_column_names, attributes).join(', ')}) " +
               "VALUES (#{attributes.values.join(', ')})"
 
             @owner.connection.execute(sql)
@@ -114,7 +114,7 @@ module ActiveRecord
             records.each { |record| @owner.connection.execute(interpolate_sql(sql, record)) }
           else
             ids = quoted_record_ids(records)
-            sql = "DELETE FROM #{@reflection.options[:join_table]} WHERE #{@reflection.primary_key_name} = #{@owner.quoted_id} AND #{@reflection.association_foreign_key} IN (#{ids})"
+            sql = "DELETE FROM #{@owner.connection.quote_table_name @reflection.options[:join_table]} WHERE #{@reflection.primary_key_name} = #{@owner.quoted_id} AND #{@reflection.association_foreign_key} IN (#{ids})"
             @owner.connection.execute(sql)
           end
         end
@@ -125,11 +125,11 @@ module ActiveRecord
           if @reflection.options[:finder_sql]
             @finder_sql = @reflection.options[:finder_sql]
           else
-            @finder_sql = "#{@reflection.options[:join_table]}.#{@reflection.primary_key_name} = #{@owner.quoted_id} "
+            @finder_sql = "#{@owner.connection.quote_table_name @reflection.options[:join_table]}.#{@reflection.primary_key_name} = #{@owner.quoted_id} "
             @finder_sql << " AND (#{conditions})" if conditions
           end
 
-          @join_sql = "INNER JOIN #{@reflection.options[:join_table]} ON #{@reflection.klass.table_name}.#{@reflection.klass.primary_key} = #{@reflection.options[:join_table]}.#{@reflection.association_foreign_key}"
+          @join_sql = "INNER JOIN #{@owner.connection.quote_table_name @reflection.options[:join_table]} ON #{@reflection.quoted_table_name}.#{@reflection.klass.primary_key} = #{@owner.connection.quote_table_name @reflection.options[:join_table]}.#{@reflection.association_foreign_key}"
         end
 
         def construct_scope

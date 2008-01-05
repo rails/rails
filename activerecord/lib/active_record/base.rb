@@ -677,7 +677,7 @@ module ActiveRecord #:nodoc:
       #   Billing.update_all( "author = 'David'", "title LIKE '%Rails%'",
       #                         :order => 'created_at', :limit => 5 )
       def update_all(updates, conditions = nil, options = {})
-        sql  = "UPDATE #{table_name} SET #{sanitize_sql_for_assignment(updates)} "
+        sql  = "UPDATE #{quoted_table_name} SET #{sanitize_sql_for_assignment(updates)} "
         scope = scope(:find)
         add_conditions!(sql, conditions, scope)
         add_order!(sql, options[:order], nil)

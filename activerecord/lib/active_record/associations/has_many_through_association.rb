@@ -121,7 +121,7 @@ module ActiveRecord
         column_name, options = @reflection.klass.send(:construct_count_options_from_args, *args)
         if @reflection.options[:uniq]
           # This is needed because 'SELECT count(DISTINCT *)..' is not valid sql statement.
-          column_name = "#{@reflection.klass.table_name}.#{@reflection.klass.primary_key}" if column_name == :all
+          column_name = "#{@reflection.quoted_table_name}.#{@reflection.klass.primary_key}" if column_name == :all
           options.merge!(:distinct => true) 
         end
         @reflection.klass.send(:with_scope, construct_scope) { @reflection.klass.count(column_name, options) } 
@@ -185,7 +185,7 @@ module ActiveRecord
 
         # Build SQL conditions from attributes, qualified by table name.
         def construct_conditions
-          table_name = @reflection.through_reflection.table_name
+          table_name = @reflection.through_reflection.quoted_table_name
           conditions = construct_quoted_owner_attributes(@reflection.through_reflection).map do |attr, value|
             "#{table_name}.#{attr} = #{value}"
           end
@@ -194,11 +194,11 @@ module ActiveRecord
         end
 
         def construct_from
-          @reflection.table_name
+          @reflection.quoted_table_name
         end
 
         def construct_select(custom_select = nil)
-          selected = custom_select || @reflection.options[:select] || "#{@reflection.table_name}.*"
+          selected = custom_select || @reflection.options[:select] || "#{@reflection.quoted_table_name}.*"
         end
 
         def construct_joins(custom_joins = nil)
@@ -208,7 +208,7 @@ module ActiveRecord
             source_primary_key     = @reflection.source_reflection.primary_key_name
             if @reflection.options[:source_type]
               polymorphic_join = "AND %s.%s = %s" % [
-                @reflection.through_reflection.table_name, "#{@reflection.source_reflection.options[:foreign_type]}",
+                @reflection.through_reflection.quoted_table_name, "#{@reflection.source_reflection.options[:foreign_type]}",
                 @owner.class.quote_value(@reflection.options[:source_type])
               ]
             end
@@ -217,7 +217,7 @@ module ActiveRecord
             source_primary_key     = @reflection.klass.primary_key
             if @reflection.source_reflection.options[:as]
               polymorphic_join = "AND %s.%s = %s" % [
-                @reflection.table_name, "#{@reflection.source_reflection.options[:as]}_type",
+                @reflection.quoted_table_name, "#{@reflection.source_reflection.options[:as]}_type",
                 @owner.class.quote_value(@reflection.through_reflection.klass.name)
               ]
             end
@@ -246,7 +246,7 @@ module ActiveRecord
             when @reflection.options[:finder_sql]
               @finder_sql = interpolate_sql(@reflection.options[:finder_sql])
 
-              @finder_sql = "#{@reflection.klass.table_name}.#{@reflection.primary_key_name} = #{@owner.quoted_id}"
+              @finder_sql = "#{@reflection.quoted_table_name}.#{@reflection.primary_key_name} = #{@owner.quoted_id}"
               @finder_sql << " AND (#{conditions})" if conditions
           end
 
@@ -286,7 +286,7 @@ module ActiveRecord
         end
 
         def build_sti_condition
-          "#{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.klass.inheritance_column} = #{@reflection.klass.quote_value(@reflection.through_reflection.klass.name.demodulize)}"
+          "#{@reflection.through_reflection.quoted_table_name}.#{@reflection.through_reflection.klass.inheritance_column} = #{@reflection.klass.quote_value(@reflection.through_reflection.klass.name.demodulize)}"
         end
 
         alias_method :sql_conditions, :conditions

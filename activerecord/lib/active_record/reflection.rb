@@ -129,6 +129,10 @@ module ActiveRecord
         @table_name ||= klass.table_name
       end
 
+      def quoted_table_name
+        @quoted_table_name ||= klass.quoted_table_name
+      end
+
       def primary_key_name
         @primary_key_name ||= options[:foreign_key] || derive_primary_key_name
       end

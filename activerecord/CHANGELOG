@@ -1,5 +1,7 @@
 *SVN*
 
+* More thoroughly quote table names.  #10698 [dimdenis, lotswholetime, Jeremy Kemper]
+
 * update_all ignores scoped :order and :limit, so post.comments.update_all doesn't try to include the comment order in the update statement.  #10686 [Brendan Ribera]
 
 * Added ActiveRecord::Base.cache_key to make it easier to cache Active Records in combination with the new ActiveSupport::Cache::* libraries [DHH]

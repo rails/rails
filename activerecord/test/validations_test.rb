@@ -3,6 +3,7 @@ require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/person'
 require 'fixtures/developer'
+require 'fixtures/warehouse_thing'
 
 # The following methods in Topic are used in test_conditional_validation_*
 class Topic
@@ -54,7 +55,7 @@ class Thaumaturgist < IneptWizard
 end
 
 class ValidationsTest < ActiveSupport::TestCase
-  fixtures :topics, :developers
+  fixtures :topics, :developers, 'warehouse-things'
 
   def setup
     Topic.write_inheritable_attribute(:validate, nil)
@@ -434,6 +435,13 @@ class ValidationsTest < ActiveSupport::TestCase
     assert t2.valid?, "should validate with nil"
     assert t2.save, "should save with nil"
   end
+
+  def test_validate_uniqueness_with_non_standard_table_names
+    i1 = WarehouseThing.create(:value => 1000)
+    assert !i1.valid?, "i1 should not be valid"
+    assert i1.errors.on(:value), "Should not be empty"
+  end
+
 
   def test_validate_straight_inheritance_uniqueness
     w1 = IneptWizard.create(:name => "Rincewind", :city => "Ankh-Morpork")

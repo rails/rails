@@ -12,6 +12,7 @@ require 'fixtures/subscriber'
 require 'fixtures/keyboard'
 require 'fixtures/post'
 require 'fixtures/minimalistic'
+require 'fixtures/warehouse_thing'
 require 'rexml/document'
 
 class Category < ActiveRecord::Base; end
@@ -71,7 +72,7 @@ class TopicWithProtectedContentAndAccessibleAuthorName < ActiveRecord::Base
 end
 
 class BasicsTest < ActiveSupport::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things'
 
   def test_table_exists
     assert !NonExistentTable.table_exists?
@@ -588,6 +589,11 @@ class BasicsTest < ActiveSupport::TestCase
     assert_equal "bulk updated with hash!", Topic.find(2).content
     assert_nil Topic.find(1).last_read
     assert_nil Topic.find(2).last_read
+  end
+
+  def test_update_all_with_non_standard_table_name
+    assert_equal 1, WarehouseThing.update_all(['value = ?', 0], ['id = ?', 1])
+    assert_equal 0, WarehouseThing.find(1).value
   end
 
   if current_adapter?(:MysqlAdapter)

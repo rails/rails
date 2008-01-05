@@ -529,8 +529,10 @@ module ActiveRecord
         end
         if pk
           if sequence
+            quoted_sequence = quote_column_name(sequence)
+
             select_value <<-end_sql, 'Reset sequence'
-              SELECT setval('#{sequence}', (SELECT COALESCE(MAX(#{pk})+(SELECT increment_by FROM #{sequence}), (SELECT min_value FROM #{sequence})) FROM #{table}), false)
+              SELECT setval('#{sequence}', (SELECT COALESCE(MAX(#{pk})+(SELECT increment_by FROM #{quoted_sequence}), (SELECT min_value FROM #{quoted_sequence})) FROM #{quote_table_name(table)}), false)
             end_sql
           else
             @logger.warn "#{table} has primary key #{pk} with no default sequence" if @logger
@@ -591,7 +593,7 @@ module ActiveRecord
         notnull = options[:null] == false
 
         # Add the column.
-        execute("ALTER TABLE #{table_name} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit])}")
+        execute("ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit])}")
 
         change_column_default(table_name, column_name, default) if options_include_default?(options)
         change_column_null(table_name, column_name, false, default) if notnull
@@ -599,14 +601,16 @@ module ActiveRecord
 
       # Changes the column of a table.
       def change_column(table_name, column_name, type, options = {})
+        quoted_table_name = quote_table_name(table_name)
+
         begin
-          execute "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+          execute "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
         rescue ActiveRecord::StatementInvalid
           # This is PostgreSQL 7.x, so we have to use a more arcane way of doing it.
           begin_db_transaction
           tmp_column_name = "#{column_name}_ar_tmp"
           add_column(table_name, tmp_column_name, type, options)
-          execute "UPDATE #{table_name} SET #{quote_column_name(tmp_column_name)} = CAST(#{quote_column_name(column_name)} AS #{type_to_sql(type, options[:limit], options[:precision], options[:scale])})"
+          execute "UPDATE #{quoted_table_name} SET #{quote_column_name(tmp_column_name)} = CAST(#{quote_column_name(column_name)} AS #{type_to_sql(type, options[:limit], options[:precision], options[:scale])})"
           remove_column(table_name, column_name)
           rename_column(table_name, tmp_column_name, column_name)
           commit_db_transaction
@@ -618,19 +622,19 @@ module ActiveRecord
 
       # Changes the default value of a table column.
       def change_column_default(table_name, column_name, default)
-        execute "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote(default)}"
+        execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote(default)}"
       end
 
       def change_column_null(table_name, column_name, null, default = nil)
         unless null || default.nil?
-          execute("UPDATE #{table_name} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+          execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
-        execute("ALTER TABLE #{table_name} ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL")
+        execute("ALTER TABLE #{quote_table_name(table_name)} ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL")
       end
 
       # Renames a column in a table.
       def rename_column(table_name, column_name, new_column_name)
-        execute "ALTER TABLE #{table_name} RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
+        execute "ALTER TABLE #{quote_table_name(table_name)} RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
       end
 
       # Drops an index from a table.
