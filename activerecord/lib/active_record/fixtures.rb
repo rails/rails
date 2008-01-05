@@ -644,8 +644,16 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
     end
 
     def model_class
-      @model_class ||= @class_name.is_a?(Class) ?
-        @class_name : @class_name.constantize rescue nil
+      unless defined?(@model_class)
+        @model_class =
+          if @class_name.nil? || @class_name.is_a?(Class)
+            @class_name
+          else
+            @class_name.constantize rescue nil
+          end
+      end
+
+      @model_class
     end
 
     def primary_key_name
