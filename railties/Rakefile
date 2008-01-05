@@ -28,7 +28,7 @@ task :default => :test
 ## we can see the failures
 task :test do 
   Dir['test/**/*_test.rb'].all? do |file|
-    system("ruby #{file}")
+    system("ruby -Itest #{file}")
   end or raise "Failures"
 end
 

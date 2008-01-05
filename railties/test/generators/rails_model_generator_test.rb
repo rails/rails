@@ -50,7 +50,7 @@ Dir.mkdir(RAILS_ROOT) unless File.exist?(RAILS_ROOT)
 
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
 require 'rails_generator'
-require "#{File.dirname(__FILE__)}/generator_test_helper"
+require 'generators/generator_test_helper'
 
 class RailsModelGeneratorTest < Test::Unit::TestCase
   include GeneratorTestHelper
