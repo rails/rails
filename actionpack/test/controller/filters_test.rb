@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require 'abstract_unit'
 
 # FIXME: crashes Ruby 1.9
 class FilterTest < Test::Unit::TestCase

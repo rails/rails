@@ -1,5 +1,4 @@
-require File.dirname(__FILE__) + '/abstract_unit'
-require 'test/unit'
+require 'abstract_unit'
 
 class ActionViewTests < Test::Unit::TestCase
   def test_find_template_extension_from_first_render

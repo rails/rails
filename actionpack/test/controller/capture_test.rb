@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require 'abstract_unit'
 
 class CaptureController < ActionController::Base
   def self.controller_name; "test"; end

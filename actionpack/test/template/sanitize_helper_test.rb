@@ -1,5 +1,5 @@
-require "#{File.dirname(__FILE__)}/../abstract_unit"
-require "#{File.dirname(__FILE__)}/../testing_sandbox"
+require 'abstract_unit'
+require 'testing_sandbox'
 
 # The exhaustive tests are in test/controller/html/sanitizer_test.rb.
 # This tests the that the helpers hook up correctly to the sanitizer classes.

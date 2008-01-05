@@ -1,5 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
-require 'test/unit'
+require 'abstract_unit'
 
 # Provide some static controllers.
 class BenchmarkedController < ActionController::Base

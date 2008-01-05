@@ -3,8 +3,8 @@
 # Under MIT and/or CC By license.
 #++
 
-require "#{File.dirname(__FILE__)}/../abstract_unit"
-require "#{File.dirname(__FILE__)}/fake_controllers"
+require 'abstract_unit'
+require 'controller/fake_controllers'
 
 class SelectorTest < Test::Unit::TestCase
   #

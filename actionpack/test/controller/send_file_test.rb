@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', 'abstract_unit')
+require 'abstract_unit'
 
 
 module TestFileUtils

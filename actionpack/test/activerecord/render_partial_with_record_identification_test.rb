@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../active_record_unit'
+require 'active_record_unit'
 
 class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
   fixtures :developers, :projects, :developers_projects, :topics, :replies

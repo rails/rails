@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require 'abstract_unit'
 
 ActionController::Helpers::HELPERS_DIR.replace File.dirname(__FILE__) + '/../fixtures/helpers'
 

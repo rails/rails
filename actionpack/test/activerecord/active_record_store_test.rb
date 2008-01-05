@@ -1,8 +1,7 @@
 # These tests exercise CGI::Session::ActiveRecordStore, so you're going to
 # need AR in a sibling directory to AP and have SQLite installed.
-require File.dirname(__FILE__) + '/../active_record_unit'
+require 'active_record_unit'
 require 'action_controller/session/active_record_store'
-
 
 module CommonActiveRecordStoreTests
   def test_basics

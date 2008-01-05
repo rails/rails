@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
-require File.dirname(__FILE__) + '/fake_models'
+require 'abstract_unit'
+require 'controller/fake_models'
 
 module Fun
   class GamesController < ActionController::Base

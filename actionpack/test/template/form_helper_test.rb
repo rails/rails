@@ -1,4 +1,4 @@
-require "#{File.dirname(__FILE__)}/../abstract_unit"
+require 'abstract_unit'
 
 silence_warnings do
   Post = Struct.new(:title, :author_name, :body, :secret, :written_on, :cost)

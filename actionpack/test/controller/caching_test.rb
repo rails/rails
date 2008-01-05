@@ -1,5 +1,5 @@
 require 'fileutils'
-require File.dirname(__FILE__) + '/../abstract_unit'
+require 'abstract_unit'
 
 CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed

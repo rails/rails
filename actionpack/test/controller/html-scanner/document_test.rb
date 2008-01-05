@@ -1,5 +1,4 @@
-require File.dirname(__FILE__) + '/../../abstract_unit'
-require 'test/unit'
+require 'abstract_unit'
 
 class DocumentTest < Test::Unit::TestCase
   def test_handle_doctype

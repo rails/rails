@@ -1,4 +1,4 @@
-require "#{File.dirname(__FILE__)}/../abstract_unit"
+require 'abstract_unit'
 require 'action_view/helpers/date_helper'
 require 'action_view/compiled_templates'
 

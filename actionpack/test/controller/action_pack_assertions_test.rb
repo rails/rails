@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require 'abstract_unit'
 
 # a controller class to facilitate the tests
 class ActionPackAssertionsController < ActionController::Base

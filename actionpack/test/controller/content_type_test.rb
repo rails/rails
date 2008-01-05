@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require 'abstract_unit'
 
 class ContentTypeController < ActionController::Base
   def render_content_type_from_body
