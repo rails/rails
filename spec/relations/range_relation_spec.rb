@@ -26,7 +26,7 @@ describe RangeRelation do
     it "manufactures sql with limit and offset" do
       range_size = @range2.last - @range2.first + 1
       range_start = @range2.first
-      RangeRelation.new(@relation1, @range2).to_sql.to_s.should == SelectBuilder.new do
+      RangeRelation.new(@relation1, @range2).to_s.should == SelectBuilder.new do
         select do
           column :foo, :name
           column :foo, :id

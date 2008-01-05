@@ -52,7 +52,7 @@ describe RenameRelation do
   
   describe '#to_sql' do
     it 'manufactures sql aliasing the attribute' do
-      @renamed_relation.to_sql.to_s.should == SelectBuilder.new do
+      @renamed_relation.to_s.should == SelectBuilder.new do
         select do
           column :foo, :name
           column :foo, :id, :schmid

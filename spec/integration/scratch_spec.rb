@@ -11,7 +11,7 @@ describe 'Relational Algebra' do
   end
   
   it 'simulates User.has_many :photos' do
-    @user_photos.project(*@photos.attributes).to_sql.to_s.should be_like("""
+    @user_photos.project(*@photos.attributes).to_s.should be_like("""
       SELECT photos.id, photos.user_id, photos.camera_id
       FROM users
         LEFT OUTER JOIN photos
@@ -22,7 +22,7 @@ describe 'Relational Algebra' do
   end
   
   it 'simulates a User.has_many :cameras :through => :photos' do
-    @user_cameras.project(*@cameras.attributes).to_sql.to_s.should be_like("""
+    @user_cameras.project(*@cameras.attributes).to_s.should be_like("""
       SELECT cameras.id
       FROM users
         LEFT OUTER JOIN photos
@@ -35,6 +35,7 @@ describe 'Relational Algebra' do
   end
   
   it '' do
+    # @user_cameras.qualify.to_s
     # 
     # @users.rename()
   end

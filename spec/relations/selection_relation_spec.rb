@@ -35,7 +35,7 @@ describe SelectionRelation do
   
   describe '#to_sql' do
     it "manufactures sql with where clause conditions" do
-      SelectionRelation.new(@relation1, @predicate1).to_sql.to_s.should == SelectBuilder.new do
+      SelectionRelation.new(@relation1, @predicate1).to_s.should == SelectBuilder.new do
         select do
           column :foo, :name
           column :foo, :id

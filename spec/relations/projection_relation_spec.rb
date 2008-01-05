@@ -25,7 +25,7 @@ describe ProjectionRelation do
   
   describe '#to_sql' do
     it "manufactures sql with a limited select clause" do
-      ProjectionRelation.new(@relation1, @attribute1).to_sql.to_s.should == SelectBuilder.new do
+      ProjectionRelation.new(@relation1, @attribute1).to_s.should == SelectBuilder.new do
         select do
           column :foo, :id
         end

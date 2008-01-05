@@ -25,7 +25,7 @@ describe OrderRelation do
   
   describe '#to_sql' do
     it "manufactures sql with an order clause" do
-      OrderRelation.new(@relation1, @attribute1).to_sql.to_s.should == SelectBuilder.new do
+      OrderRelation.new(@relation1, @attribute1).to_s.should == SelectBuilder.new do
         select do
           column :foo, :name
           column :foo, :id

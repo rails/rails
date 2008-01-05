@@ -36,7 +36,7 @@ describe JoinRelation do
     end
     
     it 'manufactures sql joining the two tables on the predicate, merging the selects' do
-      ConcreteJoinRelation.new(@relation1, @relation2, @predicate).to_sql.to_s.should == SelectBuilder.new do
+      ConcreteJoinRelation.new(@relation1, @relation2, @predicate).to_s.should == SelectBuilder.new do
         select do
           column :foo, :name
           column :foo, :id

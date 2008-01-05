@@ -59,6 +59,7 @@ class Relation
       end
     end
   end
+  delegate :to_s, :to => :to_sql
   
   protected
   def attributes; [] end
