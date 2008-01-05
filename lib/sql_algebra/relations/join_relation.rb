@@ -16,7 +16,7 @@ class JoinRelation < Relation
   end
   
   def selects
-    relation1.selects + relation2.selects
+    relation1.send(:selects) + relation2.send(:selects)
   end
   
   def attributes

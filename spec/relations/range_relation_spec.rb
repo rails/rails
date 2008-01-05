@@ -16,6 +16,12 @@ describe RangeRelation do
     end
   end
   
+  describe '#qualify' do
+    it "manufactures a range relation with a qualified relation and a qualified range" do
+      pending
+    end
+  end
+  
   describe '#to_sql' do
     it "manufactures sql with limit and offset" do
       range_size = @range2.last - @range2.first + 1

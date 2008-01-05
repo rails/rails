@@ -16,6 +16,13 @@ describe ProjectionRelation do
     end
   end
   
+  describe '#qualify' do
+    it "manufactures a projection relation with qualified attributes and qualified relation" do
+      ProjectionRelation.new(@relation1, @attribute1).qualify. \
+        should == ProjectionRelation.new(@relation1.qualify, @attribute1.qualify)
+    end
+  end
+  
   describe '#to_sql' do
     it "manufactures sql with a limited select clause" do
       ProjectionRelation.new(@relation1, @attribute1).to_sql.to_s.should == SelectBuilder.new do

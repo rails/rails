@@ -26,6 +26,13 @@ describe SelectionRelation do
     end
   end
   
+  describe '#qualify' do
+    it "manufactures a selection relation with qualified predicates and qualified relation" do
+      SelectionRelation.new(@relation1, @predicate1).qualify. \
+        should == SelectionRelation.new(@relation1.qualify, @predicate1.qualify)
+    end
+  end
+  
   describe '#to_sql' do
     it "manufactures sql with where clause conditions" do
       SelectionRelation.new(@relation1, @predicate1).to_sql.to_s.should == SelectBuilder.new do

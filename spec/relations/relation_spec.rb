@@ -8,21 +8,21 @@ describe Relation do
     @attribute2 = Attribute.new(@relation1, :name)
   end
   
-  describe Relation, 'joins' do
-    describe Relation, '<=>' do
+  describe 'joins' do
+    describe '<=>' do
       it "manufactures an inner join operation between those two relations" do
         (@relation1 <=> @relation2).should == InnerJoinOperation.new(@relation1, @relation2)
       end
     end
     
-    describe Relation, '<<' do
+    describe '<<' do
       it "manufactures a left outer join operation between those two relations" do
         (@relation1 << @relation2).should == LeftOuterJoinOperation.new(@relation1, @relation2)
       end      
     end
   end
   
-  describe Relation, '[]' do
+  describe '[]' do
     it "manufactures an attribute when given a symbol" do
       @relation1[:id].should be_eql(Attribute.new(@relation1, :id))
     end
@@ -32,13 +32,13 @@ describe Relation do
     end
   end
   
-  describe Relation, '#include?' do
+  describe '#include?' do
     it "manufactures an inclusion predicate" do
       @relation1.include?(@attribute1).should == RelationInclusionPredicate.new(@attribute1, @relation1)
     end
   end
   
-  describe Relation, '#project' do
+  describe '#project' do
     it "collapses identical projections" do
       pending
     end
@@ -48,13 +48,13 @@ describe Relation do
     end
   end
   
-  describe Relation, '#rename' do
+  describe '#rename' do
     it "manufactures a rename relation" do
-      @relation1.rename(@attribute1, :foo).should == RenameRelation.new(@relation1, @attribute1, :foo)
+      @relation1.rename(@attribute1, :foo).should == RenameRelation.new(@relation1, @attribute1 => :foo)
     end
   end
   
-  describe Relation, '#select' do
+  describe '#select' do
     before do
       @predicate = EqualityPredicate.new(@attribute1, @attribute2)
     end
@@ -64,7 +64,7 @@ describe Relation do
     end
   end
   
-  describe Relation, 'order' do
+  describe 'order' do
     it "manufactures an order relation" do
       @relation1.order(@attribute1, @attribute2).should == OrderRelation.new(@relation1, @attribute1, @attribute2)
     end

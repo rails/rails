@@ -14,6 +14,14 @@ ActiveRecord::Base.configurations = {
 }
 ActiveRecord::Base.establish_connection 'sql_algebra_test'
 
+class Hash
+  def shift
+    returning to_a.sort { |(key1, value1), (key2, value2)| key1.hash <=> key2.hash }.shift do |key, value|
+      delete(key)
+    end
+  end
+end
+
 Spec::Runner.configure do |config|  
   config.include(BeLikeMatcher)
 end

@@ -4,8 +4,8 @@ describe BinaryPredicate do
   before do
     @relation1 = TableRelation.new(:foo)
     @relation2 = TableRelation.new(:bar)
-    @attribute1 = Attribute.new(@relation1, :attribute_name1)
-    @attribute2 = Attribute.new(@relation2, :attribute_name2)
+    @attribute1 = Attribute.new(@relation1, :name1)
+    @attribute2 = Attribute.new(@relation2, :name2)
     class ConcreteBinaryPredicate < BinaryPredicate
       def predicate_name
         :equals
@@ -31,12 +31,19 @@ describe BinaryPredicate do
     end
   end
   
+  describe '#qualify' do
+    it "manufactures an equality predicate with qualified attributes" do
+      ConcreteBinaryPredicate.new(@attribute1, @attribute2).qualify. \
+        should == ConcreteBinaryPredicate.new(@attribute1.qualify, @attribute2.qualify)
+    end
+  end
+  
   describe '#to_sql' do
     it 'manufactures correct sql' do
       ConcreteBinaryPredicate.new(@attribute1, @attribute2).to_sql.should == ConditionsBuilder.new do
         equals do
-          column :foo, :attribute_name1
-          column :bar, :attribute_name2
+          column :foo, :name1
+          column :bar, :name2
         end
       end
     end

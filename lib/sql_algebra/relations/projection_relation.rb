@@ -9,6 +9,10 @@ class ProjectionRelation < Relation
     relation == other.relation and attributes.eql?(other.attributes)
   end
   
+  def qualify
+    ProjectionRelation.new(relation.qualify, *attributes.collect(&:qualify))
+  end
+  
   def to_sql(builder = SelectBuilder.new)
     relation.to_sql(builder).call do
       select do

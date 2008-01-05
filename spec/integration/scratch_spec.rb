@@ -33,4 +33,9 @@ describe 'Relational Algebra' do
         users.id = 1
     """)
   end
+  
+  it '' do
+    # 
+    # @users.rename()
+  end
 end

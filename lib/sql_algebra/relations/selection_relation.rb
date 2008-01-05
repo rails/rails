@@ -10,6 +10,11 @@ class SelectionRelation < CompoundRelation
     relation == other.relation and predicate == other.predicate
   end
   
+  def qualify
+    SelectionRelation.new(relation.qualify, predicate.qualify)
+  end
+  
+  protected
   def selects
     [predicate]
   end

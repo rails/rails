@@ -34,7 +34,7 @@ class Relation
     end
     
     def rename(attribute, aliaz)
-      RenameRelation.new(self, attribute, aliaz)
+      RenameRelation.new(self, attribute => aliaz)
     end
   end
   include Operations

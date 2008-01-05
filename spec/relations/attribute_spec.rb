@@ -6,24 +6,41 @@ describe Attribute do
     @relation2 = TableRelation.new(:bar)
   end
   
-  describe 'aliaz' do
+  describe '#aliazz' do
     it "manufactures an aliased attributed" do
       pending
+    end
+    
+    it "should be renamed to #alias!" do
+      pending
+      @relation1.alias
+    end
+  end
+  
+  describe '#qualified_name' do
+    it "manufactures an attribute name prefixed with the relation's name" do
+      @relation1[:id].qualified_name.should == 'foo.id'
+    end
+  end
+  
+  describe '#qualify' do
+    it "manufactures an attribute aliased with that attributes qualified name" do
+      @relation1[:id].qualify == @relation1[:id].qualify
     end
   end
   
   describe '#eql?' do
     it "obtains if the relation and attribute name are identical" do
-      Attribute.new(@relation1, :attribute_name).should be_eql(Attribute.new(@relation1, :attribute_name))
-      Attribute.new(@relation1, :attribute_name).should_not be_eql(Attribute.new(@relation1, :another_attribute_name))
-      Attribute.new(@relation1, :attribute_name).should_not be_eql(Attribute.new(@relation2, :attribute_name))
+      Attribute.new(@relation1, :name).should be_eql(Attribute.new(@relation1, :name))
+      Attribute.new(@relation1, :name).should_not be_eql(Attribute.new(@relation1, :another_name))
+      Attribute.new(@relation1, :name).should_not be_eql(Attribute.new(@relation2, :name))
     end
   end
   
   describe 'predications' do
     before do
-      @attribute1 = Attribute.new(@relation1, :attribute_name)
-      @attribute2 = Attribute.new(@relation2, :attribute_name)
+      @attribute1 = Attribute.new(@relation1, :name)
+      @attribute2 = Attribute.new(@relation2, :name)
     end
     
     describe '==' do
@@ -63,11 +80,10 @@ describe Attribute do
     end
   end
   
-  
   describe '#to_sql' do
     it "manufactures a column" do
-      Attribute.new(@relation1, :attribute_name, :alias).to_sql.should == SelectsBuilder.new do
-        column :foo, :attribute_name, :alias
+      Attribute.new(@relation1, :name, :alias).to_sql.should == SelectsBuilder.new do
+        column :foo, :name, :alias
       end
     end
   end

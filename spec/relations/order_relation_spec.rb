@@ -16,6 +16,13 @@ describe OrderRelation do
     end
   end
   
+  describe '#qualify' do
+    it "manufactures an order relation with qualified attributes and qualified relation" do
+      OrderRelation.new(@relation1, @attribute1).qualify. \
+        should == OrderRelation.new(@relation1.qualify, @attribute1.qualify)
+    end
+  end
+  
   describe '#to_sql' do
     it "manufactures sql with an order clause" do
       OrderRelation.new(@relation1, @attribute1).to_sql.to_s.should == SelectBuilder.new do

@@ -1,4 +1,4 @@
-class OrderRelation < Relation
+class OrderRelation < CompoundRelation
   attr_reader :relation, :attributes
   
   def initialize(relation, *attributes)
@@ -7,6 +7,10 @@ class OrderRelation < Relation
   
   def ==(other)
     relation == other.relation and attributes.eql?(other.attributes)
+  end
+  
+  def qualify
+    OrderRelation.new(relation.qualify, *attributes.collect { |a| a.qualify })
   end
   
   def to_sql(builder = SelectBuilder.new)
