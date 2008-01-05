@@ -31,14 +31,14 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_tracking_loaded_files
-    require_dependency(File.dirname(__FILE__) + "/dependencies/service_one")
-    require_dependency(File.dirname(__FILE__) + "/dependencies/service_two")
+    require_dependency 'dependencies/service_one'
+    require_dependency 'dependencies/service_two'
     assert_equal 2, Dependencies.loaded.size
   end
 
   def test_tracking_identical_loaded_files
-    require_dependency(File.dirname(__FILE__) + "/dependencies/service_one")
-    require_dependency(File.dirname(__FILE__) + "/dependencies/service_one")
+    require_dependency 'dependencies/service_one'
+    require_dependency 'dependencies/service_one'
     assert_equal 1, Dependencies.loaded.size
   end
 
@@ -52,7 +52,7 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_dependency_which_raises_exception_isnt_added_to_loaded_set
     with_loading do
-      filename = "#{File.dirname(__FILE__)}/dependencies/raises_exception"
+      filename = 'dependencies/raises_exception'
       $raises_exception_load_count = 0
 
       5.times do |count|
