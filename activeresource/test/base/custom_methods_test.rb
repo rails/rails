@@ -1,6 +1,6 @@
-require "#{File.dirname(__FILE__)}/../abstract_unit"
-require "#{File.dirname(__FILE__)}/../fixtures/person"
-require "#{File.dirname(__FILE__)}/../fixtures/street_address"
+require 'abstract_unit'
+require 'fixtures/person'
+require 'fixtures/street_address'
 
 class CustomMethodsTest < Test::Unit::TestCase
   def setup

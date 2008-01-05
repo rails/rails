@@ -1,4 +1,4 @@
-require "#{File.dirname(__FILE__)}/abstract_unit"
+require 'abstract_unit'
 require "fixtures/person"
 
 class BaseErrorsTest < Test::Unit::TestCase
