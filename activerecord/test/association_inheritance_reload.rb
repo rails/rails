@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'fixtures/company'
 
-class AssociationInheritanceReloadTest < Test::Unit::TestCase
+class AssociationInheritanceReloadTest < ActiveSupport::TestCase
   fixtures :companies
 
   def test_set_attributes

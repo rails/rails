@@ -9,7 +9,6 @@ class TestHelperMailer < ActionMailer::Base
 end
 
 class TestHelperMailerTest < ActionMailer::TestCase
-
   def test_setup_sets_right_action_mailer_options
     assert_equal :test, ActionMailer::Base.delivery_method
     assert ActionMailer::Base.perform_deliveries
@@ -117,19 +116,14 @@ class TestHelperMailerTest < ActionMailer::TestCase
 end
 
 class AnotherTestHelperMailerTest < ActionMailer::TestCase
-
   tests TestHelperMailer
 
   def setup
-    # Should not override ActionMailer setup methods
     @test_var = "a value"
   end
 
-  def test_should_still_setup_mailer
+  def test_setup_shouldnt_conflict_with_mailer_setup
     assert @expected.is_a?(TMail::Mail)
-  end
-  
-  def test_should_run_overridden_setup_method
-    assert @test_var
+    assert_equal 'a value', @test_var
   end
 end

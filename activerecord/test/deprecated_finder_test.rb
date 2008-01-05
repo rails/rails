@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'fixtures/entrant'
 
-class DeprecatedFinderTest < Test::Unit::TestCase
+class DeprecatedFinderTest < ActiveSupport::TestCase
   fixtures :entrants
 
   def test_deprecated_find_all_was_removed

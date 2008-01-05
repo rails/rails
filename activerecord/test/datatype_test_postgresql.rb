@@ -21,7 +21,7 @@ end
 class PostgresqlOid < ActiveRecord::Base
 end
 
-class PostgresqlDataTypeTest < Test::Unit::TestCase
+class PostgresqlDataTypeTest < ActiveSupport::TestCase
   self.use_transactional_fixtures = false
 
   def setup

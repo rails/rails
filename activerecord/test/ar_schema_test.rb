@@ -3,7 +3,7 @@ require "#{File.dirname(__FILE__)}/../lib/active_record/schema"
 
 if ActiveRecord::Base.connection.supports_migrations? 
 
-  class ActiveRecordSchemaTest < Test::Unit::TestCase
+  class ActiveRecordSchemaTest < ActiveSupport::TestCase
     self.use_transactional_fixtures = false
 
     def setup

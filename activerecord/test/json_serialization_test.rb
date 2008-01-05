@@ -6,7 +6,7 @@ require 'fixtures/tagging'
 require 'fixtures/tag'
 require 'fixtures/comment'
 
-class JsonSerializationTest < Test::Unit::TestCase
+class JsonSerializationTest < ActiveSupport::TestCase
   def setup
     @contact = Contact.new(
       :name        => 'Konata Izumi',
@@ -63,7 +63,7 @@ class JsonSerializationTest < Test::Unit::TestCase
   end
 end
 
-class DatabaseConnectedJsonEncodingTest < Test::Unit::TestCase
+class DatabaseConnectedJsonEncodingTest < ActiveSupport::TestCase
   fixtures :authors, :posts, :comments, :tags, :taggings
 
   def setup

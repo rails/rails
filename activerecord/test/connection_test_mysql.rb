@@ -1,6 +1,6 @@
 require "#{File.dirname(__FILE__)}/abstract_unit"
 
-class MysqlConnectionTest < Test::Unit::TestCase
+class MysqlConnectionTest < ActiveSupport::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
   end

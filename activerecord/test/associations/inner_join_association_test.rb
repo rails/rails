@@ -5,7 +5,7 @@ require 'fixtures/author'
 require 'fixtures/category'
 require 'fixtures/categorization'
 
-class InnerJoinAssociationTest < Test::Unit::TestCase
+class InnerJoinAssociationTest < ActiveSupport::TestCase
   fixtures :authors, :posts, :comments, :categories, :categories_posts, :categorizations
 
   def test_construct_finder_sql_creates_inner_joins

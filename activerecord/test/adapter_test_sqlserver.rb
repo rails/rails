@@ -3,7 +3,7 @@ require 'fixtures/default'
 require 'fixtures/post'
 require 'fixtures/task'
 
-class SqlServerAdapterTest < Test::Unit::TestCase
+class SqlServerAdapterTest < ActiveSupport::TestCase
   class TableWithRealColumn < ActiveRecord::Base; end
 
   fixtures :posts, :tasks

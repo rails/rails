@@ -23,7 +23,7 @@ end
 
 # a suite of tests to ensure the ConnectionAdapters#MysqlAdapter can handle tables with
 # reserved word names (ie: group, order, values, etc...)
-class MysqlReservedWordTest < Test::Unit::TestCase
+class MysqlReservedWordTest < ActiveSupport::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
 

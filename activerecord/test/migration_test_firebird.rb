@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'fixtures/course'
 
-class FirebirdMigrationTest < Test::Unit::TestCase
+class FirebirdMigrationTest < ActiveSupport::TestCase
   self.use_transactional_fixtures = false
 
   def setup

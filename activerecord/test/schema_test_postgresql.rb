@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class SchemaTest < Test::Unit::TestCase
+class SchemaTest < ActiveSupport::TestCase
   self.use_transactional_fixtures = false
 
   SCHEMA_NAME = 'test_schema'

@@ -4,7 +4,7 @@ require 'stringio'
 
 if ActiveRecord::Base.connection.respond_to?(:tables)
 
-  class SchemaDumperTest < Test::Unit::TestCase
+  class SchemaDumperTest < ActiveSupport::TestCase
     def standard_dump
       stream = StringIO.new
       ActiveRecord::SchemaDumper.ignore_tables = []

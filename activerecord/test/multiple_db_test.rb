@@ -4,7 +4,7 @@ require 'fixtures/entrant'
 # So we can test whether Course.connection survives a reload.
 require_dependency 'fixtures/course'
 
-class MultipleDbTest < Test::Unit::TestCase
+class MultipleDbTest < ActiveSupport::TestCase
   self.use_transactional_fixtures = false
 
   def setup

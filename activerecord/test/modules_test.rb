@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'fixtures/company_in_module'
 
-class ModulesTest < Test::Unit::TestCase
+class ModulesTest < ActiveSupport::TestCase
   fixtures :accounts, :companies, :projects, :developers
 
   def test_module_spanning_associations

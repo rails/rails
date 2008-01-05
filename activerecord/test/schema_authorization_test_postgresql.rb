@@ -3,7 +3,7 @@ require 'abstract_unit'
 class SchemaThing < ActiveRecord::Base
 end
 
-class SchemaAuthorizationTest < Test::Unit::TestCase
+class SchemaAuthorizationTest < ActiveSupport::TestCase
   self.use_transactional_fixtures = false
 
   TABLE_NAME = 'schema_things'

@@ -5,7 +5,7 @@ require 'fixtures/company'
 require 'fixtures/company_in_module'
 require 'fixtures/subscriber'
 
-class ReflectionTest < Test::Unit::TestCase
+class ReflectionTest < ActiveSupport::TestCase
   fixtures :topics, :customers, :companies, :subscribers
 
   def setup

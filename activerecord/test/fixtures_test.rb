@@ -16,7 +16,7 @@ require 'fixtures/treasure'
 require 'fixtures/matey'
 require 'fixtures/ship'
 
-class FixturesTest < Test::Unit::TestCase
+class FixturesTest < ActiveSupport::TestCase
   self.use_instantiated_fixtures = true
   self.use_transactional_fixtures = false
 
@@ -204,7 +204,7 @@ class FixturesTest < Test::Unit::TestCase
 end
 
 if Account.connection.respond_to?(:reset_pk_sequence!)
-  class FixturesResetPkSequenceTest < Test::Unit::TestCase
+  class FixturesResetPkSequenceTest < ActiveSupport::TestCase
     fixtures :accounts
     fixtures :companies
 
@@ -250,7 +250,7 @@ if Account.connection.respond_to?(:reset_pk_sequence!)
   end
 end
 
-class FixturesWithoutInstantiationTest < Test::Unit::TestCase
+class FixturesWithoutInstantiationTest < ActiveSupport::TestCase
   self.use_instantiated_fixtures = false
   fixtures :topics, :developers, :accounts
 
@@ -285,7 +285,7 @@ class FixturesWithoutInstantiationTest < Test::Unit::TestCase
   end
 end
 
-class FixturesWithoutInstanceInstantiationTest < Test::Unit::TestCase
+class FixturesWithoutInstanceInstantiationTest < ActiveSupport::TestCase
   self.use_instantiated_fixtures = true
   self.use_instantiated_fixtures = :no_instances
 
@@ -299,7 +299,7 @@ class FixturesWithoutInstanceInstantiationTest < Test::Unit::TestCase
   end
 end
 
-class TransactionalFixturesTest < Test::Unit::TestCase
+class TransactionalFixturesTest < ActiveSupport::TestCase
   self.use_instantiated_fixtures = true
   self.use_transactional_fixtures = true
 
@@ -315,7 +315,7 @@ class TransactionalFixturesTest < Test::Unit::TestCase
   end
 end
 
-class MultipleFixturesTest < Test::Unit::TestCase
+class MultipleFixturesTest < ActiveSupport::TestCase
   fixtures :topics
   fixtures :developers, :accounts
 
@@ -324,7 +324,7 @@ class MultipleFixturesTest < Test::Unit::TestCase
   end
 end
 
-class SetupTest < Test::Unit::TestCase
+class SetupTest < ActiveSupport::TestCase
   # fixtures :topics
   
   def setup
@@ -348,7 +348,7 @@ class SetupSubclassTest < SetupTest
 end
 
 
-class OverlappingFixturesTest < Test::Unit::TestCase
+class OverlappingFixturesTest < ActiveSupport::TestCase
   fixtures :topics, :developers
   fixtures :developers, :accounts
 
@@ -357,7 +357,7 @@ class OverlappingFixturesTest < Test::Unit::TestCase
   end
 end
 
-class ForeignKeyFixturesTest < Test::Unit::TestCase
+class ForeignKeyFixturesTest < ActiveSupport::TestCase
   fixtures :fk_test_has_pk, :fk_test_has_fk
 
   # if foreign keys are implemented and fixtures
@@ -373,7 +373,7 @@ class ForeignKeyFixturesTest < Test::Unit::TestCase
   end
 end
 
-class SetTableNameFixturesTest < Test::Unit::TestCase
+class SetTableNameFixturesTest < ActiveSupport::TestCase
   set_fixture_class :funny_jokes => 'Joke'
   fixtures :funny_jokes
 
@@ -382,7 +382,7 @@ class SetTableNameFixturesTest < Test::Unit::TestCase
   end
 end
 
-class CustomConnectionFixturesTest < Test::Unit::TestCase
+class CustomConnectionFixturesTest < ActiveSupport::TestCase
   set_fixture_class :courses => Course
   fixtures :courses
 
@@ -392,7 +392,7 @@ class CustomConnectionFixturesTest < Test::Unit::TestCase
   end
 end
 
-class InvalidTableNameFixturesTest < Test::Unit::TestCase
+class InvalidTableNameFixturesTest < ActiveSupport::TestCase
   fixtures :funny_jokes
 
   def test_raises_error
@@ -402,7 +402,7 @@ class InvalidTableNameFixturesTest < Test::Unit::TestCase
   end
 end
 
-class CheckEscapedYamlFixturesTest < Test::Unit::TestCase
+class CheckEscapedYamlFixturesTest < ActiveSupport::TestCase
   set_fixture_class :funny_jokes => 'Joke'
   fixtures :funny_jokes
 
@@ -412,7 +412,7 @@ class CheckEscapedYamlFixturesTest < Test::Unit::TestCase
 end
 
 class DevelopersProject; end
-class ManyToManyFixturesWithClassDefined < Test::Unit::TestCase
+class ManyToManyFixturesWithClassDefined < ActiveSupport::TestCase
   fixtures :developers_projects
 
   def test_this_should_run_cleanly
@@ -420,22 +420,22 @@ class ManyToManyFixturesWithClassDefined < Test::Unit::TestCase
   end
 end
 
-class FixturesBrokenRollbackTest < Test::Unit::TestCase
+class FixturesBrokenRollbackTest < ActiveSupport::TestCase
   def blank_setup; end
-  alias_method :ar_setup_with_fixtures, :setup_with_fixtures
-  alias_method :setup_with_fixtures, :blank_setup
+  alias_method :ar_setup_fixtures, :setup_fixtures
+  alias_method :setup_fixtures, :blank_setup
   alias_method :setup, :blank_setup
 
   def blank_teardown; end
-  alias_method :ar_teardown_with_fixtures, :teardown_with_fixtures
-  alias_method :teardown_with_fixtures, :blank_teardown
+  alias_method :ar_teardown_fixtures, :teardown_fixtures
+  alias_method :teardown_fixtures, :blank_teardown
   alias_method :teardown, :blank_teardown
 
   def test_no_rollback_in_teardown_unless_transaction_active
     assert_equal 0, Thread.current['open_transactions']
-    assert_raise(RuntimeError) { ar_setup_with_fixtures }
+    assert_raise(RuntimeError) { ar_setup_fixtures }
     assert_equal 0, Thread.current['open_transactions']
-    assert_nothing_raised { ar_teardown_with_fixtures }
+    assert_nothing_raised { ar_teardown_fixtures }
     assert_equal 0, Thread.current['open_transactions']
   end
 
@@ -445,7 +445,7 @@ class FixturesBrokenRollbackTest < Test::Unit::TestCase
     end
 end
 
-class LoadAllFixturesTest < Test::Unit::TestCase
+class LoadAllFixturesTest < ActiveSupport::TestCase
   self.fixture_path= File.join(File.dirname(__FILE__), '/fixtures/all')
   fixtures :all
 
@@ -454,7 +454,7 @@ class LoadAllFixturesTest < Test::Unit::TestCase
   end
 end
 
-class FasterFixturesTest < Test::Unit::TestCase
+class FasterFixturesTest < ActiveSupport::TestCase
   fixtures :categories, :authors
 
   def load_extra_fixture(name)
@@ -479,7 +479,7 @@ class FasterFixturesTest < Test::Unit::TestCase
   end
 end
 
-class FoxyFixturesTest < Test::Unit::TestCase
+class FoxyFixturesTest < ActiveSupport::TestCase
   fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers, :developers
 
   def test_identifies_strings

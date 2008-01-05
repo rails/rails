@@ -8,7 +8,7 @@ require 'fixtures/company'
 require 'fixtures/topic'
 require 'fixtures/reply'
 
-class CascadedEagerLoadingTest < Test::Unit::TestCase
+class CascadedEagerLoadingTest < ActiveSupport::TestCase
   fixtures :authors, :mixins, :companies, :posts, :topics
 
   def test_eager_association_loading_with_cascaded_two_levels
@@ -95,7 +95,7 @@ end
 
 require 'fixtures/vertex'
 require 'fixtures/edge'
-class CascadedEagerLoadingTest < Test::Unit::TestCase
+class CascadedEagerLoadingTest < ActiveSupport::TestCase
   fixtures :edges, :vertices
 
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_many_through

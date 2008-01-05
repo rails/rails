@@ -1,7 +1,7 @@
 # The filename begins with "aaa" to ensure this is the first test.
 require 'abstract_unit'
 
-class AAACreateTablesTest < Test::Unit::TestCase
+class AAACreateTablesTest < ActiveSupport::TestCase
   self.use_transactional_fixtures = false
 
   def setup

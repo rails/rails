@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class CopyTableTest < Test::Unit::TestCase
+class CopyTableTest < ActiveSupport::TestCase
   fixtures :companies, :comments
   
   def setup

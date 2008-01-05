@@ -1,4 +1,5 @@
 require 'action_controller/assertions'
+require 'action_controller/test_case'
 
 module ActionController #:nodoc:
   class Base

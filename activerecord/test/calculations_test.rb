@@ -8,7 +8,7 @@ class NumericData < ActiveRecord::Base
   self.table_name = 'numeric_data'
 end
 
-class CalculationsTest < Test::Unit::TestCase
+class CalculationsTest < ActiveSupport::TestCase
   fixtures :companies, :accounts, :topics
 
   def test_should_sum_field

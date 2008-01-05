@@ -70,7 +70,7 @@ class TopicWithProtectedContentAndAccessibleAuthorName < ActiveRecord::Base
   attr_protected  :content
 end
 
-class BasicsTest < Test::Unit::TestCase
+class BasicsTest < ActiveSupport::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics
 
   def test_table_exists

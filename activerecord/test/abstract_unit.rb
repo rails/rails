@@ -13,7 +13,7 @@ ActiveSupport::Deprecation.debug = true
 
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type') unless Object.const_defined?(:QUOTED_TYPE)
 
-class Test::Unit::TestCase #:nodoc:
+class ActiveSupport::TestCase #:nodoc:
   self.fixture_path = File.dirname(__FILE__) + "/fixtures/"
   self.use_instantiated_fixtures = false
   self.use_transactional_fixtures = (ENV['AR_NO_TX_FIXTURES'] != "yes")

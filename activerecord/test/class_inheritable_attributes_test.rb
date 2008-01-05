@@ -19,7 +19,7 @@ class D < B
 end
 
 
-class ClassInheritableAttributesTest < Test::Unit::TestCase
+class ClassInheritableAttributesTest < ActiveSupport::TestCase
   def test_first_level
     assert_equal [ :one, :two ], B.read_inheritable_attribute("first")
     assert_equal [ :three ], C.read_inheritable_attribute("first")

@@ -53,7 +53,7 @@ end
 class Thaumaturgist < IneptWizard
 end
 
-class ValidationsTest < Test::Unit::TestCase
+class ValidationsTest < ActiveSupport::TestCase
   fixtures :topics, :developers
 
   def setup
@@ -1273,7 +1273,7 @@ class ValidationsTest < Test::Unit::TestCase
 end
 
 
-class ValidatesNumericalityTest < Test::Unit::TestCase
+class ValidatesNumericalityTest < ActiveSupport::TestCase
   NIL = [nil]
   BLANK = ["", " ", " \t \r \n"]
   BIGDECIMAL_STRINGS = %w(12345678901234567890.1234567890) # 30 significent digits

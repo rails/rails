@@ -2,7 +2,7 @@ require 'abstract_unit'
 require 'fixtures/default'
 require 'fixtures/entrant'
 
-class DefaultTest < Test::Unit::TestCase
+class DefaultTest < ActiveSupport::TestCase
   def test_nil_defaults_for_not_null_columns
     column_defaults =
       if current_adapter?(:MysqlAdapter)

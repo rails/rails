@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class ActiveSchemaTest < Test::Unit::TestCase
+class ActiveSchemaTest < ActiveSupport::TestCase
   def setup
     ActiveRecord::ConnectionAdapters::MysqlAdapter.class_eval do
       alias_method :execute_without_stub, :execute

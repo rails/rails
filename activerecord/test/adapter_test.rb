@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class AdapterTest < Test::Unit::TestCase
+class AdapterTest < ActiveSupport::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
   end

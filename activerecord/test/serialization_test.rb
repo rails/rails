@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'fixtures/contact'
 
-class SerializationTest < Test::Unit::TestCase
+class SerializationTest < ActiveSupport::TestCase
   FORMATS = [ :xml, :json ]
   
   def setup

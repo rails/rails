@@ -22,7 +22,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
   end
 
-  class MigrationTest < Test::Unit::TestCase
+  class MigrationTest < ActiveSupport::TestCase
     self.use_transactional_fixtures = false
     
     fixtures :people
@@ -909,7 +909,7 @@ if ActiveRecord::Base.connection.supports_migrations?
   end
 
   uses_mocha 'Sexy migration tests' do
-    class SexyMigrationsTest < Test::Unit::TestCase
+    class SexyMigrationsTest < ActiveSupport::TestCase
       def test_references_column_type_adds_id
         with_new_table do |t|
           t.expects(:column).with('customer_id', :integer, {})

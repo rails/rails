@@ -5,7 +5,7 @@ require 'fixtures/author'
 require 'fixtures/tagging'
 require 'fixtures/comment'
 
-class XmlSerializationTest < Test::Unit::TestCase
+class XmlSerializationTest < ActiveSupport::TestCase
   def test_should_serialize_default_root
     @xml = Contact.new.to_xml
     assert_match %r{^<contact>},  @xml
@@ -40,7 +40,7 @@ class XmlSerializationTest < Test::Unit::TestCase
   end
 end
 
-class DefaultXmlSerializationTest < Test::Unit::TestCase
+class DefaultXmlSerializationTest < ActiveSupport::TestCase
   def setup
     @xml = Contact.new(:name => 'aaron stack', :age => 25, :avatar => 'binarydata', :created_at => Time.utc(2006, 8, 1), :awesome => false, :preferences => { :gem => 'ruby' }).to_xml
   end
@@ -72,7 +72,7 @@ class DefaultXmlSerializationTest < Test::Unit::TestCase
   end
 end
 
-class NilXmlSerializationTest < Test::Unit::TestCase
+class NilXmlSerializationTest < ActiveSupport::TestCase
   def setup
     @xml = Contact.new.to_xml(:root => 'xml_contact')
   end
@@ -118,7 +118,7 @@ class NilXmlSerializationTest < Test::Unit::TestCase
   end
 end
 
-class DatabaseConnectedXmlSerializationTest < Test::Unit::TestCase
+class DatabaseConnectedXmlSerializationTest < ActiveSupport::TestCase
   fixtures :authors, :posts
   # to_xml used to mess with the hash the user provided which
   # caused the builder to be reused.  This meant the document kept

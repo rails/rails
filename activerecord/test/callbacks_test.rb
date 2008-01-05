@@ -126,7 +126,7 @@ class CallbackCancellationDeveloper < ActiveRecord::Base
   end
 end
 
-class CallbacksTest < Test::Unit::TestCase
+class CallbacksTest < ActiveSupport::TestCase
   fixtures :developers
 
   def test_initialize

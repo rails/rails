@@ -6,7 +6,7 @@ require 'fixtures/subject'
 # the "subjects" table in Oracle (defined in oci.sql) is just
 # a synonym to the "topics" table
 
-class TestOracleSynonym < Test::Unit::TestCase
+class TestOracleSynonym < ActiveSupport::TestCase
 
   def test_oracle_synonym
     topic = Topic.new

@@ -10,7 +10,16 @@ module ActionController
   end
 
   class TestCase < ActiveSupport::TestCase
+    module RaiseActionExceptions
+      def rescue_action(e)
+        raise e
+      end
+    end
+
+    setup :setup_controller_request_and_response
+
     @@controller_class = nil
+
     class << self
       def tests(controller_class)
         self.controller_class = controller_class
@@ -25,7 +34,7 @@ module ActionController
         if current_controller_class = read_inheritable_attribute(:controller_class)
           current_controller_class
         else
-          self.controller_class= determine_default_controller_class(name)
+          self.controller_class = determine_default_controller_class(name)
         end
       end
 
@@ -36,31 +45,14 @@ module ActionController
       end
 
       def prepare_controller_class(new_class)
-        new_class.class_eval do
-          def rescue_action(e)
-            raise e
-          end
-        end
+        new_class.send :include, RaiseActionExceptions
       end
     end
 
-    def setup_with_controller
+    def setup_controller_request_and_response
       @controller = self.class.controller_class.new
       @request    = TestRequest.new
       @response   = TestResponse.new
-    end
-    alias_method :setup, :setup_with_controller
-
-    def self.method_added(method)
-      if method.to_s == 'setup'
-        unless method_defined?(:setup_without_controller)
-          alias_method :setup_without_controller, :setup
-          define_method(:setup) do
-            setup_with_controller
-            setup_without_controller
-          end
-        end
-      end
     end
  end
 end

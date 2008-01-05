@@ -10,7 +10,7 @@ require 'abstract_unit'
 unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
   require 'fixtures/binary'
 
-  class BinaryTest < Test::Unit::TestCase
+  class BinaryTest < ActiveSupport::TestCase
     FIXTURES = %w(flowers.jpg example.log)
 
     def test_load_save

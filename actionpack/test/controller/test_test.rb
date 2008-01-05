@@ -613,18 +613,9 @@ class InferringClassNameTest < Test::Unit::TestCase
     end
 end
 
-class ContentControllerTest < ActionController::TestCase
-  def setup
-    # Should not override ActionController setup methods
-  end
-
-  def test_should_still_setup_controller
-    assert_kind_of(ContentController, @controller)
-  end
-end
-
 class CrazyNameTest < ActionController::TestCase
   tests ContentController
+
   def test_controller_class_can_be_set_manually_not_just_inferred
     assert_equal ContentController, self.class.controller_class
   end

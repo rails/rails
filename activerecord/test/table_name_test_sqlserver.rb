@@ -6,7 +6,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     self.table_name = '[order]'
   end
 
-  class TableNameTest < Test::Unit::TestCase
+  class TableNameTest < ActiveSupport::TestCase
     self.use_transactional_fixtures = false
 
     # Ensures Model.columns works when using SQLServer escape characters.

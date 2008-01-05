@@ -8,7 +8,7 @@ require 'fixtures/entrant'
 require 'fixtures/developer'
 require 'fixtures/post'
 
-class FinderTest < Test::Unit::TestCase
+class FinderTest < ActiveSupport::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors
 
   def test_find

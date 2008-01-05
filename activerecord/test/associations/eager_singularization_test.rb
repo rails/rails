@@ -39,7 +39,7 @@ class Compress < ActiveRecord::Base
 end
 
 
-class EagerSingularizationTest < Test::Unit::TestCase
+class EagerSingularizationTest < ActiveSupport::TestCase
 
   def setup
     if ActiveRecord::Base.connection.supports_migrations?

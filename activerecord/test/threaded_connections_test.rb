@@ -3,7 +3,7 @@ require 'fixtures/topic'
 require 'fixtures/reply'
 
 unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
-  class ThreadedConnectionsTest < Test::Unit::TestCase
+  class ThreadedConnectionsTest < ActiveSupport::TestCase
     self.use_transactional_fixtures = false
 
     fixtures :topics

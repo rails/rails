@@ -7,7 +7,7 @@ require 'fixtures/company'
 require 'fixtures/person'
 require 'fixtures/reader'
 
-class EagerAssociationTest < Test::Unit::TestCase
+class EagerAssociationTest < ActiveSupport::TestCase
   fixtures :posts, :comments, :authors, :categories, :categories_posts,
             :companies, :accounts, :tags, :people, :readers
 

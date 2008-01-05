@@ -1,5 +1,9 @@
 *SVN*
 
+* Continue evolution toward ActiveSupport::TestCase.  #10679 [Josh Peek]
+
+* TestCase: introduce declared setup and teardown callbacks. Pass a list of methods and an optional block to call before setup or after teardown. Setup callbacks are run in the order declared; teardown callbacks are run in reverse.  [Jeremy Kemper]
+
 * Added ActiveSupport::Gzip.decompress/compress(source) as an easy wrapper for Zlib [Tobias Luetke]
 
 * Included MemCache-Client to make the improved ActiveSupport::Cache::MemCacheStore work out of the box [Bob Cottrell, Eric Hodel]

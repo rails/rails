@@ -64,7 +64,7 @@ class MultiObserver < ActiveRecord::Observer
   end
 end
 
-class LifecycleTest < Test::Unit::TestCase
+class LifecycleTest < ActiveSupport::TestCase
   fixtures :topics, :developers
 
   def test_before_destroy

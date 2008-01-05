@@ -21,7 +21,7 @@ class Time
 end
 
 
-class TouchTest < Test::Unit::TestCase
+class TouchTest < ActiveSupport::TestCase
   fixtures :mixins
   
   def setup

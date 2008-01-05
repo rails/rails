@@ -72,3 +72,49 @@ end
 
 class AlsoDoingNothingTest < ActiveSupport::TestCase
 end
+
+# Setup and teardown callbacks.
+class SetupAndTeardownTest < Test::Unit::TestCase
+  setup :reset_callback_record, :foo
+  teardown :foo, :sentinel, :foo
+
+  def test_inherited_setup_callbacks
+    assert_equal [:reset_callback_record, :foo], self.class.setup_callback_chain
+    assert_equal [:foo], @called_back
+    assert_equal [:foo, :sentinel, :foo], self.class.teardown_callback_chain
+  end
+
+  protected
+    def reset_callback_record
+      @called_back = []
+    end
+
+    def foo
+      @called_back << :foo
+    end
+
+    def sentinel
+      assert_equal [:foo, :foo], @called_back
+    end
+end
+
+
+class SubclassSetupAndTeardownTest < SetupAndTeardownTest
+  setup :bar
+  teardown :bar
+
+  def test_inherited_setup_callbacks
+    assert_equal [:reset_callback_record, :foo, :bar], self.class.setup_callback_chain
+    assert_equal [:foo, :bar], @called_back
+    assert_equal [:foo, :sentinel, :foo, :bar], self.class.teardown_callback_chain
+  end
+
+  protected
+    def bar
+      @called_back << :bar
+    end
+
+    def sentinel
+      assert_equal [:foo, :bar, :bar, :foo], @called_back
+    end
+end

@@ -3,7 +3,7 @@ require 'fixtures/company'
 require 'fixtures/project'
 require 'fixtures/subscriber'
 
-class InheritanceTest < Test::Unit::TestCase
+class InheritanceTest < ActiveSupport::TestCase
   fixtures :companies, :projects, :subscribers, :accounts
 
   def test_company_descends_from_active_record
@@ -175,7 +175,7 @@ class InheritanceTest < Test::Unit::TestCase
 end
 
 
-class InheritanceComputeTypeTest < Test::Unit::TestCase
+class InheritanceComputeTypeTest < ActiveSupport::TestCase
   fixtures :companies
 
   def setup

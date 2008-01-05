@@ -4,7 +4,7 @@ require 'fixtures/comment'
 require 'fixtures/project'
 require 'fixtures/developer'
 
-class AssociationsExtensionsTest < Test::Unit::TestCase
+class AssociationsExtensionsTest < ActiveSupport::TestCase
   fixtures :projects, :developers, :developers_projects, :comments, :posts
 
   def test_extension_on_has_many

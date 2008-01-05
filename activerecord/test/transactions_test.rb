@@ -3,7 +3,7 @@ require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/developer'
 
-class TransactionTest < Test::Unit::TestCase
+class TransactionTest < ActiveSupport::TestCase
   self.use_transactional_fixtures = false
   fixtures :topics, :developers
 

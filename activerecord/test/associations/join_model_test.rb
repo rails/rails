@@ -12,7 +12,7 @@ require 'fixtures/edge'
 require 'fixtures/book'
 require 'fixtures/citation'
 
-class AssociationsJoinModelTest < Test::Unit::TestCase
+class AssociationsJoinModelTest < ActiveSupport::TestCase
   self.use_transactional_fixtures = false
   fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices, :items, :books
 

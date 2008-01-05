@@ -5,7 +5,7 @@ require 'fixtures/comment'
 require 'fixtures/post'
 require 'fixtures/category'
 
-class MethodScopingTest < Test::Unit::TestCase
+class MethodScopingTest < ActiveSupport::TestCase
   fixtures :developers, :projects, :comments, :posts
   
   def test_set_conditions
@@ -125,7 +125,7 @@ class MethodScopingTest < Test::Unit::TestCase
   end
 end
 
-class NestedScopingTest < Test::Unit::TestCase
+class NestedScopingTest < ActiveSupport::TestCase
   fixtures :developers, :projects, :comments, :posts
 
   def test_merge_options
@@ -313,7 +313,7 @@ class NestedScopingTest < Test::Unit::TestCase
   end
 end
 
-class HasManyScopingTest< Test::Unit::TestCase
+class HasManyScopingTest< ActiveSupport::TestCase
   fixtures :comments, :posts
   
   def setup
@@ -343,7 +343,7 @@ class HasManyScopingTest< Test::Unit::TestCase
 end
 
 
-class HasAndBelongsToManyScopingTest< Test::Unit::TestCase
+class HasAndBelongsToManyScopingTest< ActiveSupport::TestCase
   fixtures :posts, :categories, :categories_posts
 
   def setup
@@ -373,7 +373,7 @@ end
 # We disabled the scoping for has_one and belongs_to as we can't think of a proper use case
 
 
-class BelongsToScopingTest< Test::Unit::TestCase
+class BelongsToScopingTest< ActiveSupport::TestCase
   fixtures :comments, :posts
 
   def setup
@@ -393,7 +393,7 @@ class BelongsToScopingTest< Test::Unit::TestCase
 end
 
 
-class HasOneScopingTest< Test::Unit::TestCase
+class HasOneScopingTest< ActiveSupport::TestCase
   fixtures :comments, :posts
 
   def setup

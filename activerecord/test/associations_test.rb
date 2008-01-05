@@ -17,7 +17,7 @@ require 'fixtures/tagging'
 require 'fixtures/person'
 require 'fixtures/reader'
 
-class AssociationsTest < Test::Unit::TestCase
+class AssociationsTest < ActiveSupport::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers
 
@@ -73,7 +73,7 @@ class AssociationsTest < Test::Unit::TestCase
   end
 end
  
-class AssociationProxyTest < Test::Unit::TestCase
+class AssociationProxyTest < ActiveSupport::TestCase
   fixtures :authors, :posts, :categorizations, :categories, :developers, :projects, :developers_projects
   
   def test_proxy_accessors
@@ -166,7 +166,7 @@ class AssociationProxyTest < Test::Unit::TestCase
   end
 end
 
-class HasOneAssociationsTest < Test::Unit::TestCase
+class HasOneAssociationsTest < ActiveSupport::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects
 
   def setup
@@ -463,7 +463,7 @@ class HasOneAssociationsTest < Test::Unit::TestCase
 end
 
 
-class HasManyAssociationsTest < Test::Unit::TestCase
+class HasManyAssociationsTest < ActiveSupport::TestCase
   fixtures :accounts, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments
 
@@ -1196,7 +1196,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
 end
 
-class BelongsToAssociationsTest < Test::Unit::TestCase
+class BelongsToAssociationsTest < ActiveSupport::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects, :computers, :authors, :posts, :tags, :taggings
 
@@ -1572,7 +1572,7 @@ class DeveloperForProjectWithAfterCreateHook < ActiveRecord::Base
 end
 
 
-class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
+class HasAndBelongsToManyAssociationsTest < ActiveSupport::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects
 
   def test_has_and_belongs_to_many
@@ -2112,7 +2112,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
 end
 
 
-class OverridingAssociationsTest < Test::Unit::TestCase
+class OverridingAssociationsTest < ActiveSupport::TestCase
   class Person < ActiveRecord::Base; end
   class DifferentPerson < ActiveRecord::Base; end
 

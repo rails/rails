@@ -84,7 +84,7 @@ class ActiveRecordTestConnector
   end
 end
 
-class ActiveRecordTestCase < Test::Unit::TestCase
+class ActiveRecordTestCase < ActiveSupport::TestCase
   # Set our fixture path
   if ActiveRecordTestConnector.able_to_connect
     self.fixture_path = "#{File.dirname(__FILE__)}/fixtures/"

@@ -6,7 +6,7 @@ require 'fixtures/category'
 require 'fixtures/project'
 require 'fixtures/developer'
 
-class AssociationCallbacksTest < Test::Unit::TestCase
+class AssociationCallbacksTest < ActiveSupport::TestCase
   fixtures :posts, :authors, :projects, :developers
 
   def setup

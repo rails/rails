@@ -5,7 +5,7 @@ require 'fixtures/task'
 require 'fixtures/course'
 
 
-class QueryCacheTest < Test::Unit::TestCase
+class QueryCacheTest < ActiveSupport::TestCase
   fixtures :tasks, :topics
 
   def test_find_queries
@@ -55,7 +55,7 @@ end
 
 uses_mocha 'QueryCacheExpiryTest' do
 
-class QueryCacheExpiryTest < Test::Unit::TestCase
+class QueryCacheExpiryTest < ActiveSupport::TestCase
   fixtures :tasks
 
   def test_find

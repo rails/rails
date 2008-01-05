@@ -6,7 +6,7 @@ require 'fixtures/movie'
 require 'fixtures/keyboard'
 require 'fixtures/mixed_case_monkey'
 
-class PrimaryKeysTest < Test::Unit::TestCase
+class PrimaryKeysTest < ActiveSupport::TestCase
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
 
   def test_integer_key
