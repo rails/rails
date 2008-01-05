@@ -1,4 +1,4 @@
-require "#{File.dirname(__FILE__)}/abstract_unit"
+require 'abstract_unit'
 require 'initializer'
 
 class ConfigurationMock < Rails::Configuration

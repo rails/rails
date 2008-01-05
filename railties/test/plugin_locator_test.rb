@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/plugin_test_helper'
+require 'plugin_test_helper'
 
 uses_mocha "Plugin Locator Tests" do
 
