@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require 'abstract_unit'
 
 class ProcTests < Test::Unit::TestCase
   def test_bind_returns_method_with_changed_self

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require 'abstract_unit'
 
 class TimeExtCalculationsTest < Test::Unit::TestCase
   def test_seconds_since_midnight

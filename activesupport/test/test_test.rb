@@ -1,5 +1,6 @@
-require File.dirname(__FILE__) + '/abstract_unit'
+require 'abstract_unit'
 require 'active_support/test_case'
+
 class AssertDifferenceTest < Test::Unit::TestCase
   def setup
     @object = Class.new do

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require 'abstract_unit'
 
 Payment = Struct.new(:price)
 class SummablePayment < Payment

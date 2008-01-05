@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/abstract_unit'
+require 'abstract_unit'
 
 class CacheStoreSettingTest < Test::Unit::TestCase
   def test_file_fragment_cache_store

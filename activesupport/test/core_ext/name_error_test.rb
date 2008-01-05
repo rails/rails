@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require 'abstract_unit'
 
 class NameErrorTest < Test::Unit::TestCase
   def test_name_error_should_set_missing_name

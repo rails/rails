@@ -6,7 +6,7 @@ module ActiveRecord
   end
 end
 
-require File.dirname(__FILE__) + '/abstract_unit'
+require 'abstract_unit'
 require 'active_support/whiny_nil'
 
 class WhinyNilTest < Test::Unit::TestCase

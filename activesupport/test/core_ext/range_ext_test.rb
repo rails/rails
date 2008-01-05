@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require 'abstract_unit'
 
 class RangeTest < Test::Unit::TestCase
   def test_to_s_from_dates

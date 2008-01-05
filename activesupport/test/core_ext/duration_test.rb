@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require 'abstract_unit'
 
 class DurationTest < Test::Unit::TestCase
   def test_inspect

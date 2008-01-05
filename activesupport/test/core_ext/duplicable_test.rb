@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
+require 'abstract_unit'
 
 class DuplicableTest < Test::Unit::TestCase
   NO  = [nil, false, true, :symbol, 1, 2.3, BigDecimal.new('4.56')]
