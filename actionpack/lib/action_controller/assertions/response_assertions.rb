@@ -33,7 +33,11 @@ module ActionController
           elsif type.is_a?(Symbol) && @response.response_code == ActionController::StatusCodes::SYMBOL_TO_STATUS_CODE[type]
             assert_block("") { true } # to count the assertion
           else
-            assert_block(build_message(message, "Expected response to be a <?>, but was <?>", type, @response.response_code)) { false }
+            if @response.error?
+              assert_block(build_message(message, "Expected response to be a <?>, but was <?>\n<?>", type, @response.response_code, @response.template.instance_variable_get(:@exception).message)) { false }
+            else
+              assert_block(build_message(message, "Expected response to be a <?>, but was <?>", type, @response.response_code)) { false }
+            end
           end
         end
       end

@@ -1,5 +1,7 @@
 *SVN*
 
+* assert_response failures include the exception message.  #10688 [Seth Rasmussen]
+
 * All fragment cache keys are now by default prefixed with the "views/" namespace [DHH]
 
 * Moved the caching stores from ActionController::Caching::Fragments::* to ActiveSupport::Cache::*. If you're explicitly referring to a store, like ActionController::Caching::Fragments::MemoryStore, you need to update that reference with ActiveSupport::Cache::MemoryStore [DHH]
