@@ -32,6 +32,10 @@ class Relation
     def order(*attributes)
       OrderRelation.new(self, *attributes)
     end
+    
+    def rename(attribute, aliaz)
+      RenameRelation.new(self, attribute, aliaz)
+    end
   end
   include Operations
   

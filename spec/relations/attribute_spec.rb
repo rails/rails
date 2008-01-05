@@ -6,6 +6,12 @@ describe Attribute do
     @relation2 = TableRelation.new(:bar)
   end
   
+  describe 'aliaz' do
+    it "manufactures an aliased attributed" do
+      pending
+    end
+  end
+  
   describe '#eql?' do
     it "obtains if the relation and attribute name are identical" do
       Attribute.new(@relation1, :attribute_name).should be_eql(Attribute.new(@relation1, :attribute_name))

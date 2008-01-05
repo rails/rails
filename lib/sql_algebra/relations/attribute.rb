@@ -5,6 +5,10 @@ class Attribute
     @relation, @attribute_name, @aliaz = relation, attribute_name, aliaz
   end
   
+  def aliazz(aliaz)
+    Attribute.new(relation, attribute_name, aliaz)
+  end
+  
   def eql?(other)
     relation == other.relation and attribute_name == other.attribute_name
   end

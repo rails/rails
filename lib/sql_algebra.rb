@@ -17,6 +17,7 @@ require 'sql_algebra/relations/projection_relation'
 require 'sql_algebra/relations/selection_relation'
 require 'sql_algebra/relations/order_relation'
 require 'sql_algebra/relations/range_relation'
+require 'sql_algebra/relations/rename_relation'
 require 'sql_algebra/relations/join'
 
 require 'sql_algebra/predicates/predicate'

@@ -48,6 +48,12 @@ describe Relation do
     end
   end
   
+  describe Relation, '#rename' do
+    it "manufactures a rename relation" do
+      @relation1.rename(@attribute1, :foo).should == RenameRelation.new(@relation1, @attribute1, :foo)
+    end
+  end
+  
   describe Relation, '#select' do
     before do
       @predicate = EqualityPredicate.new(@attribute1, @attribute2)
