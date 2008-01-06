@@ -10,7 +10,7 @@ describe ConditionsBuilder do
             column(:c, :d, 'e')
           end
         end.to_s.should be_like("""
-          `a`.`b` = 'e'
+          `a`.`b` = `c`.`d`
         """)
       end
     end

@@ -5,7 +5,7 @@ class EqualsConditionBuilder < SqlBuilder
   end
   
   def column(table, column, aliaz = nil)
-    @operands << (aliaz ? quote(aliaz) : "#{quote_table_name(table)}.#{quote_column_name(column)}")
+    @operands << "#{quote_table_name(table)}.#{quote_column_name(column)}"
   end
   
   def value(value)

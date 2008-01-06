@@ -87,7 +87,7 @@ describe SelectBuilder do
         end.to_s.should be_like("""
           SELECT *
           FROM `users`
-          ORDER BY `users`.`id`, 'alias'
+          ORDER BY `users`.`id`, `users`.`created_at`
         """)
       end
     end

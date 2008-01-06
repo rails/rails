@@ -1,4 +1,17 @@
 class Relation
+  module Iteration
+    include Enumerable
+    
+    def each(&block)
+      connection.select_all(to_s).each(&block)
+    end
+    
+    def first
+      connection.select_one(to_s)
+    end
+  end
+  include Iteration
+  
   module Operations
     def <=>(other)
       InnerJoinOperation.new(self, other)
@@ -60,7 +73,7 @@ class Relation
     end
   end
   delegate :to_s, :to => :to_sql
-  
+    
   protected
   def attributes; [] end
   def joins;      [] end

@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'spec'
+require 'rr'
 require File.join(File.dirname(__FILE__), '..', 'lib', 'sql_algebra')
 require File.join(File.dirname(__FILE__), 'spec_helpers', 'be_like')
 
@@ -24,4 +25,5 @@ end
 
 Spec::Runner.configure do |config|  
   config.include(BeLikeMatcher)
+  config.mock_with :rr
 end
