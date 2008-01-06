@@ -1,5 +1,7 @@
 *SVN*
 
+* The asset_host block takes the controller request as an optional second argument. Example: use a single asset host for SSL requests.  #10549 [Cheah Chu Yeow, Peter B, Tom Taylor]
+
 * Support render :text => nil.  #6684 [tjennings, PotatoSalad, Cheah Chu Yeow]
 
 * assert_response failures include the exception message.  #10688 [Seth Rasmussen]

@@ -3,7 +3,7 @@ require 'action_controller/session/cookie_store'
 
 module ActionController #:nodoc:
   class Base
-    # Process a request extracted from an CGI object and return a response. Pass false as <tt>session_options</tt> to disable
+    # Process a request extracted from a CGI object and return a response. Pass false as <tt>session_options</tt> to disable
     # sessions (large performance increase if sessions are not needed). The <tt>session_options</tt> are the same as for CGI::Session:
     #
     # * <tt>:database_manager</tt> - standard options are CGI::Session::FileStore, CGI::Session::MemoryStore, and CGI::Session::PStore
@@ -17,7 +17,7 @@ module ActionController #:nodoc:
     #   an ArgumentError is raised.
     # * <tt>:session_expires</tt> - the time the current session expires, as a +Time+ object.  If not set, the session will continue
     #   indefinitely.
-    # * <tt>:session_domain</tt> -  the hostname domain for which this session is valid. If not set, defaults to the hostname of the
+    # * <tt>:session_domain</tt> - the hostname domain for which this session is valid. If not set, defaults to the hostname of the
     #   server.
     # * <tt>:session_secure</tt> - if +true+, this session will only work over HTTPS.
     # * <tt>:session_path</tt> - the path for which this session applies.  Defaults to the directory of the CGI script.
@@ -34,7 +34,8 @@ module ActionController #:nodoc:
 
   class CgiRequest < AbstractRequest #:nodoc:
     attr_accessor :cgi, :session_options
-    class SessionFixationAttempt < StandardError; end #:nodoc:
+    class SessionFixationAttempt < StandardError #:nodoc:
+    end
 
     DEFAULT_SESSION_OPTIONS = {
       :database_manager => CGI::Session::CookieStore, # store data in cookie

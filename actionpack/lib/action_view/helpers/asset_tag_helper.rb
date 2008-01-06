@@ -50,8 +50,10 @@ module ActionView
     #   stylesheet_include_tag("application")
     #     => <link href="http://assets1.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
     #
-    # The proc takes a single <tt>source</tt> parameter which is the path of the source asset. This can be used to
-    # generate a particular asset host depending on the asset path.
+    # The proc takes a <tt>source</tt> parameter (which is the path of the source asset) and an optional
+    # <tt>request</tt> parameter (which is an entire instance of an <tt>ActionController::AbstractRequest</tt>
+    # subclass). This can be used to generate a particular asset host depending on the asset path and the particular
+    # request.
     #
     #    ActionController::Base.asset_host = Proc.new { |source|
     #      if source.starts_with?('/images')
@@ -64,6 +66,19 @@ module ActionView
     #     => <img src="http://images.example.com/images/rails.png" alt="Rails" />
     #   stylesheet_include_tag("application")
     #     => <link href="http://assets.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+    #
+    # The optional <tt>request</tt> parameter to the proc is useful in particular for serving assets from an
+    # SSL-protected page. The example proc below disables asset hosting for HTTPS connections, while still sending
+    # assets for plain HTTP requests from asset hosts. This is useful for avoiding mixed media warnings when serving
+    # non-HTTP assets from HTTPS web pages when you don't have an SSL certificate for each of the asset hosts.
+    #
+    #   ActionController::Base.asset_host = Proc.new { |source, request|
+    #     if request.ssl?
+    #       "#{request.protocol}#{request.host_with_port}"
+    #     else
+    #       "#{request.protocol}assets.example.com"
+    #     end
+    #   }
     #
     # === Using asset timestamps
     #
@@ -461,7 +476,12 @@ module ActionView
         def compute_asset_host(source)
           if host = ActionController::Base.asset_host
             if host.is_a?(Proc)
-              host.call(source)
+              case host.arity
+              when 2:
+                host.call(source, @controller.request)
+              else
+                host.call(source)
+              end
             else
               host % (source.hash % 4)
             end

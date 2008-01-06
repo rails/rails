@@ -34,6 +34,8 @@ class AssetTagHelperTest < Test::Unit::TestCase
     @request = Class.new do
       def relative_url_root() "" end
       def protocol() 'http://' end
+      def ssl?() false end
+      def host_with_port() 'localhost' end
     end.new
 
     @controller.request = @request
@@ -248,7 +250,7 @@ class AssetTagHelperTest < Test::Unit::TestCase
   end
 
   def test_caching_javascript_include_tag_when_caching_on_with_proc_asset_host
-    ENV["RAILS_ASSET_ID"] = ""
+    ENV['RAILS_ASSET_ID'] = ''
     ActionController::Base.asset_host = Proc.new { |source| "http://a#{source.length}.example.com" }
     ActionController::Base.perform_caching = true
 
@@ -262,6 +264,43 @@ class AssetTagHelperTest < Test::Unit::TestCase
 
   ensure
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'scripts.js'))
+  end
+
+  def test_caching_javascript_include_tag_when_caching_on_with_2_argument_proc_asset_host
+    ENV['RAILS_ASSET_ID'] = ''
+    ActionController::Base.asset_host = Proc.new { |source, request|
+      if request.ssl?
+        "#{request.protocol}#{request.host_with_port}"
+      else
+        "#{request.protocol}assets#{source.length}.example.com"
+      end
+    }
+    ActionController::Base.perform_caching = true
+
+    assert_equal '/javascripts/vanilla.js'.length, 23
+    assert_dom_equal(
+      %(<script src="http://assets23.example.com/javascripts/vanilla.js" type="text/javascript"></script>),
+      javascript_include_tag(:all, :cache => 'vanilla')
+    )
+
+    assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'vanilla.js'))
+
+    class << @controller.request
+      def protocol() 'https://' end
+      def ssl?() true end
+    end
+
+    assert_equal '/javascripts/secure.js'.length, 22
+    assert_dom_equal(
+      %(<script src="https://localhost/javascripts/secure.js" type="text/javascript"></script>),
+      javascript_include_tag(:all, :cache => 'secure')
+    )
+
+    assert File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'secure.js'))
+
+  ensure
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'vanilla.js'))
+    FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'secure.js'))
   end
 
   def test_caching_javascript_include_tag_when_caching_on_and_using_subdirectory
