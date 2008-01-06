@@ -24,10 +24,25 @@ class XmlSimple
   end
 end
 
+# This module exists to decorate files deserialized using Hash.from_xml with
+# the <tt>original_filename</tt> and <tt>content_type</tt> methods.
+module FileLike #:nodoc:
+  attr_writer :original_filename, :content_type
+
+  def original_filename
+    @original_filename || 'untitled'
+  end
+
+  def content_type
+    @content_type || 'application/octet-stream'
+  end
+end
+
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Hash #:nodoc:
       module Conversions
+
         XML_TYPE_NAMES = {
           "Symbol"     => "symbol",
           "Fixnum"     => "integer",
@@ -63,11 +78,11 @@ module ActiveSupport #:nodoc:
             "string"       => Proc.new  { |string|  string.to_s },
             "yaml"         => Proc.new  { |yaml|    YAML::load(yaml) rescue yaml },
             "base64Binary" => Proc.new  { |bin|     Base64.decode64(bin) },
-            # FIXME: Get rid of eval and institute a proper decorator here
             "file"         => Proc.new do |file, entity|
               f = StringIO.new(Base64.decode64(file))
-              eval "def f.original_filename() '#{entity["name"]}' || 'untitled' end"
-              eval "def f.content_type()      '#{entity["content_type"]}' || 'application/octet-stream' end"
+              f.extend(FileLike)
+              f.original_filename = entity['name']
+              f.content_type = entity['content_type']
               f
             end
           }

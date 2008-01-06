@@ -533,9 +533,9 @@ class HashToXmlTest < Test::Unit::TestCase
   def test_single_record_from_xml_with_attributes_other_than_type
     topic_xml = <<-EOT
     <rsp stat="ok">
-    	<photos page="1" pages="1" perpage="100" total="16">
-    		<photo id="175756086" owner="55569174@N00" secret="0279bf37a1" server="76" title="Colored Pencil PhotoBooth Fun" ispublic="1" isfriend="0" isfamily="0"/>
-    	</photos>
+      <photos page="1" pages="1" perpage="100" total="16">
+        <photo id="175756086" owner="55569174@N00" secret="0279bf37a1" server="76" title="Colored Pencil PhotoBooth Fun" ispublic="1" isfriend="0" isfamily="0"/>
+      </photos>
     </rsp>
     EOT
 
@@ -597,6 +597,34 @@ class HashToXmlTest < Test::Unit::TestCase
     XML
     expected_blog_hash = {"blog" => {"posts" => ["a post", "another post"]}}
     assert_equal expected_blog_hash, Hash.from_xml(blog_xml)
+  end
+
+  def test_file_from_xml
+    blog_xml = <<-XML
+      <blog>
+        <logo type="file" name="logo.png" content_type="image/png">
+        </logo>
+      </blog>
+    XML
+    hash = Hash.from_xml(blog_xml)
+    assert hash.has_key?('blog')
+    assert hash['blog'].has_key?('logo')
+
+    file = hash['blog']['logo']
+    assert_equal 'logo.png', file.original_filename
+    assert_equal 'image/png', file.content_type
+  end
+
+  def test_file_from_xml_with_defaults
+    blog_xml = <<-XML
+      <blog>
+        <logo type="file">
+        </logo>
+      </blog>
+    XML
+    file = Hash.from_xml(blog_xml)['blog']['logo']
+    assert_equal 'untitled', file.original_filename
+    assert_equal 'application/octet-stream', file.content_type
   end
 
   def test_xsd_like_types_from_xml
