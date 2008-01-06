@@ -12,7 +12,7 @@ class JoinRelation < Relation
   end
 
   def qualify
-    JoinRelation.new(relation1.qualify, relation2.qualify, *predicates.collect(&:qualify))
+    self.class.new(relation1.qualify, relation2.qualify, *predicates.collect(&:qualify))
   end
   
   protected

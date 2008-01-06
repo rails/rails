@@ -41,7 +41,7 @@ class SelectBuilder < SqlBuilder
   end
   
   def from_clause
-    "FROM #{@table} #{@joins}" unless @table.blank?
+    "FROM #{quote_table_name(@table)} #{@joins}" unless @table.blank?
   end
   
   def where_clause

@@ -13,7 +13,7 @@ class SelectsBuilder < SqlBuilder
   end
   
   def column(table, column, aliaz = nil)
-    @selects << "#{table}.#{column}" + (aliaz ? " AS #{aliaz}" : '')
+    @selects << "#{quote_table_name(table)}.#{quote_column_name(column)}" + (aliaz ? " AS #{quote(aliaz)}" : '')
   end
   
   delegate :blank?, :to => :@selects

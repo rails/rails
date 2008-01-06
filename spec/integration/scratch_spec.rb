@@ -12,30 +12,30 @@ describe 'Relational Algebra' do
   
   it 'simulates User.has_many :photos' do
     @user_photos.project(*@photos.attributes).to_s.should be_like("""
-      SELECT photos.id, photos.user_id, photos.camera_id
-      FROM users
-        LEFT OUTER JOIN photos
-          ON users.id = photos.user_id
+      SELECT `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
+      FROM `users`
+        LEFT OUTER JOIN `photos`
+          ON `users`.`id` = `photos`.`user_id`
       WHERE
-        users.id = 1
+        `users`.`id` = 1
     """)
   end
   
   it 'simulates a User.has_many :cameras :through => :photos' do
     @user_cameras.project(*@cameras.attributes).to_s.should be_like("""
-      SELECT cameras.id
-      FROM users
-        LEFT OUTER JOIN photos
-          ON users.id = photos.user_id
-        LEFT OUTER JOIN cameras
-          ON photos.camera_id = cameras.id
+      SELECT `cameras`.`id`
+      FROM `users`
+        LEFT OUTER JOIN `photos`
+          ON `users`.`id` = `photos`.`user_id`
+        LEFT OUTER JOIN `cameras`
+          ON `photos`.`camera_id` = `cameras`.`id`
       WHERE
-        users.id = 1
+        `users`.`id` = 1
     """)
   end
   
   it '' do
-    # @user_cameras.qualify.to_s
+    # p @user_cameras.qualify.to_s
     # 
     # @users.rename()
   end

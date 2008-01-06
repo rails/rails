@@ -20,23 +20,18 @@ describe JoinRelation do
   
   describe '#qualify' do
     it 'distributes over the relations and predicates' do
-      JoinRelation.new(@relation1, @relation2, @predicate).qualify. \
-        should == JoinRelation.new(@relation1.qualify, @relation2.qualify, @predicate.qualify)
+      InnerJoinRelation.new(@relation1, @relation2, @predicate).qualify. \
+        should == InnerJoinRelation.new(@relation1.qualify, @relation2.qualify, @predicate.qualify)
     end
   end
   
   describe '#to_sql' do
     before do
       @relation1 = @relation1.select(@relation1[:id] == @relation2[:foo_id])
-      class ConcreteJoinRelation < JoinRelation
-        def join_type
-          :inner_join
-        end
-      end
     end
     
     it 'manufactures sql joining the two tables on the predicate, merging the selects' do
-      ConcreteJoinRelation.new(@relation1, @relation2, @predicate).to_s.should == SelectBuilder.new do
+      InnerJoinRelation.new(@relation1, @relation2, @predicate).to_s.should == SelectBuilder.new do
         select do
           column :foo, :name
           column :foo, :id

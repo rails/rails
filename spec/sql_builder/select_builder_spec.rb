@@ -11,7 +11,7 @@ describe SelectBuilder do
           from :users
         end.to_s.should be_like("""
           SELECT *
-          FROM users
+          FROM `users`
         """)
       end
     end
@@ -20,13 +20,13 @@ describe SelectBuilder do
       it 'manufactures correct sql' do
         SelectBuilder.new do
           select do
-            column(:a, :b, :c)
-            column(:e, :f)
+            column :a, :b, 'c'
+            column :e, :f
           end
           from :users
         end.to_s.should be_like("""
-          SELECT a.b AS c, e.f
-          FROM users
+          SELECT `a`.`b` AS 'c', `e`.`f`
+          FROM `users`
         """)
       end
     end
@@ -40,14 +40,14 @@ describe SelectBuilder do
           from :users
           where do
             equals do
-              value :a
+              value 1
               column :b, :c
             end
           end
         end.to_s.should be_like("""
           SELECT *
-          FROM users
-          WHERE a = b.c
+          FROM `users`
+          WHERE 1 = `b`.`c`
         """)        
       end
     end
@@ -61,14 +61,14 @@ describe SelectBuilder do
           from :users do
             inner_join(:friendships) do
               equals do
-                value :id
-                value :user_id
+                column :users, :id
+                column :friendships, :user_id
               end
             end
           end
         end.to_s.should be_like("""
           SELECT *
-          FROM users INNER JOIN friendships ON id = user_id
+          FROM `users` INNER JOIN `friendships` ON `users`.`id` = `friendships`.`user_id`
         """)
       end
     end
@@ -82,12 +82,12 @@ describe SelectBuilder do
           from :users
           order_by do
             column :users, :id
-            column :users, :created_at, :alias
+            column :users, :created_at, 'alias'
           end
         end.to_s.should be_like("""
           SELECT *
-          FROM users
-          ORDER BY users.id, alias
+          FROM `users`
+          ORDER BY `users`.`id`, 'alias'
         """)
       end
     end
@@ -103,7 +103,7 @@ describe SelectBuilder do
           offset 10
         end.to_s.should be_like("""
           SELECT *
-          FROM users
+          FROM `users`
           LIMIT 10
           OFFSET 10
         """)

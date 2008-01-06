@@ -25,4 +25,11 @@ class SqlBuilder
       end
     end
   end
+  
+  private
+  delegate :quote_table_name, :quote_column_name, :quote, :to => :connection
+  
+  def connection
+    ActiveRecord::Base.connection
+  end
 end

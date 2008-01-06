@@ -8,6 +8,6 @@ class JoinBuilder < SqlBuilder
   delegate :call, :to => :@conditions
   
   def to_s
-    "#{join_type} #{@table} ON #{@conditions}"
+    "#{join_type} #{quote_table_name(@table)} ON #{@conditions}"
   end
 end

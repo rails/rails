@@ -5,7 +5,7 @@ class OrderBuilder < SqlBuilder
   end
   
   def column(table, column, aliaz = nil)
-    @orders << (aliaz ? aliaz : "#{table}.#{column}")
+    @orders << (aliaz ? quote(aliaz) : "#{quote_table_name(table)}.#{quote_column_name(column)}")
   end
   
   def to_s
