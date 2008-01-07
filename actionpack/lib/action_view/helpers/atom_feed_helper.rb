@@ -49,7 +49,7 @@ module ActionView
       # * <tt>:root_url</tt>: The HTML alternative that this feed is doubling for. Defaults to / on the current host.
       # * <tt>:url</tt>: The URL for this feed. Defaults to the current URL.
       #
-      # atom_feed yields a AtomFeedBuilder instance.
+      # atom_feed yields an AtomFeedBuilder instance.
       def atom_feed(options = {}, &block)
         if options[:schema_date].blank?
           logger.warn("You must provide the :schema_date option to atom_feed for your feed to be valid. A good default is the year you first created this feed.") unless logger.nil?
@@ -84,8 +84,8 @@ module ActionView
         #
         # Options:
         #
-        # * <tt>:updated</tt>: Time of update. Defaults to the created_at attribute on the record if one such exists.
-        # * <tt>:published</tt>: Time first published. Defaults to the updated_at attribute on the record if one such exists.
+        # * <tt>:published</tt>: Time first published. Defaults to the created_at attribute on the record if one such exists.
+        # * <tt>:updated</tt>: Time of update. Defaults to the updated_at attribute on the record if one such exists.
         # * <tt>:url</tt>: The URL for this entry. Defaults to the polymorphic_url for the record.
         def entry(record, options = {})
           @xml.entry do 
