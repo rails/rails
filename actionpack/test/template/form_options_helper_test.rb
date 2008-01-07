@@ -109,19 +109,18 @@ class FormOptionsHelperTest < Test::Unit::TestCase
       )
   end
 
-  # FIXME: fails on Ruby 1.9, probably in html-scanner
   def test_hash_options_for_select
     assert_dom_equal(
       "<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<option value=\"Dollar\">$</option>",
-      options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" })
+      options_for_select("$" => "Dollar", "<DKR>" => "<Kroner>").split("\n").sort.join("\n")
     )
     assert_dom_equal(
       "<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<option value=\"Dollar\" selected=\"selected\">$</option>",
-      options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" }, "Dollar")
+      options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" }, "Dollar").split("\n").sort.join("\n")
     )
     assert_dom_equal(
       "<option value=\"&lt;Kroner&gt;\" selected=\"selected\">&lt;DKR&gt;</option>\n<option value=\"Dollar\" selected=\"selected\">$</option>",
-      options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" }, [ "Dollar", "<Kroner>" ])
+      options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" }, [ "Dollar", "<Kroner>" ]).split("\n").sort.join("\n")
     )
   end
 
