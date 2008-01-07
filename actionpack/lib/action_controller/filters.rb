@@ -583,10 +583,12 @@ module ActionController #:nodoc:
           when filter.respond_to?(:call)
             if filter.is_a?(Method)
               MethodFilter
-            elsif filter.arity == 1
-              ProcFilter
             else
-              ProcWithCallFilter
+              case filter.arity
+              when 1; ProcFilter
+              when 2; ProcWithCallFilter
+              else raise ArgumentError, 'Filter blocks must take one or two arguments.'
+              end
             end
           when filter.respond_to?(:filter)
             ClassFilter
