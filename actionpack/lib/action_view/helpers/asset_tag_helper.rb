@@ -477,7 +477,7 @@ module ActionView
           if host = ActionController::Base.asset_host
             if host.is_a?(Proc)
               case host.arity
-              when 2:
+              when 2
                 host.call(source, @controller.request)
               else
                 host.call(source)
