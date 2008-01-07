@@ -117,7 +117,7 @@ class CGI::Session::CookieStore
   def delete
     @data = nil
     clear_old_cookie_value
-    write_cookie('value' => '', 'expires' => 1.year.ago)
+    write_cookie('value' => nil, 'expires' => 1.year.ago)
   end
 
   # Generate the HMAC keyed message digest. Uses SHA1 by default.

@@ -175,7 +175,7 @@ class CookieStoreTest < Test::Unit::TestCase
     def assert_cookie_deleted(session, message = 'Expected session deletion cookie to be set')
       assert_equal 1, session.cgi.output_cookies.size
       cookie = session.cgi.output_cookies.first
-      assert_cookie cookie, nil, 1.year.ago.to_date, message
+      assert_cookie cookie, nil, 1.year.ago.to_date, "#{message}: #{cookie.name} => #{cookie.value}"
     end
 
     def assert_cookie(cookie, value = nil, expires = nil, message = nil)
