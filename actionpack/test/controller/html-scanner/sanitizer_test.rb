@@ -240,15 +240,19 @@ class SanitizerTest < Test::Unit::TestCase
   end
 
   def test_should_sanitize_img_vbscript
-     assert_sanitized %(<img src='vbscript:msgbox("XSS")' />), '<img />'
+    assert_sanitized %(<img src='vbscript:msgbox("XSS")' />), '<img />'
   end
 
 protected
   def assert_sanitized(input, expected = nil)
     @sanitizer ||= HTML::WhiteListSanitizer.new
-    assert_equal expected || input, @sanitizer.sanitize(input)
+    if input
+      assert_dom_equal expected || input, @sanitizer.sanitize(input)
+    else
+      assert_nil @sanitizer.sanitize(input)
+    end
   end
-  
+
   def sanitize_css(input)
     (@sanitizer ||= HTML::WhiteListSanitizer.new).sanitize_css(input)
   end
