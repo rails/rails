@@ -29,26 +29,37 @@ module ActionView
         eval(ActionView::Base.erb_variable, binding) << string
       end
 
-      # If +text+ is longer than +length+, +text+ will be truncated to the length of 
-      # +length+ (defaults to 30) and the last characters will be replaced with the +truncate_string+
-      # (defaults to "...").
-      #
-      # ==== Examples
-      #   truncate("Once upon a time in a world far far away", 14)  
-      #   # => Once upon a...
-      #
-      #   truncate("Once upon a time in a world far far away")  
-      #   # => Once upon a time in a world f...
-      #
-      #   truncate("And they found that many people were sleeping better.", 25, "(clipped)")
-      #   # => And they found that many (clipped)
-      #
-      #   truncate("And they found that many people were sleeping better.", 15, "... (continued)")
-      #   # => And they found... (continued)
-      def truncate(text, length = 30, truncate_string = "...")
-        if text.nil? then return end
-        l = length - truncate_string.chars.length
-        (text.chars.length > length ? text.chars[0...l] + truncate_string : text).to_s
+      if RUBY_VERSION < '1.9'
+        # If +text+ is longer than +length+, +text+ will be truncated to the length of 
+        # +length+ (defaults to 30) and the last characters will be replaced with the +truncate_string+
+        # (defaults to "...").
+        #
+        # ==== Examples
+        #   truncate("Once upon a time in a world far far away", 14)  
+        #   # => Once upon a...
+        #
+        #   truncate("Once upon a time in a world far far away")  
+        #   # => Once upon a time in a world f...
+        #
+        #   truncate("And they found that many people were sleeping better.", 25, "(clipped)")
+        #   # => And they found that many (clipped)
+        #
+        #   truncate("And they found that many people were sleeping better.", 15, "... (continued)")
+        #   # => And they found... (continued)
+        def truncate(text, length = 30, truncate_string = "...")
+          if text
+            l = length - truncate_string.chars.length
+            chars = text.chars
+            (chars.length > length ? chars[0...l] + truncate_string : text).to_s
+          end
+        end
+      else
+        def truncate(text, length = 30, truncate_string = "...") #:nodoc:
+          if text
+            l = length - truncate_string.length
+            (text.length > length ? text[0...l] + truncate_string : text).to_s
+          end
+        end
       end
 
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
@@ -77,41 +88,62 @@ module ActionView
         end
       end
 
-      # Extracts an excerpt from +text+ that matches the first instance of +phrase+. 
-      # The +radius+ expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
-      # defined in +radius+ (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
-      # then the +excerpt_string+ will be prepended/appended accordingly. If the +phrase+ 
-      # isn't found, nil is returned.
-      #
-      # ==== Examples
-      #   excerpt('This is an example', 'an', 5) 
-      #   # => "...s is an examp..."
-      #
-      #   excerpt('This is an example', 'is', 5) 
-      #   # => "This is an..."
-      #
-      #   excerpt('This is an example', 'is') 
-      #   # => "This is an example"
-      #
-      #   excerpt('This next thing is an example', 'ex', 2) 
-      #   # => "...next t..."
-      #
-      #   excerpt('This is also an example', 'an', 8, '<chop> ')
-      #   # => "<chop> is also an example"
-      def excerpt(text, phrase, radius = 100, excerpt_string = "...")
-        if text.nil? || phrase.nil? then return end
-        phrase = Regexp.escape(phrase)
+      if RUBY_VERSION < '1.9'
+        # Extracts an excerpt from +text+ that matches the first instance of +phrase+. 
+        # The +radius+ expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
+        # defined in +radius+ (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
+        # then the +excerpt_string+ will be prepended/appended accordingly. If the +phrase+ 
+        # isn't found, nil is returned.
+        #
+        # ==== Examples
+        #   excerpt('This is an example', 'an', 5) 
+        #   # => "...s is an examp..."
+        #
+        #   excerpt('This is an example', 'is', 5) 
+        #   # => "This is an..."
+        #
+        #   excerpt('This is an example', 'is') 
+        #   # => "This is an example"
+        #
+        #   excerpt('This next thing is an example', 'ex', 2) 
+        #   # => "...next t..."
+        #
+        #   excerpt('This is also an example', 'an', 8, '<chop> ')
+        #   # => "<chop> is also an example"
+        def excerpt(text, phrase, radius = 100, excerpt_string = "...")
+          if text && phrase
+            phrase = Regexp.escape(phrase)
 
-        if found_pos = text.chars =~ /(#{phrase})/i
-          start_pos = [ found_pos - radius, 0 ].max
-          end_pos   = [ found_pos + phrase.chars.length + radius, text.chars.length ].min
+            if found_pos = text.chars =~ /(#{phrase})/i
+              start_pos = [ found_pos - radius, 0 ].max
+              end_pos   = [ found_pos + phrase.chars.length + radius, text.chars.length ].min
 
-          prefix  = start_pos > 0 ? excerpt_string : ""
-          postfix = end_pos < text.chars.length ? excerpt_string : ""
+              prefix  = start_pos > 0 ? excerpt_string : ""
+              postfix = end_pos < text.chars.length ? excerpt_string : ""
 
-          prefix + text.chars[start_pos..end_pos].strip + postfix
-        else
-          nil
+              prefix + text.chars[start_pos..end_pos].strip + postfix
+            else
+              nil
+            end
+          end
+        end
+      else
+        def excerpt(text, phrase, radius = 100, excerpt_string = "...") #:nodoc:
+          if text && phrase
+            phrase = Regexp.escape(phrase)
+
+            if found_pos = text =~ /(#{phrase})/i
+              start_pos = [ found_pos - radius, 0 ].max
+              end_pos   = [ found_pos + phrase.length + radius, text.length ].min
+
+              prefix  = start_pos > 0 ? excerpt_string : ""
+              postfix = end_pos < text.length ? excerpt_string : ""
+
+              prefix + text[start_pos..end_pos].strip + postfix
+            else
+              nil
+            end
+          end
         end
       end
 
