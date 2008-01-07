@@ -1,0 +1,3 @@
+<% render(:layout => "layout_for_partial", :locals => { :name => "Anthony" }) do %>Inside from first block in layout<% end %>
+<%= yield %>
+<% render(:layout => "layout_for_partial", :locals => { :name => "Ramm" }) do %>Inside from second block in layout<% end %>

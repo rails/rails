@@ -175,6 +175,7 @@ class TextHelperTest < Test::Unit::TestCase
               http://www.rubyonrails.com/~minam/contact;new?with=query&string=params
               http://en.wikipedia.org/wiki/Wikipedia:Today%27s_featured_picture_%28animation%29/January_20%2C_2007
               http://www.mail-archive.com/rails@lists.rubyonrails.org/
+              http://www.amazon.com/Testing-Equal-Sign-In-Path/ref=pd_bbs_sr_1?ie=UTF8&s=books&qid=1198861734&sr=8-1
             )
 
     urls.each do |url|

@@ -69,6 +69,9 @@ namespace :rails do
       for framework in %w(railties actionpack activerecord actionmailer activesupport activeresource)
         system "svn export #{rails_svn}/#{framework} vendor/rails/#{framework}" + (ENV['REVISION'] ? " -r #{ENV['REVISION']}" : "")
       end
+      
+      puts "Updating current scripts, javascripts, and configuration settings"
+      Rake::Task["rails:update"].invoke
     end
   end
 

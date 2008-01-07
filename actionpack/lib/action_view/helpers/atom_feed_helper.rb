@@ -26,7 +26,7 @@ module ActionView
       #     end
       #
       #   app/views/posts/index.atom.builder:
-      #     atom_feed do |feed|
+      #     atom_feed(:tag_uri => "2008") do |feed|
       #       feed.title("My great blog!")
       #       feed.updated((@posts.first.created_at))
       #     
@@ -44,31 +44,35 @@ module ActionView
       #
       # The options are for atom_feed are:
       #
+      # * <tt>:schema_date</tt>: Required. The date at which the tag scheme for the feed was first used. A good default is the year you created the feed. See http://feedvalidator.org/docs/error/InvalidTAG.html for more information.
       # * <tt>:language</tt>: Defaults to "en-US".
       # * <tt>:root_url</tt>: The HTML alternative that this feed is doubling for. Defaults to / on the current host.
       # * <tt>:url</tt>: The URL for this feed. Defaults to the current URL.
       #
       # atom_feed yields a AtomFeedBuilder instance.
       def atom_feed(options = {}, &block)
+        if options[:schema_date].blank?
+          logger.warn("You must provide the :schema_date option to atom_feed for your feed to be valid. A good default is the year you first created this feed.") unless logger.nil?
+        else
+          options[:schema_date] = options[:schema_date].strftime("%Y-%m-%d") if options[:schema_date].respond_to?(:strftime)
+        end
+        
         xml = options[:xml] || eval("xml", block.binding)
         xml.instruct!
 
         xml.feed "xml:lang" => options[:language] || "en-US", "xmlns" => 'http://www.w3.org/2005/Atom' do
-          xml.id("tag:#{request.host}:#{request.request_uri.split(".")[0].gsub("/", "")}")      
+          xml.id("tag:#{request.host},#{options[:schema_date]}:#{request.request_uri.split(".")[0]}")      
           xml.link(:rel => 'alternate', :type => 'text/html', :href => options[:root_url] || (request.protocol + request.host_with_port))
-
-          if options[:url]
-            xml.link(:rel => 'self', :type => 'application/atom+xml', :href => options[:url] || request.url)
-          end
-
-          yield AtomFeedBuilder.new(xml, self)
+          xml.link(:rel => 'self', :type => 'application/atom+xml', :href => options[:url] || request.url)
+          
+          yield AtomFeedBuilder.new(xml, self, options)
         end
       end
 
 
       class AtomFeedBuilder
-        def initialize(xml, view)
-          @xml, @view = xml, view
+        def initialize(xml, view, feed_options = {})
+          @xml, @view, @feed_options = xml, view, feed_options
         end
         
         # Accepts a Date or Time object and inserts it in the proper format. If nil is passed, current time in UTC is used.
@@ -85,7 +89,7 @@ module ActionView
         # * <tt>:url</tt>: The URL for this entry. Defaults to the polymorphic_url for the record.
         def entry(record, options = {})
           @xml.entry do 
-            @xml.id("tag:#{@view.request.host_with_port}:#{record.class}#{record.id}")
+            @xml.id("tag:#{@view.request.host},#{@feed_options[:schema_date]}:#{record.class}/#{record.id}")
 
             if options[:published] || (record.respond_to?(:created_at) && record.created_at)
               @xml.published((options[:published] || record.created_at).xmlschema)
@@ -102,8 +106,8 @@ module ActionView
         end
 
         private
-          def method_missing(method, *arguments)
-            @xml.__send__(method, *arguments)
+          def method_missing(method, *arguments, &block)
+            @xml.__send__(method, *arguments, &block)
           end
       end
     end

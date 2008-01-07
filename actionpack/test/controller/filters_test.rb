@@ -696,10 +696,6 @@ class ControllerWithProcFilter < PostsController
   end
 end
 
-class ControllerWithWrongFilterType < PostsController
-  around_filter lambda { yield }, :only => :no_raise
-end
-
 class ControllerWithNestedFilters < ControllerWithSymbolAsFilter
   around_filter :raise_before, :raise_after, :without_exception, :only => :raises_both
 end
@@ -746,14 +742,15 @@ class YieldingAroundFiltersTest < Test::Unit::TestCase
     assert_equal 1, ControllerWithFilterClass.filter_chain.size
     assert_equal 1, ControllerWithFilterInstance.filter_chain.size
     assert_equal 3, ControllerWithSymbolAsFilter.filter_chain.size
-    assert_equal 1, ControllerWithWrongFilterType.filter_chain.size
     assert_equal 6, ControllerWithNestedFilters.filter_chain.size
     assert_equal 4, ControllerWithAllTypesOfFilters.filter_chain.size
   end
 
   def test_wrong_filter_type
-    assert_raise(ActionController::ActionControllerError) do
-      test_process(ControllerWithWrongFilterType,'no_raise')
+    assert_raise ArgumentError do
+      Class.new PostsController do
+        around_filter lambda { yield }
+      end
     end
   end
 

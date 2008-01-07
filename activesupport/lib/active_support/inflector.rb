@@ -162,7 +162,7 @@ module Inflector
   #   "man from the boondocks".titleize #=> "Man From The Boondocks"
   #   "x-men: the last stand".titleize #=> "X Men: The Last Stand"
   def titleize(word)
-    humanize(underscore(word)).gsub(/\b([a-z])/) { $1.capitalize }
+    humanize(underscore(word)).gsub(/\b('?[a-z])/) { $1.capitalize }
   end
 
   # The reverse of +camelize+. Makes an underscored form from the expression in the string.

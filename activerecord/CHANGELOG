@@ -1,5 +1,13 @@
 *SVN*
 
+* update_all ignores scoped :order and :limit, so post.comments.update_all doesn't try to include the comment order in the update statement.  #10686 [Brendan Ribera]
+
+* Added by parameter to increment, decrement, and their bang varieties so you can do player1.increment!(:points, 5) #10542 [Sam]
+
+* Optimize ActiveRecord::Base#exists? to use #select_all instead of #find.  Closes #10605 [jamesh, fcheung, protocool]
+
+* Don't unnecessarily load has_many associations in after_update callbacks.  Closes #6822 [stopdropandrew, canadaduane]
+
 * Eager belongs_to :include infers the foreign key from the association name rather than the class name.  #10517 [Jonathan Viney]
 
 * SQLite: fix rename_ and remove_column for columns with unique indexes.  #10576 [Brandon Keepers]

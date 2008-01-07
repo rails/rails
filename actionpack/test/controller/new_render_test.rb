@@ -361,10 +361,18 @@ class NewRenderTestController < ActionController::Base
     render :action => "calling_partial_with_layout"
   end
 
+  def render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout
+    render :action => "calling_partial_with_layout"
+  end
+
   def render_using_layout_around_block
     render :action => "using_layout_around_block"
   end
 
+  def render_using_layout_around_block_in_main_layout_and_within_content_for_layout
+    render :action => "using_layout_around_block"
+  end
+  
   def rescue_action(e) raise end
     
   private
@@ -387,6 +395,10 @@ class NewRenderTestController < ActionController::Base
           "layouts/builder"
         when "action_talk_to_layout", "layout_overriding_layout"
           "layouts/talk_from_action"
+        when "render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout"
+          "layouts/partial_with_layout"
+        when "render_using_layout_around_block_in_main_layout_and_within_content_for_layout"
+          "layouts/block_with_layout"
       end
     end
 end
@@ -824,9 +836,20 @@ EOS
     get :render_call_to_partial_with_layout
     assert_equal "Before (David)\nInside from partial (David)\nAfter", @response.body
   end
-  
+
+  def test_render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout
+    get :render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout
+    assert_equal "Before (Anthony)\nInside from partial (Anthony)\nAfter\nBefore (David)\nInside from partial (David)\nAfter\nBefore (Ramm)\nInside from partial (Ramm)\nAfter", @response.body
+  end
+
   def test_using_layout_around_block
-    get :using_layout_around_block
+    get :render_using_layout_around_block
     assert_equal "Before (David)\nInside from block\nAfter", @response.body
   end
+
+  def test_using_layout_around_block_in_main_layout_and_within_content_for_layout
+    get :render_using_layout_around_block_in_main_layout_and_within_content_for_layout
+    assert_equal "Before (Anthony)\nInside from first block in layout\nAfter\nBefore (David)\nInside from block\nAfter\nBefore (Ramm)\nInside from second block in layout\nAfter\n", @response.body
+  end
+
 end

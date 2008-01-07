@@ -10,6 +10,29 @@ module Highrise
   class Comment < ActiveResource::Base
     self.site = "http://37s.sunrise.i:3000"
   end
+
+  module Deeply
+    module Nested
+
+      class Note < ActiveResource::Base
+        self.site = "http://37s.sunrise.i:3000"
+      end
+
+       class Comment < ActiveResource::Base
+         self.site = "http://37s.sunrise.i:3000"
+       end
+
+       module TestDifferentLevels
+
+         class Note < ActiveResource::Base
+           self.site = "http://37s.sunrise.i:3000"
+         end
+
+       end
+
+    end
+  end
+
 end
 
 
@@ -108,4 +131,16 @@ class BaseLoadTest < Test::Unit::TestCase
     n = Highrise::Note.new(:comments => [{ :name => "1" }])
     assert_kind_of Highrise::Comment, n.comments.first
   end
+
+  def test_nested_collections_within_deeply_nested_namespace
+    n = Highrise::Deeply::Nested::Note.new(:comments => [{ :name => "1" }])
+    assert_kind_of Highrise::Deeply::Nested::Comment, n.comments.first
+  end
+
+  def test_nested_collections_in_different_levels_of_namespaces
+    n = Highrise::Deeply::Nested::TestDifferentLevels::Note.new(:comments => [{ :name => "1" }])
+    assert_kind_of Highrise::Deeply::Nested::Comment, n.comments.first
+  end
+
+
 end

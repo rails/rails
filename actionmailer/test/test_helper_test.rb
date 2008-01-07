@@ -115,3 +115,21 @@ class TestHelperMailerTest < ActionMailer::TestCase
     assert_match /0 .* but 1/, error.message
   end
 end
+
+class AnotherTestHelperMailerTest < ActionMailer::TestCase
+
+  tests TestHelperMailer
+
+  def setup
+    # Should not override ActionMailer setup methods
+    @test_var = "a value"
+  end
+
+  def test_should_still_setup_mailer
+    assert @expected.is_a?(TMail::Mail)
+  end
+  
+  def test_should_run_overridden_setup_method
+    assert @test_var
+  end
+end

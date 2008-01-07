@@ -1,5 +1,13 @@
 *SVN*
 
+* Fix small documentation typo.  Closes #10670 [l.guidi]
+
+* find_or_create_resource_for handles module nesting.  #10646 [xavier]
+
+* Allow setting ActiveResource::Base#format before #site.  [rick]
+
+* Support agnostic formats when calling custom methods.  Closes #10635 [joerichsen]
+
 * Document custom methods.  #10589 [Cheah Chu Yeow]
 
 * Ruby 1.9 compatibility.  [Jeremy Kemper]

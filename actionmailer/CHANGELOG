@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed that you don't have to call super in ActionMailer::TestCase#setup #10406 [jamesgolick]
+
+
 *2.0.2* (December 16th, 2007)
 
 * Included in Rails 2.0.2

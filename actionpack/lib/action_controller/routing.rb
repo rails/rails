@@ -1216,7 +1216,7 @@ module ActionController
                 opts = if args.empty? || Hash === args.first
                   args.first || {}
                 else
-                  options = args.last.is_a?(Hash) ? args.pop : {}
+                  options = args.extract_options!
                   args = args.zip(#{route.segment_keys.inspect}).inject({}) do |h, (v, k)|
                     h[k] = v
                     h

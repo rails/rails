@@ -1,5 +1,22 @@
 *SVN*
 
+* Support render :text => nil.  #6684 [tjennings, PotatoSalad, Cheah Chu Yeow]
+
+* assert_response failures include the exception message.  #10688 [Seth Rasmussen]
+
+* Fixed rendering of partials with layout when done from site layout #9209 [antramm]
+
+* Fix atom_feed_helper to comply with the atom spec.  Closes #10672 [xaviershay]
+
+  * The tags created do not contain a date (http://feedvalidator.org/docs/error/InvalidTAG.html)
+  * IDs are not guaranteed unique
+  * A default self link was not provided, contrary to the documentation
+  * NOTE:  This changes tags for existing atom entries, but at least they validate now.
+
+* Correct indentation in tests.  Closes #10671 [l.guidi]
+
+* Fix that auto_link looks for ='s in url paths (Amazon urls have them).  Closes #10640 [bgreenlee]
+
 * Ensure that test case setup is run even if overridden.  #10382 [Josh Peek]
 
 * Fix HTML Sanitizer to allow trailing spaces in CSS style attributes.  Closes #10566 [wesley.moxam]

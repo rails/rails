@@ -5,7 +5,7 @@ Scroll = Struct.new(:id, :to_param, :title, :body, :updated_at, :created_at)
 class ScrollsController < ActionController::Base
   FEEDS = {}
   FEEDS["defaults"] = <<-EOT
-        atom_feed do |feed|
+        atom_feed(:schema_date => '2008') do |feed|
           feed.title("My great blog!")
           feed.updated((@scrolls.first.created_at))
 
@@ -38,7 +38,23 @@ class ScrollsController < ActionController::Base
           end
         end
     EOT
+    FEEDS["xml_block"] = <<-EOT
+        atom_feed do |feed|
+          feed.title("My great blog!")
+          feed.updated((@scrolls.first.created_at))
 
+          feed.author do |author|
+            author.name("DHH")
+          end
+
+          for scroll in @scrolls
+            feed.entry(scroll, :url => "/otherstuff/" + scroll.to_param, :updated => Time.utc(2007, 1, scroll.id)) do |entry|
+              entry.title(scroll.title)
+              entry.content(scroll.body, :type => 'html')
+            end
+          end
+        end
+    EOT
   def index
     @scrolls = [
       Scroll.new(1, "1", "Hello One", "Something <i>COOL!</i>", Time.utc(2007, 12, 12, 15), Time.utc(2007, 12, 12, 15)),
@@ -46,6 +62,12 @@ class ScrollsController < ActionController::Base
     ]
     
     render :inline => FEEDS[params[:id]], :type => :builder
+  end
+
+  protected
+
+  def rescue_action(e)
+    raise(e)
   end
 end
 
@@ -88,6 +110,34 @@ class AtomFeedTest < Test::Unit::TestCase
     end
   end
 
+  def test_self_url_should_default_to_current_request_url
+    with_restful_routing(:scrolls) do
+      get :index, :id => "defaults"
+      assert_select "link[rel=self][href=http://www.nextangle.com/scrolls?id=defaults]"
+    end
+  end
+
+  def test_feed_id_should_be_a_valid_tag
+    with_restful_routing(:scrolls) do
+      get :index, :id => "defaults"
+      assert_select "id", :text => "tag:www.nextangle.com,2008:/scrolls?id=defaults"
+    end
+  end
+
+  def test_entry_id_should_be_a_valid_tag
+    with_restful_routing(:scrolls) do
+      get :index, :id => "defaults"
+      assert_select "entry id", :text => "tag:www.nextangle.com,2008:Scroll/1"
+      assert_select "entry id", :text => "tag:www.nextangle.com,2008:Scroll/2"
+    end
+  end
+
+  def test_feed_should_allow_nested_xml_blocks
+    with_restful_routing(:scrolls) do
+      get :index, :id => "xml_block"
+      assert_select "author name", :text => "DHH"
+    end
+  end
 
   private
     def with_restful_routing(resources)
