@@ -22,6 +22,10 @@ module RequestForgeryProtectionActions
     render :inline => "<%= button_to('New', '/') {} %>"
   end
   
+  def remote_form
+    render :inline => "<% form_remote_tag(:url => '/') {} %>"
+  end
+
   def unsafe
     render :text => 'pwn'
   end
@@ -73,6 +77,11 @@ module RequestForgeryProtectionTests
   def test_should_render_button_to_with_token_tag
     get :show_button
     assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token
+  end
+
+  def test_should_render_remote_form_with_only_one_token_parameter
+    get :remote_form
+    assert_equal 1, @response.body.scan(@token).size
   end
 
   def test_should_allow_get

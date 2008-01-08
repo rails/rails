@@ -1019,7 +1019,7 @@ module ActionView
           js_options['parameters'] = options[:with]
         end
         
-        if protect_against_forgery?
+        if protect_against_forgery? && !options[:form]
           if js_options['parameters']
             js_options['parameters'] << " + '&"
           else
@@ -1204,7 +1204,7 @@ module ActionView
         append_enumerable_function!("zip(#{arguments_for_call arguments}")
         if block
           function_chain[-1] += ", function(array) {"
-          yield ::ActiveSupport::JSON::Variable.new('array')
+          yield ActiveSupport::JSON::Variable.new('array')
           add_return_statement!
           @generator << '});'
         else
