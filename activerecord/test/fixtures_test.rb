@@ -113,22 +113,6 @@ class FixturesTest < ActiveSupport::TestCase
     assert first
   end
 
-  def test_bad_format
-    path = File.join(File.dirname(__FILE__), 'fixtures', 'bad_fixtures')
-    Dir.entries(path).each do |file|
-      next unless File.file?(file) and file !~ Fixtures::DEFAULT_FILTER_RE
-      assert_raise(Fixture::FormatError) {
-        Fixture.new(bad_fixtures_path, file)
-      }
-    end
-  end
-
-  def test_deprecated_yaml_extension
-    assert_raise(Fixture::FormatError) {
-      Fixtures.new(nil, 'bad_extension', 'BadExtension', File.join(File.dirname(__FILE__), 'fixtures'))
-    }
-  end
-
   def test_logger_level_invariant
     level = ActiveRecord::Base.logger.level
     create_fixtures('topics')

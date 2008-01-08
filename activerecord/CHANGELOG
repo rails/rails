@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixtures: removed support for the ancient pre-YAML file format.  #10736 [John Barnette]
+
 * More thoroughly quote table names.  #10698 [dimdenis, lotswholetime, Jeremy Kemper]
 
 * update_all ignores scoped :order and :limit, so post.comments.update_all doesn't try to include the comment order in the update statement.  #10686 [Brendan Ribera]
@@ -80,7 +82,7 @@ so newlines etc are escaped #10385 [Norbert Crombach]
 
 * Dynamic finders on association collections respect association :order and :limit.  #10211, #10227 [Patrick Joyce, Rick Olson, Jack Danger Canty]
 
-* Add 'foxy' support for fixtures of polymorphic associations. #10183 [jbarnette, David Lowenfels]
+* Add 'foxy' support for fixtures of polymorphic associations. #10183 [John Barnette, David Lowenfels]
 
 * validates_inclusion_of and validates_exclusion_of allow formatted :message strings.  #8132 [devrieda, Mike Naberezny]
 
@@ -128,7 +130,7 @@ so newlines etc are escaped #10385 [Norbert Crombach]
     - autofill timestamp columns
     - support YAML defaults
     - fixture label interpolation
-  Enabled for fixtures that correspond to a model class and don't specify a primary key value.  #9981 [jbarnette]
+  Enabled for fixtures that correspond to a model class and don't specify a primary key value.  #9981 [John Barnette]
 
 * Add docs explaining how to protect all attributes using attr_accessible with no arguments. Closes #9631 [boone, rmm5t]
 

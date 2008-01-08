@@ -687,14 +687,6 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
         read_yaml_fixture_files
       elsif File.file?(csv_file_path)
         read_csv_fixture_files
-      else
-        # Standard fixtures
-        Dir.entries(@fixture_path).each do |file|
-          path = File.join(@fixture_path, file)
-          if File.file?(path) and file !~ @file_filter
-            self[file] = Fixture.new(path, model_class)
-          end
-        end
       end
     end
 
@@ -773,15 +765,7 @@ class Fixture #:nodoc:
   attr_reader :model_class
 
   def initialize(fixture, model_class)
-    case fixture
-      when Hash, YAML::Omap
-        @fixture = fixture
-      when String
-        @fixture = read_fixture_file(fixture)
-      else
-        raise ArgumentError, "Bad fixture argument #{fixture.inspect} during creation of #{class_name} fixture"
-    end
-
+    @fixture = fixture
     @model_class = model_class.is_a?(Class) ? model_class : model_class.constantize rescue nil
   end
 
@@ -821,25 +805,6 @@ class Fixture #:nodoc:
       raise FixtureClassNotFound, "No class attached to find."
     end
   end
-
-  private
-    def read_fixture_file(fixture_file_path)
-      IO.readlines(fixture_file_path).inject({}) do |fixture, line|
-        # Mercifully skip empty lines.
-        next if line =~ /^\s*$/
-
-        # Use the same regular expression for attributes as Active Record.
-        unless md = /^\s*([a-zA-Z][-_\w]*)\s*=>\s*(.+)\s*$/.match(line)
-          raise FormatError, "#{fixture_file_path}: fixture format error at '#{line}'.  Expecting 'key => value'."
-        end
-        key, value = md.captures
-
-        # Disallow duplicate keys to catch typos.
-        raise FormatError, "#{fixture_file_path}: duplicate '#{key}' in fixture." if fixture[key]
-        fixture[key] = value.strip
-        fixture
-      end
-    end
 end
 
 module Test #:nodoc:
