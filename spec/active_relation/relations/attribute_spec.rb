@@ -6,7 +6,7 @@ describe Attribute do
     @relation2 = TableRelation.new(:bar)
   end
   
-  describe '#aliazz' do
+  describe '#alias' do
     it "manufactures an aliased attributed" do
       pending
     end

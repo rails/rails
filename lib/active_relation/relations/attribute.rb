@@ -5,7 +5,7 @@ class Attribute
     @relation, @name, @aliaz = relation, name, aliaz
   end
   
-  def aliazz(aliaz)
+  def alias(aliaz)
     Attribute.new(relation, name, aliaz)
   end
   
@@ -14,7 +14,7 @@ class Attribute
   end
   
   def qualify
-    aliazz(qualified_name)
+    self.alias(qualified_name)
   end
 
   module Predications

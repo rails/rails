@@ -26,7 +26,7 @@ describe RenameRelation do
   describe '#attributes' do
     it "manufactures a list of attributes with the renamed attribute aliased" do
       RenameRelation.new(@relation, @relation[:id] => :schmid).attributes.should ==
-        (@relation.attributes - [@relation[:id]]) + [@relation[:id].aliazz(:schmid)]
+        (@relation.attributes - [@relation[:id]]) + [@relation[:id].alias(:schmid)]
     end
   end
   
