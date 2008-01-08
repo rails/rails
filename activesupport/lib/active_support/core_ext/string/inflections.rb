@@ -104,13 +104,16 @@ module ActiveSupport #:nodoc:
           Inflector.tableize(self)
         end
 
-        # Create a class name from a table name like Rails does for table names to models.
+        # Create a class name from a plural table name like Rails does for table names to models.
         # Note that this returns a string and not a Class. (To convert to an actual class
         # follow classify with constantize.)
         #
         # Examples
         #   "egg_and_hams".classify #=> "EggAndHam"
-        #   "post".classify #=> "Post"
+        #   "posts".classify #=> "Post"
+        #
+        # Singular names are not handled correctly
+        #   "business".classify #=> "Busines"
         def classify
           Inflector.classify(self)
         end
