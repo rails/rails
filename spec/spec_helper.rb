@@ -1,8 +1,9 @@
 require 'rubygems'
 require 'spec'
-require 'rr'
-require File.join(File.dirname(__FILE__), '..', 'lib', 'sql_algebra')
-require File.join(File.dirname(__FILE__), 'spec_helpers', 'be_like')
+dir = File.dirname(__FILE__)
+$LOAD_PATH.unshift "#{dir}/../lib"
+Dir["#{dir}/matchers/*"].each { |m| require "#{dir}/matchers/#{File.basename(m)}" }
+require 'active_relation'
 
 ActiveRecord::Base.configurations = {
   'sql_algebra_test' => {
