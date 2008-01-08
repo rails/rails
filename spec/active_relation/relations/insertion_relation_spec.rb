@@ -7,31 +7,20 @@ describe InsertionRelation do
   
   describe '#to_sql' do
     it 'manufactures sql inserting the data for one item' do
-      InsertionRelation.new(@relation, @relation[:name] => "nick").to_sql.should == InsertBuilder.new do
-        insert
-        into :users
-        columns do
-          column :users, :name
-        end
-        values do
-          row "nick"
-        end
-      end
+      InsertionRelation.new(@relation, @relation[:name] => "nick").to_sql.should be_like("""
+        INSERT
+        INTO `users`
+        (`users`.`name`) VALUES ('nick')
+      """)
     end
     
     it 'manufactures sql inserting the data for multiple items' do
       nested_insertion = InsertionRelation.new(@relation, @relation[:name] => "cobra")
-      InsertionRelation.new(nested_insertion, nested_insertion[:name] => "commander").to_sql.to_s.should == InsertBuilder.new do
-        insert
-        into :users
-        columns do
-          column :users, :name
-        end
-        values do
-          row "cobra"
-          row "commander"
-        end
-      end.to_s
+      InsertionRelation.new(nested_insertion, nested_insertion[:name] => "commander").to_sql.should be_like("""
+        INSERT
+        INTO `users`
+        (`users`.`name`) VALUES ('cobra'), ('commander')
+      """)
     end
   end
 end

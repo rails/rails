@@ -8,17 +8,6 @@ describe SelectionRelation do
     @predicate2 = LessThanPredicate.new(@relation1[:age], 2)
   end
   
-  describe '==' do    
-    it "obtains if both the predicate and the relation are identical" do
-      SelectionRelation.new(@relation1, @predicate1). \
-        should == SelectionRelation.new(@relation1, @predicate1)
-      SelectionRelation.new(@relation1, @predicate1). \
-        should_not == SelectionRelation.new(@relation2, @predicate1)
-      SelectionRelation.new(@relation1, @predicate1). \
-        should_not == SelectionRelation.new(@relation1, @predicate2)
-    end
-  end
-  
   describe '#initialize' do
     it "manufactures nested selection relations if multiple predicates are provided" do
       SelectionRelation.new(@relation1, @predicate1, @predicate2). \
@@ -35,19 +24,19 @@ describe SelectionRelation do
   
   describe '#to_sql' do
     it "manufactures sql with where clause conditions" do
-      SelectionRelation.new(@relation1, @predicate1).to_s.should == SelectBuilder.new do
-        select do
-          column :foo, :name
-          column :foo, :id
-        end
-        from :foo
-        where do
-          equals do
-            column :foo, :id
-            column :bar, :foo_id
-          end
-        end
-      end.to_s
+      SelectionRelation.new(@relation1, @predicate1).to_sql.should be_like("""
+        SELECT `foo`.`name`, `foo`.`id`
+        FROM `foo`
+        WHERE `foo`.`id` = `bar`.`foo_id`
+      """)
+    end
+    
+    it "allows arbitrary sql" do
+      SelectionRelation.new(@relation1, "asdf").to_sql.should be_like("""
+        SELECT `foo`.`name`, `foo`.`id`
+        FROM `foo`
+        WHERE asdf
+      """)
     end
   end
 end

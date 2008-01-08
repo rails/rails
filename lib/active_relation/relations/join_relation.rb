@@ -17,7 +17,7 @@ class JoinRelation < Relation
   
   protected
   def joins
-    relation1.joins + relation2.joins + [Join.new(relation1, relation2, predicates, join_type)]
+    [relation1.joins, relation2.joins, join].compact.join(" ")
   end
   
   def selects
@@ -33,4 +33,9 @@ class JoinRelation < Relation
   end
   
   delegate :table, :to => :relation1
+  
+  private
+  def join
+    "#{join_sql} #{quote_table_name(relation2.table)} ON #{predicates.collect { |p| p.to_sql(:quote => false) }.join(' AND ')}"
+  end
 end

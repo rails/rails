@@ -71,7 +71,7 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
       # the 'project' operator limits the columns that come back from the query.
       # Note how all the operators are compositional: 'project' is applied to a query
       # that previously had been joined and selected.
-      user_photos.project(*@photos.attributes).to_s.should be_like("""
+      user_photos.project(*@photos.attributes).to_sql.should be_like("""
         SELECT `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
         FROM `users`
           LEFT OUTER JOIN `photos`
@@ -86,7 +86,7 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
     it 'generates the query for User.has_many :cameras :through => :photos' do
       # note, again, the compositionality of the operators:
       user_cameras = photo_belongs_to_camera(user_has_many_photos(@user))
-      user_cameras.project(*@cameras.attributes).to_s.should be_like("""
+      user_cameras.project(*@cameras.attributes).to_sql.should be_like("""
         SELECT `cameras`.`id`
         FROM `users`
           LEFT OUTER JOIN `photos`
@@ -101,7 +101,7 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
     it 'generates the query for an eager join for a collection using the same logic as
         for an association on an individual row' do
       users_cameras = photo_belongs_to_camera(user_has_many_photos(@users))
-      users_cameras.to_s.should be_like("""
+      users_cameras.to_sql.should be_like("""
         SELECT `users`.`name`, `users`.`id`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`, `cameras`.`id`
         FROM `users`
           LEFT OUTER JOIN `photos`
@@ -113,7 +113,7 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
     
     it 'is trivial to disambiguate columns' do
       users_cameras = photo_belongs_to_camera(user_has_many_photos(@users)).qualify
-      users_cameras.to_s.should be_like("""
+      users_cameras.to_sql.should be_like("""
         SELECT `users`.`name` AS 'users.name', `users`.`id` AS 'users.id', `photos`.`id` AS 'photos.id', `photos`.`user_id` AS 'photos.user_id', `photos`.`camera_id` AS 'photos.camera_id', `cameras`.`id` AS 'cameras.id'
         FROM `users`
           LEFT OUTER JOIN `photos`
@@ -124,13 +124,13 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
     end
     
     it 'allows arbitrary sql to be passed through' do
-      (@users << @photos).on("asdf").to_s.should be_like("""
+      (@users << @photos).on("asdf").to_sql.should be_like("""
         SELECT `users`.`name`, `users`.`id`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
         FROM `users`
           LEFT OUTER JOIN `photos`
             ON asdf
       """)
-      @users.select("asdf").to_s.should be_like("""
+      @users.select("asdf").to_sql.should be_like("""
         SELECT `users`.`name`, `users`.`id`
         FROM `users`
         WHERE asdf
@@ -139,7 +139,7 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
 
     describe 'write operations' do
       it 'generates the query for user.destroy' do
-        @user.delete.to_s.should be_like("""
+        @user.delete.to_sql.should be_like("""
           DELETE
           FROM `users`
           WHERE `users`.`id` = 1
@@ -147,7 +147,7 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
       end
       
      it 'generates an efficient query for two User.creates -- UnitOfWork is within reach!' do
-        @users.insert(@users[:name] => "humpty").insert(@users[:name] => "dumpty").to_s.should be_like("""
+        @users.insert(@users[:name] => "humpty").insert(@users[:name] => "dumpty").to_sql.should be_like("""
           INSERT
           INTO `users`
           (`users`.`name`) VALUES ('humpty'), ('dumpty')

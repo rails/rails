@@ -7,15 +7,7 @@ describe RangeRelation do
     @range1 = 1..2
     @range2 = 4..9
   end
-  
-  describe '==' do
-    it "obtains if the relation and range are identical" do
-      RangeRelation.new(@relation1, @range1).should == RangeRelation.new(@relation1, @range1)
-      RangeRelation.new(@relation1, @range1).should_not == RangeRelation.new(@relation2, @range1)
-      RangeRelation.new(@relation1, @range1).should_not == RangeRelation.new(@relation1, @range2)
-    end
-  end
-  
+
   describe '#qualify' do
     it "distributes over the relation and attributes" do
       pending
@@ -26,15 +18,12 @@ describe RangeRelation do
     it "manufactures sql with limit and offset" do
       range_size = @range2.last - @range2.first + 1
       range_start = @range2.first
-      RangeRelation.new(@relation1, @range2).to_s.should == SelectBuilder.new do
-        select do
-          column :foo, :name
-          column :foo, :id
-        end
-        from :foo
-        limit range_size
-        offset range_start
-      end.to_s
+      RangeRelation.new(@relation1, @range2).to_s.should be_like("""
+        SELECT `foo`.`name`, `foo`.`id`
+        FROM `foo`
+        LIMIT #{range_size}
+        OFFSET #{range_start}
+      """)
     end
   end
   

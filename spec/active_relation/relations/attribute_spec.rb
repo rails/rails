@@ -8,12 +8,7 @@ describe Attribute do
   
   describe '#alias' do
     it "manufactures an aliased attributed" do
-      pending
-    end
-    
-    it "should be renamed to #alias!" do
-      pending
-      @relation1.alias
+      @relation1[:id].alias(:alias).should == Attribute.new(@relation1, :id, :alias)
     end
   end
   
@@ -76,14 +71,6 @@ describe Attribute do
     describe '=~' do
       it "manufactures a match predicate" do
         (@attribute1 =~ /.*/).should == MatchPredicate.new(@attribute1, @attribute2)
-      end
-    end
-  end
-  
-  describe '#to_sql' do
-    it "manufactures a column" do
-      Attribute.new(@relation1, :name, :alias).to_sql.should == SelectsBuilder.new do
-        column :foo, :name, :alias
       end
     end
   end

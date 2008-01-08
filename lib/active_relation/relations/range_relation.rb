@@ -1,5 +1,5 @@
-class RangeRelation < Relation
-  attr_reader :relation, :range
+class RangeRelation < CompoundRelation
+  attr_reader :range
   
   def initialize(relation, range)
     @relation, @range = relation, range
@@ -9,10 +9,11 @@ class RangeRelation < Relation
     relation == other.relation and range == other.range
   end
   
-  def to_sql(builder = SelectBuilder.new)
-    relation.to_sql(builder).call do
-      limit range.last - range.first + 1
-      offset range.first
-    end
+  def limit
+    range.end - range.begin + 1
+  end
+  
+  def offset
+    range.begin
   end
 end

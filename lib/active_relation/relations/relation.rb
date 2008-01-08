@@ -1,4 +1,6 @@
 class Relation
+  include SqlBuilder
+  
   module Iteration
     include Enumerable
     
@@ -50,8 +52,8 @@ class Relation
       RenameRelation.new(self, attribute => aliaz)
     end
     
-    def insert(tuple)
-      InsertionRelation.new(self, tuple)
+    def insert(record)
+      InsertionRelation.new(self, record)
     end
     
     def delete
@@ -64,28 +66,25 @@ class Relation
     ActiveRecord::Base.connection
   end
   
-  def to_sql(builder = SelectBuilder.new)
-    builder.call do
-      select do
-        attributes.each { |a| a.to_sql(self) }
-      end
-      from table do
-        joins.each { |j| j.to_sql(self) }
-      end
-      where do
-        selects.each { |s| s.to_sql(self) }
-      end
-      order_by do
-        orders.each { |o| o.to_sql(self) }
-      end
-    end
+  def to_sql(options = {})
+    [
+      "SELECT #{attributes.collect{ |a| a.to_sql(:use_alias => true) }.join(', ')}",
+      "FROM #{quote_table_name(table)}",
+      (joins.to_sql(:quote => false) unless joins.blank?),
+      ("WHERE #{selects.collect{|s| s.to_sql(:quote => false)}.join("\n\tAND ")}" unless selects.blank?),
+      ("ORDER BY #{orders.collect(&:to_sql)}" unless orders.blank?),
+      ("LIMIT #{limit.to_sql}" unless limit.blank?),
+      ("OFFSET #{offset.to_sql}" unless offset.blank?)
+    ].compact.join("\n")
   end
-  delegate :to_s, :to => :to_sql
+  alias_method :to_s, :to_sql
     
   protected
-  def attributes; [] end
-  def joins;      [] end
-  def selects;    [] end
-  def orders;     [] end
-  def inserts;    [] end
+  def attributes; []  end
+  def selects;    []  end
+  def orders;     []  end
+  def inserts;    []  end
+  def joins;      nil end
+  def limit;      nil end
+  def offset;     nil end
 end

@@ -52,13 +52,10 @@ describe RenameRelation do
   
   describe '#to_sql' do
     it 'manufactures sql aliasing the attribute' do
-      @renamed_relation.to_s.should == SelectBuilder.new do
-        select do
-          column :foo, :name
-          column :foo, :id, :schmid
-        end
-        from :foo
-      end.to_s
+      @renamed_relation.to_sql.should be_like("""
+        SELECT `foo`.`name`, `foo`.`id` AS 'schmid'
+        FROM `foo`
+      """)
     end
   end
 end

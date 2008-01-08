@@ -1,12 +1,14 @@
 class Attribute
-  attr_reader :relation, :name, :aliaz
+  include SqlBuilder
+  
+  attr_reader :relation, :name, :alias
   
   def initialize(relation, name, aliaz = nil)
-    @relation, @name, @aliaz = relation, name, aliaz
+    @relation, @name, @alias = relation, name, aliaz
   end
   
-  def alias(aliaz)
-    Attribute.new(relation, name, aliaz)
+  def alias(aliaz = nil)
+    aliaz ? Attribute.new(relation, name, aliaz) : @alias
   end
   
   def qualified_name
@@ -16,12 +18,12 @@ class Attribute
   def qualify
     self.alias(qualified_name)
   end
-
-  module Predications
-    def eql?(other)
-      relation == other.relation and name == other.name and aliaz == other.aliaz
-    end
   
+  def eql?(other)
+    relation == other.relation and name == other.name and self.alias == other.alias
+  end
+
+  module Predications  
     def ==(other)
       EqualityPredicate.new(self, other)
     end
@@ -48,9 +50,7 @@ class Attribute
   end
   include Predications
   
-  def to_sql(builder = SelectsBuilder.new)
-    builder.call do
-      column relation.table, name, aliaz
-    end
+  def to_sql(options = {})
+    "#{quote_table_name(relation.table)}.#{quote_column_name(name)}" + (options[:use_alias] && self.alias ? " AS #{self.alias.to_s.to_sql}" : "")
   end
 end

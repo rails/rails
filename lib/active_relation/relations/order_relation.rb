@@ -1,25 +1,15 @@
 class OrderRelation < CompoundRelation
-  attr_reader :relation, :attributes
+  attr_reader :relation, :orders
   
-  def initialize(relation, *attributes)
-    @relation, @attributes = relation, attributes
+  def initialize(relation, *orders)
+    @relation, @orders = relation, orders
   end
   
   def ==(other)
-    relation == other.relation and attributes.eql?(other.attributes)
+    relation == other.relation and orders.eql?(other.orders)
   end
   
   def qualify
-    OrderRelation.new(relation.qualify, *attributes.collect { |a| a.qualify })
-  end
-  
-  def to_sql(builder = SelectBuilder.new)
-    relation.to_sql(builder).call do
-      attributes.each do |attribute|
-        order_by do
-          attribute.to_sql(self)
-        end
-      end
-    end
+    OrderRelation.new(relation.qualify, *orders.collect { |o| o.qualify })
   end
 end

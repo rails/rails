@@ -7,15 +7,9 @@ describe BinaryPredicate do
     @attribute1 = Attribute.new(@relation1, :name1)
     @attribute2 = Attribute.new(@relation2, :name2)
     class ConcreteBinaryPredicate < BinaryPredicate
-      def predicate_name
-        :equals
+      def predicate_sql
+        "<=>"
       end
-    end
-  end
-  
-  describe '#initialize' do
-    it "requires that both columns come from the same relation" do
-      pending
     end
   end
   
@@ -40,12 +34,9 @@ describe BinaryPredicate do
   
   describe '#to_sql' do
     it 'manufactures correct sql' do
-      ConcreteBinaryPredicate.new(@attribute1, @attribute2).to_sql.should == ConditionsBuilder.new do
-        equals do
-          column :foo, :name1
-          column :bar, :name2
-        end
-      end
+      ConcreteBinaryPredicate.new(@attribute1, @attribute2).to_sql.should be_like("""
+        `foo`.`name1` <=> `bar`.`name2`
+      """)
     end
   end
 end

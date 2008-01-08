@@ -6,7 +6,7 @@ class EqualityPredicate < BinaryPredicate
   end
     
   protected
-  def predicate_name
-    :equals
+  def predicate_sql
+    '='
   end
 end

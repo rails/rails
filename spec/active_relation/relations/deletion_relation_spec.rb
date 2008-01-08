@@ -6,17 +6,19 @@ describe DeletionRelation do
   end
   
   describe '#to_sql' do
-    it 'manufactures sql deleting the relation' do
-      DeletionRelation.new(@relation.select(@relation[:id] == 1)).to_sql.to_s.should == DeleteBuilder.new do
-        delete
-        from :users
-        where do
-          equals do
-            column :users, :id
-            value 1
-          end
-        end
-      end.to_s
+    it 'manufactures sql deleting a table relation' do
+      DeletionRelation.new(@relation).to_sql.should be_like("""
+        DELETE
+        FROM `users`
+      """)
+    end
+    
+    it 'manufactures sql deleting a selection relation' do
+      DeletionRelation.new(@relation.select(@relation[:id] == 1)).to_sql.should be_like("""
+        DELETE
+        FROM `users`
+        WHERE `users`.`id` = 1
+      """)
     end
   end
 end

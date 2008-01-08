@@ -27,33 +27,17 @@ describe JoinRelation do
   
   describe '#to_sql' do
     before do
-      @relation1 = @relation1.select(@relation1[:id] == @relation2[:foo_id])
+      @relation1 = @relation1.select(@relation1[:id] == 1)
     end
     
     it 'manufactures sql joining the two tables on the predicate, merging the selects' do
-      InnerJoinRelation.new(@relation1, @relation2, @predicate).to_s.should == SelectBuilder.new do
-        select do
-          column :foo, :name
-          column :foo, :id
-          column :bar, :name
-          column :bar, :foo_id
-          column :bar, :id
-        end
-        from :foo do
-          inner_join :bar do
-            equals do
-              column :foo, :id
-              column :bar, :id
-            end
-          end
-        end
-        where do
-          equals do
-            column :foo, :id
-            column :bar, :foo_id
-          end
-        end
-      end.to_s
+      InnerJoinRelation.new(@relation1, @relation2, @predicate).to_sql.should be_like("""
+        SELECT `foo`.`name`, `foo`.`id`, `bar`.`name`, `bar`.`foo_id`, `bar`.`id`
+        FROM `foo`
+          INNER JOIN `bar` ON `foo`.`id` = `bar`.`id`
+        WHERE
+          `foo`.`id` = 1
+      """)
     end
   end
 end

@@ -1,6 +1,6 @@
 class InnerJoinRelation < JoinRelation
   protected
-  def join_type
-    :inner_join
+  def join_sql
+    "INNER JOIN"
   end
 end

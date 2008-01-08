@@ -7,15 +7,7 @@ describe OrderRelation do
     @attribute1 = @relation1[:id]
     @attribute2 = @relation2[:id]
   end
-  
-  describe '==' do
-    it "obtains if the relation and attributes are identical" do
-      OrderRelation.new(@relation1, @attribute1, @attribute2).should == OrderRelation.new(@relation1, @attribute1, @attribute2)
-      OrderRelation.new(@relation1, @attribute1).should_not == OrderRelation.new(@relation2, @attribute1)
-      OrderRelation.new(@relation1, @attribute1, @attribute2).should_not == OrderRelation.new(@relation1, @attribute2, @attribute1)
-    end
-  end
-  
+
   describe '#qualify' do
     it "distributes over the relation and attributes" do
       OrderRelation.new(@relation1, @attribute1).qualify. \
@@ -25,16 +17,11 @@ describe OrderRelation do
   
   describe '#to_sql' do
     it "manufactures sql with an order clause" do
-      OrderRelation.new(@relation1, @attribute1).to_s.should == SelectBuilder.new do
-        select do
-          column :foo, :name
-          column :foo, :id
-        end
-        from :foo
-        order_by do
-          column :foo, :id
-        end
-      end.to_s
+      OrderRelation.new(@relation1, @attribute1).to_sql.should be_like("""
+        SELECT `foo`.`name`, `foo`.`id`
+        FROM `foo`
+        ORDER BY `foo`.`id`
+      """)
     end
   end
   

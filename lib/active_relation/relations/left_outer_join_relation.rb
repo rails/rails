@@ -1,6 +1,6 @@
 class LeftOuterJoinRelation < JoinRelation
   protected
-  def join_type
-    :left_outer_join
+  def join_sql
+    "LEFT OUTER JOIN"
   end
 end

@@ -10,17 +10,17 @@ describe Relation do
   
   describe '[]' do
     it "manufactures an attribute when given a symbol" do
-      @relation1[:id].should be_eql(Attribute.new(@relation1, :id))
+      @relation1[:id].should be_kind_of(Attribute)
     end
     
     it "manufactures a range relation when given a range" do
-      @relation1[1..2].should == RangeRelation.new(@relation1, 1..2)
+      @relation1[1..2].should be_kind_of(RangeRelation)
     end
   end
   
   describe '#include?' do
     it "manufactures an inclusion predicate" do
-      @relation1.include?(@attribute1).should == RelationInclusionPredicate.new(@attribute1, @relation1)
+      @relation1.include?(@attribute1).should be_kind_of(RelationInclusionPredicate)
     end
   end
 
@@ -28,13 +28,13 @@ describe Relation do
     describe 'joins' do
       describe '<=>' do
         it "manufactures an inner join operation between those two relations" do
-          (@relation1 <=> @relation2).should == InnerJoinOperation.new(@relation1, @relation2)
+          (@relation1 <=> @relation2).should be_kind_of(InnerJoinOperation)
         end
       end
     
       describe '<<' do
         it "manufactures a left outer join operation between those two relations" do
-          (@relation1 << @relation2).should == LeftOuterJoinOperation.new(@relation1, @relation2)
+          (@relation1 << @relation2).should be_kind_of(LeftOuterJoinOperation)
         end      
       end
     end
@@ -45,13 +45,13 @@ describe Relation do
       end
     
       it "manufactures a projection relation" do
-        @relation1.project(@attribute1, @attribute2).should == ProjectionRelation.new(@relation1, @attribute1, @attribute2)
+        @relation1.project(@attribute1, @attribute2).should be_kind_of(ProjectionRelation)
       end
     end
   
     describe '#rename' do
       it "manufactures a rename relation" do
-        @relation1.rename(@attribute1, :foo).should == RenameRelation.new(@relation1, @attribute1 => :foo)
+        @relation1.rename(@attribute1, :foo).should be_kind_of(RenameRelation)
       end
     end
   
@@ -61,17 +61,17 @@ describe Relation do
       end
     
       it "manufactures a selection relation" do
-        @relation1.select(@predicate).should == SelectionRelation.new(@relation1, @predicate)
+        @relation1.select(@predicate).should be_kind_of(SelectionRelation)
       end
     
       it "accepts arbitrary strings" do
-        @relation1.select("arbitrary").should == SelectionRelation.new(@relation1, "arbitrary")
+        @relation1.select("arbitrary").should be_kind_of(SelectionRelation)
       end
     end
   
     describe '#order' do
       it "manufactures an order relation" do
-        @relation1.order(@attribute1, @attribute2).should == OrderRelation.new(@relation1, @attribute1, @attribute2)
+        @relation1.order(@attribute1, @attribute2).should be_kind_of(OrderRelation)
       end
     end
   end
@@ -79,13 +79,13 @@ describe Relation do
   describe 'write operations' do
     describe '#delete' do
       it 'manufactures a deletion relation' do
-        @relation1.delete.should == DeletionRelation.new(@relation1)
+        @relation1.delete.should be_kind_of(DeletionRelation)
       end
     end
     
     describe '#insert' do
       it 'manufactures an insertion relation' do
-        @relation1.insert(tuple = {:id => 1}).should == InsertionRelation.new(@relation1, tuple)
+        @relation1.insert(record = {:id => 1}).should be_kind_of(InsertionRelation)
       end
     end
   end

@@ -25,12 +25,10 @@ describe ProjectionRelation do
   
   describe '#to_sql' do
     it "manufactures sql with a limited select clause" do
-      ProjectionRelation.new(@relation1, @attribute1).to_s.should == SelectBuilder.new do
-        select do
-          column :foo, :id
-        end
-        from :foo
-      end.to_s
+      ProjectionRelation.new(@relation1, @attribute1).to_sql.should be_like("""
+        SELECT `foo`.`id`
+        FROM `foo`
+      """)
     end
   end
 end

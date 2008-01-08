@@ -5,9 +5,7 @@ class Hash
     end
   end
   
-  def to_sql(builder = ValuesBuilder.new)
-    builder.call do
-      row *values
-    end
+  def to_sql(options = {})
+    "(#{values.collect(&:to_sql).join(', ')})"
   end
 end
