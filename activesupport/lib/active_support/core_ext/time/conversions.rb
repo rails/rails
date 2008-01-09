@@ -1,27 +1,7 @@
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Time #:nodoc:
-      # Getting times in different convenient string representations and other objects.
-      #
-      # == Adding your own time formats in to_formatted_s
-      # You can add your own time formats by merging them into the DATE_FORMATS constant. Use a string with
-      # Ruby's strftime formatting (http://ruby-doc.org/core/classes/Time.html#M000297), or
-      # pass a lambda. The lambda yields the instance to_formatted_s is called on, so that calculations
-      # can be performed on that instance. This is handy when Ruby's strftime formatting is insufficient. See
-      # the +short_ordinal+ example below.
-      #
-      # See ::Time::DATE_FORMATS for the list of built-in formats, and to_formatted_s for implementation details.
-      #
-      # === Examples:
-      #   # config/initializers/time_formats.rb
-      #   ActiveSupport::CoreExtensions::Time::Conversions::DATE_FORMATS.merge!(
-      #     :month_and_year => "%B %Y",
-      #     :short_ordinal => lambda { |time| time.strftime("%B #{time.day.ordinalize}") }
-      #   )
-      #
-      # Calling it on a Time instance:
-      #
-      #   Time.now.to_s(:short_ordinal)
+      # Converting times to formatted strings, dates, and datetimes.
       module Conversions
         DATE_FORMATS = {
           :db           => "%Y-%m-%d %H:%M:%S",
@@ -40,10 +20,9 @@ module ActiveSupport #:nodoc:
           end
         end
 
-        # Convert to a formatted string - see DATE_FORMATS for predefined formats.
-        # You can also add your own formats to the DATE_FORMATS constant and use them with this method.
+        # Convert to a formatted string. See DATE_FORMATS for builtin formats.
         #
-        # This method is also aliased as <tt>to_s</tt>.
+        # This method is aliased to <tt>to_s</tt>.
         #
         # ==== Examples:
         #   time = Time.now                     # => Thu Jan 18 06:10:17 CST 2007
@@ -56,6 +35,15 @@ module ActiveSupport #:nodoc:
         #   time.to_formatted_s(:long)          # => "January 18, 2007 06:10"
         #   time.to_formatted_s(:long_ordinal)  # => "January 18th, 2007 06:10"
         #   time.to_formatted_s(:rfc822)        # => "Thu, 18 Jan 2007 06:10:17 -0600"
+        #
+        # == Adding your own time formats to to_formatted_s
+        # You can add your own formats to the Time::DATE_FORMATS hash.
+        # Use the format name as the hash key and either a strftime string
+        # or Proc instance that takes a time argument as the value.
+        #
+        #   # config/initializers/time_formats.rb
+        #   Time::DATE_FORMATS[:month_and_year] = "%B %Y"
+        #   Time::DATE_FORMATS[:short_ordinal] = lambda { |time| time.strftime("%B #{time.day.ordinalize}") }
         def to_formatted_s(format = :default)
           if formatter = DATE_FORMATS[format]
             if formatter.respond_to?(:call)
