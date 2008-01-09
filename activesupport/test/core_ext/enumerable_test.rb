@@ -15,9 +15,13 @@ class EnumerableTests < Test::Unit::TestCase
       people << p
     end
 
-    objects.group_by {|object| object.name}.each do |name, group|
-      assert group.all? {|person| person.name == name}
+    grouped = objects.group_by { |object| object.name }
+
+    grouped.each do |name, group|
+      assert group.all? { |person| person.name == name }
     end
+
+    assert_equal objects.uniq.map(&:name), grouped.map { |name, group| name }
   end
 
   def test_sums
