@@ -1,7 +1,27 @@
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Date #:nodoc:
-      # Getting dates in different convenient string representations and other objects
+      # Getting datetimes in different convenient string representations and other objects.
+      #
+      # == Adding your own time formats in to_formatted_s
+      # You can add your own time formats by merging them into the DATE_FORMATS constant. Use a string with
+      # Ruby's strftime formatting (http://ruby-doc.org/core/classes/Time.html#M000297), or
+      # pass a lambda. The lambda yields the instance to_formatted_s is called on, so that calculations
+      # can be performed on that instance. This is handy when Ruby's strftime formatting is insufficient. See
+      # the +short_ordinal+ example below.
+      #
+      # See DATE_FORMATS for the list of built-in formats, and to_formatted_s for implementation details.
+      #
+      # === Examples:
+      #   # config/initializers/time_formats.rb
+      #   ActiveSupport::CoreExtensions::Date::Conversions::DATE_FORMATS.merge!(
+      #     :month_and_year => "%B %Y",
+      #     :short_ordinal => lambda { |time| time.strftime("%B #{time.day.ordinalize}") }
+      #   )
+      #
+      # Calling it on a Time instance:
+      #
+      #   Time.now.to_s(:short_ordinal)
       module Conversions
         DATE_FORMATS = {
           :short        => "%e %b",
