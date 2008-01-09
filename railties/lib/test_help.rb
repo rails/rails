@@ -18,3 +18,11 @@ ActionController::IntegrationTest.fixture_path = Test::Unit::TestCase.fixture_pa
 def create_fixtures(*table_names)
   Fixtures.create_fixtures(Test::Unit::TestCase.fixture_path, table_names)
 end
+
+begin
+  require_library_or_gem 'ruby-debug'
+  Debugger.start
+  Debugger.settings[:autoeval] = true if Debugger.respond_to?(:settings)
+rescue LoadError
+  # ruby-debug wasn't available so neither can the debugging be
+end
