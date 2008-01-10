@@ -149,27 +149,57 @@ class UrlWriterTests < Test::Unit::TestCase
     )
   end
 
-  def test_named_route
+  def test_relative_url_root_is_respected
+    orig_relative_url_root = ActionController::AbstractRequest.relative_url_root
+    ActionController::AbstractRequest.relative_url_root = '/subdir'
+
+    add_host!
+    assert_equal('https://www.basecamphq.com/subdir/c/a/i',
+      W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https')
+    )
+  ensure
+    ActionController::AbstractRequest.relative_url_root = orig_relative_url_root
+  end
+
+  def test_named_routes
     ActionController::Routing::Routes.draw do |map|
       map.no_args '/this/is/verbose', :controller => 'home', :action => 'index'
       map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
       map.connect ':controller/:action/:id'
     end
-    
+
     # We need to create a new class in order to install the new named route.
     kls = Class.new { include ActionController::UrlWriter }
     controller = kls.new
     assert controller.respond_to?(:home_url)
     assert_equal 'http://www.basecamphq.com/home/sweet/home/again',
       controller.send(:home_url, :host => 'www.basecamphq.com', :user => 'again')
-      
+
     assert_equal("/home/sweet/home/alabama", controller.send(:home_path, :user => 'alabama', :host => 'unused'))
     assert_equal("http://www.basecamphq.com/home/sweet/home/alabama", controller.send(:home_url, :user => 'alabama', :host => 'www.basecamphq.com'))
     assert_equal("http://www.basecamphq.com/this/is/verbose", controller.send(:no_args_url, :host=>'www.basecamphq.com'))
   ensure
     ActionController::Routing::Routes.load!
   end
-  
+
+  def test_relative_url_root_is_respected_for_named_routes
+    orig_relative_url_root = ActionController::AbstractRequest.relative_url_root
+    ActionController::AbstractRequest.relative_url_root = '/subdir'
+
+    ActionController::Routing::Routes.draw do |map|
+      map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
+    end
+
+    kls = Class.new { include ActionController::UrlWriter }
+    controller = kls.new
+
+    assert_equal 'http://www.basecamphq.com/subdir/home/sweet/home/again',
+      controller.send(:home_url, :host => 'www.basecamphq.com', :user => 'again')
+  ensure
+    ActionController::Routing::Routes.load!
+    ActionController::AbstractRequest.relative_url_root = orig_relative_url_root
+  end
+
   def test_only_path
     ActionController::Routing::Routes.draw do |map|
       map.home '/home/sweet/home/:user', :controller => 'home', :action => 'index'
