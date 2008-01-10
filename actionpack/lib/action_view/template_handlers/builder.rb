@@ -14,6 +14,12 @@ module ActionView
         template +
         "\nxml.target!\n"
       end
+
+      def cache_fragment(block, name = {}, options = nil)
+        @view.fragment_for(block, name, options) do
+          eval('xml.target!', block.binding)
+        end
+      end
     end
   end
 end

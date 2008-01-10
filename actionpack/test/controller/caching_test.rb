@@ -445,7 +445,7 @@ class FragmentCachingTest < Test::Unit::TestCase
     _erbout = 'generated till now -> '
 
     assert_equal( 'generated till now -> fragment content',
-                  @controller.cache_erb_fragment(Proc.new{ }, 'expensive'))
+                  ActionView::TemplateHandlers::ERB.new(@controller).cache_fragment(Proc.new{ }, 'expensive'))
   end
 
   def test_cache_rxml_fragment
@@ -454,7 +454,7 @@ class FragmentCachingTest < Test::Unit::TestCase
     class << xml; def target!; to_s; end; end
 
     assert_equal( 'generated till now -> fragment content',
-                  @controller.cache_rxml_fragment(Proc.new{ }, 'expensive'))
+                  ActionView::TemplateHandlers::Builder.new(@controller).cache_fragment(Proc.new{ }, 'expensive'))
   end
 
   def test_cache_rjs_fragment
@@ -462,7 +462,7 @@ class FragmentCachingTest < Test::Unit::TestCase
     page = 'generated till now -> '
 
     assert_equal( 'generated till now -> fragment content',
-                  @controller.cache_rjs_fragment(Proc.new{ }, 'expensive'))
+                  ActionView::TemplateHandlers::RJS.new(@controller).cache_fragment(Proc.new{ }, 'expensive'))
   end
 
   def test_cache_rjs_fragment_debug_mode_does_not_interfere
@@ -472,7 +472,7 @@ class FragmentCachingTest < Test::Unit::TestCase
     begin
       debug_mode, ActionView::Base.debug_rjs = ActionView::Base.debug_rjs, true
       assert_equal( 'generated till now -> fragment content',
-                    @controller.cache_rjs_fragment(Proc.new{ }, 'expensive'))
+                     ActionView::TemplateHandlers::RJS.new(@controller).cache_fragment(Proc.new{ }, 'expensive'))
       assert ActionView::Base.debug_rjs
     ensure
       ActionView::Base.debug_rjs = debug_mode

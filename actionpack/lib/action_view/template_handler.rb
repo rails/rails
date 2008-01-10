@@ -13,5 +13,9 @@ module ActionView
 
     def compile(template)
     end
+
+    # Called by CacheHelper#cache
+    def cache_fragment(block, name = {}, options = nil)
+    end
   end
 end

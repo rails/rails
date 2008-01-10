@@ -74,32 +74,6 @@ module ActionController #:nodoc:
         end
       end
 
-      # Called by CacheHelper#cache
-      def cache_rxml_fragment(block, name = {}, options = nil) #:nodoc:
-        fragment_for(block, name, options) do
-          eval('xml.target!', block.binding)
-        end
-      end
-
-      # Called by CacheHelper#cache
-      def cache_rjs_fragment(block, name = {}, options = nil) #:nodoc:
-        fragment_for(block, name, options) do
-          begin
-            debug_mode, ActionView::Base.debug_rjs = ActionView::Base.debug_rjs, false
-            eval('page.to_s', block.binding)
-          ensure
-            ActionView::Base.debug_rjs = debug_mode
-          end
-        end
-      end
-
-      # Called by CacheHelper#cache
-      def cache_erb_fragment(block, name = {}, options = nil) #:nodoc:
-        fragment_for(block, name, options) do
-          eval(ActionView::Base.erb_variable, block.binding)
-        end
-      end
-
       # Writes <tt>content</tt> to the location signified by <tt>key</tt> (see <tt>expire_fragment</tt> for acceptable formats)
       def write_fragment(key, content, options = nil)
         return unless cache_configured?
