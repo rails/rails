@@ -10,6 +10,10 @@ module ActionView
         "update_page do |page|\n#{template}\nend"
       end
 
+      def self.compilable?
+        true
+      end
+
       def cache_fragment(block, name = {}, options = nil) #:nodoc:
         @view.fragment_for(block, name, options) do
           begin

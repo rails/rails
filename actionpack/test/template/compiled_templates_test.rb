@@ -73,115 +73,116 @@ class CompiledTemplateTests < Test::Unit::TestCase
   end
 
   uses_mocha 'test_compile_time' do
-  def test_compile_time
-    t = Time.now
 
-    File.open(@a, "w"){|f| f.puts @a}
-    File.open(@b, "w"){|f| f.puts @b}
-    # windows doesn't support symlinks (even under cygwin)
-    windows = (RUBY_PLATFORM =~ /win32/)
-    `ln -s #{@a} #{@s}` unless windows
+    def test_compile_time
+      t = Time.now
 
-    v = ActionView::Base.new
-    v.base_path = '.'
-    v.cache_template_loading = false
+      File.open(@a, "w"){|f| f.puts @a}
+      File.open(@b, "w"){|f| f.puts @b}
+      # windows doesn't support symlinks (even under cygwin)
+      windows = (RUBY_PLATFORM =~ /win32/)
+      `ln -s #{@a} #{@s}` unless windows
 
-    # All templates were created at t+1
-    File::Stat.any_instance.expects(:mtime).times(windows ? 2 : 3).returns(t + 1.second)
+      v = ActionView::Base.new
+      v.base_path = '.'
+      v.cache_template_loading = false
 
-    # private methods template_changed_since? and compile_template?
-    # should report true for all since they have not been compiled
-    assert v.send(:template_changed_since?, @a, t)
-    assert v.send(:template_changed_since?, @b, t)
-    assert v.send(:template_changed_since?, @s, t) unless windows
+      # All templates were created at t+1
+      File::Stat.any_instance.expects(:mtime).times(windows ? 2 : 3).returns(t + 1.second)
 
-    assert v.send(:compile_template?, nil, @a, {})
-    assert v.send(:compile_template?, nil, @b, {})
-    assert v.send(:compile_template?, nil, @s, {}) unless windows
+      # private methods template_changed_since? and compile_template?
+      # should report true for all since they have not been compiled
+      assert v.send(:template_changed_since?, @a, t)
+      assert v.send(:template_changed_since?, @b, t)
+      assert v.send(:template_changed_since?, @s, t) unless windows
 
-    @handler = ActionView::Base.handler_for_extension(:rhtml)
+      assert v.send(:compile_template?, nil, @a, {})
+      assert v.send(:compile_template?, nil, @b, {})
+      assert v.send(:compile_template?, nil, @s, {}) unless windows
 
-    # All templates are rendered at t+2
-    Time.expects(:now).times(windows ? 2 : 3).returns(t + 2.seconds)
-    v.send(:compile_and_render_template, @handler, '', @a)
-    v.send(:compile_and_render_template, @handler, '', @b)
-    v.send(:compile_and_render_template, @handler, '', @s) unless windows
-    a_n = v.method_names[@a]
-    b_n = v.method_names[@b]
-    s_n = v.method_names[@s] unless windows
-    # all of the files have changed since last compile
-    assert v.compile_time[a_n] > t
-    assert v.compile_time[b_n] > t
-    assert v.compile_time[s_n] > t unless windows
+      @handler_class = ActionView::Base.handler_class_for_extension(:rhtml)
+      @handler       = @handler_class.new(v)
+      # All templates are rendered at t+2
+      Time.expects(:now).times(windows ? 2 : 3).returns(t + 2.seconds)
+      v.send(:compile_and_render_template, @handler, '', @a)
+      v.send(:compile_and_render_template, @handler, '', @b)
+      v.send(:compile_and_render_template, @handler, '', @s) unless windows
+      a_n = v.method_names[@a]
+      b_n = v.method_names[@b]
+      s_n = v.method_names[@s] unless windows
+      # all of the files have changed since last compile
+      assert v.compile_time[a_n] > t
+      assert v.compile_time[b_n] > t
+      assert v.compile_time[s_n] > t unless windows
 
-    # private methods template_changed_since? and compile_template?
-    # should report false for all since none have changed since compile
-    File::Stat.any_instance.expects(:mtime).times(windows ? 6 : 12).returns(t + 1.second)
-    assert !v.send(:template_changed_since?, @a, v.compile_time[a_n])
-    assert !v.send(:template_changed_since?, @b, v.compile_time[b_n])
-    assert !v.send(:template_changed_since?, @s, v.compile_time[s_n]) unless windows
-    assert !v.send(:compile_template?, nil, @a, {})
-    assert !v.send(:compile_template?, nil, @b, {})
-    assert !v.send(:compile_template?, nil, @s, {}) unless windows
-    v.send(:compile_and_render_template, @handler, '', @a)
-    v.send(:compile_and_render_template, @handler, '', @b)
-    v.send(:compile_and_render_template, @handler, '', @s)  unless windows
-    # none of the files have changed since last compile
-    assert v.compile_time[a_n] < t + 3.seconds
-    assert v.compile_time[b_n] < t + 3.seconds
-    assert v.compile_time[s_n] < t + 3.seconds  unless windows
+      # private methods template_changed_since? and compile_template?
+      # should report false for all since none have changed since compile
+      File::Stat.any_instance.expects(:mtime).times(windows ? 6 : 12).returns(t + 1.second)
+      assert !v.send(:template_changed_since?, @a, v.compile_time[a_n])
+      assert !v.send(:template_changed_since?, @b, v.compile_time[b_n])
+      assert !v.send(:template_changed_since?, @s, v.compile_time[s_n]) unless windows
+      assert !v.send(:compile_template?, nil, @a, {})
+      assert !v.send(:compile_template?, nil, @b, {})
+      assert !v.send(:compile_template?, nil, @s, {}) unless windows
+      v.send(:compile_and_render_template, @handler, '', @a)
+      v.send(:compile_and_render_template, @handler, '', @b)
+      v.send(:compile_and_render_template, @handler, '', @s)  unless windows
+      # none of the files have changed since last compile
+      assert v.compile_time[a_n] < t + 3.seconds
+      assert v.compile_time[b_n] < t + 3.seconds
+      assert v.compile_time[s_n] < t + 3.seconds  unless windows
 
-    `rm #{@s}; ln -s #{@b} #{@s}` unless windows
-    # private methods template_changed_since? and compile_template?
-    # should report true for symlink since it has changed since compile
+      `rm #{@s}; ln -s #{@b} #{@s}` unless windows
+      # private methods template_changed_since? and compile_template?
+      # should report true for symlink since it has changed since compile
     
-    # t + 3.seconds is for the symlink
-    File::Stat.any_instance.expects(:mtime).times(windows ? 6 : 9).returns(
-      *(windows ? [ t + 1.second, t + 1.second ] :
-        [ t + 1.second, t + 1.second, t + 3.second ]) * 3)
-    assert !v.send(:template_changed_since?, @a, v.compile_time[a_n])
-    assert !v.send(:template_changed_since?, @b, v.compile_time[b_n])
-    assert v.send(:template_changed_since?, @s, v.compile_time[s_n]) unless windows
-    assert !v.send(:compile_template?, nil, @a, {})
-    assert !v.send(:compile_template?, nil, @b, {})
-    assert v.send(:compile_template?, nil, @s, {}) unless windows
+      # t + 3.seconds is for the symlink
+      File::Stat.any_instance.expects(:mtime).times(windows ? 6 : 9).returns(
+        *(windows ? [ t + 1.second, t + 1.second ] :
+          [ t + 1.second, t + 1.second, t + 3.second ]) * 3)
+      assert !v.send(:template_changed_since?, @a, v.compile_time[a_n])
+      assert !v.send(:template_changed_since?, @b, v.compile_time[b_n])
+      assert v.send(:template_changed_since?, @s, v.compile_time[s_n]) unless windows
+      assert !v.send(:compile_template?, nil, @a, {})
+      assert !v.send(:compile_template?, nil, @b, {})
+      assert v.send(:compile_template?, nil, @s, {}) unless windows
 
-    # Only the symlink template gets rendered at t+3
-    Time.stubs(:now).returns(t + 3.seconds) unless windows
-    v.send(:compile_and_render_template, @handler, '', @a)
-    v.send(:compile_and_render_template, @handler, '', @b)
-    v.send(:compile_and_render_template, @handler, '', @s) unless windows
-    # the symlink has changed since last compile
-    assert v.compile_time[a_n] < t + 3.seconds
-    assert v.compile_time[b_n] < t + 3.seconds
-    assert_equal v.compile_time[s_n], t + 3.seconds unless windows
+      # Only the symlink template gets rendered at t+3
+      Time.stubs(:now).returns(t + 3.seconds) unless windows
+      v.send(:compile_and_render_template, @handler, '', @a)
+      v.send(:compile_and_render_template, @handler, '', @b)
+      v.send(:compile_and_render_template, @handler, '', @s) unless windows
+      # the symlink has changed since last compile
+      assert v.compile_time[a_n] < t + 3.seconds
+      assert v.compile_time[b_n] < t + 3.seconds
+      assert_equal v.compile_time[s_n], t + 3.seconds unless windows
 
-    FileUtils.touch @b
-    # private methods template_changed_since? and compile_template?
-    # should report true for symlink and file at end of symlink
-    # since it has changed since last compile
-    #
-    # t+4 is for @b and also for the file that @s points to, which is @b
-    File::Stat.any_instance.expects(:mtime).times(windows ? 6 : 12).returns(
-      *(windows ? [ t + 1.second, t + 4.seconds ] :
-        [ t + 1.second, t + 4.seconds, t + 3.second, t + 4.seconds ]) * 3)
-    assert !v.send(:template_changed_since?, @a, v.compile_time[a_n])
-    assert v.send(:template_changed_since?, @b, v.compile_time[b_n])
-    assert v.send(:template_changed_since?, @s, v.compile_time[s_n]) unless windows
-    assert !v.send(:compile_template?, nil, @a, {})
-    assert v.send(:compile_template?, nil, @b, {})
-    assert v.send(:compile_template?, nil, @s, {}) unless windows
+      FileUtils.touch @b
+      # private methods template_changed_since? and compile_template?
+      # should report true for symlink and file at end of symlink
+      # since it has changed since last compile
+      #
+      # t+4 is for @b and also for the file that @s points to, which is @b
+      File::Stat.any_instance.expects(:mtime).times(windows ? 6 : 12).returns(
+        *(windows ? [ t + 1.second, t + 4.seconds ] :
+          [ t + 1.second, t + 4.seconds, t + 3.second, t + 4.seconds ]) * 3)
+      assert !v.send(:template_changed_since?, @a, v.compile_time[a_n])
+      assert v.send(:template_changed_since?, @b, v.compile_time[b_n])
+      assert v.send(:template_changed_since?, @s, v.compile_time[s_n]) unless windows
+      assert !v.send(:compile_template?, nil, @a, {})
+      assert v.send(:compile_template?, nil, @b, {})
+      assert v.send(:compile_template?, nil, @s, {}) unless windows
 
-    Time.expects(:now).times(windows ? 1 : 2).returns(t + 5.seconds)
-    v.send(:compile_and_render_template, @handler, '', @a)
-    v.send(:compile_and_render_template, @handler, '', @b)
-    v.send(:compile_and_render_template, @handler, '', @s) unless windows
-    # the file at the end of the symlink has changed since last compile
-    # both the symlink and the file at the end of it should be recompiled
-    assert v.compile_time[a_n] < t + 5.seconds
-    assert_equal v.compile_time[b_n], t + 5.seconds
-    assert_equal v.compile_time[s_n], t + 5.seconds unless windows
-  end
+      Time.expects(:now).times(windows ? 1 : 2).returns(t + 5.seconds)
+      v.send(:compile_and_render_template, @handler, '', @a)
+      v.send(:compile_and_render_template, @handler, '', @b)
+      v.send(:compile_and_render_template, @handler, '', @s) unless windows
+      # the file at the end of the symlink has changed since last compile
+      # both the symlink and the file at the end of it should be recompiled
+      assert v.compile_time[a_n] < t + 5.seconds
+      assert_equal v.compile_time[b_n], t + 5.seconds
+      assert_equal v.compile_time[s_n], t + 5.seconds unless windows
+    end
   end
 end
 

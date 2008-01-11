@@ -4,6 +4,10 @@ module ActionView
       0
     end
 
+    def self.compilable?
+      false
+    end
+
     def initialize(view)
       @view = view
     end
@@ -12,6 +16,14 @@ module ActionView
     end
 
     def compile(template)
+    end
+
+    def compilable?
+      self.class.compilable?
+    end
+
+    def line_offset
+      self.class.line_offset
     end
 
     # Called by CacheHelper#cache

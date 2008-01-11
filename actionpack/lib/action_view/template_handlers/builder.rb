@@ -7,6 +7,10 @@ module ActionView
         2
       end
 
+      def self.compilable?
+        true
+      end
+
       def compile(template)
         content_type_handler = (@view.send!(:controller).respond_to?(:response) ? "controller.response" : "controller")
         "#{content_type_handler}.content_type ||= Mime::XML\n" +

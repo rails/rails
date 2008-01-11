@@ -31,7 +31,7 @@ end
 class MultipleExtensions < LayoutTest
 end
 
-class MabView
+class MabView < ActionView::TemplateHandler
   def initialize(view)
   end
   
@@ -67,6 +67,7 @@ class LayoutAutoDiscoveryTest < Test::Unit::TestCase
     get :hello
     assert_equal 'layouts/third_party_template_library', @controller.active_layout
     assert_equal 'layouts/third_party_template_library', @response.layout
+    assert_response :success
     assert_equal 'Mab', @response.body
   end
   

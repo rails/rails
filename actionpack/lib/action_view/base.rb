@@ -252,7 +252,7 @@ module ActionView #:nodoc:
       @@default_template_handlers = klass
     end
 
-    def self.handler_for_extension(extension)
+    def self.handler_class_for_extension(extension)
       (extension && @@template_handlers[extension.to_sym]) || @@default_template_handlers
     end
 
@@ -361,13 +361,13 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
     # Renders the +template+ which is given as a string as either erb or builder depending on <tt>template_extension</tt>.
     # The hash in <tt>local_assigns</tt> is made available as local variables.
     def render_template(template_extension, template, file_path = nil, local_assigns = {}) #:nodoc:
-      handler = self.class.handler_for_extension(template_extension)
+      handler = self.class.handler_class_for_extension(template_extension).new(self)
 
-      if template_handler_is_compilable?(handler)
+      if handler.compilable?
         compile_and_render_template(handler, template, file_path, local_assigns)
       else
         template ||= read_template_file(file_path, template_extension) # Make sure that a lazyily-read template is loaded.
-        delegate_render(handler, template, local_assigns)
+        handler.render(template, local_assigns)
       end
     end
 
@@ -513,18 +513,6 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         end
       end
 
-      def delegate_render(handler, template, local_assigns)
-        handler.new(self).render(template, local_assigns)
-      end
-
-      def delegate_compile(handler, template)
-        handler.new(self).compile(template)
-      end
-
-      def template_handler_is_compilable?(handler)
-        handler.new(self).respond_to?(:compile)
-      end
-
       # Assigns instance variables from the controller to the view.
       def assign_variables_from_controller
         @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
@@ -565,7 +553,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
 
       # Method to create the source code for a given template.
       def create_template_source(handler, template, render_symbol, locals)
-        body = delegate_compile(handler, template)
+        body = handler.compile(template)
 
         @@template_args[render_symbol] ||= {}
         locals_keys = @@template_args[render_symbol].keys | locals
@@ -585,7 +573,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       end
 
       def compiled_method_name(handler, template, file_name)
-        ['_run', handler.to_s.demodulize.underscore, compiled_method_name_file_path_segment(file_name)].compact.join('_').to_sym
+        ['_run', handler.class.to_s.demodulize.underscore, compiled_method_name_file_path_segment(file_name)].compact.join('_').to_sym
       end
 
       def compiled_method_name_file_path_segment(file_name)

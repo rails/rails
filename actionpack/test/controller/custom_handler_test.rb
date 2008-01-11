@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class CustomHandler
+class CustomHandler < ActionView::TemplateHandler
   def initialize( view )
     @view = view
   end

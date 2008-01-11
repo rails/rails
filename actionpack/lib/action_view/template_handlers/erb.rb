@@ -26,6 +26,10 @@ module ActionView
         ::ERB.new(template, nil, @view.erb_trim_mode).src
       end
 
+      def self.compilable?
+        true
+      end
+
       def cache_fragment(block, name = {}, options = nil) #:nodoc:
         @view.fragment_for(block, name, options) do
           eval(ActionView::Base.erb_variable, block.binding)
