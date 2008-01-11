@@ -213,13 +213,13 @@ module TMail
               fromaddr(), TextUtils.time2str(File.mtime(port.filename))
     end
 
-    def UNIXMbox.fromaddr
+    def UNIXMbox.fromaddr(port)
       h = HeaderField.new_from_port(port, 'Return-Path') ||
-          HeaderField.new_from_port(port, 'From') or return 'nobody'
+      HeaderField.new_from_port(port, 'From') ||
+      HeaderField.new_from_port(port, 'EnvelopeSender') or return 'nobody'
       a = h.addrs[0] or return 'nobody'
       a.spec
     end
-    private_class_method :fromaddr
 
     def close
       return if @closed

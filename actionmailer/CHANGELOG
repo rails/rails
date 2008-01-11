@@ -2,6 +2,10 @@
 
 * Fixed that you don't have to call super in ActionMailer::TestCase#setup #10406 [jamesgolick]
 
+* Updated TMail to version 1.2.1 [raasdnil]
+
+* Fixed test in mail_service_test.rb => 'test_decode_encoded_attachment_filename' which had an incorrect decode value (should have spaces in the file after decode) [raasdnil]
+
 
 *2.0.2* (December 16th, 2007)
 

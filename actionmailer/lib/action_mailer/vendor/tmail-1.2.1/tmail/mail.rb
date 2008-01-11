@@ -28,6 +28,23 @@
 # Note: Originally licensed under LGPL v2+. Using MIT license for Rails
 # with permission of Minero Aoki.
 #++
+# == TMail::Mail
+# === Class Methods
+#  
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+ 
 
 require 'tmail/interface'
 require 'tmail/encode'
@@ -162,6 +179,14 @@ module TMail
       @header.dup
     end
 
+    # Returns a TMail::AddressHeader object of the field you are querying.
+    # Examples:
+    #  @mail['from']  #=> #<TMail::AddressHeader "mikel@test.com.au">
+    #  @mail['to']    #=> #<TMail::AddressHeader "mikel@test.com.au">
+    #
+    # You can get the string value of this by passing "to_s" to the query:
+    # Example:
+    #  @mail['to'].to_s #=> "mikel@test.com.au"
     def []( key )
       @header[key.downcase]
     end
@@ -172,6 +197,19 @@ module TMail
 
     alias fetch []
 
+    # Allows you to set or delete TMail header objects at will.
+    # Eamples:
+    #  @mail = TMail::Mail.new
+    #  @mail['to'].to_s       # => 'mikel@test.com.au'
+    #  @mail['to'] = 'mikel@elsewhere.org'
+    #  @mail['to'].to_s       # => 'mikel@elsewhere.org'
+    #  @mail.encoded          # => "To: mikel@elsewhere.org\r\n\r\n"
+    #  @mail['to'] = nil
+    #  @mail['to'].to_s       # => nil
+    #  @mail.encoded          # => "\r\n"
+    # 
+    # Note: setting mail[] = nil actualy deletes the header field in question from the object,
+    # it does not just set the value of the hash to nil
     def []=( key, val )
       dkey = key.downcase
 
@@ -203,7 +241,14 @@ module TMail
     end
 
     alias store []=
-
+    
+    # Allows you to loop through each header in the TMail::Mail object in a block
+    # Example:
+    #   @mail['to'] = 'mikel@elsewhere.org'
+    #   @mail['from'] = 'me@me.com'
+    #   @mail.each_header { |k,v| puts "#{k} = #{v}" }
+    #   # => from = me@me.com
+    #   # => to = mikel@elsewhere.org
     def each_header
       @header.each do |key, val|
         [val].flatten.each {|v| yield key, v }

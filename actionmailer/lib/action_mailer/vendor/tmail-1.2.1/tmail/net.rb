@@ -128,41 +128,6 @@ module TMail
               'using C.T.Encoding with multipart mail is not permitted'
       end
     end
-
-    def create_empty_mail
-      self.class.new(StringPort.new(''), @config)
-    end
-
-    def create_reply
-      setup_reply create_empty_mail()
-    end
-
-    def setup_reply( m )
-      if tmp = reply_addresses(nil)
-        m.to_addrs = tmp
-      end
-
-      mid = message_id(nil)
-      tmp = references(nil) || []
-      tmp.push mid if mid
-      m.in_reply_to = [mid] if mid
-      m.references = tmp unless tmp.empty?
-      m.subject = 'Re: ' + subject('').sub(/\A(?:\s*re:)+/i, '')
-
-      m
-    end
-
-    def create_forward
-      setup_forward create_empty_mail()
-    end
-
-    def setup_forward( mail )
-      m = Mail.new(StringPort.new(''))
-      m.body = decoded
-      m.set_content_type 'message', 'rfc822'
-      m.encoding = encoding('7bit')
-      mail.parts.push m
-    end
   
   end
 

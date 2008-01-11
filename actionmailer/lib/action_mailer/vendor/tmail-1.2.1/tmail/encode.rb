@@ -1,36 +1,35 @@
-=begin rdoc
-
-= Text Encoding class
-
-=end
-#--
-# Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
+# = TITLE:
 #
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
+#   Text Encoding class
 #
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
+# = COPYRIGHT:
 #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#   Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
-# Note: Originally licensed under LGPL v2+. Using MIT license for Rails
-# with permission of Minero Aoki.
-#++
+#   Permission is hereby granted, free of charge, to any person obtaining
+#   a copy of this software and associated documentation files (the
+#   "Software"), to deal in the Software without restriction, including
+#   without limitation the rights to use, copy, modify, merge, publish,
+#   distribute, sublicense, and/or sell copies of the Software, and to
+#   permit persons to whom the Software is furnished to do so, subject to
+#   the following conditions:
+#
+#   The above copyright notice and this permission notice shall be
+#   included in all copies or substantial portions of the Software.
+#
+#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+#   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+#   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+#   LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+#   OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+#   WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+#   Note: Originally licensed under LGPL v2+. Using MIT license for Rails
+#   with permission of Minero Aoki.
 
 require 'nkf'
-require 'tmail/base64.rb'
+require 'tmail/base64'
 require 'tmail/stringio'
 require 'tmail/utils'
 
@@ -52,25 +51,25 @@ module TMail
       end
     end
     module_function :create_dest
-    
+
     def encoded( eol = "\r\n", charset = 'j', dest = nil )
       accept_strategy Encoder, eol, charset, dest
     end
-    
+
     def decoded( eol = "\n", charset = 'e', dest = nil )
       # Turn the E-Mail into a string and return it with all
       # encoded characters decoded.  alias for to_s
       accept_strategy Decoder, eol, charset, dest
     end
-    
+
     alias to_s decoded
-    
+
     def accept_strategy( klass, eol, charset, dest = nil )
       dest ||= ''
       accept klass.new( create_dest(dest), charset, eol )
       dest
     end
-    
+
   end
 
 
@@ -121,7 +120,7 @@ module TMail
     def header_body( str )
       @f << decode(str)
     end
-      
+
     def space
       @f << ' '
     end
@@ -131,7 +130,7 @@ module TMail
     def lwsp( str )
       @f << str
     end
-      
+
     def meta( str )
       @f << str
     end
@@ -182,7 +181,8 @@ module TMail
     end
 
     SPACER       = "\t"
-    MAX_LINE_LEN = 70
+    MAX_LINE_LEN = 78
+    RFC_2822_MAX_LENGTH = 998
 
     OPTIONS = {
       'EUC'  => '-Ej -m0',
@@ -202,7 +202,7 @@ module TMail
     def preserve_quotes=( bool )
       @preserve_quotes
     end
-    
+
     def preserve_quotes
       @preserve_quotes
     end
@@ -378,7 +378,7 @@ module TMail
         i += 1
       end
     end
-    
+
     METHOD_ID = {
       ?j => :extract_J,
       ?e => :extract_E,
@@ -451,29 +451,71 @@ module TMail
       # puts '---- lwsp -------------------------------------'
       # puts "+ #{lwsp.inspect}"
       fold if restsize() <= 0
-      flush
+      flush(@folded)
       @lwsp = lwsp
     end
 
-    def flush
+    def flush(folded = false)
       # puts '---- flush ----'
       # puts "spc >>>#{@lwsp.inspect}<<<"
       # puts "txt >>>#{@text.inspect}<<<"
       @f << @lwsp << @text
-      @curlen += (@lwsp.size + @text.size)
+      if folded
+        @curlen = 0
+      else
+        @curlen += (@lwsp.size + @text.size)
+      end
       @text = ''
       @lwsp = ''
     end
 
     def fold
       # puts '---- fold ----'
-      @f << @eol
+      unless @f.string =~ /^.*?:$/
+        @f << @eol
+        @lwsp = SPACER
+      else
+        fold_header
+        @folded = true
+      end
       @curlen = 0
-      @lwsp = SPACER
+    end
+
+    def fold_header
+      # Called because line is too long - so we need to wrap.
+      # First look for whitespace in the text
+      # if it has text, fold there
+      # check the remaining text, if too long, fold again
+      # if it doesn't, then don't fold unless the line goes beyond 998 chars
+
+      # Check the text to see if there is whitespace, or if not
+      @wrapped_text = []
+      until @text == ''
+        fold_the_string
+      end
+      @text = @wrapped_text.join("#{@eol}#{SPACER}")
+    end
+
+    def fold_the_string
+      whitespace_location = @text =~ /\s/ || @text.length
+      # Is the location of the whitespace shorter than the RCF_2822_MAX_LENGTH?
+      # if there is no whitespace in the string, then this
+      unless mazsize(whitespace_location) <= 0
+        @wrapped_text << @text.slice!(0...whitespace_location)
+      # If it is not less, we have to wrap it destructively
+      else
+        slice_point = RFC_2822_MAX_LENGTH - @curlen - @lwsp.length
+        @wrapped_text << @text.slice!(0...slice_point)
+      end
     end
 
     def restsize
       MAX_LINE_LEN - (@curlen + @lwsp.size + @text.size)
+    end
+
+    def mazsize(whitespace_location)
+      # Per RFC2822, the maximum length of a line is 998 chars
+      RFC_2822_MAX_LENGTH - (@curlen + @lwsp.size + whitespace_location)
     end
 
   end
