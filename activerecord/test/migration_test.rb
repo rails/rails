@@ -925,6 +925,14 @@ if ActiveRecord::Base.connection.supports_migrations?
         end
       end
       
+      def test_references_column_type_with_polymorphic_and_options_null_is_false_adds_table_flag
+        with_new_table do |t|
+          t.expects(:column).with('taggable_type', :string, {:null => false})
+          t.expects(:column).with('taggable_id', :integer, {:null => false})
+          t.references :taggable, :polymorphic => true, :null => false
+        end
+      end
+      
       def test_belongs_to_works_like_references
         with_new_table do |t|
           t.expects(:column).with('customer_id', :integer, {})
