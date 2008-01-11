@@ -38,8 +38,8 @@ module ActiveRelation
           Predicates::RelationInclusion.new(attribute, self)
         end
   
-        def select(*s)
-          Selection.new(self, *s)
+        def select(*predicates)
+          Selection.new(self, *predicates)
         end
   
         def project(*attributes)
@@ -62,20 +62,9 @@ module ActiveRelation
           Deletion.new(self)
         end
     
-        class JoinOperation
-          attr_reader :join_sql, :relation1, :relation2
-
-          def initialize(join_sql, relation1, relation2)
-            @join_sql, @relation1, @relation2 = join_sql, relation1, relation2
-          end
-
+        JoinOperation = Struct.new(:join_sql, :relation1, :relation2) do
           def on(*predicates)
             Join.new(join_sql, relation1, relation2, *predicates)
-          end
-
-          def ==(other)
-            (relation1 == other.relation1 and relation2 == other.relation2) or
-              (relation1 == other.relation2 and relation2 == other.relation1)
           end
         end
       end
