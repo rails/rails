@@ -1,8 +1,8 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
-describe TableRelation do
+describe ActiveRelation::Relations::Table do
   before do
-    @relation = TableRelation.new(:users)
+    @relation = ActiveRelation::Relations::Table.new(:users)
   end
   
   describe '#to_sql' do
@@ -22,8 +22,8 @@ describe TableRelation do
   
   describe '#qualify' do
     it 'manufactures a rename relation with all attribute names qualified' do
-      @relation.qualify.should == RenameRelation.new(
-        RenameRelation.new(@relation, @relation[:id] => 'users.id'), @relation[:name] => 'users.name'
+      @relation.qualify.should == ActiveRelation::Relations::Rename.new(
+        ActiveRelation::Relations::Rename.new(@relation, @relation[:id] => 'users.id'), @relation[:name] => 'users.name'
       )
     end
   end

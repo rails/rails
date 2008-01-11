@@ -1,13 +1,13 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
-describe InsertionRelation do
+describe ActiveRelation::Relations::Insertion do
   before do
-    @relation = TableRelation.new(:users)
+    @relation = ActiveRelation::Relations::Table.new(:users)
   end
   
   describe '#to_sql' do
     it 'manufactures sql inserting the data for one item' do
-      InsertionRelation.new(@relation, @relation[:name] => "nick").to_sql.should be_like("""
+      ActiveRelation::Relations::Insertion.new(@relation, @relation[:name] => "nick").to_sql.should be_like("""
         INSERT
         INTO `users`
         (`users`.`name`) VALUES ('nick')
@@ -15,8 +15,8 @@ describe InsertionRelation do
     end
     
     it 'manufactures sql inserting the data for multiple items' do
-      nested_insertion = InsertionRelation.new(@relation, @relation[:name] => "cobra")
-      InsertionRelation.new(nested_insertion, nested_insertion[:name] => "commander").to_sql.should be_like("""
+      nested_insertion = ActiveRelation::Relations::Insertion.new(@relation, @relation[:name] => "cobra")
+      ActiveRelation::Relations::Insertion.new(nested_insertion, nested_insertion[:name] => "commander").to_sql.should be_like("""
         INSERT
         INTO `users`
         (`users`.`name`) VALUES ('cobra'), ('commander')

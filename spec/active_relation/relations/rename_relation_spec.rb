@@ -1,15 +1,15 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
-describe RenameRelation do
+describe ActiveRelation::Relations::Rename do
   before do
-    @relation = TableRelation.new(:foo)
-    @renamed_relation = RenameRelation.new(@relation, @relation[:id] => :schmid)
+    @relation = ActiveRelation::Relations::Table.new(:foo)
+    @renamed_relation = ActiveRelation::Relations::Rename.new(@relation, @relation[:id] => :schmid)
   end
 
   describe '#initialize' do
     it "manufactures nested rename relations if multiple renames are provided" do
-      RenameRelation.new(@relation, @relation[:id] => :humpty, @relation[:name] => :dumpty). \
-        should == RenameRelation.new(RenameRelation.new(@relation, @relation[:id] => :humpty), @relation[:name] => :dumpty)
+      ActiveRelation::Relations::Rename.new(@relation, @relation[:id] => :humpty, @relation[:name] => :dumpty). \
+        should == ActiveRelation::Relations::Rename.new(ActiveRelation::Relations::Rename.new(@relation, @relation[:id] => :humpty), @relation[:name] => :dumpty)
     end
 
     it "raises an exception if the alias provided is already used" do
@@ -25,7 +25,7 @@ describe RenameRelation do
   
   describe '#attributes' do
     it "manufactures a list of attributes with the renamed attribute aliased" do
-      RenameRelation.new(@relation, @relation[:id] => :schmid).attributes.should ==
+      ActiveRelation::Relations::Rename.new(@relation, @relation[:id] => :schmid).attributes.should ==
         (@relation.attributes - [@relation[:id]]) + [@relation[:id].alias(:schmid)]
     end
   end
@@ -45,8 +45,8 @@ describe RenameRelation do
   
   describe '#qualify' do
     it "distributes over the relation and renames" do
-      RenameRelation.new(@relation, @relation[:id] => :schmid).qualify. \
-        should == RenameRelation.new(@relation.qualify, @relation[:id].qualify => :schmid)
+      ActiveRelation::Relations::Rename.new(@relation, @relation[:id] => :schmid).qualify. \
+        should == ActiveRelation::Relations::Rename.new(@relation.qualify, @relation[:id].qualify => :schmid)
     end
   end
   

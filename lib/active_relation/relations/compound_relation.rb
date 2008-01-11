@@ -1,5 +1,9 @@
-class CompoundRelation < Relation
-  attr_reader :relation
+module ActiveRelation
+  module Relations
+    class Compound < Base
+      attr_reader :relation
   
-  delegate :attributes, :attribute, :joins, :selects, :orders, :table, :inserts, :limit, :offset, :to => :relation
+      delegate :attributes, :attribute, :joins, :selects, :orders, :table, :inserts, :limit, :offset, :to => :relation
+    end
+  end
 end

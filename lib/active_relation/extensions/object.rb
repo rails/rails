@@ -1,5 +1,5 @@
 class Object
-  include SqlBuilder
+  include ActiveRelation::SqlBuilder
   
   def qualify
     self

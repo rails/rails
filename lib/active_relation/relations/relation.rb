@@ -1,90 +1,111 @@
-class Relation
-  include SqlBuilder
+module ActiveRelation
+  module Relations
+    class Base
+      include SqlBuilder
   
-  module Iteration
-    include Enumerable
+      module Iteration
+        include Enumerable
     
-    def each(&block)
-      connection.select_all(to_s).each(&block)
-    end
+        def each(&block)
+          connection.select_all(to_s).each(&block)
+        end
     
-    def first
-      connection.select_one(to_s)
-    end
-  end
-  include Iteration
-  
-  module Operations
-    def <=>(other)
-      InnerJoinOperation.new(self, other)
-    end
-  
-    def <<(other)
-      LeftOuterJoinOperation.new(self, other)
-    end
-  
-    def [](index)
-      case index
-      when Symbol
-        attribute(index)
-      when Range
-        RangeRelation.new(self, index)
+        def first
+          connection.select_one(to_s)
+        end
       end
-    end
+      include Iteration
   
-    def include?(attribute)
-      RelationInclusionPredicate.new(attribute, self)
-    end
+      module Operations
+        def <=>(other)
+          JoinOperation.new("INNER JOIN", self, other)
+        end
   
-    def select(*predicates)
-      SelectionRelation.new(self, *predicates)
-    end
+        def <<(other)
+          JoinOperation.new("LEFT OUTER JOIN", self, other)
+        end
   
-    def project(*attributes)
-      ProjectionRelation.new(self, *attributes)
-    end
+        def [](index)
+          case index
+          when Symbol
+            attribute(index)
+          when ::Range
+            Range.new(self, index)
+          end
+        end
   
-    def order(*attributes)
-      OrderRelation.new(self, *attributes)
-    end
+        def include?(attribute)
+          Predicates::RelationInclusion.new(attribute, self)
+        end
+  
+        def select(*s)
+          Selection.new(self, *s)
+        end
+  
+        def project(*attributes)
+          Projection.new(self, *attributes)
+        end
+  
+        def order(*attributes)
+          Order.new(self, *attributes)
+        end
     
-    def rename(attribute, aliaz)
-      RenameRelation.new(self, attribute => aliaz)
-    end
+        def rename(attribute, aliaz)
+          Rename.new(self, attribute => aliaz)
+        end
     
-    def insert(record)
-      InsertionRelation.new(self, record)
-    end
+        def insert(record)
+          Insertion.new(self, record)
+        end
     
-    def delete
-      DeletionRelation.new(self)
+        def delete
+          Deletion.new(self)
+        end
+    
+        class JoinOperation
+          attr_reader :join_sql, :relation1, :relation2
+
+          def initialize(join_sql, relation1, relation2)
+            @join_sql, @relation1, @relation2 = join_sql, relation1, relation2
+          end
+
+          def on(*predicates)
+            Join.new(join_sql, relation1, relation2, *predicates)
+          end
+
+          def ==(other)
+            (relation1 == other.relation1 and relation2 == other.relation2) or
+              (relation1 == other.relation2 and relation2 == other.relation1)
+          end
+        end
+      end
+      include Operations
+  
+      def connection
+        ActiveRecord::Base.connection
+      end
+  
+      def to_sql(options = {})
+        [
+          "SELECT #{attributes.collect{ |a| a.to_sql(:use_alias => true) }.join(', ')}",
+          "FROM #{quote_table_name(table)}",
+          (joins.to_sql(:quote => false) unless joins.blank?),
+          ("WHERE #{selects.collect{|s| s.to_sql(:quote => false)}.join("\n\tAND ")}" unless selects.blank?),
+          ("ORDER BY #{orders.collect(&:to_sql)}" unless orders.blank?),
+          ("LIMIT #{limit.to_sql}" unless limit.blank?),
+          ("OFFSET #{offset.to_sql}" unless offset.blank?)
+        ].compact.join("\n")
+      end
+      alias_method :to_s, :to_sql
+    
+      protected
+      def attributes; []  end
+      def selects;    []  end
+      def orders;     []  end
+      def inserts;    []  end
+      def joins;      nil end
+      def limit;      nil end
+      def offset;     nil end
     end
   end
-  include Operations
-  
-  def connection
-    ActiveRecord::Base.connection
-  end
-  
-  def to_sql(options = {})
-    [
-      "SELECT #{attributes.collect{ |a| a.to_sql(:use_alias => true) }.join(', ')}",
-      "FROM #{quote_table_name(table)}",
-      (joins.to_sql(:quote => false) unless joins.blank?),
-      ("WHERE #{selects.collect{|s| s.to_sql(:quote => false)}.join("\n\tAND ")}" unless selects.blank?),
-      ("ORDER BY #{orders.collect(&:to_sql)}" unless orders.blank?),
-      ("LIMIT #{limit.to_sql}" unless limit.blank?),
-      ("OFFSET #{offset.to_sql}" unless offset.blank?)
-    ].compact.join("\n")
-  end
-  alias_method :to_s, :to_sql
-    
-  protected
-  def attributes; []  end
-  def selects;    []  end
-  def orders;     []  end
-  def inserts;    []  end
-  def joins;      nil end
-  def limit;      nil end
-  def offset;     nil end
 end

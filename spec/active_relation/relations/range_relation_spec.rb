@@ -1,9 +1,9 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
-describe RangeRelation do
+describe ActiveRelation::Relations::Range do
   before do
-    @relation1 = TableRelation.new(:foo)
-    @relation2 = TableRelation.new(:bar)
+    @relation1 = ActiveRelation::Relations::Table.new(:foo)
+    @relation2 = ActiveRelation::Relations::Table.new(:bar)
     @range1 = 1..2
     @range2 = 4..9
   end
@@ -18,7 +18,7 @@ describe RangeRelation do
     it "manufactures sql with limit and offset" do
       range_size = @range2.last - @range2.first + 1
       range_start = @range2.first
-      RangeRelation.new(@relation1, @range2).to_s.should be_like("""
+      ActiveRelation::Relations::Range.new(@relation1, @range2).to_s.should be_like("""
         SELECT `foo`.`name`, `foo`.`id`
         FROM `foo`
         LIMIT #{range_size}

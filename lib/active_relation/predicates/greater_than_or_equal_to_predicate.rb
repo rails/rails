@@ -1,2 +1,0 @@
-class GreaterThanOrEqualToPredicate < BinaryPredicate
-end

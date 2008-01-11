@@ -1,14 +1,14 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
-describe Attribute do
+describe ActiveRelation::Primitives::Attribute do
   before do
-    @relation1 = TableRelation.new(:foo)
-    @relation2 = TableRelation.new(:bar)
+    @relation1 = ActiveRelation::Relations::Table.new(:foo)
+    @relation2 = ActiveRelation::Relations::Table.new(:bar)
   end
   
   describe '#alias' do
     it "manufactures an aliased attributed" do
-      @relation1[:id].alias(:alias).should == Attribute.new(@relation1, :id, :alias)
+      @relation1[:id].alias(:alias).should == ActiveRelation::Primitives::Attribute.new(@relation1, :id, :alias)
     end
   end
   
@@ -26,51 +26,51 @@ describe Attribute do
   
   describe '#eql?' do
     it "obtains if the relation and attribute name are identical" do
-      Attribute.new(@relation1, :name).should be_eql(Attribute.new(@relation1, :name))
-      Attribute.new(@relation1, :name).should_not be_eql(Attribute.new(@relation1, :another_name))
-      Attribute.new(@relation1, :name).should_not be_eql(Attribute.new(@relation2, :name))
+      ActiveRelation::Primitives::Attribute.new(@relation1, :name).should be_eql(ActiveRelation::Primitives::Attribute.new(@relation1, :name))
+      ActiveRelation::Primitives::Attribute.new(@relation1, :name).should_not be_eql(ActiveRelation::Primitives::Attribute.new(@relation1, :another_name))
+      ActiveRelation::Primitives::Attribute.new(@relation1, :name).should_not be_eql(ActiveRelation::Primitives::Attribute.new(@relation2, :name))
     end
   end
   
   describe 'predications' do
     before do
-      @attribute1 = Attribute.new(@relation1, :name)
-      @attribute2 = Attribute.new(@relation2, :name)
+      @attribute1 = ActiveRelation::Primitives::Attribute.new(@relation1, :name)
+      @attribute2 = ActiveRelation::Primitives::Attribute.new(@relation2, :name)
     end
     
     describe '==' do
       it "manufactures an equality predicate" do
-        (@attribute1 == @attribute2).should == EqualityPredicate.new(@attribute1, @attribute2)
+        (@attribute1 == @attribute2).should == ActiveRelation::Predicates::Equality.new(@attribute1, @attribute2)
       end
     end
     
     describe '<' do
       it "manufactures a less-than predicate" do
-        (@attribute1 < @attribute2).should == LessThanPredicate.new(@attribute1, @attribute2)
+        (@attribute1 < @attribute2).should == ActiveRelation::Predicates::LessThan.new(@attribute1, @attribute2)
       end
     end
     
     describe '<=' do
       it "manufactures a less-than or equal-to predicate" do
-        (@attribute1 <= @attribute2).should == LessThanOrEqualToPredicate.new(@attribute1, @attribute2)
+        (@attribute1 <= @attribute2).should == ActiveRelation::Predicates::LessThanOrEqualTo.new(@attribute1, @attribute2)
       end
     end
     
     describe '>' do
       it "manufactures a greater-than predicate" do
-        (@attribute1 > @attribute2).should == GreaterThanPredicate.new(@attribute1, @attribute2)
+        (@attribute1 > @attribute2).should == ActiveRelation::Predicates::GreaterThan.new(@attribute1, @attribute2)
       end
     end
     
     describe '>=' do
       it "manufactures a greater-than or equal to predicate" do
-        (@attribute1 >= @attribute2).should == GreaterThanOrEqualToPredicate.new(@attribute1, @attribute2)
+        (@attribute1 >= @attribute2).should == ActiveRelation::Predicates::GreaterThanOrEqualTo.new(@attribute1, @attribute2)
       end
     end
     
     describe '=~' do
       it "manufactures a match predicate" do
-        (@attribute1 =~ /.*/).should == MatchPredicate.new(@attribute1, @attribute2)
+        (@attribute1 =~ /.*/).should == ActiveRelation::Predicates::Match.new(@attribute1, @attribute2)
       end
     end
   end
