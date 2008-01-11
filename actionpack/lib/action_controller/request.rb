@@ -61,8 +61,10 @@ module ActionController
       request_method == :head
     end
 
+    # Provides acccess to the request's HTTP headers, for example:
+    #  request.headers["Content-Type"] # => "text/plain"
     def headers
-      @env
+      @headers ||= ActionController::Http::Headers.new(@env)
     end
 
     def content_length
