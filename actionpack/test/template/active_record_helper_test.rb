@@ -86,6 +86,11 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
 
     @user.email = ""
   end
+  
+  def protect_against_forgery?
+    @protect_against_forgery ? true : false
+  end
+  attr_accessor :request_forgery_protection_token, :form_authenticity_token
 
   def setup
     setup_post
@@ -138,6 +143,23 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
     assert_dom_equal(
       %(<form action="update/1" method="post"><input id="post_id" name="post[id]" type="hidden" value="1" /><p><label for="post_title">Title</label><br /><input id="post_title" name="post[title]" size="30" type="text" value="Hello World" /></p>\n<p><label for="post_body">Body</label><br /><div class="fieldWithErrors"><textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea></div></p><input name="commit" type="submit" value="Update" /></form>),
       form("post")
+    )
+  end
+  
+  def test_form_with_protect_against_forgery
+    @protect_against_forgery = true
+    @request_forgery_protection_token = 'authenticity_token'
+    @form_authenticity_token = '123'
+    assert_dom_equal(
+      %(<form action="create" method="post"><div style='margin:0;padding:0'><input type='hidden' name='authenticity_token' value='123' /></div><p><label for="post_title">Title</label><br /><input id="post_title" name="post[title]" size="30" type="text" value="Hello World" /></p>\n<p><label for="post_body">Body</label><br /><div class="fieldWithErrors"><textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea></div></p><input name="commit" type="submit" value="Create" /></form>),
+      form("post")
+    )
+  end
+  
+  def test_form_with_method_option
+    assert_dom_equal(
+      %(<form action="create" method="get"><p><label for="post_title">Title</label><br /><input id="post_title" name="post[title]" size="30" type="text" value="Hello World" /></p>\n<p><label for="post_body">Body</label><br /><div class="fieldWithErrors"><textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea></div></p><input name="commit" type="submit" value="Create" /></form>),
+      form("post", :method=>'get')
     )
   end
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed ActionView::Helpers::ActiveRecordHelper::form for when protect_from_forgery is used #10739 [jeremyevans]
+
 * Provide nicer access to HTTP Headers.  Instead of request.env["HTTP_REFERRER"] you can now use request.headers["Referrer"]. [Koz]
 
 * UrlWriter respects relative_url_root.  #10748 [Cheah Chu Yeow]

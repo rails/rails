@@ -56,6 +56,14 @@ module ActionView
       #     form << content_tag("b", "Department")
       #     form << collection_select("department", "id", @departments, "id", "name")
       #   end
+      #
+      # The following options are available:
+      #
+      # * <tt>action</tt> - the action used when submitting the form (default: create if a new record, otherwise update)
+      # * <tt>input_block</tt> - specialize the output using a different block, see above
+      # * <tt>method</tt> - the method used when submitting the form (default: post)
+      # * <tt>multipart</tt> - whether to change the enctype of the form to multipart/form-date, used when uploading a file (default: false)
+      # * <tt>submit_value</tt> - the text of the submit button (default: Create if a new record, otherwise Update)
       def form(record_name, options = {})
         record = instance_variable_get("@#{record_name}")
 
@@ -65,13 +73,12 @@ module ActionView
 
         submit_value = options[:submit_value] || options[:action].gsub(/[^\w]/, '').capitalize
 
-        contents = ''
+        contents = form_tag({:action => action}, :method =>(options[:method] || 'post'), :enctype => options[:multipart] ? 'multipart/form-data': nil)
         contents << hidden_field(record_name, :id) unless record.new_record?
         contents << all_input_tags(record, record_name, options)
         yield contents if block_given?
         contents << submit_tag(submit_value)
-
-        content_tag('form', contents, :action => action, :method => 'post', :enctype => options[:multipart] ? 'multipart/form-data': nil)
+        contents << '</form>'
       end
 
       # Returns a string containing the error message attached to the +method+ on the +object+ if one exists.
