@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce send_file :x_sendfile => true to send an X-Sendfile response header.  [Jeremy Kemper]
+
 * Fixed ActionView::Helpers::ActiveRecordHelper::form for when protect_from_forgery is used #10739 [jeremyevans]
 
 * Provide nicer access to HTTP Headers.  Instead of request.env["HTTP_REFERRER"] you can now use request.headers["Referrer"]. [Koz]

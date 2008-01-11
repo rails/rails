@@ -27,7 +27,7 @@ class SendFileTest < Test::Unit::TestCase
   include TestFileUtils
 
   Mime::Type.register "image/png", :png unless defined? Mime::PNG
-  
+
   def setup
     @controller = SendFileController.new
     @request = ActionController::TestRequest.new
@@ -55,13 +55,24 @@ class SendFileTest < Test::Unit::TestCase
     assert_nothing_raised { response.body.call(response, output) }
     assert_equal file_data, output.string
   end
-  
+
   def test_file_url_based_filename
     @controller.options = { :url_based_filename => true }
     response = nil
     assert_nothing_raised { response = process('file') }
     assert_not_nil response
     assert_equal "attachment", response.headers["Content-Disposition"]
+  end
+
+  def test_x_sendfile_header
+    @controller.options = { :x_sendfile => true }
+
+    response = nil
+    assert_nothing_raised { response = process('file') }
+    assert_not_nil response
+
+    assert_equal @controller.file_path, response.headers['X-Sendfile']
+    assert response.body.blank?
   end
 
   def test_data

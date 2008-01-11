@@ -4,9 +4,12 @@ module ActionController #:nodoc:
     DEFAULT_SEND_FILE_OPTIONS = {
       :type         => 'application/octet-stream'.freeze,
       :disposition  => 'attachment'.freeze,
-      :stream       => true, 
-      :buffer_size  => 4096
+      :stream       => true,
+      :buffer_size  => 4096,
+      :x_sendfile   => false
     }.freeze
+
+    X_SENDFILE_HEADER = 'X-Sendfile'.freeze
 
     protected
       # Sends the file by streaming it 4096 bytes at a time. This way the
@@ -22,15 +25,15 @@ module ActionController #:nodoc:
       #   Defaults to File.basename(path).
       # * <tt>:type</tt> - specifies an HTTP content type.
       #   Defaults to 'application/octet-stream'.
-      # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.  
+      # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
       #   Valid values are 'inline' and 'attachment' (default).
       # * <tt>:stream</tt> - whether to send the file to the user agent as it is read (true)
       #   or to read the entire file before sending (false). Defaults to true.
       # * <tt>:buffer_size</tt> - specifies size (in bytes) of the buffer used to stream the file.
       #   Defaults to 4096.
       # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to '200 OK'.
-      # * <tt>:url_based_filename</tt> - set to true if you want the browser guess the filename from 
-      #   the URL, which is necessary for i18n filenames on certain browsers 
+      # * <tt>:url_based_filename</tt> - set to true if you want the browser guess the filename from
+      #   the URL, which is necessary for i18n filenames on certain browsers
       #   (setting :filename overrides this option).
       #
       # The default Content-Type and Content-Disposition headers are
@@ -67,19 +70,24 @@ module ActionController #:nodoc:
 
         @performed_render = false
 
-        if options[:stream]
-          render :status => options[:status], :text => Proc.new { |response, output|
-            logger.info "Streaming file #{path}" unless logger.nil?
-            len = options[:buffer_size] || 4096
-            File.open(path, 'rb') do |file|
-              while buf = file.read(len)
-                output.write(buf)
-              end
-            end
-          }
+        if options[:x_sendfile]
+          logger.info "Sending #{X_SENDFILE_HEADER} header #{path}" if logger
+          head options[:status], X_SENDFILE_HEADER => path
         else
-          logger.info "Sending file #{path}" unless logger.nil?
-          File.open(path, 'rb') { |file| render :status => options[:status], :text => file.read }
+          if options[:stream]
+            render :status => options[:status], :text => Proc.new { |response, output|
+              logger.info "Streaming file #{path}" unless logger.nil?
+              len = options[:buffer_size] || 4096
+              File.open(path, 'rb') do |file|
+                while buf = file.read(len)
+                  output.write(buf)
+                end
+              end
+            }
+          else
+            logger.info "Sending file #{path}" unless logger.nil?
+            File.open(path, 'rb') { |file| render :status => options[:status], :text => file.read }
+          end
         end
       end
 
@@ -90,7 +98,7 @@ module ActionController #:nodoc:
       # * <tt>:filename</tt> - Suggests a filename for the browser to use.
       # * <tt>:type</tt> - specifies an HTTP content type.
       #   Defaults to 'application/octet-stream'.
-      # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.  
+      # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
       #   Valid values are 'inline' and 'attachment' (default).
       # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to '200 OK'.
       #
@@ -105,7 +113,7 @@ module ActionController #:nodoc:
       #
       # See +send_file+ for more information on HTTP Content-* headers and caching.
       def send_data(data, options = {}) #:doc:
-        logger.info "Sending data #{options[:filename]}" unless logger.nil?
+        logger.info "Sending data #{options[:filename]}" if logger
         send_file_headers! options.merge(:length => data.size)
         @performed_render = false
         render :status => options[:status], :text => data
@@ -130,10 +138,10 @@ module ActionController #:nodoc:
         )
 
         # Fix a problem with IE 6.0 on opening downloaded files:
-        # If Cache-Control: no-cache is set (which Rails does by default), 
-        # IE removes the file it just downloaded from its cache immediately 
-        # after it displays the "open/save" dialog, which means that if you 
-        # hit "open" the file isn't there anymore when the application that 
+        # If Cache-Control: no-cache is set (which Rails does by default),
+        # IE removes the file it just downloaded from its cache immediately
+        # after it displays the "open/save" dialog, which means that if you
+        # hit "open" the file isn't there anymore when the application that
         # is called for handling the download is run, so let's workaround that
         headers['Cache-Control'] = 'private' if headers['Cache-Control'] == 'no-cache'
       end
