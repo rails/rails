@@ -56,7 +56,7 @@ module TMail
 
   module TextUtils
     # Defines characters per RFC that are OK for TOKENs, ATOMs, PHRASEs and CONTROL characters.
-    
+
     aspecial     = '()<>[]:;.\\,"'
     tspecial     = '()<>[];:\\,"/?='
     lwsp         = " \t\r\n"
@@ -248,8 +248,7 @@ module TMail
     def decode_RFC2231( str )
       m = RFC2231_ENCODED.match(str) or return str
       begin
-        NKF.nkf(NKF_FLAGS[$KCODE],
-        m.post_match.gsub(/%[\da-f]{2}/in) {|s| s[1,2].hex.chr })
+        to_kcode(m.post_match.gsub(/%[\da-f]{2}/in) {|s| s[1,2].hex.chr })
       rescue
         m.post_match.gsub(/%[\da-f]{2}/in, "")
       end
@@ -263,7 +262,7 @@ module TMail
         preamble = $1
         remainder = $2
         if remainder =~ /;/
-          remainder =~ /^(.*)(;.*)$/m
+          remainder =~ /^(.*?)(;.*)$/m
           boundary_text = $1
           post = $2.chomp
         else

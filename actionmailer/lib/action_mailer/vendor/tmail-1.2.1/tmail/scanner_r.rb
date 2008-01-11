@@ -29,12 +29,11 @@
 
 require 'tmail/config'
 
-
 module TMail
 
-  class Scanner_R
+  class TMailScanner
 
-    Version = '0.10.7'
+    Version = '0.11.0'
     Version.freeze
 
     MIME_HEADERS = {
@@ -46,7 +45,6 @@ module TMail
     alnum      = 'a-zA-Z0-9'
     atomsyms   = %q[  _#!$%&`'*+-{|}~^/=?  ].strip
     tokensyms  = %q[  _#!$%&`'*+-{|}~^@.    ].strip
-
     atomchars  = alnum + Regexp.quote(atomsyms)
     tokenchars = alnum + Regexp.quote(tokensyms)
     iso2022str = '\e(?!\(B)..(?:[^\e]+|\e(?!\(B)..)*\e\(B'

@@ -1,6 +1,8 @@
-#
-# version.rb
-#
+=begin rdoc
+
+= Scanner for TMail
+
+=end
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
@@ -27,12 +29,19 @@
 # with permission of Minero Aoki.
 #++
 
-module TMail #:nodoc:
-  module VERSION #:nodoc:
-    MAJOR = 1
-    MINOR = 1
-    TINY  = 1
+require 'tmail/utils'
+require 'tmail/config'
 
-    STRING = [MAJOR, MINOR, TINY].join('.')
+module TMail
+  # NOTE: It woiuld be nice if these two libs could boith be called "tmailscanner", and
+  # the native extension would have precedence. However RubyGems boffs that up b/c
+  # it does not gaurantee load_path order.
+  begin
+    raise LoadError, 'Turned off native extentions by user choice' if ENV['NORUBYEXT']
+    require('tmail/tmailscanner') # c extension
+    Scanner = TMailScanner
+  rescue LoadError
+    require 'tmail/scanner_r'
+    Scanner = TMailScanner
   end
 end

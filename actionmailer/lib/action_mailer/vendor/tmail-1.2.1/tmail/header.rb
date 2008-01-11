@@ -54,8 +54,40 @@ module TMail
         klass.newobj body, conf
       end
 
+      # Returns a HeaderField object matching the header you specify in the "name" param.
+      # Requires an initialized TMail::Port to be passed in.
+      #
+      # The method searches the header of the Port you pass into it to find a match on
+      # the header line you pass.  Once a match is found, it will unwrap the matching line
+      # as needed to return an initialized HeaderField object.
+      #
+      # If you want to get the Envelope sender of the email object, pass in "EnvelopeSender",
+      # if you want the From address of the email itself, pass in 'From'.
+      #
+      # This is because a mailbox doesn't have the : after the From that designates the
+      # beginning of the envelope sender (which can be different to the from address of 
+      # the emial)
+      #
+      # Other fields can be passed as normal, "Reply-To", "Received" etc.
+      #
+      # Note: Change of behaviour in 1.2.1 => returns nil if it does not find the specified
+      # header field, otherwise returns an instantiated object of the correct header class
+      # 
+      # For example:
+      #   port = TMail::FilePort.new("/test/fixtures/raw_email_simple")
+      #   h = TMail::HeaderField.new_from_port(port, "From")
+      #   h.addrs.to_s #=> "Mikel Lindsaar <mikel@nowhere.com>"
+      #   h = TMail::HeaderField.new_from_port(port, "EvelopeSender")
+      #   h.addrs.to_s #=> "mike@anotherplace.com.au"
+      #   h = TMail::HeaderField.new_from_port(port, "SomeWeirdHeaderField")
+      #   h #=> nil
       def new_from_port( port, name, conf = DEFAULT_CONFIG )
-        re = Regep.new('\A(' + Regexp.quote(name) + '):', 'i')
+        if name == "EnvelopeSender"
+          name = "From"
+          re = Regexp.new('\A(From) ', 'i')
+        else
+          re = Regexp.new('\A(' + Regexp.quote(name) + '):', 'i')
+        end
         str = nil
         port.ropen {|f|
             f.each do |line|
@@ -66,7 +98,7 @@ module TMail
               end
             end
         }
-        new(name, str, Config.to_config(conf))
+        new(name, str, Config.to_config(conf)) if str
       end
 
       def internal_new( name, conf )

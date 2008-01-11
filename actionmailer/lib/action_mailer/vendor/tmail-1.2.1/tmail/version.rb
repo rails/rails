@@ -1,8 +1,6 @@
-=begin rdoc
-
-= Scanner for TMail
-
-=end
+#
+# version.rb
+#
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
@@ -29,15 +27,12 @@
 # with permission of Minero Aoki.
 #++
 
-require 'tmail/utils'
+module TMail #:nodoc:
+  module VERSION #:nodoc:
+    MAJOR = 1
+    MINOR = 2
+    TINY  = 0
 
-module TMail
-  require 'tmail/scanner_r.rb'
-  begin
-    raise LoadError, 'Turn off Ruby extention by user choice' if ENV['NORUBYEXT']
-    require 'tmail/scanner_c.so'
-    Scanner = Scanner_C
-  rescue LoadError
-    Scanner = Scanner_R
+    STRING = [MAJOR, MINOR, TINY].join('.')
   end
 end
