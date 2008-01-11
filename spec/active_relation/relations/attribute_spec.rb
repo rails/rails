@@ -20,7 +20,7 @@ describe ActiveRelation::Primitives::Attribute do
   
   describe '#qualify' do
     it "manufactures an attribute aliased with that attributes qualified name" do
-      @relation1[:id].qualify == @relation1[:id].qualify
+      @relation1[:id].qualify.should == @relation1[:id].qualify
     end
   end
   
