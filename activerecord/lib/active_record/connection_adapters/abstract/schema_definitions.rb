@@ -453,9 +453,7 @@ module ActiveRecord
         polymorphic = options.delete(:polymorphic)
         args.each do |col|
           column("#{col}_id", :integer, options)
-          unless polymorphic.nil?
-            column("#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : {})
-          end
+          column("#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) unless polymorphic.nil?
         end
       end
       alias :belongs_to :references
