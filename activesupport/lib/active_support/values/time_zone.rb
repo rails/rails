@@ -26,10 +26,7 @@ class TimeZone
   # result.
   def formatted_offset( colon=true )
     return "" if utc_offset == 0
-    sign = (utc_offset < 0 ? -1 : 1)
-    hours = utc_offset.abs / 3600
-    minutes = (utc_offset.abs % 3600) / 60
-    "%+03d%s%02d" % [ hours * sign, colon ? ":" : "", minutes ]
+    utc_offset.to_utc_offset_s(colon)
   end
 
   # Compute and return the current time, in the time zone represented by

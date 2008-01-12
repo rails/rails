@@ -1,5 +1,7 @@
 *SVN*
 
+* Refactor number-to-HH:MM-string conversion logic from TimeZone#formatted_offset to a reusable Numeric#to_utc_offset_s method. [Geoff Buesing]
+
 * Continue evolution toward ActiveSupport::TestCase.  #10679 [Josh Peek]
 
 * TestCase: introduce declared setup and teardown callbacks. Pass a list of methods and an optional block to call before setup or after teardown. Setup callbacks are run in the order declared; teardown callbacks are run in reverse.  [Jeremy Kemper]
