@@ -367,7 +367,7 @@ class FragmentCachingTest < Test::Unit::TestCase
     @controller.send(:initialize_current_url)
   end
 
-  def test_fragement_cache_key
+  def test_fragment_cache_key
     assert_equal 'views/what a key', @controller.fragment_cache_key('what a key')
     assert_equal( "views/test.host/fragment_caching_test/some_action",
                   @controller.fragment_cache_key(:controller => 'fragment_caching_test',:action => 'some_action'))
@@ -479,3 +479,69 @@ class FragmentCachingTest < Test::Unit::TestCase
     end
   end
 end
+
+
+class FunctionalCachingController < ActionController::Base
+  def fragment_cached
+  end
+
+  def html_fragment_cached_with_partial
+    respond_to do |format|
+      format.html
+    end
+  end
+
+  def js_fragment_cached_with_partial
+    respond_to do |format|
+      format.js
+    end
+  end
+
+
+  def rescue_action(e)
+    raise e
+  end
+end
+
+FunctionalCachingController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
+
+class FunctionalFragmentCachingTest < Test::Unit::TestCase
+  def setup
+    ActionController::Base.perform_caching = true
+    @store = ActiveSupport::Cache::MemoryStore.new
+    ActionController::Base.cache_store = @store    
+    @controller = FunctionalCachingController.new
+    @request = ActionController::TestRequest.new
+    @response = ActionController::TestResponse.new
+  end
+  def test_fragment_caching
+    get :fragment_cached
+    assert_response :success
+    expected_body = <<-CACHED
+Hello
+This bit's fragment cached
+CACHED
+    assert_equal expected_body, @response.body
+    
+    assert_equal "This bit's fragment cached", @store.read('views/test.host/functional_caching/fragment_cached')
+  end
+  
+  def test_fragment_caching_in_partials
+    get :html_fragment_cached_with_partial
+    assert_response :success
+    assert_match /Fragment caching in a partial/, @response.body
+    assert_match "Fragment caching in a partial", @store.read('views/test.host/functional_caching/html_fragment_cached_with_partial')
+  end
+  
+  def test_fragment_caching_in_rjs_partials
+    xhr :get, :js_fragment_cached_with_partial
+    assert_response :success
+    assert_match /Fragment caching in a partial/, @response.body
+    assert_match "Fragment caching in a partial", @store.read('views/test.host/functional_caching/js_fragment_cached_with_partial')
+  end
+end
+
+
+
+
+
