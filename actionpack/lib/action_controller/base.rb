@@ -1029,7 +1029,8 @@ module ActionController #:nodoc:
       # RedirectBackError will be raised. You may specify some fallback
       # behavior for this case by rescuing RedirectBackError.
       def redirect_to(options = {}, response_status = {}) #:doc: 
-        
+        raise ActionControllerError.new("Cannot redirect to nil!") if options.nil?
+
         if options.is_a?(Hash) && options[:status] 
           status = options.delete(:status) 
         elsif response_status[:status] 
