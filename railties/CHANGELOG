@@ -1,5 +1,7 @@
 *SVN*
 
+* Update scaffold to use labels instead of bold tags.  Closes #10757 [zach-inglis-lt3]
+
 * Resurrect WordNet synonym lookups.  #10710 [tom./, matt]
 
 * Added config.cache_store to environment options to control the default cache store (default is FileStore if tmp/cache is present, otherwise MemoryStore is used) [DHH]

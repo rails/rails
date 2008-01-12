@@ -5,10 +5,9 @@
 <%% form_for(@<%= singular_name %>) do |f| %>
 <% for attribute in attributes -%>
   <p>
-    <b><%= attribute.column.human_name %></b><br />
+		<%%= f.label :<%= attribute.name %> %><br />
     <%%= f.<%= attribute.field_type %> :<%= attribute.name %> %>
   </p>
-
 <% end -%>
   <p>
     <%%= f.submit "Create" %>
