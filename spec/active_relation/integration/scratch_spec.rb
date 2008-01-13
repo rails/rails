@@ -51,15 +51,14 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
     primary_key = User.reflections[:photos].klass.primary_key.to_sym
     foreign_key = User.reflections[:photos].primary_key_name.to_sym
     
-    # << is the left outer join operator
-    (user_relation << @photos).on(user_relation[primary_key] == @photos[foreign_key])
+    user_relation.outer_join(@photos).on(user_relation[primary_key] == @photos[foreign_key])
   end
   
   def photo_belongs_to_camera(photo_relation)
     primary_key = Photo.reflections[:camera].klass.primary_key.to_sym
     foreign_key = Photo.reflections[:camera].primary_key_name.to_sym
 
-    (photo_relation << @cameras).on(photo_relation[foreign_key] == @cameras[primary_key])
+    photo_relation.outer_join(@cameras).on(photo_relation[foreign_key] == @cameras[primary_key])
   end
 
   describe 'Relational Algebra', 'a relational algebra allows the implementation of
@@ -124,7 +123,7 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
     end
     
     it 'allows arbitrary sql to be passed through' do
-      (@users << @photos).on("asdf").to_sql.should be_like("""
+      @users.outer_join(@photos).on("asdf").to_sql.should be_like("""
         SELECT `users`.`name`, `users`.`id`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
         FROM `users`
           LEFT OUTER JOIN `photos`

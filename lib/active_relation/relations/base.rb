@@ -17,11 +17,11 @@ module ActiveRelation
       include Iteration
   
       module Operations
-        def <=>(other)
+        def join(other)
           JoinOperation.new("INNER JOIN", self, other)
         end
   
-        def <<(other)
+        def outer_join(other)
           JoinOperation.new("LEFT OUTER JOIN", self, other)
         end
   

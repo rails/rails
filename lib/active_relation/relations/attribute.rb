@@ -22,7 +22,7 @@ module ActiveRelation
       end
   
       def eql?(other)
-        relation == other.relation and name == other.name and self.alias == other.alias
+        relation == other.relation and name == other.name and @alias == other.alias
       end
 
       module Predications  
