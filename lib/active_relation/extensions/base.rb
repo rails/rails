@@ -21,7 +21,6 @@ class ActiveRecord::Base
 end
 
 # all of the below disables normal AR behavior. It's rather destructive and purely for demonstration purposes (see scratch_spec).
-
 class ActiveRecord::Associations::BelongsToAssociation
   def instantiate(record, joins = [])
     @target = proxy_reflection.klass.instantiate(record, joins)

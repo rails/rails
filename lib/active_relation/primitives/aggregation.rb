@@ -10,7 +10,7 @@ module ActiveRelation
       end
   
       def to_sql(options = {})
-        "#{function_sql}(@attribute.to_sql)"
+        "#{function_sql}(#{@attribute.to_sql})"
       end
       
       def ==(other)

@@ -26,5 +26,8 @@ end
 
 Spec::Runner.configure do |config|  
   config.include(BeLikeMatcher)
+  config.include(ActiveRelation::Relations)
+  config.include(ActiveRelation::Primitives)
+  config.include(ActiveRelation::Predicates)
   config.mock_with :rr
 end
