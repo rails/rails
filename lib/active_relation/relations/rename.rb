@@ -1,15 +1,15 @@
 module ActiveRelation
   module Relations
     class Rename < Compound
-      attr_reader :schmattribute, :alias
+      attr_reader :schmattribute, :rename
   
       def initialize(relation, renames)
-        @schmattribute, @alias = renames.shift
+        @schmattribute, @rename = renames.shift
         @relation = renames.empty?? relation : Rename.new(relation, renames)
       end
   
       def ==(other)
-        relation == other.relation and schmattribute == other.schmattribute and self.alias == other.alias
+        relation == other.relation and schmattribute == other.schmattribute and self.rename == other.rename
       end
   
       def attributes
@@ -17,13 +17,13 @@ module ActiveRelation
       end
   
       def qualify
-        Rename.new(relation.qualify, schmattribute.qualify => self.alias)
+        Rename.new(relation.qualify, schmattribute.qualify => self.rename)
       end
   
       protected
       def attribute(name)
         case
-        when name == self.alias then schmattribute.as(self.alias)
+        when name == self.rename then schmattribute.as(self.rename)
         when relation[name] == schmattribute then nil
         else relation[name]
         end
@@ -31,7 +31,7 @@ module ActiveRelation
   
       private
       def substitute(a)
-        a == schmattribute ? a.as(self.alias) : a
+        a == schmattribute ? a.as(self.rename) : a
       end
     end
   end

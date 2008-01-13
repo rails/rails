@@ -88,7 +88,7 @@ module ActiveRelation
           ("LIMIT #{limit.to_sql}" unless limit.blank?),
           ("OFFSET #{offset.to_sql}" unless offset.blank?)
         ].compact.join("\n")
-        options[:use_parens] ? "(#{sql})" : sql
+        (options[:use_parens] ? "(#{sql})" : sql) + (self.alias ? " AS #{self.alias}" : "")
       end
       alias_method :to_s, :to_sql
     

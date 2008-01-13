@@ -12,26 +12,26 @@ describe ActiveRelation::Relations::Rename do
         should == ActiveRelation::Relations::Rename.new(ActiveRelation::Relations::Rename.new(@relation, @relation[:id] => :humpty), @relation[:name] => :dumpty)
     end
 
-    it "raises an exception if the alias provided is already used" do
+    it "raises an exception if the rename provided is already used" do
       pending
     end
   end
     
   describe '==' do
-    it "obtains if the relation, attribute, and alias are identical" do
+    it "obtains if the relation, attribute, and rename are identical" do
       pending
     end
   end
   
   describe '#attributes' do
-    it "manufactures a list of attributes with the renamed attribute aliased" do
+    it "manufactures a list of attributes with the renamed attribute renameed" do
       ActiveRelation::Relations::Rename.new(@relation, @relation[:id] => :schmid).attributes.should ==
         (@relation.attributes - [@relation[:id]]) + [@relation[:id].as(:schmid)]
     end
   end
   
   describe '[]' do
-    it 'indexes attributes by alias' do
+    it 'indexes attributes by rename' do
       @renamed_relation[:id].should be_nil
       @renamed_relation[:schmid].should == @relation[:id].as(:schmid)
     end
@@ -51,7 +51,7 @@ describe ActiveRelation::Relations::Rename do
   end
   
   describe '#to_sql' do
-    it 'manufactures sql aliasing the attribute' do
+    it 'manufactures sql renameing the attribute' do
       @renamed_relation.to_sql.should be_like("""
         SELECT `foo`.`name`, `foo`.`id` AS 'schmid'
         FROM `foo`
