@@ -39,6 +39,7 @@ module ActiveSupport
       @level         = level
       @buffer        = []
       @auto_flushing = 1
+      @no_block = false
 
       if log.respond_to?(:write)
         @log = log
@@ -52,13 +53,19 @@ module ActiveSupport
       end
     end
 
+    def set_non_blocking_io
+      if !RUBY_PLATFORM.match(/java|mswin/) && !(@log == STDOUT) && @log.respond_to?(:write_nonblock)
+        @no_block = true
+      end
+    end
+
     def add(severity, message = nil, progname = nil, &block)
       return if @level > severity
       message = (message || (block && block.call) || progname).to_s
       # If a newline is necessary then create a new message ending with a newline.
       # Ensures that the original message is not mutated.
       message = "#{message}\n" unless message[-1] == ?\n
-      @buffer << message
+      buffer << message
       auto_flush
       message
     end
@@ -90,7 +97,13 @@ module ActiveSupport
     end
 
     def flush
-      @log.write(@buffer.slice!(0..-1).join) unless @buffer.empty?
+      unless buffer.empty?
+        if @no_block
+          @log.write_nonblock(buffer.slice!(0..-1).join)
+        else
+          @log.write(buffer.slice!(0..-1).join)
+        end
+      end
     end
 
     def close
@@ -101,7 +114,7 @@ module ActiveSupport
 
     protected
       def auto_flush
-        flush if @buffer.size >= @auto_flushing
+        flush if buffer.size >= @auto_flushing
       end
   end
 end

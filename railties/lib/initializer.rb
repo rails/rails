@@ -250,7 +250,10 @@ module Rails
         begin
           logger = ActiveSupport::BufferedLogger.new(configuration.log_path)
           logger.level = ActiveSupport::BufferedLogger.const_get(configuration.log_level.to_s.upcase)
-          logger.auto_flushing = false if configuration.environment == "production"
+          if configuration.environment == "production"
+            logger.auto_flushing = false
+            logger.set_non_blocking_io
+          end
         rescue StandardError =>e
           logger = ActiveSupport::BufferedLogger.new(STDERR)
           logger.level = ActiveSupport::BufferedLogger::WARN
