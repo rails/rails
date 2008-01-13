@@ -9,8 +9,8 @@ module ActiveRelation
         @relation, @name, @alias = relation, name, aliaz
       end
   
-      def alias(aliaz = nil)
-        aliaz ? Attribute.new(relation, name, aliaz) : @alias
+      def as(aliaz = nil)
+        Attribute.new(relation, name, aliaz)
       end
   
       def qualified_name
@@ -18,7 +18,7 @@ module ActiveRelation
       end
   
       def qualify
-        self.alias(qualified_name)
+        self.as(qualified_name)
       end
   
       def ==(other)

@@ -45,6 +45,10 @@ module ActiveRelation
         def project(*attributes)
           Projection.new(self, *attributes)
         end
+        
+        def as(aliaz)
+          Alias.new(self, aliaz)
+        end
   
         def order(*attributes)
           Order.new(self, *attributes)
@@ -75,8 +79,8 @@ module ActiveRelation
       end
   
       def to_sql(options = {})
-        [
-          "SELECT #{attributes.collect{ |a| a.to_sql(:use_alias => true) }.join(', ')}",
+        sql = [
+          "SELECT #{attributes.collect{ |a| a.to_sql(:use_alias => true, :use_parens => true) }.join(', ')}",
           "FROM #{quote_table_name(table)}",
           (joins.to_sql(:quote => false) unless joins.blank?),
           ("WHERE #{selects.collect{|s| s.to_sql(:quote => false)}.join("\n\tAND ")}" unless selects.blank?),
@@ -84,6 +88,7 @@ module ActiveRelation
           ("LIMIT #{limit.to_sql}" unless limit.blank?),
           ("OFFSET #{offset.to_sql}" unless offset.blank?)
         ].compact.join("\n")
+        options[:use_parens] ? "(#{sql})" : sql
       end
       alias_method :to_s, :to_sql
     
@@ -95,6 +100,7 @@ module ActiveRelation
       def joins;      nil end
       def limit;      nil end
       def offset;     nil end
+      def alias;      nil end
     end
   end
 end

@@ -26,14 +26,14 @@ describe ActiveRelation::Relations::Rename do
   describe '#attributes' do
     it "manufactures a list of attributes with the renamed attribute aliased" do
       ActiveRelation::Relations::Rename.new(@relation, @relation[:id] => :schmid).attributes.should ==
-        (@relation.attributes - [@relation[:id]]) + [@relation[:id].alias(:schmid)]
+        (@relation.attributes - [@relation[:id]]) + [@relation[:id].as(:schmid)]
     end
   end
   
   describe '[]' do
     it 'indexes attributes by alias' do
       @renamed_relation[:id].should be_nil
-      @renamed_relation[:schmid].should == @relation[:id].alias(:schmid)
+      @renamed_relation[:schmid].should == @relation[:id].as(:schmid)
     end
   end
   

@@ -49,13 +49,19 @@ describe ActiveRelation::Relations::Base do
       end
     
       it "manufactures a projection relation" do
-        @relation1.project(@attribute1, @attribute2).should be_kind_of(ActiveRelation::Relations::Projection)
+        @relation1.project(@attribute1, @attribute2).should == ActiveRelation::Relations::Projection.new(@relation1, @attribute1, @attribute2)
+      end
+    end
+    
+    describe '#as' do
+      it "manufactures an alias relation" do
+        @relation1.as(:thucydides).should == ActiveRelation::Relations::Alias.new(@relation1, :thucydides)
       end
     end
   
     describe '#rename' do
       it "manufactures a rename relation" do
-        @relation1.rename(@attribute1, :foo).should be_kind_of(ActiveRelation::Relations::Rename)
+        @relation1.rename(@attribute1, :foo).should == ActiveRelation::Relations::Rename.new(@relation1, @attribute1 => :foo)
       end
     end
   
@@ -65,11 +71,11 @@ describe ActiveRelation::Relations::Base do
       end
     
       it "manufactures a selection relation" do
-        @relation1.select(@predicate).should be_kind_of(ActiveRelation::Relations::Selection)
+        @relation1.select(@predicate).should == ActiveRelation::Relations::Selection.new(@relation1, @predicate)
       end
     
       it "accepts arbitrary strings" do
-        @relation1.select("arbitrary").should be_kind_of(ActiveRelation::Relations::Selection)
+        @relation1.select("arbitrary").should == ActiveRelation::Relations::Selection.new(@relation1, "arbitrary")
       end
     end
   
@@ -91,6 +97,14 @@ describe ActiveRelation::Relations::Base do
       it 'manufactures an insertion relation' do
         @relation1.insert(record = {:id => 1}).should be_kind_of(ActiveRelation::Relations::Insertion)
       end
+    end
+  end
+  
+  describe '#to_sql' do
+    it "manufactures sql with scalar selects" do
+      @relation1.as(:tobias).to_sql(:use_parens => true).should be_like("""
+        (SELECT `foo`.`name`, `foo`.`id` FROM `foo`) AS tobias
+      """)
     end
   end
 end

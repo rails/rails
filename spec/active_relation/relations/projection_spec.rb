@@ -17,7 +17,7 @@ describe ActiveRelation::Relations::Projection do
   end
   
   describe '#qualify' do
-    it "distributes over teh relation and attributes" do
+    it "distributes over the relation and attributes" do
       ActiveRelation::Relations::Projection.new(@relation1, @attribute1).qualify. \
         should == ActiveRelation::Relations::Projection.new(@relation1.qualify, @attribute1.qualify)
     end

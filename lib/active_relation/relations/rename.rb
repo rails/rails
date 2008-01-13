@@ -23,7 +23,7 @@ module ActiveRelation
       protected
       def attribute(name)
         case
-        when name == self.alias then schmattribute.alias(self.alias)
+        when name == self.alias then schmattribute.as(self.alias)
         when relation[name] == schmattribute then nil
         else relation[name]
         end
@@ -31,7 +31,7 @@ module ActiveRelation
   
       private
       def substitute(a)
-        a == schmattribute ? a.alias(self.alias) : a
+        a == schmattribute ? a.as(self.alias) : a
       end
     end
   end
