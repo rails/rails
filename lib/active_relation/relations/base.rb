@@ -82,7 +82,7 @@ module ActiveRelation
         sql = [
           "SELECT #{attributes.collect{ |a| a.to_sql(:use_alias => true, :use_parens => true) }.join(', ')}",
           "FROM #{quote_table_name(table)}",
-          (joins.to_sql(:quote => false) unless joins.blank?),
+          (joins unless joins.blank?),
           ("WHERE #{selects.collect{|s| s.to_sql(:quote => false)}.join("\n\tAND ")}" unless selects.blank?),
           ("ORDER BY #{orders.collect(&:to_sql)}" unless orders.blank?),
           ("LIMIT #{limit.to_sql}" unless limit.blank?),
