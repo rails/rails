@@ -23,7 +23,7 @@ module ActiveRelation
       private
       def attributes_by_name
         @attributes_by_name ||= connection.columns(table, "#{table} Columns").inject({}) do |attributes_by_name, column|
-          attributes_by_name.merge(column.name => ActiveRelation::Primitives::Attribute.new(self, column.name.to_sym))
+          attributes_by_name.merge(column.name => Primitives::Attribute.new(self, column.name.to_sym))
         end
       end
   

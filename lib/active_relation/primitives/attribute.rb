@@ -1,7 +1,7 @@
 module ActiveRelation
   module Primitives
     class Attribute
-      include ::ActiveRelation::SqlBuilder
+      include SqlBuilder
   
       attr_reader :relation, :name, :alias
   
@@ -10,7 +10,7 @@ module ActiveRelation
       end
   
       def alias(aliaz = nil)
-        aliaz ? ActiveRelation::Primitives::Attribute.new(relation, name, aliaz) : @alias
+        aliaz ? Attribute.new(relation, name, aliaz) : @alias
       end
   
       def qualified_name
@@ -25,32 +25,57 @@ module ActiveRelation
         relation == other.relation and name == other.name and @alias == other.alias
       end
 
-      module Predications  
+      module Predications
+        include Predicates
+        
         def equals(other)
-          Predicates::Equality.new(self, other)
+          Equality.new(self, other)
         end
   
         def less_than(other)
-          Predicates::LessThan.new(self, other)
+          LessThan.new(self, other)
         end
   
         def less_than_or_equal_to(other)
-          Predicates::LessThanOrEqualTo.new(self, other)
+          LessThanOrEqualTo.new(self, other)
         end
   
         def greater_than(other)
-          Predicates::GreaterThan.new(self, other)
+          GreaterThan.new(self, other)
         end
   
         def greater_than_or_equal_to(other)
-          Predicates::GreaterThanOrEqualTo.new(self, other)
+          GreaterThanOrEqualTo.new(self, other)
         end
   
         def matches(regexp)
-          Predicates::Match.new(self, regexp)
+          Match.new(self, regexp)
         end
       end
       include Predications
+      
+      module Aggregations
+        def count
+          Aggregation.new(self, "COUNT")
+        end
+        
+        def sum
+          Aggregation.new(self, "SUM")
+        end
+        
+        def maximum
+          Aggregation.new(self, "MAX")
+        end
+        
+        def minimum
+          Aggregation.new(self, "MIN")
+        end
+        
+        def average
+          Aggregation.new(self, "AVG")
+        end
+      end
+      include Aggregations
   
       def to_sql(options = {})
         "#{quote_table_name(relation.table)}.#{quote_column_name(name)}" + (options[:use_alias] && self.alias ? " AS #{self.alias.to_s.to_sql}" : "")

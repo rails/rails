@@ -56,7 +56,7 @@ describe ActiveRelation::Primitives::Attribute do
       end
     end
     
-    describe 'greater_than' do
+    describe '#greater_than' do
       it "manufactures a greater-than predicate" do
         @attribute1.greater_than(@attribute2).should == ActiveRelation::Predicates::GreaterThan.new(@attribute1, @attribute2)
       end
@@ -73,5 +73,43 @@ describe ActiveRelation::Primitives::Attribute do
         @attribute1.matches(/.*/).should == ActiveRelation::Predicates::Match.new(@attribute1, @attribute2)
       end
     end
+  end
+  
+  describe 'aggregations' do
+    before do
+      @attribute1 = ActiveRelation::Primitives::Attribute.new(@relation1, :name)    
+    end
+    
+    describe '#count' do
+      it "manufactures a count aggregation" do
+        @attribute1.count.should == ActiveRelation::Primitives::Aggregation.new(@attribute1, "COUNT")
+      end
+    end
+    
+    describe '#sum' do
+      it "manufactures a sum aggregation" do
+        @attribute1.sum.should == ActiveRelation::Primitives::Aggregation.new(@attribute1, "SUM")
+      end
+    end
+    
+    describe '#maximum' do
+      it "manufactures a maximum aggregation" do
+        @attribute1.maximum.should == ActiveRelation::Primitives::Aggregation.new(@attribute1, "MAX")
+      end
+    end
+    
+    describe '#minimum' do
+      it "manufactures a minimum aggregation" do
+        @attribute1.minimum.should == ActiveRelation::Primitives::Aggregation.new(@attribute1, "MIN")
+      end
+    end
+    
+    describe '#average' do
+      it "manufactures an average aggregation" do
+        @attribute1.average.should == ActiveRelation::Primitives::Aggregation.new(@attribute1, "AVG")
+      end
+    end
+    
+    
   end
 end
