@@ -1,7 +1,7 @@
 module ActiveRelation
   module Relations
     class Rename < Compound
-      attr_reader :relation, :schmattribute, :alias
+      attr_reader :schmattribute, :alias
   
       def initialize(relation, renames)
         @schmattribute, @alias = renames.shift

@@ -40,15 +40,31 @@ module ActiveRelation
     end
   
     class GreaterThanOrEqualTo < Binary
+      protected
+      def predicate_sql
+        '>='
+      end
     end
   
     class GreaterThan < Binary
+      protected
+      def predicate_sql
+        '>'
+      end
     end
   
     class LessThanOrEqualTo < Binary
+      protected
+      def predicate_sql
+        '<='
+      end
     end
   
     class LessThan < Binary
+      protected
+      def predicate_sql
+        '<'
+      end
     end
   
     class Match < Base
@@ -68,6 +84,10 @@ module ActiveRelation
 
       def ==(other)
         super and attribute == other.attribute and relation == other.relation
+      end
+      
+      def to_sql(options = {})
+        "#{attribute.to_sql} IN (#{relation.to_sql})"
       end
     end
   end

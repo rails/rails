@@ -1,7 +1,7 @@
 module ActiveRelation
   module Relations
     class Order < Compound
-      attr_reader :relation, :orders
+      attr_reader :orders
   
       def initialize(relation, *orders)
         @relation, @orders = relation, orders

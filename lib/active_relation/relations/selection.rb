@@ -1,7 +1,7 @@
 module ActiveRelation
   module Relations
     class Selection < Compound
-      attr_reader :relation, :predicate
+      attr_reader :predicate
   
       def initialize(relation, *predicates)
         @predicate = predicates.shift
