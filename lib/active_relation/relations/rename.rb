@@ -9,7 +9,7 @@ module ActiveRelation
       end
   
       def ==(other)
-        relation == other.relation and schmattribute.eql?(other.schmattribute) and self.alias == other.alias
+        relation == other.relation and schmattribute == other.schmattribute and self.alias == other.alias
       end
   
       def attributes
@@ -24,14 +24,14 @@ module ActiveRelation
       def attribute(name)
         case
         when name == self.alias then schmattribute.alias(self.alias)
-        when relation[name].eql?(schmattribute) then nil
+        when relation[name] == schmattribute then nil
         else relation[name]
         end
       end
   
       private
       def substitute(a)
-        a.eql?(schmattribute) ? a.alias(self.alias) : a
+        a == schmattribute ? a.alias(self.alias) : a
       end
     end
   end

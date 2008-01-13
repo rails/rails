@@ -24,11 +24,11 @@ describe ActiveRelation::Primitives::Attribute do
     end
   end
   
-  describe '#eql?' do
+  describe '==' do
     it "obtains if the relation and attribute name are identical" do
-      ActiveRelation::Primitives::Attribute.new(@relation1, :name).should be_eql(ActiveRelation::Primitives::Attribute.new(@relation1, :name))
-      ActiveRelation::Primitives::Attribute.new(@relation1, :name).should_not be_eql(ActiveRelation::Primitives::Attribute.new(@relation1, :another_name))
-      ActiveRelation::Primitives::Attribute.new(@relation1, :name).should_not be_eql(ActiveRelation::Primitives::Attribute.new(@relation2, :name))
+      ActiveRelation::Primitives::Attribute.new(@relation1, :name).should == ActiveRelation::Primitives::Attribute.new(@relation1, :name)
+      ActiveRelation::Primitives::Attribute.new(@relation1, :name).should_not == ActiveRelation::Primitives::Attribute.new(@relation1, :another_name)
+      ActiveRelation::Primitives::Attribute.new(@relation1, :name).should_not == ActiveRelation::Primitives::Attribute.new(@relation2, :name)
     end
   end
   
@@ -38,39 +38,39 @@ describe ActiveRelation::Primitives::Attribute do
       @attribute2 = ActiveRelation::Primitives::Attribute.new(@relation2, :name)
     end
     
-    describe '==' do
+    describe '#equals' do
       it "manufactures an equality predicate" do
-        (@attribute1 == @attribute2).should == ActiveRelation::Predicates::Equality.new(@attribute1, @attribute2)
+        @attribute1.equals(@attribute2).should == ActiveRelation::Predicates::Equality.new(@attribute1, @attribute2)
       end
     end
     
-    describe '<' do
+    describe '#less_than' do
       it "manufactures a less-than predicate" do
-        (@attribute1 < @attribute2).should == ActiveRelation::Predicates::LessThan.new(@attribute1, @attribute2)
+        @attribute1.less_than(@attribute2).should == ActiveRelation::Predicates::LessThan.new(@attribute1, @attribute2)
       end
     end
     
-    describe '<=' do
+    describe '#less_than_or_equal_to' do
       it "manufactures a less-than or equal-to predicate" do
-        (@attribute1 <= @attribute2).should == ActiveRelation::Predicates::LessThanOrEqualTo.new(@attribute1, @attribute2)
+        @attribute1.less_than_or_equal_to(@attribute2).should == ActiveRelation::Predicates::LessThanOrEqualTo.new(@attribute1, @attribute2)
       end
     end
     
-    describe '>' do
+    describe 'greater_than' do
       it "manufactures a greater-than predicate" do
-        (@attribute1 > @attribute2).should == ActiveRelation::Predicates::GreaterThan.new(@attribute1, @attribute2)
+        @attribute1.greater_than(@attribute2).should == ActiveRelation::Predicates::GreaterThan.new(@attribute1, @attribute2)
       end
     end
     
-    describe '>=' do
+    describe '#greater_than_or_equal_to' do
       it "manufactures a greater-than or equal to predicate" do
-        (@attribute1 >= @attribute2).should == ActiveRelation::Predicates::GreaterThanOrEqualTo.new(@attribute1, @attribute2)
+        @attribute1.greater_than_or_equal_to(@attribute2).should == ActiveRelation::Predicates::GreaterThanOrEqualTo.new(@attribute1, @attribute2)
       end
     end
     
-    describe '=~' do
+    describe '#matches' do
       it "manufactures a match predicate" do
-        (@attribute1 =~ /.*/).should == ActiveRelation::Predicates::Match.new(@attribute1, @attribute2)
+        @attribute1.matches(/.*/).should == ActiveRelation::Predicates::Match.new(@attribute1, @attribute2)
       end
     end
   end

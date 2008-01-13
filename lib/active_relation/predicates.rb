@@ -14,7 +14,7 @@ module ActiveRelation
       end
 
       def ==(other)
-        super and @attribute1.eql?(other.attribute1) and @attribute2.eql?(other.attribute2)
+        super and @attribute1 == other.attribute1 and @attribute2 == other.attribute2
       end
 
       def qualify
@@ -29,8 +29,8 @@ module ActiveRelation
     class Equality < Binary
       def ==(other)
         self.class == other.class and
-          ((attribute1.eql?(other.attribute1) and attribute2.eql?(other.attribute2)) or
-           (attribute1.eql?(other.attribute2) and attribute2.eql?(other.attribute1)))
+          ((attribute1 == other.attribute1 and attribute2 == other.attribute2) or
+           (attribute1 == other.attribute2 and attribute2 == other.attribute1))
       end
 
       protected

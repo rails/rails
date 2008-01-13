@@ -21,32 +21,32 @@ module ActiveRelation
         self.alias(qualified_name)
       end
   
-      def eql?(other)
+      def ==(other)
         relation == other.relation and name == other.name and @alias == other.alias
       end
 
       module Predications  
-        def ==(other)
+        def equals(other)
           Predicates::Equality.new(self, other)
         end
   
-        def <(other)
+        def less_than(other)
           Predicates::LessThan.new(self, other)
         end
   
-        def <=(other)
+        def less_than_or_equal_to(other)
           Predicates::LessThanOrEqualTo.new(self, other)
         end
   
-        def >(other)
+        def greater_than(other)
           Predicates::GreaterThan.new(self, other)
         end
   
-        def >=(other)
+        def greater_than_or_equal_to(other)
           Predicates::GreaterThanOrEqualTo.new(self, other)
         end
   
-        def =~(regexp)
+        def matches(regexp)
           Predicates::Match.new(self, regexp)
         end
       end

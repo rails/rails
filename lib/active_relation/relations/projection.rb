@@ -8,7 +8,7 @@ module ActiveRelation
       end
   
       def ==(other)
-        relation == other.relation and attributes.eql?(other.attributes)
+        relation == other.relation and attributes == other.attributes
       end
   
       def qualify

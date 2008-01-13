@@ -40,7 +40,7 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
     @photos = Photo.relation
     @cameras = Camera.relation
     # A first taste of a Relational Algebra: User.find(1)
-    @user = @users.select(@users[:id] == 1)    
+    @user = @users.select(@users[:id].equals(1))    
     # == is overridden on attributes to return a predicate, not true or false
   end
 
@@ -51,14 +51,14 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
     primary_key = User.reflections[:photos].klass.primary_key.to_sym
     foreign_key = User.reflections[:photos].primary_key_name.to_sym
     
-    user_relation.outer_join(@photos).on(user_relation[primary_key] == @photos[foreign_key])
+    user_relation.outer_join(@photos).on(user_relation[primary_key].equals(@photos[foreign_key]))
   end
   
   def photo_belongs_to_camera(photo_relation)
     primary_key = Photo.reflections[:camera].klass.primary_key.to_sym
     foreign_key = Photo.reflections[:camera].primary_key_name.to_sym
 
-    photo_relation.outer_join(@cameras).on(photo_relation[foreign_key] == @cameras[primary_key])
+    photo_relation.outer_join(@cameras).on(photo_relation[foreign_key].equals(@cameras[primary_key]))
   end
 
   describe 'Relational Algebra', 'a relational algebra allows the implementation of
@@ -184,7 +184,7 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
       end
       
       class Person < ActiveRecord::Base
-        set_relation @accounts.join(@profiles).on(@accounts[:id] == @profiles[:account_id])
+        set_relation @accounts.join(@profiles).on(@accounts[:id].equals(@profiles[:account_id]))
       end
       # I know this sounds crazy, but even writes are possible in the last example.
       # calling #save on a person can write to two tables!
