@@ -38,7 +38,7 @@ module ActiveRelation
   
       private
       def join
-        "#{join_sql} #{relation2.send(:table_sql)} ON #{predicates.collect { |p| p.to_sql(:quote => false) }.join(' AND ')}"
+        "#{join_sql} #{relation2.send(:table_sql)} ON #{predicates.collect { |p| p.to_sql(Sql::Predicate.new) }.join(' AND ')}"
       end
     end
   end

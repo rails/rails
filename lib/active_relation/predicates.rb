@@ -7,30 +7,30 @@ module ActiveRelation
     end
   
     class Binary < Base
-      attr_reader :attribute1, :attribute2
+      attr_reader :attribute, :operand
 
-      def initialize(attribute1, attribute2)
-        @attribute1, @attribute2 = attribute1, attribute2
+      def initialize(attribute, operand)
+        @attribute, @operand = attribute, operand
       end
 
       def ==(other)
-        super and @attribute1 == other.attribute1 and @attribute2 == other.attribute2
+        super and @attribute == other.attribute and @operand == other.operand
       end
 
       def qualify
-        self.class.new(attribute1.qualify, attribute2.qualify)
+        self.class.new(attribute.qualify, operand.qualify)
       end
 
-      def to_sql(options = {})
-        "#{attribute1.to_sql} #{predicate_sql} #{attribute2.to_sql}"
+      def to_sql(strategy = Sql::Predicate.new)
+        "#{attribute.to_sql(strategy)} #{predicate_sql} #{operand.to_sql(strategy)}"
       end
     end
   
     class Equality < Binary
       def ==(other)
         self.class == other.class and
-          ((attribute1 == other.attribute1 and attribute2 == other.attribute2) or
-           (attribute1 == other.attribute2 and attribute2 == other.attribute1))
+          ((attribute == other.attribute and operand == other.operand) or
+           (attribute == other.operand and operand == other.attribute))
       end
 
       protected
@@ -67,27 +67,20 @@ module ActiveRelation
       end
     end
   
-    class Match < Base
-      attr_reader :attribute, :regexp
+    class Match < Binary
+      alias_method :regexp, :operand
 
       def initialize(attribute, regexp)
         @attribute, @regexp = attribute, regexp
       end
     end
   
-    class RelationInclusion < Base
-      attr_reader :attribute, :relation
-
-      def initialize(attribute, relation)
-        @attribute, @relation = attribute, relation
-      end
-
-      def ==(other)
-        super and attribute == other.attribute and relation == other.relation
-      end
+    class RelationInclusion < Binary
+      alias_method :relation, :operand
       
-      def to_sql(options = {})
-        "#{attribute.to_sql} IN (#{relation.to_sql})"
+      protected
+      def predicate_sql
+        'IN'
       end
     end
   end

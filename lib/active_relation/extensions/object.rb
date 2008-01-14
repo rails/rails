@@ -1,12 +1,9 @@
 class Object
-  include ActiveRelation::SqlBuilder
-  
   def qualify
     self
   end
   
-  def to_sql(options = {})
-    options.reverse_merge!(:quote => true)
-    options[:quote] ? quote(self) : self
+  def to_sql(strategy = ActiveRelation::Sql::Scalar.new)
+    strategy.scalar self
   end
 end

@@ -5,7 +5,7 @@ class Hash
     end
   end
   
-  def to_sql(options = {})
+  def to_sql(strategy = nil)
     "(#{values.collect(&:to_sql).join(', ')})"
   end
 end

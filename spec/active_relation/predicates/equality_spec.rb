@@ -22,4 +22,7 @@ describe ActiveRelation::Predicates::Equality do
       ActiveRelation::Predicates::Equality.new(@attribute1, @attribute2).should == ActiveRelation::Predicates::Equality.new(@attribute2, @attribute1)
     end
   end
+  
+  describe '#to_sql' do
+  end
 end

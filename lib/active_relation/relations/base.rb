@@ -1,7 +1,7 @@
 module ActiveRelation
   module Relations
     class Base
-      include SqlBuilder
+      include Sql::Quoting
   
       module Iteration
         include Enumerable
@@ -78,12 +78,12 @@ module ActiveRelation
         ActiveRecord::Base.connection
       end
   
-      def to_sql(options = {})
-        sql = [
-          "SELECT #{attributes.collect{ |a| a.to_sql(:use_alias => true) }.join(', ')}",
+      def to_sql(strategy = Sql::Select.new)
+        strategy.select [
+          "SELECT #{attributes.collect{ |a| a.to_sql(Sql::Projection.new) }.join(', ')}",
           "FROM #{table_sql}",
           (joins unless joins.blank?),
-          ("WHERE #{selects.collect{|s| s.to_sql(:quote => false)}.join("\n\tAND ")}" unless selects.blank?),
+          ("WHERE #{selects.collect{|s| s.to_sql(Sql::Predicate.new)}.join("\n\tAND ")}" unless selects.blank?),
           ("ORDER BY #{orders.collect(&:to_sql)}" unless orders.blank?),
           ("LIMIT #{limit.to_sql}" unless limit.blank?),
           ("OFFSET #{offset.to_sql}" unless offset.blank?)

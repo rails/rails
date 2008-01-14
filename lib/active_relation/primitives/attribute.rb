@@ -1,8 +1,6 @@
 module ActiveRelation
   module Primitives
     class Attribute
-      include SqlBuilder
-  
       attr_reader :relation, :name, :alias
   
       def initialize(relation, name, aliaz = nil)
@@ -77,8 +75,8 @@ module ActiveRelation
       end
       include Aggregations
   
-      def to_sql(options = {})
-        "#{quote_table_name(relation.name)}.#{quote_column_name(name)}" + (options[:use_alias] && self.alias ? " AS #{self.alias.to_s.to_sql}" : "")
+      def to_sql(strategy = Sql::Predicate.new)
+        strategy.attribute relation.name, name, self.alias
       end
     end
   end

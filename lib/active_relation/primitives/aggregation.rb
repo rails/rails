@@ -1,15 +1,13 @@
 module ActiveRelation
   module Primitives
-    class Aggregation
-      include SqlBuilder
-  
+    class Aggregation  
       attr_reader :attribute, :function_sql
       
       def initialize(attribute, function_sql)
         @attribute, @function_sql = attribute, function_sql
       end
   
-      def to_sql(options = {})
+      def to_sql(strategy = nil)
         "#{function_sql}(#{attribute.to_sql})"
       end
       

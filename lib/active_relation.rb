@@ -4,7 +4,7 @@ require 'rubygems'
 require 'activesupport'
 require 'activerecord'
 
-require 'active_relation/sql_builder'
+require 'active_relation/sql'
 require 'active_relation/extensions'
 require 'active_relation/predicates'
 require 'active_relation/relations'
