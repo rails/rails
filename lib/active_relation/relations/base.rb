@@ -74,10 +74,6 @@ module ActiveRelation
       end
       include Operations
   
-      def connection
-        ActiveRecord::Base.connection
-      end
-  
       def to_sql(strategy = Sql::Select.new)
         strategy.select [
           "SELECT #{attributes.collect{ |a| a.to_sql(Sql::Projection.new) }.join(', ')}",
@@ -92,6 +88,10 @@ module ActiveRelation
       alias_method :to_s, :to_sql
     
       protected
+      def connection
+        ActiveRecord::Base.connection
+      end
+
       def attributes; []  end
       def selects;    []  end
       def orders;     []  end
