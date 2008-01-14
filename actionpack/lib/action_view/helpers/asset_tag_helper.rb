@@ -232,7 +232,7 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/cart.js"></script>
       #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
       #
-      #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when ActionController::Base.perform_caching is false =>
+      #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when ActionController::Base.perform_caching is true =>
       #     <script type="text/javascript" src="/javascripts/shop.js"></script>
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
