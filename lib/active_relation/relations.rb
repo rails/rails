@@ -1,4 +1,4 @@
-require 'active_relation/relations/base'
+require 'active_relation/relations/relation'
 require 'active_relation/relations/compound'
 require 'active_relation/relations/table'
 require 'active_relation/relations/join'

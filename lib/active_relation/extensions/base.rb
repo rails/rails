@@ -5,7 +5,7 @@ class ActiveRecord::Base
     end
     
     def relation
-      @relation ||= ActiveRelation::Relations::Table.new(table_name)
+      @relation ||= ActiveRelation::Table.new(table_name)
     end
   end
   

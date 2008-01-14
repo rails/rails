@@ -9,7 +9,7 @@ ActiveRecord::Base.configurations = {
   'sql_algebra_test' => {
     :adapter  => 'mysql',
     :username => 'root',
-    :password => 'password',
+    :password => '',
     :encoding => 'utf8',
     :database => 'sql_algebra_test',
   },
@@ -26,8 +26,5 @@ end
 
 Spec::Runner.configure do |config|  
   config.include(BeLikeMatcher)
-  config.include(ActiveRelation::Relations)
-  config.include(ActiveRelation::Primitives)
-  config.include(ActiveRelation::Predicates)
   config.mock_with :rr
 end
