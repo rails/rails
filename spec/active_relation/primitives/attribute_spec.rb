@@ -16,6 +16,10 @@ describe ActiveRelation::Primitives::Attribute do
     it "manufactures an attribute name prefixed with the relation's name" do
       @relation1[:id].qualified_name.should == 'foo.id'
     end
+    
+    it "manufactures an attribute name prefixed with the relation's aliased name" do
+      @relation1.as(:bar)[:id].qualified_name.should == 'bar.id'
+    end
   end
   
   describe '#qualify' do

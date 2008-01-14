@@ -14,7 +14,7 @@ module ActiveRelation
       end
   
       def qualified_name
-        "#{relation.table}.#{name}"
+        "#{relation.name}.#{name}"
       end
   
       def qualify
@@ -78,7 +78,7 @@ module ActiveRelation
       include Aggregations
   
       def to_sql(options = {})
-        "#{quote_table_name(relation.table)}.#{quote_column_name(name)}" + (options[:use_alias] && self.alias ? " AS #{self.alias.to_s.to_sql}" : "")
+        "#{quote_table_name(relation.name)}.#{quote_column_name(name)}" + (options[:use_alias] && self.alias ? " AS #{self.alias.to_s.to_sql}" : "")
       end
     end
   end

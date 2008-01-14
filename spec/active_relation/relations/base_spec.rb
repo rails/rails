@@ -99,12 +99,4 @@ describe ActiveRelation::Relations::Base do
       end
     end
   end
-  
-  describe '#to_sql' do
-    it "manufactures sql with scalar selects" do
-      @relation1.as(:tobias).to_sql(:use_parens => true).should be_like("""
-        (SELECT `foo`.`name`, `foo`.`id` FROM `foo`) AS tobias
-      """)
-    end
-  end
 end

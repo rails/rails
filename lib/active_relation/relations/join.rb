@@ -34,11 +34,11 @@ module ActiveRelation
         relation1[name] || relation2[name]
       end
   
-      delegate :table, :to => :relation1
+      delegate :table_sql, :to => :relation1
   
       private
       def join
-        "#{join_sql} #{quote_table_name(relation2.table)} ON #{predicates.collect { |p| p.to_sql(:quote => false) }.join(' AND ')}"
+        "#{join_sql} #{relation2.send(:table_sql)} ON #{predicates.collect { |p| p.to_sql(:quote => false) }.join(' AND ')}"
       end
     end
   end

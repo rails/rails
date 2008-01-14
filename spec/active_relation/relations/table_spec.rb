@@ -6,7 +6,7 @@ describe ActiveRelation::Relations::Table do
   end
   
   describe '#to_sql' do
-    it "returns a simple SELECT query" do
+    it "manufactures a simple select query" do
       @relation.to_sql.should be_like("""
         SELECT `users`.`name`, `users`.`id`
         FROM `users`

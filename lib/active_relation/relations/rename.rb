@@ -13,7 +13,7 @@ module ActiveRelation
       end
   
       def attributes
-        relation.attributes.collect { |a| substitute(a) }
+        relation.attributes.collect(&method(:substitute))
       end
   
       def qualify

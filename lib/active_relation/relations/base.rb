@@ -80,15 +80,14 @@ module ActiveRelation
   
       def to_sql(options = {})
         sql = [
-          "SELECT #{attributes.collect{ |a| a.to_sql(:use_alias => true, :use_parens => true) }.join(', ')}",
-          "FROM #{quote_table_name(table)}",
+          "SELECT #{attributes.collect{ |a| a.to_sql(:use_alias => true) }.join(', ')}",
+          "FROM #{table_sql}",
           (joins unless joins.blank?),
           ("WHERE #{selects.collect{|s| s.to_sql(:quote => false)}.join("\n\tAND ")}" unless selects.blank?),
           ("ORDER BY #{orders.collect(&:to_sql)}" unless orders.blank?),
           ("LIMIT #{limit.to_sql}" unless limit.blank?),
           ("OFFSET #{offset.to_sql}" unless offset.blank?)
         ].compact.join("\n")
-        (options[:use_parens] ? "(#{sql})" : sql) + (self.alias ? " AS #{self.alias}" : "")
       end
       alias_method :to_s, :to_sql
     

@@ -8,7 +8,7 @@ module ActiveRelation
       def to_sql(options = {})
         [
           "DELETE",
-          "FROM #{quote_table_name(table)}",
+          "FROM #{table_sql}",
           ("WHERE #{selects.collect(&:to_sql).join('\n\tAND ')}" unless selects.blank?)
         ].compact.join("\n")
       end  

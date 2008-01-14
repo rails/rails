@@ -10,7 +10,7 @@ module ActiveRelation
       def to_sql(options = {})
         [
           "INSERT",
-          "INTO #{quote_table_name(table)}",
+          "INTO #{table_sql}",
           "(#{record.keys.collect(&:to_sql).join(', ')})",
           "VALUES #{inserts.collect(&:to_sql).join(', ')}"
         ].join("\n")
