@@ -1272,7 +1272,7 @@ module ActiveRecord #:nodoc:
 
       private
         def find_initial(options)
-          options.update(:limit => 1) unless options[:include]
+          options.update(:limit => 1)
           find_every(options).first
         end
 
