@@ -268,6 +268,15 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.reset_column_information
     end
 
+    def test_add_column_with_precision_and_scale
+      Person.connection.add_column 'people', 'wealth', :decimal, :precision => 9, :scale => 7
+      Person.reset_column_information
+
+      wealth_column = Person.columns_hash['wealth']
+      assert_equal 9, wealth_column.precision
+      assert_equal 7, wealth_column.scale
+    end
+    
     def test_native_types
       Person.delete_all
       Person.connection.add_column "people", "last_name", :string
