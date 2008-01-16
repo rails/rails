@@ -1,5 +1,7 @@
 *SVN*
 
+* Make render :partial recognise form builders and use the _form partial.  #10814 [djanowski]
+
 * Allow users to declare other namespaces when using the atom feed helpers. #10304 [david.calavera]
 
 * Introduce send_file :x_sendfile => true to send an X-Sendfile response header.  [Jeremy Kemper]

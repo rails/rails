@@ -119,6 +119,9 @@ module ActionView
           else
             render("#{path}/_#{partial_name}", local_assigns)
           end
+        when ActionView::Helpers::FormBuilder
+          builder_partial_path = partial_path.class.to_s.demodulize.underscore.sub(/_builder$/, '')
+          render_partial(builder_partial_path, object_assigns, (local_assigns || {}).merge(builder_partial_path.to_sym => partial_path))
         when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Associations::HasManyThroughAssociation
           if partial_path.any?
             path       = ActionController::RecordIdentifier.partial_path(partial_path.first)

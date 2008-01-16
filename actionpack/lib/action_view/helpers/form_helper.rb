@@ -32,6 +32,15 @@ module ActionView
     #       <input name="commit" type="submit" value="Create" />
     #     </form>
     #
+    # If you are using a partial for your form fields, you can use this shortcut:
+    #
+    #     <% form_for :person, @person, :url => { :action => "create" } do |f| %>
+    #       <%= render :partial => f %>
+    #       <%= submit_tag 'Create' %>
+    #     <% end %>
+    #
+    # This example will render the <tt>people/_form</tt> partial, setting a local variable called <tt>form</tt> which references the yielded FormBuilder.
+    #
     # The <tt>params</tt> object created when this form is submitted would look like:
     #
     #     {"action"=>"create", "controller"=>"persons", "person"=>{"first_name"=>"William", "last_name"=>"Smith"}}
@@ -152,6 +161,12 @@ module ActionView
       #     <%= text_area :person, :biography %>
       #     <%= check_box_tag "person[admin]", @person.company.admin? %>
       #   <% end %>
+      #
+      # In this case, if you use this:
+      #
+      #   <%= render :partial => f %>
+      #
+      # The rendered template is <tt>people/_labelling_form</tt> and the local variable referencing the form builder is called <tt>labelling_form</tt>.
       #
       # In many cases you will want to wrap the above in another helper, so you could do something like the following:
       #
