@@ -219,6 +219,28 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
       assert_equal Rational(-6, 24), DateTime.local_offset
     end
   end
+  
+  def test_utc?
+    assert_equal true, DateTime.civil(2005, 2, 21, 10, 11, 12).utc?
+    assert_equal true, DateTime.civil(2005, 2, 21, 10, 11, 12, 0).utc?
+    assert_equal false, DateTime.civil(2005, 2, 21, 10, 11, 12, 0.25).utc?
+    assert_equal false, DateTime.civil(2005, 2, 21, 10, 11, 12, -0.25).utc?
+  end
+  
+  def test_utc_offset
+    assert_equal 0, DateTime.civil(2005, 2, 21, 10, 11, 12).utc_offset
+    assert_equal 0, DateTime.civil(2005, 2, 21, 10, 11, 12, 0).utc_offset
+    assert_equal 21600, DateTime.civil(2005, 2, 21, 10, 11, 12, 0.25).utc_offset
+    assert_equal( -21600, DateTime.civil(2005, 2, 21, 10, 11, 12, -0.25).utc_offset )
+    assert_equal( -18000, DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-5, 24)).utc_offset )
+  end
+  
+  def test_utc
+    assert_equal DateTime.civil(2005, 2, 21, 16, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24)).utc
+    assert_equal DateTime.civil(2005, 2, 21, 15, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-5, 24)).utc
+    assert_equal DateTime.civil(2005, 2, 21, 10, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, 0).utc
+    assert_equal DateTime.civil(2005, 2, 21, 9, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(1, 24)).utc
+  end
 
   protected
     def with_timezone(new_tz = 'US/Eastern')

@@ -1,5 +1,7 @@
 *SVN*
 
+* Introducing DateTime #utc, #utc? and #utc_offset, for duck-typing compatibility with Time. Closes #10002 [Geoff Buesing]
+
 * Time#to_json uses Numeric#to_utc_offset_s to output a cross-platform-consistent representation without having to convert to DateTime. References #9750 [Geoff Buesing]
 
 * Refactor number-to-HH:MM-string conversion logic from TimeZone#formatted_offset to a reusable Numeric#to_utc_offset_s method. [Geoff Buesing]
