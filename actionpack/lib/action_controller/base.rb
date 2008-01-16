@@ -642,11 +642,11 @@ module ActionController #:nodoc:
       
       # View load paths for controller.
       def view_paths
-        (@template || self.class).view_paths
+        @template.view_paths
       end
     
       def view_paths=(value)
-        (@template || self.class).view_paths = value
+        @template.view_paths = value
       end
 
       # Adds a view_path to the front of the view_paths array.
@@ -656,7 +656,7 @@ module ActionController #:nodoc:
       #   self.prepend_view_path(["views/default", "views/custom"])
       #
       def prepend_view_path(path)
-        (@template || self.class).prepend_view_path(path)
+        @template.prepend_view_path(path)
       end
       
       # Adds a view_path to the end of the view_paths array.
@@ -666,7 +666,7 @@ module ActionController #:nodoc:
       #   self.append_view_path(["views/default", "views/custom"])
       #
       def append_view_path(path)
-        (@template || self.class).append_view_path(path)
+      @template.append_view_path(path)
       end
 
     protected
@@ -1119,7 +1119,7 @@ module ActionController #:nodoc:
           raise "You must assign a template class through ActionController.template_class= before processing a request"
         end
 
-        response.template = ActionView::Base.new(view_paths, {}, self)
+        response.template = ActionView::Base.new(self.class.view_paths, {}, self)
         response.template.extend self.class.master_helper_module
         response.redirected_to = nil
         @performed_render = @performed_redirect = false

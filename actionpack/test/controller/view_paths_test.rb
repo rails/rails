@@ -28,10 +28,15 @@ class ViewLoadPathsTest < Test::Unit::TestCase
   def setup
     TestController.view_paths = nil
     ActionView::Base.cache_template_extensions = false
-    @controller = TestController.new
+
     @request  = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
-  
+
+    @controller = TestController.new
+    # Following is needed in order to setup @controller.template object properly
+    @controller.send :initialize_template_class, @response
+    @controller.send :assign_shortcuts, @request, @response
+
     # Track the last warning.
     @old_behavior = ActiveSupport::Deprecation.behavior
     @last_message = nil
@@ -48,18 +53,18 @@ class ViewLoadPathsTest < Test::Unit::TestCase
   end
   
   def test_controller_appends_view_path_correctly
-    TestController.append_view_path 'foo'
+    @controller.append_view_path 'foo'
     assert_equal [LOAD_PATH_ROOT, 'foo'], @controller.view_paths
     
-    TestController.append_view_path(%w(bar baz))
+    @controller.append_view_path(%w(bar baz))
     assert_equal [LOAD_PATH_ROOT, 'foo', 'bar', 'baz'], @controller.view_paths
   end
   
   def test_controller_prepends_view_path_correctly
-    TestController.prepend_view_path 'baz'
+    @controller.prepend_view_path 'baz'
     assert_equal ['baz', LOAD_PATH_ROOT], @controller.view_paths
     
-    TestController.prepend_view_path(%w(foo bar))
+    @controller.prepend_view_path(%w(foo bar))
     assert_equal ['foo', 'bar', 'baz', LOAD_PATH_ROOT], @controller.view_paths
   end
   
