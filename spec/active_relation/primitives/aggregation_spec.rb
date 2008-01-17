@@ -9,10 +9,17 @@ module ActiveRelation
   
     describe '==' do
       it 'obtains if the attribute and function sql are identical' do
-        @relation1[:id].sum.should == @relation1[:id].sum
-        @relation1[:id].sum.should_not == @relation1[:name].sum
-        @relation1[:id].sum.should_not == @relation1[:name].average 
-        @relation1[:id].sum.should_not == @relation2[:id].sum
+        Aggregation.new(@relation1[:id], "SUM").should == Aggregation.new(@relation1[:id], "SUM")
+        Aggregation.new(@relation1[:id], "SUM").should_not == Aggregation.new(@relation1[:name], "SUM")
+        Aggregation.new(@relation1[:id], "SUM").should_not == Aggregation.new(@relation1[:name], "SUM")
+        Aggregation.new(@relation1[:id], "SUM").should_not == Aggregation.new(@relation2[:id], "SUM")
+      end
+    end
+    
+    describe '#substitute' do
+      it "distributes over the attribute" do
+        Aggregation.new(@relation1[:id], "SUM").substitute(@relation2). \
+          should == Aggregation.new(@relation1[:id].substitute(@relation2), "SUM")
       end
     end
   

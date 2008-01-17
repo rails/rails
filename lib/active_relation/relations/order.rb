@@ -11,7 +11,7 @@ module ActiveRelation
     end
 
     def qualify
-      Order.new(relation.qualify, *orders.collect { |o| o.qualify })
+      Order.new(relation.qualify, *orders.collect(&:qualify))
     end
   end
 end

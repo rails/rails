@@ -6,16 +6,23 @@ module ActiveRelation
       @relation, @name, @alias = relation, name, aliaz
     end
 
-    def as(aliaz = nil)
-      Attribute.new(relation, name, aliaz)
-    end
+    module Transformations
+      def as(aliaz = nil)
+        Attribute.new(relation, name, aliaz)
+      end
+    
+      def substitute(new_relation)
+        Attribute.new(new_relation, name, @alias)
+      end
 
+      def qualify
+        self.as(qualified_name)
+      end
+    end
+    include Transformations
+    
     def qualified_name
       "#{relation.name}.#{name}"
-    end
-
-    def qualify
-      self.as(qualified_name)
     end
 
     def ==(other)

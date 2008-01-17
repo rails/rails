@@ -64,6 +64,10 @@ module ActiveRelation
       def delete
         Deletion.new(self)
       end
+      
+      def group(*attributes)
+        Group.new(self, *attributes)
+      end
   
       JoinOperation = Struct.new(:join_sql, :relation1, :relation2) do
         def on(*predicates)
@@ -80,6 +84,7 @@ module ActiveRelation
         (joins unless joins.blank?),
         ("WHERE #{selects.collect{|s| s.to_sql(Sql::Predicate.new)}.join("\n\tAND ")}" unless selects.blank?),
         ("ORDER BY #{orders.collect(&:to_sql)}" unless orders.blank?),
+        ("GROUP BY #{groupings.collect(&:to_sql)}" unless groupings.blank?),
         ("LIMIT #{limit.to_sql}" unless limit.blank?),
         ("OFFSET #{offset.to_sql}" unless offset.blank?)
       ].compact.join("\n")
@@ -95,6 +100,7 @@ module ActiveRelation
     def selects;    []  end
     def orders;     []  end
     def inserts;    []  end
+    def groupings;  []  end
     def joins;      nil end
     def limit;      nil end
     def offset;     nil end

@@ -82,7 +82,13 @@ module ActiveRelation
   
       describe '#order' do
         it "manufactures an order relation" do
-          @relation1.order(@attribute1, @attribute2).should be_kind_of(Order)
+          @relation1.order(@attribute1, @attribute2).should == Order.new(@relation1, @attribute1, @attribute2)
+        end
+      end
+      
+      describe '#group' do
+        it 'manufactures a group relation' do
+          @relation1.group(@attribute1).should == Group.new(@relation1, @attribute1)
         end
       end
     end

@@ -6,6 +6,10 @@ module ActiveRelation
       @attribute, @function_sql = attribute, function_sql
     end
 
+    def substitute(new_relation)
+      Aggregation.new(attribute.substitute(new_relation), function_sql)
+    end
+    
     def to_sql(strategy = nil)
       "#{function_sql}(#{attribute.to_sql})"
     end

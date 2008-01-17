@@ -12,6 +12,12 @@ module ActiveRelation
         @relation1[:id].as(:alias).should == Attribute.new(@relation1, :id, :alias)
       end
     end
+    
+    describe '#substitute' do
+      it "manufactures an attribute with the relation substituted" do
+        @relation1[:id].substitute(@relation2).should == Attribute.new(@relation2, :id)
+      end
+    end
   
     describe '#qualified_name' do
       it "manufactures an attribute name prefixed with the relation's name" do

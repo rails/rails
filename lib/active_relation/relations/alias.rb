@@ -8,7 +8,7 @@ module ActiveRelation
     end
       
     def attributes
-      relation.attributes.collect(&method(:substitute))
+      relation.attributes.collect { |attribute| attribute.substitute(self) }
     end
 
     def ==(other)
@@ -22,13 +22,8 @@ module ActiveRelation
     
     def attribute(name)
       if unaliased_attribute = relation[name]
-        substitute(unaliased_attribute)
+        unaliased_attribute.substitute(self)
       end
-    end
-    
-    private
-    def substitute(attribute)
-      Attribute.new(self, attribute.name, attribute.alias)
     end
   end
 end

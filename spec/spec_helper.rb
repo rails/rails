@@ -9,7 +9,7 @@ ActiveRecord::Base.configurations = {
   'sql_algebra_test' => {
     :adapter  => 'mysql',
     :username => 'root',
-    :password => '',
+    :password => 'password',
     :encoding => 'utf8',
     :database => 'sql_algebra_test',
   },
