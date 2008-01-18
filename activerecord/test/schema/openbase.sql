@@ -4,7 +4,7 @@ CREATE TABLE accounts (
     credit_limit integer
 )
 go
-CREATE PRIMARY KEY accounts (id) 
+CREATE PRIMARY KEY accounts (id)
 go
 
 CREATE TABLE funny_jokes (
@@ -23,9 +23,9 @@ CREATE TABLE companies (
     name char(50),
     client_of integer,
     rating integer default 1
-) 
+)
 go
-CREATE PRIMARY KEY companies (id) 
+CREATE PRIMARY KEY companies (id)
 go
 
 CREATE TABLE developers_projects (
@@ -33,7 +33,7 @@ CREATE TABLE developers_projects (
     project_id integer NOT NULL,
     joined_on date,
     access_level integer default 1
-) 
+)
 go
 
 CREATE TABLE developers (
@@ -42,18 +42,18 @@ CREATE TABLE developers (
     salary integer DEFAULT 70000,
     created_at datetime,
     updated_at datetime
-) 
+)
 go
-CREATE PRIMARY KEY developers (id) 
+CREATE PRIMARY KEY developers (id)
 go
 
 CREATE TABLE projects (
     id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     name char(100),
     type char(255)
-) 
+)
 go
-CREATE PRIMARY KEY projects (id) 
+CREATE PRIMARY KEY projects (id)
 go
 
 CREATE TABLE topics (
@@ -69,9 +69,9 @@ CREATE TABLE topics (
     replies_count integer default 0,
     parent_id integer,
     type char(50)
-) 
+)
 go
-CREATE PRIMARY KEY topics (id) 
+CREATE PRIMARY KEY topics (id)
 go
 
 CREATE TABLE customers (
@@ -82,9 +82,9 @@ CREATE TABLE customers (
     address_city char,
     address_country char,
     gps_location char
-) 
+)
 go
-CREATE PRIMARY KEY customers (id) 
+CREATE PRIMARY KEY customers (id)
 go
 
 CREATE TABLE orders (
@@ -92,33 +92,33 @@ CREATE TABLE orders (
     name char,
     billing_customer_id integer,
     shipping_customer_id integer
-) 
+)
 go
-CREATE PRIMARY KEY orders (id) 
+CREATE PRIMARY KEY orders (id)
 go
 
 CREATE TABLE movies (
     movieid integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     name text
-) 
+)
 go
-CREATE PRIMARY KEY movies (movieid) 
+CREATE PRIMARY KEY movies (movieid)
 go
 
 CREATE TABLE subscribers (
     nick CHAR(100) NOT NULL DEFAULT _rowid,
     name CHAR(100)
-) 
+)
 go
-CREATE PRIMARY KEY subscribers (nick) 
+CREATE PRIMARY KEY subscribers (nick)
 go
 
 CREATE TABLE booleantests (
     id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     value boolean
-) 
+)
 go
-CREATE PRIMARY KEY booleantests (id) 
+CREATE PRIMARY KEY booleantests (id)
 go
 
 CREATE TABLE defaults (
@@ -135,7 +135,7 @@ CREATE TABLE defaults (
     positive_integer integer default 1,
     negative_integer integer default -1,
     decimal_number money default 2.78
-) 
+)
 go
 CREATE PRIMARY KEY defaults (id)
 go
@@ -143,50 +143,50 @@ go
 CREATE TABLE auto_id_tests (
     auto_id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
     value integer
-) 
+)
 go
-CREATE PRIMARY KEY auto_id_tests (auto_id) 
+CREATE PRIMARY KEY auto_id_tests (auto_id)
 go
 
 CREATE TABLE entrants (
   id integer NOT NULL UNIQUE INDEX,
   name text NOT NULL,
   course_id integer NOT NULL
-) 
+)
 go
-CREATE PRIMARY KEY entrants (id) 
+CREATE PRIMARY KEY entrants (id)
 go
 
 CREATE TABLE colnametests (
   id integer UNIQUE INDEX ,
   references integer NOT NULL
-) 
+)
 go
-CREATE PRIMARY KEY colnametests (id) 
+CREATE PRIMARY KEY colnametests (id)
 go
 
 CREATE TABLE mixins (
   id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
   parent_id integer,
-  type char,  
+  type char,
   pos integer,
   lft integer,
   rgt integer,
-  root_id integer,  
+  root_id integer,
   created_at timestamp,
   updated_at timestamp
-) 
+)
 go
-CREATE PRIMARY KEY mixins (id) 
+CREATE PRIMARY KEY mixins (id)
 go
 
 CREATE TABLE people (
   id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
   first_name text,
   lock_version integer default 0
-) 
+)
 go
-CREATE PRIMARY KEY people (id) 
+CREATE PRIMARY KEY people (id)
 go
 
 CREATE TABLE readers (
@@ -198,19 +198,19 @@ go
 CREATE PRIMARY KEY readers (id)
 go
 
-CREATE TABLE binaries ( 
+CREATE TABLE binaries (
   id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
   data object
-) 
+)
 go
-CREATE PRIMARY KEY binaries (id) 
+CREATE PRIMARY KEY binaries (id)
 go
 
 CREATE TABLE computers (
   id integer UNIQUE INDEX ,
   developer integer NOT NULL,
   extendedWarranty integer NOT NULL
-) 
+)
 go
 
 CREATE TABLE posts (
@@ -219,7 +219,7 @@ CREATE TABLE posts (
   title char(255),
   type char(255),
   body text
-) 
+)
 go
 
 CREATE TABLE comments (
@@ -227,58 +227,58 @@ CREATE TABLE comments (
   post_id integer,
   type char(255),
   body text
-) 
+)
 go
 
 CREATE TABLE authors (
   id integer UNIQUE INDEX ,
   name char(255) default NULL
-) 
+)
 go
 
 CREATE TABLE tasks (
   id integer NOT NULL UNIQUE INDEX DEFAULT _rowid,
   starting datetime,
   ending datetime
-) 
+)
 go
-CREATE PRIMARY KEY tasks (id) 
+CREATE PRIMARY KEY tasks (id)
 go
 
 CREATE TABLE categories (
   id integer UNIQUE INDEX ,
   name char(255),
   type char(255)
-) 
+)
 go
 
 CREATE TABLE categories_posts (
   category_id integer NOT NULL,
   post_id integer NOT NULL
-) 
+)
 go
 
 CREATE TABLE fk_test_has_pk (
   id INTEGER NOT NULL DEFAULT _rowid
-) 
+)
 go
-CREATE PRIMARY KEY fk_test_has_pk (id) 
+CREATE PRIMARY KEY fk_test_has_pk (id)
 go
 
 CREATE TABLE fk_test_has_fk (
   id    INTEGER NOT NULL DEFAULT _rowid,
   fk_id INTEGER NOT NULL REFERENCES fk_test_has_pk.id
-) 
+)
 go
-CREATE PRIMARY KEY fk_test_has_fk (id) 
+CREATE PRIMARY KEY fk_test_has_fk (id)
 go
 
 CREATE TABLE keyboards (
   key_number integer UNIQUE INDEX DEFAULT _rowid,
   name char(50)
-) 
+)
 go
-CREATE PRIMARY KEY keyboards (key_number) 
+CREATE PRIMARY KEY keyboards (key_number)
 go
 
 CREATE TABLE legacy_things (

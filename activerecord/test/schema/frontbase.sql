@@ -13,7 +13,7 @@ CREATE TABLE funny_jokes (
   PRIMARY KEY (id)
 );
 SET UNIQUE FOR funny_jokes(id);
-  
+
 CREATE TABLE companies (
   id integer DEFAULT unique,
     "type" character varying(50),
@@ -134,11 +134,11 @@ SET UNIQUE FOR colnametests(id);
 CREATE TABLE mixins (
   id integer DEFAULT unique,
   parent_id integer,
-  type character varying(100),  
+  type character varying(100),
   pos integer,
   lft integer,
   rgt integer,
-  root_id integer,  
+  root_id integer,
   created_at timestamp,
   updated_at timestamp,
   PRIMARY KEY (id)
@@ -161,7 +161,7 @@ CREATE TABLE readers (
 );
 SET UNIQUE FOR readers(id);
 
-CREATE TABLE binaries ( 
+CREATE TABLE binaries (
   id integer DEFAULT unique,
   data BLOB,
   PRIMARY KEY (id)

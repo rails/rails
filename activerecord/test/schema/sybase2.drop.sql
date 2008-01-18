@@ -1,4 +1,2 @@
 DROP TABLE courses
 go
-
-

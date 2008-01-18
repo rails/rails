@@ -4,7 +4,7 @@ ActiveRecord::Schema.define do
   # moving the sql files under activerecord/test/fixtures/db_definitions
   # to this file, schema.rb.
   if adapter_name == "MySQL"
-    
+
     # Please keep these create table statements in alphabetical order
     # unless the ordering matters.  In which case, define them below
     create_table :accounts, :force => true do |t|
@@ -20,7 +20,7 @@ ActiveRecord::Schema.define do
       t.primary_key :auto_id
       t.integer     :value
     end
-    
+
     create_table :binaries, :force => true do |t|
       t.binary :data
     end
@@ -42,7 +42,7 @@ ActiveRecord::Schema.define do
     create_table :colnametests, :force => true do |t|
       t.integer :references, :null => false
     end
-    
+
     create_table :comments, :force => true do |t|
       t.integer :post_id, :null => false
       t.text    :body, :null => false
@@ -57,12 +57,12 @@ ActiveRecord::Schema.define do
       t.integer :client_of
       t.integer :rating, :default => 1
     end
-    
+
     create_table :computers, :force => true do |t|
       t.integer :developer, :null => false
       t.integer :extendedWarranty, :null => false
     end
-    
+
 
     create_table :customers, :force => true do |t|
       t.string  :name
@@ -95,25 +95,25 @@ ActiveRecord::Schema.define do
     create_table :funny_jokes, :force => true do |t|
       t.string :name
     end
-    
+
     create_table :keyboards, :force => true, :id  => false do |t|
       t.primary_key :key_number
       t.string      :name
     end
-    
+
     create_table :legacy_things, :force => true do |t|
       t.integer :tps_report_number
       t.integer :version, :null => false, :default => 0
     end
-    
+
     create_table :minimalistics, :force => true do |t|
     end
-    
+
     create_table :mixed_case_monkeys, :force => true, :id => false do |t|
       t.primary_key :monkeyID
       t.integer     :fleaCount
     end
-    
+
     create_table :mixins, :force => true do |t|
       t.integer  :parent_id
       t.integer  :pos
@@ -124,12 +124,12 @@ ActiveRecord::Schema.define do
       t.integer  :root_id
       t.string   :type
     end
-    
+
     create_table :movies, :force => true, :id => false do |t|
       t.primary_key :movieid
       t.string      :name
     end
-    
+
     create_table :numeric_data, :force => true do |t|
       t.decimal :bank_balance, :precision => 10, :scale => 2
       t.decimal :big_bank_balance, :precision => 15, :scale => 2
@@ -137,7 +137,7 @@ ActiveRecord::Schema.define do
       t.decimal :my_house_population, :precision => 2, :scale => 0
       t.decimal :decimal_number_with_default, :precision => 3, :scale => 2, :default => 2.78
     end
-    
+
     create_table :orders, :force => true do |t|
       t.string  :name
       t.integer :billing_customer_id
@@ -148,7 +148,7 @@ ActiveRecord::Schema.define do
       t.string  :first_name, :null => false
       t.integer :lock_version, :null => false, :default => 0
     end
-    
+
     create_table :posts, :force => true do |t|
       t.integer :author_id
       t.string  :title, :null => false
@@ -160,12 +160,12 @@ ActiveRecord::Schema.define do
       t.string :name
       t.string :type
     end
-    
+
     create_table :readers, :force => true do |t|
       t.integer :post_id, :null => false
       t.integer :person_id, :null => false
     end
-    
+
     create_table :subscribers, :force => true, :id => false do |t|
       t.string :nick, :null => false
       t.string :name
@@ -262,11 +262,11 @@ ActiveRecord::Schema.define do
   create_table :lock_without_defaults, :force => true do |t|
     t.column :lock_version, :integer
   end
-  
+
   create_table :lock_without_defaults_cust, :force => true do |t|
     t.column :custom_lock_version, :integer
   end
-  
+
   create_table :items, :force => true do |t|
     t.column :name, :integer
   end
@@ -277,7 +277,7 @@ ActiveRecord::Schema.define do
       t.column :name, :string
     end
   end
-  
+
   # For sqlserver 2000+, ensure real columns can be used
   if adapter_name.starts_with?("SQLServer")
     create_table :table_with_real_columns, :force => true do |t|
