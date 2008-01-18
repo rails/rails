@@ -5,7 +5,7 @@ class WeNeedReminders < ActiveRecord::Migration
       t.column :remind_at, :datetime
     end
   end
-  
+
   def self.down
     drop_table "reminders"
   end
