@@ -5,7 +5,7 @@ class AAACreateTablesTest < ActiveSupport::TestCase
   self.use_transactional_fixtures = false
 
   def setup
-    @base_path = "#{File.dirname(__FILE__)}/fixtures/db_definitions"
+    @base_path = "#{File.dirname(__FILE__)}/../schema"
   end
 
   def test_drop_and_create_main_tables
@@ -15,7 +15,7 @@ class AAACreateTablesTest < ActiveSupport::TestCase
 
   def test_load_schema
     if ActiveRecord::Base.connection.supports_migrations?
-      eval(File.read("#{File.dirname(__FILE__)}/fixtures/db_definitions/schema.rb"))
+      eval(File.read("#{File.dirname(__FILE__)}/../schema/schema.rb"))
     else
       recreate ActiveRecord::Base, '3'
     end
@@ -24,7 +24,7 @@ class AAACreateTablesTest < ActiveSupport::TestCase
 
   def test_drop_and_create_courses_table
     if Course.connection.supports_migrations?
-      eval(File.read("#{File.dirname(__FILE__)}/fixtures/db_definitions/schema2.rb"))
+      eval(File.read("#{File.dirname(__FILE__)}/../schema/schema2.rb"))
     end
     recreate Course, '2' unless use_migrations_for_courses?
     assert true

@@ -8,7 +8,7 @@ require 'abstract_unit'
 # BLOB data with DB2 or Firebird, because the length of a statement
 # is limited to 32KB.
 unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
-  require 'fixtures/binary'
+  require 'models/binary'
 
   class BinaryTest < ActiveSupport::TestCase
     FIXTURES = %w(flowers.jpg example.log)
@@ -17,7 +17,7 @@ unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :DB2Adapter, :Firebir
       Binary.delete_all
 
       FIXTURES.each do |filename|
-        data = File.read("#{File.dirname(__FILE__)}/fixtures/#{filename}").freeze
+        data = File.read("#{File.dirname(__FILE__)}/../assets/#{filename}").freeze
 
         bin = Binary.new(:data => data)
         assert_equal data, bin.data, 'Newly assigned data differs from original'

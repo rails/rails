@@ -1,9 +1,9 @@
 require 'abstract_unit'
-require 'fixtures/topic'
-require 'fixtures/reply'
-require 'fixtures/person'
-require 'fixtures/developer'
-require 'fixtures/warehouse_thing'
+require 'models/topic'
+require 'models/reply'
+require 'models/person'
+require 'models/developer'
+require 'models/warehouse_thing'
 
 # The following methods in Topic are used in test_conditional_validation_*
 class Topic

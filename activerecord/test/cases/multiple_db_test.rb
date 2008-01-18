@@ -1,8 +1,8 @@
 require 'abstract_unit'
-require 'fixtures/entrant'
+require 'models/entrant'
 
 # So we can test whether Course.connection survives a reload.
-require_dependency 'fixtures/course'
+require_dependency 'models/course'
 
 class MultipleDbTest < ActiveSupport::TestCase
   self.use_transactional_fixtures = false
@@ -53,7 +53,7 @@ class MultipleDbTest < ActiveSupport::TestCase
 
     Dependencies.clear
     Object.send(:remove_const, :Course)
-    require_dependency 'fixtures/course'
+    require_dependency 'models/course'
 
     assert Course.connection
   end

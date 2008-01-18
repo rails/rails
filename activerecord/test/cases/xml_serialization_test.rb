@@ -1,9 +1,9 @@
 require 'abstract_unit'
-require 'fixtures/contact'
-require 'fixtures/post'
-require 'fixtures/author'
-require 'fixtures/tagging'
-require 'fixtures/comment'
+require 'models/contact'
+require 'models/post'
+require 'models/author'
+require 'models/tagging'
+require 'models/comment'
 
 class XmlSerializationTest < ActiveSupport::TestCase
   def test_should_serialize_default_root

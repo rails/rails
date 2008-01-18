@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'fixtures/company_in_module'
+require 'models/company_in_module'
 
 class ModulesTest < ActiveSupport::TestCase
   fixtures :accounts, :companies, :projects, :developers

@@ -1,9 +1,9 @@
 require 'abstract_unit'
-require 'fixtures/topic'
-require 'fixtures/customer'
-require 'fixtures/company'
-require 'fixtures/company_in_module'
-require 'fixtures/subscriber'
+require 'models/topic'
+require 'models/customer'
+require 'models/company'
+require 'models/company_in_module'
+require 'models/subscriber'
 
 class ReflectionTest < ActiveSupport::TestCase
   fixtures :topics, :customers, :companies, :subscribers

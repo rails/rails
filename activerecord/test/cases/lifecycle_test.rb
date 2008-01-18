@@ -1,7 +1,7 @@
 require 'abstract_unit'
-require 'fixtures/topic'
-require 'fixtures/developer'
-require 'fixtures/reply'
+require 'models/topic'
+require 'models/developer'
+require 'models/reply'
 
 class Topic; def after_find() end end
 class Developer; def after_find() end end

@@ -1,4 +1,4 @@
-require "#{File.dirname(__FILE__)}/abstract_unit"
+require 'abstract_unit'
 
 class FirebirdConnectionTest < ActiveSupport::TestCase
   def test_charset_properly_set

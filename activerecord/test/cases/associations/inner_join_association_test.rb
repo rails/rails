@@ -1,9 +1,9 @@
 require 'abstract_unit'
-require 'fixtures/post'
-require 'fixtures/comment'
-require 'fixtures/author'
-require 'fixtures/category'
-require 'fixtures/categorization'
+require 'models/post'
+require 'models/comment'
+require 'models/author'
+require 'models/category'
+require 'models/categorization'
 
 class InnerJoinAssociationTest < ActiveSupport::TestCase
   fixtures :authors, :posts, :comments, :categories, :categories_posts, :categorizations

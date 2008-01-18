@@ -1,10 +1,10 @@
-require "#{File.dirname(__FILE__)}/abstract_unit"
-require 'fixtures/topic'
-require 'fixtures/reply'
-require 'fixtures/subscriber'
-require 'fixtures/movie'
-require 'fixtures/keyboard'
-require 'fixtures/mixed_case_monkey'
+require 'abstract_unit'
+require 'models/topic'
+require 'models/reply'
+require 'models/subscriber'
+require 'models/movie'
+require 'models/keyboard'
+require 'models/mixed_case_monkey'
 
 class PrimaryKeysTest < ActiveSupport::TestCase
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys

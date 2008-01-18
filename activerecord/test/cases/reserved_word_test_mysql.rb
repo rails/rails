@@ -1,4 +1,4 @@
-require "#{File.dirname(__FILE__)}/abstract_unit"
+require 'abstract_unit'
 
 class Group < ActiveRecord::Base
   Group.table_name = 'group'

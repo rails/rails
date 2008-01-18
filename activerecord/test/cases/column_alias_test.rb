@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'fixtures/topic'
+require 'models/topic'
 
 class TestColumnAlias < ActiveSupport::TestCase
   fixtures :topics

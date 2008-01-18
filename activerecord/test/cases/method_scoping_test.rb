@@ -1,9 +1,9 @@
 require 'abstract_unit'
-require 'fixtures/developer'
-require 'fixtures/project'
-require 'fixtures/comment'
-require 'fixtures/post'
-require 'fixtures/category'
+require 'models/developer'
+require 'models/project'
+require 'models/comment'
+require 'models/post'
+require 'models/category'
 
 class MethodScopingTest < ActiveSupport::TestCase
   fixtures :developers, :projects, :comments, :posts

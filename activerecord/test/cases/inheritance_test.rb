@@ -1,7 +1,7 @@
 require 'abstract_unit'
-require 'fixtures/company'
-require 'fixtures/project'
-require 'fixtures/subscriber'
+require 'models/company'
+require 'models/project'
+require 'models/subscriber'
 
 class InheritanceTest < ActiveSupport::TestCase
   fixtures :companies, :projects, :subscribers, :accounts

@@ -83,8 +83,8 @@ class AdapterTest < ActiveSupport::TestCase
 
   # test resetting sequences in odd tables in postgreSQL
   if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
-    require 'fixtures/movie'
-    require 'fixtures/subscriber'
+    require 'models/movie'
+    require 'models/subscriber'
 
     def test_reset_empty_table_with_custom_pk
       Movie.delete_all

@@ -1,20 +1,20 @@
 require 'abstract_unit'
-require 'fixtures/post'
-require 'fixtures/binary'
-require 'fixtures/topic'
-require 'fixtures/computer'
-require 'fixtures/developer'
-require 'fixtures/company'
-require 'fixtures/task'
-require 'fixtures/reply'
-require 'fixtures/joke'
-require 'fixtures/course'
-require 'fixtures/category'
-require 'fixtures/parrot'
-require 'fixtures/pirate'
-require 'fixtures/treasure'
-require 'fixtures/matey'
-require 'fixtures/ship'
+require 'models/post'
+require 'models/binary'
+require 'models/topic'
+require 'models/computer'
+require 'models/developer'
+require 'models/company'
+require 'models/task'
+require 'models/reply'
+require 'models/joke'
+require 'models/course'
+require 'models/category'
+require 'models/parrot'
+require 'models/pirate'
+require 'models/treasure'
+require 'models/matey'
+require 'models/ship'
 
 class FixturesTest < ActiveSupport::TestCase
   self.use_instantiated_fixtures = true
@@ -27,7 +27,7 @@ class FixturesTest < ActiveSupport::TestCase
                  movies projects subscribers topics tasks )
   MATCH_ATTRIBUTE_NAME = /[a-zA-Z][-_\w]*/
 
-  BINARY_FIXTURE_PATH = File.dirname(__FILE__) + '/fixtures/flowers.jpg'
+  BINARY_FIXTURE_PATH = File.dirname(__FILE__) + '/../assets/flowers.jpg'
 
   def test_clean_fixtures
     FIXTURES.each do |name|
@@ -140,26 +140,26 @@ class FixturesTest < ActiveSupport::TestCase
   end
 
   def test_empty_yaml_fixture
-    assert_not_nil Fixtures.new( Account.connection, "accounts", 'Account', File.dirname(__FILE__) + "/fixtures/naked/yml/accounts")
+    assert_not_nil Fixtures.new( Account.connection, "accounts", 'Account', File.dirname(__FILE__) + "/../fixtures/naked/yml/accounts")
   end
 
   def test_empty_yaml_fixture_with_a_comment_in_it
-    assert_not_nil Fixtures.new( Account.connection, "companies", 'Company', File.dirname(__FILE__) + "/fixtures/naked/yml/companies")
+    assert_not_nil Fixtures.new( Account.connection, "companies", 'Company', File.dirname(__FILE__) + "/../fixtures/naked/yml/companies")
   end
 
   def test_dirty_dirty_yaml_file
     assert_raises(Fixture::FormatError) do
-      Fixtures.new( Account.connection, "courses", 'Course', File.dirname(__FILE__) + "/fixtures/naked/yml/courses")
+      Fixtures.new( Account.connection, "courses", 'Course', File.dirname(__FILE__) + "/../fixtures/naked/yml/courses")
     end
   end
 
   def test_empty_csv_fixtures
-    assert_not_nil Fixtures.new( Account.connection, "accounts", 'Account', File.dirname(__FILE__) + "/fixtures/naked/csv/accounts")
+    assert_not_nil Fixtures.new( Account.connection, "accounts", 'Account', File.dirname(__FILE__) + "/../fixtures/naked/csv/accounts")
   end
 
   def test_omap_fixtures
     assert_nothing_raised do
-      fixtures = Fixtures.new(Account.connection, 'categories', 'Category', File.dirname(__FILE__) + '/fixtures/categories_ordered')
+      fixtures = Fixtures.new(Account.connection, 'categories', 'Category', File.dirname(__FILE__) + '/../fixtures/categories_ordered')
 
       i = 0
       fixtures.each do |name, fixture|
@@ -430,7 +430,7 @@ class FixturesBrokenRollbackTest < ActiveSupport::TestCase
 end
 
 class LoadAllFixturesTest < ActiveSupport::TestCase
-  self.fixture_path= File.join(File.dirname(__FILE__), '/fixtures/all')
+  self.fixture_path= File.join(File.dirname(__FILE__), '/../fixtures/all')
   fixtures :all
 
   def test_all_there

@@ -1,7 +1,7 @@
 require 'abstract_unit'
-require 'fixtures/topic'
-require 'fixtures/reply'
-require 'fixtures/developer'
+require 'models/topic'
+require 'models/reply'
+require 'models/developer'
 
 class TransactionTest < ActiveSupport::TestCase
   self.use_transactional_fixtures = false

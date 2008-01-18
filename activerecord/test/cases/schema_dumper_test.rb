@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require "#{File.dirname(__FILE__)}/../lib/active_record/schema_dumper"
+require 'active_record/schema_dumper'
 require 'stringio'
 
 if ActiveRecord::Base.connection.respond_to?(:tables)

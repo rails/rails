@@ -1,10 +1,10 @@
 require 'abstract_unit'
-require 'fixtures/post'
-require 'fixtures/comment'
-require 'fixtures/developer'
-require 'fixtures/project'
-require 'fixtures/reader'
-require 'fixtures/person'
+require 'models/post'
+require 'models/comment'
+require 'models/developer'
+require 'models/project'
+require 'models/reader'
+require 'models/person'
 
 # Dummy class methods to test implicit association scoping.
 def Comment.foo() find :first end

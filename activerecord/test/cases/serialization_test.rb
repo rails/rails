@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'fixtures/contact'
+require 'models/contact'
 
 class SerializationTest < ActiveSupport::TestCase
   FORMATS = [ :xml, :json ]

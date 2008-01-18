@@ -1,6 +1,6 @@
 require 'abstract_unit'
-require 'fixtures/default'
-require 'fixtures/entrant'
+require 'models/default'
+require 'models/entrant'
 
 class DefaultTest < ActiveSupport::TestCase
   def test_nil_defaults_for_not_null_columns

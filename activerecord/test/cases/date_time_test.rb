@@ -1,6 +1,6 @@
 require 'abstract_unit'
-require 'fixtures/topic'
-require 'fixtures/task'
+require 'models/topic'
+require 'models/task'
 
 class DateTimeTest < ActiveSupport::TestCase
   def test_saves_both_date_and_time

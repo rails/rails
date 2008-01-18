@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'fixtures/entrant'
+require 'models/entrant'
 
 class DeprecatedFinderTest < ActiveSupport::TestCase
   fixtures :entrants

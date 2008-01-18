@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require "#{File.dirname(__FILE__)}/../lib/active_record/schema"
+require 'active_record/schema'
 
 if ActiveRecord::Base.connection.supports_migrations?
   class Order < ActiveRecord::Base

@@ -1,11 +1,11 @@
 require 'abstract_unit'
 require 'bigdecimal/util'
 
-require 'fixtures/person'
-require 'fixtures/topic'
-require File.dirname(__FILE__) + '/fixtures/migrations/1_people_have_last_names'
-require File.dirname(__FILE__) + '/fixtures/migrations/2_we_need_reminders'
-require File.dirname(__FILE__) + '/fixtures/migrations_with_decimal/1_give_me_big_numbers'
+require 'models/person'
+require 'models/topic'
+require 'migrations/valid/1_people_have_last_names'
+require 'migrations/valid/2_we_need_reminders'
+require 'migrations/decimal/1_give_me_big_numbers'
 
 if ActiveRecord::Base.connection.supports_migrations?
   class BigNumber < ActiveRecord::Base; end
@@ -695,7 +695,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert !Person.column_methods_hash.include?(:last_name)
       assert !Reminder.table_exists?
 
-      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/')
+      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/../migrations/valid')
 
       assert_equal 3, ActiveRecord::Migrator.current_version
       Person.reset_column_information
@@ -703,7 +703,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
       assert_equal "hello world", Reminder.find(:first).content
 
-      ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/fixtures/migrations/')
+      ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/../migrations/valid')
 
       assert_equal 0, ActiveRecord::Migrator.current_version
       Person.reset_column_information
@@ -715,22 +715,22 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert !Person.column_methods_hash.include?(:last_name)
       assert !Reminder.table_exists?
 
-      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
+      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/../migrations/valid', 1)
 
       Person.reset_column_information
       assert Person.column_methods_hash.include?(:last_name)
       assert !Reminder.table_exists?
 
-      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 2)
+      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/../migrations/valid', 2)
 
       assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
       assert_equal "hello world", Reminder.find(:first).content
     end
 
     def test_migrator_one_down
-      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/')
+      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/../migrations/valid')
 
-      ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
+      ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/../migrations/valid', 1)
 
       Person.reset_column_information
       assert Person.column_methods_hash.include?(:last_name)
@@ -738,39 +738,39 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_migrator_one_up_one_down
-      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
-      ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
+      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/../migrations/valid', 1)
+      ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/../migrations/valid', 0)
 
       assert !Person.column_methods_hash.include?(:last_name)
       assert !Reminder.table_exists?
     end
 
     def test_migrator_verbosity
-      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
+      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/../migrations/valid', 1)
       assert PeopleHaveLastNames.message_count > 0
       PeopleHaveLastNames.message_count = 0
 
-      ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
+      ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/../migrations/valid', 0)
       assert PeopleHaveLastNames.message_count > 0
       PeopleHaveLastNames.message_count = 0
     end
 
     def test_migrator_verbosity_off
       PeopleHaveLastNames.verbose = false
-      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
+      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/../migrations/valid', 1)
       assert PeopleHaveLastNames.message_count.zero?
-      ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
+      ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/../migrations/valid', 0)
       assert PeopleHaveLastNames.message_count.zero?
     end
 
     def test_migrator_going_down_due_to_version_target
-      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
-      ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
+      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/../migrations/valid', 1)
+      ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/../migrations/valid', 0)
 
       assert !Person.column_methods_hash.include?(:last_name)
       assert !Reminder.table_exists?
 
-      ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations/')
+      ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/../migrations/valid')
 
       Person.reset_column_information
       assert Person.column_methods_hash.include?(:last_name)
@@ -863,20 +863,20 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_migrator_with_duplicates
       assert_raises(ActiveRecord::DuplicateMigrationVersionError) do
-        ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations_with_duplicate/', nil)
+        ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/../migrations/duplicate', nil)
       end
     end
 
     def test_migrator_with_missing_version_numbers
-      ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations_with_missing_versions/', 500)
+      ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/../migrations/missing', 500)
       assert !Person.column_methods_hash.include?(:middle_name)
-	assert_equal 4, ActiveRecord::Migrator.current_version
+      assert_equal 4, ActiveRecord::Migrator.current_version
 
-			ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations_with_missing_versions/', 2)
-			Person.reset_column_information
-			assert !Reminder.table_exists?
+      ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/../migrations/missing', 2)
+      Person.reset_column_information
+      assert !Reminder.table_exists?
       assert Person.column_methods_hash.include?(:last_name)
-			assert_equal 2, ActiveRecord::Migrator.current_version
+      assert_equal 2, ActiveRecord::Migrator.current_version
     end
 
     def test_create_table_with_custom_sequence_name

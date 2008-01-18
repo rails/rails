@@ -1,10 +1,10 @@
 require 'abstract_unit'
-require 'fixtures/contact'
-require 'fixtures/post'
-require 'fixtures/author'
-require 'fixtures/tagging'
-require 'fixtures/tag'
-require 'fixtures/comment'
+require 'models/contact'
+require 'models/post'
+require 'models/author'
+require 'models/tagging'
+require 'models/tag'
+require 'models/comment'
 
 class JsonSerializationTest < ActiveSupport::TestCase
   def setup

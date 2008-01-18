@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'fixtures/default'
+require 'models/default'
 
 class DefaultTest < ActiveSupport::TestCase
   def test_default_timestamp

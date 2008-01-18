@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'fixtures/topic'
+require 'models/topic'
 
 class AttributeMethodsTest < ActiveSupport::TestCase
   fixtures :topics

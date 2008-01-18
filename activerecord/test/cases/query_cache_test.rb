@@ -1,10 +1,10 @@
 require 'abstract_unit'
-require 'fixtures/topic'
-require 'fixtures/reply'
-require 'fixtures/task'
-require 'fixtures/course'
-require 'fixtures/category'
-require 'fixtures/post'
+require 'models/topic'
+require 'models/reply'
+require 'models/task'
+require 'models/course'
+require 'models/category'
+require 'models/post'
 
 
 class QueryCacheTest < ActiveSupport::TestCase

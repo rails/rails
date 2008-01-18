@@ -1,7 +1,7 @@
 require 'abstract_unit'
-require 'fixtures/default'
-require 'fixtures/post'
-require 'fixtures/task'
+require 'models/default'
+require 'models/post'
+require 'models/task'
 
 class SqlServerAdapterTest < ActiveSupport::TestCase
   class TableWithRealColumn < ActiveRecord::Base; end

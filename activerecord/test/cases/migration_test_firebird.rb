@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'fixtures/course'
+require 'models/course'
 
 class FirebirdMigrationTest < ActiveSupport::TestCase
   self.use_transactional_fixtures = false

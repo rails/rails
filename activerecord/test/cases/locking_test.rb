@@ -1,7 +1,7 @@
 require 'abstract_unit'
-require 'fixtures/person'
-require 'fixtures/reader'
-require 'fixtures/legacy_thing'
+require 'models/person'
+require 'models/reader'
+require 'models/legacy_thing'
 
 class LockWithoutDefault < ActiveRecord::Base; end
 

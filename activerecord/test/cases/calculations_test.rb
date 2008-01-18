@@ -1,6 +1,6 @@
 require 'abstract_unit'
-require 'fixtures/company'
-require 'fixtures/topic'
+require 'models/company'
+require 'models/topic'
 
 Company.has_many :accounts
 

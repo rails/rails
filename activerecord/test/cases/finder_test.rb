@@ -1,12 +1,12 @@
 require 'abstract_unit'
-require 'fixtures/author'
-require 'fixtures/comment'
-require 'fixtures/company'
-require 'fixtures/topic'
-require 'fixtures/reply'
-require 'fixtures/entrant'
-require 'fixtures/developer'
-require 'fixtures/post'
+require 'models/author'
+require 'models/comment'
+require 'models/company'
+require 'models/topic'
+require 'models/reply'
+require 'models/entrant'
+require 'models/developer'
+require 'models/post'
 
 class FinderTest < ActiveSupport::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors
