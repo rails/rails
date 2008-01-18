@@ -1,5 +1,5 @@
 print "Using native DB2\n"
-require_dependency 'fixtures/course'
+require_dependency 'models/course'
 require 'logger'
 
 ActiveRecord::Base.logger = Logger.new("debug.log")

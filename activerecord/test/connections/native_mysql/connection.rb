@@ -1,5 +1,5 @@
 print "Using native MySQL\n"
-require_dependency 'fixtures/course'
+require_dependency 'models/course'
 require 'logger'
 
 RAILS_DEFAULT_LOGGER = Logger.new('debug.log')
