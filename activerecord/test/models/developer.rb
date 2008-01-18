@@ -16,22 +16,22 @@ class Developer < ActiveRecord::Base
       find(:first, :order => "id DESC")
     end
   end
-  
-  has_and_belongs_to_many :projects_extended_by_name, 
-      :class_name => "Project", 
-      :join_table => "developers_projects", 
+
+  has_and_belongs_to_many :projects_extended_by_name,
+      :class_name => "Project",
+      :join_table => "developers_projects",
       :association_foreign_key => "project_id",
       :extend => DeveloperProjectsAssociationExtension
 
-  has_and_belongs_to_many :projects_extended_by_name_twice, 
-      :class_name => "Project", 
-      :join_table => "developers_projects", 
+  has_and_belongs_to_many :projects_extended_by_name_twice,
+      :class_name => "Project",
+      :join_table => "developers_projects",
       :association_foreign_key => "project_id",
       :extend => [DeveloperProjectsAssociationExtension, DeveloperProjectsAssociationExtension2]
 
-  has_and_belongs_to_many :projects_extended_by_name_and_block, 
-      :class_name => "Project", 
-      :join_table => "developers_projects", 
+  has_and_belongs_to_many :projects_extended_by_name_and_block,
+      :class_name => "Project",
+      :join_table => "developers_projects",
       :association_foreign_key => "project_id",
       :extend => DeveloperProjectsAssociationExtension do
         def find_least_recent

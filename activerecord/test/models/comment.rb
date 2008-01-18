@@ -1,10 +1,10 @@
 class Comment < ActiveRecord::Base
   belongs_to :post
-  
+
   def self.what_are_you
     'a comment...'
   end
-  
+
   def self.search_by_type(q)
     self.find(:all, :conditions => ["#{QUOTED_TYPE} = ?", q])
   end

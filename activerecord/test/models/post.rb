@@ -28,7 +28,7 @@ class Post < ActiveRecord::Base
         :joins => 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id'
     end
   end
-  
+
   has_many :funky_tags, :through => :taggings, :source => :tag
   has_many :super_tags, :through => :taggings
   has_one :tagging, :as => :taggable

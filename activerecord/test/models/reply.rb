@@ -6,20 +6,20 @@ class Reply < Topic
 
   validate :errors_on_empty_content
   validate_on_create :title_is_wrong_create
-  
+
   attr_accessible :title, :author_name, :author_email_address, :written_on, :content, :last_read
 
   def validate
     errors.add("title", "Empty")   unless attribute_present? "title"
   end
-  
+
   def errors_on_empty_content
     errors.add("content", "Empty") unless attribute_present? "content"
   end
-  
+
   def validate_on_create
     if attribute_present?("title") && attribute_present?("content") && content == "Mismatch"
-      errors.add("title", "is Content Mismatch") 
+      errors.add("title", "is Content Mismatch")
     end
   end
 

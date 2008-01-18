@@ -3,7 +3,7 @@ module MyApplication
     class Company < ActiveRecord::Base
       attr_protected :rating
     end
-    
+
     class Firm < Company
       has_many :clients, :order => "id", :dependent => :destroy
       has_many :clients_sorted_desc, :class_name => "Client", :order => "id DESC"
@@ -18,12 +18,12 @@ module MyApplication
       belongs_to :firm, :foreign_key => "client_of"
       belongs_to :firm_with_other_name, :class_name => "Firm", :foreign_key => "client_of"
     end
-    
+
     class Developer < ActiveRecord::Base
       has_and_belongs_to_many :projects
       validates_length_of :name, :within => (3..20)
     end
-    
+
     class Project < ActiveRecord::Base
       has_and_belongs_to_many :developers
     end
