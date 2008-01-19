@@ -84,20 +84,47 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   end
   
   def test_time_recognition
-    n = 10000
+    # We create many routes to make situation more realistic
+    @rs = ::ActionController::Routing::RouteSet.new
+    @rs.draw { |map|
+      map.frontpage '', :controller => 'search', :action => 'new'
+      map.resources :videos do |video|
+        video.resources :comments
+        video.resource  :file,      :controller => 'video_file'
+        video.resource  :share,     :controller => 'video_shares'
+        video.resource  :abuse,     :controller => 'video_abuses'
+      end
+      map.resources :abuses, :controller => 'video_abuses'
+      map.resources :video_uploads
+      map.resources :video_visits
+
+      map.resources :users do |user|
+        user.resource  :settings
+        user.resources :videos
+      end
+      map.resources :channels do |channel|
+        channel.resources :videos, :controller => 'channel_videos'
+      end
+      map.resource  :session
+      map.resource  :lost_password
+      map.search    'search', :controller => 'search'
+      map.resources :pages
+      map.connect ':controller/:action/:id'
+    }
+    n = 1000
     if RunTimeTests
       GC.start
       rectime = Benchmark.realtime do
         n.times do
-          rs.recognize_path("content")
-          rs.recognize_path("content/list")
-          rs.recognize_path("content/show/10")
-          rs.recognize_path("admin/user")
-          rs.recognize_path("admin/user/list")
-          rs.recognize_path("admin/user/show/10")
+          rs.recognize_path("/videos/1234567", {:method => :get})
+          rs.recognize_path("/videos/1234567/abuse", {:method => :get})
+          rs.recognize_path("/users/1234567/settings", {:method => :get})
+          rs.recognize_path("/channels/1234567", {:method => :get})
+          rs.recognize_path("/session/new", {:method => :get})
+          rs.recognize_path("/admin/user/show/10", {:method => :get})
         end
       end
-      puts "\n\nRecognition (RouteSet):"
+      puts "\n\nRecognition (#{rs.routes.size} routes):"
       per_url = rectime / (n * 6)
       puts "#{per_url * 1000} ms/url"
       puts "#{1 / per_url} url/s\n\n"
