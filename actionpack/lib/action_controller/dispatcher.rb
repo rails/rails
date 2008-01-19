@@ -139,7 +139,6 @@ module ActionController
 
       if unprepared || force
         run_callbacks :prepare_dispatch
-        ActionView::TemplateFinder.reload! unless ActionView::Base.cache_template_loading
         self.unprepared = false
       end
     end

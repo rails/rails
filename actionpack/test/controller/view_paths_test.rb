@@ -16,7 +16,7 @@ class ViewLoadPathsTest < Test::Unit::TestCase
     def hello_world_at_request_time() render(:action => 'hello_world') end
     private
     def add_view_path
-      prepend_view_path "#{LOAD_PATH_ROOT}/override"
+      self.class.view_paths.unshift "#{LOAD_PATH_ROOT}/override"
     end
   end
   
@@ -27,6 +27,7 @@ class ViewLoadPathsTest < Test::Unit::TestCase
   
   def setup
     TestController.view_paths = nil
+    ActionView::Base.cache_template_extensions = false
 
     @request  = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
@@ -44,6 +45,7 @@ class ViewLoadPathsTest < Test::Unit::TestCase
   
   def teardown
     ActiveSupport::Deprecation.behavior = @old_behavior
+    ActionView::Base.cache_template_extensions = true
   end
   
   def test_template_load_path_was_set_correctly
@@ -97,7 +99,7 @@ class ViewLoadPathsTest < Test::Unit::TestCase
   end
   
   def test_view_paths_override
-    TestController.prepend_view_path "#{LOAD_PATH_ROOT}/override"
+    TestController.view_paths.unshift "#{LOAD_PATH_ROOT}/override"
     get :hello_world
     assert_response :success
     assert_equal "Hello overridden world!", @response.body
