@@ -1,5 +1,7 @@
 *SVN*
 
+* Extract ActiveSupport::Callbacks from Active Record, test case setup and teardown, and ActionController::Dispatcher.  #10727 [Josh Peek]
+
 * Introducing DateTime #utc, #utc? and #utc_offset, for duck-typing compatibility with Time. Closes #10002 [Geoff Buesing]
 
 * Time#to_json uses Numeric#to_utc_offset_s to output a cross-platform-consistent representation without having to convert to DateTime. References #9750 [Geoff Buesing]

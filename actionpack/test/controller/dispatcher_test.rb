@@ -11,7 +11,7 @@ class DispatcherTest < Test::Unit::TestCase
     @output = StringIO.new
     ENV['REQUEST_METHOD'] = 'GET'
 
-    Dispatcher.callbacks[:prepare].clear
+    Dispatcher.instance_variable_set("@prepare_dispatch_callbacks", [])
     @dispatcher = Dispatcher.new(@output)
   end
 

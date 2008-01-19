@@ -1017,7 +1017,7 @@ class ValidationsTest < ActiveSupport::TestCase
 
   def test_invalid_validator
     Topic.validate 3
-    assert_raise(ActiveRecord::ActiveRecordError) { t = Topic.create }
+    assert_raise(ArgumentError) { t = Topic.create }
   end
 
   def test_throw_away_typing

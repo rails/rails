@@ -11,20 +11,6 @@ module ActionController
         new(output).dispatch_cgi(cgi, session_options)
       end
 
-      # Declare a block to be called before each dispatch.
-      # Run in the order declared.
-      def before_dispatch(*method_names, &block)
-        callbacks[:before].concat method_names
-        callbacks[:before] << block if block_given?
-      end
-
-      # Declare a block to be called after each dispatch.
-      # Run in reverse of the order declared.
-      def after_dispatch(*method_names, &block)
-        callbacks[:after].concat method_names
-        callbacks[:after] << block if block_given?
-      end
-
       # Add a preparation callback. Preparation callbacks are run before every
       # request in development mode, and before the first request in production
       # mode.
@@ -34,15 +20,16 @@ module ActionController
       # existing callback. Passing an identifier is a suggested practice if the
       # code adding a preparation block may be reloaded.
       def to_prepare(identifier = nil, &block)
+        @prepare_dispatch_callbacks ||= []
+        callback = ActiveSupport::Callbacks::Callback.new(:prepare_dispatch, block, :identifier => identifier)
+
         # Already registered: update the existing callback
-        if identifier
-          if callback = callbacks[:prepare].assoc(identifier)
-            callback[1] = block
-          else
-            callbacks[:prepare] << [identifier, block]
-          end
+        # TODO: Ruby one liner for Array#find returning index
+        if identifier && callback_for_identifier = @prepare_dispatch_callbacks.find { |c| c.identifier == identifier }
+          index = @prepare_dispatch_callbacks.index(callback_for_identifier)
+          @prepare_dispatch_callbacks[index] = callback
         else
-          callbacks[:prepare] << block
+          @prepare_dispatch_callbacks.concat([callback])
         end
       end
 
@@ -90,12 +77,11 @@ module ActionController
     cattr_accessor :error_file_path
     self.error_file_path = "#{::RAILS_ROOT}/public" if defined? ::RAILS_ROOT
 
-    cattr_accessor :callbacks
-    self.callbacks = Hash.new { |h, k| h[k] = [] }
-
     cattr_accessor :unprepared
     self.unprepared = true
 
+    include ActiveSupport::Callbacks
+    define_callbacks :prepare_dispatch, :before_dispatch, :after_dispatch
 
     before_dispatch :reload_application
     before_dispatch :prepare_application
@@ -115,12 +101,12 @@ module ActionController
     def dispatch
       @@guard.synchronize do
         begin
-          run_callbacks :before
+          run_callbacks :before_dispatch
           handle_request
         rescue Exception => exception
           failsafe_rescue exception
         ensure
-          run_callbacks :after, :reverse_each
+          run_callbacks :after_dispatch, :enumerator => :reverse_each
         end
       end
     end
@@ -152,7 +138,7 @@ module ActionController
       ActiveRecord::Base.verify_active_connections! if defined?(ActiveRecord)
 
       if unprepared || force
-        run_callbacks :prepare
+        run_callbacks :prepare_dispatch
         self.unprepared = false
       end
     end
@@ -175,17 +161,6 @@ module ActionController
       def handle_request
         @controller = Routing::Routes.recognize(@request)
         @controller.process(@request, @response).out(@output)
-      end
-
-      def run_callbacks(kind, enumerator = :each)
-        callbacks[kind].send!(enumerator) do |callback|
-          case callback
-          when Proc; callback.call(self)
-          when String, Symbol; send!(callback)
-          when Array; callback[1].call(self)
-          else raise ArgumentError, "Unrecognized callback #{callback.inspect}"
-          end
-        end
       end
 
       def failsafe_rescue(exception)

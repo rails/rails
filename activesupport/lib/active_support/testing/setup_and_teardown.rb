@@ -2,45 +2,14 @@ module ActiveSupport
   module Testing
     module SetupAndTeardown
       def self.included(base)
-        base.extend ClassMethods
+        base.send :include, ActiveSupport::Callbacks
+        base.define_callbacks :setup, :teardown
 
         begin
           require 'mocha'
           base.alias_method_chain :run, :callbacks_and_mocha
         rescue LoadError
           base.alias_method_chain :run, :callbacks
-        end
-      end
-
-      module ClassMethods
-        def setup(*method_names, &block)
-          method_names << block if block_given?
-          (@setup_callbacks ||= []).concat method_names
-        end
-
-        def teardown(*method_names, &block)
-          method_names << block if block_given?
-          (@teardown_callbacks ||= []).concat method_names
-        end
-
-        def setup_callback_chain
-          @setup_callbacks ||= []
-
-          if superclass.respond_to?(:setup_callback_chain)
-            superclass.setup_callback_chain + @setup_callbacks
-          else
-            @setup_callbacks
-          end
-        end
-
-        def teardown_callback_chain
-          @teardown_callbacks ||= []
-
-          if superclass.respond_to?(:teardown_callback_chain)
-            superclass.teardown_callback_chain + @teardown_callbacks
-          else
-            @teardown_callbacks
-          end
         end
       end
 
@@ -63,7 +32,7 @@ module ActiveSupport
         ensure
           begin
             teardown
-            run_callbacks :teardown, :reverse_each
+            run_callbacks :teardown, :enumerator => :reverse_each
           rescue Test::Unit::AssertionFailedError => e
             add_failure(e.message, e.backtrace)
           rescue *Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS
@@ -98,7 +67,7 @@ module ActiveSupport
           ensure
             begin
               teardown
-              run_callbacks :teardown, :reverse_each
+              run_callbacks :teardown, :enumerator => :reverse_each
             rescue Test::Unit::AssertionFailedError => e
               add_failure(e.message, e.backtrace)
             rescue StandardError, ScriptError
@@ -111,17 +80,6 @@ module ActiveSupport
         result.add_run
         yield(Test::Unit::TestCase::FINISHED, name)
       end
-
-      protected
-        def run_callbacks(kind, enumerator = :each)
-          self.class.send("#{kind}_callback_chain").send(enumerator) do |callback|
-            case callback
-            when Proc; callback.call(self)
-            when String, Symbol; send!(callback)
-            else raise ArgumentError, "Unrecognized callback #{callback.inspect}"
-            end
-          end
-        end
     end
   end
 end
