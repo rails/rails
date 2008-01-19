@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'abstract_unit'
 require 'tmail'
 require 'tempfile'
@@ -38,11 +39,14 @@ class QuotingTest < Test::Unit::TestCase
   def test_unqoute_iso
     a ="=?ISO-8859-1?Q?Brosch=FCre_Rand?=" 
     b = TMail::Unquoter.unquote_and_convert_to(a, 'iso-8859-1')
-    assert_equal "Brosch\374re Rand", b
+    expected = "Brosch\374re Rand"
+    expected.force_encoding 'iso-8859-1' if expected.respond_to?(:force_encoding)
+    assert_equal expected, b
   end
     
   def test_quote_multibyte_chars
     original = "\303\246 \303\270 and \303\245"
+    original.force_encoding nil if original.respond_to?(:force_encoding)
 
     result = execute_in_sandbox(<<-CODE)
       $:.unshift(File.dirname(__FILE__) + "/../lib/")
