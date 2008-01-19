@@ -7,6 +7,7 @@ require 'action_controller/routing/route'
 require 'action_controller/routing/segments'
 require 'action_controller/routing/builder'
 require 'action_controller/routing/route_set'
+require 'action_controller/routing/recognition_optimisation'
 
 module ActionController
   # == Routing
