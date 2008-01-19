@@ -43,6 +43,7 @@ require 'active_record/validations'
 require 'active_record/callbacks'
 require 'active_record/reflection'
 require 'active_record/associations'
+require 'active_record/association_preload'
 require 'active_record/aggregations'
 require 'active_record/transactions'
 require 'active_record/timestamp'
@@ -63,6 +64,7 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Observing
   include ActiveRecord::Timestamp
   include ActiveRecord::Associations
+  include ActiveRecord::AssociationPreload
   include ActiveRecord::Aggregations
   include ActiveRecord::Transactions
   include ActiveRecord::Reflection

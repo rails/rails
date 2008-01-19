@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'models/post'
+require 'models/tagging'
 require 'models/comment'
 require 'models/author'
 require 'models/category'
@@ -9,7 +10,7 @@ require 'models/reader'
 
 class EagerAssociationTest < ActiveSupport::TestCase
   fixtures :posts, :comments, :authors, :categories, :categories_posts,
-            :companies, :accounts, :tags, :people, :readers
+            :companies, :accounts, :tags, :taggings, :people, :readers
 
   def test_loading_with_one_association
     posts = Post.find(:all, :include => :comments)
@@ -54,6 +55,13 @@ class EagerAssociationTest < ActiveSupport::TestCase
     assert_equal 2, posts.first.comments.size
     assert_equal 2, posts.first.categories.size
     assert posts.first.comments.include?(comments(:greetings))
+  end
+
+  def test_duplicate_middle_objects
+    comments = Comment.find :all, :conditions => 'post_id = 1', :include => [:post => :author]
+    assert_no_queries do
+      comments.each {|comment| comment.post.author.name}
+    end
   end
 
   def test_loading_from_an_association
@@ -353,6 +361,17 @@ class EagerAssociationTest < ActiveSupport::TestCase
     assert_equal posts(:sti_post_and_comments, :sti_comments), Post.find(:all, :include => [:author, :comments], :conditions => "authors.name = 'David'", :order => 'UPPER(posts.title) DESC, posts.id', :limit => 2, :offset => 1)
   end
 
+  def test_preload_with_interpolation
+    assert_equal [comments(:greetings)], Post.find(posts(:welcome).id, :include => :comments_with_interpolated_conditions).comments_with_interpolated_conditions
+  end
+
+  def test_polymorphic_type_condition
+    post = Post.find(posts(:thinking).id, :include => :taggings)
+    assert post.taggings.include?(taggings(:thinking_general))
+    post = SpecialPost.find(posts(:thinking).id, :include => :taggings)
+    assert post.taggings.include?(taggings(:thinking_general))
+  end
+
   def test_eager_with_multiple_associations_with_same_table_has_many_and_habtm
     # Eager includes of has many and habtm associations aren't necessarily sorted in the same way
     def assert_equal_after_sort(item1, item2, item3 = nil)
@@ -405,34 +424,40 @@ class EagerAssociationTest < ActiveSupport::TestCase
 
   def test_preconfigured_includes_with_belongs_to
     author = posts(:welcome).author_with_posts
-    assert_equal 5, author.posts.size
+    assert_no_queries {assert_equal 5, author.posts.size}
   end
 
   def test_preconfigured_includes_with_has_one
     comment = posts(:sti_comments).very_special_comment_with_post
-    assert_equal posts(:sti_comments), comment.post
+    assert_no_queries {assert_equal posts(:sti_comments), comment.post}
   end
 
   def test_preconfigured_includes_with_has_many
     posts = authors(:david).posts_with_comments
     one = posts.detect { |p| p.id == 1 }
-    assert_equal 5, posts.size
-    assert_equal 2, one.comments.size
+    assert_no_queries do
+      assert_equal 5, posts.size
+      assert_equal 2, one.comments.size
+    end
   end
 
   def test_preconfigured_includes_with_habtm
     posts = authors(:david).posts_with_categories
     one = posts.detect { |p| p.id == 1 }
-    assert_equal 5, posts.size
-    assert_equal 2, one.categories.size
+    assert_no_queries do
+      assert_equal 5, posts.size
+      assert_equal 2, one.categories.size
+    end
   end
 
   def test_preconfigured_includes_with_has_many_and_habtm
     posts = authors(:david).posts_with_comments_and_categories
     one = posts.detect { |p| p.id == 1 }
-    assert_equal 5, posts.size
-    assert_equal 2, one.comments.size
-    assert_equal 2, one.categories.size
+    assert_no_queries do
+      assert_equal 5, posts.size
+      assert_equal 2, one.comments.size
+      assert_equal 2, one.categories.size
+    end
   end
 
   def test_count_with_include

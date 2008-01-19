@@ -317,7 +317,7 @@ class AssociationsJoinModelTest < ActiveSupport::TestCase
       assert_equal posts(:welcome, :thinking), tags(:general).taggables
     end
     assert_raise ActiveRecord::EagerLoadPolymorphicError do
-      assert_equal posts(:welcome, :thinking), tags(:general).taggings.find(:all, :include => :taggable)
+      assert_equal posts(:welcome, :thinking), tags(:general).taggings.find(:all, :include => :taggable, :conditions => 'bogus_table.column = 1')
     end
   end
 
@@ -331,6 +331,7 @@ class AssociationsJoinModelTest < ActiveSupport::TestCase
     assert_no_queries do
       assert_equal desired, tag_with_include.tagged_posts
     end
+    assert_equal 4, tag_with_include.taggings.length
   end
 
   def test_has_many_through_has_many_find_all
@@ -544,6 +545,62 @@ class AssociationsJoinModelTest < ActiveSupport::TestCase
     comment_ids = authors(:david).comments.map(&:id)
     assert_equal comment_ids.sort, authors(:david).ordered_uniq_comments.map(&:id)
     assert_equal comment_ids.sort.reverse, authors(:david).ordered_uniq_comments_desc.map(&:id)
+  end
+
+  def test_polymorphic_has_many
+    expected = taggings(:welcome_general)
+    p = Post.find(posts(:welcome).id, :include => :taggings)
+    assert_no_queries {assert p.taggings.include?(expected)}
+    assert posts(:welcome).taggings.include?(taggings(:welcome_general))
+  end
+
+  def test_polymorphic_has_one
+    expected = posts(:welcome)
+
+    tagging  = Tagging.find(taggings(:welcome_general).id, :include => :taggable)
+    assert_no_queries { assert_equal expected, tagging.taggable}
+  end
+
+  def test_polymorphic_belongs_to
+    p = Post.find(posts(:welcome).id, :include => {:taggings => :taggable})
+    assert_no_queries {assert_equal posts(:welcome), p.taggings.first.taggable}
+  end
+
+  def test_preload_polymorphic_has_many_through
+    posts           = Post.find(:all, :order => 'posts.id')
+    posts_with_tags = Post.find(:all, :include => :tags, :order => 'posts.id')
+    assert_equal posts.length, posts_with_tags.length
+    posts.length.times do |i|
+      assert_equal posts[i].tags.length, assert_no_queries { posts_with_tags[i].tags.length }
+    end
+  end
+
+  def test_preload_polymorph_many_types
+    taggings = Tagging.find :all, :include => :taggable, :conditions => ['taggable_type != ?', 'FakeModel']
+    assert_no_queries do
+      taggings.first.taggable.id
+      taggings[1].taggable.id
+    end
+
+    taggables = taggings.map(&:taggable)
+    assert taggables.include?(items(:dvd))
+    assert taggables.include?(posts(:welcome))
+  end
+
+  def test_preload_polymorphic_has_many
+    posts               = Post.find(:all, :order => 'posts.id')
+    posts_with_taggings = Post.find(:all, :include => :taggings, :order => 'posts.id')
+    assert_equal posts.length, posts_with_taggings.length
+    posts.length.times do |i|
+      assert_equal posts[i].taggings.length, assert_no_queries { posts_with_taggings[i].taggings.length }
+    end
+  end
+
+  def test_belongs_to_shared_parent
+    comments = Comment.find(:all, :include => :post, :conditions => 'post_id = 1')
+    assert_no_queries do
+      assert_equal comments.first.post, comments[1].post
+    end
   end
 
   private

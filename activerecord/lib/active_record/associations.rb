@@ -1365,9 +1365,13 @@ module ActiveRecord
         def include_eager_order?(options)
           order = options[:order]
           return false unless order
-          order.scan(/([\.\w]+)\.\w+/).flatten.any? do |order_table_name|
+          order.to_s.scan(/([\.\w]+)\.\w+/).flatten.any? do |order_table_name|
             order_table_name != table_name
           end
+        end
+
+        def references_eager_loaded_tables?(options)
+          include_eager_order?(options) || include_eager_conditions?(options)
         end
 
         def using_limitable_reflections?(reflections)

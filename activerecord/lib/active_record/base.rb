@@ -1237,9 +1237,16 @@ module ActiveRecord #:nodoc:
         end
 
         def find_every(options)
-          records = scoped?(:find, :include) || options[:include] ?
-            find_with_associations(options) :
-            find_by_sql(construct_finder_sql(options))
+          include_associations = merge_includes(scope(:find, :include), options[:include])
+
+          if include_associations.any? && references_eager_loaded_tables?(options)
+            records = find_with_associations(options)
+          else
+            records = find_by_sql(construct_finder_sql(options))
+            if include_associations.any?
+              preload_associations(records, include_associations)
+            end
+          end
 
           records.each { |record| record.readonly! } if options[:readonly]
 

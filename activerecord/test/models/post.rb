@@ -13,6 +13,9 @@ class Post < ActiveRecord::Base
     end
   end
 
+  has_many :comments_with_interpolated_conditions, :class_name => 'Comment',
+      :conditions => ['#{"#{aliased_table_name}." rescue ""}body = ?', 'Thank you for the welcome']
+
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, :class_name => "VerySpecialComment", :include => :post
   has_many :special_comments

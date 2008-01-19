@@ -21,6 +21,11 @@ class AssociationsTest < ActiveSupport::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers
 
+  def test_include_with_order_works
+    assert_nothing_raised {Account.find(:first, :order => 'id', :include => :firm)}
+    assert_nothing_raised {Account.find(:first, :order => :id, :include => :firm)}
+  end
+
   def test_bad_collection_keys
     assert_raise(ArgumentError, 'ActiveRecord should have barked on bad collection keys') do
       Class.new(ActiveRecord::Base).has_many(:wheels, :name => 'wheels')
