@@ -35,6 +35,11 @@ require 'tmail/utils'
 
 
 module TMail
+  
+  class << self
+    attr_accessor :KCODE
+  end
+  self.KCODE = 'NONE'
 
   module StrategyInterface
 
@@ -90,8 +95,8 @@ module TMail
     }
 
     def self.decode( str, encoding = nil )
-      encoding ||= (OUTPUT_ENCODING[$KCODE] || 'j')
-      opt = '-m' + encoding
+      encoding ||= (OUTPUT_ENCODING[TMail.KCODE] || 'j')
+      opt = '-mS' + encoding
       str.gsub(ENCODED_WORDS) {|s| NKF.nkf(opt, s) }
     end
 
@@ -193,8 +198,9 @@ module TMail
 
     def initialize( dest = nil, encoding = nil, eol = "\r\n", limit = nil )
       @f = StrategyInterface.create_dest(dest)
-      @opt = OPTIONS[$KCODE]
+      @opt = OPTIONS[TMail.KCODE]
       @eol = eol
+      @folded = false
       @preserve_quotes = true
       reset
     end
@@ -367,11 +373,16 @@ module TMail
     end
 
     def concat_A_S( types, strs )
+      if RUBY_VERSION < '1.9'
+        a = ?a; s = ?s
+      else
+        a = 'a'.ord; s = 's'.ord
+      end
       i = 0
       types.each_byte do |t|
         case t
-        when ?a then add_text strs[i]
-        when ?s then add_lwsp strs[i]
+        when a then add_text strs[i]
+        when s then add_lwsp strs[i]
         else
           raise "TMail FATAL: unknown flag: #{t.chr}"
         end

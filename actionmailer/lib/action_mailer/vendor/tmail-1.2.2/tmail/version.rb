@@ -1,5 +1,5 @@
 #
-# info.rb
+# version.rb
 #
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
@@ -27,9 +27,12 @@
 # with permission of Minero Aoki.
 #++
 
-module TMail
+module TMail #:nodoc:
+  module VERSION #:nodoc:
+    MAJOR = 1
+    MINOR = 2
+    TINY  = 2
 
-  Version   = '0.10.7'
-  Copyright = 'Copyright (c) 1998-2002 Minero Aoki'
-
+    STRING = [MAJOR, MINOR, TINY].join('.')
+  end
 end

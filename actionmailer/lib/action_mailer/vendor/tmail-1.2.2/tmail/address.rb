@@ -41,7 +41,41 @@ module TMail
     include TextUtils
 
     def Address.parse( str )
-      Parser.parse :ADDRESS, str
+      Parser.parse :ADDRESS, special_quote_address(str)
+    end
+    
+    # Takes a string which is an address and adds quotation marks to special
+    # edge case methods that the parser just barfs on.
+    #
+    # Right now just handles two edge cases:
+    #
+    # Full stop as the last character of the display name:
+    #   Mikel A. <mikel@me.com>
+    # Returns:
+    #   "Mikel A." <mikel@me.com>
+    #
+    # Unquoted @ symbol in the display name:
+    #   mikel@me.com <mikel@me.com>
+    # Returns:
+    #   "mikel@me.com" <mikel@me.com>
+    #
+    # Any other address not matching these patterns just gets returned as is. 
+    def Address.special_quote_address(str)
+      case
+      # This handles the missing "" in an older version of Apple Mail.app
+      # around the display name when the display name contains a '@'
+      # like 'mikel@me.com <mikel@me.com>'
+      # Just quotes it to: '"mikel@me.com" <mikel@me.com>'
+      when str =~ /\A([^"].+@.+[^"])\s(<.*?>)\Z/
+        return "\"#{$1}\" #{$2}"
+      # This handles cases where 'Mikel A. <mikel@me.com>' which is a trailing
+      # full stop before the address section.  Just quotes it to
+      # '"Mikel A. <mikel@me.com>"
+      when str =~ /\A(.*?\.)\s(<.*?>)\Z/
+        return "\"#{$1}\" #{$2}"
+      else
+        str
+      end
     end
 
     def address_group?
@@ -54,8 +88,16 @@ module TMail
           raise SyntaxError, 'empty word in domain' if s.empty?
         end
       end
+      
+      # This is to catch an unquoted "@" symbol in the local part of the
+      # address.  Handles addresses like <"@"@me.com> and makes sure they
+      # stay like <"@"@me.com> (previously were becomming <@@me.com>)
+      if local && (local.join == '@' || local.join =~ /\A[^"].*?@.*?[^"]\Z/)
+        @local = "\"#{local.join}\""
+      else
+        @local = local
+      end
 
-      @local = local
       @domain = domain
       @name   = nil
       @routes = []
@@ -80,7 +122,12 @@ module TMail
     def local
       return nil unless @local
       return '""' if @local.size == 1 and @local[0].empty?
-      @local.map {|i| quote_atom(i) }.join('.')
+      # Check to see if it is an array before trying to map it
+      if @local.respond_to?(:map)
+        @local.map {|i| quote_atom(i) }.join('.')
+      else
+        quote_atom(@local)
+      end
     end
 
     def domain

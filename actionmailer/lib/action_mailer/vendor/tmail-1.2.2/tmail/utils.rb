@@ -239,7 +239,7 @@ module TMail
     }
 
     def to_kcode( str )
-      flag = NKF_FLAGS[$KCODE] or return str
+      flag = NKF_FLAGS[TMail.KCODE] or return str
       NKF.nkf(flag, str)
     end
 

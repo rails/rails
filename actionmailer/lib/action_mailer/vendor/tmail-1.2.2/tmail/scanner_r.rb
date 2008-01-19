@@ -105,7 +105,7 @@ module TMail
       @received  = (scantype == :RECEIVED)
       @is_mime_header = MIME_HEADERS[scantype]
 
-      atom, token, @quoted_re, @domlit_re, @comment_re = PATTERN_TABLE[$KCODE]
+      atom, token, @quoted_re, @domlit_re, @comment_re = PATTERN_TABLE[TMail.KCODE]
       @word_re = (MIME_HEADERS[scantype] ? token : atom)
     end
 
@@ -145,34 +145,34 @@ module TMail
 
         if s = readstr(@word_re)
           if @is_mime_header
-            yield :TOKEN, s
+            yield [:TOKEN, s]
           else
             # atom
             if /\A\d+\z/ === s
-              yield :DIGIT, s
+              yield [:DIGIT, s]
             elsif @received
-              yield RECV_TOKEN[s.downcase] || :ATOM, s
+              yield [RECV_TOKEN[s.downcase] || :ATOM, s]
             else
-              yield :ATOM, s
+              yield [:ATOM, s]
             end
           end
 
         elsif skip(/\A"/)
-          yield :QUOTED, scan_quoted_word()
+          yield [:QUOTED, scan_quoted_word()]
 
         elsif skip(/\A\[/)
-          yield :DOMLIT, scan_domain_literal()
+          yield [:DOMLIT, scan_domain_literal()]
 
         elsif skip(/\A\(/)
           @comments.push scan_comment()
 
         else
           c = readchar()
-          yield c, c
+          yield [c, c]
         end
       end
 
-      yield false, '$'
+      yield [false, '$']
     end
 
     def scan_quoted_word

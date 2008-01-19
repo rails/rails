@@ -214,7 +214,11 @@ module TMail
 
     def comments
       ensure_parsed
-      @comments
+      if @comments[0]
+        [Decoder.decode(@comments[0])]
+      else
+        @comments
+      end
     end
 
     private

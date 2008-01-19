@@ -29,6 +29,7 @@
 # with permission of Minero Aoki.
 #++
 
+#require 'tmail/require_arch'
 require 'tmail/utils'
 require 'tmail/config'
 
