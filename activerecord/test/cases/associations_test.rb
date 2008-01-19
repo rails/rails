@@ -470,7 +470,7 @@ end
 
 class HasManyAssociationsTest < ActiveSupport::TestCase
   fixtures :accounts, :companies, :developers, :projects,
-           :developers_projects, :topics, :authors, :comments
+           :developers_projects, :topics, :authors, :comments, :author_addresses
 
   def setup
     Client.destroyed_client_ids.clear
@@ -993,6 +993,23 @@ class HasManyAssociationsTest < ActiveSupport::TestCase
     firm.destroy
     # only the correctly associated client should have been deleted
     assert_equal 1, Client.find_all_by_client_of(firm.id).size
+  end
+
+  def test_dependent_delete_and_destroy_with_belongs_to
+    author_address = author_addresses(:david_address)
+    assert_equal [], AuthorAddress.destroyed_author_address_ids[authors(:david).id]
+
+    assert_difference "AuthorAddress.count", -2 do
+      authors(:david).destroy
+    end
+
+    assert_equal [author_address.id], AuthorAddress.destroyed_author_address_ids[authors(:david).id]
+  end
+
+  def test_invalid_belongs_to_dependent_option_raises_exception
+    assert_raises ArgumentError do
+      Author.belongs_to :special_author_address, :dependent => :nullify
+    end
   end
 
   def test_clearing_without_initial_access

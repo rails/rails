@@ -65,7 +65,8 @@ class Author < ActiveRecord::Base
   has_many :tags,     :through => :posts # through has_many :through
   has_many :post_categories, :through => :posts, :source => :categories
 
-  belongs_to :author_address
+  belongs_to :author_address, :dependent => :destroy
+  belongs_to :author_address_extra, :dependent => :delete, :class_name => "AuthorAddress"
 
   attr_accessor :post_log
 
@@ -101,6 +102,17 @@ end
 
 class AuthorAddress < ActiveRecord::Base
   has_one :author
+
+  def self.destroyed_author_address_ids
+    @destroyed_author_address_ids ||= Hash.new { |h,k| h[k] = [] }
+  end
+
+  before_destroy do |author_address|
+    if author_address.author
+      AuthorAddress.destroyed_author_address_ids[author_address.author.id] << author_address.id
+    end
+    true
+  end
 end
 
 class AuthorFavorite < ActiveRecord::Base

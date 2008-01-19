@@ -239,9 +239,9 @@ ActiveRecord::Schema.define do
 
   add_column :posts, :taggings_count, :integer, :default => 0
   add_column :authors, :author_address_id, :integer
+  add_column :authors, :author_address_extra_id, :integer
 
   create_table :author_addresses, :force => true do |t|
-    t.column :author_address_id, :integer
   end
 
   create_table :author_favorites, :force => true do |t|

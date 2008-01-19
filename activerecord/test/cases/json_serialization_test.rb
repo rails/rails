@@ -151,7 +151,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveSupport::TestCase
   def test_should_allow_except_option_for_list_of_authors
     authors = [@david, @mary]
 
-    assert_equal %([{"id": 1}, {"id": 2}]), authors.to_json(:except => [:name, :author_address_id])
+    assert_equal %([{"id": 1}, {"id": 2}]), authors.to_json(:except => [:name, :author_address_id, :author_address_extra_id])
   end
 
   def test_should_allow_includes_for_list_of_authors

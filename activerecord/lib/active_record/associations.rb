@@ -792,6 +792,10 @@ module ActiveRecord
       # * <tt>:foreign_key</tt> - specify the foreign key used for the association. By default this is guessed to be the name
       #   of the association with an +_id+ suffix. So a class that defines a +belongs_to :person+ association will use +person_id+ as the default +foreign_key+.
       #   Similarly, +belongs_to :favorite_person, :class_name => "Person"+ will use a foreign key of +favorite_person_id+.
+      # * <tt>:dependent</tt>   - if set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
+      #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method. This option should not be specified when
+      #   <tt>belongs_to</tt> is used in conjunction with a <tt>has_many</tt> relationship on another class because of the potential to leave
+      #   orphaned records behind.
       # * <tt>:counter_cache</tt> - caches the number of belonging objects on the associate class through the use of +increment_counter+
       #   and +decrement_counter+. The counter cache is incremented when an object of this class is created and decremented when it's
       #   destroyed. This requires that a column named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging +Comment+ class)
@@ -876,6 +880,8 @@ module ActiveRecord
             "#{reflection.class_name}.send(:attr_readonly,\"#{cache_column}\".intern) if defined?(#{reflection.class_name}) && #{reflection.class_name}.respond_to?(:attr_readonly)"
           )
         end
+
+        configure_dependency_for_belongs_to(reflection)
       end
 
       # Associates two classes via an intermediate join table.  Unless the join table is explicitly specified as
@@ -1198,6 +1204,19 @@ module ActiveRecord
                 module_eval "before_destroy '#{reflection.name}.update_attribute(\"#{reflection.primary_key_name}\", nil) unless #{reflection.name}.nil?'"
               else
                 raise ArgumentError, "The :dependent option expects either :destroy, :delete or :nullify (#{reflection.options[:dependent].inspect})"
+            end
+          end
+        end
+
+        def configure_dependency_for_belongs_to(reflection)
+          if reflection.options.include?(:dependent)
+            case reflection.options[:dependent]
+              when :destroy
+                module_eval "before_destroy '#{reflection.name}.destroy unless #{reflection.name}.nil?'"
+              when :delete
+                module_eval "before_destroy '#{reflection.class_name}.delete(#{reflection.name}.id) unless #{reflection.name}.nil?'"
+              else
+                raise ArgumentError, "The :dependent option expects either :destroy or :delete (#{reflection.options[:dependent].inspect})"
             end
           end
         end
