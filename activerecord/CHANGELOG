@@ -1,5 +1,7 @@
 *SVN*
 
+* Support aggregations in finder conditions.  #10572 [Ryan Kinderman]
+
 * Organize and clean up the Active Record test suite.  #10742 [John Barnette]
 
 * Ensure that modifying has_and_belongs_to_many actions clear the query cache.  Closes #10840 [john.andrews]

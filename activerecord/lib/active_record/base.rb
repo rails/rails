@@ -1560,7 +1560,23 @@ module ActiveRecord #:nodoc:
           attributes
         end
 
+        # Similar in purpose to +expand_hash_conditions_for_aggregates+.
+        def expand_attribute_names_for_aggregates(attribute_names)
+          expanded_attribute_names = []
+          attribute_names.each do |attribute_name|
+            unless (aggregation = reflect_on_aggregation(attribute_name.to_sym)).nil?
+              aggregate_mapping(aggregation).each do |field_attr, aggregate_attr|
+                expanded_attribute_names << field_attr
+              end
+            else
+              expanded_attribute_names << attribute_name
+            end
+          end
+          expanded_attribute_names
+        end
+
         def all_attributes_exists?(attribute_names)
+          attribute_names = expand_attribute_names_for_aggregates(attribute_names)
           attribute_names.all? { |name| column_methods_hash.include?(name.to_sym) }
         end
 
@@ -1801,6 +1817,41 @@ module ActiveRecord #:nodoc:
           end
         end
 
+        def aggregate_mapping(reflection)
+          mapping = reflection.options[:mapping] || [reflection.name, reflection.name]
+          mapping.first.is_a?(Array) ? mapping : [mapping]
+        end
+
+        # Accepts a hash of sql conditions and replaces those attributes
+        # that correspond to a +composed_of+ relationship with their expanded
+        # aggregate attribute values.
+        # Given:
+        #     class Person < ActiveRecord::Base
+        #       composed_of :address, :class_name => "Address",
+        #         :mapping => [%w(address_street street), %w(address_city city)]
+        #     end
+        # Then:
+        #     { :address => Address.new("813 abc st.", "chicago") }
+        #       # => { :address_street => "813 abc st.", :address_city => "chicago" }
+        def expand_hash_conditions_for_aggregates(attrs)
+          expanded_attrs = {}
+          attrs.each do |attr, value|
+            unless (aggregation = reflect_on_aggregation(attr.to_sym)).nil?
+              mapping = aggregate_mapping(aggregation)
+              mapping.each do |field_attr, aggregate_attr|
+                if mapping.size == 1 && !value.respond_to?(aggregate_attr)
+                  expanded_attrs[field_attr] = value
+                else
+                  expanded_attrs[field_attr] = value.send(aggregate_attr)
+                end
+              end
+            else
+              expanded_attrs[attr] = value
+            end
+          end
+          expanded_attrs
+        end
+
         # Sanitizes a hash of attribute/value pairs into SQL conditions for a WHERE clause.
         #   { :name => "foo'bar", :group_id => 4 }
         #     # => "name='foo''bar' and group_id= 4"
@@ -1810,7 +1861,12 @@ module ActiveRecord #:nodoc:
         #     # => "age BETWEEN 13 AND 18"
         #   { 'other_records.id' => 7 }
         #     # => "`other_records`.`id` = 7"
+        # And for value objects on a composed_of relationship:
+        #   { :address => Address.new("123 abc st.", "chicago") }
+        #     # => "address_street='123 abc st.' and address_city='chicago'"
         def sanitize_sql_hash_for_conditions(attrs)
+          attrs = expand_hash_conditions_for_aggregates(attrs)
+
           conditions = attrs.map do |attr, value|
             attr = attr.to_s
 
