@@ -78,11 +78,6 @@ class NewRenderTestController < ActionController::Base
     @secret = 'in the sauce'
     render :file => 'test/render_file_with_ivar', :use_full_path => true
   end
- 
-  def render_file_not_using_full_path_with_relative_path
-    @secret = 'in the sauce'
-    render :file => 'test/../test/render_file_with_ivar', :use_full_path => true
-  end
   
   def render_file_not_using_full_path_with_dot_in_path
     @secret = 'in the sauce'
@@ -485,11 +480,6 @@ class NewRenderTest < Test::Unit::TestCase
 
   def test_render_file_not_using_full_path
     get :render_file_not_using_full_path 
-    assert_equal "The secret is in the sauce\n", @response.body
-  end
-
-  def test_render_file_not_using_full_path_with_relative_path
-    get :render_file_not_using_full_path_with_relative_path
     assert_equal "The secret is in the sauce\n", @response.body
   end
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce TemplateFinder to handle view paths and lookups.  #10800 [Pratik Naik]
+
 * Make render :partial recognise form builders and use the _form partial.  #10814 [djanowski]
 
 * Allow users to declare other namespaces when using the atom feed helpers. #10304 [david.calavera]
