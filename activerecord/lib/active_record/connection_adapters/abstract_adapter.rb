@@ -66,11 +66,6 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
-      # Override to return the quoted column name. Defaults to no quoting.
-      def quote_table_name(name)
-        name
-      end
-
       # Override to return the quoted table name. Defaults to column quoting.
       def quote_table_name(name)
         quote_column_name(name)
