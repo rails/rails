@@ -145,7 +145,10 @@ module Mime
     end
     
     def ==(mime_type)
-      (@synonyms + [ self ]).any? { |synonym| synonym.to_s == mime_type.to_s } if mime_type
+      return false unless mime_type
+      (@synonyms + [ self ]).any? do |synonym| 
+        synonym.to_s == mime_type.to_s || synonym.to_sym == mime_type.to_sym 
+      end
     end
     
     private
