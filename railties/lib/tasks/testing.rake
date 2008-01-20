@@ -38,7 +38,7 @@ module Kernel
   end
 end
 
-desc 'Test all units and functionals'
+desc 'Run all unit, functional and integration tests'
 task :test do
   errors = %w(test:units test:functionals test:integration).collect do |task|
     begin
