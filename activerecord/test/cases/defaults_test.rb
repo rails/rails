@@ -1,8 +1,8 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/default'
 require 'models/entrant'
 
-class DefaultTest < ActiveSupport::TestCase
+class DefaultTest < ActiveRecord::TestCase
   def test_nil_defaults_for_not_null_columns
     column_defaults =
       if current_adapter?(:MysqlAdapter)

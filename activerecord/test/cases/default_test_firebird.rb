@@ -1,7 +1,7 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/default'
 
-class DefaultTest < ActiveSupport::TestCase
+class DefaultTest < ActiveRecord::TestCase
   def test_default_timestamp
     default = Default.new
     assert_instance_of(Time, default.default_timestamp)

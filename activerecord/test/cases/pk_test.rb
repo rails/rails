@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/topic'
 require 'models/reply'
 require 'models/subscriber'
@@ -6,7 +6,7 @@ require 'models/movie'
 require 'models/keyboard'
 require 'models/mixed_case_monkey'
 
-class PrimaryKeysTest < ActiveSupport::TestCase
+class PrimaryKeysTest < ActiveRecord::TestCase
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
 
   def test_integer_key

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/developer'
 require 'models/project'
 require 'models/company'
@@ -17,7 +17,7 @@ require 'models/tagging'
 require 'models/person'
 require 'models/reader'
 
-class AssociationsTest < ActiveSupport::TestCase
+class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers
 
@@ -78,7 +78,7 @@ class AssociationsTest < ActiveSupport::TestCase
   end
 end
 
-class AssociationProxyTest < ActiveSupport::TestCase
+class AssociationProxyTest < ActiveRecord::TestCase
   fixtures :authors, :posts, :categorizations, :categories, :developers, :projects, :developers_projects
 
   def test_proxy_accessors
@@ -171,7 +171,7 @@ class AssociationProxyTest < ActiveSupport::TestCase
   end
 end
 
-class HasOneAssociationsTest < ActiveSupport::TestCase
+class HasOneAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects
 
   def setup
@@ -468,7 +468,7 @@ class HasOneAssociationsTest < ActiveSupport::TestCase
 end
 
 
-class HasManyAssociationsTest < ActiveSupport::TestCase
+class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments, :author_addresses
 
@@ -1218,7 +1218,7 @@ class HasManyAssociationsTest < ActiveSupport::TestCase
 
 end
 
-class BelongsToAssociationsTest < ActiveSupport::TestCase
+class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects, :computers, :authors, :posts, :tags, :taggings
 
@@ -1594,7 +1594,7 @@ class DeveloperForProjectWithAfterCreateHook < ActiveRecord::Base
 end
 
 
-class HasAndBelongsToManyAssociationsTest < ActiveSupport::TestCase
+class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects
 
   def test_has_and_belongs_to_many
@@ -2134,7 +2134,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveSupport::TestCase
 end
 
 
-class OverridingAssociationsTest < ActiveSupport::TestCase
+class OverridingAssociationsTest < ActiveRecord::TestCase
   class Person < ActiveRecord::Base; end
   class DifferentPerson < ActiveRecord::Base; end
 

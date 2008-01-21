@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 
 class Group < ActiveRecord::Base
   Group.table_name = 'group'
@@ -23,7 +23,7 @@ end
 
 # a suite of tests to ensure the ConnectionAdapters#MysqlAdapter can handle tables with
 # reserved word names (ie: group, order, values, etc...)
-class MysqlReservedWordTest < ActiveSupport::TestCase
+class MysqlReservedWordTest < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
 
@@ -156,8 +156,7 @@ class MysqlReservedWordTest < ActiveSupport::TestCase
   private
   # custom fixture loader, uses Fixtures#create_fixtures and appends base_path to the current file's path
   def create_test_fixtures(*fixture_names)
-    fixture_path = "./test/fixtures/reserved_words"
-    Fixtures.create_fixtures(fixture_path, fixture_names)
+    Fixtures.create_fixtures(FIXTURES_ROOT + "/reserved_words", fixture_names)
   end
 
   # custom drop table, uses execute on connection to drop a table if it exists. note: escapes table_name

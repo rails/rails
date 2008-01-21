@@ -1,7 +1,7 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/entrant'
 
-class DeprecatedFinderTest < ActiveSupport::TestCase
+class DeprecatedFinderTest < ActiveRecord::TestCase
   fixtures :entrants
 
   def test_deprecated_find_all_was_removed

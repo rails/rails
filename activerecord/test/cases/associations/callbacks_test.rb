@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/post'
 require 'models/comment'
 require 'models/author'
@@ -6,7 +6,7 @@ require 'models/category'
 require 'models/project'
 require 'models/developer'
 
-class AssociationCallbacksTest < ActiveSupport::TestCase
+class AssociationCallbacksTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :projects, :developers
 
   def setup

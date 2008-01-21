@@ -4,7 +4,9 @@ require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
+
 require File.join(File.dirname(__FILE__), 'lib', 'active_record', 'version')
+require File.expand_path(File.dirname(__FILE__)) + "/test/config"
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME      = 'activerecord'
@@ -31,7 +33,7 @@ for adapter in %w( mysql postgresql sqlite sqlite3 firebird db2 oracle sybase op
   Rake::TestTask.new("test_#{adapter}") { |t|
     t.libs << "test" << "test/connections/native_#{adapter}"
     adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z]+/]
-    t.pattern = "test/**/*_test{,_#{adapter_short}}.rb"
+    t.pattern = "test/cases/**/*_test{,_#{adapter_short}}.rb"
     t.verbose = true
   }
 
@@ -39,8 +41,6 @@ for adapter in %w( mysql postgresql sqlite sqlite3 firebird db2 oracle sybase op
     task :test => "test_#{adapter}"
   end
 end
-
-SCHEMA_PATH = File.join(File.dirname(__FILE__), *%w(test fixtures db_definitions))
 
 namespace :mysql do
   desc 'Build the MySQL test databases'
@@ -71,8 +71,8 @@ namespace :postgresql do
   task :build_databases do
     %x( createdb -U postgres activerecord_unittest )
     %x( createdb -U postgres activerecord_unittest2 )
-    %x( psql activerecord_unittest -f #{File.join(SCHEMA_PATH, 'postgresql.sql')} postgres )
-    %x( psql activerecord_unittest2 -f #{File.join(SCHEMA_PATH, 'postgresql2.sql')}  postgres )
+    %x( psql activerecord_unittest -f #{File.join(SCHEMA_ROOT, 'postgresql.sql')} postgres )
+    %x( psql activerecord_unittest2 -f #{File.join(SCHEMA_ROOT, 'postgresql2.sql')}  postgres )
   end
 
   desc 'Drop the PostgreSQL test databases'
@@ -117,8 +117,8 @@ namespace :frontbase do
         DISCONNECT ALL;
       )
     end
-    create_activerecord_unittest  = build_frontbase_database['activerecord_unittest',  File.join(SCHEMA_PATH, 'frontbase.sql')]
-    create_activerecord_unittest2 = build_frontbase_database['activerecord_unittest2', File.join(SCHEMA_PATH, 'frontbase2.sql')]
+    create_activerecord_unittest  = build_frontbase_database['activerecord_unittest',  File.join(SCHEMA_ROOT, 'frontbase.sql')]
+    create_activerecord_unittest2 = build_frontbase_database['activerecord_unittest2', File.join(SCHEMA_ROOT, 'frontbase2.sql')]
     execute_frontbase_sql = Proc.new do |sql|
       system(<<-SHELL)
       /Library/FrontBase/bin/sql92 <<-SQL
@@ -174,10 +174,10 @@ spec = Gem::Specification.new do |s|
 
   s.add_dependency('activesupport', '= 2.0.2' + PKG_BUILD)
 
-  s.files.delete "test/fixtures/fixture_database.sqlite"
-  s.files.delete "test/fixtures/fixture_database_2.sqlite"
-  s.files.delete "test/fixtures/fixture_database.sqlite3"
-  s.files.delete "test/fixtures/fixture_database_2.sqlite3"
+  s.files.delete FIXTURES_ROOT + "/fixture_database.sqlite"
+  s.files.delete FIXTURES_ROOT + "/fixture_database_2.sqlite"
+  s.files.delete FIXTURES_ROOT + "/fixture_database.sqlite3"
+  s.files.delete FIXTURES_ROOT + "/fixture_database_2.sqlite3"
   s.require_path = 'lib'
   s.autorequire = 'active_record'
 

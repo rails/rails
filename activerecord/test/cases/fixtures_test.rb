@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/post'
 require 'models/binary'
 require 'models/topic'
@@ -16,7 +16,7 @@ require 'models/treasure'
 require 'models/matey'
 require 'models/ship'
 
-class FixturesTest < ActiveSupport::TestCase
+class FixturesTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
   self.use_transactional_fixtures = false
 
@@ -26,8 +26,6 @@ class FixturesTest < ActiveSupport::TestCase
                  developers developers_projects entrants
                  movies projects subscribers topics tasks )
   MATCH_ATTRIBUTE_NAME = /[a-zA-Z][-_\w]*/
-
-  BINARY_FIXTURE_PATH = File.dirname(__FILE__) + '/../assets/flowers.jpg'
 
   def test_clean_fixtures
     FIXTURES.each do |name|
@@ -140,26 +138,26 @@ class FixturesTest < ActiveSupport::TestCase
   end
 
   def test_empty_yaml_fixture
-    assert_not_nil Fixtures.new( Account.connection, "accounts", 'Account', File.dirname(__FILE__) + "/../fixtures/naked/yml/accounts")
+    assert_not_nil Fixtures.new( Account.connection, "accounts", 'Account', FIXTURES_ROOT + "/naked/yml/accounts")
   end
 
   def test_empty_yaml_fixture_with_a_comment_in_it
-    assert_not_nil Fixtures.new( Account.connection, "companies", 'Company', File.dirname(__FILE__) + "/../fixtures/naked/yml/companies")
+    assert_not_nil Fixtures.new( Account.connection, "companies", 'Company', FIXTURES_ROOT + "/naked/yml/companies")
   end
 
   def test_dirty_dirty_yaml_file
     assert_raises(Fixture::FormatError) do
-      Fixtures.new( Account.connection, "courses", 'Course', File.dirname(__FILE__) + "/../fixtures/naked/yml/courses")
+      Fixtures.new( Account.connection, "courses", 'Course', FIXTURES_ROOT + "/naked/yml/courses")
     end
   end
 
   def test_empty_csv_fixtures
-    assert_not_nil Fixtures.new( Account.connection, "accounts", 'Account', File.dirname(__FILE__) + "/../fixtures/naked/csv/accounts")
+    assert_not_nil Fixtures.new( Account.connection, "accounts", 'Account', FIXTURES_ROOT + "/naked/csv/accounts")
   end
 
   def test_omap_fixtures
     assert_nothing_raised do
-      fixtures = Fixtures.new(Account.connection, 'categories', 'Category', File.dirname(__FILE__) + '/../fixtures/categories_ordered')
+      fixtures = Fixtures.new(Account.connection, 'categories', 'Category', FIXTURES_ROOT + "/categories_ordered")
 
       i = 0
       fixtures.each do |name, fixture|
@@ -182,13 +180,13 @@ class FixturesTest < ActiveSupport::TestCase
 
   def test_binary_in_fixtures
     assert_equal 1, @binaries.size
-    data = File.open(BINARY_FIXTURE_PATH, "rb").read.freeze
+    data = File.open(ASSETS_ROOT + "/flowers.jpg", "rb").read.freeze
     assert_equal data, @flowers.data
   end
 end
 
 if Account.connection.respond_to?(:reset_pk_sequence!)
-  class FixturesResetPkSequenceTest < ActiveSupport::TestCase
+  class FixturesResetPkSequenceTest < ActiveRecord::TestCase
     fixtures :accounts
     fixtures :companies
 
@@ -234,7 +232,7 @@ if Account.connection.respond_to?(:reset_pk_sequence!)
   end
 end
 
-class FixturesWithoutInstantiationTest < ActiveSupport::TestCase
+class FixturesWithoutInstantiationTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = false
   fixtures :topics, :developers, :accounts
 
@@ -269,7 +267,7 @@ class FixturesWithoutInstantiationTest < ActiveSupport::TestCase
   end
 end
 
-class FixturesWithoutInstanceInstantiationTest < ActiveSupport::TestCase
+class FixturesWithoutInstanceInstantiationTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
   self.use_instantiated_fixtures = :no_instances
 
@@ -283,7 +281,7 @@ class FixturesWithoutInstanceInstantiationTest < ActiveSupport::TestCase
   end
 end
 
-class TransactionalFixturesTest < ActiveSupport::TestCase
+class TransactionalFixturesTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
   self.use_transactional_fixtures = true
 
@@ -299,7 +297,7 @@ class TransactionalFixturesTest < ActiveSupport::TestCase
   end
 end
 
-class MultipleFixturesTest < ActiveSupport::TestCase
+class MultipleFixturesTest < ActiveRecord::TestCase
   fixtures :topics
   fixtures :developers, :accounts
 
@@ -308,7 +306,7 @@ class MultipleFixturesTest < ActiveSupport::TestCase
   end
 end
 
-class SetupTest < ActiveSupport::TestCase
+class SetupTest < ActiveRecord::TestCase
   # fixtures :topics
 
   def setup
@@ -332,7 +330,7 @@ class SetupSubclassTest < SetupTest
 end
 
 
-class OverlappingFixturesTest < ActiveSupport::TestCase
+class OverlappingFixturesTest < ActiveRecord::TestCase
   fixtures :topics, :developers
   fixtures :developers, :accounts
 
@@ -341,7 +339,7 @@ class OverlappingFixturesTest < ActiveSupport::TestCase
   end
 end
 
-class ForeignKeyFixturesTest < ActiveSupport::TestCase
+class ForeignKeyFixturesTest < ActiveRecord::TestCase
   fixtures :fk_test_has_pk, :fk_test_has_fk
 
   # if foreign keys are implemented and fixtures
@@ -357,7 +355,7 @@ class ForeignKeyFixturesTest < ActiveSupport::TestCase
   end
 end
 
-class SetTableNameFixturesTest < ActiveSupport::TestCase
+class SetTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class :funny_jokes => 'Joke'
   fixtures :funny_jokes
 
@@ -366,7 +364,7 @@ class SetTableNameFixturesTest < ActiveSupport::TestCase
   end
 end
 
-class CustomConnectionFixturesTest < ActiveSupport::TestCase
+class CustomConnectionFixturesTest < ActiveRecord::TestCase
   set_fixture_class :courses => Course
   fixtures :courses
 
@@ -376,7 +374,7 @@ class CustomConnectionFixturesTest < ActiveSupport::TestCase
   end
 end
 
-class InvalidTableNameFixturesTest < ActiveSupport::TestCase
+class InvalidTableNameFixturesTest < ActiveRecord::TestCase
   fixtures :funny_jokes
 
   def test_raises_error
@@ -386,7 +384,7 @@ class InvalidTableNameFixturesTest < ActiveSupport::TestCase
   end
 end
 
-class CheckEscapedYamlFixturesTest < ActiveSupport::TestCase
+class CheckEscapedYamlFixturesTest < ActiveRecord::TestCase
   set_fixture_class :funny_jokes => 'Joke'
   fixtures :funny_jokes
 
@@ -396,7 +394,7 @@ class CheckEscapedYamlFixturesTest < ActiveSupport::TestCase
 end
 
 class DevelopersProject; end
-class ManyToManyFixturesWithClassDefined < ActiveSupport::TestCase
+class ManyToManyFixturesWithClassDefined < ActiveRecord::TestCase
   fixtures :developers_projects
 
   def test_this_should_run_cleanly
@@ -404,7 +402,7 @@ class ManyToManyFixturesWithClassDefined < ActiveSupport::TestCase
   end
 end
 
-class FixturesBrokenRollbackTest < ActiveSupport::TestCase
+class FixturesBrokenRollbackTest < ActiveRecord::TestCase
   def blank_setup; end
   alias_method :ar_setup_fixtures, :setup_fixtures
   alias_method :setup_fixtures, :blank_setup
@@ -429,8 +427,8 @@ class FixturesBrokenRollbackTest < ActiveSupport::TestCase
     end
 end
 
-class LoadAllFixturesTest < ActiveSupport::TestCase
-  self.fixture_path= File.join(File.dirname(__FILE__), '/../fixtures/all')
+class LoadAllFixturesTest < ActiveRecord::TestCase
+  self.fixture_path = FIXTURES_ROOT + "/all"
   fixtures :all
 
   def test_all_there
@@ -438,7 +436,7 @@ class LoadAllFixturesTest < ActiveSupport::TestCase
   end
 end
 
-class FasterFixturesTest < ActiveSupport::TestCase
+class FasterFixturesTest < ActiveRecord::TestCase
   fixtures :categories, :authors
 
   def load_extra_fixture(name)
@@ -463,7 +461,7 @@ class FasterFixturesTest < ActiveSupport::TestCase
   end
 end
 
-class FoxyFixturesTest < ActiveSupport::TestCase
+class FoxyFixturesTest < ActiveRecord::TestCase
   fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers, :developers
 
   def test_identifies_strings
@@ -583,7 +581,7 @@ class FoxyFixturesTest < ActiveSupport::TestCase
   end
 end
 
-class ActiveSupportSubclassWithFixturesTest < ActiveSupport::TestCase
+class ActiveSupportSubclassWithFixturesTest < ActiveRecord::TestCase
   fixtures :parrots
 
   # This seemingly useless assertion catches a bug that caused the fixtures

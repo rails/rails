@@ -1,5 +1,5 @@
 require 'test/unit'
-require 'abstract_unit'
+require "cases/helper"
 require 'active_support/core_ext/class/inheritable_attributes'
 
 class A
@@ -19,7 +19,7 @@ class D < B
 end
 
 
-class ClassInheritableAttributesTest < ActiveSupport::TestCase
+class ClassInheritableAttributesTest < ActiveRecord::TestCase
   def test_first_level
     assert_equal [ :one, :two ], B.read_inheritable_attribute("first")
     assert_equal [ :three ], C.read_inheritable_attribute("first")

@@ -1,9 +1,9 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/topic'
 require 'models/reply'
 require 'models/developer'
 
-class TransactionTest < ActiveSupport::TestCase
+class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
   fixtures :topics, :developers
 

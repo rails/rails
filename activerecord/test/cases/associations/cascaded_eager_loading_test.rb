@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/post'
 require 'models/comment'
 require 'models/author'
@@ -8,7 +8,7 @@ require 'models/company'
 require 'models/topic'
 require 'models/reply'
 
-class CascadedEagerLoadingTest < ActiveSupport::TestCase
+class CascadedEagerLoadingTest < ActiveRecord::TestCase
   fixtures :authors, :mixins, :companies, :posts, :topics
 
   def test_eager_association_loading_with_cascaded_two_levels
@@ -95,7 +95,7 @@ end
 
 require 'models/vertex'
 require 'models/edge'
-class CascadedEagerLoadingTest < ActiveSupport::TestCase
+class CascadedEagerLoadingTest < ActiveRecord::TestCase
   fixtures :edges, :vertices
 
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_many_through

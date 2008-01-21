@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/topic'
 require 'models/reply'
 require 'models/task'
@@ -7,7 +7,7 @@ require 'models/category'
 require 'models/post'
 
 
-class QueryCacheTest < ActiveSupport::TestCase
+class QueryCacheTest < ActiveRecord::TestCase
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
   def test_find_queries
@@ -57,7 +57,7 @@ end
 
 uses_mocha 'QueryCacheExpiryTest' do
 
-class QueryCacheExpiryTest < ActiveSupport::TestCase
+class QueryCacheExpiryTest < ActiveRecord::TestCase
   fixtures :tasks
 
   def test_find

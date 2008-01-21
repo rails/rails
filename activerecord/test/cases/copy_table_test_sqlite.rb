@@ -1,6 +1,6 @@
-require 'abstract_unit'
+require "cases/helper"
 
-class CopyTableTest < ActiveSupport::TestCase
+class CopyTableTest < ActiveRecord::TestCase
   fixtures :companies, :comments
 
   def setup

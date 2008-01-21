@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 
 class CallbackDeveloper < ActiveRecord::Base
   set_table_name 'developers'
@@ -126,7 +126,7 @@ class CallbackCancellationDeveloper < ActiveRecord::Base
   end
 end
 
-class CallbacksTest < ActiveSupport::TestCase
+class CallbacksTest < ActiveRecord::TestCase
   fixtures :developers
 
   def test_initialize

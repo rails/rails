@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/person'
 require 'models/reader'
 require 'models/legacy_thing'
@@ -14,7 +14,7 @@ class ReadonlyFirstNamePerson < Person
   attr_readonly :first_name
 end
 
-class OptimisticLockingTest < ActiveSupport::TestCase
+class OptimisticLockingTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things
 
   # need to disable transactional fixtures, because otherwise the sqlite3
@@ -176,7 +176,7 @@ end
 # TODO: The SQL Server, Sybase, and OpenBase adapters currently have no support for pessimistic locking
 
 unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :OpenBaseAdapter)
-  class PessimisticLockingTest < ActiveSupport::TestCase
+  class PessimisticLockingTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
     fixtures :people, :readers
 

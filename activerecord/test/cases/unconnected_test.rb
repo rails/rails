@@ -1,9 +1,9 @@
-require 'abstract_unit'
+require "cases/helper"
 
 class TestRecord < ActiveRecord::Base
 end
 
-class TestUnconnectedAdapter < ActiveSupport::TestCase
+class TestUnconnectedAdapter < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def setup

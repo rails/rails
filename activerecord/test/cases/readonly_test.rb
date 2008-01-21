@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/post'
 require 'models/comment'
 require 'models/developer'
@@ -11,7 +11,7 @@ def Comment.foo() find :first end
 def Project.foo() find :first end
 
 
-class ReadOnlyTest < ActiveSupport::TestCase
+class ReadOnlyTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :developers, :projects, :developers_projects
 
   def test_cant_save_readonly_record

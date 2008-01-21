@@ -1,6 +1,6 @@
-require 'abstract_unit'
+require "cases/helper"
 
-class SchemaTest < ActiveSupport::TestCase
+class SchemaTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   SCHEMA_NAME = 'test_schema'

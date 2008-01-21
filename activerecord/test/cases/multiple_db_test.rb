@@ -1,10 +1,10 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/entrant'
 
 # So we can test whether Course.connection survives a reload.
 require_dependency 'models/course'
 
-class MultipleDbTest < ActiveSupport::TestCase
+class MultipleDbTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def setup

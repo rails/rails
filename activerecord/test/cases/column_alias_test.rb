@@ -1,7 +1,7 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/topic'
 
-class TestColumnAlias < ActiveSupport::TestCase
+class TestColumnAlias < ActiveRecord::TestCase
   fixtures :topics
 
   QUERY = if 'Oracle' == ActiveRecord::Base.connection.adapter_name

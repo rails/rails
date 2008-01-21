@@ -1,9 +1,9 @@
-require 'abstract_unit'
+require "cases/helper"
 
 class SchemaThing < ActiveRecord::Base
 end
 
-class SchemaAuthorizationTest < ActiveSupport::TestCase
+class SchemaAuthorizationTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   TABLE_NAME = 'schema_things'

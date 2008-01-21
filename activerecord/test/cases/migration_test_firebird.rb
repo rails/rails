@@ -1,7 +1,7 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/course'
 
-class FirebirdMigrationTest < ActiveSupport::TestCase
+class FirebirdMigrationTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def setup

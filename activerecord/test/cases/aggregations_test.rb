@@ -1,7 +1,7 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/customer'
 
-class AggregationsTest < ActiveSupport::TestCase
+class AggregationsTest < ActiveRecord::TestCase
   fixtures :customers
 
   def test_find_single_value_object
@@ -109,7 +109,7 @@ class AggregationsTest < ActiveSupport::TestCase
   end
 end
 
-class OverridingAggregationsTest < ActiveSupport::TestCase
+class OverridingAggregationsTest < ActiveRecord::TestCase
   class Name; end
   class DifferentName; end
 

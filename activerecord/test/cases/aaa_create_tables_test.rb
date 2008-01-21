@@ -1,12 +1,8 @@
 # The filename begins with "aaa" to ensure this is the first test.
-require 'abstract_unit'
+require "cases/helper"
 
-class AAACreateTablesTest < ActiveSupport::TestCase
+class AAACreateTablesTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
-
-  def setup
-    @base_path = "#{File.dirname(__FILE__)}/../schema"
-  end
 
   def test_drop_and_create_main_tables
     recreate ActiveRecord::Base unless use_migrations?
@@ -15,7 +11,7 @@ class AAACreateTablesTest < ActiveSupport::TestCase
 
   def test_load_schema
     if ActiveRecord::Base.connection.supports_migrations?
-      eval(File.read("#{File.dirname(__FILE__)}/../schema/schema.rb"))
+      eval(File.read(SCHEMA_ROOT + "/schema.rb"))
     else
       recreate ActiveRecord::Base, '3'
     end
@@ -24,7 +20,7 @@ class AAACreateTablesTest < ActiveSupport::TestCase
 
   def test_drop_and_create_courses_table
     if Course.connection.supports_migrations?
-      eval(File.read("#{File.dirname(__FILE__)}/../schema/schema2.rb"))
+      eval(File.read(SCHEMA_ROOT + "/schema2.rb"))
     end
     recreate Course, '2' unless use_migrations_for_courses?
     assert true
@@ -33,19 +29,19 @@ class AAACreateTablesTest < ActiveSupport::TestCase
   private
     def use_migrations?
       unittest_sql_filename = ActiveRecord::Base.connection.adapter_name.downcase + ".sql"
-      not File.exist? "#{@base_path}/#{unittest_sql_filename}"
+      not File.exist? SCHEMA_ROOT + "/#{unittest_sql_filename}"
     end
 
     def use_migrations_for_courses?
       unittest2_sql_filename = ActiveRecord::Base.connection.adapter_name.downcase + "2.sql"
-      not File.exist? "#{@base_path}/#{unittest2_sql_filename}"
+      not File.exist? SCHEMA_ROOT + "/#{unittest2_sql_filename}"
     end
 
     def recreate(base, suffix = nil)
       connection = base.connection
       adapter_name = connection.adapter_name.downcase + suffix.to_s
-      execute_sql_file "#{@base_path}/#{adapter_name}.drop.sql", connection
-      execute_sql_file "#{@base_path}/#{adapter_name}.sql", connection
+      execute_sql_file SCHEMA_ROOT + "/#{adapter_name}.drop.sql", connection
+      execute_sql_file SCHEMA_ROOT + "/#{adapter_name}.sql", connection
     end
 
     def execute_sql_file(path, connection)

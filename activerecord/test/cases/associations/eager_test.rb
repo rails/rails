@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/post'
 require 'models/tagging'
 require 'models/comment'
@@ -8,7 +8,7 @@ require 'models/company'
 require 'models/person'
 require 'models/reader'
 
-class EagerAssociationTest < ActiveSupport::TestCase
+class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers
 

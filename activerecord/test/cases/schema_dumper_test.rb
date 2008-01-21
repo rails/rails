@@ -1,10 +1,10 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'active_record/schema_dumper'
 require 'stringio'
 
 if ActiveRecord::Base.connection.respond_to?(:tables)
 
-  class SchemaDumperTest < ActiveSupport::TestCase
+  class SchemaDumperTest < ActiveRecord::TestCase
     def standard_dump
       stream = StringIO.new
       ActiveRecord::SchemaDumper.ignore_tables = []

@@ -1,10 +1,10 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/post'
 require 'models/comment'
 require 'models/project'
 require 'models/developer'
 
-class AssociationsExtensionsTest < ActiveSupport::TestCase
+class AssociationsExtensionsTest < ActiveRecord::TestCase
   fixtures :projects, :developers, :developers_projects, :comments, :posts
 
   def test_extension_on_has_many

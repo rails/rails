@@ -1,6 +1,6 @@
-require 'abstract_unit'
+require "cases/helper"
 
-class MysqlConnectionTest < ActiveSupport::TestCase
+class MysqlConnectionTest < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
   end

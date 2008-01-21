@@ -1,7 +1,7 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/company_in_module'
 
-class ModulesTest < ActiveSupport::TestCase
+class ModulesTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :projects, :developers
 
   def test_module_spanning_associations

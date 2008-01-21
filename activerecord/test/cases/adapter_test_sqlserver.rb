@@ -1,9 +1,9 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/default'
 require 'models/post'
 require 'models/task'
 
-class SqlServerAdapterTest < ActiveSupport::TestCase
+class SqlServerAdapterTest < ActiveRecord::TestCase
   class TableWithRealColumn < ActiveRecord::Base; end
 
   fixtures :posts, :tasks

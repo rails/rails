@@ -1,11 +1,11 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/topic'
 require 'models/customer'
 require 'models/company'
 require 'models/company_in_module'
 require 'models/subscriber'
 
-class ReflectionTest < ActiveSupport::TestCase
+class ReflectionTest < ActiveRecord::TestCase
   fixtures :topics, :customers, :companies, :subscribers
 
   def setup

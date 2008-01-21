@@ -1,7 +1,7 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/contact'
 
-class SerializationTest < ActiveSupport::TestCase
+class SerializationTest < ActiveRecord::TestCase
   FORMATS = [ :xml, :json ]
 
   def setup

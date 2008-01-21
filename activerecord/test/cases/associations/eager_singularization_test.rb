@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 
 class Virus < ActiveRecord::Base
   belongs_to :octopus
@@ -39,7 +39,7 @@ class Compress < ActiveRecord::Base
 end
 
 
-class EagerSingularizationTest < ActiveSupport::TestCase
+class EagerSingularizationTest < ActiveRecord::TestCase
 
   def setup
     if ActiveRecord::Base.connection.supports_migrations?

@@ -1,9 +1,9 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/topic'
 require 'models/reply'
 
 unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
-  class ThreadedConnectionsTest < ActiveSupport::TestCase
+  class ThreadedConnectionsTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
 
     fixtures :topics

@@ -1,11 +1,11 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/post'
 require 'models/comment'
 require 'models/author'
 require 'models/category'
 require 'models/categorization'
 
-class InnerJoinAssociationTest < ActiveSupport::TestCase
+class InnerJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments, :categories, :categories_posts, :categorizations
 
   def test_construct_finder_sql_creates_inner_joins

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/author'
 require 'models/comment'
 require 'models/company'
@@ -9,7 +9,7 @@ require 'models/developer'
 require 'models/post'
 require 'models/customer'
 
-class FinderTest < ActiveSupport::TestCase
+class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers
 
   def test_find

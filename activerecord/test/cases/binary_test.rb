@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 
 # Without using prepared statements, it makes no sense to test
 # BLOB data with SQL Server, because the length of a statement is
@@ -10,14 +10,14 @@ require 'abstract_unit'
 unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
   require 'models/binary'
 
-  class BinaryTest < ActiveSupport::TestCase
+  class BinaryTest < ActiveRecord::TestCase
     FIXTURES = %w(flowers.jpg example.log)
 
     def test_load_save
       Binary.delete_all
 
       FIXTURES.each do |filename|
-        data = File.read("#{File.dirname(__FILE__)}/../assets/#{filename}").freeze
+        data = File.read(ASSETS_ROOT + "/#{filename}").freeze
 
         bin = Binary.new(:data => data)
         assert_equal data, bin.data, 'Newly assigned data differs from original'

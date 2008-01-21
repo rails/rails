@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/tag'
 require 'models/tagging'
 require 'models/post'
@@ -12,7 +12,7 @@ require 'models/edge'
 require 'models/book'
 require 'models/citation'
 
-class AssociationsJoinModelTest < ActiveSupport::TestCase
+class AssociationsJoinModelTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
   fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices, :items, :books
 

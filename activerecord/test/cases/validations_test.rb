@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/topic'
 require 'models/reply'
 require 'models/person'
@@ -54,7 +54,7 @@ end
 class Thaumaturgist < IneptWizard
 end
 
-class ValidationsTest < ActiveSupport::TestCase
+class ValidationsTest < ActiveRecord::TestCase
   fixtures :topics, :developers, 'warehouse-things'
 
   def setup
@@ -1281,7 +1281,7 @@ class ValidationsTest < ActiveSupport::TestCase
 end
 
 
-class ValidatesNumericalityTest < ActiveSupport::TestCase
+class ValidatesNumericalityTest < ActiveRecord::TestCase
   NIL = [nil]
   BLANK = ["", " ", " \t \r \n"]
   BIGDECIMAL_STRINGS = %w(12345678901234567890.1234567890) # 30 significent digits

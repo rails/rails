@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/topic'
 require 'models/reply'
 require 'models/company'
@@ -71,7 +71,7 @@ class TopicWithProtectedContentAndAccessibleAuthorName < ActiveRecord::Base
   attr_protected  :content
 end
 
-class BasicsTest < ActiveSupport::TestCase
+class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things'
 
   def test_table_exists

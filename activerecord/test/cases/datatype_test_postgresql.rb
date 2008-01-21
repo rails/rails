@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 
 class PostgresqlArray < ActiveRecord::Base
 end
@@ -21,7 +21,7 @@ end
 class PostgresqlOid < ActiveRecord::Base
 end
 
-class PostgresqlDataTypeTest < ActiveSupport::TestCase
+class PostgresqlDataTypeTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def setup

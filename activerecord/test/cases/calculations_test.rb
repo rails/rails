@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/company'
 require 'models/topic'
 
@@ -8,7 +8,7 @@ class NumericData < ActiveRecord::Base
   self.table_name = 'numeric_data'
 end
 
-class CalculationsTest < ActiveSupport::TestCase
+class CalculationsTest < ActiveRecord::TestCase
   fixtures :companies, :accounts, :topics
 
   def test_should_sum_field

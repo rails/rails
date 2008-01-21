@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 
 class Mixin < ActiveRecord::Base
 end
@@ -21,7 +21,7 @@ class Time
 end
 
 
-class TouchTest < ActiveSupport::TestCase
+class TouchTest < ActiveRecord::TestCase
   fixtures :mixins
 
   def setup

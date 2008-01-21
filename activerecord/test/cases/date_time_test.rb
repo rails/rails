@@ -1,8 +1,8 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/topic'
 require 'models/task'
 
-class DateTimeTest < ActiveSupport::TestCase
+class DateTimeTest < ActiveRecord::TestCase
   def test_saves_both_date_and_time
     time_values = [1807, 2, 10, 15, 30, 45]
     now = DateTime.civil(*time_values)

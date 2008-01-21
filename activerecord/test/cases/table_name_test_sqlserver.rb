@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'active_record/schema'
 
 if ActiveRecord::Base.connection.supports_migrations?
@@ -6,7 +6,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     self.table_name = '[order]'
   end
 
-  class TableNameTest < ActiveSupport::TestCase
+  class TableNameTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
 
     # Ensures Model.columns works when using SQLServer escape characters.

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/topic'
 require 'models/subject'
 
@@ -6,7 +6,7 @@ require 'models/subject'
 # the "subjects" table in Oracle (defined in oci.sql) is just
 # a synonym to the "topics" table
 
-class TestOracleSynonym < ActiveSupport::TestCase
+class TestOracleSynonym < ActiveRecord::TestCase
 
   def test_oracle_synonym
     topic = Topic.new

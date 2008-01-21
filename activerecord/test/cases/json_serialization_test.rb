@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/contact'
 require 'models/post'
 require 'models/author'
@@ -6,7 +6,7 @@ require 'models/tagging'
 require 'models/tag'
 require 'models/comment'
 
-class JsonSerializationTest < ActiveSupport::TestCase
+class JsonSerializationTest < ActiveRecord::TestCase
   def setup
     @contact = Contact.new(
       :name        => 'Konata Izumi',
@@ -63,7 +63,7 @@ class JsonSerializationTest < ActiveSupport::TestCase
   end
 end
 
-class DatabaseConnectedJsonEncodingTest < ActiveSupport::TestCase
+class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments, :tags, :taggings
 
   def setup

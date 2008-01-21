@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/topic'
 require 'models/developer'
 require 'models/reply'
@@ -64,7 +64,7 @@ class MultiObserver < ActiveRecord::Observer
   end
 end
 
-class LifecycleTest < ActiveSupport::TestCase
+class LifecycleTest < ActiveRecord::TestCase
   fixtures :topics, :developers
 
   def test_before_destroy

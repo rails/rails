@@ -1,9 +1,9 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/company'
 require 'models/project'
 require 'models/subscriber'
 
-class InheritanceTest < ActiveSupport::TestCase
+class InheritanceTest < ActiveRecord::TestCase
   fixtures :companies, :projects, :subscribers, :accounts
 
   def test_company_descends_from_active_record
@@ -175,7 +175,7 @@ class InheritanceTest < ActiveSupport::TestCase
 end
 
 
-class InheritanceComputeTypeTest < ActiveSupport::TestCase
+class InheritanceComputeTypeTest < ActiveRecord::TestCase
   fixtures :companies
 
   def setup

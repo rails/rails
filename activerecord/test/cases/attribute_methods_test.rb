@@ -1,7 +1,7 @@
-require 'abstract_unit'
+require "cases/helper"
 require 'models/topic'
 
-class AttributeMethodsTest < ActiveSupport::TestCase
+class AttributeMethodsTest < ActiveRecord::TestCase
   fixtures :topics
   def setup
     @old_suffixes = ActiveRecord::Base.send(:attribute_method_suffixes).dup
