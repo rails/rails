@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce TemplateFinder to handle view paths and lookups.  #10800 [Pratik Naik] 
+
 * Performance: optimize route recognition. Large speedup for apps with many resource routes.  #10835 [oleganza]
 
 * Make render :partial recognise form builders and use the _form partial.  #10814 [djanowski]
