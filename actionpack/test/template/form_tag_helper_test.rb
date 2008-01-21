@@ -188,6 +188,24 @@ class FormTagHelperTest < Test::Unit::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_label_tag_without_text
+    actual = label_tag "title"
+    expected = %(<label for="title">Title</label>)
+    assert_dom_equal expected, actual
+  end
+
+  def test_label_tag_with_text
+    actual = label_tag "title", "My Title"
+    expected = %(<label for="title">My Title</label>)
+    assert_dom_equal expected, actual
+  end
+
+  def test_label_tag_class_string
+    actual = label_tag "title", "My Title", "class" => "small_label"
+    expected = %(<label for="title" class="small_label">My Title</label>)
+    assert_dom_equal expected, actual
+  end
+
   def test_boolean_optios
     assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1" />), check_box_tag("admin", 1, true, 'disabled' => true, :readonly => "yes")
     assert_dom_equal %(<input checked="checked" id="admin" name="admin" type="checkbox" value="1" />), check_box_tag("admin", 1, true, :disabled => false, :readonly => nil)
