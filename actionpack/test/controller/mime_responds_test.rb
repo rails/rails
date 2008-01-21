@@ -437,11 +437,7 @@ class MimeControllerTest < Test::Unit::TestCase
 end
 
 class AbstractPostController < ActionController::Base
-  class << self
-    def view_paths
-      [ File.dirname(__FILE__) + "/../fixtures/post_test/" ]
-    end
-  end
+  self.view_paths = File.dirname(__FILE__) + "/../fixtures/post_test/"
 end
 
 # For testing layouts which are set automatically

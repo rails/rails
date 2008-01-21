@@ -20,6 +20,10 @@ class TestController < ActionController::Base
     render :template => "test/hello_world"
   end
 
+  def render_hello_world_with_forward_slash
+    render :template => "/test/hello_world"
+  end
+
   def render_hello_world_from_variable
     @person = "david"
     render :text => "hello #{@person}"
@@ -218,6 +222,11 @@ class RenderTest < Test::Unit::TestCase
 
   def test_render
     get :render_hello_world
+    assert_template "test/hello_world"
+  end
+
+  def test_render_with_forward_slash
+    get :render_hello_world_with_forward_slash
     assert_template "test/hello_world"
   end
 

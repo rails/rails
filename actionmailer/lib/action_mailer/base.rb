@@ -393,6 +393,11 @@ module ActionMailer #:nodoc:
       def register_template_extension(extension)
         template_extensions << extension
       end
+
+      def template_root=(root)
+        write_inheritable_attribute(:template_root, root)
+        ActionView::TemplateFinder.process_view_paths(root)
+      end
     end
 
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer

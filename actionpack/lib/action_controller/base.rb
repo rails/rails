@@ -5,6 +5,7 @@ require 'action_controller/routing'
 require 'action_controller/resources'
 require 'action_controller/url_rewriter'
 require 'action_controller/status_codes'
+require 'action_view/template_finder'
 require 'drb'
 require 'set'
 
@@ -428,6 +429,7 @@ module ActionController #:nodoc:
 
       def view_paths=(value)
         @view_paths = value
+        ActionView::TemplateFinder.process_view_paths(value)
       end
 
       # Adds a view_path to the front of the view_paths array.
@@ -440,6 +442,7 @@ module ActionController #:nodoc:
       def prepend_view_path(path)
         @view_paths = superclass.view_paths.dup if @view_paths.nil?
         view_paths.unshift(*path)
+        ActionView::TemplateFinder.process_view_paths(path)
       end
       
       # Adds a view_path to the end of the view_paths array.
@@ -452,6 +455,7 @@ module ActionController #:nodoc:
       def append_view_path(path)
         @view_paths = superclass.view_paths.dup if @view_paths.nil?
         view_paths.push(*path)
+        ActionView::TemplateFinder.process_view_paths(path)
       end
       
       # Replace sensitive parameter data from the request log.
@@ -642,11 +646,11 @@ module ActionController #:nodoc:
       
       # View load paths for controller.
       def view_paths
-        @template.view_paths
+        @template.finder.view_paths
       end
     
       def view_paths=(value)
-        @template.view_paths = value
+        @template.finder.view_paths = value  # Mutex needed
       end
 
       # Adds a view_path to the front of the view_paths array.
@@ -656,7 +660,7 @@ module ActionController #:nodoc:
       #   self.prepend_view_path(["views/default", "views/custom"])
       #
       def prepend_view_path(path)
-        @template.prepend_view_path(path)
+        @template.finder.prepend_view_path(path)  # Mutex needed
       end
       
       # Adds a view_path to the end of the view_paths array.
@@ -666,7 +670,7 @@ module ActionController #:nodoc:
       #   self.append_view_path(["views/default", "views/custom"])
       #
       def append_view_path(path)
-      @template.append_view_path(path)
+        @template.finder.append_view_path(path)  # Mutex needed
       end
 
     protected
@@ -1249,7 +1253,7 @@ module ActionController #:nodoc:
       end
 
       def template_exists?(template_name = default_template_name)
-        @template.file_exists?(template_name)
+        @template.finder.file_exists?(template_name)
       end
 
       def template_public?(template_name = default_template_name)
@@ -1257,7 +1261,7 @@ module ActionController #:nodoc:
       end
 
       def template_exempt_from_layout?(template_name = default_template_name)
-        extension = @template && @template.pick_template_extension(template_name)
+        extension = @template && @template.finder.pick_template_extension(template_name)
         name_with_extension = !template_name.include?('.') && extension ? "#{template_name}.#{extension}" : template_name
         @@exempt_from_layout.any? { |ext| name_with_extension =~ ext }
       end

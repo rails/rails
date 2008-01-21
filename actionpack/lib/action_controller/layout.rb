@@ -208,12 +208,6 @@ module ActionController #:nodoc:
           conditions.inject({}) {|hash, (key, value)| hash.merge(key => [value].flatten.map {|action| action.to_s})}
         end
         
-        def layout_directory_exists_cache
-          @@layout_directory_exists_cache ||= Hash.new do |h, dirname|
-            h[dirname] = File.directory? dirname
-          end
-        end
-        
         def default_layout_with_format(format, layout)
           list = layout_list
           if list.grep(%r{layouts/#{layout}\.#{format}(\.[a-z][0-9a-z]*)+$}).empty?
@@ -313,13 +307,8 @@ module ActionController #:nodoc:
         end
       end
       
-      # Does a layout directory for this class exist?
-      # we cache this info in a class level hash
       def layout_directory?(layout_name)
-        view_paths.find do |path| 
-          next unless template_path = Dir[File.join(path, 'layouts', layout_name) + ".*"].first
-          self.class.send!(:layout_directory_exists_cache)[File.dirname(template_path)]
-        end
+        @template.finder.find_template_extension_from_handler(File.join('layouts', layout_name))
       end
   end
 end
