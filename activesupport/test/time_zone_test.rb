@@ -1,94 +1,110 @@
 require 'abstract_unit'
 
 class TimeZoneTest < Test::Unit::TestCase
-  class MockTime
-    def self.now
-      Time.utc( 2004, 7, 25, 14, 49, 00 )
+  
+  uses_tzinfo 'TestTimeZoneCalculations' do
+    
+    def test_utc_to_local
+      silence_warnings do # silence warnings raised by tzinfo gem
+        zone = TimeZone['Eastern Time (US & Canada)']
+        assert_equal Time.utc(1999, 12, 31, 19), zone.utc_to_local(Time.utc(2000, 1)) # standard offset -0500
+        assert_equal Time.utc(2000, 6, 30, 20), zone.utc_to_local(Time.utc(2000, 7)) # dst offset -0400
+      end
+    end
+  
+    def test_local_to_utc
+      silence_warnings do # silence warnings raised by tzinfo gem
+        zone = TimeZone['Eastern Time (US & Canada)']
+        assert_equal Time.utc(2000, 1, 1, 5), zone.local_to_utc(Time.utc(2000, 1)) # standard offset -0500
+        assert_equal Time.utc(2000, 7, 1, 4), zone.local_to_utc(Time.utc(2000, 7)) # dst offset -0400
+      end
+    end
+    
+    def test_period_for_local
+      silence_warnings do # silence warnings raised by tzinfo gem
+        zone = TimeZone['Eastern Time (US & Canada)']
+        assert_instance_of TZInfo::TimezonePeriod, zone.period_for_local(Time.utc(2000))
+      end
+    end
+    
+    TimeZone::MAPPING.keys.each do |name|
+      define_method("test_map_#{name.downcase.gsub(/[^a-z]/, '_')}_to_tzinfo") do
+        silence_warnings do # silence warnings raised by tzinfo gem
+          zone = TimeZone[name]
+          assert zone.tzinfo.respond_to?(:period_for_local)
+        end
+      end
     end
 
-    def self.local(*args)
-      Time.utc(*args)
+    TimeZone.all.each do |zone|
+      name = zone.name.downcase.gsub(/[^a-z]/, '_')
+      define_method("test_from_#{name}_to_map") do
+        silence_warnings do # silence warnings raised by tzinfo gem
+          assert_instance_of TimeZone, TimeZone[zone.name]
+        end
+      end
+
+      define_method("test_utc_offset_for_#{name}") do
+        silence_warnings do # silence warnings raised by tzinfo gem
+          period = zone.tzinfo.period_for_utc(Time.utc(2006,1,1,0,0,0))
+          assert_equal period.utc_offset, zone.utc_offset
+        end
+      end
+    end
+
+    uses_mocha 'TestTimeZoneNowAndToday' do
+      def test_now
+        TZInfo::DataTimezone.any_instance.stubs(:now).returns(Time.utc(2000))
+        assert_equal Time.utc(2000), TimeZone['Eastern Time (US & Canada)'].now
+      end
+    
+      def test_today
+        TZInfo::DataTimezone.any_instance.stubs(:now).returns(Time.utc(2000))
+        assert_equal Date.new(2000), TimeZone['Eastern Time (US & Canada)'].today
+      end
     end
   end
-
-  TimeZone::Time = MockTime
-
+  
   def test_formatted_offset_positive
-    zone = TimeZone.create( "Test", 4200 )
-    assert_equal "+01:10", zone.formatted_offset
+    zone = TimeZone['Moscow']
+    assert_equal "+03:00", zone.formatted_offset
+    assert_equal "+0300", zone.formatted_offset(false)
   end
-
+  
   def test_formatted_offset_negative
-    zone = TimeZone.create( "Test", -4200 )
-    assert_equal "-01:10", zone.formatted_offset
+    zone = TimeZone['Eastern Time (US & Canada)']
+    assert_equal "-05:00", zone.formatted_offset
+    assert_equal "-0500", zone.formatted_offset(false)
   end
-
-  def test_now
-    zone = TimeZone.create( "Test", 4200 )
-    assert_equal Time.local(2004,7,25,15,59,00).to_a[0,6], zone.now.to_a[0,6]
-  end
-
-  def test_today
-    zone = TimeZone.create( "Test", 43200 )
-    assert_equal Date.new(2004,7,26), zone.today
-  end
-
-  def test_adjust_negative
-    zone = TimeZone.create( "Test", -4200 ) # 4200s == 70 mins
-    assert_equal Time.utc(2004,7,24,23,55,0), zone.adjust(Time.utc(2004,7,25,1,5,0))
-  end
-
-  def test_adjust_positive
-    zone = TimeZone.create( "Test", 4200 )
-    assert_equal Time.utc(2004,7,26,1,5,0), zone.adjust(Time.utc(2004,7,25,23,55,0))
-  end
-
-  def test_unadjust
-    zone = TimeZone.create( "Test", 4200 )
-    expect = Time.utc(2004,7,24,23,55,0).to_a[0,6]
-    actual = zone.unadjust(Time.utc(2004,7,25,1,5,0)).to_a[0,6]
-    assert_equal expect, actual
-  end
-
+  
   def test_zone_compare
-    zone1 = TimeZone.create( "Test1", 4200 )
-    zone2 = TimeZone.create( "Test1", 5600 )
+    zone1 = TimeZone['Central Time (US & Canada)'] # offset -0600
+    zone2 = TimeZone['Eastern Time (US & Canada)'] # offset -0500
     assert zone1 < zone2
     assert zone2 > zone1
-
-    zone1 = TimeZone.create( "Able", 10000 )
-    zone2 = TimeZone.create( "Zone", 10000 )
-    assert zone1 < zone2
-    assert zone2 > zone1
-
-    zone1 = TimeZone.create( "Able", 10000 )
     assert zone1 == zone1
   end
-
+  
   def test_to_s
-    zone = TimeZone.create( "Test", 4200 )
-    assert_equal "(UTC+01:10) Test", zone.to_s
+    assert_equal "(GMT+03:00) Moscow", TimeZone['Moscow'].to_s
   end
-
+  
   def test_all_sorted
     all = TimeZone.all
     1.upto( all.length-1 ) do |i|
       assert all[i-1] < all[i]
     end
   end
-
+  
   def test_index
     assert_nil TimeZone["bogus"]
-    assert_not_nil TimeZone["Central Time (US & Canada)"]
-    assert_not_nil TimeZone[8]
+    assert_instance_of TimeZone, TimeZone["Central Time (US & Canada)"]
+    assert_instance_of TimeZone, TimeZone[8]
     assert_raises(ArgumentError) { TimeZone[false] }
   end
   
   def test_new
-    a = TimeZone.new("Berlin")
-    b = TimeZone.new("Berlin")
-    assert_same a, b
-    assert_nil TimeZone.new("bogus")
+    assert_equal TimeZone["Central Time (US & Canada)"], TimeZone.new("Central Time (US & Canada)")
   end
   
   def test_us_zones
@@ -96,3 +112,4 @@ class TimeZoneTest < Test::Unit::TestCase
     assert !TimeZone.us_zones.include?(TimeZone["Kuala Lumpur"])
   end 
 end
+

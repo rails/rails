@@ -1,5 +1,7 @@
 *SVN*
 
+* Replace non-dst-aware TimeZone class with dst-aware class from tzinfo_timezone plugin. TimeZone#adjust and #unadjust are no longer available; tzinfo gem must now be present in order to perform time zone calculations, via #local_to_utc and #utc_to_local methods. [Geoff Buesing]
+
 * Extract ActiveSupport::Callbacks from Active Record, test case setup and teardown, and ActionController::Dispatcher.  #10727 [Josh Peek]
 
 * Introducing DateTime #utc, #utc? and #utc_offset, for duck-typing compatibility with Time. Closes #10002 [Geoff Buesing]
