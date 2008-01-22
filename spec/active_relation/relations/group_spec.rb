@@ -15,6 +15,12 @@ module ActiveRelation
           should == Group.new(@relation1.qualify, @attribute1.qualify)
       end
     end
+    
+    describe '#aggregation?' do
+      it "is true" do
+        Group.new(@relation1, @attribute1).should be_aggregation
+      end
+    end
   
     describe '#to_sql' do
       it "manufactures sql with an order clause" do

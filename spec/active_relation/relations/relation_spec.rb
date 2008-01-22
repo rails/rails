@@ -24,6 +24,12 @@ module ActiveRelation
         @relation1.include?(@attribute1).should be_kind_of(RelationInclusion)
       end
     end
+    
+    describe '#aggregation?' do
+      it "returns false" do
+        @relation1.should_not be_aggregation
+      end
+    end
 
     describe 'read operations' do
       describe 'joins' do

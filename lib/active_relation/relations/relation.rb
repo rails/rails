@@ -80,6 +80,10 @@ module ActiveRelation
     def attributes
       projections.collect(&:to_attribute)
     end
+    
+    def aggregation?
+      false
+    end
 
     def to_sql(strategy = Sql::Select.new)
       strategy.select [

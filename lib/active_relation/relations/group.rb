@@ -13,5 +13,9 @@ module ActiveRelation
     def qualify
       Group.new(relation.qualify, *groupings.collect(&:qualify))
     end
+    
+    def aggregation?
+      true
+    end
   end
 end

@@ -26,18 +26,26 @@ module ActiveRelation
       relation1.send(:selects) + relation2.send(:selects)
     end
     
+    # this is magick!!!
+    def projections
+      relation1.send(:projections) + relation2.attributes
+    end
+    
     def attribute(name)
       relation1[name] || relation2[name]
-    end
-
-    protected
-    def projections
-      relation1.send(:projections) + relation2.send(:projections)
     end
     
     private
     def join
       "#{join_sql} #{relation2.send(:table_sql)} ON #{predicates.collect { |p| p.to_sql(Sql::Predicate.new) }.join(' AND ')}"
+    end
+    
+    def join
+      [join_sql, right_table, "ON", predicates.collect { |p| p.to_sql(Sql::Predicate.new) }.join(' AND ')].join(" ")
+    end
+    
+    def right_table
+      relation2.aggregation?? relation2.to_sql(Sql::Aggregation.new) : relation2.send(:table_sql)
     end
   end
 end
