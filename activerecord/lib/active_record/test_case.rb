@@ -2,8 +2,9 @@ require "active_support/test_case"
 
 module ActiveRecord 
   class TestCase < ActiveSupport::TestCase #:nodoc:
-    self.fixture_path = FIXTURES_ROOT
-    self.use_instantiated_fixtures = false
+    self.fixture_path               = FIXTURES_ROOT
+    self.use_instantiated_fixtures  = false
+    self.use_transactional_fixtures = true
 
     def create_fixtures(*table_names, &block)
       Fixtures.create_fixtures(FIXTURES_ROOT, table_names, {}, &block)
