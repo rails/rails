@@ -77,10 +77,6 @@ module ActiveRelation
     end
     include Operations
 
-    def attributes
-      projections.collect(&:to_attribute)
-    end
-    
     def aggregation?
       false
     end

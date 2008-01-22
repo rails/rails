@@ -8,11 +8,11 @@ module ActiveRelation
     end
       
     def attributes
-      relation.attributes.collect { |attribute| attribute.substitute(self) }
+      relation.attributes.collect { |a| a.substitute(self) }
     end
 
     def ==(other)
-      relation == other.relation and self.alias == other.alias
+      relation == other.relation and @alias == other.alias
     end
     
     protected

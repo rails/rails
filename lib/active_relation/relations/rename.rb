@@ -14,7 +14,11 @@ module ActiveRelation
     def qualify
       Rename.new(relation.qualify, autonym.qualify => self.pseudonym)
     end
-
+    
+    def attributes
+      projections.collect(&:to_attribute)
+    end
+    
     protected
     def projections
       relation.send(:projections).collect(&method(:substitute))
