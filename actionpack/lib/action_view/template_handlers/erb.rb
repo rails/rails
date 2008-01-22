@@ -22,12 +22,10 @@ end
 module ActionView
   module TemplateHandlers
     class ERB < TemplateHandler
+      include Compilable
+
       def compile(template)
         ::ERB.new(template, nil, @view.erb_trim_mode).src
-      end
-
-      def self.compilable?
-        true
       end
 
       def cache_fragment(block, name = {}, options = nil) #:nodoc:

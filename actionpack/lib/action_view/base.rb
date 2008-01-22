@@ -196,14 +196,11 @@ module ActionView #:nodoc:
     end
     include CompiledTemplates
 
-    # Maps inline templates to their method names 
+    # Maps inline templates to their method names
+    cattr_accessor :method_names
     @@method_names = {}
-    # Map method names to their compile time
-    @@compile_time = {}
     # Map method names to the names passed in local assigns so far
     @@template_args = {}
-    # Count the number of inline templates
-    @@inline_template_count = 0
 
     # Cache public asset paths
     cattr_reader :computed_public_paths
@@ -365,7 +362,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       if handler.compilable?
         compile_and_render_template(handler, template, file_path, local_assigns)
       else
-        template ||= read_template_file(file_path, template_extension) # Make sure that a lazyily-read template is loaded.
+        template ||= handler.read_template_file(file_path, template_extension) # Make sure that a lazyily-read template is loaded.
         handler.render(template, local_assigns)
       end
     end
@@ -389,11 +386,6 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         returning(yield) { @content_for_layout = original_content_for_layout }
       end
 
-      # This method reads a template file.
-      def read_template_file(template_path, extension)
-        File.read(template_path)
-      end
-
       # Evaluate the local assigns and pushes them to the view.
       def evaluate_assigns
         unless @assigns_added
@@ -407,99 +399,6 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
       end
 
-
-      # Return true if the given template was compiled for a superset of the keys in local_assigns
-      def supports_local_assigns?(render_symbol, local_assigns)
-        local_assigns.empty? ||
-          ((args = @@template_args[render_symbol]) && local_assigns.all? { |k,_| args.has_key?(k) })
-      end
-
-      # Method to check whether template compilation is necessary.
-      # The template will be compiled if the inline template or file has not been compiled yet,
-      # if local_assigns has a new key, which isn't supported by the compiled code yet,
-      # or if the file has changed on disk and checking file mods hasn't been disabled.
-      def compile_template?(template, file_name, local_assigns)
-        method_key    = file_name || template
-        render_symbol = @@method_names[method_key]
-
-        compile_time = @@compile_time[render_symbol]
-        if compile_time && supports_local_assigns?(render_symbol, local_assigns)
-          if file_name && !@@cache_template_loading
-            template_changed_since?(file_name, compile_time)
-          end
-        else
-          true
-        end
-      end
-
-      # Method to handle checking a whether a template has changed since last compile; isolated so that templates
-      # not stored on the file system can hook and extend appropriately.
-      def template_changed_since?(file_name, compile_time)
-        lstat = File.lstat(file_name)
-        compile_time < lstat.mtime || 
-          (lstat.symlink? && compile_time < File.stat(file_name).mtime)
-      end
-
-      # Method to create the source code for a given template.
-      def create_template_source(handler, template, render_symbol, locals)
-        body = handler.compile(template)
-
-        @@template_args[render_symbol] ||= {}
-        locals_keys = @@template_args[render_symbol].keys | locals
-        @@template_args[render_symbol] = locals_keys.inject({}) { |h, k| h[k] = true; h }
-
-        locals_code = ""
-        locals_keys.each do |key|
-          locals_code << "#{key} = local_assigns[:#{key}]\n"
-        end
-
-        "def #{render_symbol}(local_assigns)\n#{locals_code}#{body}\nend"
-      end
-
-      def assign_method_name(handler, template, file_name)
-        method_key = file_name || template
-        @@method_names[method_key] ||= compiled_method_name(handler, template, file_name)
-      end
-
-      def compiled_method_name(handler, template, file_name)
-        ['_run', handler.class.to_s.demodulize.underscore, compiled_method_name_file_path_segment(file_name)].compact.join('_').to_sym
-      end
-
-      def compiled_method_name_file_path_segment(file_name)
-        if file_name
-          s = File.expand_path(file_name)
-          s.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}/, '') if defined?(RAILS_ROOT)
-          s.gsub!(/([^a-zA-Z0-9_])/) { $1.ord }
-          s
-        else
-          (@@inline_template_count += 1).to_s
-        end
-      end
-
-      # Compile and evaluate the template's code
-      def compile_template(handler, template, file_name, local_assigns)
-        render_symbol = assign_method_name(handler, template, file_name)
-        render_source = create_template_source(handler, template, render_symbol, local_assigns.keys)
-        line_offset   = @@template_args[render_symbol].size + handler.line_offset
-
-        begin
-          file_name = 'compiled-template' if file_name.blank?
-          CompiledTemplates.module_eval(render_source, file_name, -line_offset)
-        rescue Exception => e  # errors from template code
-          if logger
-            logger.debug "ERROR: compiling #{render_symbol} RAISED #{e}"
-            logger.debug "Function body: #{render_source}"
-            logger.debug "Backtrace: #{e.backtrace.join("\n")}"
-          end
-
-          raise TemplateError.new(@finder.extract_base_path_from(file_name) ||
-                @finder.view_paths.first, file_name || template, @assigns, template, e)
-        end
-
-        @@compile_time[render_symbol] = Time.now
-        # logger.debug "Compiled template #{file_name || template}\n  ==> #{render_symbol}" if logger
-      end
-
       # Render the provided template with the given local assigns. If the template has not been rendered with the provided
       # local assigns yet, or if the template has been updated on disk, then the template will be compiled to a method.
       #
@@ -511,10 +410,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         local_assigns = local_assigns.symbolize_keys if @@local_assigns_support_string_keys
 
         # compile the given template, if necessary
-        if compile_template?(template, file_path, local_assigns)
-          template ||= read_template_file(file_path, nil)
-          compile_template(handler, template, file_path, local_assigns)
-        end
+        handler.compile_template(template, file_path, local_assigns)
 
         # Get the method name for this template and run it
         method_name = @@method_names[file_path || template]
