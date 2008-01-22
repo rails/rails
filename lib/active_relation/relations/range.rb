@@ -17,5 +17,9 @@ module ActiveRelation
     def offset
       range.begin
     end
+    
+    def qualify
+      Range.new(relation.qualify, range)
+    end
   end
 end

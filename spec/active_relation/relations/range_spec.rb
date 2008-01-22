@@ -10,8 +10,8 @@ module ActiveRelation
     end
 
     describe '#qualify' do
-      it "distributes over the relation and attributes" do
-        pending
+      it "distributes over the relation" do
+        Range.new(@relation1, @range1).qualify.should == Range.new(@relation1.qualify, @range1)
       end
     end
   

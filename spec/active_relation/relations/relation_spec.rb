@@ -51,10 +51,6 @@ module ActiveRelation
       end
   
       describe '#project' do
-        it "collapses identical projections" do
-          pending
-        end
-    
         it "manufactures a projection relation" do
           @relation1.project(@attribute1, @attribute2).should == Projection.new(@relation1, @attribute1, @attribute2)
         end

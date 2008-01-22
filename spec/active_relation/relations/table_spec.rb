@@ -17,7 +17,10 @@ module ActiveRelation
   
     describe '#attributes' do
       it 'manufactures attributes corresponding to columns in the table' do
-        pending
+        @relation.attributes.should == [
+          Attribute.new(@relation, :name),
+          Attribute.new(@relation, :id)
+        ]
       end
     end
   
