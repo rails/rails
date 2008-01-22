@@ -1,17 +1,17 @@
 module ActiveRelation
   class Projection < Compound
-    attr_reader :attributes
-
-    def initialize(relation, *attributes)
-      @relation, @attributes = relation, attributes
+    attr_reader :projections
+    
+    def initialize(relation, *projections)
+      @relation, @projections = relation, projections
     end
 
     def ==(other)
-      self.class == other.class and relation == other.relation and attributes == other.attributes
+      self.class == other.class and relation == other.relation and projections == other.projections
     end
 
     def qualify
-      Projection.new(relation.qualify, *attributes.collect(&:qualify))
+      Projection.new(relation.qualify, *projections.collect(&:qualify))
     end
   end
 end

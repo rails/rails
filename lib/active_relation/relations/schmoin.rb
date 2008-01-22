@@ -1,6 +1,7 @@
 module ActiveRelation
   class Schmoin < Relation
     attr_reader :join_sql, :relation1, :relation2, :predicates
+    delegate :table_sql, :to => :relation1
 
     def initialize(join_sql, relation1, relation2, *predicates)
       @join_sql, @relation1, @relation2, @predicates = join_sql, relation1, relation2, predicates
@@ -24,20 +25,19 @@ module ActiveRelation
     def selects
       relation1.send(:selects) + relation2.send(:selects)
     end
-
-    def attributes
-      relation1.attributes + relation2.attributes
+    
+    # this is magick!!!
+    def projections
+      relation1.projections + relation2.attributes
     end
 
     def attribute(name)
       relation1[name] || relation2[name]
     end
 
-    delegate :table_sql, :to => :relation1
-
     private
     def join
-      "#{join_sql} #{relation2.send(:table_sql)} ON #{predicates.collect { |p| p.to_sql(Sql::Predicate.new) }.join(' AND ')}"
+      "#{join_sql} #{relation2.to_sql(Sql::Aggregation.new)} ON #{predicates.collect { |p| p.to_sql(Sql::Predicate.new) }.join(' AND ')}"
     end
   end
 end

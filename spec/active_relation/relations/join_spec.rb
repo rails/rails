@@ -25,6 +25,13 @@ module ActiveRelation
           should == Join.new("INNER JOIN", @relation1.qualify, @relation2.qualify, @predicate.qualify)
       end
     end
+    
+    describe '#attributes' do
+      it 'combines the attributes of the two relations' do
+        Join.new("INNER JOIN", @relation1, @relation2, @predicate).attributes.should ==
+          @relation1.attributes + @relation2.attributes
+      end
+    end
   
     describe '#to_sql' do
       before do

@@ -1,36 +1,36 @@
 module ActiveRelation
   class Rename < Compound
-    attr_reader :schmattribute, :rename
+    attr_reader :autonym, :pseudonym
 
-    def initialize(relation, renames)
-      @schmattribute, @rename = renames.shift
-      @relation = renames.empty?? relation : Rename.new(relation, renames)
+    def initialize(relation, pseudonyms)
+      @autonym, @pseudonym = pseudonyms.shift
+      @relation = pseudonyms.empty?? relation : Rename.new(relation, pseudonyms)
     end
 
     def ==(other)
-      relation == other.relation and schmattribute == other.schmattribute and self.rename == other.rename
-    end
-
-    def attributes
-      relation.attributes.collect(&method(:substitute))
+      relation == other.relation and autonym == other.autonym and pseudonym == other.pseudonym
     end
 
     def qualify
-      Rename.new(relation.qualify, schmattribute.qualify => self.rename)
+      Rename.new(relation.qualify, autonym.qualify => self.pseudonym)
     end
 
     protected
+    def projections
+      relation.send(:projections).collect(&method(:substitute))
+    end
+    
     def attribute(name)
       case
-      when name == self.rename then schmattribute.as(self.rename)
-      when relation[name] == schmattribute then nil
+      when name == pseudonym then autonym.as(pseudonym)
+      when relation[name] == autonym then nil
       else relation[name]
       end
     end
 
     private
-    def substitute(a)
-      a == schmattribute ? a.as(self.rename) : a
+    def substitute(attribute)
+      attribute == autonym ? attribute.as(pseudonym) : attribute
     end
   end
 end

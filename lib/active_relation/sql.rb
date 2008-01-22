@@ -17,8 +17,8 @@ module ActiveRelation
         "#{quote_table_name(relation_name)}.#{quote_column_name(attribute_name)}" + (aliaz ? " AS #{quote(aliaz.to_s)}" : "")
       end
       
-      def select(select_sql)
-        "(#{select_sql})"
+      def select(select_sql, aliaz)
+        "(#{select_sql}) AS #{quote_column_name(aliaz)}"
       end
     end
     
@@ -31,14 +31,20 @@ module ActiveRelation
         scalar
       end
       
-      def select(select_sql)
+      def select(select_sql, aliaz)
         "(#{select_sql})"
       end
     end
     
     class Select < Strategy
-      def select(select_sql)
+      def select(select_sql, aliaz)
         select_sql
+      end
+    end
+    
+    class Aggregation < Strategy
+      def select(select_sql, aliaz)
+        "(#{select_sql}) AS #{quote_table_name(aliaz)}"        
       end
     end
     

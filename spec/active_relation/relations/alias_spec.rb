@@ -25,14 +25,5 @@ module ActiveRelation
         @alias_relation[:does_not_exist].should be_nil
       end
     end
-  
-    describe '#to_sql' do
-      it "manufactures an aliased select query" do
-        @alias_relation.to_sql.should be_like("""
-          SELECT `foo`.`name`, `foo`.`id`
-          FROM `users` AS `foo`
-        """)
-      end
-    end
   end
 end

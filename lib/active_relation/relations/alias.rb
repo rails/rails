@@ -16,10 +16,6 @@ module ActiveRelation
     end
     
     protected
-    def table_sql
-      "#{quote_table_name(relation.name)} AS #{quote_table_name(@alias)}"
-    end
-    
     def attribute(name)
       if unaliased_attribute = relation[name]
         unaliased_attribute.substitute(self)

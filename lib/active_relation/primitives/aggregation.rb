@@ -1,17 +1,31 @@
 module ActiveRelation
   class Aggregation
-    attr_reader :attribute, :function_sql
+    include Sql::Quoting
     
-    def initialize(attribute, function_sql)
-      @attribute, @function_sql = attribute, function_sql
+    attr_reader :attribute, :function_sql, :alias
+    delegate :relation, :to => :attribute
+    
+    def initialize(attribute, function_sql, aliaz = nil)
+      @attribute, @function_sql, @alias = attribute, function_sql, aliaz
     end
 
-    def substitute(new_relation)
-      Aggregation.new(attribute.substitute(new_relation), function_sql)
+    module Transformations
+      def substitute(new_relation)
+        Aggregation.new(attribute.substitute(new_relation), function_sql, @alias)
+      end
+    
+      def as(aliaz)
+        Aggregation.new(attribute, function_sql, aliaz)
+      end
+      
+      def to_attribute
+        Attribute.new(relation, @alias)
+      end
     end
+    include Transformations
     
     def to_sql(strategy = nil)
-      "#{function_sql}(#{attribute.to_sql})"
+      "#{function_sql}(#{attribute.to_sql})" + (@alias ? " AS #{quote_column_name(@alias)}" : '')
     end
     
     def ==(other)

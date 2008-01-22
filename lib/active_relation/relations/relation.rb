@@ -77,9 +77,13 @@ module ActiveRelation
     end
     include Operations
 
+    def attributes
+      projections.collect(&:to_attribute)
+    end
+
     def to_sql(strategy = Sql::Select.new)
       strategy.select [
-        "SELECT #{attributes.collect{ |a| a.to_sql(Sql::Projection.new) }.join(', ')}",
+        "SELECT #{projections.collect{ |a| a.to_sql(Sql::Projection.new) }.join(', ')}",
         "FROM #{table_sql}",
         (joins unless joins.blank?),
         ("WHERE #{selects.collect{|s| s.to_sql(Sql::Predicate.new)}.join("\n\tAND ")}" unless selects.blank?),
@@ -87,7 +91,7 @@ module ActiveRelation
         ("GROUP BY #{groupings.collect(&:to_sql)}" unless groupings.blank?),
         ("LIMIT #{limit.to_sql}" unless limit.blank?),
         ("OFFSET #{offset.to_sql}" unless offset.blank?)
-      ].compact.join("\n")
+      ].compact.join("\n"), self.alias
     end
     alias_method :to_s, :to_sql
   
@@ -96,7 +100,7 @@ module ActiveRelation
       ActiveRecord::Base.connection
     end
 
-    def attributes; []  end
+    def projections; []  end
     def selects;    []  end
     def orders;     []  end
     def inserts;    []  end

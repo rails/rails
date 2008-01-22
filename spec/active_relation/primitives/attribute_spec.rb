@@ -7,31 +7,43 @@ module ActiveRelation
       @relation2 = Table.new(:bar)
     end
   
-    describe '#as' do
-      it "manufactures an aliased attributed when provided a parameter" do
-        @relation1[:id].as(:alias).should == Attribute.new(@relation1, :id, :alias)
+    describe Attribute::Transformations do
+      before do
+        @attribute = Attribute.new(@relation1, :id)
+      end
+      
+      describe '#as' do
+        it "manufactures an aliased attributed" do
+          @attribute.as(:alias).should == Attribute.new(@relation1, @attribute.name, :alias)
+        end
+      end
+    
+      describe '#substitute' do
+        it "manufactures an attribute with the relation substituted" do
+          @attribute.substitute(@relation2).should == Attribute.new(@relation2, @attribute.name)
+        end
+      end
+    
+      describe '#qualify' do
+        it "manufactures an attribute aliased with that attributes qualified name" do
+          @attribute.qualify.should == Attribute.new(@attribute.relation, @attribute.name, @attribute.qualified_name)
+        end
+      end
+      
+      describe '#to_attribute' do
+        it "returns self" do
+          @attribute.to_attribute.should == @attribute
+        end
       end
     end
     
-    describe '#substitute' do
-      it "manufactures an attribute with the relation substituted" do
-        @relation1[:id].substitute(@relation2).should == Attribute.new(@relation2, :id)
-      end
-    end
-  
     describe '#qualified_name' do
       it "manufactures an attribute name prefixed with the relation's name" do
-        @relation1[:id].qualified_name.should == 'foo.id'
+        Attribute.new(@relation1, :id).qualified_name.should == 'foo.id'
       end
     
       it "manufactures an attribute name prefixed with the relation's aliased name" do
-        @relation1.as(:bar)[:id].qualified_name.should == 'bar.id'
-      end
-    end
-  
-    describe '#qualify' do
-      it "manufactures an attribute aliased with that attributes qualified name" do
-        @relation1[:id].qualify.should == @relation1[:id].qualify
+        Attribute.new(@relation1.as(:bar), :id).qualified_name.should == 'bar.id'
       end
     end
   
@@ -40,6 +52,7 @@ module ActiveRelation
         Attribute.new(@relation1, :name).should == Attribute.new(@relation1, :name)
         Attribute.new(@relation1, :name).should_not == Attribute.new(@relation1, :another_name)
         Attribute.new(@relation1, :name).should_not == Attribute.new(@relation2, :name)
+        Attribute.new(@relation1, :name).should_not == Aggregation.new(Attribute.new(@relation1, :name), "SUM")
       end
     end
   

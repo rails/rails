@@ -15,6 +15,8 @@ module ActiveRelation
     end
   
     protected
+    alias_method :projections, :attributes
+    
     def attribute(name)
       attributes_by_name[name.to_s]
     end

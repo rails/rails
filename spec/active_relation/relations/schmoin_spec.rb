@@ -5,17 +5,17 @@ module ActiveRelation
     before do
       @relation = Table.new(:users)
       photos = Table.new(:photos)
-      @aggregate_relation = photos.project(photos[:user_id], photos[:id].count).group(photos[:user_id]).as(:photo_count)
+      @aggregate_relation = photos.project(photos[:user_id], photos[:id].count).rename(photos[:id].count, :cnt) \
+                              .group(photos[:user_id]).as(:photo_count)
       @predicate = Equality.new(@aggregate_relation[:user_id], @relation[:id])
     end
   
     describe '#to_sql' do
       it 'manufactures sql joining the two tables on the predicate, merging the selects' do
-        pending
         Schmoin.new("INNER JOIN", @relation, @aggregate_relation, @predicate).to_sql.should be_like("""
-          SELECT `users`.`name`
+          SELECT `users`.`name`, `users`.`id`, `photo_count`.`user_id`, `photo_count`.`cnt`
           FROM `users`
-            INNER JOIN (SELECT `photos`.`user_id`, count(`photos`.`id`) FROM `photos`) AS `photo_count`
+            INNER JOIN (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` GROUP BY `photos`.`user_id`) AS `photo_count`
               ON `photo_count`.`user_id` = `users`.`id`
         """)
       end

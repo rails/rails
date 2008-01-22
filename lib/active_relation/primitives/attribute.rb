@@ -18,6 +18,10 @@ module ActiveRelation
       def qualify
         self.as(qualified_name)
       end
+      
+      def to_attribute
+        self
+      end
     end
     include Transformations
     
@@ -26,7 +30,7 @@ module ActiveRelation
     end
 
     def ==(other)
-      relation == other.relation and name == other.name and @alias == other.alias
+      self.class == other.class and relation == other.relation and name == other.name and @alias == other.alias
     end
 
     module Predications

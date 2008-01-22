@@ -38,12 +38,6 @@ module ActiveRelation
       end
     end
   
-    describe '#schmattribute' do
-      it "should be renamed" do
-        pending
-      end
-    end
-  
     describe '#qualify' do
       it "distributes over the relation and renames" do
         Rename.new(@relation, @relation[:id] => :schmid).qualify. \
