@@ -15,21 +15,24 @@ module ActiveSupport
       def read(key, options = nil)
         super
         @data.get(key, raw?(options))
-      rescue MemCache::MemCacheError
+      rescue MemCache::MemCacheError => e
+        logger.error("MemCacheError (#{e}): #{e.message}")
         nil
       end
 
       def write(key, value, options = nil)
         super
         @data.set(key, value, expires_in(options), raw?(options))
-      rescue MemCache::MemCacheError
+      rescue MemCache::MemCacheError => e
+        logger.error("MemCacheError (#{e}): #{e.message}")
         nil
       end
 
       def delete(key, options = nil)
         super
         @data.delete(key, expires_in(options))
-      rescue MemCache::MemCacheError
+      rescue MemCache::MemCacheError => e
+        logger.error("MemCacheError (#{e}): #{e.message}")
         nil
       end
 
