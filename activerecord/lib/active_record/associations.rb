@@ -487,7 +487,8 @@ module ActiveRecord
     # When eager loaded, conditions are interpolated in the context of the model class, not the model instance.  Conditions are lazily interpolated
     # before the actual model exists.
     #
-    # Eager loading is not possible with polymorphic associations. Given
+    # Eager loading is not supported with polymorphic associations up to (and including)
+    # version 2.0.2. Given
     #
     #   class Address < ActiveRecord::Base
     #     belongs_to :addressable, :polymorphic => true
@@ -499,6 +500,9 @@ module ActiveRecord
     #
     # will raise <tt>ActiveRecord::EagerLoadPolymorphicError</tt>. The reason is that the parent model's type
     # is a column value so its corresponding table name cannot be put in the FROM/JOIN clauses of that early query.
+    #
+    # In versions greater than 2.0.2 eager loading in polymorphic associations is supported
+    # thanks to a change in the overall preloading strategy.
     #
     # It does work the other way around though: if the <tt>User</tt> model is <tt>addressable</tt> you can eager load
     # their addresses with <tt>:include</tt> just fine, every piece needed to construct the query is known beforehand.
