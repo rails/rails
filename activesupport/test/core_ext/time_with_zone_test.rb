@@ -170,8 +170,8 @@ uses_tzinfo 'TimeWithZoneTest' do
         assert_equal 'Fri, 31 Dec 1999 14:00:00 HST -10:00', @dt.in_current_time_zone.inspect
       end
       with_time_zone nil do
-        assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @t.in_current_time_zone.inspect
-        assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @dt.in_current_time_zone.inspect
+        assert_equal @t, @t.in_current_time_zone
+        assert_equal @dt, @dt.in_current_time_zone
       end
     end
     
@@ -196,8 +196,8 @@ uses_tzinfo 'TimeWithZoneTest' do
         assert_equal 'Sat, 01 Jan 2000 00:00:00 HST -10:00', @dt.change_time_zone_to_current.inspect
       end
       with_time_zone nil do
-        assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @t.change_time_zone_to_current.inspect
-        assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @dt.change_time_zone_to_current.inspect
+        assert_equal @t, @t.change_time_zone_to_current
+        assert_equal @dt, @dt.change_time_zone_to_current
       end
     end
     

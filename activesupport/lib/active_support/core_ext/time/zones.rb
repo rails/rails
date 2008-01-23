@@ -46,7 +46,7 @@ module ActiveSupport #:nodoc:
 
         # Returns the simultaneous time in Time.zone
         def in_current_time_zone
-          in_time_zone(::Time.zone)
+          ::Time.zone ? in_time_zone(::Time.zone) : self
         end
 
         # Replaces the existing zone; leaves time value intact. Examples:
@@ -60,7 +60,7 @@ module ActiveSupport #:nodoc:
 
         # Replaces the existing zone to Time.zone; leaves time value intact
         def change_time_zone_to_current
-          change_time_zone(::Time.zone)
+          ::Time.zone ? change_time_zone(::Time.zone) : self
         end
       end
     end
