@@ -156,17 +156,9 @@ class TimeZone
   end
 
   # Returns the offset of this time zone as a formatted string, of the
-  # format "+HH:MM". If the offset is zero, this returns the empty
-  # string. If +colon+ is false, a colon will not be inserted into the
-  # result.
-  def formatted_offset(colon=true)
-    utc_offset == 0 ? '' : offset(colon)
-  end
-  
-  # Returns the offset of this time zone as a formatted string, of the
   # format "+HH:MM".
-  def offset(colon=true)
-    utc_offset.to_utc_offset_s(colon)
+  def formatted_offset(colon=true, alternate_utc_string = nil)
+    utc_offset == 0 && alternate_utc_string || utc_offset.to_utc_offset_s(colon)
   end
 
   # Compare this time zone to the parameter. The two are comapred first on

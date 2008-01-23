@@ -77,6 +77,12 @@ class TimeZoneTest < Test::Unit::TestCase
     assert_equal "-0500", zone.formatted_offset(false)
   end
   
+  def test_formatted_offset_zero
+    zone = TimeZone['London']
+    assert_equal "+00:00", zone.formatted_offset
+    assert_equal "UTC", zone.formatted_offset(true, 'UTC')
+  end
+  
   def test_zone_compare
     zone1 = TimeZone['Central Time (US & Canada)'] # offset -0600
     zone2 = TimeZone['Eastern Time (US & Canada)'] # offset -0500
