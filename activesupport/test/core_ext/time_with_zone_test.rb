@@ -87,11 +87,23 @@ uses_tzinfo 'TimeWithZoneTest' do
     def test_xmlschema
       assert_equal "1999-12-31T19:00:00-05:00", @twz.xmlschema
     end
-      
-    def test_compare
+    
+    def test_compare_with_time
       assert_equal  1, @twz <=> Time.utc(1999, 12, 31, 23, 59, 59)
-      assert_equal  0, @twz <=> Time.utc(2000)
+      assert_equal  0, @twz <=> Time.utc(2000, 1, 1, 0, 0, 0)
       assert_equal(-1, @twz <=> Time.utc(2000, 1, 1, 0, 0, 1))
+    end
+
+    def test_compare_with_datetime
+      assert_equal  1, @twz <=> DateTime.civil(1999, 12, 31, 23, 59, 59)
+      assert_equal  0, @twz <=> DateTime.civil(2000, 1, 1, 0, 0, 0)
+      assert_equal(-1, @twz <=> DateTime.civil(2000, 1, 1, 0, 0, 1))
+    end
+
+    def test_compare_with_time_with_zone
+      assert_equal  1, @twz <=> ActiveSupport::TimeWithZone.new( Time.utc(1999, 12, 31, 23, 59, 59) )
+      assert_equal  0, @twz <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 0) )
+      assert_equal(-1, @twz <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1) ))
     end
       
     def test_plus

@@ -105,7 +105,6 @@ module ActiveSupport
   
     # Use the time in UTC for comparisons
     def <=>(other)
-      other = other.comparable_time if other.respond_to?(:comparable_time) # to coerce time from TimeWithZone
       utc <=> other
     end
   

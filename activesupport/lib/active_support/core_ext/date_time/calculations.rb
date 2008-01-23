@@ -7,6 +7,11 @@ module ActiveSupport #:nodoc:
       module Calculations
         def self.included(base) #:nodoc:
           base.extend ClassMethods
+          
+          base.class_eval do
+            alias_method :compare_without_coercion, :<=>
+            alias_method :<=>, :compare_with_coercion
+          end
         end
 
         module ClassMethods
@@ -90,6 +95,13 @@ module ActiveSupport #:nodoc:
         # Returns the offset value in seconds
         def utc_offset
           (offset * 86400).to_i
+        end
+        
+        # Layers additional behavior on DateTime#<=> so that Time and ActiveSupport::TimeWithZone instances can be compared with a DateTime
+        def compare_with_coercion(other)
+          other = other.comparable_time if other.respond_to?(:comparable_time)
+          other = other.to_datetime unless other.acts_like?(:date)
+          compare_without_coercion(other)
         end
       end
     end

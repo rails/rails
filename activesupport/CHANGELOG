@@ -1,5 +1,7 @@
 *SVN*
 
+* Adding Time and DateTime #compare_with_coercion, which layers behavior on #<=> so that any combination of Time, DateTime and ActiveSupport::TimeWithZone instances can be chronologically compared [Geoff Buesing]
+
 * TimeZone#now returns an ActiveSupport::TimeWithZone [Geoff Buesing]
 
 * Time #in_current_time_zone and #change_time_zone_to_current return self when Time.zone is nil [Geoff Buesing]

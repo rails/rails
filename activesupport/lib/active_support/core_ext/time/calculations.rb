@@ -9,8 +9,12 @@ module ActiveSupport #:nodoc:
           base.class_eval do
             alias_method :plus_without_duration, :+
             alias_method :+, :plus_with_duration
+            
             alias_method :minus_without_duration, :-
             alias_method :-, :minus_with_duration
+            
+            alias_method :compare_without_coercion, :<=>
+            alias_method :<=>, :compare_with_coercion
           end
         end
 
@@ -216,6 +220,19 @@ module ActiveSupport #:nodoc:
             other.until(self)
           else
             minus_without_duration(other)
+          end
+        end
+        
+        # Layers additional behavior on Time#<=> so that DateTime and ActiveSupport::TimeWithZone instances
+        # can be chronologically compared with a Time
+        def compare_with_coercion(other)
+          # if other is an ActiveSupport::TimeWithZone, coerce a Time instance from it so we can do <=> comparision
+          other = other.comparable_time if other.respond_to?(:comparable_time)
+          if other.acts_like?(:date)
+            # other is a Date/DateTime, so coerce self #to_datetime and hand off to DateTime#<=>
+            to_datetime.compare_without_coercion(other)
+          else
+            compare_without_coercion(other)
           end
         end
       end
