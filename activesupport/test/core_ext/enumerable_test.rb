@@ -21,7 +21,7 @@ class EnumerableTests < Test::Unit::TestCase
       assert group.all? { |person| person.name == name }
     end
 
-    assert_equal objects.uniq.map(&:name), grouped.map { |name, group| name }
+    assert_equal objects.uniq.map(&:name), grouped.keys
   end
 
   def test_sums
