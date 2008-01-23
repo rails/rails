@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove unneeded #to_datetime_default_s alias for DateTime#to_s, given that we inherit a #to_default_s from Date that does exactly the same thing [Geoff Buesing]
+
 * Refactor Time and DateTime #to_formatted_s: use ternary instead of nested if/else [Geoff Buesing]
 
 * Adding Time and DateTime #formatted_offset, for outputting +HH:MM utc offset strings with cross-platform consistency [Geoff Buesing]
