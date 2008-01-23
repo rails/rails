@@ -50,3 +50,5 @@ require 'active_support/json'
 require 'active_support/multibyte'
 
 require 'active_support/base64'
+
+require 'active_support/time_with_zone'
