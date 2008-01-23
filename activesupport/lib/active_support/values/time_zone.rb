@@ -177,22 +177,27 @@ class TimeZone
   begin # the following methods depend on the tzinfo gem
     require_library_or_gem "tzinfo" unless Object.const_defined?(:TZInfo)
     
-    # Compute and return the current time, in the time zone represented by
-    # +self+.
+    # Returns an ActiveSupport::TimeWithZone instance representing the current time
+    # in the time zone represented by +self+. Example:
+    #
+    #   Time.zone = 'Hawaii'  # => "Hawaii"
+    #   Time.zone.now         # => Wed, 23 Jan 2008 20:24:27 HST -10:00
     def now
-      tzinfo.now
+      tzinfo.now.change_time_zone(self)
     end
 
     # Return the current date in this time zone.
     def today
-      now.to_date
+      tzinfo.now.to_date
     end
 
-    # Adjust the given time to the time zone represented by +self+.
+    # Adjust the given time to the simultaneous time in the time zone represented by +self+. Returns a 
+    # Time.utc() instance -- if you want an ActiveSupport::TimeWithZone instance, use Time#in_time_zone() instead.
     def utc_to_local(time)
       tzinfo.utc_to_local(time)
     end
-
+    
+    # Adjust the given time to the simultaneous time in UTC. Returns a Time.utc() instance.
     def local_to_utc(time, dst=true)
       tzinfo.local_to_utc(time, dst)
     end

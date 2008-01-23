@@ -55,7 +55,10 @@ class TimeZoneTest < Test::Unit::TestCase
     uses_mocha 'TestTimeZoneNowAndToday' do
       def test_now
         TZInfo::DataTimezone.any_instance.stubs(:now).returns(Time.utc(2000))
-        assert_equal Time.utc(2000), TimeZone['Eastern Time (US & Canada)'].now
+        zone = TimeZone['Eastern Time (US & Canada)']
+        assert_instance_of ActiveSupport::TimeWithZone, zone.now
+        assert_equal Time.utc(2000), zone.now.time
+        assert_equal zone, zone.now.time_zone
       end
     
       def test_today

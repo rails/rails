@@ -1,5 +1,7 @@
 *SVN*
 
+* TimeZone#now returns an ActiveSupport::TimeWithZone [Geoff Buesing]
+
 * Time #in_current_time_zone and #change_time_zone_to_current return self when Time.zone is nil [Geoff Buesing]
 
 * Remove unneeded #to_datetime_default_s alias for DateTime#to_s, given that we inherit a #to_default_s from Date that does exactly the same thing [Geoff Buesing]
