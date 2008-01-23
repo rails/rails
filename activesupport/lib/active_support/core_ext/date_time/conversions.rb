@@ -52,6 +52,15 @@ module ActiveSupport #:nodoc:
           end
         end
 
+        # Returns the utc_offset as an +HH:MM formatted string. Examples:
+        #
+        #   datetime = DateTime.civil(2000, 1, 1, 0, 0, 0, Rational(-6, 24))
+        #   datetime.formatted_offset         # => "-06:00"
+        #   datetime.formatted_offset(false)  # => "-0600"
+        def formatted_offset(colon = true, alternate_utc_string = nil)
+          utc? && alternate_utc_string || utc_offset.to_utc_offset_s(colon)
+        end
+        
         # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005 14:30:00 +0000"
         def readable_inspect
           to_s(:rfc822)

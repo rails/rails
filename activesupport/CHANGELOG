@@ -1,5 +1,7 @@
 *SVN*
 
+* Adding Time and DateTime #formatted_offset, for outputting +HH:MM utc offset strings with cross-platform consistency [Geoff Buesing]
+
 * Adding alternate_utc_string option to TimeZone#formatted_offset. Removing unneeded TimeZone#offset. [Geoff Buesing]
 
 * Introduce ActiveSupport::TimeWithZone, for wrapping Time instances with a TimeZone. Introduce instance methods to Time for creating TimeWithZone instances, and class methods for managing a global time zone. [Geoff Buesing]

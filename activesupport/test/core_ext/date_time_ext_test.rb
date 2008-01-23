@@ -241,6 +241,18 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2005, 2, 21, 10, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, 0).utc
     assert_equal DateTime.civil(2005, 2, 21, 9, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(1, 24)).utc
   end
+  
+  def test_formatted_offset_with_utc
+    assert_equal '+00:00', DateTime.civil(2000).formatted_offset
+    assert_equal '+0000', DateTime.civil(2000).formatted_offset(false)
+    assert_equal 'UTC', DateTime.civil(2000).formatted_offset(true, 'UTC')
+  end
+  
+  def test_formatted_offset_with_local
+    dt = DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-5, 24))
+    assert_equal '-05:00', dt.formatted_offset
+    assert_equal '-0500', dt.formatted_offset(false)
+  end
 
   protected
     def with_timezone(new_tz = 'US/Eastern')

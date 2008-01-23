@@ -409,6 +409,21 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   def test_acts_like_time
     assert Time.new.acts_like_time?
   end
+  
+  def test_formatted_offset_with_utc
+    assert_equal '+00:00', Time.utc(2000).formatted_offset
+    assert_equal '+0000', Time.utc(2000).formatted_offset(false)
+    assert_equal 'UTC', Time.utc(2000).formatted_offset(true, 'UTC')
+  end
+  
+  def test_formatted_offset_with_local
+    with_timezone 'US/Eastern' do
+      assert_equal '-05:00', Time.local(2000).formatted_offset
+      assert_equal '-0500', Time.local(2000).formatted_offset(false)
+      assert_equal '-04:00', Time.local(2000, 7).formatted_offset
+      assert_equal '-0400', Time.local(2000, 7).formatted_offset(false)
+    end
+  end
 
   protected
     def with_timezone(new_tz = 'US/Eastern')
