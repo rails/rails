@@ -1,5 +1,7 @@
 *SVN*
 
+* Refactor Time and DateTime #to_formatted_s: use ternary instead of nested if/else [Geoff Buesing]
+
 * Adding Time and DateTime #formatted_offset, for outputting +HH:MM utc offset strings with cross-platform consistency [Geoff Buesing]
 
 * Adding alternate_utc_string option to TimeZone#formatted_offset. Removing unneeded TimeZone#offset. [Geoff Buesing]

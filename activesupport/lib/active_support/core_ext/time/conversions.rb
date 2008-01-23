@@ -45,15 +45,8 @@ module ActiveSupport #:nodoc:
         #   Time::DATE_FORMATS[:month_and_year] = "%B %Y"
         #   Time::DATE_FORMATS[:short_ordinal] = lambda { |time| time.strftime("%B #{time.day.ordinalize}") }
         def to_formatted_s(format = :default)
-          if formatter = DATE_FORMATS[format]
-            if formatter.respond_to?(:call)
-              formatter.call(self).to_s
-            else
-              strftime(formatter)
-            end
-          else
-            to_default_s
-          end
+          return to_default_s unless formatter = DATE_FORMATS[format]
+          formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
         end
         
         # Returns the utc_offset as an +HH:MM formatted string. Examples:
