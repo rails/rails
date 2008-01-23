@@ -41,7 +41,16 @@ module ActionController
       private
         def define_run_method(script_path)
           script = File.read(script_path)
-          source = "def run\n#{script}\nreset!\nend"
+
+          source = <<-end_source
+            def run
+              #{script}
+              old_request_count = request_count
+              reset!
+              self.request_count = old_request_count
+            end
+          end_source
+
           instance_eval source, script_path, 1
         end
 
