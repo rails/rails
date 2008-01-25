@@ -1,5 +1,7 @@
 *SVN*
 
+* Time.get_zone refactored to private method, given that the encapsulated logic is only useful internally [Geoff Buesing]
+
 * Time.zone uses thread-local variable for thread safety. Adding Time.use_zone, for overriding Time.zone locally inside a block. Removing unneeded Time.zone_reset! [Geoff Buesing]
 
 * TimeZone#to_s uses UTC rather than GMT; reapplying change that was undone in [8679]. #1689 [Cheah Chu Yeow]
