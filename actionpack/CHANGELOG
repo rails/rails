@@ -1,5 +1,7 @@
 *SVN*
 
+* Handle corner case with image_tag when passed 'messed up' image names. #9018 [duncanbeevers, mpalmer]
+
 * Add label_tag helper for generating elements. #10802 [DefV]
 
 * Introduce TemplateFinder to handle view paths and lookups.  #10800 [Pratik Naik] 

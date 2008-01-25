@@ -398,7 +398,7 @@ module ActionView
         options.symbolize_keys!
 
         options[:src] = path_to_image(source)
-        options[:alt] ||= File.basename(options[:src], '.*').split('.').first.capitalize
+        options[:alt] ||= File.basename(options[:src], '.*').split('.').first.to_s.capitalize
 
         if size = options.delete(:size)
           options[:width], options[:height] = size.split("x") if size =~ %r{^\d+x\d+$}
