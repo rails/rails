@@ -18,19 +18,14 @@ module ActiveSupport #:nodoc:
           end
         end
 
+        COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
         module ClassMethods
-          # Return the number of days in the given month. If a year is given,
-          # February will return the correct number of days for leap years.
-          # Otherwise, this method will always report February as having 28
-          # days.
-          def days_in_month(month, year=nil)
-            if month == 2
-              !year.nil? && (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0)) ?  29 : 28
-            elsif month <= 7
-              month % 2 == 0 ? 30 : 31
-            else
-              month % 2 == 0 ? 31 : 30
-            end
+          # Return the number of days in the given month. 
+          # If no year is specified, it will use the current year. 
+          def days_in_month(month, year = now.year)
+            return 29 if month == 2 && ::Date.gregorian_leap?(year)
+            COMMON_YEAR_DAYS_IN_MONTH[month]
           end
 
           # Returns a new Time if requested year can be accommodated by Ruby's Time class

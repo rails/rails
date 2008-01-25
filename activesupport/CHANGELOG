@@ -1,5 +1,7 @@
 *SVN*
 
+* Time.days_in_month defaults to current year if no year is supplied as argument #10799 [Radar], uses Date.gregorian_leap? to determine leap year, and uses constant lookup to determine days in month [Geoff Buesing]  
+
 * Adding Time and DateTime #compare_with_coercion, which layers behavior on #<=> so that any combination of Time, DateTime and ActiveSupport::TimeWithZone instances can be chronologically compared [Geoff Buesing]
 
 * TimeZone#now returns an ActiveSupport::TimeWithZone [Geoff Buesing]

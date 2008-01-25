@@ -348,7 +348,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal midnight.midnight, (midnight + 1.hour + 0.000001).midnight
   end
 
-  def test_days_in_month
+  def test_days_in_month_with_year
     assert_equal 31, Time.days_in_month(1, 2005)
 
     assert_equal 28, Time.days_in_month(2, 2005)
@@ -366,6 +366,18 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal 31, Time.days_in_month(10, 2005)
     assert_equal 30, Time.days_in_month(11, 2005)
     assert_equal 31, Time.days_in_month(12, 2005)
+  end
+  
+  uses_mocha 'TestTimeDaysInMonthWithoutYearArg' do
+    def test_days_in_month_feb_in_common_year_without_year_arg
+      Time.stubs(:now).returns(Time.utc(2007))
+      assert_equal 28, Time.days_in_month(2)
+    end
+  
+    def test_days_in_month_feb_in_leap_year_without_year_arg
+      Time.stubs(:now).returns(Time.utc(2008))
+      assert_equal 29, Time.days_in_month(2)
+    end
   end
 
   def test_time_with_datetime_fallback
