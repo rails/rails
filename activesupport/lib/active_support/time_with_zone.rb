@@ -5,7 +5,7 @@ module ActiveSupport
     include Comparable
     attr_reader :time_zone
   
-    def initialize(utc_time, time_zone = nil, local_time = nil)
+    def initialize(utc_time, time_zone, local_time = nil)
       @utc = utc_time
       @time = local_time
       @time_zone = time_zone
@@ -13,12 +13,12 @@ module ActiveSupport
   
     # Returns a Time instance that represents the time in time_zone
     def time
-      @time ||= utc? ? @utc : time_zone.utc_to_local(@utc)
+      @time ||= time_zone.utc_to_local(@utc)
     end
 
     # Returns a Time instance that represents the time in UTC
     def utc
-      @utc ||= utc? ? @time : time_zone.local_to_utc(@time)
+      @utc ||= time_zone.local_to_utc(@time)
     end
     alias_method :comparable_time, :utc
   
@@ -53,16 +53,15 @@ module ActiveSupport
     end
   
     def dst?
-      utc? ? false : period.dst?
+      period.dst?
     end
   
-    # The TimeZone class has no zone for UTC, so this class uses the absence of a time zone to indicate UTC
     def utc?
-      !time_zone
+      time_zone.name == 'UTC'
     end
   
     def utc_offset
-      utc? ? 0 : period.utc_total_offset
+      period.utc_total_offset
     end
   
     def formatted_offset(colon = true, alternate_utc_string = nil)
@@ -71,7 +70,7 @@ module ActiveSupport
   
     # Time uses #zone to display the time zone abbreviation, so we're duck-typing it
     def zone
-      utc? ? 'UTC' : period.abbreviation.to_s
+      period.abbreviation.to_s
     end
   
     def inspect

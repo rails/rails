@@ -46,7 +46,7 @@ uses_tzinfo 'TimeWithZoneTest' do
   
     def test_utc?
       assert_equal false, @twz.utc?
-      assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000)).utc?
+      assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), TimeZone['UTC']).utc?
     end
       
     def test_formatted_offset
@@ -101,9 +101,9 @@ uses_tzinfo 'TimeWithZoneTest' do
     end
 
     def test_compare_with_time_with_zone
-      assert_equal  1, @twz <=> ActiveSupport::TimeWithZone.new( Time.utc(1999, 12, 31, 23, 59, 59) )
-      assert_equal  0, @twz <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 0) )
-      assert_equal(-1, @twz <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1) ))
+      assert_equal  1, @twz <=> ActiveSupport::TimeWithZone.new( Time.utc(1999, 12, 31, 23, 59, 59), TimeZone['UTC'] )
+      assert_equal  0, @twz <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 0), TimeZone['UTC'] )
+      assert_equal(-1, @twz <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1), TimeZone['UTC'] ))
     end
       
     def test_plus
@@ -159,11 +159,13 @@ uses_tzinfo 'TimeWithZoneTest' do
 
     def test_in_time_zone
       silence_warnings do # silence warnings raised by tzinfo gem
-        Time.use_zone 'Eastern Time (US & Canada)' do
+        Time.use_zone 'Eastern Time (US & Canada)' do # Time.zone will not affect #in_time_zone(zone)
           assert_equal 'Fri, 31 Dec 1999 15:00:00 AKST -09:00', @t.in_time_zone('Alaska').inspect
           assert_equal 'Fri, 31 Dec 1999 15:00:00 AKST -09:00', @dt.in_time_zone('Alaska').inspect
           assert_equal 'Fri, 31 Dec 1999 14:00:00 HST -10:00', @t.in_time_zone('Hawaii').inspect
           assert_equal 'Fri, 31 Dec 1999 14:00:00 HST -10:00', @dt.in_time_zone('Hawaii').inspect
+          assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @t.in_time_zone('UTC').inspect
+          assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @dt.in_time_zone('UTC').inspect
         end
       end
     end
@@ -185,11 +187,13 @@ uses_tzinfo 'TimeWithZoneTest' do
     
     def test_change_time_zone
       silence_warnings do # silence warnings raised by tzinfo gem
-        Time.use_zone 'Eastern Time (US & Canada)' do
+        Time.use_zone 'Eastern Time (US & Canada)' do # Time.zone will not affect #change_time_zone(zone)
           assert_equal 'Sat, 01 Jan 2000 00:00:00 AKST -09:00', @t.change_time_zone('Alaska').inspect
           assert_equal 'Sat, 01 Jan 2000 00:00:00 AKST -09:00', @dt.change_time_zone('Alaska').inspect
           assert_equal 'Sat, 01 Jan 2000 00:00:00 HST -10:00', @t.change_time_zone('Hawaii').inspect
           assert_equal 'Sat, 01 Jan 2000 00:00:00 HST -10:00', @dt.change_time_zone('Hawaii').inspect
+          assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @t.change_time_zone('UTC').inspect
+          assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @dt.change_time_zone('UTC').inspect
         end
       end
     end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Adding UTC zone to TimeZone; TimeWithZone no longer has to fake UTC zone with nil [Geoff Buesing]
+
 * Time.get_zone refactored to private method, given that the encapsulated logic is only useful internally [Geoff Buesing]
 
 * Time.zone uses thread-local variable for thread safety. Adding Time.use_zone, for overriding Time.zone locally inside a block. Removing unneeded Time.zone_reset! [Geoff Buesing]
