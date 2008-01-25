@@ -454,6 +454,10 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal  0, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 0), TimeZone['UTC'] )
     assert_equal(-1, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1), TimeZone['UTC'] ))
   end
+  
+  def test_minus_with_time_with_zone
+    assert_equal  86_400.0, Time.utc(2000, 1, 2) - ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1), TimeZone['UTC'] )
+  end
 
   protected
     def with_timezone(new_tz = 'US/Eastern')

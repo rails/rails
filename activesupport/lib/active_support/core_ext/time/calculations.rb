@@ -13,6 +13,9 @@ module ActiveSupport #:nodoc:
             alias_method :minus_without_duration, :-
             alias_method :-, :minus_with_duration
             
+            alias_method :minus_without_coercion, :-
+            alias_method :-, :minus_with_coercion
+            
             alias_method :compare_without_coercion, :<=>
             alias_method :<=>, :compare_with_coercion
           end
@@ -216,6 +219,14 @@ module ActiveSupport #:nodoc:
           else
             minus_without_duration(other)
           end
+        end
+        
+        # Time#- can also be used to determine the number of seconds between two Time instances.
+        # We're layering on additional behavior so that ActiveSupport::TimeWithZone instances
+        # are coerced into values that Time#- will recognize
+        def minus_with_coercion(other)
+          other = other.comparable_time if other.respond_to?(:comparable_time)
+          minus_without_coercion(other)
         end
         
         # Layers additional behavior on Time#<=> so that DateTime and ActiveSupport::TimeWithZone instances

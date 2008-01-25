@@ -121,6 +121,16 @@ uses_tzinfo 'TimeWithZoneTest' do
     def test_minus_with_duration
       assert_equal Time.utc(1999, 12, 26, 19, 0 ,0), (@twz - 5.days).time
     end
+    
+    def test_minus_with_time
+      assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 2), TimeZone['UTC'] ) - Time.utc(2000, 1, 1)
+    end
+    
+    def test_minus_with_time_with_zone
+      twz1 = ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1), TimeZone['UTC'] )
+      twz2 = ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 2), TimeZone['UTC'] )
+      assert_equal  86_400.0,  twz2 - twz1
+    end
       
     def test_to_time
       assert_equal @twz, @twz.to_time
