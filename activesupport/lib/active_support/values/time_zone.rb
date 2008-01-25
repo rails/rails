@@ -171,7 +171,7 @@ class TimeZone
 
   # Returns a textual representation of this time zone.
   def to_s
-    "(GMT#{formatted_offset}) #{name}"
+    "(UTC#{formatted_offset}) #{name}"
   end
 
   begin # the following methods depend on the tzinfo gem

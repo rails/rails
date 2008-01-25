@@ -95,7 +95,7 @@ class TimeZoneTest < Test::Unit::TestCase
   end
   
   def test_to_s
-    assert_equal "(GMT+03:00) Moscow", TimeZone['Moscow'].to_s
+    assert_equal "(UTC+03:00) Moscow", TimeZone['Moscow'].to_s
   end
   
   def test_all_sorted
