@@ -9,7 +9,9 @@ module ActiveSupport #:nodoc:
         end
         
         module ClassMethods
-          attr_reader :zone
+          def zone
+            Thread.current[:time_zone]
+          end
 
           # Sets a global default time zone, separate from the system time zone in ENV['TZ']. 
           # Accepts either a Rails TimeZone object, a string that identifies a 
@@ -20,16 +22,20 @@ module ActiveSupport #:nodoc:
           #
           #   Time.zone = 'Hawaii'                  # => 'Hawaii'
           #   Time.utc(2000).in_current_time_zone   # => Fri, 31 Dec 1999 14:00:00 HST -10:00
-          def zone=(zone)
-            @zone = get_zone(zone)
+          def zone=(time_zone)
+            Thread.current[:time_zone] = get_zone(time_zone)
           end
           
-          def zone_reset!
-            @zone = nil
+          # Allows override of Time.zone locally inside supplied block; resets Time.zone to existing value when done
+          def use_zone(time_zone)
+            old_zone, ::Time.zone = ::Time.zone, ::Time.get_zone(time_zone)
+            yield
+          ensure
+            ::Time.zone = old_zone
           end
           
-          def get_zone(zone)
-            ::String === zone || ::Numeric === zone ? TimeZone[zone] : zone
+          def get_zone(time_zone)
+            ::String === time_zone || ::Numeric === time_zone ? TimeZone[time_zone] : time_zone
           end
         end
         

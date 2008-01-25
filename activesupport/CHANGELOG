@@ -1,5 +1,7 @@
 *SVN*
 
+* Time.zone uses thread-local variable for thread safety. Adding Time.use_zone, for overriding Time.zone locally inside a block. Removing unneeded Time.zone_reset! [Geoff Buesing]
+
 * TimeZone#to_s uses UTC rather than GMT; reapplying change that was undone in [8679]. #1689 [Cheah Chu Yeow]
 
 * Time.days_in_month defaults to current year if no year is supplied as argument #10799 [Radar], uses Date.gregorian_leap? to determine leap year, and uses constant lookup to determine days in month [Geoff Buesing]  
