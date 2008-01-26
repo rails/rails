@@ -19,6 +19,11 @@ module ActionController
 
         # Creates a named route called "root" for matching the root level request.
         def root(options = {})
+          if options.is_a?(Symbol)
+            if source_route = @set.named_routes.routes[options]
+              options = source_route.defaults.merge({ :conditions => source_route.conditions })
+            end
+          end
           named_route("root", '', options)
         end
 

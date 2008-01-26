@@ -1808,6 +1808,30 @@ class RouteSetTest < Test::Unit::TestCase
     Object.send(:remove_const, :PeopleController)
   end
   
+  def test_recognize_with_alias_in_conditions
+    Object.const_set(:PeopleController, Class.new)
+
+    set.draw do |map|
+      map.people "/people", :controller => 'people', :action => "index",
+        :conditions => { :method => :get }
+      map.root   :people
+    end
+
+    request.path = "/people"
+    request.method = :get
+    assert_nothing_raised { set.recognize(request) }
+    assert_equal("people", request.path_parameters[:controller])
+    assert_equal("index", request.path_parameters[:action])
+
+    request.path = "/"
+    request.method = :get
+    assert_nothing_raised { set.recognize(request) }
+    assert_equal("people", request.path_parameters[:controller])
+    assert_equal("index", request.path_parameters[:action])
+  ensure
+    Object.send(:remove_const, :PeopleController)
+  end
+
   def test_typo_recognition
     Object.const_set(:ArticlesController, Class.new)
 

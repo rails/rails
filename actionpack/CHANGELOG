@@ -1,5 +1,10 @@
 *SVN*
 
+* Make map.root accept a single symbol as an argument to declare an alias.  #10818 [bscofield] 
+
+  e.g.  map.dashboard '/dashboard', :controller=>'dashboard'
+        map.root      :dashboard
+
 * Handle corner case with image_tag when passed 'messed up' image names. #9018 [duncanbeevers, mpalmer]
 
 * Add label_tag helper for generating elements. #10802 [DefV]

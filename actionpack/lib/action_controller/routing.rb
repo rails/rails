@@ -115,6 +115,12 @@ module ActionController
   #   root_url   # => 'http://www.example.com/'
   #   root_path  # => ''
   #
+  # You can also specify an already-defined named route in your map.root call:
+  #
+  #   # In routes.rb
+  #   map.new_session :controller => 'sessions', :action => 'new'
+  #   map.root :new_session
+  #
   # Note: when using +with_options+, the route is simply named after the
   # method you call on the block parameter rather than map.
   #
