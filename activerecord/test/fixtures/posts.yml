@@ -3,6 +3,7 @@ welcome:
   author_id: 1
   title: Welcome to the weblog
   body: Such a lovely day
+  comments_count: 2
   type: Post
 
 thinking:

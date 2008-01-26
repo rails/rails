@@ -1308,6 +1308,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply deleted"
   end
 
+  def test_belongs_to_counter_with_assigning_nil
+    p = Post.find(1)
+    c = Comment.find(1)
+
+    assert_equal p.id, c.post_id
+    assert_equal 2, Post.find(p.id).comments.size
+
+    c.post = nil
+
+    assert_equal 1, Post.find(p.id).comments.size
+  end
+
   def test_belongs_to_counter_with_reassigning
     t1 = Topic.create("title" => "t1")
     t2 = Topic.create("title" => "t2")

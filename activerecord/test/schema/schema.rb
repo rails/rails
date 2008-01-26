@@ -154,6 +154,7 @@ ActiveRecord::Schema.define do
       t.string  :title, :null => false
       t.text    :body, :null => false
       t.string  :type
+      t.integer :comments_count, :default => 0
     end
 
     create_table :projects, :force => true do |t|
