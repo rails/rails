@@ -124,6 +124,7 @@ uses_tzinfo 'TimeWithZoneTest' do
     
     def test_minus_with_time
       assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 2), TimeZone['UTC'] ) - Time.utc(2000, 1, 1)
+      assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 2), TimeZone['Hawaii'] ) - Time.utc(2000, 1, 1)
     end
     
     def test_minus_with_time_with_zone

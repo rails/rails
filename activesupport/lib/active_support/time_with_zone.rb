@@ -106,6 +106,12 @@ module ActiveSupport
     def <=>(other)
       utc <=> other
     end
+    
+    # Need to override #- to intercept situation where a Time or Time With Zone object is passed in
+    # Otherwise, just pass on to method missing
+    def -(other)
+      other.acts_like?(:time) ? utc - other : method_missing(:-, other)
+    end
   
     # A TimeProxy acts like a Time, so just return self
     def to_time
