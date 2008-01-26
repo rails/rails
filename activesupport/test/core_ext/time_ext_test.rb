@@ -10,13 +10,13 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_seconds_since_midnight_at_daylight_savings_time_start
-    with_timezone 'US/Eastern' do
+    with_env_tz 'US/Eastern' do
       # dt: US: 2005 April 3rd 2:00am ST => April 3rd 3:00am DT
       assert_equal 2*3600-1, Time.local(2005,4,3,1,59,59).seconds_since_midnight, 'just before DST start'
       assert_equal 2*3600+1, Time.local(2005,4,3,3, 0, 1).seconds_since_midnight, 'just after DST start'
     end
 
-    with_timezone 'NZ' do
+    with_env_tz 'NZ' do
       # dt: New Zealand: 2006 October 1st 2:00am ST => October 1st 3:00am DT
       assert_equal 2*3600-1, Time.local(2006,10,1,1,59,59).seconds_since_midnight, 'just before DST start'
       assert_equal 2*3600+1, Time.local(2006,10,1,3, 0, 1).seconds_since_midnight, 'just after DST start'
@@ -24,7 +24,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_seconds_since_midnight_at_daylight_savings_time_end
-    with_timezone 'US/Eastern' do
+    with_env_tz 'US/Eastern' do
       # st: US: 2005 October 30th 2:00am DT => October 30th 1:00am ST
       # avoid setting a time between 1:00 and 2:00 since that requires specifying whether DST is active
       assert_equal 1*3600-1, Time.local(2005,10,30,0,59,59).seconds_since_midnight, 'just before DST end'
@@ -36,7 +36,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
       assert_equal 2*3600+30*60, Time.local(0,30,1,30,10,2005,0,0,false,ENV['TZ']).seconds_since_midnight, 'after DST end'
     end
 
-    with_timezone 'NZ' do
+    with_env_tz 'NZ' do
       # st: New Zealand: 2006 March 19th 3:00am DT => March 19th 2:00am ST
       # avoid setting a time between 2:00 and 3:00 since that requires specifying whether DST is active
       assert_equal 2*3600-1, Time.local(2006,3,19,1,59,59).seconds_since_midnight, 'just before DST end'
@@ -62,11 +62,11 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
 
   def test_beginning_of_day
     assert_equal Time.local(2005,2,4,0,0,0), Time.local(2005,2,4,10,10,10).beginning_of_day
-    with_timezone 'US/Eastern' do
+    with_env_tz 'US/Eastern' do
       assert_equal Time.local(2006,4,2,0,0,0), Time.local(2006,4,2,10,10,10).beginning_of_day, 'start DST'
       assert_equal Time.local(2006,10,29,0,0,0), Time.local(2006,10,29,10,10,10).beginning_of_day, 'ends DST'
     end
-    with_timezone 'NZ' do
+    with_env_tz 'NZ' do
       assert_equal Time.local(2006,3,19,0,0,0), Time.local(2006,3,19,10,10,10).beginning_of_day, 'ends DST'
       assert_equal Time.local(2006,10,1,0,0,0), Time.local(2006,10,1,10,10,10).beginning_of_day, 'start DST'
     end
@@ -145,12 +145,12 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_daylight_savings_time_crossings_backward_start
-    with_timezone 'US/Eastern' do
+    with_env_tz 'US/Eastern' do
       # dt: US: 2005 April 3rd 4:18am
       assert_equal Time.local(2005,4,2,4,18,0), Time.local(2005,4,3,4,18,0).ago(86400), 'dt-1.day=>st'
       assert_equal Time.local(2005,4,1,4,18,0), Time.local(2005,4,2,4,18,0).ago(86400), 'st-1.day=>st'
     end
-    with_timezone 'NZ' do
+    with_env_tz 'NZ' do
       # dt: New Zealand: 2006 October 1st 4:18am
       assert_equal Time.local(2006,9,30,4,18,0), Time.local(2006,10,1,4,18,0).ago(86400), 'dt-1.day=>st'
       assert_equal Time.local(2006,9,29,4,18,0), Time.local(2006,9,30,4,18,0).ago(86400), 'st-1.day=>st'
@@ -158,12 +158,12 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_daylight_savings_time_crossings_backward_end
-    with_timezone 'US/Eastern' do
+    with_env_tz 'US/Eastern' do
       # st: US: 2005 October 30th 4:03am
       assert_equal Time.local(2005,10,29,4,3), Time.local(2005,10,30,4,3,0).ago(86400), 'st-1.day=>dt'
       assert_equal Time.local(2005,10,28,4,3), Time.local(2005,10,29,4,3,0).ago(86400), 'dt-1.day=>dt'
     end
-    with_timezone 'NZ' do
+    with_env_tz 'NZ' do
       # st: New Zealand: 2006 March 19th 4:03am
       assert_equal Time.local(2006,3,18,4,3), Time.local(2006,3,19,4,3,0).ago(86400), 'st-1.day=>dt'
       assert_equal Time.local(2006,3,17,4,3), Time.local(2006,3,18,4,3,0).ago(86400), 'dt-1.day=>dt'
@@ -180,12 +180,12 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_daylight_savings_time_crossings_forward_start
-    with_timezone 'US/Eastern' do
+    with_env_tz 'US/Eastern' do
       # st: US: 2005 April 2nd 7:27pm
       assert_equal Time.local(2005,4,3,19,27,0), Time.local(2005,4,2,19,27,0).since(86400), 'st+1.day=>dt'
       assert_equal Time.local(2005,4,4,19,27,0), Time.local(2005,4,3,19,27,0).since(86400), 'dt+1.day=>dt'
     end
-    with_timezone 'NZ' do
+    with_env_tz 'NZ' do
       # st: New Zealand: 2006 September 30th 7:27pm
       assert_equal Time.local(2006,10,1,19,27,0), Time.local(2006,9,30,19,27,0).since(86400), 'st+1.day=>dt'
       assert_equal Time.local(2006,10,2,19,27,0), Time.local(2006,10,1,19,27,0).since(86400), 'dt+1.day=>dt'
@@ -193,12 +193,12 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_daylight_savings_time_crossings_forward_end
-    with_timezone 'US/Eastern' do
+    with_env_tz 'US/Eastern' do
       # dt: US: 2005 October 30th 12:45am
       assert_equal Time.local(2005,10,31,0,45,0), Time.local(2005,10,30,0,45,0).since(86400), 'dt+1.day=>st'
       assert_equal Time.local(2005,11, 1,0,45,0), Time.local(2005,10,31,0,45,0).since(86400), 'st+1.day=>st'
     end
-    with_timezone 'NZ' do
+    with_env_tz 'NZ' do
       # dt: New Zealand: 2006 March 19th 1:45am
       assert_equal Time.local(2006,3,20,1,45,0), Time.local(2006,3,19,1,45,0).since(86400), 'dt+1.day=>st'
       assert_equal Time.local(2006,3,21,1,45,0), Time.local(2006,3,20,1,45,0).since(86400), 'st+1.day=>st'
@@ -275,7 +275,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_next_week
-    with_timezone 'US/Eastern' do
+    with_env_tz 'US/Eastern' do
       assert_equal Time.local(2005,2,28), Time.local(2005,2,22,15,15,10).next_week
       assert_equal Time.local(2005,3,1), Time.local(2005,2,22,15,15,10).next_week(:tuesday)
       assert_equal Time.local(2005,3,4), Time.local(2005,2,22,15,15,10).next_week(:friday)
@@ -285,19 +285,19 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_next_week_near_daylight_start
-    with_timezone 'US/Eastern' do
+    with_env_tz 'US/Eastern' do
       assert_equal Time.local(2006,4,3), Time.local(2006,4,2,23,1,0).next_week, 'just crossed standard => daylight'
     end
-    with_timezone 'NZ' do
+    with_env_tz 'NZ' do
       assert_equal Time.local(2006,10,2), Time.local(2006,10,1,23,1,0).next_week, 'just crossed standard => daylight'
     end
   end
 
   def test_next_week_near_daylight_end
-    with_timezone 'US/Eastern' do
+    with_env_tz 'US/Eastern' do
       assert_equal Time.local(2006,10,30), Time.local(2006,10,29,23,1,0).next_week, 'just crossed daylight => standard'
     end
-    with_timezone 'NZ' do
+    with_env_tz 'NZ' do
       assert_equal Time.local(2006,3,20), Time.local(2006,3,19,23,1,0).next_week, 'just crossed daylight => standard'
     end
   end
@@ -311,7 +311,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal "17:44",                           time.to_s(:time)
     assert_equal "February 21, 2005 17:44",         time.to_s(:long)
     assert_equal "February 21st, 2005 17:44",       time.to_s(:long_ordinal)
-    with_timezone "UTC" do 
+    with_env_tz "UTC" do 
       assert_equal "Mon, 21 Feb 2005 17:44:30 +0000", time.to_s(:rfc822)
     end
   end
@@ -328,10 +328,10 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
 
   def test_to_datetime
     assert_equal Time.utc(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, 0, 0)
-    with_timezone 'US/Eastern' do
+    with_env_tz 'US/Eastern' do
       assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, Rational(Time.local(2005, 2, 21, 17, 44, 30).utc_offset, 86400), 0)
     end
-    with_timezone 'NZ' do
+    with_env_tz 'NZ' do
       assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, Rational(Time.local(2005, 2, 21, 17, 44, 30).utc_offset, 86400), 0)
     end
     assert_equal ::Date::ITALY, Time.utc(2005, 2, 21, 17, 44, 30).to_datetime.start # use Ruby's default start value
@@ -429,7 +429,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
   
   def test_formatted_offset_with_local
-    with_timezone 'US/Eastern' do
+    with_env_tz 'US/Eastern' do
       assert_equal '-05:00', Time.local(2000).formatted_offset
       assert_equal '-0500', Time.local(2000).formatted_offset(false)
       assert_equal '-04:00', Time.local(2000, 7).formatted_offset
@@ -460,7 +460,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   protected
-    def with_timezone(new_tz = 'US/Eastern')
+    def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
       yield
     ensure

@@ -212,10 +212,10 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_local_offset
-    with_timezone 'US/Eastern' do
+    with_env_tz 'US/Eastern' do
       assert_equal Rational(-5, 24), DateTime.local_offset
     end
-    with_timezone 'US/Central' do
+    with_env_tz 'US/Central' do
       assert_equal Rational(-6, 24), DateTime.local_offset
     end
   end
@@ -273,7 +273,7 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   protected
-    def with_timezone(new_tz = 'US/Eastern')
+    def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
       yield
     ensure

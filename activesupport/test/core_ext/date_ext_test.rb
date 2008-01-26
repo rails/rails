@@ -175,7 +175,7 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   end
   
   def test_xmlschema
-    with_timezone 'US/Eastern' do
+    with_env_tz 'US/Eastern' do
       assert_match(/^1980-02-28T00:00:00-05:?00$/, Date.new(1980, 2, 28).xmlschema)
       assert_match(/^1980-06-28T00:00:00-04:?00$/, Date.new(1980, 6, 28).xmlschema)
       # these tests are only of interest on platforms where older dates #to_time fail over to DateTime
@@ -187,7 +187,7 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   end
 
   protected
-    def with_timezone(new_tz = 'US/Eastern')
+    def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
       yield
     ensure
