@@ -1,7 +1,6 @@
 module ActiveRecord
   module Associations
     class AssociationProxy #:nodoc:
-      attr_reader :reflection
       alias_method :proxy_respond_to?, :respond_to?
       alias_method :proxy_extend, :extend
       delegate :to_param, :to => :proxy_target
