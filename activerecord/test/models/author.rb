@@ -20,6 +20,7 @@ class Author < ActiveRecord::Base
   has_many :funky_comments, :through => :posts, :source => :comments
   has_many :ordered_uniq_comments, :through => :posts, :source => :comments, :uniq => true, :order => 'comments.id'
   has_many :ordered_uniq_comments_desc, :through => :posts, :source => :comments, :uniq => true, :order => 'comments.id DESC'
+  has_many :grouped_comments, :through => :posts, :source => :comments, :group => 'comments.post_id'
 
   has_many :special_posts
   has_many :special_post_comments, :through => :special_posts, :source => :comments

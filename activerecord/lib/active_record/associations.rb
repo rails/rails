@@ -55,6 +55,12 @@ module ActiveRecord
     end
   end
 
+  class HasManyThroughCantCountOnColumnForGroupedAssociation < ActiveRecordError #:nodoc:
+    def initialize(owner, reflection, column_name)
+      super("Cannot count on column '#{column_name}' for association '#{owner.class.name}##{reflection.name}' grouped by '#{reflection.options[:group]}'.")
+    end
+  end
+
   class EagerLoadPolymorphicError < ActiveRecordError #:nodoc:
     def initialize(reflection)
       super("Can not eagerly load the polymorphic association #{reflection.name.inspect}")
