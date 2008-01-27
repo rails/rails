@@ -25,7 +25,7 @@ module ActionView
 
         begin
           file_name = 'compiled-template' if file_name.blank?
-          ActionView::Base::CompiledTemplates.module_eval(render_source, file_name, line_offset)
+          ActionView::Base::CompiledTemplates.module_eval(render_source, file_name, -line_offset)
         rescue Exception => e  # errors from template code
           if @view.logger
             @view.logger.debug "ERROR: compiling #{render_symbol} RAISED #{e}"

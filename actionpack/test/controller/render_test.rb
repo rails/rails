@@ -86,6 +86,15 @@ class TestController < ActionController::Base
     render :xml => "<blah/>", :content_type => "application/atomsvc+xml"
   end
 
+  def render_line_offset
+    begin
+      render :inline => '<% raise %>', :locals => {:foo => 'bar'}
+    rescue => exc
+    end
+    line = exc.backtrace.first
+    render :text => line
+  end
+
   def heading
     head :ok
   end
@@ -223,6 +232,13 @@ class RenderTest < Test::Unit::TestCase
   def test_render
     get :render_hello_world
     assert_template "test/hello_world"
+  end
+
+  def test_line_offset
+    get :render_line_offset
+    line = @response.body
+    assert(line =~ %r{:(\d+):})
+    assert_equal "1", $1
   end
 
   def test_render_with_forward_slash
