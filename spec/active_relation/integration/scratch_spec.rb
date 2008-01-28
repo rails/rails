@@ -82,7 +82,7 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
       # MysqlAdapter from ActiveRecord is used to do the escaping.
     end
   
-    it 'generates the query for User.has_many :cameras :through => :photos' do
+    it 'generates the query for User.has_many :cameras, :through => :photos' do
       # note, again, the compositionality of the operators:
       user_cameras = photo_belongs_to_camera(user_has_many_photos(@user))
       user_cameras.project(*@cameras.attributes).to_sql.should be_like("""
