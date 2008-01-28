@@ -208,6 +208,8 @@ ActiveRecord::Schema.define do
                add FOREIGN KEY (`fk_id`) REFERENCES `fk_test_has_pk`(`id`)'
 
 
+  else
+    add_column :posts, :comments_count, :integer, :default => 0
   end
 
   # For Firebird, set the sequence values 10000 when create_table is called;
