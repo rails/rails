@@ -36,6 +36,14 @@ class TimeZoneTest < Test::Unit::TestCase
       end
     end
 
+    def test_from_integer_to_map
+      assert_instance_of TimeZone, TimeZone[-28800] # PST
+    end
+
+    def test_from_duration_to_map
+      assert_instance_of TimeZone, TimeZone[-480.minutes] # PST
+    end
+
     TimeZone.all.each do |zone|
       name = zone.name.downcase.gsub(/[^a-z]/, '_')
       define_method("test_from_#{name}_to_map") do

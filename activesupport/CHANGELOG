@@ -1,5 +1,7 @@
 *SVN*
 
+* Support retrieving TimeZones with a Duration.  TimeZone[-28800] == TimeZone[-480.minutes].  [rick]
+
 * TimeWithZone#- added, so that #- can handle a Time or TimeWithZone argument correctly [Geoff Buesing]
 
 * with_timezone test helper renamed with_env_tz, to distinguish between setting ENV['TZ'] and setting Time.zone in tests [Geoff Buesing]

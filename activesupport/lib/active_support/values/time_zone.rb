@@ -6,6 +6,7 @@ class TimeZone
     "Hawaii"                       => "Pacific/Honolulu",
     "Alaska"                       => "America/Juneau",
     "Pacific Time (US & Canada)"   => "America/Los_Angeles",
+    'PST' => "America/Los_Angeles",
     "Tijuana"                      => "America/Tijuana",
     "Mountain Time (US & Canada)"  => "America/Denver",
     "Arizona"                      => "America/Phoenix",
@@ -247,7 +248,7 @@ class TimeZone
         [[-39_600, "International Date Line West", "Midway Island", "Samoa" ],
          [-36_000, "Hawaii" ],
          [-32_400, "Alaska" ],
-         [-28_800, "Pacific Time (US & Canada)", "Tijuana" ],
+         [-28_800, "Pacific Time (US & Canada)", 'PST', "Tijuana" ],
          [-25_200, "Mountain Time (US & Canada)", "Chihuahua", "Mazatlan",
                    "Arizona" ],
          [-21_600, "Central Time (US & Canada)", "Saskatchewan", "Guadalajara",
@@ -314,7 +315,7 @@ class TimeZone
         when String
           all # force the zones to be loaded
           @@zones_map[arg]
-        when Numeric
+        when Numeric, ActiveSupport::Duration
           arg *= 3600 if arg.abs <= 13
           all.find { |z| z.utc_offset == arg.to_i }
         else
