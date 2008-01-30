@@ -4,6 +4,18 @@ module ActionView
 
       def self.included(base)
         base.extend ClassMethod
+
+        # Map method names to their compile time
+        base.cattr_accessor :compile_time
+        base.compile_time = {}
+
+        # Map method names to the names passed in local assigns so far
+        base.cattr_accessor :template_args
+        base.template_args = {}
+
+        # Count the number of inline templates
+        base.cattr_accessor :inline_template_count
+        base.inline_template_count = 0
       end
 
       module ClassMethod
