@@ -84,7 +84,6 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
       assert_no_match %r{create_table "schema_info"}, output
     end
 
-
     def test_schema_dump_with_regexp_ignored_table
       stream = StringIO.new
 
@@ -95,7 +94,6 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
       assert_match %r{create_table "authors"}, output
       assert_no_match %r{create_table "schema_info"}, output
     end
-
 
     def test_schema_dump_illegal_ignored_table_value
       stream = StringIO.new
@@ -108,7 +106,7 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
     if current_adapter?(:MysqlAdapter)
       def test_schema_dump_should_not_add_default_value_for_mysql_text_field
         output = standard_dump
-        assert_match %r{t.text\s+"body",\s+:default => "",\s+:null => false$}, output
+        assert_match %r{t.text\s+"body",\s+:null => false$}, output
       end
 
       def test_mysql_schema_dump_should_honor_nonstandard_primary_keys

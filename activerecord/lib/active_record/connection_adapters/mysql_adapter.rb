@@ -94,7 +94,7 @@ module ActiveRecord
       def extract_default(default)
         if type == :binary || type == :text
           if default.blank?
-            default
+            nil
           else
             raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
           end

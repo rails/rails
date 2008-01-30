@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL: omit text/blob defaults from the schema instead of using an empty string.  #10963 [mdeiters]
+
 * belongs_to supports :dependent => :destroy and :delete.  #10592 [Jonathan Viney]
 
 * Introduce preload query strategy for eager :includes.  #9640 [Frederick Cheung, Aleksey Kondratenko]
