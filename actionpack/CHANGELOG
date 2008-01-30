@@ -1,5 +1,8 @@
 *SVN*
 
+* Make assert_routing aware of the HTTP method used.  #8039 [mpalmer]
+  e.g. assert_routing({ :method => 'put', :path => '/product/321' }, { :controller => "product", :action => "update", :id => "321" })
+
 * Make map.root accept a single symbol as an argument to declare an alias.  #10818 [bscofield] 
 
   e.g.  map.dashboard '/dashboard', :controller=>'dashboard'
