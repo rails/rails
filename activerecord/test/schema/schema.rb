@@ -358,4 +358,13 @@ ActiveRecord::Schema.define do
   create_table 'warehouse-things', :force => true do |t|
     t.integer :value
   end
+
+  create_table :owners, :primary_key => :owner_id ,:force => true do |t|
+    t.string :name
+  end
+
+  create_table :pets, :primary_key => :pet_id ,:force => true do |t|
+    t.string :name
+    t.integer :owner_id, :integer
+  end
 end

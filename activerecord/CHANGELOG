@@ -4,7 +4,7 @@
 
 * belongs_to supports :dependent => :destroy and :delete.  #10592 [Jonathan Viney]
 
-* Introduce preload query strategy for eager :includes.  #9640 [Frederick Cheung, Aleksey Kondratenko]
+* Introduce preload query strategy for eager :includes.  #9640 [Frederick Cheung, Aleksey Kondratenko, codafoo]
 
 * Support aggregations in finder conditions.  #10572 [Ryan Kinderman]
 

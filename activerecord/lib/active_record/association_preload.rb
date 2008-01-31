@@ -180,6 +180,7 @@ module ActiveRecord
           klass = klass_name.constantize
 
           table_name = klass.table_name
+          primary_key = klass.primary_key
           conditions = "#{table_name}.#{primary_key} IN (?)"
           conditions << append_conditions(options, preload_options)
           associated_records = klass.find(:all, :conditions => [conditions, id_map.keys.uniq],
@@ -187,7 +188,7 @@ module ActiveRecord
                                           :select => options[:select],
                                           :joins => options[:joins],
                                           :order => options[:order])
-          set_association_single_records(id_map, reflection.name, associated_records, 'id')
+          set_association_single_records(id_map, reflection.name, associated_records, primary_key)
         end
       end
 

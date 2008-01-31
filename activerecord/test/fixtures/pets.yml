@@ -1,0 +1,14 @@
+parrot:
+  pet_id: 1
+  name: parrot
+  owner_id: 1
+
+chew:
+  pet_id: 2
+  name: chew
+  owner_id: 2
+
+mochi:
+  pet_id: 3
+  name: mochi
+  owner_id: 2

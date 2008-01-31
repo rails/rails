@@ -7,10 +7,13 @@ require 'models/category'
 require 'models/company'
 require 'models/person'
 require 'models/reader'
+require 'models/owner'
+require 'models/pet'
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :categories, :categories_posts,
-            :companies, :accounts, :tags, :taggings, :people, :readers
+            :companies, :accounts, :tags, :taggings, :people, :readers,
+            :owners, :pets
 
   def test_loading_with_one_association
     posts = Post.find(:all, :include => :comments)
@@ -71,6 +74,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_loading_with_no_associations
     assert_nil Post.find(posts(:authorless).id, :include => :author).author
+  end
+
+  def test_eager_association_loading_with_belongs_to_and_foreign_keys
+    pets = Pet.find(:all, :include => :owner)
+    assert_equal 3, pets.length
   end
 
   def test_eager_association_loading_with_belongs_to
