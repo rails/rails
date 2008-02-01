@@ -1,5 +1,7 @@
 *SVN*
 
+* cache.fetch(key, :force => true) to force a cache miss.  [Jeremy Kemper]
+
 * Support retrieving TimeZones with a Duration.  TimeZone[-28800] == TimeZone[-480.minutes].  [rick]
 
 * TimeWithZone#- added, so that #- can handle a Time or TimeWithZone argument correctly [Geoff Buesing]
