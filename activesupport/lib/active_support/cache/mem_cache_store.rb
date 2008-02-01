@@ -3,6 +3,14 @@ require 'memcache'
 module ActiveSupport
   module Cache
     class MemCacheStore < Store
+      module Response
+        STORED      = "STORED\r\n"
+        NOT_STORED  = "NOT_STORED\r\n"
+        EXISTS      = "EXISTS\r\n"
+        NOT_FOUND   = "NOT_FOUND\r\n"
+        DELETED     = "DELETED\r\n"
+      end
+
       attr_reader :addresses
 
       def initialize(*addresses)
@@ -21,22 +29,25 @@ module ActiveSupport
       end
 
       # Set key = value if key isn't already set. Pass :force => true
-      # to unconditionally set key = value.
+      # to unconditionally set key = value. Returns a boolean indicating
+      # whether the key was set.
       def write(key, value, options = {})
         super
         method = options[:force] ? :set : :add
-        @data.send(method, key, value, expires_in(options), raw?(options))
+        response = @data.send(method, key, value, expires_in(options), raw?(options))
+        response == Response::STORED
       rescue MemCache::MemCacheError => e
         logger.error("MemCacheError (#{e}): #{e.message}")
-        nil
+        false
       end
 
       def delete(key, options = nil)
         super
-        @data.delete(key, expires_in(options))
+        response = @data.delete(key, expires_in(options))
+        response == Response::DELETED
       rescue MemCache::MemCacheError => e
         logger.error("MemCacheError (#{e}): #{e.message}")
-        nil
+        false
       end
 
       def delete_matched(matcher, options = nil)
