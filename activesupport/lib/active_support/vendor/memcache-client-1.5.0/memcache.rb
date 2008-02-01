@@ -331,7 +331,8 @@ class MemCache
       @mutex.lock if @multithread
       socket.write command
       result = socket.gets
-      raise MemCacheError, $1.strip if result =~ /^SERVER_ERROR (.*)/
+      raise_on_error_response! result
+      result
     rescue SocketError, SystemCallError, IOError => err
       server.close
       raise MemCacheError, err.message
@@ -359,7 +360,9 @@ class MemCache
     begin
       @mutex.lock if @multithread
       socket.write command
-      socket.gets
+      result = socket.gets
+      raise_on_error_response! result
+      result
     rescue SocketError, SystemCallError, IOError => err
       server.close
       raise MemCacheError, err.message
@@ -383,7 +386,9 @@ class MemCache
 
     begin
       sock.write "delete #{cache_key} #{expiry}\r\n"
-      sock.gets
+      result = sock.gets
+      raise_on_error_response! result
+      result
     rescue SocketError, SystemCallError, IOError => err
       server.close
       raise MemCacheError, err.message
@@ -406,7 +411,8 @@ class MemCache
           raise MemCacheError, "No connection to server" if sock.nil?
           sock.write "flush_all\r\n"
           result = sock.gets
-          raise MemCacheError, $2.strip if result =~ /^(SERVER_)?ERROR(.*)/
+          raise_on_error_response! result
+          result
         rescue SocketError, SystemCallError, IOError => err
           server.close
           raise MemCacheError, err.message
@@ -471,8 +477,9 @@ class MemCache
         sock.write "stats\r\n"
         stats = {}
         while line = sock.gets do
+          raise_on_error_response! line
           break if line == "END\r\n"
-          if line =~ /^STAT ([\w]+) ([\w\.\:]+)/ then
+          if line =~ /\ASTAT ([\w]+) ([\w\.\:]+)/ then
             name, value = $1, $2
             stats[name] = case name
                           when 'version'
@@ -482,7 +489,7 @@ class MemCache
                             microseconds ||= 0
                             Float(seconds) + (Float(microseconds) / 1_000_000)
                           else
-                            if value =~ /^\d+$/ then
+                            if value =~ /\A\d+\Z/ then
                               value.to_i
                             else
                               value
@@ -564,6 +571,7 @@ class MemCache
     socket = server.socket
     socket.write "decr #{cache_key} #{amount}\r\n"
     text = socket.gets
+    raise_on_error_response! text
     return nil if text == "NOT_FOUND\r\n"
     return text.to_i
   end
@@ -582,6 +590,7 @@ class MemCache
       raise MemCacheError, "lost connection to #{server.host}:#{server.port}"
     end
 
+    raise_on_error_response! keyline
     return nil if keyline == "END\r\n"
 
     unless keyline =~ /(\d+)\r/ then
@@ -604,8 +613,9 @@ class MemCache
 
     while keyline = socket.gets do
       return values if keyline == "END\r\n"
+      raise_on_error_response! keyline
 
-      unless keyline =~ /^VALUE (.+) (.+) (.+)/ then
+      unless keyline =~ /\AVALUE (.+) (.+) (.+)/ then
         server.close
         raise MemCacheError, "unexpected response #{keyline.inspect}"
       end
@@ -627,6 +637,7 @@ class MemCache
     socket = server.socket
     socket.write "incr #{cache_key} #{amount}\r\n"
     text = socket.gets
+    raise_on_error_response! text
     return nil if text == "NOT_FOUND\r\n"
     return text.to_i
   end
@@ -680,6 +691,13 @@ class MemCache
   ensure
     @mutex.unlock
   end
+
+  def raise_on_error_response!(response)
+    if response =~ /\A(?:CLIENT_|SERVER_)?ERROR (.*)/
+      raise MemCacheError, $1.strip
+    end
+  end
+
 
   ##
   # This class represents a memcached server instance.
@@ -820,7 +838,6 @@ class MemCache
 
       @status = sprintf "DEAD: %s, will retry at %s", reason, @retry
     end
-
   end
 
   ##
