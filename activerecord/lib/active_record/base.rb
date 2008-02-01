@@ -2426,11 +2426,11 @@ module ActiveRecord #:nodoc:
       # Returns a copy of the attributes hash where all the values have been safely quoted for use in
       # an SQL statement.
       def attributes_with_quotes(include_primary_key = true, include_readonly_attributes = true)
-        quoted = attributes.inject({}) do |result, (name, value)|
+        quoted = {}
+        @attributes.each_pair do |name, value|
           if column = column_for_attribute(name)
-            result[name] = quote_value(value, column) unless !include_primary_key && column.primary
+            quoted[name] = quote_value(read_attribute(name), column) unless !include_primary_key && column.primary
           end
-          result
         end
         include_readonly_attributes ? quoted : remove_readonly_attributes(quoted)
       end
