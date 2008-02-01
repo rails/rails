@@ -20,9 +20,12 @@ module ActiveSupport
         nil
       end
 
-      def write(key, value, options = nil)
+      # Set key = value if key isn't already set. Pass :force => true
+      # to unconditionally set key = value.
+      def write(key, value, options = {})
         super
-        @data.set(key, value, expires_in(options), raw?(options))
+        method = options[:force] ? :set : :add
+        @data.send(method, key, value, expires_in(options), raw?(options))
       rescue MemCache::MemCacheError => e
         logger.error("MemCacheError (#{e}): #{e.message}")
         nil
