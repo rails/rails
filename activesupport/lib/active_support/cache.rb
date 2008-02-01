@@ -1,3 +1,5 @@
+require 'benchmark'
+
 module ActiveSupport
   module Cache
     def self.lookup_store(*store_option)
