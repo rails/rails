@@ -1,8 +1,14 @@
+*SVN*
+
+* TestSession supports indifferent access.  #7372 [tamc, Arsen7, mhackett, julik, jean.helou]
+
+
 *1.13.6* (November 24th, 2007)
 
 * Correct Broken Fix for session_fixation attacks
 
 * Ensure that cookies handle array values correctly.  Closes #9937 [queso]
+
 
 *1.13.5* (October 12th, 2007)
 
