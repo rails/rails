@@ -3,9 +3,19 @@ require 'controller/fake_controllers'
 
 class TestTest < Test::Unit::TestCase
   class TestController < ActionController::Base
+    def no_op
+      render :text => 'dummy'
+    end
+
     def set_flash
       flash["test"] = ">#{flash["test"]}<"
       render :text => 'ignore me'
+    end
+
+    def set_session
+      session['string'] = 'A wonder'
+      session[:symbol] = 'it works'
+      render :text => 'Success'
     end
 
     def render_raw_post
@@ -133,6 +143,22 @@ XML
   def test_process_with_flash
     process :set_flash, nil, nil, { "test" => "value" }
     assert_equal '>value<', flash['test']
+  end
+
+  def test_process_with_session
+    process :set_session
+    assert_equal 'A wonder', session['string'], "A value stored in the session should be available by string key"
+    assert_equal 'A wonder', session[:string], "Test session hash should allow indifferent access"
+    assert_equal 'it works', session['symbol'], "Test session hash should allow indifferent access"
+    assert_equal 'it works', session[:symbol], "Test session hash should allow indifferent access"
+  end
+
+  def test_process_with_session_arg
+    process :no_op, nil, { 'string' => 'value1', :symbol => 'value2' }
+    assert_equal 'value1', session['string']
+    assert_equal 'value1', session[:string]
+    assert_equal 'value2', session['symbol']
+    assert_equal 'value2', session[:symbol]
   end
 
   def test_process_with_request_uri_with_no_params

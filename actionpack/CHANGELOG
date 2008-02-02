@@ -1,5 +1,7 @@
 *SVN*
 
+* TestSession supports indifferent access.  #7372 [tamc, Arsen7, mhackett, julik, jean.helou]
+
 * Make assert_routing aware of the HTTP method used.  #8039 [mpalmer]
   e.g. assert_routing({ :method => 'put', :path => '/product/321' }, { :controller => "product", :action => "update", :id => "321" })
 
