@@ -16,6 +16,10 @@ require 'models/tag'
 require 'models/tagging'
 require 'models/person'
 require 'models/reader'
+require 'models/parrot'
+require 'models/pirate'
+require 'models/treasure'
+require 'models/price_estimate'
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
@@ -1607,7 +1611,8 @@ end
 
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
-  fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects
+  fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
+           :parrots, :pirates, :treasures, :price_estimates
 
   def test_has_and_belongs_to_many
     david = Developer.find(1)
@@ -2142,6 +2147,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised do
       tag.save!
     end
+  end
+
+  def test_has_many_through_polymorphic_has_manys_works
+    assert_equal [10, 20].to_set, pirates(:redbeard).treasure_estimates.map(&:price).to_set
   end
 end
 

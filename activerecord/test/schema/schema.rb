@@ -367,4 +367,10 @@ ActiveRecord::Schema.define do
     t.string :name
     t.integer :owner_id, :integer
   end
+
+  create_table :price_estimates, :force => true do |t|
+    t.string :estimate_of_type
+    t.integer :estimate_of_id
+    t.integer :price
+  end
 end

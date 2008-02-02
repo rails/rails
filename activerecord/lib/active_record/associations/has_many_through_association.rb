@@ -212,7 +212,7 @@ module ActiveRecord
 
         def construct_joins(custom_joins = nil)
           polymorphic_join = nil
-          if @reflection.through_reflection.options[:as] || @reflection.source_reflection.macro == :belongs_to
+          if @reflection.source_reflection.macro == :belongs_to
             reflection_primary_key = @reflection.klass.primary_key
             source_primary_key     = @reflection.source_reflection.primary_key_name
             if @reflection.options[:source_type]
