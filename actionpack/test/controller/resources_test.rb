@@ -609,6 +609,35 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_with_path_segment
+    with_restful_routing :messages, :as => 'reviews' do
+      assert_simply_restful_for :messages, :as => 'reviews'
+    end
+  end
+
+  def test_multiple_with_path_segment_and_controller
+    with_routing do |set|
+      set.draw do |map|
+        map.resources :products do |products|
+          products.resources :product_reviews, :as => 'reviews', :controller => 'messages'
+        end
+        map.resources :tutors do |tutors|
+          tutors.resources :tutor_reviews, :as => 'reviews', :controller => 'comments'
+        end
+      end
+
+      assert_simply_restful_for :product_reviews, :controller=>'messages', :as => 'reviews', :name_prefix => 'product_', :path_prefix => 'products/1/', :options => {:product_id => '1'}
+      assert_simply_restful_for :tutor_reviews,:controller=>'comments', :as => 'reviews', :name_prefix => 'tutor_', :path_prefix => 'tutors/1/', :options => {:tutor_id => '1'}
+    end
+  end
+
+  def test_with_path_segment_path_prefix_requirements
+    expected_options = {:controller => 'messages', :action => 'show', :thread_id => '1.1.1', :id => '1'}
+    with_restful_routing :messages, :as => 'comments',:path_prefix => '/thread/:thread_id', :requirements => { :thread_id => /[0-9]\.[0-9]\.[0-9]/ } do
+      assert_recognizes(expected_options, :path => 'thread/1.1.1/comments/1', :method => :get)
+    end
+  end
+
   protected
     def with_restful_routing(*args)
       with_routing do |set|
@@ -639,7 +668,7 @@ class ResourcesTest < Test::Unit::TestCase
       options[:options] ||= {}
       options[:options][:controller] = options[:controller] || controller_name.to_s
 
-      collection_path            = "/#{options[:path_prefix]}#{controller_name}"
+      collection_path            = "/#{options[:path_prefix]}#{options[:as] || controller_name}"
       member_path                = "#{collection_path}/1"
       new_path                   = "#{collection_path}/new"
       edit_member_path           = "#{member_path}/edit"
@@ -692,9 +721,9 @@ class ResourcesTest < Test::Unit::TestCase
       get :index, options[:options]
       options[:options].delete :action
 
-      full_prefix = "/#{options[:path_prefix]}#{controller_name}"
+      full_prefix = "/#{options[:path_prefix]}#{options[:as] || controller_name}"
       name_prefix = options[:name_prefix]
-      
+
       assert_named_route "#{full_prefix}",            "#{name_prefix}#{controller_name}_path",              options[:options]
       assert_named_route "#{full_prefix}.xml",        "formatted_#{name_prefix}#{controller_name}_path",    options[:options].merge(            :format => 'xml')
       assert_named_route "#{full_prefix}/1",          "#{name_prefix}#{singular_name}_path",                options[:options].merge(:id => '1')
@@ -712,7 +741,7 @@ class ResourcesTest < Test::Unit::TestCase
       options[:options] ||= {}
       options[:options][:controller] = options[:controller] || singleton_name.to_s.pluralize
 
-      full_path           = "/#{options[:path_prefix]}#{singleton_name}"
+      full_path           = "/#{options[:path_prefix]}#{options[:as] || singleton_name}"
       new_path            = "#{full_path}/new"
       edit_path           = "#{full_path}/edit"
       formatted_edit_path = "#{full_path}/edit.xml"
@@ -751,7 +780,7 @@ class ResourcesTest < Test::Unit::TestCase
       get :show, options[:options]
       options[:options].delete :action
 
-      full_path = "/#{options[:path_prefix]}#{singleton_name}"
+      full_path = "/#{options[:path_prefix]}#{options[:as] || singleton_name}"
       name_prefix = options[:name_prefix]
 
       assert_named_route "#{full_path}",          "#{name_prefix}#{singleton_name}_path",                options[:options]

@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce map.resources :cards, :as => 'tarjetas' to use a custom resource name in the URL: cards_path == '/tarjetas'.  #10578 [blj]
+
 * TestSession supports indifferent access.  #7372 [tamc, Arsen7, mhackett, julik, jean.helou]
 
 * Make assert_routing aware of the HTTP method used.  #8039 [mpalmer]

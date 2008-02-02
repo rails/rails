@@ -44,13 +44,14 @@ module ActionController
   module Resources
     class Resource #:nodoc:
       attr_reader :collection_methods, :member_methods, :new_methods
-      attr_reader :path_prefix, :name_prefix
+      attr_reader :path_prefix, :name_prefix, :path_segment
       attr_reader :plural, :singular
       attr_reader :options
 
       def initialize(entities, options)
         @plural   ||= entities
         @singular ||= options[:singular] || plural.to_s.singularize
+        @path_segment = options.delete(:as) || @plural
 
         @options = options
 
@@ -75,7 +76,7 @@ module ActionController
       end
 
       def path
-        @path ||= "#{path_prefix}/#{plural}"
+        @path ||= "#{path_prefix}/#{path_segment}"
       end
 
       def new_path
@@ -236,6 +237,13 @@ module ActionController
     # * <tt>:singular</tt> - specify the singular name used in the member routes.
     # * <tt>:requirements</tt> - set custom routing parameter requirements.
     # * <tt>:conditions</tt> - specify custom routing recognition conditions.  Resources sets the :method value for the method-specific routes.
+    # * <tt>:as</tt> - specify a different resource name to use in the URL path. For example:
+    #     # products_path == '/productos'
+    #     map.resources :products, :as => 'productos' do |product|
+    #       # product_reviews_path(product) == '/productos/1234/comentarios'
+    #       product.resources :product_reviews, :as => 'comentarios'
+    #     end
+    #
     # * <tt>:path_prefix</tt> - set a prefix to the routes with required route variables.
     #
     #   Weblog comments usually belong to a post, so you might use resources like:
