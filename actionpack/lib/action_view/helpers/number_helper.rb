@@ -170,7 +170,7 @@ module ActionView
           when size < 1.gigabyte; "%.#{precision}f MB"  % (size / 1.0.megabyte)
           when size < 1.terabyte; "%.#{precision}f GB"  % (size / 1.0.gigabyte)
           else                    "%.#{precision}f TB"  % (size / 1.0.terabyte)
-        end.sub(/([0-9])\.?0+ /, '\1 ' )
+        end.sub(/([0-9]\.\d*?)0+ /, '\1 ' ).sub(/\. /,' ')
       rescue
         nil
       end
