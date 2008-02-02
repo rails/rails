@@ -87,16 +87,16 @@ module Rails
 
       load_plugins
 
-      # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
-      load_observers
-
-      # Routing must be initialized after plugins to allow the former to extend the routes
-      initialize_routing
-
       # the framework is now fully initialized
       after_initialize
 
       load_application_initializers
+
+      # Routing must be initialized after plugins to allow the former to extend the routes
+      initialize_routing
+
+      # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
+      load_observers
     end
 
     # Check for valid Ruby version

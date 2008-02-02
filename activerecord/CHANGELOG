@@ -1,5 +1,7 @@
 *SVN*
 
+* Add note about how ActiveRecord::Observer classes are initialized in a Rails app. #10980 [fxn]
+
 * MySQL: omit text/blob defaults from the schema instead of using an empty string.  #10963 [mdeiters]
 
 * belongs_to supports :dependent => :destroy and :delete.  #10592 [Jonathan Viney]

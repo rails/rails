@@ -1,5 +1,7 @@
 *SVN*
 
+* Reshuffle load order so that routes and observers are initialized after plugins and app initializers.  Closes #10980 [rick]
+
 * Git support for script/generate.  #10690 [ssoroka]
 
 * Update scaffold to use labels instead of bold tags.  Closes #10757 [zach-inglis-lt3]
