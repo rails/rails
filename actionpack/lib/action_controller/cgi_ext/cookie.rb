@@ -89,7 +89,7 @@ class CGI #:nodoc:
       cookies = Hash.new([])
 
       if raw_cookie
-        raw_cookie.split(/[;,]\s?/).each do |pairs|
+        raw_cookie.split(/;\s?/).each do |pairs|
           name, values = pairs.split('=',2)
           next unless name and values
           name = CGI::unescape(name)
