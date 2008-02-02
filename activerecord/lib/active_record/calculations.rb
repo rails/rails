@@ -213,7 +213,7 @@ module ActiveRecord
           group_attr      = options[:group].to_s
           association     = reflect_on_association(group_attr.to_sym)
           associated      = association && association.macro == :belongs_to # only count belongs_to associations
-          group_field     = (associated ? "#{options[:group]}_id" : options[:group]).to_s
+          group_field     = associated ? association.primary_key_name : group_attr
           group_alias     = column_alias_for(group_field)
           group_column    = column_for group_field
           sql             = construct_calculation_sql(operation, column_name, options.merge(:group_field => group_field, :group_alias => group_alias))
