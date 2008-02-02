@@ -255,8 +255,9 @@ HELP
             FileUtils.chmod(file_options[:chmod], destination)
           end
 
-          # Optionally add file to subversion
+          # Optionally add file to subversion or git
           system("svn add #{destination}") if options[:svn]
+          system("git add -v #{relative_destination}") if options[:git]
         end
 
         # Checks if the source and the destination file are identical. If
@@ -303,7 +304,7 @@ HELP
         end
 
         # Create a directory including any missing parent directories.
-        # Always directories which exist.
+        # Always skips directories which exist.
         def directory(relative_path)
           path = destination_path(relative_path)
           if File.exist?(path)
@@ -312,6 +313,8 @@ HELP
             logger.create relative_path
 	          unless options[:pretend]
 	            FileUtils.mkdir_p(path)
+	            # git doesn't require adding the paths, adding the files later will
+	            # automatically do a path add.
 	      
 	            # Subversion doesn't do path adds, so we need to add
 	            # each directory individually.
@@ -428,7 +431,20 @@ end_message
                 # If the directory is not in the status list, it
                 # has no modifications so we can simply remove it
                   system("svn rm #{destination}")
-                end  
+                end
+              elsif options[:git]
+                if options[:git][:new][relative_destination]
+                  # file has been added, but not committed
+                  system("git reset HEAD #{relative_destination}")
+                  FileUtils.rm(destination)
+                elsif options[:git][:modified][relative_destination]
+                  # file is committed and modified
+                  system("git rm -f #{relative_destination}")
+                else
+                  # If the directory is not in the status list, it
+                  # has no modifications so we can simply remove it
+                  system("git rm #{relative_destination}")
+                end
               else
                 FileUtils.rm(destination)
               end
@@ -465,6 +481,8 @@ end_message
                     # has no modifications so we can simply remove it
                       system("svn rm #{path}")
                     end
+                  # I don't think git needs to remove directories?..
+                  # or maybe they have special consideration...
                   else
                     FileUtils.rmdir(path)
                   end

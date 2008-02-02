@@ -1,5 +1,7 @@
 *SVN*
 
+* Git support for script/generate.  #10690 [ssoroka]
+
 * Update scaffold to use labels instead of bold tags.  Closes #10757 [zach-inglis-lt3]
 
 * Resurrect WordNet synonym lookups.  #10710 [tom./, matt]
