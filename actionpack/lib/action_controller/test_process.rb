@@ -286,7 +286,7 @@ module ActionController #:nodoc:
 
     def initialize(attributes = nil)
       @session_id = ''
-      @attributes = attributes
+      @attributes = attributes.nil? ? nil : attributes.stringify_keys
       @saved_attributes = nil
     end
 
@@ -295,11 +295,11 @@ module ActionController #:nodoc:
     end
 
     def [](key)
-      data[key]
+      data[key.to_s]
     end
 
     def []=(key, value)
-      data[key] = value
+      data[key.to_s] = value
     end
 
     def update

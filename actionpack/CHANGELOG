@@ -1,5 +1,7 @@
 *SVN*
 
+* TestSession supports indifferent access.  #7372 [tamc, Arsen7, mhackett, julik, jean.helou]
+
 * UrlWriter respects relative_url_root.  #10748 [Cheah Chu Yeow]
 
 * Support render :text => nil.  #6684 [tjennings, PotatoSalad, Cheah Chu Yeow]
