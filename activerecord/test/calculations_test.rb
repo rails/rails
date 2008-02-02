@@ -159,7 +159,15 @@ class CalculationsTest < Test::Unit::TestCase
       assert_equal 1, c.first.last
     end
   end
-  
+
+  def test_should_calculate_grouped_association_with_foreign_key_option
+    Account.belongs_to :another_firm, :class_name => 'Firm', :foreign_key => 'firm_id'
+    c = Account.count(:all, :group => :another_firm)
+    assert_equal 1, c[companies(:first_firm)]
+    assert_equal 2, c[companies(:rails_core)]
+    assert_equal 1, c[companies(:first_client)]
+  end
+
   def test_should_not_modify_options_when_using_includes
     options = {:conditions => 'companies.id > 1', :include => :firm}
     options_copy = options.dup
