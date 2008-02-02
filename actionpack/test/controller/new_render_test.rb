@@ -136,11 +136,11 @@ class NewRenderTestController < ActionController::Base
   end
 
   def partial_with_form_builder
-    render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, @template, nil, Proc.new {})
+    render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, @template, {}, Proc.new {})
   end
-  
+
   def partial_with_form_builder_subclass
-    render :partial => LabellingFormBuilder.new(:post, nil, @template, nil, Proc.new {})
+    render :partial => LabellingFormBuilder.new(:post, nil, @template, {}, Proc.new {})
   end
 
   def partial_collection

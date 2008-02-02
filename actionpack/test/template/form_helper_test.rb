@@ -363,14 +363,14 @@ class FormHelperTest < Test::Unit::TestCase
 
   def test_form_for_with_index
     _erbout = ''
-    
+
     form_for("post[]", @post) do |f|
       _erbout.concat f.label(:title)
       _erbout.concat f.text_field(:title)
       _erbout.concat f.text_area(:body)
       _erbout.concat f.check_box(:secret)
     end
-    
+
     expected = 
       "<form action='http://www.example.com' method='post'>" +
       "<label for=\"post_123_title\">Title</label>" +
@@ -378,6 +378,26 @@ class FormHelperTest < Test::Unit::TestCase
       "<textarea name='post[123][body]' id='post_123_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[123][secret]' checked='checked' type='checkbox' id='post_123_secret' value='1' />" +
       "<input name='post[123][secret]' type='hidden' value='0' />" +
+      "</form>"
+
+    assert_dom_equal expected, _erbout
+  end
+
+  def test_form_for_with_nil_index_option_override
+    _erbout = ''
+
+    form_for("post[]", @post, :index => nil) do |f|
+      _erbout.concat f.text_field(:title)
+      _erbout.concat f.text_area(:body)
+      _erbout.concat f.check_box(:secret)
+    end
+
+    expected =
+      "<form action='http://www.example.com' method='post'>" +
+      "<input name='post[][title]' size='30' type='text' id='post__title' value='Hello World' />" +
+      "<textarea name='post[][body]' id='post__body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[][secret]' checked='checked' type='checkbox' id='post__secret' value='1' />" +
+      "<input name='post[][secret]' type='hidden' value='0' />" +
       "</form>"
 
     assert_dom_equal expected, _erbout
@@ -412,6 +432,60 @@ class FormHelperTest < Test::Unit::TestCase
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
       "<input name='post[secret]' type='hidden' value='0' />"
+
+    assert_dom_equal expected, _erbout
+  end
+
+  def test_fields_for_with_index
+    _erbout = ''
+
+    fields_for("post[]", @post) do |f|
+      _erbout.concat f.text_field(:title)
+      _erbout.concat f.text_area(:body)
+      _erbout.concat f.check_box(:secret)
+    end
+
+    expected =
+      "<input name='post[123][title]' size='30' type='text' id='post_123_title' value='Hello World' />" +
+      "<textarea name='post[123][body]' id='post_123_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[123][secret]' checked='checked' type='checkbox' id='post_123_secret' value='1' />" +
+      "<input name='post[123][secret]' type='hidden' value='0' />"
+
+    assert_dom_equal expected, _erbout
+  end
+
+  def test_fields_for_with_nil_index_option_override
+    _erbout = ''
+
+    fields_for("post[]", @post, :index => nil) do |f|
+      _erbout.concat f.text_field(:title)
+      _erbout.concat f.text_area(:body)
+      _erbout.concat f.check_box(:secret)
+    end
+
+    expected =
+      "<input name='post[][title]' size='30' type='text' id='post__title' value='Hello World' />" +
+      "<textarea name='post[][body]' id='post__body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[][secret]' checked='checked' type='checkbox' id='post__secret' value='1' />" +
+      "<input name='post[][secret]' type='hidden' value='0' />"
+
+    assert_dom_equal expected, _erbout
+  end
+
+  def test_fields_for_with_index_option_override
+    _erbout = ''
+
+    fields_for("post[]", @post, :index => "abc") do |f|
+      _erbout.concat f.text_field(:title)
+      _erbout.concat f.text_area(:body)
+      _erbout.concat f.check_box(:secret)
+    end
+
+    expected =
+      "<input name='post[abc][title]' size='30' type='text' id='post_abc_title' value='Hello World' />" +
+      "<textarea name='post[abc][body]' id='post_abc_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[abc][secret]' checked='checked' type='checkbox' id='post_abc_secret' value='1' />" +
+      "<input name='post[abc][secret]' type='hidden' value='0' />"
 
     assert_dom_equal expected, _erbout
   end
