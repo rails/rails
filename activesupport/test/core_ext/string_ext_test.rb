@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'date'
 require 'abstract_unit'
 require 'inflector_test_cases'

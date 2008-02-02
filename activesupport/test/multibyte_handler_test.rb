@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'abstract_unit'
 
 if RUBY_VERSION < '1.9'
