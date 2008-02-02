@@ -2470,6 +2470,10 @@ module ActiveRecord #:nodoc:
       end
 
       # Includes an ugly hack for Time.local instead of Time.new because the latter is reserved by Time itself.
+      def instantiate_time_object(*values)
+        @@default_timezone == :utc ? Time.utc(*values) : Time.local(*values)
+      end
+
       def execute_callstack_for_multiparameter_attributes(callstack)
         errors = []
         callstack.each do |name, values|
@@ -2478,7 +2482,19 @@ module ActiveRecord #:nodoc:
             send(name + "=", nil)
           else
             begin
-              send(name + "=", Time == klass ? (@@default_timezone == :utc ? klass.utc(*values) : klass.local(*values)) : klass.new(*values))
+              value = if Time == klass
+                instantiate_time_object(*values)
+              elsif Date == klass
+                begin
+                  Date.new(*values)
+                rescue ArgumentError => ex # if Date.new raises an exception on an invalid date
+                  instantiate_time_object(*values).to_date # we instantiate Time object and convert it back to a date thus using Time's logic in handling invalid dates
+                end
+              else
+                klass.new(*values)
+              end
+
+              send(name + "=", value)
             rescue => ex
               errors << AttributeAssignmentError.new("error on assignment #{values.inspect} to #{name}", ex, name)
             end
