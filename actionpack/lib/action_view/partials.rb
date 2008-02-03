@@ -172,7 +172,9 @@ module ActionView
       end
 
       def partial_variable_name(partial_name)
-        partial_name.split('/').last.split('.').first.intern
+        @@partial_variable_names ||= {}
+        @@partial_variable_names[partial_name] ||=
+          partial_name.split('/').last.split('.').first.intern
       end
 
       def extracting_object(partial_name, object_assigns)
