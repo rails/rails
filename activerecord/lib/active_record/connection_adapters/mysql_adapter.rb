@@ -155,13 +155,14 @@ module ActiveRecord
         "Server shutdown in progress",
         "Broken pipe",
         "Lost connection to MySQL server during query",
-        "MySQL server has gone away"
-      ]
+        "MySQL server has gone away" ]
+
+      QUOTED_TRUE, QUOTED_FALSE = '1', '0'
 
       def initialize(connection, logger, connection_options, config)
         super(connection, logger)
         @connection_options, @config = connection_options, config
-
+        @quoted_column_names, @quoted_table_names = {}, {}
         connect
       end
 
@@ -205,11 +206,11 @@ module ActiveRecord
       end
 
       def quote_column_name(name) #:nodoc:
-        "`#{name}`"
+        @quoted_column_names[name] ||= "`#{name}`"
       end
 
       def quote_table_name(name) #:nodoc:
-        quote_column_name(name).gsub('.', '`.`')
+        @quoted_table_names[name] ||= quote_column_name(name).gsub('.', '`.`')
       end
 
       def quote_string(string) #:nodoc:
@@ -217,11 +218,11 @@ module ActiveRecord
       end
 
       def quoted_true
-        "1"
+        QUOTED_TRUE
       end
 
       def quoted_false
-        "0"
+        QUOTED_FALSE
       end
 
       # REFERENTIAL INTEGRITY ====================================
