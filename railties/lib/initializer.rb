@@ -87,10 +87,10 @@ module Rails
 
       load_plugins
 
+      load_application_initializers
+
       # the framework is now fully initialized
       after_initialize
-
-      load_application_initializers
 
       # Routing must be initialized after plugins to allow the former to extend the routes
       initialize_routing
