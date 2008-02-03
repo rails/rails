@@ -124,15 +124,6 @@ module ActiveRecord
           column_name = "#{@reflection.quoted_table_name}.#{@reflection.klass.primary_key}" if column_name == :all
           options.merge!(:distinct => true) 
         end
-
-        if @reflection.options[:group]
-          unless column_name == :all
-            raise HasManyThroughCantCountOnColumnForGroupedAssociation.new(@owner, @reflection, column_name)
-          end
-          column_name = @reflection.options[:group]
-          options.merge!(:distinct => true)
-        end
-
         @reflection.klass.send(:with_scope, construct_scope) { @reflection.klass.count(column_name, options) } 
       end
 

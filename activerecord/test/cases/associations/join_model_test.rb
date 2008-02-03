@@ -603,21 +603,6 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     end
   end
 
-  def test_group_has_many_through_should_use_group_for_count
-    using_length = authors(:david).reload.grouped_comments.length           # all associated comments are read first
-    using_count = authors(:david).reload.grouped_comments.count             # associated comments are only counted
-    assert_equal using_count, using_length
-
-    commented_posts = authors(:david).comments.map(&:post).uniq.size        # count commented posts manually
-    assert_equal commented_posts, authors(:david).grouped_comments.count
-  end
-
-  def test_group_has_many_through_should_not_allow_column_name_for_count
-    assert_raises ActiveRecord::HasManyThroughCantCountOnColumnForGroupedAssociation do
-      authors(:david).grouped_comments.count(:id)
-    end
-  end
-
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)
