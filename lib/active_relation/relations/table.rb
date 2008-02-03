@@ -13,14 +13,16 @@ module ActiveRelation
     def qualify
       Rename.new self, qualifications
     end
-  
-    protected
-    alias_method :projections, :attributes
     
-    def attribute(name)
+    def inspect
+      "<Table: #{name}>"
+    end
+  
+    protected    
+    def attribute_for_name(name)
       attributes_by_name[name.to_s]
     end
-    
+      
     def table_sql
       "#{quote_table_name(name)}"
     end

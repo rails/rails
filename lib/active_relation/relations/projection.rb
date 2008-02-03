@@ -1,6 +1,7 @@
 module ActiveRelation
   class Projection < Compound
     attr_reader :projections
+    alias_method :attributes, :projections
     
     def initialize(relation, *projections)
       @relation, @projections = relation, projections

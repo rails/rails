@@ -41,10 +41,6 @@ module ActiveRelation
       it "manufactures an attribute name prefixed with the relation's name" do
         Attribute.new(@relation1, :id).qualified_name.should == 'foo.id'
       end
-    
-      it "manufactures an attribute name prefixed with the relation's aliased name" do
-        Attribute.new(@relation1.as(:bar), :id).qualified_name.should == 'bar.id'
-      end
     end
   
     describe '==' do
@@ -52,11 +48,36 @@ module ActiveRelation
         Attribute.new(@relation1, :name).should == Attribute.new(@relation1, :name)
         Attribute.new(@relation1, :name).should_not == Attribute.new(@relation1, :another_name)
         Attribute.new(@relation1, :name).should_not == Attribute.new(@relation2, :name)
-        Attribute.new(@relation1, :name).should_not == Aggregation.new(Attribute.new(@relation1, :name), "SUM")
+        Attribute.new(@relation1, :name).should_not == Expression.new(Attribute.new(@relation1, :name), "SUM")
+      end
+    end
+    
+    describe '#to_sql' do
+      describe Sql::Strategy do
+        it "manufactures sql without an alias if the strategy is Predicate" do
+          Attribute.new(@relation1, :name, :alias).to_sql(Sql::Predicate.new).should be_like("`foo`.`name`")
+        end
+      
+        it "manufactures sql with an alias if the strategy is Projection" do
+          Attribute.new(@relation1, :name, :alias).to_sql(Sql::Projection.new).should be_like("`foo`.`name` AS 'alias'")
+        end
+      end
+      
+      describe 'binding' do
+        before do
+          @attribute = Attribute.new(@relation1, :name, :alias)
+          @aliased_relation = @relation1.as(:schmoo)
+        end
+        
+        it "is fancy pants" do
+          pending
+          @attribute.to_sql.should be_like("`foo`.`name`")
+          @attribute.substitute(@aliased_relation).to_sql.should be_like("`schmoo`.`alias`")
+        end
       end
     end
   
-    describe 'predications' do
+    describe Attribute::Predications do
       before do
         @attribute1 = Attribute.new(@relation1, :name)
         @attribute2 = Attribute.new(@relation2, :name)
@@ -99,38 +120,38 @@ module ActiveRelation
       end
     end
   
-    describe 'aggregations' do
+    describe 'Expressions' do
       before do
         @attribute1 = Attribute.new(@relation1, :name)    
       end
     
       describe '#count' do
-        it "manufactures a count aggregation" do
-          @attribute1.count.should == Aggregation.new(@attribute1, "COUNT")
+        it "manufactures a count Expression" do
+          @attribute1.count.should == Expression.new(@attribute1, "COUNT")
         end
       end
     
       describe '#sum' do
-        it "manufactures a sum aggregation" do
-          @attribute1.sum.should == Aggregation.new(@attribute1, "SUM")
+        it "manufactures a sum Expression" do
+          @attribute1.sum.should == Expression.new(@attribute1, "SUM")
         end
       end
     
       describe '#maximum' do
-        it "manufactures a maximum aggregation" do
-          @attribute1.maximum.should == Aggregation.new(@attribute1, "MAX")
+        it "manufactures a maximum Expression" do
+          @attribute1.maximum.should == Expression.new(@attribute1, "MAX")
         end
       end
     
       describe '#minimum' do
-        it "manufactures a minimum aggregation" do
-          @attribute1.minimum.should == Aggregation.new(@attribute1, "MIN")
+        it "manufactures a minimum Expression" do
+          @attribute1.minimum.should == Expression.new(@attribute1, "MIN")
         end
       end
     
       describe '#average' do
-        it "manufactures an average aggregation" do
-          @attribute1.average.should == Aggregation.new(@attribute1, "AVG")
+        it "manufactures an average Expression" do
+          @attribute1.average.should == Expression.new(@attribute1, "AVG")
         end
       end 
     end

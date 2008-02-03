@@ -9,6 +9,10 @@ module ActiveRelation
       @attribute2 = @relation2[:id]
     end
   
+    it "needs to test that [] is limited" do
+      pending
+    end
+    
     describe '==' do
       it "obtains if the relations and attributes are identical" do
         Projection.new(@relation1, @attribute1, @attribute2).should == Projection.new(@relation1, @attribute1, @attribute2)

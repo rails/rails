@@ -23,8 +23,5 @@ module ActiveRelation
         Equality.new(@attribute1, @attribute2).should == Equality.new(@attribute2, @attribute1)
       end
     end
-  
-    describe '#to_sql' do
-    end
   end
 end

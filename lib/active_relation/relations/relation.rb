@@ -26,10 +26,14 @@ module ActiveRelation
 
       def [](index)
         case index
-        when Symbol
-          attribute(index)
+        when Symbol, String
+          attribute_for_name(index)
         when ::Range
           Range.new(self, index)
+        when Attribute
+          attribute_for_attribute(index)
+        when Expression
+          attribute_for_expression(index)
         end
       end
 
@@ -65,13 +69,19 @@ module ActiveRelation
         Deletion.new(self)
       end
       
-      def group(*attributes)
-        Group.new(self, *attributes)
+      def aggregate(*expressions)
+        AggregateOperation.new(self, expressions)
       end
   
       JoinOperation = Struct.new(:join_sql, :relation1, :relation2) do
         def on(*predicates)
           Join.new(join_sql, relation1, relation2, *predicates)
+        end
+      end
+      
+      AggregateOperation = Struct.new(:relation, :expressions) do
+        def group(*groupings)
+          Aggregation.new(relation, :expressions => expressions, :groupings => groupings)
         end
       end
     end
@@ -83,7 +93,7 @@ module ActiveRelation
 
     def to_sql(strategy = Sql::Select.new)
       strategy.select [
-        "SELECT #{projections.collect{ |a| a.to_sql(Sql::Projection.new) }.join(', ')}",
+        "SELECT #{attributes.collect{ |a| a.to_sql(Sql::Projection.new) }.join(', ')}",
         "FROM #{table_sql}",
         (joins unless joins.blank?),
         ("WHERE #{selects.collect{|s| s.to_sql(Sql::Predicate.new)}.join("\n\tAND ")}" unless selects.blank?),
@@ -99,15 +109,23 @@ module ActiveRelation
     def connection
       ActiveRecord::Base.connection
     end
+    
+    def attribute_for_attribute(attribute)
+      self == attribute.relation ? attribute : nil
+    end
+    
+    def attribute_for_expression(expression)
+      nil
+    end
 
-    def projections; []  end
-    def selects;    []  end
-    def orders;     []  end
-    def inserts;    []  end
-    def groupings;  []  end
-    def joins;      nil end
-    def limit;      nil end
-    def offset;     nil end
-    def alias;      nil end
+    def attributes;  []  end
+    def selects;     []  end
+    def orders;      []  end
+    def inserts;     []  end
+    def groupings;   []  end
+    def joins;       nil end
+    def limit;       nil end
+    def offset;      nil end
+    def alias;       nil end
   end
 end

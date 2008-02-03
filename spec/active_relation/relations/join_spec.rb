@@ -18,6 +18,12 @@ module ActiveRelation
         Join.new("INNER JOIN", @relation1, @relation2, @predicate).should == Join.new("INNER JOIN", @relation2, @relation1, @predicate)
       end
     end
+    
+    describe '[]' do
+      it "" do
+        pending
+      end
+    end
 
     describe '#qualify' do
       it 'distributes over the relations and predicates' do
@@ -63,17 +69,16 @@ module ActiveRelation
         end
       end
 
-
       describe 'aggregated relations' do
         before do
           @relation = Table.new(:users)
           photos = Table.new(:photos)
-          @aggregate_relation = photos.project(photos[:user_id], photos[:id].count).rename(photos[:id].count, :cnt) \
-                                  .group(photos[:user_id]).as(:photo_count)
+          @aggregate_relation = photos.aggregate(photos[:user_id], photos[:id].count).group(photos[:user_id]).rename(photos[:id].count, :cnt) \
+                                  .as(:photo_count)
           @predicate = Equality.new(@aggregate_relation[:user_id], @relation[:id])
         end
 
-        describe 'with the aggregation on the right' do
+        describe 'with the expression on the right' do
           it 'manufactures sql joining the left table to a derived table' do
             Join.new("INNER JOIN", @relation, @aggregate_relation, @predicate).to_sql.should be_like("""
               SELECT `users`.`name`, `users`.`id`, `photo_count`.`user_id`, `photo_count`.`cnt`
@@ -84,9 +89,8 @@ module ActiveRelation
           end
         end
 
-        describe 'with the aggregation on the left' do
+        describe 'with the expression on the left' do
           it 'manufactures sql joining the right table to a derived table' do
-            pending
             Join.new("INNER JOIN", @aggregate_relation, @relation, @predicate).to_sql.should be_like("""
               SELECT `photo_count`.`user_id`, `photo_count`.`cnt`, `users`.`name`, `users`.`id`
               FROM (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` GROUP BY `photos`.`user_id`) AS `photo_count`
@@ -96,7 +100,7 @@ module ActiveRelation
           end
         end
 
-        it "keeps selects on the aggregation within the derived table" do
+        it "keeps selects on the expression within the derived table" do
           pending
           Join.new("INNER JOIN", @relation, @aggregate_relation.select(@aggregate_relation[:user_id].equals(1)), @predicate).to_sql.should be_like("""
             SELECT `users`.`name`, `users`.`id`, `photo_count`.`user_id`, `photo_count`.`cnt`

@@ -60,28 +60,28 @@ module ActiveRelation
     end
     include Predications
     
-    module Aggregations
+    module Expressions
       def count
-        Aggregation.new(self, "COUNT")
+        Expression.new(self, "COUNT")
       end
       
       def sum
-        Aggregation.new(self, "SUM")
+        Expression.new(self, "SUM")
       end
       
       def maximum
-        Aggregation.new(self, "MAX")
+        Expression.new(self, "MAX")
       end
       
       def minimum
-        Aggregation.new(self, "MIN")
+        Expression.new(self, "MIN")
       end
       
       def average
-        Aggregation.new(self, "AVG")
+        Expression.new(self, "AVG")
       end
     end
-    include Aggregations
+    include Expressions
 
     def to_sql(strategy = Sql::Predicate.new)
       strategy.attribute relation.name, name, self.alias

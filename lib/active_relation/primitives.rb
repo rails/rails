@@ -1,3 +1,3 @@
 require 'active_relation/primitives/attribute'
-require 'active_relation/primitives/aggregation'
+require 'active_relation/primitives/expression'
 

@@ -10,10 +10,6 @@ module ActiveRelation
     end
   
     describe '[]' do
-      it "manufactures an attribute when given a symbol" do
-        @relation1[:id].should == Attribute.new(@relation1, :id)
-      end
-    
       it "manufactures a range relation when given a range" do
         @relation1[1..2].should == Range.new(@relation1, 1..2)
       end
@@ -25,7 +21,7 @@ module ActiveRelation
       end
     end
     
-    describe '#aggregation?' do
+    describe '#Expression?' do
       it "returns false" do
         @relation1.should_not be_aggregation
       end
@@ -88,9 +84,10 @@ module ActiveRelation
         end
       end
       
-      describe '#group' do
+      describe '#aggregate' do
         it 'manufactures a group relation' do
-          @relation1.group(@attribute1).should == Group.new(@relation1, @attribute1)
+          @relation1.aggregate(@expression1, @expression2).group(@attribute1, @attribute2). \
+            should == Aggregation.new(@relation1, :expressions => [@expresion, @expression2], :groupings => [@attribute1, @attribute2])
         end
       end
     end

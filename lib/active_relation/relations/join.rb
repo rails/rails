@@ -17,7 +17,10 @@ module ActiveRelation
     end
     
     def attributes
-      projections.map(&:to_attribute)
+      [
+        relation1.aggregation?? relation1.attributes.collect(&:to_attribute) : relation1.attributes,
+        relation2.aggregation?? relation2.attributes.collect(&:to_attribute) : relation2.attributes,
+      ].flatten
     end
 
     protected
@@ -32,15 +35,12 @@ module ActiveRelation
       ].compact.flatten
     end
     
-    def projections
-      [
-        relation1.aggregation?? relation1.attributes : relation1.send(:projections),
-        relation2.aggregation?? relation2.attributes : relation2.send(:projections),
-      ].flatten
-    end
-    
-    def attribute(name)
+    def attribute_for_name(name)
       relation1[name] || relation2[name]
+    end
+
+    def attribute_for_attribute(attribute)
+      relation1[attribute] || relation2[attribute]
     end
    
     def table_sql
