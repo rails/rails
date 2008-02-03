@@ -158,6 +158,7 @@ module ActionView #:nodoc:
     attr_internal :cookies, :flash, :headers, :params, :request, :response, :session
     
     attr_writer :template_format
+    attr_accessor :current_render_extension
 
     # Specify trim mode for the ERB compiler. Defaults to '-'.
     # See ERb documentation for suitable values.
@@ -358,6 +359,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
     # The hash in <tt>local_assigns</tt> is made available as local variables.
     def render_template(template_extension, template, file_path = nil, local_assigns = {}) #:nodoc:
       handler = self.class.handler_class_for_extension(template_extension).new(self)
+      @current_render_extension = template_extension
 
       if handler.compilable?
         compile_and_render_template(handler, template, file_path, local_assigns)
