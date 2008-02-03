@@ -119,6 +119,7 @@ module ActionController
 
         opt.on('-n', '--times [100]', 'How many requests to process. Defaults to 100.') { |v| options[:n] = v.to_i if v }
         opt.on('-b', '--benchmark', 'Benchmark instead of profiling') { |v| options[:benchmark] = v }
+        opt.on('-m', '--measure [mode]', 'Which ruby-prof measure mode to use: process_time, wall_time, cpu_time, allocations, or memory. Defaults to process_time.') { |v| options[:measure] = v }
         opt.on('--open [CMD]', 'Command to open profile results. Defaults to "open %s &"') { |v| options[:open] = v }
         opt.on('-h', '--help', 'Show this help') { puts opt; exit }
 
@@ -136,7 +137,9 @@ module ActionController
       def load_ruby_prof
         begin
           require 'ruby-prof'
-          #RubyProf.measure_mode = RubyProf::ALLOCATED_OBJECTS
+          if mode = options[:measure]
+            RubyProf.measure_mode = RubyProf.const_get(mode.upcase)
+          end
         rescue LoadError
           abort '`gem install ruby-prof` to use the profiler'
         end
