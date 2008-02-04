@@ -34,9 +34,13 @@ module ActiveRelation
 
     describe '#attributes' do
       describe 'with simple relations' do
+        before do
+          @join = Join.new("INNER JOIN", @relation1, @relation2, @predicate)
+        end
+        
         it 'combines the attributes of the two relations' do
-          Join.new("INNER JOIN", @relation1, @relation2, @predicate).attributes.should ==
-            @relation1.attributes + @relation2.attributes
+          @join.attributes.should ==
+            (@relation1.attributes + @relation2.attributes).collect { |a| a.substitute(@join) }
         end
       end
 
@@ -73,8 +77,8 @@ module ActiveRelation
         before do
           @relation = Table.new(:users)
           photos = Table.new(:photos)
-          @aggregate_relation = photos.aggregate(photos[:user_id], photos[:id].count).group(photos[:user_id]).rename(photos[:id].count, :cnt) \
-                                  .as(:photo_count)
+          aggregate_relation = photos.aggregate(photos[:user_id], photos[:id].count).group(photos[:user_id])
+          @aggregate_relation = aggregate_relation.rename(photos[:id].count, :cnt).as(:photo_count)
           @predicate = Equality.new(@aggregate_relation[:user_id], @relation[:id])
         end
 

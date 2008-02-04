@@ -2,7 +2,7 @@ module ActiveRelation
   class Compound < Relation
     attr_reader :relation
     delegate :joins, :selects, :orders, :groupings, :table_sql, :inserts, :limit,
-             :offset, :name, :alias, :aggregation?,
+             :offset, :name, :alias, :aggregation?, :prefix_for, :aliased_prefix_for,
              :to => :relation
     
     def attributes
@@ -11,15 +11,7 @@ module ActiveRelation
     
     protected
     def attribute_for_name(name)
-      (a = relation[name]) && a.substitute(self)
-    end
-    
-    def attribute_for_attribute(attribute)
-      attribute.relation == self ? attribute : (a = relation[attribute]) && a.substitute(self)
-    end
-    
-    def attribute_for_expression(expression)
-      expression.relation == self ? expression : (a = relation[expression]) && a.substitute(self)
+      relation[name].substitute(self) rescue nil
     end
   end
 end

@@ -25,7 +25,7 @@ module ActiveRelation
   
     describe '#attributes' do
       it "manufactures a list of attributes with the renamed attribute renameed" do
-        @renamed_relation.attributes.should include(Attribute.new(@renamed_relation, :id, :schmid))
+        @renamed_relation.attributes.should include(@renamed_relation[:schmid])
         @renamed_relation.should have(@relation1.attributes.size).attributes
       end
     end
@@ -34,17 +34,17 @@ module ActiveRelation
       describe 'when given a', Symbol do
         it 'indexes attributes by rename if the symbol names an attribute within the relation' do
           @renamed_relation[:id].should be_nil
-          @renamed_relation[:schmid].should == Attribute.new(@renamed_relation, :id, :schmid)
+          @renamed_relation[:schmid].should == @relation1[:id].as(:schmid).substitute(@renamed_relation)
           @renamed_relation[:does_not_exist].should be_nil
         end
       end
       
       describe 'when given an', Attribute do
         it 'manufactures a substituted and renamed attribute if the attribute is within the relation' do
-          @renamed_relation[Attribute.new(@relation1, :id)].should == Attribute.new(@renamed_relation, :id, :schmid)
-          @renamed_relation[Attribute.new(@relation1, :name)].should == Attribute.new(@renamed_relation, :name)
-          @renamed_relation[Attribute.new(@renamed_relation, :name)].should == Attribute.new(@renamed_relation, :name)
-          @renamed_relation[Attribute.new(@relation2, :id)].should be_nil
+          @renamed_relation[@relation1[:id]].should == @relation1[:id].as(:schmid).substitute(@renamed_relation)
+          @renamed_relation[@relation1[:name]].should == @relation1[:name].substitute(@renamed_relation)
+          @renamed_relation[@renamed_relation[:name]].should == @renamed_relation[:name]
+          @renamed_relation[@relation2[:id]].should be_nil
         end
       end
 
@@ -62,22 +62,26 @@ module ActiveRelation
           it 'manufactures a substituted and renamed attribute if the attribute is within the relation' do
             @renamed_renamed_relation[:id].should be_nil
             @renamed_renamed_relation[:schmid].should be_nil
-            @renamed_renamed_relation[:flid].should == Attribute.new(@renamed_renamed_relation, :id, :flid)
+            @renamed_renamed_relation[:flid].should == @renamed_relation[:schmid].as(:flid).substitute(@renamed_renamed_relation)
           end
         end
         
         describe 'when given an', Attribute do
           it "manufactures a substituted and renamed attribute if the attribute is within the relation -- even if the provided attribute derived" do
-            @renamed_renamed_relation[Attribute.new(@renamed_relation, :id, :schmid)].should == Attribute.new(@renamed_renamed_relation, :id, :flid)
-            @renamed_renamed_relation[Attribute.new(@relation1, :id)].should == Attribute.new(@renamed_renamed_relation, :id, :flid)
+            @renamed_renamed_relation[@renamed_relation[:schmid]].should == @renamed_relation[:schmid].as(:flid).substitute(@renamed_renamed_relation)
+            @renamed_renamed_relation[@relation1[:id]].should == @renamed_relation[:schmid].as(:flid).substitute(@renamed_renamed_relation)
           end
         end
         
         describe 'when given an', Expression do
+          before do
+            @expression = @relation1[:id].count
+            @aggregation = Aggregation.new(@relation1, :expressions => [@expression])
+            @renamed_relation = Rename.new(@aggregation, @expression => :cnt)
+          end
+          
           it "manufactures a substituted and renamed expression if the expression is within the relation" do
-            renamed_relation = Rename.new(Aggregation.new(@relation1, :expressions => [@relation1[:id].count]), @relation1[:id].count => :cnt)
-            renamed_relation[@relation1[:id].count].should == @relation1[:id].count.as(:cnt).substitute(renamed_relation)
-            renamed_relation.attributes.should == [@relation1[:id].count.as(:cnt).substitute(renamed_relation)]
+            @renamed_relation[@expression].should == @aggregation[@expression].as(:cnt).substitute(@renamed_relation)
           end
         end
       end

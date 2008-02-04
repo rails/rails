@@ -14,15 +14,19 @@ module ActiveRelation
       Rename.new self, qualifications
     end
     
-    def inspect
-      "<Table: #{name}>"
+    def prefix_for(attribute)
+      name
     end
-  
+    
+    def aliased_prefix_for(attribute)
+      name
+    end
+    
     protected    
     def attribute_for_name(name)
       attributes_by_name[name.to_s]
     end
-      
+    
     def table_sql
       "#{quote_table_name(name)}"
     end

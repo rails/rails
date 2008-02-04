@@ -7,7 +7,8 @@ module ActiveRelation
     end
 
     def ==(other)
-      predicates == other.predicates and
+      self.class == other.class and
+        predicates == other.predicates and
         ((relation1 == other.relation1 and relation2 == other.relation2) or
         (relation2 == other.relation1 and relation1 == other.relation2))
     end
@@ -20,8 +21,15 @@ module ActiveRelation
       [
         relation1.aggregation?? relation1.attributes.collect(&:to_attribute) : relation1.attributes,
         relation2.aggregation?? relation2.attributes.collect(&:to_attribute) : relation2.attributes,
-      ].flatten
+      ].flatten.collect { |a| a.substitute(self) }
     end
+    
+    def prefix_for(attribute)
+      # test me
+      (relation1[attribute] && relation1.aliased_prefix_for(attribute)) ||
+        (relation2[attribute] && relation2.aliased_prefix_for(attribute))
+    end
+    alias_method :aliased_prefix_for, :prefix_for
 
     protected
     def joins
@@ -36,11 +44,11 @@ module ActiveRelation
     end
     
     def attribute_for_name(name)
-      relation1[name] || relation2[name]
+      (relation1[name] || relation2[name])
     end
 
     def attribute_for_attribute(attribute)
-      relation1[attribute] || relation2[attribute]
+      (relation1[attribute] || relation2[attribute])
     end
    
     def table_sql
@@ -49,7 +57,7 @@ module ActiveRelation
     
     private
     def join
-      [join_sql, right_table_sql, "ON", predicates.collect { |p| p.to_sql(Sql::Predicate.new) }.join(' AND ')].join(" ")
+      [join_sql, right_table_sql, "ON", predicates.collect { |p| p.substitute(self).to_sql(Sql::Predicate.new) }.join(' AND ')].join(" ")
     end
     
     def right_table_sql

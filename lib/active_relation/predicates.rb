@@ -19,6 +19,10 @@ module ActiveRelation
     def qualify
       self.class.new(attribute.qualify, operand.qualify)
     end
+    
+    def substitute(relation)
+      self.class.new(attribute.substitute(relation), operand.substitute(relation))
+    end
 
     def to_sql(strategy = Sql::Predicate.new)
       "#{attribute.to_sql(strategy)} #{predicate_sql} #{operand.to_sql(strategy)}"

@@ -30,10 +30,8 @@ module ActiveRelation
           attribute_for_name(index)
         when ::Range
           Range.new(self, index)
-        when Attribute
+        when Attribute, Expression
           attribute_for_attribute(index)
-        when Expression
-          attribute_for_expression(index)
         end
       end
 
@@ -110,12 +108,12 @@ module ActiveRelation
       ActiveRecord::Base.connection
     end
     
-    def attribute_for_attribute(attribute)
-      self == attribute.relation ? attribute : nil
+    def attribute_for_name(name)
+      nil
     end
     
-    def attribute_for_expression(expression)
-      nil
+    def attribute_for_attribute(attribute)
+      attributes.detect { |a| a =~ attribute }
     end
 
     def attributes;  []  end

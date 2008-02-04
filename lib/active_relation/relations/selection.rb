@@ -8,7 +8,7 @@ module ActiveRelation
     end
 
     def ==(other)
-      relation == other.relation and predicate == other.predicate
+      self.class == other.class and relation == other.relation and predicate == other.predicate
     end
 
     def qualify

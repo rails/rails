@@ -1,18 +1,18 @@
 module ActiveRelation
   class Attribute
-    attr_reader :relation, :name, :alias
+    attr_reader :relation, :name, :alias, :ancestor
 
-    def initialize(relation, name, aliaz = nil)
-      @relation, @name, @alias = relation, name, aliaz
+    def initialize(relation, name, aliaz = nil, ancestor = nil)
+      @relation, @name, @alias, @ancestor = relation, name, aliaz, ancestor
     end
 
     module Transformations
       def as(aliaz = nil)
-        Attribute.new(relation, name, aliaz)
+        Attribute.new(relation, name, aliaz, self)
       end
     
       def substitute(new_relation)
-        Attribute.new(new_relation, name, @alias)
+        relation == new_relation ? self : Attribute.new(new_relation, name, @alias, self)
       end
 
       def qualify
@@ -26,11 +26,19 @@ module ActiveRelation
     include Transformations
     
     def qualified_name
-      "#{relation.name}.#{name}"
+      "#{prefix}.#{name}"
     end
 
     def ==(other)
-      self.class == other.class and relation == other.relation and name == other.name and @alias == other.alias
+      self.class == other.class and relation == other.relation and name == other.name and @alias == other.alias and ancestor == other.ancestor
+    end
+    
+    def =~(other)
+      !(history & other.history).empty?
+    end
+    
+    def history
+      [self] + (ancestor ? [ancestor, ancestor.history].flatten : [])
     end
 
     module Predications
@@ -84,7 +92,12 @@ module ActiveRelation
     include Expressions
 
     def to_sql(strategy = Sql::Predicate.new)
-      strategy.attribute relation.name, name, self.alias
+      strategy.attribute prefix, name, self.alias
+    end
+    
+    private
+    def prefix
+      relation.prefix_for(self)
     end
   end
 end

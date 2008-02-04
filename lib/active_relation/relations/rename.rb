@@ -23,22 +23,14 @@ module ActiveRelation
     def attribute_for_name(name)
       case
       when referring_by_autonym?(name) then nil
-      when referring_by_pseudonym?(name) then attribute.as(pseudonym).substitute(self)
-      else (a = relation[name]) && a.substitute(self)
+      when referring_by_pseudonym?(name) then substitute(relation[attribute])
+      else relation[name].substitute(self) rescue nil
       end
-    end
-    
-    def attribute_for_attribute(attribute)
-      attribute.relation == self ? attribute : substitute(relation[attribute])
-    end
-    
-    def attribute_for_expression(expression)
-      expression.relation == self ? expression : substitute(relation[expression])
     end
 
     private
     def substitute(attribute)
-      (relation[attribute] == relation[self.attribute] ? attribute.as(pseudonym) : attribute).substitute(self) if attribute
+      (attribute =~ self.attribute ? attribute.as(pseudonym) : attribute).substitute(self) rescue nil
     end
 
     def referring_by_autonym?(name)

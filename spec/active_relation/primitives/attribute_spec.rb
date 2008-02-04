@@ -14,19 +14,19 @@ module ActiveRelation
       
       describe '#as' do
         it "manufactures an aliased attributed" do
-          @attribute.as(:alias).should == Attribute.new(@relation1, @attribute.name, :alias)
+          @attribute.as(:alias).should == Attribute.new(@relation1, @attribute.name, :alias, @attribute)
         end
       end
     
       describe '#substitute' do
         it "manufactures an attribute with the relation substituted" do
-          @attribute.substitute(@relation2).should == Attribute.new(@relation2, @attribute.name)
+          @attribute.substitute(@relation2).should == Attribute.new(@relation2, @attribute.name, nil, @attribute)
         end
       end
     
       describe '#qualify' do
         it "manufactures an attribute aliased with that attributes qualified name" do
-          @attribute.qualify.should == Attribute.new(@attribute.relation, @attribute.name, @attribute.qualified_name)
+          @attribute.qualify.should == Attribute.new(@attribute.relation, @attribute.name, @attribute.qualified_name, @attribute)
         end
       end
       
@@ -53,6 +53,10 @@ module ActiveRelation
     end
     
     describe '#to_sql' do
+      it "needs to test prefix_for" do
+        pending
+      end
+      
       describe Sql::Strategy do
         it "manufactures sql without an alias if the strategy is Predicate" do
           Attribute.new(@relation1, :name, :alias).to_sql(Sql::Predicate.new).should be_like("`foo`.`name`")
@@ -60,19 +64,6 @@ module ActiveRelation
       
         it "manufactures sql with an alias if the strategy is Projection" do
           Attribute.new(@relation1, :name, :alias).to_sql(Sql::Projection.new).should be_like("`foo`.`name` AS 'alias'")
-        end
-      end
-      
-      describe 'binding' do
-        before do
-          @attribute = Attribute.new(@relation1, :name, :alias)
-          @aliased_relation = @relation1.as(:schmoo)
-        end
-        
-        it "is fancy pants" do
-          pending
-          @attribute.to_sql.should be_like("`foo`.`name`")
-          @attribute.substitute(@aliased_relation).to_sql.should be_like("`schmoo`.`alias`")
         end
       end
     end
@@ -120,7 +111,7 @@ module ActiveRelation
       end
     end
   
-    describe 'Expressions' do
+    describe Attribute::Expressions do
       before do
         @attribute1 = Attribute.new(@relation1, :name)    
       end
