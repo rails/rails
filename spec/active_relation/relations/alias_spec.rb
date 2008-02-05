@@ -4,7 +4,19 @@ module ActiveRelation
   describe Alias do
     before do
       @relation = Table.new(:users)
-      @alias_relation = @relation.as(:foo)
+      @alias_relation = Alias.new(@relation, :foo)
+    end
+    
+    describe '#prefix_for' do
+      it "delegates to the underlying relation" do
+        @alias_relation.prefix_for(@relation[:id]).should == :users
+      end
+    end
+    
+    describe '#aliased_prefix_for' do
+      it "returns the alias" do
+        @alias_relation.aliased_prefix_for(@relation[:id]).should == :foo
+      end
     end
   end
 end
