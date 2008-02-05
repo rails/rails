@@ -32,6 +32,13 @@ module ActiveRelation
           should == ConcreteBinary.new(@attribute1.qualify, @attribute2.qualify)
       end
     end
+    
+    describe '#substitute' do
+      it "distributes over the predicates and attributes" do
+        ConcreteBinary.new(@attribute1, @attribute2).substitute(@relation2). \
+          should == ConcreteBinary.new(@attribute1.substitute(@relation2), @attribute2.substitute(@relation2))
+      end
+    end
   
     describe '#to_sql' do
       it 'manufactures correct sql' do

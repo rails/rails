@@ -11,7 +11,7 @@ module ActiveRelation
 
     module Transformations
       def substitute(new_relation)
-        Expression.new(attribute.substitute(new_relation), function_sql, @alias, self)
+        new_relation == relation ? self : Expression.new(attribute.substitute(new_relation), function_sql, @alias, self)
       end
     
       def as(aliaz)
@@ -34,17 +34,18 @@ module ActiveRelation
       self.class == other.class and attribute == other.attribute and function_sql == other.function_sql and ancestor == other.ancestor and @alias == other.alias
     end
     alias_method :eql?, :==
+    
+    def =~(other)
+      !(history & other.send(:history)).empty?
+    end
 
+    private
     def hash
       attribute.hash + function_sql.hash
     end
     
-    def =~(other)
-      !(history & other.history).empty?
-    end
-
     def history
-      [self] + (ancestor ? [ancestor, ancestor.history].flatten : [])
+      [self] + (ancestor ? [ancestor, ancestor.send(:history)].flatten : [])
     end
   end
 end

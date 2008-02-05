@@ -3,24 +3,28 @@ require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 module ActiveRelation
   describe Attribute do
     before do
-      @relation1 = Table.new(:foo)
-      @relation2 = Table.new(:bar)
+      @relation = Table.new(:users)
     end
   
     describe Attribute::Transformations do
       before do
-        @attribute = Attribute.new(@relation1, :id)
+        @attribute = Attribute.new(@relation, :id)
       end
       
       describe '#as' do
         it "manufactures an aliased attributed" do
-          @attribute.as(:alias).should == Attribute.new(@relation1, @attribute.name, :alias, @attribute)
+          @attribute.as(:alias).should == Attribute.new(@relation, @attribute.name, :alias, @attribute)
         end
       end
     
       describe '#substitute' do
-        it "manufactures an attribute with the relation substituted" do
-          @attribute.substitute(@relation2).should == Attribute.new(@relation2, @attribute.name, nil, @attribute)
+        it "manufactures an attribute with the relation substituted and self as an ancestor" do
+          derived_relation = @relation.select(@relation[:id].equals(1))
+          @attribute.substitute(derived_relation).should == Attribute.new(derived_relation, @attribute.name, nil, @attribute)
+        end
+        
+        it "returns self if the substituting to the same relation" do
+          @attribute.substitute(@relation).should == @attribute
         end
       end
     
@@ -39,110 +43,107 @@ module ActiveRelation
     
     describe '#qualified_name' do
       it "manufactures an attribute name prefixed with the relation's name" do
-        Attribute.new(@relation1, :id).qualified_name.should == 'foo.id'
+        Attribute.new(@relation, :id).qualified_name.should == 'users.id'
       end
     end
-  
-    describe '==' do
-      it "obtains if the relation and attribute name are identical" do
-        Attribute.new(@relation1, :name).should == Attribute.new(@relation1, :name)
-        Attribute.new(@relation1, :name).should_not == Attribute.new(@relation1, :another_name)
-        Attribute.new(@relation1, :name).should_not == Attribute.new(@relation2, :name)
-        Attribute.new(@relation1, :name).should_not == Expression.new(Attribute.new(@relation1, :name), "SUM")
+    
+    describe '=~' do
+      it "obtains if the attributes are identical" do
+        Attribute.new(@relation, :name).should =~ Attribute.new(@relation, :name)
+      end
+      
+      it "obtains if the attributes have an overlapping history" do
+        Attribute.new(@relation, :name, nil, Attribute.new(@relation, :name)).should =~ Attribute.new(@relation, :name)
+        Attribute.new(@relation, :name).should =~ Attribute.new(@relation, :name, nil, Attribute.new(@relation, :name))
       end
     end
     
     describe '#to_sql' do
-      it "needs to test prefix_for" do
-        pending
-      end
-      
       describe Sql::Strategy do
         it "manufactures sql without an alias if the strategy is Predicate" do
-          Attribute.new(@relation1, :name, :alias).to_sql(Sql::Predicate.new).should be_like("`foo`.`name`")
+          Attribute.new(@relation, :name, :alias).to_sql(Sql::Predicate.new).should be_like("`users`.`name`")
         end
       
         it "manufactures sql with an alias if the strategy is Projection" do
-          Attribute.new(@relation1, :name, :alias).to_sql(Sql::Projection.new).should be_like("`foo`.`name` AS 'alias'")
+          Attribute.new(@relation, :name, :alias).to_sql(Sql::Projection.new).should be_like("`users`.`name` AS 'alias'")
         end
       end
     end
   
     describe Attribute::Predications do
       before do
-        @attribute1 = Attribute.new(@relation1, :name)
-        @attribute2 = Attribute.new(@relation2, :name)
+        @attribute = Attribute.new(@relation, :name)
       end
     
       describe '#equals' do
         it "manufactures an equality predicate" do
-          @attribute1.equals(@attribute2).should == Equality.new(@attribute1, @attribute2)
+          @attribute.equals('name').should == Equality.new(@attribute, 'name')
         end
       end
     
       describe '#less_than' do
         it "manufactures a less-than predicate" do
-          @attribute1.less_than(@attribute2).should == LessThan.new(@attribute1, @attribute2)
+          @attribute.less_than(10).should == LessThan.new(@attribute, 10)
         end
       end
     
       describe '#less_than_or_equal_to' do
         it "manufactures a less-than or equal-to predicate" do
-          @attribute1.less_than_or_equal_to(@attribute2).should == LessThanOrEqualTo.new(@attribute1, @attribute2)
+          @attribute.less_than_or_equal_to(10).should == LessThanOrEqualTo.new(@attribute, 10)
         end
       end
     
       describe '#greater_than' do
         it "manufactures a greater-than predicate" do
-          @attribute1.greater_than(@attribute2).should == GreaterThan.new(@attribute1, @attribute2)
+          @attribute.greater_than(10).should == GreaterThan.new(@attribute, 10)
         end
       end
     
       describe '#greater_than_or_equal_to' do
-        it "manufactures a greater-than or equal to predicate" do
-          @attribute1.greater_than_or_equal_to(@attribute2).should == GreaterThanOrEqualTo.new(@attribute1, @attribute2)
+        it "manufactures a greater-than or equal-to predicate" do
+          @attribute.greater_than_or_equal_to(10).should == GreaterThanOrEqualTo.new(@attribute, 10)
         end
       end
     
       describe '#matches' do
         it "manufactures a match predicate" do
-          @attribute1.matches(/.*/).should == Match.new(@attribute1, @attribute2)
+          @attribute.matches(/.*/).should == Match.new(@attribute, /.*/)
         end
       end
     end
   
     describe Attribute::Expressions do
       before do
-        @attribute1 = Attribute.new(@relation1, :name)    
+        @attribute = Attribute.new(@relation, :name)    
       end
     
       describe '#count' do
         it "manufactures a count Expression" do
-          @attribute1.count.should == Expression.new(@attribute1, "COUNT")
+          @attribute.count.should == Expression.new(@attribute, "COUNT")
         end
       end
     
       describe '#sum' do
         it "manufactures a sum Expression" do
-          @attribute1.sum.should == Expression.new(@attribute1, "SUM")
+          @attribute.sum.should == Expression.new(@attribute, "SUM")
         end
       end
     
       describe '#maximum' do
         it "manufactures a maximum Expression" do
-          @attribute1.maximum.should == Expression.new(@attribute1, "MAX")
+          @attribute.maximum.should == Expression.new(@attribute, "MAX")
         end
       end
     
       describe '#minimum' do
         it "manufactures a minimum Expression" do
-          @attribute1.minimum.should == Expression.new(@attribute1, "MIN")
+          @attribute.minimum.should == Expression.new(@attribute, "MIN")
         end
       end
     
       describe '#average' do
         it "manufactures an average Expression" do
-          @attribute1.average.should == Expression.new(@attribute1, "AVG")
+          @attribute.average.should == Expression.new(@attribute, "AVG")
         end
       end 
     end

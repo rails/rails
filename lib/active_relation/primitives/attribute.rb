@@ -30,17 +30,18 @@ module ActiveRelation
     end
 
     def ==(other)
-      self.class == other.class and relation == other.relation and name == other.name and @alias == other.alias and ancestor == other.ancestor
+      self.class == other.class and
+        relation == other.relation and
+        name     == other.name and
+        @alias   == other.alias and
+        ancestor == other.ancestor
     end
+    alias_method :eql?, :==
     
     def =~(other)
-      !(history & other.history).empty?
+      !(history & other.send(:history)).empty?
     end
     
-    def history
-      [self] + (ancestor ? [ancestor, ancestor.history].flatten : [])
-    end
-
     module Predications
       def equals(other)
         Equality.new(self, other)
@@ -96,8 +97,14 @@ module ActiveRelation
     end
     
     private
+    delegate :hash, :to => :relation
+    
     def prefix
       relation.prefix_for(self)
+    end
+    
+    def history
+      [self] + (ancestor ? [ancestor, ancestor.send(:history)].flatten : [])
     end
   end
 end
