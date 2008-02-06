@@ -150,8 +150,8 @@ module ActionView #:nodoc:
   class Base
     include ERB::Util
 
-    attr_reader   :first_render, :finder
-    attr_accessor :base_path, :assigns, :template_extension
+    attr_reader   :finder
+    attr_accessor :base_path, :assigns, :template_extension, :first_render
     attr_accessor :controller
 
     attr_reader :logger, :response, :headers
@@ -173,12 +173,6 @@ module ActionView #:nodoc:
     # Should be +false+ for development environments. Defaults to +true+.
     @@cache_template_extensions = true
     cattr_accessor :cache_template_extensions
-
-    # Specify whether local_assigns should be able to use string keys.
-    # Defaults to +true+. String keys are deprecated and will be removed
-    # shortly.
-    @@local_assigns_support_string_keys = true
-    cattr_accessor :local_assigns_support_string_keys
     
     # Specify whether RJS responses should be wrapped in a try/catch block
     # that alert()s the caught exception (and then re-raises it). 
@@ -282,41 +276,16 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         END_ERROR
       end
       
-      # Clear the forward slash at the beginning if exists
-      template_path = template_path.sub(/^\//, '') if use_full_path
-
-      @first_render ||= template_path
-      template_path_without_extension, template_extension = @finder.path_and_extension(template_path)
-      if use_full_path
-        if template_extension
-          template_file_name = @finder.pick_template(template_path_without_extension, template_extension)
-        else
-          template_extension = @finder.pick_template_extension(template_path).to_s
-          unless template_extension
-            raise ActionViewError, "No template found for #{template_path} in #{@finder.view_paths.inspect}"
-          end
-          template_file_name = @finder.pick_template(template_path, template_extension)
-          template_extension = template_extension.gsub(/^.+\./, '') # strip off any formats
-        end
-      else
-        template_file_name = template_path
-      end
-
-      template_source = nil # Don't read the source until we know that it is required
-
-      if template_file_name.blank?
-        raise ActionViewError, "Couldn't find template file for #{template_path} in #{@finder.view_paths.inspect}"
-      end
+      template = Template.new(self, template_path, use_full_path, local_assigns)
 
       begin
-        render_template(template_extension, template_source, template_file_name, local_assigns)
+        render_template(template)
       rescue Exception => e
         if TemplateError === e
-          e.sub_template_of(template_file_name)
+          e.sub_template_of(template.filename)
           raise e
         else
-          raise TemplateError.new(@finder.find_base_path_for("#{template_path_without_extension}.#{template_extension}") ||
-                @finder.view_paths.first, template_file_name, @assigns, template_source, e)
+          raise TemplateError.new(template, @assigns, e)
         end
       end
     end
@@ -350,22 +319,22 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         elsif options[:partial]
           render_partial(options[:partial], ActionView::Base::ObjectWrapper.new(options[:object]), options[:locals])
         elsif options[:inline]
-          render_template(options[:type], options[:inline], nil, options[:locals])
+          template = Template.new(self, options[:inline], false, options[:locals], true, options[:type])
+          render_template(template)
         end
       end
     end
 
     # Renders the +template+ which is given as a string as either erb or builder depending on <tt>template_extension</tt>.
     # The hash in <tt>local_assigns</tt> is made available as local variables.
-    def render_template(template_extension, template, file_path = nil, local_assigns = {}) #:nodoc:
-      handler = self.class.handler_class_for_extension(template_extension).new(self)
-      @current_render_extension = template_extension
+    def render_template(template) #:nodoc:
+      handler = template.handler
+      @current_render_extension = template.extension
 
       if handler.compilable?
-        compile_and_render_template(handler, template, file_path, local_assigns)
+        compile_and_render_template(handler, template)
       else
-        template ||= handler.read_template_file(file_path, template_extension) # Make sure that a lazyily-read template is loaded.
-        handler.render(template, local_assigns)
+        handler.render(template.source, template.locals)
       end
     end
 
@@ -407,18 +376,15 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       # Either, but not both, of template and file_path may be nil. If file_path is given, the template
       # will only be read if it has to be compiled.
       #
-      def compile_and_render_template(handler, template = nil, file_path = nil, local_assigns = {}) #:nodoc:
-        # convert string keys to symbols if requested
-        local_assigns = local_assigns.symbolize_keys if @@local_assigns_support_string_keys
-
+      def compile_and_render_template(handler, template) #:nodoc:
         # compile the given template, if necessary
-        handler.compile_template(template, file_path, local_assigns)
+        handler.compile_template(template)
 
         # Get the method name for this template and run it
-        method_name = @@method_names[file_path || template]
+        method_name = @@method_names[template.method_key]
         evaluate_assigns
 
-        send(method_name, local_assigns) do |*name|
+        send(method_name, template.locals) do |*name|
           instance_variable_get "@content_for_#{name.first || 'layout'}"
         end
       end

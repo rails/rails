@@ -6,10 +6,10 @@ module ActionView
 
     attr_reader :original_exception
 
-    def initialize(base_path, file_path, assigns, source, original_exception)
-      @base_path, @assigns, @source, @original_exception =
-        base_path, assigns.dup, source, original_exception
-      @file_path = file_path
+    def initialize(template, assigns, original_exception)
+      @base_path = template.base_path_for_exception
+      @assigns, @source, @original_exception = assigns.dup, template.source, original_exception
+      @file_path = template.filename
       @backtrace = compute_backtrace
     end
 

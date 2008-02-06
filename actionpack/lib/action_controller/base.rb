@@ -5,6 +5,7 @@ require 'action_controller/routing'
 require 'action_controller/resources'
 require 'action_controller/url_rewriter'
 require 'action_controller/status_codes'
+require 'action_view/template'
 require 'action_view/template_finder'
 require 'drb'
 require 'set'
@@ -866,7 +867,8 @@ module ActionController #:nodoc:
 
           elsif inline = options[:inline]
             add_variables_to_assigns
-            render_for_text(@template.render_template(options[:type], inline, nil, options[:locals] || {}), options[:status])
+            tmpl = ActionView::Template.new(@template, options[:inline], false, options[:locals], true, options[:type])
+            render_for_text(@template.render_template(tmpl), options[:status])
 
           elsif action_name = options[:action]
             template = default_template_name(action_name.to_s)

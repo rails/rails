@@ -140,14 +140,6 @@ class TestController < ActionController::Base
            :locals => { :local_name => name }
   end
 
-  def accessing_local_assigns_in_inline_template_with_string_keys
-    name = params[:local_name]
-    ActionView::Base.local_assigns_support_string_keys = true
-    render :inline => "<%= 'Goodbye, ' + local_name %>",
-           :locals => { "local_name" => name }
-    ActionView::Base.local_assigns_support_string_keys = false
-  end
-
   def formatted_html_erb
   end
 
@@ -384,11 +376,6 @@ class RenderTest < Test::Unit::TestCase
 
   def test_accessing_local_assigns_in_inline_template
     get :accessing_local_assigns_in_inline_template, :local_name => "Local David"
-    assert_equal "Goodbye, Local David", @response.body
-  end
-
-  def test_accessing_local_assigns_in_inline_template_with_string_keys
-    get :accessing_local_assigns_in_inline_template_with_string_keys, :local_name => "Local David"
     assert_equal "Goodbye, Local David", @response.body
   end
 

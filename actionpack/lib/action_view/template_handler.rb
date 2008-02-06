@@ -30,10 +30,5 @@ module ActionView
     # Called by CacheHelper#cache
     def cache_fragment(block, name = {}, options = nil)
     end
-
-    # This method reads a template file.
-    def read_template_file(template_path, extension)
-      File.read(template_path)
-    end
   end
 end

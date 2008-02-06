@@ -26,17 +26,15 @@ module ActionView
       end
 
       # Compile and evaluate the template's code
-      def compile_template(template, file_name, local_assigns)
-        return unless compile_template?(template, file_name, local_assigns)
+      def compile_template(template)
+        return unless compile_template?(template)
 
-        template ||= read_template_file(file_name, nil)
-
-        render_symbol = assign_method_name(template, file_name)
-        render_source = create_template_source(template, render_symbol, local_assigns.keys)
+        render_symbol = assign_method_name(template)
+        render_source = create_template_source(template, render_symbol)
         line_offset   = self.template_args[render_symbol].size + self.line_offset
 
         begin
-          file_name = 'compiled-template' if file_name.blank?
+          file_name = template.filename || 'compiled-template'
           ActionView::Base::CompiledTemplates.module_eval(render_source, file_name, -line_offset)
         rescue Exception => e  # errors from template code
           if @view.logger
@@ -45,8 +43,7 @@ module ActionView
             @view.logger.debug "Backtrace: #{e.backtrace.join("\n")}"
           end
 
-          raise ActionView::TemplateError.new(@view.finder.extract_base_path_from(file_name) ||
-                @view.finder.view_paths.first, file_name || template, @view.assigns, template, e)
+          raise ActionView::TemplateError.new(template, @view.assigns, e)
         end
 
         self.compile_time[render_symbol] = Time.now
@@ -59,27 +56,26 @@ module ActionView
       # The template will be compiled if the inline template or file has not been compiled yet,
       # if local_assigns has a new key, which isn't supported by the compiled code yet,
       # or if the file has changed on disk and checking file mods hasn't been disabled.
-      def compile_template?(template, file_name, local_assigns)
-        method_key    = file_name || template
+      def compile_template?(template)
+        method_key    = template.method_key
         render_symbol = @view.method_names[method_key]
 
         compile_time = self.compile_time[render_symbol]
-        if compile_time && supports_local_assigns?(render_symbol, local_assigns)
-          if file_name && !@view.cache_template_loading
-            template_changed_since?(file_name, compile_time)
+        if compile_time && supports_local_assigns?(render_symbol, template.locals)
+          if template.filename && !@view.cache_template_loading
+            template_changed_since?(template.filename, compile_time)
           end
         else
           true
         end
       end
 
-      def assign_method_name(template, file_name)
-        method_key = file_name || template
-        @view.method_names[method_key] ||= compiled_method_name(template, file_name)
+      def assign_method_name(template)
+        @view.method_names[template.method_key] ||= compiled_method_name(template)
       end
 
-      def compiled_method_name(template, file_name)
-        ['_run', self.class.to_s.demodulize.underscore, compiled_method_name_file_path_segment(file_name)].compact.join('_').to_sym
+      def compiled_method_name(template)
+        ['_run', self.class.to_s.demodulize.underscore, compiled_method_name_file_path_segment(template.filename)].compact.join('_').to_sym
       end
 
       def compiled_method_name_file_path_segment(file_name)
@@ -94,11 +90,11 @@ module ActionView
       end
 
       # Method to create the source code for a given template.
-      def create_template_source(template, render_symbol, locals)
-        body = compile(template)
+      def create_template_source(template, render_symbol)
+        body = compile(template.source)
 
         self.template_args[render_symbol] ||= {}
-        locals_keys = self.template_args[render_symbol].keys | locals
+        locals_keys = self.template_args[render_symbol].keys | template.locals.keys
         self.template_args[render_symbol] = locals_keys.inject({}) { |h, k| h[k] = true; h }
 
         locals_code = ""
