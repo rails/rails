@@ -1,5 +1,7 @@
 *SVN*
 
+* Add config.time_zone for configuring the default Time.zone value.  #10982 [Geoff Buesing]
+
 * Reshuffle load order so that routes and observers are initialized after plugins and app initializers.  Closes #10980 [rick]
 
 * Git support for script/generate.  #10690 [ssoroka]

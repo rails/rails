@@ -8,6 +8,10 @@ module ActiveRecord
       base.attribute_method_suffix(*DEFAULT_SUFFIXES)
       base.cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
       base.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
+      base.cattr_accessor :time_zone_aware_attributes, :instance_writer => false
+      base.time_zone_aware_attributes = false
+      base.cattr_accessor :skip_time_zone_conversion_for_attributes, :instance_writer => false
+      base.skip_time_zone_conversion_for_attributes = []
     end
 
     # Declare and check for suffixed attribute methods.
@@ -64,13 +68,19 @@ module ActiveRecord
           unless instance_method_already_implemented?(name)
             if self.serialized_attributes[name]
               define_read_method_for_serialized_attribute(name)
+            elsif create_time_zone_conversion_attribute?(name, column)
+              define_read_method_for_time_zone_conversion(name)
             else
               define_read_method(name.to_sym, name, column)
             end
           end
 
           unless instance_method_already_implemented?("#{name}=")
-            define_write_method(name.to_sym)
+            if create_time_zone_conversion_attribute?(name, column)
+              define_write_method_for_time_zone_conversion(name)
+            else  
+              define_write_method(name.to_sym)
+            end
           end
 
           unless instance_method_already_implemented?("#{name}?")
@@ -121,6 +131,10 @@ module ActiveRecord
           @@attribute_method_suffixes ||= []
         end
         
+        def create_time_zone_conversion_attribute?(name, column)
+          time_zone_aware_attributes && !skip_time_zone_conversion_for_attributes.include?(name.to_sym) && [:datetime, :timestamp].include?(column.type)
+        end
+        
         # Define an attribute reader method.  Cope with nil column.
         def define_read_method(symbol, attr_name, column)
           cast_code = column.type_cast_code('v') if column
@@ -140,6 +154,18 @@ module ActiveRecord
         def define_read_method_for_serialized_attribute(attr_name)
           evaluate_attribute_method attr_name, "def #{attr_name}; unserialize_attribute('#{attr_name}'); end"
         end
+        
+        def define_read_method_for_time_zone_conversion(attr_name)
+          method_body = <<-EOV
+            def #{attr_name}(reload = false)
+              cached = @attributes_cache['#{attr_name}']
+              return cached if cached && !reload
+              time = read_attribute('#{attr_name}')
+              @attributes_cache['#{attr_name}'] = time.acts_like?(:time) ? time.in_current_time_zone : time
+            end
+          EOV
+          evaluate_attribute_method attr_name, method_body
+        end
 
         # Define an attribute ? method.
         def define_question_method(attr_name)
@@ -148,6 +174,19 @@ module ActiveRecord
 
         def define_write_method(attr_name)
           evaluate_attribute_method attr_name, "def #{attr_name}=(new_value);write_attribute('#{attr_name}', new_value);end", "#{attr_name}="
+        end
+        
+        def define_write_method_for_time_zone_conversion(attr_name)
+          method_body = <<-EOV
+            def #{attr_name}=(time)
+              if time
+                time = time.to_time rescue time unless time.acts_like?(:time)
+                time = time.in_current_time_zone if time.acts_like?(:time)
+              end
+              write_attribute(:#{attr_name}, time)
+            end
+          EOV
+          evaluate_attribute_method attr_name, method_body, "#{attr_name}="
         end
 
         # Evaluate the definition for an attribute related method
@@ -303,7 +342,6 @@ module ActiveRecord
       end
       super
     end
-    
 
     private
     

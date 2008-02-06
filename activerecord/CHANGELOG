@@ -1,5 +1,9 @@
 *SVN*
 
+* Add timezone-aware attribute readers and writers. #10982 [Geoff Buesing]
+
+* Instantiating time objects in multiparameter attributes uses Time.zone if available.  #10982 [rick]
+
 * Add note about how ActiveRecord::Observer classes are initialized in a Rails app. #10980 [fxn]
 
 * MySQL: omit text/blob defaults from the schema instead of using an empty string.  #10963 [mdeiters]

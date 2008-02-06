@@ -9,8 +9,10 @@ module ActiveSupport #:nodoc:
         end
         
         module ClassMethods
+          attr_accessor :zone_default
+          
           def zone
-            Thread.current[:time_zone]
+            Thread.current[:time_zone] || zone_default
           end
 
           # Sets a global default time zone, separate from the system time zone in ENV['TZ']. 

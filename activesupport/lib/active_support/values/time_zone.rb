@@ -174,6 +174,14 @@ class TimeZone
   def to_s
     "(UTC#{formatted_offset}) #{name}"
   end
+  
+  # Method for creating new ActiveSupport::TimeWithZone instance in time zone of self. Example:
+  #
+  #   Time.zone = "Hawaii"                    # => "Hawaii"
+  #   Time.zone.new(2007, 2, 1, 15, 30, 45)   # => Thu, 01 Feb 2007 15:30:45 HST -10:00
+  def new(*args)
+    Time.utc_time(*args).change_time_zone(self)
+  end
 
   begin # the following methods depend on the tzinfo gem
     require_library_or_gem "tzinfo" unless Object.const_defined?(:TZInfo)

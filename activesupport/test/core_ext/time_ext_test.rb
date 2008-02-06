@@ -459,6 +459,15 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal  86_400.0, Time.utc(2000, 1, 2) - ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1), TimeZone['UTC'] )
   end
 
+  def test_time_created_with_local_constructor_cannot_represent_times_during_hour_skipped_by_dst
+    with_env_tz 'US/Eastern' do
+      # On Apr 2 2006 at 2:00AM in US, clocks were moved forward to 3:00AM.
+      # Therefore, 2AM EST doesn't exist for this date; Time.local fails over to 3:00AM EDT
+      assert_equal Time.local(2006, 4, 2, 3), Time.local(2006, 4, 2, 2)
+      assert Time.local(2006, 4, 2, 2).dst?
+    end
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz

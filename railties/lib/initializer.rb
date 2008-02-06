@@ -81,6 +81,7 @@ module Rails
       initialize_dependency_mechanism
       initialize_whiny_nils
       initialize_temporary_session_directory
+      initialize_time_zone
       initialize_framework_settings
 
       add_support_load_paths
@@ -316,6 +317,16 @@ module Rails
       end
     end
 
+    def initialize_time_zone
+      if configuration.time_zone
+        Time.zone_default = TimeZone[configuration.time_zone]
+        if configuration.frameworks.include?(:active_record)
+          ActiveRecord::Base.time_zone_aware_attributes = true
+          ActiveRecord::Base.default_timezone = :utc
+        end
+      end
+    end
+
     # Initializes framework-specific settings for each of the loaded frameworks
     # (Configuration#frameworks). The available settings map to the accessors
     # on each of the corresponding Base classes.
@@ -455,6 +466,11 @@ module Rails
       )
     end
     alias_method :breakpoint_server=, :breakpoint_server
+
+    # Sets the default time_zone.  Setting this will enable time_zone
+    # awareness for ActiveRecord models and set the ActiveRecord default
+    # timezone to :utc.
+    attr_accessor :time_zone
 
     # Create a new Configuration instance, initialized with the default
     # values.
