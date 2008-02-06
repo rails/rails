@@ -29,6 +29,14 @@ rescue LoadError
   $stderr.puts "Skipping #{description} tests. `gem install mocha` and try again."
 end
 
+def uses_tzinfo(description)
+  require 'rubygems'
+  require 'tzinfo'
+  yield
+rescue LoadError
+  $stderr.puts "Skipping #{description} tests.  `gem install tzinfo` and try again."
+end
+
 ActiveRecord::Base.connection.class.class_eval do
   IGNORED_SQL = [/^PRAGMA/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/]
 

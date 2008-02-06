@@ -937,25 +937,27 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.default_timezone = :local
   end
 
-  def test_multiparameter_attributes_on_time_with_time_zone_aware_attributes
-    ActiveRecord::Base.time_zone_aware_attributes = true
-    ActiveRecord::Base.default_timezone = :utc
-    Time.zone = TimeZone[-28800]
-    attributes = {
-      "written_on(1i)" => "2004", "written_on(2i)" => "6", "written_on(3i)" => "24",
-      "written_on(4i)" => "16", "written_on(5i)" => "24", "written_on(6i)" => "00"
-    }
-    topic = Topic.find(1)
-    topic.attributes = attributes
-    assert_equal Time.utc(2004, 6, 24, 23, 24, 0), topic.written_on
-    assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on.time
-    assert_equal Time.zone, topic.written_on.time_zone
-  ensure
-    ActiveRecord::Base.time_zone_aware_attributes = false
-    ActiveRecord::Base.default_timezone = :local
-    Time.zone = nil
+  uses_tzinfo "test_multiparameter_attributes_on_time_with_time_zone_aware_attributes" do
+    def test_multiparameter_attributes_on_time_with_time_zone_aware_attributes
+      ActiveRecord::Base.time_zone_aware_attributes = true
+      ActiveRecord::Base.default_timezone = :utc
+      Time.zone = TimeZone[-28800]
+      attributes = {
+        "written_on(1i)" => "2004", "written_on(2i)" => "6", "written_on(3i)" => "24",
+        "written_on(4i)" => "16", "written_on(5i)" => "24", "written_on(6i)" => "00"
+      }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+      assert_equal Time.utc(2004, 6, 24, 23, 24, 0), topic.written_on
+      assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on.time
+      assert_equal Time.zone, topic.written_on.time_zone
+    ensure
+      ActiveRecord::Base.time_zone_aware_attributes = false
+      ActiveRecord::Base.default_timezone = :local
+      Time.zone = nil
+    end
   end
-  
+
   def test_multiparameter_attributes_on_time_with_skip_time_zone_conversion_for_attributes
     ActiveRecord::Base.time_zone_aware_attributes = true
     ActiveRecord::Base.default_timezone = :utc

@@ -138,49 +138,51 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
   
-  def test_time_attributes_are_retrieved_in_current_time_zone
-    in_time_zone "Pacific Time (US & Canada)" do
+  uses_tzinfo "Time zone" do
+    def test_time_attributes_are_retrieved_in_current_time_zone
+      in_time_zone "Pacific Time (US & Canada)" do
+        utc_time = Time.utc(2008, 1, 1)
+        record   = @target.new
+        record[:written_on] = utc_time
+        assert_equal utc_time, record.written_on # record.written on is equal to (i.e., simultaneous with) utc_time
+        assert_kind_of ActiveSupport::TimeWithZone, record.written_on # but is a TimeWithZone
+        assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone # and is in the current Time.zone
+        assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time # and represents time values adjusted accordingly
+      end
+    end
+
+    def test_setting_time_zone_aware_attribute_to_utc
+      in_time_zone "Pacific Time (US & Canada)" do
+        utc_time = Time.utc(2008, 1, 1)
+        record   = @target.new
+        record.written_on = utc_time
+        assert_equal utc_time, record.written_on
+        assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
+        assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time
+      end
+    end
+
+    def test_setting_time_zone_aware_attribute_in_other_time_zone
       utc_time = Time.utc(2008, 1, 1)
-      record   = @target.new
-      record[:written_on] = utc_time
-      assert_equal utc_time, record.written_on # record.written on is equal to (i.e., simultaneous with) utc_time
-      assert_kind_of ActiveSupport::TimeWithZone, record.written_on # but is a TimeWithZone
-      assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone # and is in the current Time.zone
-      assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time # and represents time values adjusted accordingly
+      cst_time = utc_time.in_time_zone("Central Time (US & Canada)")
+      in_time_zone "Pacific Time (US & Canada)" do
+        record   = @target.new
+        record.written_on = cst_time
+        assert_equal utc_time, record.written_on
+        assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
+        assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time
+      end
     end
-  end
-  
-  def test_setting_time_zone_aware_attribute_to_utc
-    in_time_zone "Pacific Time (US & Canada)" do
+
+    def test_setting_time_zone_aware_attribute_in_current_time_zone
       utc_time = Time.utc(2008, 1, 1)
-      record   = @target.new
-      record.written_on = utc_time
-      assert_equal utc_time, record.written_on
-      assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
-      assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time
-    end
-  end
-  
-  def test_setting_time_zone_aware_attribute_in_other_time_zone
-    utc_time = Time.utc(2008, 1, 1)
-    cst_time = utc_time.in_time_zone("Central Time (US & Canada)")
-    in_time_zone "Pacific Time (US & Canada)" do
-      record   = @target.new
-      record.written_on = cst_time
-      assert_equal utc_time, record.written_on
-      assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
-      assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time
-    end
-  end
-  
-  def test_setting_time_zone_aware_attribute_in_current_time_zone
-    utc_time = Time.utc(2008, 1, 1)
-    in_time_zone "Pacific Time (US & Canada)" do
-      record   = @target.new
-      record.written_on = utc_time.in_current_time_zone
-      assert_equal utc_time, record.written_on
-      assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
-      assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time
+      in_time_zone "Pacific Time (US & Canada)" do
+        record   = @target.new
+        record.written_on = utc_time.in_current_time_zone
+        assert_equal utc_time, record.written_on
+        assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
+        assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time
+      end
     end
   end
 
