@@ -1,5 +1,7 @@
 *SVN*
 
+* Correct inconsistencies in RequestForgeryProtection docs.  #11032 [mislav]
+
 * Introduce a Template class to ActionView.  #11024 [lifofifo]
 
 * Introduce the :index option for form_for and fields_for to simplify multi-model forms (see http://railscasts.com/episodes/75).  #9883 [rmm5t]
