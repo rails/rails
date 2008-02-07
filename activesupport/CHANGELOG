@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Base64.encode64s to encode values in base64 without the newlines. This makes the values immediately usable as URL parameters or memcache keys without further processing [DHH]
+
 * Remove :nodoc: entries around the ActiveSupport test/unit assertions.  #10946 [dancroak, jamesh]
 
 * Add Time.zone_default accessor for setting the default time zone.  Rails::Configuration.time_zone sets this.  #10982 [Geoff Buesing]
@@ -40,6 +42,7 @@
 
 * Introduce ActiveSupport::TimeWithZone, for wrapping Time instances with a TimeZone. Introduce instance methods to Time for creating TimeWithZone instances, and class methods for managing a global time zone. [Geoff Buesing]
 
+>>>>>>> .r8815
 * Replace non-dst-aware TimeZone class with dst-aware class from tzinfo_timezone plugin. TimeZone#adjust and #unadjust are no longer available; tzinfo gem must now be present in order to perform time zone calculations, via #local_to_utc and #utc_to_local methods. [Geoff Buesing]
 
 * Extract ActiveSupport::Callbacks from Active Record, test case setup and teardown, and ActionController::Dispatcher.  #10727 [Josh Peek]
