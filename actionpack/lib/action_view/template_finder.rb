@@ -2,6 +2,11 @@ module ActionView #:nodoc:
   class TemplateFinder #:nodoc:
 
     class InvalidViewPath < StandardError #:nodoc:
+      attr_reader :unprocessed_path
+      def initialize(path)
+        @unprocessed_path = path
+        super("Unprocessed view path found: #{@unprocessed_path.inspect}.  Set your view paths with #append_view_path, #prepend_view_path, or #view_paths=.")
+      end
     end
 
     cattr_reader :processed_view_paths
@@ -157,7 +162,7 @@ module ActionView #:nodoc:
 
     def check_view_paths(view_paths)
       view_paths.each do |path|
-        raise(InvalidViewPath, "Unprocessed view path found in #{view_paths.inspect}") unless @@processed_view_paths.has_key?(path)
+        raise InvalidViewPath.new(path) unless @@processed_view_paths.has_key?(path)
       end
     end
 
