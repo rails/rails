@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for naming concrete classes in sweeper declarations [DHH]
+
 * Remove ERB trim variables from trace template in case ActionView::Base.erb_trim_mode is changed in the application.  #10098 [tpope, kampers]
 
 * Fix typo in form_helper documentation.  #10650 [xaviershay, kampers]
