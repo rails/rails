@@ -31,9 +31,9 @@ module ActiveSupport
       # Set key = value if key isn't already set. Pass :force => true
       # to unconditionally set key = value. Returns a boolean indicating
       # whether the key was set.
-      def write(key, value, options = {})
+      def write(key, value, options = nil)
         super
-        method = options[:force] ? :set : :add
+        method = options && options[:force] ? :set : :add
         response = @data.send(method, key, value, expires_in(options), raw?(options))
         response == Response::STORED
       rescue MemCache::MemCacheError => e
