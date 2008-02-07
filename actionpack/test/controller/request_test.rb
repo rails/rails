@@ -371,6 +371,13 @@ class RequestTest < Test::Unit::TestCase
     assert_equal Mime::HTML, @request.content_type
   end
 
+  def test_format_assignment_should_set_format
+    @request.instance_eval { self.format = :txt }
+    assert !@request.format.xml?
+    @request.instance_eval { self.format = :xml }
+    assert @request.format.xml?
+  end
+
   def test_content_no_type
     assert_equal nil, @request.content_type
   end

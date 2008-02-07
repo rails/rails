@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove :nodoc: entries around the ActiveSupport test/unit assertions.  #10946 [dancroak, jamesh]
+
 * Fixed String#titleize to work for strings with 's too #10571 [trek]
 
 * Changed the implementation of Enumerable#group_by to use a double array approach instead of a hash such that the insert order is honored [DHH/Marcel]

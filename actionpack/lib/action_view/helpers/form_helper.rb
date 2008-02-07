@@ -157,7 +157,7 @@ module ActionView
       #
       #   def labelled_form_for(record_or_name_or_array, *args, &proc)
       #     options = args.extract_options!
-      #     form_for(record_or_name_or_array, *(args << options.merge(:builder => LabellingFormBuiler)), &proc)
+      #     form_for(record_or_name_or_array, *(args << options.merge(:builder => LabellingFormBuilder)), &proc)
       #   end
       #
       # If you don't need to attach a form to a model instance, then check out FormTagHelper#form_tag.

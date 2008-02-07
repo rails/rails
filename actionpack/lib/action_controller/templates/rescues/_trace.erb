@@ -10,17 +10,17 @@
 <p><code>RAILS_ROOT: <%= defined?(RAILS_ROOT) ? RAILS_ROOT : "unset" %></code></p>
 
 <div id="traces">
-  <% names.each do |name| -%>
+  <% names.each do |name| %>
     <%
       show = "document.getElementById('#{name.gsub /\s/, '-'}').style.display='block';"
       hide = (names - [name]).collect {|hide_name| "document.getElementById('#{hide_name.gsub /\s/, '-'}').style.display='none';"}
     %>
     <a href="#" onclick="<%= hide %><%= show %>; return false;"><%= name %></a> <%= '|' unless names.last == name %>
-  <% end -%>
+  <% end %>
 
-  <% traces.each do |name, trace| -%>
+  <% traces.each do |name, trace| %>
     <div id="<%= name.gsub /\s/, '-' %>" style="display: <%= name == "Application Trace" ? 'block' : 'none' %>;">
       <pre><code><%= trace.join "\n" %></code></pre>
     </div>
-  <% end -%>
+  <% end %>
 </div>

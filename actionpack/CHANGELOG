@@ -1,5 +1,11 @@
 *SVN*
 
+* Remove ERB trim variables from trace template in case ActionView::Base.erb_trim_mode is changed in the application.  #10098 [tpope, kampers]
+
+* Fix typo in form_helper documentation.  #10650 [xaviershay, kampers]
+
+* Fix bug with setting Request#format= after the getter has cached the value.  #10889 [cch1]
+
 * TestSession supports indifferent access.  #7372 [tamc, Arsen7, mhackett, julik, jean.helou]
 
 * UrlWriter respects relative_url_root.  #10748 [Cheah Chu Yeow]
