@@ -1,3 +1,8 @@
+begin
+  require 'base64'
+rescue LoadError
+end
+
 module ActiveSupport
   if defined? ::Base64
     Base64 = ::Base64

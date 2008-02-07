@@ -77,9 +77,9 @@ module ActiveSupport #:nodoc:
             "boolean"      => Proc.new  { |boolean| %w(1 true).include?(boolean.strip) },
             "string"       => Proc.new  { |string|  string.to_s },
             "yaml"         => Proc.new  { |yaml|    YAML::load(yaml) rescue yaml },
-            "base64Binary" => Proc.new  { |bin|     Base64.decode64(bin) },
+            "base64Binary" => Proc.new  { |bin|     ActiveSupport::Base64.decode64(bin) },
             "file"         => Proc.new do |file, entity|
-              f = StringIO.new(Base64.decode64(file))
+              f = StringIO.new(ActiveSupport::Base64.decode64(file))
               f.extend(FileLike)
               f.original_filename = entity['name']
               f.content_type = entity['content_type']
