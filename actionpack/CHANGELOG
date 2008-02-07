@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix typo in form_helper documentation.  #10650 [xaviershay, kampers]
+
 * Fix bug with setting Request#format= after the getter has cached the value.  #10889 [cch1]
 
 * Correct inconsistencies in RequestForgeryProtection docs.  #11032 [mislav]
