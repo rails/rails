@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove :nodoc: entries around the ActiveSupport test/unit assertions.  #10946 [dancroak, jamesh]
+
 * Add Time.zone_default accessor for setting the default time zone.  Rails::Configuration.time_zone sets this.  #10982 [Geoff Buesing]
 
 * cache.fetch(key, :force => true) to force a cache miss.  [Jeremy Kemper]

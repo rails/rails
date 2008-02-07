@@ -1,7 +1,9 @@
-module Test #:nodoc:
-  module Unit #:nodoc:
+module Test 
+  module Unit 
+    #--
     # FIXME: no Proc#binding in Ruby 2, must change this API
-    module Assertions #:nodoc:
+    #++
+    module Assertions 
       # Test numeric difference between the return value of an expression as a result of what is evaluated
       # in the yielded block.
       #
