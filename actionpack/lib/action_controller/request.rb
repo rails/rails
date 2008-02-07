@@ -113,7 +113,7 @@ module ActionController
     #   end
     def format=(extension)
       parameters[:format] = extension.to_s
-      format
+      @format = Mime::Type.lookup_by_extension(parameters[:format])
     end
 
     # Returns true if the request's "X-Requested-With" header contains
