@@ -151,6 +151,10 @@ class NewRenderTestController < ActionController::Base
     render :partial => "customer_greeting", :collection => [ Customer.new("david"), Customer.new("mary") ], :locals => { :greeting => "Bonjour" }
   end
 
+  def partial_collection_shorthand_with_locals
+    render :partial => [ Customer.new("david"), Customer.new("mary") ], :locals => { :greeting => "Bonjour" }
+  end
+
   def empty_partial_collection
     render :partial => "customer", :collection => []
   end
@@ -705,6 +709,11 @@ EOS
 
   def test_partial_collection_with_locals
     get :partial_collection_with_locals
+    assert_equal "Bonjour: davidBonjour: mary", @response.body
+  end
+
+  def test_partial_collection_shorthand_with_locals
+    get :partial_collection_shorthand_with_locals
     assert_equal "Bonjour: davidBonjour: mary", @response.body
   end
 

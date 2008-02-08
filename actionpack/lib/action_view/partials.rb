@@ -127,14 +127,14 @@ module ActionView
           if partial_path.any?
             path       = ActionController::RecordIdentifier.partial_path(partial_path.first)
             collection = partial_path
-            render_partial_collection(path, collection, nil, object_assigns.value)
+            render_partial_collection(path, collection, nil, local_assigns)
           else
             ""
           end
         else
           render_partial(
             ActionController::RecordIdentifier.partial_path(partial_path),
-            object_assigns, local_assigns)
+            partial_path, local_assigns)
         end
       end
 
