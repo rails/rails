@@ -2212,21 +2212,24 @@ module ActiveRecord #:nodoc:
       end
 
 
-      # Returns a hash of all the attributes with their names as keys and clones of their objects as values.
+      # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
       def attributes(options = nil)
-        attributes = clone_attributes :read_attribute
+        attrs = {}
+        self.attribute_names.each do |name|
+          attrs[name]=read_attribute(name)
+        end
 
         if options.nil?
-          attributes
+          attrs
         else
           if except = options[:except]
             except = Array(except).collect { |attribute| attribute.to_s }
-            except.each { |attribute_name| attributes.delete(attribute_name) }
-            attributes
+            except.each { |attribute_name| attrs.delete(attribute_name) }
+            attrs
           elsif only = options[:only]
             only = Array(only).collect { |attribute| attribute.to_s }
-            attributes.delete_if { |key, value| !only.include?(key) }
-            attributes
+            attrs.delete_if { |key, value| !only.include?(key) }
+            attrs
           else
             raise ArgumentError, "Options does not specify :except or :only (#{options.keys.inspect})"
           end
