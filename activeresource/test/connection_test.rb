@@ -27,6 +27,7 @@ class ConnectionTest < Test::Unit::TestCase
       mock.delete "/people/2.xml", @header, nil, 200
       mock.post   "/people.xml",   {}, nil, 201, 'Location' => '/people/5.xml'
       mock.post   "/members.xml",  {}, @header, 201, 'Location' => '/people/6.xml'
+      mock.head   "/people/1.xml", {}, nil, 200
     end
   end
 
@@ -103,6 +104,12 @@ class ConnectionTest < Test::Unit::TestCase
   def test_get
     matz = @conn.get("/people/1.xml")
     assert_equal "Matz", matz["name"]
+  end
+
+  def test_head
+    response = @conn.head("/people/1.xml")
+    assert response.body.blank?
+    assert_equal 200, response.code
   end
 
   def test_get_with_header

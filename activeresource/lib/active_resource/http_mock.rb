@@ -9,7 +9,7 @@ module ActiveResource
         @responses = responses
       end
 
-      for method in [ :post, :put, :get, :delete ]
+      for method in [ :post, :put, :get, :delete, :head ]
         module_eval <<-EOE, __FILE__, __LINE__
           def #{method}(path, request_headers = {}, body = nil, status = 200, response_headers = {})
             @responses[Request.new(:#{method}, path, nil, request_headers)] = Response.new(body || "", status, response_headers)
@@ -56,7 +56,7 @@ module ActiveResource
       EOE
     end
 
-    for method in [ :get, :delete ]
+    for method in [ :get, :delete, :head ]
       module_eval <<-EOE, __FILE__, __LINE__
         def #{method}(path, headers)
           request = ActiveResource::Request.new(:#{method}, path, nil, headers)

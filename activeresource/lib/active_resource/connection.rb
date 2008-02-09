@@ -101,6 +101,12 @@ module ActiveResource
       request(:post, path, body.to_s, build_request_headers(headers))
     end
 
+    # Execute a HEAD request.
+    # Used to ...
+    def head(path, headers= {})
+      request(:head, path, build_request_headers(headers))
+    end
+
 
     private
       # Makes request to remote service.

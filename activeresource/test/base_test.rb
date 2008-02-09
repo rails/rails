@@ -36,6 +36,11 @@ class BaseTest < Test::Unit::TestCase
       mock.put    "/people//addresses/1.xml",  {}, nil, 404
       mock.delete "/people//addresses/1.xml",  {}, nil, 404
       mock.post   "/people//addresses.xml",    {}, nil, 404
+      mock.head   "/people/1.xml",             {}, nil, 200
+      mock.head   "/people/99.xml",            {}, nil, 404
+      mock.head   "/people/1/addresses/1.xml", {}, nil, 200
+      mock.head   "/people/1/addresses/2.xml", {}, nil, 404
+      mock.head   "/people/2/addresses/1.xml", {}, nil, 404
     end
   end
 

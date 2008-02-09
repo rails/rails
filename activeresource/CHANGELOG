@@ -1,5 +1,7 @@
 *SVN*
 
+* Use HEAD instead of GET in exists? [bscofield]
+
 * Fix small documentation typo.  Closes #10670 [l.guidi]
 
 * find_or_create_resource_for handles module nesting.  #10646 [xavier]
