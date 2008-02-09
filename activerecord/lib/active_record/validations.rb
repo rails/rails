@@ -477,17 +477,6 @@ module ActiveRecord
       #   not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
       #   method, proc or string should return or evaluate to a true or false value.
       #
-      # === Warning
-      # Validate the presence of the foreign key, not the instance variable itself.
-      # Do this:
-      #  validates_presence_of :invoice_id
-      #
-      # Not this:
-      #  validates_presence_of :invoice
-      #
-      # If you validate the presence of the associated object, you will get
-      # failures on saves when both the parent object and the child object are
-      # new.
       def validates_presence_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:blank], :on => :save }
         configuration.update(attr_names.extract_options!)
