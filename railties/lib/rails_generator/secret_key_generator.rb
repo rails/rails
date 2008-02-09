@@ -1,11 +1,10 @@
-# A class for creating random secret keys. This class will do its best to create a
-# random secret key that's as secure as possible, using whatever methods are
-# available on the current platform. For example:
-#
-#   generator = Rails::SecretKeyGenerator("some unique identifier, such as the application name")
-#   generator.generate_secret     # => "f3f1be90053fa851... (some long string)"
-
 module Rails
+  # A class for creating random secret keys. This class will do its best to create a
+  # random secret key that's as secure as possible, using whatever methods are
+  # available on the current platform. For example:
+  #
+  #   generator = Rails::SecretKeyGenerator("some unique identifier, such as the application name")
+  #   generator.generate_secret     # => "f3f1be90053fa851... (some long string)"
   class SecretKeyGenerator
     GENERATORS = [ :secure_random, :win32_api, :urandom, :openssl, :prng ].freeze
 
