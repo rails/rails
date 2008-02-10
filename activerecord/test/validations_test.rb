@@ -481,6 +481,14 @@ class ValidationsTest < Test::Unit::TestCase
     assert_raise(ArgumentError) { Topic.validates_format_of(:title, :content) }
   end
 
+  def test_validate_format_with_allow_blank
+	Topic.validates_format_of(:title, :with => /^Validation\smacros \w+!$/, :allow_blank=>true)
+	assert !Topic.create("title" => "Shouldn't be valid").valid?
+	assert Topic.create("title" => "").valid?
+	assert Topic.create("title" => nil).valid?
+	assert Topic.create("title" => "Validation macros rule!").valid?
+	end
+
   # testing ticket #3142
   def test_validate_format_numeric
     Topic.validates_format_of(:title, :content, :with => /^[1-9][0-9]*$/, :message => "is bad data")
