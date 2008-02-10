@@ -401,6 +401,13 @@ XML
     assert_routing 'content', :controller => 'content', :action => 'index'
   end
 
+  def test_assert_routing_with_method
+    with_routing do |set|
+	set.draw { |map| map.resources(:content) }
+      assert_routing({ :method => 'post', :path => 'content' }, { :controller => 'content', :action => 'create' })
+    end
+  end
+
   def test_assert_routing_in_module
     assert_routing 'admin/user', :controller => 'admin/user', :action => 'index'
   end
