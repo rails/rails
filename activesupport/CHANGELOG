@@ -1,5 +1,7 @@
 *SVN*
 
+* Pruning unneeded Time#change_time_zone_to_current. Enhanced docs to #change_time_zone to explain the difference between this method and #in_time_zone [Geoff Buesing]
+
 * TimeZone#new method renamed #local; when used with Time.zone, constructor now reads: Time.zone.local() [Geoff Buesing]
 
 * Added Base64.encode64s to encode values in base64 without the newlines. This makes the values immediately usable as URL parameters or memcache keys without further processing [DHH]

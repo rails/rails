@@ -42,7 +42,7 @@ module ActiveSupport #:nodoc:
             end
         end
         
-        # Gives the corresponding time in the supplied zone. self is assumed to be in UTC regardless of constructor.
+        # Returns the simultaneous time in the supplied zone. self is assumed to be in UTC regardless of constructor.
         #
         # Examples:
         #
@@ -58,18 +58,17 @@ module ActiveSupport #:nodoc:
           ::Time.zone ? in_time_zone(::Time.zone) : self
         end
 
-        # Replaces the existing zone; leaves time value intact. Examples:
+        # Replaces the existing zone; leaves time values intact. Examples:
         #
         #   t = Time.utc(2000)            # => Sat Jan 01 00:00:00 UTC 2000
         #   t.change_time_zone('Alaska')  # => Sat, 01 Jan 2000 00:00:00 AKST -09:00
         #   t.change_time_zone('Hawaii')  # => Sat, 01 Jan 2000 00:00:00 HST -10:00
+        #
+        # Note the difference between this method and #in_time_zone: #in_time_zone does a calculation to determine
+        # the simultaneous time in the supplied zone, whereas #change_time_zone does no calculation; it just
+        # "dials in" a new time zone for +self+
         def change_time_zone(zone)
           ActiveSupport::TimeWithZone.new(nil, get_zone(zone), self)
-        end
-
-        # Replaces the existing zone to Time.zone; leaves time value intact
-        def change_time_zone_to_current
-          ::Time.zone ? change_time_zone(::Time.zone) : self
         end
         
         private

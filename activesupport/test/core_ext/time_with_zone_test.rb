@@ -38,12 +38,6 @@ uses_tzinfo 'TimeWithZoneTest' do
       end
     end
   
-    def test_change_time_zone_to_current
-      Time.use_zone 'Alaska' do
-        assert_equal ActiveSupport::TimeWithZone.new(nil, TimeZone['Alaska'], Time.utc(1999, 12, 31, 19)), @twz.change_time_zone_to_current
-      end
-    end
-  
     def test_utc?
       assert_equal false, @twz.utc?
       assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), TimeZone['UTC']).utc?
@@ -206,21 +200,6 @@ uses_tzinfo 'TimeWithZoneTest' do
           assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @t.change_time_zone('UTC').inspect
           assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @dt.change_time_zone('UTC').inspect
         end
-      end
-    end
-    
-    def test_change_time_zone_to_current
-      Time.use_zone 'Alaska' do
-        assert_equal 'Sat, 01 Jan 2000 00:00:00 AKST -09:00', @t.change_time_zone_to_current.inspect
-        assert_equal 'Sat, 01 Jan 2000 00:00:00 AKST -09:00', @dt.change_time_zone_to_current.inspect
-      end
-      Time.use_zone 'Hawaii' do
-        assert_equal 'Sat, 01 Jan 2000 00:00:00 HST -10:00', @t.change_time_zone_to_current.inspect
-        assert_equal 'Sat, 01 Jan 2000 00:00:00 HST -10:00', @dt.change_time_zone_to_current.inspect
-      end
-      Time.use_zone nil do
-        assert_equal @t, @t.change_time_zone_to_current
-        assert_equal @dt, @dt.change_time_zone_to_current
       end
     end
     
