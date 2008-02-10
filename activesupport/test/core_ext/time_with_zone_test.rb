@@ -86,6 +86,10 @@ uses_tzinfo 'TimeWithZoneTest' do
       assert_equal "1999-12-31T19:00:00-05:00", @twz.xmlschema
     end
     
+    def test_to_yaml
+      assert_equal "--- 1999-12-31 19:00:00 -05:00\n", @twz.to_yaml
+    end
+    
     def test_httpdate
       assert_equal 'Sat, 01 Jan 2000 00:00:00 GMT', @twz.httpdate
     end
@@ -110,6 +114,11 @@ uses_tzinfo 'TimeWithZoneTest' do
       assert_equal  1, @twz <=> ActiveSupport::TimeWithZone.new( Time.utc(1999, 12, 31, 23, 59, 59), TimeZone['UTC'] )
       assert_equal  0, @twz <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 0), TimeZone['UTC'] )
       assert_equal(-1, @twz <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1), TimeZone['UTC'] ))
+    end
+    
+    def test_eql?
+      assert @twz.eql?(Time.utc(2000))
+      assert @twz.eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), TimeZone["Hawaii"]) )
     end
       
     def test_plus
@@ -157,6 +166,10 @@ uses_tzinfo 'TimeWithZoneTest' do
       
     def test_to_time
       assert_equal @twz, @twz.to_time
+    end
+    
+    def test_to_datetime
+      assert_equal DateTime.civil(1999, 12, 31, 19, 0, 0, Rational(-18_000, 86_400)),  @twz.to_datetime
     end
       
     def test_acts_like_time
