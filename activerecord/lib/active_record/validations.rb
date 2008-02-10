@@ -1,12 +1,12 @@
 module ActiveRecord
   # Raised by save! and create! when the record is invalid.  Use the
-  # record method to retrieve the record which did not validate.
+  # +record+ method to retrieve the record which did not validate.
   #   begin
   #     complex_operation_that_calls_save!_internally
   #   rescue ActiveRecord::RecordInvalid => invalid
   #     puts invalid.record.errors
   #   end
-  class RecordInvalid < ActiveRecordError #:nodoc:
+  class RecordInvalid < ActiveRecordError
     attr_reader :record
     def initialize(record)
       @record = record
