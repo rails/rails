@@ -82,6 +82,14 @@ uses_tzinfo 'TimeWithZoneTest' do
       assert_equal "1999-12-31T19:00:00-05:00", @twz.xmlschema
     end
     
+    def test_httpdate
+      assert_equal 'Sat, 01 Jan 2000 00:00:00 GMT', @twz.httpdate
+    end
+    
+    def test_rfc2822
+      assert_equal "Fri, 31 Dec 1999 19:00:00 -0500", @twz.rfc2822
+    end
+    
     def test_compare_with_time
       assert_equal  1, @twz <=> Time.utc(1999, 12, 31, 23, 59, 59)
       assert_equal  0, @twz <=> Time.utc(2000, 1, 1, 0, 0, 0)
@@ -125,6 +133,22 @@ uses_tzinfo 'TimeWithZoneTest' do
       twz1 = ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1), TimeZone['UTC'] )
       twz2 = ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 2), TimeZone['UTC'] )
       assert_equal  86_400.0,  twz2 - twz1
+    end
+    
+    def test_to_a
+      assert_equal [45, 30, 5, 1, 2, 2000, 2, 32, false, "HST"], ActiveSupport::TimeWithZone.new( Time.utc(2000, 2, 1, 15, 30, 45), TimeZone['Hawaii'] ).to_a
+    end
+    
+    def test_to_f
+      result = ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1), TimeZone['Hawaii'] ).to_f
+      assert_equal 946684800.0, result
+      assert result.is_a?(Float)
+    end
+    
+    def test_to_i
+      result = ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1), TimeZone['Hawaii'] ).to_i
+      assert_equal 946684800, result
+      assert result.is_a?(Integer)
     end
       
     def test_to_time

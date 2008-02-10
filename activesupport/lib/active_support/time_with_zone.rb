@@ -44,7 +44,7 @@ module ActiveSupport
   
     # Returns a Time.local() instance of the simultaneous time in your system's ENV['TZ'] zone
     def localtime
-      utc.dup.localtime # use #dup because Time#localtime is destructive
+      utc.getlocal
     end
   
     def dst?
@@ -79,6 +79,15 @@ module ActiveSupport
     def to_json(options = nil)
       %("#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)}")
     end
+    
+    def httpdate
+      utc.httpdate
+    end
+  
+    def rfc2822
+      to_s(:rfc822)
+    end
+    alias_method :rfc822, :rfc2822
   
     # :db format outputs time in UTC; all others output time in local. Uses TimeWithZone's strftime, so %Z and %z work correctly
     def to_s(format = :default) 
@@ -106,6 +115,18 @@ module ActiveSupport
     # Otherwise, just pass on to method missing
     def -(other)
       other.acts_like?(:time) ? utc - other : method_missing(:-, other)
+    end
+    
+    def to_a
+      time.to_a[0, 8].push(dst?, zone)
+    end
+    
+    def to_f
+      utc.to_f
+    end    
+    
+    def to_i
+      utc.to_i
     end
   
     # A TimeProxy acts like a Time, so just return self
