@@ -4,7 +4,7 @@ module ActiveResource
   # say you use Rails to expose a REST service and configure your routes with:
   #
   #    map.resources :people, :new => { :register => :post },
-  #                           :element => { :promote => :put, :deactivate => :delete }
+  #                           :member => { :promote => :put, :deactivate => :delete }
   #                           :collection => { :active => :get }
   #
   #  This route set creates routes for the following http requests:
