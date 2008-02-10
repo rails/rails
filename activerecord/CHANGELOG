@@ -1,9 +1,5 @@
 *SVN*
 
-* Make assert_routing aware of the HTTP method used.  #8039 [mpalmer]
-   e.g. assert_routing({ :method => 'put', :path => '/product/321' }, { :controller => "product", :action => "update", :id => "321" })
-
-
 * Ensure that modifying has_and_belongs_to_many actions clear the query cache.  Closes #10840 [john.andrews]
 
 * Fix issue where Table#references doesn't pass a :null option to a *_type attribute for polymorphic associations.  Closes #10753 [railsjitsu]

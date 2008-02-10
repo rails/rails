@@ -1,5 +1,8 @@
 *SVN*
 
+* Make assert_routing aware of the HTTP method used.  #8039 [mpalmer]
+   e.g. assert_routing({ :method => 'put', :path => '/product/321' }, { :controller => "product", :action => "update", :id => "321" })
+
 * Remove ERB trim variables from trace template in case ActionView::Base.erb_trim_mode is changed in the application.  #10098 [tpope, kampers]
 
 * Fix typo in form_helper documentation.  #10650 [xaviershay, kampers]
