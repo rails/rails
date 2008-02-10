@@ -129,8 +129,8 @@ class TimeZoneTest < Test::Unit::TestCase
     assert !TimeZone.us_zones.include?(TimeZone["Kuala Lumpur"])
   end 
   
-  def test_new
-    time = TimeZone["Hawaii"].new(2007, 2, 5, 15, 30, 45)
+  def test_local
+    time = TimeZone["Hawaii"].local(2007, 2, 5, 15, 30, 45)
     assert_equal Time.utc(2007, 2, 5, 15, 30, 45), time.time
     assert_equal TimeZone["Hawaii"], time.time_zone
   end

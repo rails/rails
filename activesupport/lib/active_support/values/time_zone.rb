@@ -177,9 +177,9 @@ class TimeZone
   
   # Method for creating new ActiveSupport::TimeWithZone instance in time zone of self. Example:
   #
-  #   Time.zone = "Hawaii"                    # => "Hawaii"
-  #   Time.zone.new(2007, 2, 1, 15, 30, 45)   # => Thu, 01 Feb 2007 15:30:45 HST -10:00
-  def new(*args)
+  #   Time.zone = "Hawaii"                      # => "Hawaii"
+  #   Time.zone.local(2007, 2, 1, 15, 30, 45)   # => Thu, 01 Feb 2007 15:30:45 HST -10:00
+  def local(*args)
     Time.utc_time(*args).change_time_zone(self)
   end
 

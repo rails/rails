@@ -2475,7 +2475,7 @@ module ActiveRecord #:nodoc:
       # Includes an ugly hack for Time.local instead of Time.new because the latter is reserved by Time itself.
       def instantiate_time_object(name, values)
         if Time.zone && !self.class.skip_time_zone_conversion_for_attributes.include?(name.to_sym)
-          Time.zone.new(*values)
+          Time.zone.local(*values)
         else
           @@default_timezone == :utc ? Time.utc(*values) : Time.local(*values)
         end

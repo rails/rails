@@ -1,5 +1,7 @@
 *SVN*
 
+* Base#instantiate_time_object uses Time.zone.local() [Geoff Buesing]
+
 * Add timezone-aware attribute readers and writers. #10982 [Geoff Buesing]
 
 * Instantiating time objects in multiparameter attributes uses Time.zone if available.  #10982 [rick]
