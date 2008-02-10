@@ -6,6 +6,8 @@
 
 * Fix bug with setting Request#format= after the getter has cached the value.  #10889 [cch1]
 
+* Add label_tag helper for generating elements. #10802 [DefV]
+
 * TestSession supports indifferent access.  #7372 [tamc, Arsen7, mhackett, julik, jean.helou]
 
 * UrlWriter respects relative_url_root.  #10748 [Cheah Chu Yeow]

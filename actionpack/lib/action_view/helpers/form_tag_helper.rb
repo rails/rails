@@ -114,6 +114,24 @@ module ActionView
         tag :input, { "type" => "text", "name" => name, "id" => name, "value" => value }.update(options.stringify_keys)
       end
 
+      # Creates a label field
+      #
+      # ==== Options
+      # * Creates standard HTML attributes for the tag.
+      #
+      # ==== Examples
+      #   label_tag 'name'
+      #   # => <label for="name">Name</label>
+      #
+      #   label_tag 'name', 'Your name'
+      #   # => <label for="name">Your Name</label>
+      #
+      #   label_tag 'name', nil, :class => 'small_label'
+      #   # => <label for="name" class="small_label">Name</label>
+      def label_tag(name, text = nil, options = {})
+        content_tag :label, text || name.humanize, { "for" => name }.update(options.stringify_keys)
+      end
+
       # Creates a hidden form input field used to transmit data that would be lost due to HTTP's statelessness or
       # data that should be hidden from the user.
       #
