@@ -42,11 +42,6 @@ module ActiveSupport
       time.change_time_zone(new_zone)
     end
   
-    # Changes the time zone to Time.zone without converting the time
-    def change_time_zone_to_current
-      time.change_time_zone_to_current
-    end
-  
     # Returns a Time.local() instance of the simultaneous time in your system's ENV['TZ'] zone
     def localtime
       utc.dup.localtime # use #dup because Time#localtime is destructive

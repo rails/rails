@@ -1,5 +1,7 @@
 *SVN*
 
+* Pruning unneeded TimeWithZone#change_time_zone_to_current [Geoff Buesing]
+
 * Time#zone=, #in_time_zone and #change_time_zone accept a Duration [Geoff Buesing]
 
 * Time#in_time_zone handles Time.local instances correctly [Geoff Buesing]
