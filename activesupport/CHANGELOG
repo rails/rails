@@ -1,5 +1,7 @@
 *SVN*
 
+* Time#in_time_zone handles Time.local instances correctly [Geoff Buesing]
+
 * Pruning unneeded Time#change_time_zone_to_current. Enhanced docs to #change_time_zone to explain the difference between this method and #in_time_zone [Geoff Buesing]
 
 * TimeZone#new method renamed #local; when used with Time.zone, constructor now reads: Time.zone.local() [Geoff Buesing]

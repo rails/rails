@@ -174,6 +174,15 @@ uses_tzinfo 'TimeWithZoneTest' do
         end
       end
     end
+    
+    def test_in_time_zone_with_time_local_instance
+      silence_warnings do # silence warnings raised by tzinfo gem
+        with_env_tz 'US/Eastern' do
+          time = Time.local(1999, 12, 31, 19) # == Time.utc(2000)
+          assert_equal 'Fri, 31 Dec 1999 15:00:00 AKST -09:00', time.in_time_zone('Alaska').inspect
+        end
+      end
+    end
 
     def test_in_current_time_zone
       Time.use_zone 'Alaska' do
@@ -228,5 +237,13 @@ uses_tzinfo 'TimeWithZoneTest' do
         assert_equal TimeZone['Hawaii'], t2[:time_zone]
       end
     end
+    
+    protected
+      def with_env_tz(new_tz = 'US/Eastern')
+        old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+        yield
+      ensure
+        old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+      end
   end
 end

@@ -42,15 +42,13 @@ module ActiveSupport #:nodoc:
             end
         end
         
-        # Returns the simultaneous time in the supplied zone. self is assumed to be in UTC regardless of constructor.
-        #
-        # Examples:
+        # Returns the simultaneous time in the supplied zone. Examples:
         #
         #   t = Time.utc(2000)        # => Sat Jan 01 00:00:00 UTC 2000
         #   t.in_time_zone('Alaska')  # => Fri, 31 Dec 1999 15:00:00 AKST -09:00
         #   t.in_time_zone('Hawaii')  # => Fri, 31 Dec 1999 14:00:00 HST -10:00
         def in_time_zone(zone)
-          ActiveSupport::TimeWithZone.new(self, get_zone(zone))
+          ActiveSupport::TimeWithZone.new(utc? ? self : getutc, get_zone(zone))
         end
 
         # Returns the simultaneous time in Time.zone
