@@ -923,6 +923,17 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
   end
+  
+  def test_multiparameter_attributes_on_time_with_old_date
+    attributes = {
+      "written_on(1i)" => "1850", "written_on(2i)" => "6", "written_on(3i)" => "24",
+      "written_on(4i)" => "16", "written_on(5i)" => "24", "written_on(6i)" => "00"
+    }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    # testing against to_s(:db) representation because either a Time or a DateTime might be returned, depending on platform
+    assert_equal "1850-06-24 16:24:00", topic.written_on.to_s(:db)
+  end
 
   def test_multiparameter_attributes_on_time_with_utc
     ActiveRecord::Base.default_timezone = :utc

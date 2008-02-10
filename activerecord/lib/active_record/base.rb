@@ -2472,12 +2472,11 @@ module ActiveRecord #:nodoc:
         )
       end
 
-      # Includes an ugly hack for Time.local instead of Time.new because the latter is reserved by Time itself.
       def instantiate_time_object(name, values)
         if Time.zone && !self.class.skip_time_zone_conversion_for_attributes.include?(name.to_sym)
           Time.zone.local(*values)
         else
-          @@default_timezone == :utc ? Time.utc(*values) : Time.local(*values)
+          @@default_timezone == :utc ? Time.utc_time(*values) : Time.local_time(*values)
         end
       end
 
