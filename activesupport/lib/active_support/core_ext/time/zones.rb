@@ -38,7 +38,8 @@ module ActiveSupport #:nodoc:
           
           private
             def get_zone(time_zone)
-              ::String === time_zone || ::Numeric === time_zone ? TimeZone[time_zone] : time_zone
+              return time_zone if time_zone.nil? || time_zone.respond_to?(:period_for_local)
+              TimeZone[time_zone]
             end
         end
         

@@ -171,6 +171,7 @@ uses_tzinfo 'TimeWithZoneTest' do
           assert_equal 'Fri, 31 Dec 1999 14:00:00 HST -10:00', @dt.in_time_zone('Hawaii').inspect
           assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @t.in_time_zone('UTC').inspect
           assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @dt.in_time_zone('UTC').inspect
+          assert_equal 'Fri, 31 Dec 1999 15:00:00 AKST -09:00', @t.in_time_zone(-9.hours).inspect
         end
       end
     end
@@ -208,6 +209,7 @@ uses_tzinfo 'TimeWithZoneTest' do
           assert_equal 'Sat, 01 Jan 2000 00:00:00 HST -10:00', @dt.change_time_zone('Hawaii').inspect
           assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @t.change_time_zone('UTC').inspect
           assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @dt.change_time_zone('UTC').inspect
+          assert_equal 'Sat, 01 Jan 2000 00:00:00 AKST -09:00', @t.change_time_zone(-9.hours).inspect
         end
       end
     end
@@ -226,6 +228,28 @@ uses_tzinfo 'TimeWithZoneTest' do
         Time.use_zone('Hawaii') { raise RuntimeError }
       end
       assert_equal TimeZone['Alaska'], Time.zone
+    end
+    
+    def test_time_zone_getter_and_setter
+      Time.zone = TimeZone['Alaska']
+      assert_equal TimeZone['Alaska'], Time.zone
+      Time.zone = 'Alaska'
+      assert_equal TimeZone['Alaska'], Time.zone
+      Time.zone = -9.hours
+      assert_equal TimeZone['Alaska'], Time.zone
+      Time.zone = nil
+      assert_equal nil, Time.zone
+    end
+    
+    def test_time_zone_getter_and_setter_with_zone_default
+      Time.zone_default = TimeZone['Alaska']
+      assert_equal TimeZone['Alaska'], Time.zone
+      Time.zone = TimeZone['Hawaii']
+      assert_equal TimeZone['Hawaii'], Time.zone
+      Time.zone = nil
+      assert_equal TimeZone['Alaska'], Time.zone
+    ensure
+      Time.zone_default = nil
     end
     
     def test_time_zone_setter_is_thread_safe
