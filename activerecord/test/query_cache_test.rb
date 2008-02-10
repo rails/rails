@@ -3,10 +3,12 @@ require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/task'
 require 'fixtures/course'
+require 'fixtures/category'
+require 'fixtures/post'
 
 
-class QueryCacheTest < Test::Unit::TestCase
-  fixtures :tasks, :topics
+class QueryCacheTest < ActiveSupport::TestCase
+  fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
   def test_find_queries
     assert_queries(2) { Task.find(1); Task.find(1) }
@@ -97,6 +99,24 @@ class QueryCacheExpiryTest < Test::Unit::TestCase
 
     Task.cache do
       Task.create!
+    end
+  end
+
+  def test_cache_is_expired_by_habtm_update
+    ActiveRecord::Base.connection.expects(:clear_query_cache).times(2)
+    ActiveRecord::Base.cache do
+      c = Category.find(:first)
+      p = Post.find(:first)
+      p.categories << c
+    end
+  end
+
+  def test_cache_is_expired_by_habtm_delete
+    ActiveRecord::Base.connection.expects(:clear_query_cache).times(2)
+    ActiveRecord::Base.cache do
+      c = Category.find(:first)
+      p = Post.find(:first)
+      p.categories.delete_all
     end
   end
 end
