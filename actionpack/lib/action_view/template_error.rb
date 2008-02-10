@@ -10,6 +10,7 @@ module ActionView
       @base_path, @assigns, @source, @original_exception =
         base_path, assigns.dup, source, original_exception
       @file_path = file_path
+      @backtrace = compute_backtrace
     end
 
     def message
@@ -72,14 +73,20 @@ module ActionView
         "#{source_extract}\n    #{clean_backtrace.join("\n    ")}\n\n"
     end
 
+    # don't do anything nontrivial here. Any raised exception from here becomes fatal
+    # (and can't be rescued).
     def backtrace
-      [
-        "#{source_location.capitalize}\n\n#{source_extract(4)}\n    " +
-        clean_backtrace.join("\n    ")
-      ]
+      @backtrace
     end
 
     private
+      def compute_backtrace
+        [
+          "#{source_location.capitalize}\n\n#{source_extract(4)}\n    " +
+          clean_backtrace.join("\n    ")
+        ]
+      end
+
       def strip_base_path(path)
         stripped_path = File.expand_path(path).gsub(@base_path, "")
         stripped_path.gsub!(/^#{Regexp.escape File.expand_path(RAILS_ROOT)}/, '') if defined?(RAILS_ROOT)
