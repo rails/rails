@@ -1,5 +1,7 @@
 *SVN*
 
+* TimeWithZone #in_time_zone returns +self+ if zone argument is the same as #time_zone [Geoff Buesing]
+
 * Adding TimeWithZone #to_a, #to_f, #to_i, #httpdate, #rfc2822 [Geoff Buesing]
 
 * Pruning unneeded TimeWithZone#change_time_zone_to_current [Geoff Buesing]

@@ -25,6 +25,10 @@ uses_tzinfo 'TimeWithZoneTest' do
     def test_in_time_zone
       assert_equal ActiveSupport::TimeWithZone.new(@utc, TimeZone['Alaska']), @twz.in_time_zone('Alaska')
     end
+    
+    def test_in_time_zone_with_new_zone_equal_to_old_zone_does_not_create_new_object
+      assert_equal @twz.object_id, @twz.in_time_zone(TimeZone['Eastern Time (US & Canada)']).object_id
+    end
   
     def test_in_current_time_zone
       Time.use_zone 'Alaska' do

@@ -29,6 +29,7 @@ module ActiveSupport
 
     # Returns the simultaneous time in the specified zone
     def in_time_zone(new_zone)
+      return self if time_zone == new_zone
       utc.in_time_zone(new_zone)
     end
   
