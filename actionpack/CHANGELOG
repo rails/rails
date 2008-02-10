@@ -1,5 +1,7 @@
 *SVN*
 
+* Correct inconsistencies in RequestForgeryProtection docs.  #11032 [mislav]
+
 * Make assert_routing aware of the HTTP method used.  #8039 [mpalmer]
    e.g. assert_routing({ :method => 'put', :path => '/product/321' }, { :controller => "product", :action => "update", :id => "321" })
 
