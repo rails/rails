@@ -463,7 +463,10 @@ module ActionMailer #:nodoc:
     # no alternate has been given as the parameter, this will fail.
     def deliver!(mail = @mail)
       raise "no mail object available for delivery!" unless mail
-      logger.info "Sent mail:\n #{mail.encoded}" unless logger.nil?
+      unless logger.nil?
+        logger.info  "Sent mail to #{recipients.to_a.join(', ')}"
+        logger.debug "\n#{mail.encoded}"
+      end
 
       begin
         __send__("perform_delivery_#{delivery_method}", mail) if perform_deliveries
