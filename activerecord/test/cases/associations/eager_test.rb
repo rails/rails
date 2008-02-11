@@ -126,8 +126,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_and_conditions_string_with_quoted_table_name
+    quoted_posts_id= Comment.connection.quote_table_name('posts') + '.' + Comment.connection.quote_column_name('id')
     assert_nothing_raised do
-      Comment.find(:all, :include => :post, :conditions => ["#{Comment.connection.quote_table_name('posts.id')} = ?",4])
+      Comment.find(:all, :include => :post, :conditions => ["#{quoted_posts_id} = ?",4])
     end
   end
 
@@ -138,8 +139,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_and_order_string_with_quoted_table_name
+    quoted_posts_id= Comment.connection.quote_table_name('posts') + '.' + Comment.connection.quote_column_name('id')
     assert_nothing_raised do
-      Comment.find(:all, :include => :post, :order => Comment.connection.quote_table_name('posts.id'))
+      Comment.find(:all, :include => :post, :order => quoted_posts_id)
     end
   end
 
