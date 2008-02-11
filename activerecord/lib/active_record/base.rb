@@ -2088,7 +2088,7 @@ module ActiveRecord #:nodoc:
       # The extent of a "deep" clone is application-specific and is therefore
       # left to the application to implement according to its need.
       def clone
-        attrs = self.attributes_before_type_cast
+        attrs = clone_attributes(:read_attribute_before_type_cast)
         attrs.delete(self.class.primary_key)
         record = self.class.new
         record.send :instance_variable_set, '@attributes', attrs
@@ -2236,9 +2236,13 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Returns a hash of cloned attributes before typecasting and deserialization.
+      # Returns a hash of attributes before typecasting and deserialization.
       def attributes_before_type_cast
-        clone_attributes :read_attribute_before_type_cast
+        attrs = {}
+        self.attribute_names.each do |name|
+          attrs[name]=read_attribute_before_type_cast(name)
+        end
+        attrs
       end
 
       # Format attributes nicely for inspect.
