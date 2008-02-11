@@ -119,6 +119,30 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal [6,7,8], comments.collect { |c| c.id }
   end
 
+  def test_eager_association_loading_with_belongs_to_and_conditions_string_with_unquoted_table_name
+    assert_nothing_raised do
+      Comment.find(:all, :include => :post, :conditions => ['posts.id = ?',4])
+    end
+  end
+
+  def test_eager_association_loading_with_belongs_to_and_conditions_string_with_quoted_table_name
+    assert_nothing_raised do
+      Comment.find(:all, :include => :post, :conditions => ["#{Comment.connection.quote_table_name('posts.id')} = ?",4])
+    end
+  end
+
+  def test_eager_association_loading_with_belongs_to_and_order_string_with_unquoted_table_name
+    assert_nothing_raised do
+      Comment.find(:all, :include => :post, :order => 'posts.id')
+    end
+  end
+
+  def test_eager_association_loading_with_belongs_to_and_order_string_with_quoted_table_name
+    assert_nothing_raised do
+      Comment.find(:all, :include => :post, :order => Comment.connection.quote_table_name('posts.id'))
+    end
+  end
+
   def test_eager_association_loading_with_belongs_to_and_limit_and_multiple_associations
     posts = Post.find(:all, :include => [:author, :very_special_comment], :limit => 1, :order => 'posts.id')
     assert_equal 1, posts.length

@@ -1379,7 +1379,7 @@ module ActiveRecord
             end
           end
           return false unless conditions.any?
-          conditions.join(' ').scan(/([\.\w]+)\.\w+/).flatten.any? do |condition_table_name|
+          conditions.join(' ').scan(/([\.\w]+).?\./).flatten.any? do |condition_table_name|
             condition_table_name != table_name
           end
         end
@@ -1388,7 +1388,7 @@ module ActiveRecord
         def include_eager_order?(options)
           order = options[:order]
           return false unless order
-          order.to_s.scan(/([\.\w]+)\.\w+/).flatten.any? do |order_table_name|
+          order.to_s.scan(/([\.\w]+).?\./).flatten.any? do |order_table_name|
             order_table_name != table_name
           end
         end
