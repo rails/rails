@@ -109,7 +109,7 @@ module ActiveRelation
     end
     
     def attribute_for_name(name)
-      nil
+      attributes.detect { |a| a.alias_or_name == name }
     end
     
     def attribute_for_attribute(attribute)

@@ -3,15 +3,15 @@ require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 module ActiveRelation
   describe Rename do
     before do
-      @relation1 = Table.new(:foo)
-      @relation2 = Table.new(:bar)
+      @relation1 = Table.new(:users)
+      @relation2 = Table.new(:photos)
       @renamed_relation = Rename.new(@relation1, @relation1[:id] => :schmid)
     end
 
     describe '#initialize' do
       it "manufactures nested rename relations if multiple renames are provided" do
         Rename.new(@relation1, @relation1[:id] => :humpty, @relation1[:name] => :dumpty). \
-          should == Rename.new(Rename.new(@relation1, @relation1[:id] => :humpty), @relation1[:name] => :dumpty)
+          should == Rename.new(Rename.new(@relation1, @relation1[:name] => :dumpty), @relation1[:id] => :humpty)
       end
     end
     
@@ -50,6 +50,7 @@ module ActiveRelation
 
       describe 'when given an', Expression do
         it "manufactures a substituted and renamed expression if the expression is within the relation" do
+          pending
         end
       end
       
@@ -97,8 +98,8 @@ module ActiveRelation
     describe '#to_sql' do
       it 'manufactures sql renaming the attribute' do
         @renamed_relation.to_sql.should be_like("""
-          SELECT `foo`.`name`, `foo`.`id` AS 'schmid'
-          FROM `foo`
+          SELECT `users`.`id` AS 'schmid', `users`.`name`
+          FROM `users`
         """)
       end
     end

@@ -101,7 +101,7 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
         for an association on an individual row' do
       users_cameras = photo_belongs_to_camera(user_has_many_photos(@users))
       users_cameras.to_sql.should be_like("""
-        SELECT `users`.`name`, `users`.`id`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`, `cameras`.`id`
+        SELECT `users`.`id`, `users`.`name`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`, `cameras`.`id`
         FROM `users`
           LEFT OUTER JOIN `photos`
             ON `users`.`id` = `photos`.`user_id`
@@ -113,7 +113,7 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
     it 'is trivial to disambiguate columns' do
       users_cameras = photo_belongs_to_camera(user_has_many_photos(@users)).qualify
       users_cameras.to_sql.should be_like("""
-        SELECT `users`.`name` AS 'users.name', `users`.`id` AS 'users.id', `photos`.`id` AS 'photos.id', `photos`.`user_id` AS 'photos.user_id', `photos`.`camera_id` AS 'photos.camera_id', `cameras`.`id` AS 'cameras.id'
+        SELECT `users`.`id` AS 'users.id', `users`.`name` AS 'users.name', `photos`.`id` AS 'photos.id', `photos`.`user_id` AS 'photos.user_id', `photos`.`camera_id` AS 'photos.camera_id', `cameras`.`id` AS 'cameras.id'
         FROM `users`
           LEFT OUTER JOIN `photos`
             ON `users`.`id` = `photos`.`user_id`
@@ -124,13 +124,13 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
     
     it 'allows arbitrary sql to be passed through' do
       @users.outer_join(@photos).on("asdf").to_sql.should be_like("""
-        SELECT `users`.`name`, `users`.`id`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
+        SELECT `users`.`id`, `users`.`name`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
         FROM `users`
           LEFT OUTER JOIN `photos`
             ON asdf
       """)
       @users.select("asdf").to_sql.should be_like("""
-        SELECT `users`.`name`, `users`.`id`
+        SELECT `users`.`id`, `users`.`name`
         FROM `users`
         WHERE asdf
       """)

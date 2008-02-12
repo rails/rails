@@ -42,14 +42,6 @@ module ActiveRelation
         (relation2.send(:selects) unless relation2.aggregation?)
       ].compact.flatten
     end
-    
-    def attribute_for_name(name)
-      (relation1[name] || relation2[name])
-    end
-
-    def attribute_for_attribute(attribute)
-      (relation1[attribute] || relation2[attribute])
-    end
    
     def table_sql
       relation1.aggregation?? relation1.to_sql(Sql::Aggregation.new) : relation1.send(:table_sql)

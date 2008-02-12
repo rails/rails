@@ -5,6 +5,10 @@ module ActiveRelation
     def initialize(relation, name, aliaz = nil, ancestor = nil)
       @relation, @name, @alias, @ancestor = relation, name, aliaz, ancestor
     end
+    
+    def alias_or_name
+      @alias || name
+    end
 
     module Transformations
       def as(aliaz = nil)
@@ -96,9 +100,11 @@ module ActiveRelation
       strategy.attribute prefix, name, self.alias
     end
     
-    private
-    delegate :hash, :to => :relation
+    def hash
+      relation.hash + name.hash
+    end
     
+    private
     def prefix
       relation.prefix_for(self)
     end

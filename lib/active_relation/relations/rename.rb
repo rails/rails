@@ -19,26 +19,9 @@ module ActiveRelation
       relation.attributes.collect(&method(:substitute))
     end
     
-    protected
-    def attribute_for_name(name)
-      case
-      when referring_by_autonym?(name) then nil
-      when referring_by_pseudonym?(name) then substitute(relation[attribute])
-      else relation[name].substitute(self) rescue nil
-      end
-    end
-
     private
     def substitute(attribute)
       (attribute =~ self.attribute ? attribute.as(pseudonym) : attribute).substitute(self) rescue nil
-    end
-
-    def referring_by_autonym?(name)
-      relation[name] == relation[attribute]
-    end
-    
-    def referring_by_pseudonym?(name)
-      name == pseudonym
     end
   end
 end

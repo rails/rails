@@ -15,12 +15,10 @@ module ActiveRelation
       end
     
       def as(aliaz)
-        # key line -- note self
         Expression.new(attribute, function_sql, aliaz, self)
       end
       
       def to_attribute
-        # key line -- note self
         Attribute.new(relation, @alias, nil, self)
       end
     end
@@ -39,7 +37,6 @@ module ActiveRelation
       !(history & other.send(:history)).empty?
     end
 
-    private
     def hash
       attribute.hash + function_sql.hash
     end

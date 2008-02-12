@@ -40,7 +40,7 @@ module ActiveRelation
     describe '#to_sql' do
       it "manufactures a simple select query" do
         @table.to_sql.should be_like("""
-          SELECT `users`.`name`, `users`.`id`
+          SELECT `users`.`id`, `users`.`name`
           FROM `users`
         """)
       end
@@ -61,8 +61,8 @@ module ActiveRelation
     describe '#attributes' do
       it 'manufactures attributes corresponding to columns in the table' do
         @table.attributes.should == [
-          Attribute.new(@table, :name),
-          Attribute.new(@table, :id)
+          Attribute.new(@table, :id),
+          Attribute.new(@table, :name)
         ]
       end
     end

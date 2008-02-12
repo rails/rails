@@ -8,10 +8,5 @@ module ActiveRelation
     def attributes
       relation.attributes.collect { |a| a.substitute(self) }
     end
-    
-    protected
-    def attribute_for_name(name)
-      relation[name].substitute(self) rescue nil
-    end
   end
 end
