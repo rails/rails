@@ -7,7 +7,10 @@ module ActiveRelation
     end
 
     def ==(other)
-      self.class == other.class and relation == other.relation and groupings == other.groupings and expressions == other.expressions
+      self.class  == other.class and
+      relation    == other.relation and
+      groupings   == other.groupings and
+      expressions == other.expressions
     end
 
     def qualify

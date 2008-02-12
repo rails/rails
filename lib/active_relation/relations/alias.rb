@@ -11,7 +11,9 @@ module ActiveRelation
     end
       
     def ==(other)
-      self.class == other.class and relation == other.relation and @alias == other.alias
+      self.class == other.class and
+      relation   == other.relation and
+      @alias     == other.alias
     end
   end
 end

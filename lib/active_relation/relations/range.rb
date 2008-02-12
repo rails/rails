@@ -7,7 +7,8 @@ module ActiveRelation
     end
 
     def ==(other)
-      relation == other.relation and range == other.range
+      relation == other.relation and
+      range    == other.range
     end
 
     def limit

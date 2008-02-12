@@ -7,7 +7,8 @@ module ActiveRelation
     end
 
     def ==(other)
-      relation == other.relation and orders == other.orders
+      relation == other.relation and
+      orders   == other.orders
     end
 
     def qualify

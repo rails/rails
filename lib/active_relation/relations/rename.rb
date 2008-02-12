@@ -8,7 +8,10 @@ module ActiveRelation
     end
 
     def ==(other)
-      self.class == other.class and relation == other.relation and attribute == other.attribute and pseudonym == other.pseudonym
+      self.class == other.class and
+      relation   == other.relation and
+      attribute  == other.attribute and
+      pseudonym  == other.pseudonym
     end
 
     def qualify

@@ -8,7 +8,9 @@ module ActiveRelation
     end
 
     def ==(other)
-      self.class == other.class and relation == other.relation and projections == other.projections
+      self.class  == other.class and
+      relation    == other.relation and
+      projections == other.projections
     end
 
     def qualify

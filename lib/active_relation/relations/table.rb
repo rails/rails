@@ -19,11 +19,8 @@ module ActiveRelation
     def prefix_for(attribute)
       name
     end
-    
-    def aliased_prefix_for(attribute)
-      name
-    end
-    
+    alias_method :aliased_prefix_for, :prefix_for
+        
     protected    
     def table_sql
       "#{quote_table_name(name)}"
