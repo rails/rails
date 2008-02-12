@@ -834,14 +834,16 @@ module ActionController #:nodoc:
       # All renders take the :status and :location options and turn them into headers. They can even be used together:
       #
       #   render :xml => post.to_xml, :status => :created, :location => post_url(post)
-      def render(options = nil, &block) #:doc:
+      def render(options = nil, extra_options = {}, &block) #:doc:
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
         if options.nil?
           return render_for_file(default_template_name, nil, true)
+        elsif !extra_options.is_a?(Hash)
+          raise RenderError, "You called render with invalid options : #{options}, #{extra_options}"
         else
           if options == :update
-            options = { :update => true }
+            options = extra_options.merge({ :update => true })
           elsif !options.is_a?(Hash)
             raise RenderError, "You called render with invalid options : #{options}"
           end
@@ -910,7 +912,7 @@ module ActionController #:nodoc:
 
             generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(@template, &block)
             response.content_type = Mime::JS
-            render_for_text(generator.to_s)
+            render_for_text(generator.to_s, options[:status])
 
           elsif options[:nothing]
             # Safari doesn't pass the headers of the return if the response is zero length

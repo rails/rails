@@ -61,6 +61,12 @@ class TestController < ActionController::Base
     render :text => "hello world", :status => 404
   end
 
+  def render_custom_code_rjs
+    render :update, :status => 404 do |page|
+      page.replace :foo, :partial => 'partial'
+    end
+  end
+
   def render_text_with_nil
     render :text => nil
   end
@@ -286,6 +292,12 @@ class RenderTest < Test::Unit::TestCase
     get :render_custom_code
     assert_response 404
     assert_equal 'hello world', @response.body
+  end
+
+  def test_render_custom_code_rjs
+    get :render_custom_code_rjs
+    assert_response 404
+    assert_equal %(Element.replace("foo", "partial html");), @response.body
   end
 
   def test_render_text_with_nil
