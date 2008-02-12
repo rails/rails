@@ -13,6 +13,10 @@ module ActiveRelation
       it "manufactures a range relation when given a range" do
         @relation1[1..2].should == Range.new(@relation1, 1..2)
       end
+      
+      it "needs to test attributes and names" do
+        pending
+      end
     end
   
     describe '#include?' do

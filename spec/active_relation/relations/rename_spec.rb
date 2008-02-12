@@ -27,64 +27,7 @@ module ActiveRelation
       it "manufactures a list of attributes with the renamed attribute renameed" do
         @renamed_relation.attributes.should include(@renamed_relation[:schmid])
         @renamed_relation.should have(@relation1.attributes.size).attributes
-      end
-    end
-  
-    describe '[]' do
-      describe 'when given a', Symbol do
-        it 'indexes attributes by rename if the symbol names an attribute within the relation' do
-          @renamed_relation[:id].should be_nil
-          @renamed_relation[:schmid].should == @relation1[:id].as(:schmid).bind(@renamed_relation)
-          @renamed_relation[:does_not_exist].should be_nil
-        end
-      end
-      
-      describe 'when given an', Attribute do
-        it 'manufactures a bindd and renamed attribute if the attribute is within the relation' do
-          @renamed_relation[@relation1[:id]].should == @relation1[:id].as(:schmid).bind(@renamed_relation)
-          @renamed_relation[@relation1[:name]].should == @relation1[:name].bind(@renamed_relation)
-          @renamed_relation[@renamed_relation[:name]].should == @renamed_relation[:name]
-          @renamed_relation[@relation2[:id]].should be_nil
-        end
-      end
-
-      describe 'when given an', Expression do
-        it "manufactures a bindd and renamed expression if the expression is within the relation" do
-          pending
-        end
-      end
-      
-      describe 'when the rename is constructed with a derived attribute' do
-        before do
-          @renamed_renamed_relation = Rename.new(@renamed_relation, @relation1[:id] => :flid)
-        end
-        
-        describe 'when given a', Symbol do
-          it 'manufactures a bindd and renamed attribute if the attribute is within the relation' do
-            @renamed_renamed_relation[:id].should be_nil
-            @renamed_renamed_relation[:schmid].should be_nil
-            @renamed_renamed_relation[:flid].should == @renamed_relation[:schmid].as(:flid).bind(@renamed_renamed_relation)
-          end
-        end
-        
-        describe 'when given an', Attribute do
-          it "manufactures a bindd and renamed attribute if the attribute is within the relation -- even if the provided attribute derived" do
-            @renamed_renamed_relation[@renamed_relation[:schmid]].should == @renamed_relation[:schmid].as(:flid).bind(@renamed_renamed_relation)
-            @renamed_renamed_relation[@relation1[:id]].should == @renamed_relation[:schmid].as(:flid).bind(@renamed_renamed_relation)
-          end
-        end
-        
-        describe 'when given an', Expression do
-          before do
-            @expression = @relation1[:id].count
-            @aggregation = Aggregation.new(@relation1, :expressions => [@expression])
-            @renamed_relation = Rename.new(@aggregation, @expression => :cnt)
-          end
-          
-          it "manufactures a bindd and renamed expression if the expression is within the relation" do
-            @renamed_relation[@expression].should == @aggregation[@expression].as(:cnt).bind(@renamed_relation)
-          end
-        end
+        pending "this should be more rigorous"
       end
     end
   

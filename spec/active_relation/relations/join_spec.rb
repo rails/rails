@@ -18,12 +18,6 @@ module ActiveRelation
         Join.new("INNER JOIN", @relation1, @relation2, @predicate).should == Join.new("INNER JOIN", @relation2, @relation1, @predicate)
       end
     end
-    
-    describe '[]' do
-      it "" do
-        pending
-      end
-    end
 
     describe '#qualify' do
       it 'distributes over the relations and predicates' do
@@ -42,15 +36,19 @@ module ActiveRelation
           @join.attributes.should ==
             (@relation1.attributes + @relation2.attributes).collect { |a| a.bind(@join) }
         end
-      end
-
-      describe 'with aggregated relations' do
-        it '' do
+        
+        it 'does something peculiar with expressions when aggregate' do
           pending
         end
       end
     end
 
+    describe '#prefix_for' do
+      it 'needs a test' do
+        pending
+      end
+    end
+    
     describe '#to_sql' do
       describe 'with simple relations' do
         it 'manufactures sql joining the two tables on the predicate' do

@@ -28,7 +28,6 @@ module ActiveRelation
     end
     
     def prefix_for(attribute)
-      # test me
       (relation1[attribute] && relation1.aliased_prefix_for(attribute)) ||
         (relation2[attribute] && relation2.aliased_prefix_for(attribute))
     end

@@ -13,7 +13,7 @@ module ActiveRelation
       end
       
       describe '#bind' do
-        it "manufactures an attribute with a bindd relation and self as the ancestor" do
+        it "manufactures an attribute with a rebound relation and self as the ancestor" do
           derived_relation = @relation.select(@relation[:id] == 1)
           @expression.bind(derived_relation).should == Expression.new(@attribute.bind(derived_relation), "COUNT", nil, @expression)
         end
