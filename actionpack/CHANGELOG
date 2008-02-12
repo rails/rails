@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove support for multivalued (e.g., '&'-delimited) cookies. [Jamis Buck]
+
 * Fix problem with render :partial collections, records, and locals. #11057 [lotswholetime] 
 
 * Added support for naming concrete classes in sweeper declarations [DHH]
