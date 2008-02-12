@@ -24,7 +24,7 @@ module ActiveRelation
       [
         relation1.aggregation?? relation1.attributes.collect(&:to_attribute) : relation1.attributes,
         relation2.aggregation?? relation2.attributes.collect(&:to_attribute) : relation2.attributes,
-      ].flatten.collect { |a| a.substitute(self) }
+      ].flatten.collect { |a| a.bind(self) }
     end
     
     def prefix_for(attribute)
@@ -52,7 +52,7 @@ module ActiveRelation
     
     private
     def join
-      [join_sql, right_table_sql, "ON", predicates.collect { |p| p.substitute(self).to_sql(Sql::Predicate.new) }.join(' AND ')].join(" ")
+      [join_sql, right_table_sql, "ON", predicates.collect { |p| p.bind(self).to_sql(Sql::Predicate.new) }.join(' AND ')].join(" ")
     end
     
     def right_table_sql

@@ -10,8 +10,8 @@ module ActiveRelation
     end
 
     module Transformations
-      def substitute(new_relation)
-        new_relation == relation ? self : Expression.new(attribute.substitute(new_relation), function_sql, @alias, self)
+      def bind(new_relation)
+        new_relation == relation ? self : Expression.new(attribute.bind(new_relation), function_sql, @alias, self)
       end
     
       def as(aliaz)

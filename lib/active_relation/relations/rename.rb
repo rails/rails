@@ -19,12 +19,12 @@ module ActiveRelation
     end
     
     def attributes
-      relation.attributes.collect(&method(:substitute))
+      relation.attributes.collect(&method(:baptize))
     end
     
     private
-    def substitute(attribute)
-      (attribute =~ self.attribute ? attribute.as(pseudonym) : attribute).substitute(self) rescue nil
+    def baptize(attribute)
+      (attribute =~ self.attribute ? attribute.as(pseudonym) : attribute).bind(self) rescue nil
     end
   end
 end

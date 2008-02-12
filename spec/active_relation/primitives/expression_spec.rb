@@ -12,14 +12,14 @@ module ActiveRelation
         @expression = Expression.new(@attribute, "COUNT")
       end
       
-      describe '#substitute' do
-        it "manufactures an attribute with a substituted relation and self as the ancestor" do
+      describe '#bind' do
+        it "manufactures an attribute with a bindd relation and self as the ancestor" do
           derived_relation = @relation.select(@relation[:id] == 1)
-          @expression.substitute(derived_relation).should == Expression.new(@attribute.substitute(derived_relation), "COUNT", nil, @expression)
+          @expression.bind(derived_relation).should == Expression.new(@attribute.bind(derived_relation), "COUNT", nil, @expression)
         end
         
         it "returns self if the substituting to the same relation" do
-          @expression.substitute(@relation).should == @expression
+          @expression.bind(@relation).should == @expression
         end
       end
       

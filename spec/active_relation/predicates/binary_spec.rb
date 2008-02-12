@@ -33,10 +33,10 @@ module ActiveRelation
       end
     end
     
-    describe '#substitute' do
+    describe '#bind' do
       it "distributes over the predicates and attributes" do
-        ConcreteBinary.new(@attribute1, @attribute2).substitute(@relation2). \
-          should == ConcreteBinary.new(@attribute1.substitute(@relation2), @attribute2.substitute(@relation2))
+        ConcreteBinary.new(@attribute1, @attribute2).bind(@relation2). \
+          should == ConcreteBinary.new(@attribute1.bind(@relation2), @attribute2.bind(@relation2))
       end
     end
   

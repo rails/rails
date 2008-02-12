@@ -17,14 +17,14 @@ module ActiveRelation
         end
       end
     
-      describe '#substitute' do
-        it "manufactures an attribute with the relation substituted and self as an ancestor" do
+      describe '#bind' do
+        it "manufactures an attribute with the relation bindd and self as an ancestor" do
           derived_relation = @relation.select(@relation[:id].equals(1))
-          @attribute.substitute(derived_relation).should == Attribute.new(derived_relation, @attribute.name, nil, @attribute)
+          @attribute.bind(derived_relation).should == Attribute.new(derived_relation, @attribute.name, nil, @attribute)
         end
         
         it "returns self if the substituting to the same relation" do
-          @attribute.substitute(@relation).should == @attribute
+          @attribute.bind(@relation).should == @attribute
         end
       end
     

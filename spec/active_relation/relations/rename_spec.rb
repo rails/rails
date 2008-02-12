@@ -34,22 +34,22 @@ module ActiveRelation
       describe 'when given a', Symbol do
         it 'indexes attributes by rename if the symbol names an attribute within the relation' do
           @renamed_relation[:id].should be_nil
-          @renamed_relation[:schmid].should == @relation1[:id].as(:schmid).substitute(@renamed_relation)
+          @renamed_relation[:schmid].should == @relation1[:id].as(:schmid).bind(@renamed_relation)
           @renamed_relation[:does_not_exist].should be_nil
         end
       end
       
       describe 'when given an', Attribute do
-        it 'manufactures a substituted and renamed attribute if the attribute is within the relation' do
-          @renamed_relation[@relation1[:id]].should == @relation1[:id].as(:schmid).substitute(@renamed_relation)
-          @renamed_relation[@relation1[:name]].should == @relation1[:name].substitute(@renamed_relation)
+        it 'manufactures a bindd and renamed attribute if the attribute is within the relation' do
+          @renamed_relation[@relation1[:id]].should == @relation1[:id].as(:schmid).bind(@renamed_relation)
+          @renamed_relation[@relation1[:name]].should == @relation1[:name].bind(@renamed_relation)
           @renamed_relation[@renamed_relation[:name]].should == @renamed_relation[:name]
           @renamed_relation[@relation2[:id]].should be_nil
         end
       end
 
       describe 'when given an', Expression do
-        it "manufactures a substituted and renamed expression if the expression is within the relation" do
+        it "manufactures a bindd and renamed expression if the expression is within the relation" do
           pending
         end
       end
@@ -60,17 +60,17 @@ module ActiveRelation
         end
         
         describe 'when given a', Symbol do
-          it 'manufactures a substituted and renamed attribute if the attribute is within the relation' do
+          it 'manufactures a bindd and renamed attribute if the attribute is within the relation' do
             @renamed_renamed_relation[:id].should be_nil
             @renamed_renamed_relation[:schmid].should be_nil
-            @renamed_renamed_relation[:flid].should == @renamed_relation[:schmid].as(:flid).substitute(@renamed_renamed_relation)
+            @renamed_renamed_relation[:flid].should == @renamed_relation[:schmid].as(:flid).bind(@renamed_renamed_relation)
           end
         end
         
         describe 'when given an', Attribute do
-          it "manufactures a substituted and renamed attribute if the attribute is within the relation -- even if the provided attribute derived" do
-            @renamed_renamed_relation[@renamed_relation[:schmid]].should == @renamed_relation[:schmid].as(:flid).substitute(@renamed_renamed_relation)
-            @renamed_renamed_relation[@relation1[:id]].should == @renamed_relation[:schmid].as(:flid).substitute(@renamed_renamed_relation)
+          it "manufactures a bindd and renamed attribute if the attribute is within the relation -- even if the provided attribute derived" do
+            @renamed_renamed_relation[@renamed_relation[:schmid]].should == @renamed_relation[:schmid].as(:flid).bind(@renamed_renamed_relation)
+            @renamed_renamed_relation[@relation1[:id]].should == @renamed_relation[:schmid].as(:flid).bind(@renamed_renamed_relation)
           end
         end
         
@@ -81,8 +81,8 @@ module ActiveRelation
             @renamed_relation = Rename.new(@aggregation, @expression => :cnt)
           end
           
-          it "manufactures a substituted and renamed expression if the expression is within the relation" do
-            @renamed_relation[@expression].should == @aggregation[@expression].as(:cnt).substitute(@renamed_relation)
+          it "manufactures a bindd and renamed expression if the expression is within the relation" do
+            @renamed_relation[@expression].should == @aggregation[@expression].as(:cnt).bind(@renamed_relation)
           end
         end
       end

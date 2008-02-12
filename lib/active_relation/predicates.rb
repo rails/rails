@@ -20,8 +20,8 @@ module ActiveRelation
       self.class.new(attribute.qualify, operand.qualify)
     end
     
-    def substitute(relation)
-      self.class.new(attribute.substitute(relation), operand.substitute(relation))
+    def bind(relation)
+      self.class.new(attribute.bind(relation), operand.bind(relation))
     end
 
     def to_sql(strategy = Sql::Predicate.new)

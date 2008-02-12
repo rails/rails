@@ -6,7 +6,7 @@ module ActiveRelation
              :to => :relation
     
     def attributes
-      relation.attributes.collect { |a| a.substitute(self) }
+      relation.attributes.collect { |a| a.bind(self) }
     end
   end
 end

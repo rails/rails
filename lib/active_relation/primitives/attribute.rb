@@ -15,7 +15,7 @@ module ActiveRelation
         Attribute.new(relation, name, aliaz, self)
       end
     
-      def substitute(new_relation)
+      def bind(new_relation)
         relation == new_relation ? self : Attribute.new(new_relation, name, @alias, self)
       end
 

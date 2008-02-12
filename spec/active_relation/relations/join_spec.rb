@@ -40,7 +40,7 @@ module ActiveRelation
         
         it 'combines the attributes of the two relations' do
           @join.attributes.should ==
-            (@relation1.attributes + @relation2.attributes).collect { |a| a.substitute(@join) }
+            (@relation1.attributes + @relation2.attributes).collect { |a| a.bind(@join) }
         end
       end
 

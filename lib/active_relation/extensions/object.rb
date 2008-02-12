@@ -3,7 +3,7 @@ class Object
     self
   end
   
-  def substitute(relation)
+  def bind(relation)
     self
   end
   

@@ -18,7 +18,7 @@ module ActiveRelation
     end
     
     def attributes
-      expressions.collect { |e| e.substitute(self) }
+      expressions.collect { |e| e.bind(self) }
     end
     
     protected
