@@ -2214,35 +2214,18 @@ module ActiveRecord #:nodoc:
 
       # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
       def attributes(options = nil)
-        attrs = {}
-        self.attribute_names.each do |name|
-          attrs[name]=read_attribute(name)
-        end
-
-        if options.nil?
+        self.attribute_names.inject({}) do |attrs, name|
+          attrs[name] = read_attribute(name)
           attrs
-        else
-          if except = options[:except]
-            except = Array(except).collect { |attribute| attribute.to_s }
-            except.each { |attribute_name| attrs.delete(attribute_name) }
-            attrs
-          elsif only = options[:only]
-            only = Array(only).collect { |attribute| attribute.to_s }
-            attrs.delete_if { |key, value| !only.include?(key) }
-            attrs
-          else
-            raise ArgumentError, "Options does not specify :except or :only (#{options.keys.inspect})"
-          end
         end
       end
 
       # Returns a hash of attributes before typecasting and deserialization.
       def attributes_before_type_cast
-        attrs = {}
-        self.attribute_names.each do |name|
-          attrs[name]=read_attribute_before_type_cast(name)
+        self.attribute_names.inject({}) do |attrs, name|
+          attrs[name] = read_attribute_before_typecast(name)
+          attrs
         end
-        attrs
       end
 
       # Format attributes nicely for inspect.

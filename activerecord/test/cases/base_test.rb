@@ -1778,23 +1778,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert xml.include?(%(<arbitrary-element>#{value}</arbitrary-element>))
   end
 
-  def test_except_attributes
-    assert_equal(
-      %w( author_name type id approved replies_count bonus_time written_on content author_email_address parent_id last_read).sort,
-      topics(:first).attributes(:except => :title).keys.sort
-    )
-
-    assert_equal(
-      %w( replies_count bonus_time written_on content author_email_address parent_id last_read).sort,
-      topics(:first).attributes(:except => [ :title, :id, :type, :approved, :author_name ]).keys.sort
-    )
-  end
-
-  def test_include_attributes
-    assert_equal(%w( title ), topics(:first).attributes(:only => :title).keys)
-    assert_equal(%w( title author_name type id approved ).sort, topics(:first).attributes(:only => [ :title, :id, :type, :approved, :author_name ]).keys.sort)
-  end
-
   def test_type_name_with_module_should_handle_beginning
     assert_equal 'ActiveRecord::Person', ActiveRecord::Base.send(:type_name_with_module, 'Person')
     assert_equal '::Person', ActiveRecord::Base.send(:type_name_with_module, '::Person')
