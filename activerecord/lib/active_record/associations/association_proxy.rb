@@ -114,7 +114,8 @@ module ActiveRecord
             :offset  => @reflection.options[:offset],
             :joins   => @reflection.options[:joins],
             :include => @reflection.options[:include],
-            :select  => @reflection.options[:select]
+            :select  => @reflection.options[:select],
+            :readonly  => @reflection.options[:readonly]
           )
         end
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce the :readonly option to all associations. Records from the association cannot be saved.  #11084 [miloops]
+
 * Multiparameter attributes for time columns fail over to DateTime when out of range of Time [Geoff Buesing]
 
 * Base#instantiate_time_object uses Time.zone.local() [Geoff Buesing]

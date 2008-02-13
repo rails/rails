@@ -469,6 +469,11 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_cant_save_readonly_association
+    assert_raise(ActiveRecord::ReadOnlyRecord) { companies(:first_firm).readonly_account.save!  }
+    assert companies(:first_firm).readonly_account.readonly?
+  end
+
 end
 
 
@@ -542,6 +547,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_dynamic_find_all_limit_should_override_association_limit
     assert_equal 2, companies(:first_firm).limited_clients.find(:all, :conditions => "type = 'Client'", :limit => 9_000).length
     assert_equal 2, companies(:first_firm).limited_clients.find_all_by_type('Client', :limit => 9_000).length
+  end
+
+  def test_dynamic_find_all_should_respect_readonly_access
+    companies(:first_firm).readonly_clients.find(:all).each { |c| assert_raise(ActiveRecord::ReadOnlyRecord) { c.save!  } }
+    companies(:first_firm).readonly_clients.find(:all).each { |c| assert c.readonly? }
   end
 
   def test_triple_equality
@@ -1581,6 +1591,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal post.author_id, author2.id
   end
 
+  def test_cant_save_readonly_association
+    assert_raise(ActiveRecord::ReadOnlyRecord) { companies(:first_client).readonly_firm.save! }
+    assert companies(:first_client).readonly_firm.readonly?
+  end
+
 end
 
 
@@ -1985,6 +2000,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_dynamic_find_all_order_should_override_association_limit
     assert_equal 2, projects(:active_record).limited_developers.find(:all, :conditions => "name = 'Jamis'", :limit => 9_000).length
     assert_equal 2, projects(:active_record).limited_developers.find_all_by_name('Jamis', :limit => 9_000).length
+  end
+
+  def test_dynamic_find_all_should_respect_readonly_access
+    projects(:active_record).readonly_developers.each { |d| assert_raise(ActiveRecord::ReadOnlyRecord) { d.save!  } if d.valid?}
+    projects(:active_record).readonly_developers.each { |d| d.readonly? }
   end
 
   def test_new_with_values_in_collection

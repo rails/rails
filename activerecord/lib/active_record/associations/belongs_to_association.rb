@@ -44,7 +44,8 @@ module ActiveRecord
           @reflection.klass.find(
             @owner[@reflection.primary_key_name], 
             :conditions => conditions,
-            :include    => @reflection.options[:include]
+            :include    => @reflection.options[:include],
+            :readonly => @reflection.options[:readonly]
           )
         end
 

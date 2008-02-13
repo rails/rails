@@ -669,6 +669,7 @@ module ActiveRecord
       # * <tt>:source_type</tt>: Specifies type of the source association used by <tt>has_many :through</tt> queries where the source
       #   association is a polymorphic +belongs_to+.
       # * <tt>:uniq</tt> - if set to +true+, duplicates will be omitted from the collection. Useful in conjunction with <tt>:through</tt>.
+      # * <tt>:readonly</tt> - if set to +true+, all the associated objects are readonly through the association.
       #
       # Option examples:
       #   has_many :comments, :order => "posted_on"
@@ -677,6 +678,7 @@ module ActiveRecord
       #   has_many :tracks, :order => "position", :dependent => :destroy
       #   has_many :comments, :dependent => :nullify
       #   has_many :tags, :as => :taggable
+      #   has_many :reports, :readonly => true
       #   has_many :subscribers, :through => :subscriptions, :source => :user
       #   has_many :subscribers, :class_name => "Person", :finder_sql =>
       #       'SELECT DISTINCT people.* ' +
@@ -735,13 +737,15 @@ module ActiveRecord
       #   as the default +foreign_key+.
       # * <tt>:include</tt>  - specify second-order associations that should be eager loaded when this object is loaded.
       # * <tt>:as</tt>: Specifies a polymorphic interface (See <tt>#belongs_to</tt>).
-            #
+      # * <tt>:readonly</tt> - if set to +true+, the associated object is readonly through the association.
+      #
       # Option examples:
       #   has_one :credit_card, :dependent => :destroy  # destroys the associated credit card
       #   has_one :credit_card, :dependent => :nullify  # updates the associated records foreign key value to NULL rather than destroying it
       #   has_one :last_comment, :class_name => "Comment", :order => "posted_on"
       #   has_one :project_manager, :class_name => "Person", :conditions => "role = 'project_manager'"
       #   has_one :attachment, :as => :attachable
+      #   has_one :boss, :readonly => :true
       def has_one(association_id, options = {})
         reflection = create_has_one_reflection(association_id, options)
 
@@ -811,6 +815,7 @@ module ActiveRecord
       # * <tt>:polymorphic</tt> - specify this association is a polymorphic association by passing +true+.
       #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute
       #   to the attr_readonly list in the associated classes (e.g. class Post; attr_readonly :comments_count; end).
+      # * <tt>:readonly</tt> - if set to +true+, the associated object is readonly through the association.
       #
       # Option examples:
       #   belongs_to :firm, :foreign_key => "client_of"
@@ -818,6 +823,7 @@ module ActiveRecord
       #   belongs_to :valid_coupon, :class_name => "Coupon", :foreign_key => "coupon_id",
       #              :conditions => 'discounts > #{payments_count}'
       #   belongs_to :attachable, :polymorphic => true
+      #   belongs_to :project, :readonly => true
       def belongs_to(association_id, options = {})
         reflection = create_belongs_to_reflection(association_id, options)
 
@@ -970,12 +976,14 @@ module ActiveRecord
       # * <tt>:offset</tt>: An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
       # * <tt>:select</tt>: By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if, for example, you want to do a join
       #   but not include the joined columns.
+      # * <tt>:readonly</tt> - if set to +true+, all the associated objects are readonly through the association.
       #
       # Option examples:
       #   has_and_belongs_to_many :projects
       #   has_and_belongs_to_many :projects, :include => [ :milestones, :manager ]
       #   has_and_belongs_to_many :nations, :class_name => "Country"
       #   has_and_belongs_to_many :categories, :join_table => "prods_cats"
+      #   has_and_belongs_to_many :categories, :readonly => true
       #   has_and_belongs_to_many :active_projects, :join_table => 'developers_projects', :delete_sql =>
       #   'DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}'
       def has_and_belongs_to_many(association_id, options = {}, &extension)
@@ -1234,7 +1242,7 @@ module ActiveRecord
             :uniq,
             :finder_sql, :counter_sql,
             :before_add, :after_add, :before_remove, :after_remove,
-            :extend
+            :extend, :readonly
           )
 
           options[:extend] = create_extension_modules(association_id, extension, options[:extend])
@@ -1244,7 +1252,7 @@ module ActiveRecord
 
         def create_has_one_reflection(association_id, options)
           options.assert_valid_keys(
-            :class_name, :foreign_key, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as
+            :class_name, :foreign_key, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :readonly
           )
 
           create_reflection(:has_one, association_id, options, self)
@@ -1253,7 +1261,7 @@ module ActiveRecord
         def create_belongs_to_reflection(association_id, options)
           options.assert_valid_keys(
             :class_name, :foreign_key, :foreign_type, :remote, :conditions, :order, :include, :dependent,
-            :counter_cache, :extend, :polymorphic
+            :counter_cache, :extend, :polymorphic, :readonly
           )
 
           reflection = create_reflection(:belongs_to, association_id, options, self)
@@ -1272,7 +1280,7 @@ module ActiveRecord
             :uniq,
             :finder_sql, :delete_sql, :insert_sql,
             :before_add, :after_add, :before_remove, :after_remove,
-            :extend
+            :extend, :readonly
           )
 
           options[:extend] = create_extension_modules(association_id, extension, options[:extend])

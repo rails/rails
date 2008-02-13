@@ -53,7 +53,8 @@ module ActiveRecord
           @reflection.klass.find(:first, 
             :conditions => @finder_sql, 
             :order      => @reflection.options[:order], 
-            :include    => @reflection.options[:include]
+            :include    => @reflection.options[:include],
+            :readonly    => @reflection.options[:readonly]
           )
         end
 
