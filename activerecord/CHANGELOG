@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve associations performance by using symbol callbacks instead of string callbacks. #11108 [adymo]
+
 * Improve associations performance by avoiding named block arguments.  #11109 [adymo]
 
 * Introduce the :readonly option to all associations. Records from the association cannot be saved.  #11084 [miloops]

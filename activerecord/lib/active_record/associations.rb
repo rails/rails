@@ -751,16 +751,16 @@ module ActiveRecord
 
         ivar = "@#{reflection.name}"
 
-        module_eval do
-          after_save <<-EOF
-            association = instance_variable_get("#{ivar}") if instance_variable_defined?("#{ivar}")
+        method_name = "has_one_after_save_for_#{reflection.name}".to_sym
+        define_method(method_name) do
+          association = instance_variable_get("#{ivar}") if instance_variable_defined?("#{ivar}")
 
-            if !association.nil? && (new_record? || association.new_record? || association["#{reflection.primary_key_name}"] != id)
-              association["#{reflection.primary_key_name}"] = id
-              association.save(true)
-            end
-          EOF
+          if !association.nil? && (new_record? || association.new_record? || association["#{reflection.primary_key_name}"] != id)
+            association["#{reflection.primary_key_name}"] = id
+            association.save(true)
+          end
         end
+        after_save method_name
 
         association_accessor_methods(reflection, HasOneAssociation)
         association_constructor_method(:build,  reflection, HasOneAssociation)
@@ -832,42 +832,42 @@ module ActiveRecord
         if reflection.options[:polymorphic]
           association_accessor_methods(reflection, BelongsToPolymorphicAssociation)
 
-          module_eval do
-            before_save <<-EOF
-              association = instance_variable_get("#{ivar}") if instance_variable_defined?("#{ivar}")
+          method_name = "polymorphic_belongs_to_before_save_for_#{reflection.name}".to_sym
+          define_method(method_name) do
+            association = instance_variable_get("#{ivar}") if instance_variable_defined?("#{ivar}")
 
-              if association && association.target
-                if association.new_record?
-                  association.save(true)
-                end
-
-                if association.updated?
-                  self["#{reflection.primary_key_name}"] = association.id
-                  self["#{reflection.options[:foreign_type]}"] = association.class.base_class.name.to_s
-                end
+            if association && association.target
+              if association.new_record?
+                association.save(true)
               end
-            EOF
+
+              if association.updated?
+                self["#{reflection.primary_key_name}"] = association.id
+                self["#{reflection.options[:foreign_type]}"] = association.class.base_class.name.to_s
+              end
+            end
           end
+          before_save method_name
         else
           association_accessor_methods(reflection, BelongsToAssociation)
           association_constructor_method(:build,  reflection, BelongsToAssociation)
           association_constructor_method(:create, reflection, BelongsToAssociation)
 
-          module_eval do
-            before_save <<-EOF
-              association = instance_variable_get("#{ivar}") if instance_variable_defined?("#{ivar}")
+          method_name = "belongs_to_before_save_for_#{reflection.name}".to_sym
+          define_method(method_name) do
+            association = instance_variable_get("#{ivar}") if instance_variable_defined?("#{ivar}")
 
-              if !association.nil?
-                if association.new_record?
-                  association.save(true)
-                end
-
-                if association.updated?
-                  self["#{reflection.primary_key_name}"] = association.id
-                end
+            if !association.nil?
+              if association.new_record?
+                association.save(true)
               end
-            EOF
+
+              if association.updated?
+                self["#{reflection.primary_key_name}"] = association.id
+              end
+            end
           end
+          before_save method_name
         end
 
         # Create the callbacks to update counter cache
@@ -876,15 +876,19 @@ module ActiveRecord
             "#{self.to_s.underscore.pluralize}_count" :
             options[:counter_cache]
 
-          module_eval(
-            "after_create '#{reflection.name}.class.increment_counter(\"#{cache_column}\", #{reflection.primary_key_name})" +
-            " unless #{reflection.name}.nil?'"
-          )
+          method_name = "belongs_to_counter_cache_after_create_for_#{reflection.name}".to_sym
+          define_method(method_name) do
+            association = send("#{reflection.name}")
+            association.class.increment_counter("#{cache_column}", send("#{reflection.primary_key_name}")) unless association.nil?
+          end
+          after_create method_name
 
-          module_eval(
-            "before_destroy '#{reflection.name}.class.decrement_counter(\"#{cache_column}\", #{reflection.primary_key_name})" +
-            " unless #{reflection.name}.nil?'"
-          )
+          method_name = "belongs_to_counter_cache_before_destroy_for_#{reflection.name}".to_sym
+          define_method(method_name) do
+            association = send("#{reflection.name}")
+            association.class.decrement_counter("#{cache_column}", send("#{reflection.primary_key_name}")) unless association.nil?
+          end
+          before_destroy method_name
 
           module_eval(
             "#{reflection.class_name}.send(:attr_readonly,\"#{cache_column}\".intern) if defined?(#{reflection.class_name}) && #{reflection.class_name}.respond_to?(:attr_readonly)"
@@ -1125,9 +1129,16 @@ module ActiveRecord
           end
 
           validate method_name
-          before_save("@new_record_before_save = new_record?; true")
 
-          after_callback = <<-end_eval
+          method_name = "before_save_associated_records_for_#{association_name}".to_sym
+          define_method(method_name) do
+            @new_record_before_save = new_record?
+            true
+          end
+          before_save method_name
+
+          method_name = "after_create_or_update_associated_records_for_#{association_name}".to_sym
+          define_method(method_name) do
             association = instance_variable_get("#{ivar}") if instance_variable_defined?("#{ivar}")
 
             records_to_save = if @new_record_before_save
@@ -1144,11 +1155,11 @@ module ActiveRecord
 
             # reconstruct the SQL queries now that we know the owner's id
             association.send(:construct_sql) if association.respond_to?(:construct_sql)
-          end_eval
+          end
 
           # Doesn't use after_save as that would save associations added in after_create/after_update twice
-          after_create(after_callback)
-          after_update(after_callback)
+          after_create method_name
+          after_update method_name
         end
 
         def association_constructor_method(constructor, reflection, association_proxy_class)
@@ -1194,7 +1205,11 @@ module ActiveRecord
 
             case reflection.options[:dependent]
               when :destroy
-                module_eval "before_destroy '#{reflection.name}.each { |o| o.destroy }'"
+                method_name = "has_many_dependent_destroy_for_#{reflection.name}".to_sym
+                define_method(method_name) do
+                  send("#{reflection.name}").each { |o| o.destroy }
+                end
+                before_destroy method_name
               when :delete_all
                 module_eval "before_destroy { |record| #{reflection.class_name}.delete_all(%(#{dependent_conditions})) }"
               when :nullify
@@ -1209,11 +1224,26 @@ module ActiveRecord
           if reflection.options.include?(:dependent)
             case reflection.options[:dependent]
               when :destroy
-                module_eval "before_destroy '#{reflection.name}.destroy unless #{reflection.name}.nil?'"
+                method_name = "has_one_dependent_destroy_for_#{reflection.name}".to_sym
+                define_method(method_name) do
+                  association = send("#{reflection.name}")
+                  association.destroy unless association.nil?
+                end
+                before_destroy method_name
               when :delete
-                module_eval "before_destroy '#{reflection.class_name}.delete(#{reflection.name}.id) unless #{reflection.name}.nil?'"
+                method_name = "has_one_dependent_delete_for_#{reflection.name}".to_sym
+                define_method(method_name) do
+                  association = send("#{reflection.name}")
+                  association.class.delete(association.id) unless association.nil?
+                end
+                before_destroy method_name
               when :nullify
-                module_eval "before_destroy '#{reflection.name}.update_attribute(\"#{reflection.primary_key_name}\", nil) unless #{reflection.name}.nil?'"
+                method_name = "has_one_dependent_nullify_for_#{reflection.name}".to_sym
+                define_method(method_name) do
+                  association = send("#{reflection.name}")
+                  association.update_attribute("#{reflection.primary_key_name}", nil) unless association.nil?
+                end
+                before_destroy method_name
               else
                 raise ArgumentError, "The :dependent option expects either :destroy, :delete or :nullify (#{reflection.options[:dependent].inspect})"
             end
@@ -1224,9 +1254,19 @@ module ActiveRecord
           if reflection.options.include?(:dependent)
             case reflection.options[:dependent]
               when :destroy
-                module_eval "before_destroy '#{reflection.name}.destroy unless #{reflection.name}.nil?'"
+                method_name = "belongs_to_dependent_destroy_for_#{reflection.name}".to_sym
+                define_method(method_name) do
+                  association = send("#{reflection.name}")
+                  association.destroy unless association.nil?
+                end
+                before_destroy method_name
               when :delete
-                module_eval "before_destroy '#{reflection.class_name}.delete(#{reflection.name}.id) unless #{reflection.name}.nil?'"
+                method_name = "belongs_to_dependent_delete_for_#{reflection.name}".to_sym
+                define_method(method_name) do
+                  association = send("#{reflection.name}")
+                  association.class.delete(association.id) unless association.nil?
+                end
+                before_destroy method_name
               else
                 raise ArgumentError, "The :dependent option expects either :destroy or :delete (#{reflection.options[:dependent].inspect})"
             end
