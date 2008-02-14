@@ -161,9 +161,9 @@ module ActiveRecord
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             super { |*block_args| yield(*block_args) if block_given? }
           else
-            @reflection.klass.send(:with_scope, construct_scope) {
-                @reflection.klass.send(method, *args) { |*block_args| yield(*block_args) if block_given? }
-            }
+            @reflection.klass.send(:with_scope, construct_scope) do
+              @reflection.klass.send(method, *args) { |*block_args| yield(*block_args) if block_given? }
+            end
           end
         end
 
