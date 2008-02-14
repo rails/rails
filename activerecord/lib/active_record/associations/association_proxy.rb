@@ -78,6 +78,12 @@ module ActiveRecord
         @target.inspect
       end
 
+      def to_xml(options={}, &block)
+        if load_target
+          @target.to_xml(options, &block)
+        end
+      end
+
       protected
         def dependent?
           @reflection.options[:dependent]
@@ -120,9 +126,9 @@ module ActiveRecord
         end
 
       private
-        def method_missing(method, *args, &block)
+        def method_missing(method, *args)
           if load_target
-            @target.send(method, *args, &block)
+            @target.send(method, *args)  { |*block_args| yield(*block_args) if block_given? }
           end
         end
 

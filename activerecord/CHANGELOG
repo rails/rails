@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve associations performance by avoiding named block arguments.  #11109 [adymo]
+
 * Ensure that modifying has_and_belongs_to_many actions clear the query cache.  Closes #10840 [john.andrews]
 
 * Fix issue where Table#references doesn't pass a :null option to a *_type attribute for polymorphic associations.  Closes #10753 [railsjitsu]
