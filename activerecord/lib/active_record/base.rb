@@ -2417,9 +2417,10 @@ module ActiveRecord #:nodoc:
       # an SQL statement.
       def attributes_with_quotes(include_primary_key = true, include_readonly_attributes = true)
         quoted = {}
+        connection = self.class.connection
         @attributes.each_pair do |name, value|
           if column = column_for_attribute(name)
-            quoted[name] = quote_value(read_attribute(name), column) unless !include_primary_key && column.primary
+            quoted[name] = connection.quote(read_attribute(name), column) unless !include_primary_key && column.primary
           end
         end
         include_readonly_attributes ? quoted : remove_readonly_attributes(quoted)
@@ -2529,8 +2530,9 @@ module ActiveRecord #:nodoc:
       end
 
       def quoted_column_names(attributes = attributes_with_quotes)
+        connection = self.class.connection
         attributes.keys.collect do |column_name|
-          self.class.connection.quote_column_name(column_name)
+          connection.quote_column_name(column_name)
         end
       end
 
