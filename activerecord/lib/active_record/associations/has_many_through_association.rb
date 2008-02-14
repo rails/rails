@@ -113,8 +113,8 @@ module ActiveRecord
       end
 
       # Calculate sum using SQL, not Enumerable
-      def sum(*args, &block)
-        calculate(:sum, *args, &block)
+      def sum(*args)
+        calculate(:sum, *args) { |*block_args| yield(*block_args) if block_given? }
       end
       
       def count(*args)
@@ -128,11 +128,13 @@ module ActiveRecord
       end
 
       protected
-        def method_missing(method, *args, &block)
+        def method_missing(method, *args)
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
-            super
+            super { |*block_args| yield(*block_args) if block_given? }
           else
-            @reflection.klass.send(:with_scope, construct_scope) { @reflection.klass.send(method, *args, &block) }
+            @reflection.klass.send(:with_scope, construct_scope) {
+                @reflection.klass.send(method, *args) { |*block_args| yield(*block_args) if block_given? }
+            }
           end
         end
 
