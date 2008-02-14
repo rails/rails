@@ -4,6 +4,8 @@
 
 * Improve associations performance by avoiding named block arguments.  #11109 [adymo]
 
+* Optimise the BigDecimal conversion code.  #11110 [adymo]
+
 * Introduce the :readonly option to all associations. Records from the association cannot be saved.  #11084 [miloops]
 
 * Multiparameter attributes for time columns fail over to DateTime when out of range of Time [Geoff Buesing]

@@ -144,7 +144,10 @@ module ActiveRecord
 
         # convert something to a BigDecimal
         def value_to_decimal(value)
-          if value.is_a?(BigDecimal)
+          # Using .class is faster than .is_a? and
+          # subclasses of BigDecimal will be handled
+          # in the else clause
+          if value.class == BigDecimal
             value
           elsif value.respond_to?(:to_d)
             value.to_d
