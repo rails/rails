@@ -446,7 +446,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         table.column :hat_name, :string, :limit => 100
         table.column :hat_size, :integer
       end
-      Person.connection.add_index :people, :first_name
+      Person.connection.add_index :hats, :hat_name
       assert_nothing_raised do
         Person.connection.rename_column "hats", "hat_name", "name"
       end
