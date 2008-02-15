@@ -1,5 +1,7 @@
 *SVN*
 
+* Serialize BigDecimals as Floats when using to_yaml. #8746 [ernesto.jimenez]
+
 * Adding TimeWithZone #to_yaml, #to_datetime, #eql? and method aliases for duck-typing compatibility with Time [Geoff Buesing]
 
 * TimeWithZone #in_time_zone returns +self+ if zone argument is the same as #time_zone [Geoff Buesing]
