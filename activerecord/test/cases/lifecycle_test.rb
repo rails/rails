@@ -134,4 +134,8 @@ class LifecycleTest < ActiveRecord::TestCase
   def test_invalid_observer
     assert_raise(ArgumentError) { Topic.observers = Object.new; Topic.instantiate_observers }
   end
+
+  def test_getting_observed_class_from_class_name
+    assert_equal Topic, TopicObserver.observed_class
+  end
 end
