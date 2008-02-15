@@ -344,6 +344,7 @@ def drop_database(config)
   when /^sqlite/
     FileUtils.rm(File.join(RAILS_ROOT, config['database']))
   when 'postgresql'
+    ActiveRecord::Base.clear_active_connections!    
     `dropdb "#{config['database']}"`
   end
 end
