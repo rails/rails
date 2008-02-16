@@ -10,16 +10,16 @@ class Article
   end
 end
 
-class Comment < Article
+class Response < Article
   def post_id; 1 end
 end
 
 class Tag < Article
-  def comment_id; 1 end
+  def response_id; 1 end
 end
 
 # TODO: test nested models
-class Comment::Nested < Comment; end
+class Response::Nested < Response; end
 
 uses_mocha 'polymorphic URL helpers' do
   class PolymorphicRoutesTest < Test::Unit::TestCase
@@ -28,7 +28,7 @@ uses_mocha 'polymorphic URL helpers' do
 
     def setup
       @article = Article.new
-      @comment = Comment.new
+      @response = Response.new
     end
   
     def test_with_record
@@ -73,14 +73,14 @@ uses_mocha 'polymorphic URL helpers' do
     end
 
     def test_with_nested
-      @comment.save
-      expects(:article_comment_url).with(@article, @comment)
-      polymorphic_url([@article, @comment])
+      @response.save
+      expects(:article_response_url).with(@article, @response)
+      polymorphic_url([@article, @response])
     end
 
     def test_with_nested_unsaved
-      expects(:article_comments_url).with(@article)
-      polymorphic_url([@article, @comment])
+      expects(:article_responses_url).with(@article)
+      polymorphic_url([@article, @response])
     end
 
     def test_new_with_array_and_namespace
@@ -97,20 +97,20 @@ uses_mocha 'polymorphic URL helpers' do
       @article.save
       expects(:admin_article_url).with(@article)
       polymorphic_url([:admin, @article])
-      expects(:admin_article_comments_url).with(@article)
-      polymorphic_url([:admin, @article, @comment])
+      expects(:admin_article_responses_url).with(@article)
+      polymorphic_url([:admin, @article, @response])
     end
 
     def test_nested_with_array_and_namespace
-      @comment.save
-      expects(:admin_article_comment_url).with(@article, @comment)
-      polymorphic_url([:admin, @article, @comment])
+      @response.save
+      expects(:admin_article_response_url).with(@article, @response)
+      polymorphic_url([:admin, @article, @response])
 
       # a ridiculously long named route tests correct ordering of namespaces and nesting:
       @tag = Tag.new
       @tag.save
-      expects(:site_admin_article_comment_tag_url).with(@article, @comment, @tag)
-      polymorphic_url([:site, :admin, @article, @comment, @tag])
+      expects(:site_admin_article_response_tag_url).with(@article, @response, @tag)
+      polymorphic_url([:site, :admin, @article, @response, @tag])
     end
 
     # TODO: Needs to be updated to correctly know about whether the object is in a hash or not
