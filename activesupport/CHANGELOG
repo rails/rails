@@ -1,5 +1,7 @@
 *SVN*
 
+* Add String#squish and String#squish! to remove consecutive chunks of whitespace.  #11123 [jordi, Henrik N]
+
 * Serialize BigDecimals as Floats when using to_yaml. #8746 [ernesto.jimenez]
 
 * Adding TimeWithZone #to_yaml, #to_datetime, #eql? and method aliases for duck-typing compatibility with Time [Geoff Buesing]

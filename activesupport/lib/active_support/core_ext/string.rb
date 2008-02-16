@@ -5,10 +5,12 @@ require 'active_support/core_ext/string/starts_ends_with'
 require 'active_support/core_ext/string/iterators' unless 'test'.respond_to?(:each_char)
 require 'active_support/core_ext/string/unicode'
 require 'active_support/core_ext/string/xchar'
+require 'active_support/core_ext/string/filters'
 
 class String #:nodoc:
   include ActiveSupport::CoreExtensions::String::Access
   include ActiveSupport::CoreExtensions::String::Conversions
+  include ActiveSupport::CoreExtensions::String::Filters
   include ActiveSupport::CoreExtensions::String::Inflections
   if RUBY_VERSION < '1.9'
     include ActiveSupport::CoreExtensions::String::StartsEndsWith
