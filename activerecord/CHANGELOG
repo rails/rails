@@ -1,5 +1,7 @@
 *SVN*
 
+* Refactor ConnectionAdapters::Column.new_time: leverage DateTime failover behavior of Time#time_with_datetime_fallback [Geoff Buesing]
+
 * Improve associations performance by using symbol callbacks instead of string callbacks. #11108 [adymo]
 
 * Optimise the BigDecimal conversion code.  #11110 [adymo]

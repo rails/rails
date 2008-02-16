@@ -172,12 +172,8 @@ module ActiveRecord
           def new_time(year, mon, mday, hour, min, sec, microsec)
             # Treat 0000-00-00 00:00:00 as nil.
             return nil if year.nil? || year == 0
-
-            Time.send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec)
-          # Over/underflow to DateTime
-          rescue ArgumentError, TypeError
-            zone_offset = Base.default_timezone == :local ? DateTime.local_offset : 0
-            DateTime.civil(year, mon, mday, hour, min, sec, zone_offset) rescue nil
+            
+            Time.time_with_datetime_fallback(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
           end
 
           def fast_string_to_date(string)
