@@ -121,16 +121,28 @@ uses_tzinfo 'TimeWithZoneTest' do
       assert @twz.eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), TimeZone["Hawaii"]) )
     end
       
-    def test_plus
+    def test_plus_with_integer
       assert_equal Time.utc(1999, 12, 31, 19, 0 ,5), (@twz + 5).time
+    end
+      
+    def test_plus_with_integer_when_self_wraps_datetime
+      datetime = DateTime.civil(2000, 1, 1, 0)
+      twz = ActiveSupport::TimeWithZone.new(datetime, @time_zone)
+      assert_equal DateTime.civil(1999, 12, 31, 19, 0 ,5), (twz + 5).time
     end
       
     def test_plus_with_duration
       assert_equal Time.utc(2000, 1, 5, 19, 0 ,0), (@twz + 5.days).time
     end
       
-    def test_minus
+    def test_minus_with_integer
       assert_equal Time.utc(1999, 12, 31, 18, 59 ,55), (@twz - 5).time
+    end
+    
+    def test_minus_with_integer_when_self_wraps_datetime
+      datetime = DateTime.civil(2000, 1, 1, 0)
+      twz = ActiveSupport::TimeWithZone.new(datetime, @time_zone)
+      assert_equal DateTime.civil(1999, 12, 31, 18, 59 ,55), (twz - 5).time
     end
       
     def test_minus_with_duration
@@ -174,6 +186,12 @@ uses_tzinfo 'TimeWithZoneTest' do
       
     def test_acts_like_time
       assert @twz.acts_like?(:time)
+      assert ActiveSupport::TimeWithZone.new(DateTime.civil(2000), @time_zone).acts_like?(:time)
+    end
+    
+    def test_acts_like_date
+      assert_equal false, @twz.acts_like?(:date)
+      assert_equal false, ActiveSupport::TimeWithZone.new(DateTime.civil(2000), @time_zone).acts_like?(:date)
     end
     
     def test_is_a
