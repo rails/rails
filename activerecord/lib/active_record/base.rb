@@ -2461,10 +2461,10 @@ module ActiveRecord #:nodoc:
       end
 
       def instantiate_time_object(name, values)
-        if Time.zone && !self.class.skip_time_zone_conversion_for_attributes.include?(name.to_sym)
+        if Time.zone && self.class.time_zone_aware_attributes && !self.class.skip_time_zone_conversion_for_attributes.include?(name.to_sym)
           Time.zone.local(*values)
         else
-          @@default_timezone == :utc ? Time.utc_time(*values) : Time.local_time(*values)
+          Time.time_with_datetime_fallback(@@default_timezone, *values)
         end
       end
 

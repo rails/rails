@@ -1,5 +1,7 @@
 *SVN*
 
+* Base#instantiate_time_object only uses Time.zone when Base.time_zone_aware_attributes is true; leverages Time#time_with_datetime_fallback for readability [Geoff Buesing]
+
 * Refactor ConnectionAdapters::Column.new_time: leverage DateTime failover behavior of Time#time_with_datetime_fallback [Geoff Buesing]
 
 * Improve associations performance by using symbol callbacks instead of string callbacks. #11108 [adymo]
