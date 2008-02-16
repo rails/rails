@@ -24,6 +24,11 @@ module ActiveSupport #:nodoc:
         COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
         module ClassMethods
+          # Overriding case equality method so that it returns true for ActiveSupport::TimeWithZone instances
+          def ===(other)
+            other.is_a?(::Time)
+          end
+          
           # Return the number of days in the given month. 
           # If no year is specified, it will use the current year. 
           def days_in_month(month, year = now.year)

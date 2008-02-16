@@ -468,6 +468,12 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     end
   end
 
+  def test_case_equality
+    assert Time === Time.utc(2000)
+    assert Time === ActiveSupport::TimeWithZone.new(Time.utc(2000), TimeZone['UTC'])
+    assert_equal false, Time === DateTime.civil(2000)
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz

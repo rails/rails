@@ -1,5 +1,7 @@
 *SVN*
 
+* Time.=== returns true for TimeWithZone instances [Geoff Buesing]
+
 * TimeWithZone #+ and #- behave consistently with numeric arguments regardless of whether wrapped time is a Time or DateTime; consistenty answers false to #acts_like?(:date) [Geoff Buesing]
 
 * Add String#squish and String#squish! to remove consecutive chunks of whitespace.  #11123 [jordi, Henrik N]
