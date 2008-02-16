@@ -88,8 +88,10 @@ class ScriptaculousHelperTest < Test::Unit::TestCase
       drop_receiving_element("droptarget1", :accept => 'products', :update => 'infobox')
     assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nDroppables.add(\"droptarget1\", {accept:['tshirts','mugs'], onDrop:function(element){new Ajax.Updater('infobox', 'http://www.example.com/', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}})\n//]]>\n</script>),
       drop_receiving_element("droptarget1", :accept => ['tshirts','mugs'], :update => 'infobox')
-  end
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nDroppables.add("droptarget1", {hoverclass:'dropready', onDrop:function(element){if (confirm('Are you sure?')) { new Ajax.Request('http://www.example.com/update_drop', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)}); }}})\n//]]>\n</script>),
+    drop_receiving_element('droptarget1', :hoverclass=>'dropready', :url=>{:action=>'update_drop'}, :confirm => 'Are you sure?')
 
+  end
   def protect_against_forgery?
     false
   end

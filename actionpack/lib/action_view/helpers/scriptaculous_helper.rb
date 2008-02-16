@@ -192,6 +192,9 @@ module ActionView
         options[:accept] = array_or_string_for_javascript(options[:accept]) if options[:accept]    
         options[:hoverclass] = "'#{options[:hoverclass]}'" if options[:hoverclass]
         
+        # Confirmation happens during the onDrop callback, so it can be removed from the options
+        options.delete(:confirm) if options[:confirm]
+
         %(Droppables.add(#{element_id.to_json}, #{options_for_javascript(options)});)
       end
     end
