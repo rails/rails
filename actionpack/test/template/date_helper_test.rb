@@ -18,81 +18,101 @@ class DateHelperTest < Test::Unit::TestCase
       end
     end
   end
+  
+  def assert_distance_of_time_in_words(from, to=nil)
+    to ||= from
+
+    # 0..1 with include_seconds
+    assert_equal "less than 5 seconds", distance_of_time_in_words(from, to + 0.seconds, true)
+    assert_equal "less than 5 seconds", distance_of_time_in_words(from, to + 4.seconds, true)
+    assert_equal "less than 10 seconds", distance_of_time_in_words(from, to + 5.seconds, true)
+    assert_equal "less than 10 seconds", distance_of_time_in_words(from, to + 9.seconds, true)
+    assert_equal "less than 20 seconds", distance_of_time_in_words(from, to + 10.seconds, true)
+    assert_equal "less than 20 seconds", distance_of_time_in_words(from, to + 19.seconds, true)
+    assert_equal "half a minute", distance_of_time_in_words(from, to + 20.seconds, true)
+    assert_equal "half a minute", distance_of_time_in_words(from, to + 39.seconds, true)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 40.seconds, true)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 59.seconds, true)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 60.seconds, true)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 89.seconds, true)
+
+    # First case 0..1
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 0.seconds)
+    assert_equal "less than a minute", distance_of_time_in_words(from, to + 29.seconds)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 30.seconds)
+    assert_equal "1 minute", distance_of_time_in_words(from, to + 1.minutes + 29.seconds)
+
+    # 2..44
+    assert_equal "2 minutes", distance_of_time_in_words(from, to + 1.minutes + 30.seconds)
+    assert_equal "44 minutes", distance_of_time_in_words(from, to + 44.minutes + 29.seconds)
+
+    # 45..89
+    assert_equal "about 1 hour", distance_of_time_in_words(from, to + 44.minutes + 30.seconds)
+    assert_equal "about 1 hour", distance_of_time_in_words(from, to + 89.minutes + 29.seconds)
+
+    # 90..1439
+    assert_equal "about 2 hours", distance_of_time_in_words(from, to + 89.minutes + 30.seconds)
+    assert_equal "about 24 hours", distance_of_time_in_words(from, to + 23.hours + 59.minutes + 29.seconds)
+
+    # 1440..2879
+    assert_equal "1 day", distance_of_time_in_words(from, to + 23.hours + 59.minutes + 30.seconds)
+    assert_equal "1 day", distance_of_time_in_words(from, to + 47.hours + 59.minutes + 29.seconds)
+
+    # 2880..43199
+    assert_equal "2 days", distance_of_time_in_words(from, to + 47.hours + 59.minutes + 30.seconds)
+    assert_equal "29 days", distance_of_time_in_words(from, to + 29.days + 23.hours + 59.minutes + 29.seconds)
+
+    # 43200..86399
+    assert_equal "about 1 month", distance_of_time_in_words(from, to + 29.days + 23.hours + 59.minutes + 30.seconds)
+    assert_equal "about 1 month", distance_of_time_in_words(from, to + 59.days + 23.hours + 59.minutes + 29.seconds)
+
+    # 86400..525599
+    assert_equal "2 months", distance_of_time_in_words(from, to + 59.days + 23.hours + 59.minutes + 30.seconds)
+    assert_equal "12 months", distance_of_time_in_words(from, to + 1.years - 31.seconds)
+
+    # 525600..1051199
+    assert_equal "about 1 year", distance_of_time_in_words(from, to + 1.years - 30.seconds)
+    assert_equal "about 1 year", distance_of_time_in_words(from, to + 2.years - 31.seconds)
+
+    # > 1051199
+    assert_equal "over 2 years", distance_of_time_in_words(from, to + 2.years + 30.seconds)
+    assert_equal "over 10 years", distance_of_time_in_words(from, to + 10.years)
+
+    # test to < from
+    assert_equal "about 4 hours", distance_of_time_in_words(from + 4.hours, to)
+    assert_equal "less than 20 seconds", distance_of_time_in_words(from + 19.seconds, to, true)
+  end
 
   def test_distance_in_words
     from = Time.mktime(2004, 6, 6, 21, 45, 0)
-
-    # 0..1 with include_seconds
-    assert_equal "less than 5 seconds", distance_of_time_in_words(from, from + 0.seconds, true)
-    assert_equal "less than 5 seconds", distance_of_time_in_words(from, from + 4.seconds, true)
-    assert_equal "less than 10 seconds", distance_of_time_in_words(from, from + 5.seconds, true)
-    assert_equal "less than 10 seconds", distance_of_time_in_words(from, from + 9.seconds, true)
-    assert_equal "less than 20 seconds", distance_of_time_in_words(from, from + 10.seconds, true)
-    assert_equal "less than 20 seconds", distance_of_time_in_words(from, from + 19.seconds, true)
-    assert_equal "half a minute", distance_of_time_in_words(from, from + 20.seconds, true)
-    assert_equal "half a minute", distance_of_time_in_words(from, from + 39.seconds, true)
-    assert_equal "less than a minute", distance_of_time_in_words(from, from + 40.seconds, true)
-    assert_equal "less than a minute", distance_of_time_in_words(from, from + 59.seconds, true)
-    assert_equal "1 minute", distance_of_time_in_words(from, from + 60.seconds, true)
-    assert_equal "1 minute", distance_of_time_in_words(from, from + 89.seconds, true)
-
-    # First case 0..1
-    assert_equal "less than a minute", distance_of_time_in_words(from, from + 0.seconds)
-    assert_equal "less than a minute", distance_of_time_in_words(from, from + 29.seconds)
-    assert_equal "1 minute", distance_of_time_in_words(from, from + 30.seconds)
-    assert_equal "1 minute", distance_of_time_in_words(from, from + 1.minutes + 29.seconds)
-
-    # 2..44
-    assert_equal "2 minutes", distance_of_time_in_words(from, from + 1.minutes + 30.seconds)
-    assert_equal "44 minutes", distance_of_time_in_words(from, from + 44.minutes + 29.seconds)
-
-    # 45..89
-    assert_equal "about 1 hour", distance_of_time_in_words(from, from + 44.minutes + 30.seconds)
-    assert_equal "about 1 hour", distance_of_time_in_words(from, from + 89.minutes + 29.seconds)
-
-    # 90..1439
-    assert_equal "about 2 hours", distance_of_time_in_words(from, from + 89.minutes + 30.seconds)
-    assert_equal "about 24 hours", distance_of_time_in_words(from, from + 23.hours + 59.minutes + 29.seconds)
-
-    # 1440..2879
-    assert_equal "1 day", distance_of_time_in_words(from, from + 23.hours + 59.minutes + 30.seconds)
-    assert_equal "1 day", distance_of_time_in_words(from, from + 47.hours + 59.minutes + 29.seconds)
-
-    # 2880..43199
-    assert_equal "2 days", distance_of_time_in_words(from, from + 47.hours + 59.minutes + 30.seconds)
-    assert_equal "29 days", distance_of_time_in_words(from, from + 29.days + 23.hours + 59.minutes + 29.seconds)
-
-    # 43200..86399
-    assert_equal "about 1 month", distance_of_time_in_words(from, from + 29.days + 23.hours + 59.minutes + 30.seconds)
-    assert_equal "about 1 month", distance_of_time_in_words(from, from + 59.days + 23.hours + 59.minutes + 29.seconds)
-
-    # 86400..525599
-    assert_equal "2 months", distance_of_time_in_words(from, from + 59.days + 23.hours + 59.minutes + 30.seconds)
-    assert_equal "12 months", distance_of_time_in_words(from, from + 1.years - 31.seconds)
-
-    # 525600..1051199
-    assert_equal "about 1 year", distance_of_time_in_words(from, from + 1.years - 30.seconds)
-    assert_equal "about 1 year", distance_of_time_in_words(from, from + 2.years - 31.seconds)
-
-    # > 1051199
-    assert_equal "over 2 years", distance_of_time_in_words(from, from + 2.years + 30.seconds)
-    assert_equal "over 10 years", distance_of_time_in_words(from, from + 10.years)
-
-    # test to < from
-    assert_equal "about 4 hours", distance_of_time_in_words(from + 4.hours, from)
-    assert_equal "less than 20 seconds", distance_of_time_in_words(from + 19.seconds, from, true)
-
-    # test with integers
-    assert_equal "less than a minute", distance_of_time_in_words(59)
-    assert_equal "about 1 hour", distance_of_time_in_words(60*60)
-    assert_equal "less than a minute", distance_of_time_in_words(0, 59)
-    assert_equal "about 1 hour", distance_of_time_in_words(60*60, 0)
+    assert_distance_of_time_in_words(from)
   end
-
+  
+  def test_distance_in_words_with_time_zones
+    from = Time.mktime(2004, 6, 6, 21, 45, 0)
+    assert_distance_of_time_in_words(from.in_time_zone('Alaska'))
+    assert_distance_of_time_in_words(from.in_time_zone('Hawaii'))
+  end
+  
+  def test_distance_in_words_with_different_time_zones
+    from = Time.mktime(2004, 6, 6, 21, 45, 0)
+    assert_distance_of_time_in_words(
+      from.in_time_zone('Alaska'),
+      from.in_time_zone('Hawaii')
+    )
+  end
+  
   def test_distance_in_words_with_dates
     start_date = Date.new 1975, 1, 31
     end_date = Date.new 1977, 1, 31
     assert_equal("over 2 years", distance_of_time_in_words(start_date, end_date))
+  end
+  
+  def test_distance_in_words_with_integers
+    assert_equal "less than a minute", distance_of_time_in_words(59)
+    assert_equal "about 1 hour", distance_of_time_in_words(60*60)
+    assert_equal "less than a minute", distance_of_time_in_words(0, 59)
+    assert_equal "about 1 hour", distance_of_time_in_words(60*60, 0)
   end
 
   def test_time_ago_in_words

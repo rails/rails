@@ -1,5 +1,7 @@
 *SVN*
 
+* Tests for distance_of_time_in_words with TimeWithZone instances. Closes #10914 [ernesto.jimenez]
+
 * Remove support for multivalued (e.g., '&'-delimited) cookies. [Jamis Buck]
 
 * Fix problem with render :partial collections, records, and locals. #11057 [lotswholetime] 
