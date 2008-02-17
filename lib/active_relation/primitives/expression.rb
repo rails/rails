@@ -1,23 +1,24 @@
 module ActiveRelation
-  class Expression
+  class Expression < Attribute
     include Sql::Quoting
     
-    attr_reader :attribute, :function_sql, :alias, :ancestor
+    attr_reader :attribute, :function_sql
     delegate :relation, :to => :attribute
+    alias_method :name, :alias
     
     def initialize(attribute, function_sql, aliaz = nil, ancestor = nil)
       @attribute, @function_sql, @alias, @ancestor = attribute, function_sql, aliaz, ancestor
     end
 
     module Transformations
-      def bind(new_relation)
-        new_relation == relation ? self : Expression.new(attribute.bind(new_relation), function_sql, @alias, self)
-      end
-    
       def as(aliaz)
         Expression.new(attribute, function_sql, aliaz, self)
       end
       
+      def bind(new_relation)
+        new_relation == relation ? self : Expression.new(attribute.bind(new_relation), function_sql, @alias, self)
+      end
+          
       def to_attribute
         Attribute.new(relation, @alias, nil, self)
       end
@@ -29,20 +30,12 @@ module ActiveRelation
     end
     
     def ==(other)
-      self.class == other.class and attribute == other.attribute and function_sql == other.function_sql and ancestor == other.ancestor and @alias == other.alias
+      self.class    == other.class          and
+      attribute     == other.attribute      and
+      function_sql  == other.function_sql   and
+      ancestor      == other.ancestor       and
+      @alias        == other.alias
     end
     alias_method :eql?, :==
-    
-    def =~(other)
-      !(history & other.send(:history)).empty?
-    end
-
-    def hash
-      attribute.hash + function_sql.hash
-    end
-    
-    def history
-      [self] + (ancestor ? [ancestor, ancestor.send(:history)].flatten : [])
-    end
   end
 end

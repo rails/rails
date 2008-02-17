@@ -34,11 +34,11 @@ module ActiveRelation
     end
 
     def ==(other)
-      self.class == other.class and
-        relation == other.relation and
-        name     == other.name and
-        @alias   == other.alias and
-        ancestor == other.ancestor
+      self.class  == other.class     and
+      relation    == other.relation  and
+      name        == other.name      and
+      @alias      == other.alias     and
+      ancestor    == other.ancestor
     end
     alias_method :eql?, :==
     

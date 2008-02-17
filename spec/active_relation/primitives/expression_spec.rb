@@ -34,6 +34,12 @@ module ActiveRelation
           @expression.to_attribute.should == Attribute.new(@expression.relation, @expression.alias, nil, @expression)
         end
       end
+      
+      describe '#qualify' do
+        it "manufactures an expression aliased with that expression's qualified name" do
+          @expression.qualify.should == Expression.new(@attribute, "COUNT", @expression.qualified_name, @expression)
+        end
+      end
     end
     
     describe '=~' do

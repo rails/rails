@@ -29,7 +29,7 @@ module ActiveRelation
       end
     
       describe '#qualify' do
-        it "manufactures an attribute aliased with that attributes qualified name" do
+        it "manufactures an attribute aliased with that attribute's qualified name" do
           @attribute.qualify.should == Attribute.new(@attribute.relation, @attribute.name, @attribute.qualified_name, @attribute)
         end
       end
