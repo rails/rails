@@ -26,7 +26,7 @@ class TopicManualObserver
   end
 end
 
-class TopicaObserver < ActiveRecord::Observer
+class TopicaAuditor < ActiveRecord::Observer
   observe :topic
 
   attr_reader :topic
@@ -95,7 +95,9 @@ class LifecycleTest < ActiveRecord::TestCase
   end
 
   def test_auto_observer
-    topic_observer = TopicaObserver.instance
+    topic_observer = TopicaAuditor.instance
+    assert_nil TopicaAuditor.observed_class
+    assert_equal [Topic], TopicaAuditor.instance.observed_classes.to_a
 
     topic = Topic.find(1)
     assert_equal topic.title, topic_observer.topic.title
@@ -103,6 +105,7 @@ class LifecycleTest < ActiveRecord::TestCase
 
   def test_inferred_auto_observer
     topic_observer = TopicObserver.instance
+    assert_equal Topic, TopicObserver.observed_class
 
     topic = Topic.find(1)
     assert_equal topic.title, topic_observer.topic.title
@@ -133,9 +136,5 @@ class LifecycleTest < ActiveRecord::TestCase
 
   def test_invalid_observer
     assert_raise(ArgumentError) { Topic.observers = Object.new; Topic.instantiate_observers }
-  end
-
-  def test_getting_observed_class_from_class_name
-    assert_equal Topic, TopicObserver.observed_class
   end
 end

@@ -153,7 +153,7 @@ module ActiveRecord
       # The class observed by default is inferred from the observer's class name:
       #   assert_equal Person, PersonObserver.observed_class
       def observed_class
-        if observed_class_name = /(.*)Observer/.match(name)[1]
+        if observed_class_name = name[/(.*)Observer/, 1]
           observed_class_name.constantize
         else
           nil
