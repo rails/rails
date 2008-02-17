@@ -16,8 +16,8 @@ Rails::Initializer.run do |config|
   # -- all .rb files in that directory are automatically loaded.
   # See Rails::Configuration for more options.
 
-  # Skip frameworks you're not going to use (only works if using vendor/rails).
-  # To use Rails without a database, you must remove the Active Record framework
+  # Skip frameworks you're not going to use. To use Rails without a database
+  # you must remove the Active Record framework.
   # config.frameworks -= [ :active_record, :active_resource, :action_mailer ]
 
   # Only load the plugins named here, in the order given. By default, all plugins 
