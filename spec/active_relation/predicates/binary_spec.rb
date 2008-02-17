@@ -41,7 +41,7 @@ module ActiveRelation
     end
   
     describe '#to_sql' do
-      it 'manufactures correct sql' do
+      it 'manufactures sql with a binary operation' do
         ConcreteBinary.new(@attribute1, @attribute2).to_sql.should be_like("""
           `users`.`id` <=> `photos`.`id`
         """)

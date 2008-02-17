@@ -44,6 +44,12 @@ module ActiveRelation
           FROM `users`
         """)
       end
+      
+      it "manufactures sql with scalar selects" do
+        Projection.new(@relation, Projection.new(@relation, @relation[:name])).to_sql.should be_like("""
+          SELECT (SELECT `users`.`name` FROM `users`) FROM `users`
+        """)
+      end
     end
   end
 end
