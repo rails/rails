@@ -36,6 +36,5 @@ module ActiveRelation
       ancestor      == other.ancestor       and
       @alias        == other.alias
     end
-    alias_method :eql?, :==
   end
 end

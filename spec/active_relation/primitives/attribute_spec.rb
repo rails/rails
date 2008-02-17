@@ -47,14 +47,16 @@ module ActiveRelation
       end
     end
     
-    describe '=~' do
-      it "obtains if the attributes are identical" do
-        Attribute.new(@relation, :name).should =~ Attribute.new(@relation, :name)
-      end
+    describe Attribute::Congruence do
+      describe '=~' do
+        it "obtains if the attributes are identical" do
+          Attribute.new(@relation, :name).should =~ Attribute.new(@relation, :name)
+        end
       
-      it "obtains if the attributes have an overlapping history" do
-        Attribute.new(@relation, :name, nil, Attribute.new(@relation, :name)).should =~ Attribute.new(@relation, :name)
-        Attribute.new(@relation, :name).should =~ Attribute.new(@relation, :name, nil, Attribute.new(@relation, :name))
+        it "obtains if the attributes have an overlapping history" do
+          Attribute.new(@relation, :name, nil, Attribute.new(@relation, :name)).should =~ Attribute.new(@relation, :name)
+          Attribute.new(@relation, :name).should =~ Attribute.new(@relation, :name, nil, Attribute.new(@relation, :name))
+        end
       end
     end
     

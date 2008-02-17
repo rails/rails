@@ -40,11 +40,27 @@ module ActiveRelation
       @alias      == other.alias     and
       ancestor    == other.ancestor
     end
-    alias_method :eql?, :==
     
-    def =~(other)
-      !(history & other.send(:history)).empty?
+    module Congruence
+      def self.included(klass)
+        klass.class_eval do
+          alias_method :eql?, :==
+        end
+      end
+      
+      def hash
+        relation.hash + name.hash
+      end
+      
+      def history
+        [self] + (ancestor ? [ancestor, ancestor.send(:history)].flatten : [])
+      end
+      
+      def =~(other)
+        !(history & other.send(:history)).empty?
+      end
     end
+    include Congruence
     
     module Predications
       def equals(other)
@@ -100,17 +116,9 @@ module ActiveRelation
       strategy.attribute prefix, name, self.alias
     end
     
-    def hash
-      relation.hash + name.hash
-    end
-    
     private
     def prefix
       relation.prefix_for(self)
-    end
-    
-    def history
-      [self] + (ancestor ? [ancestor, ancestor.send(:history)].flatten : [])
     end
   end
 end
