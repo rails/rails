@@ -27,7 +27,7 @@ module ActiveRelation
       
       describe 'when given an', Expression do
         before do
-          @expression = Expression.new(Attribute.new(@relation, :id), "COUNT")
+          @expression = @relation[:id].count
         end
         
         it "returns the Expression if the Expression is within the relation" do
@@ -46,14 +46,15 @@ module ActiveRelation
     end
     
     describe '#prefix_for' do
-      it "returns the table name" do
-        @relation.prefix_for(Attribute.new(@relation, :id)).should == :users
+      it "returns the table name if the relation contains the attribute" do
+        @relation.prefix_for(@relation[:id]).should == :users
+        @relation.prefix_for(:does_not_exist).should be_nil
       end
     end
     
     describe '#aliased_prefix_for' do
       it "returns the table name" do
-        @relation.aliased_prefix_for(Attribute.new(@relation, :id)).should == :users
+        @relation.aliased_prefix_for(@relation[:id]).should == :users
       end
     end
   

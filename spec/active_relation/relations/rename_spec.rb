@@ -3,44 +3,51 @@ require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 module ActiveRelation
   describe Rename do
     before do
-      @relation1 = Table.new(:users)
-      @relation2 = Table.new(:photos)
-      @renamed_relation = Rename.new(@relation1, @relation1[:id] => :schmid)
+      @relation = Table.new(:users)
     end
 
     describe '#initialize' do
       it "manufactures nested rename relations if multiple renames are provided" do
-        Rename.new(@relation1, @relation1[:id] => :humpty, @relation1[:name] => :dumpty). \
-          should == Rename.new(Rename.new(@relation1, @relation1[:name] => :dumpty), @relation1[:id] => :humpty)
+        Rename.new(@relation, @relation[:id] => :humpty, @relation[:name] => :dumpty). \
+          should == Rename.new(Rename.new(@relation, @relation[:name] => :dumpty), @relation[:id] => :humpty)
       end
     end
     
     describe '==' do
+      before do
+        @another_relation = Table.new(:photos)
+      end
+      
       it "obtains if the relation, attribute, and rename are identical" do
-        Rename.new(@relation1, @relation1[:id] => :humpty).should == Rename.new(@relation1, @relation1[:id] => :humpty)
-        Rename.new(@relation1, @relation1[:id] => :humpty).should_not == Rename.new(@relation1, @relation1[:id] => :dumpty)
-        Rename.new(@relation1, @relation1[:id] => :humpty).should_not == Rename.new(@relation2, @relation2[:id] => :humpty)
+        Rename.new(@relation, @relation[:id] => :humpty).should == Rename.new(@relation, @relation[:id] => :humpty)
+        Rename.new(@relation, @relation[:id] => :humpty).should_not == Rename.new(@relation, @relation[:id] => :dumpty)
+        Rename.new(@relation, @relation[:id] => :humpty).should_not == Rename.new(@another_relation, @relation[:id] => :humpty)
       end
     end
   
     describe '#attributes' do
+      before do
+        @renamed_relation = Rename.new(@relation, @relation[:id] => :schmid)
+      end
+      
       it "manufactures a list of attributes with the renamed attribute renameed" do
-        @renamed_relation.attributes.should include(@renamed_relation[:schmid])
-        @renamed_relation.should have(@relation1.attributes.size).attributes
-        pending "this should be more rigorous"
+        @renamed_relation.attributes.should include(@relation[:id].as(:schmid).bind(@renamed_relation))
+        @renamed_relation.attributes.should_not include(@relation[:id].bind(@renamed_relation))
+        @renamed_relation.attributes.should include(@relation[:name].bind(@renamed_relation))
+        @renamed_relation.should have(@relation.attributes.size).attributes
       end
     end
   
     describe '#qualify' do
       it "distributes over the relation and renames" do
-        Rename.new(@relation1, @relation1[:id] => :schmid).qualify. \
-          should == Rename.new(@relation1.qualify, @relation1[:id].qualify => :schmid)
+        Rename.new(@relation, @relation[:id] => :schmid).qualify. \
+          should == Rename.new(@relation.qualify, @relation[:id].qualify => :schmid)
       end
     end
   
     describe '#to_sql' do
       it 'manufactures sql renaming the attribute' do
-        @renamed_relation.to_sql.should be_like("""
+        Rename.new(@relation, @relation[:id] => :schmid).to_sql.should be_like("""
           SELECT `users`.`id` AS 'schmid', `users`.`name`
           FROM `users`
         """)

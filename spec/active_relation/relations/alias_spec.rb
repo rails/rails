@@ -16,6 +16,7 @@ module ActiveRelation
     describe '#aliased_prefix_for' do
       it "returns the alias" do
         @alias_relation.aliased_prefix_for(@relation[:id]).should == :foo
+        @alias_relation.aliased_prefix_for(:does_not_exist).should be_nil
       end
     end
   end

@@ -21,7 +21,6 @@ module ActiveRelation
       expressions.collect { |e| e.bind(self) }
     end
     
-    protected
     def aggregation?
       true
     end

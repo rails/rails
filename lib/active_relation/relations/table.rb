@@ -17,7 +17,7 @@ module ActiveRelation
     end
     
     def prefix_for(attribute)
-      name
+      self[attribute] and name
     end
     alias_method :aliased_prefix_for, :prefix_for
         

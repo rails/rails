@@ -20,20 +20,22 @@ module ActiveRelation
     
     def attributes
       [
-        relation1.aggregation?? relation1.attributes.collect(&:to_attribute) : relation1.attributes,
-        relation2.aggregation?? relation2.attributes.collect(&:to_attribute) : relation2.attributes,
+        relation1.attributes.collect(&:to_attribute),
+        relation2.attributes.collect(&:to_attribute),
       ].flatten.collect { |a| a.bind(self) }
     end
     
     def prefix_for(attribute)
-      (relation1[attribute] && relation1.aliased_prefix_for(attribute)) ||
-        (relation2[attribute] && relation2.aliased_prefix_for(attribute))
+      relation1.aliased_prefix_for(attribute) or
+      relation2.aliased_prefix_for(attribute)
     end
     alias_method :aliased_prefix_for, :prefix_for
 
     protected
     def joins
-      [relation1.joins, relation2.joins, join].compact.join(" ")
+      right_table_sql = relation2.aggregation?? relation2.to_sql(Sql::Aggregation.new) : relation2.send(:table_sql)
+      this_join = [join_sql, right_table_sql, "ON", predicates.collect { |p| p.bind(self).to_sql(Sql::Predicate.new) }.join(' AND ')].join(" ")
+      [relation1.joins, relation2.joins, this_join].compact.join(" ")
     end
 
     def selects
@@ -45,15 +47,6 @@ module ActiveRelation
    
     def table_sql
       relation1.aggregation?? relation1.to_sql(Sql::Aggregation.new) : relation1.send(:table_sql)
-    end
-    
-    private
-    def join
-      [join_sql, right_table_sql, "ON", predicates.collect { |p| p.bind(self).to_sql(Sql::Predicate.new) }.join(' AND ')].join(" ")
-    end
-    
-    def right_table_sql
-      relation2.aggregation?? relation2.to_sql(Sql::Aggregation.new) : relation2.send(:table_sql)
     end
   end
 end

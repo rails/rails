@@ -3,10 +3,10 @@ require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 module ActiveRelation
   describe Binary do
     before do
-      @relation1 = Table.new(:foo)
-      @relation2 = Table.new(:bar)
-      @attribute1 = Attribute.new(@relation1, :name1)
-      @attribute2 = Attribute.new(@relation2, :name2)
+      @relation1 = Table.new(:users)
+      @relation2 = Table.new(:photos)
+      @attribute1 = @relation1[:id]
+      @attribute2 = @relation2[:id]
       class ConcreteBinary < Binary
         def predicate_sql
           "<=>"
@@ -43,7 +43,7 @@ module ActiveRelation
     describe '#to_sql' do
       it 'manufactures correct sql' do
         ConcreteBinary.new(@attribute1, @attribute2).to_sql.should be_like("""
-          `foo`.`name1` <=> `bar`.`name2`
+          `users`.`id` <=> `photos`.`id`
         """)
       end
     end

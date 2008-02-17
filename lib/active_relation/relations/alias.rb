@@ -3,7 +3,7 @@ module ActiveRelation
     attr_reader :alias
     
     def aliased_prefix_for(attribute)
-      @alias
+      self[attribute] and @alias
     end
 
     def initialize(relation, aliaz)

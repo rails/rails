@@ -62,12 +62,16 @@ module ActiveRelation
     
     describe '#to_sql' do
       describe Sql::Strategy do
+        before do
+          stub(@relation).prefix_for(anything) { 'bruisers' }
+        end
+        
         it "manufactures sql without an alias if the strategy is Predicate" do
-          Attribute.new(@relation, :name, :alias).to_sql(Sql::Predicate.new).should be_like("`users`.`name`")
+          Attribute.new(@relation, :name, :alias).to_sql(Sql::Predicate.new).should be_like("`bruisers`.`name`")
         end
       
         it "manufactures sql with an alias if the strategy is Projection" do
-          Attribute.new(@relation, :name, :alias).to_sql(Sql::Projection.new).should be_like("`users`.`name` AS 'alias'")
+          Attribute.new(@relation, :name, :alias).to_sql(Sql::Projection.new).should be_like("`bruisers`.`name` AS 'alias'")
         end
       end
     end
