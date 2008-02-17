@@ -125,6 +125,10 @@ module ActiveSupport
       utc <=> other
     end
     
+    def between?(min, max)
+      utc.between?(min, max)
+    end
+    
     def eql?(other)
       utc == other
     end
@@ -160,7 +164,7 @@ module ActiveSupport
     alias_method :hash, :to_i
     alias_method :tv_sec, :to_i
   
-    # A TimeProxy acts like a Time, so just return self
+    # A TimeWithZone acts like a Time, so just return self
     def to_time
       self
     end

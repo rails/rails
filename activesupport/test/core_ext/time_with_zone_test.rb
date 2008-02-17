@@ -116,6 +116,11 @@ uses_tzinfo 'TimeWithZoneTest' do
       assert_equal(-1, @twz <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1), TimeZone['UTC'] ))
     end
     
+    def test_between?
+      assert @twz.between?(Time.utc(1999,12,31,23,59,59), Time.utc(2000,1,1,0,0,1))
+      assert_equal false, @twz.between?(Time.utc(2000,1,1,0,0,1), Time.utc(2000,1,1,0,0,2))
+    end
+    
     def test_eql?
       assert @twz.eql?(Time.utc(2000))
       assert @twz.eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), TimeZone["Hawaii"]) )
