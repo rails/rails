@@ -17,7 +17,7 @@ module ActiveSupport
         addresses = addresses.flatten
         addresses = ["localhost"] if addresses.empty?
         @addresses = addresses
-        @data = MemCache.new(*addresses)
+        @data = MemCache.new(addresses)
       end
 
       def read(key, options = nil)
