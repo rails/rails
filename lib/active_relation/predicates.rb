@@ -15,17 +15,22 @@ module ActiveRelation
     def ==(other)
       super and @attribute == other.attribute and @operand == other.operand
     end
-
-    def qualify
-      self.class.new(attribute.qualify, operand.qualify)
-    end
     
     def bind(relation)
-      self.class.new(attribute.bind(relation), operand.bind(relation))
+      __collect__{ |x| x.bind(relation) }
+    end
+    
+    def qualify
+      __collect__(&:qualify)
     end
 
     def to_sql(strategy = Sql::Predicate.new)
       "#{attribute.to_sql(strategy)} #{predicate_sql} #{operand.to_sql(strategy)}"
+    end
+    
+    protected
+    def __collect__
+      self.class.new(yield(attribute), yield(operand))
     end
   end
 

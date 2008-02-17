@@ -12,14 +12,15 @@ module ActiveRelation
       relation   == other.relation and
       predicate  == other.predicate
     end
-
-    def qualify
-      Selection.new(relation.qualify, predicate.qualify)
-    end
-
+    
     protected
     def selects
       relation.send(:selects) + [predicate]
     end
+    
+    def __collect__(&block)
+      Selection.new(relation.__collect__(&block), yield(predicate))
+    end
+    
   end
 end

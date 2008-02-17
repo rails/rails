@@ -19,8 +19,9 @@ module ActiveRelation
       range.begin
     end
     
-    def qualify
-      Range.new(relation.qualify, range)
+    protected
+    def __collect__(&block)
+      Range.new(relation.__collect__(&block), range)
     end
   end
 end

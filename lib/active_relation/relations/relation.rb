@@ -104,6 +104,10 @@ module ActiveRelation
     alias_method :to_s, :to_sql
   
     protected
+    def __collect__
+      yield self
+    end
+    
     def connection
       ActiveRecord::Base.connection
     end

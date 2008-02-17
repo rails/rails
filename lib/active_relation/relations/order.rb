@@ -11,8 +11,9 @@ module ActiveRelation
       orders   == other.orders
     end
 
-    def qualify
-      Order.new(relation.qualify, *orders.collect(&:qualify))
+    protected
+    def __collect__(&block)
+      Order.new(relation.__collect__(&block), *orders.collect(&block))
     end
   end
 end

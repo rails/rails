@@ -25,7 +25,7 @@ module ActiveRelation
     def table_sql
       "#{quote_table_name(name)}"
     end
-
+    
     private
     def qualifications
       attributes.zip(attributes.collect(&:qualified_name)).to_hash

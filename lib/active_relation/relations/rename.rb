@@ -13,13 +13,14 @@ module ActiveRelation
       attribute  == other.attribute and
       pseudonym  == other.pseudonym
     end
-
-    def qualify
-      Rename.new(relation.qualify, attribute.qualify => pseudonym)
-    end
     
     def attributes
       relation.attributes.collect(&method(:baptize))
+    end
+    
+    protected
+    def __collect__(&block)
+      Rename.new(relation.__collect__(&block), yield(attribute) => pseudonym)
     end
     
     private

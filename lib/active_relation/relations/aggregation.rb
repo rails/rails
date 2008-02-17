@@ -7,14 +7,10 @@ module ActiveRelation
     end
 
     def ==(other)
-      self.class  == other.class and
-      relation    == other.relation and
-      groupings   == other.groupings and
+      self.class  == other.class      and
+      relation    == other.relation   and
+      groupings   == other.groupings  and
       expressions == other.expressions
-    end
-
-    def qualify
-      Aggregation.new(relation.qualify, :expressions => expressions.collect(&:qualify), :groupings => groupings.collect(&:qualify))
     end
     
     def attributes
@@ -23,6 +19,11 @@ module ActiveRelation
     
     def aggregation?
       true
+    end
+    
+    protected
+    def __collect__(&block)
+      Aggregation.new(relation.__collect__(&block), :expressions => expressions.collect(&block), :groupings => groupings.collect(&block))
     end
   end
 end

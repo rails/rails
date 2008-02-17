@@ -15,9 +15,10 @@ module ActiveRelation
       relation    == other.relation and
       projections == other.projections
     end
-
-    def qualify
-      Projection.new(relation.qualify, *projections.collect(&:qualify))
+    
+    protected
+    def __collect__(&block)
+      Projection.new(relation.__collect__(&block), *projections.collect(&block))
     end
   end
 end

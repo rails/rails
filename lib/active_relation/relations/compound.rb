@@ -8,5 +8,9 @@ module ActiveRelation
     def attributes
       relation.attributes.collect { |a| a.bind(self) }
     end
+    
+    def qualify
+      __collect__(&:qualify)
+    end
   end
 end
