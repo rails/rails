@@ -25,7 +25,7 @@ module ActiveRelation
       
       describe '#as' do
         it "manufactures an aliased expression" do
-          @expression.as(:foo).should == Expression.new(@attribute, "COUNT", :foo, @expression)
+          @expression.as(:alias).should == Expression.new(@attribute, "COUNT", :alias, @expression)
         end
       end
       

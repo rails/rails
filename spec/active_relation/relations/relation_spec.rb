@@ -3,68 +3,79 @@ require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 module ActiveRelation
   describe Relation do
     before do
-      @relation1 = Table.new(:foo)
-      @relation2 = Table.new(:bar)
-      @attribute1 = Attribute.new(@relation1, :id)
-      @attribute2 = Attribute.new(@relation1, :name)
+      @relation = Table.new(:users)
+      @attribute1 = @relation[:id]
+      @attribute2 = @relation[:name]
     end
   
     describe '[]' do
-      it "manufactures a range relation when given a range" do
-        @relation1[1..2].should == Range.new(@relation1, 1..2)
+      describe 'when given a', Range do
+        it "manufactures a range relation when given a range" do
+          @relation[1..2].should == Range.new(@relation, 1..2)
+        end
       end
       
-      it "needs to test attributes and names" do
-        pending
+      describe 'when given an', Attribute do
+        it "return the attribute congruent to the provided attribute" do
+          @relation[@attribute1].should == @attribute1
+        end
+      end
+      
+      describe 'when given a', Symbol, String do
+        it "returns the attribute with the same name, if it exists" do
+          @relation[:id].should == @attribute1
+          @relation['id'].should == @attribute1
+          @relation[:does_not_exist].should be_nil
+        end
       end
     end
   
     describe '#include?' do
       it "manufactures an inclusion predicate" do
-        @relation1.include?(@attribute1).should be_kind_of(RelationInclusion)
+        @relation.include?(@attribute1).should be_kind_of(RelationInclusion)
       end
     end
     
     describe '#Expression?' do
       it "returns false" do
-        @relation1.should_not be_aggregation
+        @relation.should_not be_aggregation
       end
     end
 
     describe 'read operations' do
       describe 'joins' do
         before do
-          @predicate = @relation1[:id].equals(@relation2[:id])
+          @predicate = @relation[:id].equals(@relation[:id])
         end
       
         describe '#join' do
           it "manufactures an inner join operation between those two relations" do
-            @relation1.join(@relation2).on(@predicate).should == Join.new("INNER JOIN", @relation1, @relation2, @predicate)
+            @relation.join(@relation).on(@predicate).should == Join.new("INNER JOIN", @relation, @relation, @predicate)
           end
         end
     
         describe '#outer_join' do
           it "manufactures a left outer join operation between those two relations" do
-            @relation1.outer_join(@relation2).on(@predicate).should == Join.new("LEFT OUTER JOIN", @relation1, @relation2, @predicate)
+            @relation.outer_join(@relation).on(@predicate).should == Join.new("LEFT OUTER JOIN", @relation, @relation, @predicate)
           end      
         end
       end
   
       describe '#project' do
         it "manufactures a projection relation" do
-          @relation1.project(@attribute1, @attribute2).should == Projection.new(@relation1, @attribute1, @attribute2)
+          @relation.project(@attribute1, @attribute2).should == Projection.new(@relation, @attribute1, @attribute2)
         end
       end
     
       describe '#as' do
         it "manufactures an alias relation" do
-          @relation1.as(:thucydides).should == Alias.new(@relation1, :thucydides)
+          @relation.as(:thucydides).should == Alias.new(@relation, :thucydides)
         end
       end
   
       describe '#rename' do
         it "manufactures a rename relation" do
-          @relation1.rename(@attribute1, :foo).should == Rename.new(@relation1, @attribute1 => :foo)
+          @relation.rename(@attribute1, :users).should == Rename.new(@relation, @attribute1 => :users)
         end
       end
   
@@ -74,24 +85,24 @@ module ActiveRelation
         end
     
         it "manufactures a selection relation" do
-          @relation1.select(@predicate).should == Selection.new(@relation1, @predicate)
+          @relation.select(@predicate).should == Selection.new(@relation, @predicate)
         end
     
         it "accepts arbitrary strings" do
-          @relation1.select("arbitrary").should == Selection.new(@relation1, "arbitrary")
+          @relation.select("arbitrary").should == Selection.new(@relation, "arbitrary")
         end
       end
   
       describe '#order' do
         it "manufactures an order relation" do
-          @relation1.order(@attribute1, @attribute2).should == Order.new(@relation1, @attribute1, @attribute2)
+          @relation.order(@attribute1, @attribute2).should == Order.new(@relation, @attribute1, @attribute2)
         end
       end
       
       describe '#aggregate' do
         it 'manufactures a group relation' do
-          @relation1.aggregate(@expression1, @expression2).group(@attribute1, @attribute2). \
-            should == Aggregation.new(@relation1, :expressions => [@expresion, @expression2], :groupings => [@attribute1, @attribute2])
+          @relation.aggregate(@expression1, @expression2).group(@attribute1, @attribute2). \
+            should == Aggregation.new(@relation, :expressions => [@expresion, @expression2], :groupings => [@attribute1, @attribute2])
         end
       end
     end
@@ -99,13 +110,13 @@ module ActiveRelation
     describe 'write operations' do
       describe '#delete' do
         it 'manufactures a deletion relation' do
-          @relation1.delete.should be_kind_of(Deletion)
+          @relation.delete.should be_kind_of(Deletion)
         end
       end
     
       describe '#insert' do
         it 'manufactures an insertion relation' do
-          @relation1.insert(record = {:id => 1}).should be_kind_of(Insertion)
+          @relation.insert(record = {:id => 1}).should be_kind_of(Insertion)
         end
       end
     end
