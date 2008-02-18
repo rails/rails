@@ -16,7 +16,6 @@ module ActiveRelation
       projections == other.projections
     end
     
-    protected
     def descend(&block)
       Projection.new(relation.descend(&block), *projections.collect(&block))
     end

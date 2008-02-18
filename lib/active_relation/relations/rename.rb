@@ -18,7 +18,6 @@ module ActiveRelation
       relation.attributes.collect(&method(:baptize))
     end
     
-    protected
     def descend(&block)
       Rename.new(relation.descend(&block), yield(attribute) => pseudonym)
     end

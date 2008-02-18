@@ -25,13 +25,12 @@ module ActiveRelation
       end
     end
 
-    describe '#qualify' do
+    describe '#descend' do
       it 'distributes over the relations and predicates' do
         Join.new("INNER JOIN", @relation1, @relation2, @predicate).qualify. \
           should == Join.new("INNER JOIN", @relation1.qualify, @relation2.qualify, @predicate.qualify)
       end
     end
-
 
     describe '#prefix_for' do
       it 'needs a test' do

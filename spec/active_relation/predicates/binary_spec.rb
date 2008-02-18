@@ -27,8 +27,15 @@ module ActiveRelation
     end
   
     describe '#qualify' do
+      it "descends" do
+        ConcreteBinary.new(@attribute1, @attribute2).qualify \
+          .should == ConcreteBinary.new(@attribute1, @attribute2).descend(&:qualify)
+      end
+    end
+    
+    describe '#descend' do
       it "distributes over the predicates and attributes" do
-        ConcreteBinary.new(@attribute1, @attribute2).qualify. \
+        ConcreteBinary.new(@attribute1, @attribute2).descend(&:qualify). \
           should == ConcreteBinary.new(@attribute1.qualify, @attribute2.qualify)
       end
     end

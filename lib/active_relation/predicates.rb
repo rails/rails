@@ -28,7 +28,6 @@ module ActiveRelation
       "#{attribute.to_sql(strategy)} #{predicate_sql} #{operand.to_sql(strategy)}"
     end
     
-    protected
     def descend
       self.class.new(yield(attribute), yield(operand))
     end

@@ -16,9 +16,16 @@ module ActiveRelation
     end
   
     describe '#qualify' do
-      it "distributes over the relation and predicates" do
+      it "descends" do
         Selection.new(@relation, @predicate).qualify. \
-          should == Selection.new(@relation.qualify, @predicate.qualify)
+          should == Selection.new(@relation, @predicate).descend(&:qualify)
+      end
+    end
+
+    describe '#descend' do
+      it "distributes over the relation and predicates" do
+        Selection.new(@relation, @predicate).descend(&:qualify). \
+          should == Selection.new(@relation.descend(&:qualify), @predicate.descend(&:qualify))
       end
     end
   

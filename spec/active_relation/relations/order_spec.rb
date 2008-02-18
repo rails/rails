@@ -8,9 +8,16 @@ module ActiveRelation
     end
 
     describe '#qualify' do
-      it "distributes over the relation and attributes" do
+      it "descends" do
         Order.new(@relation, @attribute).qualify. \
-          should == Order.new(@relation.qualify, @attribute.qualify)
+          should == Order.new(@relation, @attribute).descend(&:qualify)
+      end
+    end
+    
+    describe '#descend' do
+      it "distributes over the relation and attributes" do
+        Order.new(@relation, @attribute).descend(&:qualify). \
+          should == Order.new(@relation.descend(&:qualify), @attribute.qualify)
       end
     end
   

@@ -13,14 +13,13 @@ module ActiveRelation
       predicate  == other.predicate
     end
     
-    protected
-    def selects
-      relation.send(:selects) + [predicate]
-    end
-    
     def descend(&block)
       Selection.new(relation.descend(&block), yield(predicate))
     end
     
+    protected
+    def selects
+      relation.send(:selects) + [predicate]
+    end    
   end
 end

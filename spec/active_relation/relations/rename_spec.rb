@@ -37,11 +37,18 @@ module ActiveRelation
         @renamed_relation.should have(@relation.attributes.size).attributes
       end
     end
-  
+
     describe '#qualify' do
-      it "distributes over the relation and renames" do
+      it "descends" do
         Rename.new(@relation, @relation[:id] => :schmid).qualify. \
-          should == Rename.new(@relation.qualify, @relation[:id].qualify => :schmid)
+          should == Rename.new(@relation, @relation[:id] => :schmid).descend(&:qualify)
+      end
+    end
+  
+    describe '#descend' do
+      it "distributes over the relation and renames" do
+        Rename.new(@relation, @relation[:id] => :schmid).descend(&:qualify). \
+          should == Rename.new(@relation.descend(&:qualify), @relation[:id].qualify => :schmid)
       end
     end
   

@@ -33,7 +33,14 @@ module ActiveRelation
     describe '#qualify' do
       it "distributes over the relation and attributes" do
         Projection.new(@relation, @attribute).qualify. \
-          should == Projection.new(@relation.qualify, @attribute.qualify)
+          should == Projection.new(@relation, @attribute).descend(&:qualify)
+      end
+    end
+    
+    describe '#descend' do
+      it "distributes over the relation and attributes" do
+        Projection.new(@relation, @attribute).descend(&:qualify). \
+          should == Projection.new(@relation.descend(&:qualify), @attribute.qualify)
       end
     end
   

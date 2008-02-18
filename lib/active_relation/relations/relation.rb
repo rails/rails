@@ -103,7 +103,6 @@ module ActiveRelation
     end
     alias_method :to_s, :to_sql
   
-    protected
     def descend
       yield self
     end

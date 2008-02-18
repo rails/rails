@@ -11,7 +11,6 @@ module ActiveRelation
       orders   == other.orders
     end
 
-    protected
     def descend(&block)
       Order.new(relation.descend(&block), *orders.collect(&block))
     end

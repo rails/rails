@@ -19,7 +19,6 @@ module ActiveRelation
       range.begin
     end
     
-    protected
     def descend(&block)
       Range.new(relation.descend(&block), range)
     end

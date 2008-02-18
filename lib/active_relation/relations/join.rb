@@ -31,6 +31,10 @@ module ActiveRelation
     end
     alias_method :aliased_prefix_for, :prefix_for
 
+    def descend(&block)
+      Join.new(join_sql, relation1.descend(&block), relation2.descend(&block), *predicates.collect(&block))
+    end
+    
     protected
     def joins
       right_table_sql = relation2.aggregation?? relation2.to_sql(Sql::Aggregation.new) : relation2.send(:table_sql)
@@ -47,10 +51,6 @@ module ActiveRelation
    
     def table_sql
       relation1.aggregation?? relation1.to_sql(Sql::Aggregation.new) : relation1.send(:table_sql)
-    end
-    
-    def descend(&block)
-      Join.new(join_sql, relation1.descend(&block), relation2.descend(&block), *predicates.collect(&block))
     end
   end
 end

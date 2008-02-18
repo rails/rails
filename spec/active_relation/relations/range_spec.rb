@@ -8,11 +8,17 @@ module ActiveRelation
     end
 
     describe '#qualify' do
-      it "distributes over the relation" do
-        Range.new(@relation, @range).qualify.should == Range.new(@relation.qualify, @range)
+      it "descends" do
+        Range.new(@relation, @range).qualify.should == Range.new(@relation, @range).descend(&:qualify)
       end
     end
-  
+    
+    describe '#descend' do
+      it "distributes over the relation" do
+        Range.new(@relation, @range).descend(&:qualify).should == Range.new(@relation.descend(&:qualify), @range)
+      end
+    end
+    
     describe '#to_sql' do
       it "manufactures sql with limit and offset" do
         range_size = @range.last - @range.first + 1

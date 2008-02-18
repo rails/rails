@@ -21,7 +21,6 @@ module ActiveRelation
       true
     end
     
-    protected
     def descend(&block)
       Aggregation.new(relation.descend(&block), :expressions => expressions.collect(&block), :groupings => groupings.collect(&block))
     end
