@@ -485,7 +485,7 @@ module ActionView
                 host.call(source)
               end
             else
-              host % (source.hash % 4)
+              (host =~ /%d/) ? host % (source.hash % 4) : host
             end
           end
         end
