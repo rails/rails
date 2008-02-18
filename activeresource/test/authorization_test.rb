@@ -45,6 +45,38 @@ class AuthorizationTest < Test::Unit::TestCase
     assert_equal ["", "test123"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
   end
   
+  def test_authorization_header_explicitly_setting_username_and_password
+    @authenticated_conn = ActiveResource::Connection.new("http://@localhost")
+    @authenticated_conn.user = 'david'
+    @authenticated_conn.password = 'test123'
+    authorization_header = @authenticated_conn.send!(:authorization_header)
+    assert_equal @authorization_request_header['Authorization'], authorization_header['Authorization']
+    authorization = authorization_header["Authorization"].to_s.split
+
+    assert_equal "Basic", authorization[0]
+    assert_equal ["david", "test123"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
+  end
+
+  def test_authorization_header_explicitly_setting_username_but_no_password
+    @conn = ActiveResource::Connection.new("http://@localhost")
+    @conn.user = "david"
+    authorization_header = @conn.send!(:authorization_header)
+    authorization = authorization_header["Authorization"].to_s.split
+
+    assert_equal "Basic", authorization[0]
+    assert_equal ["david"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
+  end
+
+  def test_authorization_header_explicitly_setting_password_but_no_username
+    @conn = ActiveResource::Connection.new("http://@localhost")
+    @conn.password = "test123"
+    authorization_header = @conn.send!(:authorization_header)
+    authorization = authorization_header["Authorization"].to_s.split
+
+    assert_equal "Basic", authorization[0]
+    assert_equal ["", "test123"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
+  end
+
   def test_get
     david = @authenticated_conn.get("/people/2.xml")
     assert_equal "David", david["name"]

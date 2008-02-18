@@ -42,6 +42,9 @@ class BaseTest < Test::Unit::TestCase
       mock.head   "/people/1/addresses/2.xml", {}, nil, 404
       mock.head   "/people/2/addresses/1.xml", {}, nil, 404
     end
+
+    Person.user = nil
+    Person.password = nil
   end
 
 
@@ -66,6 +69,38 @@ class BaseTest < Test::Unit::TestCase
     actor.site = 'http://localhost:31337'
     actor.site = nil
     assert_nil actor.site    
+  end
+
+  def test_should_accept_setting_user
+    Forum.user = 'david'
+    assert_equal('david', Forum.user)
+    assert_equal('david', Forum.connection.user)
+  end
+
+  def test_should_accept_setting_password
+    Forum.password = 'test123'
+    assert_equal('test123', Forum.password)
+    assert_equal('test123', Forum.connection.password)
+  end
+
+  def test_user_variable_can_be_reset
+    actor = Class.new(ActiveResource::Base)
+    actor.site = 'http://cinema'
+    assert_nil actor.user
+    actor.user = 'username'
+    actor.user = nil
+    assert_nil actor.user
+    assert_nil actor.connection.user
+  end
+
+  def test_password_variable_can_be_reset
+    actor = Class.new(ActiveResource::Base)
+    actor.site = 'http://cinema'
+    assert_nil actor.password
+    actor.password = 'username'
+    actor.password = nil
+    assert_nil actor.password
+    assert_nil actor.connection.password
   end
 
   def test_site_reader_uses_superclass_site_until_written
@@ -103,12 +138,88 @@ class BaseTest < Test::Unit::TestCase
     apple = Class.new(fruit)
     
     fruit.site = 'http://market'
-    assert_equal fruit.site, apple.site, 'subclass did not adopt changes to parent class'
+    assert_equal fruit.site, apple.site, 'subclass did not adopt changes from parent class'
     
     fruit.site = 'http://supermarket'
-    assert_equal fruit.site, apple.site, 'subclass did not adopt changes to parent class'    
+    assert_equal fruit.site, apple.site, 'subclass did not adopt changes from parent class'
   end
   
+  def test_user_reader_uses_superclass_user_until_written
+    # Superclass is Object so returns nil.
+    assert_nil ActiveResource::Base.user
+    assert_nil Class.new(ActiveResource::Base).user
+    Person.user = 'anonymous'
+
+    # Subclass uses superclass user.
+    actor = Class.new(Person)
+    assert_equal Person.user, actor.user
+
+    # Subclass returns frozen superclass copy.
+    assert !Person.user.frozen?
+    assert actor.user.frozen?
+
+    # Changing subclass user doesn't change superclass user.
+    actor.user = 'david'
+    assert_not_equal Person.user, actor.user
+
+    # Changing superclass user doesn't overwrite subclass user.
+    Person.user = 'john'
+    assert_not_equal Person.user, actor.user
+
+    # Changing superclass user after subclassing changes subclass user.
+    jester = Class.new(actor)
+    actor.user = 'john.doe'
+    assert_equal actor.user, jester.user
+
+    # Subclasses are always equal to superclass user when not overridden
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+
+    fruit.user = 'manager'
+    assert_equal fruit.user, apple.user, 'subclass did not adopt changes from parent class'
+
+    fruit.user = 'client'
+    assert_equal fruit.user, apple.user, 'subclass did not adopt changes from parent class'
+  end
+
+  def test_password_reader_uses_superclass_password_until_written
+    # Superclass is Object so returns nil.
+    assert_nil ActiveResource::Base.password
+    assert_nil Class.new(ActiveResource::Base).password
+    Person.password = 'my-password'
+
+    # Subclass uses superclass password.
+    actor = Class.new(Person)
+    assert_equal Person.password, actor.password
+
+    # Subclass returns frozen superclass copy.
+    assert !Person.password.frozen?
+    assert actor.password.frozen?
+
+    # Changing subclass password doesn't change superclass password.
+    actor.password = 'secret'
+    assert_not_equal Person.password, actor.password
+
+    # Changing superclass password doesn't overwrite subclass password.
+    Person.password = 'super-secret'
+    assert_not_equal Person.password, actor.password
+
+    # Changing superclass password after subclassing changes subclass password.
+    jester = Class.new(actor)
+    actor.password = 'even-more-secret'
+    assert_equal actor.password, jester.password
+
+    # Subclasses are always equal to superclass password when not overridden
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+
+    fruit.password = 'mega-secret'
+    assert_equal fruit.password, apple.password, 'subclass did not adopt changes from parent class'
+
+    fruit.password = 'ok-password'
+    assert_equal fruit.password, apple.password, 'subclass did not adopt changes from parent class'
+  end
+
   def test_updating_baseclass_site_object_wipes_descendent_cached_connection_objects
     # Subclasses are always equal to superclass site when not overridden    
     fruit = Class.new(ActiveResource::Base)
@@ -116,9 +227,44 @@ class BaseTest < Test::Unit::TestCase
     
     fruit.site = 'http://market'
     assert_equal fruit.connection.site, apple.connection.site
+    first_connection = apple.connection.object_id
     
     fruit.site = 'http://supermarket'
-    assert_equal fruit.connection.site, apple.connection.site    
+    assert_equal fruit.connection.site, apple.connection.site
+    second_connection = apple.connection.object_id
+    assert_not_equal(first_connection, second_connection, 'Connection should be re-created')
+  end
+
+  def test_updating_baseclass_user_wipes_descendent_cached_connection_objects
+    # Subclasses are always equal to superclass user when not overridden
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+    fruit.site = 'http://market'
+
+    fruit.user = 'david'
+    assert_equal fruit.connection.user, apple.connection.user
+    first_connection = apple.connection.object_id
+
+    fruit.user = 'john'
+    assert_equal fruit.connection.user, apple.connection.user
+    second_connection = apple.connection.object_id
+    assert_not_equal(first_connection, second_connection, 'Connection should be re-created')
+  end
+
+  def test_updating_baseclass_password_wipes_descendent_cached_connection_objects
+    # Subclasses are always equal to superclass password when not overridden
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+    fruit.site = 'http://market'
+
+    fruit.password = 'secret'
+    assert_equal fruit.connection.password, apple.connection.password
+    first_connection = apple.connection.object_id
+
+    fruit.password = 'supersecret'
+    assert_equal fruit.connection.password, apple.connection.password
+    second_connection = apple.connection.object_id
+    assert_not_equal(first_connection, second_connection, 'Connection should be re-created')
   end
 
   def test_collection_name

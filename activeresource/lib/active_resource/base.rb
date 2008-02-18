@@ -85,16 +85,26 @@ module ActiveResource
   # == Authentication
   # 
   # Many REST APIs will require authentication, usually in the form of basic
-  # HTTP authentication.  Authentication can be specified by putting the credentials
-  # in the +site+ variable of the Active Resource class you need to authenticate.
+  # HTTP authentication.  Authentication can be specified by:
+  # * putting the credentials in the URL for the +site+ variable.
   # 
-  #   class Person < ActiveResource::Base
-  #     self.site = "http://ryan:password@api.people.com:3000/"
-  #   end
+  #    class Person < ActiveResource::Base
+  #      self.site = "http://ryan:password@api.people.com:3000/"
+  #    end
   # 
+  # * defining +user+ and/or +password+ variables
+  #
+  #    class Person < ActiveResource::Base
+  #      self.site = "http://api.people.com:3000/"
+  #      self.user = "ryan"
+  #      self.password = "password"
+  #    end
+  #
   # For obvious security reasons, it is probably best if such services are available 
   # over HTTPS.
   # 
+  # Note: Some values cannot be provided in the URL passed to site.  e.g. email addresses 
+  # as usernames.  In those situations you should use the seperate user and password option.
   # == Errors & Validation
   #
   # Error handling and validation is handled in much the same manner as you're used to seeing in
@@ -164,6 +174,21 @@ module ActiveResource
       # Gets the URI of the REST resources to map for this class.  The site variable is required 
       # ActiveResource's mapping to work.
       def site
+        # Not using superclass_delegating_reader because don't want subclasses to modify superclass instance
+        #
+        # With superclass_delegating_reader
+        #
+        #   Parent.site = 'http://anonymous@test.com'
+        #   Subclass.site # => 'http://anonymous@test.com'
+        #   Subclass.site.user = 'david'
+        #   Parent.site # => 'http://david@test.com'
+        #
+        # Without superclass_delegating_reader (expected behaviour)
+        #
+        #   Parent.site = 'http://anonymous@test.com'
+        #   Subclass.site # => 'http://anonymous@test.com'
+        #   Subclass.site.user = 'david' # => TypeError: can't modify frozen object
+        #
         if defined?(@site)
           @site
         elsif superclass != Object && superclass.site
@@ -175,7 +200,45 @@ module ActiveResource
       # The site variable is required ActiveResource's mapping to work.
       def site=(site)
         @connection = nil
-        @site = site.nil? ? nil : create_site_uri_from(site)
+        if site.nil?
+          @site = nil
+        else
+          @site = create_site_uri_from(site)
+          @user = @site.user if @site.user
+          @password = @site.password if @site.password
+        end
+      end
+
+      # Gets the user for REST HTTP authentication
+      def user
+        # Not using superclass_delegating_reader. See +site+ for explanation
+        if defined?(@user)
+          @user
+        elsif superclass != Object && superclass.user
+          superclass.user.dup.freeze
+        end
+      end
+
+      # Sets the user for REST HTTP authentication
+      def user=(user)
+        @connection = nil
+        @user = user
+      end
+
+      # Gets the password for REST HTTP authentication
+      def password
+        # Not using superclass_delegating_reader. See +site+ for explanation
+        if defined?(@password)
+          @password
+        elsif superclass != Object && superclass.password
+          superclass.password.dup.freeze
+        end
+      end
+
+      # Sets the password for REST HTTP authentication
+      def password=(password)
+        @connection = nil
+        @password = password
       end
 
       # Sets the format that attributes are sent and received in from a mime type reference. Example:
@@ -206,6 +269,8 @@ module ActiveResource
       def connection(refresh = false)
         if defined?(@connection) || superclass == Object
           @connection = Connection.new(site, format) if refresh || @connection.nil?
+          @connection.user = user if user
+          @connection.password = password if password
           @connection
         else
           superclass.connection
