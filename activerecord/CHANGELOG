@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure association preloading doesn't break when an association returns nil. ##11145 [GMFlash]
+
 * Make dynamic finders respect the :include on HasManyThrough associations.  #10998. [cpytel]
 
 * Base#instantiate_time_object only uses Time.zone when Base.time_zone_aware_attributes is true; leverages Time#time_with_datetime_fallback for readability [Geoff Buesing]

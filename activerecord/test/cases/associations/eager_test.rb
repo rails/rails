@@ -76,6 +76,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_nil Post.find(posts(:authorless).id, :include => :author).author
   end
 
+  def test_nested_loading_with_no_associations
+    assert_nothing_raised do
+      Post.find(posts(:authorless).id, :include => {:author => :author_addresss})
+    end
+  end
+
   def test_eager_association_loading_with_belongs_to_and_foreign_keys
     pets = Pet.find(:all, :include => :owner)
     assert_equal 3, pets.length

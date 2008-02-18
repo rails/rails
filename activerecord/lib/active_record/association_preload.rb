@@ -21,7 +21,7 @@ module ActiveRecord
             preload_associations(records, parent, preload_options)
             reflection = reflections[parent]
             parents = records.map {|record| record.send(reflection.name)}.flatten
-            unless parents.empty?
+            unless parents.empty? || parents.first.nil?
               parents.first.class.preload_associations(parents, child)
             end
           end
