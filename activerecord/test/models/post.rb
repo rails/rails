@@ -25,7 +25,7 @@ class Post < ActiveRecord::Base
   has_and_belongs_to_many :special_categories, :join_table => "categories_posts", :association_foreign_key => 'category_id'
 
   has_many :taggings, :as => :taggable
-  has_many :tags, :through => :taggings, :include => :tagging do
+  has_many :tags, :through => :taggings do
     def add_joins_and_select
       find :all, :select => 'tags.*, authors.id as author_id', :include => false,
         :joins => 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id'

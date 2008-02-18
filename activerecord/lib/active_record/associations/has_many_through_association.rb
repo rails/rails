@@ -236,6 +236,7 @@ module ActiveRecord
             :find   => { :from        => construct_from,
                          :conditions  => construct_conditions,
                          :joins       => construct_joins,
+                         :include     => @reflection.options[:include],
                          :select      => construct_select,
                          :order       => @reflection.options[:order],
                          :limit       => @reflection.options[:limit] } }
