@@ -17,11 +17,11 @@ module ActiveRelation
     end
     
     def bind(relation)
-      __collect__{ |x| x.bind(relation) }
+      descend{ |x| x.bind(relation) }
     end
     
     def qualify
-      __collect__(&:qualify)
+      descend(&:qualify)
     end
 
     def to_sql(strategy = Sql::Predicate.new)
@@ -29,7 +29,7 @@ module ActiveRelation
     end
     
     protected
-    def __collect__
+    def descend
       self.class.new(yield(attribute), yield(operand))
     end
   end

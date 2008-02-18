@@ -10,8 +10,8 @@ module ActiveRelation
       self[attribute] and @alias
     end
     
-    def __collect__(&block)
-      Alias.new(relation.__collect__(&block), @alias)
+    def descend(&block)
+      Alias.new(relation.descend(&block), @alias)
     end
 
     def ==(other)

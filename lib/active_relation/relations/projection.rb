@@ -17,8 +17,8 @@ module ActiveRelation
     end
     
     protected
-    def __collect__(&block)
-      Projection.new(relation.__collect__(&block), *projections.collect(&block))
+    def descend(&block)
+      Projection.new(relation.descend(&block), *projections.collect(&block))
     end
   end
 end

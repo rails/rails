@@ -10,7 +10,7 @@ module ActiveRelation
     end
     
     def qualify
-      __collect__(&:qualify)
+      descend(&:qualify)
     end
   end
 end

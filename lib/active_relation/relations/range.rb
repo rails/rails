@@ -20,8 +20,8 @@ module ActiveRelation
     end
     
     protected
-    def __collect__(&block)
-      Range.new(relation.__collect__(&block), range)
+    def descend(&block)
+      Range.new(relation.descend(&block), range)
     end
   end
 end

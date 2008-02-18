@@ -104,7 +104,7 @@ module ActiveRelation
     alias_method :to_s, :to_sql
   
     protected
-    def __collect__
+    def descend
       yield self
     end
     

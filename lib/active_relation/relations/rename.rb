@@ -19,8 +19,8 @@ module ActiveRelation
     end
     
     protected
-    def __collect__(&block)
-      Rename.new(relation.__collect__(&block), yield(attribute) => pseudonym)
+    def descend(&block)
+      Rename.new(relation.descend(&block), yield(attribute) => pseudonym)
     end
     
     private

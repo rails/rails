@@ -15,7 +15,7 @@ module ActiveRelation
     end
 
     def qualify
-      __collect__(&:qualify)
+      descend(&:qualify)
     end
     
     def attributes
@@ -49,8 +49,8 @@ module ActiveRelation
       relation1.aggregation?? relation1.to_sql(Sql::Aggregation.new) : relation1.send(:table_sql)
     end
     
-    def __collect__(&block)
-      Join.new(join_sql, relation1.__collect__(&block), relation2.__collect__(&block), *predicates.collect(&block))
+    def descend(&block)
+      Join.new(join_sql, relation1.descend(&block), relation2.descend(&block), *predicates.collect(&block))
     end
   end
 end

@@ -12,8 +12,8 @@ module ActiveRelation
     end
 
     protected
-    def __collect__(&block)
-      Order.new(relation.__collect__(&block), *orders.collect(&block))
+    def descend(&block)
+      Order.new(relation.descend(&block), *orders.collect(&block))
     end
   end
 end

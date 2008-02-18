@@ -18,8 +18,8 @@ module ActiveRelation
       relation.send(:selects) + [predicate]
     end
     
-    def __collect__(&block)
-      Selection.new(relation.__collect__(&block), yield(predicate))
+    def descend(&block)
+      Selection.new(relation.descend(&block), yield(predicate))
     end
     
   end
