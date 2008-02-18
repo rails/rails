@@ -61,10 +61,11 @@ module ActionController
         # Delete the unused options to prevent their appearance in the query string.
         [:protocol, :host, :port, :skip_relative_url_root].each { |k| options.delete(k) }
       end
-
+      trailing_slash = options.delete(:trailing_slash) if options.key?(:trailing_slash)
       url << ActionController::AbstractRequest.relative_url_root.to_s unless options[:skip_relative_url_root]
       anchor = "##{CGI.escape options.delete(:anchor).to_param.to_s}" if options[:anchor]
-      url << Routing::Routes.generate(options, {})
+      generated = Routing::Routes.generate(options, {})
+      url << (trailing_slash ? generated.sub(/\?|\z/) { "/" + $& } : generated)
       url << anchor if anchor
 
       url

@@ -149,6 +149,40 @@ class UrlWriterTests < Test::Unit::TestCase
     )
   end
 
+  def test_trailing_slash
+    add_host!
+    options = {:controller => 'foo', :trailing_slash => true, :action => 'bar', :id => '33'}
+    assert_equal('http://www.basecamphq.com/foo/bar/33/', W.new.url_for(options) )
+  end
+
+  def test_trailing_slash_with_protocol
+    add_host!
+    options = { :trailing_slash => true,:protocol => 'https', :controller => 'foo', :action => 'bar', :id => '33'}
+    assert_equal('https://www.basecamphq.com/foo/bar/33/', W.new.url_for(options) )
+    assert_equal 'https://www.basecamphq.com/foo/bar/33/?query=string', W.new.url_for(options.merge({:query => 'string'}))
+  end
+
+  def test_trailing_slash_with_only_path
+    options = {:controller => 'foo', :trailing_slash => true}
+    assert_equal '/foo/', W.new.url_for(options.merge({:only_path => true}))
+    options.update({:action => 'bar', :id => '33'})
+    assert_equal '/foo/bar/33/', W.new.url_for(options.merge({:only_path => true}))
+    assert_equal '/foo/bar/33/?query=string', W.new.url_for(options.merge({:query => 'string',:only_path => true}))
+  end
+
+  def test_trailing_slash_with_anchor
+    options = {:trailing_slash => true, :controller => 'foo', :action => 'bar', :id => '33', :only_path => true, :anchor=> 'chapter7'}
+    assert_equal '/foo/bar/33/#chapter7', W.new.url_for(options)
+    assert_equal '/foo/bar/33/?query=string#chapter7', W.new.url_for(options.merge({:query => 'string'}))
+  end
+
+  def test_trailing_slash_with_params
+    url = W.new.url_for(:trailing_slash => true, :only_path => true, :controller => 'cont', :action => 'act', :p1 => 'cafe', :p2 => 'link')
+    params = extract_params(url)
+    assert_equal params[0], { :p1 => 'cafe' }.to_query
+    assert_equal params[1], { :p2 => 'link' }.to_query
+  end
+
   def test_relative_url_root_is_respected
     orig_relative_url_root = ActionController::AbstractRequest.relative_url_root
     ActionController::AbstractRequest.relative_url_root = '/subdir'
