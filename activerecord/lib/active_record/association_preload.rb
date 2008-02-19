@@ -34,7 +34,11 @@ module ActiveRecord
         reflection = reflections[association]
         raise ConfigurationError, "Association named '#{ association }' was not found; perhaps you misspelled it?" unless reflection
 
-        send(:"preload_#{reflection.macro}_association", records, reflection, preload_options)
+        # Not all records have the same class, so group then preload.
+        records.group_by(&:class).each do |klass, records|
+          reflection = klass.reflections[association]
+          send("preload_#{reflection.macro}_association", records, reflection, preload_options)
+        end
       end
 
       def add_preloaded_records_to_collection(parent_records, reflection_name, associated_record)
