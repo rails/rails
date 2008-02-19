@@ -125,6 +125,22 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(%w( one two three ), Topic.find(topic.id).content)
   end
 
+  def test_read_attributes_before_type_cast
+    category = Category.new({:name=>"Test categoty", :type => nil})
+    category_attrs = {"name"=>"Test categoty", "type" => nil}
+    assert_equal category_attrs , category.attributes_before_type_cast
+  end
+  
+  def test_read_attributes_before_type_cast_on_boolean
+    bool = Booleantest.create({ "value" => false })
+    assert_equal 0 , bool.attributes_before_type_cast["value"]
+  end
+  
+  def test_read_attributes_before_type_cast_on_datetime
+    developer = Developer.find(:first)
+    assert_equal developer.created_at.to_s(:db) , developer.attributes_before_type_cast["created_at"]
+  end
+  
   def test_hash_content
     topic = Topic.new
     topic.content = { "one" => 1, "two" => 2 }
@@ -877,7 +893,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_readonly_attributes
-    assert_equal Set.new([ 'title', 'comments_count' ]), ReadonlyTitlePost.readonly_attributes
+    assert_equal Set.new([ 'title' , 'comments_count' ]), ReadonlyTitlePost.readonly_attributes
 
     post = ReadonlyTitlePost.create(:title => "cannot change this", :body => "changeable")
     post.reload

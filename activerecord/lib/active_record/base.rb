@@ -2223,7 +2223,7 @@ module ActiveRecord #:nodoc:
       # Returns a hash of attributes before typecasting and deserialization.
       def attributes_before_type_cast
         self.attribute_names.inject({}) do |attrs, name|
-          attrs[name] = read_attribute_before_typecast(name)
+          attrs[name] = read_attribute_before_type_cast(name)
           attrs
         end
       end
