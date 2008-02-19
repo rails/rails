@@ -11,22 +11,21 @@ class EagerLoadPolyAssocsTest < Test::Unit::TestCase
 
   def create_test_tables
     conn = ActiveRecord::Base.connection
-    options = { :force => true, :options => "Engine=MyISAM" }
 
     [:circles, :squares, :triangles, :non_poly_ones, :non_poly_twos].each do |t|
-      conn.create_table(t, options) { }
+      conn.create_table(t, :force => true) { }
     end
 
-    conn.create_table :shape_expressions, options do |t|
+    conn.create_table :shape_expressions, :force => true do |t|
       t.string  :paint_type
       t.integer :paint_id
       t.string  :shape_type
       t.integer :shape_id
     end
-    conn.create_table :paint_colors, options do |t|
+    conn.create_table :paint_colors, :force => true do |t|
       t.integer :non_poly_one_id
     end
-    conn.create_table :paint_textures, options do |t|
+    conn.create_table :paint_textures, :force => true do |t|
       t.integer :non_poly_two_id
     end
   end
