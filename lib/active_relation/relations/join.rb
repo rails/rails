@@ -19,17 +19,14 @@ module ActiveRelation
     end
     
     def attributes
-      [
-        relation1.attributes.collect(&:to_attribute),
-        relation2.attributes.collect(&:to_attribute),
-      ].flatten.collect { |a| a.bind(self) }
+      (externalize(relation1).attributes +
+        externalize(relation2).attributes).collect { |a| a.bind(self) }
     end
     
     def prefix_for(attribute)
-      relation1.aliased_prefix_for(attribute) or
-      relation2.aliased_prefix_for(attribute)
+      externalize(relation1).prefix_for(attribute) or
+      externalize(relation2).prefix_for(attribute)
     end
-    alias_method :aliased_prefix_for, :prefix_for
 
     def descend(&block)
       Join.new(join_sql, relation1.descend(&block), relation2.descend(&block), *predicates.collect(&block))
@@ -37,20 +34,46 @@ module ActiveRelation
     
     protected
     def joins
-      right_table_sql = relation2.aggregation?? relation2.to_sql(Sql::Aggregation.new) : relation2.send(:table_sql)
-      this_join = [join_sql, right_table_sql, "ON", predicates.collect { |p| p.bind(self).to_sql(Sql::Predicate.new) }.join(' AND ')].join(" ")
+      this_join = [
+        join_sql,
+        externalize(relation2).table_sql,
+        "ON",
+        predicates.collect { |p| p.bind(self).to_sql(Sql::Predicate.new) }.join(' AND ')
+      ].join(" ")
       [relation1.joins, relation2.joins, this_join].compact.join(" ")
     end
 
     def selects
-      [
-        (relation1.send(:selects) unless relation1.aggregation?),
-        (relation2.send(:selects) unless relation2.aggregation?)
-      ].compact.flatten
+      externalize(relation1).selects + externalize(relation2).selects
     end
    
     def table_sql
-      relation1.aggregation?? relation1.to_sql(Sql::Aggregation.new) : relation1.send(:table_sql)
+      externalize(relation1).table_sql
+    end
+    
+    private
+    def externalize(relation)
+      Externalizer.new(relation)
+    end
+    
+    Externalizer = Struct.new(:relation) do
+      def table_sql
+        relation.aggregation?? relation.to_sql(Sql::Aggregation.new) : relation.send(:table_sql)
+      end
+      
+      def selects
+        relation.aggregation?? [] : relation.send(:selects)
+      end
+      
+      def attributes
+        relation.aggregation?? relation.attributes.collect(&:to_attribute) : relation.attributes
+      end
+      
+      def prefix_for(attribute)
+        if relation[attribute]
+          relation.alias?? relation.alias : relation.prefix_for(attribute)
+        end
+      end
     end
   end
 end

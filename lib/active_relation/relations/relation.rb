@@ -88,6 +88,10 @@ module ActiveRelation
     def aggregation?
       false
     end
+    
+    def alias?
+      false
+    end
 
     def to_sql(strategy = Sql::Select.new)
       strategy.select [

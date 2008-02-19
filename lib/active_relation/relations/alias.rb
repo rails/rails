@@ -6,8 +6,8 @@ module ActiveRelation
       @relation, @alias = relation, aliaz
     end
     
-    def aliased_prefix_for(attribute)
-      self[attribute] and @alias
+    def alias?
+      true
     end
     
     def descend(&block)

@@ -52,12 +52,6 @@ module ActiveRelation
       end
     end
     
-    describe '#aliased_prefix_for' do
-      it "returns the table name" do
-        @relation.aliased_prefix_for(@relation[:id]).should == :users
-      end
-    end
-  
     describe '#attributes' do
       it 'manufactures attributes corresponding to columns in the table' do
         @relation.attributes.should == [

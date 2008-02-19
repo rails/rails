@@ -19,7 +19,6 @@ module ActiveRelation
     def prefix_for(attribute)
       self[attribute] and name
     end
-    alias_method :aliased_prefix_for, :prefix_for
         
     protected    
     def table_sql
