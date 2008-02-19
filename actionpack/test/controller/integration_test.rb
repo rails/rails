@@ -3,23 +3,21 @@ require 'action_controller/integration'
 
 uses_mocha 'integration' do
 
-# Stub process for testing.
-module ActionController
-  module Integration
-    class Session
-      def process(*args)
-      end
-
-      def generic_url_rewriter
-      end
-    end
+module IntegrationSessionStubbing
+  def stub_integration_session(session)
+    session.stubs(:process)
+    session.stubs(:generic_url_rewriter)
   end
 end
 
 class SessionTest < Test::Unit::TestCase
+  include IntegrationSessionStubbing
+  
   def setup
     @session = ActionController::Integration::Session.new
+    stub_integration_session(@session)
   end
+  
   def test_https_bang_works_and_sets_truth_by_default
     assert !@session.https?
     @session.https!
@@ -210,11 +208,13 @@ class SessionTest < Test::Unit::TestCase
 end
 
 class IntegrationTestTest < Test::Unit::TestCase
+  include IntegrationSessionStubbing
 
   def setup
     @test = ::ActionController::IntegrationTest.new(:default_test)
     @test.class.stubs(:fixture_table_names).returns([])
     @session = @test.open_session
+    stub_integration_session(@session)
   end
 
   def test_opens_new_session
@@ -233,21 +233,20 @@ end
 # Tests that integration tests don't call Controller test methods for processing.
 # Integration tests have their own setup and teardown.
 class IntegrationTestUsesCorrectClass < ActionController::IntegrationTest
+  include IntegrationSessionStubbing
 
   def self.fixture_table_names
     []
   end
 
   def test_integration_methods_called
+    reset!
+    stub_integration_session(@integration_session)
     %w( get post head put delete ).each do |verb|
       assert_nothing_raised("'#{verb}' should use integration test methods") { send!(verb, '/') }
     end
   end
 
 end
-
-# TODO
-# class MockCGITest < Test::Unit::TestCase
-# end
 
 end # uses_mocha
