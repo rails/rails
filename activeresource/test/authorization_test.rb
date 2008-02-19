@@ -45,6 +45,15 @@ class AuthorizationTest < Test::Unit::TestCase
     assert_equal ["", "test123"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
   end
   
+  def test_authorization_header_with_decoded_credentials_from_url
+    @conn = ActiveResource::Connection.new("http://my%40email.com:%31%32%33@localhost")
+    authorization_header = @conn.send!(:authorization_header)
+    authorization = authorization_header["Authorization"].to_s.split
+
+    assert_equal "Basic", authorization[0]
+    assert_equal ["my@email.com", "123"], ActiveSupport::Base64.decode64(authorization[1]).split(":")[0..1]
+  end
+
   def test_authorization_header_explicitly_setting_username_and_password
     @authenticated_conn = ActiveResource::Connection.new("http://@localhost")
     @authenticated_conn.user = 'david'

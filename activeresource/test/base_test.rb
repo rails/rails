@@ -103,6 +103,13 @@ class BaseTest < Test::Unit::TestCase
     assert_nil actor.connection.password
   end
 
+  def test_credentials_from_site_are_decoded
+    actor = Class.new(ActiveResource::Base)
+    actor.site = 'http://my%40email.com:%31%32%33@cinema'
+    assert_equal("my@email.com", actor.user)
+    assert_equal("123", actor.password)
+  end
+
   def test_site_reader_uses_superclass_site_until_written
     # Superclass is Object so returns nil.
     assert_nil ActiveResource::Base.site

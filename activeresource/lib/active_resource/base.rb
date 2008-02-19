@@ -204,8 +204,8 @@ module ActiveResource
           @site = nil
         else
           @site = create_site_uri_from(site)
-          @user = @site.user if @site.user
-          @password = @site.password if @site.password
+          @user = URI.decode(@site.user) if @site.user
+          @password = URI.decode(@site.password) if @site.password
         end
       end
 

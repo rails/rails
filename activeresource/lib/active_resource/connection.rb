@@ -76,8 +76,8 @@ module ActiveResource
     # Set URI for remote service.
     def site=(site)
       @site = site.is_a?(URI) ? site : URI.parse(site)
-      @user = @site.user if @site.user
-      @password = @site.password if @site.password
+      @user = URI.decode(@site.user) if @site.user
+      @password = URI.decode(@site.password) if @site.password
     end
 
     # Set user for remote service.
