@@ -71,8 +71,8 @@ namespace :postgresql do
   task :build_databases do
     %x( createdb activerecord_unittest )
     %x( createdb activerecord_unittest2 )
-    %x( psql activerecord_unittest -f #{File.join(SCHEMA_ROOT, 'postgresql.sql')}  )
-    %x( psql activerecord_unittest2 -f #{File.join(SCHEMA_ROOT, 'postgresql2.sql')}   )
+    %x( psql activerecord_unittest -f #{File.join(SCHEMA_ROOT, 'postgresql.sql')} )
+    %x( psql activerecord_unittest2 -f #{File.join(SCHEMA_ROOT, 'postgresql2.sql')} )
   end
 
   desc 'Drop the PostgreSQL test databases'
