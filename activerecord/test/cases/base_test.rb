@@ -132,8 +132,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
   
   def test_read_attributes_before_type_cast_on_boolean
-    bool = Booleantest.create({ "value" => false })
-    assert_equal 0 , bool.attributes_before_type_cast["value"]
+    bool = Booleantest.new({ "value" => 0 })
+    assert_equal 0, bool.attributes_before_type_cast["value"]
   end
   
   def test_read_attributes_before_type_cast_on_datetime
