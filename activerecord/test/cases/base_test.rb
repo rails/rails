@@ -131,9 +131,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal category_attrs , category.attributes_before_type_cast
   end
   
-  def test_read_attributes_before_type_cast_on_boolean
-    bool = Booleantest.new({ "value" => 0 })
-    assert_equal 0, bool.attributes_before_type_cast["value"]
+  if current_adapter?(:MysqlAdapter)
+    def test_read_attributes_before_type_cast_on_boolean
+      bool = Booleantest.create({ "value" => false })
+      assert_equal 0, bool.attributes_before_type_cast["value"]
+    end
   end
   
   def test_read_attributes_before_type_cast_on_datetime
