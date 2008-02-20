@@ -1,4 +1,5 @@
 require "date"
+require 'action_view/helpers/tag_helper'
 
 module ActionView
   module Helpers
@@ -11,6 +12,7 @@ module ActionView
     # * <tt>:discard_type</tt> - set to true if you want to discard the type part of the select name. If set to true, the select_month
     #   method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead of "date[month]".
     module DateHelper
+      include ActionView::Helpers::TagHelper
       DEFAULT_PREFIX = 'date' unless const_defined?('DEFAULT_PREFIX')
 
       # Reports the approximate distance in time between two Time or Date objects or integers as seconds.
@@ -337,9 +339,10 @@ module ActionView
           second_options = []
           0.upto(59) do |second|
             second_options << ((val == second) ?
-              %(<option value="#{leading_zero_on_single_digits(second)}" selected="selected">#{leading_zero_on_single_digits(second)}</option>\n) :
-              %(<option value="#{leading_zero_on_single_digits(second)}">#{leading_zero_on_single_digits(second)}</option>\n)
+              content_tag(:option, leading_zero_on_single_digits(second), :value => leading_zero_on_single_digits(second), :selected => "selected") :
+              content_tag(:option, leading_zero_on_single_digits(second), :value => leading_zero_on_single_digits(second))
             )
+            second_options << "\n"
           end
           select_html(options[:field_name] || 'second', second_options.join, options)
         end
@@ -371,9 +374,10 @@ module ActionView
           minute_options = []
           0.step(59, options[:minute_step] || 1) do |minute|
             minute_options << ((val == minute) ?
-              %(<option value="#{leading_zero_on_single_digits(minute)}" selected="selected">#{leading_zero_on_single_digits(minute)}</option>\n) :
-              %(<option value="#{leading_zero_on_single_digits(minute)}">#{leading_zero_on_single_digits(minute)}</option>\n)
+              content_tag(:option, leading_zero_on_single_digits(minute), :value => leading_zero_on_single_digits(minute), :selected => "selected") :
+              content_tag(:option, leading_zero_on_single_digits(minute), :value => leading_zero_on_single_digits(minute))
             )
+            minute_options << "\n"
           end
           select_html(options[:field_name] || 'minute', minute_options.join, options)
          end
@@ -404,9 +408,10 @@ module ActionView
           hour_options = []
           0.upto(23) do |hour|
             hour_options << ((val == hour) ?
-              %(<option value="#{leading_zero_on_single_digits(hour)}" selected="selected">#{leading_zero_on_single_digits(hour)}</option>\n) :
-              %(<option value="#{leading_zero_on_single_digits(hour)}">#{leading_zero_on_single_digits(hour)}</option>\n)
+              content_tag(:option, leading_zero_on_single_digits(hour), :value => leading_zero_on_single_digits(hour), :selected => "selected") :
+              content_tag(:option, leading_zero_on_single_digits(hour), :value => leading_zero_on_single_digits(hour))
             )
+            hour_options << "\n"
           end
           select_html(options[:field_name] || 'hour', hour_options.join, options)
         end
@@ -437,9 +442,10 @@ module ActionView
           day_options = []
           1.upto(31) do |day|
             day_options << ((val == day) ?
-              %(<option value="#{day}" selected="selected">#{day}</option>\n) :
-              %(<option value="#{day}">#{day}</option>\n)
+              content_tag(:option, day, :value => day, :selected => "selected") :
+              content_tag(:option, day, :value => day)
             )
+            day_options << "\n"
           end
           select_html(options[:field_name] || 'day', day_options.join, options)
         end
@@ -497,9 +503,10 @@ module ActionView
             end
 
             month_options << ((val == month_number) ?
-              %(<option value="#{month_number}" selected="selected">#{month_name}</option>\n) :
-              %(<option value="#{month_number}">#{month_name}</option>\n)
+              content_tag(:option, month_name, :value => month_number, :selected => "selected") :
+              content_tag(:option, month_name, :value => month_number)
             )
+            month_options << "\n"
           end
           select_html(options[:field_name] || 'month', month_options.join, options)
         end
@@ -539,9 +546,10 @@ module ActionView
           step_val = start_year < end_year ? 1 : -1
           start_year.step(end_year, step_val) do |year|
             year_options << ((val == year) ?
-              %(<option value="#{year}" selected="selected">#{year}</option>\n) :
-              %(<option value="#{year}">#{year}</option>\n)
+              content_tag(:option, year, :value => year, :selected => "selected") :
+              content_tag(:option, year, :value => year)
             )
+            year_options << "\n"
           end
           select_html(options[:field_name] || 'year', year_options.join, options)
         end
@@ -551,17 +559,17 @@ module ActionView
 
         def select_html(type, html_options, options)
           name_and_id_from_options(options, type)
-          select_html  = %(<select id="#{options[:id]}" name="#{options[:name]}")
-          select_html << %( disabled="disabled") if options[:disabled]
-          select_html << %(>\n)
-          select_html << %(<option value=""></option>\n) if options[:include_blank]
+          select_options = {:id => options[:id], :name => options[:name]}
+          select_options.merge!(:disabled => 'disabled') if options[:disabled]
+          select_html = "\n"
+          select_html << content_tag(:option, '', :value => '') + "\n" if options[:include_blank]
           select_html << html_options.to_s
-          select_html << "</select>\n"
+          content_tag(:select, select_html, select_options) + "\n"
         end
 
         def hidden_html(type, value, options)
           name_and_id_from_options(options, type)
-          hidden_html = %(<input type="hidden" id="#{options[:id]}" name="#{options[:name]}" value="#{value}" />\n)
+          hidden_html = tag(:input, :type => "hidden", :id => options[:id], :name => options[:name], :value => value) + "\n"
         end
 
         def name_and_id_from_options(options, type)
