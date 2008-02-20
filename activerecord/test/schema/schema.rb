@@ -373,4 +373,23 @@ ActiveRecord::Schema.define do
     t.integer :estimate_of_id
     t.integer :price
   end
+  
+  [:circles, :squares, :triangles, :non_poly_ones, :non_poly_twos].each do |t|
+    create_table(t, :force => true) { }
+  end
+
+  create_table :shape_expressions, :force => true do |t|
+    t.string  :paint_type
+    t.integer :paint_id
+    t.string  :shape_type
+    t.integer :shape_id
+  end
+  
+  create_table :paint_colors, :force => true do |t|
+    t.integer :non_poly_one_id
+  end
+  create_table :paint_textures, :force => true do |t|
+    t.integer :non_poly_two_id
+  end
+  
 end

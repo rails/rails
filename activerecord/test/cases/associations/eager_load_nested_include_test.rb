@@ -1,50 +1,53 @@
 require 'cases/helper'
 
+
+class ShapeExpression < ActiveRecord::Base
+  belongs_to :shape, :polymorphic => true
+  belongs_to :paint, :polymorphic => true
+end
+
+class Circle < ActiveRecord::Base
+  has_many :shape_expressions, :as => :shape
+end
+class Square < ActiveRecord::Base
+  has_many :shape_expressions, :as => :shape
+end
+class Triangle < ActiveRecord::Base
+  has_many :shape_expressions, :as => :shape
+end
+class PaintColor  < ActiveRecord::Base
+  has_many   :shape_expressions, :as => :paint
+  belongs_to :non_poly, :foreign_key => "non_poly_one_id", :class_name => "NonPolyOne"
+end
+class PaintTexture < ActiveRecord::Base
+  has_many   :shape_expressions, :as => :paint
+  belongs_to :non_poly, :foreign_key => "non_poly_two_id", :class_name => "NonPolyTwo"
+end
+class NonPolyOne < ActiveRecord::Base
+  has_many :paint_colors
+end
+class NonPolyTwo < ActiveRecord::Base
+  has_many :paint_textures
+end
+
+
+
 class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
   NUM_SIMPLE_OBJS = 50
   NUM_SHAPE_EXPRESSIONS = 100
 
   def setup
-    silence_stream(STDOUT) { create_test_tables }
     generate_test_object_graphs
   end
-
-  def create_test_tables
-    conn = ActiveRecord::Base.connection
-
-    [:circles, :squares, :triangles, :non_poly_ones, :non_poly_twos].each do |t|
-      conn.create_table(t, :force => true) { }
-    end
-
-    conn.create_table :shape_expressions, :force => true do |t|
-      t.string  :paint_type
-      t.integer :paint_id
-      t.string  :shape_type
-      t.integer :shape_id
-    end
-    conn.create_table :paint_colors, :force => true do |t|
-      t.integer :non_poly_one_id
-    end
-    conn.create_table :paint_textures, :force => true do |t|
-      t.integer :non_poly_two_id
-    end
-  end
-
+  
   def teardown
-    drop_tables
-  end
-
-  def drop_tables
-    conn = ActiveRecord::Base.connection
-    conn.reconnect!
-
-    silence_stream(STDOUT) do
-      [:circles, :squares, :triangles, :paint_colors, :paint_textures,
-       :shape_expressions, :non_poly_ones, :non_poly_twos].each do |t|
-        conn.drop_table t
-      end
+    [Circle, Square, Triangle, PaintColor, PaintTexture, 
+     ShapeExpression, NonPolyOne, NonPolyTwo].each do |c|
+      c.delete_all
     end
+    
   end
+
 
   # meant to be supplied as an ID, never returns 0
   def rand_simple
@@ -77,33 +80,4 @@ class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
       end
     end
   end
-end
-
-class ShapeExpression < ActiveRecord::Base
-  belongs_to :shape, :polymorphic => true
-  belongs_to :paint, :polymorphic => true
-end
-
-class Circle < ActiveRecord::Base
-  has_many :shape_expressions, :as => :shape
-end
-class Square < ActiveRecord::Base
-  has_many :shape_expressions, :as => :shape
-end
-class Triangle < ActiveRecord::Base
-  has_many :shape_expressions, :as => :shape
-end
-class PaintColor  < ActiveRecord::Base
-  has_many   :shape_expressions, :as => :paint
-  belongs_to :non_poly, :foreign_key => "non_poly_one_id", :class_name => "NonPolyOne"
-end
-class PaintTexture < ActiveRecord::Base
-  has_many   :shape_expressions, :as => :paint
-  belongs_to :non_poly, :foreign_key => "non_poly_two_id", :class_name => "NonPolyTwo"
-end
-class NonPolyOne < ActiveRecord::Base
-  has_many :paint_colors
-end
-class NonPolyTwo < ActiveRecord::Base
-  has_many :paint_textures
 end
