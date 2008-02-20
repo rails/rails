@@ -1,6 +1,6 @@
 require 'cases/helper'
 
-class EagerLoadPolyAssocsTest < Test::Unit::TestCase
+class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
   NUM_SIMPLE_OBJS = 50
   NUM_SHAPE_EXPRESSIONS = 100
 
@@ -70,15 +70,11 @@ class EagerLoadPolyAssocsTest < Test::Unit::TestCase
     res = 0
     res = ShapeExpression.find :all, :include => [ :shape, { :paint => :non_poly } ]
     assert_equal NUM_SHAPE_EXPRESSIONS, res.size
-    ShapeExpression.connection.disconnect!
-    assert_nothing_raised "confirm we can access associations in memory" do
+    assert_queries(0) do
       res.each do |se|
         assert_not_nil se.paint.non_poly, "this is the association that was loading incorrectly before the change"
         assert_not_nil se.shape, "just making sure other associations still work"
       end
-    end
-    assert_raise ActiveRecord::StatementInvalid, "An exception should be raised when db connectivity is required" do
-      res[0].reload
     end
   end
 end
