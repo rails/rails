@@ -33,7 +33,7 @@ for adapter in %w( mysql postgresql sqlite sqlite3 firebird db2 oracle sybase op
   Rake::TestTask.new("test_#{adapter}") { |t|
     t.libs << "test" << "test/connections/native_#{adapter}"
     adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z]+/]
-    t.pattern = "test/cases/**/*_test{,_#{adapter_short}}.rb"
+    t.test_files=Dir.glob( "test/cases/**/*_test{,_#{adapter_short}}.rb" ).sort
     t.verbose = true
   }
 
