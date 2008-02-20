@@ -62,6 +62,7 @@ module ActionController
         unless method_defined?(:setup_without_controller)
           alias_method :setup_without_controller, :setup
           define_method(:setup) do
+            setup_with_fixtures if respond_to?(:setup_with_fixtures)
             setup_with_controller
             setup_without_controller
           end
