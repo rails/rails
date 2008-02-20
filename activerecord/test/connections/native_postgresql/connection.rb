@@ -7,13 +7,13 @@ ActiveRecord::Base.logger = Logger.new("debug.log")
 ActiveRecord::Base.configurations = {
   'arunit' => {
     :adapter  => 'postgresql',
-    :username => 'postgres',
+    :username => nil,
     :database => 'activerecord_unittest',
     :min_messages => 'warning'
   },
   'arunit2' => {
     :adapter  => 'postgresql',
-    :username => 'postgres',
+    :username => nil,
     :database => 'activerecord_unittest2',
     :min_messages => 'warning'
   }

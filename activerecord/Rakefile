@@ -69,16 +69,16 @@ task :rebuild_mysql_databases => 'mysql:rebuild_databases'
 namespace :postgresql do
   desc 'Build the PostgreSQL test databases'
   task :build_databases do
-    %x( createdb -U postgres activerecord_unittest )
-    %x( createdb -U postgres activerecord_unittest2 )
-    %x( psql activerecord_unittest -f #{File.join(SCHEMA_ROOT, 'postgresql.sql')} postgres )
-    %x( psql activerecord_unittest2 -f #{File.join(SCHEMA_ROOT, 'postgresql2.sql')}  postgres )
+    %x( createdb activerecord_unittest )
+    %x( createdb activerecord_unittest2 )
+    %x( psql activerecord_unittest -f #{File.join(SCHEMA_ROOT, 'postgresql.sql')}  )
+    %x( psql activerecord_unittest2 -f #{File.join(SCHEMA_ROOT, 'postgresql2.sql')}   )
   end
 
   desc 'Drop the PostgreSQL test databases'
   task :drop_databases do
-    %x( dropdb -U postgres activerecord_unittest )
-    %x( dropdb -U postgres activerecord_unittest2 )
+    %x( dropdb activerecord_unittest )
+    %x( dropdb activerecord_unittest2 )
   end
 
   desc 'Rebuild the PostgreSQL test databases'
