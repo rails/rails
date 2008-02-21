@@ -1,5 +1,7 @@
 *SVN*
 
+* add a -e/--export to script/plugin install, uses svn export. #10847 [jon@blankpad.net)]
+
 * Add config.time_zone for configuring the default Time.zone value.  #10982 [Geoff Buesing]
 
 * Reshuffle load order so that routes and observers are initialized after plugins and app initializers.  Closes #10980 [rick]
