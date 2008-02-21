@@ -55,6 +55,10 @@ module ActiveSupport
         raise "Not supported by Memcache"
       end
 
+      def clear
+        @data.flush_all
+      end
+
       private
         def expires_in(options)
           (options && options[:expires_in]) || 0
