@@ -18,7 +18,7 @@ class SchemaAuthorizationTest < ActiveRecord::TestCase
     @connection.execute "SET search_path TO '$user',public"
     set_session_auth
     USERS.each do |u|
-      @connection.execute "CREATE ROLE #{u}"
+      @connection.execute "CREATE USER #{u}"
       @connection.execute "CREATE SCHEMA AUTHORIZATION #{u}"
       set_session_auth u
       @connection.execute "CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
@@ -32,7 +32,7 @@ class SchemaAuthorizationTest < ActiveRecord::TestCase
     @connection.execute "RESET search_path"
     USERS.each do |u|
       @connection.execute "DROP SCHEMA #{u} CASCADE"
-      @connection.execute "DROP ROLE #{u}"
+      @connection.execute "DROP USER #{u}"
     end
   end
 

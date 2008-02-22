@@ -110,7 +110,9 @@ CREATE TABLE defaults (
     positive_integer integer default 1,
     negative_integer integer default -1,
     decimal_number decimal(3,2) default 2.78,
-    multiline_default text DEFAULT E'--- []\n\n'::text
+    multiline_default text DEFAULT '--- []
+
+'::text
 );
 
 CREATE TABLE auto_id_tests (
