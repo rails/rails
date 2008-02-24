@@ -389,7 +389,7 @@ module ActiveRecord
       #     <%= password_field "person", "password_confirmation" %>
       #
       # The added +password_confirmation+ attribute is virtual; it exists only as an in-memory attribute for validating the password.
-      # To achieve this, the validation adds acccessors to the model for the confirmation attribute. NOTE: This check is performed
+      # To achieve this, the validation adds accessors to the model for the confirmation attribute. NOTE: This check is performed
       # only if +password_confirmation+ is not nil, and by default only on save. To require confirmation, make sure to add a presence
       # check for the confirmation attribute:
       #
