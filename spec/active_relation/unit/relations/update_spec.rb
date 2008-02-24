@@ -21,7 +21,6 @@ module ActiveRelation
           WHERE `users`.`id` = 1
         """)
       end
-      
     end
   end
 end

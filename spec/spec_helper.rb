@@ -7,7 +7,7 @@ Dir["#{dir}/matchers/*"].each { |m| require "#{dir}/matchers/#{File.basename(m)}
 require 'active_relation'
 
 ActiveRecord::Base.configurations = {
-  'sql_algebra_test' => {
+  'test' => {
     :adapter  => 'mysql',
     :username => 'root',
     :password => 'password',
@@ -15,7 +15,7 @@ ActiveRecord::Base.configurations = {
     :database => 'sql_algebra_test',
   },
 }
-ActiveRecord::Base.establish_connection 'sql_algebra_test'
+ActiveRecord::Base.establish_connection 'test'
 
 class Hash
   def shift

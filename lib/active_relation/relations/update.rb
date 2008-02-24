@@ -12,6 +12,12 @@ module ActiveRelation
         assignments.inject([]) { |assignments, (attribute, value)| assignments << "#{attribute.to_sql} = #{value.to_sql}" }.join(" "),
         ("WHERE #{selects.collect(&:to_sql).join('\n\tAND ')}" unless selects.blank?)
       ].join("\n")
-    end  
+    end
+    
+    def ==(other)
+      self.class  == other.class    and
+      relation    == other.relation and
+      assignments == other.assignments
+    end
   end
 end

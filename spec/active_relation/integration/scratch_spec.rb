@@ -136,24 +136,6 @@ describe 'ActiveRelation', 'A proposed refactoring to ActiveRecord, introducing 
       """)
     end
 
-    describe 'write operations' do
-      it 'generates the query for user.destroy' do
-        @user.delete.to_sql.should be_like("""
-          DELETE
-          FROM `users`
-          WHERE `users`.`id` = 1
-        """)
-      end
-      
-     it 'generates an efficient query for two User.creates -- UnitOfWork is within reach!' do
-        @users.insert(@users[:name] => "humpty").insert(@users[:name] => "dumpty").to_sql.should be_like("""
-          INSERT
-          INTO `users`
-          (`users`.`name`) VALUES ('humpty'), ('dumpty')
-        """)
-      end
-    end
-
     describe 'with_scope' do
       it 'obviates the need for with_scope merging logic since, e.g.,
             `with_scope :conditions => ...` is just a #select operation on the relation' do

@@ -10,6 +10,11 @@ module ActiveRelation
         "FROM #{table_sql}",
         ("WHERE #{selects.collect(&:to_sql).join('\n\tAND ')}" unless selects.blank?)
       ].compact.join("\n")
-    end  
+    end
+    
+    def ==(other)
+      self.class  == other.class    and
+      relation    == other.relation
+    end
   end
 end

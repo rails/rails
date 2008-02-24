@@ -11,13 +11,14 @@ module ActiveRelation
         "INSERT",
         "INTO #{table_sql}",
         "(#{record.keys.collect(&:to_sql).join(', ')})",
-        "VALUES #{inserts.collect(&:to_sql).join(', ')}"
+        "VALUES #{record.to_sql}"
       ].join("\n")
-    end  
-
-    protected
-    def inserts
-      relation.inserts + [record]
+    end
+    
+    def ==(other)
+      self.class  == other.class    and
+      relation    == other.relation and
+      record      == other.record
     end
   end
 end

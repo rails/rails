@@ -36,13 +36,13 @@ module ActiveRelation
       end
     end
     
-    describe '#Expression?' do
+    describe '#aggregation?' do
       it "returns false" do
         @relation.should_not be_aggregation
       end
     end
 
-    describe 'read operations' do
+    describe Relation::Operations do
       describe 'joins' do
         before do
           @predicate = @relation[:id].equals(@relation[:id])
@@ -105,19 +105,34 @@ module ActiveRelation
             should == Aggregation.new(@relation, :expressions => [@expresion, @expression2], :groupings => [@attribute1, @attribute2])
         end
       end
-    end
-  
-    describe 'write operations' do
-      describe '#delete' do
-        it 'manufactures a deletion relation' do
-          @relation.delete.should be_kind_of(Deletion)
+      
+      describe Relation::Operations::Writes do
+        describe '#delete' do
+          it 'manufactures a deletion relation' do
+            mock(Session.instance).delete(Deletion.new(@relation))
+            @relation.delete.should == @relation
+          end
+        end
+
+        describe '#insert' do
+          it 'manufactures an insertion relation' do
+            mock(Session.instance).create(Insertion.new(@relation, record = {@relation[:name] => 'carl'}))
+            @relation.insert(record).should == @relation
+          end
+        end
+
+        describe '#update' do
+          it 'manufactures an update relation' do
+            mock(Session.instance).update(Update.new(@relation, assignments = {@relation[:name] => 'bob'}))
+            @relation.update(assignments).should == @relation
+          end
         end
       end
-    
-      describe '#insert' do
-        it 'manufactures an insertion relation' do
-          @relation.insert(record = {:id => 1}).should be_kind_of(Insertion)
-        end
+    end
+      
+    describe Relation::Enumerable do
+      it "is enumerable" do
+        pending
       end
     end
   end

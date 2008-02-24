@@ -2,7 +2,7 @@ module ActiveRelation
   module Sql
     module Quoting
       def connection
-        ActiveRecord::Base.connection
+        Session.instance.connection
       end
   
       delegate :quote_table_name, :quote_column_name, :quote, :to => :connection

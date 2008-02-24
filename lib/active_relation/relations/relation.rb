@@ -2,18 +2,22 @@ module ActiveRelation
   class Relation
     include Sql::Quoting
 
-    module Iteration
-      include Enumerable
-  
+    def session
+      Session.instance
+    end
+
+    module Enumerable
+      include ::Enumerable
+
       def each(&block)
-        connection.select_all(to_s).each(&block)
+        session.read(self).each(&block)
       end
-  
+
       def first
-        connection.select_one(to_s)
+        session.read(self).first
       end
     end
-    include Iteration
+    include Enumerable
 
     module Operations
       def join(other)
@@ -58,18 +62,25 @@ module ActiveRelation
       def rename(attribute, aliaz)
         Rename.new(self, attribute => aliaz)
       end
-  
-      def insert(record)
-        Insertion.new(self, record)
-      end
-  
-      def delete
-        Deletion.new(self)
-      end
-      
+        
       def aggregate(*expressions)
         AggregateOperation.new(self, expressions)
       end
+      
+      module Writes
+        def insert(record)
+          session.create Insertion.new(self, record); self
+        end
+
+        def update(assignments)
+          session.update Update.new(self, assignments); self
+        end
+
+        def delete
+          session.delete Deletion.new(self); self
+        end
+      end
+      include Writes
   
       JoinOperation = Struct.new(:join_sql, :relation1, :relation2) do
         def on(*predicates)
@@ -84,7 +95,7 @@ module ActiveRelation
       end
     end
     include Operations
-
+    
     def aggregation?
       false
     end
