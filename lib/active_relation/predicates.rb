@@ -6,7 +6,6 @@ module ActiveRelation
   end
 
   class Binary < Predicate
-    # rename "operand21", "operand22"
     attr_reader :operand1, :operand2
 
     def initialize(operand1, operand2)
@@ -25,8 +24,8 @@ module ActiveRelation
       descend(&:qualify)
     end
 
-    def to_sql(strategy = Sql::Predicate.new)
-      "#{operand1.to_sql(strategy)} #{predicate_sql} #{operand2.to_sql(strategy)}"
+    def to_sql(strategy = nil)
+      "#{operand1.to_sql(operand2.strategy)} #{predicate_sql} #{operand2.to_sql(operand1.strategy)}"
     end
     
     def descend

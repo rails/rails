@@ -4,23 +4,20 @@ module ActiveRelation
   describe Attribute do
     before do
       @relation = Table.new(:users)
+      @attribute = Attribute.new(@relation, :id)
     end
   
     describe Attribute::Transformations do
-      before do
-        @attribute = Attribute.new(@relation, :id)
-      end
-      
       describe '#as' do
         it "manufactures an aliased attributed" do
-          @attribute.as(:alias).should == Attribute.new(@relation, @attribute.name, :alias, @attribute)
+          @attribute.as(:alias).should == Attribute.new(@relation, @attribute.name, :alias => :alias, :ancestor => @attribute)
         end
       end
     
       describe '#bind' do
         it "manufactures an attribute with the relation bound and self as an ancestor" do
           derived_relation = @relation.select(@relation[:id].equals(1))
-          @attribute.bind(derived_relation).should == Attribute.new(derived_relation, @attribute.name, nil, @attribute)
+          @attribute.bind(derived_relation).should == Attribute.new(derived_relation, @attribute.name, :ancestor => @attribute)
         end
         
         it "returns self if the substituting to the same relation" do
@@ -30,7 +27,7 @@ module ActiveRelation
     
       describe '#qualify' do
         it "manufactures an attribute aliased with that attribute's qualified name" do
-          @attribute.qualify.should == Attribute.new(@attribute.relation, @attribute.name, @attribute.qualified_name, @attribute)
+          @attribute.qualify.should == Attribute.new(@attribute.relation, @attribute.name, :alias => @attribute.qualified_name, :ancestor => @attribute)
         end
       end
       
@@ -41,9 +38,16 @@ module ActiveRelation
       end
     end
     
+    describe '#column' do
+      it "" do
+        pending
+      end
+    end
+    
     describe '#qualified_name' do
       it "manufactures an attribute name prefixed with the relation's name" do
-        Attribute.new(@relation, :id).qualified_name.should == 'users.id'
+        stub(@relation).prefix_for(anything) { 'bruisers' }
+        Attribute.new(@relation, :id).qualified_name.should == 'bruisers.id'
       end
     end
     
@@ -54,25 +58,20 @@ module ActiveRelation
         end
       
         it "obtains if the attributes have an overlapping history" do
-          Attribute.new(@relation, :name, nil, Attribute.new(@relation, :name)).should =~ Attribute.new(@relation, :name)
-          Attribute.new(@relation, :name).should =~ Attribute.new(@relation, :name, nil, Attribute.new(@relation, :name))
+          Attribute.new(@relation, :name, :ancestor => Attribute.new(@relation, :name)).should =~ Attribute.new(@relation, :name)
+          Attribute.new(@relation, :name).should =~ Attribute.new(@relation, :name, :ancestor => Attribute.new(@relation, :name))
         end
       end
     end
     
     describe '#to_sql' do
-      describe Sql::Strategy do
-        before do
-          stub(@relation).prefix_for(anything) { 'bruisers' }
-        end
-        
-        it "manufactures sql without an alias if the strategy is Predicate" do
-          Attribute.new(@relation, :name, :alias).to_sql(Sql::Predicate.new).should be_like("`bruisers`.`name`")
-        end
+      it "" do
+        pending "this test is not sufficiently resilient"
+      end
       
-        it "manufactures sql with an alias if the strategy is Projection" do
-          Attribute.new(@relation, :name, :alias).to_sql(Sql::Projection.new).should be_like("`bruisers`.`name` AS 'alias'")
-        end
+      it "manufactures sql with an alias" do
+        stub(@relation).prefix_for(anything) { 'bruisers' }
+        Attribute.new(@relation, :name, :alias => :alias).to_sql.should be_like("`bruisers`.`name`")
       end
     end
   

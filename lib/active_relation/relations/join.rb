@@ -38,7 +38,7 @@ module ActiveRelation
         join_sql,
         externalize(relation2).table_sql,
         "ON",
-        predicates.collect { |p| p.bind(self).to_sql(Sql::Predicate.new) }.join(' AND ')
+        predicates.collect { |p| p.bind(self).to_sql }.join(' AND ')
       ].join(" ")
       [relation1.joins, relation2.joins, this_join].compact.join(" ")
     end

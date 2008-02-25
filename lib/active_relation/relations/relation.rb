@@ -104,12 +104,12 @@ module ActiveRelation
       false
     end
 
-    def to_sql(strategy = Sql::Select.new)
+    def to_sql(strategy = Sql::Relation.new)
       strategy.select [
         "SELECT #{attributes.collect{ |a| a.to_sql(Sql::Projection.new) }.join(', ')}",
         "FROM #{table_sql}",
         (joins unless joins.blank?),
-        ("WHERE #{selects.collect{|s| s.to_sql(Sql::Predicate.new)}.join("\n\tAND ")}" unless selects.blank?),
+        ("WHERE #{selects.collect{|s| s.to_sql(Sql::Selection.new)}.join("\n\tAND ")}" unless selects.blank?),
         ("ORDER BY #{orders.collect(&:to_sql)}" unless orders.blank?),
         ("GROUP BY #{groupings.collect(&:to_sql)}" unless groupings.blank?),
         ("LIMIT #{limit.to_sql}" unless limit.blank?),

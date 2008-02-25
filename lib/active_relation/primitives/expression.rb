@@ -20,7 +20,7 @@ module ActiveRelation
       end
           
       def to_attribute
-        Attribute.new(relation, @alias, nil, self)
+        Attribute.new(relation, @alias, :ancestor => self)
       end
     end
     include Transformations

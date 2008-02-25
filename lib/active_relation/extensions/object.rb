@@ -7,7 +7,11 @@ class Object
     self
   end
   
-  def to_sql(strategy = ActiveRelation::Sql::Scalar.new)
+  def to_sql(strategy = self.strategy)
     strategy.scalar self
+  end
+  
+  def strategy
+    ActiveRelation::Sql::Scalar.new
   end
 end

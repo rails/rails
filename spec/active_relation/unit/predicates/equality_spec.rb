@@ -3,10 +3,10 @@ require File.join(File.dirname(__FILE__), '..', '..', '..', 'spec_helper')
 module ActiveRelation
   describe Equality do
     before do
-      @relation1 = Table.new(:foo)
-      @relation2 = Table.new(:bar)
-      @attribute1 = Attribute.new(@relation1, :name)
-      @attribute2 = Attribute.new(@relation2, :name)
+      @relation1 = Table.new(:users)
+      @relation2 = Table.new(:photos)
+      @attribute1 = @relation1[:name]
+      @attribute2 = @relation2[:name]
     end
   
     describe '==' do 

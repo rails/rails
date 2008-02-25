@@ -27,8 +27,8 @@ module ActiveRelation
         "#{quote_table_name(relation_name)}.#{quote_column_name(attribute_name)}"
       end
       
-      def scalar(scalar)
-        scalar
+      def scalar(scalar, column = nil)
+        quote(scalar, column)
       end
       
       def select(select_sql, aliaz)
@@ -36,7 +36,13 @@ module ActiveRelation
       end
     end
     
-    class Select < Strategy
+    class Selection < Strategy
+      def scalar(scalar)
+        scalar
+      end
+    end
+    
+    class Relation < Strategy
       def select(select_sql, aliaz)
         select_sql
       end
@@ -48,10 +54,17 @@ module ActiveRelation
       end
     end
     
-    class Scalar < Strategy
-      def scalar(scalar)
-        quote(scalar)
+    class Attribute < Predicate
+      def initialize(attribute)
+        @attribute = attribute
       end
+      
+      def scalar(scalar)
+        quote(scalar, @attribute.column)
+      end
+    end
+    
+    class Scalar < Predicate
     end
   end
 end

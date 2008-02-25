@@ -53,6 +53,9 @@ module ActiveRelation
           `users`.`id` <=> `photos`.`id`
         """)
       end
+      
+      it 'appropriately cooerces scalars' do
+      end
     end
   end
 end

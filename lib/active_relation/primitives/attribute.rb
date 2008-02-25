@@ -2,8 +2,8 @@ module ActiveRelation
   class Attribute
     attr_reader :relation, :name, :alias, :ancestor
 
-    def initialize(relation, name, aliaz = nil, ancestor = nil)
-      @relation, @name, @alias, @ancestor = relation, name, aliaz, ancestor
+    def initialize(relation, name, options = {})
+      @relation, @name, @alias, @ancestor, @column = relation, name, options[:alias], options[:ancestor]
     end
     
     def alias_or_name
@@ -12,11 +12,11 @@ module ActiveRelation
 
     module Transformations
       def as(aliaz = nil)
-        Attribute.new(relation, name, aliaz, self)
+        Attribute.new(relation, name, :alias => aliaz, :ancestor => self)
       end
     
       def bind(new_relation)
-        relation == new_relation ? self : Attribute.new(new_relation, name, @alias, self)
+        relation == new_relation ? self : Attribute.new(new_relation, name, :alias => @alias, :ancestor => self)
       end
 
       def qualify
@@ -31,6 +31,10 @@ module ActiveRelation
     
     def qualified_name
       "#{prefix}.#{name}"
+    end
+    
+    def column
+      relation.column_for(self)
     end
 
     def ==(other)
@@ -112,8 +116,12 @@ module ActiveRelation
     end
     include Expressions
 
-    def to_sql(strategy = Sql::Predicate.new)
+    def to_sql(strategy = self.strategy)
       strategy.attribute prefix, name, self.alias
+    end
+    
+    def strategy
+      Sql::Attribute.new(self)
     end
     
     private

@@ -45,9 +45,15 @@ module ActiveRelation
       end
     end
     
+    describe '#column_for' do
+      it "" do
+        pending
+      end
+    end
+    
     describe '#prefix_for' do
       it "returns the table name if the relation contains the attribute" do
-        @relation.prefix_for(@relation[:id]).should == :users
+        @relation.prefix_for(@relation[:id]).should == 'users'
         @relation.prefix_for(:does_not_exist).should be_nil
       end
     end
