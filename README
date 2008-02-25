@@ -12,33 +12,33 @@ you construct a table relation and convert it to sql:
 
     ActiveRelation::Table.new(:users).to_sql
    
-In fact, you will probably never call `#to_sql` directly. Let `users = ActiveRelation::Table.new(:users)`. You can iterate through all rows in the `users` table like this:
+In fact, you will probably never call `#to_sql`. Let `users = ActiveRelation::Table.new(:users)`. Rather, you'll work with data from the table directly. You can iterate through all rows in the `users` table like this:
 
     users.each { |user| ... }
     
-In other words, Arel relations behave similar regular Ruby collections. Let's have a look at a concrete example:
+In other words, Arel relations behave implement Ruby's Eunmerable interface. Let's have a look at a concrete example:
 
     users.first # => {'id' => 10, 'name' => 'bob'}
     
-As you can see, Arel converts the rows into a hash, the values of which are the appropriate Ruby primitive (integers, strings, and so forth).
+As you can see, Arel converts the rows from the database into a hash, the values of which are sublimated to the appropriate Ruby primitive (integers, strings, and so forth).
 
 == Relational Algebra ==
 
-Arel is based on the Relational Algebra, a mathematical model that is also the inspiration for relational databases. ActiveRelation::Relation objects do not represent queries per se (i.e., they are not object-representations of `SELECT`, `INSERT`, `UPDATE`, or `DELETE`), rather they represent a collection of data that you can select from, insert into, update, and delete.For example, to insert a row into the users table, do the following:
+Arel is based on the Relational Algebra, a mathematical model that is also the inspiration for relational databases. ActiveRelation::Relation objects do not represent queries per se (i.e., they are not object-representations of `SELECT`, `INSERT`, `UPDATE`, or `DELETE` statements), rather they represent a collection of data that you can select from, insert into, update, and delete. For example, to insert a row into the users table, do the following:
 
-    users.insert({'id' => 11, 'name' => 'amy'})
+    users.insert({users[:name] => 'amy'}) # => INSERT INTO users (users.name) VALUES ('amy')
     
 To delete all users:
 
-    users.delete
+    users.delete # => DELETE FROM users
     
 To update:
 
-    users.update({'name' => 'carl'})
+    users.update({users[:name] => 'carl'}) # => UPDATE users SET name = 'carl'
     
-As you can see, the `relation` users does not represent an individual query; rather it is an abstraction on a collection of data and it can produce appropriate queries to do the various CRUD operations.
+As you can see, the `relation` named `users` does not represent an individual query; rather it is an abstraction on a collection of data and it can produce appropriate SQL queries to do the various CRUD operations.
 
-=== More Sophisticated Queries ===
+=== More Sophisticated <strike>Queries</strike> Relations ===
 
 Following the Relational Algebra, Arel's interface uses some jargon that differs from standard SQL. For example, in order to add a `WHERE` clause to your relations, you use the `select` operation:
 
@@ -47,13 +47,18 @@ Following the Relational Algebra, Arel's interface uses some jargon that differs
 What would, in SQL, be part of the `SELECT` clause is called here a `projection`:
 
     users.project(users[:id]) # => SELECT users.id FROM users
+    
+Joins are fairly straightforward:
 
-The best property of the Relational is compositionality, or closure under all operations. For example, to combine the two previous queries:
+    users.join(photos).on(users[:id].equals(photos[:user_id])) => SELECT * FROM users INNER JOIN photos ON users.id = photos.user_id
+
+The best property of the Relational is compositionality, or closure under all operations. For example, to select and project:
 
     users                                 \
       .select(users[:name].equals('amy')) \
-      .project(users[:id])
+      .project(users[:id])                \
     # => SELECT users.id FROM users WHERE users.name = 'amy'
+s
 
 == Contributions ==
 

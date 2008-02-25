@@ -6,14 +6,15 @@ module ActiveRelation
   end
 
   class Binary < Predicate
-    attr_reader :attribute, :operand
+    # rename "operand21", "operand22"
+    attr_reader :operand1, :operand2
 
-    def initialize(attribute, operand)
-      @attribute, @operand = attribute, operand
+    def initialize(operand1, operand2)
+      @operand1, @operand2 = operand1, operand2
     end
 
     def ==(other)
-      super and @attribute == other.attribute and @operand == other.operand
+      super and @operand1 == other.operand1 and @operand2 == other.operand2
     end
     
     def bind(relation)
@@ -25,19 +26,19 @@ module ActiveRelation
     end
 
     def to_sql(strategy = Sql::Predicate.new)
-      "#{attribute.to_sql(strategy)} #{predicate_sql} #{operand.to_sql(strategy)}"
+      "#{operand1.to_sql(strategy)} #{predicate_sql} #{operand2.to_sql(strategy)}"
     end
     
     def descend
-      self.class.new(yield(attribute), yield(operand))
+      self.class.new(yield(operand1), yield(operand2))
     end
   end
 
   class Equality < Binary
     def ==(other)
       self.class == other.class and
-        ((attribute == other.attribute and operand == other.operand) or
-         (attribute == other.operand and operand == other.attribute))
+        ((operand1 == other.operand1 and operand2 == other.operand2) or
+         (operand1 == other.operand2 and operand2 == other.operand1))
     end
 
     protected
@@ -75,15 +76,15 @@ module ActiveRelation
   end
 
   class Match < Binary
-    alias_method :regexp, :operand
+    alias_method :regexp, :operand2
 
-    def initialize(attribute, regexp)
-      @attribute, @regexp = attribute, regexp
+    def initialize(operand1, regexp)
+      @operand1, @regexp = operand1, regexp
     end
   end
 
   class RelationInclusion < Binary
-    alias_method :relation, :operand
+    alias_method :relation, :operand2
     
     protected
     def predicate_sql
