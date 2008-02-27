@@ -83,7 +83,7 @@ module ActiveRecord
             raise_on_type_mismatch(associate)
             raise ActiveRecord::HasManyThroughCantDissociateNewRecords.new(@owner, through) unless associate.respond_to?(:new_record?) && !associate.new_record?
 
-            @owner.send(through.name).proxy_target.delete(klass.delete_all(construct_join_attributes(associate)))
+            klass.delete_all(construct_join_attributes(associate))
             @target.delete(associate)
           end
         end

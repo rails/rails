@@ -505,11 +505,13 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     tag = Tag.create!(:name => 'doomed')
     post_thinking = posts(:thinking)
     post_thinking.tags << tag
+    assert_equal(count + 1, post_thinking.taggings(true).size)
     assert_equal(count + 1, post_thinking.tags(true).size)
 
     assert_nothing_raised { post_thinking.tags.delete(tag) }
     assert_equal(count, post_thinking.tags.size)
     assert_equal(count, post_thinking.tags(true).size)
+    assert_equal(count, post_thinking.taggings(true).size)
     assert_equal(tags_before.sort, post_thinking.tags.sort)
   end
 
