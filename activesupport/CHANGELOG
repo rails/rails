@@ -1,5 +1,7 @@
 *SVN*
 
+* Adding Time#end_of_day, _quarter, _week, and _year.  #9312 [BigTitus]
+
 * Adding TimeWithZone#between? [Geoff Buesing]
 
 * Time.=== returns true for TimeWithZone instances [Geoff Buesing]

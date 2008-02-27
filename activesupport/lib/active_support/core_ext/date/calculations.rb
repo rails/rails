@@ -141,6 +141,14 @@ module ActiveSupport #:nodoc:
         alias :monday :beginning_of_week
         alias :at_beginning_of_week :beginning_of_week
 
+        # Returns a new Date/DateTime representing the end of this week (Sunday, DateTime objects will have time set to 23:59:59)
+        def end_of_week
+          days_to_sunday = self.wday!=0 ? 7-self.wday : 0
+          result = self + days_to_sunday.days
+          self.acts_like?(:time) ? result.end_of_day : result
+        end
+        alias :at_end_of_week :end_of_week
+
         # Returns a new Date/DateTime representing the start of the given day in next week (default is Monday).
         def next_week(day = :monday)
           days_into_week = { :monday => 0, :tuesday => 1, :wednesday => 2, :thursday => 3, :friday => 4, :saturday => 5, :sunday => 6}
@@ -167,11 +175,23 @@ module ActiveSupport #:nodoc:
         end
         alias :at_beginning_of_quarter :beginning_of_quarter
 
+        # Returns a new Date/DateTime representing the end of the quarter (last day of march, june, september, december; DateTime objects will have time set to 23:59:59)
+        def end_of_quarter
+          change(:month => [3, 6, 9, 12].detect { |m| m >= self.month }).end_of_month
+        end
+        alias :at_end_of_quarter :end_of_quarter
+
         # Returns a new Date/DateTime representing the start of the year (1st of january; DateTime objects will have time set to 0:00)
         def beginning_of_year
           self.acts_like?(:time) ? change(:month => 1, :day => 1, :hour => 0, :min => 0, :sec => 0) : change(:month => 1, :day => 1)
         end
         alias :at_beginning_of_year :beginning_of_year
+
+        # Returns a new Time representing the end of the year (31st of december; DateTime objects will have time set to 23:59:59)
+        def end_of_year
+          self.acts_like?(:time) ? change(:month => 12,:day => 31,:hour => 23, :min => 59, :sec => 59) : change(:month => 12, :day => 31)
+        end
+        alias :at_end_of_year :end_of_year
 
         # Convenience method which returns a new Date/DateTime representing the time 1 day ago
         def yesterday

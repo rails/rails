@@ -60,6 +60,29 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2005,4,1),  Date.new(2005,6,30).beginning_of_quarter
   end
 
+  def test_end_of_week
+    assert_equal Date.new(2008,2,24), Date.new(2008,2,22).end_of_week
+    assert_equal Date.new(2008,3,2), Date.new(2008,2,25).end_of_week #monday
+    assert_equal Date.new(2008,3,2), Date.new(2008,2,26).end_of_week #tuesday
+    assert_equal Date.new(2008,3,2), Date.new(2008,2,27).end_of_week #wednesday
+    assert_equal Date.new(2008,3,2), Date.new(2008,2,28).end_of_week #thursday
+    assert_equal Date.new(2008,3,2), Date.new(2008,2,29).end_of_week #friday
+    assert_equal Date.new(2008,3,2), Date.new(2008,3,01).end_of_week #saturday
+    assert_equal Date.new(2008,3,2), Date.new(2008,3,02).end_of_week #sunday
+  end
+
+  def test_end_of_quarter
+    assert_equal Date.new(2008,3,31),  Date.new(2008,2,15).end_of_quarter
+    assert_equal Date.new(2008,3,31),  Date.new(2008,3,31).end_of_quarter
+    assert_equal Date.new(2008,12,31), Date.new(2008,10,8).end_of_quarter
+    assert_equal Date.new(2008,6,30),  Date.new(2008,4,14).end_of_quarter
+    assert_equal Date.new(2008,9,30),  Date.new(2008,8,21).end_of_quarter
+  end
+
+  def test_end_of_year
+    assert_equal Date.new(2008,12,31).to_s, Date.new(2008,2,22).end_of_year.to_s
+  end
+
   def test_end_of_month
     assert_equal Date.new(2005,3,31), Date.new(2005,3,20).end_of_month
     assert_equal Date.new(2005,2,28), Date.new(2005,2,20).end_of_month
