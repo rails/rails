@@ -211,8 +211,9 @@ module ActiveSupport #:nodoc:
                   elsif value.blank? || value['nil'] == 'true'
                     nil
                   # If the type is the only element which makes it then 
-                  # this still makes the value nil
-                  elsif value['type'] && value.size == 1
+                  # this still makes the value nil, except if type is
+                  # a xml node(where type['value'] is a Hash)
+                  elsif value['type'] && value.size == 1 && !value['type'].is_a?(::Hash)
                     nil
                   else
                     xml_value = value.inject({}) do |h,(k,v)|

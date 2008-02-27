@@ -56,14 +56,59 @@ class WebServiceTest < Test::Unit::TestCase
     assert_equal 'content...', @controller.params["entry"]['summary']
     assert_equal 'true', @controller.params["entry"]['attributed']
   end
-  
+
   def test_put_xml
     process('PUT', 'application/xml', '<entry attributed="true"><summary>content...</summary></entry>')
-    
+
     assert_equal 'entry', @controller.response.body
     assert @controller.params.has_key?(:entry)
     assert_equal 'content...', @controller.params["entry"]['summary']
     assert_equal 'true', @controller.params["entry"]['attributed']
+  end
+
+  def test_put_xml_using_a_type_node
+    process('PUT', 'application/xml', '<type attributed="true"><summary>content...</summary></type>')
+
+    assert_equal 'type', @controller.response.body
+    assert @controller.params.has_key?(:type)
+    assert_equal 'content...', @controller.params["type"]['summary']
+    assert_equal 'true', @controller.params["type"]['attributed']
+  end
+
+  def test_put_xml_using_a_type_node_and_attribute
+    process('PUT', 'application/xml', '<type attributed="true"><summary type="boolean">false</summary></type>')
+
+    assert_equal 'type', @controller.response.body
+    assert @controller.params.has_key?(:type)
+    assert_equal false, @controller.params["type"]['summary']
+    assert_equal 'true', @controller.params["type"]['attributed']
+  end
+
+  def test_post_xml_using_a_type_node
+    process('POST', 'application/xml', '<font attributed="true"><type>arial</type></font>')
+
+    assert_equal 'font', @controller.response.body
+    assert @controller.params.has_key?(:font)
+    assert_equal 'arial', @controller.params['font']['type']
+    assert_equal 'true', @controller.params["font"]['attributed']
+  end
+
+  def test_post_xml_using_a_root_node_named_type
+    process('POST', 'application/xml', '<type type="integer">33</type>')
+
+    assert @controller.params.has_key?(:type)
+    assert_equal 33, @controller.params['type']
+  end
+
+  def test_post_xml_using_an_attributted_node_named_type
+    ActionController::Base.param_parsers[Mime::XML] = Proc.new { |data| XmlSimple.xml_in(data, 'ForceArray' => false) }
+    process('POST', 'application/xml', '<request><type type="string">Arial,12</type><z>3</z></request>')
+
+    assert_equal 'type, z', @controller.response.body
+    assert @controller.params.has_key?(:type)
+    assert_equal 'string', @controller.params['type']['type']
+    assert_equal 'Arial,12', @controller.params['type']['content']
+    assert_equal '3', @controller.params['z']
   end
 
   def test_register_and_use_yaml
