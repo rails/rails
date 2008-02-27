@@ -331,7 +331,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal desired, tag_with_include.tagged_posts
     end
-    assert_equal 4, tag_with_include.taggings.length
+    assert_equal 5, tag_with_include.taggings.length
   end
 
   def test_has_many_through_has_many_find_all
@@ -587,6 +587,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     taggables = taggings.map(&:taggable)
     assert taggables.include?(items(:dvd))
     assert taggables.include?(posts(:welcome))
+  end
+
+  def test_preload_nil_polymorphic_belongs_to
+    assert_nothing_raised do
+      taggings = Tagging.find(:all, :include => :taggable, :conditions => ['taggable_type IS NULL'])
+    end
   end
 
   def test_preload_polymorphic_has_many

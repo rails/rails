@@ -22,4 +22,7 @@ godfather:
   tag_id: 1
   taggable_id: 1
   taggable_type: Item
-  
+
+orphaned:
+  id: 5
+  tag_id: 1
