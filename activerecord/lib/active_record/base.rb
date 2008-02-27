@@ -1924,7 +1924,7 @@ module ActiveRecord #:nodoc:
         end
 
         def replace_named_bind_variables(statement, bind_vars) #:nodoc:
-          statement.gsub(/:(\w+)/) do
+          statement.gsub(/:([a-zA-Z]\w*)/) do
             match = $1.to_sym
             if bind_vars.include?(match)
               quote_bound_value(bind_vars[match])

@@ -339,6 +339,8 @@ class FinderTest < ActiveRecord::TestCase
   def test_named_bind_variables
     assert_equal '1', bind(':a', :a => 1) # ' ruby-mode
     assert_equal '1 1', bind(':a :a', :a => 1)  # ' ruby-mode
+    
+    assert_nothing_raised { bind("'+00:00'", :foo => "bar") }
 
     assert_kind_of Firm, Company.find(:first, :conditions => ["name = :name", { :name => "37signals" }])
     assert_nil Company.find(:first, :conditions => ["name = :name", { :name => "37signals!" }])
