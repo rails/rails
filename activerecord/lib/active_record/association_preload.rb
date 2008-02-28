@@ -10,7 +10,7 @@ module ActiveRecord
       # preload_options is passed only one level deep: don't pass to the child associations when associations is a Hash
       protected
       def preload_associations(records, associations, preload_options={})
-        records = [records].flatten.compact
+        records = [records].flatten.compact.uniq
         return if records.empty?
         case associations
         when Array then associations.each {|association| preload_associations(records, association, preload_options)}

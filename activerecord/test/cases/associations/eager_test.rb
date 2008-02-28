@@ -67,6 +67,32 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_including_duplicate_objects_from_belongs_to
+    popular_post = Post.create!(:body => "I like cars!")
+    comment = popular_post.comments.create!(:body => "lol")
+    popular_post.readers.create!(:person => people(:michael))
+    popular_post.readers.create!(:person => people(:david))
+
+    readers = Reader.find(:all, :conditions => ["post_id = ?", popular_post.id],
+                                :include => {:post => :comments})
+    readers.each do |reader|
+      assert_equal [comment], reader.post.comments
+    end
+  end
+
+  def test_including_duplicate_objects_from_has_many
+    car_post = Post.create!(:body => "I like cars!")
+    car_post.categories << categories(:general)
+    car_post.categories << categories(:technology)
+
+    comment = car_post.comments.create!(:body => "hmm")
+    categories = Category.find(:all, :conditions => ["posts.id=?", car_post.id],
+                                 :include => {:posts => :comments})
+    categories.each do |category|
+      assert_equal [comment], category.posts[0].comments
+    end
+  end
+
   def test_loading_from_an_association
     posts = authors(:david).posts.find(:all, :include => :comments, :order => "posts.id")
     assert_equal 2, posts.first.comments.size

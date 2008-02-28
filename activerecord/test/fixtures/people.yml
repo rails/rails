@@ -1,3 +1,6 @@
 michael:
   id: 1
   first_name: Michael
+david:
+  id: 2
+  first_name: David
