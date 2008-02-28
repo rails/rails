@@ -68,7 +68,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_including_duplicate_objects_from_belongs_to
-    popular_post = Post.create!(:body => "I like cars!")
+    popular_post = Post.create!(:title => 'foo', :body => "I like cars!")
     comment = popular_post.comments.create!(:body => "lol")
     popular_post.readers.create!(:person => people(:michael))
     popular_post.readers.create!(:person => people(:david))
@@ -81,7 +81,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_including_duplicate_objects_from_has_many
-    car_post = Post.create!(:body => "I like cars!")
+    car_post = Post.create!(:title => 'foo', :body => "I like cars!")
     car_post.categories << categories(:general)
     car_post.categories << categories(:technology)
 
