@@ -290,6 +290,11 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal nil, authors(:david).categories.find_by_name('Technology')
   end
 
+  def test_has_many_array_methods_called_by_method_missing
+    assert true, authors(:david).categories.any? { |category| category.name == 'General' }
+    assert_nothing_raised { authors(:david).categories.sort }
+  end
+
   def test_has_many_going_through_join_model_with_custom_foreign_key
     assert_equal [], posts(:thinking).authors
     assert_equal [authors(:mary)], posts(:authorless).authors

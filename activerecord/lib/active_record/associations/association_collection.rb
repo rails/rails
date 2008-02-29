@@ -43,8 +43,12 @@ module ActiveRecord
       end
 
       # Calculate sum using SQL, not Enumerable
-      def sum(*args, &block)
-        calculate(:sum, *args, &block)
+      def sum(*args)
+        if block_given?
+          calculate(:sum, *args) { |*block_args| yield(*block_args) }
+        else
+          calculate(:sum, *args)
+        end
       end
 
       # Remove +records+ from this association.  Does not destroy +records+.
@@ -121,9 +125,9 @@ module ActiveRecord
         size.zero?
       end
 
-      def any?(&block)
+      def any?
         if block_given?
-          method_missing(:any?, &block)
+          method_missing(:any?) { |*block_args| yield(*block_args) }
         else
           !empty?
         end
@@ -157,11 +161,21 @@ module ActiveRecord
 
 
       protected
-        def method_missing(method, *args, &block)
+        def method_missing(method, *args)
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
-            super
+            if block_given?
+              super { |*block_args| yield(*block_args) }
+            else
+              super
+            end
           else
-            @reflection.klass.send(:with_scope, construct_scope) { @reflection.klass.send(method, *args, &block) }
+            @reflection.klass.send(:with_scope, construct_scope) do
+              if block_given?
+                @reflection.klass.send(method, *args) { |*block_args| yield(*block_args) }
+              else
+                @reflection.klass.send(method, *args)
+              end
+            end
           end
         end
 
@@ -187,15 +201,23 @@ module ActiveRecord
 
       private
 
-        def create_record(attrs, &block)
+        def create_record(attrs)
           ensure_owner_is_not_new
           record = @reflection.klass.send(:with_scope, :create => construct_scope[:create]) { @reflection.klass.new(attrs) }
-          add_record_to_target_with_callbacks(record, &block)
+          if block_given?
+            add_record_to_target_with_callbacks(record) { |*block_args| yield(*block_args) }
+          else
+            add_record_to_target_with_callbacks(record)
+          end
         end
 
-        def build_record(attrs, &block)
+        def build_record(attrs)
           record = @reflection.klass.new(attrs)
-          add_record_to_target_with_callbacks(record, &block)
+          if block_given?
+            add_record_to_target_with_callbacks(record) { |*block_args| yield(*block_args) }
+          else
+            add_record_to_target_with_callbacks(record)
+          end
         end
 
         def add_record_to_target_with_callbacks(record)

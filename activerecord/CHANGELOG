@@ -1,5 +1,7 @@
 *SVN*
 
+* Perf fix: Avoid the use of named block arguments.  Closes #11109 [adymo]
+
 * PostgreSQL: support server versions 7.4 through 8.0 and the ruby-pg driver.  #11127 [jdavis]
 
 * Ensure association preloading doesn't break when an association returns nil. ##11145 [GMFlash]

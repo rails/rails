@@ -120,9 +120,13 @@ module ActiveRecord
         end
 
       private
-        def method_missing(method, *args, &block)
+        def method_missing(method, *args)
           if load_target
-            @target.send(method, *args, &block)
+            if block_given?
+              @target.send(method, *args)  { |*block_args| yield(*block_args) }
+            else
+              @target.send(method, *args)
+            end
           end
         end
 
