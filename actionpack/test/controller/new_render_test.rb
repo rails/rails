@@ -550,6 +550,12 @@ EOS
     assert_equal "<p>This is grand!</p>\n", @response.body
   end
 
+  def test_render_with_default_from_accept_header
+    @request.env["HTTP_ACCEPT"] = "text/javascript"
+    get :greeting
+    assert_equal "$(\"body\").visualEffect(\"highlight\");", @response.body
+  end
+
   def test_render_rjs_with_default
     get :delete_with_js
     assert_equal %!Element.remove("person");\nnew Effect.Highlight(\"project-4\",{});!, @response.body

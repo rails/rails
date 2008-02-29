@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that requests with JavaScript as the priority mime type in the accept header and no format extension in the parameters will be treated as though their format was :js when it comes to determining which template to render. This makes it possible for JS requests to automatically render action.js.rjs files without an explicit respond_to block  [DHH]
+
 * Tests for distance_of_time_in_words with TimeWithZone instances. Closes #10914 [ernesto.jimenez]
 
 * Remove support for multivalued (e.g., '&'-delimited) cookies. [Jamis Buck]

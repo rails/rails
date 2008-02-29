@@ -344,10 +344,29 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
     end
 
     # symbolized version of the :format parameter of the request, or :html by default.
+    #
+    # EXCEPTION: If the :format parameter is not set, the Accept header will be examined for
+    # whether it contains the JavaScript mime type as its first priority. If that's the case,
+    # it will be used. This ensures that Ajax applications can use the same URL to support both
+    # JavaScript and non-JavaScript users.
     def template_format
       return @template_format if @template_format
-      format = controller && controller.respond_to?(:request) && controller.request.parameters[:format]
-      @template_format = format.blank? ? :html : format.to_sym
+
+      if controller && controller.respond_to?(:request)
+        parameter_format = controller.request.parameters[:format]
+        accept_format    = controller.request.accepts.first
+
+        case
+        when parameter_format.blank? && accept_format != :js
+          @template_format = :html
+        when parameter_format.blank? && accept_format == :js
+          @template_format = :js
+        else
+          @template_format = parameter_format.to_sym
+        end
+      else
+        @template_format = :html
+      end
     end
 
     private
