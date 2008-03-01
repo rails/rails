@@ -21,7 +21,7 @@ class TemplateFinderTest < Test::Unit::TestCase
     assert_equal ["builder", "erb", "rhtml", "rjs", "rxml", "mab"].sort,
                  ActionView::TemplateFinder.file_extension_cache[LOAD_PATH_ROOT].values.flatten.uniq.sort
 
-    assert_equal Dir.glob("#{LOAD_PATH_ROOT}/**/*.{erb,rjs,rjs,builder,rxml,mab}").size,
+    assert_equal Dir.glob("#{LOAD_PATH_ROOT}/**/*.{erb,rjs,rhtml,builder,rxml,mab}").size,
                  ActionView::TemplateFinder.file_extension_cache[LOAD_PATH_ROOT].keys.size
   end
 
