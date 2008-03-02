@@ -220,29 +220,29 @@ module ActionView
       end
 
       alias_method :to_date_select_tag_without_error_wrapping, :to_date_select_tag
-      def to_date_select_tag(options = {})
+      def to_date_select_tag(options = {}, html_options = {})
         if object.respond_to?("errors") && object.errors.respond_to?("on")
-          error_wrapping(to_date_select_tag_without_error_wrapping(options), object.errors.on(@method_name))
+          error_wrapping(to_date_select_tag_without_error_wrapping(options, html_options), object.errors.on(@method_name))
         else
-          to_date_select_tag_without_error_wrapping(options)
+          to_date_select_tag_without_error_wrapping(options, html_options)
         end
       end
 
       alias_method :to_datetime_select_tag_without_error_wrapping, :to_datetime_select_tag
-      def to_datetime_select_tag(options = {})
+      def to_datetime_select_tag(options = {}, html_options = {})
         if object.respond_to?("errors") && object.errors.respond_to?("on")
-            error_wrapping(to_datetime_select_tag_without_error_wrapping(options), object.errors.on(@method_name))
+            error_wrapping(to_datetime_select_tag_without_error_wrapping(options, html_options), object.errors.on(@method_name))
           else
-            to_datetime_select_tag_without_error_wrapping(options)
+            to_datetime_select_tag_without_error_wrapping(options, html_options)
         end
       end
 
       alias_method :to_time_select_tag_without_error_wrapping, :to_time_select_tag
-      def to_time_select_tag(options = {})
+      def to_time_select_tag(options = {}, html_options = {})
         if object.respond_to?("errors") && object.errors.respond_to?("on")
-          error_wrapping(to_time_select_tag_without_error_wrapping(options), object.errors.on(@method_name))
+          error_wrapping(to_time_select_tag_without_error_wrapping(options, html_options), object.errors.on(@method_name))
         else
-          to_time_select_tag_without_error_wrapping(options)
+          to_time_select_tag_without_error_wrapping(options, html_options)
         end
       end
 
