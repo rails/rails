@@ -112,6 +112,23 @@ module ActiveRecord
           super
         end
 
+        def extract_limit(sql_type)
+          if sql_type =~ /blob|text/i
+            case sql_type
+            when /tiny/i
+              255
+            when /medium/i
+              16777215
+            when /long/i
+              2147483647 # mysql only allows 2^31-1, not 2^32-1, somewhat inconsistently with the tiny/medium/normal cases
+            else
+              super # we could return 65535 here, but we leave it undecorated by default
+            end
+          else
+            super
+          end
+        end
+
         # MySQL misreports NOT NULL column default when none is given.
         # We can't detect this for columns which may have a legitimate ''
         # default (string) but we can for others (integer, datetime, boolean,
