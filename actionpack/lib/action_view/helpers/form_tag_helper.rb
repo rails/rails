@@ -370,13 +370,13 @@ module ActionView
       #   image_submit_tag("login.png")
       #   # => <input src="/images/login.png" type="image" />
       #
-      #   image_submit_tag("purchase.png"), :disabled => true
+      #   image_submit_tag("purchase.png", :disabled => true)
       #   # => <input disabled="disabled" src="/images/purchase.png" type="image" />
       #
-      #   image_submit_tag("search.png"), :class => 'search-button'
+      #   image_submit_tag("search.png", :class => 'search-button')
       #   # => <input class="search-button" src="/images/search.png" type="image" />
       #
-      #   image_submit_tag("agree.png"), :disabled => true, :class => "agree-disagree-button"
+      #   image_submit_tag("agree.png", :disabled => true, :class => "agree-disagree-button")
       #   # => <input class="agree-disagree-button" disabled="disabled" src="/images/agree.png" type="image" />
       def image_submit_tag(source, options = {})
         tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options.stringify_keys)
