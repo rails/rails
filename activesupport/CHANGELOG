@@ -1,5 +1,7 @@
 *SVN*
 
+* Add OrderedHash#to_hash [josh]
+
 * Adding Time#end_of_day, _quarter, _week, and _year.  #9312 [Juanjo Bazan, Tarmo Tänav, BigTitus]
 
 * Adding TimeWithZone#between? [Geoff Buesing]
