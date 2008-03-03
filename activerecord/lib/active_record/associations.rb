@@ -1388,7 +1388,13 @@ module ActiveRecord
 
         def construct_finder_sql_for_association_limiting(options, join_dependency)
           scope       = scope(:find)
-          is_distinct = !options[:joins].blank? || include_eager_conditions?(options) || include_eager_order?(options)
+
+          # Only join tables referenced in order or conditions since this is particularly slow on the pre-query.
+          tables_from_conditions = conditions_tables(options)
+          tables_from_order      = order_tables(options)
+          all_tables             = tables_from_conditions + tables_from_order
+
+          is_distinct = !options[:joins].blank? || include_eager_conditions?(options, tables_from_conditions) || include_eager_order?(options, tables_from_order)
           sql = "SELECT "
           if is_distinct
             sql << connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", options[:order])
@@ -1398,7 +1404,7 @@ module ActiveRecord
           sql << " FROM #{connection.quote_table_name table_name} "
 
           if is_distinct
-            sql << join_dependency.join_associations.collect(&:association_join).join
+            sql << join_dependency.join_associations.reject{ |ja| !all_tables.include?(ja.table_name) }.collect(&:association_join).join
             add_joins!(sql, options, scope)
           end
 
@@ -1416,8 +1422,7 @@ module ActiveRecord
           return sanitize_sql(sql)
         end
 
-        # Checks if the conditions reference a table other than the current model table
-        def include_eager_conditions?(options)
+        def conditions_tables(options)
           # look in both sets of conditions
           conditions = [scope(:find, :conditions), options[:conditions]].inject([]) do |all, cond|
             case cond
@@ -1426,17 +1431,29 @@ module ActiveRecord
               else            all << cond
             end
           end
-          return false unless conditions.any?
-          conditions.join(' ').scan(/([\.\w]+).?\./).flatten.any? do |condition_table_name|
+          conditions.join(' ').scan(/([\.\w]+).?\./).flatten
+        end
+
+        def order_tables(options)
+          order = options[:order]
+          return [] unless order && order.is_a?(String)
+          order.scan(/([\.\w]+).?\./).flatten
+        end
+
+        # Checks if the conditions reference a table other than the current model table
+        def include_eager_conditions?(options,tables = nil)
+          tables = conditions_tables(options)
+          return false unless tables.any?
+          tables.any? do |condition_table_name|
             condition_table_name != table_name
           end
         end
 
         # Checks if the query order references a table other than the current model's table.
-        def include_eager_order?(options)
-          order = options[:order]
-          return false unless order
-          order.to_s.scan(/([\.\w]+).?\./).flatten.any? do |order_table_name|
+        def include_eager_order?(options,tables = nil)
+          tables = order_tables(options)
+          return false unless tables.any?
+          tables.any? do |order_table_name|
             order_table_name != table_name
           end
         end

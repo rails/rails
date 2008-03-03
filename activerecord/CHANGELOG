@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve performance on :include/:conditions/:limit queries by selectively joining in the pre-query.  #9560 [dasil003]
+
 * Perf fix: Avoid the use of named block arguments.  Closes #11109 [adymo]
 
 * PostgreSQL: support server versions 7.4 through 8.0 and the ruby-pg driver.  #11127 [jdavis]
