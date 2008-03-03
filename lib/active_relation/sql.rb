@@ -20,7 +20,7 @@ module ActiveRelation
       end
       
       def select(select_sql, aliaz)
-        "(#{select_sql})" + (aliaz ? " AS #{quote_column_name(aliaz)}" : "")
+        "(#{select_sql})" + (aliaz ? " AS #{quote(aliaz)}" : "")
       end
     end
     

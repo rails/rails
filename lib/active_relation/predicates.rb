@@ -84,7 +84,7 @@ module ActiveRelation
 
   class RelationInclusion < Binary
     alias_method :relation, :operand2
-    
+
     protected
     def predicate_sql
       'IN'

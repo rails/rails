@@ -1,11 +1,11 @@
 class Hash
-  def alias(&block)
-    inject({}) do |aliased, (key, value)|
-      aliased.merge(yield(key) => value)
-    end
+  def bind(relation)
+    descend { |x| x.bind(relation) }
   end
   
-  def to_sql(strategy = nil)
-    "(#{values.collect(&:to_sql).join(', ')})"
+  def descend(&block)
+    inject({}) do |descendent, (key, value)|
+      descendent.merge(yield(key) => yield(value))
+    end
   end
 end

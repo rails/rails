@@ -4,12 +4,12 @@ module ActiveRelation
   describe Selection do
     before do
       @relation = Table.new(:users)
-      @predicate = Equality.new(@relation[:id], 1)
+      @predicate = Equality.new(@relation[:id], 1.bind(@relation))
     end
   
     describe '#initialize' do
       it "manufactures nested selection relations if multiple predicates are provided" do
-        @predicate2 = LessThan.new(@relation[:age], 2)
+        @predicate2 = LessThan.new(@relation[:age], 2.bind(@relation))
         Selection.new(@relation, @predicate, @predicate2). \
           should == Selection.new(Selection.new(@relation, @predicate2), @predicate)
       end
@@ -39,7 +39,7 @@ module ActiveRelation
       end
     
       it "allows arbitrary sql" do
-        Selection.new(@relation, "asdf").to_sql.should be_like("
+        Selection.new(@relation, "asdf".bind(@relation)).to_sql.should be_like("
           SELECT `users`.`id`, `users`.`name`
           FROM `users`
           WHERE asdf

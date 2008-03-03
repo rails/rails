@@ -55,7 +55,7 @@ module ActiveRelation
       end
       
       it 'appropriately quotes scalars' do
-        ConcreteBinary.new(@attribute1, "1-asdf").to_sql.should be_like("
+        ConcreteBinary.new(@attribute1, "1-asdf".bind(@relation1)).to_sql.should be_like("
           `users`.`id` <=> 1
         ")        
       end

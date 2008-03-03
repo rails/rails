@@ -8,14 +8,14 @@ module ActiveRelation
   
     describe '#to_sql' do
       it 'manufactures sql updating attributes' do
-        Update.new(@relation, @relation[:name] => "nick").to_sql.should be_like("
+        Update.new(@relation, @relation[:name] => "nick".bind(@relation)).to_sql.should be_like("
           UPDATE `users`
           SET `users`.`name` = 'nick'
         ")
       end
       
       it 'manufactures sql updating a selection relation' do
-        Update.new(@relation.select(@relation[:id].equals(1)), @relation[:name] => "nick").to_sql.should be_like("
+        Update.new(@relation.select(@relation[:id].equals(1)), @relation[:name] => "nick".bind(@relation)).to_sql.should be_like("
           UPDATE `users`
           SET `users`.`name` = 'nick'
           WHERE `users`.`id` = 1

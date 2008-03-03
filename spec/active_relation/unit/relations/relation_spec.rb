@@ -89,7 +89,7 @@ module ActiveRelation
         end
     
         it "accepts arbitrary strings" do
-          @relation.select("arbitrary").should == Selection.new(@relation, "arbitrary")
+          @relation.select("arbitrary").should == Selection.new(@relation, Scalar.new("arbitrary", @relation))
         end
       end
   
@@ -100,9 +100,17 @@ module ActiveRelation
       end
       
       describe '#aggregate' do
+        before do
+          @expression1 = @attribute1.sum
+          @expression2 = @attribute2.sum
+        end
+        
         it 'manufactures a group relation' do
           @relation.aggregate(@expression1, @expression2).group(@attribute1, @attribute2). \
-            should == Aggregation.new(@relation, :expressions => [@expresion, @expression2], :groupings => [@attribute1, @attribute2])
+            should == Aggregation.new(@relation,
+                        :expressions => [@expression1, @expression2],
+                        :groupings => [@attribute1, @attribute2]
+                      )
         end
       end
       
@@ -119,7 +127,8 @@ module ActiveRelation
         describe '#insert' do
           it 'manufactures an insertion relation' do
             Session.start do
-              mock(Session.new).create(Insertion.new(@relation, record = {@relation[:name] => 'carl'}))
+              record = {@relation[:name] => 'carl'}
+              mock(Session.new).create(Insertion.new(@relation, record.bind(@relation)))
               @relation.insert(record).should == @relation
             end
           end
@@ -128,7 +137,8 @@ module ActiveRelation
         describe '#update' do
           it 'manufactures an update relation' do
             Session.start do
-              mock(Session.new).update(Update.new(@relation, assignments = {@relation[:name] => 'bob'}))
+              assignments = {@relation[:name] => Scalar.new('bob', @relation)}
+              mock(Session.new).update(Update.new(@relation, assignments.bind(@relation)))
               @relation.update(assignments).should == @relation
             end
           end

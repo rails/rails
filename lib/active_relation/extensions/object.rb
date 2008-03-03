@@ -1,18 +1,6 @@
-class Object
-  def qualify
-    self
-  end
-  
+class Object  
   def bind(relation)
-    self
-  end
-  
-  def to_sql(strategy = self.strategy)
-    strategy.scalar self
-  end
-  
-  def strategy
-    ActiveRelation::Sql::Scalar.new(ActiveRelation::Table.engine)
+    ActiveRelation::Scalar.new(self, relation)
   end
   
   def metaclass

@@ -42,11 +42,11 @@ module ActiveRelation
       end
 
       def select(*predicates)
-        Selection.new(self, *predicates)
+        Selection.new(self, *predicates.collect {|p| p.bind(self)})
       end
 
       def project(*attributes)
-        Projection.new(self, *attributes)
+        Projection.new(self, *attributes.collect {|a| a.bind(self)})
       end
       
       def as(aliaz)
@@ -54,7 +54,7 @@ module ActiveRelation
       end
 
       def order(*attributes)
-        Order.new(self, *attributes)
+        Order.new(self, *attributes.collect {|a| a.bind(self)})
       end
   
       def rename(attribute, aliaz)
@@ -67,11 +67,11 @@ module ActiveRelation
       
       module Writes
         def insert(record)
-          session.create Insertion.new(self, record); self
+          session.create Insertion.new(self, record.bind(self)); self
         end
 
         def update(assignments)
-          session.update Update.new(self, assignments); self
+          session.update Update.new(self, assignments.bind(self)); self
         end
 
         def delete
@@ -108,14 +108,14 @@ module ActiveRelation
 
     def to_sql(strategy = Sql::Relation.new(engine))
       strategy.select [
-        "SELECT #{attributes.collect{ |a| a.to_sql(Sql::Projection.new(engine)) }.join(', ')}",
-        "FROM #{table_sql}",
-        (joins unless joins.blank?),
-        ("WHERE #{selects.collect{|s| s.to_sql(Sql::Selection.new(engine))}.join("\n\tAND ")}" unless selects.blank?),
-        ("ORDER BY #{orders.collect(&:to_sql)}" unless orders.blank?),
-        ("GROUP BY #{groupings.collect(&:to_sql)}" unless groupings.blank?),
-        ("LIMIT #{limit.to_sql}" unless limit.blank?),
-        ("OFFSET #{offset.to_sql}" unless offset.blank?)
+        "SELECT     #{attributes.collect{ |a| a.to_sql(Sql::Projection.new(engine)) }.join(', ')}",
+        "FROM       #{table_sql}",
+        (joins                                                                                      unless joins.blank?     ),
+        ("WHERE     #{selects.collect{|s| s.to_sql(Sql::Selection.new(engine))}.join("\n\tAND ")}"  unless selects.blank?   ),
+        ("ORDER BY  #{orders.collect(&:to_sql)}"                                                    unless orders.blank?    ),
+        ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                 unless groupings.blank? ),
+        ("LIMIT     #{limit}"                                                                       unless limit.blank?     ),
+        ("OFFSET    #{offset}"                                                                      unless offset.blank?    )
       ].compact.join("\n"), self.alias
     end
     alias_method :to_s, :to_sql
@@ -126,6 +126,14 @@ module ActiveRelation
     
     def attribute_for_attribute(attribute)
       attributes.detect { |a| a =~ attribute }
+    end
+    
+    def bind(relation)
+      self
+    end
+    
+    def strategy
+      Sql::Predicate.new(engine)
     end
 
     def attributes;  []  end

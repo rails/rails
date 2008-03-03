@@ -15,7 +15,7 @@ module ActiveRelation
     end
     
     def attributes
-      relation.attributes.collect(&method(:baptize))
+      relation.attributes.collect(&method(:christen))
     end
     
     def descend(&block)
@@ -23,7 +23,7 @@ module ActiveRelation
     end
     
     private
-    def baptize(attribute)
+    def christen(attribute)
       (attribute =~ self.attribute ? attribute.as(pseudonym) : attribute).bind(self) rescue nil
     end
   end

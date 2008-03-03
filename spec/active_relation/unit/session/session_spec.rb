@@ -32,8 +32,8 @@ module ActiveRelation
     
     describe Session::CRUD do
       before do
-        @insert = Insertion.new(@relation, @relation[:name] => 'nick')
-        @update = Update.new(@relation, @relation[:name] => 'nick')
+        @insert = Insertion.new(@relation, @relation[:name] => 'nick'.bind(@relation))
+        @update = Update.new(@relation, @relation[:name] => 'nick'.bind(@relation))
         @delete = Deletion.new(@relation)
         @select = @relation
       end
