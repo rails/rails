@@ -38,6 +38,12 @@ module ActiveRelation
       end
     end
     
+    describe '#engine' do
+      it "delegates to a relation's engine" do
+        Join.new("INNER JOIN", @relation1, @relation2, @predicate).engine.should == @relation1.engine
+      end
+    end
+    
     describe 'with simple relations' do
       describe '#attributes' do
         it 'combines the attributes of the two relations' do

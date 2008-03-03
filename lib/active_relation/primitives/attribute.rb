@@ -1,6 +1,7 @@
 module ActiveRelation
   class Attribute
     attr_reader :relation, :name, :alias, :ancestor
+    delegate :engine, :to => :relation
 
     def initialize(relation, name, options = {})
       @relation, @name, @alias, @ancestor, @column = relation, name, options[:alias], options[:ancestor]

@@ -1,10 +1,12 @@
 module ActiveRelation
   class Table < Relation
-    attr_reader :name
+    cattr_accessor :engine
+    attr_reader :name, :engine
+    
     delegate :hash, :to => :name
     
-    def initialize(name)
-      @name = name.to_s
+    def initialize(name, engine = Table.engine)
+      @name, @engine = name.to_s, engine
     end
 
     def attributes
@@ -31,7 +33,7 @@ module ActiveRelation
     end
     
     def columns
-      @columns ||= connection.columns(name, "#{name} Columns")
+      @columns ||= engine.columns(name, "#{name} Columns")
     end
     
     def descend
@@ -44,7 +46,7 @@ module ActiveRelation
 
     protected    
     def table_sql
-      "#{quote_table_name(name)}"
+      "#{engine.quote_table_name(name)}"
     end
     
     private

@@ -12,7 +12,7 @@ class Object
   end
   
   def strategy
-    ActiveRelation::Sql::Scalar.new
+    ActiveRelation::Sql::Scalar.new(ActiveRelation::Table.engine)
   end
   
   def metaclass

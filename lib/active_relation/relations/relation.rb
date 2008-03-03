@@ -1,7 +1,5 @@
 module ActiveRelation
   class Relation
-    include Sql::Quoting
-
     def session
       Session.new
     end
@@ -108,12 +106,12 @@ module ActiveRelation
       self == other
     end
 
-    def to_sql(strategy = Sql::Relation.new)
+    def to_sql(strategy = Sql::Relation.new(engine))
       strategy.select [
-        "SELECT #{attributes.collect{ |a| a.to_sql(Sql::Projection.new) }.join(', ')}",
+        "SELECT #{attributes.collect{ |a| a.to_sql(Sql::Projection.new(engine)) }.join(', ')}",
         "FROM #{table_sql}",
         (joins unless joins.blank?),
-        ("WHERE #{selects.collect{|s| s.to_sql(Sql::Selection.new)}.join("\n\tAND ")}" unless selects.blank?),
+        ("WHERE #{selects.collect{|s| s.to_sql(Sql::Selection.new(engine))}.join("\n\tAND ")}" unless selects.blank?),
         ("ORDER BY #{orders.collect(&:to_sql)}" unless orders.blank?),
         ("GROUP BY #{groupings.collect(&:to_sql)}" unless groupings.blank?),
         ("LIMIT #{limit.to_sql}" unless limit.blank?),
@@ -121,11 +119,7 @@ module ActiveRelation
       ].compact.join("\n"), self.alias
     end
     alias_method :to_s, :to_sql
-    
-    def connection
-      ActiveRecord::Base.connection
-    end
-    
+        
     def attribute_for_name(name)
       attributes.detect { |a| a.alias_or_name.to_s == name.to_s }
     end

@@ -3,7 +3,7 @@ module ActiveRelation
     attr_reader :relation
     delegate :joins, :selects, :orders, :groupings, :table_sql, :inserts, :limit,
              :offset, :name, :alias, :aggregation?, :alias?, :prefix_for, :column_for,
-             :hash,
+             :hash, :engine,
              :to => :relation
     
     def attributes

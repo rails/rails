@@ -26,25 +26,21 @@ module ActiveRelation
     end
     
     module CRUD
-      def connection
-        ActiveRecord::Base.connection
-      end
-      
       def create(insert)
-        connection.insert(insert.to_sql)
+        insert.engine.insert(insert.to_sql)
       end
       
       def read(select)
         @read ||= {}
-        @read.has_key?(select) ? @read[select] : (@read[select] = connection.select_all(select.to_sql))
+        @read.has_key?(select) ? @read[select] : (@read[select] = select.engine.select_all(select.to_sql))
       end
       
       def update(update)
-        connection.update(update.to_sql)
+        update.engine.update(update.to_sql)
       end
       
       def delete(delete)
-        connection.delete(delete.to_sql)
+        delete.engine.delete(delete.to_sql)
       end
     end
     include CRUD

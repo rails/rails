@@ -1,6 +1,7 @@
 module ActiveRelation
   class Join < Relation
     attr_reader :join_sql, :relation1, :relation2, :predicates
+    delegate :engine, :to => :relation1
 
     def initialize(join_sql, relation1, relation2, *predicates)
       @join_sql, @relation1, @relation2, @predicates = join_sql, relation1, relation2, predicates
@@ -57,8 +58,10 @@ module ActiveRelation
     end
     
     Externalizer = Struct.new(:relation) do
+      delegate :engine, :to => :relation
+      
       def table_sql
-        relation.aggregation?? relation.to_sql(Sql::Aggregation.new) : relation.send(:table_sql)
+        relation.aggregation?? relation.to_sql(Sql::Aggregation.new(engine)) : relation.send(:table_sql)
       end
       
       def selects

@@ -1,16 +1,17 @@
 module ActiveRelation
   module Sql
     module Quoting
-      def connection
-        Session.new.connection
-      end
-  
-      delegate :quote_table_name, :quote_column_name, :quote, :to => :connection
+      delegate :quote_table_name, :quote_column_name, :quote, :to => :engine
     end
     
     # module Formatting Context / Strategy # unit test me!!!
     class Strategy
+      attr_reader :engine
       include Quoting
+      
+      def initialize(engine)
+        @engine = engine
+      end
     end
     
     class Projection < Strategy
@@ -51,13 +52,13 @@ module ActiveRelation
     
     class Aggregation < Strategy
       def select(select_sql, aliaz)
-        "(#{select_sql}) AS #{quote_table_name(aliaz)}"
+        "(#{select_sql}) AS #{engine.quote_table_name(aliaz)}"
       end
     end
     
     class Attribute < Predicate
       def initialize(attribute)
-        @attribute = attribute
+        @attribute, @engine = attribute, attribute.engine
       end
       
       def scalar(scalar)

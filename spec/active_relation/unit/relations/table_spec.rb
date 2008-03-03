@@ -80,5 +80,16 @@ module ActiveRelation
         hash[Table.new(:users)].should == 1
       end
     end
+    
+    describe '#engine' do
+      it "defaults to global engine" do
+        Table.engine = engine = Engine.new
+        Table.new(:users).engine.should == engine
+      end
+      
+      it "can be specified" do
+        Table.new(:users, engine = Engine.new).engine.should == engine
+      end
+    end
   end
 end

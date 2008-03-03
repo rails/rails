@@ -51,6 +51,12 @@ module ActiveRelation
       end
     end
     
+    describe '#engine' do
+      it "delegates to its relation" do
+        Attribute.new(@relation, :id).engine.should == @relation.engine
+      end
+    end
+    
     describe Attribute::Congruence do
       describe '=~' do
         it "obtains if the attributes are identical" do

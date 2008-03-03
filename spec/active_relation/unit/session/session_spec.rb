@@ -40,19 +40,19 @@ module ActiveRelation
       
       describe '#create' do
         it "executes an insertion on the connection" do
-          mock(@session.connection).insert(@insert.to_sql)
+          mock(@insert.engine).insert(@insert.to_sql)
           @session.create(@insert)
         end
       end
       
       describe '#read' do
         it "executes an selection on the connection" do
-          mock(@session.connection).select_all(@select.to_sql).once
+          mock(@select.engine).select_all(@select.to_sql).once
           @session.read(@select)
         end
         
         it "is memoized" do
-          mock(@session.connection).select_all(@select.to_sql).once
+          mock(@select.engine).select_all(@select.to_sql).once
           @session.read(@select)
           @session.read(@select)
         end
@@ -60,14 +60,14 @@ module ActiveRelation
       
       describe '#update' do
         it "executes an update on the connection" do
-          mock(@session.connection).update(@update.to_sql)
+          mock(@update.engine).update(@update.to_sql)
           @session.update(@update)
         end
       end
       
       describe '#delete' do
         it "executes a delete on the connection" do
-          mock(@session.connection).delete(@delete.to_sql)
+          mock(@delete.engine).delete(@delete.to_sql)
           @session.delete(@delete)
         end
       end
