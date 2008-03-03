@@ -22,6 +22,7 @@ class EnumerableTests < Test::Unit::TestCase
     end
 
     assert_equal objects.uniq.map(&:name), grouped.keys
+    assert({}.merge(grouped), "Could not convert ActiveSupport::OrderedHash into Hash")
   end
 
   def test_sums
