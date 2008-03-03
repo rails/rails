@@ -209,6 +209,14 @@ uses_tzinfo 'TimeWithZoneTest' do
       assert_instance_of ActiveSupport::TimeWithZone, @twz.months_since(1)
       assert_equal Time.utc(2000, 1, 31, 19, 0 ,0), @twz.months_since(1).time
     end
+    
+    def test_marshal_dump_and_load
+      marshal_str = Marshal.dump(@twz)
+      mtime = Marshal.load(marshal_str)
+      assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
+      assert_equal TimeZone['Eastern Time (US & Canada)'], mtime.time_zone
+      assert_equal Time.utc(1999, 12, 31, 19), mtime.time
+    end
       
     def test_method_missing_with_non_time_return_value
       assert_equal 1999, @twz.year

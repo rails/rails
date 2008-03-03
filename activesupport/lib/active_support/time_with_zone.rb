@@ -188,6 +188,14 @@ module ActiveSupport
     def freeze
       self
     end
+
+    def marshal_dump
+      [utc, time_zone.name, time]
+    end
+    
+    def marshal_load(variables)
+      initialize(variables[0], ::TimeZone[variables[1]], variables[2])
+    end
   
     # Ensure proxy class responds to all methods that underlying time instance responds to
     def respond_to?(sym)
