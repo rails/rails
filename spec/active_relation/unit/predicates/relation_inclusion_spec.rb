@@ -18,9 +18,9 @@ module ActiveRelation
   
     describe RelationInclusion, '#to_sql' do
       it "manufactures subselect sql" do
-        RelationInclusion.new(@attribute, @relation1).to_sql.should be_like("""
+        RelationInclusion.new(@attribute, @relation1).to_sql.should be_like("
           `foo`.`id` IN (SELECT `foo`.`id` FROM `foo`)
-        """)
+        ")
       end
     end
   end

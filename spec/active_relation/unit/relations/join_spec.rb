@@ -49,22 +49,22 @@ module ActiveRelation
       
       describe '#to_sql' do
         it 'manufactures sql joining the two tables on the predicate' do
-          Join.new("INNER JOIN", @relation1, @relation2, @predicate).to_sql.should be_like("""
+          Join.new("INNER JOIN", @relation1, @relation2, @predicate).to_sql.should be_like("
             SELECT `users`.`id`, `users`.`name`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
             FROM `users`
               INNER JOIN `photos` ON `users`.`id` = `photos`.`user_id`
-          """)
+          ")
         end
 
         it 'manufactures sql joining the two tables, merging any selects' do
           Join.new("INNER JOIN", @relation1.select(@relation1[:id].equals(1)),
-                                 @relation2.select(@relation2[:id].equals(2)), @predicate).to_sql.should be_like("""
+                                 @relation2.select(@relation2[:id].equals(2)), @predicate).to_sql.should be_like("
             SELECT `users`.`id`, `users`.`name`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
             FROM `users`
               INNER JOIN `photos` ON `users`.`id` = `photos`.`user_id`
             WHERE `users`.`id` = 1
               AND `photos`.`id` = 2
-          """)          
+          ")          
         end
       end
     end
@@ -89,33 +89,33 @@ module ActiveRelation
       describe '#to_sql' do
         describe 'with the aggregation on the right' do
           it 'manufactures sql joining the left table to a derived table' do
-            Join.new("INNER JOIN", @relation1, @aggregation, @predicate).to_sql.should be_like("""
+            Join.new("INNER JOIN", @relation1, @aggregation, @predicate).to_sql.should be_like("
               SELECT `users`.`id`, `users`.`name`, `photo_count`.`user_id`, `photo_count`.`cnt`
               FROM `users`
                 INNER JOIN (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` GROUP BY `photos`.`user_id`) AS `photo_count`
                   ON `users`.`id` = `photo_count`.`user_id`
-            """)
+            ")
           end
         end
 
         describe 'with the aggregation on the left' do
           it 'manufactures sql joining the right table to a derived table' do
-            Join.new("INNER JOIN", @aggregation, @relation1, @predicate).to_sql.should be_like("""
+            Join.new("INNER JOIN", @aggregation, @relation1, @predicate).to_sql.should be_like("
               SELECT `photo_count`.`user_id`, `photo_count`.`cnt`, `users`.`id`, `users`.`name`
               FROM (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` GROUP BY `photos`.`user_id`) AS `photo_count`
                 INNER JOIN `users`
                   ON `users`.`id` = `photo_count`.`user_id`
-            """)
+            ")
           end
         end
 
         it "keeps selects on the aggregation within the derived table" do
-          Join.new("INNER JOIN", @relation1, @aggregation.select(@aggregation[:user_id].equals(1)), @predicate).to_sql.should be_like("""
+          Join.new("INNER JOIN", @relation1, @aggregation.select(@aggregation[:user_id].equals(1)), @predicate).to_sql.should be_like("
             SELECT `users`.`id`, `users`.`name`, `photo_count`.`user_id`, `photo_count`.`cnt`
             FROM `users`
               INNER JOIN (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` WHERE `photos`.`user_id` = 1 GROUP BY `photos`.`user_id`) AS `photo_count`
                 ON `users`.`id` = `photo_count`.`user_id`
-          """)
+          ")
         end
       end
     end

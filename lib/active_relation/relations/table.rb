@@ -1,7 +1,8 @@
 module ActiveRelation
   class Table < Relation
     attr_reader :name
-
+    delegate :hash, :to => :name
+    
     def initialize(name)
       @name = name.to_s
     end
@@ -21,16 +22,24 @@ module ActiveRelation
     end
     
     def column_for(attribute)
-      self[attribute] and columns.detect { |c| c.name == attribute.name }
+      self[attribute] and columns.detect { |c| c.name == attribute.name.to_s }
     end
     
     def ==(other)
       self.class == other.class and
       name       == other.name
     end
-        
+    
     def columns
       @columns ||= connection.columns(name, "#{name} Columns")
+    end
+    
+    def descend
+      yield self
+    end
+    
+    def reset
+      @attributes = @columns = nil
     end
 
     protected    

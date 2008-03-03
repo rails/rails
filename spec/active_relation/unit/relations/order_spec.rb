@@ -23,11 +23,11 @@ module ActiveRelation
   
     describe '#to_sql' do
       it "manufactures sql with an order clause" do
-        Order.new(@relation, @attribute).to_sql.should be_like("""
+        Order.new(@relation, @attribute).to_sql.should be_like("
           SELECT `users`.`id`, `users`.`name`
           FROM `users`
           ORDER BY `users`.`id`
-        """)
+        ")
       end
     end
   end

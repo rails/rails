@@ -49,12 +49,15 @@ module ActiveRelation
   
     describe '#to_sql' do
       it 'manufactures sql with a binary operation' do
-        ConcreteBinary.new(@attribute1, @attribute2).to_sql.should be_like("""
+        ConcreteBinary.new(@attribute1, @attribute2).to_sql.should be_like("
           `users`.`id` <=> `photos`.`id`
-        """)
+        ")
       end
       
-      it 'appropriately cooerces scalars' do
+      it 'appropriately quotes scalars' do
+        ConcreteBinary.new(@attribute1, "1-asdf").to_sql.should be_like("
+          `users`.`id` <=> 1
+        ")        
       end
     end
   end

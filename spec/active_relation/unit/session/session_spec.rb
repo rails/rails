@@ -4,13 +4,29 @@ module ActiveRelation
   describe Session do
     before do
       @relation = Table.new(:users)
-      @session = Session.instance
+      @session = Session.new
     end
     
-    describe Singleton do
-      it "is a singleton" do
-        Session.instance.should be_equal(Session.instance)
-        lambda { Session.new }.should raise_error
+    describe '::start' do
+      describe '::instance' do
+        it "it is a singleton within the started session" do
+          Session.start do
+            Session.new.should == Session.new
+          end
+        end
+
+        it "is a singleton across nested sessions" do
+          Session.start do
+            outside = Session.new
+            Session.start do
+              Session.new.should == outside
+            end
+          end
+        end
+      
+        it "manufactures new sessions outside of the started session" do
+          Session.new.should_not == Session.new
+        end
       end
     end
     
@@ -23,28 +39,34 @@ module ActiveRelation
       end
       
       describe '#create' do
-        it "should execute an insertion on the connection" do
+        it "executes an insertion on the connection" do
           mock(@session.connection).insert(@insert.to_sql)
           @session.create(@insert)
         end
       end
       
       describe '#read' do
-        it "should execute an selection on the connection" do
-          mock(@session.connection).select_all(@select.to_sql)
+        it "executes an selection on the connection" do
+          mock(@session.connection).select_all(@select.to_sql).once
+          @session.read(@select)
+        end
+        
+        it "is memoized" do
+          mock(@session.connection).select_all(@select.to_sql).once
+          @session.read(@select)
           @session.read(@select)
         end
       end
       
       describe '#update' do
-        it "should execute an update on the connection" do
+        it "executes an update on the connection" do
           mock(@session.connection).update(@update.to_sql)
           @session.update(@update)
         end
       end
       
       describe '#delete' do
-        it "should execute a delete on the connection" do
+        it "executes a delete on the connection" do
           mock(@session.connection).delete(@delete.to_sql)
           @session.delete(@delete)
         end

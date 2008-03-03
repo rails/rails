@@ -38,16 +38,16 @@ module ActiveRelation
     
     describe '#to_sql' do
       it "manufactures a simple select query" do
-        @relation.to_sql.should be_like("""
+        @relation.to_sql.should be_like("
           SELECT `users`.`id`, `users`.`name`
           FROM `users`
-        """)
+        ")
       end
     end
     
     describe '#column_for' do
       it "" do
-        pending
+        @relation[:id].column.should == @relation.columns.detect { |c| c.name == 'id' }
       end
     end
     
@@ -70,6 +70,14 @@ module ActiveRelation
     describe '#qualify' do
       it 'manufactures a rename relation with all attribute names qualified' do
         @relation.qualify.should == Rename.new(@relation, @relation[:name] => 'users.name', @relation[:id] => 'users.id')
+      end
+    end
+    
+    describe 'hashing' do
+      it "implements hash equality" do
+        hash = {}
+        hash[Table.new(:users)] = 1
+        hash[Table.new(:users)].should == 1
       end
     end
   end

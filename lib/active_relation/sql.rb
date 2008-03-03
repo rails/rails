@@ -2,12 +2,13 @@ module ActiveRelation
   module Sql
     module Quoting
       def connection
-        Session.instance.connection
+        Session.new.connection
       end
   
       delegate :quote_table_name, :quote_column_name, :quote, :to => :connection
     end
     
+    # module Formatting Context / Strategy # unit test me!!!
     class Strategy
       include Quoting
     end

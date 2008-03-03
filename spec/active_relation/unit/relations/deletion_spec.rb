@@ -8,18 +8,18 @@ module ActiveRelation
   
     describe '#to_sql' do
       it 'manufactures sql deleting a table relation' do
-        Deletion.new(@relation).to_sql.should be_like("""
+        Deletion.new(@relation).to_sql.should be_like("
           DELETE
           FROM `users`
-        """)
+        ")
       end
     
       it 'manufactures sql deleting a selection relation' do
-        Deletion.new(@relation.select(@relation[:id].equals(1))).to_sql.should be_like("""
+        Deletion.new(@relation.select(@relation[:id].equals(1))).to_sql.should be_like("
           DELETE
           FROM `users`
           WHERE `users`.`id` = 1
-        """)
+        ")
       end
     end
   end

@@ -49,11 +49,8 @@ module ActiveRelation
       def self.included(klass)
         klass.class_eval do
           alias_method :eql?, :==
+          delegate :hash, :to => :name
         end
-      end
-      
-      def hash
-        relation.hash + name.hash
       end
       
       def history

@@ -54,10 +54,10 @@ module ActiveRelation
   
     describe '#to_sql' do
       it 'manufactures sql renaming the attribute' do
-        Rename.new(@relation, @relation[:id] => :schmid).to_sql.should be_like("""
+        Rename.new(@relation, @relation[:id] => :schmid).to_sql.should be_like("
           SELECT `users`.`id` AS 'schmid', `users`.`name`
           FROM `users`
-        """)
+        ")
       end
     end
   end

@@ -14,4 +14,10 @@ class Object
   def strategy
     ActiveRelation::Sql::Scalar.new
   end
+  
+  def metaclass
+    class << self
+      self
+    end
+  end
 end

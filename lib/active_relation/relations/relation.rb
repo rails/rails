@@ -3,7 +3,7 @@ module ActiveRelation
     include Sql::Quoting
 
     def session
-      Session.instance
+      Session.new
     end
 
     module Enumerable
@@ -103,6 +103,10 @@ module ActiveRelation
     def alias?
       false
     end
+    
+    def eql?(other)
+      self == other
+    end
 
     def to_sql(strategy = Sql::Relation.new)
       strategy.select [
@@ -117,10 +121,6 @@ module ActiveRelation
       ].compact.join("\n"), self.alias
     end
     alias_method :to_s, :to_sql
-  
-    def descend
-      yield self
-    end
     
     def connection
       ActiveRecord::Base.connection

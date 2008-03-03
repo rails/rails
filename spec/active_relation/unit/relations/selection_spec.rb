@@ -31,19 +31,19 @@ module ActiveRelation
   
     describe '#to_sql' do
       it "manufactures sql with where clause conditions" do
-        Selection.new(@relation, @predicate).to_sql.should be_like("""
+        Selection.new(@relation, @predicate).to_sql.should be_like("
           SELECT `users`.`id`, `users`.`name`
           FROM `users`
           WHERE `users`.`id` = 1
-        """)
+        ")
       end
     
       it "allows arbitrary sql" do
-        Selection.new(@relation, "asdf").to_sql.should be_like("""
+        Selection.new(@relation, "asdf").to_sql.should be_like("
           SELECT `users`.`id`, `users`.`name`
           FROM `users`
           WHERE asdf
-        """)
+        ")
       end
     end
   end

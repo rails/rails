@@ -17,7 +17,7 @@ module ActiveRelation
     end
     
     def bind(relation)
-      descend{ |x| x.bind(relation) }
+      descend { |x| x.bind(relation) }
     end
     
     def qualify

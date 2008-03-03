@@ -23,12 +23,12 @@ module ActiveRelation
       it "manufactures sql with limit and offset" do
         range_size = @range.last - @range.first + 1
         range_start = @range.first
-        Range.new(@relation, @range).to_s.should be_like("""
+        Range.new(@relation, @range).to_s.should be_like("
           SELECT `users`.`id`, `users`.`name`
           FROM `users`
           LIMIT #{range_size}
           OFFSET #{range_start}
-        """)
+        ")
       end
     end
   end

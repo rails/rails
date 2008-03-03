@@ -109,22 +109,28 @@ module ActiveRelation
       describe Relation::Operations::Writes do
         describe '#delete' do
           it 'manufactures a deletion relation' do
-            mock(Session.instance).delete(Deletion.new(@relation))
-            @relation.delete.should == @relation
+            Session.start do
+              mock(Session.new).delete(Deletion.new(@relation))
+              @relation.delete.should == @relation
+            end
           end
         end
 
         describe '#insert' do
           it 'manufactures an insertion relation' do
-            mock(Session.instance).create(Insertion.new(@relation, record = {@relation[:name] => 'carl'}))
-            @relation.insert(record).should == @relation
+            Session.start do
+              mock(Session.new).create(Insertion.new(@relation, record = {@relation[:name] => 'carl'}))
+              @relation.insert(record).should == @relation
+            end
           end
         end
 
         describe '#update' do
           it 'manufactures an update relation' do
-            mock(Session.instance).update(Update.new(@relation, assignments = {@relation[:name] => 'bob'}))
-            @relation.update(assignments).should == @relation
+            Session.start do
+              mock(Session.new).update(Update.new(@relation, assignments = {@relation[:name] => 'bob'}))
+              @relation.update(assignments).should == @relation
+            end
           end
         end
       end

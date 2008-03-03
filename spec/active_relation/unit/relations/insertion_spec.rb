@@ -8,11 +8,11 @@ module ActiveRelation
   
     describe '#to_sql' do
       it 'manufactures sql inserting the data for one item' do
-        Insertion.new(@relation, @relation[:name] => "nick").to_sql.should be_like("""
+        Insertion.new(@relation, @relation[:name] => "nick").to_sql.should be_like("
           INSERT
           INTO `users`
           (`users`.`name`) VALUES ('nick')
-        """)
+        ")
       end
     end
   end

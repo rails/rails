@@ -46,16 +46,16 @@ module ActiveRelation
   
     describe '#to_sql' do
       it "manufactures sql with a limited select clause" do
-        Projection.new(@relation, @attribute).to_sql.should be_like("""
+        Projection.new(@relation, @attribute).to_sql.should be_like("
           SELECT `users`.`id`
           FROM `users`
-        """)
+        ")
       end
       
       it "manufactures sql with scalar selects" do
-        Projection.new(@relation, Projection.new(@relation, @relation[:name])).to_sql.should be_like("""
+        Projection.new(@relation, Projection.new(@relation, @relation[:name])).to_sql.should be_like("
           SELECT (SELECT `users`.`name` FROM `users`) FROM `users`
-        """)
+        ")
       end
     end
   end
