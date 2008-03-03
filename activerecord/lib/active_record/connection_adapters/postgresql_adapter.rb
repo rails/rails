@@ -486,14 +486,16 @@ module ActiveRecord
 
       # Returns the list of all indexes for a table.
       def indexes(table_name, name = nil)
-        result = query(<<-SQL, name)
-          SELECT i.relname, d.indisunique, a.attname
-            FROM pg_class t, pg_class i, pg_index d, pg_attribute a
+         schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')
+         result = query(<<-SQL, name)
+           SELECT distinct i.relname, d.indisunique, a.attname
+             FROM pg_class t, pg_class i, pg_index d, pg_attribute a
            WHERE i.relkind = 'i'
              AND d.indexrelid = i.oid
              AND d.indisprimary = 'f'
              AND t.oid = d.indrelid
              AND t.relname = '#{table_name}'
+             AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname IN (#{schemas}) )
              AND a.attrelid = t.oid
              AND ( d.indkey[0]=a.attnum OR d.indkey[1]=a.attnum
                 OR d.indkey[2]=a.attnum OR d.indkey[3]=a.attnum
