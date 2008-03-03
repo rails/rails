@@ -13,7 +13,7 @@ module ActionView
       @view = view
     end
 
-    def render(template, local_assigns)
+    def render(template)
     end
 
     def compile(template)

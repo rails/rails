@@ -24,6 +24,10 @@ module ActionView
           true
         end
       end
+      
+      def render(template)
+        @view.send :execute, template
+      end
 
       # Compile and evaluate the template's code
       def compile_template(template)

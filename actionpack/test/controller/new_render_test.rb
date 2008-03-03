@@ -146,6 +146,14 @@ class NewRenderTestController < ActionController::Base
   def partial_collection
     render :partial => "customer", :collection => [ Customer.new("david"), Customer.new("mary") ]
   end
+  
+  def partial_collection_with_spacer
+    render :partial => "customer", :spacer_template => "partial_only", :collection => [ Customer.new("david"), Customer.new("mary") ]
+  end
+  
+  def partial_collection_with_counter
+    render :partial => "customer_counter", :collection => [ Customer.new("david"), Customer.new("mary") ]
+  end
 
   def partial_collection_with_locals
     render :partial => "customer_greeting", :collection => [ Customer.new("david"), Customer.new("mary") ], :locals => { :greeting => "Bonjour" }
@@ -712,10 +720,20 @@ EOS
     get :partial_collection
     assert_equal "Hello: davidHello: mary", @response.body
   end
-
+  
+  def test_partial_collection_with_counter
+    get :partial_collection_with_counter
+    assert_equal "david1mary2", @response.body
+  end
+  
   def test_partial_collection_with_locals
     get :partial_collection_with_locals
     assert_equal "Bonjour: davidBonjour: mary", @response.body
+  end
+  
+  def test_partial_collection_with_spacer
+    get :partial_collection_with_spacer
+    assert_equal "Hello: davidonly partialHello: mary", @response.body
   end
 
   def test_partial_collection_shorthand_with_locals

@@ -103,23 +103,11 @@ module ActionView
   # As you can see, the :locals hash is shared between both the partial and its layout.
   module Partials
     private
-      def render_partial(partial_path, object_assigns = nil, local_assigns = nil) #:nodoc:
+      def render_partial(partial_path, object_assigns = nil, local_assigns = {}) #:nodoc:
         case partial_path
         when String, Symbol, NilClass
-          path, partial_name = partial_pieces(partial_path)
-          full_partial_path = File.join(path, "_#{partial_name}")
-          object = extracting_object(partial_name, object_assigns)
-          local_assigns = local_assigns ? local_assigns.clone : {}
-          add_counter_to_local_assigns!(partial_name, local_assigns)
-          add_object_to_local_assigns!(partial_name, local_assigns, object)
-
-          if logger && logger.debug?
-            ActionController::Base.benchmark("Rendered #{full_partial_path}", Logger::DEBUG, false) do
-              render(full_partial_path, local_assigns)
-            end
-          else
-              render(full_partial_path, local_assigns)
-          end
+          # Render the template
+          ActionView::PartialTemplate.new(self, partial_path, object_assigns, local_assigns).render
         when ActionView::Helpers::FormBuilder
           builder_partial_path = partial_path.class.to_s.demodulize.underscore.sub(/_builder$/, '')
           render_partial(builder_partial_path, object_assigns, (local_assigns || {}).merge(builder_partial_path.to_sym => partial_path))
@@ -132,75 +120,21 @@ module ActionView
             ""
           end
         else
-          render_partial(
-            ActionController::RecordIdentifier.partial_path(partial_path),
-            partial_path, local_assigns)
+          render_partial(ActionController::RecordIdentifier.partial_path(partial_path), partial_path, local_assigns)
         end
       end
 
-      def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = nil) #:nodoc:
-        collection_of_partials = Array.new
-        counter_name = partial_counter_name(partial_name)
+      def render_partial_collection(partial_path, collection, partial_spacer_template = nil, local_assigns = {}) #:nodoc:
+        return " " if collection.empty?
+        
         local_assigns = local_assigns ? local_assigns.clone : {}
-        collection.each_with_index do |element, counter|
-          local_assigns[counter_name] = counter
-          collection_of_partials.push(render_partial(partial_name, element, local_assigns))
-        end
-
-        return " " if collection_of_partials.empty?
-
-        if partial_spacer_template
-          spacer_path, spacer_name = partial_pieces(partial_spacer_template)
-          collection_of_partials.join(render("#{spacer_path}/_#{spacer_name}"))
-        else
-          collection_of_partials.join
-        end
-      end
-
-      alias_method :render_collection_of_partials, :render_partial_collection
-
-      def partial_pieces(partial_path)
-        if partial_path.include?('/')
-          return File.dirname(partial_path), File.basename(partial_path)
-        else
-          return controller.class.controller_path, partial_path
-        end
-      end
-
-      def partial_counter_name(partial_name)
-        "#{partial_variable_name(partial_name)}_counter".intern
-      end
-
-      def partial_variable_name(partial_name)
-        @@partial_variable_names ||= {}
-        @@partial_variable_names[partial_name] ||=
-          partial_name.split('/').last.split('.').first.intern
-      end
-
-      def extracting_object(partial_name, object_assigns)
-        variable_name = partial_variable_name(partial_name)
-        if object_assigns.nil?
-          controller.instance_variable_get("@#{variable_name}")
-        else
-          object_assigns
-        end
-      end
-
-      def add_counter_to_local_assigns!(partial_name, local_assigns)
-        counter_name = partial_counter_name(partial_name)
-        local_assigns[counter_name] = 1 unless local_assigns.has_key?(counter_name)
-      end
-
-      def add_object_to_local_assigns!(partial_name, local_assigns, object)
-        variable_name = partial_variable_name(partial_name)
-
-        local_assigns[:object] ||=
-          local_assigns[variable_name] ||=
-            if object.is_a?(ActionView::Base::ObjectWrapper)
-              object.value
-            else
-              object
-            end || controller.instance_variable_get("@#{variable_name}")
+        template = ActionView::PartialTemplate.new(self, partial_path, nil, local_assigns)
+        
+        spacer = partial_spacer_template ? render(:partial => partial_spacer_template) : ''
+        
+        collection.map do |element|
+          template.render_member(element)
+        end.join(spacer)
       end
   end
 end

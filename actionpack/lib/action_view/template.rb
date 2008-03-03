@@ -2,7 +2,7 @@ module ActionView #:nodoc:
   class Template #:nodoc:
 
     attr_accessor :locals
-    attr_reader :handler, :path, :source, :extension, :filename, :path_without_extension
+    attr_reader :handler, :path, :source, :extension, :filename, :path_without_extension, :method
 
     def initialize(view, path_or_source, use_full_path, locals = {}, inline = false, inline_type = nil)
       @view = view
@@ -19,6 +19,12 @@ module ActionView #:nodoc:
         @extension = inline_type
       end
       @locals = locals || {}
+      @handler = @view.class.handler_class_for_extension(@extension).new(@view)
+    end
+    
+    def render
+      prepare!
+      @handler.render(self)
     end
 
     def source
@@ -29,12 +35,18 @@ module ActionView #:nodoc:
       @method_key ||= (@filename || @source)
     end
 
-    def handler
-      @handler ||= @view.class.handler_class_for_extension(@extension).new(@view)
-    end
-
     def base_path_for_exception
       @finder.find_base_path_for("#{@path_without_extension}.#{@extension}") || @finder.view_paths.first
+    end
+    
+    def prepare!
+      @view.send :evaluate_assigns
+      @view.current_render_extension = @extension
+      
+      if @handler.compilable?
+        @handler.compile_template(self) # compile the given template, if necessary
+        @method = @view.method_names[method_key] # Set the method name for this template and run it
+      end
     end
 
     private

@@ -29,6 +29,7 @@ require 'action_view/template_handlers/rjs'
 
 require 'action_view/template_finder'
 require 'action_view/template'
+require 'action_view/partial_template'
 
 require 'action_view/base'
 require 'action_view/partials'
