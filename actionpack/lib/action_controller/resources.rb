@@ -244,6 +244,21 @@ module ActionController
     #       product.resources :product_reviews, :as => 'comentarios'
     #     end
     #
+    # * <tt>:has_one</tt> - specify nested resources, this is a shorthand for mapping singleton resources beneath the current.
+    # * <tt>:has_many</tt> -  same has :has_one, but for plural resources.
+    #
+    #   You may directly specify the routing association with has_one and has_many like:
+    #
+    #     map.resources :notes, :has_one => :author, :has_many => [:comments, :attachments]
+    #
+    #   This is the same as:
+    #
+    #     map.resources :notes do |notes|
+    #       notes.resource  :author
+    #       notes.resources :comments
+    #       notes.resources :attachments
+    #     end
+    #
     # * <tt>:path_prefix</tt> - set a prefix to the routes with required route variables.
     #
     #   Weblog comments usually belong to a post, so you might use resources like:
