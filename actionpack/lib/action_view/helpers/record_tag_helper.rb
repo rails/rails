@@ -24,7 +24,7 @@ module ActionView
       #      <td><%=h @person.last_name %></td>
       #    <% end %>
       #
-      # would produce hthe following HTML (assuming @person is an instance of
+      # would produce the following HTML (assuming @person is an instance of
       # a Person object, with an id value of 123):
       #
       #    <tr id="person_123" class="person">....</tr>

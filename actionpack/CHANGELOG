@@ -1,5 +1,7 @@
 *SVN*
 
+* Tests for div_for and content_tag_for helpers. Closes #11223 [thechrisoshow]
+
 * Allow file uploads in Integration Tests.  Closes #11091 [RubyRedRick]
 
 * Refactor partial rendering into a PartialTemplate class. [Pratik]
