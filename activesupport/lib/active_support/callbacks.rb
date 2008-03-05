@@ -1,4 +1,80 @@
 module ActiveSupport
+  # Callbacks are hooks into the lifecycle of an object that allow you to trigger logic
+  # before or after an alteration of the object state.
+  #
+  # This mixing this module allos you to define callbacks in your class.
+  #
+  # Example:
+  #   class Storage
+  #     include ActiveSupport::Callbacks
+  #
+  #     define_callbacks :before_save, :after_save
+  #   end
+  #
+  #   class ConfigStorage < Storage
+  #     before_save :saving_message
+  #     def saving_message
+  #       puts "saving..."
+  #     end
+  #
+  #     after_save do |object|
+  #       puts "saved"
+  #     end
+  #
+  #     def save
+  #       run_callbacks(:before_save)
+  #       puts "- save"
+  #       run_callbacks(:after_save)
+  #     end
+  #   end
+  #
+  #   config = ConfigStorage.new
+  #   config.save
+  #
+  # Output:
+  #   saving...
+  #   - save
+  #   saved
+  #
+  # Callbacks from parent classes are inherited.
+  #
+  # Example:
+  #   class Storage
+  #     include ActiveSupport::Callbacks
+  #
+  #     define_callbacks :before_save, :after_save
+  #
+  #     before_save :prepare
+  #     def prepare
+  #       puts "preparing save"
+  #     end
+  #   end
+  #
+  #   class ConfigStorage < Storage
+  #     before_save :saving_message
+  #     def saving_message
+  #       puts "saving..."
+  #     end
+  #
+  #     after_save do |object|
+  #       puts "saved"
+  #     end
+  #
+  #     def save
+  #       run_callbacks(:before_save)
+  #       puts "- save"
+  #       run_callbacks(:after_save)
+  #     end
+  #   end
+  #
+  #   config = ConfigStorage.new
+  #   config.save
+  #
+  # Output:
+  #   preparing save
+  #   saving...
+  #   - save
+  #   saved
   module Callbacks
     class Callback
       def self.run(callbacks, object, options = {}, &terminator)
@@ -87,6 +163,50 @@ module ActiveSupport
       end
     end
 
+    # Runs all the callbacks defined for the given options. 
+    # 
+    # If a block is given it will be called after each callback reciving as arguments:
+    #
+    #  * the result from the callback
+    #  * the object which has the callback
+    #
+    # If the result from the block evaluates as false, callback chain is stopped.
+    #
+    # Example:
+    #   class Storage
+    #     include ActiveSupport::Callbacks
+    #   
+    #     define_callbacks :before_save, :after_save
+    #   end
+    #   
+    #   class ConfigStorage < Storage
+    #     before_save :pass
+    #     before_save :pass
+    #     before_save :stop
+    #     before_save :pass
+    #   
+    #     def pass
+    #       puts "pass"
+    #     end
+    #   
+    #     def stop
+    #       puts "stop"
+    #       return false
+    #     end
+    #   
+    #     def save
+    #       result = run_callbacks(:before_save) { |result, object| result == false }
+    #       puts "- save" if result
+    #     end
+    #   end
+    #   
+    #   config = ConfigStorage.new
+    #   config.save
+    #
+    # Output:
+    #   pass
+    #   pass
+    #   stop
     def run_callbacks(kind, options = {}, &block)
       Callback.run(self.class.send("#{kind}_callback_chain"), self, options, &block)
     end
