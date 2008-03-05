@@ -19,7 +19,7 @@ module ActionView #:nodoc:
         @extension = inline_type
       end
       @locals = locals || {}
-      @handler = @view.class.handler_class_for_extension(@extension).new(@view)
+      @handler = self.class.handler_class_for_extension(@extension).new(@view)
     end
     
     def render
@@ -73,5 +73,43 @@ module ActionView #:nodoc:
       end
     end
 
+    # Template Handlers
+    
+    @@template_handlers = HashWithIndifferentAccess.new
+    @@default_template_handlers = nil
+    
+    # Register a class that knows how to handle template files with the given
+    # extension. This can be used to implement new template types.
+    # The constructor for the class must take the ActiveView::Base instance
+    # as a parameter, and the class must implement a #render method that
+    # takes the contents of the template to render as well as the Hash of
+    # local assigns available to the template. The #render method ought to
+    # return the rendered template as a string.
+    def self.register_template_handler(extension, klass)
+      @@template_handlers[extension.to_sym] = klass
+      TemplateFinder.update_extension_cache_for(extension.to_s)
+    end
+
+    def self.template_handler_extensions
+      @@template_handlers.keys.map(&:to_s).sort
+    end
+
+    def self.register_default_template_handler(extension, klass)
+      register_template_handler(extension, klass)
+      @@default_template_handlers = klass
+    end
+
+    def self.handler_class_for_extension(extension)
+      (extension && @@template_handlers[extension.to_sym]) || @@default_template_handlers
+    end
+
+    register_default_template_handler :erb, TemplateHandlers::ERB
+    register_template_handler :rjs, TemplateHandlers::RJS
+    register_template_handler :builder, TemplateHandlers::Builder
+
+    # TODO: Depreciate old template extensions
+    register_template_handler :rhtml, TemplateHandlers::ERB
+    register_template_handler :rxml, TemplateHandlers::Builder
+    
   end
 end

@@ -6,7 +6,7 @@ class TemplateFinderTest < Test::Unit::TestCase
 
   def setup
     ActionView::TemplateFinder.process_view_paths(LOAD_PATH_ROOT)
-    ActionView::Base::register_template_handler :mab, Class.new(ActionView::TemplateHandler)
+    ActionView::Template::register_template_handler :mab, Class.new(ActionView::TemplateHandler)
     @template = ActionView::Base.new
     @finder = ActionView::TemplateFinder.new(@template, LOAD_PATH_ROOT)
   end
@@ -35,7 +35,7 @@ class TemplateFinderTest < Test::Unit::TestCase
 
     def test_should_update_extension_cache_when_template_handler_is_registered
       ActionView::TemplateFinder.expects(:update_extension_cache_for).with("funky")
-      ActionView::Base::register_template_handler :funky, Class.new(ActionView::TemplateHandler)
+      ActionView::Template::register_template_handler :funky, Class.new(ActionView::TemplateHandler)
     end
 
   end

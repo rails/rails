@@ -91,7 +91,7 @@ class CompiledTemplateTests < Test::Unit::TestCase
       tb = ActionView::Template.new(v, @b, false, {})
       ts = ActionView::Template.new(v, @s, false, {})
 
-      @handler_class = ActionView::Base.handler_class_for_extension(:rhtml)
+      @handler_class = ActionView::Template.handler_class_for_extension(:rhtml)
       @handler       = @handler_class.new(v)
 
       # All templates were created at t+1

@@ -14,8 +14,8 @@ end
 
 class CustomHandlerTest < Test::Unit::TestCase
   def setup
-    ActionView::Base.register_template_handler "foo", CustomHandler
-    ActionView::Base.register_template_handler :foo2, CustomHandler
+    ActionView::Template.register_template_handler "foo", CustomHandler
+    ActionView::Template.register_template_handler :foo2, CustomHandler
     @view = ActionView::Base.new
   end
 

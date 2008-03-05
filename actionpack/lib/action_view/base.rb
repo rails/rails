@@ -183,8 +183,6 @@ module ActionView #:nodoc:
     cattr_accessor :erb_variable
     
     delegate :request_forgery_protection_token, :to => :controller
-
-    @@template_handlers = HashWithIndifferentAccess.new
  
     module CompiledTemplates #:nodoc:
       # holds compiled template code
@@ -201,9 +199,6 @@ module ActionView #:nodoc:
     cattr_reader :computed_public_paths
     @@computed_public_paths = {}
 
-    @@template_handlers = {}
-    @@default_template_handlers = nil
-
     class ObjectWrapper < Struct.new(:value) #:nodoc:
     end
 
@@ -217,39 +212,6 @@ module ActionView #:nodoc:
         end
       end
     end
-
-    # Register a class that knows how to handle template files with the given
-    # extension. This can be used to implement new template types.
-    # The constructor for the class must take the ActiveView::Base instance
-    # as a parameter, and the class must implement a #render method that
-    # takes the contents of the template to render as well as the Hash of
-    # local assigns available to the template. The #render method ought to
-    # return the rendered template as a string.
-    def self.register_template_handler(extension, klass)
-      @@template_handlers[extension.to_sym] = klass
-      TemplateFinder.update_extension_cache_for(extension.to_s)
-    end
-
-    def self.template_handler_extensions
-      @@template_handlers.keys.map(&:to_s).sort
-    end
-
-    def self.register_default_template_handler(extension, klass)
-      register_template_handler(extension, klass)
-      @@default_template_handlers = klass
-    end
-
-    def self.handler_class_for_extension(extension)
-      (extension && @@template_handlers[extension.to_sym]) || @@default_template_handlers
-    end
-
-    register_default_template_handler :erb, TemplateHandlers::ERB
-    register_template_handler :rjs, TemplateHandlers::RJS
-    register_template_handler :builder, TemplateHandlers::Builder
-
-    # TODO: Depreciate old template extensions
-    register_template_handler :rhtml, TemplateHandlers::ERB
-    register_template_handler :rxml, TemplateHandlers::Builder
 
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil)#:nodoc:
       @assigns = assigns_for_first_render

@@ -50,7 +50,7 @@ module ActionView #:nodoc:
       end
 
       def template_handler_extensions
-        ActionView::Base.template_handler_extensions
+        ActionView::Template.template_handler_extensions
       end
 
       def reload!
