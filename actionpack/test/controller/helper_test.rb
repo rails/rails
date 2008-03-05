@@ -46,22 +46,10 @@ class HelperTest < Test::Unit::TestCase
     eval("class #{controller_class_name} < TestController; end")
     @controller_class = self.class.const_get(controller_class_name)
 
-    # Generate new template class and assign to controller.
-    template_class_name = "Test#{@symbol}View"
-    eval("class #{template_class_name} < ActionView::Base; end")
-    @template_class = self.class.const_get(template_class_name)
-    @controller_class.template_class = @template_class
-
     # Set default test helper.
     self.test_helper = LocalAbcHelper
   end
-
-  def teardown
-    # Reset template class.
-    #ActionController::Base.template_class = ActionView::Base
-  end
-
-
+  
   def test_deprecated_helper
     assert_equal expected_helper_methods, missing_methods
     assert_nothing_raised { @controller_class.helper TestHelper }

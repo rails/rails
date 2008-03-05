@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove unused ActionController::Base.template_class. Closes #10787 [Pratik]
+
 * Moved template handlers related code from ActionView::Base to ActionView::Template. [Pratik]
 
 * Tests for div_for and content_tag_for helpers. Closes #11223 [thechrisoshow]

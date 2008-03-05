@@ -58,7 +58,6 @@ require 'action_controller/request_forgery_protection'
 require 'action_controller/headers'
 
 require 'action_view'
-ActionController::Base.template_class = ActionView::Base
 
 ActionController::Base.class_eval do
   include ActionController::Flash
