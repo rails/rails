@@ -91,5 +91,11 @@ module ActiveRelation
         Table.new(:users, engine = Engine.new).engine.should == engine
       end
     end
+    
+    describe '#reset' do
+      it "" do
+        pending
+      end
+    end
   end
 end

@@ -1,24 +1,22 @@
 require 'singleton'
 
 module ActiveRelation
-  class Session
+  class Session    
     class << self
+      attr_accessor :instance
+      alias_method :manufacture, :new
+      
       def start
         if @started
           yield
         else
           begin
             @started = true
-            @instance = new
-            manufacture = method(:new)
-            metaclass.class_eval do
-              define_method(:new) { @instance }
-            end
+            @instance = manufacture
+            metaclass.send :alias_method, :new, :instance
             yield
           ensure
-            metaclass.class_eval do
-              define_method(:new, &manufacture)
-            end
+            metaclass.send :alias_method, :new, :manufacture
             @started = false
           end
         end
@@ -31,8 +29,10 @@ module ActiveRelation
       end
       
       def read(select)
-        @read ||= {}
-        @read.has_key?(select) ? @read[select] : (@read[select] = select.engine.select_all(select.to_sql))
+        @read ||= Hash.new do |hash, select|
+          hash[select] = select.engine.select_all(select.to_sql)
+        end
+        @read[select]
       end
       
       def update(update)
