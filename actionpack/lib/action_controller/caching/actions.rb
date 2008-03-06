@@ -67,10 +67,10 @@ module ActionController #:nodoc:
 
           if options[:action].is_a?(Array)
             options[:action].dup.each do |action|
-              expire_fragment(ActionCachePath.path_for(self, options.merge({ :action => action })))
+              expire_fragment(ActionCachePath.path_for(self, options.merge({ :action => action }), false))
             end
           else
-            expire_fragment(ActionCachePath.path_for(self, options))
+            expire_fragment(ActionCachePath.path_for(self, options, false))
           end
         end
 
@@ -125,16 +125,24 @@ module ActionController #:nodoc:
         attr_reader :path, :extension
 
         class << self
-          def path_for(controller, options)
-            new(controller, options).path
+          def path_for(controller, options, infer_extension=true)
+            new(controller, options, infer_extension).path
           end
         end
-
-        def initialize(controller, options = {})
-          @extension = extract_extension(controller.request.path)
+        
+        # When true, infer_extension will look up the cache path extension from the request's path & format.
+        # This is desirable when reading and writing the cache, but not when expiring the cache -  expire_action should expire the same files regardless of the request format.
+        def initialize(controller, options = {}, infer_extension=true)
+          if infer_extension and options.is_a? Hash
+            request_extension = extract_extension(controller.request)
+            options = options.reverse_merge(:format => request_extension)
+          end
           path = controller.url_for(options).split('://').last
           normalize!(path)
-          add_extension!(path, @extension)
+          if infer_extension
+            @extension = request_extension
+            add_extension!(path, @extension)
+          end
           @path = URI.unescape(path)
         end
 
@@ -144,13 +152,22 @@ module ActionController #:nodoc:
           end
 
           def add_extension!(path, extension)
-            path << ".#{extension}" if extension
+            path << ".#{extension}" if extension and !path.ends_with?(extension)
           end
-
-          def extract_extension(file_path)
+          
+          def extract_extension(request)
             # Don't want just what comes after the last '.' to accommodate multi part extensions
             # such as tar.gz.
-            file_path[/^[^.]+\.(.+)$/, 1]
+            extension = request.path[/^[^.]+\.(.+)$/, 1]
+
+            # If there's no extension in the path, check request.format
+            if extension.nil?
+              extension = request.format.to_sym.to_s
+              if extension=='all'
+                extension = nil
+              end
+            end
+            extension
           end
       end
     end
