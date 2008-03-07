@@ -159,6 +159,7 @@ module ActiveRecord
             :order      => @reflection.options[:order],
             :limit      => @reflection.options[:limit],
             :group      => @reflection.options[:group],
+            :readonly   => @reflection.options[:readonly],
             :include    => @reflection.options[:include] || @reflection.source_reflection.options[:include]
           )
 
@@ -253,7 +254,9 @@ module ActiveRecord
                          :include     => @reflection.options[:include],
                          :select      => construct_select,
                          :order       => @reflection.options[:order],
-                         :limit       => @reflection.options[:limit] } }
+                         :limit       => @reflection.options[:limit],
+                         :readonly    => @reflection.options[:readonly],
+             } }
         end
 
         def construct_sql

@@ -554,6 +554,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     companies(:first_firm).readonly_clients.find(:all).each { |c| assert c.readonly? }
   end
 
+  def test_cant_save_has_many_readonly_association
+    authors(:david).readonly_comments.each { |c| assert_raise(ActiveRecord::ReadOnlyRecord) { c.save! } }
+    authors(:david).readonly_comments.each { |c| assert c.readonly? }
+  end
+
   def test_triple_equality
     assert !(Array === Firm.find(:first).clients)
     assert Firm.find(:first).clients === Array

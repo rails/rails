@@ -1,5 +1,7 @@
 *SVN*
 
+* Add :readonly option to HasManyThrough associations. #11156 [miloops]
+
 * Improve performance on :include/:conditions/:limit queries by selectively joining in the pre-query.  #9560 [dasil003]
 
 * Perf fix: Avoid the use of named block arguments.  Closes #11109 [adymo]
