@@ -1,5 +1,7 @@
 *SVN*
 
+* Make MimeResponds::Responder#any work without explicit types. Closes #11140 [jaw6]
+
 * Better error message for type conflicts when parsing params.  Closes #7962 [spicycode, matt]
 
 * Remove unused ActionController::Base.template_class. Closes #10787 [Pratik]

@@ -125,7 +125,7 @@ module ActionController #:nodoc:
 
         @order << mime_type
 
-        @responses[mime_type] = Proc.new do
+        @responses[mime_type] ||= Proc.new do
           @response.template.template_format = mime_type.to_sym
           @response.content_type = mime_type.to_s
           block_given? ? block.call : @controller.send(:render, :action => @controller.action_name)
@@ -133,7 +133,11 @@ module ActionController #:nodoc:
       end
 
       def any(*args, &block)
-        args.each { |type| send(type, &block) }
+        if args.any?
+          args.each { |type| send(type, &block) }
+        else
+          custom(@mime_type_priority.first, &block)
+        end
       end
 
       def method_missing(symbol, &block)
