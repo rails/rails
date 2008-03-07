@@ -2,7 +2,7 @@ module ActiveSupport
   # Callbacks are hooks into the lifecycle of an object that allow you to trigger logic
   # before or after an alteration of the object state.
   #
-  # This mixing this module allos you to define callbacks in your class.
+  # Mixing in this module allows you to define callbacks in your class.
   #
   # Example:
   #   class Storage
@@ -165,12 +165,12 @@ module ActiveSupport
 
     # Runs all the callbacks defined for the given options. 
     # 
-    # If a block is given it will be called after each callback reciving as arguments:
+    # If a block is given it will be called after each callback receiving as arguments:
     #
     #  * the result from the callback
     #  * the object which has the callback
     #
-    # If the result from the block evaluates as false, callback chain is stopped.
+    # If the result from the block evaluates to false, the callback chain is stopped.
     #
     # Example:
     #   class Storage
