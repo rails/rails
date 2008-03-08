@@ -54,7 +54,7 @@ module Rails
 
             usage << <<end_blurb
 
-More are available at http://rubyonrails.org/show/Generators
+More are available at http://wiki.rubyonrails.org/rails/pages/AvailableGenerators
   1. Download, for example, login_generator.zip
   2. Unzip to directory #{Dir.user_home}/.rails/generators/login
      to use the generator with all your Rails apps
