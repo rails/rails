@@ -57,8 +57,8 @@ module ActionController
 
     def setup_controller_request_and_response
       @controller = self.class.controller_class.new
-      @request    = TestRequest.new
-      @response   = TestResponse.new
+      @controller.request = @request = TestRequest.new
+      @response = TestResponse.new
     end
  end
 end

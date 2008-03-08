@@ -653,3 +653,14 @@ class CrazyNameTest < ActionController::TestCase
     assert_equal ContentController, self.class.controller_class
   end
 end
+
+class NamedRoutesControllerTest < ActionController::TestCase
+  tests ContentController
+  
+  def test_should_be_able_to_use_named_routes_before_a_request_is_done
+    with_routing do |set|
+      set.draw { |map| map.resources :contents }
+      assert_equal 'http://test.host/contents/new', new_content_url
+    end
+  end
+end
