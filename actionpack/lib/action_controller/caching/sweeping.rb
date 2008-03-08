@@ -36,7 +36,6 @@ module ActionController #:nodoc:
 
       module ClassMethods #:nodoc:
         def cache_sweeper(*sweepers)
-          return unless perform_caching
           configuration = sweepers.extract_options!
 
           sweepers.each do |sweeper|
@@ -59,11 +58,11 @@ module ActionController #:nodoc:
 
         def before(controller)
           self.controller = controller
-          callback(:before)
+          callback(:before) if controller.perform_caching
         end
 
         def after(controller)
-          callback(:after)
+          callback(:after) if controller.perform_caching
           # Clean up, so that the controller can be collected after this request
           self.controller = nil
         end

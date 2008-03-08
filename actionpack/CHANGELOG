@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that sweepers defined by cache_sweeper will be added regardless of the perform_caching setting. Instead, control whether the sweeper should be run with the perform_caching setting. This makes testing easier when you want to turn perform_caching on/off [DHH]
+
 * Make MimeResponds::Responder#any work without explicit types. Closes #11140 [jaw6]
 
 * Better error message for type conflicts when parsing params.  Closes #7962 [spicycode, matt]
