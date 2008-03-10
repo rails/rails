@@ -1,5 +1,7 @@
 *SVN*
 
+* test_time_with_datetime_fallback expects DateTime.local_offset instead of DateTime.now.offset [Geoff Buesing]
+
 * Adding TimeWithZone #marshal_dump and #marshal_load [Geoff Buesing]
 
 * Add OrderedHash#to_hash [josh]
