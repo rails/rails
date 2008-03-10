@@ -37,10 +37,10 @@ namespace :db do
         @collation = ENV['COLLATION'] || 'utf8_general_ci'
         begin
           ActiveRecord::Base.establish_connection(config.merge({'database' => nil}))
-          ActiveRecord::Base.connection.create_database(config['database'], {:charset => @charset, :collation => @collation})
+          ActiveRecord::Base.connection.create_database(config['database'], {:charset => (config['database']['charset'] || @charset), :collation => (config['database']['charset'] || @collation)})
           ActiveRecord::Base.establish_connection(config)
         rescue
-          $stderr.puts "Couldn't create database for #{config.inspect}"
+          $stderr.puts "Couldn't create database for #{config.inspect}, charset: #{@charset}, collation: #{@collation} (if you set the charset manually, make sure you have a matching collation)"
         end
       when 'postgresql'
         `createdb "#{config['database']}" -E utf8`
@@ -68,7 +68,12 @@ namespace :db do
 
   desc 'Drops the database for the current RAILS_ENV'
   task :drop => :environment do
-    drop_database(ActiveRecord::Base.configurations[RAILS_ENV || 'development'])
+    config = ActiveRecord::Base.configurations[RAILS_ENV || 'development']
+    begin
+      drop_database(config)
+    rescue Exception => e
+      puts "Couldn't drop #{config['database']} : #{e.inspect}"
+    end
   end
 
   def local_database?(config, &block)

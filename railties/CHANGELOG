@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix database rake tasks to work with charset/collation and show proper error messages on failure. Closes #11301 [matt]
+
 * add a -e/--export to script/plugin install, uses svn export. #10847 [jon@blankpad.net)]
 
 * Add config.time_zone for configuring the default Time.zone value.  #10982 [Geoff Buesing]
