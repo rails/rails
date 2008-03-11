@@ -83,9 +83,9 @@ class TimeZoneTest < Test::Unit::TestCase
       
       def test_now_enforces_fall_dst_rules
         with_env_tz 'US/Eastern' do
-          Time.stubs(:now).returns(Time.local(2006,10,29,1)) # 1AM is ambiguous; could be DST or non-DST 1AM
+          Time.stubs(:now).returns(Time.at(1162098000)) # equivalent to 1AM DST
           zone = TimeZone['Eastern Time (US & Canada)']
-          assert_equal Time.utc(2006,10,29,1), zone.now.time # selects DST 1AM
+          assert_equal Time.utc(2006,10,29,1), zone.now.time
           assert_equal true, zone.now.dst?
         end
       end
