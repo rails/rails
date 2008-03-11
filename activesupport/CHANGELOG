@@ -1,5 +1,7 @@
 *SVN*
 
+* Removing unneeded #change_time_zone method from Time, DateTime and TimeWithZone [Geoff Buesing]
+
 * TimeZone #local and #now correctly enforce DST rules [Geoff Buesing]
 
 * TimeWithZone instances correctly enforce DST rules. Adding TimeZone#period_for_utc [Geoff Buesing]

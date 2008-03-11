@@ -36,12 +36,6 @@ uses_tzinfo 'TimeWithZoneTest' do
       end
     end
   
-    def test_change_time_zone
-      silence_warnings do # silence warnings raised by tzinfo gem
-        assert_equal ActiveSupport::TimeWithZone.new(nil, TimeZone['Alaska'], Time.utc(1999, 12, 31, 19)), @twz.change_time_zone('Alaska')
-      end
-    end
-  
     def test_utc?
       assert_equal false, @twz.utc?
       assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), TimeZone['UTC']).utc?
@@ -53,8 +47,10 @@ uses_tzinfo 'TimeWithZoneTest' do
     end
       
     def test_dst?
-      assert_equal false, @twz.dst?
-      assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).dst?
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal false, @twz.dst?
+        assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).dst?
+      end
     end
       
     def test_zone
@@ -295,30 +291,18 @@ uses_tzinfo 'TimeWithZoneTest' do
     end
 
     def test_in_current_time_zone
-      Time.use_zone 'Alaska' do
-        assert_equal 'Fri, 31 Dec 1999 15:00:00 AKST -09:00', @t.in_current_time_zone.inspect
-        assert_equal 'Fri, 31 Dec 1999 15:00:00 AKST -09:00', @dt.in_current_time_zone.inspect
-      end
-      Time.use_zone 'Hawaii' do
-        assert_equal 'Fri, 31 Dec 1999 14:00:00 HST -10:00', @t.in_current_time_zone.inspect
-        assert_equal 'Fri, 31 Dec 1999 14:00:00 HST -10:00', @dt.in_current_time_zone.inspect
-      end
-      Time.use_zone nil do
-        assert_equal @t, @t.in_current_time_zone
-        assert_equal @dt, @dt.in_current_time_zone
-      end
-    end
-    
-    def test_change_time_zone
       silence_warnings do # silence warnings raised by tzinfo gem
-        Time.use_zone 'Eastern Time (US & Canada)' do # Time.zone will not affect #change_time_zone(zone)
-          assert_equal 'Sat, 01 Jan 2000 00:00:00 AKST -09:00', @t.change_time_zone('Alaska').inspect
-          assert_equal 'Sat, 01 Jan 2000 00:00:00 AKST -09:00', @dt.change_time_zone('Alaska').inspect
-          assert_equal 'Sat, 01 Jan 2000 00:00:00 HST -10:00', @t.change_time_zone('Hawaii').inspect
-          assert_equal 'Sat, 01 Jan 2000 00:00:00 HST -10:00', @dt.change_time_zone('Hawaii').inspect
-          assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @t.change_time_zone('UTC').inspect
-          assert_equal 'Sat, 01 Jan 2000 00:00:00 UTC +00:00', @dt.change_time_zone('UTC').inspect
-          assert_equal 'Sat, 01 Jan 2000 00:00:00 AKST -09:00', @t.change_time_zone(-9.hours).inspect
+        Time.use_zone 'Alaska' do
+          assert_equal 'Fri, 31 Dec 1999 15:00:00 AKST -09:00', @t.in_current_time_zone.inspect
+          assert_equal 'Fri, 31 Dec 1999 15:00:00 AKST -09:00', @dt.in_current_time_zone.inspect
+        end
+        Time.use_zone 'Hawaii' do
+          assert_equal 'Fri, 31 Dec 1999 14:00:00 HST -10:00', @t.in_current_time_zone.inspect
+          assert_equal 'Fri, 31 Dec 1999 14:00:00 HST -10:00', @dt.in_current_time_zone.inspect
+        end
+        Time.use_zone nil do
+          assert_equal @t, @t.in_current_time_zone
+          assert_equal @dt, @dt.in_current_time_zone
         end
       end
     end
