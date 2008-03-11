@@ -674,6 +674,7 @@ module ActionController
             else
               top << {key => value}.with_indifferent_access
               push top.last
+              value = top[key]
             end
           else
             top << value

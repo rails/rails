@@ -705,6 +705,12 @@ class UrlEncodedRequestParameterParsingTest < Test::Unit::TestCase
     expected = { "test2" => "value1" }
     assert_equal expected, ActionController::AbstractRequest.parse_request_parameters(input)
   end
+
+  def test_parse_params_with_array_prefix_and_hashes
+    input = { "a[][b][c]" => %w(d) }
+    expected = {"a" => [{"b" => {"c" => "d"}}]}
+    assert_equal expected, ActionController::AbstractRequest.parse_request_parameters(input)
+  end
 end
 
 
