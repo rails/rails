@@ -27,7 +27,7 @@ module ActiveSupport
   
     # Returns the underlying TZInfo::TimezonePeriod for the local time
     def period
-      @period ||= get_period_for_local
+      @period ||= time_zone.period_for_utc(utc)
     end
 
     # Returns the simultaneous time in the specified zone
@@ -150,6 +150,15 @@ module ActiveSupport
       end
     end
     
+    %w(asctime day hour min mon sec usec wday yday year).each do |name|
+      define_method(name) do
+        time.__send__(name)
+      end
+    end
+    alias_method :ctime, :asctime
+    alias_method :mday, :day
+    alias_method :month, :mon
+    
     def to_a
       time.to_a[0, 8].push(dst?, zone)
     end
@@ -206,20 +215,9 @@ module ActiveSupport
   
     # Send the missing method to time instance, and wrap result in a new TimeWithZone with the existing time_zone
     def method_missing(sym, *args, &block)
-      result = time.__send__(sym, *args, &block)
-      result = result.change_time_zone(time_zone) if result.acts_like?(:time)
+      result = utc.__send__(sym, *args, &block)
+      result = result.in_time_zone(time_zone) if result.acts_like?(:time)
       result
     end
-  
-    private
-      def get_period_for_local
-        t = time
-        begin
-          time_zone.period_for_local(t, true)
-        rescue ::TZInfo::PeriodNotFound # failover logic from TzTime
-          t -= 1.hour
-          retry
-        end
-      end
   end
 end

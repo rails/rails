@@ -212,6 +212,11 @@ class TimeZone
     end
 
     # Available so that TimeZone instances respond like TZInfo::Timezone instances
+    def period_for_utc(time)
+      tzinfo.period_for_utc(time)
+    end
+
+    # Available so that TimeZone instances respond like TZInfo::Timezone instances
     def period_for_local(time, dst=true)
       tzinfo.period_for_local(time, dst)
     end
