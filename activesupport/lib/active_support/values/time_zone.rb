@@ -174,17 +174,24 @@ class TimeZone
   def to_s
     "(UTC#{formatted_offset}) #{name}"
   end
-  
-  # Method for creating new ActiveSupport::TimeWithZone instance in time zone of self. Example:
-  #
-  #   Time.zone = "Hawaii"                      # => "Hawaii"
-  #   Time.zone.local(2007, 2, 1, 15, 30, 45)   # => Thu, 01 Feb 2007 15:30:45 HST -10:00
-  def local(*args)
-    Time.utc_time(*args).change_time_zone(self)
-  end
 
   begin # the following methods depend on the tzinfo gem
     require_library_or_gem "tzinfo" unless Object.const_defined?(:TZInfo)
+    
+    # Method for creating new ActiveSupport::TimeWithZone instance in time zone of +self+. Example:
+    #
+    #   Time.zone = "Hawaii"                      # => "Hawaii"
+    #   Time.zone.local(2007, 2, 1, 15, 30, 45)   # => Thu, 01 Feb 2007 15:30:45 HST -10:00
+    def local(*args)
+      t = Time.utc_time(*args)
+      begin
+        result = local_to_utc(t)
+      rescue TZInfo::PeriodNotFound
+        t += 1.hour
+        retry
+      end
+      result.in_time_zone(self)
+    end
     
     # Returns an ActiveSupport::TimeWithZone instance representing the current time
     # in the time zone represented by +self+. Example:
@@ -192,7 +199,7 @@ class TimeZone
     #   Time.zone = 'Hawaii'  # => "Hawaii"
     #   Time.zone.now         # => Wed, 23 Jan 2008 20:24:27 HST -10:00
     def now
-      tzinfo.now.change_time_zone(self)
+      Time.now.utc.in_time_zone(self)
     end
 
     # Return the current date in this time zone.
@@ -233,7 +240,7 @@ class TimeZone
     
   rescue LoadError # Tzinfo gem is not available
     # re-raise LoadError only when a tzinfo-dependent method is called:
-    %w(now today utc_to_local local_to_utc period_for_local tzinfo).each do |method|
+    %w(local now today utc_to_local local_to_utc period_for_utc period_for_local tzinfo).each do |method|
       define_method(method) {|*args| raise LoadError, "TZInfo gem is required for TimeZone##{method}. `gem install tzinfo` and try again."}
     end
   end

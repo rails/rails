@@ -62,11 +62,32 @@ class TimeZoneTest < Test::Unit::TestCase
 
     uses_mocha 'TestTimeZoneNowAndToday' do
       def test_now
-        TZInfo::DataTimezone.any_instance.stubs(:now).returns(Time.utc(2000))
-        zone = TimeZone['Eastern Time (US & Canada)']
-        assert_instance_of ActiveSupport::TimeWithZone, zone.now
-        assert_equal Time.utc(2000), zone.now.time
-        assert_equal zone, zone.now.time_zone
+        with_env_tz 'US/Eastern' do
+          Time.stubs(:now).returns(Time.local(2000))
+          zone = TimeZone['Eastern Time (US & Canada)']
+          assert_instance_of ActiveSupport::TimeWithZone, zone.now
+          assert_equal Time.utc(2000,1,1,5), zone.now.utc
+          assert_equal Time.utc(2000), zone.now.time
+          assert_equal zone, zone.now.time_zone
+        end
+      end
+      
+      def test_now_enforces_spring_dst_rules
+        with_env_tz 'US/Eastern' do
+          Time.stubs(:now).returns(Time.local(2006,4,2,2)) # 2AM springs forward to 3AM
+          zone = TimeZone['Eastern Time (US & Canada)']
+          assert_equal Time.utc(2006,4,2,3), zone.now.time
+          assert_equal true, zone.now.dst?
+        end
+      end
+      
+      def test_now_enforces_fall_dst_rules
+        with_env_tz 'US/Eastern' do
+          Time.stubs(:now).returns(Time.local(2006,10,29,1)) # 1AM is ambiguous; could be DST or non-DST 1AM
+          zone = TimeZone['Eastern Time (US & Canada)']
+          assert_equal Time.utc(2006,10,29,1), zone.now.time # selects DST 1AM
+          assert_equal true, zone.now.dst?
+        end
       end
     
       def test_today
@@ -134,5 +155,42 @@ class TimeZoneTest < Test::Unit::TestCase
     assert_equal Time.utc(2007, 2, 5, 15, 30, 45), time.time
     assert_equal TimeZone["Hawaii"], time.time_zone
   end
-end
+  
+  def test_local_enforces_spring_dst_rules
+    zone = TimeZone['Eastern Time (US & Canada)']
+    twz = zone.local(2006,4,2,1,59,59) # 1 second before DST start
+    assert_equal Time.utc(2006,4,2,1,59,59), twz.time
+    assert_equal Time.utc(2006,4,2,6,59,59), twz.utc
+    assert_equal false, twz.dst?
+    assert_equal 'EST', twz.zone
+    twz2 = zone.local(2006,4,2,2) # 2AM does not exist because at 2AM, time springs forward to 3AM
+    assert_equal Time.utc(2006,4,2,3), twz2.time # twz is created for 3AM
+    assert_equal Time.utc(2006,4,2,7), twz2.utc
+    assert_equal true, twz2.dst?
+    assert_equal 'EDT', twz2.zone
+    twz3 = zone.local(2006,4,2,2,30) # 2:30AM does not exist because at 2AM, time springs forward to 3AM
+    assert_equal Time.utc(2006,4,2,3,30), twz3.time # twz is created for 3:30AM
+    assert_equal Time.utc(2006,4,2,7,30), twz3.utc
+    assert_equal true, twz3.dst?
+    assert_equal 'EDT', twz3.zone
+  end
+  
+  def test_local_enforces_fall_dst_rules
+    # 1AM during fall DST transition is ambiguous, it could be either DST or non-DST 1AM
+    # Mirroring Time.local behavior, this method selects the DST time
+    zone = TimeZone['Eastern Time (US & Canada)']
+    twz = zone.local(2006,10,29,1)
+    assert_equal Time.utc(2006,10,29,1), twz.time
+    assert_equal Time.utc(2006,10,29,5), twz.utc
+    assert_equal true, twz.dst? 
+    assert_equal 'EDT', twz.zone
+  end
 
+  protected
+    def with_env_tz(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end  
+end

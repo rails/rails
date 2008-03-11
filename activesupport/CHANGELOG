@@ -1,5 +1,7 @@
 *SVN*
 
+* TimeZone #local and #now correctly enforce DST rules [Geoff Buesing]
+
 * TimeWithZone instances correctly enforce DST rules. Adding TimeZone#period_for_utc [Geoff Buesing]
 
 * test_time_with_datetime_fallback expects DateTime.local_offset instead of DateTime.now.offset [Geoff Buesing]
