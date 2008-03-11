@@ -2139,6 +2139,7 @@ module ActiveRecord #:nodoc:
       end
 
       # Increments the +attribute+ and saves the record.
+      # Note: Updates made with this method aren't subjected to validation checks
       def increment!(attribute, by = 1)
         increment(attribute, by).update_attribute(attribute, self[attribute])
       end
@@ -2151,6 +2152,7 @@ module ActiveRecord #:nodoc:
       end
 
       # Decrements the +attribute+ and saves the record.
+      # Note: Updates made with this method aren't subjected to validation checks
       def decrement!(attribute, by = 1)
         decrement(attribute, by).update_attribute(attribute, self[attribute])
       end
@@ -2162,6 +2164,7 @@ module ActiveRecord #:nodoc:
       end
 
       # Toggles the +attribute+ and saves the record.
+      # Note: Updates made with this method aren't subjected to validation checks
       def toggle!(attribute)
         toggle(attribute).update_attribute(attribute, self[attribute])
       end
