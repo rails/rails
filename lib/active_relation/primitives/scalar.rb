@@ -6,12 +6,12 @@ module ActiveRelation
       @value, @relation = value, relation
     end
     
-    def to_sql(strategy = self.strategy)
+    def to_sql(strategy = Sql::Predicate.new(relation.engine))
       strategy.scalar value
     end
 
-    def strategy
-      ActiveRelation::Sql::Scalar.new(relation.engine)
+    def format(object)
+      object.to_sql(Sql::Scalar.new(relation.engine))
     end
     
     def ==(other)

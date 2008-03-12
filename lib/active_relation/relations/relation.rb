@@ -132,8 +132,8 @@ module ActiveRelation
       self
     end
     
-    def strategy
-      Sql::Predicate.new(engine)
+    def format(object)
+      object.to_sql(Sql::Predicate.new(engine))
     end
 
     def attributes;  []  end

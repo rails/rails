@@ -1,6 +1,5 @@
 todo:
 - clarify distinction between engine and connection: an engine is a connection pool, plus the quoting operations
-- #relation is now on scalar, attribute and relation; you must admit it's name is confusing given that e.g., relation already has a strategy (Sql::Relation) ... should it be called predicate strategy? operand1.to_sql(operand2.predicate) maybe prefer operand1.cast(operand2) or project or in light of
 - clean up integration tests in join - i find the aggregate stuff too integrationy; unit testing would be better
 - test relation, table reset
 - cache expiry on write
@@ -46,3 +45,5 @@ done:
 - hash custom matcher
 - make session engine stuff follow laws of demeter - currently doing some odd method chaining? rethink who is responsible for what
   - session just calls execute, passing in a connection; by default it gets a connection from the relation.
+- #strategy is now on scalar, attribute and relation; you must admit it's name is confusing given that e.g., relation already has a strategy (Sql::Relation) ... should it be called predicate strategy? operand1.to_sql(operand2.predicate) maybe prefer operand1.cast(operand2) or project or in light of
+  - renamed to #format: operand1.format(operand2)
