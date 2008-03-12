@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActiveRecord::Base.find(:last) #11338 [miloops]
+
 * test_native_types expects DateTime.local_offset instead of DateTime.now.offset; fixes test breakage due to dst transition [Geoff Buesing]
 
 * Add :readonly option to HasManyThrough associations. #11156 [miloops]

@@ -1616,6 +1616,33 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_last
+    last  = Developer.find :last
+    assert_equal last, Developer.find(:first, :order => 'id desc')
+  end
+  
+  def test_find_ordered_last
+    last  = Developer.find :last, :order => 'developers.salary ASC'
+    assert_equal last, Developer.find(:all, :order => 'developers.salary ASC').last
+  end
+
+  def test_find_reverse_ordered_last
+    last  = Developer.find :last, :order => 'developers.salary DESC'
+    assert_equal last, Developer.find(:all, :order => 'developers.salary DESC').last
+  end
+
+  def test_find_multiple_ordered_last
+    last  = Developer.find :last, :order => 'developers.name, developers.salary DESC'
+    assert_equal last, Developer.find(:all, :order => 'developers.name, developers.salary DESC').last
+  end
+  
+  def test_find_scoped_ordered_last
+    last_developer = Developer.with_scope(:find => { :order => 'developers.salary ASC' }) do
+      Developer.find(:last)
+    end
+    assert_equal last_developer, Developer.find(:all, :order => 'developers.salary ASC').last
+  end
+  
   def test_abstract_class
     assert !ActiveRecord::Base.abstract_class?
     assert LoosePerson.abstract_class?
