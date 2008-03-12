@@ -1,5 +1,4 @@
 todo:
-- clarify distinction between engine and connection: an engine is a connection pool, plus the quoting operations
 - clean up integration tests in join - i find the aggregate stuff too integrationy; unit testing would be better
 - test relation, table reset
 - cache expiry on write
@@ -8,7 +7,8 @@ todo:
   - descend on array, along with bind written in terms of it
 - standardize quoting
   - use strings everywhere, not symbols ?
-- rename and test sql strategies
+- rename sql strategies
+- test sql strategies
   - the parallel names are confusing since it's not obvious what's what. plus, we lack unit tests; the biggest complaint is a lack of clarity concerning what purpose these serve in the system. Unit tests wont illustrate much unless we use concrete examples.
 - rename the tion (Selection) classes so that words that don't end in tion don't seem inconsistent
 - re-evaluate bind

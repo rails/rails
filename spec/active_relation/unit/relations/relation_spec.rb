@@ -156,7 +156,11 @@ module ActiveRelation
       
     describe Relation::Enumerable do
       it "is enumerable" do
-        pending
+        pending "I don't like this mock-based test"
+        data = [1,2,3]
+        mock.instance_of(Session).read(anything) { data }
+        @relation.collect.should == data
+        @relation.first.should == data.first
       end
     end
   end
