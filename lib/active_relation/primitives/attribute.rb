@@ -48,10 +48,7 @@ module ActiveRelation
     
     module Congruence
       def self.included(klass)
-        klass.class_eval do
-          alias_method :eql?, :==
-          delegate :hash, :to => :name
-        end
+        klass.hash_on :name
       end
       
       def history

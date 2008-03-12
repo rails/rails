@@ -26,7 +26,7 @@ class Hash
 end
 
 Spec::Runner.configure do |config|  
-  config.include(BeLikeMatcher)
+  config.include(BeLikeMatcher, HashTheSameAsMatcher)
   config.mock_with :rr
   config.before do
     ActiveRelation::Table.engine = ActiveRecord::Base.connection

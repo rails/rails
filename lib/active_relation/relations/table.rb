@@ -3,7 +3,7 @@ module ActiveRelation
     cattr_accessor :engine
     attr_reader :name, :engine
     
-    delegate :hash, :to => :name
+    hash_on :name
     
     def initialize(name, engine = Table.engine)
       @name, @engine = name.to_s, engine

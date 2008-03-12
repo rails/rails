@@ -68,6 +68,13 @@ module ActiveRelation
           Attribute.new(@relation, :name).should =~ Attribute.new(@relation, :name, :ancestor => Attribute.new(@relation, :name))
         end
       end
+      
+      describe 'hashing' do
+        it "implements hash equality" do
+          Attribute.new(@relation, 'name').should hash_the_same_as(Attribute.new(@relation, 'name'))
+          Attribute.new(@relation, 'name').should_not hash_the_same_as(Attribute.new(@relation, 'id'))
+        end
+      end
     end
     
     describe '#to_sql' do

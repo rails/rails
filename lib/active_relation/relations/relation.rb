@@ -102,10 +102,6 @@ module ActiveRelation
       false
     end
     
-    def eql?(other)
-      self == other
-    end
-
     def to_sql(strategy = Sql::Relation.new(engine))
       strategy.select [
         "SELECT     #{attributes.collect{ |a| a.to_sql(Sql::Projection.new(engine)) }.join(', ')}",

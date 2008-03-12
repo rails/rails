@@ -75,9 +75,8 @@ module ActiveRelation
     
     describe 'hashing' do
       it "implements hash equality" do
-        hash = {}
-        hash[Table.new(:users)] = 1
-        hash[Table.new(:users)].should == 1
+        Table.new(:users).should hash_the_same_as(Table.new(:users))
+        Table.new(:users).should_not hash_the_same_as(Table.new(:photos))
       end
     end
     
