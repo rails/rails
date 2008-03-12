@@ -65,6 +65,14 @@ module ActiveRelation
           Attribute.new(@relation, :name)
         ]
       end
+      
+      describe '#reset' do
+        it "reloads columns from the database" do
+          pending
+          lambda { stub(@relation.engine).columns { [] } }.should_not change { @relation.attributes }
+          lambda { @relation.reset }.should change { @relation.attributes }
+        end
+      end
     end
   
     describe '#qualify' do
@@ -88,13 +96,6 @@ module ActiveRelation
       
       it "can be specified" do
         Table.new(:users, engine = Engine.new).engine.should == engine
-      end
-    end
-    
-    describe '#reset' do
-      it "reloads columns from the database" do
-        lambda { stub(@relation).columns { [] } }.should_not change { @relation.attributes }
-        lambda { @relation.reset }.should change { @relation.attributes }
       end
     end
   end

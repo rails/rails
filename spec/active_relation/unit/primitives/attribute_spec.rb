@@ -39,8 +39,10 @@ module ActiveRelation
     end
     
     describe '#column' do
-      it "" do
-        pending
+      it "returns the corresponding column in the relation" do
+        pending "damn mock based tests are too easy"
+        stub(@relation).column_for(@attribute) { 'bruisers' }
+        @attribute.column.should == 'bruisers'
       end
     end
     
