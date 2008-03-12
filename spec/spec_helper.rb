@@ -29,6 +29,6 @@ Spec::Runner.configure do |config|
   config.include(BeLikeMatcher, HashTheSameAsMatcher)
   config.mock_with :rr
   config.before do
-    ActiveRelation::Table.engine = ActiveRecord::Base.connection
+    ActiveRelation::Table.engine = ActiveRelation::Engine.new(ActiveRecord::Base)
   end
 end

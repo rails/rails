@@ -69,7 +69,7 @@ module ActiveRelation
     
       describe '#as' do
         it "manufactures an alias relation" do
-          @relation.as(:thucydides).should == Alias.new(@relation, :thucydides)
+          @relation.as(:paul).should == Alias.new(@relation, :paul)
         end
       end
   
@@ -98,6 +98,14 @@ module ActiveRelation
           @relation.order(@attribute1, @attribute2).should == Order.new(@relation, @attribute1, @attribute2)
         end
       end
+      
+      describe '#call' do
+        it 'executes a select_all on the connection' do
+          mock(connection = Object.new).select_all(@relation.to_sql)
+          @relation.call(connection)
+        end
+      end
+      
       
       describe '#aggregate' do
         before do

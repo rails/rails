@@ -22,5 +22,14 @@ module ActiveRelation
         ")
       end
     end
+    
+    describe '#call' do
+      it 'executes an update on the connection' do
+        update = Update.new(@relation, @relation[:name] => "nick".bind(@relation))
+        mock(connection = Object.new).update(update.to_sql)
+        update.call(connection)
+      end
+    end
+    
   end
 end

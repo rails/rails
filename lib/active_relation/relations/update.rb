@@ -16,6 +16,10 @@ module ActiveRelation
       ].join("\n")
     end
     
+    def call(connection = engine.connection)
+      connection.update(to_sql)
+    end
+    
     def ==(other)
       self.class  == other.class    and
       relation    == other.relation and

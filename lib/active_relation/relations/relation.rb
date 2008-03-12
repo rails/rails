@@ -115,6 +115,10 @@ module ActiveRelation
       ].compact.join("\n"), self.alias
     end
     alias_method :to_s, :to_sql
+    
+    def call(connection = engine.connection)
+      connection.select_all(to_sql)
+    end
         
     def attribute_for_name(name)
       attributes.detect { |a| a.alias_or_name.to_s == name.to_s }
