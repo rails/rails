@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure that ActiveRecord::Calculations disambiguates field names with the table name.  #11027 [cavalle]
+
 * Added add/remove_timestamps to the schema statements for adding the created_at/updated_at columns on existing tables #11129 [jramirez]
 
 * Added ActiveRecord::Base.find(:last) #11338 [miloops]

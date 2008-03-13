@@ -155,6 +155,7 @@ module ActiveRecord
           scope           = scope(:find)
           merged_includes = merge_includes(scope ? scope[:include] : [], options[:include])
           aggregate_alias = column_alias_for(operation, column_name)
+          column_name     = "#{connection.quote_table_name(table_name)}.#{column_name}" unless column_name == "*" || column_name.to_s.include?('.')
 
           if operation == 'count'
             if merged_includes.any?
