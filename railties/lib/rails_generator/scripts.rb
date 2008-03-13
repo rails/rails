@@ -43,12 +43,15 @@ module Rails
 
           def usage_message
             usage = "\nInstalled Generators\n"
-            Rails::Generator::Base.sources.inject({}) do |mem, source|
+            Rails::Generator::Base.sources.inject([]) do |mem, source|
+              # Using an association list instead of a hash to preserve order,
+              # for esthetic reasons more than anything else.
               label = source.label.to_s.capitalize
-              mem[label] ||= []
-              mem[label] |= source.names
+              pair = mem.assoc(label)
+              mem << (pair = [label, []]) if pair.nil?
+              pair[1] |= source.names
               mem
-            end.each_pair do |label, names|
+            end.each do |label, names|
               usage << "  #{label}: #{names.join(', ')}\n" unless names.empty?
             end
 

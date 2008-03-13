@@ -1,3 +1,5 @@
+require 'pathname'
+
 require File.dirname(__FILE__) + '/spec'
 
 class Object
@@ -104,8 +106,10 @@ module Rails
           if defined? ::RAILS_ROOT
             sources << PathSource.new(:lib, "#{::RAILS_ROOT}/lib/generators")
             sources << PathSource.new(:vendor, "#{::RAILS_ROOT}/vendor/generators")
-            sources << PathSource.new(:plugins, "#{::RAILS_ROOT}/vendor/plugins/*/**/generators")
-            sources << PathSource.new(:plugins, "#{::RAILS_ROOT}/vendor/plugins/*/**/rails_generators")
+            Rails.configuration.plugin_paths.each do |path|
+              relative_path = Pathname.new(File.expand_path(path)).relative_path_from(Pathname.new(::RAILS_ROOT))
+              sources << PathSource.new(:"plugins (#{relative_path})", "#{path}/**/{,rails_}generators")
+            end
           end
           sources << PathSource.new(:user, "#{Dir.user_home}/.rails/generators")
           if Object.const_defined?(:Gem)

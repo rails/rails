@@ -12,6 +12,15 @@ require 'rails/plugin/loader'
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
 
 module Rails
+  # The Configuration instance used to configure the Rails environment
+  def self.configuration
+    @@configuration
+  end
+  
+  def self.configuration=(configuration)
+    @@configuration = configuration
+  end
+  
   # The Initializer is responsible for processing the Rails configuration, such
   # as setting the $LOAD_PATH, requiring the right frameworks, initializing
   # logging, and more. It can be run either as a single command that'll just
@@ -60,6 +69,8 @@ module Rails
     # Sequentially step through all of the available initialization routines,
     # in order (view execution order in source).
     def process
+      Rails.configuration = configuration
+
       check_ruby_version
       set_load_path
       
