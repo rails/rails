@@ -14,7 +14,7 @@ module ActiveRelation
     end
     
     describe '#descend' do
-      it "distributes over the relation" do
+      it "distributes a block over the relation" do
         Range.new(@relation, @range).descend(&:qualify).should == Range.new(@relation.descend(&:qualify), @range)
       end
     end

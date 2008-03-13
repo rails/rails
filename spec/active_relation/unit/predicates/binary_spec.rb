@@ -34,7 +34,7 @@ module ActiveRelation
     end
     
     describe '#descend' do
-      it "distributes over the predicates and attributes" do
+      it "distributes a block over the predicates and attributes" do
         ConcreteBinary.new(@attribute1, @attribute2).descend(&:qualify). \
           should == ConcreteBinary.new(@attribute1.qualify, @attribute2.qualify)
       end

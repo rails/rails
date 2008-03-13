@@ -46,7 +46,7 @@ module ActiveRelation
     end
   
     describe '#descend' do
-      it "distributes over the relation and renames" do
+      it "distributes a block over the relation and renames" do
         Rename.new(@relation, @relation[:id] => :schmid).descend(&:qualify). \
           should == Rename.new(@relation.descend(&:qualify), @relation[:id].qualify => :schmid)
       end

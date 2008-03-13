@@ -23,7 +23,7 @@ module ActiveRelation
     end
 
     describe '#descend' do
-      it "distributes over the relation and predicates" do
+      it "distributes a block over the relation and predicates" do
         Selection.new(@relation, @predicate).descend(&:qualify). \
           should == Selection.new(@relation.descend(&:qualify), @predicate.descend(&:qualify))
       end

@@ -25,6 +25,13 @@ module ActiveRelation
       end
     end
 
+    describe '#qualify' do
+      it 'descends' do
+        Join.new("INNER JOIN", @relation1, @relation2, @predicate).qualify. \
+          should == Join.new("INNER JOIN", @relation1, @relation2, @predicate).descend(&:qualify)
+      end
+    end
+    
     describe '#descend' do
       it 'distributes over the relations and predicates' do
         Join.new("INNER JOIN", @relation1, @relation2, @predicate).qualify. \
@@ -33,8 +40,27 @@ module ActiveRelation
     end
 
     describe '#prefix_for' do
-      it 'needs a test' do
-        pending
+      describe 'when the joined relations are simple' do
+        it "returns the name of the relation containing the attribute" do
+          Join.new("INNER JOIN", @relation1, @relation2, @predicate).prefix_for(@relation1[:id]) \
+            .should == @relation1.prefix_for(@relation1[:id])
+          Join.new("INNER JOIN", @relation1, @relation2, @predicate).prefix_for(@relation2[:id]) \
+            .should == @relation2.prefix_for(@relation2[:id])
+          
+        end
+      end
+      
+      describe 'when one of the joined relations is an alias' do
+        before do
+          @aliased_relation = @relation1.as(:alias)
+        end
+        
+        it "returns the alias of the relation containing the attribute" do
+          Join.new("INNER JOIN", @aliased_relation, @relation2, @predicate).prefix_for(@aliased_relation[:id]) \
+            .should == @aliased_relation.alias
+          Join.new("INNER JOIN", @aliased_relation, @relation2, @predicate).prefix_for(@relation2[:id]) \
+            .should == @relation2.prefix_for(@relation2[:id])
+        end
       end
     end
     
