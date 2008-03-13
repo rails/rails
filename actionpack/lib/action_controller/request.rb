@@ -682,7 +682,8 @@ module ActionController
         elsif top.is_a? Hash
           key = CGI.unescape(key)
           parent << (@top = {}) if top.key?(key) && parent.is_a?(Array)
-          return top[key] ||= value
+          top[key] ||= value
+          return top[key]
         else
           raise ArgumentError, "Don't know what to do: top is #{top.inspect}"
         end

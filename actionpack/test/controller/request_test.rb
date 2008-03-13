@@ -711,6 +711,12 @@ class UrlEncodedRequestParameterParsingTest < Test::Unit::TestCase
     expected = {"a" => [{"b" => {"c" => "d"}}]}
     assert_equal expected, ActionController::AbstractRequest.parse_request_parameters(input)
   end
+
+  def test_parse_params_with_complex_nesting
+    input = { "a[][b][c][][d][]" => %w(e) }
+    expected = {"a" => [{"b" => {"c" => [{"d" => ["e"]}]}}]}
+    assert_equal expected, ActionController::AbstractRequest.parse_request_parameters(input)
+  end
 end
 
 
