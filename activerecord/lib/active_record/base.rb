@@ -2097,6 +2097,12 @@ module ActiveRecord #:nodoc:
 
       # * No record exists: Creates a new record with values matching those of the object attributes.
       # * A record does exist: Updates the record with values matching those of the object attributes.
+      #
+      # Note: If your model specifies any validations then the method declaration dynamically
+      # changes to:
+      #   save(perform_validation=true)
+      # Calling save(false) saves the model without running validations.  
+      # See ActiveRecord::Validations for more information.
       def save
         create_or_update
       end
