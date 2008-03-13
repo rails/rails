@@ -1,5 +1,7 @@
 *SVN*
 
+* Added add/remove_timestamps to the schema statements for adding the created_at/updated_at columns on existing tables #11129 [jramirez]
+
 * Added ActiveRecord::Base.find(:last) #11338 [miloops]
 
 * test_native_types expects DateTime.local_offset instead of DateTime.now.offset; fixes test breakage due to dst transition [Geoff Buesing]

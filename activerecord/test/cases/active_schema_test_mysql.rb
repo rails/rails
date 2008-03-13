@@ -39,6 +39,46 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     assert_equal "DROP TABLE `otherdb`.`people`", drop_table('otherdb.people')
   end
 
+  def test_add_timestamps 
+    #we need to actually modify some data, so we make execute to point to the original method
+    ActiveRecord::ConnectionAdapters::MysqlAdapter.class_eval do      
+      alias_method :execute_with_stub, :execute
+      alias_method :execute, :execute_without_stub
+    end  
+    ActiveRecord::Base.connection.create_table :delete_me do |t|        
+    end
+    ActiveRecord::Base.connection.add_timestamps :delete_me
+    assert_equal ActiveRecord::Base.connection.execute("SHOW FIELDS FROM delete_me where FIELD='updated_at' AND TYPE='datetime'").num_rows, 1
+    assert_equal ActiveRecord::Base.connection.execute("SHOW FIELDS FROM delete_me where FIELD='created_at' AND TYPE='datetime'").num_rows, 1
+  ensure    
+    ActiveRecord::Base.connection.drop_table :delete_me rescue nil  
+    #before finishing, we restore the alias to the mock-up method
+    ActiveRecord::ConnectionAdapters::MysqlAdapter.class_eval do      
+      alias_method :execute, :execute_with_stub
+    end
+  end
+  
+  def test_remove_timestamps 
+    #we need to actually modify some data, so we make execute to point to the original method
+    ActiveRecord::ConnectionAdapters::MysqlAdapter.class_eval do      
+      alias_method :execute_with_stub, :execute
+      alias_method :execute, :execute_without_stub
+    end  
+    ActiveRecord::Base.connection.create_table :delete_me do |t|        
+      t.timestamps
+    end
+    ActiveRecord::Base.connection.remove_timestamps :delete_me
+    assert_equal ActiveRecord::Base.connection.execute("SHOW FIELDS FROM delete_me where FIELD='updated_at' AND TYPE='datetime'").num_rows, 0
+    assert_equal ActiveRecord::Base.connection.execute("SHOW FIELDS FROM delete_me where FIELD='created_at' AND TYPE='datetime'").num_rows, 0
+  ensure    
+    ActiveRecord::Base.connection.drop_table :delete_me rescue nil  
+    #before finishing, we restore the alias to the mock-up method
+    ActiveRecord::ConnectionAdapters::MysqlAdapter.class_eval do      
+      alias_method :execute, :execute_with_stub
+    end
+  end
+
+
   private
     def method_missing(method_symbol, *arguments)
       ActiveRecord::Base.connection.send(method_symbol, *arguments)
