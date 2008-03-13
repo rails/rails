@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActionView::Helpers::register_javascript/stylesheet_expansion to make it easier for plugin developers to inject multiple assets #10350 [lotswholetime]
+
 * Fix nested parameter hash parsing bug.  #10797 [thomas.lee]
 
 * Allow using named routes in ActionController::TestCase before any request has been made. Closes #11273 [alloy]
