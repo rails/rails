@@ -450,7 +450,6 @@ module ActionView
       DEFAULT_FIELD_OPTIONS     = { "size" => 30 }.freeze unless const_defined?(:DEFAULT_FIELD_OPTIONS)
       DEFAULT_RADIO_OPTIONS     = { }.freeze unless const_defined?(:DEFAULT_RADIO_OPTIONS)
       DEFAULT_TEXT_AREA_OPTIONS = { "cols" => 40, "rows" => 20 }.freeze unless const_defined?(:DEFAULT_TEXT_AREA_OPTIONS)
-      DEFAULT_DATE_OPTIONS = { :discard_type => true }.freeze unless const_defined?(:DEFAULT_DATE_OPTIONS)
 
       def initialize(object_name, method_name, template_object, local_binding = nil, object = nil)
         @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
@@ -529,15 +528,6 @@ module ActionView
         options["checked"] = "checked" if checked
         add_default_name_and_id(options)
         tag("input", options) << tag("input", "name" => options["name"], "type" => "hidden", "value" => options['disabled'] && checked ? checked_value : unchecked_value)
-      end
-
-      def to_date_tag()
-        defaults = DEFAULT_DATE_OPTIONS.dup
-        date     = value(object) || Date.today
-        options  = Proc.new { |position| defaults.merge(:prefix => "#{@object_name}[#{@method_name}(#{position}i)]") }
-        html_day_select(date, options.call(3)) +
-        html_month_select(date, options.call(2)) +
-        html_year_select(date, options.call(1))
       end
 
       def to_boolean_select_tag(options = {})
