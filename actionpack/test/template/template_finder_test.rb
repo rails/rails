@@ -30,7 +30,39 @@ class TemplateFinderTest < Test::Unit::TestCase
     assert_equal Dir.glob("#{LOAD_PATH_ROOT}/**/*").find_all {|f| !File.directory?(f) }.size,
                  ActionView::TemplateFinder.processed_view_paths[LOAD_PATH_ROOT].size
   end
+  
+  def test_find_template_extension_from_first_render    
+    assert_nil @finder.send(:find_template_extension_from_first_render)
 
+    {
+      nil => nil,
+      '' => nil,
+      'foo' => nil,
+      '/foo' => nil,
+      'foo.rb' => 'rb',
+      'foo.bar.rb' => 'bar.rb',
+      'baz/foo.rb' => 'rb',
+      'baz/foo.bar.rb' => 'bar.rb',
+      'baz/foo.o/foo.rb' => 'rb',
+      'baz/foo.o/foo.bar.rb' => 'bar.rb',
+    }.each do |input,expectation|
+      @template.instance_variable_set('@first_render', input)
+      assert_equal expectation, @finder.send(:find_template_extension_from_first_render)
+    end
+  end
+  
+  def test_should_report_file_exists_correctly
+    assert_nil @finder.send(:find_template_extension_from_first_render)    
+    assert_equal false, @finder.send(:file_exists?, 'test.rhtml')
+    assert_equal false, @finder.send(:file_exists?, 'test.rb')
+
+    @template.instance_variable_set('@first_render', 'foo.rb')
+    
+    assert_equal 'rb', @finder.send(:find_template_extension_from_first_render)    
+    assert_equal false, @finder.send(:file_exists?, 'baz')
+    assert_equal false, @finder.send(:file_exists?, 'baz.rb')
+  end
+  
   uses_mocha 'Template finder tests' do
 
     def test_should_update_extension_cache_when_template_handler_is_registered
@@ -39,5 +71,5 @@ class TemplateFinderTest < Test::Unit::TestCase
     end
 
   end
-
+  
 end
