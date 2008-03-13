@@ -536,6 +536,14 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_nothing_raised { authors(:david).comments.sum(:post_id) }
   end
 
+  def test_calculations_on_has_many_through_should_disambiguate_fields
+    assert_nothing_raised { authors(:david).categories.maximum(:id) }
+  end
+  
+  def test_calculations_on_has_many_through_should_not_disambiguate_fields_unless_necessary
+    assert_nothing_raised { authors(:david).categories.maximum("categories.id") }
+  end
+
   def test_has_many_through_has_many_with_sti
     assert_equal [comments(:does_it_hurt)], authors(:david).special_post_comments
   end

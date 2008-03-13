@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure that ActiveRecord::Calculations disambiguates field names with the table name.  #11027 [cavalle]
+
 * Ensure that modifying has_and_belongs_to_many actions clear the query cache.  Closes #10840 [john.andrews]
 
 * Fix issue where Table#references doesn't pass a :null option to a *_type attribute for polymorphic associations.  Closes #10753 [railsjitsu]
