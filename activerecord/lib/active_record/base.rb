@@ -1478,13 +1478,14 @@ module ActiveRecord #:nodoc:
         # The optional scope argument is for the current :find scope.
         def add_joins!(sql, options, scope = :auto)
           scope = scope(:find) if :auto == scope
-          join = (scope && scope[:joins]) || options[:joins]
-          case join
-          when Symbol, Hash, Array
-            join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, join, nil)
-            sql << " #{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join} "
-          else
-            sql << " #{join} "
+          [(scope && scope[:joins]), options[:joins]].each do |join|
+            case join
+            when Symbol, Hash, Array
+              join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, join, nil)
+              sql << " #{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join} "
+            else
+              sql << " #{join} "
+            end
           end
         end
 

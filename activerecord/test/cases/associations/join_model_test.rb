@@ -299,6 +299,14 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal [], posts(:thinking).authors
     assert_equal [authors(:mary)], posts(:authorless).authors
   end
+  
+  def test_both_scoped_and_explicit_joins_should_be_respected
+    assert_nothing_raised do
+      Post.send(:with_scope, :find => {:joins => "left outer join comments on comments.id = posts.id"}) do
+        Post.find :all, :select => "comments.id, authors.id", :joins => "left outer join authors on authors.id = posts.author_id"
+      end
+    end
+  end
 
   def test_belongs_to_polymorphic_with_counter_cache
     assert_equal 0, posts(:welcome)[:taggings_count]
