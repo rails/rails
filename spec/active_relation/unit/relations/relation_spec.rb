@@ -89,7 +89,7 @@ module ActiveRelation
         end
     
         it "accepts arbitrary strings" do
-          @relation.select("arbitrary").should == Selection.new(@relation, Scalar.new("arbitrary", @relation))
+          @relation.select("arbitrary").should == Selection.new(@relation, Value.new("arbitrary", @relation))
         end
       end
   
@@ -145,7 +145,7 @@ module ActiveRelation
         describe '#update' do
           it 'manufactures an update relation' do
             Session.start do
-              assignments = {@relation[:name] => Scalar.new('bob', @relation)}
+              assignments = {@relation[:name] => Value.new('bob', @relation)}
               mock(Session.new).update(Update.new(@relation, assignments.bind(@relation)))
               @relation.update(assignments).should == @relation
             end

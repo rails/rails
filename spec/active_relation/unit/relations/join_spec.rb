@@ -103,10 +103,10 @@ module ActiveRelation
     
     describe 'with aggregated relations' do
       before do
-        @aggregation = @relation2 \
+        @aggregation = @relation2                                 \
           .aggregate(@relation2[:user_id], @relation2[:id].count) \
-          .group(@relation2[:user_id]) \
-          .rename(@relation2[:id].count, :cnt) \
+          .group(@relation2[:user_id])                            \
+          .rename(@relation2[:id].count, :cnt)                    \
           .as('photo_count')
       end
       

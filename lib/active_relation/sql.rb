@@ -29,8 +29,8 @@ module ActiveRelation
         "#{quote_table_name(relation_name)}.#{quote_column_name(attribute_name)}"
       end
       
-      def scalar(scalar, column = nil)
-        quote(scalar, column)
+      def value(value, column = nil)
+        quote(value, column)
       end
       
       def select(select_sql, aliaz)
@@ -39,8 +39,8 @@ module ActiveRelation
     end
     
     class Selection < Formatter
-      def scalar(scalar)
-        scalar
+      def value(value)
+        value
       end
     end
     
@@ -61,12 +61,12 @@ module ActiveRelation
         @attribute, @engine = attribute, attribute.engine
       end
       
-      def scalar(scalar)
-        quote(scalar, @attribute.column)
+      def value(value)
+        quote(value, @attribute.column)
       end
     end
     
-    class Scalar < Predicate
+    class Value < Predicate
     end
   end
 end

@@ -37,13 +37,13 @@ done:
 - get some basic aggregations working: users.project(user[:points].max)
 - Alias Table Names
 - When joining with any sort of aggregation, it needs to be a nested select
-- get a scalar select working: users.project(users[:name], addresses.select(addresses[:user_id] == users[:id]).project(addresses[:id].count))
+- get a value select working: users.project(users[:name], addresses.select(addresses[:user_id] == users[:id]).project(addresses[:id].count))
 - Session
-- sublimate scalars to deal with the fact that they must be quoted per engine
+- sublimate values to deal with the fact that they must be quoted per engine
 - clean-up singleton monstrosity
 - extract hashing module
 - hash custom matcher
 - make session engine stuff follow laws of demeter - currently doing some odd method chaining? rethink who is responsible for what
   - session just calls execute, passing in a connection; by default it gets a connection from the relation.
-- #strategy is now on scalar, attribute and relation; you must admit it's name is confusing given that e.g., relation already has a strategy (Sql::Relation) ... should it be called predicate strategy? operand1.to_sql(operand2.predicate) maybe prefer operand1.cast(operand2) or project or in light of
+- #strategy is now on value, attribute and relation; you must admit it's name is confusing given that e.g., relation already has a strategy (Sql::Relation) ... should it be called predicate strategy? operand1.to_sql(operand2.predicate) maybe prefer operand1.cast(operand2) or project or in light of
   - renamed to #format: operand1.format(operand2)
