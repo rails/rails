@@ -11,12 +11,14 @@ module ActiveSupport #:nodoc:
         #      string }.squish                   # => "Multi-line string"
         #   " foo   bar    \n   \t   boo".squish # => "foo bar boo"
         def squish
-          strip.gsub(/\s+/, ' ')
+          dup.squish!
         end
 
         # Performs a destructive squish. See String#squish.
         def squish!
-          replace(squish)
+          strip!
+          gsub!(/\s+/, ' ')
+          self
         end
       end
     end

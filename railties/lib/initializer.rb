@@ -255,7 +255,7 @@ module Rails
             logger.auto_flushing = false
             logger.set_non_blocking_io
           end
-        rescue StandardError =>e
+        rescue StandardError => e
           logger = ActiveSupport::BufferedLogger.new(STDERR)
           logger.level = ActiveSupport::BufferedLogger::WARN
           logger.warn(
