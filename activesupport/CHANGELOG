@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that BufferedLogger should create its own directory if one doesn't already exist #11285 [lotswholetime]
+
 * Fix Numeric time tests broken by DST change by anchoring them to fixed times instead of Time.now. Anchor TimeZone#now DST test to time specified with Time.at instead of Time.local to work around platform differences with Time.local and DST representation [Geoff Buesing]
 
 * Removing unneeded #change_time_zone method from Time, DateTime and TimeWithZone [Geoff Buesing]

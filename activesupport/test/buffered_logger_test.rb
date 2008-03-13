@@ -104,4 +104,14 @@ class BufferedLoggerTest < Test::Unit::TestCase
     @logger.info 'there it is.'
     assert !@output.string.empty?, @output.string
   end
+  
+  def test_should_create_the_log_directory_if_it_doesnt_exist
+    tmp_directory = File.join(File.dirname(__FILE__), "tmp")
+    log_file = File.join(tmp_directory, "development.log")
+    assert !File.exist?(tmp_directory)
+    @logger  = ActiveSupport::BufferedLogger.new(log_file)
+    assert File.exist?(tmp_directory)
+  ensure
+    FileUtils.rm_rf(tmp_directory)
+  end
 end
