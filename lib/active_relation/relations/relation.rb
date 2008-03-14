@@ -1,5 +1,7 @@
 module ActiveRelation
   class Relation
+    abstract :attributes, :selects, :orders, :inserts, :groupings, :joins, :limit, :offset, :alias
+    
     def session
       Session.new
     end
@@ -119,14 +121,17 @@ module ActiveRelation
     def call(connection = engine.connection)
       connection.select_all(to_sql)
     end
-        
-    def attribute_for_name(name)
-      attributes.detect { |a| a.alias_or_name.to_s == name.to_s }
-    end
+       
+    module AttributeAccessors 
+      def attribute_for_name(name)
+        attributes.detect { |a| a.alias_or_name.to_s == name.to_s }
+      end
     
-    def attribute_for_attribute(attribute)
-      attributes.detect { |a| a =~ attribute }
+      def attribute_for_attribute(attribute)
+        attributes.detect { |a| a =~ attribute }
+      end
     end
+    include AttributeAccessors
     
     def bind(relation)
       self
