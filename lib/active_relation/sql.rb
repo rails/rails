@@ -4,7 +4,6 @@ module ActiveRelation
       delegate :quote_table_name, :quote_column_name, :quote, :to => :engine
     end
     
-    # unit test me!!!
     class Formatter
       attr_reader :engine
       include Quoting
@@ -14,7 +13,7 @@ module ActiveRelation
       end
     end
     
-    class Projection < Formatter
+    class SelectExpression < Formatter
       def attribute(relation_name, attribute_name, aliaz)
         "#{quote_table_name(relation_name)}.#{quote_column_name(attribute_name)}" + (aliaz ? " AS #{quote(aliaz.to_s)}" : "")
       end
@@ -24,7 +23,13 @@ module ActiveRelation
       end
     end
     
-    class Predicate < Formatter
+    class WhereClause < Formatter
+      def value(value)
+        value
+      end
+    end
+    
+    class WhereCondition < Formatter
       def attribute(relation_name, attribute_name, aliaz)
         "#{quote_table_name(relation_name)}.#{quote_column_name(attribute_name)}"
       end
@@ -38,25 +43,19 @@ module ActiveRelation
       end
     end
     
-    class Selection < Formatter
-      def value(value)
-        value
-      end
-    end
-    
-    class Relation < Formatter
+    class SelectStatement < Formatter
       def select(select_sql, aliaz)
         select_sql
       end
     end
     
-    class Aggregation < Formatter
+    class TableReference < Formatter
       def select(select_sql, aliaz)
-        "(#{select_sql}) AS #{engine.quote_table_name(aliaz)}"
+        "(#{select_sql}) AS #{quote_table_name(aliaz)}"
       end
     end
     
-    class Attribute < Predicate
+    class Attribute < WhereCondition
       def initialize(attribute)
         @attribute, @engine = attribute, attribute.engine
       end
@@ -66,7 +65,7 @@ module ActiveRelation
       end
     end
     
-    class Value < Predicate
+    class Value < WhereCondition
     end
   end
 end

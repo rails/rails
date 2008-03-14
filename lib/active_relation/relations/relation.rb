@@ -102,16 +102,16 @@ module ActiveRelation
       false
     end
     
-    def to_sql(strategy = Sql::Relation.new(engine))
+    def to_sql(strategy = Sql::SelectStatement.new(engine))
       strategy.select [
-        "SELECT     #{attributes.collect{ |a| a.to_sql(Sql::Projection.new(engine)) }.join(', ')}",
+        "SELECT     #{attributes.collect{ |a| a.to_sql(Sql::SelectExpression.new(engine)) }.join(', ')}",
         "FROM       #{table_sql}",
-        (joins                                                                                      unless joins.blank?     ),
-        ("WHERE     #{selects.collect{|s| s.to_sql(Sql::Selection.new(engine))}.join("\n\tAND ")}"  unless selects.blank?   ),
-        ("ORDER BY  #{orders.collect(&:to_sql)}"                                                    unless orders.blank?    ),
-        ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                 unless groupings.blank? ),
-        ("LIMIT     #{limit}"                                                                       unless limit.blank?     ),
-        ("OFFSET    #{offset}"                                                                      unless offset.blank?    )
+        (joins                                                                                        unless joins.blank?     ),
+        ("WHERE     #{selects.collect{|s| s.to_sql(Sql::WhereClause.new(engine))}.join("\n\tAND ")}"  unless selects.blank?   ),
+        ("ORDER BY  #{orders.collect(&:to_sql)}"                                                      unless orders.blank?    ),
+        ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                   unless groupings.blank? ),
+        ("LIMIT     #{limit}"                                                                         unless limit.blank?     ),
+        ("OFFSET    #{offset}"                                                                        unless offset.blank?    )
       ].compact.join("\n"), self.alias
     end
     alias_method :to_s, :to_sql
@@ -133,7 +133,7 @@ module ActiveRelation
     end
     
     def format(object)
-      object.to_sql(Sql::Predicate.new(engine))
+      object.to_sql(Sql::WhereCondition.new(engine))
     end
 
     def attributes;  []  end

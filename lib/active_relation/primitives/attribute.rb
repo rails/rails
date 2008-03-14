@@ -111,7 +111,7 @@ module ActiveRelation
     end
     include Expressions
 
-    def to_sql(strategy = Sql::Predicate.new(engine))
+    def to_sql(strategy = Sql::WhereCondition.new(engine))
       strategy.attribute prefix, name, self.alias
     end
     

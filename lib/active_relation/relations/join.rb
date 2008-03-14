@@ -61,7 +61,7 @@ module ActiveRelation
       delegate :engine, :to => :relation
       
       def table_sql
-        relation.aggregation?? relation.to_sql(Sql::Aggregation.new(engine)) : relation.send(:table_sql)
+        relation.aggregation?? relation.to_sql(Sql::TableReference.new(engine)) : relation.send(:table_sql)
       end
       
       def selects

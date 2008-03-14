@@ -6,7 +6,7 @@ module ActiveRelation
       @value, @relation = value, relation
     end
     
-    def to_sql(strategy = Sql::Predicate.new(relation.engine))
+    def to_sql(strategy = Sql::WhereCondition.new(relation.engine))
       strategy.value value
     end
 
