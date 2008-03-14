@@ -1,5 +1,5 @@
 module ActiveRelation
-  class Deletion < Compound
+  class Deletion < Writing
     def initialize(relation)
       @relation = relation
     end

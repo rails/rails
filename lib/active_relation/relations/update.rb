@@ -1,5 +1,5 @@
 module ActiveRelation
-  class Update < Compound
+  class Update < Writing
     attr_reader :assignments
 
     def initialize(relation, assignments)

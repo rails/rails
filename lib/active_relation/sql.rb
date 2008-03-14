@@ -5,10 +5,11 @@ module ActiveRelation
     end
     
     class Formatter
-      attr_reader :engine
-      include Quoting
-      
       abstract :attribute, :select, :value
+      
+      attr_reader :engine
+      
+      include Quoting
       
       def initialize(engine)
         @engine = engine

@@ -1,5 +1,5 @@
 module ActiveRelation
-  class Insertion < Compound
+  class Insertion < Writing
     attr_reader :record
 
     def initialize(relation, record)
