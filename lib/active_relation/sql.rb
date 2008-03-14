@@ -8,6 +8,8 @@ module ActiveRelation
       attr_reader :engine
       include Quoting
       
+      abstract :attribute, :select, :value
+      
       def initialize(engine)
         @engine = engine
       end
