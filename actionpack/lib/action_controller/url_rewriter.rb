@@ -36,6 +36,7 @@ module ActionController
     # * <tt>:port</tt> Optionally specify the port to connect to.
     # * <tt>:anchor</tt> An anchor name to be appended to the path.
     # * <tt>:skip_relative_url_root</tt> If true, the url is not constructed using the relative_url_root set in <tt>ActionController::AbstractRequest.relative_url_root</tt>.
+    # * <tt>:trailing_slash</tt> If true, adds a trailing slash, as in "/archive/2009/"
     #
     # Any other key(:controller, :action, etc...) given to <tt>url_for</tt> is forwarded to the Routes module.
     #
@@ -43,6 +44,7 @@ module ActionController
     #
     #    url_for :controller => 'tasks', :action => 'testing', :host=>'somehost.org', :port=>'8080'    # => 'http://somehost.org:8080/tasks/testing'
     #    url_for :controller => 'tasks', :action => 'testing', :host=>'somehost.org', :anchor => 'ok', :only_path => true    # => '/tasks/testing#ok'
+    #    url_for :controller => 'tasks', :action => 'testing', :trailing_slash=>true  # => 'http://somehost.org/tasks/testing/'
     #    url_for :controller => 'tasks', :action => 'testing', :host=>'somehost.org', :number => '33'  # => 'http://somehost.org/tasks/testing?number=33'
     def url_for(options)
       options = self.class.default_url_options.merge(options)
