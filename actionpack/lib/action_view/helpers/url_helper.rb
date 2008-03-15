@@ -251,10 +251,10 @@ module ActionView
       #     <li>About Us</li>
       #   </ul>
       #
-      # ...but if in the "home" action, it will render:
+      # ...but if in the "index" action, it will render:
       #
       #   <ul id="navbar">
-      #     <li><a href="/controller/index">Home</a></li>
+      #     <li>Home</li>
       #     <li><a href="/controller/about">About Us</a></li>
       #   </ul>
       #
