@@ -292,18 +292,15 @@ module ActionView
       # method does not remove the newlines from the +text+. 
       #
       # ==== Examples
-      #   my_text = """Here is some basic text...
-      #             ...with a line break."""
+      #   my_text = "Here is some basic text...\n...with a line break."
       #
       #   simple_format(my_text)
-      #   # => "<p>Here is some basic text...<br />...with a line break.</p>"
+      #   # => "<p>Here is some basic text...\n<br />...with a line break.</p>"
       #
-      #   more_text = """We want to put a paragraph...
-      #     
-      #               ...right there."""
+      #   more_text = "We want to put a paragraph...\n\n...right there."
       #
       #   simple_format(more_text)
-      #   # => "<p>We want to put a paragraph...</p><p>...right there.</p>"
+      #   # => "<p>We want to put a paragraph...</p>\n\n<p>...right there.</p>"
       def simple_format(text)
         content_tag 'p', text.to_s.
           gsub(/\r\n?/, "\n").                    # \r\n and \r -> \n
