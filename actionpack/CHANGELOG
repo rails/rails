@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that TextHelper#excerpt would include one character too many #11268 [Irfy]
+
 * Fix more obscure nested parameter hash parsing bug.  #10797 [thomas.lee]
 
 * Added ActionView::Helpers::register_javascript/stylesheet_expansion to make it easier for plugin developers to inject multiple assets #10350 [lotswholetime]

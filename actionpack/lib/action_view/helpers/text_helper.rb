@@ -92,21 +92,21 @@ module ActionView
         # Extracts an excerpt from +text+ that matches the first instance of +phrase+. 
         # The +radius+ expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
         # defined in +radius+ (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
-        # then the +excerpt_string+ will be prepended/appended accordingly. If the +phrase+ 
-        # isn't found, nil is returned.
+        # then the +excerpt_string+ will be prepended/appended accordingly. The resulting string will be stripped in any case.
+        # If the +phrase+ isn't found, nil is returned.
         #
         # ==== Examples
         #   excerpt('This is an example', 'an', 5) 
-        #   # => "...s is an examp..."
+        #   # => "...s is an exam..."
         #
         #   excerpt('This is an example', 'is', 5) 
-        #   # => "This is an..."
+        #   # => "This is a..."
         #
         #   excerpt('This is an example', 'is') 
         #   # => "This is an example"
         #
         #   excerpt('This next thing is an example', 'ex', 2) 
-        #   # => "...next t..."
+        #   # => "...next..."
         #
         #   excerpt('This is also an example', 'an', 8, '<chop> ')
         #   # => "<chop> is also an example"
@@ -116,10 +116,10 @@ module ActionView
 
             if found_pos = text.chars =~ /(#{phrase})/i
               start_pos = [ found_pos - radius, 0 ].max
-              end_pos   = [ found_pos + phrase.chars.length + radius, text.chars.length ].min
+              end_pos   = [ [ found_pos + phrase.chars.length + radius - 1, 0].max, text.chars.length ].min
 
               prefix  = start_pos > 0 ? excerpt_string : ""
-              postfix = end_pos < text.chars.length ? excerpt_string : ""
+              postfix = end_pos < text.chars.length - 1 ? excerpt_string : ""
 
               prefix + text.chars[start_pos..end_pos].strip + postfix
             else
@@ -134,10 +134,10 @@ module ActionView
 
             if found_pos = text =~ /(#{phrase})/i
               start_pos = [ found_pos - radius, 0 ].max
-              end_pos   = [ found_pos + phrase.length + radius, text.length ].min
+              end_pos   = [ [ found_pos + phrase.length + radius - 1, 0].max, text.length ].min
 
               prefix  = start_pos > 0 ? excerpt_string : ""
-              postfix = end_pos < text.length ? excerpt_string : ""
+              postfix = end_pos < text.length - 1 ? excerpt_string : ""
 
               prefix + text[start_pos..end_pos].strip + postfix
             else
