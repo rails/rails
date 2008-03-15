@@ -17,7 +17,7 @@ module ActionView
     #   ActionController::Base.asset_host = "assets.example.com"
     #   image_tag("rails.png")
     #     => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
-    #   stylesheet_include_tag("application")
+    #   stylesheet_link_tag("application")
     #     => <link href="http://assets.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
     #
     # This is useful since browsers typically open at most two connections to a single host,
@@ -28,7 +28,7 @@ module ActionView
     #
     #   image_tag("rails.png")
     #     => <img src="http://assets0.example.com/images/rails.png" alt="Rails" />
-    #   stylesheet_include_tag("application")
+    #   stylesheet_link_tag("application")
     #     => <link href="http://assets3.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
     #
     # To do this, you can either setup 4 actual hosts, or you can use wildcard DNS to CNAME 
@@ -47,7 +47,7 @@ module ActionView
     #   ActionController::Base.asset_host = Proc.new { |source| "http://assets#{rand(2) + 1}.example.com" }
     #   image_tag("rails.png")
     #     => <img src="http://assets2.example.com/images/rails.png" alt="Rails" />
-    #   stylesheet_include_tag("application")
+    #   stylesheet_link_tag("application")
     #     => <link href="http://assets1.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
     #
     # The proc takes a <tt>source</tt> parameter (which is the path of the source asset) and an optional
@@ -64,7 +64,7 @@ module ActionView
     #    }
     #   image_tag("rails.png")
     #     => <img src="http://images.example.com/images/rails.png" alt="Rails" />
-    #   stylesheet_include_tag("application")
+    #   stylesheet_link_tag("application")
     #     => <link href="http://assets.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
     #
     # The optional <tt>request</tt> parameter to the proc is useful in particular for serving assets from an
