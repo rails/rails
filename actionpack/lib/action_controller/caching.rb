@@ -54,7 +54,7 @@ module ActionController #:nodoc:
 
     protected
       # Convenience accessor
-      def cache(key, options = nil, &block)
+      def cache(key, options = {}, &block)
         if cache_configured?
           cache_store.fetch(ActiveSupport::Cache.expand_cache_key(key, :controller), options, &block)
         else
