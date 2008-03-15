@@ -41,8 +41,9 @@ module ActionView
 
       indent = ' ' * indentation
       line_counter = start_on_line
-
-      source_code[start_on_line..end_on_line].sum do |line|
+      return unless source_code = source_code[start_on_line..end_on_line] 
+      
+      source_code.sum do |line|
         line_counter += 1
         "#{indent}#{line_counter}: #{line}"
       end
