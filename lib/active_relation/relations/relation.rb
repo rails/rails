@@ -1,7 +1,9 @@
 module ActiveRelation
   class Relation
-    abstract :attributes, :selects, :orders, :inserts, :groupings, :joins, :limit, :offset, :alias
-    
+    abstract :attributes, :selects, :orders, :inserts, :groupings, :joins, :limit, :offset, :alias, :hash
+
+    hash_on :hash
+
     def session
       Session.new
     end

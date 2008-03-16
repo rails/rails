@@ -1,5 +1,6 @@
 todo:
-- clean up integration tests in join - i find the aggregate stuff too integrationy; unit testing would be better
+- try to make aggration testing in join spec to be a bit more unit-like
+- finish pending tests
 - test relation, table reset
 - cache expiry on write
   - rewrite of querycache test in light of this
@@ -7,11 +8,11 @@ todo:
   - descend on array, along with bind written in terms of it
 - standardize quoting
   - use strings everywhere, not symbols ?
-- rename sql strategies
-- test sql strategies
-  - the parallel names are confusing since it's not obvious what's what. plus, we lack unit tests; the biggest complaint is a lack of clarity concerning what purpose these serve in the system. Unit tests wont illustrate much unless we use concrete examples.
+- "unit" test sql strategies
+  - use real world examples, so they should be like a tutorial.
 - rename the tion (Selection) classes so that words that don't end in tion don't seem inconsistent
 - re-evaluate bind
+- mock out database
 
 done:
 . Relation <=> Relation -> InnerJoinOperation
@@ -47,3 +48,4 @@ done:
   - session just calls execute, passing in a connection; by default it gets a connection from the relation.
 - #strategy is now on value, attribute and relation; you must admit it's name is confusing given that e.g., relation already has a strategy (Sql::Relation) ... should it be called predicate strategy? operand1.to_sql(operand2.predicate) maybe prefer operand1.cast(operand2) or project or in light of
   - renamed to #format: operand1.format(operand2)
+- rename sql strategies
