@@ -65,6 +65,14 @@ module ActiveRelation
           Attribute.new(@relation, :name)
         ]
       end
+      
+      describe '#reset' do
+        it "reloads columns from the database" do
+          pending
+          lambda { stub(@relation.engine).columns { [] } }.should_not change { @relation.attributes }
+          lambda { @relation.reset }.should change { @relation.attributes }
+        end
+      end
     end
   
     describe '#qualify' do
@@ -75,9 +83,8 @@ module ActiveRelation
     
     describe 'hashing' do
       it "implements hash equality" do
-        hash = {}
-        hash[Table.new(:users)] = 1
-        hash[Table.new(:users)].should == 1
+        Table.new(:users).should hash_the_same_as(Table.new(:users))
+        Table.new(:users).should_not hash_the_same_as(Table.new(:photos))
       end
     end
     
@@ -89,12 +96,6 @@ module ActiveRelation
       
       it "can be specified" do
         Table.new(:users, engine = Engine.new).engine.should == engine
-      end
-    end
-    
-    describe '#reset' do
-      it "" do
-        pending
       end
     end
   end

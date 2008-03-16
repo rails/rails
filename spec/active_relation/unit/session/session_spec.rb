@@ -35,39 +35,39 @@ module ActiveRelation
         @insert = Insertion.new(@relation, @relation[:name] => 'nick'.bind(@relation))
         @update = Update.new(@relation, @relation[:name] => 'nick'.bind(@relation))
         @delete = Deletion.new(@relation)
-        @select = @relation
+        @read = @relation
       end
       
       describe '#create' do
         it "executes an insertion on the connection" do
-          mock(@insert.engine).insert(@insert.to_sql)
+          mock(@insert).call(@insert.engine.connection)
           @session.create(@insert)
         end
       end
       
       describe '#read' do
         it "executes an selection on the connection" do
-          mock(@select.engine).select_all(@select.to_sql).once
-          @session.read(@select)
+          mock(@read).call(@read.engine.connection)
+          @session.read(@read)
         end
         
         it "is memoized" do
-          mock(@select.engine).select_all(@select.to_sql).once
-          @session.read(@select)
-          @session.read(@select)
+          mock(@read).call(@read.engine.connection).once
+          @session.read(@read)
+          @session.read(@read)
         end
       end
       
       describe '#update' do
         it "executes an update on the connection" do
-          mock(@update.engine).update(@update.to_sql)
+          mock(@update).call(@update.engine.connection)
           @session.update(@update)
         end
       end
       
       describe '#delete' do
         it "executes a delete on the connection" do
-          mock(@delete.engine).delete(@delete.to_sql)
+          mock(@delete).call(@delete.engine.connection)
           @session.delete(@delete)
         end
       end

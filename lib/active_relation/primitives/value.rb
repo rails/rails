@@ -1,17 +1,17 @@
 module ActiveRelation
-  class Scalar
+  class Value
     attr_reader :value, :relation
     
     def initialize(value, relation)
       @value, @relation = value, relation
     end
     
-    def to_sql(strategy = self.strategy)
-      strategy.scalar value
+    def to_sql(strategy = Sql::WhereCondition.new(relation.engine))
+      strategy.value value
     end
 
-    def strategy
-      ActiveRelation::Sql::Scalar.new(relation.engine)
+    def format(object)
+      object.to_sql(Sql::Value.new(relation.engine))
     end
     
     def ==(other)

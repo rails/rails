@@ -48,10 +48,7 @@ module ActiveRelation
     
     module Congruence
       def self.included(klass)
-        klass.class_eval do
-          alias_method :eql?, :==
-          delegate :hash, :to => :name
-        end
+        klass.hash_on :name
       end
       
       def history
@@ -114,15 +111,19 @@ module ActiveRelation
     end
     include Expressions
 
-    def to_sql(strategy = self.strategy)
+    def to_sql(strategy = Sql::WhereCondition.new(engine))
       strategy.attribute prefix, name, self.alias
     end
     
+    def format(object)
+      object.to_sql(strategy)
+    end
+    
+    private
     def strategy
       Sql::Attribute.new(self)
     end
     
-    private
     def prefix
       relation.prefix_for(self)
     end

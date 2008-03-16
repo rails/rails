@@ -25,22 +25,22 @@ module ActiveRelation
     
     module CRUD
       def create(insert)
-        insert.engine.insert(insert.to_sql)
+        insert.call(insert.engine.connection)
       end
       
       def read(select)
         @read ||= Hash.new do |hash, select|
-          hash[select] = select.engine.select_all(select.to_sql)
+          hash[select] = select.call(select.engine.connection)
         end
         @read[select]
       end
       
       def update(update)
-        update.engine.update(update.to_sql)
+        update.call(update.engine.connection)
       end
       
       def delete(delete)
-        delete.engine.delete(delete.to_sql)
+        delete.call(delete.engine.connection)
       end
     end
     include CRUD

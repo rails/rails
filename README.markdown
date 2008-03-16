@@ -3,7 +3,7 @@ ActiveRelation
 
 ## Abstract ##
 
-ActiveRelation is a Relational Algebra for Ruby. It simplifies the generation of both the simplest and the most complex of SQL queries and it transparently adapts to various RDBMS systems. It is intended to be a framework framework; that is, you can build your own ORM with it, focusing on innovative object and collection modeling as opposed to database compatibility and query generation.
+ActiveRelation is a Relational Algebra for Ruby. It 1) simplifies the generation of both the simplest and the most complex of SQL queries and it 2) transparently adapts to various RDBMS systems. It is intended to be a framework framework; that is, you can build your own ORM with it, focusing on innovative object and collection modeling as opposed to database compatibility and query generation.
 
 ## A Gentle Introduction ##
 

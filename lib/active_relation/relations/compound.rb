@@ -1,5 +1,7 @@
 module ActiveRelation
   class Compound < Relation
+    abstract :==, :descend
+    
     attr_reader :relation
     delegate :joins, :selects, :orders, :groupings, :table_sql, :inserts, :limit,
              :offset, :name, :alias, :aggregation?, :alias?, :prefix_for, :column_for,

@@ -1,5 +1,5 @@
 module ActiveRelation
-  class Insertion < Compound
+  class Insertion < Writing
     attr_reader :record
 
     def initialize(relation, record)
@@ -13,6 +13,10 @@ module ActiveRelation
         "(#{record.keys.collect(&:to_sql).join(', ')})",
         "VALUES #{record.values.to_sql}"
       ].join("\n")
+    end
+    
+    def call(connection = engine.connection)
+      connection.insert(to_sql)
     end
     
     def ==(other)

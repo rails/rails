@@ -1,6 +1,6 @@
 class Object  
   def bind(relation)
-    ActiveRelation::Scalar.new(self, relation)
+    ActiveRelation::Value.new(self, relation)
   end
   
   def metaclass

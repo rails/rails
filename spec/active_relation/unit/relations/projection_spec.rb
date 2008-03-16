@@ -31,14 +31,14 @@ module ActiveRelation
     end
   
     describe '#qualify' do
-      it "distributes over the relation and attributes" do
+      it "descends" do
         Projection.new(@relation, @attribute).qualify. \
           should == Projection.new(@relation, @attribute).descend(&:qualify)
       end
     end
     
     describe '#descend' do
-      it "distributes over the relation and attributes" do
+      it "distributes a block over the relation and attributes" do
         Projection.new(@relation, @attribute).descend(&:qualify). \
           should == Projection.new(@relation.descend(&:qualify), @attribute.qualify)
       end
@@ -52,7 +52,7 @@ module ActiveRelation
         ")
       end
       
-      it "manufactures sql with scalar selects" do
+      it "manufactures sql with value selects" do
         Projection.new(@relation, Projection.new(@relation, @relation[:name])).to_sql.should be_like("
           SELECT (SELECT `users`.`name` FROM `users`) FROM `users`
         ")

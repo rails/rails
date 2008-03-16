@@ -1,5 +1,7 @@
 module ActiveRelation
   class Relation
+    abstract :attributes, :selects, :orders, :inserts, :groupings, :joins, :limit, :offset, :alias
+    
     def session
       Session.new
     end
@@ -102,38 +104,41 @@ module ActiveRelation
       false
     end
     
-    def eql?(other)
-      self == other
-    end
-
-    def to_sql(strategy = Sql::Relation.new(engine))
+    def to_sql(strategy = Sql::SelectStatement.new(engine))
       strategy.select [
-        "SELECT     #{attributes.collect{ |a| a.to_sql(Sql::Projection.new(engine)) }.join(', ')}",
+        "SELECT     #{attributes.collect{ |a| a.to_sql(Sql::SelectExpression.new(engine)) }.join(', ')}",
         "FROM       #{table_sql}",
-        (joins                                                                                      unless joins.blank?     ),
-        ("WHERE     #{selects.collect{|s| s.to_sql(Sql::Selection.new(engine))}.join("\n\tAND ")}"  unless selects.blank?   ),
-        ("ORDER BY  #{orders.collect(&:to_sql)}"                                                    unless orders.blank?    ),
-        ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                 unless groupings.blank? ),
-        ("LIMIT     #{limit}"                                                                       unless limit.blank?     ),
-        ("OFFSET    #{offset}"                                                                      unless offset.blank?    )
+        (joins                                                                                        unless joins.blank?     ),
+        ("WHERE     #{selects.collect{|s| s.to_sql(Sql::WhereClause.new(engine))}.join("\n\tAND ")}"  unless selects.blank?   ),
+        ("ORDER BY  #{orders.collect(&:to_sql)}"                                                      unless orders.blank?    ),
+        ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                   unless groupings.blank? ),
+        ("LIMIT     #{limit}"                                                                         unless limit.blank?     ),
+        ("OFFSET    #{offset}"                                                                        unless offset.blank?    )
       ].compact.join("\n"), self.alias
     end
     alias_method :to_s, :to_sql
-        
-    def attribute_for_name(name)
-      attributes.detect { |a| a.alias_or_name.to_s == name.to_s }
-    end
     
-    def attribute_for_attribute(attribute)
-      attributes.detect { |a| a =~ attribute }
+    def call(connection = engine.connection)
+      connection.select_all(to_sql)
     end
+       
+    module AttributeAccessors 
+      def attribute_for_name(name)
+        attributes.detect { |a| a.alias_or_name.to_s == name.to_s }
+      end
+    
+      def attribute_for_attribute(attribute)
+        attributes.detect { |a| a =~ attribute }
+      end
+    end
+    include AttributeAccessors
     
     def bind(relation)
       self
     end
     
-    def strategy
-      Sql::Predicate.new(engine)
+    def format(object)
+      object.to_sql(Sql::WhereCondition.new(engine))
     end
 
     def attributes;  []  end

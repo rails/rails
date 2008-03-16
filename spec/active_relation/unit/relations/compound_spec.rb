@@ -21,13 +21,5 @@ module ActiveRelation
         @compound_relation.attributes.should == @relation.attributes.collect { |a| a.bind(@compound_relation) }
       end
     end
-    
-    describe 'hashing' do
-      it 'implements hash equality' do
-        hash = {}
-        hash[@compound_relation] = 1
-        hash[ConcreteCompound.new(@relation)].should == 1
-      end
-    end
   end
 end

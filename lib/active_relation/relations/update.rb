@@ -1,5 +1,5 @@
 module ActiveRelation
-  class Update < Compound
+  class Update < Writing
     attr_reader :assignments
 
     def initialize(relation, assignments)
@@ -14,6 +14,10 @@ module ActiveRelation
         end,
         ("WHERE #{selects.collect(&:to_sql).join('\n\tAND ')}" unless selects.blank?)
       ].join("\n")
+    end
+    
+    def call(connection = engine.connection)
+      connection.update(to_sql)
     end
     
     def ==(other)

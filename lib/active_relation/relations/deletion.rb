@@ -1,5 +1,5 @@
 module ActiveRelation
-  class Deletion < Compound
+  class Deletion < Writing
     def initialize(relation)
       @relation = relation
     end
@@ -10,6 +10,10 @@ module ActiveRelation
         "FROM #{table_sql}",
         ("WHERE #{selects.collect(&:to_sql).join('\n\tAND ')}" unless selects.blank?)
       ].compact.join("\n")
+    end
+    
+    def call(connection = engine.connection)
+      connection.delete(to_sql)
     end
     
     def ==(other)

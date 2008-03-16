@@ -69,7 +69,7 @@ module ActiveRelation
     
       describe '#as' do
         it "manufactures an alias relation" do
-          @relation.as(:thucydides).should == Alias.new(@relation, :thucydides)
+          @relation.as(:paul).should == Alias.new(@relation, :paul)
         end
       end
   
@@ -89,7 +89,7 @@ module ActiveRelation
         end
     
         it "accepts arbitrary strings" do
-          @relation.select("arbitrary").should == Selection.new(@relation, Scalar.new("arbitrary", @relation))
+          @relation.select("arbitrary").should == Selection.new(@relation, Value.new("arbitrary", @relation))
         end
       end
   
@@ -98,6 +98,14 @@ module ActiveRelation
           @relation.order(@attribute1, @attribute2).should == Order.new(@relation, @attribute1, @attribute2)
         end
       end
+      
+      describe '#call' do
+        it 'executes a select_all on the connection' do
+          mock(connection = Object.new).select_all(@relation.to_sql)
+          @relation.call(connection)
+        end
+      end
+      
       
       describe '#aggregate' do
         before do
@@ -137,7 +145,7 @@ module ActiveRelation
         describe '#update' do
           it 'manufactures an update relation' do
             Session.start do
-              assignments = {@relation[:name] => Scalar.new('bob', @relation)}
+              assignments = {@relation[:name] => Value.new('bob', @relation)}
               mock(Session.new).update(Update.new(@relation, assignments.bind(@relation)))
               @relation.update(assignments).should == @relation
             end
@@ -148,7 +156,11 @@ module ActiveRelation
       
     describe Relation::Enumerable do
       it "is enumerable" do
-        pending
+        pending "I don't like this mock-based test"
+        data = [1,2,3]
+        mock.instance_of(Session).read(anything) { data }
+        @relation.collect.should == data
+        @relation.first.should == data.first
       end
     end
   end

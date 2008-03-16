@@ -15,7 +15,7 @@ module ActiveRelation
     end
     
     describe '#descend' do
-      it "distributes over the relation and attributes" do
+      it "distributes a block over the relation and attributes" do
         Order.new(@relation, @attribute).descend(&:qualify). \
           should == Order.new(@relation.descend(&:qualify), @attribute.qualify)
       end

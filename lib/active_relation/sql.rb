@@ -4,9 +4,11 @@ module ActiveRelation
       delegate :quote_table_name, :quote_column_name, :quote, :to => :engine
     end
     
-    # module Formatting Context / Strategy # unit test me!!!
-    class Strategy
+    class Formatter
+      abstract :attribute, :select, :value
+      
       attr_reader :engine
+      
       include Quoting
       
       def initialize(engine)
@@ -14,7 +16,7 @@ module ActiveRelation
       end
     end
     
-    class Projection < Strategy
+    class SelectExpression < Formatter
       def attribute(relation_name, attribute_name, aliaz)
         "#{quote_table_name(relation_name)}.#{quote_column_name(attribute_name)}" + (aliaz ? " AS #{quote(aliaz.to_s)}" : "")
       end
@@ -24,13 +26,19 @@ module ActiveRelation
       end
     end
     
-    class Predicate < Strategy
+    class WhereClause < Formatter
+      def value(value)
+        value
+      end
+    end
+    
+    class WhereCondition < Formatter
       def attribute(relation_name, attribute_name, aliaz)
         "#{quote_table_name(relation_name)}.#{quote_column_name(attribute_name)}"
       end
       
-      def scalar(scalar, column = nil)
-        quote(scalar, column)
+      def value(value, column = nil)
+        quote(value, column)
       end
       
       def select(select_sql, aliaz)
@@ -38,35 +46,29 @@ module ActiveRelation
       end
     end
     
-    class Selection < Strategy
-      def scalar(scalar)
-        scalar
-      end
-    end
-    
-    class Relation < Strategy
+    class SelectStatement < Formatter
       def select(select_sql, aliaz)
         select_sql
       end
     end
     
-    class Aggregation < Strategy
+    class TableReference < Formatter
       def select(select_sql, aliaz)
-        "(#{select_sql}) AS #{engine.quote_table_name(aliaz)}"
+        "(#{select_sql}) AS #{quote_table_name(aliaz)}"
       end
     end
     
-    class Attribute < Predicate
+    class Attribute < WhereCondition
       def initialize(attribute)
         @attribute, @engine = attribute, attribute.engine
       end
       
-      def scalar(scalar)
-        quote(scalar, @attribute.column)
+      def value(value)
+        quote(value, @attribute.column)
       end
     end
     
-    class Scalar < Predicate
+    class Value < WhereCondition
     end
   end
 end
