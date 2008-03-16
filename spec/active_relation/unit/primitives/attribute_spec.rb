@@ -16,7 +16,7 @@ module ActiveRelation
     
       describe '#bind' do
         it "manufactures an attribute with the relation bound and self as an ancestor" do
-          derived_relation = @relation.select(@relation[:id].equals(1))
+          derived_relation = @relation.select(@relation[:id].eq(1))
           @attribute.bind(derived_relation).should == Attribute.new(derived_relation, @attribute.name, :ancestor => @attribute)
         end
         
@@ -95,33 +95,33 @@ module ActiveRelation
         @attribute = Attribute.new(@relation, :name)
       end
     
-      describe '#equals' do
+      describe '#eq' do
         it "manufactures an equality predicate" do
-          @attribute.equals('name').should == Equality.new(@attribute, 'name')
+          @attribute.eq('name').should == Equality.new(@attribute, 'name')
         end
       end
     
-      describe '#less_than' do
+      describe '#lt' do
         it "manufactures a less-than predicate" do
-          @attribute.less_than(10).should == LessThan.new(@attribute, 10)
+          @attribute.lt(10).should == LessThan.new(@attribute, 10)
         end
       end
     
-      describe '#less_than_or_equal_to' do
+      describe '#lteq' do
         it "manufactures a less-than or equal-to predicate" do
-          @attribute.less_than_or_equal_to(10).should == LessThanOrEqualTo.new(@attribute, 10)
+          @attribute.lteq(10).should == LessThanOrEqualTo.new(@attribute, 10)
         end
       end
     
-      describe '#greater_than' do
+      describe '#gt' do
         it "manufactures a greater-than predicate" do
-          @attribute.greater_than(10).should == GreaterThan.new(@attribute, 10)
+          @attribute.gt(10).should == GreaterThan.new(@attribute, 10)
         end
       end
     
-      describe '#greater_than_or_equal_to' do
+      describe '#gteq' do
         it "manufactures a greater-than or equal-to predicate" do
-          @attribute.greater_than_or_equal_to(10).should == GreaterThanOrEqualTo.new(@attribute, 10)
+          @attribute.gteq(10).should == GreaterThanOrEqualTo.new(@attribute, 10)
         end
       end
     

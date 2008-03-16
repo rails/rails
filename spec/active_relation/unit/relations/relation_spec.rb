@@ -45,7 +45,7 @@ module ActiveRelation
     describe Relation::Operations do
       describe 'joins' do
         before do
-          @predicate = @relation[:id].equals(@relation[:id])
+          @predicate = @relation[:id].eq(@relation[:id])
         end
       
         describe '#join' do

@@ -15,7 +15,7 @@ module ActiveRelation
       end
     
       it 'manufactures sql deleting a selection relation' do
-        Deletion.new(@relation.select(@relation[:id].equals(1))).to_sql.should be_like("
+        Deletion.new(@relation.select(@relation[:id].eq(1))).to_sql.should be_like("
           DELETE
           FROM `users`
           WHERE `users`.`id` = 1

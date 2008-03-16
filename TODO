@@ -53,7 +53,7 @@ done:
 . Audit SqlAlchemy for missing features
 - Generalized denormalizations on any aggregation (count, yes, but also max, min, average)
 - Remove operator overloading of << and <=> for joins. Make it just foo.join(bar) and foo.outer_join(bar).
-- Remove operator overloading of == for predicates. make it a.equals(b) (note lack of question mark).
+- Remove operator overloading of == for predicates. make it a.eq(b) (note lack of question mark).
 - hookup more predicates (=, <=, =>)
 - get some basic aggregations working: users.project(user[:points].max)
 - Alias Table Names

@@ -62,23 +62,23 @@ module ActiveRelation
     include Congruence
     
     module Predications
-      def equals(other)
+      def eq(other)
         Equality.new(self, other)
       end
 
-      def less_than(other)
+      def lt(other)
         LessThan.new(self, other)
       end
 
-      def less_than_or_equal_to(other)
+      def lteq(other)
         LessThanOrEqualTo.new(self, other)
       end
 
-      def greater_than(other)
+      def gt(other)
         GreaterThan.new(self, other)
       end
 
-      def greater_than_or_equal_to(other)
+      def gteq(other)
         GreaterThanOrEqualTo.new(self, other)
       end
 

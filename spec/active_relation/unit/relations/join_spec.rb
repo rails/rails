@@ -5,12 +5,12 @@ module ActiveRelation
     before do
       @relation1 = Table.new(:users)
       @relation2 = Table.new(:photos)
-      @predicate = @relation1[:id].equals(@relation2[:user_id])
+      @predicate = @relation1[:id].eq(@relation2[:user_id])
     end
 
     describe '==' do
       before do
-        @another_predicate = @relation1[:id].equals(1)
+        @another_predicate = @relation1[:id].eq(1)
         @another_relation = Table.new(:cameras)
       end
       
@@ -96,8 +96,8 @@ module ActiveRelation
         end
 
         it 'manufactures sql joining the two tables, merging any selects' do
-          Join.new("INNER JOIN", @relation1.select(@relation1[:id].equals(1)),
-                                 @relation2.select(@relation2[:id].equals(2)), @predicate).to_sql.should be_like("
+          Join.new("INNER JOIN", @relation1.select(@relation1[:id].eq(1)),
+                                 @relation2.select(@relation2[:id].eq(2)), @predicate).to_sql.should be_like("
             SELECT `users`.`id`, `users`.`name`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
             FROM `users`
               INNER JOIN `photos` ON `users`.`id` = `photos`.`user_id`
@@ -149,7 +149,7 @@ module ActiveRelation
         end
 
         it "keeps selects on the aggregation within the derived table" do
-          Join.new("INNER JOIN", @relation1, @aggregation.select(@aggregation[:user_id].equals(1)), @predicate).to_sql.should be_like("
+          Join.new("INNER JOIN", @relation1, @aggregation.select(@aggregation[:user_id].eq(1)), @predicate).to_sql.should be_like("
             SELECT `users`.`id`, `users`.`name`, `photo_count`.`user_id`, `photo_count`.`cnt`
             FROM `users`
               INNER JOIN (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` WHERE `photos`.`user_id` = 1 GROUP BY `photos`.`user_id`) AS `photo_count`

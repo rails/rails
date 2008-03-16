@@ -36,7 +36,7 @@ module ActiveRelation
       describe 'when the relation is a selection' do
         before do
           @update = Update.new(
-            @relation.select(@relation[:id].equals(1)),
+            @relation.select(@relation[:id].eq(1)),
             @relation[:name] => "nick".bind(@relation)
           )
         end

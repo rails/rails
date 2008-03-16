@@ -42,7 +42,7 @@ As you can see, the `relation` named `users` does not represent an individual qu
 
 Following the Relational Algebra, Arel's interface uses some jargon that differs from standard SQL. For example, in order to add a `WHERE` clause to your relations, you use the `select` operation:
 
-    users.select(users[:name].equals('amy')) # => SELECT * FROM users WHERE users.name = 'amy'
+    users.select(users[:name].eq('amy')) # => SELECT * FROM users WHERE users.name = 'amy'
 
 What would, in SQL, be part of the `SELECT` clause is called here a `projection`:
 
@@ -50,12 +50,12 @@ What would, in SQL, be part of the `SELECT` clause is called here a `projection`
     
 Joins are fairly straightforward:
 
-    users.join(photos).on(users[:id].equals(photos[:user_id])) => SELECT * FROM users INNER JOIN photos ON users.id = photos.user_id
+    users.join(photos).on(users[:id].eq(photos[:user_id])) => SELECT * FROM users INNER JOIN photos ON users.id = photos.user_id
 
 The best property of the Relational is compositionality, or closure under all operations. For example, to select and project:
 
     users                                 \
-      .select(users[:name].equals('amy')) \
+      .select(users[:name].eq('amy')) \
       .project(users[:id])                \
     # => SELECT users.id FROM users WHERE users.name = 'amy'
 
