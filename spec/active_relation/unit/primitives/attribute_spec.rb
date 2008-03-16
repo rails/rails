@@ -130,6 +130,12 @@ module ActiveRelation
           @attribute.matches(/.*/).should == Match.new(@attribute, /.*/)
         end
       end
+      
+      describe '#in' do
+        it "manufactures an in predicate" do
+          @attribute.in(1..30).should == In.new(@attribute, 1..30)
+        end
+      end
     end
   
     describe Attribute::Expressions do

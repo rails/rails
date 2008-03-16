@@ -76,18 +76,10 @@ module ActiveRelation
 
   class Match < Binary
     alias_method :regexp, :operand2
-
-    def initialize(operand1, regexp)
-      @operand1, @regexp = operand1, regexp
-    end
   end
-
-  class RelationInclusion < Binary
-    alias_method :relation, :operand2
-
+  
+  class In < Binary
     protected
-    def predicate_sql
-      'IN'
-    end
+    delegate :predicate_sql, :to => :operand2
   end
 end

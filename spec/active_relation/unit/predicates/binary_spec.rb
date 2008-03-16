@@ -6,7 +6,6 @@ module ActiveRelation
       @relation = Table.new(:users)
       @attribute1 = @relation[:id]
       @attribute2 = @relation[:name]
-      @value = "1-asdf".bind(@relation)
       class ConcreteBinary < Binary
         def predicate_sql
           "<=>"
@@ -24,6 +23,10 @@ module ActiveRelation
       end
       
       describe 'when relating an attribute and a value' do
+        before do
+          @value = "1-asdf".bind(@relation)
+        end
+        
         describe 'when relating to an integer attribute' do
           it 'formats values as integers' do
             ConcreteBinary.new(@attribute1, @value).to_sql.should be_like("
@@ -43,46 +46,13 @@ module ActiveRelation
       
       describe 'when relating two values' do
         before do
+          @value = "1-asdf".bind(@relation)
           @another_value = 2.bind(@relation)
         end
         
-        it 'quotes values appropriate to their type' do
+        it 'formats values appropos of their type' do
           ConcreteBinary.new(string = @value, integer = @another_value).to_sql.should be_like("
             '1-asdf' <=> 2
-          ")        
-        end
-      end
-      
-      describe 'when relating to an array' do
-        describe 'when the array\'s elements are the same type as the attribute' do
-          before do
-            @array = [1, 2, 3]
-          end
-          
-          it 'manufactures sql with a comma separated list' do
-            ConcreteBinary.new(@attribute1, @array.bind(@relation)).to_sql.should be_like("
-              `users`.`id` <=> (1, 2, 3)
-            ")        
-          end
-        end
-        
-        describe 'when the array\'s elements are not same type as the attribute' do
-          before do
-            @array = ['1-asdf', 2, 3]
-          end
-          
-          it 'formats values in the array as the type of the attribute' do
-            ConcreteBinary.new(@attribute1, @array.bind(@relation)).to_sql.should be_like("
-              `users`.`id` <=> (1, 2, 3)
-            ")
-          end
-        end
-      end
-      
-      describe 'when relating to a relation' do
-        it 'manufactures sql with a subselect' do
-          ConcreteBinary.new(@attribute1, @relation).to_sql.should be_like("
-            `users`.`id` <=> (SELECT `users`.`id`, `users`.`name` FROM `users`)
           ")        
         end
       end
@@ -94,7 +64,7 @@ module ActiveRelation
         Binary.new(@attribute1, @attribute2).should_not == Binary.new(@attribute1, @attribute1)
       end
     
-      it "obtains if the concrete type of the Predicates::Binarys are identical" do
+      it "obtains if the concrete type of the predicates are identical" do
         Binary.new(@attribute1, @attribute2).should == Binary.new(@attribute1, @attribute2)
         Binary.new(@attribute1, @attribute2).should_not == ConcreteBinary.new(@attribute1, @attribute2)
       end

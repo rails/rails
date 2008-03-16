@@ -2,6 +2,8 @@ module ActiveRelation
   class Value
     attr_reader :value, :relation
     
+    delegate :predicate_sql, :to => :value
+    
     def initialize(value, relation)
       @value, @relation = value, relation
     end

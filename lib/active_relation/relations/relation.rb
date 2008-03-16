@@ -37,10 +37,6 @@ module ActiveRelation
         end
       end
 
-      def include?(attribute)
-        RelationInclusion.new(attribute, self)
-      end
-
       def select(*predicates)
         Selection.new(self, *predicates.collect {|p| p.bind(self)})
       end
@@ -94,13 +90,16 @@ module ActiveRelation
     end
     include Operations
     
-    def aggregation?
-      false
-    end
+    module Externalizable
+      def aggregation?
+        false
+      end
     
-    def alias?
-      false
+      def alias?
+        false
+      end
     end
+    include Externalizable
     
     def to_sql(formatter = Sql::SelectStatement.new(engine))
       formatter.select [
@@ -115,6 +114,10 @@ module ActiveRelation
       ].compact.join("\n"), self.alias
     end
     alias_method :to_s, :to_sql
+    
+    def predicate_sql
+      "IN"
+    end
     
     def call(connection = engine.connection)
       connection.select_all(to_sql)

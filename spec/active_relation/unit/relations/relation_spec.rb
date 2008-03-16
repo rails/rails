@@ -30,18 +30,20 @@ module ActiveRelation
       end
     end
   
-    describe '#include?' do
-      it "manufactures an inclusion predicate" do
-        @relation.include?(@attribute1).should be_kind_of(RelationInclusion)
+    describe Relation::Externalizable do
+      describe '#aggregation?' do
+        it "returns false" do
+          @relation.should_not be_aggregation
+        end
+      end
+
+      describe '#alias?' do
+        it "returns false" do
+          @relation.should_not be_alias
+        end
       end
     end
     
-    describe '#aggregation?' do
-      it "returns false" do
-        @relation.should_not be_aggregation
-      end
-    end
-
     describe Relation::Operations do
       describe 'joins' do
         before do

@@ -35,7 +35,11 @@ module ActiveRelation
         "#{quote_table_name(relation_name)}.#{quote_column_name(attribute_name)}"
       end
       
-      def value(value, column = nil)
+      def value(value)
+        value.to_sql(self)
+      end
+      
+      def scalar(value, column = nil)
         quote(value, column)
       end
       
@@ -61,16 +65,16 @@ module ActiveRelation
         @attribute, @engine = attribute, attribute.engine
       end
       
-      def value(value)
-        value.to_sql(self)
-      end
-      
       def scalar(scalar)
         quote(scalar, @attribute.column)
       end
       
       def array(array)
         "(" + array.collect { |e| e.to_sql(self) }.join(', ') + ")"
+      end
+      
+      def range(left, right)
+        "#{left} AND #{right}"
       end
     end
     

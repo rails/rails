@@ -85,6 +85,10 @@ module ActiveRelation
       def matches(regexp)
         Match.new(self, regexp)
       end
+      
+      def in(array)
+        In.new(self, array)
+      end
     end
     include Predications
     
