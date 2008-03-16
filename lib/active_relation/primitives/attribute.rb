@@ -111,16 +111,16 @@ module ActiveRelation
     end
     include Expressions
 
-    def to_sql(strategy = Sql::WhereCondition.new(engine))
-      strategy.attribute prefix, name, self.alias
+    def to_sql(formatter = Sql::WhereCondition.new(engine))
+      formatter.attribute prefix, name, self.alias
     end
     
     def format(object)
-      object.to_sql(strategy)
+      object.to_sql(formatter)
     end
     
     private
-    def strategy
+    def formatter
       Sql::Attribute.new(self)
     end
     

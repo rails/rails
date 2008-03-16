@@ -6,7 +6,7 @@ module ActiveRelation
       @relation, @assignments = relation, assignments
     end
 
-    def to_sql(strategy = nil)
+    def to_sql(formatter = nil)
       [
         "UPDATE #{table_sql} SET",
         assignments.inject("") do |assignments, (attribute, value)| 

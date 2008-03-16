@@ -6,8 +6,8 @@ module ActiveRelation
       @value, @relation = value, relation
     end
     
-    def to_sql(strategy = Sql::WhereCondition.new(relation.engine))
-      strategy.value value
+    def to_sql(formatter = Sql::WhereCondition.new(relation.engine))
+      formatter.value value
     end
 
     def format(object)

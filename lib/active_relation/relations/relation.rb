@@ -102,8 +102,8 @@ module ActiveRelation
       false
     end
     
-    def to_sql(strategy = Sql::SelectStatement.new(engine))
-      strategy.select [
+    def to_sql(formatter = Sql::SelectStatement.new(engine))
+      formatter.select [
         "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectExpression.new(engine)) }.join(', ')}",
         "FROM       #{table_sql}",
         (joins                                                                                        unless joins.blank?     ),

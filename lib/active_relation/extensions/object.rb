@@ -3,8 +3,8 @@ class Object
     ActiveRelation::Value.new(self, relation)
   end
   
-  def to_sql(strategy = nil)
-    strategy.scalar self
+  def to_sql(formatter = nil)
+    formatter.scalar self
   end
   
   def metaclass

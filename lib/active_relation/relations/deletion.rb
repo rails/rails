@@ -4,7 +4,7 @@ module ActiveRelation
       @relation = relation
     end
 
-    def to_sql(strategy = nil)
+    def to_sql(formatter = nil)
       [
         "DELETE",
         "FROM #{table_sql}",

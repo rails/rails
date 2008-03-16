@@ -24,7 +24,7 @@ module ActiveRelation
       descend(&:qualify)
     end
 
-    def to_sql(strategy = nil)
+    def to_sql(formatter = nil)
       "#{operand2.format(operand1)} #{predicate_sql} #{operand1.format(operand2)}"
     end
     

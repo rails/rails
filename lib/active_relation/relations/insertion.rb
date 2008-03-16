@@ -6,7 +6,7 @@ module ActiveRelation
       @relation, @record = relation, record
     end
 
-    def to_sql(strategy = nil)
+    def to_sql(formatter = nil)
       [
         "INSERT",
         "INTO #{table_sql}",

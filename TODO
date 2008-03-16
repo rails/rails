@@ -1,5 +1,5 @@
 todo:
-- remove to_sql logic from array and hash, push it into a strategy
+- remove to_sql logic from array and hash, push it into a formatter
 - string passthrough:
  :joins=>"INNER JOIN posts ON comments.post_id = posts.id"
  :conditions=>"(`posts`.author_id = 1)",
@@ -25,7 +25,7 @@ todo:
 - test relation, table reset
 - cache expiry on write
   - rewrite of querycache test in light of this
-- relation inclusion when given an array (1,2,3,4) should quote the elements using the appropriate quoting strategy taken from the attribute
+- relation inclusion when given an array (1,2,3,4) should quote the elements using the appropriate quoting formatter taken from the attribute
   - descend on array, along with bind written in terms of it
 - standardize quoting
   - use strings everywhere, not symbols ?
@@ -67,6 +67,6 @@ done:
 - hash custom matcher
 - make session engine stuff follow laws of demeter - currently doing some odd method chaining? rethink who is responsible for what
   - session just calls execute, passing in a connection; by default it gets a connection from the relation.
-- #strategy is now on value, attribute and relation; you must admit it's name is confusing given that e.g., relation already has a strategy (Sql::Relation) ... should it be called predicate strategy? operand1.to_sql(operand2.predicate) maybe prefer operand1.cast(operand2) or project or in light of
+- #formatter is now on value, attribute and relation; you must admit it's name is confusing given that e.g., relation already has a formatter (Sql::Relation) ... should it be called predicate formatter? operand1.to_sql(operand2.predicate) maybe prefer operand1.cast(operand2) or project or in light of
   - renamed to #format: operand1.format(operand2)
 - rename sql strategies

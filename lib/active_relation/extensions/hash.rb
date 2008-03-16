@@ -9,7 +9,7 @@ class Hash
     end
   end
   
-  def to_sql(strategy = nil)
+  def to_sql(formatter = nil)
     '(' +
       inject([]) do |values, (key, value)|
         values << key.format(value)

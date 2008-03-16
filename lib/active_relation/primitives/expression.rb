@@ -25,7 +25,7 @@ module ActiveRelation
     end
     include Transformations
     
-    def to_sql(strategy = nil)
+    def to_sql(formatter = nil)
       "#{function_sql}(#{attribute.to_sql})" + (@alias ? " AS #{quote_column_name(@alias)}" : '')
     end
     
