@@ -3,7 +3,7 @@ class Array
     Hash[*flatten]
   end
   
-  def to_sql(strategy = nil)
-    "(#{collect(&:to_sql).join(', ')})"
+  def to_sql(strategy = Sql::SelectExpression.new)
+    strategy.array self
   end
 end

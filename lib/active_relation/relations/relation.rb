@@ -1,9 +1,5 @@
 module ActiveRelation
   class Relation
-    abstract :attributes, :selects, :orders, :inserts, :groupings, :joins, :limit, :offset, :alias, :hash
-
-    hash_on :hash
-
     def session
       Session.new
     end
@@ -108,10 +104,10 @@ module ActiveRelation
     
     def to_sql(strategy = Sql::SelectStatement.new(engine))
       strategy.select [
-        "SELECT     #{attributes.collect{ |a| a.to_sql(Sql::SelectExpression.new(engine)) }.join(', ')}",
+        "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectExpression.new(engine)) }.join(', ')}",
         "FROM       #{table_sql}",
         (joins                                                                                        unless joins.blank?     ),
-        ("WHERE     #{selects.collect{|s| s.to_sql(Sql::WhereClause.new(engine))}.join("\n\tAND ")}"  unless selects.blank?   ),
+        ("WHERE     #{selects.collect {|s| s.to_sql(Sql::WhereClause.new(engine))}.join("\n\tAND ")}" unless selects.blank?   ),
         ("ORDER BY  #{orders.collect(&:to_sql)}"                                                      unless orders.blank?    ),
         ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                   unless groupings.blank? ),
         ("LIMIT     #{limit}"                                                                         unless limit.blank?     ),

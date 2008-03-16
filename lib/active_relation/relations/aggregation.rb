@@ -12,7 +12,7 @@ module ActiveRelation
       groupings   == other.groupings  and
       expressions == other.expressions
     end
-    
+
     def attributes
       expressions.collect { |e| e.bind(self) }
     end

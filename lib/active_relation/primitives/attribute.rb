@@ -52,11 +52,11 @@ module ActiveRelation
       end
       
       def history
-        [self] + (ancestor ? [ancestor, ancestor.send(:history)].flatten : [])
+        [self] + (ancestor ? [ancestor, ancestor.history].flatten : [])
       end
       
       def =~(other)
-        !(history & other.send(:history)).empty?
+        !(history & other.history).empty?
       end
     end
     include Congruence

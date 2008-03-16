@@ -10,8 +10,8 @@ module ActiveRelation
       [
         "INSERT",
         "INTO #{table_sql}",
-        "(#{record.keys.collect(&:to_sql).join(', ')})",
-        "VALUES #{record.values.to_sql}"
+        "(#{record.keys.collect(&:to_sql)})",
+        "VALUES #{record.to_sql}"
       ].join("\n")
     end
     

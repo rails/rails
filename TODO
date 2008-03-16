@@ -1,4 +1,25 @@
 todo:
+- remove to_sql logic from array and hash, push it into a strategy
+- string passthrough:
+ :joins=>"INNER JOIN posts ON comments.post_id = posts.id"
+ :conditions=>"(`posts`.author_id = 1)",
+ :select=>"`comments`.*"
+ :conditions=>"1 = 1"
+
+- need adapters for this form:
+ {:conditions=>["approved = ?", false]}
+ {:conditions=>{:approved=>false}}
+ {:conditions=>{"topics.approved"=>false}}
+ {:conditions=>{:address=>#<Address:0x3489b3c @street="Funny Street", @country="Loony Land", @city="Scary Town">, "customers.name"=>"David1"}}
+ 
+- need to_sql for ranges
+ {:conditions=>{:id=>2..3}}
+ 
+- orders need string pass through
+ :order=>"developers.name desc, developers.id desc",
+
+- orders need to be composable
+- #bind in Attribute and Expression should be doing a descend?
 - try to make aggration testing in join spec to be a bit more unit-like
 - finish pending tests
 - test relation, table reset

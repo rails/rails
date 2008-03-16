@@ -24,6 +24,13 @@ module ActiveRelation
         Join.new("INNER JOIN", @relation1, @relation2, @predicate).should == Join.new("INNER JOIN", @relation2, @relation1, @predicate)
       end
     end
+    
+    describe 'hashing' do
+      it 'implements hash equality' do
+        Join.new("INNER JOIN", @relation1, @relation2, @predicate) \
+          .should hash_the_same_as(Join.new("INNER JOIN", @relation1, @relation2, @predicate))
+      end
+    end
 
     describe '#qualify' do
       it 'descends' do
@@ -150,6 +157,6 @@ module ActiveRelation
           ")
         end
       end
-    end
+    end    
   end
 end

@@ -5,8 +5,6 @@ module ActiveRelation
     end
     
     class Formatter
-      abstract :attribute, :select, :value
-      
       attr_reader :engine
       
       include Quoting
@@ -64,7 +62,15 @@ module ActiveRelation
       end
       
       def value(value)
-        quote(value, @attribute.column)
+        value.to_sql(self)
+      end
+      
+      def scalar(scalar)
+        quote(scalar, @attribute.column)
+      end
+      
+      def array(array)
+        "(" + array.collect { |e| e.to_sql(self) }.join(', ') + ")"
       end
     end
     

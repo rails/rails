@@ -1,7 +1,10 @@
 module ActiveRelation
   class Join < Relation
     attr_reader :join_sql, :relation1, :relation2, :predicates
+    
     delegate :engine, :to => :relation1
+
+    hash_on :relation1
 
     def initialize(join_sql, relation1, relation2, *predicates)
       @join_sql, @relation1, @relation2, @predicates = join_sql, relation1, relation2, predicates
@@ -14,7 +17,7 @@ module ActiveRelation
         (relation2 == other.relation1 and relation1 == other.relation2)
       )
     end
-
+    
     def qualify
       descend(&:qualify)
     end
