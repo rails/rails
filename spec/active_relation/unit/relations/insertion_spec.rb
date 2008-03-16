@@ -4,20 +4,57 @@ module ActiveRelation
   describe Insertion do
     before do
       @relation = Table.new(:users)
-      @insertion = Insertion.new(@relation, @relation[:name] => "nick".bind(@relation))
     end
   
     describe '#to_sql' do
-      it 'manufactures sql inserting the data for one item' do
-        @insertion.to_sql.should be_like("
-          INSERT
-          INTO `users`
-          (`users`.`name`) VALUES ('nick')
-        ")
+      describe 'when given values whose types correspond to the types of the attributes' do
+        before do
+          @insertion = Insertion.new(@relation, @relation[:name] => "nick".bind(@relation))
+        end
+        
+        it 'manufactures sql inserting data' do
+          @insertion.to_sql.should be_like("
+            INSERT
+            INTO `users`
+            (`users`.`name`) VALUES ('nick')
+          ")
+        end
+      end
+      
+      describe 'when given values whose types differ from from the types of the attributes' do
+        before do
+          @insertion = Insertion.new(@relation, @relation[:id] => '1-asdf'.bind(@relation))
+        end
+        
+        it 'manufactures sql inserting data' do
+          @insertion.to_sql.should be_like("
+            INSERT
+            INTO `users`
+            (`users`.`id`) VALUES (1)
+          ")
+        end
+      end
+      
+      describe 'when given values whose types correspond to the type of the attribtues' do
+        before do
+          @insertion = Insertion.new(@relation, @relation[:name] => "nick".bind(@relation))
+        end
+        
+        it 'manufactures sql inserting data' do
+          @insertion.to_sql.should be_like("
+            INSERT
+            INTO `users`
+            (`users`.`name`) VALUES ('nick')
+          ")
+        end
       end
     end
     
     describe '#call' do
+      before do
+        @insertion = Insertion.new(@relation, @relation[:name] => "nick".bind(@relation))
+      end
+      
       it 'executes an insert on the connection' do
         mock(connection = Object.new).insert(@insertion.to_sql)
         @insertion.call(connection)

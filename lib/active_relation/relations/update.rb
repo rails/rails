@@ -9,9 +9,9 @@ module ActiveRelation
     def to_sql(formatter = nil)
       [
         "UPDATE #{table_sql} SET",
-        assignments.inject("") do |assignments, (attribute, value)| 
-          assignments << " #{attribute.to_sql} = #{value.to_sql}"
-        end,
+        assignments.collect do |attribute, value|
+          "#{value.format(attribute)} = #{attribute.format(value)}"
+        end.join("\n"),
         ("WHERE #{selects.collect(&:to_sql).join('\n\tAND ')}" unless selects.blank?)
       ].join("\n")
     end

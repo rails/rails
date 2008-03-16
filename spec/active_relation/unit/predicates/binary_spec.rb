@@ -54,19 +54,25 @@ module ActiveRelation
       end
       
       describe 'when relating to an array' do
-        describe 'when given an arry of elements of the same type of the attribute' do
-          it 'manufactures sql with a list' do
-            array = [1, 2, 3]
-            ConcreteBinary.new(@attribute1, array.bind(@relation)).to_sql.should be_like("
+        describe 'when the array\'s elements are the same type as the attribute' do
+          before do
+            @array = [1, 2, 3]
+          end
+          
+          it 'manufactures sql with a comma separated list' do
+            ConcreteBinary.new(@attribute1, @array.bind(@relation)).to_sql.should be_like("
               `users`.`id` <=> (1, 2, 3)
             ")        
           end
         end
         
-        describe 'when given an array, the elements of which are not the same type as the attribute' do
-          it 'formats values in the array in the type of the attribute' do
-            array = ['1-asdf', 2, 3]
-            ConcreteBinary.new(@attribute1, array.bind(@relation)).to_sql.should be_like("
+        describe 'when the array\'s elements are not same type as the attribute' do
+          before do
+            @array = ['1-asdf', 2, 3]
+          end
+          
+          it 'formats values in the array as the type of the attribute' do
+            ConcreteBinary.new(@attribute1, @array.bind(@relation)).to_sql.should be_like("
               `users`.`id` <=> (1, 2, 3)
             ")
           end

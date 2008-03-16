@@ -8,12 +8,4 @@ class Hash
       descendent.merge(yield(key) => yield(value))
     end
   end
-  
-  def to_sql(formatter = nil)
-    '(' +
-      inject([]) do |values, (key, value)|
-        values << key.format(value)
-      end.join(', ') +
-    ')'
-  end
 end

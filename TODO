@@ -1,5 +1,4 @@
 todo:
-- remove to_sql logic from array and hash, push it into a formatter
 - string passthrough:
  :joins=>"INNER JOIN posts ON comments.post_id = posts.id"
  :conditions=>"(`posts`.author_id = 1)",

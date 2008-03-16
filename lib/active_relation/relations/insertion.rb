@@ -11,7 +11,7 @@ module ActiveRelation
         "INSERT",
         "INTO #{table_sql}",
         "(#{record.keys.collect(&:to_sql)})",
-        "VALUES #{record.to_sql}"
+        "VALUES (#{record.collect { |key, value| key.format(value) }})"
       ].join("\n")
     end
     
