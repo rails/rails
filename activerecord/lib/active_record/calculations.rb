@@ -111,6 +111,7 @@ module ActiveRecord
       #   Person.average(:age) # SELECT AVG(age) FROM people...
       #   Person.minimum(:age, :conditions => ['last_name != ?', 'Drake']) # Selects the minimum age for everyone with a last name other than 'Drake'
       #   Person.minimum(:age, :having => 'min(age) > 17', :group => :last_name) # Selects the minimum age for any family without any minors
+      #   Person.sum("2 * age")
       def calculate(operation, column_name, options = {})
         validate_calculation_options(operation, options)
         column_name     = options[:select] if options[:select]
@@ -155,7 +156,7 @@ module ActiveRecord
           scope           = scope(:find)
           merged_includes = merge_includes(scope ? scope[:include] : [], options[:include])
           aggregate_alias = column_alias_for(operation, column_name)
-          column_name     = "#{connection.quote_table_name(table_name)}.#{column_name}" unless column_name == "*" || column_name.to_s.include?('.')
+          column_name     = "#{connection.quote_table_name(table_name)}.#{column_name}" if column_names.include?(column_name.to_s)
 
           if operation == 'count'
             if merged_includes.any?

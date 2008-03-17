@@ -256,4 +256,8 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_count_with_too_many_parameters_raises
     assert_raise(ArgumentError) { Account.count(1, 2, 3) }
   end
+
+  def test_should_sum_expression
+    assert_equal "636", Account.sum("2 * credit_limit")
+  end
 end
