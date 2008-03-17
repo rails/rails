@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :format option to NumberHelper#number_to_currency to enable better localization support #11149 [lylo]
+
 * Fixed that TextHelper#excerpt would include one character too many #11268 [Irfy]
 
 * Fix more obscure nested parameter hash parsing bug.  #10797 [thomas.lee]

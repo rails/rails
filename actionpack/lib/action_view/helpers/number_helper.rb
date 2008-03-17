@@ -54,6 +54,10 @@ module ActionView
       # * <tt>:unit</tt>  - Sets the denomination of the currency (defaults to "$").
       # * <tt>:separator</tt>  - Sets the separator between the units (defaults to ".").
       # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to ",").
+      # * <tt>:format</tt>  - Sets the format of the output string (defaults to "%u%n"). The field types are:
+      #
+      #     %u  The currency unit
+      #     %n  The number
       #
       # ==== Examples
       #  number_to_currency(1234567890.50)                    # => $1,234,567,890.50
@@ -62,16 +66,19 @@ module ActionView
       #
       #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "")
       #  # => &pound;1234567890,50
+      #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "", :format => "%n %u")
+      #  # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
         options   = options.stringify_keys
         precision = options["precision"] || 2
         unit      = options["unit"] || "$"
         separator = precision > 0 ? options["separator"] || "." : ""
         delimiter = options["delimiter"] || ","
+        format    = options["format"] || "%u%n"
 
         begin
           parts = number_with_precision(number, precision).split('.')
-          unit + number_with_delimiter(parts[0], delimiter) + separator + parts[1].to_s
+          format.gsub(/%n/, number_with_delimiter(parts[0], delimiter) + separator + parts[1].to_s).gsub(/%u/, unit)
         rescue
           number
         end
