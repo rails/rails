@@ -68,6 +68,10 @@ module ActionController
     #   polymorphic_url(record)  #->  comments_url()
     #
     def polymorphic_url(record_or_hash_or_array, options = {})
+      if record_or_hash_or_array.kind_of?(Array)
+        record_or_hash_or_array = record_or_hash_or_array.dup
+      end
+
       record    = extract_record(record_or_hash_or_array)
       format    = (options[:action].to_s == "formatted" and record_or_hash_or_array.pop)
       namespace = extract_namespace(record_or_hash_or_array)

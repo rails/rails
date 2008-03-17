@@ -125,5 +125,12 @@ uses_mocha 'polymorphic URL helpers' do
       polymorphic_path(@article, :action => :new)
     end
 
+    def test_polymorphic_path_does_not_modify_arguments
+      expects(:admin_article_responses_url).with(@article)
+      path = [:admin, @article, @response]
+      assert_no_difference 'path.size' do
+        polymorphic_url(path)
+      end
+    end
   end
 end

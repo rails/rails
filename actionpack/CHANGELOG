@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that polymorphic routes would modify the input array #11363 [thomas.lee]
+
 * Added :format option to NumberHelper#number_to_currency to enable better localization support #11149 [lylo]
 
 * Fixed that TextHelper#excerpt would include one character too many #11268 [Irfy]
