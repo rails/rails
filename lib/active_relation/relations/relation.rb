@@ -115,7 +115,7 @@ module ActiveRelation
     end
     alias_method :to_s, :to_sql
     
-    def predicate_sql
+    def inclusion_predicate_sql
       "IN"
     end
     

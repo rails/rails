@@ -41,7 +41,7 @@ module ActiveRelation
     end
 
     def predicate_sql
-      '='
+      operand2.equality_predicate_sql
     end
   end
 
@@ -74,6 +74,8 @@ module ActiveRelation
   end
   
   class In < Binary
-    delegate :predicate_sql, :to => :operand2
+    def predicate_sql
+      operand2.inclusion_predicate_sql
+    end
   end
 end

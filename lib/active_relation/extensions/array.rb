@@ -7,7 +7,7 @@ class Array
     "(" + collect { |e| e.to_sql(formatter) }.join(', ') + ")"
   end
   
-  def predicate_sql
+  def inclusion_predicate_sql
     "IN"
   end
 end

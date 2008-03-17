@@ -7,6 +7,10 @@ class Object
     formatter.scalar self
   end
   
+  def equality_predicate_sql
+    '='
+  end
+  
   def metaclass
     class << self
       self

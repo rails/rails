@@ -1,8 +1,8 @@
 todo:
 - string passthrough:
  :joins=>"INNER JOIN posts ON comments.post_id = posts.id"
- :select=>"`comments`.*"
-
+   - shit this one is hard at the moment.
+   
 - need adapters for this form:
  {:conditions=>["approved = ?", false]}
  {:conditions=>{:approved=>false}}

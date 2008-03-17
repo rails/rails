@@ -3,7 +3,7 @@ class Range
     formatter.range self.begin, self.end
   end
   
-  def predicate_sql
+  def inclusion_predicate_sql
     "BETWEEN"
   end
 end
