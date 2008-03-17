@@ -853,7 +853,9 @@ module Test #:nodoc:
           
           # Let's warn in case this is a subdependency, otherwise
           # subdependency error messages are totally cryptic
-          ActiveRecord::Base.logger.warn("Unable to load #{file_name}, underlying cause #{e.message} \n\n #{e.backtrace.join("\n")}")
+          if ActiveRecord::Base.logger
+            ActiveRecord::Base.logger.warn("Unable to load #{file_name}, underlying cause #{e.message} \n\n #{e.backtrace.join("\n")}")
+          end
         end
         
         def require_fixture_classes(table_names = nil)
