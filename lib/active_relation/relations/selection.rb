@@ -17,9 +17,8 @@ module ActiveRelation
       Selection.new(relation.descend(&block), yield(predicate))
     end
     
-    protected
     def selects
-      relation.send(:selects) + [predicate]
+      relation.selects + [predicate]
     end    
   end
 end

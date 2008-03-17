@@ -44,7 +44,6 @@ module ActiveRelation
       @attributes = @columns = nil
     end
 
-    protected    
     def table_sql
       "#{engine.quote_table_name(name)}"
     end

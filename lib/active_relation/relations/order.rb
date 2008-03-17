@@ -1,9 +1,10 @@
 module ActiveRelation
   class Order < Compound
-    attr_reader :orders
+    attr_reader :order
 
     def initialize(relation, *orders)
-      @relation, @orders = relation, orders
+      @order = orders.pop
+      @relation = orders.empty?? relation : Order.new(relation, *orders)
     end
 
     def ==(other)
@@ -14,6 +15,10 @@ module ActiveRelation
 
     def descend(&block)
       Order.new(relation.descend(&block), *orders.collect(&block))
+    end
+    
+    def orders
+      relation.orders + [order]
     end
   end
 end

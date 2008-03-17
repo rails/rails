@@ -7,6 +7,17 @@ module ActiveRelation
       @attribute = @relation[:id]
     end
 
+    describe '#initialize' do
+      before do
+        @another_attribtue = @relation[:name]
+      end
+      
+      it "manufactures nested Order relations if multiple predicates are provided" do
+        Order.new(@relation, @predicate, @another_attribute). \
+          should == Order.new(Order.new(@relation, @another_attribute), @predicate)
+      end
+    end
+    
     describe '#qualify' do
       it "descends" do
         Order.new(@relation, @attribute).qualify. \
@@ -56,6 +67,21 @@ module ActiveRelation
             SELECT `users`.`id`, `users`.`name`
             FROM `users`
             ORDER BY asdf
+          ")
+        end
+      end
+      
+      describe "when ordering an ordered relation" do
+        before do
+          @ordered_relation = Order.new(@relation, @attribute)
+          @another_attribute = @relation[:name]
+        end
+        
+        it "manufactures sql with an order clause populated by comma-separated attributes" do
+          Order.new(@ordered_relation, @another_attribute).to_sql.should be_like("
+            SELECT `users`.`id`, `users`.`name`
+            FROM `users`
+            ORDER BY `users`.`id`, `users`.`name`
           ")
         end
       end

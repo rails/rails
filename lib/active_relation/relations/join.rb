@@ -36,7 +36,6 @@ module ActiveRelation
       Join.new(join_sql, relation1.descend(&block), relation2.descend(&block), *predicates.collect(&block))
     end
     
-    protected
     def joins
       this_join = [
         join_sql,
@@ -64,11 +63,11 @@ module ActiveRelation
       delegate :engine, :to => :relation
       
       def table_sql
-        relation.aggregation?? relation.to_sql(Sql::TableReference.new(engine)) : relation.send(:table_sql)
+        relation.aggregation?? relation.to_sql(Sql::TableReference.new(engine)) : relation.table_sql
       end
       
       def selects
-        relation.aggregation?? [] : relation.send(:selects)
+        relation.aggregation?? [] : relation.selects
       end
       
       def attributes

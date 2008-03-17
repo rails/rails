@@ -40,35 +40,30 @@ module ActiveRelation
          (operand1 == other.operand2 and operand2 == other.operand1))
     end
 
-    protected
     def predicate_sql
       '='
     end
   end
 
   class GreaterThanOrEqualTo < Binary
-    protected
     def predicate_sql
       '>='
     end
   end
 
   class GreaterThan < Binary
-    protected
     def predicate_sql
       '>'
     end
   end
 
   class LessThanOrEqualTo < Binary
-    protected
     def predicate_sql
       '<='
     end
   end
 
   class LessThan < Binary
-    protected
     def predicate_sql
       '<'
     end
@@ -79,7 +74,6 @@ module ActiveRelation
   end
   
   class In < Binary
-    protected
     delegate :predicate_sql, :to => :operand2
   end
 end
