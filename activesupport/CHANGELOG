@@ -1,5 +1,7 @@
 *SVN*
 
+* Adding TimeZone#parse [Geoff Buesing]
+
 * Adding TimeZone#at and DateTime#to_f [Geoff Buesing]
 
 * TimeWithZone responds to Ruby 1.9 weekday-named query methods [Geoff Buesing]

@@ -10,12 +10,12 @@ module ActiveSupport
       @period = @utc ? period : get_period_and_ensure_valid_local_time
     end
   
-    # Returns a Time instance that represents the time in time_zone
+    # Returns a Time or DateTime instance that represents the time in time_zone
     def time
       @time ||= utc_to_local
     end
 
-    # Returns a Time instance that represents the time in UTC
+    # Returns a Time or DateTime instance that represents the time in UTC
     def utc
       @utc ||= local_to_utc
     end
@@ -222,11 +222,20 @@ module ActiveSupport
     
     private      
       def get_period_and_ensure_valid_local_time
-        @time_zone.period_for_local(@time)
-      rescue ::TZInfo::PeriodNotFound
-        # time is in the "spring forward" hour gap, so we're moving the time forward one hour and trying again
-        @time += 1.hour
-        retry
+        # we don't want a Time.local instance enforcing its own DST rules as well, 
+        # so transfer time values to a utc constructor if necessary
+        @time = transfer_time_values_to_utc_constructor(@time) unless @time.utc?
+        begin
+          @time_zone.period_for_local(@time)
+        rescue ::TZInfo::PeriodNotFound
+          # time is in the "spring forward" hour gap, so we're moving the time forward one hour and trying again
+          @time += 1.hour
+          retry
+        end
+      end
+      
+      def transfer_time_values_to_utc_constructor(time)
+        ::Time.utc_time(time.year, time.month, time.day, time.hour, time.min, time.sec, time.respond_to?(:usec) ? time.usec : 0)
       end
     
       # Replicating logic from TZInfo::Timezone#utc_to_local because we want to cache the period in an instance variable for reuse

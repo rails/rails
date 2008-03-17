@@ -156,6 +156,14 @@ class TimeZoneTest < Test::Unit::TestCase
     assert_equal TimeZone["Hawaii"], time.time_zone
   end
   
+  def test_local_with_old_date
+    silence_warnings do # silence warnings raised by tzinfo gem
+      time = TimeZone["Hawaii"].local(1850, 2, 5, 15, 30, 45)
+      assert_equal [45,30,15,5,2,1850], time.to_a[0,6]
+      assert_equal TimeZone["Hawaii"], time.time_zone
+    end
+  end
+  
   def test_local_enforces_spring_dst_rules
     zone = TimeZone['Eastern Time (US & Canada)']
     twz = zone.local(2006,4,2,1,59,59) # 1 second before DST start
@@ -197,12 +205,38 @@ class TimeZoneTest < Test::Unit::TestCase
   end
   
   def test_at_with_old_date
-    zone = TimeZone['UTC']
-    secs = -3786825600.0
+    zone = TimeZone['Eastern Time (US & Canada)']
+    secs = DateTime.civil(1850).to_f
     twz = zone.at(secs)
-    assert_equal [0,0,0,1,1,1850], twz.to_a[0,6]
+    assert_equal [1850, 1, 1, 0], [twz.utc.year, twz.utc.mon, twz.utc.day, twz.utc.hour]
     assert_equal zone, twz.time_zone
     assert_equal secs, twz.to_f
+  end
+  
+  def test_parse
+    zone = TimeZone['Eastern Time (US & Canada)']
+    twz = zone.parse('1999-12-31 19:00:00')
+    assert_equal Time.utc(1999,12,31,19), twz.time
+    assert_equal Time.utc(2000), twz.utc
+    assert_equal zone, twz.time_zone
+  end
+  
+  def test_parse_with_old_date
+    silence_warnings do # silence warnings raised by tzinfo gem
+      zone = TimeZone['Eastern Time (US & Canada)']
+      twz = zone.parse('1850-12-31 19:00:00')
+      assert_equal [0,0,19,31,12,1850], twz.to_a[0,6]
+      assert_equal zone, twz.time_zone
+    end
+  end
+  
+  uses_mocha 'TestParseWithIncompleteDate' do
+    def test_parse_with_incomplete_date
+      zone = TimeZone['Eastern Time (US & Canada)']
+      zone.stubs(:now).returns zone.local(1999,12,31)
+      twz = zone.parse('19:00:00')
+      assert_equal Time.utc(1999,12,31,19), twz.time
+    end
   end
 
   protected

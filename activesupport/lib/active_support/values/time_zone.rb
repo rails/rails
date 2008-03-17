@@ -197,6 +197,20 @@ class TimeZone
       utc.in_time_zone(self)
     end
     
+    # Method for creating new ActiveSupport::TimeWithZone instance in time zone of +self+ from parsed string. Example:
+    #
+    #   Time.zone = "Hawaii"                      # => "Hawaii"
+    #   Time.zone.parse('1999-12-31 14:00:00')    # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+    #
+    # If upper components are missing from the string, they are supplied from TimeZone#now:
+    #
+    #   Time.zone.now                 # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+    #   Time.zone.parse('22:30:00')   # => Fri, 31 Dec 1999 22:30:00 HST -10:00
+    def parse(str, now=now)
+      time = Time.parse(str, now) rescue DateTime.parse(str)
+      ActiveSupport::TimeWithZone.new(nil, self, time)
+    end
+    
     # Returns an ActiveSupport::TimeWithZone instance representing the current time
     # in the time zone represented by +self+. Example:
     #
@@ -244,7 +258,7 @@ class TimeZone
     
   rescue LoadError # Tzinfo gem is not available
     # re-raise LoadError only when a tzinfo-dependent method is called:
-    %w(local at now today utc_to_local local_to_utc period_for_utc period_for_local tzinfo).each do |method|
+    %w(local at parse now today utc_to_local local_to_utc period_for_utc period_for_local tzinfo).each do |method|
       define_method(method) {|*args| raise LoadError, "TZInfo gem is required for TimeZone##{method}. `gem install tzinfo` and try again."}
     end
   end
