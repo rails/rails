@@ -162,6 +162,10 @@ class Plugin
     @uri =~ /svn(?:\+ssh)?:\/\/*/
   end
   
+  def git_url?
+    @uri =~ /^git:\/\// || @url =~ /\.git$/
+  end
+  
   def installed?
     File.directory?("#{rails_env.root}/vendor/plugins/#{name}") \
       or rails_env.externals.detect{ |name, repo| self.uri == repo }
@@ -169,7 +173,10 @@ class Plugin
   
   def install(method=nil, options = {})
     method ||= rails_env.best_install_method?
-    method   = :export if method == :http and svn_url?
+    if :http == method
+      method = :export if svn_url?
+      method = :clone  if git_url?
+    end
 
     uninstall if installed? and options[:force]
 
@@ -247,6 +254,10 @@ class Plugin
         fetcher.fetch
       end
     end
+    
+    def install_using_clone(options = {})
+      git_command :clone, options
+    end
 
     def svn_command(cmd, options = {})
       root = rails_env.root
@@ -257,12 +268,23 @@ class Plugin
       puts base_cmd if $verbose
       system(base_cmd)
     end
+    
+    def git_command(cmd, options = {})
+      root = rails_env.root
+      mkdir_p "#{root}/vendor/plugins"
+      base_cmd = "git #{cmd} --depth 1 #{uri} \"#{root}/vendor/plugins/#{name}\""
+      puts base_cmd if $verbose
+      puts "removing: #{root}/vendor/plugins/#{name}/.git"
+      system(base_cmd)
+      rm_rf "#{root}/vendor/plugins/#{name}/.git"
+    end
 
     def guess_name(url)
       @name = File.basename(url)
       if @name == 'trunk' || @name.empty?
         @name = File.basename(File.dirname(url))
       end
+      @name.gsub!(/\.git$/, '') if @name =~ /\.git$/
     end
     
     def rails_env
@@ -447,6 +469,8 @@ module Commands
         o.separator "    #{@script_name} install continuous_builder\n"
         o.separator "  Install a plugin from a subversion URL:"
         o.separator "    #{@script_name} install http://dev.rubyonrails.com/svn/rails/plugins/continuous_builder\n"
+        o.separator "  Install a plugin from a git URL:"
+        o.separator "    #{@script_name} install git://github.com/SomeGuy/my_awesome_plugin.git\n"
         o.separator "  Install a plugin and add a svn:externals entry to vendor/plugins"
         o.separator "    #{@script_name} install -x continuous_builder\n"
         o.separator "  List all available plugins:"

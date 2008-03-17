@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for installing plugins hosted at git repositories #11294 [danger]
+
 * Fixed that script/generate would not look for plugin generators in plugin_paths #11000 [glv]
 
 * Fix database rake tasks to work with charset/collation and show proper error messages on failure. Closes #11301 [matt]
