@@ -247,13 +247,7 @@ class TimeZone
     end
     
     def tzinfo
-      return @tzinfo if @tzinfo
-      @tzinfo = MAPPING[name]
-      if String === @tzinfo
-        @tzinfo = TZInfo::Timezone.get(@tzinfo)
-        MAPPING[name] = @tzinfo
-      end
-      @tzinfo
+      @tzinfo ||= TZInfo::Timezone.get(MAPPING[name])
     end
     
   rescue LoadError # Tzinfo gem is not available

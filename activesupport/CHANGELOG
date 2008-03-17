@@ -1,5 +1,7 @@
 *SVN*
 
+* TZInfo caches Timezone instances in its own internal hash cache, so TimeZone::MAPPING doesn't need to cache them as well [Geoff Buesing]
+
 * Adding TimeZone#parse [Geoff Buesing]
 
 * Adding TimeZone#at and DateTime#to_f [Geoff Buesing]
