@@ -19,11 +19,11 @@ module ActiveSupport #:nodoc:
           # Accepts either a Rails TimeZone object, a string that identifies a 
           # Rails TimeZone object (e.g., "Central Time (US & Canada)"), or a TZInfo::Timezone object
           #
-          # Any Time or DateTime object can use this default time zone, via #in_current_time_zone.
+          # Any Time or DateTime object can use this default time zone, via #in_time_zone.
           # Example:
           #
-          #   Time.zone = 'Hawaii'                  # => 'Hawaii'
-          #   Time.utc(2000).in_current_time_zone   # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+          #   Time.zone = 'Hawaii'          # => 'Hawaii'
+          #   Time.utc(2000).in_time_zone   # => Fri, 31 Dec 1999 14:00:00 HST -10:00
           def zone=(time_zone)
             Thread.current[:time_zone] = get_zone(time_zone)
           end
@@ -43,24 +43,21 @@ module ActiveSupport #:nodoc:
             end
         end
         
-        # Returns the simultaneous time in the supplied zone. Examples:
+        # Returns the simultaneous time in Time.zone. Example:
         #
-        #   t = Time.utc(2000)        # => Sat Jan 01 00:00:00 UTC 2000
-        #   t.in_time_zone('Alaska')  # => Fri, 31 Dec 1999 15:00:00 AKST -09:00
-        #   t.in_time_zone('Hawaii')  # => Fri, 31 Dec 1999 14:00:00 HST -10:00
-        def in_time_zone(zone)
-          ActiveSupport::TimeWithZone.new(utc? ? self : getutc, get_zone(zone))
+        #   Time.zone = 'Hawaii'                    # => 'Hawaii'
+        #   Time.utc(2000).in_time_zone             # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+        #
+        # This method is similar to Time#localtime, except that it uses Time.zone as the local zone
+        # instead of the operating system's time zone.
+        #
+        # You can also pass in a TimeZone instance or string that identifies a TimeZone as an argument, 
+        # and the conversion will be based on that zone instead of Time.zone. Example:
+        #
+        #   Time.utc(2000).in_time_zone('Alaska')   # => Fri, 31 Dec 1999 15:00:00 AKST -09:00
+        def in_time_zone(zone = ::Time.zone)
+          ActiveSupport::TimeWithZone.new(utc? ? self : getutc, ::Time.send!(:get_zone, zone))
         end
-
-        # Returns the simultaneous time in Time.zone
-        def in_current_time_zone
-          ::Time.zone ? in_time_zone(::Time.zone) : self
-        end
-        
-        private
-          def get_zone(time_zone)
-            ::Time.send!(:get_zone, time_zone)
-          end
       end
     end
   end

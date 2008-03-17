@@ -178,7 +178,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       utc_time = Time.utc(2008, 1, 1)
       in_time_zone "Pacific Time (US & Canada)" do
         record   = @target.new
-        record.written_on = utc_time.in_current_time_zone
+        record.written_on = utc_time.in_time_zone
         assert_equal utc_time, record.written_on
         assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
         assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time

@@ -29,15 +29,10 @@ module ActiveSupport
       @period ||= time_zone.period_for_utc(@utc)
     end
 
-    # Returns the simultaneous time in the specified zone
-    def in_time_zone(new_zone)
+    # Returns the simultaneous time in Time.zone, or the specified zone
+    def in_time_zone(new_zone = ::Time.zone)
       return self if time_zone == new_zone
       utc.in_time_zone(new_zone)
-    end
-  
-    # Returns the simultaneous time in Time.zone
-    def in_current_time_zone
-      utc.in_current_time_zone
     end
   
     # Returns a Time.local() instance of the simultaneous time in your system's ENV['TZ'] zone

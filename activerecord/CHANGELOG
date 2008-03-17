@@ -1,5 +1,7 @@
 *SVN*
 
+* Time zone aware attributes use Time#in_time_zone [Geoff Buesing]
+
 * Fixed that scoped joins would not always be respected #6821 [Theory/Danger]
 
 * Ensure that ActiveRecord::Calculations disambiguates field names with the table name.  #11027 [cavalle]

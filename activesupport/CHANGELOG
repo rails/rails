@@ -1,5 +1,7 @@
 *SVN*
 
+* Time, DateTime and TimeWithZone #in_time_zone defaults to Time.zone. Removing now unneeded #in_current_time_zone [Geoff Buesing]
+
 * TZInfo caches Timezone instances in its own internal hash cache, so TimeZone::MAPPING doesn't need to cache them as well [Geoff Buesing]
 
 * Adding TimeZone#parse [Geoff Buesing]

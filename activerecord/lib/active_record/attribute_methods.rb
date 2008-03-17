@@ -161,7 +161,7 @@ module ActiveRecord
               cached = @attributes_cache['#{attr_name}']
               return cached if cached && !reload
               time = read_attribute('#{attr_name}')
-              @attributes_cache['#{attr_name}'] = time.acts_like?(:time) ? time.in_current_time_zone : time
+              @attributes_cache['#{attr_name}'] = time.acts_like?(:time) ? time.in_time_zone : time
             end
           EOV
           evaluate_attribute_method attr_name, method_body
@@ -181,7 +181,7 @@ module ActiveRecord
             def #{attr_name}=(time)
               if time
                 time = time.to_time rescue time unless time.acts_like?(:time)
-                time = time.in_current_time_zone if time.acts_like?(:time)
+                time = time.in_time_zone if time.acts_like?(:time)
               end
               write_attribute(:#{attr_name}, time)
             end
