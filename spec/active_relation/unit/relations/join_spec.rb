@@ -77,12 +77,12 @@ module ActiveRelation
       end
     end
     
-    describe 'with simple relations' do
+    describe 'when joining simple relations' do
       describe '#attributes' do
         it 'combines the attributes of the two relations' do
-          simple_join = Join.new("INNER JOIN", @relation1, @relation2, @predicate)
-          simple_join.attributes.should ==
-            (@relation1.attributes + @relation2.attributes).collect { |a| a.bind(simple_join) }
+          join = Join.new("INNER JOIN", @relation1, @relation2, @predicate)
+          join.attributes.should ==
+            (@relation1.attributes + @relation2.attributes).collect { |a| a.bind(join) }
         end
       end
       
