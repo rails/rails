@@ -271,6 +271,11 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal  0, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 0), TimeZone['UTC'] )
     assert_equal(-1, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1), TimeZone['UTC'] ))
   end
+  
+  def test_to_f
+    assert_equal 946684800.0, DateTime.civil(2000).to_f
+    assert_equal 946684800.0, DateTime.civil(1999,12,31,19,0,0,Rational(-5,24)).to_f
+  end
 
   protected
     def with_env_tz(new_tz = 'US/Eastern')

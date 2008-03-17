@@ -160,7 +160,7 @@ module ActiveSupport
     end unless RUBY_VERSION < '1.9'
     
     def to_a
-      time.to_a[0, 8].push(dst?, zone)
+      [time.sec, time.min, time.hour, time.day, time.mon, time.year, time.wday, time.yday, dst?, zone]
     end
     
     def to_f

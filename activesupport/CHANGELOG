@@ -1,5 +1,7 @@
 *SVN*
 
+* Adding TimeZone#at and DateTime#to_f [Geoff Buesing]
+
 * TimeWithZone responds to Ruby 1.9 weekday-named query methods [Geoff Buesing]
 
 * TimeWithZone caches TZInfo::TimezonePeriod used for time conversion so that it can be reused, and enforces DST rules correctly when instance is created from a local time [Geoff Buesing]

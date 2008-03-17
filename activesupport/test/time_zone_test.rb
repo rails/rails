@@ -185,6 +185,25 @@ class TimeZoneTest < Test::Unit::TestCase
     assert_equal true, twz.dst? 
     assert_equal 'EDT', twz.zone
   end
+  
+  def test_at
+    zone = TimeZone['Eastern Time (US & Canada)']
+    secs = 946684800.0
+    twz = zone.at(secs)
+    assert_equal Time.utc(1999,12,31,19), twz.time
+    assert_equal Time.utc(2000), twz.utc
+    assert_equal zone, twz.time_zone
+    assert_equal secs, twz.to_f
+  end
+  
+  def test_at_with_old_date
+    zone = TimeZone['UTC']
+    secs = -3786825600.0
+    twz = zone.at(secs)
+    assert_equal [0,0,0,1,1,1850], twz.to_a[0,6]
+    assert_equal zone, twz.time_zone
+    assert_equal secs, twz.to_f
+  end
 
   protected
     def with_env_tz(new_tz = 'US/Eastern')

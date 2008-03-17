@@ -78,6 +78,12 @@ module ActiveSupport #:nodoc:
         def xmlschema
           strftime("%Y-%m-%dT%H:%M:%S%Z")
         end if RUBY_VERSION < '1.9'
+        
+        # Converts self to a floating-point number of seconds since the Unix epoch 
+        def to_f
+          days_since_unix_epoch = self - ::DateTime.civil(1970)
+          (days_since_unix_epoch * 86_400).to_f
+        end
       end
     end
   end
