@@ -846,15 +846,21 @@ module Test #:nodoc:
           setup_fixture_accessors(table_names)
         end
 
+        def try_to_load_dependency(file_name)
+          require_dependency file_name
+        rescue LoadError => e
+          # Let's hope the developer has included it himself
+          
+          # Let's warn in case this is a subdependency, otherwise
+          # subdependency error messages are totally cryptic
+          ActiveRecord::Base.logger.warn("Unable to load #{file_name}, underlying cause #{e.message} \n\n #{e.backtrace.join("\n")}")
+        end
+        
         def require_fixture_classes(table_names = nil)
           (table_names || fixture_table_names).each do |table_name|
             file_name = table_name.to_s
             file_name = file_name.singularize if ActiveRecord::Base.pluralize_table_names
-            begin
-              require_dependency file_name
-            rescue LoadError
-              # Let's hope the developer has included it himself
-            end
+            try_to_load_dependency(file_name)
           end
         end
 
