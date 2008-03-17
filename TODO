@@ -11,9 +11,6 @@ todo:
  {:conditions=>{"topics.approved"=>false}}
  {:conditions=>{:address=>#<Address:0x3489b3c @street="Funny Street", @country="Loony Land", @city="Scary Town">, "customers.name"=>"David1"}}
  
-- need to_sql for ranges
- {:conditions=>{:id=>2..3}}
- 
 - orders need string pass through
  :order=>"developers.name desc, developers.id desc",
 
@@ -69,3 +66,5 @@ done:
 - #formatter is now on value, attribute and relation; you must admit it's name is confusing given that e.g., relation already has a formatter (Sql::Relation) ... should it be called predicate formatter? operand1.to_sql(operand2.predicate) maybe prefer operand1.cast(operand2) or project or in light of
   - renamed to #format: operand1.format(operand2)
 - rename sql strategies
+- need to_sql for ranges
+  - {:conditions=>{:id=>2..3}}

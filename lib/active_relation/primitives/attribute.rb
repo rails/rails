@@ -63,31 +63,31 @@ module ActiveRelation
     
     module Predications
       def eq(other)
-        Equality.new(self, other)
+        Equality.new(self, other.bind(relation))
       end
 
       def lt(other)
-        LessThan.new(self, other)
+        LessThan.new(self, other.bind(relation))
       end
 
       def lteq(other)
-        LessThanOrEqualTo.new(self, other)
+        LessThanOrEqualTo.new(self, other.bind(relation))
       end
 
       def gt(other)
-        GreaterThan.new(self, other)
+        GreaterThan.new(self, other.bind(relation))
       end
 
       def gteq(other)
-        GreaterThanOrEqualTo.new(self, other)
+        GreaterThanOrEqualTo.new(self, other.bind(relation))
       end
 
       def matches(regexp)
-        Match.new(self, regexp)
+        Match.new(self, regexp.bind(relation))
       end
       
       def in(array)
-        In.new(self, array)
+        In.new(self, array.bind(relation))
       end
     end
     include Predications

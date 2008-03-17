@@ -105,12 +105,12 @@ module ActiveRelation
       formatter.select [
         "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectExpression.new(engine)) }.join(', ')}",
         "FROM       #{table_sql}",
-        (joins                                                                                        unless joins.blank?     ),
-        ("WHERE     #{selects.collect {|s| s.to_sql(Sql::WhereClause.new(engine))}.join("\n\tAND ")}" unless selects.blank?   ),
-        ("ORDER BY  #{orders.collect(&:to_sql)}"                                                      unless orders.blank?    ),
-        ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                   unless groupings.blank? ),
-        ("LIMIT     #{limit}"                                                                         unless limit.blank?     ),
-        ("OFFSET    #{offset}"                                                                        unless offset.blank?    )
+        (joins                                                                                          unless joins.blank?     ),
+        ("WHERE     #{selects.collect { |s| s.to_sql(Sql::WhereClause.new(engine)) }.join("\n\tAND ")}" unless selects.blank?   ),
+        ("ORDER BY  #{orders.collect { |o| o.to_sql(Sql::OrderClause.new(engine)) }.join(', ')}"        unless orders.blank?    ),
+        ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                     unless groupings.blank? ),
+        ("LIMIT     #{limit}"                                                                           unless limit.blank?     ),
+        ("OFFSET    #{offset}"                                                                          unless offset.blank?    )
       ].compact.join("\n"), self.alias
     end
     alias_method :to_s, :to_sql

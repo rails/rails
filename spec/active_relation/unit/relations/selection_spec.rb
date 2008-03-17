@@ -4,14 +4,17 @@ module ActiveRelation
   describe Selection do
     before do
       @relation = Table.new(:users)
-      @predicate = Equality.new(@relation[:id], 1.bind(@relation))
+      @predicate = @relation[:id].eq(1)
     end
   
     describe '#initialize' do
+      before do
+        @another_predicate = @relation[:name].lt(2)
+      end
+      
       it "manufactures nested selection relations if multiple predicates are provided" do
-        @predicate2 = LessThan.new(@relation[:age], 2.bind(@relation))
-        Selection.new(@relation, @predicate, @predicate2). \
-          should == Selection.new(Selection.new(@relation, @predicate2), @predicate)
+        Selection.new(@relation, @predicate, @another_predicate). \
+          should == Selection.new(Selection.new(@relation, @another_predicate), @predicate)
       end
     end
   
@@ -30,20 +33,28 @@ module ActiveRelation
     end
   
     describe '#to_sql' do
-      it "manufactures sql with where clause conditions" do
-        Selection.new(@relation, @predicate).to_sql.should be_like("
-          SELECT `users`.`id`, `users`.`name`
-          FROM `users`
-          WHERE `users`.`id` = 1
-        ")
+      describe 'when given a predicate' do
+        it "manufactures sql with where clause conditions" do
+          Selection.new(@relation, @predicate).to_sql.should be_like("
+            SELECT `users`.`id`, `users`.`name`
+            FROM `users`
+            WHERE `users`.`id` = 1
+          ")
+        end
       end
-    
-      it "allows arbitrary sql" do
-        Selection.new(@relation, "asdf".bind(@relation)).to_sql.should be_like("
-          SELECT `users`.`id`, `users`.`name`
-          FROM `users`
-          WHERE asdf
-        ")
+      
+      describe 'when given a string' do
+        before do
+          @string = "asdf".bind(@relation)
+        end
+        
+        it "passes the string through to the where clause" do
+          Selection.new(@relation, @string).to_sql.should be_like("
+            SELECT `users`.`id`, `users`.`name`
+            FROM `users`
+            WHERE asdf
+          ")
+        end
       end
     end
   end

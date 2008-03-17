@@ -24,9 +24,18 @@ module ActiveRelation
       end
     end
     
-    class WhereClause < Formatter
+    class PassThrough < Formatter
       def value(value)
         value
+      end
+    end
+    
+    class WhereClause < PassThrough
+    end
+    
+    class OrderClause < PassThrough
+      def attribute(relation_name, attribute_name, aliaz)
+        "#{quote_table_name(relation_name)}.#{quote_column_name(attribute_name)}"
       end
     end
     
