@@ -26,7 +26,7 @@ module ActionView
       #     end
       #
       #   app/views/posts/index.atom.builder:
-      #     atom_feed(:tag_uri => "2008") do |feed|
+      #     atom_feed do |feed|
       #       feed.title("My great blog!")
       #       feed.updated((@posts.first.created_at))
       #     
@@ -44,10 +44,12 @@ module ActionView
       #
       # The options for atom_feed are:
       #
-      # * <tt>:schema_date</tt>: Required. The date at which the tag scheme for the feed was first used. A good default is the year you created the feed. See http://feedvalidator.org/docs/error/InvalidTAG.html for more information.
       # * <tt>:language</tt>: Defaults to "en-US".
       # * <tt>:root_url</tt>: The HTML alternative that this feed is doubling for. Defaults to / on the current host.
       # * <tt>:url</tt>: The URL for this feed. Defaults to the current URL.
+      # * <tt>:schema_date</tt>: The date at which the tag scheme for the feed was first used. A good default is the year you 
+      #   created the feed. See http://feedvalidator.org/docs/error/InvalidTAG.html for more information. If not specified, 
+      #   2005 is used (as a "I don't care"-value).
       #
       # Other namespaces can be added to the root element:
       #
@@ -74,10 +76,10 @@ module ActionView
       #
       # atom_feed yields an AtomFeedBuilder instance.
       def atom_feed(options = {}, &block)
-        if options[:schema_date].blank?
-          logger.warn("You must provide the :schema_date option to atom_feed for your feed to be valid. A good default is the year you first created this feed.") unless logger.nil?
-        else
+        if options[:schema_date]
           options[:schema_date] = options[:schema_date].strftime("%Y-%m-%d") if options[:schema_date].respond_to?(:strftime)
+        else
+          options[:schema_date] = "2005" # The Atom spec copyright date
         end
         
         xml = options[:xml] || eval("xml", block.binding)
