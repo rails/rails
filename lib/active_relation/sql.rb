@@ -14,13 +14,17 @@ module ActiveRelation
       end
     end
     
-    class SelectExpression < Formatter
+    class SelectClause < Formatter
       def attribute(relation_name, attribute_name, aliaz)
         "#{quote_table_name(relation_name)}.#{quote_column_name(attribute_name)}" + (aliaz ? " AS #{quote(aliaz.to_s)}" : "")
       end
       
       def select(select_sql, aliaz)
         "(#{select_sql})" + (aliaz ? " AS #{quote(aliaz)}" : "")
+      end
+      
+      def value(value)
+        value
       end
     end
     

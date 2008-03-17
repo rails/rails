@@ -1,0 +1,17 @@
+This file should ultimately be replaced by a series of tests, something like a lint tool.
+
+- all describes and its should use single quotes unless they have nested quotes.
+- object instantiation in tests for all objects that are not the SUT should be manufactured in a before
+- 'should' and other counterfactuals/subjunctive forms should not be used in tests
+- no doubles should be used except for behaviorist testing
+  - behaviorist testing is desirable only when interacting with the database or the session
+- when unit testing, always demonstrate behavior by using a real world example (as in, a public use of the API), so as to provide documentation.
+- use collect rather than map
+- jargon:
+  - 'obtains' is preferred to 'returns true'
+  - 'manufactures'
+- in tests
+  - when manufacturing expected values (right-hand-side of should), avoid convenience methods -- construct it by initializing the object directly (Foo.new(...)). This ensures equality expectations in tests is rigorous.
+  - the SUT should be manufactured inline inside the test, not in a before
+  - dependencies for the SUT should be manufactured using convenience methods (or whatever is most terse).
+- group conceptually related methods in a class within an inline module; immediately include that module.

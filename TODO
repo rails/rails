@@ -1,34 +1,26 @@
 todo:
 - string passthrough:
  :joins=>"INNER JOIN posts ON comments.post_id = posts.id"
- :conditions=>"(`posts`.author_id = 1)",
  :select=>"`comments`.*"
- :conditions=>"1 = 1"
 
 - need adapters for this form:
  {:conditions=>["approved = ?", false]}
  {:conditions=>{:approved=>false}}
  {:conditions=>{"topics.approved"=>false}}
  {:conditions=>{:address=>#<Address:0x3489b3c @street="Funny Street", @country="Loony Land", @city="Scary Town">, "customers.name"=>"David1"}}
- 
-- orders need string pass through
- :order=>"developers.name desc, developers.id desc",
 
-- orders need to be composable
+- re-evaluate bind -- does bind belong inside the relation / predicate classes or in the factory methods?
 - #bind in Attribute and Expression should be doing a descend?
 - try to make aggration testing in join spec to be a bit more unit-like
 - finish pending tests
 - test relation, table reset
 - cache expiry on write
   - rewrite of querycache test in light of this
-- relation inclusion when given an array (1,2,3,4) should quote the elements using the appropriate quoting formatter taken from the attribute
-  - descend on array, along with bind written in terms of it
 - standardize quoting
   - use strings everywhere, not symbols ?
 - "unit" test sql strategies
   - use real world examples, so they should be like a tutorial.
 - rename the tion (Selection) classes so that words that don't end in tion don't seem inconsistent
-- re-evaluate bind
 - mock out database
 
 done:
@@ -68,3 +60,9 @@ done:
 - rename sql strategies
 - need to_sql for ranges
   - {:conditions=>{:id=>2..3}}
+- nested orderings
+- string passthrough
+  - conditions
+  - orderings
+- relation inclusion when given an array (1,2,3,4) should quote the elements using the appropriate quoting formatter taken from the attribute
+  - descend on array, along with bind written in terms of it

@@ -45,17 +45,37 @@ module ActiveRelation
     end
   
     describe '#to_sql' do
-      it "manufactures sql with a limited select clause" do
-        Projection.new(@relation, @attribute).to_sql.should be_like("
-          SELECT `users`.`id`
-          FROM `users`
-        ")
+      describe 'when given an attribute' do
+        it "manufactures sql with a limited select clause" do
+          Projection.new(@relation, @attribute).to_sql.should be_like("
+            SELECT `users`.`id`
+            FROM `users`
+          ")
+        end
       end
       
-      it "manufactures sql with value selects" do
-        Projection.new(@relation, Projection.new(@relation, @relation[:name])).to_sql.should be_like("
-          SELECT (SELECT `users`.`name` FROM `users`) FROM `users`
-        ")
+      describe 'when given a relation' do
+        before do
+          @scalar_relation = Projection.new(@relation, @relation[:name])
+        end
+        
+        it "manufactures sql with scalar selects" do
+          Projection.new(@relation, @scalar_relation).to_sql.should be_like("
+            SELECT (SELECT `users`.`name` FROM `users`) FROM `users`
+          ")
+        end
+      end
+      
+      describe 'when given a string' do
+        before do
+          @string = "asdf"
+        end
+        
+        it "passes the string through to the select clause" do
+          Projection.new(@relation, @string).to_sql.should be_like("
+            SELECT asdf FROM `users`
+          ")
+        end
       end
     end
   end

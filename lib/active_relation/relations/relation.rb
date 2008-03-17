@@ -42,7 +42,7 @@ module ActiveRelation
       end
 
       def project(*attributes)
-        Projection.new(self, *attributes.collect {|a| a.bind(self)})
+        Projection.new(self, *attributes)
       end
       
       def as(aliaz)
@@ -103,7 +103,7 @@ module ActiveRelation
     
     def to_sql(formatter = Sql::SelectStatement.new(engine))
       formatter.select [
-        "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectExpression.new(engine)) }.join(', ')}",
+        "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectClause.new(engine)) }.join(', ')}",
         "FROM       #{table_sql}",
         (joins                                                                                          unless joins.blank?     ),
         ("WHERE     #{selects.collect { |s| s.to_sql(Sql::WhereClause.new(engine)) }.join("\n\tAND ")}" unless selects.blank?   ),
