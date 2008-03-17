@@ -153,6 +153,12 @@ module ActiveSupport
     alias_method :mday, :day
     alias_method :month, :mon
     
+    %w(sunday? monday? tuesday? wednesday? thursday? friday? saturday?).each do |name|
+      define_method(name) do
+        time.__send__(name)
+      end
+    end unless RUBY_VERSION < '1.9'
+    
     def to_a
       time.to_a[0, 8].push(dst?, zone)
     end

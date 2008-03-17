@@ -281,6 +281,13 @@ uses_tzinfo 'TimeWithZoneTest' do
       assert_equal true, twz.dst?
       assert_equal 'EDT', twz.zone
     end
+    
+    def test_ruby_19_weekday_name_query_methods
+      ruby_19_or_greater = RUBY_VERSION >= '1.9'
+      %w(sunday? monday? tuesday? wednesday? thursday? friday? saturday?).each do |name|
+        assert_equal ruby_19_or_greater, @twz.respond_to?(name)
+      end
+    end
   end
   
   class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
