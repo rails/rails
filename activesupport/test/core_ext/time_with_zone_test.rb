@@ -256,6 +256,31 @@ uses_tzinfo 'TimeWithZoneTest' do
       assert_equal 17, twz.sec
       assert_equal 500, twz.usec
     end
+    
+    def test_utc_to_local_conversion_saves_period_in_instance_variable
+      assert_nil @twz.instance_variable_get('@period')
+      @twz.time
+      assert_kind_of TZInfo::TimezonePeriod, @twz.instance_variable_get('@period')
+    end
+    
+    def test_instance_created_with_local_time_returns_correct_utc_time
+      twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 19))
+      assert_equal Time.utc(2000), twz.utc
+    end
+    
+    def test_instance_created_with_local_time_enforces_spring_dst_rules
+      twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,4,2,2)) # first second of DST
+      assert_equal Time.utc(2006,4,2,3), twz.time # springs forward to 3AM
+      assert_equal true, twz.dst?
+      assert_equal 'EDT', twz.zone
+    end
+    
+    def test_instance_created_with_local_time_enforces_fall_dst_rules
+      twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,10,29,1)) # 1AM can be either DST or non-DST; we'll pick DST
+      assert_equal Time.utc(2006,10,29,1), twz.time
+      assert_equal true, twz.dst?
+      assert_equal 'EDT', twz.zone
+    end
   end
   
   class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase

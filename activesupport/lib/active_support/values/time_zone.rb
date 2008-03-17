@@ -183,14 +183,8 @@ class TimeZone
     #   Time.zone = "Hawaii"                      # => "Hawaii"
     #   Time.zone.local(2007, 2, 1, 15, 30, 45)   # => Thu, 01 Feb 2007 15:30:45 HST -10:00
     def local(*args)
-      t = Time.utc_time(*args)
-      begin
-        result = local_to_utc(t)
-      rescue TZInfo::PeriodNotFound
-        t += 1.hour
-        retry
-      end
-      result.in_time_zone(self)
+      time = Time.utc_time(*args)
+      ActiveSupport::TimeWithZone.new(nil, self, time)
     end
     
     # Returns an ActiveSupport::TimeWithZone instance representing the current time
