@@ -4,6 +4,8 @@ require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
+require 'rake/contrib/sshpublisher'
+
 require File.join(File.dirname(__FILE__), 'lib', 'active_resource', 'version')
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
