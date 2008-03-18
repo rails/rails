@@ -974,14 +974,19 @@ module ActiveRecord #:nodoc:
       end
 
       def reset_primary_key #:nodoc:
+        key = get_primary_key(base_class.name)
+        set_primary_key(key)
+        key
+      end
+
+      def get_primary_key(base_name) #:nodoc:
         key = 'id'
         case primary_key_prefix_type
           when :table_name
-            key = Inflector.foreign_key(base_class.name, false)
+            key = Inflector.foreign_key(base_name, false)
           when :table_name_with_underscore
-            key = Inflector.foreign_key(base_class.name)
+            key = Inflector.foreign_key(base_name)
         end
-        set_primary_key(key)
         key
       end
 

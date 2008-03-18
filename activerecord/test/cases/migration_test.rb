@@ -181,6 +181,33 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.drop_table :testings rescue nil
     end
 
+    def test_create_table_with_primary_key_prefix_as_table_name_with_underscore
+      ActiveRecord::Base.primary_key_prefix_type = :table_name_with_underscore
+
+      Person.connection.create_table :testings do |t|
+          t.column :foo, :string
+      end
+
+      assert_equal %w(foo testings_id), Person.connection.columns(:testings).map { |c| c.name }.sort
+    ensure
+      Person.connection.drop_table :testings rescue nil
+      ActiveRecord::Base.primary_key_prefix_type = nil
+    end
+
+    def test_create_table_with_primary_key_prefix_as_table_name
+      ActiveRecord::Base.primary_key_prefix_type = :table_name
+
+      Person.connection.create_table :testings do |t|
+          t.column :foo, :string
+      end
+
+      assert_equal %w(foo testingsid), Person.connection.columns(:testings).map { |c| c.name }.sort
+    ensure
+      Person.connection.drop_table :testings rescue nil
+      ActiveRecord::Base.primary_key_prefix_type = nil
+    end
+
+
     # SQL Server, Sybase, and SQLite3 will not allow you to add a NOT NULL
     # column to a table without a default value.
     unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :SQLiteAdapter)
