@@ -1,5 +1,7 @@
 *SVN*
 
+* Migrations: create_table supports primary_key_prefix_type.  #10314 [student, thechrisoshow]
+
 * Ensure that ActiveRecord::Calculations disambiguates field names with the table name.  #11027 [cavalle]
 
 * Ensure that modifying has_and_belongs_to_many actions clear the query cache.  Closes #10840 [john.andrews]
