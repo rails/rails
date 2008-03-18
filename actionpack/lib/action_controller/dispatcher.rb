@@ -20,17 +20,9 @@ module ActionController
       # existing callback. Passing an identifier is a suggested practice if the
       # code adding a preparation block may be reloaded.
       def to_prepare(identifier = nil, &block)
-        @prepare_dispatch_callbacks ||= []
+        @prepare_dispatch_callbacks ||= ActiveSupport::Callbacks::CallbackChain.new
         callback = ActiveSupport::Callbacks::Callback.new(:prepare_dispatch, block, :identifier => identifier)
-
-        # Already registered: update the existing callback
-        # TODO: Ruby one liner for Array#find returning index
-        if identifier && callback_for_identifier = @prepare_dispatch_callbacks.find { |c| c.identifier == identifier }
-          index = @prepare_dispatch_callbacks.index(callback_for_identifier)
-          @prepare_dispatch_callbacks[index] = callback
-        else
-          @prepare_dispatch_callbacks.concat([callback])
-        end
+        @prepare_dispatch_callbacks.replace_or_append_callback(callback)
       end
 
       # If the block raises, send status code as a last-ditch response.

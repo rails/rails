@@ -244,17 +244,203 @@ module ActionController #:nodoc:
     # filter and controller action will not be run. If #before renders or redirects,
     # the second half of #around and will still run but #after and the
     # action will not. If #around fails to yield, #after will not be run.
+
+    class FilterChain < ActiveSupport::Callbacks::CallbackChain #:nodoc:
+      def append_filter_to_chain(filters, filter_type, &block)
+        pos = find_filter_append_position(filters, filter_type)
+        update_filter_chain(filters, filter_type, pos, &block)
+      end
+
+      def prepend_filter_to_chain(filters, filter_type, &block)
+        pos = find_filter_prepend_position(filters, filter_type)
+        update_filter_chain(filters, filter_type, pos, &block)
+      end
+
+      def create_filters(filters, filter_type, &block)
+        filters, conditions = extract_options(filters, &block)
+        filters.map! { |filter| find_or_create_filter(filter, filter_type, conditions) }
+        filters
+      end
+
+      def skip_filter_in_chain(*filters, &test)
+        filters, conditions = extract_options(filters)
+        update_filter_in_chain(filters, :skip => conditions, &test)
+      end
+
+      private
+        def update_filter_chain(filters, filter_type, pos, &block)
+          new_filters = create_filters(filters, filter_type, &block)
+          insert(pos, new_filters).flatten!
+        end
+
+        def find_filter_append_position(filters, filter_type)
+          # appending an after filter puts it at the end of the call chain
+          # before and around filters go before the first after filter in the chain
+          unless filter_type == :after
+            each_with_index do |f,i|
+              return i if f.after?
+            end
+          end
+          return -1
+        end
+
+        def find_filter_prepend_position(filters, filter_type)
+          # prepending a before or around filter puts it at the front of the call chain
+          # after filters go before the first after filter in the chain
+          if filter_type == :after
+            each_with_index do |f,i|
+              return i if f.after?
+            end
+            return -1
+          end
+          return 0
+        end
+
+        def find_or_create_filter(filter, filter_type, options = {})
+          update_filter_in_chain([filter], options)
+
+          if found_filter = find_callback(filter) { |f| f.type == filter_type }
+            found_filter
+          else
+            filter_kind = case
+            when filter.respond_to?(:before) && filter_type == :before
+              :before
+            when filter.respond_to?(:after) && filter_type == :after
+              :after
+            else
+              :filter
+            end
+
+            case filter_type
+            when :before
+              BeforeFilter.new(filter_kind, filter, options)
+            when :after
+              AfterFilter.new(filter_kind, filter, options)
+            else
+              AroundFilter.new(filter_kind, filter, options)
+            end
+          end
+        end
+
+        def update_filter_in_chain(filters, options, &test)
+          filters.map! { |f| block_given? ? find_callback(f, &test) : find_callback(f) }
+          filters.compact!
+
+          map! do |filter|
+            if filters.include?(filter)
+              new_filter = filter.dup
+              new_filter.options.merge!(options)
+              new_filter
+            else
+              filter
+            end
+          end
+        end
+    end
+
+    class Filter < ActiveSupport::Callbacks::Callback #:nodoc:
+      def before?
+        self.class == BeforeFilter
+      end
+
+      def after?
+        self.class == AfterFilter
+      end
+
+      def around?
+        self.class == AroundFilter
+      end
+
+      private
+        def should_not_skip?(controller)
+          if options[:skip]
+            !included_in_action?(controller, options[:skip])
+          else
+            true
+          end
+        end
+
+        def included_in_action?(controller, options)
+          if options[:only]
+            Array(options[:only]).map(&:to_s).include?(controller.action_name)
+          elsif options[:except]
+            !Array(options[:except]).map(&:to_s).include?(controller.action_name)
+          else
+            true
+          end
+        end
+
+        def should_run_callback?(controller)
+          should_not_skip?(controller) && included_in_action?(controller, options) && super
+        end
+    end
+
+    class AroundFilter < Filter #:nodoc:
+      def type
+        :around
+      end
+
+      def call(controller, &block)
+        if should_run_callback?(controller)
+          proc = filter_responds_to_before_and_after? ? around_proc : method
+          evaluate_method(proc, controller, &block)
+        else
+          block.call
+        end
+      end
+
+      private
+        def filter_responds_to_before_and_after?
+          method.respond_to?(:before) && method.respond_to?(:after)
+        end
+
+        def around_proc
+          Proc.new do |controller, action|
+            method.before(controller)
+
+            if controller.send!(:performed?)
+              controller.send!(:halt_filter_chain, method, :rendered_or_redirected)
+            else
+              begin
+                action.call
+              ensure
+                method.after(controller)
+              end
+            end
+          end
+        end
+    end
+
+    class BeforeFilter < Filter #:nodoc:
+      def type
+        :before
+      end
+
+      def call(controller, &block)
+        super
+        if controller.send!(:performed?)
+          controller.send!(:halt_filter_chain, method, :rendered_or_redirected)
+        end
+      end
+    end
+
+    class AfterFilter < Filter #:nodoc:
+      def type
+        :after
+      end
+    end
+
     module ClassMethods
       # The passed <tt>filters</tt> will be appended to the filter_chain and
       # will execute before the action on this controller is performed.
       def append_before_filter(*filters, &block)
-        append_filter_to_chain(filters, :before, &block)
+        filter_chain.append_filter_to_chain(filters, :before, &block)
       end
 
       # The passed <tt>filters</tt> will be prepended to the filter_chain and
       # will execute before the action on this controller is performed.
       def prepend_before_filter(*filters, &block)
-        prepend_filter_to_chain(filters, :before, &block)
+        filter_chain.prepend_filter_to_chain(filters, :before, &block)
       end
 
       # Shorthand for append_before_filter since it's the most common.
@@ -263,18 +449,17 @@ module ActionController #:nodoc:
       # The passed <tt>filters</tt> will be appended to the array of filters
       # that run _after_ actions on this controller are performed.
       def append_after_filter(*filters, &block)
-        append_filter_to_chain(filters, :after, &block)
+        filter_chain.append_filter_to_chain(filters, :after, &block)
       end
 
       # The passed <tt>filters</tt> will be prepended to the array of filters
       # that run _after_ actions on this controller are performed.
       def prepend_after_filter(*filters, &block)
-        prepend_filter_to_chain(filters, :after, &block)
+        filter_chain.prepend_filter_to_chain(filters, :after, &block)
       end
 
       # Shorthand for append_after_filter since it's the most common.
       alias :after_filter :append_after_filter
-
 
       # If you append_around_filter A.new, B.new, the filter chain looks like
       #
@@ -287,10 +472,7 @@ module ActionController #:nodoc:
       # With around filters which yield to the action block, #before and #after
       # are the code before and after the yield.
       def append_around_filter(*filters, &block)
-        filters, conditions = extract_conditions(filters, &block)
-        filters.map { |f| proxy_before_and_after_filter(f) }.each do |filter|
-          append_filter_to_chain([filter, conditions])
-        end
+        filter_chain.append_filter_to_chain(filters, :around, &block)
       end
 
       # If you prepend_around_filter A.new, B.new, the filter chain looks like:
@@ -304,10 +486,7 @@ module ActionController #:nodoc:
       # With around filters which yield to the action block, #before and #after
       # are the code before and after the yield.
       def prepend_around_filter(*filters, &block)
-        filters, conditions = extract_conditions(filters, &block)
-        filters.map { |f| proxy_before_and_after_filter(f) }.each do |filter|
-          prepend_filter_to_chain([filter, conditions])
-        end
+        filter_chain.prepend_filter_to_chain(filters, :around, &block)
       end
 
       # Shorthand for append_around_filter since it's the most common.
@@ -320,7 +499,7 @@ module ActionController #:nodoc:
       # You can control the actions to skip the filter for with the <tt>:only</tt> and <tt>:except</tt> options,
       # just like when you apply the filters.
       def skip_before_filter(*filters)
-        skip_filter_in_chain(*filters, &:before?)
+        filter_chain.skip_filter_in_chain(*filters, &:before?)
       end
 
       # Removes the specified filters from the +after+ filter chain. Note that this only works for skipping method-reference
@@ -330,7 +509,7 @@ module ActionController #:nodoc:
       # You can control the actions to skip the filter for with the <tt>:only</tt> and <tt>:except</tt> options,
       # just like when you apply the filters.
       def skip_after_filter(*filters)
-        skip_filter_in_chain(*filters, &:after?)
+        filter_chain.skip_filter_in_chain(*filters, &:after?)
       end
 
       # Removes the specified filters from the filter chain. This only works for method reference (symbol)
@@ -340,336 +519,30 @@ module ActionController #:nodoc:
       # You can control the actions to skip the filter for with the <tt>:only</tt> and <tt>:except</tt> options,
       # just like when you apply the filters.
       def skip_filter(*filters)
-        skip_filter_in_chain(*filters)
+        filter_chain.skip_filter_in_chain(*filters)
       end
 
       # Returns an array of Filter objects for this controller.
       def filter_chain
-        read_inheritable_attribute("filter_chain") || []
+        if chain = read_inheritable_attribute('filter_chain')
+          return chain
+        else
+          write_inheritable_attribute('filter_chain', FilterChain.new)
+          return filter_chain
+        end
       end
 
       # Returns all the before filters for this class and all its ancestors.
       # This method returns the actual filter that was assigned in the controller to maintain existing functionality.
       def before_filters #:nodoc:
-        filter_chain.select(&:before?).map(&:filter)
+        filter_chain.select(&:before?).map(&:method)
       end
 
       # Returns all the after filters for this class and all its ancestors.
       # This method returns the actual filter that was assigned in the controller to maintain existing functionality.
       def after_filters #:nodoc:
-        filter_chain.select(&:after?).map(&:filter)
+        filter_chain.select(&:after?).map(&:method)
       end
-
-      # Returns a mapping between filters and the actions that may run them.
-      def included_actions #:nodoc:
-        @included_actions ||= read_inheritable_attribute("included_actions") || {}
-      end
-
-      # Returns a mapping between filters and actions that may not run them.
-      def excluded_actions #:nodoc:
-        @excluded_actions ||= read_inheritable_attribute("excluded_actions") || {}
-      end
-
-      # Find a filter in the filter_chain where the filter method matches the _filter_ param
-      # and (optionally) the passed block evaluates to true (mostly used for testing before?
-      # and after? on the filter). Useful for symbol filters.
-      #
-      # The object of type Filter is passed to the block when yielded, not the filter itself.
-      def find_filter(filter, &block) #:nodoc:
-        filter_chain.select { |f| f.filter == filter && (!block_given? || yield(f)) }.first
-      end
-
-      # Returns true if the filter is excluded from the given action
-      def filter_excluded_from_action?(filter,action) #:nodoc:
-        case
-        when ia = included_actions[filter]
-          !ia.include?(action)
-        when ea = excluded_actions[filter]
-          ea.include?(action)
-        end
-      end
-
-      # Filter class is an abstract base class for all filters. Handles all of the included/excluded actions but
-      # contains no logic for calling the actual filters.
-      class Filter #:nodoc:
-        attr_reader :filter, :included_actions, :excluded_actions
-
-        def initialize(filter)
-          @filter = filter
-        end
-
-        def type
-          :around
-        end
-
-        def before?
-          type == :before
-        end
-
-        def after?
-          type == :after
-        end
-
-        def around?
-          type == :around
-        end
-
-        def run(controller)
-          raise ActionControllerError, 'No filter type: Nothing to do here.'
-        end
-
-        def call(controller, &block)
-          run(controller)
-        end
-      end
-
-      # Abstract base class for filter proxies. FilterProxy objects are meant to mimic the behaviour of the old
-      # before_filter and after_filter by moving the logic into the filter itself.
-      class FilterProxy < Filter #:nodoc:
-        def filter
-          @filter.filter
-        end
-      end
-
-      class BeforeFilterProxy < FilterProxy #:nodoc:
-        def type
-          :before
-        end
-
-        def run(controller)
-          # only filters returning false are halted.
-          @filter.call(controller)
-          if controller.send!(:performed?)
-            controller.send!(:halt_filter_chain, @filter, :rendered_or_redirected)
-          end
-        end
-
-        def call(controller)
-          yield unless run(controller)
-        end
-      end
-
-      class AfterFilterProxy < FilterProxy #:nodoc:
-        def type
-          :after
-        end
-
-        def run(controller)
-          @filter.call(controller)
-        end
-
-        def call(controller)
-          yield
-          run(controller)
-        end
-      end
-
-      class SymbolFilter < Filter #:nodoc:
-        def call(controller, &block)
-          controller.send!(@filter, &block)
-        end
-      end
-
-      class ProcFilter < Filter #:nodoc:
-        def call(controller)
-          @filter.call(controller)
-        rescue LocalJumpError # a yield from a proc... no no bad dog.
-          raise(ActionControllerError, 'Cannot yield from a Proc type filter. The Proc must take two arguments and execute #call on the second argument.')
-        end
-      end
-
-      class ProcWithCallFilter < Filter #:nodoc:
-        def call(controller, &block)
-          @filter.call(controller, block)
-        rescue LocalJumpError # a yield from a proc... no no bad dog.
-          raise(ActionControllerError, 'Cannot yield from a Proc type filter. The Proc must take two arguments and execute #call on the second argument.')
-        end
-      end
-
-      class MethodFilter < Filter #:nodoc:
-        def call(controller, &block)
-          @filter.call(controller, &block)
-        end
-      end
-
-      class ClassFilter < Filter #:nodoc:
-        def call(controller, &block)
-          @filter.filter(controller, &block)
-        end
-      end
-
-      class ClassBeforeFilter < Filter #:nodoc:
-        def call(controller, &block)
-          @filter.before(controller)
-        end
-      end
-
-      class ClassAfterFilter < Filter #:nodoc:
-        def call(controller, &block)
-          @filter.after(controller)
-        end
-      end
-
-      protected
-        def append_filter_to_chain(filters, filter_type = :around, &block)
-          pos = find_filter_append_position(filters, filter_type)
-          update_filter_chain(filters, filter_type, pos, &block)
-        end
-
-        def prepend_filter_to_chain(filters, filter_type = :around, &block)
-          pos = find_filter_prepend_position(filters, filter_type)
-          update_filter_chain(filters, filter_type, pos, &block)
-        end
-
-        def update_filter_chain(filters, filter_type, pos, &block)
-          new_filters = create_filters(filters, filter_type, &block)
-          new_chain = filter_chain.insert(pos, new_filters).flatten
-          write_inheritable_attribute('filter_chain', new_chain)
-        end
-
-        def find_filter_append_position(filters, filter_type)
-          # appending an after filter puts it at the end of the call chain
-          # before and around filters go before the first after filter in the chain
-          unless filter_type == :after
-            filter_chain.each_with_index do |f,i|
-              return i if f.after?
-            end
-          end
-          return -1
-        end
-
-        def find_filter_prepend_position(filters, filter_type)
-          # prepending a before or around filter puts it at the front of the call chain
-          # after filters go before the first after filter in the chain
-          if filter_type == :after
-            filter_chain.each_with_index do |f,i|
-              return i if f.after?
-            end
-            return -1
-          end
-          return 0
-        end
-
-        def create_filters(filters, filter_type, &block) #:nodoc:
-          filters, conditions = extract_conditions(filters, &block)
-          filters.map! { |filter| find_or_create_filter(filter, filter_type) }
-          update_conditions(filters, conditions)
-          filters
-        end
-
-        def find_or_create_filter(filter, filter_type)
-          if found_filter = find_filter(filter) { |f| f.type == filter_type }
-            found_filter
-          else
-            f = class_for_filter(filter, filter_type).new(filter)
-            # apply proxy to filter if necessary
-            case filter_type
-            when :before
-              BeforeFilterProxy.new(f)
-            when :after
-              AfterFilterProxy.new(f)
-            else
-              f
-            end
-          end
-        end
-
-        # The determination of the filter type was once done at run time.
-        # This method is here to extract as much logic from the filter run time as possible
-        def class_for_filter(filter, filter_type) #:nodoc:
-          case
-          when filter.is_a?(Symbol)
-            SymbolFilter
-          when filter.respond_to?(:call)
-            if filter.is_a?(Method)
-              MethodFilter
-            else
-              case filter.arity
-              when 1; ProcFilter
-              when 2; ProcWithCallFilter
-              else raise ArgumentError, 'Filter blocks must take one or two arguments.'
-              end
-            end
-          when filter.respond_to?(:filter)
-            ClassFilter
-          when filter.respond_to?(:before) && filter_type == :before
-            ClassBeforeFilter
-          when filter.respond_to?(:after) && filter_type == :after
-            ClassAfterFilter
-          else
-            raise(ActionControllerError, 'A filter must be a Symbol, Proc, Method, or object responding to filter, after or before.')
-          end
-        end
-
-        def extract_conditions(*filters, &block) #:nodoc:
-          filters.flatten!
-          conditions = filters.extract_options!
-          filters << block if block_given?
-          return filters, conditions
-        end
-
-        def update_conditions(filters, conditions)
-          return if conditions.empty?
-          if conditions[:only]
-            write_inheritable_hash('included_actions', condition_hash(filters, conditions[:only]))
-          elsif conditions[:except]
-            write_inheritable_hash('excluded_actions', condition_hash(filters, conditions[:except]))
-          end
-        end
-
-        def condition_hash(filters, *actions)
-          actions = actions.flatten.map(&:to_s)
-          filters.inject({}) { |h,f| h.update( f => (actions.blank? ? nil : actions)) }
-        end
-
-        def skip_filter_in_chain(*filters, &test) #:nodoc:
-          filters, conditions = extract_conditions(filters)
-          filters.map! { |f| block_given? ? find_filter(f, &test) : find_filter(f) }
-          filters.compact!
-
-          if conditions.empty?
-            delete_filters_in_chain(filters)
-          else
-            remove_actions_from_included_actions!(filters,conditions[:only] || [])
-            conditions[:only], conditions[:except] = conditions[:except], conditions[:only]
-            update_conditions(filters,conditions)
-          end
-        end
-
-        def remove_actions_from_included_actions!(filters,*actions)
-          actions = actions.flatten.map(&:to_s)
-          updated_hash = filters.inject(read_inheritable_attribute('included_actions')||{}) do |hash,filter|
-            ia = (hash[filter] || []) - actions
-            ia.empty? ? hash.delete(filter) : hash[filter] = ia
-            hash
-          end
-          write_inheritable_attribute('included_actions', updated_hash)
-        end
-
-        def delete_filters_in_chain(filters) #:nodoc:
-          write_inheritable_attribute('filter_chain', filter_chain.reject { |f| filters.include?(f) })
-        end
-
-        def filter_responds_to_before_and_after(filter) #:nodoc:
-          filter.respond_to?(:before) && filter.respond_to?(:after)
-        end
-
-        def proxy_before_and_after_filter(filter) #:nodoc:
-          return filter unless filter_responds_to_before_and_after(filter)
-          Proc.new do |controller, action|
-            filter.before(controller)
-
-            if controller.send!(:performed?)
-              controller.send!(:halt_filter_chain, filter, :rendered_or_redirected)
-            else
-              begin
-                action.call
-              ensure
-                filter.after(controller)
-              end
-            end
-          end
-        end
     end
 
     module InstanceMethods # :nodoc:
@@ -681,89 +554,80 @@ module ActionController #:nodoc:
       end
 
       protected
+        def process_with_filters(request, response, method = :perform_action, *arguments) #:nodoc:
+          @before_filter_chain_aborted = false
+          process_without_filters(request, response, method, *arguments)
+        end
 
-      def process_with_filters(request, response, method = :perform_action, *arguments) #:nodoc:
-        @before_filter_chain_aborted = false
-        process_without_filters(request, response, method, *arguments)
-      end
-
-      def perform_action_with_filters
-        call_filters(self.class.filter_chain, 0, 0)
-      end
+        def perform_action_with_filters
+          call_filters(self.class.filter_chain, 0, 0)
+        end
 
       private
-
-      def call_filters(chain, index, nesting)
-        index = run_before_filters(chain, index, nesting)
-        aborted = @before_filter_chain_aborted
-        perform_action_without_filters unless performed? || aborted
-        return index if nesting != 0 || aborted
-        run_after_filters(chain, index)
-      end
-
-      def skip_excluded_filters(chain, index)
-        while (filter = chain[index]) && self.class.filter_excluded_from_action?(filter, action_name)
-          index = index.next
+        def call_filters(chain, index, nesting)
+          index = run_before_filters(chain, index, nesting)
+          aborted = @before_filter_chain_aborted
+          perform_action_without_filters unless performed? || aborted
+          return index if nesting != 0 || aborted
+          run_after_filters(chain, index)
         end
-        [filter, index]
-      end
 
-      def run_before_filters(chain, index, nesting)
-        while chain[index]
-          filter, index = skip_excluded_filters(chain, index)
-          break unless filter # end of call chain reached
+        def run_before_filters(chain, index, nesting)
+          while chain[index]
+            filter, index = chain[index], index
+            break unless filter # end of call chain reached
 
-          case filter.type
-          when :before
-            filter.run(self)  # invoke before filter
-            index = index.next
-            break if @before_filter_chain_aborted
-          when :around
-            yielded = false
+            case filter
+            when BeforeFilter
+              filter.call(self)  # invoke before filter
+              index = index.next
+              break if @before_filter_chain_aborted
+            when AroundFilter
+              yielded = false
 
-            filter.call(self) do
-              yielded = true
-              # all remaining before and around filters will be run in this call
-              index = call_filters(chain, index.next, nesting.next)
+              filter.call(self) do
+                yielded = true
+                # all remaining before and around filters will be run in this call
+                index = call_filters(chain, index.next, nesting.next)
+              end
+
+              halt_filter_chain(filter, :did_not_yield) unless yielded
+
+              break
+            else
+              break  # no before or around filters left
+            end
+          end
+
+          index
+        end
+
+        def run_after_filters(chain, index)
+          seen_after_filter = false
+
+          while chain[index]
+            filter, index = chain[index], index
+            break unless filter # end of call chain reached
+
+            case filter
+            when AfterFilter
+              seen_after_filter = true
+              filter.call(self)  # invoke after filter
+            else
+              # implementation error or someone has mucked with the filter chain
+              raise ActionControllerError, "filter #{filter.inspect} was in the wrong place!" if seen_after_filter
             end
 
-            halt_filter_chain(filter, :did_not_yield) unless yielded
-
-            break
-          else
-            break  # no before or around filters left
-          end
-        end
-
-        index
-      end
-
-      def run_after_filters(chain, index)
-        seen_after_filter = false
-
-        while chain[index]
-          filter, index = skip_excluded_filters(chain, index)
-          break unless filter # end of call chain reached
-
-          case filter.type
-          when :after
-            seen_after_filter = true
-            filter.run(self)  # invoke after filter
-          else
-            # implementation error or someone has mucked with the filter chain
-            raise ActionControllerError, "filter #{filter.inspect} was in the wrong place!" if seen_after_filter
+            index = index.next
           end
 
-          index = index.next
+          index.next
         end
 
-        index.next
-      end
-
-      def halt_filter_chain(filter, reason)
-        @before_filter_chain_aborted = true
-        logger.info "Filter chain halted as [#{filter.inspect}] #{reason}." if logger
-      end
+        def halt_filter_chain(filter, reason)
+          @before_filter_chain_aborted = true
+          logger.info "Filter chain halted as [#{filter.inspect}] #{reason}." if logger
+        end
     end
   end
 end

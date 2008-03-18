@@ -94,3 +94,24 @@ class ConditionalCallbackTest < Test::Unit::TestCase
     ], person.history
   end
 end
+
+class CallbackTest < Test::Unit::TestCase
+  def test_eql
+    callback = Callback.new(:before, :save, :identifier => :lifesaver)
+    assert callback.eql?(Callback.new(:before, :save, :identifier => :lifesaver))
+    assert callback.eql?(Callback.new(:before, :save))
+    assert callback.eql?(:lifesaver)
+    assert callback.eql?(:save)
+    assert !callback.eql?(Callback.new(:before, :destroy))
+    assert !callback.eql?(:destroy)
+  end
+
+  def test_dup
+    a = Callback.new(:before, :save)
+    assert_equal({}, a.options)
+    b = a.dup
+    b.options[:unless] = :pigs_fly
+    assert_equal({:unless => :pigs_fly}, b.options)
+    assert_equal({}, a.options)
+  end
+end

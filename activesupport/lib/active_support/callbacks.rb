@@ -76,20 +76,53 @@ module ActiveSupport
   #   - save
   #   saved
   module Callbacks
-    class Callback
-      def self.run(callbacks, object, options = {}, &terminator)
-        enumerator  = options[:enumerator] || :each
+    class CallbackChain < Array
+      def self.build(kind, *methods, &block)
+        methods, options = extract_options(*methods, &block)
+        methods.map! { |method| Callback.new(kind, method, options) }
+        new(methods)
+      end
+
+      def run(object, options = {}, &terminator)
+        enumerator = options[:enumerator] || :each
 
         unless block_given?
-          callbacks.send(enumerator) { |callback| callback.call(object) }
+          send(enumerator) { |callback| callback.call(object) }
         else
-          callbacks.send(enumerator) do |callback|
+          send(enumerator) do |callback|
             result = callback.call(object)
             break result if terminator.call(result, object)
           end
         end
       end
 
+      def find_callback(callback, &block)
+        select { |c| c == callback && (!block_given? || yield(c)) }.first
+      end
+
+      def replace_or_append_callback(callback)
+        if found_callback = find_callback(callback)
+          index = index(found_callback)
+          self[index] = callback
+        else
+          self << callback
+        end
+      end
+
+      private
+        def self.extract_options(*methods, &block)
+          methods.flatten!
+          options = methods.extract_options!
+          methods << block if block_given?
+          return methods, options
+        end
+
+        def extract_options(*methods, &block)
+          self.class.extract_options(*methods, &block)
+        end
+    end
+
+    class Callback
       attr_reader :kind, :method, :identifier, :options
 
       def initialize(kind, method, options = {})
@@ -99,22 +132,50 @@ module ActiveSupport
         @options    = options
       end
 
-      def call(object)
-        evaluate_method(method, object) if should_run_callback?(object)
+      def ==(other)
+        case other
+        when Callback
+          (self.identifier && self.identifier == other.identifier) || self.method == other.method
+        else
+          (self.identifier && self.identifier == other) || self.method == other
+        end
+      end
+
+      def eql?(other)
+        self == other
+      end
+
+      def dup
+        self.class.new(@kind, @method, @options.dup)
+      end
+
+      def call(object, &block)
+        evaluate_method(method, object, &block) if should_run_callback?(object)
+      rescue LocalJumpError
+        raise ArgumentError,
+          "Cannot yield from a Proc type filter. The Proc must take two " +
+          "arguments and execute #call on the second argument."
       end
 
       private
-        def evaluate_method(method, object)
+        def evaluate_method(method, object, &block)
           case method
             when Symbol
-              object.send(method)
+              object.send(method, &block)
             when String
               eval(method, object.instance_eval { binding })
             when Proc, Method
-              method.call(object)
+              case method.arity
+                when -1, 1
+                  method.call(object, &block)
+                when 2
+                  method.call(object, block)
+                else
+                  raise ArgumentError, 'Callback blocks must take one or two arguments.'
+              end
             else
               if method.respond_to?(kind)
-                method.send(kind, object)
+                method.send(kind, object, &block)
               else
                 raise ArgumentError,
                   "Callbacks must be a symbol denoting the method to call, a string to be evaluated, " +
@@ -143,17 +204,15 @@ module ActiveSupport
         callbacks.each do |callback|
           class_eval <<-"end_eval"
             def self.#{callback}(*methods, &block)
-              options = methods.extract_options!
-              methods << block if block_given?
-              callbacks = methods.map { |method| Callback.new(:#{callback}, method, options) }
-              (@#{callback}_callbacks ||= []).concat callbacks
+              callbacks = CallbackChain.build(:#{callback}, *methods, &block)
+              (@#{callback}_callbacks ||= CallbackChain.new).concat callbacks
             end
 
             def self.#{callback}_callback_chain
-              @#{callback}_callbacks ||= []
+              @#{callback}_callbacks ||= CallbackChain.new
 
               if superclass.respond_to?(:#{callback}_callback_chain)
-                superclass.#{callback}_callback_chain + @#{callback}_callbacks
+                CallbackChain.new(superclass.#{callback}_callback_chain + @#{callback}_callbacks)
               else
                 @#{callback}_callbacks
               end
@@ -208,7 +267,7 @@ module ActiveSupport
     #   pass
     #   stop
     def run_callbacks(kind, options = {}, &block)
-      Callback.run(self.class.send("#{kind}_callback_chain"), self, options, &block)
+      self.class.send("#{kind}_callback_chain").run(self, options, &block)
     end
   end
 end

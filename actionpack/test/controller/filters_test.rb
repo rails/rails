@@ -134,6 +134,11 @@ class FilterTest < Test::Unit::TestCase
     before_filter(ConditionalClassFilter, :ensure_login, Proc.new {|c| c.assigns["ran_proc_filter1"] = true }, :except => :show_without_filter) { |c| c.assigns["ran_proc_filter2"] = true}
   end
 
+  class ConditionalOptionsFilter < ConditionalFilterController
+    before_filter :ensure_login, :if => Proc.new { |c| true }
+    before_filter :clean_up_tmp, :if => Proc.new { |c| false }
+  end
+
   class EmptyFilterChainController < TestController
     self.filter_chain.clear
     def show
@@ -466,6 +471,11 @@ class FilterTest < Test::Unit::TestCase
     assert !response.template.assigns["ran_proc_filter2"]
   end
 
+  def test_running_conditional_options
+    response = test_process(ConditionalOptionsFilter)
+    assert_equal %w( ensure_login ), response.template.assigns["ran_filter"]
+  end
+
   def test_running_collection_condition_filters
     assert_equal %w( ensure_login ), test_process(ConditionalCollectionFilterController).template.assigns["ran_filter"]
     assert_equal nil, test_process(ConditionalCollectionFilterController, "show_without_filter").template.assigns["ran_filter"]
@@ -497,13 +507,6 @@ class FilterTest < Test::Unit::TestCase
   def test_running_before_and_after_condition_filters
     assert_equal %w( ensure_login clean_up_tmp), test_process(BeforeAndAfterConditionController).template.assigns["ran_filter"]
     assert_equal nil, test_process(BeforeAndAfterConditionController, "show_without_filter").template.assigns["ran_filter"]
-  end
-
-  def test_bad_filter
-    bad_filter_controller = Class.new(ActionController::Base)
-    assert_raises(ActionController::ActionControllerError) do
-      bad_filter_controller.before_filter 2
-    end
   end
 
   def test_around_filter
@@ -744,14 +747,6 @@ class YieldingAroundFiltersTest < Test::Unit::TestCase
     assert_equal 3, ControllerWithSymbolAsFilter.filter_chain.size
     assert_equal 6, ControllerWithNestedFilters.filter_chain.size
     assert_equal 4, ControllerWithAllTypesOfFilters.filter_chain.size
-  end
-
-  def test_wrong_filter_type
-    assert_raise ArgumentError do
-      Class.new PostsController do
-        around_filter lambda { yield }
-      end
-    end
   end
 
   def test_base

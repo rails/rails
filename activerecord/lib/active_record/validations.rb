@@ -282,19 +282,20 @@ module ActiveRecord
 
       base.send :include, ActiveSupport::Callbacks
 
-      # TODO: Use helper ActiveSupport::Callbacks#define_callbacks instead
-      %w( validate validate_on_create validate_on_update ).each do |validation_method|
+      VALIDATIONS.each do |validation_method|
         base.class_eval <<-"end_eval"
           def self.#{validation_method}(*methods, &block)
-            options = methods.extract_options!
-            methods << block if block_given?
-            methods.map! { |method| Callback.new(:#{validation_method}, method, options) }
-            existing_methods = read_inheritable_attribute(:#{validation_method}) || []
-            write_inheritable_attribute(:#{validation_method}, existing_methods | methods)
+            methods = CallbackChain.build(:#{validation_method}, *methods, &block)
+            self.#{validation_method}_callback_chain.replace(#{validation_method}_callback_chain | methods)
           end
 
           def self.#{validation_method}_callback_chain
-            read_inheritable_attribute(:#{validation_method}) || []
+            if chain = read_inheritable_attribute(:#{validation_method})
+              return chain
+            else
+              write_inheritable_attribute(:#{validation_method}, CallbackChain.new)
+              return #{validation_method}_callback_chain
+            end
           end
         end_eval
       end
