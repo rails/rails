@@ -34,7 +34,9 @@ module ActionController
             assert_block("") { true } # to count the assertion
           else
             if @response.error?
-              assert_block(build_message(message, "Expected response to be a <?>, but was <?>\n<?>", type, @response.response_code, @response.template.instance_variable_get(:@exception).message)) { false }
+              exception = @response.template.instance_variable_get(:@exception)
+              exception_message = exception && exception.message
+              assert_block(build_message(message, "Expected response to be a <?>, but was <?>\n<?>", type, @response.response_code, exception_message.to_s)) { false }
             else
               assert_block(build_message(message, "Expected response to be a <?>, but was <?>", type, @response.response_code)) { false }
             end
