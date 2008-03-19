@@ -175,22 +175,6 @@ class AssetTagHelperTest < Test::Unit::TestCase
     assert_dom_equal  %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/slider.js" type="text/javascript"></script>\n<script src="/javascripts/lib1.js" type="text/javascript"></script>\n<script src="/elsewhere/blub/lib2.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag(:defaults)
   end
   
-  def test_custom_javascript_expansions
-    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :monkey => ["head", "body", "tail"]
-    assert_dom_equal  %(<script src="/javascripts/first.js" type="text/javascript"></script>\n<script src="/javascripts/head.js" type="text/javascript"></script>\n<script src="/javascripts/body.js" type="text/javascript"></script>\n<script src="/javascripts/tail.js" type="text/javascript"></script>\n<script src="/javascripts/last.js" type="text/javascript"></script>), javascript_include_tag('first', :monkey, 'last')
-  end
-  
-  def test_custom_javascript_expansions_and_defaults_puts_application_js_at_the_end
-    ENV["RAILS_ASSET_ID"] = ""
-    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :monkey => ["head", "body", "tail"]
-    assert_dom_equal  %(<script src="/javascripts/first.js" type="text/javascript"></script>\n<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/head.js" type="text/javascript"></script>\n<script src="/javascripts/body.js" type="text/javascript"></script>\n<script src="/javascripts/tail.js" type="text/javascript"></script>\n<script src="/javascripts/last.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag('first', :defaults, :monkey, 'last')
-  end
-  
-  def test_custom_javascript_expansions_with_undefined_symbol
-    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :monkey => nil
-    assert_raise(ArgumentError) { javascript_include_tag('first', :monkey, 'last') }
-  end
-  
   def test_stylesheet_path
     StylePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
@@ -202,16 +186,6 @@ class AssetTagHelperTest < Test::Unit::TestCase
   def test_stylesheet_link_tag
     ENV["RAILS_ASSET_ID"] = ""
     StyleLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
-  end
-
-  def test_custom_stylesheet_expansions
-    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :monkey => ["head", "body", "tail"]
-    assert_dom_equal  %(<link href="/stylesheets/first.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/head.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/body.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/tail.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/last.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag('first', :monkey, 'last')
-  end
-
-  def test_custom_stylesheet_expansions_with_undefined_symbol
-    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :monkey => nil
-    assert_raise(ArgumentError) { stylesheet_link_tag('first', :monkey, 'last') }
   end
 
   def test_image_path

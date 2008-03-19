@@ -155,8 +155,7 @@ module ActionView
       alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
       JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls'] unless const_defined?(:JAVASCRIPT_DEFAULT_SOURCES)
-      @@javascript_expansions = { :defaults => JAVASCRIPT_DEFAULT_SOURCES.dup }
-      @@stylesheet_expansions = {}
+      @@javascript_default_sources = JAVASCRIPT_DEFAULT_SOURCES.dup
 
       # Returns an html script tag for each of the +sources+ provided. You
       # can pass in the filename (.js extension is optional) of javascript files
@@ -249,49 +248,19 @@ module ActionView
           expand_javascript_sources(sources).collect { |source| javascript_src_tag(source, options) }.join("\n")
         end
       end
-      
-      # Register one or more javascript files to be included when <tt>symbol</tt>
-      # is passed to <tt>javascript_include_tag</tt>. This method is typically intended 
-      # to be called from plugin initialization to register javascript files
-      # that the plugin installed in <tt>public/javascripts</tt>.
-      # 
-      #   ActionView::Helpers::AssetTagHelper.register_javascript_expansion :monkey => ["head", "body", "tail"]
-      # 
-      #   javascript_include_tag :monkey # =>
-      #     <script type="text/javascript" src="/javascripts/head.js"></script>
-      #     <script type="text/javascript" src="/javascripts/body.js"></script>
-      #     <script type="text/javascript" src="/javascripts/tail.js"></script>
-      def self.register_javascript_expansion(expansions)
-        @@javascript_expansions.merge!(expansions)
-      end
-      
-      # Register one or more stylesheet files to be included when <tt>symbol</tt>
-      # is passed to <tt>stylesheet_link_tag</tt>. This method is typically intended 
-      # to be called from plugin initialization to register stylesheet files
-      # that the plugin installed in <tt>public/stylesheets</tt>.
-      # 
-      #   ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion :monkey => ["head", "body", "tail"]
-      # 
-      #   stylesheet_link_tag :monkey # =>
-      #     <link href="/stylesheets/head.css"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/body.css"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/tail.css"  media="screen" rel="stylesheet" type="text/css" />
-      def self.register_stylesheet_expansion(expansions)
-        @@stylesheet_expansions.merge!(expansions)
-      end
 
       # Register one or more additional JavaScript files to be included when
       # <tt>javascript_include_tag :defaults</tt> is called. This method is
       # typically intended to be called from plugin initialization to register additional
       # .js files that the plugin installed in <tt>public/javascripts</tt>.
       def self.register_javascript_include_default(*sources)
-        @@javascript_expansions[:defaults].concat(sources)
+        @@javascript_default_sources.concat(sources)
       end
-      
+
       def self.reset_javascript_include_default #:nodoc:
-        @@javascript_expansions[:defaults] = JAVASCRIPT_DEFAULT_SOURCES.dup
+        @@javascript_default_sources = JAVASCRIPT_DEFAULT_SOURCES.dup
       end
-      
+
       # Computes the path to a stylesheet asset in the public stylesheets directory.
       # If the +source+ filename has no extension, .css will be appended.
       # Full paths from the document root will be passed through.
@@ -565,33 +534,28 @@ module ActionView
         end
 
         def expand_javascript_sources(sources)
-         if sources.include?(:all)
-           @@all_javascript_sources ||= Dir[File.join(JAVASCRIPTS_DIR, '*.js')].collect { |file| File.basename(file).split(".", 0).first }.sort
-         else
-           expanded_sources = sources.collect do |source|
-             determine_source(source, @@javascript_expansions)
-           end.flatten
-           expanded_sources << "application" if sources.include?(:defaults) && file_exist?(File.join(JAVASCRIPTS_DIR, "application.js"))
-           expanded_sources
+          case
+          when sources.include?(:all)
+            all_javascript_files = Dir[File.join(JAVASCRIPTS_DIR, '*.js')].collect { |file| File.basename(file).split(".", 0).first }.sort
+            sources = ((@@javascript_default_sources.dup & all_javascript_files) + all_javascript_files).uniq
+
+          when sources.include?(:defaults)
+            sources = sources[0..(sources.index(:defaults))] + 
+              @@javascript_default_sources.dup + 
+              sources[(sources.index(:defaults) + 1)..sources.length]
+
+            sources.delete(:defaults)
+            sources << "application" if file_exist?(File.join(JAVASCRIPTS_DIR, "application.js"))
           end
+
+          sources
         end
 
         def expand_stylesheet_sources(sources)
           if sources.first == :all
-            @@all_stylesheet_sources ||= Dir[File.join(STYLESHEETS_DIR, '*.css')].collect { |file| File.basename(file).split(".", 0).first }.sort
+            @@all_stylesheet_sources ||= Dir[File.join(STYLESHEETS_DIR, '*.css')].collect { |file| File.basename(file).split(".", 1).first }.sort
           else
-            sources.collect do |source|
-              determine_source(source, @@stylesheet_expansions)
-            end.flatten
-          end
-        end
-        
-        def determine_source(source, collection)
-          case source
-          when Symbol
-            collection[source] || raise(ArgumentError, "No expansion found for #{source.inspect}")
-          else
-            source
+            sources
           end
         end
 
