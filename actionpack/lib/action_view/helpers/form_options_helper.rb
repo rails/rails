@@ -53,6 +53,21 @@ module ActionView
     #     <option value="2">Sam</option>
     #     <option value="3">Tobias</option>
     #   </select>
+    # 
+    # Like the other form helpers, +select+ can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, +select+ expects this 
+    # option to be in the +html_options+ parameter.
+    # 
+    # Example: 
+    # 
+    #   select("album[]", "genre", %w[rap rock country], {}, { :index => nil })
+    # 
+    # becomes:
+    # 
+    #   <select name="album[][genre]" id="album__genre">
+    #     <option value="rap">rap</option>
+    #     <option value="rock">rock</option>
+    #     <option value="country">country</option>
+    #   </select>
     module FormOptionsHelper
       include ERB::Util
 
