@@ -1,5 +1,7 @@
 *SVN*
 
+* Add has_one :through support.  #4756 [thechrisoshow]
+
 * Migrations: create_table supports primary_key_prefix_type.  #10314 [student, thechrisoshow]
 
 * Added logging for dependency load errors with fixtures #11056 [stuthulhu]

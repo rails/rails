@@ -48,6 +48,14 @@ module ActiveRecord
           association_proxy.target.push(*[associated_record].flatten)
         end
       end
+      
+      def add_preloaded_record_to_collection(parent_records, reflection_name, associated_record)
+        parent_records.each do |parent_record|
+          association_proxy = parent_record.send(reflection_name)
+          association_proxy.loaded
+          association_proxy.target = associated_record
+        end
+      end
 
       def set_association_collection_records(id_to_record_map, reflection_name, associated_records, key)
         associated_records.each do |associated_record|
@@ -97,11 +105,27 @@ module ActiveRecord
       end
 
       def preload_has_one_association(records, reflection, preload_options={})
-        id_to_record_map, ids = construct_id_map(records)
-        records.each {|record| record.send("set_#{reflection.name}_target", nil)}
+        id_to_record_map, ids = construct_id_map(records)        
+        options = reflection.options
+        if options[:through]
+          records.each {|record| record.send(reflection.name) && record.send(reflection.name).loaded}
+          through_records = preload_through_records(records, reflection, options[:through])
+          through_reflection = reflections[options[:through]]
+          through_primary_key = through_reflection.primary_key_name
+          unless through_records.empty?
+            source = reflection.source_reflection.name
+            through_records.first.class.preload_associations(through_records, source)
+            through_records.compact.each do |through_record|
+              add_preloaded_record_to_collection(id_to_record_map[through_record[through_primary_key].to_i],
+                                                 reflection.name, through_record.send(source))
+            end
+          end          
+        else          
+          records.each {|record| record.send("set_#{reflection.name}_target", nil)}
 
-        set_association_single_records(id_to_record_map, reflection.name, find_associated_records(ids, reflection, preload_options),
-                                       reflection.primary_key_name)
+
+          set_association_single_records(id_to_record_map, reflection.name, find_associated_records(ids, reflection, preload_options), reflection.primary_key_name)
+        end                                       
       end
 
       def preload_has_many_association(records, reflection, preload_options={})
@@ -126,7 +150,7 @@ module ActiveRecord
                                              reflection.primary_key_name)
         end
       end
-
+      
       def preload_through_records(records, reflection, through_association)
         through_reflection = reflections[through_association]
         through_primary_key = through_reflection.primary_key_name

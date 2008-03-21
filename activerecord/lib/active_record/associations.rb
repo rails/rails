@@ -6,6 +6,7 @@ require 'active_record/associations/has_one_association'
 require 'active_record/associations/has_many_association'
 require 'active_record/associations/has_many_through_association'
 require 'active_record/associations/has_and_belongs_to_many_association'
+require 'active_record/associations/has_one_through_association'
 
 module ActiveRecord
   class HasManyThroughAssociationNotFoundError < ActiveRecordError #:nodoc:
@@ -737,6 +738,12 @@ module ActiveRecord
       #   as the default +foreign_key+.
       # * <tt>:include</tt>  - specify second-order associations that should be eager loaded when this object is loaded.
       # * <tt>:as</tt>: Specifies a polymorphic interface (See <tt>#belongs_to</tt>).
+      # * <tt>:through</tt>: Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt>
+      #   are ignored, as the association uses the source reflection. You can only use a <tt>:through</tt> query through a 
+      #   <tt>has_one</tt> or <tt>belongs_to</tt> association on the join model.
+      # * <tt>:source</tt>: Specifies the source association name used by <tt>has_one :through</tt> queries.  Only use it if the name cannot be
+      #   inferred from the association.  <tt>has_one :favorite, :through => :favorites</tt> will look for a
+      #   <tt>:favorite</tt> on +Favorite+, unless a <tt>:source</tt> is given.      
       # * <tt>:readonly</tt> - if set to +true+, the associated object is readonly through the association.
       #
       # Option examples:
@@ -746,27 +753,34 @@ module ActiveRecord
       #   has_one :project_manager, :class_name => "Person", :conditions => "role = 'project_manager'"
       #   has_one :attachment, :as => :attachable
       #   has_one :boss, :readonly => :true
+      #   has_one :club, :through => :membership
+      #   has_one :primary_address, :through => :addressables, :conditions => ["addressable.primary = ?", true], :source => :addressable
       def has_one(association_id, options = {})
-        reflection = create_has_one_reflection(association_id, options)
+        if options[:through]
+          reflection = create_has_one_through_reflection(association_id, options)
+          association_accessor_methods(reflection, ActiveRecord::Associations::HasOneThroughAssociation)
+        else
+          reflection = create_has_one_reflection(association_id, options)
 
-        ivar = "@#{reflection.name}"
+          ivar = "@#{reflection.name}"
 
-        method_name = "has_one_after_save_for_#{reflection.name}".to_sym
-        define_method(method_name) do
-          association = instance_variable_get("#{ivar}") if instance_variable_defined?("#{ivar}")
+          method_name = "has_one_after_save_for_#{reflection.name}".to_sym
+          define_method(method_name) do
+            association = instance_variable_get("#{ivar}") if instance_variable_defined?("#{ivar}")
 
-          if !association.nil? && (new_record? || association.new_record? || association["#{reflection.primary_key_name}"] != id)
-            association["#{reflection.primary_key_name}"] = id
-            association.save(true)
+            if !association.nil? && (new_record? || association.new_record? || association["#{reflection.primary_key_name}"] != id)
+              association["#{reflection.primary_key_name}"] = id
+              association.save(true)
+            end
           end
+          after_save method_name
+
+          association_accessor_methods(reflection, HasOneAssociation)
+          association_constructor_method(:build,  reflection, HasOneAssociation)
+          association_constructor_method(:create, reflection, HasOneAssociation)
+
+          configure_dependency_for_has_one(reflection)
         end
-        after_save method_name
-
-        association_accessor_methods(reflection, HasOneAssociation)
-        association_constructor_method(:build,  reflection, HasOneAssociation)
-        association_constructor_method(:create, reflection, HasOneAssociation)
-
-        configure_dependency_for_has_one(reflection)
       end
 
       # Adds the following methods for retrieval and query for a single associated object for which this object holds an id:
@@ -1058,7 +1072,12 @@ module ActiveRecord
               association = association_proxy_class.new(self, reflection)
             end
 
-            association.replace(new_value)
+            if association_proxy_class == HasOneThroughAssociation
+              association.create_through_record(new_value)
+              self.send(reflection.name, new_value)
+            else
+              association.replace(new_value)              
+            end
 
             instance_variable_set(ivar, new_value.nil? ? nil : association)
           end
@@ -1298,6 +1317,13 @@ module ActiveRecord
             :class_name, :foreign_key, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :readonly
           )
 
+          create_reflection(:has_one, association_id, options, self)
+        end
+        
+        def create_has_one_through_reflection(association_id, options)
+          options.assert_valid_keys(
+            :class_name, :foreign_key, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :through, :source
+          )
           create_reflection(:has_one, association_id, options, self)
         end
 

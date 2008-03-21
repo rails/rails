@@ -49,6 +49,10 @@ ActiveRecord::Schema.define do
       t.integer :category_id, :null => false
       t.integer :post_id, :null => false
     end
+    
+    create_table :clubs, :force => true do |t|
+      t.string :name
+    end
 
     create_table :colnametests, :force => true do |t|
       t.integer :references, :null => false
@@ -117,6 +121,17 @@ ActiveRecord::Schema.define do
       t.integer :version, :null => false, :default => 0
     end
 
+    create_table :members, :force => true do |t|
+      t.string :name
+    end
+
+    create_table :memberships, :force => true do |t|
+      t.datetime :joined_on
+      t.integer :club_id, :member_id
+      t.boolean :favourite, :default => false
+      t.string :type
+    end
+
     create_table :minimalistics, :force => true do |t|
     end
 
@@ -176,6 +191,12 @@ ActiveRecord::Schema.define do
     create_table :readers, :force => true do |t|
       t.integer :post_id, :null => false
       t.integer :person_id, :null => false
+    end
+    
+    create_table :sponsors, :force => true do |t|
+      t.integer :club_id
+      t.integer :sponsorable_id
+      t.integer :sponsorable_type
     end
 
     create_table :subscribers, :force => true, :id => false do |t|

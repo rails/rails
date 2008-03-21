@@ -20,6 +20,10 @@ require 'models/parrot'
 require 'models/pirate'
 require 'models/treasure'
 require 'models/price_estimate'
+require 'models/club'
+require 'models/member'
+require 'models/membership'
+require 'models/sponsor'
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
@@ -186,7 +190,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:first_firm).account, Account.find(1)
     assert_equal Account.find(1).credit_limit, companies(:first_firm).account.credit_limit
   end
-
+  
   def test_has_one_cache_nils
     firm = companies(:another_firm)
     assert_queries(1) { assert_nil firm.account }
@@ -476,6 +480,63 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
 end
 
+class HasOneThroughAssociationsTest < ActiveRecord::TestCase
+  fixtures :members, :clubs, :memberships, :sponsors
+  
+  def setup
+    @member = members(:groucho)
+  end
+
+  def test_has_one_through_with_has_one
+    assert_equal clubs(:boring_club), @member.club
+  end
+
+  def test_has_one_through_with_has_many
+    assert_equal clubs(:moustache_club), @member.favourite_club
+  end
+  
+  def test_creating_association_creates_through_record
+    new_member = Member.create(:name => "Chris")
+    new_member.club = Club.create(:name => "LRUG")
+    assert_not_nil new_member.current_membership
+    assert_not_nil new_member.club
+  end
+  
+  def test_replace_target_record
+    new_club = Club.create(:name => "Marx Bros")
+    @member.club = new_club
+    @member.reload
+    assert_equal new_club, @member.club
+  end
+  
+  def test_replacing_target_record_deletes_old_association
+    assert_no_difference "Membership.count" do
+      new_club = Club.create(:name => "Bananarama")
+      @member.club = new_club
+      @member.reload      
+    end
+  end
+  
+  def test_has_one_through_polymorphic
+    assert_equal clubs(:moustache_club), @member.sponsor_club
+  end
+  
+  def has_one_through_to_has_many
+    assert_equal 2, @member.fellow_members.size
+  end
+  
+  def test_has_one_through_eager_loading
+    members = Member.find(:all, :include => :club)
+    assert_equal 2, members.size
+    assert_not_nil assert_no_queries {members[0].club}
+  end
+  
+  def test_has_one_through_eager_loading_through_polymorphic
+    members = Member.find(:all, :include => :sponsor_club)
+    assert_equal 2, members.size
+    assert_not_nil assert_no_queries {members[0].sponsor_club}    
+  end
+end
 
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects,

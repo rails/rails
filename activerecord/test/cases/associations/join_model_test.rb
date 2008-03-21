@@ -631,7 +631,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
       assert_equal comments.first.post, comments[1].post
     end
   end
-
+  
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)

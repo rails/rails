@@ -1,0 +1,20 @@
+membership_of_boring_club:
+  joined_on: <%= 3.weeks.ago.to_s(:db) %>
+  club: boring_club
+  member: groucho
+  favourite: false
+  type: CurrentMembership
+  
+membership_of_favourite_club:
+  joined_on: <%= 3.weeks.ago.to_s(:db) %>
+  club: moustache_club
+  member: groucho
+  favourite: true
+  type: Membership
+
+other_guys_membership:
+  joined_on: <%= 4.weeks.ago.to_s(:db) %>
+  club: boring_club
+  member: some_other_guy
+  favourite: false
+  type: CurrentMembership
