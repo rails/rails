@@ -9,6 +9,9 @@ class Category < ActiveRecord::Base
                           :association_foreign_key => 'post_id',
                           :select => 'posts.*, 1 as correctness_marker')
 
+  has_and_belongs_to_many :post_with_conditions,
+                          :class_name => 'Post',
+                          :conditions => { :title => 'Yet Another Testing Title' }
   def self.what_are_you
     'a category...'
   end

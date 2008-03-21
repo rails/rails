@@ -109,7 +109,7 @@ module ActiveRecord
     #
     # == Auto-generated methods
     #
-    # ===Singular associations (one-to-one)
+    # === Singular associations (one-to-one)
     #                                     |            |  belongs_to  |
     #   generated methods                 | belongs_to | :polymorphic | has_one
     #   ----------------------------------+------------+--------------+---------
@@ -639,7 +639,9 @@ module ActiveRecord
       #   from the association name. So <tt>has_many :products</tt> will by default be linked to the +Product+ class, but
       #   if the real class name is +SpecialProduct+, you'll have to specify it with this option.
       # * <tt>:conditions</tt>  - specify the conditions that the associated objects must meet in order to be included as a +WHERE+
-      #   SQL fragment, such as <tt>price > 5 AND name LIKE 'B%'</tt>.
+      #   SQL fragment, such as <tt>price > 5 AND name LIKE 'B%'</tt>.  Record creations from the association are scoped if a hash
+      #   is used.  <tt>has_many :posts, :conditions => {:published => true}</tt> will create published posts with <tt>@blog.posts.create</tt>
+      #   or <tt>@blog.posts.build</tt>.
       # * <tt>:order</tt>       - specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
       #   such as <tt>last_name, first_name DESC</tt>
       # * <tt>:foreign_key</tt> - specify the foreign key used for the association. By default this is guessed to be the name
@@ -981,7 +983,9 @@ module ActiveRecord
       #   guessed to be the name of the associated class in lower-case and +_id+ suffixed. So if the associated class is +Project+,
       #   the +has_and_belongs_to_many+ association will use +project_id+ as the default association +foreign_key+.
       # * <tt>:conditions</tt>  - specify the conditions that the associated object must meet in order to be included as a +WHERE+
-      #   SQL fragment, such as <tt>authorized = 1</tt>.
+      #   SQL fragment, such as <tt>authorized = 1</tt>.  Record creations from the association are scoped if a hash is used.  
+      #   <tt>has_many :posts, :conditions => {:published => true}</tt> will create published posts with <tt>@blog.posts.create</tt> 
+      #   or <tt>@blog.posts.build</tt>.
       # * <tt>:order</tt> - specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
       #   such as <tt>last_name, first_name DESC</tt>
       # * <tt>:uniq</tt> - if set to +true+, duplicate associated objects will be ignored by accessors and query methods

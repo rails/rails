@@ -1075,6 +1075,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Client.find_all_by_client_of(firm.id).size
   end
 
+  def test_creation_respects_hash_condition
+    ms_client = companies(:first_firm).clients_like_ms_with_hash_conditions.build
+    
+    assert        ms_client.save
+    assert_equal  'Microsoft', ms_client.name
+    
+    another_ms_client = companies(:first_firm).clients_like_ms_with_hash_conditions.create
+
+    assert        !another_ms_client.new_record?
+    assert_equal  'Microsoft', another_ms_client.name
+  end
+
   def test_dependent_delete_and_destroy_with_belongs_to
     author_address = author_addresses(:david_address)
     assert_equal [], AuthorAddress.destroyed_author_address_ids[authors(:david).id]
@@ -1885,6 +1897,18 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert !proj2.new_record?
     assert_equal devel.projects.last, proj2
     assert_equal Developer.find_by_name("Marcel").projects.last, proj2  # prove join table is updated
+  end
+
+  def test_creation_respects_hash_condition
+    post = categories(:general).post_with_conditions.build(:body => '')
+    
+    assert        post.save
+    assert_equal  'Yet Another Testing Title', post.title
+    
+    another_post = categories(:general).post_with_conditions.create(:body => '')
+
+    assert        !another_post.new_record?
+    assert_equal  'Yet Another Testing Title', another_post.title
   end
 
   def test_uniq_after_the_fact

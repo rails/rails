@@ -202,6 +202,7 @@ module ActiveRecord
       private
 
         def create_record(attrs)
+          attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
           ensure_owner_is_not_new
           record = @reflection.klass.send(:with_scope, :create => construct_scope[:create]) { @reflection.klass.new(attrs) }
           if block_given?
@@ -212,6 +213,7 @@ module ActiveRecord
         end
 
         def build_record(attrs)
+          attrs.update(@reflection.options[:conditions]) if @reflection.options[:conditions].is_a?(Hash)
           record = @reflection.klass.new(attrs)
           if block_given?
             add_record_to_target_with_callbacks(record) { |*block_args| yield(*block_args) }
