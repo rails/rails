@@ -49,10 +49,6 @@ ActiveRecord::Schema.define do
       t.integer :category_id, :null => false
       t.integer :post_id, :null => false
     end
-    
-    create_table :clubs, :force => true do |t|
-      t.string :name
-    end
 
     create_table :colnametests, :force => true do |t|
       t.integer :references, :null => false
@@ -121,17 +117,6 @@ ActiveRecord::Schema.define do
       t.integer :version, :null => false, :default => 0
     end
 
-    create_table :members, :force => true do |t|
-      t.string :name
-    end
-
-    create_table :memberships, :force => true do |t|
-      t.datetime :joined_on
-      t.integer :club_id, :member_id
-      t.boolean :favourite, :default => false
-      t.string :type
-    end
-
     create_table :minimalistics, :force => true do |t|
     end
 
@@ -191,12 +176,6 @@ ActiveRecord::Schema.define do
     create_table :readers, :force => true do |t|
       t.integer :post_id, :null => false
       t.integer :person_id, :null => false
-    end
-    
-    create_table :sponsors, :force => true do |t|
-      t.integer :club_id
-      t.integer :sponsorable_id
-      t.integer :sponsorable_type
     end
 
     create_table :subscribers, :force => true, :id => false do |t|
@@ -405,7 +384,7 @@ ActiveRecord::Schema.define do
     t.integer :estimate_of_id
     t.integer :price
   end
-  
+
   [:circles, :squares, :triangles, :non_poly_ones, :non_poly_twos].each do |t|
     create_table(t, :force => true) { }
   end
@@ -416,12 +395,33 @@ ActiveRecord::Schema.define do
     t.string  :shape_type
     t.integer :shape_id
   end
-  
+
   create_table :paint_colors, :force => true do |t|
     t.integer :non_poly_one_id
   end
+
   create_table :paint_textures, :force => true do |t|
     t.integer :non_poly_two_id
   end
-  
+
+  create_table :clubs, :force => true do |t|
+    t.string :name
+  end
+
+  create_table :members, :force => true do |t|
+    t.string :name
+  end
+
+  create_table :memberships, :force => true do |t|
+    t.datetime :joined_on
+    t.integer :club_id, :member_id
+    t.boolean :favourite, :default => false
+    t.string :type
+  end
+
+  create_table :sponsors, :force => true do |t|
+    t.integer :club_id
+    t.integer :sponsorable_id
+    t.integer :sponsorable_type
+  end
 end
