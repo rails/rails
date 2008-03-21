@@ -422,6 +422,6 @@ ActiveRecord::Schema.define do
   create_table :sponsors, :force => true do |t|
     t.integer :club_id
     t.integer :sponsorable_id
-    t.integer :sponsorable_type
+    t.string :sponsorable_type
   end
 end
