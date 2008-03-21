@@ -2170,15 +2170,15 @@ class RoutingTest < Test::Unit::TestCase
   end
 
   def test_normalize_unix_paths
-    load_paths = %w(. config/../app/controllers config/../app//helpers script/../config/../vendor/rails/actionpack/lib vendor/rails/railties/builtin/rails_info app/models lib script/../config/../foo/bar/../../app/models)
+    load_paths = %w(. config/../app/controllers config/../app//helpers script/../config/../vendor/rails/actionpack/lib vendor/rails/railties/builtin/rails_info app/models lib script/../config/../foo/bar/../../app/models .foo/../.bar foo.bar/../config)
     paths = ActionController::Routing.normalize_paths(load_paths)
-    assert_equal %w(vendor/rails/railties/builtin/rails_info vendor/rails/actionpack/lib app/controllers app/helpers app/models lib .), paths
+    assert_equal %w(vendor/rails/railties/builtin/rails_info vendor/rails/actionpack/lib app/controllers app/helpers app/models config .bar lib .), paths
   end
 
   def test_normalize_windows_paths
-    load_paths = %w(. config\\..\\app\\controllers config\\..\\app\\\\helpers script\\..\\config\\..\\vendor\\rails\\actionpack\\lib vendor\\rails\\railties\\builtin\\rails_info app\\models lib script\\..\\config\\..\\foo\\bar\\..\\..\\app\\models)
+    load_paths = %w(. config\\..\\app\\controllers config\\..\\app\\\\helpers script\\..\\config\\..\\vendor\\rails\\actionpack\\lib vendor\\rails\\railties\\builtin\\rails_info app\\models lib script\\..\\config\\..\\foo\\bar\\..\\..\\app\\models .foo\\..\\.bar foo.bar\\..\\config)
     paths = ActionController::Routing.normalize_paths(load_paths)
-    assert_equal %w(vendor\\rails\\railties\\builtin\\rails_info vendor\\rails\\actionpack\\lib app\\controllers app\\helpers app\\models lib .), paths
+    assert_equal %w(vendor\\rails\\railties\\builtin\\rails_info vendor\\rails\\actionpack\\lib app\\controllers app\\helpers app\\models config .bar lib .), paths
   end
   
   def test_routing_helper_module

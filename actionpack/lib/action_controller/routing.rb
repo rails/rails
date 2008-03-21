@@ -272,8 +272,8 @@ module ActionController
             gsub(%r{(.)[\\/]$}, '\1')  # drop final / or \ if path ends with it
 
           # eliminate .. paths where possible
-          re = %r{\w+[/\\]\.\.[/\\]}
-          path.gsub!(%r{\w+[/\\]\.\.[/\\]}, "") while path.match(re)
+          re = %r{[^/\\]+[/\\]\.\.[/\\]}
+          path.gsub!(re, "") while path.match(re)
           path
         end
 
