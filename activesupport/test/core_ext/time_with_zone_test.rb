@@ -15,7 +15,9 @@ uses_tzinfo 'TimeWithZoneTest' do
     end
   
     def test_time
-      assert_equal Time.utc(1999, 12, 31, 19), @twz.time
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal Time.utc(1999, 12, 31, 19), @twz.time
+      end
     end
   
     def test_time_zone
@@ -42,8 +44,10 @@ uses_tzinfo 'TimeWithZoneTest' do
     end
       
     def test_formatted_offset
-      assert_equal '-05:00', @twz.formatted_offset
-      assert_equal '-04:00', ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).formatted_offset #dst
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal '-05:00', @twz.formatted_offset
+        assert_equal '-04:00', ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).formatted_offset #dst
+      end
     end
       
     def test_dst?
@@ -54,44 +58,64 @@ uses_tzinfo 'TimeWithZoneTest' do
     end
       
     def test_zone
-      assert_equal 'EST', @twz.zone
-      assert_equal 'EDT', ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).zone #dst
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal 'EST', @twz.zone
+        assert_equal 'EDT', ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).zone #dst
+      end
     end
       
     def test_to_json
-      assert_equal "\"1999/12/31 19:00:00 -0500\"", @twz.to_json
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal "\"1999/12/31 19:00:00 -0500\"", @twz.to_json
+      end
     end
       
     def test_strftime
-      assert_equal '1999-12-31 19:00:00 EST -0500', @twz.strftime('%Y-%m-%d %H:%M:%S %Z %z')
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal '1999-12-31 19:00:00 EST -0500', @twz.strftime('%Y-%m-%d %H:%M:%S %Z %z')
+      end
     end
       
     def test_inspect
-      assert_equal 'Fri, 31 Dec 1999 19:00:00 EST -05:00', @twz.inspect
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal 'Fri, 31 Dec 1999 19:00:00 EST -05:00', @twz.inspect
+      end
     end
       
     def test_to_s
-      assert_equal '1999-12-31 19:00:00 -0500', @twz.to_s
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal '1999-12-31 19:00:00 -0500', @twz.to_s
+      end
     end
       
     def test_to_s_db
-      assert_equal '2000-01-01 00:00:00', @twz.to_s(:db)
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal '2000-01-01 00:00:00', @twz.to_s(:db)
+      end
     end
       
     def test_xmlschema
-      assert_equal "1999-12-31T19:00:00-05:00", @twz.xmlschema
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal "1999-12-31T19:00:00-05:00", @twz.xmlschema
+      end
     end
     
     def test_to_yaml
-      assert_equal "--- 1999-12-31 19:00:00 -05:00\n", @twz.to_yaml
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal "--- 1999-12-31 19:00:00 -05:00\n", @twz.to_yaml
+      end
     end
     
     def test_httpdate
-      assert_equal 'Sat, 01 Jan 2000 00:00:00 GMT', @twz.httpdate
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal 'Sat, 01 Jan 2000 00:00:00 GMT', @twz.httpdate
+      end
     end
     
     def test_rfc2822
-      assert_equal "Fri, 31 Dec 1999 19:00:00 -0500", @twz.rfc2822
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal "Fri, 31 Dec 1999 19:00:00 -0500", @twz.rfc2822
+      end
     end
     
     def test_compare_with_time
@@ -123,31 +147,43 @@ uses_tzinfo 'TimeWithZoneTest' do
     end
       
     def test_plus_with_integer
-      assert_equal Time.utc(1999, 12, 31, 19, 0 ,5), (@twz + 5).time
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal Time.utc(1999, 12, 31, 19, 0 ,5), (@twz + 5).time
+      end
     end
       
     def test_plus_with_integer_when_self_wraps_datetime
-      datetime = DateTime.civil(2000, 1, 1, 0)
-      twz = ActiveSupport::TimeWithZone.new(datetime, @time_zone)
-      assert_equal DateTime.civil(1999, 12, 31, 19, 0 ,5), (twz + 5).time
+      silence_warnings do # silence warnings raised by tzinfo gem
+        datetime = DateTime.civil(2000, 1, 1, 0)
+        twz = ActiveSupport::TimeWithZone.new(datetime, @time_zone)
+        assert_equal DateTime.civil(1999, 12, 31, 19, 0 ,5), (twz + 5).time
+      end
     end
       
     def test_plus_with_duration
-      assert_equal Time.utc(2000, 1, 5, 19, 0 ,0), (@twz + 5.days).time
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal Time.utc(2000, 1, 5, 19, 0 ,0), (@twz + 5.days).time
+      end
     end
       
     def test_minus_with_integer
-      assert_equal Time.utc(1999, 12, 31, 18, 59 ,55), (@twz - 5).time
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal Time.utc(1999, 12, 31, 18, 59 ,55), (@twz - 5).time
+      end
     end
     
     def test_minus_with_integer_when_self_wraps_datetime
-      datetime = DateTime.civil(2000, 1, 1, 0)
-      twz = ActiveSupport::TimeWithZone.new(datetime, @time_zone)
-      assert_equal DateTime.civil(1999, 12, 31, 18, 59 ,55), (twz - 5).time
+      silence_warnings do # silence warnings raised by tzinfo gem
+        datetime = DateTime.civil(2000, 1, 1, 0)
+        twz = ActiveSupport::TimeWithZone.new(datetime, @time_zone)
+        assert_equal DateTime.civil(1999, 12, 31, 18, 59 ,55), (twz - 5).time
+      end
     end
       
     def test_minus_with_duration
-      assert_equal Time.utc(1999, 12, 26, 19, 0 ,0), (@twz - 5.days).time
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal Time.utc(1999, 12, 26, 19, 0 ,0), (@twz - 5.days).time
+      end
     end
     
     def test_minus_with_time
@@ -162,39 +198,45 @@ uses_tzinfo 'TimeWithZoneTest' do
     end
     
     def test_plus_and_minus_enforce_spring_dst_rules
-      utc = Time.utc(2006,4,2,6,59,59) # == Apr 2 2006 01:59:59 EST; i.e., 1 second before daylight savings start
-      twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
-      assert_equal Time.utc(2006,4,2,1,59,59), twz.time
-      assert_equal false, twz.dst?
-      assert_equal 'EST', twz.zone
-      twz = twz + 1
-      assert_equal Time.utc(2006,4,2,3), twz.time # adding 1 sec springs forward to 3:00AM EDT
-      assert_equal true, twz.dst?
-      assert_equal 'EDT', twz.zone
-      twz = twz - 1 # subtracting 1 second takes goes back to 1:59:59AM EST
-      assert_equal Time.utc(2006,4,2,1,59,59), twz.time
-      assert_equal false, twz.dst?
-      assert_equal 'EST', twz.zone
+      silence_warnings do # silence warnings raised by tzinfo gem
+        utc = Time.utc(2006,4,2,6,59,59) # == Apr 2 2006 01:59:59 EST; i.e., 1 second before daylight savings start
+        twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
+        assert_equal Time.utc(2006,4,2,1,59,59), twz.time
+        assert_equal false, twz.dst?
+        assert_equal 'EST', twz.zone
+        twz = twz + 1
+        assert_equal Time.utc(2006,4,2,3), twz.time # adding 1 sec springs forward to 3:00AM EDT
+        assert_equal true, twz.dst?
+        assert_equal 'EDT', twz.zone
+        twz = twz - 1 # subtracting 1 second takes goes back to 1:59:59AM EST
+        assert_equal Time.utc(2006,4,2,1,59,59), twz.time
+        assert_equal false, twz.dst?
+        assert_equal 'EST', twz.zone
+      end
     end
     
     def test_plus_and_minus_enforce_fall_dst_rules
-      utc = Time.utc(2006,10,29,5,59,59) # == Oct 29 2006 01:59:59 EST; i.e., 1 second before daylight savings end
-      twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
-      assert_equal Time.utc(2006,10,29,1,59,59), twz.time
-      assert_equal true, twz.dst?
-      assert_equal 'EDT', twz.zone
-      twz = twz + 1
-      assert_equal Time.utc(2006,10,29,1), twz.time # adding 1 sec falls back from 1:59:59 EDT to 1:00AM EST
-      assert_equal false, twz.dst?
-      assert_equal 'EST', twz.zone
-      twz = twz - 1
-      assert_equal Time.utc(2006,10,29,1,59,59), twz.time # subtracting 1 sec goes back to 1:59:59AM EDT
-      assert_equal true, twz.dst?
-      assert_equal 'EDT', twz.zone
+      silence_warnings do # silence warnings raised by tzinfo gem
+        utc = Time.utc(2006,10,29,5,59,59) # == Oct 29 2006 01:59:59 EST; i.e., 1 second before daylight savings end
+        twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
+        assert_equal Time.utc(2006,10,29,1,59,59), twz.time
+        assert_equal true, twz.dst?
+        assert_equal 'EDT', twz.zone
+        twz = twz + 1
+        assert_equal Time.utc(2006,10,29,1), twz.time # adding 1 sec falls back from 1:59:59 EDT to 1:00AM EST
+        assert_equal false, twz.dst?
+        assert_equal 'EST', twz.zone
+        twz = twz - 1
+        assert_equal Time.utc(2006,10,29,1,59,59), twz.time # subtracting 1 sec goes back to 1:59:59AM EDT
+        assert_equal true, twz.dst?
+        assert_equal 'EDT', twz.zone
+      end
     end
     
     def test_to_a
-      assert_equal [45, 30, 5, 1, 2, 2000, 2, 32, false, "HST"], ActiveSupport::TimeWithZone.new( Time.utc(2000, 2, 1, 15, 30, 45), TimeZone['Hawaii'] ).to_a
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal [45, 30, 5, 1, 2, 2000, 2, 32, false, "HST"], ActiveSupport::TimeWithZone.new( Time.utc(2000, 2, 1, 15, 30, 45), TimeZone['Hawaii'] ).to_a
+      end
     end
     
     def test_to_f
@@ -214,7 +256,9 @@ uses_tzinfo 'TimeWithZoneTest' do
     end
     
     def test_to_datetime
-      assert_equal DateTime.civil(1999, 12, 31, 19, 0, 0, Rational(-18_000, 86_400)),  @twz.to_datetime
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal DateTime.civil(1999, 12, 31, 19, 0, 0, Rational(-18_000, 86_400)),  @twz.to_datetime
+      end
     end
       
     def test_acts_like_time
@@ -234,52 +278,66 @@ uses_tzinfo 'TimeWithZoneTest' do
     end
       
     def test_method_missing_with_time_return_value
-      assert_instance_of ActiveSupport::TimeWithZone, @twz.months_since(1)
-      assert_equal Time.utc(2000, 1, 31, 19, 0 ,0), @twz.months_since(1).time
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_instance_of ActiveSupport::TimeWithZone, @twz.months_since(1)
+        assert_equal Time.utc(2000, 1, 31, 19, 0 ,0), @twz.months_since(1).time
+      end
     end
     
     def test_marshal_dump_and_load
-      marshal_str = Marshal.dump(@twz)
-      mtime = Marshal.load(marshal_str)
-      assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
-      assert_equal TimeZone['Eastern Time (US & Canada)'], mtime.time_zone
-      assert_equal Time.utc(1999, 12, 31, 19), mtime.time
+      silence_warnings do # silence warnings raised by tzinfo gem
+        marshal_str = Marshal.dump(@twz)
+        mtime = Marshal.load(marshal_str)
+        assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
+        assert_equal TimeZone['Eastern Time (US & Canada)'], mtime.time_zone
+        assert_equal Time.utc(1999, 12, 31, 19), mtime.time
+      end
     end
       
     def test_method_missing_with_non_time_return_value
-      twz = ActiveSupport::TimeWithZone.new(Time.utc(1999,12,31,19,18,17,500), @time_zone)
-      assert_equal 1999, twz.year
-      assert_equal 12, twz.month
-      assert_equal 31, twz.day
-      assert_equal 14, twz.hour
-      assert_equal 18, twz.min
-      assert_equal 17, twz.sec
-      assert_equal 500, twz.usec
+      silence_warnings do # silence warnings raised by tzinfo gem
+        twz = ActiveSupport::TimeWithZone.new(Time.utc(1999,12,31,19,18,17,500), @time_zone)
+        assert_equal 1999, twz.year
+        assert_equal 12, twz.month
+        assert_equal 31, twz.day
+        assert_equal 14, twz.hour
+        assert_equal 18, twz.min
+        assert_equal 17, twz.sec
+        assert_equal 500, twz.usec
+      end
     end
     
     def test_utc_to_local_conversion_saves_period_in_instance_variable
-      assert_nil @twz.instance_variable_get('@period')
-      @twz.time
-      assert_kind_of TZInfo::TimezonePeriod, @twz.instance_variable_get('@period')
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_nil @twz.instance_variable_get('@period')
+        @twz.time
+        assert_kind_of TZInfo::TimezonePeriod, @twz.instance_variable_get('@period')
+      end
     end
     
     def test_instance_created_with_local_time_returns_correct_utc_time
-      twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 19))
-      assert_equal Time.utc(2000), twz.utc
+      silence_warnings do # silence warnings raised by tzinfo gem
+        twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 19))
+        assert_equal Time.utc(2000), twz.utc
+      end
     end
     
     def test_instance_created_with_local_time_enforces_spring_dst_rules
-      twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,4,2,2)) # first second of DST
-      assert_equal Time.utc(2006,4,2,3), twz.time # springs forward to 3AM
-      assert_equal true, twz.dst?
-      assert_equal 'EDT', twz.zone
+      silence_warnings do # silence warnings raised by tzinfo gem
+        twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,4,2,2)) # first second of DST
+        assert_equal Time.utc(2006,4,2,3), twz.time # springs forward to 3AM
+        assert_equal true, twz.dst?
+        assert_equal 'EDT', twz.zone
+      end
     end
     
     def test_instance_created_with_local_time_enforces_fall_dst_rules
-      twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,10,29,1)) # 1AM can be either DST or non-DST; we'll pick DST
-      assert_equal Time.utc(2006,10,29,1), twz.time
-      assert_equal true, twz.dst?
-      assert_equal 'EDT', twz.zone
+      silence_warnings do # silence warnings raised by tzinfo gem
+        twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,10,29,1)) # 1AM can be either DST or non-DST; we'll pick DST
+        assert_equal Time.utc(2006,10,29,1), twz.time
+        assert_equal true, twz.dst?
+        assert_equal 'EDT', twz.zone
+      end
     end
     
     def test_ruby_19_weekday_name_query_methods

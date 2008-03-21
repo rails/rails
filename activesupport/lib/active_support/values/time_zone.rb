@@ -177,6 +177,7 @@ class TimeZone
 
   begin # the following methods depend on the tzinfo gem
     require_library_or_gem "tzinfo" unless Object.const_defined?(:TZInfo)
+    raise LoadError unless TZInfo.const_defined?(:TimeOrDateTime)
     
     # Method for creating new ActiveSupport::TimeWithZone instance in time zone of +self+ from given values. Example:
     #
@@ -253,7 +254,7 @@ class TimeZone
   rescue LoadError # Tzinfo gem is not available
     # re-raise LoadError only when a tzinfo-dependent method is called:
     %w(local at parse now today utc_to_local local_to_utc period_for_utc period_for_local tzinfo).each do |method|
-      define_method(method) {|*args| raise LoadError, "TZInfo gem is required for TimeZone##{method}. `gem install tzinfo` and try again."}
+      define_method(method) {|*args| raise LoadError, "TZInfo version >= 0.2 is required for TimeZone##{method}(). `gem install tzinfo` and try again."}
     end
   end
 

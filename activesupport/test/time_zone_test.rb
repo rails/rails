@@ -91,8 +91,105 @@ class TimeZoneTest < Test::Unit::TestCase
       end
     
       def test_today
-        TZInfo::DataTimezone.any_instance.stubs(:now).returns(Time.utc(2000))
-        assert_equal Date.new(2000), TimeZone['Eastern Time (US & Canada)'].today
+        Time.stubs(:now).returns(Time.utc(2000, 1, 1, 4, 59, 59)) # 1 sec before midnight Jan 1 EST
+        assert_equal Date.new(1999, 12, 31), TimeZone['Eastern Time (US & Canada)'].today
+        Time.stubs(:now).returns(Time.utc(2000, 1, 1, 5)) # midnight Jan 1 EST
+        assert_equal Date.new(2000, 1, 1), TimeZone['Eastern Time (US & Canada)'].today
+        Time.stubs(:now).returns(Time.utc(2000, 1, 2, 4, 59, 59)) # 1 sec before midnight Jan 2 EST
+        assert_equal Date.new(2000, 1, 1), TimeZone['Eastern Time (US & Canada)'].today
+        Time.stubs(:now).returns(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
+        assert_equal Date.new(2000, 1, 2), TimeZone['Eastern Time (US & Canada)'].today
+      end
+    end
+    
+    def test_local
+      silence_warnings do # silence warnings raised by tzinfo gem
+        time = TimeZone["Hawaii"].local(2007, 2, 5, 15, 30, 45)
+        assert_equal Time.utc(2007, 2, 5, 15, 30, 45), time.time
+        assert_equal TimeZone["Hawaii"], time.time_zone
+      end
+    end
+
+    def test_local_with_old_date
+      silence_warnings do # silence warnings raised by tzinfo gem
+        time = TimeZone["Hawaii"].local(1850, 2, 5, 15, 30, 45)
+        assert_equal [45,30,15,5,2,1850], time.to_a[0,6]
+        assert_equal TimeZone["Hawaii"], time.time_zone
+      end
+    end
+
+    def test_local_enforces_spring_dst_rules
+      zone = TimeZone['Eastern Time (US & Canada)']
+      twz = zone.local(2006,4,2,1,59,59) # 1 second before DST start
+      assert_equal Time.utc(2006,4,2,1,59,59), twz.time
+      assert_equal Time.utc(2006,4,2,6,59,59), twz.utc
+      assert_equal false, twz.dst?
+      assert_equal 'EST', twz.zone
+      twz2 = zone.local(2006,4,2,2) # 2AM does not exist because at 2AM, time springs forward to 3AM
+      assert_equal Time.utc(2006,4,2,3), twz2.time # twz is created for 3AM
+      assert_equal Time.utc(2006,4,2,7), twz2.utc
+      assert_equal true, twz2.dst?
+      assert_equal 'EDT', twz2.zone
+      twz3 = zone.local(2006,4,2,2,30) # 2:30AM does not exist because at 2AM, time springs forward to 3AM
+      assert_equal Time.utc(2006,4,2,3,30), twz3.time # twz is created for 3:30AM
+      assert_equal Time.utc(2006,4,2,7,30), twz3.utc
+      assert_equal true, twz3.dst?
+      assert_equal 'EDT', twz3.zone
+    end
+
+    def test_local_enforces_fall_dst_rules
+      # 1AM during fall DST transition is ambiguous, it could be either DST or non-DST 1AM
+      # Mirroring Time.local behavior, this method selects the DST time
+      zone = TimeZone['Eastern Time (US & Canada)']
+      twz = zone.local(2006,10,29,1)
+      assert_equal Time.utc(2006,10,29,1), twz.time
+      assert_equal Time.utc(2006,10,29,5), twz.utc
+      assert_equal true, twz.dst? 
+      assert_equal 'EDT', twz.zone
+    end
+
+    def test_at
+      zone = TimeZone['Eastern Time (US & Canada)']
+      secs = 946684800.0
+      twz = zone.at(secs)
+      assert_equal Time.utc(1999,12,31,19), twz.time
+      assert_equal Time.utc(2000), twz.utc
+      assert_equal zone, twz.time_zone
+      assert_equal secs, twz.to_f
+    end
+
+    def test_at_with_old_date
+      zone = TimeZone['Eastern Time (US & Canada)']
+      secs = DateTime.civil(1850).to_f
+      twz = zone.at(secs)
+      assert_equal [1850, 1, 1, 0], [twz.utc.year, twz.utc.mon, twz.utc.day, twz.utc.hour]
+      assert_equal zone, twz.time_zone
+      assert_equal secs, twz.to_f
+    end
+
+    def test_parse
+      zone = TimeZone['Eastern Time (US & Canada)']
+      twz = zone.parse('1999-12-31 19:00:00')
+      assert_equal Time.utc(1999,12,31,19), twz.time
+      assert_equal Time.utc(2000), twz.utc
+      assert_equal zone, twz.time_zone
+    end
+
+    def test_parse_with_old_date
+      silence_warnings do # silence warnings raised by tzinfo gem
+        zone = TimeZone['Eastern Time (US & Canada)']
+        twz = zone.parse('1850-12-31 19:00:00')
+        assert_equal [0,0,19,31,12,1850], twz.to_a[0,6]
+        assert_equal zone, twz.time_zone
+      end
+    end
+
+    uses_mocha 'TestParseWithIncompleteDate' do
+      def test_parse_with_incomplete_date
+        zone = TimeZone['Eastern Time (US & Canada)']
+        zone.stubs(:now).returns zone.local(1999,12,31)
+        twz = zone.parse('19:00:00')
+        assert_equal Time.utc(1999,12,31,19), twz.time
       end
     end
   end
@@ -150,95 +247,6 @@ class TimeZoneTest < Test::Unit::TestCase
     assert !TimeZone.us_zones.include?(TimeZone["Kuala Lumpur"])
   end 
   
-  def test_local
-    time = TimeZone["Hawaii"].local(2007, 2, 5, 15, 30, 45)
-    assert_equal Time.utc(2007, 2, 5, 15, 30, 45), time.time
-    assert_equal TimeZone["Hawaii"], time.time_zone
-  end
-  
-  def test_local_with_old_date
-    silence_warnings do # silence warnings raised by tzinfo gem
-      time = TimeZone["Hawaii"].local(1850, 2, 5, 15, 30, 45)
-      assert_equal [45,30,15,5,2,1850], time.to_a[0,6]
-      assert_equal TimeZone["Hawaii"], time.time_zone
-    end
-  end
-  
-  def test_local_enforces_spring_dst_rules
-    zone = TimeZone['Eastern Time (US & Canada)']
-    twz = zone.local(2006,4,2,1,59,59) # 1 second before DST start
-    assert_equal Time.utc(2006,4,2,1,59,59), twz.time
-    assert_equal Time.utc(2006,4,2,6,59,59), twz.utc
-    assert_equal false, twz.dst?
-    assert_equal 'EST', twz.zone
-    twz2 = zone.local(2006,4,2,2) # 2AM does not exist because at 2AM, time springs forward to 3AM
-    assert_equal Time.utc(2006,4,2,3), twz2.time # twz is created for 3AM
-    assert_equal Time.utc(2006,4,2,7), twz2.utc
-    assert_equal true, twz2.dst?
-    assert_equal 'EDT', twz2.zone
-    twz3 = zone.local(2006,4,2,2,30) # 2:30AM does not exist because at 2AM, time springs forward to 3AM
-    assert_equal Time.utc(2006,4,2,3,30), twz3.time # twz is created for 3:30AM
-    assert_equal Time.utc(2006,4,2,7,30), twz3.utc
-    assert_equal true, twz3.dst?
-    assert_equal 'EDT', twz3.zone
-  end
-  
-  def test_local_enforces_fall_dst_rules
-    # 1AM during fall DST transition is ambiguous, it could be either DST or non-DST 1AM
-    # Mirroring Time.local behavior, this method selects the DST time
-    zone = TimeZone['Eastern Time (US & Canada)']
-    twz = zone.local(2006,10,29,1)
-    assert_equal Time.utc(2006,10,29,1), twz.time
-    assert_equal Time.utc(2006,10,29,5), twz.utc
-    assert_equal true, twz.dst? 
-    assert_equal 'EDT', twz.zone
-  end
-  
-  def test_at
-    zone = TimeZone['Eastern Time (US & Canada)']
-    secs = 946684800.0
-    twz = zone.at(secs)
-    assert_equal Time.utc(1999,12,31,19), twz.time
-    assert_equal Time.utc(2000), twz.utc
-    assert_equal zone, twz.time_zone
-    assert_equal secs, twz.to_f
-  end
-  
-  def test_at_with_old_date
-    zone = TimeZone['Eastern Time (US & Canada)']
-    secs = DateTime.civil(1850).to_f
-    twz = zone.at(secs)
-    assert_equal [1850, 1, 1, 0], [twz.utc.year, twz.utc.mon, twz.utc.day, twz.utc.hour]
-    assert_equal zone, twz.time_zone
-    assert_equal secs, twz.to_f
-  end
-  
-  def test_parse
-    zone = TimeZone['Eastern Time (US & Canada)']
-    twz = zone.parse('1999-12-31 19:00:00')
-    assert_equal Time.utc(1999,12,31,19), twz.time
-    assert_equal Time.utc(2000), twz.utc
-    assert_equal zone, twz.time_zone
-  end
-  
-  def test_parse_with_old_date
-    silence_warnings do # silence warnings raised by tzinfo gem
-      zone = TimeZone['Eastern Time (US & Canada)']
-      twz = zone.parse('1850-12-31 19:00:00')
-      assert_equal [0,0,19,31,12,1850], twz.to_a[0,6]
-      assert_equal zone, twz.time_zone
-    end
-  end
-  
-  uses_mocha 'TestParseWithIncompleteDate' do
-    def test_parse_with_incomplete_date
-      zone = TimeZone['Eastern Time (US & Canada)']
-      zone.stubs(:now).returns zone.local(1999,12,31)
-      twz = zone.parse('19:00:00')
-      assert_equal Time.utc(1999,12,31,19), twz.time
-    end
-  end
-
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz

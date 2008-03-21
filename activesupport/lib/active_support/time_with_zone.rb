@@ -63,7 +63,7 @@ module ActiveSupport
   
     # Time uses #zone to display the time zone abbreviation, so we're duck-typing it
     def zone
-      period.abbreviation.to_s
+      period.zone_identifier.to_s
     end
   
     def inspect

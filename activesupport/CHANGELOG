@@ -1,5 +1,7 @@
 *SVN*
 
+* Make TimeWithZone work with tzinfo 0.2.x: use TZInfo::Timezone#zone_identifier alias for #abbreviation, silence warnings on tests. Raise LoadError when TZInfo version is < 0.2 by sniffing for TZInfo::TimeOrDateTime constant. Move all tzinfo-dependent TimeZone tests into uses_tzinfo block [Geoff Buesing]
+
 * Time, DateTime and TimeWithZone #in_time_zone defaults to Time.zone. Removing now unneeded #in_current_time_zone [Geoff Buesing]
 
 * TZInfo caches Timezone instances in its own internal hash cache, so TimeZone::MAPPING doesn't need to cache them as well [Geoff Buesing]
