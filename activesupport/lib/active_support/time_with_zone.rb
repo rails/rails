@@ -139,7 +139,7 @@ module ActiveSupport
       end
     end
     
-    %w(asctime day hour min mon sec usec wday yday year).each do |name|
+    %w(asctime day hour min mon sec usec wday yday year to_date).each do |name|
       define_method(name) do
         time.__send__(name)
       end
