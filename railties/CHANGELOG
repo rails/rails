@@ -1,5 +1,7 @@
 *SVN*
 
+* Added config.time_zone = 'UTC' as a commented-out option in the default environment.rb [Geoff Buesing]
+
 * Adding rake tasks time:zones:all, time:zones:us and time:zones:local for finding time zone names for config.time_zone option [Geoff Buesing]
 
 * Added support for installing plugins hosted at git repositories #11294 [danger]
