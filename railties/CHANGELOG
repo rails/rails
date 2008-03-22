@@ -1,5 +1,7 @@
 *SVN*
 
+* Adding rake tasks time:zones:all, time:zones:us and time:zones:local for finding time zone names for config.time_zone option [Geoff Buesing]
+
 * Added support for installing plugins hosted at git repositories #11294 [danger]
 
 * Fixed that script/generate would not look for plugin generators in plugin_paths #11000 [glv]
