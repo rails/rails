@@ -1,3 +1,9 @@
 moustache_club_sponsor_for_groucho:
   sponsor_club: moustache_club
   sponsorable: groucho (Member)
+boring_club_sponsor_for_groucho:
+  sponsor_club: boring_club
+  sponsorable: some_other_guy (Member)
+crazy_club_sponsor_for_groucho:
+  sponsor_club: crazy_club
+  sponsorable: some_other_guy (Member)

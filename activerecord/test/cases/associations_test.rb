@@ -526,16 +526,27 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
   
   def test_has_one_through_eager_loading
-    members = Member.find(:all, :include => :club)
-    assert_equal 2, members.size
+    members = Member.find(:all, :include => :club, :conditions => ["name = ?", "Groucho Marx"])
+    assert_equal 1, members.size
     assert_not_nil assert_no_queries {members[0].club}
   end
   
   def test_has_one_through_eager_loading_through_polymorphic
-    members = Member.find(:all, :include => :sponsor_club)
-    assert_equal 2, members.size
+    members = Member.find(:all, :include => :sponsor_club, :conditions => ["name = ?", "Groucho Marx"])
+    assert_equal 1, members.size
     assert_not_nil assert_no_queries {members[0].sponsor_club}    
   end
+
+  def test_has_one_through_polymorphic_with_source_type
+    assert_equal members(:groucho), clubs(:moustache_club).sponsored_member
+  end
+
+  def test_eager_has_one_through_polymorphic_with_source_type
+    clubs = Club.find(:all, :include => :sponsored_member, :conditions => ["name = ?","Moustache and Eyebrow Fancier Club"])
+    # Only the eyebrow fanciers club has a sponsored_member
+    assert_not_nil assert_no_queries {clubs[0].sponsored_member}
+  end
+
 end
 
 class HasManyAssociationsTest < ActiveRecord::TestCase

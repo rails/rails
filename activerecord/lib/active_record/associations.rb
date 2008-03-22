@@ -1326,7 +1326,7 @@ module ActiveRecord
         
         def create_has_one_through_reflection(association_id, options)
           options.assert_valid_keys(
-            :class_name, :foreign_key, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :through, :source
+            :class_name, :foreign_key, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :through, :source, :source_type
           )
           create_reflection(:has_one, association_id, options, self)
         end

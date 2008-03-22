@@ -165,8 +165,13 @@ module ActiveRecord
           through_records = []
           records.compact.each do |record|
             proxy = record.send(through_association)
-            through_records << proxy.target
-            proxy.reset
+
+            if proxy.respond_to?(:target)
+              through_records << proxy.target
+              proxy.reset
+            else # this is a has_one :through reflection
+              through_records << proxy if proxy
+            end
           end
           through_records = through_records.flatten
         else
