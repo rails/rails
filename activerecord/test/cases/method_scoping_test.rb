@@ -150,7 +150,7 @@ class NestedScopingTest < ActiveRecord::TestCase
     Developer.with_scope(:find => { :conditions => "name = 'David'" }) do
       Developer.with_scope(:find => { :conditions => 'salary = 80000' }) do
         appended_condition = Developer.instance_eval('current_scoped_methods')[:find][:conditions]
-        assert_equal("( name = 'David' ) AND ( salary = 80000 )", appended_condition)
+        assert_equal("(name = 'David') AND (salary = 80000)", appended_condition)
         assert_equal(1, Developer.count)
       end
       Developer.with_scope(:find => { :conditions => "name = 'Maiha'" }) do
@@ -163,7 +163,7 @@ class NestedScopingTest < ActiveRecord::TestCase
     Developer.with_scope(:find => { :conditions => 'salary = 80000', :limit => 10 }) do
       Developer.with_scope(:find => { :conditions => "name = 'David'" }) do
         merged_option = Developer.instance_eval('current_scoped_methods')[:find]
-        assert_equal({ :conditions => "( salary = 80000 ) AND ( name = 'David' )", :limit => 10 }, merged_option)
+        assert_equal({ :conditions => "(salary = 80000) AND (name = 'David')", :limit => 10 }, merged_option)
       end
     end
   end
@@ -271,6 +271,26 @@ class NestedScopingTest < ActiveRecord::TestCase
     Developer.with_scope(:find => { :conditions => ["name = ?", 'David'] }) do
       Developer.with_scope(:find => { :conditions => ['salary > ?', 9000] }) do
         assert_equal %w(David), Developer.find(:all).map { |d| d.name }
+      end
+    end
+  end
+
+  def test_merged_scoped_find_on_blank_conditions
+    [nil, " ", [], {}].each do |blank|
+      Developer.with_scope(:find => {:conditions => blank}) do
+        Developer.with_scope(:find => {:conditions => blank}) do
+          assert_nothing_raised { Developer.find(:first) }
+        end
+      end
+    end
+  end
+
+  def test_merged_scoped_find_on_blank_bind_conditions
+    [ [""], ["",{}] ].each do |blank|
+      Developer.with_scope(:find => {:conditions => blank}) do
+        Developer.with_scope(:find => {:conditions => blank}) do
+          assert_nothing_raised { Developer.find(:first) }
+        end
       end
     end
   end
