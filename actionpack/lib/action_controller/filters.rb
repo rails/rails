@@ -264,6 +264,9 @@ module ActionController #:nodoc:
 
       def skip_filter_in_chain(*filters, &test)
         filters, conditions = extract_options(filters)
+        filters.each do |filter|
+          if callback = find_callback(filter) then delete(callback) end
+        end if conditions.empty?
         update_filter_in_chain(filters, :skip => conditions, &test)
       end
 

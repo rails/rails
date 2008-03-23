@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix regression from filter refactoring where re-adding a skipped filter resulted in it being called twice.  [rick]
+
 * Refactor filters to use Active Support callbacks.  #11235 [Josh Peek]
 
 * Fixed that polymorphic routes would modify the input array #11363 [thomas.lee]

@@ -158,6 +158,30 @@ class FilterTest < Test::Unit::TestCase
       end
   end
 
+  class SkippingAndLimitedController < TestController
+    skip_before_filter :ensure_login
+    before_filter :ensure_login, :only => :index
+
+    def index
+      render :text => 'ok'
+    end
+    
+    def public
+    end
+  end
+  
+  class SkippingAndReorderingController < TestController
+    skip_before_filter :ensure_login
+    before_filter :find_record
+    before_filter :ensure_login
+
+    private
+      def find_record
+        @ran_filter ||= []
+        @ran_filter << "find_record"
+      end
+  end
+
   class ConditionalSkippingController < TestController
     skip_before_filter :ensure_login, :only => [ :login ]
     skip_after_filter  :clean_up,     :only => [ :login ]
@@ -564,6 +588,15 @@ class FilterTest < Test::Unit::TestCase
     assert_equal 3, PrependingBeforeAndAfterController.filter_chain.length
     response = test_process(PrependingBeforeAndAfterController)
     assert_equal %w( before_all between_before_all_and_after_all after_all ), response.template.assigns["ran_filter"]
+  end
+  
+  def test_skipping_and_limiting_controller
+    assert_equal %w( ensure_login ), test_process(SkippingAndLimitedController, "index").template.assigns["ran_filter"]
+    assert_nil test_process(SkippingAndLimitedController, "public").template.assigns["ran_filter"]
+  end
+
+  def test_skipping_and_reordering_controller
+    assert_equal %w( find_record ensure_login ), test_process(SkippingAndReorderingController, "index").template.assigns["ran_filter"]
   end
 
   def test_conditional_skipping_of_filters
