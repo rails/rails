@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure that TimeWithZone#to_yaml works when passed a YAML::Emitter.  [rick]
+
 * Ensure correct TimeWithZone#to_date [Geoff Buesing]
 
 * Make TimeWithZone work with tzinfo 0.2.x: use TZInfo::Timezone#zone_identifier alias for #abbreviation, silence warnings on tests. Raise LoadError when TZInfo version is < 0.2 by sniffing for TZInfo::TimeOrDateTime constant. Move all tzinfo-dependent TimeZone tests into uses_tzinfo block [Geoff Buesing]

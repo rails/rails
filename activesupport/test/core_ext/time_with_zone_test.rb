@@ -106,6 +106,12 @@ uses_tzinfo 'TimeWithZoneTest' do
       end
     end
     
+    def test_ruby_to_yaml
+      silence_warnings do
+        assert_equal "--- \n:twz: 2000-01-01 00:00:00 Z\n", {:twz => @twz}.to_yaml
+      end
+    end
+    
     def test_httpdate
       silence_warnings do # silence warnings raised by tzinfo gem
         assert_equal 'Sat, 01 Jan 2000 00:00:00 GMT', @twz.httpdate
