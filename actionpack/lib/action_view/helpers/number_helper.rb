@@ -144,11 +144,11 @@ module ActionView
       #
       # ==== Examples
       #  number_with_precision(111.2345)     # => 111.235
-      #  number_with_precision(111.2345, 2)  # => 111.24
+      #  number_with_precision(111.2345, 2)  # => 111.23
       #  number_with_precision(13, 5)        # => 13.00000
       #  number_with_precision(389.32314, 0) # => 389
       def number_with_precision(number, precision=3)
-        "%01.#{precision}f" % number
+        "%01.#{precision}f" % ((Float(number) * (10 ** precision)).round.to_f / 10 ** precision)
       rescue
         number
       end
