@@ -291,6 +291,8 @@ module ActionView
       # considered as a linebreak and a <tt><br /></tt> tag is appended. This
       # method does not remove the newlines from the +text+. 
       #
+      # You can pass any HTML attributes into <tt>html_options</tt>.  These 
+      # will be added to all created paragraphs.
       # ==== Examples
       #   my_text = "Here is some basic text...\n...with a line break."
       #
@@ -301,11 +303,17 @@ module ActionView
       #
       #   simple_format(more_text)
       #   # => "<p>We want to put a paragraph...</p>\n\n<p>...right there.</p>"
-      def simple_format(text)
-        content_tag 'p', text.to_s.
-          gsub(/\r\n?/, "\n").                    # \r\n and \r -> \n
-          gsub(/\n\n+/, "</p>\n\n<p>").           # 2+ newline  -> paragraph
-          gsub(/([^\n]\n)(?=[^\n])/, '\1<br />')  # 1 newline   -> br
+      #
+      #   simple_format("Look ma! A class!", :class => 'description')
+      #   # => "<p class='description'>Look ma! A class!</p>"
+      def simple_format(text, html_options={})
+        start_tag = tag('p', html_options, true)
+        text = text.to_s.dup
+        text.gsub!(/\r\n?/, "\n")                    # \r\n and \r -> \n
+        text.gsub!(/\n\n+/, "</p>\n\n#{start_tag}")  # 2+ newline  -> paragraph
+        text.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') # 1 newline   -> br
+        text.insert 0, start_tag
+        text << "</p>"
       end
 
       # Turns all URLs and e-mail addresses into clickable links. The +link+ parameter 
