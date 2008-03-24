@@ -1,10 +1,12 @@
 *SVN*
 
+* Added ActiveRecord#Base.all/first/last as aliases for find(:all/:first/:last) #11413 [nkallen, thechrisoshow]
+
 * Merge the has_finder gem, renamed as 'named_scope'.  #11404 [nkallen]
 
   class Article < ActiveRecord::Base
-    has_finder :published, :conditions => {:published => true}
-    has_finder :popular, :conditions => ...
+    named_scope :published, :conditions => {:published => true}
+    named_scope :popular, :conditions => ...
   end
 
   Article.published.paginate(:page => 1)

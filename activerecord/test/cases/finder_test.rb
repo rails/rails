@@ -143,6 +143,14 @@ class FinderTest < ActiveRecord::TestCase
     first = Topic.find(:first, :conditions => "title = 'The First Topic!'")
     assert_nil(first)
   end
+  
+  def test_first
+    assert_equal topics(:second).title, Topic.first(:conditions => "title = 'The Second Topic of the day'").title
+  end
+  
+  def test_first_failing
+    assert_nil Topic.first(:conditions => "title = 'The Second Topic of the day!'")
+  end
 
   def test_unexisting_record_exception_handling
     assert_raises(ActiveRecord::RecordNotFound) {
