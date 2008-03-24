@@ -316,6 +316,9 @@ module ActionView
       # Creates a submit button with the text <tt>value</tt> as the caption. 
       #
       # ==== Options
+      # * <tt>:confirm => 'question?'</tt> -- This will add a JavaScript confirm
+      #   prompt with the question specified. If the user accepts, the form is
+      #   processed normally, otherwise no action is taken.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a disabled version 
       #                            of the submit button when the form is submitted.
@@ -351,10 +354,15 @@ module ActionView
             "#{options["onclick"]}",
             "result = (this.form.onsubmit ? (this.form.onsubmit() ? this.form.submit() : false) : this.form.submit())",
             "if (result == false) { this.value = this.getAttribute('originalValue'); this.disabled = false }",
-            "return result",
+            "return result;",
           ].join(";")
         end
-          
+        
+        if confirm = options.delete("confirm")
+          options["onclick"] ||= ''
+          options["onclick"] += "return #{confirm_javascript_function(confirm)};"
+        end
+        
         tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys)
       end
       
