@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that FormHelper#radio_button would produce invalid ids #11298 [harlancrystal]
+
 * Added :confirm option to submit_tag #11415 [miloops]
 
 * Fixed NumberHelper#number_with_precision to properly round in a way that works equally on Mac, Windows, Linux (closes #11409, #8275, #10090, #8027) [zhangyuanyi]

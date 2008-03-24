@@ -187,6 +187,9 @@ class FormHelperTest < Test::Unit::TestCase
     assert_dom_equal('<input id="post_title_goodbye_world" name="post[title]" type="radio" value="Goodbye World" />',
       radio_button("post", "title", "Goodbye World")
     )
+    assert_dom_equal('<input id="item_subobject_title_inside_world" name="item[subobject][title]" type="radio" value="inside world"/>',
+      radio_button("item[subobject]", "title", "inside world")
+    )
   end
 
   def test_radio_button_is_checked_with_integers
