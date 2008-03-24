@@ -41,7 +41,7 @@ module ActiveRecord
         delete(@target)
         reset_target!
       end
-
+      
       # Calculate sum using SQL, not Enumerable
       def sum(*args)
         if block_given?
@@ -168,8 +168,10 @@ module ActiveRecord
             else
               super
             end
-          else
-            @reflection.klass.send(:with_scope, construct_scope) do
+          elsif @reflection.klass.scopes.include?(method)
+            @reflection.klass.scopes[method].call(self, *args)
+          else          
+            with_scope(construct_scope) do
               if block_given?
                 @reflection.klass.send(method, *args) { |*block_args| yield(*block_args) }
               else

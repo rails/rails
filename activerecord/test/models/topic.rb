@@ -1,4 +1,32 @@
 class Topic < ActiveRecord::Base
+  named_scope :written_before, lambda { |time|
+    { :conditions => ['written_on < ?', time] }
+  }
+  named_scope :approved, :conditions => {:approved => true}
+  named_scope :replied, :conditions => ['replies_count > 0']
+  named_scope :anonymous_extension do
+    def one
+      1
+    end
+  end
+  module NamedExtension
+    def two
+      2
+    end
+  end
+  module MultipleExtensionOne
+    def extension_one
+      1
+    end
+  end
+  module MultipleExtensionTwo
+    def extension_two
+      2
+    end
+  end
+  named_scope :named_extension, :extend => NamedExtension
+  named_scope :multiple_extensions, :extend => [MultipleExtensionTwo, MultipleExtensionOne]
+  
   has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
   serialize :content
 

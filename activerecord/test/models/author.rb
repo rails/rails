@@ -3,6 +3,7 @@ class Author < ActiveRecord::Base
   has_many :posts_with_comments, :include => :comments, :class_name => "Post"
   has_many :posts_with_categories, :include => :categories, :class_name => "Post"
   has_many :posts_with_comments_and_categories, :include => [ :comments, :categories ], :order => "posts.id", :class_name => "Post"
+  has_many :posts_containing_the_letter_a, :class_name => "Post"
   has_many :posts_with_extension, :class_name => "Post" do #, :extend => ProxyTestExtension
     def testing_proxy_owner
       proxy_owner
@@ -15,6 +16,7 @@ class Author < ActiveRecord::Base
     end
   end
   has_many :comments, :through => :posts
+  has_many :comments_containing_the_letter_e, :through => :posts, :source => :comments
   has_many :comments_desc, :through => :posts, :source => :comments, :order => 'comments.id DESC'
   has_many :limited_comments, :through => :posts, :source => :comments, :limit => 1
   has_many :funky_comments, :through => :posts, :source => :comments

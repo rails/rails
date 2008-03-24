@@ -37,6 +37,7 @@ unless defined? ActiveSupport
 end
 
 require 'active_record/base'
+require 'active_record/named_scope'
 require 'active_record/observer'
 require 'active_record/query_cache'
 require 'active_record/validations'
@@ -64,6 +65,7 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Observing
   include ActiveRecord::Timestamp
   include ActiveRecord::Associations
+  include ActiveRecord::NamedScope
   include ActiveRecord::AssociationPreload
   include ActiveRecord::Aggregations
   include ActiveRecord::Transactions

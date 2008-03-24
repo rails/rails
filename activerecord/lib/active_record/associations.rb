@@ -1133,7 +1133,7 @@ module ActiveRecord
             end
           end
         end
-
+        
         def add_multiple_associated_save_callbacks(association_name)
           method_name = "validate_associated_records_for_#{association_name}".to_sym
           ivar = "@#{association_name}"

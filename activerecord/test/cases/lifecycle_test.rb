@@ -68,9 +68,9 @@ class LifecycleTest < ActiveRecord::TestCase
   fixtures :topics, :developers
 
   def test_before_destroy
-    assert_equal 2, Topic.count
-    Topic.find(1).destroy
-    assert_equal 0, Topic.count
+    original_count = Topic.count
+    (topic_to_be_destroyed = Topic.find(1)).destroy
+    assert_equal original_count - (1 + topic_to_be_destroyed.replies.size), Topic.count
   end
 
   def test_after_save

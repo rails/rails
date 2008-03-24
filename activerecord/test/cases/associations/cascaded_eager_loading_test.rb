@@ -61,16 +61,17 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_has_many_sti
     topics = Topic.find(:all, :include => :replies, :order => 'topics.id')
-    assert_equal topics(:first, :second), topics
+    first, second, = topics(:first).replies.size, topics(:second).replies.size
     assert_no_queries do
-      assert_equal 1, topics[0].replies.size
-      assert_equal 0, topics[1].replies.size
+      assert_equal first, topics[0].replies.size
+      assert_equal second, topics[1].replies.size
     end
   end
 
   def test_eager_association_loading_with_belongs_to_sti
     replies = Reply.find(:all, :include => :topic, :order => 'topics.id')
-    assert_equal [topics(:second)], replies
+    assert replies.include?(topics(:second))
+    assert !replies.include?(topics(:first))
     assert_equal topics(:first), assert_no_queries { replies.first.topic }
   end
 

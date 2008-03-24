@@ -477,7 +477,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_load
     topics = Topic.find(:all, :order => 'id')
-    assert_equal(2, topics.size)
+    assert_equal(4, topics.size)
     assert_equal(topics(:first).title, topics.first.title)
   end
 
@@ -549,10 +549,11 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_all
-    assert_equal 2, Topic.count
-
-    Topic.destroy_all "author_name = 'Mary'"
-    assert_equal 1, Topic.count
+    original_count = Topic.count
+    topics_by_mary = Topic.count(:conditions => mary = "author_name = 'Mary'")
+    
+    Topic.destroy_all mary
+    assert_equal original_count - topics_by_mary, Topic.count
   end
 
   def test_destroy_many
@@ -562,8 +563,9 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_delete_many
-    Topic.delete([1, 2])
-    assert_equal 0, Topic.count
+    original_count = Topic.count
+    Topic.delete(deleting = [1, 2])
+    assert_equal original_count - deleting.size, Topic.count
   end
 
   def test_boolean_attributes
@@ -588,21 +590,21 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_update_all
-    assert_equal 2, Topic.update_all("content = 'bulk updated!'")
+    assert_equal Topic.count, Topic.update_all("content = 'bulk updated!'")
     assert_equal "bulk updated!", Topic.find(1).content
     assert_equal "bulk updated!", Topic.find(2).content
 
-    assert_equal 2, Topic.update_all(['content = ?', 'bulk updated again!'])
+    assert_equal Topic.count, Topic.update_all(['content = ?', 'bulk updated again!'])
     assert_equal "bulk updated again!", Topic.find(1).content
     assert_equal "bulk updated again!", Topic.find(2).content
 
-    assert_equal 2, Topic.update_all(['content = ?', nil])
+    assert_equal Topic.count, Topic.update_all(['content = ?', nil])
     assert_nil Topic.find(1).content
   end
 
   def test_update_all_with_hash
     assert_not_nil Topic.find(1).last_read
-    assert_equal 2, Topic.update_all(:content => 'bulk updated with hash!', :last_read => nil)
+    assert_equal Topic.count, Topic.update_all(:content => 'bulk updated with hash!', :last_read => nil)
     assert_equal "bulk updated with hash!", Topic.find(1).content
     assert_equal "bulk updated with hash!", Topic.find(2).content
     assert_nil Topic.find(1).last_read
@@ -637,7 +639,9 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_delete_all
-    assert_equal 2, Topic.delete_all
+    assert Topic.count > 0
+    
+    assert_equal Topic.count, Topic.delete_all
   end
 
   def test_update_by_condition
@@ -804,17 +808,17 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_update_attributes!
     reply = Reply.find(2)
-    assert_equal "The Second Topic's of the day", reply.title
+    assert_equal "The Second Topic of the day", reply.title
     assert_equal "Have a nice day", reply.content
 
-    reply.update_attributes!("title" => "The Second Topic's of the day updated", "content" => "Have a nice evening")
+    reply.update_attributes!("title" => "The Second Topic of the day updated", "content" => "Have a nice evening")
     reply.reload
-    assert_equal "The Second Topic's of the day updated", reply.title
+    assert_equal "The Second Topic of the day updated", reply.title
     assert_equal "Have a nice evening", reply.content
 
-    reply.update_attributes!(:title => "The Second Topic's of the day", :content => "Have a nice day")
+    reply.update_attributes!(:title => "The Second Topic of the day", :content => "Have a nice day")
     reply.reload
-    assert_equal "The Second Topic's of the day", reply.title
+    assert_equal "The Second Topic of the day", reply.title
     assert_equal "Have a nice day", reply.content
 
     assert_raise(ActiveRecord::RecordInvalid) { reply.update_attributes!(:title => nil, :content => "Have a nice evening") }
@@ -1770,7 +1774,7 @@ class BasicsTest < ActiveRecord::TestCase
     xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :include => :replies, :except => :replies_count)
     assert_equal "<topic>", xml.first(7)
     assert xml.include?(%(<replies type="array"><reply>))
-    assert xml.include?(%(<title>The Second Topic's of the day</title>))
+    assert xml.include?(%(<title>The Second Topic of the day</title>))
   end
 
   def test_array_to_xml_including_has_many_association

@@ -123,7 +123,7 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_complete_instantiation
-    assert_equal 2, @topics.size
+    assert_equal 4, @topics.size
     assert_equal "The First Topic", @first.title
   end
 

@@ -1,4 +1,6 @@
 class Post < ActiveRecord::Base
+  named_scope :containing_the_letter_a, :conditions => "body LIKE '%a%'"
+  
   belongs_to :author do
     def greeting
       "hello"

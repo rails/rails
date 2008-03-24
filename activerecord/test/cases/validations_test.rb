@@ -428,7 +428,7 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_nil t2.errors.on(:title)
     assert t2.errors.on(:parent_id)
 
-    t2.parent_id = 3
+    t2.parent_id = 4
     assert t2.save, "Should now save t2 as unique"
 
     t2.parent_id = nil

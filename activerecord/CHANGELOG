@@ -1,5 +1,19 @@
 *SVN*
 
+* Merge the has_finder gem, renamed as 'named_scope'.  #11404 [nkallen]
+
+  class Article < ActiveRecord::Base
+    has_finder :published, :conditions => {:published => true}
+    has_finder :popular, :conditions => ...
+  end
+
+  Article.published.paginate(:page => 1)
+  Article.published.popular.count
+  Article.popular.find(:first)
+  Article.popular.find(:all, :conditions => {...})
+
+  See http://pivots.pivotallabs.com/users/nick/blog/articles/284-hasfinder-it-s-now-easier-than-ever-to-create-complex-re-usable-sql-queries
+
 * Add has_one :through support.  #4756 [thechrisoshow]
 
 * Migrations: create_table supports primary_key_prefix_type.  #10314 [student, thechrisoshow]
