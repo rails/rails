@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that ActiveRecord#Base.find_or_create/initialize would not honor attr_protected/accessible when used with a hash #11422 [miloops]
+
 * Added ActiveRecord#Base.all/first/last as aliases for find(:all/:first/:last) #11413 [nkallen, thechrisoshow]
 
 * Merge the has_finder gem, renamed as 'named_scope'.  #11404 [nkallen]
