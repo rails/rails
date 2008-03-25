@@ -159,12 +159,10 @@ module ActionView #:nodoc:
     end
 
     private
-
-    def check_view_paths(view_paths)
-      view_paths.each do |path|
-        raise InvalidViewPath.new(path) unless @@processed_view_paths.has_key?(path)
+      def check_view_paths(view_paths)
+        view_paths.each do |path|
+          raise InvalidViewPath.new(path) unless @@processed_view_paths.has_key?(path)
+        end
       end
-    end
-
   end
 end
