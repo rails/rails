@@ -41,6 +41,14 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_queries(1) { assert_equal 0, author.unique_categorized_posts.count(:title, :conditions => "title is NULL") }
     assert !authors(:mary).unique_categorized_posts.loaded?
   end
+  
+  def test_has_many_uniq_through_find
+    assert_equal 1, authors(:mary).unique_categorized_posts.find(:all).size
+  end
+  
+  def test_has_many_uniq_through_dynamic_find
+    assert_equal 1, authors(:mary).unique_categorized_posts.find_all_by_title("So I was thinking").size
+  end
 
   def test_polymorphic_has_many
     assert posts(:welcome).taggings.include?(taggings(:welcome_general))
