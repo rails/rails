@@ -10,10 +10,13 @@ module ActiveSupport #:nodoc:
       #
       # The default :size and :velocity is only set if the +options+ passed in doesn't already have those keys set.
       module ReverseMerge
+        # Performs the opposite of merge, with the keys and values from the first hash taking precedence over the second.
         def reverse_merge(other_hash)
           other_hash.merge(self)
         end
 
+        # Performs the opposite of merge, with the keys and values from the first hash taking precedence over the second.
+        # Modifies the receiver in place.
         def reverse_merge!(other_hash)
           replace(reverse_merge(other_hash))
         end

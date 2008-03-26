@@ -176,11 +176,11 @@ end
 # Some times you don't care about the content of the fixtures as much as you care about the volume. In these cases, you can
 # mix ERb in with your YAML or CSV fixtures to create a bunch of fixtures for load testing, like:
 #
-# <% for i in 1..1000 %>
-# fix_<%= i %>:
-#   id: <%= i %>
-#   name: guy_<%= 1 %>
-# <% end %>
+#   <% for i in 1..1000 %>
+#   fix_<%= i %>:
+#     id: <%= i %>
+#     name: guy_<%= 1 %>
+#   <% end %>
 #
 # This will create 1000 very simple YAML fixtures.
 #

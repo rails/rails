@@ -8,7 +8,7 @@ module ActiveSupport #:nodoc:
         # slots with specified value (<tt>nil</tt> by default) unless it is
         # <tt>false</tt>.
         # 
-        # E.g.
+        # Examples:
         # 
         #   %w(1 2 3 4 5 6 7).in_groups_of(3) {|g| p g}
         #   ["1", "2", "3"]
@@ -45,7 +45,7 @@ module ActiveSupport #:nodoc:
         # Divide the array into one or more subarrays based on a delimiting +value+
         # or the result of an optional block.
         #
-        # ex.
+        # Examples:
         #
         #   [1, 2, 3, 4, 5].split(3)                # => [[1, 2], [4, 5]]
         #   (1..10).to_a.split { |i| i % 3 == 0 }   # => [[1, 2], [4, 5], [7, 8], [10]]

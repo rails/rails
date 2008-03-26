@@ -227,6 +227,13 @@ module ActionController
     #
     #   <% form_for :message, @message, :url => message_path(@message), :html => {:method => :put} do |f| %>
     #
+    # or
+    #
+    #   <% form_for @message do |f| %>
+    #
+    # which takes into account whether <tt>@message</tt> is a new record or not and generates the
+    # path and method accordingly.
+    #
     # The #resources method accepts the following options to customize the resulting routes:
     # * <tt>:collection</tt> - add named routes for other actions that operate on the collection.
     #   Takes a hash of <tt>#{action} => #{method}</tt>, where method is <tt>:get</tt>/<tt>:post</tt>/<tt>:put</tt>/<tt>:delete</tt>

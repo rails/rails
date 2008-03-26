@@ -5,7 +5,7 @@ module ActiveRecord
   # Timestamping can be turned off by setting
   #   <tt>ActiveRecord::Base.record_timestamps = false</tt>
   #
-  # Timestamps are in the local timezone by default but can use UTC by setting
+  # Timestamps are in the local timezone by default but you can use UTC by setting
   #   <tt>ActiveRecord::Base.default_timezone = :utc</tt>
   module Timestamp
     def self.included(base) #:nodoc:

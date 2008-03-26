@@ -16,10 +16,12 @@ module ActiveSupport #:nodoc:
         end
 
         module ClassMethods
+          # Finds yesterday's date, in the format similar to: Mon, 17 Mar 2008
           def yesterday
             ::Date.today.yesterday
           end
           
+          # Finds tommorrow's date, in the format similar to: Tue, 18 Mar 2008
           def tomorrow
             ::Date.today.tomorrow
           end

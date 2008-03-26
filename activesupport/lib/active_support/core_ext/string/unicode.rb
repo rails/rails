@@ -27,7 +27,7 @@ module ActiveSupport #:nodoc:
           # object. Interoperability problems can be resolved easily with a +to_s+ call.
           #
           # For more information about the methods defined on the Chars proxy see ActiveSupport::Multibyte::Chars and
-          # ActiveSupport::Multibyte::Handlers::UTF8Handler
+          # ActiveSupport::Multibyte::Handlers::UTF8Handler.
           def chars
             ActiveSupport::Multibyte::Chars.new(self)
           end

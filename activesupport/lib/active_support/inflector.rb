@@ -165,7 +165,7 @@ module Inflector
     humanize(underscore(word)).gsub(/\b('?[a-z])/) { $1.capitalize }
   end
 
-  # The reverse of +camelize+. Makes an underscored form from the expression in the string.
+  # The reverse of +camelize+. Makes an underscored, lowercase form from the expression in the string.
   #
   # Changes '::' to '/' to convert namespaces to paths.
   #

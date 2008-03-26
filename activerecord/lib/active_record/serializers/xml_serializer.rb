@@ -1,11 +1,11 @@
 module ActiveRecord #:nodoc:
   module Serialization
-    # Builds an XML document to represent the model.   Some configuration is
-    # available through +options+, however more complicated cases should
-    # override ActiveRecord's to_xml.
+    # Builds an XML document to represent the model. Some configuration is
+    # available through +options+. However more complicated cases should
+    # override ActiveRecord's to_xml method.
     #
     # By default the generated XML document will include the processing
-    # instruction and all object's attributes.  For example:
+    # instruction and all the object's attributes. For example:
     #
     #   <?xml version="1.0" encoding="UTF-8"?>
     #   <topic>
@@ -23,10 +23,10 @@ module ActiveRecord #:nodoc:
     #   </topic>
     #
     # This behavior can be controlled with :only, :except,
-    # :skip_instruct, :skip_types and :dasherize.  The :only and
+    # :skip_instruct, :skip_types and :dasherize. The :only and
     # :except options are the same as for the #attributes method.
     # The default is to dasherize all column names, to disable this,
-    # set :dasherize to false.  To not have the column type included
+    # set :dasherize to false. To not have the column type included
     # in the XML output, set :skip_types to true.
     #
     # For instance:
@@ -68,6 +68,36 @@ module ActiveRecord #:nodoc:
     #     </account>
     #   </firm>
     #
+    # To include deeper levels of associations pass a hash like this:
+    #
+    #   firm.to_xml :include => {:account => {}, :clients => {:include => :address}}
+    #   <?xml version="1.0" encoding="UTF-8"?>
+    #   <firm>
+    #     <id type="integer">1</id>
+    #     <rating type="integer">1</rating>
+    #     <name>37signals</name>
+    #     <clients type="array">
+    #       <client>
+    #         <rating type="integer">1</rating>
+    #         <name>Summit</name>
+    #         <address>
+    #           ...
+    #         </address>
+    #       </client>
+    #       <client>
+    #         <rating type="integer">1</rating>
+    #         <name>Microsoft</name>
+    #         <address>
+    #           ...
+    #         </address>
+    #       </client>
+    #     </clients>
+    #     <account>
+    #       <id type="integer">1</id>
+    #       <credit-limit type="integer">50</credit-limit>
+    #     </account>
+    #   </firm>
+    #
     # To include any methods on the object(s) being called use :methods
     #
     #   firm.to_xml :methods => [ :calculated_earnings, :real_earnings ]
@@ -78,7 +108,7 @@ module ActiveRecord #:nodoc:
     #     <real-earnings>5</real-earnings>
     #   </firm>
     #
-    # To call any Proc's on the object(s) use :procs.  The Proc's
+    # To call any Procs on the object(s) use :procs. The Procs
     # are passed a modified version of the options hash that was
     # given to #to_xml.
     #
@@ -90,7 +120,7 @@ module ActiveRecord #:nodoc:
     #     <abc>def</abc>
     #   </firm>
     #
-    # Alternatively, you can also just yield the builder object as part of the to_xml call:
+    # Alternatively, you can yield the builder object as part of the to_xml call:
     #
     #   firm.to_xml do |xml|
     #     xml.creator do
@@ -108,7 +138,7 @@ module ActiveRecord #:nodoc:
     #   </firm>
     #
     # You can override the to_xml method in your ActiveRecord::Base
-    # subclasses if you need to.  The general form of doing this is
+    # subclasses if you need to. The general form of doing this is:
     #
     #   class IHaveMyOwnXML < ActiveRecord::Base
     #     def to_xml(options = {})
@@ -155,13 +185,6 @@ module ActiveRecord #:nodoc:
       !options.has_key?(:dasherize) || options[:dasherize]
     end
 
-
-    # To replicate the behavior in ActiveRecord#attributes,
-    # :except takes precedence over :only.  If :only is not set
-    # for a N level model but is set for the N+1 level models,
-    # then because :except is set to a default value, the second
-    # level model can have both :except and :only set.  So if
-    # :only is set, always delete :except.
     def serializable_attributes
       serializable_attribute_names.collect { |name| Attribute.new(name, @record) }
     end
@@ -251,7 +274,7 @@ module ActiveRecord #:nodoc:
 
       # There is a significant speed improvement if the value
       # does not need to be escaped, as #tag! escapes all values
-      # to ensure that valid XML is generated.  For known binary
+      # to ensure that valid XML is generated. For known binary
       # values, it is at least an order of magnitude faster to
       # Base64 encode binary values and directly put them in the
       # output XML than to pass the original value or the Base64

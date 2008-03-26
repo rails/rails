@@ -1,5 +1,5 @@
 class Object
-  # An object is blank if it's nil, empty, or a whitespace string.
+  # An object is blank if it's false, empty, or a whitespace string.
   # For example, "", "   ", nil, [], and {} are blank.
   #
   # This simplifies

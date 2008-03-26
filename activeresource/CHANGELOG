@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve documentation. [Radar, Jan De Poorter, chuyeow, xaviershay, danger, miloops, Xavier Noria,  Sunny Ripert]
+
 * Use HEAD instead of GET in exists? [bscofield]
 
 * Fix small documentation typo.  Closes #10670 [l.guidi]

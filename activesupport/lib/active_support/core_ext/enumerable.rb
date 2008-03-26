@@ -2,7 +2,7 @@ module Enumerable
   # Collect an enumerable into sets, grouped by the result of a block. Useful,
   # for example, for grouping records by date.
   #
-  # e.g. 
+  # Example:
   #
   #   latest_transcripts.group_by(&:day).each do |day, transcripts| 
   #     p "#{day} -> #{transcripts.map(&:class) * ', '}"
@@ -23,18 +23,21 @@ module Enumerable
 
   # Calculates a sum from the elements. Examples:
   #
-  #  payments.sum { |p| p.price * p.tax_rate }
-  #  payments.sum(&:price)
+  #   payments.sum { |p| p.price * p.tax_rate }
+  #   payments.sum(&:price)
   #
-  # This is instead of payments.inject { |sum, p| sum + p.price }
+  # This is instead of
+  #
+  #   payments.inject { |sum, p| sum + p.price }
   #
   # Also calculates sums without the use of a block:
+  #
   #   [5, 15, 10].sum # => 30
   #
   # The default identity (sum of an empty list) is zero. 
   # However, you can override this default:
   #
-  # [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
+  #   [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
   #
   def sum(identity = 0, &block)
     return identity unless size > 0

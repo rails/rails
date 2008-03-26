@@ -1,5 +1,10 @@
 class Date
-  def to_json(options = nil) #:nodoc:
+  # Returns a JSON string representing the date.
+  #
+  # ==== Example:
+  #   Date.new(2005,2,1).to_json
+  #   # => "2005/02/01"
+  def to_json(options = nil)
     %("#{strftime("%Y/%m/%d")}")
   end
 end

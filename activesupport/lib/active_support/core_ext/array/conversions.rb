@@ -24,7 +24,8 @@ module ActiveSupport #:nodoc:
           end
         end
 
-        # Calls to_param on all its elements and joins the result with slashes. This is used by url_for in Action Pack. 
+        # Calls <tt>to_param</tt> on all its elements and joins the result with
+        # slashes. This is used by <tt>url_for</tt> in Action Pack. 
         def to_param
           map(&:to_param).join '/'
         end
@@ -32,8 +33,9 @@ module ActiveSupport #:nodoc:
         # Converts an array into a string suitable for use as a URL query string, using the given <tt>key</tt> as the
         # param name.
         #
-        # ==== Example:
-        #   ['Rails', 'coding'].to_query('hobbies') => "hobbies%5B%5D=Rails&hobbies%5B%5D=coding"
+        # Example:
+        #
+        #   ['Rails', 'coding'].to_query('hobbies') # => "hobbies%5B%5D=Rails&hobbies%5B%5D=coding"
         def to_query(key)
           collect { |value| value.to_query("#{key}[]") } * '&'
         end
@@ -45,6 +47,15 @@ module ActiveSupport #:nodoc:
           end
         end
 
+        # Converts a collection of elements into a formatted string by calling
+        # <tt>to_s</tt> on all elements and joining them:
+        #
+        #   Blog.find(:all).to_formatted_s # => "First PostSecond PostThird Post"
+        #
+        # Adding in the <tt>:db</tt> argument as the format yields a prettier
+        # output:
+        #
+        #   Blog.find(:all).to_formatted_s(:db) # => "First Post,Second Post,Third Post"
         def to_formatted_s(format = :default)
           case format
             when :db
@@ -58,6 +69,48 @@ module ActiveSupport #:nodoc:
           end
         end
 
+        # Returns a string that represents this array in XML by sending
+        # <tt>to_xml</tt> to each element.
+        #
+        # All elements are expected to respond to <tt>to_xml</tt>, if any of
+        # them does not an exception is raised.
+        #
+        # The root node reflects the class name of the first element in plural
+        # if all elements belong to the same type and that's not <tt>Hash</tt>.
+        # Otherwise the root element is "records".
+        #
+        # Root children have as node name the one of the root singularized.
+        #
+        # Example:
+        #
+        #   [{:foo => 1, :bar => 2}, {:baz => 3}].to_xml
+        #
+        #   <?xml version="1.0" encoding="UTF-8"?>
+        #   <records type="array">
+        #     <record>
+        #       <bar type="integer">2</bar>
+        #       <foo type="integer">1</foo>
+        #     </record>
+        #     <record>
+        #       <baz type="integer">3</baz>
+        #     </record>
+        #   </records>
+        #
+        # The +options+ hash is passed downwards:
+        #
+        #   [Message.find(:first)].to_xml(:skip_types => true)
+        #
+        #   <?xml version="1.0" encoding="UTF-8"?>
+        #   <messages>
+        #     <message>
+        #       <created-at>2008-03-07T09:58:18+01:00</created-at>
+        #       <id>1</id>
+        #       <name>1</name>
+        #       <updated-at>2008-03-07T09:58:18+01:00</updated-at>
+        #       <user-id>1</user-id>
+        #     </message>
+        #   </messages>
+        #
         def to_xml(options = {})
           raise "Not all elements respond to to_xml" unless all? { |e| e.respond_to? :to_xml }
 

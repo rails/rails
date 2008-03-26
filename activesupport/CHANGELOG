@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve documentation. [Radar, Jan De Poorter, chuyeow, xaviershay, danger, miloops, Xavier Noria,  Sunny Ripert]
+
 * Ensure that TimeWithZone#to_yaml works when passed a YAML::Emitter.  [rick]
 
 * Ensure correct TimeWithZone#to_date [Geoff Buesing]

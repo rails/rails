@@ -1,13 +1,38 @@
 class Module
-  # Return the module which contains this one; if this is a root module, such as
-  # +::MyModule+, then Object is returned.
+  # Returns the module which contains this one according to its name.
+  #
+  #   module M
+  #     module N
+  #     end
+  #   end
+  #   X = M::N
+  #   
+  #   p M::N.parent # => M
+  #   p X.parent    # => M
+  #
+  # The parent of top-level and anonymous modules is Object.
+  #
+  #   p M.parent          # => Object
+  #   p Module.new.parent # => Object
+  #
   def parent
     parent_name = name.split('::')[0..-2] * '::'
     parent_name.empty? ? Object : parent_name.constantize
   end
 
-  # Return all the parents of this module, ordered from nested outwards. The
-  # receiver is not contained within the result.
+  # Returns all the parents of this module according to its name, ordered from
+  # nested outwards. The receiver is not contained within the result.
+  #
+  #   module M
+  #     module N
+  #     end
+  #   end
+  #   X = M::N
+  #   
+  #   p M.parents    # => [Object]
+  #   p M::N.parents # => [M, Object]
+  #   p X.parents    # => [M, Object]
+  #
   def parents
     parents = []
     parts = name.split('::')[0..-2]
@@ -20,7 +45,7 @@ class Module
   end
 
   if RUBY_VERSION < '1.9'
-    # Return the constants that have been defined locally by this object and
+    # Returns the constants that have been defined locally by this object and
     # not in an ancestor. This method is exact if running under Ruby 1.9. In
     # previous versions it may miss some constants if their definition in some
     # ancestor is identical to their definition in the receiver.

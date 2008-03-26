@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve documentation. [Radar, Jan De Poorter, chuyeow, xaviershay, danger, miloops, Xavier Noria,  Sunny Ripert]
+
 * Fixed that FormHelper#radio_button would produce invalid ids #11298 [harlancrystal]
 
 * Added :confirm option to submit_tag #11415 [miloops]

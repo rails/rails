@@ -1,5 +1,10 @@
 class Time
-  def to_json(options = nil) #:nodoc:
+  # Returns a JSON string representing the time.
+  #
+  # ==== Example:
+  #   Time.utc(2005,2,1,15,15,10).to_json
+  #   # => 2005/02/01 15:15:10 +0000"
+  def to_json(options = nil)
     %("#{strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)}")
   end
 end

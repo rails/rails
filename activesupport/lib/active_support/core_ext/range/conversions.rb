@@ -13,7 +13,12 @@ module ActiveSupport #:nodoc:
             alias_method :to_s, :to_formatted_s
           end
         end
-
+        # Gives a human readable format of the range.
+        #
+        # Example: 
+        # 
+        # >> [1..100].to_formatted_s
+        # => "1..100"
         def to_formatted_s(format = :default)
           RANGE_FORMATS[format] ? RANGE_FORMATS[format].call(first, last) : to_default_s
         end

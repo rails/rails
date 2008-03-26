@@ -91,13 +91,30 @@ module ActiveRecord
   #
   # The Rails package has several tools to help create and apply migrations.
   #
-  # To generate a new migration, use <tt>script/generate migration MyNewMigration</tt>
+  # To generate a new migration, you can use 
+  #   script/generate migration MyNewMigration
+  #
   # where MyNewMigration is the name of your migration. The generator will
-  # create a file <tt>nnn_my_new_migration.rb</tt> in the <tt>db/migrate/</tt>
+  # create an empty migration file <tt>nnn_my_new_migration.rb</tt> in the <tt>db/migrate/</tt>
   # directory where <tt>nnn</tt> is the next largest migration number.
+  #
   # You may then edit the <tt>self.up</tt> and <tt>self.down</tt> methods of
   # MyNewMigration.
   #
+  # There is a special syntactic shortcut to generate migrations that add fields to a table.
+  #   script/generate migration add_fieldname_to_tablename fieldname:string
+  #
+  # This will generate the file <tt>nnn_add_fieldname_to_tablename</tt>, which will look like this:
+  #   class AddFieldnameToTablename < ActiveRecord::Migration
+  #     def self.up
+  #       add_column :tablenames, :fieldname, :string
+  #     end
+  # 
+  #     def self.down
+  #       remove_column :tablenames, :fieldname
+  #     end
+  #   end
+  # 
   # To run migrations against the currently configured database, use
   # <tt>rake db:migrate</tt>. This will update the database by running all of the
   # pending migrations, creating the <tt>schema_info</tt> table if missing.
