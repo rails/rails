@@ -115,17 +115,17 @@ module ActiveRecord
           unless through_records.empty?
             source = reflection.source_reflection.name
             through_records.first.class.preload_associations(through_records, source)
-            through_records.compact.each do |through_record|
+            through_records.each do |through_record|
               add_preloaded_record_to_collection(id_to_record_map[through_record[through_primary_key].to_i],
                                                  reflection.name, through_record.send(source))
             end
-          end          
-        else          
+          end
+        else
           records.each {|record| record.send("set_#{reflection.name}_target", nil)}
 
 
           set_association_single_records(id_to_record_map, reflection.name, find_associated_records(ids, reflection, preload_options), reflection.primary_key_name)
-        end                                       
+        end
       end
 
       def preload_has_many_association(records, reflection, preload_options={})
@@ -140,7 +140,7 @@ module ActiveRecord
           unless through_records.empty?
             source = reflection.source_reflection.name
             through_records.first.class.preload_associations(through_records, source)
-            through_records.compact.each do |through_record|
+            through_records.each do |through_record|
               add_preloaded_records_to_collection(id_to_record_map[through_record[through_primary_key].to_i],
                                                  reflection.name, through_record.send(source))
             end
@@ -159,11 +159,12 @@ module ActiveRecord
           interface = reflection.source_reflection.options[:foreign_type]
           preload_options = {:conditions => ["#{interface} = ?", reflection.options[:source_type]]}
 
+          records.compact!
           records.first.class.preload_associations(records, through_association, preload_options)
 
           # Dont cache the association - we would only be caching a subset
           through_records = []
-          records.compact.each do |record|
+          records.each do |record|
             proxy = record.send(through_association)
 
             if proxy.respond_to?(:target)
@@ -173,11 +174,13 @@ module ActiveRecord
               through_records << proxy if proxy
             end
           end
-          through_records = through_records.flatten
+          through_records.flatten!
         else
           records.first.class.preload_associations(records, through_association)
-          through_records = records.compact.map {|record| record.send(through_association)}.flatten
+          through_records = records.map {|record| record.send(through_association)}.flatten
         end
+        through_records.compact!
+        through_records
       end
 
       # FIXME: quoting

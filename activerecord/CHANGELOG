@@ -1,5 +1,7 @@
 *SVN*
 
+* More efficient association preloading code that compacts a through_records array in a central location.  Closes #11427 [danger]
+
 * Improve documentation. [Radar, Jan De Poorter, chuyeow, xaviershay, danger, miloops, Xavier Noria,  Sunny Ripert]
 
 * Fixed that ActiveRecord#Base.find_or_create/initialize would not honor attr_protected/accessible when used with a hash #11422 [miloops]
