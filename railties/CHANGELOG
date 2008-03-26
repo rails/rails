@@ -2,19 +2,19 @@
 
 * Improve documentation. [Radar, Jan De Poorter, chuyeow, xaviershay, danger, miloops, Xavier Noria,  Sunny Ripert]
 
-* Added config.time_zone = 'UTC' as a commented-out option in the default environment.rb [Geoff Buesing]
+* Added config.time_zone = 'UTC' in the default environment.rb [Geoff Buesing]
 
-* Adding rake tasks time:zones:all, time:zones:us and time:zones:local for finding time zone names for config.time_zone option [Geoff Buesing]
+* Added rake tasks time:zones:all, time:zones:us and time:zones:local for finding time zone names for config.time_zone option [Geoff Buesing]
+
+* Add config.time_zone for configuring the default Time.zone value.  #10982 [Geoff Buesing]
 
 * Added support for installing plugins hosted at git repositories #11294 [danger]
 
 * Fixed that script/generate would not look for plugin generators in plugin_paths #11000 [glv]
 
-* Fix database rake tasks to work with charset/collation and show proper error messages on failure. Closes #11301 [matt]
+* Fixed database rake tasks to work with charset/collation and show proper error messages on failure. Closes #11301 [matt]
 
-* add a -e/--export to script/plugin install, uses svn export. #10847 [jon@blankpad.net)]
-
-* Add config.time_zone for configuring the default Time.zone value.  #10982 [Geoff Buesing]
+* Added a -e/--export to script/plugin install, uses svn export. #10847 [jon@blankpad.net)]
 
 * Reshuffle load order so that routes and observers are initialized after plugins and app initializers.  Closes #10980 [rick]
 
