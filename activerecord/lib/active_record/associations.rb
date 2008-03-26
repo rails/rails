@@ -1727,36 +1727,19 @@ module ActiveRecord
               end
 
               super(reflection.klass)
+              @join_dependency    = join_dependency
               @parent             = parent
               @reflection         = reflection
               @aliased_prefix     = "t#{ join_dependency.joins.size }"
-              @aliased_table_name = table_name #.tr('.', '_') # start with the table name, sub out any .'s
               @parent_table_name  = parent.active_record.table_name
-
-              if !parent.table_joins.blank? && parent.table_joins.to_s.downcase =~ %r{join(\s+\w+)?\s+#{aliased_table_name.downcase}\son}
-                join_dependency.table_aliases[aliased_table_name] += 1
+              @aliased_table_name = aliased_table_name_for(table_name)
+              
+              if reflection.macro == :has_and_belongs_to_many
+                @aliased_join_table_name = aliased_table_name_for(reflection.options[:join_table], "_join")
               end
-
-              unless join_dependency.table_aliases[aliased_table_name].zero?
-                # if the table name has been used, then use an alias
-                @aliased_table_name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}"
-                table_index = join_dependency.table_aliases[aliased_table_name]
-                join_dependency.table_aliases[aliased_table_name] += 1
-                @aliased_table_name = @aliased_table_name[0..active_record.connection.table_alias_length-3] + "_#{table_index+1}" if table_index > 0
-              else
-                join_dependency.table_aliases[aliased_table_name] += 1
-              end
-
-              if reflection.macro == :has_and_belongs_to_many || (reflection.macro == :has_many && reflection.options[:through])
-                @aliased_join_table_name = reflection.macro == :has_and_belongs_to_many ? reflection.options[:join_table] : reflection.through_reflection.klass.table_name
-                unless join_dependency.table_aliases[aliased_join_table_name].zero?
-                  @aliased_join_table_name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}_join"
-                  table_index = join_dependency.table_aliases[aliased_join_table_name]
-                  join_dependency.table_aliases[aliased_join_table_name] += 1
-                  @aliased_join_table_name = @aliased_join_table_name[0..active_record.connection.table_alias_length-3] + "_#{table_index+1}" if table_index > 0
-                else
-                  join_dependency.table_aliases[aliased_join_table_name] += 1
-                end
+        
+              if reflection.macro == :has_many && reflection.options[:through]
+                @aliased_join_table_name = aliased_table_name_for(reflection.through_reflection.klass.table_name, "_join")
               end
             end
 
@@ -1893,6 +1876,25 @@ module ActiveRecord
             end
 
             protected
+            
+              def aliased_table_name_for(name, suffix = nil)
+                if !parent.table_joins.blank? && parent.table_joins.to_s.downcase =~ %r{join(\s+\w+)?\s+#{name.downcase}\son}
+                  @join_dependency.table_aliases[name] += 1
+                end
+
+                unless @join_dependency.table_aliases[name].zero?
+                  # if the table name has been used, then use an alias
+                  name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}#{suffix}"
+                  table_index = @join_dependency.table_aliases[name]
+                  @join_dependency.table_aliases[name] += 1
+                  name = name[0..active_record.connection.table_alias_length-3] + "_#{table_index+1}" if table_index > 0
+                else
+                  @join_dependency.table_aliases[name] += 1
+                end
+
+                name
+              end
+              
               def pluralize(table_name)
                 ActiveRecord::Base.pluralize_table_names ? table_name.to_s.pluralize : table_name
               end

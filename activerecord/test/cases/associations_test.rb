@@ -551,7 +551,8 @@ end
 
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects,
-           :developers_projects, :topics, :authors, :comments, :author_addresses
+           :developers_projects, :topics, :authors, :comments, :author_addresses,
+           :people, :posts
 
   def setup
     Client.destroyed_client_ids.clear
@@ -1317,6 +1318,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_dynamic_find_all_order_should_override_association_limit_for_through
     assert_equal 4, authors(:david).limited_comments.find(:all, :conditions => "comments.type = 'SpecialComment'", :limit => 9_000).length
     assert_equal 4, authors(:david).limited_comments.find_all_by_type('SpecialComment', :limit => 9_000).length
+  end
+  
+  def test_find_all_include_over_the_same_table_for_through
+    assert_equal 2, people(:michael).posts.find(:all, :include => :people).length
   end
 
 end

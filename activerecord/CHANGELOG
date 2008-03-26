@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix duplicate table alias error when including an association with a has_many :through association on the same join table.  Closes #7310 [cavalle]
+
 * More efficient association preloading code that compacts a through_records array in a central location.  Closes #11427 [danger]
 
 * Improve documentation. [Radar, Jan De Poorter, chuyeow, xaviershay, danger, miloops, Xavier Noria,  Sunny Ripert]
