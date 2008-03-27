@@ -130,8 +130,26 @@ uses_mocha "Plugin Tests" do
       end
       assert plugin.loaded?
     end
+    
+    def test_should_make_about_yml_available_as_about_method_on_plugin
+      plugin = plugin_for(@valid_plugin_path)
+      assert_equal "Plugin Author", plugin.about['author']
+      assert_equal "1.0.0", plugin.about['version']
+    end
+    
+    def test_should_return_empty_hash_for_about_if_about_yml_is_missing
+      assert_equal({}, plugin_for(about_yml_plugin_path('plugin_without_about_yaml')).about)
+    end
+    
+    def test_should_return_empty_hash_for_about_if_about_yml_is_malformed
+      assert_equal({}, plugin_for(about_yml_plugin_path('bad_about_yml')).about)
+    end
   
     private
+  
+      def about_yml_plugin_path(name)
+        File.join(File.dirname(__FILE__), 'fixtures', 'about_yml_plugins', name)
+      end
   
       def plugin_for(path)
         Rails::Plugin.new(path)

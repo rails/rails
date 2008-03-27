@@ -1,5 +1,11 @@
 *SVN*
 
+* Added Plugin#about method to programmatically access the about.yml in a plugin #10979 [lazyatom]
+
+    plugin = Rails::Plugin.new(path_to_my_plugin)
+    plugin.about["author"] # => "James Adam"
+    plugin.about["url"] # => "http://interblah.net"
+
 * Improve documentation. [Radar, Jan De Poorter, chuyeow, xaviershay, danger, miloops, Xavier Noria,  Sunny Ripert]
 
 * Added config.time_zone = 'UTC' in the default environment.rb [Geoff Buesing]

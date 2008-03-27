@@ -1,5 +1,4 @@
 module Rails
-
   # The Plugin class should be an object which provides the following methods:
   #
   # * +name+       - used during initialisation to order the plugin (based on name and
@@ -11,6 +10,12 @@ module Rails
   # These methods are expected by the Rails::Plugin::Locator and Rails::Plugin::Loader classes.
   # The default implementation returns the <tt>lib</tt> directory as its </tt>load_paths</tt>, 
   # and evaluates <tt>init.rb</tt> when <tt>load</tt> is called.
+  #
+  # You can also inspect the about.yml data programmatically:
+  #
+  #   plugin = Rails::Plugin.new(path_to_my_plugin)
+  #   plugin.about["author"] # => "James Adam"
+  #   plugin.about["url"] # => "http://interblah.net"
   class Plugin
     include Comparable
     
@@ -18,8 +23,8 @@ module Rails
     
     def initialize(directory)
       @directory = directory
-      @name = File.basename(@directory) rescue nil
-      @loaded = false
+      @name      = File.basename(@directory) rescue nil
+      @loaded    = false
     end
     
     def valid?
@@ -47,8 +52,19 @@ module Rails
     def <=>(other_plugin)
       name <=> other_plugin.name
     end
+
+    def about
+      @about ||= load_about_information
+    end
     
     private
+      def load_about_information
+        about_yml_path = File.join(@directory, "about.yml")
+        parsed_yml = File.exist?(about_yml_path) ? YAML.load(File.read(about_yml_path)) : {}
+        parsed_yml || {}
+      rescue Exception
+        {}
+      end
 
       def report_nonexistant_or_empty_plugin!
         raise LoadError, "Can not find the plugin named: #{name}"

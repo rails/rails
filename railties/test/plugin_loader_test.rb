@@ -14,6 +14,8 @@ uses_mocha "Plugin Loader Tests" do
       @valid_plugin_path = plugin_fixture_path('default/stubby')
       @empty_plugin_path = plugin_fixture_path('default/empty')
       
+      @failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
+      
       @loader = Rails::Plugin::Loader.new(@initializer)
     end
 
@@ -39,19 +41,16 @@ uses_mocha "Plugin Loader Tests" do
     end
     
     def test_should_find_all_availble_plugins_and_return_as_all_plugins
-      failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.all_plugins, failure_tip      
+      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.all_plugins, @failure_tip      
     end
 
     def test_should_return_all_plugins_as_plugins_when_registered_plugin_list_is_untouched
-      failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.plugins, failure_tip
+      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.plugins, @failure_tip
     end
     
     def test_should_return_all_plugins_as_plugins_when_registered_plugin_list_is_nil
       @configuration.plugins = nil
-      failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.plugins, failure_tip
+      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.plugins, @failure_tip
     end
 
     def test_should_return_specific_plugins_named_in_config_plugins_array_if_set
@@ -68,26 +67,22 @@ uses_mocha "Plugin Loader Tests" do
     
     def test_should_load_all_plugins_in_natural_order_when_all_is_used
       only_load_the_following_plugins! [:all]
-      failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.plugins, failure_tip
+      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.plugins, @failure_tip
     end
     
     def test_should_load_specified_plugins_in_order_and_then_all_remaining_plugins_when_all_is_used
       only_load_the_following_plugins! [:stubby, :acts_as_chunky_bacon, :all]
-      failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-      assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :plugin_with_no_lib_dir], @loader.plugins, failure_tip
+      assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :plugin_with_no_lib_dir], @loader.plugins, @failure_tip
     end
     
     def test_should_be_able_to_specify_loading_of_plugins_loaded_after_all
       only_load_the_following_plugins!  [:stubby, :all, :acts_as_chunky_bacon]
-      failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-      assert_plugins [:stubby, :a, :plugin_with_no_lib_dir, :acts_as_chunky_bacon], @loader.plugins, failure_tip
+      assert_plugins [:stubby, :a, :plugin_with_no_lib_dir, :acts_as_chunky_bacon], @loader.plugins, @failure_tip
     end
 
     def test_should_accept_plugin_names_given_as_strings
       only_load_the_following_plugins! ['stubby', 'acts_as_chunky_bacon', :a, :plugin_with_no_lib_dir]
-      failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-      assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :plugin_with_no_lib_dir], @loader.plugins, failure_tip
+      assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :plugin_with_no_lib_dir], @loader.plugins, @failure_tip
     end
     
     def test_should_add_plugin_load_paths_to_global_LOAD_PATH_array
