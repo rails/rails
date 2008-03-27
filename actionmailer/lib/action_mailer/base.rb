@@ -40,10 +40,14 @@ module ActionMailer #:nodoc:
   # * <tt>content_type</tt> - Specify the content type of the message. Defaults to <tt>text/plain</tt>.
   # * <tt>headers</tt> - Specify additional headers to be set for the message, e.g. <tt>headers 'X-Mail-Count' => 107370</tt>.
   #
+  # When a <tt>headers 'return-path'</tt> is specified, that value will be used as the 'envelope from'
+  # address. Setting this is useful when you want delivery notifications sent to a different address than
+  # the one in <tt>from</tt>.
+  #
   # The <tt>body</tt> method has special behavior. It takes a hash which generates an instance variable
   # named after each key in the hash containing the value that that key points to.
   #
-  # So, for example, <tt>body "account" => recipient</tt> would result
+  # So, for example, <tt>body :account => recipient</tt> would result
   # in an instance variable <tt>@account</tt> with the value of <tt>recipient</tt> being accessible in the 
   # view.
   #
@@ -590,14 +594,16 @@ module ActionMailer #:nodoc:
       def perform_delivery_smtp(mail)
         destinations = mail.destinations
         mail.ready_to_send
+        sender = mail['return-path'] || mail.from
 
         Net::SMTP.start(smtp_settings[:address], smtp_settings[:port], smtp_settings[:domain], 
             smtp_settings[:user_name], smtp_settings[:password], smtp_settings[:authentication]) do |smtp|
-          smtp.sendmail(mail.encoded, mail.from, destinations)
+          smtp.sendmail(mail.encoded, sender, destinations)
         end
       end
 
       def perform_delivery_sendmail(mail)
+        sendmail_settings[:arguments] += " -f \"#{mail['return-path']}\"" if mail['return-path']
         IO.popen("#{sendmail_settings[:location]} #{sendmail_settings[:arguments]}","w+") do |sm|
           sm.print(mail.encoded.gsub(/\r/, ''))
           sm.flush
