@@ -97,4 +97,24 @@ module Rails
          end
       end               
   end
+
+  # This Plugin subclass represents a Gem plugin. It behaves exactly like a
+  # "traditional" Rails plugin, but doesn't expose any additional load paths,
+  # since RubyGems has already taken care of things.
+  class GemPlugin < Plugin
+
+    # Initialize this plugin from a Gem::Specification.
+    def initialize(spec)
+      super(File.join(spec.full_gem_path, "rails"))
+      @name = spec.name
+    end
+
+    def valid?
+      true
+    end
+
+    def load_paths
+      []
+    end
+  end
 end

@@ -72,6 +72,7 @@ module Rails
       Rails.configuration = configuration
 
       check_ruby_version
+      install_gem_spec_stubs
       set_load_path
       
       require_frameworks
@@ -116,6 +117,26 @@ module Rails
     # from the `rails` program as well without duplication.
     def check_ruby_version
       require 'ruby_version_check'
+    end
+
+    # If Rails is vendored and RubyGems is available, install stub GemSpecs
+    # for Rails, ActiveSupport, ActiveRecord, ActionPack, ActionMailer, and
+    # ActiveResource. This allows Gem plugins to depend on Rails even when
+    # the Gem version of Rails shouldn't be loaded.
+    def install_gem_spec_stubs
+      if Rails.vendor_rails?
+        begin; require "rubygems"; rescue LoadError; return; end
+
+        stubs = %w(rails activesupport activerecord actionpack actionmailer activeresource)
+        stubs.reject! { |s| Gem.loaded_specs.key?(s) }
+
+        stubs.each do |stub|
+          Gem.loaded_specs[stub] = Gem::Specification.new do |s|
+            s.name = stub
+            s.version = Rails::VERSION::STRING
+          end
+        end
+      end
     end
 
     # Set the <tt>$LOAD_PATH</tt> based on the value of
@@ -666,7 +687,9 @@ module Rails
       end
 
       def default_plugin_locators
-        [Plugin::FileSystemLocator]
+        locators = []
+        locators << Plugin::GemLocator if defined? Gem
+        locators << Plugin::FileSystemLocator
       end
 
       def default_plugin_loader
