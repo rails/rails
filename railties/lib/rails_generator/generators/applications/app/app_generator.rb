@@ -155,8 +155,6 @@ class AppGenerator < Rails::Generator::Base
     test/fixtures
     test/functional
     test/integration
-    test/mocks/development
-    test/mocks/test
     test/unit
     vendor
     vendor/plugins

@@ -1,5 +1,7 @@
 *SVN*
 
+* Stop adding the antiquated test/mocks/* directories and only add them to the path if they're still there for legacy reasons [DHH]
+
 * Added that gems can now be plugins if they include rails/init.rb #11444 [jbarnette]
 
 * Added Plugin#about method to programmatically access the about.yml in a plugin #10979 [lazyatom]
