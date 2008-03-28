@@ -558,6 +558,41 @@ class BaseTest < Test::Unit::TestCase
     assert_raises(ActiveResource::ResourceConflict) { Person.create(:name => 'Rick') }
   end
 
+  def test_clone
+   matz = Person.find(1)
+   matz_c = matz.clone
+   assert matz_c.new?
+   matz.attributes.each do |k, v|
+     assert_equal v, matz_c.send(k) if k != Person.primary_key
+   end
+ end
+
+ def test_nested_clone
+   addy = StreetAddress.find(1, :params => {:person_id => 1})
+   addy_c = addy.clone
+   assert addy_c.new?
+   addy.attributes.each do |k, v|
+     assert_equal v, addy_c.send(k) if k != StreetAddress.primary_key
+   end
+   assert_equal addy.prefix_options, addy_c.prefix_options
+ end
+
+ def test_complex_clone
+   matz = Person.find(1)
+   matz.address = StreetAddress.find(1, :params => {:person_id => matz.id})
+   matz.non_ar_hash = {:not => "an ARes instance"}
+   matz.non_ar_arr = ["not", "ARes"]
+   matz_c = matz.clone
+   assert matz_c.new?
+   assert_raises(NoMethodError) {matz_c.address}
+   assert_equal matz.non_ar_hash, matz_c.non_ar_hash
+   assert_equal matz.non_ar_arr, matz_c.non_ar_arr
+
+   # Test that actual copy, not just reference copy
+   matz.non_ar_hash[:not] = "changed"
+   assert_not_equal matz.non_ar_hash, matz_c.non_ar_hash
+ end
+
   def test_update
     matz = Person.find(:first)
     matz.name = "David"

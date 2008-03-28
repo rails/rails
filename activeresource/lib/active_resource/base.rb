@@ -606,6 +606,43 @@ module ActiveResource
       load(attributes)
     end
 
+    # Returns a clone of the resource that hasn't been assigned an id yet and
+    # is treated as a new resource.
+    #
+    #  ryan = Person.find(1)
+    #  not_ryan = ryan.clone
+    #  not_ryan.new?  # => true
+    #
+    # Any active resource member attributes will NOT be cloned, though all other
+    # attributes are.  This is to prevent the conflict between any prefix_options
+    # that refer to the original parent resource and the newly cloned parent
+    # resource that does not exist.
+    #
+    #  ryan = Person.find(1)
+    #  ryan.address = StreetAddress.find(1, :person_id => ryan.id)
+    #  ryan.hash = {:not => "an ARes instance"}
+    #
+    #  not_ryan = ryan.clone
+    #  not_ryan.new?            # => true
+    #  not_ryan.address         # => NoMethodError
+    #  not_ryan.hash            # => {:not => "an ARes instance"}
+    #
+    def clone
+      # Clone all attributes except the pk and any nested ARes
+      attrs = self.attributes.reject {|k,v| k == self.class.primary_key || v.is_a?(ActiveResource::Base)}.inject({}) do |attrs, (k, v)|
+        attrs[k] = v.clone
+        attrs
+      end
+      # Form the new resource - bypass initialize of resource with 'new' as that will call 'load' which
+      # attempts to convert hashes into member objects and arrays into collections of objects.  We want
+      # the raw objects to be cloned so we bypass load by directly setting the attributes hash.
+      resource = self.class.new({})
+      resource.prefix_options = self.prefix_options
+      resource.send :instance_variable_set, '@attributes', attrs
+      resource
+    end
+
+
     # A method to determine if the resource a new object (i.e., it has not been POSTed to the remote service yet).
     #
     # ==== Examples
