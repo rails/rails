@@ -312,6 +312,17 @@ uses_tzinfo 'TimeWithZoneTest' do
         assert_equal Time.utc(1999, 12, 31, 19), mtime.time
       end
     end
+    
+    def test_marshal_dump_and_load_with_tzinfo_identifier
+      silence_warnings do # silence warnings raised by tzinfo gem
+        twz = ActiveSupport::TimeWithZone.new(@utc, TZInfo::Timezone.get('America/New_York'))
+        marshal_str = Marshal.dump(twz)
+        mtime = Marshal.load(marshal_str)
+        assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
+        assert_equal 'America/New_York', mtime.time_zone.name
+        assert_equal Time.utc(1999, 12, 31, 19), mtime.time
+      end
+    end
       
     def test_method_missing_with_non_time_return_value
       silence_warnings do # silence warnings raised by tzinfo gem
