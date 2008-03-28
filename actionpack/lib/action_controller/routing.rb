@@ -160,6 +160,24 @@ module ActionController
   #   map.geocode 'geocode/:postalcode', :controller => 'geocode',
   #               :action => 'show', :requirements => { :postalcode => /\d{5}(-\d{4})?/ }
   #
+  # Formats can include the 'ignorecase' and 'extended syntax' regular
+  # expression modifiers:
+  #
+  #   map.geocode 'geocode/:postalcode', :controller => 'geocode',
+  #               :action => 'show', :postalcode => /hx\d\d\s\d[a-z]{2}/i
+  #
+  #   map.geocode 'geocode/:postalcode', :controller => 'geocode',
+  #               :action => 'show',:requirements => {
+  #                 :postalcode => /# Postcode format
+  #                                 \d{5} #Prefix
+  #                                 (-\d{4})? #Suffix
+  #                                 /x
+  #               }
+  #
+  # Using the multiline match modifier will raise an ArgumentError.
+  # Encoding regular expression modifiers are silently ignored. The
+  # match will always use the default encoding or ASCII.
+  #
   # == Route globbing
   #
   # Specifying <tt>*[string]</tt> as part of a rule like:

@@ -16,6 +16,10 @@ module ActionController
         Regexp.new "(.*?)(#{separators.source}|$)"
       end
 
+      def multiline_regexp?(expression)
+        expression.options & Regexp::MULTILINE == Regexp::MULTILINE
+      end
+
       # Accepts a "route path" (a string defining a route), and returns the array
       # of segments that corresponds to it. Note that the segment array is only
       # partially initialized--the defaults and requirements, for instance, need
@@ -98,6 +102,9 @@ module ActionController
             raise TypeError, "#{key}: requirements on a path segment must be regular expressions" unless requirement.is_a?(Regexp)
             if requirement.source =~ %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
               raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
+            end
+            if multiline_regexp?(requirement)
+              raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
             end
             segment.regexp = requirement
           else

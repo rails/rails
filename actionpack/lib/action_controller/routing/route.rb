@@ -62,7 +62,7 @@ module ActionController
       def generation_requirements
         requirement_conditions = requirements.collect do |key, req|
           if req.is_a? Regexp
-            value_regexp = Regexp.new "\\A#{req.source}\\Z"
+            value_regexp = Regexp.new "\\A#{req.to_s}\\Z"
             "hash[:#{key}] && #{value_regexp.inspect} =~ options[:#{key}]"
           else
             "hash[:#{key}] == #{req.inspect}"

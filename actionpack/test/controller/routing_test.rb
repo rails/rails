@@ -936,6 +936,16 @@ class DynamicSegmentTest < Test::Unit::TestCase
     a_segment.key = :action
     assert a_segment.optionality_implied?
   end
+
+  def test_modifiers_must_be_handled_sensibly
+    a_segment = ROUTING::DynamicSegment.new
+    a_segment.regexp = /david|jamis/i
+    assert_equal "((?i-mx:david|jamis))stuff", a_segment.build_pattern('stuff')
+    a_segment.regexp = /david|jamis/x
+    assert_equal "((?x-mi:david|jamis))stuff", a_segment.build_pattern('stuff')
+    a_segment.regexp = /david|jamis/
+    assert_equal "(david|jamis)stuff", a_segment.build_pattern('stuff')
+  end
 end
 
 class ControllerSegmentTest < Test::Unit::TestCase
@@ -1723,7 +1733,7 @@ class RouteSetTest < Test::Unit::TestCase
       end
     end
   end
-  
+
   def test_non_path_route_requirements_match_all
     set.draw do |map|
       map.connect 'page/37s', :controller => 'pages', :action => 'show', :name => /(jamis|david)/
@@ -2110,6 +2120,138 @@ class RouteSetTest < Test::Unit::TestCase
       end
     end
   end
+
+  def test_route_requirements_with_unsupported_regexp_options_must_error
+    assert_raises ArgumentError do
+      set.draw do |map|
+        map.connect 'page/:name', :controller => 'pages',
+          :action => 'show',
+          :requirements => {:name => /(david|jamis)/m}
+      end
+    end
+  end
+
+  def test_route_requirements_with_supported_options_must_not_error
+    assert_nothing_raised do
+      set.draw do |map|
+        map.connect 'page/:name', :controller => 'pages',
+          :action => 'show',
+          :requirements => {:name => /(david|jamis)/i}
+      end
+    end
+    assert_nothing_raised do
+      set.draw do |map|
+        map.connect 'page/:name', :controller => 'pages',
+          :action => 'show',
+          :requirements => {:name => / # Desperately overcommented regexp
+                                      ( #Either
+                                       david #The Creator
+                                      | #Or
+                                        jamis #The Deployer
+                                      )/x}
+      end
+    end
+  end
+
+  def test_route_requirement_recognize_with_ignore_case
+    set.draw do |map|
+      map.connect 'page/:name', :controller => 'pages',
+        :action => 'show',
+        :requirements => {:name => /(david|jamis)/i}
+    end
+    assert_equal({:controller => 'pages', :action => 'show', :name => 'jamis'}, set.recognize_path('/page/jamis'))
+    assert_raises ActionController::RoutingError do
+      set.recognize_path('/page/davidjamis')
+    end
+    assert_equal({:controller => 'pages', :action => 'show', :name => 'DAVID'}, set.recognize_path('/page/DAVID'))
+  end
+
+  def test_route_requirement_generate_with_ignore_case
+    set.draw do |map|
+      map.connect 'page/:name', :controller => 'pages',
+        :action => 'show',
+        :requirements => {:name => /(david|jamis)/i}
+    end
+    url = set.generate({:controller => 'pages', :action => 'show', :name => 'david'})
+    assert_equal "/page/david", url
+    assert_raises ActionController::RoutingError do
+      url = set.generate({:controller => 'pages', :action => 'show', :name => 'davidjamis'})
+    end
+    url = set.generate({:controller => 'pages', :action => 'show', :name => 'JAMIS'})
+    assert_equal "/page/JAMIS", url
+  end
+
+  def test_route_requirement_recognize_with_extended_syntax
+    set.draw do |map|
+      map.connect 'page/:name', :controller => 'pages',
+        :action => 'show',
+        :requirements => {:name => / # Desperately overcommented regexp
+                                    ( #Either
+                                     david #The Creator
+                                    | #Or
+                                      jamis #The Deployer
+                                    )/x}
+    end
+    assert_equal({:controller => 'pages', :action => 'show', :name => 'jamis'}, set.recognize_path('/page/jamis'))
+    assert_equal({:controller => 'pages', :action => 'show', :name => 'david'}, set.recognize_path('/page/david'))
+    assert_raises ActionController::RoutingError do
+      set.recognize_path('/page/david #The Creator')
+    end
+    assert_raises ActionController::RoutingError do
+      set.recognize_path('/page/David')
+    end
+  end
+
+  def test_route_requirement_generate_with_extended_syntax
+    set.draw do |map|
+      map.connect 'page/:name', :controller => 'pages',
+        :action => 'show',
+        :requirements => {:name => / # Desperately overcommented regexp
+                                    ( #Either
+                                     david #The Creator
+                                    | #Or
+                                      jamis #The Deployer
+                                    )/x}
+    end
+    url = set.generate({:controller => 'pages', :action => 'show', :name => 'david'})
+    assert_equal "/page/david", url
+    assert_raises ActionController::RoutingError do
+      url = set.generate({:controller => 'pages', :action => 'show', :name => 'davidjamis'})
+    end
+    assert_raises ActionController::RoutingError do
+      url = set.generate({:controller => 'pages', :action => 'show', :name => 'JAMIS'})
+    end
+  end
+
+  def test_route_requirement_generate_with_xi_modifiers
+    set.draw do |map|
+      map.connect 'page/:name', :controller => 'pages',
+        :action => 'show',
+        :requirements => {:name => / # Desperately overcommented regexp
+                                    ( #Either
+                                     david #The Creator
+                                    | #Or
+                                      jamis #The Deployer
+                                    )/xi}
+    end
+    url = set.generate({:controller => 'pages', :action => 'show', :name => 'JAMIS'})
+    assert_equal "/page/JAMIS", url
+  end
+
+  def test_route_requirement_recognize_with_xi_modifiers
+    set.draw do |map|
+      map.connect 'page/:name', :controller => 'pages',
+        :action => 'show',
+        :requirements => {:name => / # Desperately overcommented regexp
+                                    ( #Either
+                                     david #The Creator
+                                    | #Or
+                                      jamis #The Deployer
+                                    )/xi}
+    end
+    assert_equal({:controller => 'pages', :action => 'show', :name => 'JAMIS'}, set.recognize_path('/page/JAMIS'))
+  end
+
   
 end
 
@@ -2190,7 +2332,7 @@ class RoutingTest < Test::Unit::TestCase
     ActionController::Routing::Routes.install_helpers c
     assert c.ancestors.include?(h)
   end
-  
+
 end
 
 uses_mocha 'route loading' do

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for regexp flags like ignoring case in the :requirements part of routes declarations #11421 [NeilW]
+
 * Fixed that ActionController::Base#read_multipart would fail if boundary was exactly 10240 bytes #10886 [ariejan]
 
 * Fixed HTML::Tokenizer (used in sanitize helper) didn't handle unclosed CDATA tags #10071 [esad, packagethief]
