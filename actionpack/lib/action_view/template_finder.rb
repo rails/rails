@@ -131,15 +131,20 @@ module ActionView #:nodoc:
     #   # => "rhtml"
     #
     def pick_template_extension(template_path)
-      find_template_extension_from_handler(template_path) || find_template_extension_from_first_render
+      if extension = find_template_extension_from_handler(template_path, @template.template_format) || find_template_extension_from_first_render
+        extension
+      elsif @template.template_format == :js && extension = find_template_extension_from_handler(template_path, :html)
+        @template.template_format = :html
+        extension
+      end
     end
 
-    def find_template_extension_from_handler(template_path)
-      formatted_template_path = "#{template_path}.#{@template.template_format}"
+    def find_template_extension_from_handler(template_path, template_format = @template.template_format)
+      formatted_template_path = "#{template_path}.#{template_format}"
 
       view_paths.each do |path|
         if (extensions = @@file_extension_cache[path][formatted_template_path]).any?
-          return "#{@template.template_format}.#{extensions.first}"
+          return "#{template_format}.#{extensions.first}"
         elsif (extensions = @@file_extension_cache[path][template_path]).any?
           return extensions.first.to_s
         end
