@@ -349,9 +349,15 @@ module Rails
       end
     end
 
+    # Sets the default value for Time.zone, and turns on ActiveRecord time_zone_aware_attributes.
+    # If assigned value cannot be matched to a TimeZone, an exception will be raised.
     def initialize_time_zone
       if configuration.time_zone
-        Time.zone_default = TimeZone[configuration.time_zone]
+        zone_default = TimeZone[configuration.time_zone]
+        unless zone_default
+          raise "Value assigned to config.time_zone not recognized. Run `rake -D time` for a list of tasks for finding appropriate time zone names."
+        end
+        Time.zone_default = zone_default
         if configuration.frameworks.include?(:active_record)
           ActiveRecord::Base.time_zone_aware_attributes = true
           ActiveRecord::Base.default_timezone = :utc

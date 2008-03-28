@@ -9,20 +9,21 @@ task :secret do
   puts Rails::SecretKeyGenerator.new(ENV['ID']).generate_secret
 end
 
+require 'active_support'
 namespace :time do
   namespace :zones do
     desc 'Displays names of all time zones recognized by the Rails TimeZone class, grouped by offset. Results can be filtered with optional OFFSET parameter, e.g., OFFSET=-6'
-    task :all => :environment do
+    task :all do
       build_time_zone_list(:all)
     end
     
     desc 'Displays names of US time zones recognized by the Rails TimeZone class, grouped by offset. Results can be filtered with optional OFFSET parameter, e.g., OFFSET=-6'
-    task :us => :environment do
+    task :us do
       build_time_zone_list(:us_zones)
     end
     
     desc 'Displays names of time zones recognized by the Rails TimeZone class with the same offset as the system local time'
-    task :local => :environment do
+    task :local do
       build_time_zone_list(:all, Time.now.beginning_of_year.utc_offset)
     end
     

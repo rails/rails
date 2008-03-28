@@ -1,5 +1,7 @@
 *SVN*
 
+* Rails::Initializer#initialize_time_zone raises an error if value assigned to config.time_zone is not recognized. Rake time zone tasks only require ActiveSupport instead of entire environment [Geoff Buesing]
+
 * Stop adding the antiquated test/mocks/* directories and only add them to the path if they're still there for legacy reasons [DHH]
 
 * Added that gems can now be plugins if they include rails/init.rb #11444 [jbarnette]
