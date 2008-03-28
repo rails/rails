@@ -585,7 +585,6 @@ module ActionController
             else
               params[name] = [content]
             end
-            break if buf.size == 0
             break if content_length == -1
           end
           raise EOFError, "bad boundary end of body part" unless boundary_end=~/--/

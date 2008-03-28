@@ -601,7 +601,7 @@ class UrlEncodedRequestParameterParsingTest < Test::Unit::TestCase
       "ie_products[string]" => [ UploadedStringIO.new("Microsoft") ],
       "ie_products[file]" => [ ie_file ],
       "text_part" => [non_file_text_part]
-    }
+      }
 
     expected_output =  {
       "something" => "",
@@ -744,6 +744,25 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
     assert_equal 'contents', file.read
   end
 
+  def test_boundary_problem_file
+    params = process('boundary_problem_file')
+    assert_equal %w(file foo), params.keys.sort
+
+    file = params['file']
+    foo  = params['foo']
+    
+    if RUBY_VERSION > '1.9'
+      assert_kind_of File, file
+    else
+      assert_kind_of Tempfile, file
+    end
+    
+    assert_equal 'file.txt', file.original_filename
+    assert_equal "text/plain", file.content_type
+    
+    assert_equal 'bar', foo
+  end
+  
   def test_large_text_file
     params = process('large_text_file')
     assert_equal %w(file foo), params.keys.sort
