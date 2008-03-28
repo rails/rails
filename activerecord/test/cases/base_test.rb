@@ -1,6 +1,8 @@
 require "cases/helper"
+require 'models/author' 
 require 'models/topic'
 require 'models/reply'
+require 'models/category' 
 require 'models/company'
 require 'models/customer'
 require 'models/developer'
@@ -11,6 +13,7 @@ require 'models/column_name'
 require 'models/subscriber'
 require 'models/keyboard'
 require 'models/post'
+require 'models/comment'
 require 'models/minimalistic'
 require 'models/warehouse_thing'
 require 'rexml/document'
@@ -72,7 +75,7 @@ class TopicWithProtectedContentAndAccessibleAuthorName < ActiveRecord::Base
 end
 
 class BasicsTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things'
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors
 
   def test_table_exists
     assert !NonExistentTable.table_exists?

@@ -13,7 +13,7 @@ require 'models/pet'
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers,
-            :owners, :pets
+            :owners, :pets, :author_favorites
 
   def test_loading_with_one_association
     posts = Post.find(:all, :include => :comments)

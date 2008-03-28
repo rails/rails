@@ -1328,7 +1328,7 @@ end
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
-           :developers_projects, :computers, :authors, :posts, :tags, :taggings
+           :developers_projects, :computers, :authors, :posts, :tags, :taggings, :comments
 
   def test_belongs_to
     Client.find(3).firm.name

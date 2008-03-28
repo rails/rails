@@ -25,7 +25,7 @@ Rake can be found at http://rake.rubyforge.org
 Unit tests are located in test/cases directory. If you only want to run a single test suite, 
 you can do so with:
 
-   rake test_mysql TEST=base_test.rb
+   rake test_mysql TEST=test/cases/base_test.rb
    
 That'll run the base suite using the MySQL-Ruby adapter.
 
