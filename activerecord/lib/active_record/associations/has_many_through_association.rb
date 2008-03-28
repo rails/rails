@@ -286,23 +286,35 @@ module ActiveRecord
 
         def build_conditions
           association_conditions = @reflection.options[:conditions]
-          through_conditions = @reflection.through_reflection.options[:conditions]
+          through_conditions = build_through_conditions
           source_conditions = @reflection.source_reflection.options[:conditions]
           uses_sti = !@reflection.through_reflection.klass.descends_from_active_record?
 
           if association_conditions || through_conditions || source_conditions || uses_sti
             all = []
 
-            [association_conditions, through_conditions, source_conditions].each do |conditions|
+            [association_conditions, source_conditions].each do |conditions|
               all << interpolate_sql(sanitize_sql(conditions)) if conditions
             end
 
+            all << through_conditions  if through_conditions
             all << build_sti_condition if uses_sti
 
             all.map { |sql| "(#{sql})" } * ' AND '
           end
         end
 
+        def build_through_conditions
+          conditions = @reflection.through_reflection.options[:conditions]
+          if conditions.is_a?(Hash)
+            interpolate_sql(sanitize_sql(conditions)).gsub(
+              @reflection.quoted_table_name,
+              @reflection.through_reflection.quoted_table_name)
+          elsif conditions
+            interpolate_sql(sanitize_sql(conditions))
+          end
+        end
+        
         def build_sti_condition
           "#{@reflection.through_reflection.quoted_table_name}.#{@reflection.through_reflection.klass.inheritance_column} = #{@reflection.klass.quote_value(@reflection.through_reflection.klass.name.demodulize)}"
         end

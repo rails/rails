@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that has_many :through would ignore the hash conditions #11447 [miloops]
+
 * Fix issue where the :uniq option of a has_many :through association is ignored when find(:all) is called.  Closes #9407 [cavalle]
 
 * Fix duplicate table alias error when including an association with a has_many :through association on the same join table.  Closes #7310 [cavalle]

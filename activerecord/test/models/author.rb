@@ -35,6 +35,11 @@ class Author < ActiveRecord::Base
   has_many :hello_post_comments, :through => :hello_posts, :source => :comments
   has_many :posts_with_no_comments, :class_name => 'Post', :conditions => 'comments.id is null', :include => :comments
 
+  has_many :hello_posts_with_hash_conditions, :class_name => "Post",
+:conditions => {:body => 'hello'}
+  has_many :hello_post_comments_with_hash_conditions, :through =>
+:hello_posts_with_hash_conditions, :source => :comments
+
   has_many :other_posts,          :class_name => "Post"
   has_many :posts_with_callbacks, :class_name => "Post", :before_add => :log_before_adding,
            :after_add     => :log_after_adding,

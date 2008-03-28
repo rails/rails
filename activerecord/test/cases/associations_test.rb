@@ -1324,6 +1324,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, people(:michael).posts.find(:all, :include => :people).length
   end
 
+  def test_has_many_through_respects_hash_conditions
+    assert_equal authors(:david).hello_posts, authors(:david).hello_posts_with_hash_conditions
+    assert_equal authors(:david).hello_post_comments, authors(:david).hello_post_comments_with_hash_conditions
+  end
+
 end
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
