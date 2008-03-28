@@ -13,9 +13,17 @@ class RequestTest < Test::Unit::TestCase
     assert_equal '1.2.3.4', @request.remote_ip
 
     @request.env['HTTP_CLIENT_IP'] = '2.3.4.5'
+    assert_equal '1.2.3.4', @request.remote_ip
+
+    @request.remote_addr = '192.168.0.1'
     assert_equal '2.3.4.5', @request.remote_ip
     @request.env.delete 'HTTP_CLIENT_IP'
 
+    @request.remote_addr = '1.2.3.4'
+    @request.env['HTTP_X_FORWARDED_FOR'] = '3.4.5.6'
+    assert_equal '1.2.3.4', @request.remote_ip
+
+    @request.remote_addr = '127.0.0.1'
     @request.env['HTTP_X_FORWARDED_FOR'] = '3.4.5.6'
     assert_equal '3.4.5.6', @request.remote_ip
 
@@ -35,10 +43,23 @@ class RequestTest < Test::Unit::TestCase
     assert_equal '3.4.5.6', @request.remote_ip
 
     @request.env['HTTP_X_FORWARDED_FOR'] = '127.0.0.1,3.4.5.6'
-    assert_equal '127.0.0.1', @request.remote_ip
+    assert_equal '3.4.5.6', @request.remote_ip
 
     @request.env['HTTP_X_FORWARDED_FOR'] = 'unknown,192.168.0.1'
-    assert_equal '1.2.3.4', @request.remote_ip
+    assert_equal 'unknown', @request.remote_ip
+
+    @request.env['HTTP_X_FORWARDED_FOR'] = '9.9.9.9, 3.4.5.6, 10.0.0.1, 172.31.4.4'
+    assert_equal '3.4.5.6', @request.remote_ip
+
+    @request.env['HTTP_CLIENT_IP'] = '8.8.8.8'
+    e = assert_raises(ActionController::ActionControllerError) {
+      @request.remote_ip
+    }
+    assert_match /IP spoofing attack/, e.message
+    assert_match /HTTP_X_FORWARDED_FOR="9.9.9.9, 3.4.5.6, 10.0.0.1, 172.31.4.4"/, e.message
+    assert_match /HTTP_CLIENT_IP="8.8.8.8"/, e.message
+
+    @request.env.delete 'HTTP_CLIENT_IP'
     @request.env.delete 'HTTP_X_FORWARDED_FOR'
   end
 

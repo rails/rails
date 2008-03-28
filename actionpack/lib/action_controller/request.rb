@@ -124,26 +124,41 @@ module ActionController
     end
     alias xhr? :xml_http_request?
 
+    # Which IP addresses are "trusted proxies" that can be stripped from
+    # the right-hand-side of X-Forwarded-For
+    TRUSTED_PROXIES = /^127\.0\.0\.1$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\./i
+
     # Determine originating IP address.  REMOTE_ADDR is the standard
     # but will fail if the user is behind a proxy.  HTTP_CLIENT_IP and/or
-    # HTTP_X_FORWARDED_FOR are set by proxies so check for these before
-    # falling back to REMOTE_ADDR.  HTTP_X_FORWARDED_FOR may be a comma-
-    # delimited list in the case of multiple chained proxies; the first is
-    # the originating IP.
-    #
-    # Security note: do not use if IP spoofing is a concern for your
-    # application. Since remote_ip checks HTTP headers for addresses forwarded
-    # by proxies, the client may send any IP. remote_addr can't be spoofed but
-    # also doesn't work behind a proxy, since it's always the proxy's IP.
+    # HTTP_X_FORWARDED_FOR are set by proxies so check for these if
+    # REMOTE_ADDR is a proxy.  HTTP_X_FORWARDED_FOR may be a comma-
+    # delimited list in the case of multiple chained proxies; the last
+    # address which is not trusted is the originating IP.
+
     def remote_ip
-      return @env['HTTP_CLIENT_IP'] if @env.include? 'HTTP_CLIENT_IP'
+      if TRUSTED_PROXIES !~ @env['REMOTE_ADDR']
+        return @env['REMOTE_ADDR']
+      end
+
+      if @env.include? 'HTTP_CLIENT_IP'
+        if @env.include? 'HTTP_X_FORWARDED_FOR'
+          # We don't know which came from the proxy, and which from the user
+          raise ActionControllerError.new(<<EOM)
+IP spoofing attack?!
+HTTP_CLIENT_IP=#{@env['HTTP_CLIENT_IP'].inspect}
+HTTP_X_FORWARDED_FOR=#{@env['HTTP_X_FORWARDED_FOR'].inspect}
+EOM
+        end
+        return @env['HTTP_CLIENT_IP']
+      end
 
       if @env.include? 'HTTP_X_FORWARDED_FOR' then
-        remote_ips = @env['HTTP_X_FORWARDED_FOR'].split(',').reject do |ip|
-          ip.strip =~ /^unknown$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\./i
+        remote_ips = @env['HTTP_X_FORWARDED_FOR'].split(',')
+        while remote_ips.size > 1 && TRUSTED_PROXIES =~ remote_ips.last.strip
+          remote_ips.pop
         end
 
-        return remote_ips.first.strip unless remote_ips.empty?
+        return remote_ips.last.strip
       end
 
       @env['REMOTE_ADDR']
