@@ -78,6 +78,13 @@ class TokenizerTest < Test::Unit::TestCase
     assert_end
   end
 
+  def test_unterminated_cdata_tag
+    tokenize %{<content:encoded><![CDATA[ neverending...}
+    assert_next %{<content:encoded>}
+    assert_next %{<![CDATA[ neverending...}
+    assert_end
+  end
+
   def test_less_than_with_space
     tokenize %{original < hello > world}
     assert_next %{original }

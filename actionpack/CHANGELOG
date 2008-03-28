@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed HTML::Tokenizer (used in sanitize helper) didn't handle unclosed CDATA tags #10071 [esad, packagethief]
+
 * Improve documentation. [Radar, Jan De Poorter, chuyeow, xaviershay, danger, miloops, Xavier Noria,  Sunny Ripert]
 
 * Fixed that FormHelper#radio_button would produce invalid ids #11298 [harlancrystal]
