@@ -1,8 +1,8 @@
 require "cases/helper"
-require 'models/author' 
+require 'models/author'
 require 'models/topic'
 require 'models/reply'
-require 'models/category' 
+require 'models/category'
 require 'models/company'
 require 'models/customer'
 require 'models/developer'

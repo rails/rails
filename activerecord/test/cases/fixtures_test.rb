@@ -355,7 +355,7 @@ class ForeignKeyFixturesTest < ActiveRecord::TestCase
   end
 end
 
-class SetTableNameFixturesTest < ActiveRecord::TestCase
+class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class :funny_jokes => 'Joke'
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded 
