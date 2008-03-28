@@ -836,12 +836,12 @@ module ActionController #:nodoc:
         if options.nil?
           return render_for_file(default_template_name, nil, true)
         elsif !extra_options.is_a?(Hash)
-          raise RenderError, "You called render with invalid options : #{options}, #{extra_options}"
+          raise RenderError, "You called render with invalid options : #{options.inspect}, #{extra_options.inspect}"
         else
           if options == :update
             options = extra_options.merge({ :update => true })
           elsif !options.is_a?(Hash)
-            raise RenderError, "You called render with invalid options : #{options}"
+            raise RenderError, "You called render with invalid options : #{options.inspect}"
           end
         end
 
