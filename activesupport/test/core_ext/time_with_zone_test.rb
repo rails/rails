@@ -326,6 +326,13 @@ uses_tzinfo 'TimeWithZoneTest' do
       end
     end
     
+    def test_usec_returns_0_when_datetime_is_wrapped
+      silence_warnings do # silence warnings raised by tzinfo gem
+        twz = ActiveSupport::TimeWithZone.new(DateTime.civil(2000), @time_zone)
+        assert_equal 0, twz.usec
+      end
+    end
+    
     def test_utc_to_local_conversion_saves_period_in_instance_variable
       silence_warnings do # silence warnings raised by tzinfo gem
         assert_nil @twz.instance_variable_get('@period')

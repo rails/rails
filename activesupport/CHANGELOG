@@ -1,5 +1,7 @@
 *SVN*
 
+* TimeWithZone#usec returns 0 instead of error when DateTime is wrapped [Geoff Buesing]
+
 * Improve documentation. [Radar, Jan De Poorter, chuyeow, xaviershay, danger, miloops, Xavier Noria,  Sunny Ripert]
 
 * Ensure that TimeWithZone#to_yaml works when passed a YAML::Emitter.  [rick]

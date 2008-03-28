@@ -143,7 +143,7 @@ module ActiveSupport
       end
     end
     
-    %w(asctime day hour min mon sec usec wday yday year to_date).each do |name|
+    %w(asctime day hour min mon sec wday yday year to_date).each do |name|
       define_method(name) do
         time.__send__(name)
       end
@@ -151,6 +151,10 @@ module ActiveSupport
     alias_method :ctime, :asctime
     alias_method :mday, :day
     alias_method :month, :mon
+    
+    def usec
+      time.respond_to?(:usec) ? time.usec : 0
+    end
     
     %w(sunday? monday? tuesday? wednesday? thursday? friday? saturday?).each do |name|
       define_method(name) do
