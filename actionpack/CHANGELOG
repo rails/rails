@@ -1,5 +1,7 @@
 *SVN*
 
+* Avoid remote_ip spoofing.  [Brian Candler]
+
 * Correct inconsistencies in RequestForgeryProtection docs.  #11032 [mislav]
 
 * Make assert_routing aware of the HTTP method used.  #8039 [mpalmer]
