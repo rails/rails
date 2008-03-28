@@ -372,6 +372,18 @@ uses_tzinfo 'TimeWithZoneTest' do
         assert_equal ruby_19_or_greater, @twz.respond_to?(name)
       end
     end
+    
+    def test_utc_to_local_conversion_with_far_future_datetime
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal [0,0,19,31,12,2049], ActiveSupport::TimeWithZone.new(DateTime.civil(2050), @time_zone).to_a[0,6]
+      end
+    end
+
+    def test_local_to_utc_conversion_with_far_future_datetime
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_equal DateTime.civil(2050).to_f, ActiveSupport::TimeWithZone.new(nil, @time_zone, DateTime.civil(2049,12,31,19)).to_f
+      end
+    end
   end
   
   class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase

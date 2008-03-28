@@ -1,5 +1,7 @@
 *SVN*
 
+* TimeWithZone time conversions don't need to be wrapped in TimeOrDateTime, because TZInfo does this internally [Geoff Buesing]
+
 * TimeWithZone#usec returns 0 instead of error when DateTime is wrapped [Geoff Buesing]
 
 * Improve documentation. [Radar, Jan De Poorter, chuyeow, xaviershay, danger, miloops, Xavier Noria,  Sunny Ripert]

@@ -12,12 +12,12 @@ module ActiveSupport
   
     # Returns a Time or DateTime instance that represents the time in time_zone
     def time
-      @time ||= utc_to_local
+      @time ||= period.to_local(@utc)
     end
 
     # Returns a Time or DateTime instance that represents the time in UTC
     def utc
-      @utc ||= local_to_utc
+      @utc ||= period.to_utc(@time)
     end
     alias_method :comparable_time, :utc
     alias_method :getgm, :utc
@@ -239,16 +239,6 @@ module ActiveSupport
       
       def transfer_time_values_to_utc_constructor(time)
         ::Time.utc_time(time.year, time.month, time.day, time.hour, time.min, time.sec, time.respond_to?(:usec) ? time.usec : 0)
-      end
-    
-      # Replicating logic from TZInfo::Timezone#utc_to_local because we want to cache the period in an instance variable for reuse
-      def utc_to_local
-        ::TZInfo::TimeOrDateTime.wrap(utc) {|utc| period.to_local(utc)}
-      end
-      
-      # Replicating logic from TZInfo::Timezone#local_to_utc because we want to cache the period in an instance variable for reuse
-      def local_to_utc
-        ::TZInfo::TimeOrDateTime.wrap(time) {|time| period.to_utc(time)}
       end
   end
 end
