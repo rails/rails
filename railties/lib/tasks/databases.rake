@@ -104,6 +104,7 @@ namespace :db do
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
       raise "VERSION is required" unless version
       ActiveRecord::Migrator.run(:up, "db/migrate/", version)
+      Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
 
     desc 'Runs the "down" for a given migration VERSION.'
@@ -111,6 +112,7 @@ namespace :db do
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
       raise "VERSION is required" unless version
       ActiveRecord::Migrator.run(:down, "db/migrate/", version)
+      Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
     end    
   end
 
@@ -118,6 +120,7 @@ namespace :db do
   task :rollback => :environment do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
     ActiveRecord::Migrator.rollback('db/migrate/', step)
+    Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
   desc 'Drops and recreates the database from db/schema.rb for the current environment.'

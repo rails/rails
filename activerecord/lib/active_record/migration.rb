@@ -343,7 +343,7 @@ module ActiveRecord
       end
       
       def run(direction, migrations_path, target_version)
-        self.new(direction, migrations_path, target_version)
+        self.new(direction, migrations_path, target_version).run
       end
 
       def schema_info_table_name

@@ -203,8 +203,9 @@ module ActionView
 
       alias_method :tag_without_error_wrapping, :tag
       def tag(name, options)
-        if object.respond_to?("errors") && object.errors.respond_to?("on")
-          error_wrapping(tag_without_error_wrapping(name, options), object.errors.on(@method_name))
+        if object.respond_to?("errors") && object.errors.respond_to?("on") && object.errors.on(@method_name)
+          # error_wrapping(tag_without_error_wrapping(name, options), object.errors.on(@method_name))
+          tag_without_error_wrapping(name, options.merge({ "class" => options["class"] ? "#{options["class"]} errors" : 'errors' }))
         else
           tag_without_error_wrapping(name, options)
         end
@@ -212,8 +213,9 @@ module ActionView
 
       alias_method :content_tag_without_error_wrapping, :content_tag
       def content_tag(name, value, options)
-        if object.respond_to?("errors") && object.errors.respond_to?("on")
-          error_wrapping(content_tag_without_error_wrapping(name, value, options), object.errors.on(@method_name))
+        if object.respond_to?("errors") && object.errors.respond_to?("on") && object.errors.on(@method_name)
+          # error_wrapping(content_tag_without_error_wrapping(name, value, options), object.errors.on(@method_name))
+          content_tag_without_error_wrapping(name, value, options.merge({ "class" => options["class"] ? "#{options["class"]} errors" : 'errors' }))
         else
           content_tag_without_error_wrapping(name, value, options)
         end
