@@ -21,14 +21,14 @@ class TemplateFinderTest < Test::Unit::TestCase
     assert_equal ["builder", "erb", "rhtml", "rjs", "rxml", "mab"].sort,
                  ActionView::TemplateFinder.file_extension_cache[LOAD_PATH_ROOT].values.flatten.uniq.sort
 
-    assert_equal Dir.glob("#{LOAD_PATH_ROOT}/**/*.{erb,rjs,rhtml,builder,rxml,mab}").size,
+    assert_equal Dir.glob("#{LOAD_PATH_ROOT}/**/*/*.{erb,rjs,rhtml,builder,rxml,mab}").size,
                  ActionView::TemplateFinder.file_extension_cache[LOAD_PATH_ROOT].keys.size
   end
 
   def test_should_cache_dir_content_properly
     assert ActionView::TemplateFinder.processed_view_paths[LOAD_PATH_ROOT]
-    assert_equal Dir.glob("#{LOAD_PATH_ROOT}/**/*").find_all {|f| !File.directory?(f) }.size,
-                 ActionView::TemplateFinder.processed_view_paths[LOAD_PATH_ROOT].size
+    assert_equal Dir.glob("#{LOAD_PATH_ROOT}/**/*/**").find_all {|f| !File.directory?(f) }.size,
+               ActionView::TemplateFinder.processed_view_paths[LOAD_PATH_ROOT].size
   end
 
   def test_find_template_extension_from_first_render
@@ -62,7 +62,7 @@ class TemplateFinderTest < Test::Unit::TestCase
     assert_equal false, @finder.send(:file_exists?, 'baz')
     assert_equal false, @finder.send(:file_exists?, 'baz.rb')
   end
-
+  
   uses_mocha 'Template finder tests' do
     def test_should_update_extension_cache_when_template_handler_is_registered
       ActionView::TemplateFinder.expects(:update_extension_cache_for).with("funky")

@@ -238,3 +238,22 @@ class LayoutStatusIsRenderedTest < Test::Unit::TestCase
     assert_response 401
   end
 end
+
+class LayoutSymlinkedTest < LayoutTest
+  layout "symlinked/symlinked_layout"
+end
+
+class LayoutSymlinkedIsRenderedTest < Test::Unit::TestCase
+  def setup
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+  end
+
+  def test_symlinked_layout_is_rendered
+    @controller = LayoutSymlinkedTest.new
+    get :hello
+    assert_response 200
+    assert_equal "layouts/symlinked/symlinked_layout", @response.layout
+  end
+end
+    

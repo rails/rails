@@ -23,9 +23,8 @@ module ActionView #:nodoc:
       def process_view_paths(*view_paths)
         view_paths.flatten.compact.each do |dir|
           next if @@processed_view_paths.has_key?(dir)
-
           @@processed_view_paths[dir] = []
-          Dir.glob("#{dir}/**/*").each do |file|
+          Dir.glob("#{dir}/**/*/**").each do |file|
             unless File.directory?(file)
               @@processed_view_paths[dir] << file.split(dir).last.sub(/^\//, '')
 
