@@ -86,7 +86,7 @@ module Rails
         require "rubygems/dependency_list"
 
         deps = Gem::DependencyList.new
-        deps.add(*specs)
+        deps.add(*specs) unless specs.empty?
 
         deps.dependency_order.collect do |spec|
           Rails::GemPlugin.new(spec)
