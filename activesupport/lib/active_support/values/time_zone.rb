@@ -145,15 +145,20 @@ class TimeZone
   }
 
   include Comparable
-  attr_reader :name, :utc_offset
+  attr_reader :name
 
   # Create a new TimeZone object with the given name and offset. The
   # offset is the number of seconds that this time zone is offset from UTC
   # (GMT). Seconds were chosen as the offset unit because that is the unit that
   # Ruby uses to represent time zone offsets (see Time#utc_offset).
-  def initialize(name, utc_offset)
+  def initialize(name, utc_offset, tzinfo = nil)
     @name = name
     @utc_offset = utc_offset
+    @tzinfo = tzinfo
+  end
+  
+  def utc_offset
+    @utc_offset ||= tzinfo.current_period.utc_offset
   end
 
   # Returns the offset of this time zone as a formatted string, of the

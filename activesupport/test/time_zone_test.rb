@@ -192,6 +192,15 @@ class TimeZoneTest < Test::Unit::TestCase
         assert_equal Time.utc(1999,12,31,19), twz.time
       end
     end
+    
+    def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
+      silence_warnings do # silence warnings raised by tzinfo gem
+        tzinfo = TZInfo::Timezone.get('America/New_York')
+        zone = TimeZone.create(tzinfo.name, nil, tzinfo)
+        assert_equal nil, zone.instance_variable_get('@utc_offset')
+        assert_equal(-18_000, zone.utc_offset)
+      end
+    end
   end
   
   def test_formatted_offset_positive

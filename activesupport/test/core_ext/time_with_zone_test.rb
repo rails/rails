@@ -483,6 +483,34 @@ uses_tzinfo 'TimeWithZoneTest' do
       end
     end
     
+    def test_time_zone_setter_with_tzinfo_timezone_object_wraps_in_rails_time_zone
+      silence_warnings do # silence warnings raised by tzinfo gem
+        tzinfo = TZInfo::Timezone.get('America/New_York')
+        Time.zone = tzinfo
+        assert_kind_of TimeZone, Time.zone
+        assert_equal tzinfo, Time.zone.tzinfo
+        assert_equal 'America/New_York', Time.zone.name
+        assert_equal(-18_000, Time.zone.utc_offset)
+      end
+    end
+    
+    def test_time_zone_setter_with_tzinfo_timezone_identifier_does_lookup_and_wraps_in_rails_time_zone
+      silence_warnings do # silence warnings raised by tzinfo gem
+        Time.zone = 'America/New_York'
+        assert_kind_of TimeZone, Time.zone
+        assert_equal 'America/New_York', Time.zone.tzinfo.name
+        assert_equal 'America/New_York', Time.zone.name
+        assert_equal(-18_000, Time.zone.utc_offset)
+      end
+    end
+    
+    def test_time_zone_setter_with_non_identifying_argument_returns_nil
+      Time.zone = 'foo'
+      assert_equal nil, Time.zone
+      Time.zone = -15.hours
+      assert_equal nil, Time.zone
+    end
+    
     protected
       def with_env_tz(new_tz = 'US/Eastern')
         old_tz, ENV['TZ'] = ENV['TZ'], new_tz

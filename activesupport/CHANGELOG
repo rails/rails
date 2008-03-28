@@ -1,5 +1,7 @@
 *SVN*
 
+* Time.zone= accepts TZInfo::Timezone instances and Olson identifiers; wraps result in TimeZone instance [Geoff Buesing] 
+
 * TimeWithZone time conversions don't need to be wrapped in TimeOrDateTime, because TZInfo does this internally [Geoff Buesing]
 
 * TimeWithZone#usec returns 0 instead of error when DateTime is wrapped [Geoff Buesing]
