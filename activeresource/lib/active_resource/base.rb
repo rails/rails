@@ -350,7 +350,7 @@ module ActiveResource
       #
       def element_path(id, prefix_options = {}, query_options = nil)
         prefix_options, query_options = split_options(prefix_options) if query_options.nil?
-        "#{prefix(prefix_options)}#{collection_name}/#{id}.#{format.extension}#{query_string(query_options)}"
+        "#{prefix(prefix_options)}#{collection_name}/#{id}.#{format.extension}#{query_string(query_options)}"        
       end
 
       # Gets the collection path for the REST resources.  If the +query_options+ parameter is omitted, Rails
@@ -760,7 +760,7 @@ module ActiveResource
     #   that_guy.exists?
     #   # => false
     def exists?
-      !new? && self.class.exists?(id, :params => prefix_options)
+      !new? && self.class.exists?(to_param, :params => prefix_options)      
     end
 
     # A method to convert the the resource to an XML string.
@@ -807,7 +807,7 @@ module ActiveResource
     #   my_branch.name
     #   # => Wilson Road
     def reload
-      self.load(self.class.find(id, :params => @prefix_options).attributes)
+      self.load(self.class.find(to_param, :params => @prefix_options).attributes)
     end
 
     # A method to manually load attributes from a hash. Recursively loads collections of
@@ -903,7 +903,7 @@ module ActiveResource
       end
 
       def element_path(options = nil)
-        self.class.element_path(id, options || prefix_options)
+        self.class.element_path(to_param, options || prefix_options)
       end
 
       def collection_path(options = nil)

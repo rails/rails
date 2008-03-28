@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that to_param should be used and honored instead of hardcoding the id #11406 [gspiers]
+
 * Improve documentation. [Radar, Jan De Poorter, chuyeow, xaviershay, danger, miloops, Xavier Noria,  Sunny Ripert]
 
 * Use HEAD instead of GET in exists? [bscofield]
