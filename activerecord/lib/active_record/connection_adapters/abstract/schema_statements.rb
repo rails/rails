@@ -232,12 +232,20 @@ module ActiveRecord
 
       # Should not be called normally, but this operation is non-destructive.
       # The migrations module handles this automatically.
-      def initialize_schema_information
+      def initialize_schema_information(current_version=0)
         begin
-          execute "CREATE TABLE #{quote_table_name(ActiveRecord::Migrator.schema_info_table_name)} (version #{type_to_sql(:integer)})"
-          execute "INSERT INTO #{quote_table_name(ActiveRecord::Migrator.schema_info_table_name)} (version) VALUES(0)"
+          execute "CREATE TABLE #{quote_table_name(ActiveRecord::Migrator.schema_info_table_name)} (version #{type_to_sql(:string)})"
+          execute "INSERT INTO #{quote_table_name(ActiveRecord::Migrator.schema_info_table_name)} (version) VALUES(#{current_version})"
         rescue ActiveRecord::StatementInvalid
-          # Schema has been initialized
+          # Schema has been initialized, make sure version is a string
+          version_column = columns(:schema_info).detect { |c| c.name == "version" }
+          
+          # can't just alter the table, since SQLite can't deal
+          unless version_column.type == :string
+            version = ActiveRecord::Migrator.current_version
+            execute "DROP TABLE #{quote_table_name(ActiveRecord::Migrator.schema_info_table_name)}"
+            initialize_schema_information(version)
+          end
         end
       end
 

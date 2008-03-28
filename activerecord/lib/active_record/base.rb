@@ -431,7 +431,7 @@ module ActiveRecord #:nodoc:
     # adapters for, e.g., your development and test environments.
     cattr_accessor :schema_format , :instance_writer => false
     @@schema_format = :ruby
-
+    
     class << self # Class methods
       # Find operates with four different retrieval approaches:
       #

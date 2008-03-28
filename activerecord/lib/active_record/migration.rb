@@ -8,6 +8,12 @@ module ActiveRecord
     end
   end
 
+  class UnknownMigrationVersionError < ActiveRecordError #:nodoc:
+    def initialize(version)
+      super("No migration with version number #{version}")
+    end
+  end
+
   class IllegalMigrationNameError < ActiveRecordError#:nodoc:
     def initialize(name)
       super("Illegal name for migration file: #{name}\n\t(only lower case letters, numbers, and '_' allowed)")
@@ -308,8 +314,6 @@ module ActiveRecord
   class Migrator#:nodoc:
     class << self
       def migrate(migrations_path, target_version = nil)
-        Base.connection.initialize_schema_information
-
         case
           when target_version.nil?, current_version < target_version
             up(migrations_path, target_version)
@@ -319,6 +323,16 @@ module ActiveRecord
             return # You're on the right version
         end
       end
+      
+      def rollback(migrations_path, steps=1)
+        migrator = self.new(:down, migrations_path)
+        start_index = migrator.migrations.index(migrator.current_migration)
+        
+        return unless start_index
+        
+        finish = migrator.migrations[start_index + steps]
+        down(migrations_path, finish ? finish.version : 0)
+      end
 
       def up(migrations_path, target_version = nil)
         self.new(:up, migrations_path, target_version).migrate
@@ -326,6 +340,10 @@ module ActiveRecord
 
       def down(migrations_path, target_version = nil)
         self.new(:down, migrations_path, target_version).migrate
+      end
+      
+      def run(direction, migrations_path, target_version)
+        self.new(direction, migrations_path, target_version)
       end
 
       def schema_info_table_name
@@ -344,73 +362,90 @@ module ActiveRecord
 
     def initialize(direction, migrations_path, target_version = nil)
       raise StandardError.new("This database does not yet support migrations") unless Base.connection.supports_migrations?
-      @direction, @migrations_path, @target_version = direction, migrations_path, target_version
       Base.connection.initialize_schema_information
+      @direction, @migrations_path, @target_version = direction, migrations_path, target_version      
     end
 
     def current_version
       self.class.current_version
     end
+    
+    def current_migration
+      migrations.detect { |m| m.version == current_version }
+    end
+    
+    def run
+      target = migrations.detect { |m| m.version == @target_version }
+      raise UnknownMigrationVersionError.new(@target_version) if target.nil?
+      target.migrate(@direction)
+    end
 
     def migrate
-      migration_classes.each do |migration_class|
-        if reached_target_version?(migration_class.version)
-          Base.logger.info("Reached target version: #{@target_version}")
-          break
+      current = migrations.detect { |m| m.version == current_version }
+      target = migrations.detect { |m| m.version == @target_version }
+            
+      if target.nil? && !@target_version.nil? && @target_version > 0
+        raise UnknownMigrationVersionError.new(@target_version)
+      end
+      
+      start = migrations.index(current) || 0
+      finish = migrations.index(target) || migrations.size - 1      
+      runnable = migrations[start..finish]
+      
+      # skip the current migration if we're heading upwards
+      runnable.shift if up? && runnable.first == current
+      
+      # skip the last migration if we're headed down, but not ALL the way down
+      runnable.pop if down? && !target.nil?
+      
+      runnable.each do |migration|
+        Base.logger.info "Migrating to #{migration} (#{migration.version})"
+        migration.migrate(@direction)
+        set_schema_version_after_migrating(migration)
+      end
+    end
+
+    def migrations
+      @migrations ||= begin
+        files = Dir["#{@migrations_path}/[0-9]*_*.rb"]
+        
+        migrations = files.inject([]) do |klasses, file|
+          version, name = file.scan(/([0-9]+)_([_a-z0-9]*).rb/).first
+          
+          raise IllegalMigrationNameError.new(f) unless version
+          version = version.to_i
+          
+          if klasses.detect { |m| m.version == version }
+            raise DuplicateMigrationVersionError.new(version) 
+          end
+          
+          load(file)
+          
+          klasses << returning(name.camelize.constantize) do |klass|
+            class << klass; attr_accessor :version end
+            klass.version = version
+          end
         end
-
-        next if irrelevant_migration?(migration_class.version)
-
-        Base.logger.info "Migrating to #{migration_class} (#{migration_class.version})"
-        migration_class.migrate(@direction)
-        set_schema_version(migration_class.version)
+        
+        migrations = migrations.sort_by(&:version)
+        down? ? migrations.reverse : migrations
       end
     end
 
     def pending_migrations
-      migration_classes.select { |m| m.version > current_version }
+      migrations.select { |m| m.version > current_version }
     end
 
     private
-      def migration_classes
-        classes = migration_files.inject([]) do |migrations, migration_file|
-          load(migration_file)
-          version, name = migration_version_and_name(migration_file)
-          assert_unique_migration_version(migrations, version.to_i)
-          migrations << migration_class(name, version.to_i)
-        end.sort_by(&:version)
-
-        down? ? classes.reverse : classes
-      end
-
-      def assert_unique_migration_version(migrations, version)
-        if !migrations.empty? && migrations.find { |m| m.version == version }
-          raise DuplicateMigrationVersionError.new(version)
+      def set_schema_version_after_migrating(migration)
+        version = migration.version
+            
+        if down?
+          after = migrations[migrations.index(migration) + 1]
+          version = after ? after.version : 0
         end
-      end
-
-      def migration_files
-        files = Dir["#{@migrations_path}/[0-9]*_*.rb"].sort_by do |f|
-          m = migration_version_and_name(f)
-          raise IllegalMigrationNameError.new(f) unless m
-          m.first.to_i
-        end
-        down? ? files.reverse : files
-      end
-
-      def migration_class(migration_name, version)
-        klass = migration_name.camelize.constantize
-        class << klass; attr_accessor :version end
-        klass.version = version
-        klass
-      end
-
-      def migration_version_and_name(migration_file)
-        return *migration_file.scan(/([0-9]+)_([_a-z0-9]*).rb/).first
-      end
-
-      def set_schema_version(version)
-        Base.connection.update("UPDATE #{self.class.schema_info_table_name} SET version = #{down? ? version.to_i - 1 : version.to_i}")
+            
+        Base.connection.update("UPDATE #{self.class.schema_info_table_name} SET version = #{version}")
       end
 
       def up?
@@ -419,15 +454,6 @@ module ActiveRecord
 
       def down?
         @direction == :down
-      end
-
-      def reached_target_version?(version)
-        return false if @target_version == nil
-        (up? && version.to_i - 1 >= @target_version) || (down? && version.to_i <= @target_version)
-      end
-
-      def irrelevant_migration?(version)
-        (up? && version.to_i <= current_version) || (down? && version.to_i > current_version)
       end
   end
 end

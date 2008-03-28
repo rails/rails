@@ -98,13 +98,26 @@ namespace :db do
 
     desc 'Resets your database using your migrations for the current environment'
     task :reset => ["db:drop", "db:create", "db:migrate"]
+    
+    desc 'Runs the "up" for a given migration VERSION.'
+    task :up => :environment do
+      version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
+      raise "VERSION is required" unless version
+      ActiveRecord::Migrator.run(:up, "db/migrate/", version)
+    end
+
+    desc 'Runs the "down" for a given migration VERSION.'
+    task :down => :environment do
+      version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
+      raise "VERSION is required" unless version
+      ActiveRecord::Migrator.run(:down, "db/migrate/", version)
+    end    
   end
 
   desc 'Rolls the schema back to the previous version. Specify the number of steps with STEP=n'
   task :rollback => :environment do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
-    version = ActiveRecord::Migrator.current_version - step
-    ActiveRecord::Migrator.migrate('db/migrate/', version)
+    ActiveRecord::Migrator.rollback('db/migrate/', step)
   end
 
   desc 'Drops and recreates the database from db/schema.rb for the current environment.'
