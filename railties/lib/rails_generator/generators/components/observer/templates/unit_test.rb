@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '<%= '/..' * class_nesting_depth %>/../test_helper'
+require 'test_helper'
 
 class <%= class_name %>ObserverTest < Test::Unit::TestCase
   # Replace this with your real tests.
