@@ -91,7 +91,12 @@ module ActiveRecord
           old = read_attribute(attr)
 
           # Remember the original value if it's different.
-          changed_attributes[attr] = old unless old == value
+          typecasted = if column = column_for_attribute(attr)
+                         column.type_cast(value)
+                       else
+                         value
+                       end
+          changed_attributes[attr] = old unless old == typecasted
         end
 
         # Carry on.

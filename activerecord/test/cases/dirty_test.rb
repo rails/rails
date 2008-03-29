@@ -1,80 +1,77 @@
 require 'cases/helper'
+require 'models/topic'    # For booleans
+require 'models/pirate'   # For timestamps
 
-# Stub out an AR-alike.
-class DirtyTestSubject
-  def self.table_name;  'people' end
-  def self.primary_key; 'id' end
-  def self.attribute_method_suffix(*suffixes) suffixes end
+class Pirate # Just reopening it, not defining it
+  attr_accessor :detected_changes_in_after_update # Boolean for if changes are detected
+  attr_accessor :changes_detected_in_after_update # Actual changes
 
-  def initialize(attrs = {}) @attributes = attrs end
+  after_update :check_changes
 
-  def save
-    changed_attributes.clear
+private
+  # after_save/update in sweepers, observers, and the model itself
+  # can end up checking dirty status and acting on the results
+  def check_changes
+    if self.changed?
+      self.detected_changes_in_after_update = true
+      self.changes_detected_in_after_update = self.changes
+    end
   end
-
-  alias_method :save!, :save
-
-  def name; read_attribute('name') end
-  def name=(value); write_attribute('name', value) end
-  def name_was; attribute_was('name') end
-  def name_change; attribute_change('name') end
-  def name_changed?; attribute_changed?('name') end
-
-  private
-    def define_read_methods; nil end
-
-    def read_attribute(attr)
-      @attributes[attr]
-    end
-
-    def write_attribute(attr, value)
-      @attributes[attr] = value
-    end
 end
-
-# Include the module after the class is all set up.
-DirtyTestSubject.module_eval { include ActiveRecord::Dirty }
-
 
 class DirtyTest < Test::Unit::TestCase
   def test_attribute_changes
     # New record - no changes.
-    person = DirtyTestSubject.new
-    assert !person.name_changed?
-    assert_nil person.name_change
+    pirate = Pirate.new
+    assert !pirate.catchphrase_changed?
+    assert_nil pirate.catchphrase_change
 
-    # Change name.
-    person.name = 'a'
-    assert person.name_changed?
-    assert_nil person.name_was
-    assert_equal [nil, 'a'], person.name_change
+    # Change catchphrase.
+    pirate.catchphrase = 'arrr'
+    assert pirate.catchphrase_changed?
+    assert_nil pirate.catchphrase_was
+    assert_equal [nil, 'arrr'], pirate.catchphrase_change
 
     # Saved - no changes.
-    person.save!
-    assert !person.name_changed?
-    assert_nil person.name_change
+    pirate.save!
+    assert !pirate.catchphrase_changed?
+    assert_nil pirate.catchphrase_change
 
     # Same value - no changes.
-    person.name = 'a'
-    assert !person.name_changed?
-    assert_nil person.name_change
+    pirate.catchphrase = 'arrr'
+    assert !pirate.catchphrase_changed?
+    assert_nil pirate.catchphrase_change
   end
 
+  # Rewritten from original tests to use AR
   def test_object_should_be_changed_if_any_attribute_is_changed
-    person = DirtyTestSubject.new
-    assert !person.changed?
-    assert_equal [], person.changed
-    assert_equal Hash.new, person.changes
+    pirate = Pirate.new
+    assert !pirate.changed?
+    assert_equal [], pirate.changed
+    assert_equal Hash.new, pirate.changes
 
-    person.name = 'a'
-    assert person.changed?
-    assert_nil person.name_was
-    assert_equal %w(name), person.changed
-    assert_equal({'name' => [nil, 'a']}, person.changes)
+    pirate.catchphrase = 'arrr'
+    assert pirate.changed?
+    assert_nil pirate.catchphrase_was
+    assert_equal %w(catchphrase), pirate.changed
+    assert_equal({'catchphrase' => [nil, 'arrr']}, pirate.changes)
 
-    person.save
-    assert !person.changed?
-    assert_equal [], person.changed
-    assert_equal({}, person.changes)
+    pirate.save
+    assert !pirate.changed?
+    assert_equal [], pirate.changed
+    assert_equal Hash.new, pirate.changes
+  end
+
+  def test_attribute_should_be_compared_with_type_cast
+    topic = Topic.new
+    assert topic.approved?
+    assert !topic.approved_changed?
+
+    # Coming from web form.
+    params = {:topic => {:approved => 1}}
+    # In the controller.
+    topic.attributes = params[:topic]
+    assert topic.approved?
+    assert !topic.approved_changed?
   end
 end
