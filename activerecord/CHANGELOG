@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that validates_size_of :within works in associations #11295, #10019 [cavalle]
+
 * Track changes to unsaved attributes.  [Jeremy Kemper]
 
 * Switched to UTC-timebased version numbers for migrations and the schema. This will as good as eliminate the problem of multiple migrations getting the same version assigned in different branches. Also added rake db:migrate:up/down to apply individual migrations that may need to be run when you merge branches #11458 [jbarnette]

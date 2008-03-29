@@ -806,6 +806,20 @@ class ValidationsTest < ActiveRecord::TestCase
     reply = t.replies.build('title' => 'areply', 'content' => 'whateveragain')
     assert t.valid?
   end
+  
+  def test_validates_size_of_association_using_within
+    assert_nothing_raised { Topic.validates_size_of :replies, :within => 1..2 }
+    t = Topic.new('title' => 'noreplies', 'content' => 'whatever')
+    assert !t.save
+    assert t.errors.on(:replies)
+    
+    reply = t.replies.build('title' => 'areply', 'content' => 'whateveragain')
+    assert t.valid?
+    
+    2.times { t.replies.build('title' => 'areply', 'content' => 'whateveragain') }
+    assert !t.save
+    assert t.errors.on(:replies)
+  end
 
   def test_validates_length_of_nasty_params
     assert_raise(ArgumentError) { Topic.validates_length_of(:title, :minimum=>6, :maximum=>9) }

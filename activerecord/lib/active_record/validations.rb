@@ -553,9 +553,10 @@ module ActiveRecord
             too_long  = options[:too_long]  % option_value.end
 
             validates_each(attrs, options) do |record, attr, value|
-              if value.nil? or value.split(//).size < option_value.begin
+              value = value.split(//) if value.kind_of?(String)
+              if value.nil? or value.size < option_value.begin
                 record.errors.add(attr, too_short)
-              elsif value.split(//).size > option_value.end
+              elsif value.size > option_value.end
                 record.errors.add(attr, too_long)
               end
             end
@@ -569,11 +570,8 @@ module ActiveRecord
             message = (options[:message] || options[message_options[option]]) % option_value
 
             validates_each(attrs, options) do |record, attr, value|
-              if value.kind_of?(String)
-                record.errors.add(attr, message) unless !value.nil? and value.split(//).size.method(validity_checks[option])[option_value]
-              else
-                record.errors.add(attr, message) unless !value.nil? and value.size.method(validity_checks[option])[option_value]
-              end
+              value = value.split(//) if value.kind_of?(String)
+              record.errors.add(attr, message) unless !value.nil? and value.size.method(validity_checks[option])[option_value]
             end
         end
       end
