@@ -219,10 +219,7 @@
             <ul class="links">
               <li><a href="http://www.rubyonrails.org/">Ruby on Rails</a></li>
               <li><a href="http://weblog.rubyonrails.org/">Official weblog</a></li>
-              <li><a href="http://lists.rubyonrails.org/">Mailing lists</a></li>
-              <li><a href="http://wiki.rubyonrails.org/rails/pages/IRC">IRC channel</a></li>
               <li><a href="http://wiki.rubyonrails.org/">Wiki</a></li>
-              <li><a href="http://dev.rubyonrails.org/">Bug tracker</a></li>
             </ul>
           </li>
           
@@ -252,12 +249,7 @@
           <h1>Getting started</h1>
           <h2>Here&rsquo;s how to get rolling:</h2>
           
-          <ol>
-            <li>
-              <h2>Create your databases and edit <tt>config/database.yml</tt></h2>
-              <p>Rails needs to know your login and password.</p>
-            </li>
-          
+          <ol>          
             <li>
               <h2>Use <tt>script/generate</tt> to create your models and controllers</h2>
               <p>To see all available options, run it without parameters.</p>
@@ -266,6 +258,11 @@
             <li>
               <h2>Set up a default route and remove or rename this file</h2>
               <p>Routes are set up in config/routes.rb.</p>
+            </li>
+
+            <li>
+              <h2>Create your database</h2>
+              <p>Run <tt>rake db:migrate</tt> to create your database. If you're not using SQLite (the default), edit <tt>config/database.yml</tt> with your username and password.</p>
             </li>
           </ol>
         </div>
