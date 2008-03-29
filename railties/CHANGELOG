@@ -1,5 +1,7 @@
 *SVN*
 
+* Removed the default .htaccess configuration as there are so many good deployment options now (kept it as an example in README) [DHH]
+
 * config.time_zone accepts TZInfo::Timezone identifiers as well as Rails TimeZone identifiers [Geoff Buesing]
 
 * Rails::Initializer#initialize_time_zone raises an error if value assigned to config.time_zone is not recognized. Rake time zone tasks only require ActiveSupport instead of entire environment [Geoff Buesing]

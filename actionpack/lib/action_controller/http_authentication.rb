@@ -70,7 +70,7 @@ module ActionController
     #  
     # On shared hosts, Apache sometimes doesn't pass authentication headers to
     # FCGI instances. If your environment matches this description and you cannot
-    # authenticate, try this rule in public/.htaccess (replace the plain one):
+    # authenticate, try this rule in your Apache setup:
     # 
     #   RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
     module Basic

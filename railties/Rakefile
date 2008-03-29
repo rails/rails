@@ -160,7 +160,6 @@ end
 
 # Copy Ties Content -----------------------------------------------------------------------
 
-# :link_apache_config
 desc "Make copies of all the default content of ties"
 task :copy_ties_content => [ 
   :copy_rootfiles, :copy_dispatches, :copy_html_files, :copy_application,
@@ -197,8 +196,6 @@ task :copy_configs do
   
   cp "configs/routes.rb", "#{PKG_DESTINATION}/config/routes.rb"
 
-  cp "configs/apache.conf", "#{PKG_DESTINATION}/public/.htaccess"
-
   cp "configs/initializers/inflections.rb", "#{PKG_DESTINATION}/config/initializers/inflections.rb"
   cp "configs/initializers/mime_types.rb",  "#{PKG_DESTINATION}/config/initializers/mime_types.rb"
 
@@ -229,12 +226,6 @@ end
 
 task :copy_app_doc_readme do
   cp "doc/README_FOR_APP", "#{PKG_DESTINATION}/doc/README_FOR_APP"
-end
-
-task :link_apache_config do
-  chdir(File.join(PKG_DESTINATION, 'config')) {
-    ln_s "../public/.htaccess", "apache.conf"
-  }
 end
 
 def copy_with_rewritten_ruby_path(src_file, dest_file)

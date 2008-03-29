@@ -1,14 +1,14 @@
 == Welcome to Rails
 
-Rails is a web-application and persistence framework that includes everything
-needed to create database-backed web-applications according to the
-Model-View-Control pattern of separation. This pattern splits the view (also
-called the presentation) into "dumb" templates that are primarily responsible
-for inserting pre-built data in between HTML tags. The model contains the
-"smart" domain objects (such as Account, Product, Person, Post) that holds all
-the business logic and knows how to persist themselves to a database. The
-controller handles the incoming requests (such as Save New Account, Update
-Product, Show Post) by manipulating the model and directing data to the view.
+Rails is a web-application framework that includes everything needed to create 
+database-backed web applications according to the Model-View-Control pattern. 
+
+This pattern splits the view (also called the presentation) into "dumb" templates
+that are primarily responsible for inserting pre-built data in between HTML tags.
+The model contains the "smart" domain objects (such as Account, Product, Person,
+Post) that holds all the business logic and knows how to persist themselves to
+a database. The controller handles the incoming requests (such as Save New Account,
+Update Product, Show Post) by manipulating the model and directing data to the view.
 
 In Rails, the model is handled by what's called an object-relational mapping
 layer entitled Active Record. This layer allows you to present the data from
@@ -29,7 +29,6 @@ link:files/vendor/rails/actionpack/README.html.
 
 1. At the command prompt, start a new Rails application using the <tt>rails</tt> command
    and your application name. Ex: rails myapp
-   (If you've downloaded Rails in a complete tgz or zip, this step is already done)
 2. Change directory into myapp and start the web server: <tt>script/server</tt> (run with --help for options)
 3. Go to http://localhost:3000/ and get "Welcome aboard: You're riding the Rails!"
 4. Follow the guidelines to start developing your application
@@ -60,6 +59,50 @@ for production.
 But of course its also possible to run Rails on any platform that supports FCGI.
 Apache, LiteSpeed, IIS are just a few. For more information on FCGI,
 please visit: http://wiki.rubyonrails.com/rails/pages/FastCGI
+
+
+== Apache .htaccess example
+
+# General Apache options
+AddHandler fastcgi-script .fcgi
+AddHandler cgi-script .cgi
+Options +FollowSymLinks +ExecCGI
+
+# If you don't want Rails to look in certain directories,
+# use the following rewrite rules so that Apache won't rewrite certain requests
+# 
+# Example:
+#   RewriteCond %{REQUEST_URI} ^/notrails.*
+#   RewriteRule .* - [L]
+
+# Redirect all requests not available on the filesystem to Rails
+# By default the cgi dispatcher is used which is very slow
+# 
+# For better performance replace the dispatcher with the fastcgi one
+#
+# Example:
+#   RewriteRule ^(.*)$ dispatch.fcgi [QSA,L]
+RewriteEngine On
+
+# If your Rails application is accessed via an Alias directive,
+# then you MUST also set the RewriteBase in this htaccess file.
+#
+# Example:
+#   Alias /myrailsapp /path/to/myrailsapp/public
+#   RewriteBase /myrailsapp
+
+RewriteRule ^$ index.html [QSA]
+RewriteRule ^([^.]+)$ $1.html [QSA]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ dispatch.cgi [QSA,L]
+
+# In case Rails experiences terminal errors
+# Instead of displaying this message you can supply a file here which will be rendered instead
+# 
+# Example:
+#   ErrorDocument 500 /500.html
+
+ErrorDocument 500 "<h2>Application error</h2>Rails application failed to start properly"
 
 
 == Debugging Rails
