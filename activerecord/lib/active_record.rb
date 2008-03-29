@@ -55,6 +55,7 @@ require 'active_record/schema'
 require 'active_record/calculations'
 require 'active_record/serialization'
 require 'active_record/attribute_methods'
+require 'active_record/dirty'
 
 ActiveRecord::Base.class_eval do
   extend ActiveRecord::QueryCache
@@ -73,6 +74,7 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Calculations
   include ActiveRecord::Serialization
   include ActiveRecord::AttributeMethods
+  include ActiveRecord::Dirty
 end
 
 require 'active_record/connection_adapters/abstract_adapter'
