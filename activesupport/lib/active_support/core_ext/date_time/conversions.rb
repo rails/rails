@@ -5,13 +5,14 @@ module ActiveSupport #:nodoc:
       module Conversions
         def self.included(base) #:nodoc:
           base.class_eval do
+            alias_method :to_default_s, :to_s if instance_methods.include?(:to_s)
             alias_method :to_s, :to_formatted_s
             alias_method :default_inspect, :inspect
             alias_method :inspect, :readable_inspect
 
             # Ruby 1.9 has DateTime#to_time which internally relies on Time. We define our own #to_time which allows
             # DateTimes outside the range of what can be created with Time.
-            remove_method :to_time if base.instance_methods.include?(:to_time)
+            remove_method :to_time if instance_methods.include?(:to_time)
           end
         end
 

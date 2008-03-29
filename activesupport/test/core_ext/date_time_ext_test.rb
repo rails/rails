@@ -3,13 +3,13 @@ require 'abstract_unit'
 class DateTimeExtCalculationsTest < Test::Unit::TestCase
   def test_to_s
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
-    assert_match(/^2005-02-21T14:30:00(Z|\+00:00)$/,  datetime.to_s)
     assert_equal "2005-02-21 14:30:00",               datetime.to_s(:db)
     assert_equal "14:30",                             datetime.to_s(:time)
     assert_equal "21 Feb 14:30",                      datetime.to_s(:short)
     assert_equal "February 21, 2005 14:30",           datetime.to_s(:long)
     assert_equal "Mon, 21 Feb 2005 14:30:00 +0000",   datetime.to_s(:rfc822)
     assert_equal "February 21st, 2005 14:30",         datetime.to_s(:long_ordinal)
+    assert_match(/^2005-02-21T14:30:00(Z|\+00:00)$/,  datetime.to_s)
   end
 
   def test_readable_inspect
