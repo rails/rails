@@ -565,6 +565,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert(parrots(:louis).treasures.include?(treasures(:sapphire)))
   end
 
+  # FIXME: first assertion fails on Ruby 1.9
   def test_strips_DEFAULTS_key
     assert_raise(StandardError) { parrots(:DEFAULTS) }
 
