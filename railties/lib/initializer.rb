@@ -102,6 +102,11 @@ module Rails
 
       load_gems
       load_plugins
+
+      # pick up any gems that plugins depend on
+      add_gem_load_paths
+      load_gems
+
       load_application_initializers
 
       # the framework is now fully initialized

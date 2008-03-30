@@ -35,7 +35,7 @@ module Rails
     end
 
     def load
-      return if @load_paths_added == false
+      return if @loaded || @load_paths_added == false
       require(@lib || @name)
       @loaded = true
     rescue LoadError
