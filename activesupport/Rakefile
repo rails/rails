@@ -170,6 +170,6 @@ namespace :tzinfo do
   end
   
   def excluded_classes
-    %w(country country_index_definition country_info country_timezone tzdataparser)
+    %w(country country_index_definition country_info country_timezone timezone_index_definition tzdataparser)
   end
 end

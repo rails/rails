@@ -1,5 +1,7 @@
 *SVN*
 
+* TZInfo: Removing unneeded TimezoneIndexDefinition, since we're not including Indexes::Timezones [Geoff Buesing] 
+
 * Removing unnecessary uses_tzinfo helper from tests, given that TZInfo is now bundled [Geoff Buesing]
 
 * Bundling abbreviated version of TZInfo gem 0.3.8: only the classes and zone definitions required to support Rails time zone features are included. If a recent version of the full TZInfo gem is installed, this will take precedence over the bundled version [Geoff Buesing]
