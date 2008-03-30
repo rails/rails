@@ -73,18 +73,20 @@ class RailsFCGIHandler
     def process_each_request(provider)
       cgi = nil
 
-      provider.each_cgi do |cgi|
-        process_request(cgi)
+      catch :exit do
+        provider.each_cgi do |cgi|
+          process_request(cgi)
 
-        case when_ready
-          when :reload
-            reload!
-          when :restart
-            close_connection(cgi)
-            restart!
-          when :exit
-            close_connection(cgi)
-            break
+          case when_ready
+            when :reload
+              reload!
+            when :restart
+              close_connection(cgi)
+              restart!
+            when :exit
+              close_connection(cgi)
+              throw :exit
+          end
         end
       end
     rescue SignalException => signal
@@ -93,7 +95,7 @@ class RailsFCGIHandler
     end
 
     def process_request(cgi)
-      @when_ready = nil
+      @processing, @when_ready = true, nil
       gc_countdown
 
       with_signal_handler 'USR1' do
@@ -105,6 +107,8 @@ class RailsFCGIHandler
           dispatcher_error error, 'unhandled dispatch error'
         end
       end
+    ensure
+      @processing = false
     end
 
     def logger
@@ -158,17 +162,29 @@ class RailsFCGIHandler
 
     def exit_handler(signal)
       dispatcher_log :info, "asked to stop ASAP"
-      @when_ready = :exit
+      if @processing
+        @when_ready = :exit
+      else
+        throw :exit
+      end
     end
 
     def reload_handler(signal)
       dispatcher_log :info, "asked to reload ASAP"
-      @when_ready = :reload
+      if @processing
+        @when_ready = :reload
+      else
+        reload!
+      end
     end
 
     def restart_handler(signal)
       dispatcher_log :info, "asked to restart ASAP"
-      @when_ready = :restart
+      if @processing
+        @when_ready = :restart
+      else
+        restart!
+      end
     end
 
     def restart!
