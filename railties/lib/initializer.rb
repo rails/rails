@@ -7,6 +7,7 @@ require 'railties_path'
 require 'rails/version'
 require 'rails/plugin/locator'
 require 'rails/plugin/loader'
+require 'rails/gem_dependency'
 
 
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
@@ -77,6 +78,7 @@ module Rails
       
       require_frameworks
       set_autoload_paths
+      add_gem_load_paths
       add_plugin_load_paths
       load_environment
 
@@ -98,8 +100,8 @@ module Rails
 
       add_support_load_paths
 
+      load_gems
       load_plugins
-
       load_application_initializers
 
       # the framework is now fully initialized
@@ -185,6 +187,17 @@ module Rails
       plugin_loader.add_plugin_load_paths
     end
 
+    def add_gem_load_paths
+      unless @configuration.gems.empty?
+        require "rubygems"
+        @configuration.gems.each &:add_load_paths
+      end
+    end
+
+    def load_gems
+      @configuration.gems.each &:load
+    end
+
     # Loads all plugins in <tt>config.plugin_paths</tt>.  <tt>plugin_paths</tt>
     # defaults to <tt>vendor/plugins</tt> but may also be set to a list of
     # paths, such as
@@ -229,7 +242,11 @@ module Rails
 
     def load_observers
       if configuration.frameworks.include?(:active_record)
-        ActiveRecord::Base.instantiate_observers
+        if @configuration.gems.any? { |g| !g.loaded? }
+          puts "Unable to instantiate observers, some gems that this application depends on are missing.  Run 'rake gems:install'"
+        else
+          ActiveRecord::Base.instantiate_observers
+        end
       end
     end
 
@@ -494,6 +511,25 @@ module Rails
     # a sub class would have access to fine grained modification of the loading behavior. See
     # the implementation of Rails::Plugin::Loader for more details.
     attr_accessor :plugin_loader
+
+    # An array of gems that this rails application depends on.  Rails will automatically load
+    # these gems during installation, and allow you to install any missing gems with:
+    #
+    #   rake gems:install
+    #
+    # You can add with the #gem method.
+    attr_accessor :gems
+
+    # Adds a single Gem dependency to the rails application.
+    #
+    #   # gem 'aws-s3', '>= 0.4.0'
+    #   # require 'aws/s3'
+    #   config.gem 'aws-s3', :lib => 'aws/s3', :version => '>= 0.4.0', \
+    #     :source => "http://code.whytheluckystiff.net"
+    #
+    def gem(name, options = {})
+      @gems << Rails::GemDependency.new(name, options)
+    end
     
     # Deprecated options:
     def breakpoint_server(_ = nil)
@@ -529,6 +565,7 @@ module Rails
       self.plugin_locators              = default_plugin_locators
       self.plugin_loader                = default_plugin_loader
       self.database_configuration_file  = default_database_configuration_file
+      self.gems                         = default_gems
 
       for framework in default_frameworks
         self.send("#{framework}=", Rails::OrderedOptions.new)
@@ -711,6 +748,10 @@ module Rails
         else
           :memory_store
         end
+      end
+      
+      def default_gems
+        []
       end
   end
 end

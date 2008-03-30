@@ -1,5 +1,22 @@
 *SVN*
 
+* Added config.gem for specifying which gems are required by the application, as well as rake tasks for installing and freezing gems. [rick]
+
+  Rails::Initializer.run do |config|
+    config.gems "bj"
+    config.gems "hpricot", :version => '0.6', :source => "http://code.whytheluckystiff.net"
+    config.gems "aws-s3", :lib => "aws/s3"
+  end
+  
+  # List required gems.
+  rake gems
+  
+  # Install all required gems:
+  rake gems:install
+  
+  # Unpack specified gem to vendor/gems/gem_name-x.x.x
+  rake gems:unpack GEM=bj
+
 * Removed the default .htaccess configuration as there are so many good deployment options now (kept it as an example in README) [DHH]
 
 * config.time_zone accepts TZInfo::Timezone identifiers as well as Rails TimeZone identifiers [Geoff Buesing]
