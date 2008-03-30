@@ -1,5 +1,7 @@
 *SVN*
 
+* TZInfo: Removing unneeded TimezoneProxy class [Geoff Buesing]
+
 * TZInfo: Removing unneeded TimezoneIndexDefinition, since we're not including Indexes::Timezones [Geoff Buesing] 
 
 * Removing unnecessary uses_tzinfo helper from tests, given that TZInfo is now bundled [Geoff Buesing]
