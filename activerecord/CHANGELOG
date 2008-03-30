@@ -1,5 +1,7 @@
 *SVN*
 
+* Removing unnecessary uses_tzinfo helper from tests, given that TZInfo is now bundled [Geoff Buesing]
+
 * Fixed that validates_size_of :within works in associations #11295, #10019 [cavalle]
 
 * Track changes to unsaved attributes.  [Jeremy Kemper]

@@ -1,205 +1,202 @@
 require 'abstract_unit'
 
 class TimeZoneTest < Test::Unit::TestCase
+    
+  def test_utc_to_local
+    silence_warnings do # silence warnings raised by tzinfo gem
+      zone = TimeZone['Eastern Time (US & Canada)']
+      assert_equal Time.utc(1999, 12, 31, 19), zone.utc_to_local(Time.utc(2000, 1)) # standard offset -0500
+      assert_equal Time.utc(2000, 6, 30, 20), zone.utc_to_local(Time.utc(2000, 7)) # dst offset -0400
+    end
+  end
+
+  def test_local_to_utc
+    silence_warnings do # silence warnings raised by tzinfo gem
+      zone = TimeZone['Eastern Time (US & Canada)']
+      assert_equal Time.utc(2000, 1, 1, 5), zone.local_to_utc(Time.utc(2000, 1)) # standard offset -0500
+      assert_equal Time.utc(2000, 7, 1, 4), zone.local_to_utc(Time.utc(2000, 7)) # dst offset -0400
+    end
+  end
   
-  uses_tzinfo 'TestTimeZoneCalculations' do
-    
-    def test_utc_to_local
+  def test_period_for_local
+    silence_warnings do # silence warnings raised by tzinfo gem
+      zone = TimeZone['Eastern Time (US & Canada)']
+      assert_instance_of TZInfo::TimezonePeriod, zone.period_for_local(Time.utc(2000))
+    end
+  end
+  
+  TimeZone::MAPPING.keys.each do |name|
+    define_method("test_map_#{name.downcase.gsub(/[^a-z]/, '_')}_to_tzinfo") do
       silence_warnings do # silence warnings raised by tzinfo gem
+        zone = TimeZone[name]
+        assert zone.tzinfo.respond_to?(:period_for_local)
+      end
+    end
+  end
+
+  def test_from_integer_to_map
+    assert_instance_of TimeZone, TimeZone[-28800] # PST
+  end
+
+  def test_from_duration_to_map
+    assert_instance_of TimeZone, TimeZone[-480.minutes] # PST
+  end
+
+  TimeZone.all.each do |zone|
+    name = zone.name.downcase.gsub(/[^a-z]/, '_')
+    define_method("test_from_#{name}_to_map") do
+      silence_warnings do # silence warnings raised by tzinfo gem
+        assert_instance_of TimeZone, TimeZone[zone.name]
+      end
+    end
+
+    define_method("test_utc_offset_for_#{name}") do
+      silence_warnings do # silence warnings raised by tzinfo gem
+        period = zone.tzinfo.period_for_utc(Time.utc(2006,1,1,0,0,0))
+        assert_equal period.utc_offset, zone.utc_offset
+      end
+    end
+  end
+
+  uses_mocha 'TestTimeZoneNowAndToday' do
+    def test_now
+      with_env_tz 'US/Eastern' do
+        Time.stubs(:now).returns(Time.local(2000))
         zone = TimeZone['Eastern Time (US & Canada)']
-        assert_equal Time.utc(1999, 12, 31, 19), zone.utc_to_local(Time.utc(2000, 1)) # standard offset -0500
-        assert_equal Time.utc(2000, 6, 30, 20), zone.utc_to_local(Time.utc(2000, 7)) # dst offset -0400
+        assert_instance_of ActiveSupport::TimeWithZone, zone.now
+        assert_equal Time.utc(2000,1,1,5), zone.now.utc
+        assert_equal Time.utc(2000), zone.now.time
+        assert_equal zone, zone.now.time_zone
+      end
+    end
+    
+    def test_now_enforces_spring_dst_rules
+      with_env_tz 'US/Eastern' do
+        Time.stubs(:now).returns(Time.local(2006,4,2,2)) # 2AM springs forward to 3AM
+        zone = TimeZone['Eastern Time (US & Canada)']
+        assert_equal Time.utc(2006,4,2,3), zone.now.time
+        assert_equal true, zone.now.dst?
+      end
+    end
+    
+    def test_now_enforces_fall_dst_rules
+      with_env_tz 'US/Eastern' do
+        Time.stubs(:now).returns(Time.at(1162098000)) # equivalent to 1AM DST
+        zone = TimeZone['Eastern Time (US & Canada)']
+        assert_equal Time.utc(2006,10,29,1), zone.now.time
+        assert_equal true, zone.now.dst?
       end
     end
   
-    def test_local_to_utc
-      silence_warnings do # silence warnings raised by tzinfo gem
-        zone = TimeZone['Eastern Time (US & Canada)']
-        assert_equal Time.utc(2000, 1, 1, 5), zone.local_to_utc(Time.utc(2000, 1)) # standard offset -0500
-        assert_equal Time.utc(2000, 7, 1, 4), zone.local_to_utc(Time.utc(2000, 7)) # dst offset -0400
-      end
+    def test_today
+      Time.stubs(:now).returns(Time.utc(2000, 1, 1, 4, 59, 59)) # 1 sec before midnight Jan 1 EST
+      assert_equal Date.new(1999, 12, 31), TimeZone['Eastern Time (US & Canada)'].today
+      Time.stubs(:now).returns(Time.utc(2000, 1, 1, 5)) # midnight Jan 1 EST
+      assert_equal Date.new(2000, 1, 1), TimeZone['Eastern Time (US & Canada)'].today
+      Time.stubs(:now).returns(Time.utc(2000, 1, 2, 4, 59, 59)) # 1 sec before midnight Jan 2 EST
+      assert_equal Date.new(2000, 1, 1), TimeZone['Eastern Time (US & Canada)'].today
+      Time.stubs(:now).returns(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
+      assert_equal Date.new(2000, 1, 2), TimeZone['Eastern Time (US & Canada)'].today
     end
-    
-    def test_period_for_local
-      silence_warnings do # silence warnings raised by tzinfo gem
-        zone = TimeZone['Eastern Time (US & Canada)']
-        assert_instance_of TZInfo::TimezonePeriod, zone.period_for_local(Time.utc(2000))
-      end
+  end
+  
+  def test_local
+    silence_warnings do # silence warnings raised by tzinfo gem
+      time = TimeZone["Hawaii"].local(2007, 2, 5, 15, 30, 45)
+      assert_equal Time.utc(2007, 2, 5, 15, 30, 45), time.time
+      assert_equal TimeZone["Hawaii"], time.time_zone
     end
-    
-    TimeZone::MAPPING.keys.each do |name|
-      define_method("test_map_#{name.downcase.gsub(/[^a-z]/, '_')}_to_tzinfo") do
-        silence_warnings do # silence warnings raised by tzinfo gem
-          zone = TimeZone[name]
-          assert zone.tzinfo.respond_to?(:period_for_local)
-        end
-      end
-    end
+  end
 
-    def test_from_integer_to_map
-      assert_instance_of TimeZone, TimeZone[-28800] # PST
+  def test_local_with_old_date
+    silence_warnings do # silence warnings raised by tzinfo gem
+      time = TimeZone["Hawaii"].local(1850, 2, 5, 15, 30, 45)
+      assert_equal [45,30,15,5,2,1850], time.to_a[0,6]
+      assert_equal TimeZone["Hawaii"], time.time_zone
     end
+  end
 
-    def test_from_duration_to_map
-      assert_instance_of TimeZone, TimeZone[-480.minutes] # PST
-    end
+  def test_local_enforces_spring_dst_rules
+    zone = TimeZone['Eastern Time (US & Canada)']
+    twz = zone.local(2006,4,2,1,59,59) # 1 second before DST start
+    assert_equal Time.utc(2006,4,2,1,59,59), twz.time
+    assert_equal Time.utc(2006,4,2,6,59,59), twz.utc
+    assert_equal false, twz.dst?
+    assert_equal 'EST', twz.zone
+    twz2 = zone.local(2006,4,2,2) # 2AM does not exist because at 2AM, time springs forward to 3AM
+    assert_equal Time.utc(2006,4,2,3), twz2.time # twz is created for 3AM
+    assert_equal Time.utc(2006,4,2,7), twz2.utc
+    assert_equal true, twz2.dst?
+    assert_equal 'EDT', twz2.zone
+    twz3 = zone.local(2006,4,2,2,30) # 2:30AM does not exist because at 2AM, time springs forward to 3AM
+    assert_equal Time.utc(2006,4,2,3,30), twz3.time # twz is created for 3:30AM
+    assert_equal Time.utc(2006,4,2,7,30), twz3.utc
+    assert_equal true, twz3.dst?
+    assert_equal 'EDT', twz3.zone
+  end
 
-    TimeZone.all.each do |zone|
-      name = zone.name.downcase.gsub(/[^a-z]/, '_')
-      define_method("test_from_#{name}_to_map") do
-        silence_warnings do # silence warnings raised by tzinfo gem
-          assert_instance_of TimeZone, TimeZone[zone.name]
-        end
-      end
+  def test_local_enforces_fall_dst_rules
+    # 1AM during fall DST transition is ambiguous, it could be either DST or non-DST 1AM
+    # Mirroring Time.local behavior, this method selects the DST time
+    zone = TimeZone['Eastern Time (US & Canada)']
+    twz = zone.local(2006,10,29,1)
+    assert_equal Time.utc(2006,10,29,1), twz.time
+    assert_equal Time.utc(2006,10,29,5), twz.utc
+    assert_equal true, twz.dst? 
+    assert_equal 'EDT', twz.zone
+  end
 
-      define_method("test_utc_offset_for_#{name}") do
-        silence_warnings do # silence warnings raised by tzinfo gem
-          period = zone.tzinfo.period_for_utc(Time.utc(2006,1,1,0,0,0))
-          assert_equal period.utc_offset, zone.utc_offset
-        end
-      end
-    end
+  def test_at
+    zone = TimeZone['Eastern Time (US & Canada)']
+    secs = 946684800.0
+    twz = zone.at(secs)
+    assert_equal Time.utc(1999,12,31,19), twz.time
+    assert_equal Time.utc(2000), twz.utc
+    assert_equal zone, twz.time_zone
+    assert_equal secs, twz.to_f
+  end
 
-    uses_mocha 'TestTimeZoneNowAndToday' do
-      def test_now
-        with_env_tz 'US/Eastern' do
-          Time.stubs(:now).returns(Time.local(2000))
-          zone = TimeZone['Eastern Time (US & Canada)']
-          assert_instance_of ActiveSupport::TimeWithZone, zone.now
-          assert_equal Time.utc(2000,1,1,5), zone.now.utc
-          assert_equal Time.utc(2000), zone.now.time
-          assert_equal zone, zone.now.time_zone
-        end
-      end
-      
-      def test_now_enforces_spring_dst_rules
-        with_env_tz 'US/Eastern' do
-          Time.stubs(:now).returns(Time.local(2006,4,2,2)) # 2AM springs forward to 3AM
-          zone = TimeZone['Eastern Time (US & Canada)']
-          assert_equal Time.utc(2006,4,2,3), zone.now.time
-          assert_equal true, zone.now.dst?
-        end
-      end
-      
-      def test_now_enforces_fall_dst_rules
-        with_env_tz 'US/Eastern' do
-          Time.stubs(:now).returns(Time.at(1162098000)) # equivalent to 1AM DST
-          zone = TimeZone['Eastern Time (US & Canada)']
-          assert_equal Time.utc(2006,10,29,1), zone.now.time
-          assert_equal true, zone.now.dst?
-        end
-      end
-    
-      def test_today
-        Time.stubs(:now).returns(Time.utc(2000, 1, 1, 4, 59, 59)) # 1 sec before midnight Jan 1 EST
-        assert_equal Date.new(1999, 12, 31), TimeZone['Eastern Time (US & Canada)'].today
-        Time.stubs(:now).returns(Time.utc(2000, 1, 1, 5)) # midnight Jan 1 EST
-        assert_equal Date.new(2000, 1, 1), TimeZone['Eastern Time (US & Canada)'].today
-        Time.stubs(:now).returns(Time.utc(2000, 1, 2, 4, 59, 59)) # 1 sec before midnight Jan 2 EST
-        assert_equal Date.new(2000, 1, 1), TimeZone['Eastern Time (US & Canada)'].today
-        Time.stubs(:now).returns(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
-        assert_equal Date.new(2000, 1, 2), TimeZone['Eastern Time (US & Canada)'].today
-      end
-    end
-    
-    def test_local
-      silence_warnings do # silence warnings raised by tzinfo gem
-        time = TimeZone["Hawaii"].local(2007, 2, 5, 15, 30, 45)
-        assert_equal Time.utc(2007, 2, 5, 15, 30, 45), time.time
-        assert_equal TimeZone["Hawaii"], time.time_zone
-      end
-    end
+  def test_at_with_old_date
+    zone = TimeZone['Eastern Time (US & Canada)']
+    secs = DateTime.civil(1850).to_f
+    twz = zone.at(secs)
+    assert_equal [1850, 1, 1, 0], [twz.utc.year, twz.utc.mon, twz.utc.day, twz.utc.hour]
+    assert_equal zone, twz.time_zone
+    assert_equal secs, twz.to_f
+  end
 
-    def test_local_with_old_date
-      silence_warnings do # silence warnings raised by tzinfo gem
-        time = TimeZone["Hawaii"].local(1850, 2, 5, 15, 30, 45)
-        assert_equal [45,30,15,5,2,1850], time.to_a[0,6]
-        assert_equal TimeZone["Hawaii"], time.time_zone
-      end
-    end
+  def test_parse
+    zone = TimeZone['Eastern Time (US & Canada)']
+    twz = zone.parse('1999-12-31 19:00:00')
+    assert_equal Time.utc(1999,12,31,19), twz.time
+    assert_equal Time.utc(2000), twz.utc
+    assert_equal zone, twz.time_zone
+  end
 
-    def test_local_enforces_spring_dst_rules
+  def test_parse_with_old_date
+    silence_warnings do # silence warnings raised by tzinfo gem
       zone = TimeZone['Eastern Time (US & Canada)']
-      twz = zone.local(2006,4,2,1,59,59) # 1 second before DST start
-      assert_equal Time.utc(2006,4,2,1,59,59), twz.time
-      assert_equal Time.utc(2006,4,2,6,59,59), twz.utc
-      assert_equal false, twz.dst?
-      assert_equal 'EST', twz.zone
-      twz2 = zone.local(2006,4,2,2) # 2AM does not exist because at 2AM, time springs forward to 3AM
-      assert_equal Time.utc(2006,4,2,3), twz2.time # twz is created for 3AM
-      assert_equal Time.utc(2006,4,2,7), twz2.utc
-      assert_equal true, twz2.dst?
-      assert_equal 'EDT', twz2.zone
-      twz3 = zone.local(2006,4,2,2,30) # 2:30AM does not exist because at 2AM, time springs forward to 3AM
-      assert_equal Time.utc(2006,4,2,3,30), twz3.time # twz is created for 3:30AM
-      assert_equal Time.utc(2006,4,2,7,30), twz3.utc
-      assert_equal true, twz3.dst?
-      assert_equal 'EDT', twz3.zone
+      twz = zone.parse('1850-12-31 19:00:00')
+      assert_equal [0,0,19,31,12,1850], twz.to_a[0,6]
+      assert_equal zone, twz.time_zone
     end
+  end
 
-    def test_local_enforces_fall_dst_rules
-      # 1AM during fall DST transition is ambiguous, it could be either DST or non-DST 1AM
-      # Mirroring Time.local behavior, this method selects the DST time
+  uses_mocha 'TestParseWithIncompleteDate' do
+    def test_parse_with_incomplete_date
       zone = TimeZone['Eastern Time (US & Canada)']
-      twz = zone.local(2006,10,29,1)
-      assert_equal Time.utc(2006,10,29,1), twz.time
-      assert_equal Time.utc(2006,10,29,5), twz.utc
-      assert_equal true, twz.dst? 
-      assert_equal 'EDT', twz.zone
-    end
-
-    def test_at
-      zone = TimeZone['Eastern Time (US & Canada)']
-      secs = 946684800.0
-      twz = zone.at(secs)
+      zone.stubs(:now).returns zone.local(1999,12,31)
+      twz = zone.parse('19:00:00')
       assert_equal Time.utc(1999,12,31,19), twz.time
-      assert_equal Time.utc(2000), twz.utc
-      assert_equal zone, twz.time_zone
-      assert_equal secs, twz.to_f
     end
-
-    def test_at_with_old_date
-      zone = TimeZone['Eastern Time (US & Canada)']
-      secs = DateTime.civil(1850).to_f
-      twz = zone.at(secs)
-      assert_equal [1850, 1, 1, 0], [twz.utc.year, twz.utc.mon, twz.utc.day, twz.utc.hour]
-      assert_equal zone, twz.time_zone
-      assert_equal secs, twz.to_f
-    end
-
-    def test_parse
-      zone = TimeZone['Eastern Time (US & Canada)']
-      twz = zone.parse('1999-12-31 19:00:00')
-      assert_equal Time.utc(1999,12,31,19), twz.time
-      assert_equal Time.utc(2000), twz.utc
-      assert_equal zone, twz.time_zone
-    end
-
-    def test_parse_with_old_date
-      silence_warnings do # silence warnings raised by tzinfo gem
-        zone = TimeZone['Eastern Time (US & Canada)']
-        twz = zone.parse('1850-12-31 19:00:00')
-        assert_equal [0,0,19,31,12,1850], twz.to_a[0,6]
-        assert_equal zone, twz.time_zone
-      end
-    end
-
-    uses_mocha 'TestParseWithIncompleteDate' do
-      def test_parse_with_incomplete_date
-        zone = TimeZone['Eastern Time (US & Canada)']
-        zone.stubs(:now).returns zone.local(1999,12,31)
-        twz = zone.parse('19:00:00')
-        assert_equal Time.utc(1999,12,31,19), twz.time
-      end
-    end
-    
-    def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
-      silence_warnings do # silence warnings raised by tzinfo gem
-        tzinfo = TZInfo::Timezone.get('America/New_York')
-        zone = TimeZone.create(tzinfo.name, nil, tzinfo)
-        assert_equal nil, zone.instance_variable_get('@utc_offset')
-        assert_equal(-18_000, zone.utc_offset)
-      end
+  end
+  
+  def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
+    silence_warnings do # silence warnings raised by tzinfo gem
+      tzinfo = TZInfo::Timezone.get('America/New_York')
+      zone = TimeZone.create(tzinfo.name, nil, tzinfo)
+      assert_equal nil, zone.instance_variable_get('@utc_offset')
+      assert_equal(-18_000, zone.utc_offset)
     end
   end
   
