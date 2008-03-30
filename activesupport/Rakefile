@@ -85,3 +85,91 @@ task :release => [ :package ] do
   rubyforge.login
   rubyforge.add_release(PKG_NAME, PKG_NAME, "REL #{PKG_VERSION}", *packages)
 end
+
+
+require 'lib/active_support/values/time_zone'
+
+namespace :tzinfo do
+  desc "Update bundled tzinfo gem. Only copies the subset of classes and definitions required to support Rails time zone features."
+  task :update => ['tzinfo:copy_classes', 'tzinfo:copy_definitions'] do
+    Rake::Task['tzinfo:cleanup_tmp'].invoke
+  end
+  
+  task :unpack_gem do
+    mkdir_p "tmp"
+    cd "tmp"
+    sh "gem unpack --version #{ENV['VERSION'] || "'> 0'"} tzinfo"
+    cd ".."
+  end
+  
+  task :copy_classes => :unpack_gem do
+    mkdir_p "#{destination_path}/tzinfo"
+    cp "#{tmp_path}/lib/tzinfo.rb", destination_path
+    comment_requires_for_excluded_classes!('tzinfo.rb')
+    files = FileList["#{tmp_path}/lib/tzinfo/*.rb"]
+    files.each do |file|
+      filename = File.basename(file)
+      unless excluded_classes.include? filename.sub(/.rb$/, '')
+        cp "#{tmp_path}/lib/tzinfo/#{filename}", "#{destination_path}/tzinfo"
+        comment_requires_for_excluded_classes!("tzinfo/#{filename}")
+      end
+    end
+  end
+  
+  task :copy_definitions => :unpack_gem do
+    definitions_path = "#{destination_path}/tzinfo/definitions/"
+    mkdir_p definitions_path
+    TimeZone::MAPPING.values.each do |zone|
+      subdir = nil
+      if /\// === zone
+        subdir = zone.sub(/\w+$/, '')
+        mkdir_p "#{definitions_path}/#{subdir}"
+      end
+      cp "#{tmp_path}/lib/tzinfo/definitions/#{zone}.rb", "#{definitions_path}/#{subdir}"
+    end
+  end
+
+  task :cleanup_tmp do
+    rm_rf "tmp"
+  end
+  
+  def comment_requires_for_excluded_classes!(file)
+    lines = open("#{destination_path}/#{file}") {|f| f.readlines}
+    updated = false
+    
+    new_lines = []
+    lines.each do |line|
+      if Regexp.new("require 'tzinfo/(#{excluded_classes.join('|')})'") === line
+        updated = true
+        new_lines << "# #{line}"
+      else
+        new_lines << line
+      end
+    end
+    
+    if updated
+      open("#{destination_path}/#{file}", "w") {|f| f.write(new_lines.join)}
+    end
+  end
+  
+  def version
+    ENV['VERSION'] ||= get_unpacked_version
+  end
+  
+  def get_unpacked_version
+    m = (FileList["tmp/tzinfo-*"].to_s.match /\d+\.\d+\.\d+/)
+    m ? m[0] : raise(LoadError, "TZInfo gem must be installed locally. `gem install tzinfo` and try again")
+  end
+  
+  def tmp_path
+    "tmp/tzinfo-#{version}"
+  end
+  
+  def destination_path
+    "lib/active_support/vendor/tzinfo-#{version}"
+  end
+  
+  def excluded_classes
+    %w(country country_index_definition country_info country_timezone tzdataparser)
+  end
+end

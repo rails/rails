@@ -23,7 +23,7 @@ end
 # Wrap tests that use TZInfo and skip if unavailable.
 unless defined? uses_tzinfo
   def uses_tzinfo(test_name, &block)
-    uses_gem('tzinfo', test_name, '>= 0.2.0', &block)
+    yield #TZInfo is now bundled
   end
 end
 
