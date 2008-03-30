@@ -1,3 +1,4 @@
+#:stopdoc:
 require 'rbconfig'
 
 # Attempts to require anative extension.
@@ -54,3 +55,4 @@ end
 #     end
 #   end
 # end
+#:startdoc:

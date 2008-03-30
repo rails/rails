@@ -1,8 +1,3 @@
-=begin rdoc
-
-= Net provides SMTP wrapping
-
-=end
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
@@ -29,13 +24,14 @@
 # with permission of Minero Aoki.
 #++
 
+#:stopdoc:
 require 'nkf'
-
+#:startdoc:
 
 module TMail
 
   class Mail
-
+    
     def send_to( smtp )
       do_send_to(smtp) do
         ready_to_send
@@ -131,7 +127,7 @@ module TMail
   
   end
 
-
+  #:stopdoc:
   class DeleteFields
 
     NOSEND_FIELDS = %w(
@@ -155,8 +151,9 @@ module TMail
     end
   
   end
+  #:startdoc:
 
-
+  #:stopdoc:
   class AddMessageId
 
     def initialize( fqdn = nil )
@@ -170,8 +167,9 @@ module TMail
     end
   
   end
+  #:startdoc:
 
-
+  #:stopdoc:
   class AddDate
 
     def exec( mail )
@@ -179,8 +177,9 @@ module TMail
     end
   
   end
+  #:startdoc:
 
-
+  #:stopdoc:
   class MimeEncodeAuto
 
     def initialize( s = nil, m = nil )
@@ -198,8 +197,9 @@ module TMail
     end
   
   end
-
+  #:startdoc:
   
+  #:stopdoc:
   class MimeEncodeSingle
 
     def exec( mail )
@@ -225,8 +225,9 @@ module TMail
     end
   
   end
-
-
+  #:startdoc:
+  
+  #:stopdoc:
   class MimeEncodeMulti
 
     def exec( mail, top = true )
@@ -243,5 +244,5 @@ module TMail
     end
 
   end
-
+  #:startdoc:
 end   # module TMail

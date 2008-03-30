@@ -1,11 +1,3 @@
-=begin rdoc
-
-= Header handling class
-
-=end
-# RFC #822 ftp://ftp.isi.edu/in-notes/rfc822.txt
-# 
-#
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
@@ -38,9 +30,10 @@ require 'tmail/parser'
 require 'tmail/config'
 require 'tmail/utils'
 
-
+#:startdoc:
 module TMail
 
+  # Provides methods to handle and manipulate headers in the email
   class HeaderField
 
     include TextUtils

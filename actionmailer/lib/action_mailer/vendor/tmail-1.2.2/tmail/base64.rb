@@ -1,9 +1,4 @@
-# = TITLE:
-#
-#   Base64
-#
-# = COPYRIGHT:
-#
+#--
 #   Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
 #   Permission is hereby granted, free of charge, to any person obtaining
@@ -27,10 +22,9 @@
 #
 #   Note: Originally licensed under LGPL v2+. Using MIT license for Rails
 #   with permission of Minero Aoki.
-
-#
+#++
+#:stopdoc:
 module TMail
-
   module Base64
 
     module_function
@@ -48,5 +42,5 @@ module TMail
     end
 
   end
-
 end
+#:startdoc:

@@ -1,17 +1,18 @@
-unless Enumerable.method_defined?(:map)
-  module Enumerable
+#:stopdoc:
+unless Enumerable.method_defined?(:map) 
+  module Enumerable #:nodoc:
     alias map collect
   end
 end
 
 unless Enumerable.method_defined?(:select)
-  module Enumerable
+  module Enumerable #:nodoc:
     alias select find_all
   end
 end
 
 unless Enumerable.method_defined?(:reject)
-  module Enumerable
+  module Enumerable #:nodoc:
     def reject
       result = []
       each do |i|
@@ -23,7 +24,7 @@ unless Enumerable.method_defined?(:reject)
 end
 
 unless Enumerable.method_defined?(:sort_by)
-  module Enumerable
+  module Enumerable #:nodoc:
     def sort_by
       map {|i| [yield(i), i] }.sort.map {|val, i| i }
     end
@@ -31,9 +32,10 @@ unless Enumerable.method_defined?(:sort_by)
 end
 
 unless File.respond_to?(:read)
-  def File.read(fname)
+  def File.read(fname) #:nodoc:
     File.open(fname) {|f|
       return f.read
     }
   end
 end
+#:startdoc:

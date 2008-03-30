@@ -150,24 +150,84 @@ module TMail
 
   class UNIXMbox
   
+    class << self
+      alias newobj new
+    end
+
+    # Creates a new mailbox object that you can iterate through to collect the
+    # emails from with "each_port".  
+    # 
+    # You need to pass it a filename of a unix mailbox format file, the format of this
+    # file can be researched at this page at {wikipedia}[link:http://en.wikipedia.org/wiki/Mbox]
+    # 
+    # ==== Parameters
+    # 
+    # +filename+: The filename of the mailbox you want to open
+    # 
+    # +tmpdir+: Can be set to override TMail using the system environment's temp dir. TMail will first
+    # use the temp dir specified by you (if any) or then the temp dir specified in the Environment's TEMP
+    # value then the value in the Environment's TMP value or failing all of the above, '/tmp'
+    # 
+    # +readonly+: If set to false, each email you take from the mail box will be removed from the mailbox.
+    # default is *false* - ie, it *WILL* truncate your mailbox file to ZERO once it has read the emails out.
+    # 
+    # ==== Options:
+    # 
+    # None
+    # 
+    # ==== Examples:
+    # 
+    #  # First show using readonly true:
+    # 
+    #  require 'ftools'
+    #  File.size("../test/fixtures/mailbox")
+    #  #=> 20426
+    #
+    #  mailbox = TMail::UNIXMbox.new("../test/fixtures/mailbox", nil, true) 
+    #  #=> #<TMail::UNIXMbox:0x14a2aa8 @readonly=true.....>
+    #
+    #  mailbox.each_port do |port| 
+    #    mail = TMail::Mail.new(port)
+    #    puts mail.subject
+    #  end
+    #  #Testing mailbox 1
+    #  #Testing mailbox 2
+    #  #Testing mailbox 3
+    #  #Testing mailbox 4
+    #  require 'ftools'
+    #  File.size?("../test/fixtures/mailbox")
+    #  #=> 20426
+    # 
+    #  # Now show with readonly set to the default false
+    # 
+    #  mailbox = TMail::UNIXMbox.new("../test/fixtures/mailbox") 
+    #  #=> #<TMail::UNIXMbox:0x14a2aa8 @readonly=false.....>
+    #
+    #  mailbox.each_port do |port| 
+    #    mail = TMail::Mail.new(port)
+    #    puts mail.subject
+    #  end
+    #  #Testing mailbox 1
+    #  #Testing mailbox 2
+    #  #Testing mailbox 3
+    #  #Testing mailbox 4
+    # 
+    #  File.size?("../test/fixtures/mailbox")
+    #  #=> nil
+    def UNIXMbox.new( filename, tmpdir = nil, readonly = false )
+      tmpdir = ENV['TEMP'] || ENV['TMP'] || '/tmp'
+      newobj(filename, "#{tmpdir}/ruby_tmail_#{$$}_#{rand()}", readonly, false)
+    end
+
     def UNIXMbox.lock( fname )
       begin
-        f = File.open(fname)
+        f = File.open(fname, 'r+')
         f.flock File::LOCK_EX
         yield f
       ensure
         f.flock File::LOCK_UN
         f.close if f and not f.closed?
       end
-    end
-
-    class << self
-      alias newobj new
-    end
-
-    def UNIXMbox.new( fname, tmpdir = nil, readonly = false )
-      tmpdir = ENV['TEMP'] || ENV['TMP'] || '/tmp'
-      newobj(fname, "#{tmpdir}/ruby_tmail_#{$$}_#{rand()}", readonly, false)
     end
 
     def UNIXMbox.static_new( fname, dir, readonly = false )

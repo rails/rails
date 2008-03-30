@@ -1,8 +1,3 @@
-=begin rdoc
-
-= General Purpose TMail Utilities
-
-=end
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
@@ -29,21 +24,73 @@
 # with permission of Minero Aoki.
 #++
 
+# = TMail - The EMail Swiss Army Knife for Ruby
+# 
+# The TMail library provides you with a very complete way to handle and manipulate EMails
+# from within your Ruby programs.
+# 
+# Used as the backbone for email handling by the Ruby on Rails and Nitro web frameworks as
+# well as a bunch of other Ruby apps including the Ruby-Talk mailing list to newsgroup email
+# gateway, it is a proven and reliable email handler that won't let you down.
+# 
+# Originally created by Minero Aoki, TMail has been recently picked up by Mikel Lindsaar and
+# is being actively maintained.  Numerous backlogged bug fixes have been applied as well as
+# Ruby 1.9 compatibility and a swath of documentation to boot.
+# 
+# TMail allows you to treat an email totally as an object and allow you to get on with your
+# own programming without having to worry about crafting the perfect email address validation
+# parser, or assembling an email from all it's component parts.
+# 
+# TMail handles the most complex part of the email - the header.  It generates and parses
+# headers and provides you with instant access to their innards through simple and logically
+# named accessor and setter methods.
+# 
+# TMail also provides a wrapper to Net/SMTP as well as Unix Mailbox handling methods to
+# directly read emails from your unix mailbox, parse them and use them.
+# 
+# Following is the comprehensive list of methods to access TMail::Mail objects.  You can also
+# check out TMail::Mail, TMail::Address and TMail::Headers for other lists.
 module TMail
 
+  # Provides an exception to throw on errors in Syntax within TMail's parsers
   class SyntaxError < StandardError; end
 
-
+  # Provides a new email boundary to separate parts of the email.  This is a random
+  # string based off the current time, so should be fairly unique.
+  # 
+  # For Example:
+  # 
+  #  TMail.new_boundary
+  #  #=> "mimepart_47bf656968207_25a8fbb80114"
+  #  TMail.new_boundary
+  #  #=> "mimepart_47bf66051de4_25a8fbb80240"
   def TMail.new_boundary
     'mimepart_' + random_tag
   end
 
+  # Provides a new email message ID.  You can use this to generate unique email message
+  # id's for your email so you can track them.
+  # 
+  # Optionally takes a fully qualified domain name (default to the current hostname 
+  # returned by Socket.gethostname) that will be appended to the message ID.
+  # 
+  # For Example:
+  # 
+  #  email.message_id = TMail.new_message_id
+  #  #=> "<47bf66845380e_25a8fbb80332@baci.local.tmail>"
+  #  email.to_s
+  #  #=> "Message-Id: <47bf668b633f1_25a8fbb80475@baci.local.tmail>\n\n"
+  #  email.message_id = TMail.new_message_id("lindsaar.net")
+  #  #=> "<47bf668b633f1_25a8fbb80475@lindsaar.net.tmail>"
+  #  email.to_s
+  #  #=> "Message-Id: <47bf668b633f1_25a8fbb80475@lindsaar.net.tmail>\n\n"
   def TMail.new_message_id( fqdn = nil )
     fqdn ||= ::Socket.gethostname
     "<#{random_tag()}@#{fqdn}.tmail>"
   end
 
-  def TMail.random_tag
+  #:stopdoc:
+  def TMail.random_tag #:nodoc:
     @uniq += 1
     t = Time.now
     sprintf('%x%x_%x%x%d%x',
@@ -54,8 +101,13 @@ module TMail
 
   @uniq = 0
 
+  #:startdoc:
+  
+  # Text Utils provides a namespace to define TOKENs, ATOMs, PHRASEs and CONTROL characters that
+  # are OK per RFC 2822.
+  # 
+  # It also provides methods you can call to determine if a string is safe
   module TextUtils
-    # Defines characters per RFC that are OK for TOKENs, ATOMs, PHRASEs and CONTROL characters.
 
     aspecial     = '()<>[]:;.\\,"'
     tspecial     = '()<>[];:\\,"/?='
@@ -67,37 +119,37 @@ module TMail
     TOKEN_UNSAFE  = /[#{Regexp.quote tspecial}#{control}#{lwsp}]/n
     CONTROL_CHAR  = /[#{control}]/n
 
+    # Returns true if the string supplied is free from characters not allowed as an ATOM
     def atom_safe?( str )
-      # Returns true if the string supplied is free from characters not allowed as an ATOM
       not ATOM_UNSAFE === str
     end
 
+    # If the string supplied has ATOM unsafe characters in it, will return the string quoted 
+    # in double quotes, otherwise returns the string unmodified
     def quote_atom( str )
-      # If the string supplied has ATOM unsafe characters in it, will return the string quoted 
-      # in double quotes, otherwise returns the string unmodified
       (ATOM_UNSAFE === str) ? dquote(str) : str
     end
 
+    # If the string supplied has PHRASE unsafe characters in it, will return the string quoted 
+    # in double quotes, otherwise returns the string unmodified
     def quote_phrase( str )
-      # If the string supplied has PHRASE unsafe characters in it, will return the string quoted 
-      # in double quotes, otherwise returns the string unmodified
       (PHRASE_UNSAFE === str) ? dquote(str) : str
     end
 
+    # Returns true if the string supplied is free from characters not allowed as a TOKEN
     def token_safe?( str )
-      # Returns true if the string supplied is free from characters not allowed as a TOKEN
       not TOKEN_UNSAFE === str
     end
 
+    # If the string supplied has TOKEN unsafe characters in it, will return the string quoted 
+    # in double quotes, otherwise returns the string unmodified
     def quote_token( str )
-      # If the string supplied has TOKEN unsafe characters in it, will return the string quoted 
-      # in double quotes, otherwise returns the string unmodified
       (TOKEN_UNSAFE === str) ? dquote(str) : str
     end
 
-    def dquote( str )
-      # Wraps supplied string in double quotes unless it is already wrapped
-      # Returns double quoted string
+    # Wraps supplied string in double quotes unless it is already wrapped
+    # Returns double quoted string
+    def dquote( str ) #:nodoc:
       unless str =~ /^".*?"$/
         '"' + str.gsub(/["\\]/n) {|s| '\\' + s } + '"'
       else
@@ -106,12 +158,14 @@ module TMail
     end
     private :dquote
 
+    # Unwraps supplied string from inside double quotes
+    # Returns unquoted string
     def unquote( str )
-      # Unwraps supplied string from inside double quotes
-      # Returns unquoted string
       str =~ /^"(.*?)"$/ ? $1 : str
     end
     
+    # Provides a method to join a domain name by it's parts and also makes it
+    # ATOM safe by quoting it as needed
     def join_domain( arr )
       arr.map {|i|
           if /\A\[.*\]\z/ === i
@@ -122,7 +176,7 @@ module TMail
       }.join('.')
     end
 
-
+    #:stopdoc:
     ZONESTR_TABLE = {
       'jst' =>   9 * 60,
       'eet' =>   2 * 60,
@@ -168,9 +222,10 @@ module TMail
       'y'   =>  12 * 60,
       'z'   =>   0 * 60
     }
+    #:startdoc:
 
+    # Takes a time zone string from an EMail and converts it to Unix Time (seconds)
     def timezone_string_to_unixtime( str )
-      # Takes a time zone string from an EMail and converts it to Unix Time (seconds)
       if m = /([\+\-])(\d\d?)(\d\d)/.match(str)
         sec = (m[2].to_i * 60 + m[3].to_i) * 60
         m[1] == '-' ? -sec : sec
@@ -181,7 +236,7 @@ module TMail
       end
     end
 
-
+    #:stopdoc:
     WDAY = %w( Sun Mon Tue Wed Thu Fri Sat TMailBUG )
     MONTH = %w( TMailBUG Jan Feb Mar Apr May Jun
                          Jul Aug Sep Oct Nov Dec TMailBUG )
@@ -201,7 +256,7 @@ module TMail
 
 
     MESSAGE_ID = /<[^\@>]+\@[^>\@]+>/
-
+    
     def message_id?( str )
       MESSAGE_ID === str
     end
@@ -274,6 +329,8 @@ module TMail
         end
       end
     end
+    #:startdoc:
+
 
   end
 

@@ -26,7 +26,7 @@
 # Note: Originally licensed under LGPL v2+. Using MIT license for Rails
 # with permission of Minero Aoki.
 #++
-
+#:stopdoc:
 require 'tmail/config'
 
 module TMail
@@ -259,3 +259,4 @@ module TMail
   end
 
 end   # module TMail
+#:startdoc:

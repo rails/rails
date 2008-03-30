@@ -27,8 +27,9 @@
 # with permission of Minero Aoki.
 #++
 
-module TMail #:nodoc:
-  module VERSION #:nodoc:
+#:stopdoc:
+module TMail
+  module VERSION
     MAJOR = 1
     MINOR = 2
     TINY  = 2

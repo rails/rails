@@ -966,31 +966,33 @@ module TMail
       end
     end
 
-    # Destructively convert the Mail object's body into a Base64 encoded email
+    # Convert the Mail object's body into a Base64 encoded email
     # returning the modified Mail object
     def base64_encode!
       store 'Content-Transfer-Encoding', 'Base64'
-      self.body = Base64.folding_encode(self.body)
+      self.body = base64_encode
     end
 
-    # ==Depreciation warning
-    # base64_encode will return the body encoded, not modify the message body in 
-    # future versions of TMail
-    alias :base64_encode :base64_encode!
+    # Return the result of encoding the TMail::Mail object body
+    # without altering the current body
+    def base64_encode
+      Base64.folding_encode(self.body)
+    end
 
-    # Destructively convert the Mail object's body into a Base64 decoded email
+    # Convert the Mail object's body into a Base64 decoded email
     # returning the modified Mail object
     def base64_decode!
       if /base64/i === self.transfer_encoding('')
         store 'Content-Transfer-Encoding', '8bit'
-        self.body = Base64.decode(self.body, @config.strict_base64decode?)
+        self.body = base64_decode
       end
     end
 
-    # ==Depreciation warning
-    # base64_decode will return the body decoded, not modify the message body in 
-    # future versions of TMail
-    alias :base64_decode :base64_decode!
+    # Returns the result of decoding the TMail::Mail object body
+    # without altering the current body
+    def base64_decode
+      Base64.decode(self.body, @config.strict_base64decode?)
+    end
 
     # Returns an array of each destination in the email message including to: cc: or bcc:
     # 

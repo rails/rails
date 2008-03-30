@@ -1,8 +1,3 @@
-=begin rdoc
-
-= Configuration Class
-
-=end
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
@@ -28,7 +23,7 @@
 # Note: Originally licensed under LGPL v2+. Using MIT license for Rails
 # with permission of Minero Aoki.
 #++
-
+#:stopdoc:
 module TMail
 
   class Config
@@ -69,3 +64,4 @@ module TMail
   end
 
 end
+#:startdoc:

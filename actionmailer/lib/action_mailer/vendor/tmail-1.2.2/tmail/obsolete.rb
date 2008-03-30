@@ -2,6 +2,9 @@
 
 = Obsolete methods that are depriciated
 
+If you really want to see them, go to lib/tmail/obsolete.rb and view to your
+heart's content.
+
 =end
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
@@ -28,10 +31,9 @@
 # Note: Originally licensed under LGPL v2+. Using MIT license for Rails
 # with permission of Minero Aoki.
 #++
+#:stopdoc:
+module TMail #:nodoc:
 
-module TMail
-
-  # mail.rb
   class Mail
     alias include? key?
     alias has_key? key?
@@ -51,8 +53,6 @@ module TMail
     alias has_value? value?
   end
 
-
-  # facade.rb
   class Mail
     def from_addr( default = nil )
       addr, = from_addrs(nil)
@@ -83,13 +83,11 @@ module TMail
     alias each_dest each_destination
   end
 
-
-  # address.rb
   class Address
     alias route routes
     alias addr spec
 
-    def spec=( str )
+    def spec=( str ) 
       @local, @domain = str.split(/@/,2).map {|s| s.split(/\./) }
     end
 
@@ -97,8 +95,6 @@ module TMail
     alias address= spec=
   end
 
-
-  # mbox.rb
   class MhMailbox
     alias new_mail new_port
     alias each_mail each_port
@@ -115,8 +111,6 @@ module TMail
     alias each_newmail each_new_port
   end
 
-
-  # utils.rb
   extend TextUtils
 
   class << self
@@ -135,3 +129,4 @@ module TMail
   end
 
 end   # module TMail
+#:startdoc:

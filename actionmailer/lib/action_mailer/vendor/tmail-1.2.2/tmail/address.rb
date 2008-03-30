@@ -3,7 +3,6 @@
 = Address handling class
 
 =end
-#
 #--
 # Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
 #
@@ -36,31 +35,72 @@ require 'tmail/parser'
 
 module TMail
 
+  # = Class Address
+  # 
+  # Provides a complete handling library for email addresses. Can parse a string of an
+  # address directly or take in preformatted addresses themseleves.  Allows you to add
+  # and remove phrases from the front of the address and provides a compare function for
+  # email addresses.
+  # 
+  # == Parsing and Handling a Valid Address:
+  # 
+  # Just pass the email address in as a string to Address.parse:
+  # 
+  #  email = TMail::Address.parse('Mikel Lindsaar <mikel@lindsaar.net>)
+  #  #=> #<TMail::Address mikel@lindsaar.net>
+  #  email.address
+  #  #=> "mikel@lindsaar.net"
+  #  email.local
+  #  #=> "mikel"
+  #  email.domain
+  #  #=> "lindsaar.net"
+  #  email.name             # Aliased as phrase as well
+  #  #=> "Mikel Lindsaar"
+  # 
+  # == Detecting an Invalid Address
+  # 
+  # If you want to check the syntactical validity of an email address, just pass it to
+  # Address.parse and catch any SyntaxError:
+  # 
+  #  begin
+  #    TMail::Mail.parse("mikel   2@@@@@ me .com")
+  #  rescue TMail::SyntaxError
+  #    puts("Invalid Email Address Detected")
+  #  else
+  #    puts("Address is valid")
+  #  end
+  #  #=> "Invalid Email Address Detected"
   class Address
 
-    include TextUtils
-
+    include TextUtils #:nodoc:
+    
+    # Sometimes you need to parse an address, TMail can do it for you and provide you with
+    # a fairly robust method of detecting a valid address.
+    # 
+    # Takes in a string, returns a TMail::Address object.
+    # 
+    # Raises a TMail::SyntaxError on invalid email format
     def Address.parse( str )
       Parser.parse :ADDRESS, special_quote_address(str)
     end
     
-    # Takes a string which is an address and adds quotation marks to special
-    # edge case methods that the parser just barfs on.
-    #
-    # Right now just handles two edge cases:
-    #
-    # Full stop as the last character of the display name:
-    #   Mikel A. <mikel@me.com>
-    # Returns:
-    #   "Mikel A." <mikel@me.com>
-    #
-    # Unquoted @ symbol in the display name:
-    #   mikel@me.com <mikel@me.com>
-    # Returns:
-    #   "mikel@me.com" <mikel@me.com>
-    #
-    # Any other address not matching these patterns just gets returned as is. 
-    def Address.special_quote_address(str)
+    def Address.special_quote_address(str) #:nodoc:
+      # Takes a string which is an address and adds quotation marks to special
+      # edge case methods that the RACC parser can not handle.
+      #
+      # Right now just handles two edge cases:
+      #
+      # Full stop as the last character of the display name:
+      #   Mikel L. <mikel@me.com>
+      # Returns:
+      #   "Mikel L." <mikel@me.com>
+      #
+      # Unquoted @ symbol in the display name:
+      #   mikel@me.com <mikel@me.com>
+      # Returns:
+      #   "mikel@me.com" <mikel@me.com>
+      #
+      # Any other address not matching these patterns just gets returned as is. 
       case
       # This handles the missing "" in an older version of Apple Mail.app
       # around the display name when the display name contains a '@'
@@ -78,10 +118,22 @@ module TMail
       end
     end
 
-    def address_group?
+    def address_group? #:nodoc:
       false
     end
 
+    # Address.new(local, domain)
+    # 
+    # Accepts:
+    # 
+    # * local - Left of the at symbol
+    # 
+    # * domain - Array of the domain split at the periods.
+    # 
+    # For example:
+    # 
+    #  Address.new("mikel", ["lindsaar", "net"])
+    #  #=> "#<TMail::Address mikel@lindsaar.net>"
     def initialize( local, domain )
       if domain
         domain.each do |s|
@@ -103,22 +155,67 @@ module TMail
       @routes = []
     end
 
-    attr_reader :name
+    # Provides the name or 'phrase' of the email address.
+    # 
+    # For Example:
+    # 
+    #  email = TMail::Address.parse("Mikel Lindsaar <mikel@lindsaar.net>")
+    #  email.name
+    #  #=> "Mikel Lindsaar"
+    def name
+      @name
+    end
 
+    # Setter method for the name or phrase of the email
+    # 
+    # For Example:
+    # 
+    #  email = TMail::Address.parse("mikel@lindsaar.net")
+    #  email.name
+    #  #=> nil
+    #  email.name = "Mikel Lindsaar"
+    #  email.to_s
+    #  #=> "Mikel Lindsaar <mikel@me.com>"
     def name=( str )
       @name = str
       @name = nil if str and str.empty?
     end
 
+    #:stopdoc:
     alias phrase  name
     alias phrase= name=
-
-    attr_reader :routes
-
-    def inspect
+    #:startdoc:
+    
+    # This is still here from RFC 822, and is now obsolete per RFC2822 Section 4.
+    # 
+    # "When interpreting addresses, the route portion SHOULD be ignored."
+    # 
+    # It is still here, so you can access it.
+    # 
+    # Routes return the route portion at the front of the email address, if any.
+    # 
+    # For Example:
+    #  email = TMail::Address.parse( "<@sa,@another:Mikel@me.com>")
+    #  => #<TMail::Address Mikel@me.com>
+    #  email.to_s
+    #  => "<@sa,@another:Mikel@me.com>"
+    #  email.routes
+    #  => ["sa", "another"]
+    def routes
+      @routes
+    end
+    
+    def inspect #:nodoc:
       "#<#{self.class} #{address()}>"
     end
 
+    # Returns the local part of the email address
+    # 
+    # For Example:
+    # 
+    #  email = TMail::Address.parse("mikel@lindsaar.net")
+    #  email.local
+    #  #=> "mikel"
     def local
       return nil unless @local
       return '""' if @local.size == 1 and @local[0].empty?
@@ -130,11 +227,25 @@ module TMail
       end
     end
 
+    # Returns the domain part of the email address
+    # 
+    # For Example:
+    # 
+    #  email = TMail::Address.parse("mikel@lindsaar.net")
+    #  email.local
+    #  #=> "lindsaar.net"
     def domain
       return nil unless @domain
       join_domain(@domain)
     end
 
+    # Returns the full specific address itself
+    # 
+    # For Example:
+    # 
+    #  email = TMail::Address.parse("mikel@lindsaar.net")
+    #  email.address
+    #  #=> "mikel@lindsaar.net"
     def spec
       s = self.local
       d = self.domain
@@ -145,18 +256,41 @@ module TMail
       end
     end
 
-    alias address  spec
+    alias address spec
 
+    # Provides == function to the email.  Only checks the actual address
+    # and ignores the name/phrase component
+    # 
+    # For Example
+    # 
+    #  addr1 = TMail::Address.parse("My Address <mikel@lindsaar.net>")
+    #  #=> "#<TMail::Address mikel@lindsaar.net>"
+    #  addr2 = TMail::Address.parse("Another <mikel@lindsaar.net>")
+    #  #=> "#<TMail::Address mikel@lindsaar.net>"
+    #  addr1 == addr2
+    #  #=> true
     def ==( other )
       other.respond_to? :spec and self.spec == other.spec
     end
 
     alias eql? ==
 
+    # Provides a unique hash value for this record against the local and domain
+    # parts, ignores the name/phrase value
+    # 
+    #  email = TMail::Address.parse("mikel@lindsaar.net")
+    #  email.hash
+    #  #=> 18767598
     def hash
       @local.hash ^ @domain.hash
     end
 
+    # Duplicates a TMail::Address object returning the duplicate
+    # 
+    #  addr1 = TMail::Address.parse("mikel@lindsaar.net")
+    #  addr2 = addr1.dup
+    #  addr1.id == addr2.id
+    #  #=> false
     def dup
       obj = self.class.new(@local.dup, @domain.dup)
       obj.name = @name.dup if @name
@@ -164,9 +298,9 @@ module TMail
       obj
     end
 
-    include StrategyInterface
+    include StrategyInterface #:nodoc:
 
-    def accept( strategy, dummy1 = nil, dummy2 = nil )
+    def accept( strategy, dummy1 = nil, dummy2 = nil ) #:nodoc:
       unless @local
         strategy.meta '<>'   # empty return-path
         return

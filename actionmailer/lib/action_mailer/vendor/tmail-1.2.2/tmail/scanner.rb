@@ -28,7 +28,7 @@
 # Note: Originally licensed under LGPL v2+. Using MIT license for Rails
 # with permission of Minero Aoki.
 #++
-
+#:stopdoc:
 #require 'tmail/require_arch'
 require 'tmail/utils'
 require 'tmail/config'
@@ -46,3 +46,4 @@ module TMail
     Scanner = TMailScanner
   end
 end
+#:stopdoc:

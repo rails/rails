@@ -1,6 +1,6 @@
 =begin rdoc
 
-= Attachment handling class
+= Attachment handling file
 
 =end
 
@@ -17,8 +17,7 @@ module TMail
     end
 
     def attachment?(part)
-      (part['content-disposition'] && part['content-disposition'].disposition == "attachment") ||
-      part.header['content-type'].main_type != "text"
+      part.disposition_is_attachment? || part.content_type_is_text?
     end
 
     def attachments

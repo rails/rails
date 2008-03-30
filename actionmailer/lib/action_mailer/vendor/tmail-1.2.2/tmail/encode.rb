@@ -1,7 +1,4 @@
-# = TITLE:
-#
-#   Text Encoding class
-#
+#--
 # = COPYRIGHT:
 #
 #   Copyright (c) 1998-2003 Minero Aoki <aamine@loveruby.net>
@@ -27,15 +24,18 @@
 #
 #   Note: Originally licensed under LGPL v2+. Using MIT license for Rails
 #   with permission of Minero Aoki.
-
+#++
+#:stopdoc:
 require 'nkf'
 require 'tmail/base64'
 require 'tmail/stringio'
 require 'tmail/utils'
+#:startdoc:
 
 
 module TMail
   
+  #:stopdoc:
   class << self
     attr_accessor :KCODE
   end
@@ -57,10 +57,34 @@ module TMail
     end
     module_function :create_dest
 
+    #:startdoc:
+    # Returns the TMail object encoded and ready to be sent via SMTP etc.
+    # You should call this before you are packaging up your  email to
+    # correctly escape all the values that need escaping in the email, line
+    # wrap the email etc.
+    # 
+    # It is also a good idea to call this before you marshal or serialize
+    # a TMail object.
+    # 
+    # For Example:
+    # 
+    #  email = TMail::Load(my_email_file)
+    #  email_to_send = email.encoded
     def encoded( eol = "\r\n", charset = 'j', dest = nil )
       accept_strategy Encoder, eol, charset, dest
     end
 
+    # Returns the TMail object decoded and ready to be used by you, your
+    # program etc.
+    # 
+    # You should call this before you are packaging up your  email to
+    # correctly escape all the values that need escaping in the email, line
+    # wrap the email etc.
+    # 
+    # For Example:
+    # 
+    #  email = TMail::Load(my_email_file)
+    #  email_to_send = email.encoded
     def decoded( eol = "\n", charset = 'e', dest = nil )
       # Turn the E-Mail into a string and return it with all
       # encoded characters decoded.  alias for to_s
@@ -69,7 +93,7 @@ module TMail
 
     alias to_s decoded
 
-    def accept_strategy( klass, eol, charset, dest = nil )
+    def accept_strategy( klass, eol, charset, dest = nil ) #:nodoc:
       dest ||= ''
       accept klass.new( create_dest(dest), charset, eol )
       dest
@@ -77,6 +101,7 @@ module TMail
 
   end
 
+  #:stopdoc:
 
   ###
   ### MIME B encoding decoder
@@ -501,7 +526,7 @@ module TMail
 
       # Check the text to see if there is whitespace, or if not
       @wrapped_text = []
-      until @text == ''
+      until @text.blank?
         fold_the_string
       end
       @text = @wrapped_text.join("#{@eol}#{SPACER}")
@@ -512,10 +537,12 @@ module TMail
       # Is the location of the whitespace shorter than the RCF_2822_MAX_LENGTH?
       # if there is no whitespace in the string, then this
       unless mazsize(whitespace_location) <= 0
+        @text.strip!
         @wrapped_text << @text.slice!(0...whitespace_location)
       # If it is not less, we have to wrap it destructively
       else
         slice_point = RFC_2822_MAX_LENGTH - @curlen - @lwsp.length
+        @text.strip!
         @wrapped_text << @text.slice!(0...slice_point)
       end
     end
@@ -530,5 +557,5 @@ module TMail
     end
 
   end
-
+  #:startdoc:
 end    # module TMail

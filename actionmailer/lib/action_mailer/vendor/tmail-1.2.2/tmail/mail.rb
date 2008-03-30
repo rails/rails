@@ -28,22 +28,7 @@
 # Note: Originally licensed under LGPL v2+. Using MIT license for Rails
 # with permission of Minero Aoki.
 #++
-# == TMail::Mail
-# === Class Methods
-#  
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
+
  
 
 require 'tmail/interface'
@@ -58,23 +43,89 @@ require 'socket'
 
 module TMail
 
+  # == Mail Class
+  # 
+  # Accessing a TMail object done via the TMail::Mail class.  As email can be fairly complex
+  # creatures, you will find a large amount of accessor and setter methods in this class!
+  # 
+  # Most of the below methods handle the header, in fact, what TMail does best is handle the
+  # header of the email object.  There are only a few methods that deal directly with the body
+  # of the email, such as base64_encode and base64_decode.
+  # 
+  # === Using TMail inside your code
+  # 
+  # The usual way is to install the gem (see the {README}[link:/README] on how to do this) and
+  # then put at the top of your class:
+  # 
+  #  require 'tmail'
+  # 
+  # You can then create a new TMail object in your code with:
+  # 
+  #  @email = TMail::Mail.new
+  # 
+  # Or if you have an email as a string, you can initialize a new TMail::Mail object and get it
+  # to parse that string for you like so:
+  # 
+  #  @email = TMail::Mail.parse(email_text)
+  # 
+  # You can also read a single email off the disk, for example:
+  # 
+  #  @email = TMail::Mail.load('filename.txt')
+  # 
+  # Also, you can read a mailbox (usual unix mbox format) and end up with an array of TMail
+  # objects by doing something like this:
+  # 
+  #  # Note, we pass true as the last variable to open the mailbox read only
+  #  mailbox = TMail::UNIXMbox.new("mailbox", nil, true)
+  #  @emails = []
+  #  mailbox.each_port { |m| @emails << TMail::Mail.new(m) }
+  #
   class Mail
 
     class << self
+      
+      # Opens an email that has been saved out as a file by itself.
+      # 
+      # This function will read a file non-destructively and then parse
+      # the contents and return a TMail::Mail object.
+      # 
+      # Does not handle multiple email mailboxes (like a unix mbox) for that
+      # use the TMail::UNIXMbox class.
+      # 
+      # Example:
+      #  mail = TMail::Mail.load('filename')
+      # 
       def load( fname )
         new(FilePort.new(fname))
       end
 
       alias load_from load
       alias loadfrom load
-
+      
+      # Parses an email from the supplied string and returns a TMail::Mail
+      # object.
+      # 
+      # Example:
+      #  require 'rubygems'; require 'tmail'
+      #  email_string =<<HEREDOC
+      #  To: mikel@lindsaar.net
+      #  From: mikel@me.com
+      #  Subject: This is a short Email
+      #  
+      #  Hello there Mikel!
+      #  
+      #  HEREDOC
+      #  mail = TMail::Mail.parse(email_string)
+      #  #=> #<TMail::Mail port=#<TMail::StringPort:id=0xa30ac0> bodyport=nil>
+      #  mail.body
+      #  #=> "Hello there Mikel!\n\n"
       def parse( str )
         new(StringPort.new(str))
       end
 
     end
 
-    def initialize( port = nil, conf = DEFAULT_CONFIG )
+    def initialize( port = nil, conf = DEFAULT_CONFIG ) #:nodoc:
       @port = port || StringPort.new
       @config = Config.to_config(conf)
 
@@ -90,6 +141,12 @@ module TMail
       }
     end
 
+    # Provides access to the port this email is using to hold it's data
+    # 
+    # Example:
+    #  mail = TMail::Mail.parse(email_string)
+    #  mail.port
+    #  #=> #<TMail::StringPort:id=0xa2c952>
     attr_reader :port
 
     def inspect
@@ -395,10 +452,12 @@ module TMail
     end
 
     def quoted_body
-      parse_body
-      @body_port.ropen {|f|
-          return f.read
-      }
+      body_port.ropen {|f| return f.read }
+    end
+
+    def quoted_body= str
+      body_port.wopen { |f| f.write str }
+      str
     end
 
     def body=( str )
@@ -420,8 +479,8 @@ module TMail
       str
     end
 
-    alias preamble  body
-    alias preamble= body=
+    alias preamble  quoted_body
+    alias preamble= quoted_body=
 
     def epilogue
       parse_body
@@ -441,6 +500,18 @@ module TMail
     
     def each_part( &block )
       parts().each(&block)
+    end
+    
+    # Returns true if the content type of this part of the email is
+    # a disposition attachment
+    def disposition_is_attachment?
+      (self['content-disposition'] && self['content-disposition'].disposition == "attachment")
+    end
+
+    # Returns true if this part's content main type is text, else returns false.
+    # By main type is meant "text/plain" is text.  "text/html" is text
+    def content_type_is_text?
+      self.header['content-type'] && (self.header['content-type'].main_type != "text")
     end
 
     private
