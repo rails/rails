@@ -629,7 +629,7 @@ module ActiveResource
     #
     def clone
       # Clone all attributes except the pk and any nested ARes
-      attrs = self.attributes.reject {|k,v| k == self.class.primary_key || v.is_a?(ActiveResource::Base)}.inject({}) do |attrs, (k, v)|
+      cloned = attributes.reject {|k,v| k == self.class.primary_key || v.is_a?(ActiveResource::Base)}.inject({}) do |attrs, (k, v)|
         attrs[k] = v.clone
         attrs
       end
@@ -638,7 +638,7 @@ module ActiveResource
       # the raw objects to be cloned so we bypass load by directly setting the attributes hash.
       resource = self.class.new({})
       resource.prefix_options = self.prefix_options
-      resource.send :instance_variable_set, '@attributes', attrs
+      resource.send :instance_variable_set, '@attributes', cloned
       resource
     end
 
