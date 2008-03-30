@@ -18,9 +18,9 @@
 * Added config.gem for specifying which gems are required by the application, as well as rake tasks for installing and freezing gems. [rick]
 
   Rails::Initializer.run do |config|
-    config.gems "bj"
-    config.gems "hpricot", :version => '0.6', :source => "http://code.whytheluckystiff.net"
-    config.gems "aws-s3", :lib => "aws/s3"
+    config.gem "bj"
+    config.gem "hpricot", :version => '0.6', :source => "http://code.whytheluckystiff.net"
+    config.gem "aws-s3", :lib => "aws/s3"
   end
   
   # List required gems.

@@ -522,7 +522,7 @@ module Rails
     #
     #   rake gems:install
     #
-    # You can add with the #gem method.
+    # You can add gems with the #gem method.
     attr_accessor :gems
 
     # Adds a single Gem dependency to the rails application.
