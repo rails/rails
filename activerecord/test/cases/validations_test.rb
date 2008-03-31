@@ -437,6 +437,30 @@ class ValidationsTest < ActiveRecord::TestCase
     assert t2.save, "should save with nil"
   end
 
+  def test_validate_case_sensitive_uniqueness
+    Topic.validates_uniqueness_of(:title, :case_sensitive => true, :allow_nil => true)
+
+    t = Topic.new("title" => "I'm unique!")
+    assert t.save, "Should save t as unique"
+
+    t.content = "Remaining unique"
+    assert t.save, "Should still save t as unique"
+
+    t2 = Topic.new("title" => "I'M UNIQUE!")
+    assert t2.valid?, "Should be valid"
+    assert t2.save, "Should save t2 as unique"
+    assert !t2.errors.on(:title)
+    assert !t2.errors.on(:parent_id)
+    assert_not_equal "has already been taken", t2.errors.on(:title)
+
+    t3 = Topic.new("title" => "I'M uNiQUe!")
+    assert t3.valid?, "Should be valid"
+    assert t3.save, "Should save t2 as unique"
+    assert !t3.errors.on(:title)
+    assert !t3.errors.on(:parent_id)
+    assert_not_equal "has already been taken", t3.errors.on(:title)
+  end
+
   def test_validate_uniqueness_with_non_standard_table_names
     i1 = WarehouseThing.create(:value => 1000)
     assert !i1.valid?, "i1 should not be valid"
