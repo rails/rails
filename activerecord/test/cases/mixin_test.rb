@@ -69,6 +69,7 @@ class TouchTest < ActiveRecord::TestCase
     old_updated_at = stamped.updated_at
 
     Time.forced_now_time = 5.minutes.from_now
+    stamped.lft_will_change!
     stamped.save
 
     assert_equal Time.now, stamped.updated_at
