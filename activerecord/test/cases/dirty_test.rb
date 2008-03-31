@@ -99,13 +99,19 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_partial_update
     pirate = Pirate.new(:catchphrase => 'foo')
+    old_updated_on = 1.hour.ago.beginning_of_day
 
     with_partial_updates Pirate, false do
       assert_queries(2) { 2.times { pirate.save! } }
+      Pirate.update_all({ :updated_on => old_updated_on }, :id => pirate.id)
     end
 
     with_partial_updates Pirate, true do
       assert_queries(0) { 2.times { pirate.save! } }
+      assert_equal old_updated_on, pirate.reload.updated_on
+
+      assert_queries(1) { pirate.catchphrase = 'bar'; pirate.save! }
+      assert_not_equal old_updated_on, pirate.reload.updated_on
     end
   end
 

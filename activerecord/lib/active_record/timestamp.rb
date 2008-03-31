@@ -30,7 +30,7 @@ module ActiveRecord
       end
 
       def update_with_timestamps(*args) #:nodoc:
-        if record_timestamps
+        if record_timestamps && (!partial_updates? || changed?)
           t = self.class.default_timezone == :utc ? Time.now.utc : Time.now
           write_attribute('updated_at', t) if respond_to?(:updated_at)
           write_attribute('updated_on', t) if respond_to?(:updated_on)
