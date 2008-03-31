@@ -46,7 +46,9 @@ module Rails
           plugin.load_paths.each do |path|
             $LOAD_PATH.insert(application_lib_index + 1, path)
             Dependencies.load_paths      << path
-            Dependencies.load_once_paths << path
+            unless Rails.configuration.reload_plugins?
+              Dependencies.load_once_paths << path
+            end
           end
         end
         $LOAD_PATH.uniq!

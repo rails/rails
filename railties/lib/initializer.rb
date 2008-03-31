@@ -516,6 +516,22 @@ module Rails
     # a sub class would have access to fine grained modification of the loading behavior. See
     # the implementation of Rails::Plugin::Loader for more details.
     attr_accessor :plugin_loader
+    
+    # Enables or disables plugin reloading.  You can get around this setting per plugin.
+    # If #reload_plugins? == false, add this to your plugin's init.rb to make it reloadable:
+    #
+    #   Dependencies.load_once_paths.delete lib_path
+    #
+    # If #reload_plugins? == true, add this to your plugin's init.rb to only load it once:
+    #
+    #   Dependencies.load_once_paths << lib_path
+    #
+    attr_accessor :reload_plugins
+
+    # Returns true if plugin reloading is enabled.
+    def reload_plugins?
+      !!@reload_plugins
+    end
 
     # An array of gems that this rails application depends on.  Rails will automatically load
     # these gems during installation, and allow you to install any missing gems with:

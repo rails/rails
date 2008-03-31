@@ -1,5 +1,20 @@
 *SVN*
 
+* Allow files in plugins to be reloaded like the rest of the application.  [rick]
+
+  Enables or disables plugin reloading.
+  
+    config.reload_plugins = true
+  
+  You can get around this setting per plugin.
+  If #reload_plugins? == false (DEFAULT), add this to your plugin's init.rb to make it reloadable:
+  
+    Dependencies.load_once_paths.delete lib_path
+  
+  If #reload_plugins? == true, add this to your plugin's init.rb to only load it once:
+  
+    Dependencies.load_once_paths << lib_path
+
 * Small tweak to allow plugins to specify gem dependencies.  [rick]
 
   # OLD open_id_authentication plugin init.rb
