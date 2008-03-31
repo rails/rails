@@ -654,13 +654,15 @@ module ActiveRecord
             condition_params << record.send(:id)
           end
 
-          results = connection.select_all(
-            construct_finder_sql(
-              :select     => "#{attr_name}",
-              :from       => "#{finder_class.quoted_table_name}",
-              :conditions => [condition_sql, *condition_params]
+          results = finder_class.with_exclusive_scope do
+            connection.select_all(
+              construct_finder_sql(
+                :select     => "#{attr_name}",
+                :from       => "#{finder_class.quoted_table_name}",
+                :conditions => [condition_sql, *condition_params]
+              )
             )
-          )
+          end
 
           unless results.length.zero?
             found = true

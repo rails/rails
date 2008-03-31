@@ -467,6 +467,16 @@ class ValidationsTest < ActiveRecord::TestCase
     assert i1.errors.on(:value), "Should not be empty"
   end
 
+  def test_validates_uniqueness_inside_with_scope
+    Topic.validates_uniqueness_of(:title)
+
+    Topic.with_scope(:find => { :conditions => { :author_name => "David" } }) do
+      t1 = Topic.new("title" => "I'm unique!", "author_name" => "Mary")
+      assert t1.save
+      t2 = Topic.new("title" => "I'm unique!", "author_name" => "David")
+      assert !t2.valid?
+    end
+  end
 
   def test_validate_straight_inheritance_uniqueness
     w1 = IneptWizard.create(:name => "Rincewind", :city => "Ankh-Morpork")
