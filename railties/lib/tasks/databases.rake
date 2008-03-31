@@ -37,10 +37,10 @@ namespace :db do
         @collation = ENV['COLLATION'] || 'utf8_general_ci'
         begin
           ActiveRecord::Base.establish_connection(config.merge({'database' => nil}))
-          ActiveRecord::Base.connection.create_database(config['database'], {:charset => (config['database']['charset'] || @charset), :collation => (config['database']['charset'] || @collation)})
+          ActiveRecord::Base.connection.create_database(config['database'], {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)})
           ActiveRecord::Base.establish_connection(config)
         rescue
-          $stderr.puts "Couldn't create database for #{config.inspect}, charset: #{@charset}, collation: #{@collation} (if you set the charset manually, make sure you have a matching collation)"
+          $stderr.puts "Couldn't create database for #{config.inspect}, charset: #{config['charset'] || @charset}, collation: #{config['collation'] || @collation} (if you set the charset manually, make sure you have a matching collation)"
         end
       when 'postgresql'
         `createdb "#{config['database']}" -E utf8`
