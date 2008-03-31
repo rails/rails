@@ -5,7 +5,7 @@ module ActiveSupport #:nodoc:
       module Conversions
         def self.included(base) #:nodoc:
           base.class_eval do
-            alias_method :to_default_s, :to_s if instance_methods.include?(:to_s)
+            alias_method :to_default_s, :to_s
             alias_method :to_s, :to_formatted_s
             alias_method :default_inspect, :inspect
             alias_method :inspect, :readable_inspect
