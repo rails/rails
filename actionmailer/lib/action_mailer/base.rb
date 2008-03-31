@@ -473,7 +473,7 @@ module ActionMailer #:nodoc:
     def deliver!(mail = @mail)
       raise "no mail object available for delivery!" unless mail
       unless logger.nil?
-        logger.info  "Sent mail to #{recipients.to_a.join(', ')}"
+        logger.info  "Sent mail to #{Array(recipients).join(', ')}"
         logger.debug "\n#{mail.encoded}"
       end
 
