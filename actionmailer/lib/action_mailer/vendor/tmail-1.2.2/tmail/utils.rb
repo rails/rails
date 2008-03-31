@@ -109,15 +109,15 @@ module TMail
   # It also provides methods you can call to determine if a string is safe
   module TextUtils
 
-    aspecial     = '()<>[]:;.\\,"'
-    tspecial     = '()<>[];:\\,"/?='
-    lwsp         = " \t\r\n"
-    control      = '\x00-\x1f\x7f-\xff'
+    aspecial     = %Q|()<>[]:;.\\,"|
+    tspecial     = %Q|()<>[];:\\,"/?=|
+    lwsp         = %Q| \t\r\n|
+    control      = %Q|\x00-\x1f\x7f-\xff|
 
+    CONTROL_CHAR  = /[#{control}]/n
     ATOM_UNSAFE   = /[#{Regexp.quote aspecial}#{control}#{lwsp}]/n
     PHRASE_UNSAFE = /[#{Regexp.quote aspecial}#{control}]/n
     TOKEN_UNSAFE  = /[#{Regexp.quote tspecial}#{control}#{lwsp}]/n
-    CONTROL_CHAR  = /[#{control}]/n
 
     # Returns true if the string supplied is free from characters not allowed as an ATOM
     def atom_safe?( str )

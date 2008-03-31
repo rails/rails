@@ -1,4 +1,3 @@
-#
 # scanner_r.rb
 #
 #--
@@ -33,7 +32,7 @@ module TMail
 
   class TMailScanner
 
-    Version = '0.11.0'
+    Version = '1.2.3'
     Version.freeze
 
     MIME_HEADERS = {
@@ -49,9 +48,9 @@ module TMail
     tokenchars = alnum + Regexp.quote(tokensyms)
     iso2022str = '\e(?!\(B)..(?:[^\e]+|\e(?!\(B)..)*\e\(B'
 
-    eucstr  = '(?:[\xa1-\xfe][\xa1-\xfe])+'
-    sjisstr = '(?:[\x81-\x9f\xe0-\xef][\x40-\x7e\x80-\xfc])+'
-    utf8str = '(?:[\xc0-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf][\x80-\xbf])+'
+    eucstr  = "(?:[\xa1-\xfe][\xa1-\xfe])+"
+    sjisstr = "(?:[\x81-\x9f\xe0-\xef][\x40-\x7e\x80-\xfc])+"
+    utf8str = "(?:[\xc0-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf][\x80-\xbf])+"
 
     quoted_with_iso2022  = /\A(?:[^\\\e"]+|#{iso2022str})+/n
     domlit_with_iso2022  = /\A(?:[^\\\e\]]+|#{iso2022str})+/n
