@@ -19,6 +19,12 @@ class Class
       def #{name}
         self.class.#{name}
       end
+      def self.#{name}?
+        !!#{name}
+      end
+      def #{name}?
+        !!#{name}
+      end
       EOS
     end
   end
