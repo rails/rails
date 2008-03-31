@@ -622,47 +622,34 @@ module ActiveModel
         end
     end
 
-    # The validation process on save can be skipped by passing false. The regular Base#save method is
-    # replaced with this when the validations module is mixed in, which it is by default.
-    def save_with_validation(perform_validation = true)
-      if perform_validation && valid? || !perform_validation
-        save_without_validation
-      else
-        false
-      end
-    end
-
-    # Attempts to save the record just like Base#save but will raise a RecordInvalid exception instead of returning false
-    # if the record is not valid.
-    def save_with_validation!
-      if valid?
-        save_without_validation!
-      else
-        raise RecordInvalid.new(self)
-      end
-    end
-
-    # Updates a single attribute and saves the record without going through the normal validation procedure.
-    # This is especially useful for boolean flags on existing records. The regular +update_attribute+ method
-    # in Base is replaced with this when the validations module is mixed in, which it is by default.
-    def update_attribute_with_validation_skipping(name, value)
-      send(name.to_s + '=', value)
-      save(false)
-    end
 
     # Runs validate and validate_on_create or validate_on_update and returns true if no errors were added otherwise false.
     def valid?
       errors.clear
 
       run_callbacks(:validate)
-      validate
+      
+      if responds_to?(:validate)
+        ActiveSupport::Deprecations.warn "Base#validate has been deprecated, please use Base.validate :method instead"
+        validate
+      end
 
       if new_record?
         run_callbacks(:validate_on_create)
-        validate_on_create
+
+        if responds_to?(:validate_on_create)
+          ActiveSupport::Deprecations.warn(
+            "Base#validate_on_create has been deprecated, please use Base.validate :method, :on => :create instead")
+          validate_on_create
+        end
       else
         run_callbacks(:validate_on_update)
-        validate_on_update
+
+        if responds_to?(:validate_on_update)
+          ActiveSupport::Deprecations.warn(
+            "Base#validate_on_update has been deprecated, please use Base.validate :method, :on => :update instead")
+          validate_on_update
+        end
       end
 
       errors.empty?
@@ -670,20 +657,7 @@ module ActiveModel
 
     # Returns the Errors object that holds all information about attribute error messages.
     def errors
-      @errors ||= Errors.new(self)
+      @errors ||= Errors.new
     end
-
-    protected
-      # Overwrite this method for validation checks on all saves and use Errors.add(field, msg) for invalid attributes.
-      def validate #:doc:
-      end
-
-      # Overwrite this method for validation checks used only on creation.
-      def validate_on_create #:doc:
-      end
-
-      # Overwrite this method for validation checks used only on updates.
-      def validate_on_update # :doc:
-      end
   end
 end
