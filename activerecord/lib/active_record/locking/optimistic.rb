@@ -66,17 +66,20 @@ module ActiveRecord
           return result
         end
 
-        def update_with_lock #:nodoc:
-          return update_without_lock unless locking_enabled?
+        def update_with_lock(attribute_names = @attributes.keys) #:nodoc:
+          return update_without_lock(attribute_names) unless locking_enabled?
 
           lock_col = self.class.locking_column
           previous_value = send(lock_col).to_i
           send(lock_col + '=', previous_value + 1)
 
+          attribute_names += [lock_col]
+          attribute_names.uniq!
+
           begin
             affected_rows = connection.update(<<-end_sql, "#{self.class.name} Update with optimistic locking")
               UPDATE #{self.class.table_name}
-              SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false, false))}
+              SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false, false, attribute_names))}
               WHERE #{self.class.primary_key} = #{quote_value(id)}
               AND #{self.class.quoted_locking_column} = #{quote_value(previous_value)}
             end_sql

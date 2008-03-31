@@ -28,12 +28,21 @@ module ActiveRecord
   #   person.name = 'bob'
   #   person.changed        # => ['name']
   #   person.changes        # => { 'name' => ['Bill', 'bob'] }
+  #
+  # Before modifying an attribute in-place:
+  #   person.name_will_change!
+  #   person.name << 'by'
+  #   person.name_change    # => ['uncle bob', 'uncle bobby']
   module Dirty
     def self.included(base)
-      base.attribute_method_suffix '_changed?', '_change', '_was'
+      base.attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
       base.alias_method_chain :write_attribute, :dirty
       base.alias_method_chain :save,            :dirty
       base.alias_method_chain :save!,           :dirty
+      base.alias_method_chain :update,          :dirty
+
+      base.superclass_delegating_accessor :partial_updates
+      base.partial_updates = true
     end
 
     # Do any attributes have unsaved changes?
@@ -81,6 +90,25 @@ module ActiveRecord
         @changed_attributes ||= {}
       end
 
+      # Handle *_changed? for method_missing.
+      def attribute_changed?(attr)
+        changed_attributes.include?(attr)
+      end
+
+      # Handle *_change for method_missing.
+      def attribute_change(attr)
+        [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
+      end
+
+      # Handle *_was for method_missing.
+      def attribute_was(attr)
+        attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
+      end
+
+      # Handle *_will_change! for method_missing.
+      def attribute_will_change!(attr)
+        changed_attributes[attr] = clone_attribute_value(:read_attribute, attr)
+      end
 
       # Wrap write_attribute to remember original attribute value.
       def write_attribute_with_dirty(attr, value)
@@ -88,7 +116,7 @@ module ActiveRecord
 
         # The attribute already has an unsaved change.
         unless changed_attributes.include?(attr)
-          old = read_attribute(attr)
+          old = clone_attribute_value(:read_attribute, attr)
 
           # Remember the original value if it's different.
           typecasted = if column = column_for_attribute(attr)
@@ -103,20 +131,12 @@ module ActiveRecord
         write_attribute_without_dirty(attr, value)
       end
 
-
-      # Handle *_changed? for method_missing.
-      def attribute_changed?(attr)
-        changed_attributes.include?(attr)
-      end
-
-      # Handle *_change for method_missing.
-      def attribute_change(attr)
-        [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
-      end
-
-      # Handle *_was for method_missing.
-      def attribute_was(attr)
-        attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
+      def update_with_dirty
+        if partial_updates?
+          update_without_dirty(changed)
+        else
+          update_without_dirty
+        end
       end
   end
 end

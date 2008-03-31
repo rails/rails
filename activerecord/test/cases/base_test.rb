@@ -153,6 +153,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_equal 2, Topic.find(topic.id).content["two"]
 
+    topic.content_will_change!
     topic.content["three"] = 3
     topic.save
 

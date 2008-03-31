@@ -61,7 +61,8 @@ class AppGenerator < Rails::Generator::Base
 
       # Initializers
       m.template "configs/initializers/inflections.rb", "config/initializers/inflections.rb"
-      m.template "configs/initializers/mime_types.rb",  "config/initializers/mime_types.rb"
+      m.template "configs/initializers/mime_types.rb", "config/initializers/mime_types.rb"
+      m.template "configs/initializers/new_in_rails_3.rb", "config/initializers/new_in_rails_3.rb"
 
       # Environments
       m.file "environments/boot.rb",    "config/boot.rb"

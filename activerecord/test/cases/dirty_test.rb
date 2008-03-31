@@ -1,6 +1,7 @@
 require 'cases/helper'
 require 'models/topic'    # For booleans
 require 'models/pirate'   # For timestamps
+require 'models/parrot'
 
 class Pirate # Just reopening it, not defining it
   attr_accessor :detected_changes_in_after_update # Boolean for if changes are detected
@@ -19,7 +20,7 @@ private
   end
 end
 
-class DirtyTest < Test::Unit::TestCase
+class DirtyTest < ActiveRecord::TestCase
   def test_attribute_changes
     # New record - no changes.
     pirate = Pirate.new
@@ -43,7 +44,6 @@ class DirtyTest < Test::Unit::TestCase
     assert_nil pirate.catchphrase_change
   end
 
-  # Rewritten from original tests to use AR
   def test_object_should_be_changed_if_any_attribute_is_changed
     pirate = Pirate.new
     assert !pirate.changed?
@@ -62,6 +62,28 @@ class DirtyTest < Test::Unit::TestCase
     assert_equal Hash.new, pirate.changes
   end
 
+  def test_attribute_will_change!
+    pirate = Pirate.create!(:catchphrase => 'arr')
+
+    pirate.catchphrase << ' matey'
+    assert !pirate.catchphrase_changed?
+
+    assert pirate.catchphrase_will_change!
+    assert pirate.catchphrase_changed?
+    assert_equal ['arr matey', 'arr matey'], pirate.catchphrase_change
+
+    pirate.catchphrase << '!'
+    assert pirate.catchphrase_changed?
+    assert_equal ['arr matey', 'arr matey!'], pirate.catchphrase_change
+  end
+
+  def test_association_assignment_changes_foreign_key
+    pirate = Pirate.create!
+    pirate.parrot = Parrot.create!
+    assert pirate.changed?
+    assert_equal %w(parrot_id), pirate.changed
+  end
+
   def test_attribute_should_be_compared_with_type_cast
     topic = Topic.new
     assert topic.approved?
@@ -74,4 +96,25 @@ class DirtyTest < Test::Unit::TestCase
     assert topic.approved?
     assert !topic.approved_changed?
   end
+
+  def test_partial_update
+    pirate = Pirate.new(:catchphrase => 'foo')
+
+    with_partial_updates Pirate, false do
+      assert_queries(2) { 2.times { pirate.save! } }
+    end
+
+    with_partial_updates Pirate, true do
+      assert_queries(0) { 2.times { pirate.save! } }
+    end
+  end
+
+  private
+    def with_partial_updates(klass, on = true)
+      old = klass.partial_updates?
+      klass.partial_updates = on
+      yield
+    ensure
+      klass.partial_updates = old
+    end
 end

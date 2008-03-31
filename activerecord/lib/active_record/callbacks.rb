@@ -229,9 +229,9 @@ module ActiveRecord
     # Is called _after_ <tt>Base.save</tt> on existing objects that have a record.
     def after_update() end
 
-    def update_with_callbacks #:nodoc:
+    def update_with_callbacks(*args) #:nodoc:
       return false if callback(:before_update) == false
-      result = update_without_callbacks
+      result = update_without_callbacks(*args)
       callback(:after_update)
       result
     end

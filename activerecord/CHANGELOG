@@ -1,5 +1,7 @@
 *SVN*
 
+* Partial updates include only unsaved attributes. Off by default; set YourClass.partial_updates = true to enable.  [Jeremy Kemper]
+
 * Removing unnecessary uses_tzinfo helper from tests, given that TZInfo is now bundled [Geoff Buesing]
 
 * Fixed that validates_size_of :within works in associations #11295, #10019 [cavalle]

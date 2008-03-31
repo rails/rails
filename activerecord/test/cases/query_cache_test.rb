@@ -82,7 +82,9 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     Task.connection.expects(:clear_query_cache).times(2)
 
     Task.cache do
-      Task.find(1).save!
+      task = Task.find(1)
+      task.starting = Time.now.utc
+      task.save!
     end
   end
 

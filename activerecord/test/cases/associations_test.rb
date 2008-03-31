@@ -449,11 +449,12 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_not_resaved_when_unchanged
     firm = Firm.find(:first, :include => :account)
+    firm.name += '-changed'
     assert_queries(1) { firm.save! }
 
     firm = Firm.find(:first)
     firm.account = Account.find(:first)
-    assert_queries(1) { firm.save! }
+    assert_queries(Firm.partial_updates? ? 0 : 1) { firm.save! }
 
     firm = Firm.find(:first).clone
     firm.account = Account.find(:first)
