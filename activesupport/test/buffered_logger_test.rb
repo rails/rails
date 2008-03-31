@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'stringio'
+require 'fileutils'
 
 class BufferedLoggerTest < Test::Unit::TestCase
   def setup
