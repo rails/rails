@@ -860,7 +860,9 @@ module ActiveRecord
               when :odd, :even
                 record.errors.add(attr_name, configuration[:message] || ActiveRecord::Errors.default_error_messages[option]) unless raw_value.to_i.method(ALL_NUMERICALITY_CHECKS[option])[]
               else
-                record.errors.add(attr_name, configuration[:message] || (ActiveRecord::Errors.default_error_messages[option] % configuration[option])) unless raw_value.method(ALL_NUMERICALITY_CHECKS[option])[configuration[option]]
+                message = configuration[:message] || ActiveRecord::Errors.default_error_messages[option]
+                message = message % configuration[option] if configuration[option]
+                record.errors.add(attr_name, message) unless raw_value.method(ALL_NUMERICALITY_CHECKS[option])[configuration[option]]
             end
           end
         end

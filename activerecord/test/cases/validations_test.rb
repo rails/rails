@@ -1405,6 +1405,20 @@ class ValidatesNumericalityTest < ActiveRecord::TestCase
     valid!([2])
   end
 
+  def test_validates_numericality_with_numeric_message
+    Topic.validates_numericality_of :approved, :less_than => 4, :message => "smaller than %d"
+    topic = Topic.new("title" => "numeric test", "approved" => 10)
+
+    assert !topic.valid?
+    assert_equal "smaller than 4", topic.errors.on(:approved)
+
+    Topic.validates_numericality_of :approved, :greater_than => 4, :message => "greater than %d"
+    topic = Topic.new("title" => "numeric test", "approved" => 1)
+
+    assert !topic.valid?
+    assert_equal "greater than 4", topic.errors.on(:approved)
+  end
+
   private
     def invalid!(values, error=nil)
       with_each_topic_approved_value(values) do |topic, value|
