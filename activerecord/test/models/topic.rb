@@ -26,7 +26,7 @@ class Topic < ActiveRecord::Base
   end
   named_scope :named_extension, :extend => NamedExtension
   named_scope :multiple_extensions, :extend => [MultipleExtensionTwo, MultipleExtensionOne]
-  
+
   has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
   serialize :content
 
@@ -41,7 +41,6 @@ class Topic < ActiveRecord::Base
   def topic_id
     id
   end
-
 
   protected
     def approved=(val)

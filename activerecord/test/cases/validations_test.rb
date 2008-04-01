@@ -8,12 +8,15 @@ require 'models/warehouse_thing'
 
 # The following methods in Topic are used in test_conditional_validation_*
 class Topic
+  has_many :unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
+  has_many :silly_unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
+
   def condition_is_true
-    return true
+    true
   end
 
   def condition_is_true_but_its_not
-    return false
+    false
   end
 end
 
@@ -34,11 +37,6 @@ end
 class SillyUniqueReply < UniqueReply
 end
 
-class Topic < ActiveRecord::Base
-  has_many :unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
-  has_many :silly_unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
-end
-
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
 
@@ -54,6 +52,7 @@ end
 
 class Thaumaturgist < IneptWizard
 end
+
 
 class ValidationsTest < ActiveRecord::TestCase
   fixtures :topics, :developers, 'warehouse-things'
@@ -958,19 +957,22 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_optionally_validates_length_of_using_within_utf8
     with_kcode('UTF8') do
-      Topic.validates_length_of :title, :content, :within => 3..5, :allow_nil => true
+      Topic.validates_length_of :title, :within => 3..5, :allow_nil => true
 
-      t = Topic.create('title' => '一二三', 'content' => '一二三四五')
-      assert t.valid?
+      t = Topic.create(:title => "一二三四五")
+      assert t.valid?, t.errors.inspect
+
+      t = Topic.create(:title => "一二三")
+      assert t.valid?, t.errors.inspect
 
       t.title = nil
-      assert t.valid?
+      assert t.valid?, t.errors.inspect
     end
   end
 
   def test_optionally_validates_length_of_using_within_on_create_utf8
     with_kcode('UTF8') do
-      Topic.validates_length_of :title, :content, :within => 5..10, :on => :create, :too_long => "長すぎます: %d"
+      Topic.validates_length_of :title, :within => 5..10, :on => :create, :too_long => "長すぎます: %d"
 
       t = Topic.create("title" => "一二三四五六七八九十A", "content" => "whatever")
       assert !t.save
@@ -993,7 +995,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_optionally_validates_length_of_using_within_on_update_utf8
     with_kcode('UTF8') do
-      Topic.validates_length_of :title, :content, :within => 5..10, :on => :update, :too_short => "短すぎます: %d"
+      Topic.validates_length_of :title, :within => 5..10, :on => :update, :too_short => "短すぎます: %d"
 
       t = Topic.create("title" => "一二三4", "content" => "whatever")
       assert !t.save
@@ -1004,12 +1006,11 @@ class ValidationsTest < ActiveRecord::TestCase
       assert t.errors.on(:title)
       assert_equal "短すぎます: 5", t.errors[:title]
 
-      t.title = "valid"
-      t.content = "一二三四五六七八九十A"
+      t.title = "一二三四五六七八九十A"
       assert !t.save
-      assert t.errors.on(:content)
+      assert t.errors.on(:title)
 
-      t.content = "一二345"
+      t.title = "一二345"
       assert t.save
     end
   end
