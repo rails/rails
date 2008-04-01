@@ -1,5 +1,7 @@
 *SVN*
 
+* Support render :partial => collection of heterogeneous elements.  #11491 [Zach Dennis]
+
 * Avoid remote_ip spoofing.  [Brian Candler]
 
 * Added support for regexp flags like ignoring case in the :requirements part of routes declarations #11421 [NeilW]

@@ -7,7 +7,7 @@ module ActionView #:nodoc:
       @path, @variable_name = extract_partial_name_and_path(view, partial_path)
       super(view, @path, true, locals)
       add_object_to_local_assigns!(object)
-      
+
       # This is needed here in order to compile template with knowledge of 'counter'
       initialize_counter
       
@@ -24,11 +24,18 @@ module ActionView #:nodoc:
     def render_member(object)
       @locals[@counter_name] += 1
       @locals[:object] = @locals[@variable_name] = object
-      render
+      returning render do
+        @locals.delete(@variable_name)
+        @locals.delete(:object)
+      end
     end
     
+    def counter=(num)
+      @locals[@counter_name] = num
+    end
+
     private
-    
+
     def add_object_to_local_assigns!(object)
       @locals[:object] ||=
         @locals[@variable_name] ||=

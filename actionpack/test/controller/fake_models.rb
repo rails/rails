@@ -3,3 +3,9 @@ class Customer < Struct.new(:name, :id)
     id.to_s
   end
 end
+
+class BadCustomer < Customer
+end
+
+class GoodCustomer < Customer
+end

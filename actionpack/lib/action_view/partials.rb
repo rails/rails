@@ -113,9 +113,8 @@ module ActionView
           render_partial(builder_partial_path, object_assigns, (local_assigns || {}).merge(builder_partial_path.to_sym => partial_path))
         when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Associations::HasManyThroughAssociation
           if partial_path.any?
-            path       = ActionController::RecordIdentifier.partial_path(partial_path.first)
             collection = partial_path
-            render_partial_collection(path, collection, nil, local_assigns)
+            render_partial_collection(nil, collection, nil, local_assigns)
           else
             ""
           end
@@ -126,15 +125,34 @@ module ActionView
 
       def render_partial_collection(partial_path, collection, partial_spacer_template = nil, local_assigns = {}) #:nodoc:
         return " " if collection.empty?
-        
+
         local_assigns = local_assigns ? local_assigns.clone : {}
-        template = ActionView::PartialTemplate.new(self, partial_path, nil, local_assigns)
-        
         spacer = partial_spacer_template ? render(:partial => partial_spacer_template) : ''
-        
+
+        if partial_path.nil?
+          render_partial_collection_with_unknown_partial_path(collection, local_assigns, spacer)
+        else
+          render_partial_collection_with_known_partial_path(collection, partial_path, local_assigns, spacer)
+        end.join(spacer)
+      end
+
+      def render_partial_collection_with_known_partial_path(collection, partial_path, local_assigns, spacer)
+        template = ActionView::PartialTemplate.new(self, partial_path, nil, local_assigns)
         collection.map do |element|
           template.render_member(element)
-        end.join(spacer)
+        end
+      end
+
+      def render_partial_collection_with_unknown_partial_path(collection, local_assigns, spacer)
+        templates = Hash.new
+        i = 0
+        collection.map do |element|
+          partial_path = ActionController::RecordIdentifier.partial_path(element)
+          template = templates[partial_path] ||= ActionView::PartialTemplate.new(self, partial_path, nil, local_assigns)
+          template.counter = i
+          i += 1
+          template.render_member(element)
+        end
       end
   end
 end
