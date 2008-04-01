@@ -17,7 +17,9 @@ unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :DB2Adapter, :Firebir
       Binary.delete_all
 
       FIXTURES.each do |filename|
-        data = File.read(ASSETS_ROOT + "/#{filename}").freeze
+        data = File.read(ASSETS_ROOT + "/#{filename}")
+        data.force_encoding('ASCII-8BIT') if data.respond_to?(:force_encoding)
+        data.freeze
 
         bin = Binary.new(:data => data)
         assert_equal data, bin.data, 'Newly assigned data differs from original'
