@@ -1,5 +1,7 @@
 *SVN*
 
+* Add efficient #include? to AssociationCollection (for has_many/has_many :through/habtm).  [stopdropandrew]
+
 * PostgreSQL: create_ and drop_database support.  #9042 [ez, pedz, nicksieger]
 
 * Ensure that validates_uniqueness_of works with with_scope. Closes #9235. [nik.wakelin, cavalle]

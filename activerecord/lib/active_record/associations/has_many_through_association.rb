@@ -1,6 +1,6 @@
 module ActiveRecord
   module Associations
-    class HasManyThroughAssociation < AssociationProxy #:nodoc:
+    class HasManyThroughAssociation < AssociationCollection #:nodoc:
       def initialize(owner, reflection)
         super
         reflection.check_validity!

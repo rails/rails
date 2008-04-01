@@ -159,6 +159,11 @@ module ActiveRecord
         end
       end
 
+      def include?(record)
+        return false unless record.is_a?(@reflection.klass)
+        return @target.include?(record) if loaded?
+        exists?(record)
+      end
 
       protected
         def method_missing(method, *args)

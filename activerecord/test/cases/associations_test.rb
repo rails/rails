@@ -1330,6 +1330,36 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal authors(:david).hello_post_comments, authors(:david).hello_post_comments_with_hash_conditions
   end
 
+  def test_include_uses_array_include_after_loaded
+    firm = companies(:first_firm)
+    client = firm.clients.first
+
+    assert_no_queries do
+      assert firm.clients.loaded?
+      assert firm.clients.include?(client)
+    end
+  end
+
+  def test_include_checks_if_record_exists_if_target_not_loaded
+    firm = companies(:first_firm)
+    client = firm.clients.first
+
+    firm.reload
+    assert ! firm.clients.loaded?
+    assert_queries(1) do
+      assert firm.clients.include?(client)
+    end
+    assert ! firm.clients.loaded?
+  end
+
+  def test_include_returns_false_for_non_matching_record_to_verify_scoping
+    firm = companies(:first_firm)
+    client = Client.create!(:name => 'Not Associated')
+
+    assert ! firm.clients.loaded?
+    assert ! firm.clients.include?(client)
+  end
+
 end
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
@@ -2044,6 +2074,36 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     active_record = projects(:active_record)
     active_record.developers.reload
     assert_equal developers(:david), active_record.developers.find(developers(:david).id), "Ruby find"
+  end
+
+  def test_include_uses_array_include_after_loaded
+    project = projects(:active_record)
+    developer = project.developers.first
+    
+    assert_no_queries do
+      assert project.developers.loaded?
+      assert project.developers.include?(developer)
+    end
+  end
+  
+  def test_include_checks_if_record_exists_if_target_not_loaded
+    project = projects(:active_record)
+    developer = project.developers.first
+
+    project.reload
+    assert ! project.developers.loaded?
+    assert_queries(1) do
+      assert project.developers.include?(developer)
+    end
+    assert ! project.developers.loaded?
+  end
+
+  def test_include_returns_false_for_non_matching_record_to_verify_scoping
+    project = projects(:active_record)
+    developer = Developer.create :name => "Bryan", :salary => 50_000
+
+    assert ! project.developers.loaded?
+    assert ! project.developers.include?(developer)
   end
 
   def test_find_in_association_with_custom_finder_sql
