@@ -63,9 +63,9 @@ class DispatcherTest < Test::Unit::TestCase
 
   def test_prepare_application_runs_callbacks_if_unprepared
     a = b = c = nil
-    Dispatcher.to_prepare { a = b = c = 1 }
-    Dispatcher.to_prepare { b = c = 2 }
-    Dispatcher.to_prepare { c = 3 }
+    Dispatcher.to_prepare { |*args| a = b = c = 1 }
+    Dispatcher.to_prepare { |*args| b = c = 2 }
+    Dispatcher.to_prepare { |*args| c = 3 }
 
     # Skip the callbacks when already prepared.
     @dispatcher.unprepared = false
@@ -99,7 +99,7 @@ class DispatcherTest < Test::Unit::TestCase
   def test_to_prepare_only_runs_once_if_not_loading_dependencies
     Dependencies.stubs(:load?).returns(false)
     called = 0
-    Dispatcher.to_prepare(:unprepared_test) { called += 1 }
+    Dispatcher.to_prepare(:unprepared_test) { |*args| called += 1 }
     2.times { dispatch }
     assert_equal 1, called
   end
