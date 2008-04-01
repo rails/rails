@@ -95,7 +95,7 @@ module ActionMailer
             child.master_helper_module.send! :include, master_helper_module
             child.helper child.name.to_s.underscore
           rescue MissingSourceFile => e
-            raise unless e.is_missing?("helpers/#{child.name.underscore}_helper")
+            raise unless e.is_missing?("helpers/#{child.name.to_s.underscore}_helper")
           end
         end
     end
