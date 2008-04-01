@@ -9,6 +9,15 @@ end
 
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../lib"
 
+require 'initializer'
+
+# Mocks out the configuration
+module Rails
+  def self.configuration
+    Rails::Configuration.new
+  end
+end
+
 require 'rails_generator'
 require 'rails_generator/secret_key_generator'
 require 'rails_generator/generators/applications/app/app_generator'

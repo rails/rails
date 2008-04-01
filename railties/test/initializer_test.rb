@@ -1,6 +1,13 @@
 require 'abstract_unit'
 require 'initializer'
 
+# Mocks out the configuration
+module Rails
+  def self.configuration
+    Rails::Configuration.new
+  end
+end
+
 class ConfigurationMock < Rails::Configuration
   attr_reader :environment_path
 

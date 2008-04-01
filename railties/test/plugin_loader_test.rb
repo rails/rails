@@ -1,5 +1,12 @@
 require 'plugin_test_helper'
 
+# Mocks out the configuration
+module Rails
+  def self.configuration
+    Rails::Configuration.new
+  end
+end
+
 uses_mocha "Plugin Loader Tests" do
 
   class TestPluginLoader < Test::Unit::TestCase
@@ -41,7 +48,7 @@ uses_mocha "Plugin Loader Tests" do
     end
     
     def test_should_find_all_availble_plugins_and_return_as_all_plugins
-      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.all_plugins, @failure_tip      
+      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.all_plugins.reverse, @failure_tip
     end
 
     def test_should_return_all_plugins_as_plugins_when_registered_plugin_list_is_untouched

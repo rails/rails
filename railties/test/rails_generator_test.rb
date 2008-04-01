@@ -74,7 +74,7 @@ class RailsGeneratorTest < Test::Unit::TestCase
 
   def test_lookup_missing_generator
     assert_raise Rails::Generator::GeneratorError do
-      Rails::Generator::Base.lookup('missing_generator').klass
+      Rails::Generator::Base.lookup('missing').klass
     end
   end
 

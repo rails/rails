@@ -10,7 +10,7 @@ module Rails
       @name     = name.to_s
       if options[:version]
         @requirement = Gem::Requirement.create(options[:version])
-        @version     = @requirement.requirements.first.last
+        @version     = @requirement.instance_variable_get("@requirements").first.last
       end
       @lib      = options[:lib]
       @source   = options[:source]
