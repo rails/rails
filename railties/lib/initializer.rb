@@ -464,7 +464,7 @@ module Rails
     # A stub for setting options on ActiveRecord::Base
     attr_accessor :active_resource
 
-    # A stub for setting optinos on ActiveSupport
+    # A stub for setting options on ActiveSupport
     attr_accessor :active_support
 
     # Whether or not classes should be cached (set to false if you want
