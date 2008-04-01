@@ -22,6 +22,22 @@ module Rails
     @@configuration = configuration
   end
   
+  def self.logger
+    RAILS_DEFAULT_LOGGER
+  end
+  
+  def self.root
+    RAILS_ROOT
+  end
+  
+  def self.env
+    RAILS_ENV
+  end
+  
+  def self.cache
+    RAILS_CACHE
+  end
+  
   # The Initializer is responsible for processing the Rails configuration, such
   # as setting the $LOAD_PATH, requiring the right frameworks, initializing
   # logging, and more. It can be run either as a single command that'll just

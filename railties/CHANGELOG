@@ -1,5 +1,7 @@
 *SVN*
 
+* Add Rails.logger, Rails.root, Rails.env and Rails.cache shortcuts for RAILS_* constants [pratik]
+
 * Allow files in plugins to be reloaded like the rest of the application.  [rick]
 
   Enables or disables plugin reloading.
