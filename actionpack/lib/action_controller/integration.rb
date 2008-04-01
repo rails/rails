@@ -306,10 +306,10 @@ module ActionController
         # Parses the result of the response and extracts the various values,
         # like cookies, status, headers, etc.
         def parse_result
-          headers, result_body = @result.split(/\r\n\r\n/, 2)
+          response_headers, result_body = @result.split(/\r\n\r\n/, 2)
 
           @headers = Hash.new { |h,k| h[k] = [] }
-          headers.each_line do |line|
+          response_headers.to_s.each_line do |line|
             key, value = line.strip.split(/:\s*/, 2)
             @headers[key.downcase] << value
           end
@@ -319,7 +319,7 @@ module ActionController
             @cookies[name] = value
           end
 
-          @status, @status_message = @headers["status"].first.split(/ /)
+          @status, @status_message = @headers["status"].first.to_s.split(/ /)
           @status = @status.to_i
         end
 
