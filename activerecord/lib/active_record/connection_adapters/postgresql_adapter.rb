@@ -474,6 +474,50 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
+      def recreate_database(name) #:nodoc:
+        drop_database(name)
+        create_database(name)
+      end
+
+      # Create a new PostgreSQL database.  Options include :owner, :template,
+      # :encoding, :tablespace, and :connection_limit (note that MySQL uses
+      # :charset while PostgreSQL uses :encoding).
+      #
+      # Example:
+      #   create_database config[:database], config
+      #   create_database 'foo_development', :encoding => 'unicode'
+      def create_database(name, options = {})
+        options = options.reverse_merge(:encoding => "utf8")
+
+        option_string = options.symbolize_keys.sum do |key, value|
+          case key
+          when :owner
+            " OWNER = '#{value}'"
+          when :template
+            " TEMPLATE = #{value}"
+          when :encoding
+            " ENCODING = '#{value}'"
+          when :tablespace
+            " TABLESPACE = #{value}"
+          when :connection_limit
+            " CONNECTION LIMIT = #{value}"
+          else
+            ""
+          end
+        end
+
+        execute "CREATE DATABASE #{name}#{option_string}"
+      end
+
+      # Drops a PostgreSQL database
+      #
+      # Example:
+      #   drop_database 'matt_development'
+      def drop_database(name) #:nodoc:
+        execute "DROP DATABASE IF EXISTS #{name}"
+      end
+
+
       # Returns the list of all tables in the schema search path or a specified schema.
       def tables(name = nil)
         schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')

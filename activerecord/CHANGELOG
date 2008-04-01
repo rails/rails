@@ -1,5 +1,7 @@
 *SVN*
 
+* PostgreSQL: create_ and drop_database support.  #9042 [ez, pedz, nicksieger]
+
 * Ensure that validates_uniqueness_of works with with_scope. Closes #9235. [nik.wakelin, cavalle]
 
 * Partial updates include only unsaved attributes. Off by default; set YourClass.partial_updates = true to enable.  [Jeremy Kemper]
