@@ -130,20 +130,20 @@ module ActionView
         spacer = partial_spacer_template ? render(:partial => partial_spacer_template) : ''
 
         if partial_path.nil?
-          render_partial_collection_with_unknown_partial_path(collection, local_assigns, spacer)
+          render_partial_collection_with_unknown_partial_path(collection, local_assigns)
         else
-          render_partial_collection_with_known_partial_path(collection, partial_path, local_assigns, spacer)
+          render_partial_collection_with_known_partial_path(collection, partial_path, local_assigns)
         end.join(spacer)
       end
 
-      def render_partial_collection_with_known_partial_path(collection, partial_path, local_assigns, spacer)
+      def render_partial_collection_with_known_partial_path(collection, partial_path, local_assigns)
         template = ActionView::PartialTemplate.new(self, partial_path, nil, local_assigns)
         collection.map do |element|
           template.render_member(element)
         end
       end
 
-      def render_partial_collection_with_unknown_partial_path(collection, local_assigns, spacer)
+      def render_partial_collection_with_unknown_partial_path(collection, local_assigns)
         templates = Hash.new
         i = 0
         collection.map do |element|
