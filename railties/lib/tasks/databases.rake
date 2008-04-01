@@ -5,13 +5,13 @@ namespace :db do
       ActiveRecord::Base.configurations.each_value do |config|
         # Skip entries that don't have a database key, such as the first entry here:
         #
-        #  defaults: &defaults 
-        #    adapter: mysql 
+        #  defaults: &defaults
+        #    adapter: mysql
         #    username: root
-        #    password: 
+        #    password:
         #    host: localhost
-        #  
-        #  development: 
+        #
+        #  development:
         #    database: blog_development
         #    <<: *defaults
         next unless config['database']
@@ -36,21 +36,29 @@ namespace :db do
         @charset   = ENV['CHARSET']   || 'utf8'
         @collation = ENV['COLLATION'] || 'utf8_general_ci'
         begin
-          ActiveRecord::Base.establish_connection(config.merge({'database' => nil}))
-          ActiveRecord::Base.connection.create_database(config['database'], {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)})
+          ActiveRecord::Base.establish_connection(config.merge('database' => nil))
+          ActiveRecord::Base.connection.create_database(config['database'], :charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation))
           ActiveRecord::Base.establish_connection(config)
         rescue
           $stderr.puts "Couldn't create database for #{config.inspect}, charset: #{config['charset'] || @charset}, collation: #{config['collation'] || @collation} (if you set the charset manually, make sure you have a matching collation)"
         end
       when 'postgresql'
-        `createdb "#{config['database']}" -E utf8`
+        @encoding = config[:encoding] || ENV['CHARSET'] || 'utf8'
+        begin
+          ActiveRecord::Base.establish_connection(config.merge('database' => nil))
+          ActiveRecord::Base.connection.create_database(config['database'], :encoding => @encoding)
+          ActiveRecord::Base.establish_connection(config)
+        rescue
+          $stderr.puts $!, *($!.backtrace)
+          $stderr.puts "Couldn't create database for #{config.inspect}"
+        end
       when 'sqlite'
         `sqlite "#{config['database']}"`
       when 'sqlite3'
         `sqlite3 "#{config['database']}"`
       end
     else
-      p "#{config['database']} already exists"
+      $stderr.puts "#{config['database']} already exists"
     end
   end
 
@@ -98,7 +106,7 @@ namespace :db do
 
     desc 'Resets your database using your migrations for the current environment'
     task :reset => ["db:drop", "db:create", "db:migrate"]
-    
+
     desc 'Runs the "up" for a given migration VERSION.'
     task :up => :environment do
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
@@ -113,7 +121,7 @@ namespace :db do
       raise "VERSION is required" unless version
       ActiveRecord::Migrator.run(:down, "db/migrate/", version)
       Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
-    end    
+    end
   end
 
   desc 'Rolls the schema back to the previous version. Specify the number of steps with STEP=n'
@@ -179,21 +187,21 @@ namespace :db do
         Fixtures.create_fixtures('test/fixtures', File.basename(fixture_file, '.*'))
       end
     end
-    
+
     desc "Search for a fixture given a LABEL or ID."
     task :identify => :environment do
       require "active_record/fixtures"
 
       label, id = ENV["LABEL"], ENV["ID"]
       raise "LABEL or ID required" if label.blank? && id.blank?
-      
+
       puts %Q(The fixture ID for "#{label}" is #{Fixtures.identify(label)}.) if label
-      
+
       Dir["#{RAILS_ROOT}/test/fixtures/**/*.yml"].each do |file|
         if data = YAML::load(ERB.new(IO.read(file)).result)
           data.keys.each do |key|
             key_id = Fixtures.identify(key)
-            
+
             if key == label || key_id == id.to_i
               puts "#{file}: #{key} (#{key_id})"
             end
@@ -365,8 +373,8 @@ def drop_database(config)
   when /^sqlite/
     FileUtils.rm(File.join(RAILS_ROOT, config['database']))
   when 'postgresql'
-    ActiveRecord::Base.clear_active_connections!    
-    `dropdb "#{config['database']}"`
+    ActiveRecord::Base.establish_connection(config.merge('database' => nil))
+    ActiveRecord::Base.connection.drop_database config['database']
   end
 end
 
