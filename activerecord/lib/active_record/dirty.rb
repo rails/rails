@@ -42,7 +42,7 @@ module ActiveRecord
       base.alias_method_chain :update,          :dirty
 
       base.superclass_delegating_accessor :partial_updates
-      base.partial_updates = true
+      base.partial_updates = false
     end
 
     # Do any attributes have unsaved changes?
