@@ -23,11 +23,9 @@ class SessionUploadTest < ActionController::IntegrationTest
     attr_accessor :last_request_type
   end
 
-
   # def setup
   #   @session = ActionController::Integration::Session.new
   # end
-  #
   def test_post_with_upload
     uses_mocha "test_post_with_upload" do
       Dependencies.stubs(:load?).returns(false)
@@ -35,13 +33,11 @@ class SessionUploadTest < ActionController::IntegrationTest
         set.draw do |map|
           map.update 'update', :controller => "upload_test", :action => "update", :method => :post
         end
-        path = "/update"
-        params = {:uploaded_data => fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")}
-        headers = {:location => 'blah' }
-        post(path,params,headers)
+
+        params = { :uploaded_data => fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg") }
+        post '/update', params, :location => 'blah'
         assert_equal(:multipart_form, SessionUploadTest.last_request_type)
       end
     end
-
    end
 end
