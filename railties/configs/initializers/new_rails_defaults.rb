@@ -3,3 +3,9 @@
 
 # Only save the attributes that have changed since the record was loaded.
 ActiveRecord::Base.partial_updates = true
+
+# Include ActiveRecord class name as root for JSON serialized output.
+ActiveRecord::Base.include_root_in_json = true
+
+# Use ISO 8601 format for JSON serialized times and dates
+ActiveSupport.use_standard_json_time_format = true

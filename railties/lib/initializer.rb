@@ -416,6 +416,9 @@ module Rails
           base_class.send("#{setting}=", value)
         end
       end
+      configuration.active_support.each do |setting, value|
+        ActiveSupport.send("#{setting}=", value)
+      end
     end
 
     # Fires the user-supplied after_initialize block (Configuration#after_initialize)
@@ -460,6 +463,9 @@ module Rails
 
     # A stub for setting options on ActiveRecord::Base
     attr_accessor :active_resource
+
+    # A stub for setting optinos on ActiveSupport
+    attr_accessor :active_support
 
     # Whether or not classes should be cached (set to false if you want
     # application classes to be reloaded on each request)
@@ -609,6 +615,7 @@ module Rails
       for framework in default_frameworks
         self.send("#{framework}=", Rails::OrderedOptions.new)
       end
+      self.active_support = Rails::OrderedOptions.new
     end
 
     # Set the root_path to RAILS_ROOT and canonicalize it.
