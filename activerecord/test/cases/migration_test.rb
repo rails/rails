@@ -357,10 +357,16 @@ if ActiveRecord::Base.connection.supports_migrations?
       # Test DateTime column and defaults, including timezone.
       # FIXME: moment of truth may be Time on 64-bit platforms.
       if bob.moment_of_truth.is_a?(DateTime)
-        assert_equal DateTime.local_offset, bob.moment_of_truth.offset
-        assert_not_equal 0, bob.moment_of_truth.offset
-        assert_not_equal "Z", bob.moment_of_truth.zone
-        assert_equal DateTime::ITALY, bob.moment_of_truth.start
+
+        with_env_tz 'US/Eastern' do
+          assert_equal DateTime.local_offset, bob.moment_of_truth.offset
+          assert_not_equal 0, bob.moment_of_truth.offset
+          assert_not_equal "Z", bob.moment_of_truth.zone
+          # US/Eastern is -5 hours from GMT
+          assert_equal Rational(-5, 24), bob.moment_of_truth.offset
+          assert_equal "-05:00", bob.moment_of_truth.zone
+          assert_equal DateTime::ITALY, bob.moment_of_truth.start
+        end
       end
 
       assert_equal TrueClass, bob.male?.class
@@ -960,6 +966,15 @@ if ActiveRecord::Base.connection.supports_migrations?
         Person.connection.execute("select suitably_short_seq.nextval from dual")
       end
     end
+
+    protected
+      def with_env_tz(new_tz = 'US/Eastern')
+        old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+        yield
+      ensure
+        old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+      end
+
   end
 
   uses_mocha 'Sexy migration tests' do
