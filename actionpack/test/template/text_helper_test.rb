@@ -136,16 +136,16 @@ class TextHelperTest < Test::Unit::TestCase
   if RUBY_VERSION < '1.9'
     def test_excerpt_with_utf8
       with_kcode('u') do
-        assert_equal("...ﬃciency could not be...", excerpt("That's why eﬃciency could not be helped", 'could', 8))
+        assert_equal("...\357\254\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped", 'could', 8))
       end
       with_kcode('none') do
-        assert_equal("...\203ciency could not be...", excerpt("That's why eﬃciency could not be helped", 'could', 8))
+        assert_equal("...\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped", 'could', 8))
       end
     end
   else
     def test_excerpt_with_utf8
-      assert_equal("...ﬃciency could not be...".force_encoding('UTF-8'), excerpt("That's why eﬃciency could not be helped".force_encoding('UTF-8'), 'could', 8))
-      assert_equal("...\203ciency could not be...", excerpt("That's why eﬃciency could not be helped", 'could', 8))
+      assert_equal("...\357\254\203ciency could not be...".force_encoding('UTF-8'), excerpt("That's why e\357\254\203ciency could not be helped".force_encoding('UTF-8'), 'could', 8))
+      assert_equal("...\203ciency could not be...", excerpt("That's why e\357\254\203ciency could not be helped", 'could', 8))
     end
   end
 

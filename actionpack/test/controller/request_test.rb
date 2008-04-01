@@ -835,8 +835,10 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
     assert_equal 'bar', params['foo']
 
     # Ruby CGI doesn't handle multipart/mixed for us.
-    assert_kind_of String, params['files']
-    assert_equal 19756, params['files'].size
+    files = params['files']
+    assert_kind_of String, files
+    files.force_encoding('ASCII-8BIT') if files.respond_to?(:force_encoding)
+    assert_equal 19756, files.size
   end
 
   private
