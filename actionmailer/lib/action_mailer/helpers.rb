@@ -22,7 +22,7 @@ module ActionMailer
 
     module ClassMethods
       # Makes all the (instance) methods in the helper module available to templates rendered through this controller.
-      # See ActionView::Helpers (link:classes/ActionView/Helpers.html) for more about making your own helper modules 
+      # See ActionView::Helpers (link:classes/ActionView/Helpers.html) for more about making your own helper modules
       # available to the templates.
       def add_template_helper(helper_module) #:nodoc:
         master_helper_module.module_eval "include #{helper_module}"
@@ -45,7 +45,7 @@ module ActionMailer
             when String, Symbol
               file_name  = arg.to_s.underscore + '_helper'
               class_name = file_name.camelize
-                
+
               begin
                 require_dependency(file_name)
               rescue LoadError => load_error
@@ -87,17 +87,17 @@ module ActionMailer
         attrs.flatten.each { |attr| helper_method(attr, "#{attr}=") }
       end
 
-      private 
+      private
         def inherited_with_helper(child)
           inherited_without_helper(child)
           begin
             child.master_helper_module = Module.new
             child.master_helper_module.send! :include, master_helper_module
-            child.helper child.name.underscore
+            child.helper child.name.to_s.underscore
           rescue MissingSourceFile => e
             raise unless e.is_missing?("helpers/#{child.name.underscore}_helper")
           end
-        end        
+        end
     end
 
     private
