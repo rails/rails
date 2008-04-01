@@ -561,7 +561,11 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
     now = now.to_s(:db)
 
     # allow a standard key to be used for doing defaults in YAML
-    delete(assoc("DEFAULTS"))
+    if is_a?(Hash)
+      delete('DEFAULTS')
+    else
+      delete(assoc('DEFAULTS'))
+    end
 
     # track any join tables we need to insert later
     habtm_fixtures = Hash.new do |h, habtm|
