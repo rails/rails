@@ -48,8 +48,9 @@ else
 end
 Dir.mkdir(RAILS_ROOT) unless File.exist?(RAILS_ROOT)
 
+
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../../lib"
-require 'rails_generator'
+
 require 'generators/generator_test_helper'
 
 class RailsModelGeneratorTest < Test::Unit::TestCase
@@ -80,7 +81,7 @@ class RailsModelGeneratorTest < Test::Unit::TestCase
   end
 
   def test_model_generates_resources
-    run_generator('model', %w(Product))
+    run_generator('model', %w(Product name:string))
 
     assert_generated_model_for :product
     assert_generated_fixtures_for :products
@@ -88,7 +89,7 @@ class RailsModelGeneratorTest < Test::Unit::TestCase
   end
 
   def test_model_skip_migration_skips_migration
-    run_generator('model', %w(Product --skip-migration))
+    run_generator('model', %w(Product name:string --skip-migration))
 
     assert_generated_model_for :product
     assert_generated_fixtures_for :products

@@ -1,3 +1,15 @@
+require 'initializer'
+
+# Mocks out the configuration
+module Rails
+  def self.configuration
+    Rails::Configuration.new
+  end
+end
+
+require 'rails_generator'
+
+
 module GeneratorTestHelper
   # Instantiates the Generator
   def build_generator(name,params)
@@ -51,7 +63,7 @@ module GeneratorTestHelper
   # asserts that the given functional test was generated.
   # It takes a name or symbol without the <tt>_controller_test</tt> part and an optional super class.
   # the contents of the class source file is passed to a block.
-  def assert_generated_functional_test_for(name,parent="Test::Unit::TestCase")
+  def assert_generated_functional_test_for(name,parent="ActionController::TestCase")
     assert_generated_class "test/functional/#{name.to_s.underscore}_controller_test",parent do |body|
       yield body if block_given?
     end
@@ -60,7 +72,7 @@ module GeneratorTestHelper
   # asserts that the given unit test was generated.
   # It takes a name or symbol without the <tt>_test</tt> part and an optional super class.
   # the contents of the class source file is passed to a block.
-  def assert_generated_unit_test_for(name,parent="Test::Unit::TestCase")
+  def assert_generated_unit_test_for(name,parent="ActiveSupport::TestCase")
     assert_generated_class "test/unit/#{name.to_s.underscore}_test",parent do |body|
       yield body if block_given?
     end
@@ -77,7 +89,7 @@ module GeneratorTestHelper
 
   # asserts that the given file exists
   def assert_file_exists(path)
-    assert File.exist?("#{RAILS_ROOT}/#{path}"),"The file '#{path}' should exist"
+    assert File.exist?("#{RAILS_ROOT}/#{path}"),"The file '#{RAILS_ROOT}/#{path}' should exist"
   end
 
   # asserts that the given class source file was generated.
@@ -128,7 +140,6 @@ module GeneratorTestHelper
   # the parsed yaml tree is passed to a block.
   def assert_generated_fixtures_for(name)
     assert_generated_yaml "test/fixtures/#{name.to_s.underscore}" do |yaml|
-      assert_generated_timestamps(yaml)
       yield yaml if block_given?
     end
   end
@@ -144,15 +155,15 @@ module GeneratorTestHelper
     end
   end
 
-  # asserts that the given migration file was generated.
-  # It takes the name of the migration as a parameter.
-  # The migration body is passed to a block.
   def assert_generated_migration(name,parent="ActiveRecord::Migration")
-    assert_generated_class "db/migrate/001_#{name.to_s.underscore}",parent do |body|
-      assert body=~/timestamps/, "should have timestamps defined"
-      yield body if block_given?
+      file =
+   Dir.glob("#{RAILS_ROOT}/db/migrate/*_#{name.to_s.underscore}.rb").first
+      file = file.match(/db\/migrate\/[0-9]+_#{name.to_s.underscore}/).to_s
+      assert_generated_class file,parent do |body|
+        assert body=~/timestamps/, "should have timestamps defined"
+        yield body if block_given?
+      end
     end
-  end
 
   # Asserts that the given migration file was not generated.
   # It takes the name of the migration as a parameter.
@@ -182,14 +193,4 @@ module GeneratorTestHelper
   def assert_generated_column(body,name,type)
       assert body=~/t\.#{type.to_s} :#{name.to_s}/, "should have column #{name.to_s} defined"
   end
-
-  private
-    # asserts that the default timestamps are created in the fixture
-    def assert_generated_timestamps(yaml)
-      yaml.values.each do |v|
-        ["created_at", "updated_at"].each do |field|
-          assert v.keys.include?(field), "should have #{field} field by default"
-        end
-      end
-    end
 end

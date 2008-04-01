@@ -33,8 +33,7 @@ else
 end
 
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../lib"
-require 'rails_generator'
-
+require 'generators/generator_test_helper'
 
 class RailsGeneratorTest < Test::Unit::TestCase
   BUILTINS = %w(controller integration_test mailer migration model observer plugin resource scaffold session_migration)
@@ -46,7 +45,7 @@ class RailsGeneratorTest < Test::Unit::TestCase
 
   def test_sources
     expected = [:lib, :vendor, 
-                :plugins, :plugins, # <plugin>/generators and <plugin>/rails_generators
+                "plugins (vendor/plugins)".to_sym, # <plugin>/generators and <plugin>/rails_generators
                 :user, 
                 :RubyGems, :RubyGems, # gems named <x>_generator, gems containing /rails_generator/ folder
                 :builtin]
@@ -74,9 +73,9 @@ class RailsGeneratorTest < Test::Unit::TestCase
   end
 
   def test_lookup_missing_generator
-    assert_raise(MissingSourceFile) {
+    assert_raise Rails::Generator::GeneratorError do
       Rails::Generator::Base.lookup('missing_generator').klass
-    }
+    end
   end
 
   def test_lookup_missing_class
@@ -98,7 +97,7 @@ class RailsGeneratorTest < Test::Unit::TestCase
   def test_generator_spec
     spec = Rails::Generator::Base.lookup('working')
     assert_equal 'working', spec.name
-    assert_equal "#{RAILS_ROOT}/lib/generators/working", spec.path
+    assert_match(/#{spec.path}$/, "#{RAILS_ROOT}/lib/generators/working")
     assert_equal :lib, spec.source
     assert_nothing_raised { assert_match(/WorkingGenerator$/, spec.klass.name) }
   end

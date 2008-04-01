@@ -186,7 +186,7 @@ HELP
         #   file 'config/empty.log', 'log/test.log', :chmod => 0664
         # :shebang sets the #!/usr/bin/ruby line for scripts
         #   file 'bin/generate.rb', 'script/generate', :chmod => 0755, :shebang => '/usr/bin/env ruby'
-        # :collision sets the collision option only for the destination file: 
+        # :collision sets the collision option only for the destination file:
         #   file 'settings/server.yml', 'config/server.yml', :collision => :skip
         #
         # Collisions are handled by checking whether the destination file
@@ -200,7 +200,7 @@ HELP
 
           # If source and destination are identical then we're done.
           if destination_exists and identical?(source, destination, &block)
-            return logger.identical(relative_destination) 
+            return logger.identical(relative_destination)
           end
 
           # Check for and resolve file collisions.
@@ -300,25 +300,25 @@ HELP
             logger.exists relative_path
           else
             logger.create relative_path
-	          unless options[:pretend]
-	            FileUtils.mkdir_p(path)
-	            # git doesn't require adding the paths, adding the files later will
-	            # automatically do a path add.
-	      
-	            # Subversion doesn't do path adds, so we need to add
-	            # each directory individually.
-	            # So stack up the directory tree and add the paths to
-	            # subversion in order without recursion.
-	            if options[:svn]
-		            stack=[relative_path]
-		            until File.dirname(stack.last) == stack.last # dirname('.') == '.'
-		              stack.push File.dirname(stack.last)
-		            end
-		            stack.reverse_each do |rel_path|
-		              svn_path = destination_path(rel_path)
-		              system("svn add -N #{svn_path}") unless File.directory?(File.join(svn_path, '.svn'))
-		            end
-	            end
+            unless options[:pretend]
+              FileUtils.mkdir_p(path)
+              # git doesn't require adding the paths, adding the files later will
+              # automatically do a path add.
+
+              # Subversion doesn't do path adds, so we need to add
+              # each directory individually.
+              # So stack up the directory tree and add the paths to
+              # subversion in order without recursion.
+              if options[:svn]
+                stack = [relative_path]
+                until File.dirname(stack.last) == stack.last # dirname('.') == '.'
+                  stack.push File.dirname(stack.last)
+                end
+                stack.reverse_each do |rel_path|
+                  svn_path = destination_path(rel_path)
+                  system("svn add -N #{svn_path}") unless File.directory?(File.join(svn_path, '.svn'))
+                end
+              end
             end
           end
         end
@@ -544,7 +544,7 @@ end_message
         def readme(*args)
           logger.readme args.join(', ')
         end
-        
+
         def migration_template(relative_source, relative_destination, options = {})
           migration_directory relative_destination
           logger.migration_template file_name
