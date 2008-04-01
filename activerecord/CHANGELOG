@@ -1,5 +1,11 @@
 *SVN*
 
+* Tweak ActiveRecord::Base#to_json to include a root value in the returned hash: {"post": {"title": ...}} [rick]
+
+  Post.find(1).to_json # => {"title": ...}
+  config.active_record.include_root_in_json = true
+  Post.find(1).to_json # => {"post": {"title": ...}}
+
 * Add efficient #include? to AssociationCollection (for has_many/has_many :through/habtm).  [stopdropandrew]
 
 * PostgreSQL: create_ and drop_database support.  #9042 [ez, pedz, nicksieger]

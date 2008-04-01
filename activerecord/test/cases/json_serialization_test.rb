@@ -7,6 +7,10 @@ require 'models/tag'
 require 'models/comment'
 
 class JsonSerializationTest < ActiveRecord::TestCase
+  class NamespacedContact < Contact
+    column :name,        :string
+  end
+
   def setup
     @contact = Contact.new(
       :name        => 'Konata Izumi',
@@ -16,6 +20,27 @@ class JsonSerializationTest < ActiveRecord::TestCase
       :awesome     => true,
       :preferences => { :shows => 'anime' }
     )
+  end
+
+  def test_should_demodulize_root_in_json
+    NamespacedContact.include_root_in_json = true
+    @contact = NamespacedContact.new :name => 'whatever'
+    json = @contact.to_json
+    assert_match %r{^\{"namespaced_contact": \{}, json
+  end
+
+  def test_should_include_root_in_json
+    Contact.include_root_in_json = true
+    json = @contact.to_json
+
+    assert_match %r{^\{"contact": \{}, json
+    assert_match %r{"name": "Konata Izumi"}, json
+    assert_match %r{"age": 16}, json
+    assert json.include?(%("created_at": #{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
+    assert_match %r{"awesome": true}, json
+    assert_match %r{"preferences": \{"shows": "anime"\}}, json
+  ensure
+    Contact.include_root_in_json = false
   end
 
   def test_should_encode_all_encodable_attributes

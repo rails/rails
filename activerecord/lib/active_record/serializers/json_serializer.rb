@@ -1,5 +1,10 @@
 module ActiveRecord #:nodoc:
   module Serialization
+    def self.included(base)
+      base.cattr_accessor :include_root_in_json, :instance_writer => false
+      base.extend ClassMethods
+    end
+
     # Returns a JSON string representing the model. Some configuration is
     # available through +options+.
     #
@@ -48,7 +53,11 @@ module ActiveRecord #:nodoc:
     #                   {"comments": [{"body": "Don't think too hard"}],
     #                    "title": "So I was thinking"}]}
     def to_json(options = {})
-      JsonSerializer.new(self, options).to_s
+      if include_root_in_json
+        "{#{self.class.json_class_name}: #{JsonSerializer.new(self, options).to_s}}"
+      else
+        JsonSerializer.new(self, options).to_s
+      end
     end
 
     def from_json(json)
@@ -59,6 +68,12 @@ module ActiveRecord #:nodoc:
     class JsonSerializer < ActiveRecord::Serialization::Serializer #:nodoc:
       def serialize
         serializable_record.to_json
+      end
+    end
+
+    module ClassMethods
+      def json_class_name
+        @json_class_name ||= name.demodulize.underscore.inspect
       end
     end
   end
