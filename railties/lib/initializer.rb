@@ -13,29 +13,31 @@ require 'rails/gem_dependency'
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
 
 module Rails
-  # The Configuration instance used to configure the Rails environment
-  def self.configuration
-    @@configuration
-  end
+  class << self
+    # The Configuration instance used to configure the Rails environment
+    def configuration
+      @@configuration
+    end
   
-  def self.configuration=(configuration)
-    @@configuration = configuration
-  end
+    def configuration=(configuration)
+      @@configuration = configuration
+    end
   
-  def self.logger
-    RAILS_DEFAULT_LOGGER
-  end
+    def logger
+      RAILS_DEFAULT_LOGGER
+    end
   
-  def self.root
-    RAILS_ROOT
-  end
+    def root
+      RAILS_ROOT
+    end
   
-  def self.env
-    RAILS_ENV
-  end
+    def env
+      RAILS_ENV
+    end
   
-  def self.cache
-    RAILS_CACHE
+    def cache
+      RAILS_CACHE
+    end
   end
   
   # The Initializer is responsible for processing the Rails configuration, such
