@@ -87,8 +87,8 @@ class DispatcherTest < Test::Unit::TestCase
 
   def test_to_prepare_with_identifier_replaces
     a = b = nil
-    Dispatcher.to_prepare(:unique_id) { a = b = 1 }
-    Dispatcher.to_prepare(:unique_id) { a = 2 }
+    Dispatcher.to_prepare(:unique_id) { |*args| a = b = 1 }
+    Dispatcher.to_prepare(:unique_id) { |*args| a = 2 }
 
     @dispatcher.unprepared = true
     @dispatcher.send! :prepare_application
