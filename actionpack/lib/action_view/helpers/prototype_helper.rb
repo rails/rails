@@ -1204,7 +1204,7 @@ module ActionView
         append_enumerable_function!("zip(#{arguments_for_call arguments}")
         if block
           function_chain[-1] += ", function(array) {"
-          yield ActiveSupport::JSON::Variable.new('array')
+          yield ::ActiveSupport::JSON::Variable.new('array')
           add_return_statement!
           @generator << '});'
         else
