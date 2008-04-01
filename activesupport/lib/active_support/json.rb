@@ -2,6 +2,8 @@ require 'active_support/json/encoding'
 require 'active_support/json/decoding'
 
 module ActiveSupport
+  mattr_accessor :use_standard_json_time_format
+
   module JSON
     RESERVED_WORDS = %w(
       abstract      delete        goto          private       transient
