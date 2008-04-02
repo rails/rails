@@ -1,6 +1,6 @@
 *SVN*
 
-* Flesh out rake gems:unpack to unpack all gems, and add rake gems:build for native extensions.  [ddollar]
+* Flesh out rake gems:unpack to unpack all gems, and add rake gems:build for native extensions. #11513 [ddollar]
 
   rake gems:unpack             # unpacks all gems
   rake gems:unpack GEM=mygem   # unpacks only the gem 'mygem'
