@@ -1,5 +1,13 @@
 *SVN*
 
+* Flesh out rake gems:unpack to unpack all gems, and add rake gems:build for native extensions.  [ddollar]
+
+  rake gems:unpack             # unpacks all gems
+  rake gems:unpack GEM=mygem   # unpacks only the gem 'mygem'
+  
+  rake gems:build              # builds all unpacked gems
+  rake gems:build GEM=mygem    # builds only the gem 'mygem'
+
 * Add config.active_support for future configuration options.  Also, add more new Rails 3 config settings to new_rails_defaults.rb [rick]
 
 * Add Rails.logger, Rails.root, Rails.env and Rails.cache shortcuts for RAILS_* constants [pratik]

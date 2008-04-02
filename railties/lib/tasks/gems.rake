@@ -6,6 +6,18 @@ task :gems => :environment do
 end
 
 namespace :gems do
+  desc "Build any native extensions for unpacked gems"
+  task :build do
+    Dir[File.join(RAILS_ROOT, 'vendor', 'gems', '*')].each do |gem_dir|
+      spec_file = File.join(gem_dir, '.specification')
+      next unless File.exists?(spec_file)
+      specification = YAML::load_file(spec_file)
+      next unless ENV['GEM'].blank? || ENV['GEM'] == specification.name
+      Rails::GemBuilder.new(specification, gem_dir).build_extensions
+      puts "Built gem: '#{gem_dir}'"
+    end
+  end
+  
   desc "Installs all required gems for this application."
   task :install => :environment do
     require 'rubygems'
@@ -15,17 +27,12 @@ namespace :gems do
 
   desc "Unpacks the specified gem into vendor/gems."
   task :unpack do
-    raise "Specify name of gem in the config.gems array with GEM=" if ENV['GEM'].blank?
     Rake::Task["environment"].invoke
     require 'rubygems'
     require 'rubygems/gem_runner'
-    unless Rails.configuration.gems.select do |gem|
-      if gem.loaded? && gem.name == ENV['GEM']
-        gem.unpack_to(File.join(RAILS_ROOT, 'vendor', 'gems'))
-        true
-      end
-    end.any?
-      puts "No gem named #{ENV['GEM'].inspect} found."
+    Rails.configuration.gems.each do |gem|
+      next unless ENV['GEM'].blank? || ENV['GEM'] == gem.name
+      gem.unpack_to(File.join(RAILS_ROOT, 'vendor', 'gems')) if gem.loaded?
     end
   end
 end

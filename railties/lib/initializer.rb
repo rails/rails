@@ -7,6 +7,7 @@ require 'railties_path'
 require 'rails/version'
 require 'rails/plugin/locator'
 require 'rails/plugin/loader'
+require 'rails/gem_builder'
 require 'rails/gem_dependency'
 
 

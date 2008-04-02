@@ -33,6 +33,10 @@ module Rails
     rescue Gem::LoadError
       puts $!.to_s
     end
+    
+    def gem_dir(base_directory)
+      File.join(base_directory, specification.full_name)
+    end
 
     def load
       return if @loaded || @load_paths_added == false
@@ -54,11 +58,23 @@ module Rails
     def install
       Gem::GemRunner.new.run(install_command)
     end
+    
+    def specification
+      @spec ||= Gem.source_index.search(Gem::Dependency.new(@name, @requirement)).sort_by { |s| s.version }.last
+    end
 
     def unpack_to(directory)
       FileUtils.mkdir_p directory
       Dir.chdir directory do
         Gem::GemRunner.new.run(unpack_command)
+      end
+      
+      # copy the gem's specification into GEMDIR/.specification so that
+      # we can access information about the gem on deployment systems
+      # without having the gem installed
+      spec_filename = File.join(gem_dir(directory), '.specification')
+      File.open(spec_filename, 'w') do |file|
+        file.puts specification.to_yaml
       end
     end
 
