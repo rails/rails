@@ -310,38 +310,6 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal expected, original.except!(:c)
     assert_equal expected, original
   end
-
-  def test_without
-    original = { :a => 'x', :b => 'y', :c => 10 }
-    expected = { :a => 'x' }
-
-    # Should return a hash without the given keys.
-    assert_equal expected, original.without(:b, :c)
-    assert_not_equal expected, original
-
-    # Should ignore non-existant keys.
-    assert_equal expected, original.without(:b, :c, :d)
-
-    # Should replace the hash with the given keys taken away.
-    assert_equal expected, original.without!(:b, :c)
-    assert_equal expected, original
-  end
-
-  def test_indifferent_without
-    original = { :a => 'x', :b => 'y', :c => 10 }.with_indifferent_access
-    expected = { :c => 10 }.with_indifferent_access
-
-    [['a', 'b'], [:a, :b]].each do |keys|
-      # Should return a new hash without the given keys.
-      assert_equal expected, original.without(*keys), keys.inspect
-      assert_not_equal expected, original
-
-      # Should replace the hash without the given keys.
-      copy = original.dup
-      assert_equal expected, copy.without!(*keys)
-      assert_equal expected, copy
-    end
-  end
 end
 
 class IWriteMyOwnXML
