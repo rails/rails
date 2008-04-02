@@ -393,6 +393,69 @@ class TimeWithZoneTest < Test::Unit::TestCase
       assert_equal DateTime.civil(2050).to_f, ActiveSupport::TimeWithZone.new(nil, @time_zone, DateTime.civil(2049,12,31,19)).to_f
     end
   end
+  
+  def test_change
+    assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
+    assert_equal "Mon, 31 Dec 2001 19:00:00 EST -05:00", @twz.change(:year => 2001).inspect
+    assert_equal "Wed, 31 Mar 1999 19:00:00 EST -05:00", @twz.change(:month => 3).inspect
+    assert_equal "Wed, 03 Mar 1999 19:00:00 EST -05:00", @twz.change(:month => 2).inspect
+    assert_equal "Wed, 15 Dec 1999 19:00:00 EST -05:00", @twz.change(:day => 15).inspect
+    assert_equal "Fri, 31 Dec 1999 06:00:00 EST -05:00", @twz.change(:hour => 6).inspect
+    assert_equal "Fri, 31 Dec 1999 19:15:00 EST -05:00", @twz.change(:min => 15).inspect
+    assert_equal "Fri, 31 Dec 1999 19:00:30 EST -05:00", @twz.change(:sec => 30).inspect
+  end
+  
+  def test_advance
+    assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
+    assert_equal "Mon, 31 Dec 2001 19:00:00 EST -05:00", @twz.advance(:years => 2).inspect
+    assert_equal "Fri, 31 Mar 2000 19:00:00 EST -05:00", @twz.advance(:months => 3).inspect
+    assert_equal "Tue, 04 Jan 2000 19:00:00 EST -05:00", @twz.advance(:days => 4).inspect
+    assert_equal "Sat, 01 Jan 2000 01:00:00 EST -05:00", @twz.advance(:hours => 6).inspect
+    assert_equal "Fri, 31 Dec 1999 19:15:00 EST -05:00", @twz.advance(:minutes => 15).inspect
+    assert_equal "Fri, 31 Dec 1999 19:00:30 EST -05:00", @twz.advance(:seconds => 30).inspect
+  end
+  
+  def beginning_of_year
+    assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
+    assert_equal "Fri, 01 Jan 1999 00:00:00 EST -05:00", @twz.beginning_of_year.inspect
+  end
+  
+  def end_of_year
+    assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
+    assert_equal "Fri, 31 Dec 1999 23:59:59 EST -05:00", @twz.end_of_year.inspect
+  end
+  
+  def beginning_of_month
+    assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
+    assert_equal "Fri, 01 Dec 1999 00:00:00 EST -05:00", @twz.beginning_of_month.inspect
+  end
+  
+  def end_of_month
+    assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
+    assert_equal "Fri, 31 Dec 1999 23:59:59 EST -05:00", @twz.end_of_month.inspect
+  end
+  
+  def beginning_of_day
+    assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
+    assert_equal "Fri, 31 Dec 1999 00:00:00 EST -05:00", @twz.beginning_of_day.inspect
+  end
+  
+  def end_of_day
+    assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
+    assert_equal "Fri, 31 Dec 1999 23:59:59 EST -05:00", @twz.end_of_day.inspect
+  end
+  
+  def test_since
+    assert_equal "Fri, 31 Dec 1999 19:00:01 EST -05:00", @twz.since(1).inspect
+  end
+  
+  def test_ago
+    assert_equal "Fri, 31 Dec 1999 18:59:59 EST -05:00", @twz.ago(1).inspect
+  end
+  
+  def test_seconds_since_midnight
+    assert_equal 19 * 60 * 60, @twz.seconds_since_midnight
+  end
 end
 
 class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase

@@ -144,24 +144,9 @@ module ActiveSupport
       end
     end
     
-    %w(asctime day hour min mon sec wday yday year to_date).each do |name|
-      define_method(name) do
-        time.__send__(name)
-      end
-    end
-    alias_method :ctime, :asctime
-    alias_method :mday, :day
-    alias_method :month, :mon
-    
     def usec
       time.respond_to?(:usec) ? time.usec : 0
     end
-    
-    %w(sunday? monday? tuesday? wednesday? thursday? friday? saturday?).each do |name|
-      define_method(name) do
-        time.__send__(name)
-      end
-    end unless RUBY_VERSION < '1.9'
     
     def to_a
       [time.sec, time.min, time.hour, time.day, time.mon, time.year, time.wday, time.yday, dst?, zone]
@@ -219,9 +204,13 @@ module ActiveSupport
   
     # Send the missing method to time instance, and wrap result in a new TimeWithZone with the existing time_zone
     def method_missing(sym, *args, &block)
-      result = utc.__send__(sym, *args, &block)
-      result = result.in_time_zone(time_zone) if result.acts_like?(:time)
-      result
+      if %w(+ - since ago advance).include?(sym.to_s)
+        result = utc.__send__(sym, *args, &block)
+        result.acts_like?(:time) ? result.in_time_zone(time_zone) : result
+      else
+        result = time.__send__(sym, *args, &block)
+        result.acts_like?(:time) ? self.class.new(nil, time_zone, result) : result
+      end
     end
     
     private      
