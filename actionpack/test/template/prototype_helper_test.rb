@@ -358,6 +358,8 @@ class JavaScriptGeneratorTest < Test::Unit::TestCase
   def test_redirect_to
     assert_equal 'window.location.href = "http://www.example.com/welcome";',
       @generator.redirect_to(:action => 'welcome')
+    assert_equal 'window.location.href = "http://www.example.com/welcome?a=b&c=d";',
+      @generator.redirect_to("http://www.example.com/welcome?a=b&c=d")
   end
   
   def test_delay

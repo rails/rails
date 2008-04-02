@@ -65,6 +65,14 @@ class RedirectController < ActionController::Base
     redirect_to :action => "hello_world"
   end
 
+  def redirect_to_url
+    redirect_to "http://www.rubyonrails.org/"
+  end
+
+  def redirect_to_url_with_unescaped_query_string
+    redirect_to "http://dev.rubyonrails.org/query?status=new"
+  end
+
   def redirect_to_back
     redirect_to :back
   end
@@ -191,6 +199,18 @@ class RedirectTest < Test::Unit::TestCase
     get :redirect_with_assigns
     assert_response :redirect
     assert_equal "world", assigns["hello"]
+  end
+
+  def test_redirect_to_url
+    get :redirect_to_url
+    assert_response :redirect
+    assert_redirected_to "http://www.rubyonrails.org/"
+  end
+
+  def test_redirect_to_url_with_unescaped_query_string
+    get :redirect_to_url_with_unescaped_query_string
+    assert_response :redirect
+    assert_redirected_to "http://dev.rubyonrails.org/query?status=new"
   end
 
   def test_redirect_to_back

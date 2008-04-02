@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure RJS redirect_to doesn't html-escapes string argument. Closes #8546 [josh, eventualbuddha, Pratik]
+
 * Support render :partial => collection of heterogeneous elements.  #11491 [Zach Dennis]
 
 * Avoid remote_ip spoofing.  [Brian Candler]
