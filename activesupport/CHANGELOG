@@ -1,5 +1,7 @@
 *SVN*
 
+* Adding Hash#without Closes #7369 [eventualbuddha]
+
 * TimeWithZone#method_missing: send to utc to advance with dst correctness, otherwise send to time. Adding tests for time calculations methods [Geoff Buesing]
 
 * Add config.active_support.use_standard_json_time_format setting so that Times and Dates export to ISO 8601 dates.  [rick]
