@@ -674,8 +674,10 @@ module Rails
     #
     # See Dispatcher#to_prepare.
     def to_prepare(&callback)
-      require 'dispatcher' unless defined?(::Dispatcher)
-      Dispatcher.to_prepare(&callback)
+      after_initialize do 
+        require 'dispatcher' unless defined?(::Dispatcher)
+        Dispatcher.to_prepare(&callback)
+      end
     end
 
     def builtin_directories
