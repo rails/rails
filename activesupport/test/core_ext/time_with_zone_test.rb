@@ -456,6 +456,41 @@ class TimeWithZoneTest < Test::Unit::TestCase
   def test_seconds_since_midnight
     assert_equal 19 * 60 * 60, @twz.seconds_since_midnight
   end
+  
+  def test_advance_1_year_from_leap_day
+    twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2004,2,29))
+    assert_equal "Mon, 28 Feb 2005 00:00:00 EST -05:00", twz.advance(:years => 1).inspect
+    assert_equal "Mon, 28 Feb 2005 00:00:00 EST -05:00", twz.years_since(1).inspect
+    assert_equal "Mon, 28 Feb 2005 00:00:00 EST -05:00", (twz + 1.year).inspect
+  end
+  
+  def test_advance_1_month_from_last_day_of_january
+    twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2005,1,31))
+    assert_equal "Mon, 28 Feb 2005 00:00:00 EST -05:00", twz.advance(:months => 1).inspect
+    assert_equal "Mon, 28 Feb 2005 00:00:00 EST -05:00", twz.months_since(1).inspect
+    assert_equal "Mon, 28 Feb 2005 00:00:00 EST -05:00", (twz + 1.month).inspect
+  end
+  
+  def test_advance_1_month_from_last_day_of_january_during_leap_year
+    twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000,1,31))
+    assert_equal "Tue, 29 Feb 2000 00:00:00 EST -05:00", twz.advance(:months => 1).inspect
+    assert_equal "Tue, 29 Feb 2000 00:00:00 EST -05:00", twz.months_since(1).inspect
+    assert_equal "Tue, 29 Feb 2000 00:00:00 EST -05:00", (twz + 1.month).inspect
+  end
+  
+  def test_advance_1_month_into_spring_dst_gap
+    twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,3,2,2))
+    assert_equal "Sun, 02 Apr 2006 03:00:00 EDT -04:00", twz.advance(:months => 1).inspect
+    assert_equal "Sun, 02 Apr 2006 03:00:00 EDT -04:00", twz.months_since(1).inspect
+    assert_equal "Sun, 02 Apr 2006 03:00:00 EDT -04:00", (twz + 1.month).inspect
+  end
+  
+  def test_advance_1_second_into_spring_dst_gap
+    twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,4,2,1,59,59))
+    assert_equal "Sun, 02 Apr 2006 03:00:00 EDT -04:00", twz.advance(:seconds => 1).inspect
+    assert_equal "Sun, 02 Apr 2006 03:00:00 EDT -04:00", (twz + 1).inspect
+    assert_equal "Sun, 02 Apr 2006 03:00:00 EDT -04:00", (twz + 1.second).inspect
+  end
 end
 
 class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
