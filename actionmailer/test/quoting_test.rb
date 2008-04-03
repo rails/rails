@@ -73,18 +73,15 @@ class QuotingTest < Test::Unit::TestCase
     assert_equal "Re: Test: \"\346\274\242\345\255\227\" mid \"\346\274\242\345\255\227\" tail", mail.subject
   end
 
-  def test_decode
-    encoded, decoded = expected_base64_strings
+  def test_base64_encoding
+    encoded = read_fixture('raw_base64_encoded_string')
+    decoded = read_fixture('raw_base64_decoded_string')
+
+    assert_equal encoded, TMail::Base64.encode(decoded)
     assert_equal decoded, TMail::Base64.decode(encoded)
   end
 
-  def test_encode
-    encoded, decoded = expected_base64_strings
-    assert_equal encoded.length, TMail::Base64.encode(decoded).length
-  end
-
   private
-
     # This whole thing *could* be much simpler, but I don't think Tempfile,
     # popen and others exist on all platforms (like Windows).
     def execute_in_sandbox(code)
@@ -107,7 +104,13 @@ class QuotingTest < Test::Unit::TestCase
       File.delete(res_name) rescue nil
     end
 
-    def expected_base64_strings
-      [ File.read("#{File.dirname(__FILE__)}/fixtures/raw_base64_encoded_string"), File.read("#{File.dirname(__FILE__)}/fixtures/raw_base64_decoded_string") ]
+    if RUBY_VERSION >= '1.9'
+      def read_fixture(name)
+        File.open("#{File.dirname(__FILE__)}/fixtures/raw_base64_encoded_string", 'r:ascii-8bit') { |f| f.read }
+      end
+    else
+      def read_fixture(name)
+        File.read("#{File.dirname(__FILE__)}/fixtures/raw_base64_encoded_string")
+      end
     end
 end
