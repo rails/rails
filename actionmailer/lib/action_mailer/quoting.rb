@@ -24,6 +24,8 @@ module ActionMailer
 
     # Quote the given text if it contains any "illegal" characters
     def quote_if_necessary(text, charset)
+      text = text.dup.force_encoding(Encoding::ASCII_8BIT) if text.respond_to?(:force_encoding)
+
       (text =~ CHARS_NEEDING_QUOTING) ?
         quoted_printable(text, charset) :
         text
