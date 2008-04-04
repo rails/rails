@@ -227,6 +227,32 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     end
   end
 
+  def test_daylight_savings_time_crossings_forward_start_tomorrow
+    with_env_tz 'US/Eastern' do
+      # st: US: 2005 April 2nd 7:27pm
+      assert_equal Time.local(2005,4,3,19,27,0), Time.local(2005,4,2,19,27,0).tomorrow, 'st+1.day=>dt'
+      assert_equal Time.local(2005,4,4,19,27,0), Time.local(2005,4,3,19,27,0).tomorrow, 'dt+1.day=>dt'
+    end
+    with_env_tz 'NZ' do
+      # st: New Zealand: 2006 September 30th 7:27pm
+      assert_equal Time.local(2006,10,1,19,27,0), Time.local(2006,9,30,19,27,0).tomorrow, 'st+1.day=>dt'
+      assert_equal Time.local(2006,10,2,19,27,0), Time.local(2006,10,1,19,27,0).tomorrow, 'dt+1.day=>dt'
+    end
+  end
+
+  def test_daylight_savings_time_crossings_forward_start_yesterday
+    with_env_tz 'US/Eastern' do
+      # st: US: 2005 April 2nd 7:27pm
+      assert_equal Time.local(2005,4,2,19,27,0), Time.local(2005,4,3,19,27,0).yesterday, 'dt-1.day=>st'
+      assert_equal Time.local(2005,4,3,19,27,0), Time.local(2005,4,4,19,27,0).yesterday, 'dt-1.day=>dt'
+    end
+    with_env_tz 'NZ' do
+      # st: New Zealand: 2006 September 30th 7:27pm
+      assert_equal Time.local(2006,9,30,19,27,0), Time.local(2006,10,1,19,27,0).yesterday, 'dt-1.day=>st'
+      assert_equal Time.local(2006,10,1,19,27,0), Time.local(2006,10,2,19,27,0).yesterday, 'dt-1.day=>dt'
+    end
+  end
+
   def test_daylight_savings_time_crossings_forward_end
     with_env_tz 'US/Eastern' do
       # dt: US: 2005 October 30th 12:45am
@@ -237,6 +263,32 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
       # dt: New Zealand: 2006 March 19th 1:45am
       assert_equal Time.local(2006,3,20,1,45,0), Time.local(2006,3,19,1,45,0).since(86400), 'dt+1.day=>st'
       assert_equal Time.local(2006,3,21,1,45,0), Time.local(2006,3,20,1,45,0).since(86400), 'st+1.day=>st'
+    end
+  end
+
+  def test_daylight_savings_time_crossings_forward_end_tomorrow
+    with_env_tz 'US/Eastern' do
+      # dt: US: 2005 October 30th 12:45am
+      assert_equal Time.local(2005,10,31,0,45,0), Time.local(2005,10,30,0,45,0).tomorrow, 'dt+1.day=>st'
+      assert_equal Time.local(2005,11, 1,0,45,0), Time.local(2005,10,31,0,45,0).tomorrow, 'st+1.day=>st'
+    end
+    with_env_tz 'NZ' do
+      # dt: New Zealand: 2006 March 19th 1:45am
+      assert_equal Time.local(2006,3,20,1,45,0), Time.local(2006,3,19,1,45,0).tomorrow, 'dt+1.day=>st'
+      assert_equal Time.local(2006,3,21,1,45,0), Time.local(2006,3,20,1,45,0).tomorrow, 'st+1.day=>st'
+    end
+  end
+
+  def test_daylight_savings_time_crossings_forward_end_yesterday
+    with_env_tz 'US/Eastern' do
+      # dt: US: 2005 October 30th 12:45am
+      assert_equal Time.local(2005,10,30,0,45,0), Time.local(2005,10,31,0,45,0).yesterday, 'st-1.day=>dt'
+      assert_equal Time.local(2005,10, 31,0,45,0), Time.local(2005,11,1,0,45,0).yesterday, 'st-1.day=>st'
+    end
+    with_env_tz 'NZ' do
+      # dt: New Zealand: 2006 March 19th 1:45am
+      assert_equal Time.local(2006,3,19,1,45,0), Time.local(2006,3,20,1,45,0).yesterday, 'st-1.day=>dt'
+      assert_equal Time.local(2006,3,20,1,45,0), Time.local(2006,3,21,1,45,0).yesterday, 'st-1.day=>st'
     end
   end
 

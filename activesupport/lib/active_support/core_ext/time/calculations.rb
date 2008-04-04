@@ -221,12 +221,12 @@ module ActiveSupport #:nodoc:
 
         # Convenience method which returns a new Time representing the time 1 day ago
         def yesterday
-          self.ago(1.day)
+          advance(:days => -1)
         end
 
         # Convenience method which returns a new Time representing the time 1 day since the instance time
         def tomorrow
-          self.since(1.day)
+          advance(:days => 1)
         end
 
         def plus_with_duration(other) #:nodoc:

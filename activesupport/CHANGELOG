@@ -1,5 +1,7 @@
 *SVN*
 
+* Time #yesterday and #tomorrow behave correctly crossing DST boundary. Closes #7399 [sblackstone]
+
 * TimeWithZone: Adding tests for dst and leap day edge cases when advancing time [Geoff Buesing]
 
 * TimeWithZone#method_missing: send to utc to advance with dst correctness, otherwise send to time. Adding tests for time calculations methods [Geoff Buesing]
