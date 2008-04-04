@@ -169,7 +169,10 @@ module ActiveRecord
             end
           end
 
-          sql = "SELECT #{operation}(#{'DISTINCT ' if options[:distinct]}#{column_name}) AS #{aggregate_alias}"
+          if options[:distinct] && column_name.to_s !~ /\s*DISTINCT\s+/i
+            distinct = 'DISTINCT ' 
+          end
+          sql = "SELECT #{operation}(#{distinct}#{column_name}) AS #{aggregate_alias}"
 
           # A (slower) workaround if we're using a backend, like sqlite, that doesn't support COUNT DISTINCT.
           sql = "SELECT COUNT(*) AS #{aggregate_alias}" if use_workaround

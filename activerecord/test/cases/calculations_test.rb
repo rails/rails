@@ -241,6 +241,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 4, Account.count(:distinct => true, :include => :firm, :select => :credit_limit)
   end
 
+  def test_should_count_manual_select_with_include
+    assert_equal 6, Account.count(:select => "DISTINCT accounts.id", :include => :firm)
+  end
+
   def test_count_with_column_parameter
     assert_equal 5, Account.count(:firm_id)
   end
