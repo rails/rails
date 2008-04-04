@@ -148,15 +148,14 @@ module ActiveRecord
         end
 
       private
-        def create_record(attributes)
+        def create_record(attributes, &block)
           # Can't use Base.create because the foreign key may be a protected attribute.
           ensure_owner_is_not_new
           if attributes.is_a?(Array)
             attributes.collect { |attr| create(attr) }
           else
-            record = build(attributes)
-            yield(record)
-            record
+            load_target
+            build_record(attributes, &block)
           end
         end
     end

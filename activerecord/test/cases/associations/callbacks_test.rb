@@ -94,6 +94,21 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
                   "after_adding#{david.id}"], ar.developers_log
   end
 
+  def test_has_and_belongs_to_many_after_add_called_after_save
+    ar = projects(:active_record)
+    assert ar.developers_log.empty?
+    alice = Developer.new(:name => 'alice')
+    ar.developers_with_callbacks << alice
+    assert_equal"after_adding#{alice.id}", ar.developers_log.last
+
+    bob = ar.developers_with_callbacks.create(:name => 'bob')
+    assert_equal "after_adding#{bob.id}", ar.developers_log.last
+
+    ar.developers_with_callbacks.build(:name => 'charlie')
+    assert_equal "after_adding<new>", ar.developers_log.last
+  end
+
+
   def test_has_and_belongs_to_many_remove_callback
     david = developers(:david)
     jamis = developers(:jamis)
