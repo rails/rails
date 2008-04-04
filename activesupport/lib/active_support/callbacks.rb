@@ -149,8 +149,8 @@ module ActiveSupport
         self.class.new(@kind, @method, @options.dup)
       end
 
-      def call(object, &block)
-        evaluate_method(method, object, &block) if should_run_callback?(object)
+      def call(*args, &block)
+        evaluate_method(method, *args, &block) if should_run_callback?(*args)
       rescue LocalJumpError
         raise ArgumentError,
           "Cannot yield from a Proc type filter. The Proc must take two " +
@@ -158,24 +158,18 @@ module ActiveSupport
       end
 
       private
-        def evaluate_method(method, object, &block)
+        def evaluate_method(method, *args, &block)
           case method
             when Symbol
-              object.send(method, &block)
+              object = args.shift
+              object.send(method, *args, &block)
             when String
-              eval(method, object.instance_eval { binding })
+              eval(method, args.first.instance_eval { binding })
             when Proc, Method
-              case method.arity
-                when -1, 1
-                  method.call(object, &block)
-                when 2
-                  method.call(object, block)
-                else
-                  raise ArgumentError, 'Callback blocks must take one or two arguments.'
-              end
+              method.call(*args, &block)
             else
               if method.respond_to?(kind)
-                method.send(kind, object, &block)
+                method.send(kind, *args, &block)
               else
                 raise ArgumentError,
                   "Callbacks must be a symbol denoting the method to call, a string to be evaluated, " +
@@ -184,11 +178,11 @@ module ActiveSupport
             end
         end
 
-        def should_run_callback?(object)
+        def should_run_callback?(*args)
           if options[:if]
-            evaluate_method(options[:if], object)
+            evaluate_method(options[:if], *args)
           elsif options[:unless]
-            !evaluate_method(options[:unless], object)
+            !evaluate_method(options[:unless], *args)
           else
             true
           end

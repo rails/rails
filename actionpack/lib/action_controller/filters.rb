@@ -385,8 +385,14 @@ module ActionController #:nodoc:
 
       def call(controller, &block)
         if should_run_callback?(controller)
-          proc = filter_responds_to_before_and_after? ? around_proc : method
-          evaluate_method(proc, controller, &block)
+          method = filter_responds_to_before_and_after? ? around_proc : self.method
+
+          # For around_filter do |controller, action|
+          if method.is_a?(Proc) && method.arity == 2
+            evaluate_method(method, controller, block)
+          else
+            evaluate_method(method, controller, &block)
+          end
         else
           block.call
         end

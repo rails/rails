@@ -1,5 +1,7 @@
 *SVN*
 
+* Modified ActiveSupport::Callbacks::Callback#call to accept multiple arguments.
+
 * Time #yesterday and #tomorrow behave correctly crossing DST boundary. Closes #7399 [sblackstone]
 
 * TimeWithZone: Adding tests for dst and leap day edge cases when advancing time [Geoff Buesing]

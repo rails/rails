@@ -240,21 +240,10 @@ module ActiveRecord
 
         def callback(method, record)
           callbacks_for(method).each do |callback|
-            case callback
-              when Symbol
-                @owner.send(callback, record)
-              when Proc, Method
-                callback.call(@owner, record)
-              else
-                if callback.respond_to?(method)
-                  callback.send(method, @owner, record)
-                else
-                  raise ActiveRecordError, "Callbacks must be a symbol denoting the method to call, a string to be evaluated, a block to be invoked, or an object responding to the callback method."
-                end
-            end
+            ActiveSupport::Callbacks::Callback.new(method, callback, record).call(@owner, record)
           end
         end
-        
+
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{@reflection.name}"
           @owner.class.read_inheritable_attribute(full_callback_name.to_sym) || []
