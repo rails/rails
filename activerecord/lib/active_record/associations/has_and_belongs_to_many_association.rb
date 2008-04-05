@@ -7,7 +7,6 @@ module ActiveRecord
       end
 
       def build(attributes = {})
-        load_target
         build_record(attributes)
       end
 
@@ -154,7 +153,6 @@ module ActiveRecord
           if attributes.is_a?(Array)
             attributes.collect { |attr| create(attr) }
           else
-            load_target
             build_record(attributes, &block)
           end
         end

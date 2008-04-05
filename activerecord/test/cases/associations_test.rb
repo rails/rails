@@ -872,21 +872,25 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_build
-    new_client = companies(:first_firm).clients_of_firm.build("name" => "Another Client")
+    company = companies(:first_firm)
+    new_client = assert_no_queries { company.clients_of_firm.build("name" => "Another Client") }
+    assert !company.clients_of_firm.loaded?
+    
     assert_equal "Another Client", new_client.name
     assert new_client.new_record?
-    assert_equal new_client, companies(:first_firm).clients_of_firm.last
-    assert companies(:first_firm).save
+    assert_equal new_client, company.clients_of_firm.last
+    assert_queries(2) { assert company.save }
     assert !new_client.new_record?
-    assert_equal 2, companies(:first_firm).clients_of_firm(true).size
+    assert_equal 2, company.clients_of_firm(true).size
   end
 
   def test_build_many
-    new_clients = companies(:first_firm).clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}])
+    company = companies(:first_firm)
+    new_clients = assert_no_queries { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
+    
     assert_equal 2, new_clients.size
-
-    assert companies(:first_firm).save
-    assert_equal 3, companies(:first_firm).clients_of_firm(true).size
+    assert_queries(3) { assert company.save }
+    assert_equal 3, company.clients_of_firm(true).size
   end
 
   def test_build_followed_by_save_does_not_load_target
@@ -1908,8 +1912,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build
     devel = Developer.find(1)
-    proj = devel.projects.build("name" => "Projekt")
+    proj = assert_no_queries { devel.projects.build("name" => "Projekt") }
+    assert !devel.projects.loaded?
+    
     assert_equal devel.projects.last, proj
+    assert devel.projects.loaded?
+    
     assert proj.new_record?
     devel.save
     assert !proj.new_record?
@@ -1933,7 +1941,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_create
     devel = Developer.find(1)
     proj = devel.projects.create("name" => "Projekt")
+    assert !devel.projects.loaded?
+    
     assert_equal devel.projects.last, proj
+    assert devel.projects.loaded?
+    
     assert !proj.new_record?
     assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
   end
@@ -1964,10 +1976,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_uniq_after_the_fact
-    developers(:jamis).projects << projects(:active_record)
-    developers(:jamis).projects << projects(:active_record)
-    assert_equal 3, developers(:jamis).projects.size
-    assert_equal 1, developers(:jamis).projects.uniq.size
+    dev = developers(:jamis)
+    dev.projects << projects(:active_record)
+    dev.projects << projects(:active_record)
+    
+    assert_equal 3, dev.projects.size
+    assert_equal 1, dev.projects.uniq.size
   end
 
   def test_uniq_before_the_fact

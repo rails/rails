@@ -166,6 +166,25 @@ module ActiveRecord
       end
 
       protected
+        def load_target
+          if !@owner.new_record? || foreign_key_present
+            begin
+              if !loaded?
+                if @target.is_a?(Array) && @target.any?
+                  @target = find_target + @target.find_all {|t| t.new_record? }
+                else
+                  @target = find_target
+                end
+              end
+            rescue ActiveRecord::RecordNotFound
+              reset
+            end
+          end
+
+          loaded if target
+          target
+        end
+        
         def method_missing(method, *args)
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             if block_given?

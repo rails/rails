@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure HABTM#create and HABTM#build do not load entire association. [Pratik]
+
 * Improve documentation. [Xavier Noria, Jack Danger Canty, leethal]
 
 * Tweak ActiveRecord::Base#to_json to include a root value in the returned hash: {"post": {"title": ...}} [rick]
