@@ -603,8 +603,9 @@ module ActionMailer #:nodoc:
       end
 
       def perform_delivery_sendmail(mail)
-        sendmail_settings[:arguments] += " -f \"#{mail['return-path']}\"" if mail['return-path']
-        IO.popen("#{sendmail_settings[:location]} #{sendmail_settings[:arguments]}","w+") do |sm|
+        sendmail_args = sendmail_settings[:arguments]
+        sendmail_args += " -f \"#{mail['return-path']}\"" if mail['return-path']
+        IO.popen("#{sendmail_settings[:location]} #{sendmail_args}","w+") do |sm|
           sm.print(mail.encoded.gsub(/\r/, ''))
           sm.flush
         end
