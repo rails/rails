@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve documentation. [Xavier Noria]
+
 * Modified ActiveSupport::Callbacks::Callback#call to accept multiple arguments.
 
 * Time #yesterday and #tomorrow behave correctly crossing DST boundary. Closes #7399 [sblackstone]
