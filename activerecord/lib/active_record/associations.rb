@@ -136,7 +136,7 @@ module ActiveRecord
     #   #others.create!(attributes={})    |   X   |    X     |    X
     #   #others.size                      |   X   |    X     |    X
     #   #others.length                    |   X   |    X     |    X
-    #   #others.count                     |       |    X     |    X
+    #   #others.count                     |   X   |    X     |    X
     #   #others.sum(args*,&block)         |   X   |    X     |    X
     #   #others.empty?                    |   X   |    X     |    X
     #   #others.clear                     |   X   |    X     |
@@ -150,9 +150,9 @@ module ActiveRecord
     #
     # == Cardinality and associations
     #
-    # ActiveRecord associations can be used to describe relations with one-to-one, one-to-many
-    # and many-to-many cardinality. Each model uses an association to describe its role in
-    # the relation. In each case, the +belongs_to+ association is used in the model that has
+    # ActiveRecord associations can be used to describe one-to-one, one-to-many and many-to-many
+    # relationships between models. Each model uses an association to describe its role in
+    # the relation. The +belongs_to+ association is always used in the model that has
     # the foreign key.
     #
     # === One-to-one

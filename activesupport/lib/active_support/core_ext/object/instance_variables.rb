@@ -37,7 +37,7 @@ class Object
     instance_variables.map(&:to_s)
   end
 
-  # Copies the instance variables of +object+ into self.
+  # Copies the instance variables of +object+ into +self+.
   #
   # Instance variable names in the +exclude+ array are ignored. If +object+
   # responds to <tt>protected_instance_variables</tt> the ones returned are

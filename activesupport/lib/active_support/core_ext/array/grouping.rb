@@ -4,11 +4,8 @@ module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Array #:nodoc:
       module Grouping
-        # Iterate over an array in groups of a certain size, padding any remaining 
-        # slots with specified value (<tt>nil</tt> by default) unless it is
-        # <tt>false</tt>.
-        # 
-        # Examples:
+        # Iterates over the array in groups of size +number+, padding any remaining 
+        # slots with +fill_with+ unless it is +false+.
         # 
         #   %w(1 2 3 4 5 6 7).in_groups_of(3) {|g| p g}
         #   ["1", "2", "3"]
@@ -42,10 +39,8 @@ module ActiveSupport #:nodoc:
           end
         end
 
-        # Divide the array into one or more subarrays based on a delimiting +value+
+        # Divides the array into one or more subarrays based on a delimiting +value+
         # or the result of an optional block.
-        #
-        # Examples:
         #
         #   [1, 2, 3, 4, 5].split(3)                # => [[1, 2], [4, 5]]
         #   (1..10).to_a.split { |i| i % 3 == 0 }   # => [[1, 2], [4, 5], [7, 8], [10]]

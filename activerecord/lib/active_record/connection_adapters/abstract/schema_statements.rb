@@ -161,12 +161,12 @@ module ActiveRecord
       # an Array of Symbols.
       #
       # The index will be named after the table and the first column name,
-      # unless you pass +:name+ as an option.
+      # unless you pass <tt>:name</tt> as an option.
       #
       # When creating an index on multiple columns, the first column is used as a name
       # for the index. For example, when you specify an index on two columns
-      # [+:first+, +:last+], the DBMS creates an index for both columns as well as an
-      # index for the first column +:first+. Using just the first name for this index
+      # [<tt>:first</tt>, <tt>:last</tt>], the DBMS creates an index for both columns as well as an
+      # index for the first column <tt>:first</tt>. Using just the first name for this index
       # makes sense, because you will never have to create a singular index with this
       # name.
       #

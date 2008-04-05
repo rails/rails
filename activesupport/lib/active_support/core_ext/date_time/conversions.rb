@@ -45,7 +45,7 @@ module ActiveSupport #:nodoc:
           formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
         end
 
-        # Returns the utc_offset as an +HH:MM formatted string. Examples:
+        # Returns the +utc_offset+ as an +HH:MM formatted string. Examples:
         #
         #   datetime = DateTime.civil(2000, 1, 1, 0, 0, 0, Rational(-6, 24))
         #   datetime.formatted_offset         # => "-06:00"

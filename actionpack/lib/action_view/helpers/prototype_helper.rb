@@ -716,11 +716,11 @@ module ActionView
           #   # Insert the rendered 'navigation' partial just before the DOM
           #   # element with ID 'content'.
           #   # Generates: new Insertion.Before("content", "-- Contents of 'navigation' partial --");
-          #   insert_html :before, 'content', :partial => 'navigation'
+          #   page.insert_html :before, 'content', :partial => 'navigation'
           #
           #   # Add a list item to the bottom of the <ul> with ID 'list'.
           #   # Generates: new Insertion.Bottom("list", "<li>Last item</li>");
-          #   insert_html :bottom, 'list', '<li>Last item</li>'
+          #   page.insert_html :bottom, 'list', '<li>Last item</li>'
           #
           def insert_html(position, id, *options_for_render)
             insertion = position.to_s.camelize
@@ -735,7 +735,7 @@ module ActionView
           #   # Replace the HTML of the DOM element having ID 'person-45' with the
           #   # 'person' partial for the appropriate object.
           #   # Generates:  Element.update("person-45", "-- Contents of 'person' partial --");
-          #   replace_html 'person-45', :partial => 'person', :object => @person
+          #   page.replace_html 'person-45', :partial => 'person', :object => @person
           #
           def replace_html(id, *options_for_render)
             call 'Element.update', id, render(*options_for_render)
@@ -749,7 +749,7 @@ module ActionView
           #
           #   # Replace the DOM element having ID 'person-45' with the
           #   # 'person' partial for the appropriate object.
-          #   replace 'person-45', :partial => 'person', :object => @person
+          #   page.replace 'person-45', :partial => 'person', :object => @person
           #
           # This allows the same partial that is used for the +insert_html+ to
           # be also used for the input to +replace+ without resorting to

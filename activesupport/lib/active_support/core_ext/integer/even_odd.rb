@@ -3,12 +3,10 @@ module ActiveSupport #:nodoc:
     module Integer #:nodoc:
       # For checking if a fixnum is even or odd.
       #
-      # Examples:
-      #
       #   1.even? # => false
       #   1.odd?  # => true
       #   2.even? # => true
-      #   2.odd? # => false
+      #   2.odd?  # => false
       module EvenOdd
         def multiple_of?(number)
           self % number == 0

@@ -191,6 +191,10 @@ module ActiveRecord #:nodoc:
   #
   #   Student.find(:all, :conditions => { :grade => 9..12 })
   #
+  # An array may be used in the hash to use the SQL IN operator:
+  #
+  #   Student.find(:all, :conditions => { :grade => [9,11,12] })
+  #
   # == Overwriting default accessors
   #
   # All column values are automatically available through basic accessors on the Active Record object, but sometimes you
@@ -488,6 +492,7 @@ module ActiveRecord #:nodoc:
       # Examples for find all:
       #   Person.find(:all) # returns an array of objects for all the rows fetched by SELECT * FROM people
       #   Person.find(:all, :conditions => [ "category IN (?)", categories], :limit => 50)
+      #   Person.find(:all, :conditions => { :friends => ["Bob", "Steve", "Fred"] }
       #   Person.find(:all, :offset => 10, :limit => 10)
       #   Person.find(:all, :include => [ :account, :friends ])
       #   Person.find(:all, :group => "category")

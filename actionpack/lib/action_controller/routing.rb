@@ -47,7 +47,7 @@ module ActionController
   #   :controller maps to your controller name
   #   :action     maps to an action with your controllers
   #
-  # Other names simply map to a parameter as in the case of +:id+.
+  # Other names simply map to a parameter as in the case of <tt>:id</tt>.
   #
   # == Route priority
   #
@@ -82,7 +82,7 @@ module ActionController
   # This sets up +blog+ as the default controller if no other is specified.
   # This means visiting '/' would invoke the blog controller.
   #
-  # More formally, you can define defaults in a route with the +:defaults+ key.
+  # More formally, you can define defaults in a route with the <tt>:defaults</tt> key.
   #
   #   map.connect ':controller/:action/:id', :action => 'show', :defaults => { :page => 'Dashboard' }
   #

@@ -102,17 +102,10 @@ A short rundown of the major features:
   {Learn more}[link:classes/ActiveRecord/Base.html]
 
 
-* Transaction support on both a database and object level. The latter is implemented 
-  by using Transaction::Simple[http://railsmanual.com/module/Transaction::Simple]
+* Transactions
 
-    # Just database transaction
+    # Database transaction
     Account.transaction do
-      david.withdrawal(100)
-      mary.deposit(100)
-    end
-
-    # Database and object transaction
-    Account.transaction(david, mary) do
       david.withdrawal(100)
       mary.deposit(100)
     end

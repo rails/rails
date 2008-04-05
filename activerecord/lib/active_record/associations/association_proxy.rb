@@ -1,5 +1,50 @@
 module ActiveRecord
   module Associations
+    # This is the root class of all association proxies:
+    #
+    #   AssociationProxy
+    #     BelongsToAssociation
+    #       HasOneAssociation
+    #     BelongsToPolymorphicAssociation
+    #     AssociationCollection
+    #       HasManyAssociation
+    #       HasAndBelongsToManyAssociation
+    #     HasManyThroughAssociation
+    #       HasOneThroughAssociation
+    #
+    # Association proxies in Active Record are middlemen between the object that
+    # holds the association, known as the <tt>@owner</tt>, and the actual associated
+    # object, known as the <tt>@target</tt>. The kind of association any proxy is
+    # about is available in <tt>@reflection</tt>. That's an instance of the class
+    # ActiveRecord::Reflection::AssociationReflection.
+    #
+    # For example, given
+    #
+    #   class Blog < ActiveRecord::Base
+    #     has_many :posts
+    #   end
+    #
+    #   blog = Blog.find(:first)
+    #
+    # the association proxy in <tt>blog.posts</tt> has the object in +blog+ as
+    # <tt>@owner</tt>, the collection of its posts as <tt>@target</tt>, and
+    # the <tt>@reflection</tt> object represents a <tt>:has_many</tt> macro.
+    #
+    # This class has most of the basic instance methods removed, and delegates
+    # unknown methods to <tt>@target</tt> via <tt>method_missing</tt>. As a
+    # corner case, it even removes the +class+ method and that's why you get
+    #
+    #   blog.posts.class # => Array
+    #
+    # though the object behind <tt>blog.posts</tt> is not an Array, but an
+    # ActiveRecord::Associations::HasManyAssociation.
+    #
+    # The <tt>@target</tt> object is not loaded until needed. For example,
+    #
+    #   blog.posts.count
+    #
+    # is computed directly through SQL and does not trigger by itself the
+    # instantiation of the actual post records.
     class AssociationProxy #:nodoc:
       alias_method :proxy_respond_to?, :respond_to?
       alias_method :proxy_extend, :extend

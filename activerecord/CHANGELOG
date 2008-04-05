@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve documentation. [Xavier Noria, Jack Danger Canty, leethal]
+
 * Tweak ActiveRecord::Base#to_json to include a root value in the returned hash: {"post": {"title": ...}} [rick]
 
   Post.find(1).to_json # => {"title": ...}

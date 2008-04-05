@@ -76,34 +76,39 @@ module ActiveRecord
         @macro, @name, @options, @active_record = macro, name, options, active_record
       end
 
-      # Returns the name of the macro, so it would return :balance for "composed_of :balance, :class_name => 'Money'" or
-      # :clients for "has_many :clients".
+      # Returns the name of the macro.  For example, <tt>composed_of :balance, :class_name => 'Money'</tt> will return
+      # <tt>:balance</tt> or for <tt>has_many :clients</tt> it will return <tt>:clients</tt>.
       def name
         @name
       end
 
-      # Returns the type of the macro, so it would return :composed_of for
-      # "composed_of :balance, :class_name => 'Money'" or :has_many for "has_many :clients".
+      # Returns the macro type. For example, <tt>composed_of :balance, :class_name => 'Money'</tt> will return <tt>:composed_of</tt>
+      # or for <tt>has_many :clients</tt> will return <tt>:has_many</tt>.
       def macro
         @macro
       end
 
-      # Returns the hash of options used for the macro, so it would return { :class_name => "Money" } for
-      # "composed_of :balance, :class_name => 'Money'" or {} for "has_many :clients".
+      # Returns the hash of options used for the macro.  For example, it would return <tt>{ :class_name => "Money" }</tt> for
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> or +{}+ for <tt>has_many :clients</tt>.
+
       def options
         @options
       end
 
-      # Returns the class for the macro, so "composed_of :balance, :class_name => 'Money'" returns the Money class and
-      # "has_many :clients" returns the Client class.
+      # Returns the class for the macro.  For example, <tt>composed_of :balance, :class_name => 'Money'</tt> returns the +Money+
+      # class and <tt>has_many :clients</tt> returns the +Client+ class.
       def klass
         @klass ||= class_name.constantize
       end
 
+      # Returns the class name for the macro.  For example, <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>'Money'</tt>
+      # and <tt>has_many :clients</tt> returns <tt>'Client'</tt>.
       def class_name
         @class_name ||= options[:class_name] || derive_class_name
       end
 
+      # Returns +true+ if +self+ and +other_aggregation+ have the same +name+ attribute, +active_record+ attribute,
+      # and +other_aggregation+ has an options hash assigned to it.
       def ==(other_aggregation)
         name == other_aggregation.name && other_aggregation.options && active_record == other_aggregation.active_record
       end

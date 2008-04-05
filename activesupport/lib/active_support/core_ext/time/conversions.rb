@@ -20,11 +20,10 @@ module ActiveSupport #:nodoc:
           end
         end
 
-        # Convert to a formatted string. See DATE_FORMATS for builtin formats.
+        # Converts to a formatted string. See DATE_FORMATS for builtin formats.
         #
         # This method is aliased to <tt>to_s</tt>.
         #
-        # ==== Examples:
         #   time = Time.now                     # => Thu Jan 18 06:10:17 CST 2007
         #
         #   time.to_formatted_s(:time)          # => "06:10:17"
@@ -36,7 +35,7 @@ module ActiveSupport #:nodoc:
         #   time.to_formatted_s(:long_ordinal)  # => "January 18th, 2007 06:10"
         #   time.to_formatted_s(:rfc822)        # => "Thu, 18 Jan 2007 06:10:17 -0600"
         #
-        # == Adding your own time formats to to_formatted_s
+        # == Adding your own time formats to +to_formatted_s+
         # You can add your own formats to the Time::DATE_FORMATS hash.
         # Use the format name as the hash key and either a strftime string
         # or Proc instance that takes a time argument as the value.
@@ -49,7 +48,7 @@ module ActiveSupport #:nodoc:
           formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
         end
         
-        # Returns the utc_offset as an +HH:MM formatted string. Examples:
+        # Returns the UTC offset as an +HH:MM formatted string.
         #
         #   Time.local(2000).formatted_offset         # => "-06:00"
         #   Time.local(2000).formatted_offset(false)  # => "-0600"
@@ -57,20 +56,13 @@ module ActiveSupport #:nodoc:
           utc? && alternate_utc_string || utc_offset.to_utc_offset_s(colon)
         end
 
-        # Convert a Time object to a Date, dropping hour, minute, and second precision.
+        # Converts a Time object to a Date, dropping hour, minute, and second precision.
         #
-        # ==== Examples
-        #   my_time = Time.now
-        #   # => Mon Nov 12 22:59:51 -0500 2007
+        #   my_time = Time.now  # => Mon Nov 12 22:59:51 -0500 2007
+        #   my_time.to_date     #=> Mon, 12 Nov 2007
         #
-        #   my_time.to_date
-        #   #=> Mon, 12 Nov 2007
-        #
-        #   your_time = Time.parse("1/13/2009 1:13:03 P.M.")
-        #   # => Tue Jan 13 13:13:03 -0500 2009
-        #
-        #   your_time.to_date
-        #   # => Tue, 13 Jan 2009
+        #   your_time = Time.parse("1/13/2009 1:13:03 P.M.")  # => Tue Jan 13 13:13:03 -0500 2009
+        #   your_time.to_date                                 # => Tue, 13 Jan 2009
         def to_date
           ::Date.new(year, month, day)
         end
@@ -83,18 +75,11 @@ module ActiveSupport #:nodoc:
 
         # Converts a Time instance to a Ruby DateTime instance, preserving UTC offset.
         #
-        # ==== Examples
-        #   my_time = Time.now
-        #   # => Mon Nov 12 23:04:21 -0500 2007
+        #   my_time = Time.now    # => Mon Nov 12 23:04:21 -0500 2007
+        #   my_time.to_datetime   # => Mon, 12 Nov 2007 23:04:21 -0500
         #
-        #   my_time.to_datetime
-        #   # => Mon, 12 Nov 2007 23:04:21 -0500
-        #
-        #   your_time = Time.parse("1/13/2009 1:13:03 P.M.")
-        #   # => Tue Jan 13 13:13:03 -0500 2009
-        #
-        #   your_time.to_datetime
-        #   # => Tue, 13 Jan 2009 13:13:03 -0500
+        #   your_time = Time.parse("1/13/2009 1:13:03 P.M.")  # => Tue Jan 13 13:13:03 -0500 2009
+        #   your_time.to_datetime                             # => Tue, 13 Jan 2009 13:13:03 -0500
         def to_datetime
           ::DateTime.civil(year, month, day, hour, min, sec, Rational(utc_offset, 86400))
         end

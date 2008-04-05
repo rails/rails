@@ -86,7 +86,7 @@ module ActionView
       # of +options+. See the valid options in the documentation for
       # url_for. It's also possible to pass a string instead
       # of an options hash to get a link tag that uses the value of the string as the
-      # href for the link, or use +:back+ to link to the referrer - a JavaScript back
+      # href for the link, or use <tt>:back</tt> to link to the referrer - a JavaScript back
       # link will be used in place of a referrer if none exists. If nil is passed as
       # a name, the link itself will become the name.
       #

@@ -28,7 +28,7 @@ module ActiveRecord
     #
     # This example will only take money from David and give to Mary if neither +withdrawal+ nor +deposit+ raises an exception.
     # Exceptions will force a ROLLBACK that returns the database to the state before the transaction was begun. Be aware, though,
-    # that the objects by default will _not_ have their instance data returned to their pre-transactional state.
+    # that the objects will _not_ have their instance data returned to their pre-transactional state.
     #
     # == Different ActiveRecord classes in a single transaction
     #

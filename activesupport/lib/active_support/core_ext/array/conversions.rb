@@ -30,10 +30,8 @@ module ActiveSupport #:nodoc:
           map(&:to_param).join '/'
         end
 
-        # Converts an array into a string suitable for use as a URL query string, using the given <tt>key</tt> as the
-        # param name.
-        #
-        # Example:
+        # Converts an array into a string suitable for use as a URL query string,
+        # using the given +key+ as the param name.
         #
         #   ['Rails', 'coding'].to_query('hobbies') # => "hobbies%5B%5D=Rails&hobbies%5B%5D=coding"
         def to_query(key)
@@ -80,8 +78,6 @@ module ActiveSupport #:nodoc:
         # Otherwise the root element is "records".
         #
         # Root children have as node name the one of the root singularized.
-        #
-        # Example:
         #
         #   [{:foo => 1, :bar => 2}, {:baz => 3}].to_xml
         #

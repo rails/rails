@@ -1,11 +1,29 @@
-# Extensions to nil which allow for more helpful error messages for
-# people who are new to rails.
+# Extensions to +nil+ which allow for more helpful error messages for people who
+# are new to Rails.
 #
-# The aim is to ensure that when users pass nil to methods where that isn't
-# appropriate, instead of NoMethodError and the name of some method used
-# by the framework users will see a message explaining what type of object
-# was expected.
-
+# Ruby raises NoMethodError if you invoke a method on an object that does not
+# respond to it:
+#
+#   $ ruby -e nil.destroy
+#   -e:1: undefined method `destroy' for nil:NilClass (NoMethodError)
+#
+# With these extensions, if the method belongs to the public interface of the
+# classes in NilClass::WHINERS the error message suggests which could be the
+# actual intended class:
+#
+#   $ script/runner nil.destroy 
+#   ...
+#   You might have expected an instance of ActiveRecord::Base.
+#   ...
+#
+# NilClass#id exists in Ruby 1.8 (though it is deprecated). Since +id+ is a fundamental
+# method of Active Record models NilClass#id is redefined as well to raise a RuntimeError
+# and warn the user. She probably wanted a model database identifier and the 4
+# returned by the original method could result in obscure bugs.
+#
+# The flag <tt>config.whiny_nils</tt> determines whether this feature is enabled.
+# By default it is on in development and test modes, and it is off in production
+# mode.
 class NilClass
   WHINERS = [::Array]
   WHINERS << ::ActiveRecord::Base if defined? ::ActiveRecord
@@ -18,7 +36,7 @@ class NilClass
     methods.each { |method| @@method_class_map[method.to_sym] = class_name }
   end
 
-  # Raises a RuntimeError when you attempt to call id on nil or a nil object.
+  # Raises a RuntimeError when you attempt to call +id+ on +nil+.
   def id
     raise RuntimeError, "Called id for nil, which would mistakenly be 4 -- if you really wanted the id of nil, use object_id", caller
   end
@@ -28,7 +46,7 @@ class NilClass
       raise_nil_warning_for @@method_class_map[method], method, caller
     end
 
-    # Raises a NoMethodError when you attempt to call a method on nil, or a nil object.
+    # Raises a NoMethodError when you attempt to call a method on +nil+.
     def raise_nil_warning_for(class_name = nil, selector = nil, with_caller = nil)
       message = "You have a nil object when you didn't expect it!"
       message << "\nYou might have expected an instance of #{class_name}." if class_name

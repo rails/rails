@@ -723,7 +723,7 @@ module ActiveRecord
       #
       # Configuration options:
       # * <tt>in</tt> - An enumerable object of available items
-      # * <tt>message</tt> - Specifies a customer error message (default is: "is not included in the list")
+      # * <tt>message</tt> - Specifies a custom error message (default is: "is not included in the list")
       # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
       # * <tt>allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is: false)
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
@@ -755,7 +755,7 @@ module ActiveRecord
       #
       # Configuration options:
       # * <tt>in</tt> - An enumerable object of items that the value shouldn't be part of
-      # * <tt>message</tt> - Specifies a customer error message (default is: "is reserved")
+      # * <tt>message</tt> - Specifies a custom error message (default is: "is reserved")
       # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
       # * <tt>allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is: false)
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
