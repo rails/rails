@@ -1263,6 +1263,13 @@ module ActiveRecord #:nodoc:
         defined?(@abstract_class) && @abstract_class == true
       end
 
+      def respond_to?(method_id, include_private = false)
+        if match = matches_dynamic_finder?(method_id) || matches_dynamic_finder_with_initialize_or_create?(method_id)
+          return true if all_attributes_exists?(extract_attribute_names_from_match(match))
+        end
+        super
+      end
+
       private
         def find_initial(options)
           options.update(:limit => 1) unless options[:include]
@@ -1568,7 +1575,7 @@ module ActiveRecord #:nodoc:
         # Each dynamic finder or initializer/creator is also defined in the class after it is first invoked, so that future
         # attempts to use it do not run through method_missing.
         def method_missing(method_id, *arguments)
-          if match = /^find_(all_by|by)_([_a-zA-Z]\w*)$/.match(method_id.to_s)
+          if match = matches_dynamic_finder?(method_id)
             finder = determine_finder(match)
 
             attribute_names = extract_attribute_names_from_match(match)
@@ -1592,7 +1599,7 @@ module ActiveRecord #:nodoc:
               end
             }, __FILE__, __LINE__
             send(method_id, *arguments)
-          elsif match = /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/.match(method_id.to_s)
+          elsif match = matches_dynamic_finder_with_initialize_or_create?(method_id)
             instantiator = determine_instantiator(match)
             attribute_names = extract_attribute_names_from_match(match)
             super unless all_attributes_exists?(attribute_names)
@@ -1628,6 +1635,14 @@ module ActiveRecord #:nodoc:
           else
             super
           end
+        end
+
+        def matches_dynamic_finder?(method_id)
+          /^find_(all_by|by)_([_a-zA-Z]\w*)$/.match(method_id.to_s)
+        end
+
+        def matches_dynamic_finder_with_initialize_or_create?(method_id)
+          /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/.match(method_id.to_s)
         end
 
         def determine_finder(match)

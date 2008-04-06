@@ -416,15 +416,15 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_one_attribute_caches_dynamic_finder
     # ensure this test can run independently of order
-    class << Topic; self; end.send(:remove_method, :find_by_title) if Topic.respond_to?(:find_by_title)
-    assert !Topic.respond_to?(:find_by_title)
+    class << Topic; self; end.send(:remove_method, :find_by_title) if Topic.public_methods.any? { |m| m.to_s == 'find_by_title' }
+    assert !Topic.public_methods.any? { |m| m.to_s == 'find_by_title' }
     t = Topic.find_by_title("The First Topic")
-    assert Topic.respond_to?(:find_by_title)
+    assert Topic.public_methods.any? { |m| m.to_s == 'find_by_title' }
   end
 
   def test_dynamic_finder_returns_same_results_after_caching
     # ensure this test can run independently of order
-    class << Topic; self; end.send(:remove_method, :find_by_title) if Topic.respond_to?(:find_by_title)
+    class << Topic; self; end.send(:remove_method, :find_by_title) if Topic.public_method_defined?(:find_by_title)
     t = Topic.find_by_title("The First Topic")
     assert_equal t, Topic.find_by_title("The First Topic") # find_by_title has been cached
   end
@@ -474,15 +474,15 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_dynamic_finder_on_one_attribute_with_conditions_caches_method
     # ensure this test can run independently of order
-    class << Account; self; end.send(:remove_method, :find_by_credit_limit) if Account.respond_to?(:find_by_credit_limit)
-    assert !Account.respond_to?(:find_by_credit_limit)
+    class << Account; self; end.send(:remove_method, :find_by_credit_limit) if Account.public_methods.any? { |m| m.to_s == 'find_by_credit_limit' }
+    assert !Account.public_methods.any? { |m| m.to_s == 'find_by_credit_limit' }
     a = Account.find_by_credit_limit(50, :conditions => ['firm_id = ?', 6])
-    assert Account.respond_to?(:find_by_credit_limit)
+    assert Account.public_methods.any? { |m| m.to_s == 'find_by_credit_limit' }
   end
 
   def test_dynamic_finder_on_one_attribute_with_conditions_returns_same_results_after_caching
     # ensure this test can run independently of order
-    class << Account; self; end.send(:remove_method, :find_by_credit_limit) if Account.respond_to?(:find_by_credit_limit)
+    class << Account; self; end.send(:remove_method, :find_by_credit_limit) if Account.public_methods.any? { |m| m.to_s == 'find_by_credit_limit' }
     a = Account.find_by_credit_limit(50, :conditions => ['firm_id = ?', 6])
     assert_equal a, Account.find_by_credit_limit(50, :conditions => ['firm_id = ?', 6]) # find_by_credit_limit has been cached
   end
@@ -702,10 +702,10 @@ class FinderTest < ActiveRecord::TestCase
   end
   
   def test_dynamic_find_or_initialize_from_one_attribute_caches_method
-    class << Company; self; end.send(:remove_method, :find_or_initialize_by_name) if Company.respond_to?(:find_or_initialize_by_name)
-    assert !Company.respond_to?(:find_or_initialize_by_name)
+    class << Company; self; end.send(:remove_method, :find_or_initialize_by_name) if Company.public_methods.any? { |m| m.to_s == 'find_or_initialize_by_name' }
+    assert !Company.public_methods.any? { |m| m.to_s == 'find_or_initialize_by_name' }
     sig38 = Company.find_or_initialize_by_name("38signals")
-    assert Company.respond_to?(:find_or_initialize_by_name)
+    assert Company.public_methods.any? { |m| m.to_s == 'find_or_initialize_by_name' }
   end
 
   def test_find_or_initialize_from_two_attributes
