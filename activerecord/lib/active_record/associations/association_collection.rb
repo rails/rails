@@ -3,6 +3,51 @@ require 'set'
 module ActiveRecord
   module Associations
     class AssociationCollection < AssociationProxy #:nodoc:
+      def initialize(owner, reflection)
+        super
+        construct_sql
+      end
+      
+      def find(*args)
+        options = args.extract_options!
+
+        # If using a custom finder_sql, scan the entire collection.
+        if @reflection.options[:finder_sql]
+          expects_array = args.first.kind_of?(Array)
+          ids           = args.flatten.compact.uniq.map(&:to_i)
+
+          if ids.size == 1
+            id = ids.first
+            record = load_target.detect { |r| id == r.id }
+            expects_array ? [ record ] : record
+          else
+            load_target.select { |r| ids.include?(r.id) }
+          end
+        else
+          conditions = "#{@finder_sql}"
+          if sanitized_conditions = sanitize_sql(options[:conditions])
+            conditions << " AND (#{sanitized_conditions})"
+          end
+          
+          options[:conditions] = conditions
+
+          if options[:order] && @reflection.options[:order]
+            options[:order] = "#{options[:order]}, #{@reflection.options[:order]}"
+          elsif @reflection.options[:order]
+            options[:order] = @reflection.options[:order]
+          end
+          
+          # Build options specific to association
+          construct_find_options!(options)
+          
+          merge_options_from_reflection!(options)
+          
+          # Pass through args exactly as we received them.
+          args << options
+          @reflection.klass.find(*args)
+        end
+      end
+      
       def to_ary
         load_target
         @target.to_ary
@@ -30,10 +75,9 @@ module ActiveRecord
         @owner.transaction do
           flatten_deeper(records).each do |record|
             raise_on_type_mismatch(record)
-            callback(:before_add, record)
-            result &&= insert_record(record) unless @owner.new_record?
-            @target << record
-            callback(:after_add, record)
+            add_record_to_target_with_callbacks(record) do |r|
+              result &&= insert_record(record) unless @owner.new_record?
+            end
           end
         end
 
@@ -63,18 +107,13 @@ module ActiveRecord
       def delete(*records)
         records = flatten_deeper(records)
         records.each { |record| raise_on_type_mismatch(record) }
-        records.reject! do |record|
-          if record.new_record?
-            callback(:before_remove, record)
-            @target.delete(record)
-            callback(:after_remove, record)
-          end
-        end
-        return if records.empty?
         
         @owner.transaction do
           records.each { |record| callback(:before_remove, record) }
-          delete_records(records)
+          
+          old_records = records.reject {|r| r.new_record? }
+          delete_records(old_records) if old_records.any?
+          
           records.each do |record|
             @target.delete(record)
             callback(:after_remove, record)
@@ -180,6 +219,9 @@ module ActiveRecord
       end
 
       protected
+        def construct_find_options!(options)
+        end
+        
         def load_target
           if !@owner.new_record? || foreign_key_present
             begin

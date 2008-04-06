@@ -1,6 +1,6 @@
 module ActiveRecord
   module Associations
-    class HasOneThroughAssociation < ActiveRecord::Associations::HasManyThroughAssociation
+    class HasOneThroughAssociation < HasManyThroughAssociation
       
       def create_through_record(new_value) #nodoc:
         klass = @reflection.through_reflection.klass

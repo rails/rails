@@ -2,37 +2,8 @@ module ActiveRecord
   module Associations
     class HasManyThroughAssociation < HasManyAssociation #:nodoc:
       def initialize(owner, reflection)
-        super
         reflection.check_validity!
-        @finder_sql = construct_conditions
-      end
-
-
-      def find(*args)
-        options = args.extract_options!
-
-        conditions = "#{@finder_sql}"
-        if sanitized_conditions = sanitize_sql(options[:conditions])
-          conditions << " AND (#{sanitized_conditions})"
-        end
-        options[:conditions] = conditions
-
-        if options[:order] && @reflection.options[:order]
-          options[:order] = "#{options[:order]}, #{@reflection.options[:order]}"
-        elsif @reflection.options[:order]
-          options[:order] = @reflection.options[:order]
-        end
-
-        options[:select]  = construct_select(options[:select])
-        options[:from]  ||= construct_from
-        options[:joins]   = construct_joins(options[:joins])
-        options[:include] = @reflection.source_reflection.options[:include] if options[:include].nil?
-
-        merge_options_from_reflection!(options)
-
-        # Pass through args exactly as we received them.
-        args << options
-        @reflection.klass.find(*args)
+        super
       end
 
       alias_method :new, :build
@@ -59,15 +30,6 @@ module ActiveRecord
         return @target.size if loaded?
         return count
       end
-
-      # Calculate sum using SQL, not Enumerable
-      def sum(*args)
-        if block_given?
-          calculate(:sum, *args) { |*block_args| yield(*block_args) }
-        else
-          calculate(:sum, *args)
-        end
-      end
       
       def count(*args)
         column_name, options = @reflection.klass.send(:construct_count_options_from_args, *args)
@@ -79,8 +41,14 @@ module ActiveRecord
         @reflection.klass.send(:with_scope, construct_scope) { @reflection.klass.count(column_name, options) } 
       end
 
-
       protected
+        def construct_find_options!(options)
+          options[:select]  = construct_select(options[:select])
+          options[:from]  ||= construct_from
+          options[:joins]   = construct_joins(options[:joins])
+          options[:include] = @reflection.source_reflection.options[:include] if options[:include].nil?
+        end
+        
         def insert_record(record, force=true)
           if record.new_record?
             if force
@@ -98,26 +66,6 @@ module ActiveRecord
           klass = @reflection.through_reflection.klass
           records.each do |associate|
             klass.delete_all(construct_join_attributes(associate))
-          end
-        end
-
-        def method_missing(method, *args)
-          if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
-            if block_given?
-              super { |*block_args| yield(*block_args) }
-            else
-              super
-            end
-          elsif @reflection.klass.scopes.include?(method)
-            @reflection.klass.scopes[method].call(self, *args)
-          else
-            with_scope construct_scope do
-              if block_given?
-                @reflection.klass.send(method, *args) { |*block_args| yield(*block_args) }
-              else
-                @reflection.klass.send(method, *args)
-              end
-            end
           end
         end
 
@@ -237,6 +185,8 @@ module ActiveRecord
 
               @finder_sql = "#{@reflection.quoted_table_name}.#{@reflection.primary_key_name} = #{@owner.quoted_id}"
               @finder_sql << " AND (#{conditions})" if conditions
+            else
+              @finder_sql = construct_conditions
           end
 
           if @reflection.options[:counter_sql]

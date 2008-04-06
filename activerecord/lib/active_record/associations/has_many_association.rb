@@ -1,11 +1,6 @@
 module ActiveRecord
   module Associations
     class HasManyAssociation < AssociationCollection #:nodoc:
-      def initialize(owner, reflection)
-        super
-        construct_sql
-      end
-
       # Count the number of associated records. All arguments are optional.
       def count(*args)
         if @reflection.options[:counter_sql]
@@ -20,42 +15,6 @@ module ActiveRecord
           options[:include] ||= @reflection.options[:include]
 
           @reflection.klass.count(column_name, options)
-        end
-      end
-
-      def find(*args)
-        options = args.extract_options!
-
-        # If using a custom finder_sql, scan the entire collection.
-        if @reflection.options[:finder_sql]
-          expects_array = args.first.kind_of?(Array)
-          ids           = args.flatten.compact.uniq.map(&:to_i)
-
-          if ids.size == 1
-            id = ids.first
-            record = load_target.detect { |r| id == r.id }
-            expects_array ? [ record ] : record
-          else
-            load_target.select { |r| ids.include?(r.id) }
-          end
-        else
-          conditions = "#{@finder_sql}"
-          if sanitized_conditions = sanitize_sql(options[:conditions])
-            conditions << " AND (#{sanitized_conditions})"
-          end
-          options[:conditions] = conditions
-
-          if options[:order] && @reflection.options[:order]
-            options[:order] = "#{options[:order]}, #{@reflection.options[:order]}"
-          elsif @reflection.options[:order]
-            options[:order] = @reflection.options[:order]
-          end
-
-          merge_options_from_reflection!(options)
-
-          # Pass through args exactly as we received them.
-          args << options
-          @reflection.klass.find(*args)
         end
       end
 

@@ -1,11 +1,6 @@
 module ActiveRecord
   module Associations
     class HasAndBelongsToManyAssociation < AssociationCollection #:nodoc:
-      def initialize(owner, reflection)
-        super
-        construct_sql
-      end
-
       def create(attributes = {})
         create_record(attributes) { |record| insert_record(record) }
       end
@@ -14,53 +9,13 @@ module ActiveRecord
         create_record(attributes) { |record| insert_record(record, true) }
       end
 
-      def find_first
-        load_target.first
-      end
-
-      def find(*args)
-        options = args.extract_options!
-
-        # If using a custom finder_sql, scan the entire collection.
-        if @reflection.options[:finder_sql]
-          expects_array = args.first.kind_of?(Array)
-          ids = args.flatten.compact.uniq
-
-          if ids.size == 1
-            id = ids.first.to_i
-            record = load_target.detect { |r| id == r.id }
-            expects_array ? [record] : record
-          else
-            load_target.select { |r| ids.include?(r.id) }
-          end
-        else
-          conditions = "#{@finder_sql}"
-
-          if sanitized_conditions = sanitize_sql(options[:conditions])
-            conditions << " AND (#{sanitized_conditions})"
-          end
-
-          options[:conditions] = conditions
+      protected
+        def construct_find_options!(options)
           options[:joins]      = @join_sql
           options[:readonly]   = finding_with_ambiguous_select?(options[:select] || @reflection.options[:select])
-
-          if options[:order] && @reflection.options[:order]
-            options[:order] = "#{options[:order]}, #{@reflection.options[:order]}"
-          elsif @reflection.options[:order]
-            options[:order] = @reflection.options[:order]
-          end
-
-          merge_options_from_reflection!(options)
-
-          options[:select] ||= (@reflection.options[:select] || '*')
-
-          # Pass through args exactly as we received them.
-          args << options
-          @reflection.klass.find(*args)
+          options[:select]   ||= (@reflection.options[:select] || '*')
         end
-      end
-
-      protected
+        
         def count_records
           load_target.size
         end
