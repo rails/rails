@@ -433,6 +433,18 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal a, firm.account
     assert_equal a, firm.account(true)
   end
+  
+  def test_save_fails_for_invalid_has_one
+    firm = Firm.find(:first)
+    assert firm.valid?
+    
+    firm.account = Account.new
+    
+    assert !firm.account.valid?
+    assert !firm.valid?
+    assert !firm.save
+    assert_equal "is invalid", firm.errors.on("account")
+  end
 
   def test_assignment_before_either_saved
     firm = Firm.new("name" => "GlobalMegaCorp")

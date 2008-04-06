@@ -784,6 +784,7 @@ module ActiveRecord
           end
           after_save method_name
 
+          add_single_associated_save_callbacks(reflection.name) 
           association_accessor_methods(reflection, HasOneAssociation)
           association_constructor_method(:build,  reflection, HasOneAssociation)
           association_constructor_method(:create, reflection, HasOneAssociation)
@@ -1139,6 +1140,18 @@ module ActiveRecord
               send("#{reflection.name}=", reflection.class_name.constantize.find(ids))
             end
           end
+        end
+        
+        def add_single_associated_save_callbacks(association_name)
+          method_name = "validate_associated_records_for_#{association_name}".to_sym
+          define_method(method_name) do
+            association = instance_variable_get("@#{association_name}")
+            if !association.nil?
+              errors.add "#{association_name}" unless association.target.nil? || association.valid?
+            end
+          end
+        
+          validate method_name
         end
         
         def add_multiple_associated_save_callbacks(association_name)

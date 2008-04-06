@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure that save on parent object fails for invalid has_one association. Closes #10518. [Pratik]
+
 * Remove duplicate code from associations. [Pratik]
 
 * Refactor HasManyThroughAssociation to inherit from HasManyAssociation. Association callbacks and <association>_ids= now work with hm:t. #11516 [rubyruy]
