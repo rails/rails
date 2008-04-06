@@ -6,10 +6,6 @@ module ActiveRecord
         construct_sql
       end
 
-      def build(attributes = {})
-        build_record(attributes)
-      end
-
       def create(attributes = {})
         create_record(attributes) { |record| insert_record(record) }
       end

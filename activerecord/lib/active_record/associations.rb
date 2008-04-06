@@ -44,6 +44,11 @@ module ActiveRecord
     end
   end
 
+  class HasManyThroughCantAssociateThroughHasManyReflection < ActiveRecordError #:nodoc:
+    def initialize(owner, reflection)
+      super("Cannot modify association '#{owner.class.name}##{reflection.name}' because the source reflection class '#{reflection.source_reflection.class_name}' is associated to '#{reflection.through_reflection.class_name}' via :#{reflection.source_reflection.macro}.")
+    end
+  end
   class HasManyThroughCantAssociateNewRecords < ActiveRecordError #:nodoc:
     def initialize(owner, reflection)
       super("Cannot associate new records through '#{owner.class.name}##{reflection.name}' on '#{reflection.source_reflection.class_name rescue nil}##{reflection.source_reflection.name rescue nil}'. Both records must have an id in order to create the has_many :through record associating them.")
@@ -125,27 +130,27 @@ module ActiveRecord
     #   generated methods                 | habtm | has_many | :through
     #   ----------------------------------+-------+----------+----------
     #   #others                           |   X   |    X     |    X
-    #   #others=(other,other,...)         |   X   |    X     |
+    #   #others=(other,other,...)         |   X   |    X     |    X
     #   #other_ids                        |   X   |    X     |    X
-    #   #other_ids=(id,id,...)            |   X   |    X     |
+    #   #other_ids=(id,id,...)            |   X   |    X     |    X
     #   #others<<                         |   X   |    X     |    X
     #   #others.push                      |   X   |    X     |    X
     #   #others.concat                    |   X   |    X     |    X
-    #   #others.build(attributes={})      |   X   |    X     |
-    #   #others.create(attributes={})     |   X   |    X     |
+    #   #others.build(attributes={})      |   X   |    X     |    X
+    #   #others.create(attributes={})     |   X   |    X     |    X
     #   #others.create!(attributes={})    |   X   |    X     |    X
     #   #others.size                      |   X   |    X     |    X
     #   #others.length                    |   X   |    X     |    X
     #   #others.count                     |   X   |    X     |    X
     #   #others.sum(args*,&block)         |   X   |    X     |    X
     #   #others.empty?                    |   X   |    X     |    X
-    #   #others.clear                     |   X   |    X     |
+    #   #others.clear                     |   X   |    X     |    X
     #   #others.delete(other,other,...)   |   X   |    X     |    X
     #   #others.delete_all                |   X   |    X     |
     #   #others.destroy_all               |   X   |    X     |    X
     #   #others.find(*args)               |   X   |    X     |    X
     #   #others.find_first                |   X   |          |
-    #   #others.uniq                      |   X   |    X     |
+    #   #others.uniq                      |   X   |    X     |    X
     #   #others.reset                     |   X   |    X     |    X
     #
     # == Cardinality and associations
@@ -650,7 +655,8 @@ module ActiveRecord
       # * <tt>:dependent</tt>   - if set to <tt>:destroy</tt> all the associated objects are destroyed
       #   alongside this object by calling their destroy method.  If set to <tt>:delete_all</tt> all associated
       #   objects are deleted *without* calling their destroy method.  If set to <tt>:nullify</tt> all associated
-      #   objects' foreign keys are set to +NULL+ *without* calling their save callbacks.
+      #   objects' foreign keys are set to +NULL+ *without* calling their save callbacks. *Warning:* This option is ignored when also using
+      #   the <tt>through</tt> option.
       # * <tt>:finder_sql</tt>  - specify a complete SQL statement to fetch the association. This is a good way to go for complex
       #   associations that depend on multiple tables. Note: When this option is used, +find_in_collection+ is _not_ added.
       # * <tt>:counter_sql</tt>  - specify a complete SQL statement to fetch the size of the association. If <tt>:finder_sql</tt> is
@@ -693,11 +699,12 @@ module ActiveRecord
 
         configure_dependency_for_has_many(reflection)
 
+        add_multiple_associated_save_callbacks(reflection.name)
+        add_association_callbacks(reflection.name, reflection.options)
+
         if options[:through]
-          collection_accessor_methods(reflection, HasManyThroughAssociation, false)
+          collection_accessor_methods(reflection, HasManyThroughAssociation)
         else
-          add_multiple_associated_save_callbacks(reflection.name)
-          add_association_callbacks(reflection.name, reflection.options)
           collection_accessor_methods(reflection, HasManyAssociation)
         end
       end

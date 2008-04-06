@@ -13,6 +13,14 @@ module ActiveRecord
         @loaded = false
       end
 
+      def build(attributes = {})
+        if attributes.is_a?(Array)
+          attributes.collect { |attr| build(attr) }
+        else
+          build_record(attributes) { |record| set_belongs_to_association_for(record) }
+        end
+      end
+
       # Add +records+ to this association.  Returns +self+ so method calls may be chained.  
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def <<(*records)
@@ -55,7 +63,13 @@ module ActiveRecord
       def delete(*records)
         records = flatten_deeper(records)
         records.each { |record| raise_on_type_mismatch(record) }
-        records.reject! { |record| @target.delete(record) if record.new_record? }
+        records.reject! do |record|
+          if record.new_record?
+            callback(:before_remove, record)
+            @target.delete(record)
+            callback(:after_remove, record)
+          end
+        end
         return if records.empty?
         
         @owner.transaction do

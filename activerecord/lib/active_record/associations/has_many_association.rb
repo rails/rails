@@ -6,14 +6,6 @@ module ActiveRecord
         construct_sql
       end
 
-      def build(attributes = {})
-        if attributes.is_a?(Array)
-          attributes.collect { |attr| build(attr) }
-        else
-          build_record(attributes) { |record| set_belongs_to_association_for(record) }
-        end
-      end
-
       # Count the number of associated records. All arguments are optional.
       def count(*args)
         if @reflection.options[:counter_sql]

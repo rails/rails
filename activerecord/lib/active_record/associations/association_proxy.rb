@@ -7,10 +7,10 @@ module ActiveRecord
     #       HasOneAssociation
     #     BelongsToPolymorphicAssociation
     #     AssociationCollection
-    #       HasManyAssociation
     #       HasAndBelongsToManyAssociation
-    #     HasManyThroughAssociation
-    #       HasOneThroughAssociation
+    #       HasManyAssociation
+    #         HasManyThroughAssociation
+    #            HasOneThroughAssociation
     #
     # Association proxies in Active Record are middlemen between the object that
     # holds the association, known as the <tt>@owner</tt>, and the actual associated

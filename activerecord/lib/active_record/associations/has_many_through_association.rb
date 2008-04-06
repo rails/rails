@@ -1,12 +1,12 @@
 module ActiveRecord
   module Associations
-    class HasManyThroughAssociation < AssociationCollection #:nodoc:
+    class HasManyThroughAssociation < HasManyAssociation #:nodoc:
       def initialize(owner, reflection)
         super
         reflection.check_validity!
         @finder_sql = construct_conditions
-        construct_sql
       end
+
 
       def find(*args)
         options = args.extract_options!
@@ -35,70 +35,18 @@ module ActiveRecord
         @reflection.klass.find(*args)
       end
 
-      def reset
-        @target = []
-        @loaded = false
-      end
-
-      # Adds records to the association. The source record and its associates
-      # must have ids in order to create records associating them, so this
-      # will raise ActiveRecord::HasManyThroughCantAssociateNewRecords if
-      # either is a new record.  Calls create! so you can rescue errors.
-      #
-      # The :before_add and :after_add callbacks are not yet supported.
-      def <<(*records)
-        return if records.empty?
-        through = @reflection.through_reflection
-        raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) if @owner.new_record?
-
-        klass = through.klass
-        klass.transaction do
-          flatten_deeper(records).each do |associate|
-            raise_on_type_mismatch(associate)
-            raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) unless associate.respond_to?(:new_record?) && !associate.new_record?
-
-            @owner.send(@reflection.through_reflection.name).proxy_target << klass.send(:with_scope, :create => construct_join_attributes(associate)) { klass.create! }
-            @target << associate if loaded?
-          end
-        end
-
-        self
-      end
-
-      [:push, :concat].each { |method| alias_method method, :<< }
-
-      # Removes +records+ from this association.  Does not destroy +records+.
-      def delete(*records)
-        records = flatten_deeper(records)
-        records.each { |associate| raise_on_type_mismatch(associate) }
-
-        through = @reflection.through_reflection
-        raise ActiveRecord::HasManyThroughCantDissociateNewRecords.new(@owner, through) if @owner.new_record?
-
-        load_target
-
-        klass = through.klass
-        klass.transaction do
-          flatten_deeper(records).each do |associate|
-            raise_on_type_mismatch(associate)
-            raise ActiveRecord::HasManyThroughCantDissociateNewRecords.new(@owner, through) unless associate.respond_to?(:new_record?) && !associate.new_record?
-
-            klass.delete_all(construct_join_attributes(associate))
-            @target.delete(associate)
-          end
-        end
-
-        self
-      end
-
-      def build(attrs = nil)
-        raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, @reflection.through_reflection)
-      end
       alias_method :new, :build
 
       def create!(attrs = nil)
         @reflection.klass.transaction do
           self << (object = @reflection.klass.send(:with_scope, :create => attrs) { @reflection.klass.create! })
+          object
+        end
+      end
+
+      def create(attrs = nil)
+        @reflection.klass.transaction do
+          self << (object = @reflection.klass.send(:with_scope, :create => attrs) { @reflection.klass.create })
           object
         end
       end
@@ -131,7 +79,28 @@ module ActiveRecord
         @reflection.klass.send(:with_scope, construct_scope) { @reflection.klass.count(column_name, options) } 
       end
 
+
       protected
+        def insert_record(record, force=true)
+          if record.new_record?
+            if force
+              record.save!
+            else
+              return false unless record.save
+            end
+          end
+          klass = @reflection.through_reflection.klass
+          @owner.send(@reflection.through_reflection.name).proxy_target << klass.send(:with_scope, :create => construct_join_attributes(record)) { klass.create! }
+        end
+
+        # TODO - add dependent option support
+        def delete_records(records)
+          klass = @reflection.through_reflection.klass
+          records.each do |associate|
+            klass.delete_all(construct_join_attributes(associate))
+          end
+        end
+
         def method_missing(method, *args)
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             if block_given?
@@ -178,6 +147,8 @@ module ActiveRecord
 
         # Construct attributes for :through pointing to owner and associate.
         def construct_join_attributes(associate)
+          # TODO: revist this to allow it for deletion, supposing dependent option is supported
+          raise ActiveRecord::HasManyThroughCantAssociateThroughHasManyReflection.new(@owner, @reflection) if @reflection.source_reflection.macro == :has_many
           join_attributes = construct_owner_attributes(@reflection.through_reflection).merge(@reflection.source_reflection.primary_key_name => associate.id)
           if @reflection.options[:source_type]
             join_attributes.merge!(@reflection.source_reflection.options[:foreign_type] => associate.class.base_class.name.to_s)

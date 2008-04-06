@@ -46,6 +46,20 @@ class Post < ActiveRecord::Base
 
   has_many :readers
   has_many :people, :through => :readers
+  has_many :people_with_callbacks, :source=>:person, :through => :readers,
+              :before_add    => lambda {|owner, reader| log(:added,   :before, reader.first_name) },
+              :after_add     => lambda {|owner, reader| log(:added,   :after,  reader.first_name) },
+              :before_remove => lambda {|owner, reader| log(:removed, :before, reader.first_name) },
+              :after_remove  => lambda {|owner, reader| log(:removed, :after,  reader.first_name) }
+
+  def self.reset_log
+    @log = []
+  end
+  
+  def self.log(message=nil, side=nil, new_record=nil)
+    return @log if message.nil?
+    @log << [message, side, new_record]
+  end
 
   def self.what_are_you
     'a post...'
