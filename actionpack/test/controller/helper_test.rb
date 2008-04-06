@@ -130,6 +130,22 @@ class HelperTest < Test::Unit::TestCase
     assert methods.include?('foobar')
   end
 
+  def test_helper_proxy
+    methods = ApplicationController.helpers.methods.map(&:to_s)
+
+    # ActionView
+    assert methods.include?('pluralize')
+
+    # abc_helper.rb
+    assert methods.include?('bare_a')
+
+    # fun/games_helper.rb
+    assert methods.include?('stratego')
+
+    # fun/pdf_helper.rb
+    assert methods.include?('foobar')
+  end
+
   private
     def expected_helper_methods
       TestHelper.instance_methods.map(&:to_s)

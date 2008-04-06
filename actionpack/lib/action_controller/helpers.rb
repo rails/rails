@@ -167,6 +167,15 @@ module ActionController #:nodoc:
         attrs.flatten.each { |attr| helper_method(attr, "#{attr}=") }
       end
 
+      # Provides a proxy to access helpers methods from outside the view.
+      def helpers
+        unless @helper_proxy
+          @helper_proxy = ActionView::Base.new
+          @helper_proxy.extend master_helper_module
+        else
+          @helper_proxy
+        end
+      end
 
       private
         def default_helper_module!

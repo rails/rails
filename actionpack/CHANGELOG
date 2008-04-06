@@ -1,5 +1,8 @@
 *SVN*
 
+* Provide a helper proxy to access helper methods from outside views. Closes #10839 [Josh Peek]
+  e.g. ApplicationController.helpers.simple_format(text)
+
 * Improve documentation. [Xavier Noria, leethal, jerome]
 
 * Ensure RJS redirect_to doesn't html-escapes string argument. Closes #8546 [josh, eventualbuddha, Pratik]
