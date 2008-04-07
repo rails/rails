@@ -31,4 +31,9 @@ class ModulesTest < ActiveRecord::TestCase
     assert_kind_of MyApplication::Business::Firm, account.firm
   end
 
+  def test_table_name
+    assert_equal 'accounts', MyApplication::Billing::Account.table_name, 'table_name for ActiveRecord model in module'
+    assert_equal 'companies', MyApplication::Business::Client.table_name, 'table_name for ActiveRecord model subclass'
+    assert_equal 'company_contacts', MyApplication::Business::Client::Contact.table_name, 'table_name for ActiveRecord model enclosed by another ActiveRecord model'
+  end
 end

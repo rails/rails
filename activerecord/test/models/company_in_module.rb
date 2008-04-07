@@ -17,6 +17,8 @@ module MyApplication
     class Client < Company
       belongs_to :firm, :foreign_key => "client_of"
       belongs_to :firm_with_other_name, :class_name => "Firm", :foreign_key => "client_of"
+
+      class Contact < ActiveRecord::Base; end
     end
 
     class Developer < ActiveRecord::Base
