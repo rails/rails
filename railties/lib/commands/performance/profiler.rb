@@ -19,7 +19,7 @@ begin
   begin
     require "ruby-prof"
     $stderr.puts 'Using the ruby-prof extension.'
-    RubyProf.clock_mode = RubyProf::WALL_TIME
+    RubyProf.measure_mode = RubyProf::WALL_TIME
     RubyProf.start
     profile_me
     results = RubyProf.stop

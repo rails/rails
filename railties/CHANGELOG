@@ -1,5 +1,7 @@
 *SVN*
 
+* script/performance/profiler compatibility with the ruby-prof >= 0.5.0. Closes #9176. [Catfish]
+
 * Flesh out rake gems:unpack to unpack all gems, and add rake gems:build for native extensions. #11513 [ddollar]
 
   rake gems:unpack             # unpacks all gems
