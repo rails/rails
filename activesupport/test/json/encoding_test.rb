@@ -38,15 +38,18 @@ class TestJSONEncoding < Test::Unit::TestCase
   StandardDateTests     = [[ Date.new(2005,2,1), %("2005-02-01") ]]
   StandardTimeTests     = [[ Time.utc(2005,2,1,15,15,10), %("2005-02-01T15:15:10Z") ]]
   StandardDateTimeTests = [[ DateTime.civil(2005,2,1,15,15,10), %("2005-02-01T15:15:10+00:00") ]]
+  StandardStringTests   = [[ 'this is the <string>', %("this is the <string>")]]
 
   constants.grep(/Tests$/).each do |class_tests|
     define_method("test_#{class_tests[0..-6].underscore}") do
       begin
+        ActiveSupport.escape_html_entities_in_json  = class_tests !~ /^Standard/
         ActiveSupport.use_standard_json_time_format = class_tests =~ /^Standard/
         self.class.const_get(class_tests).each do |pair|
           assert_equal pair.last, pair.first.to_json
         end
       ensure
+        ActiveSupport.escape_html_entities_in_json  = false
         ActiveSupport.use_standard_json_time_format = false
       end
     end

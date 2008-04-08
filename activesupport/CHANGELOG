@@ -1,5 +1,7 @@
 *SVN*
 
+* Add config.active_support.escape_html_entities_in_json to allow disabling of html entity escaping.  [rick]
+
 * Improve documentation. [Xavier Noria]
 
 * Modified ActiveSupport::Callbacks::Callback#call to accept multiple arguments.

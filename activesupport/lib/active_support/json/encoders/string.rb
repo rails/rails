@@ -1,6 +1,8 @@
 module ActiveSupport
   module JSON
     module Encoding
+      mattr_accessor :escape_regex
+
       ESCAPED_CHARS = {
         "\010" =>  '\b',
         "\f"   =>  '\f',
@@ -17,9 +19,11 @@ module ActiveSupport
   end
 end
 
+ActiveSupport.escape_html_entities_in_json = true
+
 class String
   def to_json(options = nil) #:nodoc:
-    json = '"' + gsub(/[\010\f\n\r\t"\\><&]/) { |s|
+    json = '"' + gsub(ActiveSupport::JSON::Encoding.escape_regex) { |s|
       ActiveSupport::JSON::Encoding::ESCAPED_CHARS[s]
     }
     json.force_encoding('ascii-8bit') if respond_to?(:force_encoding)
