@@ -851,8 +851,13 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
     end
 end
 
-
 class XmlParamsParsingTest < Test::Unit::TestCase
+  def test_hash_params
+    person = parse_body("<person><name>David</name></person>")[:person]
+    assert_kind_of Hash, person
+    assert_equal 'David', person['name']
+  end
+
   def test_single_file
     person = parse_body("<person><name>David</name><avatar type='file' name='me.jpg' content_type='image/jpg'>#{ActiveSupport::Base64.encode64('ABC')}</avatar></person>")
 
@@ -894,6 +899,22 @@ class LegacyXmlParamsParsingTest < XmlParamsParsingTest
   private
     def parse_body(body)
       env = { 'HTTP_X_POST_DATA_FORMAT' => 'xml',
+              'CONTENT_LENGTH' => body.size.to_s }
+      cgi = ActionController::Integration::Session::StubCGI.new(env, body)
+      ActionController::CgiRequest.new(cgi).request_parameters
+    end
+end
+
+class JsonParamsParsingTest < Test::Unit::TestCase
+  def test_hash_params
+    person = parse_body({:person => {:name => "David"}}.to_json)[:person]
+    assert_kind_of Hash, person
+    assert_equal 'David', person['name']
+  end
+
+  private
+    def parse_body(body)
+      env = { 'CONTENT_TYPE'   => 'application/json',
               'CONTENT_LENGTH' => body.size.to_s }
       cgi = ActionController::Integration::Session::StubCGI.new(env, body)
       ActionController::CgiRequest.new(cgi).request_parameters

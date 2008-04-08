@@ -3,7 +3,7 @@ require 'erb'
 class ERB
   module Util
     HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;' }
-    JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C'}
+    JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C' }
 
     # A utility method for escaping HTML tag characters.
     # This method is also aliased as <tt>h</tt>.

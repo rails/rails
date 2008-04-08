@@ -1,5 +1,15 @@
 *SVN*
 
+* Automatically parse posted JSON content for Mime::JSON requests.  [rick]
+
+  POST /posts
+  {"post": {"title": "Breaking News"}}
+
+  def create
+    @post = Post.create params[:post]
+    # ...
+  end
+
 * add json_escape ERB util to escape html entities in json strings that are output in HTML pages. [rick]
 
 * Provide a helper proxy to access helper methods from outside views. Closes #10839 [Josh Peek]

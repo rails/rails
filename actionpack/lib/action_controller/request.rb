@@ -402,6 +402,14 @@ EOM
             body.blank? ? {} : Hash.from_xml(body).with_indifferent_access
           when :yaml
             YAML.load(body)
+          when :json
+            if body.blank?
+              {}
+            else
+              data = ActiveSupport::JSON.decode(body)
+              data = {:_json => data} unless data.is_a?(Hash)
+              data.with_indifferent_access
+            end
           else
             {}
         end
@@ -507,7 +515,6 @@ EOM
           end
         end
 
-
         MULTIPART_BOUNDARY = %r|\Amultipart/form-data.*boundary=\"?([^\";,]+)\"?|n
 
         EOL = "\015\012"
@@ -604,12 +611,12 @@ EOM
           end
           raise EOFError, "bad boundary end of body part" unless boundary_end=~/--/
 
-	  begin
+          begin
             body.rewind if body.respond_to?(:rewind)
-	  rescue Errno::ESPIPE
+          rescue Errno::ESPIPE
             # Handles exceptions raised by input streams that cannot be rewound
             # such as when using plain CGI under Apache
-	  end
+          end
 
           params
         end
