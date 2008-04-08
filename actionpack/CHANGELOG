@@ -1,5 +1,7 @@
 *SVN*
 
+* add json_escape ERB util to escape html entities in json strings that are output in HTML pages. [rick]
+
 * Provide a helper proxy to access helper methods from outside views. Closes #10839 [Josh Peek]
   e.g. ApplicationController.helpers.simple_format(text)
 
