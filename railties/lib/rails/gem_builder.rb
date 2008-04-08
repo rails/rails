@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'rubygems/installer'
 
 module Rails

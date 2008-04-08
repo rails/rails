@@ -1,13 +1,18 @@
 desc "List the gems that this rails application depends on"
 task :gems => :environment do
   Rails.configuration.gems.each do |gem|
-    puts "[#{gem.loaded? ? '*' : ' '}] #{gem.name} #{gem.requirement.to_s}"
+    code = gem.loaded? ? (gem.frozen? ? "F" : "I") : " "
+    puts "[#{code}] #{gem.name} #{gem.requirement.to_s}"
   end
+  puts
+  puts "I = Installed"
+  puts "F = Frozen"
 end
 
 namespace :gems do
   desc "Build any native extensions for unpacked gems"
   task :build do
+    require 'rails/gem_builder'
     Dir[File.join(RAILS_ROOT, 'vendor', 'gems', '*')].each do |gem_dir|
       spec_file = File.join(gem_dir, '.specification')
       next unless File.exists?(spec_file)
@@ -26,12 +31,11 @@ namespace :gems do
   end
 
   desc "Unpacks the specified gem into vendor/gems."
-  task :unpack do
-    Rake::Task["environment"].invoke
+  task :unpack => :environment do
     require 'rubygems'
     require 'rubygems/gem_runner'
     Rails.configuration.gems.each do |gem|
-      next unless ENV['GEM'].blank? || ENV['GEM'] == gem.name
+      next unless !gem.frozen? && (ENV['GEM'].blank? || ENV['GEM'] == gem.name)
       gem.unpack_to(File.join(RAILS_ROOT, 'vendor', 'gems')) if gem.loaded?
     end
   end

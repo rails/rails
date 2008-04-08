@@ -14,8 +14,7 @@ module Rails
       end
       @lib      = options[:lib]
       @source   = options[:source]
-      @loaded   = false
-      @load_paths_added = false
+      @loaded   = @frozen = @load_paths_added = false
       @unpack_directory = nil
     end
 
@@ -28,6 +27,7 @@ module Rails
         gem *args
       else
         $LOAD_PATH << File.join(unpacked_paths.first, 'lib')
+        @frozen = true
       end
       @load_paths_added = true
     rescue Gem::LoadError
@@ -45,6 +45,10 @@ module Rails
     rescue LoadError
       puts $!.to_s
       $!.backtrace.each { |b| puts b }
+    end
+
+    def frozen?
+      @frozen
     end
 
     def loaded?
