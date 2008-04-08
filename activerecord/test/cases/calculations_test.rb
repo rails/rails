@@ -97,6 +97,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 105, Account.sum(:credit_limit, :conditions => 'firm_id = 6')
   end
 
+  def test_should_return_zero_if_sum_conditions_return_nothing
+    assert_equal 0, Account.sum(:credit_limit, :conditions => '1 = 2')
+  end
+
   def test_should_group_by_summed_field_with_conditions
     c = Account.sum(:credit_limit, :conditions => 'firm_id > 1',
                                    :group => :firm_id)

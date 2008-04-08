@@ -71,7 +71,7 @@ module ActiveRecord
       #
       #   Person.sum('age')
       def sum(column_name, options = {})
-        calculate(:sum, column_name, options)
+        calculate(:sum, column_name, options) || 0
       end
 
       # This calculates aggregate values in the given column.  Methods for count, sum, average, minimum, and maximum have been added as shortcuts.

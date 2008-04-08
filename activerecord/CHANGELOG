@@ -1,5 +1,7 @@
 *SVN*
 
+* ActiveRecord::Base#sum defaults to 0 if no rows are returned.  Closes #11550 [kamal]
+
 * Ensure that respond_to? considers dynamic finder methods. Closes #11538. [floehopper]
 
 * Ensure that save on parent object fails for invalid has_one association. Closes #10518. [Pratik]
