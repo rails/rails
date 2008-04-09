@@ -7,6 +7,7 @@ module Rails
     end
 
     def initialize(name, options = {})
+      require 'rubygems' unless Object.const_defined?(:Gem)
       @name     = name.to_s
       if options[:version]
         @requirement = Gem::Requirement.create(options[:version])
