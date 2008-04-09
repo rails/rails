@@ -30,11 +30,11 @@ module ActiveRecord
       def initialize(connection)
         @connection = connection
         @types = @connection.native_database_types
-        @info = @connection.select_one("SELECT * FROM schema_info") rescue nil
+        @version = Migrator::current_version rescue nil
       end
 
       def header(stream)
-        define_params = @info ? ":version => #{@info['version']}" : ""
+        define_params = @version ? ":version => #{@version}" : ""
 
         stream.puts <<HEADER
 # This file is auto-generated from the current state of the database. Instead of editing this file, 
@@ -59,7 +59,7 @@ HEADER
 
       def tables(stream)
         @connection.tables.sort.each do |tbl|
-          next if ["schema_info", ignore_tables].flatten.any? do |ignored|
+          next if ['schema_migrations', ignore_tables].flatten.any? do |ignored|
             case ignored
             when String; tbl == ignored
             when Regexp; tbl =~ ignored

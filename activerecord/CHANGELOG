@@ -1,5 +1,7 @@
 *SVN*
 
+* Add support for interleaving migrations by storing which migrations have run in the new schema_migrations table. Closes #11493 [jordi]
+
 * ActiveRecord::Base#sum defaults to 0 if no rows are returned.  Closes #11550 [kamal]
 
 * Ensure that respond_to? considers dynamic finder methods. Closes #11538. [floehopper]

@@ -16,7 +16,7 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
       output = standard_dump
       assert_match %r{create_table "accounts"}, output
       assert_match %r{create_table "authors"}, output
-      assert_no_match %r{create_table "schema_info"}, output
+      assert_no_match %r{create_table "schema_migrations"}, output
     end
 
     def test_schema_dump_excludes_sqlite_sequence
@@ -81,7 +81,7 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
       output = stream.string
       assert_no_match %r{create_table "accounts"}, output
       assert_match %r{create_table "authors"}, output
-      assert_no_match %r{create_table "schema_info"}, output
+      assert_no_match %r{create_table "schema_migrations"}, output
     end
 
     def test_schema_dump_with_regexp_ignored_table
@@ -92,7 +92,7 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
       output = stream.string
       assert_no_match %r{create_table "accounts"}, output
       assert_match %r{create_table "authors"}, output
-      assert_no_match %r{create_table "schema_info"}, output
+      assert_no_match %r{create_table "schema_migrations"}, output
     end
 
     def test_schema_dump_illegal_ignored_table_value

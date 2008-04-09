@@ -7,6 +7,7 @@ require 'models/topic'
 require MIGRATIONS_ROOT + "/valid/1_people_have_last_names"
 require MIGRATIONS_ROOT + "/valid/2_we_need_reminders"
 require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
+require MIGRATIONS_ROOT + "/interleaved/pass_3/2_i_raise_on_down"
 
 if ActiveRecord::Base.connection.supports_migrations?
   class BigNumber < ActiveRecord::Base; end
@@ -34,8 +35,8 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def teardown
-      ActiveRecord::Base.connection.initialize_schema_information
-      ActiveRecord::Base.connection.update "UPDATE #{ActiveRecord::Migrator.schema_info_table_name} SET version = 0"
+      ActiveRecord::Base.connection.initialize_schema_migrations_table
+      ActiveRecord::Base.connection.execute "DELETE FROM #{ActiveRecord::Migrator.schema_migrations_table_name}"
 
       %w(reminders people_reminders prefix_reminders_suffix).each do |table|
         Reminder.connection.drop_table(table) rescue nil
@@ -779,6 +780,39 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert !Reminder.table_exists?
     end
 
+    def test_finds_migrations
+      migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid").migrations
+      [['1', 'people_have_last_names'],
+       ['2', 'we_need_reminders'],
+       ['3', 'innocent_jointable']].each_with_index do |pair, i|
+        migrations[i].version == pair.first
+        migrations[1].name    == pair.last
+      end
+    end
+
+    def test_finds_pending_migrations
+      ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_2", 1)
+      migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/interleaved/pass_2").pending_migrations
+      assert_equal 1, migrations.size
+      migrations[0].version == '3'
+      migrations[0].name    == 'innocent_jointable'
+    end
+
+    def test_migrator_interleaved_migrations
+      ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_1")
+
+      assert_nothing_raised do
+        ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_2")
+      end
+
+      Person.reset_column_information
+      assert Person.column_methods_hash.include?(:last_name)
+
+      assert_nothing_raised do
+        ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/interleaved/pass_3")
+      end
+    end
+
     def test_migrator_verbosity
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
       assert PeopleHaveLastNames.message_count > 0
@@ -817,16 +851,16 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal(3, ActiveRecord::Migrator.current_version)
       
       ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-      assert_equal(2, ActiveRecord::Migrator.current_version)            
+      assert_equal(2, ActiveRecord::Migrator.current_version)
       
       ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-      assert_equal(1, ActiveRecord::Migrator.current_version)            
+      assert_equal(1, ActiveRecord::Migrator.current_version)
       
       ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-      assert_equal(0, ActiveRecord::Migrator.current_version)            
+      assert_equal(0, ActiveRecord::Migrator.current_version)
       
       ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-      assert_equal(0, ActiveRecord::Migrator.current_version)            
+      assert_equal(0, ActiveRecord::Migrator.current_version)
     end
     
     def test_migrator_run
@@ -839,15 +873,15 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal(0, ActiveRecord::Migrator.current_version)
     end
 
-    def test_schema_info_table_name
+    def test_schema_migrations_table_name
       ActiveRecord::Base.table_name_prefix = "prefix_"
       ActiveRecord::Base.table_name_suffix = "_suffix"
       Reminder.reset_table_name
-      assert_equal "prefix_schema_info_suffix", ActiveRecord::Migrator.schema_info_table_name
+      assert_equal "prefix_schema_migrations_suffix", ActiveRecord::Migrator.schema_migrations_table_name
       ActiveRecord::Base.table_name_prefix = ""
       ActiveRecord::Base.table_name_suffix = ""
       Reminder.reset_table_name
-      assert_equal "schema_info", ActiveRecord::Migrator.schema_info_table_name
+      assert_equal "schema_migrations", ActiveRecord::Migrator.schema_migrations_table_name
     ensure
       ActiveRecord::Base.table_name_prefix = ""
       ActiveRecord::Base.table_name_suffix = ""
