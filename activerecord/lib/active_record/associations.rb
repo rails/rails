@@ -922,6 +922,8 @@ module ActiveRecord
           )
         end
 
+        add_single_associated_save_callbacks(reflection.name)
+
         configure_dependency_for_belongs_to(reflection)
       end
 
