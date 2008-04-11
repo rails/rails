@@ -38,40 +38,30 @@ namespace :rails do
       end
     end
 
-    desc "Lock to latest Edge Rails or a specific revision with REVISION=X (ex: REVISION=4021) or a tag with TAG=Y (ex: TAG=rel_1-1-0)"
+    desc 'Lock to latest Edge Rails'
     task :edge do
-      $verbose = false
-      `svn --version` rescue nil
-      unless !$?.nil? && $?.success?
-        $stderr.puts "ERROR: Must have subversion (svn) available in the PATH to lock this application to Edge Rails"
-        exit 1
-      end
-            
-      rm_rf   "vendor/rails"
-      mkdir_p "vendor/rails"
-      
-      svn_root = "http://dev.rubyonrails.org/svn/rails/"
+      require 'open-uri'
 
-      if ENV['TAG']
-        rails_svn = "#{svn_root}/tags/#{ENV['TAG']}"
-        touch "vendor/rails/TAG_#{ENV['TAG']}"
-      else
-        rails_svn = "#{svn_root}/trunk"
-
-        if ENV['REVISION'].nil?
-          ENV['REVISION'] = /^r(\d+)/.match(%x{svn -qr HEAD log #{svn_root}})[1]
-          puts "REVISION not set. Using HEAD, which is revision #{ENV['REVISION']}."
+      chdir 'vendor' do
+        puts 'Downloading Rails'
+        File.open('rails_edge.zip', 'wb') do |dst|
+          open 'http://dev.rubyonrails.org/archives/rails_edge.zip' do |src|
+            while chunk = src.read(4096)
+              dst << chunk
+            end
+          end
         end
 
-        touch "vendor/rails/REVISION_#{ENV['REVISION']}"
+        puts 'Unpacking Rails'
+        rm_rf 'rails'
+        `unzip rails_edge.zip`
+        %w(rails_edge.zip rails/Rakefile rails/cleanlogs.sh rails/pushgems.rb rails/release.rb).each do |goner|
+          rm_f goner
+        end
       end
 
-      for framework in %w(railties actionpack activerecord actionmailer activesupport activeresource)
-        system "svn export #{rails_svn}/#{framework} vendor/rails/#{framework}" + (ENV['REVISION'] ? " -r #{ENV['REVISION']}" : "")
-      end
-      
-      puts "Updating current scripts, javascripts, and configuration settings"
-      Rake::Task["rails:update"].invoke
+      puts 'Updating current scripts, javascripts, and configuration settings'
+      Rake::Task['rails:update'].invoke
     end
   end
 
