@@ -39,12 +39,7 @@ module ActionController #:nodoc:
       base.class_eval do
         include InstanceMethods
         extend ClassMethods
-
-        helper do
-          def render_component(options)
-            @controller.send!(:render_component_as_string, options)
-          end
-        end
+        helper HelperMethods
 
         # If this controller was instantiated to process a component request,
         # +parent_controller+ points to the instantiator of this controller.
@@ -64,6 +59,12 @@ module ActionController #:nodoc:
         controller = new
         controller.parent_controller = parent_controller
         controller.process(request, response)
+      end
+    end
+
+    module HelperMethods
+      def render_component(options)
+        @controller.send!(:render_component_as_string, options)
       end
     end
 
