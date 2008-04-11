@@ -25,7 +25,7 @@ module ActiveRelation
     end
 
     def to_sql(formatter = nil)
-      "#{operand2.format(operand1)} #{predicate_sql} #{operand1.format(operand2)}"
+      "#{operand1.to_sql} #{predicate_sql} #{operand1.format(operand2)}"
     end
     
     def descend

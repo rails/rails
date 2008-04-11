@@ -24,7 +24,7 @@ module ActiveRelation
       
       describe 'when relating an attribute and a value' do
         before do
-          @value = "1-asdf".bind(@relation)
+          @value = "1-asdf"
         end
         
         describe 'when relating to an integer attribute' do
@@ -41,19 +41,6 @@ module ActiveRelation
               `users`.`name` <=> '1-asdf'
             ")
           end
-        end
-      end
-      
-      describe 'when relating two values' do
-        before do
-          @value = "1-asdf".bind(@relation)
-          @another_value = 2.bind(@relation)
-        end
-        
-        it 'formats values appropos of their type' do
-          ConcreteBinary.new(string = @value, integer = @another_value).to_sql.should be_like("
-            '1-asdf' <=> 2
-          ")        
         end
       end
     end

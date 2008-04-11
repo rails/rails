@@ -19,7 +19,7 @@ ActiveRecord::Base.establish_connection 'test'
 
 class Hash
   def shift
-    returning to_a.sort { |(key1, value1), (key2, value2)| key1.hash <=> key2.hash }.shift do |key, value|
+    returning to_a.sort { |(key1, value1), (key2, value2)| key1.hash <=> key2.hash }.shift do |key, _|
       delete(key)
     end
   end

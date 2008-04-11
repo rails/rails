@@ -21,7 +21,7 @@ module ActiveRelation
         end
         
         it "returns self if the substituting to the same relation" do
-          @attribute.bind(@relation).should == @attribute
+          @attribute.should == @attribute
         end
       end
     
@@ -97,43 +97,43 @@ module ActiveRelation
     
       describe '#eq' do
         it "manufactures an equality predicate" do
-          @attribute.eq('name').should == Equality.new(@attribute, 'name'.bind(@relation))
+          @attribute.eq('name').should == Equality.new(@attribute, 'name')
         end
       end
     
       describe '#lt' do
         it "manufactures a less-than predicate" do
-          @attribute.lt(10).should == LessThan.new(@attribute, 10.bind(@relation))
+          @attribute.lt(10).should == LessThan.new(@attribute, 10)
         end
       end
     
       describe '#lteq' do
         it "manufactures a less-than or equal-to predicate" do
-          @attribute.lteq(10).should == LessThanOrEqualTo.new(@attribute, 10.bind(@relation))
+          @attribute.lteq(10).should == LessThanOrEqualTo.new(@attribute, 10)
         end
       end
     
       describe '#gt' do
         it "manufactures a greater-than predicate" do
-          @attribute.gt(10).should == GreaterThan.new(@attribute, 10.bind(@relation))
+          @attribute.gt(10).should == GreaterThan.new(@attribute, 10)
         end
       end
     
       describe '#gteq' do
         it "manufactures a greater-than or equal-to predicate" do
-          @attribute.gteq(10).should == GreaterThanOrEqualTo.new(@attribute, 10.bind(@relation))
+          @attribute.gteq(10).should == GreaterThanOrEqualTo.new(@attribute, 10)
         end
       end
     
       describe '#matches' do
         it "manufactures a match predicate" do
-          @attribute.matches(/.*/).should == Match.new(@attribute, /.*/.bind(@relation))
+          @attribute.matches(/.*/).should == Match.new(@attribute, /.*/)
         end
       end
       
       describe '#in' do
         it "manufactures an in predicate" do
-          @attribute.in(1..30).should == In.new(@attribute, (1..30).bind(@relation))
+          @attribute.in(1..30).should == In.new(@attribute, (1..30))
         end
       end
     end

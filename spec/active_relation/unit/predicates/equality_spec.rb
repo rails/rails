@@ -35,7 +35,7 @@ module ActiveRelation
       
       describe 'when relation to a nil value' do
         before do
-          @nil = nil.bind(@relation1)
+          @nil = nil
         end
         
         it "manufactures an is null predicate" do
