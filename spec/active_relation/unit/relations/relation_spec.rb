@@ -91,7 +91,7 @@ module ActiveRelation
         end
     
         it "accepts arbitrary strings" do
-          @relation.select("arbitrary").should == Selection.new(@relation, Value.new("arbitrary", @relation))
+          @relation.select("arbitrary").should == Selection.new(@relation, "arbitrary")
         end
       end
   

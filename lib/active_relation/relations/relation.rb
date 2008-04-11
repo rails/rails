@@ -38,7 +38,7 @@ module ActiveRelation
       end
 
       def select(*predicates)
-        Selection.new(self, *predicates.collect {|p| p.bind(self)})
+        Selection.new(self, *predicates)
       end
 
       def project(*attributes)

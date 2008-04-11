@@ -1,27 +1,28 @@
 todo:
+- re-evaluate bind -- does bind belong inside the relation / predicate classes or in the factory methods?
+- - mock out database
+- #bind in Attribute and Expression should be doing a descend?
+- try to make aggegration testing in join spec to be a bit more unit-like
+- finish pending tests
+- test relation, table reset
+- standardize quoting  
+  - use strings everywhere, not symbols ?
+- "unit" test sql strategies
+  - use real world examples, so they should be like a tutorial.
+
 - string passthrough:
  :joins=>"INNER JOIN posts ON comments.post_id = posts.id"
    - shit this one is hard at the moment.
-   
+
 - need adapters for this form:
  {:conditions=>["approved = ?", false]}
  {:conditions=>{:approved=>false}}
  {:conditions=>{"topics.approved"=>false}}
  {:conditions=>{:address=>#<Address:0x3489b3c @street="Funny Street", @country="Loony Land", @city="Scary Town">, "customers.name"=>"David1"}}
 
-- re-evaluate bind -- does bind belong inside the relation / predicate classes or in the factory methods?
-- #bind in Attribute and Expression should be doing a descend?
-- try to make aggration testing in join spec to be a bit more unit-like
-- finish pending tests
-- test relation, table reset
 - cache expiry on write
   - rewrite of querycache test in light of this
-- standardize quoting
-  - use strings everywhere, not symbols ?
-- "unit" test sql strategies
-  - use real world examples, so they should be like a tutorial.
 - rename the tion (Selection) classes so that words that don't end in tion don't seem inconsistent
-- mock out database
 
 done:
 . Relation <=> Relation -> InnerJoinOperation

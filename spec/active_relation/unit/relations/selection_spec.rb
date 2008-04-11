@@ -26,9 +26,13 @@ module ActiveRelation
     end
 
     describe '#descend' do
+      before do
+        @selection = Selection.new(@relation, @predicate)
+      end
+      
       it "distributes a block over the relation and predicates" do
-        Selection.new(@relation, @predicate).descend(&:qualify). \
-          should == Selection.new(@relation.descend(&:qualify), @predicate.descend(&:qualify))
+        @selection.descend(&:qualify). \
+          should == Selection.new(@selection.relation.descend(&:qualify), @selection.predicate.qualify)
       end
     end
   
@@ -45,7 +49,7 @@ module ActiveRelation
       
       describe 'when given a string' do
         before do
-          @string = "asdf".bind(@relation)
+          @string = "asdf"
         end
         
         it "passes the string through to the where clause" do

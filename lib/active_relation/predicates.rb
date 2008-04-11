@@ -46,27 +46,19 @@ module ActiveRelation
   end
 
   class GreaterThanOrEqualTo < Binary
-    def predicate_sql
-      '>='
-    end
+    def predicate_sql; '>=' end
   end
 
   class GreaterThan < Binary
-    def predicate_sql
-      '>'
-    end
+    def predicate_sql; '>' end
   end
 
   class LessThanOrEqualTo < Binary
-    def predicate_sql
-      '<='
-    end
+    def predicate_sql; '<=' end
   end
 
   class LessThan < Binary
-    def predicate_sql
-      '<'
-    end
+    def predicate_sql; '<' end
   end
 
   class Match < Binary
@@ -74,8 +66,6 @@ module ActiveRelation
   end
   
   class In < Binary
-    def predicate_sql
-      operand2.inclusion_predicate_sql
-    end
+    def predicate_sql; operand2.inclusion_predicate_sql end
   end
 end

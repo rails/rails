@@ -3,8 +3,9 @@ module ActiveRelation
     attr_reader :predicate
 
     def initialize(relation, *predicates)
-      @predicate = predicates.shift
+      predicate = predicates.shift
       @relation = predicates.empty?? relation : Selection.new(relation, *predicates)
+      @predicate = predicate.bind(@relation)
     end
 
     def ==(other)
