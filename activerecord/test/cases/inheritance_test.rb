@@ -5,6 +5,34 @@ require 'models/subscriber'
 
 class InheritanceTest < ActiveRecord::TestCase
   fixtures :companies, :projects, :subscribers, :accounts
+  
+  def test_should_store_demodulized_class_name_with_store_full_sti_class_option_disabled
+    old = ActiveRecord::Base.store_full_sti_class
+    ActiveRecord::Base.store_full_sti_class = false
+    item = Namespaced::Company.new
+    assert_equal 'Company', item[:type]
+  ensure
+    ActiveRecord::Base.store_full_sti_class = old
+  end
+  
+  def test_should_store_full_class_name_with_store_full_sti_class_option_enabled
+    old = ActiveRecord::Base.store_full_sti_class
+    ActiveRecord::Base.store_full_sti_class = true
+    item = Namespaced::Company.new
+    assert_equal 'Namespaced::Company', item[:type]
+  ensure
+    ActiveRecord::Base.store_full_sti_class = old
+  end
+  
+  def test_different_namespace_subclass_should_load_correctly_with_store_full_sti_class_option
+    old = ActiveRecord::Base.store_full_sti_class
+    ActiveRecord::Base.store_full_sti_class = true
+    item = Namespaced::Company.create :name => "Wolverine 2"
+    assert_not_nil Company.find(item.id)
+    assert_not_nil Namespaced::Company.find(item.id)
+  ensure
+    ActiveRecord::Base.store_full_sti_class = old
+  end
 
   def test_company_descends_from_active_record
     assert_raise(NoMethodError) { ActiveRecord::Base.descends_from_active_record? }

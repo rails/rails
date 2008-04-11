@@ -439,6 +439,10 @@ module ActiveRecord #:nodoc:
     cattr_accessor :schema_format , :instance_writer => false
     @@schema_format = :ruby
     
+    # Determine whether to store the full constant name including namespace when using STI
+    superclass_delegating_accessor :store_full_sti_class
+    self.store_full_sti_class = false
+    
     class << self # Class methods
       # Find operates with four different retrieval approaches:
       #
@@ -1557,8 +1561,8 @@ module ActiveRecord #:nodoc:
 
         def type_condition
           quoted_inheritance_column = connection.quote_column_name(inheritance_column)
-          type_condition = subclasses.inject("#{quoted_table_name}.#{quoted_inheritance_column} = '#{name.demodulize}' ") do |condition, subclass|
-            condition << "OR #{quoted_table_name}.#{quoted_inheritance_column} = '#{subclass.name.demodulize}' "
+          type_condition = subclasses.inject("#{quoted_table_name}.#{quoted_inheritance_column} = '#{store_full_sti_class ? name : name.demodulize}' ") do |condition, subclass|
+            condition << "OR #{quoted_table_name}.#{quoted_inheritance_column} = '#{store_full_sti_class ? subclass.name : subclass.name.demodulize}' "
           end
 
           " (#{type_condition}) "
@@ -2492,7 +2496,7 @@ module ActiveRecord #:nodoc:
       # Message class in that example.
       def ensure_proper_type
         unless self.class.descends_from_active_record?
-          write_attribute(self.class.inheritance_column, Inflector.demodulize(self.class.name))
+          write_attribute(self.class.inheritance_column, store_full_sti_class ? self.class.name : Inflector.demodulize(self.class.name))
         end
       end
 
