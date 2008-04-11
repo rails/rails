@@ -63,11 +63,11 @@ module ActiveRelation
       
       module Writes
         def insert(record)
-          session.create Insertion.new(self, record.bind(self)); self
+          session.create Insertion.new(self, record); self
         end
 
         def update(assignments)
-          session.update Update.new(self, assignments.bind(self)); self
+          session.update Update.new(self, assignments); self
         end
 
         def delete

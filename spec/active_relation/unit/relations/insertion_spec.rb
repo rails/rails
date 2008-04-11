@@ -9,7 +9,7 @@ module ActiveRelation
     describe '#to_sql' do
       describe 'when given values whose types correspond to the types of the attributes' do
         before do
-          @insertion = Insertion.new(@relation, @relation[:name] => "nick".bind(@relation))
+          @insertion = Insertion.new(@relation, @relation[:name] => "nick")
         end
         
         it 'manufactures sql inserting data' do
@@ -23,7 +23,7 @@ module ActiveRelation
       
       describe 'when given values whose types differ from from the types of the attributes' do
         before do
-          @insertion = Insertion.new(@relation, @relation[:id] => '1-asdf'.bind(@relation))
+          @insertion = Insertion.new(@relation, @relation[:id] => '1-asdf')
         end
         
         it 'manufactures sql inserting data' do
@@ -37,7 +37,7 @@ module ActiveRelation
       
       describe 'when given values whose types correspond to the type of the attribtues' do
         before do
-          @insertion = Insertion.new(@relation, @relation[:name] => "nick".bind(@relation))
+          @insertion = Insertion.new(@relation, @relation[:name] => "nick")
         end
         
         it 'manufactures sql inserting data' do
@@ -52,7 +52,7 @@ module ActiveRelation
     
     describe '#call' do
       before do
-        @insertion = Insertion.new(@relation, @relation[:name] => "nick".bind(@relation))
+        @insertion = Insertion.new(@relation, @relation[:name] => "nick")
       end
       
       it 'executes an insert on the connection' do

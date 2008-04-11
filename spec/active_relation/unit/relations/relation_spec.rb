@@ -138,7 +138,7 @@ module ActiveRelation
           it 'manufactures an insertion relation' do
             Session.start do
               record = {@relation[:name] => 'carl'}
-              mock(Session.new).create(Insertion.new(@relation, record.bind(@relation)))
+              mock(Session.new).create(Insertion.new(@relation, record))
               @relation.insert(record).should == @relation
             end
           end
@@ -148,7 +148,7 @@ module ActiveRelation
           it 'manufactures an update relation' do
             Session.start do
               assignments = {@relation[:name] => Value.new('bob', @relation)}
-              mock(Session.new).update(Update.new(@relation, assignments.bind(@relation)))
+              mock(Session.new).update(Update.new(@relation, assignments))
               @relation.update(assignments).should == @relation
             end
           end

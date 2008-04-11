@@ -9,7 +9,7 @@ module ActiveRelation
     describe '#to_sql' do
       describe 'when given values whose types correspond to the types of the attributes' do
         before do
-          @update = Update.new(@relation, @relation[:name] => "nick".bind(@relation))
+          @update = Update.new(@relation, @relation[:name] => "nick")
         end
         
         it 'manufactures sql updating attributes' do
@@ -22,7 +22,7 @@ module ActiveRelation
 
       describe 'when given values whose types differ from from the types of the attributes' do
         before do
-          @update = Update.new(@relation, @relation[:id] => '1-asdf'.bind(@relation))
+          @update = Update.new(@relation, @relation[:id] => '1-asdf')
         end
         
         it 'manufactures sql updating attributes' do
@@ -37,7 +37,7 @@ module ActiveRelation
         before do
           @update = Update.new(
             @relation.select(@relation[:id].eq(1)),
-            @relation[:name] => "nick".bind(@relation)
+            @relation[:name] => "nick"
           )
         end
         
@@ -53,7 +53,7 @@ module ActiveRelation
     
     describe '#call' do
       before do
-        @update = Update.new(@relation, @relation[:name] => "nick".bind(@relation))
+        @update = Update.new(@relation, @relation[:name] => "nick")
       end
       
       it 'executes an update on the connection' do

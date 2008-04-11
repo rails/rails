@@ -3,7 +3,7 @@ module ActiveRelation
     attr_reader :record
 
     def initialize(relation, record)
-      @relation, @record = relation, record
+      @relation, @record = relation, record.bind(relation)
     end
 
     def to_sql(formatter = nil)
