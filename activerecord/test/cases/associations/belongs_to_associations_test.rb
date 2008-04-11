@@ -377,16 +377,4 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert companies(:first_client).readonly_firm.readonly?
   end
 
-  def test_save_fails_for_invalid_belongs_to
-    log = AuditLog.new
-    assert log.valid?
-
-    log.build_developer # Build invalid association
-    assert !log.developer.valid?
-    assert !log.valid?
-    assert_equal "is invalid", log.errors.on("developer")
-    
-    assert !log.save
-  end
-
 end
