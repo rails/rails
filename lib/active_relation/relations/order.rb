@@ -3,8 +3,9 @@ module ActiveRelation
     attr_reader :order
 
     def initialize(relation, *orders)
-      @order = orders.pop
+      order = orders.pop
       @relation = orders.empty?? relation : Order.new(relation, *orders)
+      @order = order.bind(@relation)
     end
 
     def ==(other)

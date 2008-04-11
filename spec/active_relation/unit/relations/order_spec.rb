@@ -59,7 +59,7 @@ module ActiveRelation
       
       describe "when given a string" do
         before do
-          @string = "asdf".bind(@relation)
+          @string = "asdf"
         end
         
         it "passes the string through to the order clause" do

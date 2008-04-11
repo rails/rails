@@ -50,7 +50,7 @@ module ActiveRelation
       end
 
       def order(*attributes)
-        Order.new(self, *attributes.collect {|a| a.bind(self)})
+        Order.new(self, *attributes)
       end
   
       def rename(attribute, aliaz)
