@@ -161,10 +161,10 @@ module ActiveRelation
     
     describe 'when joining with a string' do
       it "passes the string through to the where clause" do
-        Join.new("INNER JOIN ON asdf", @relation1).to_sql.should be_like("
+        Join.new("INNER JOIN asdf ON fdsa", @relation1).to_sql.should be_like("
           SELECT `users`.`id`, `users`.`name`
           FROM `users`
-            INNER JOIN ON asdf
+            INNER JOIN asdf ON fdsa
         ")        
       end
     end

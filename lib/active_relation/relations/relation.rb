@@ -19,7 +19,12 @@ module ActiveRelation
 
     module Operations
       def join(other)
-        JoinOperation.new("INNER JOIN", self, other)
+        case other
+        when String
+          Join.new(other, self)
+        when Relation
+          JoinOperation.new("INNER JOIN", self, other)
+        end
       end
 
       def outer_join(other)

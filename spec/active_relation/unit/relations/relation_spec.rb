@@ -51,24 +51,35 @@ module ActiveRelation
         end
       
         describe '#join' do
-          it "manufactures an inner join operation between those two relations" do
-            @relation.join(@relation).on(@predicate).should == Join.new("INNER JOIN", @relation, @relation, @predicate)
+          describe 'when given a relation' do
+            it "manufactures an inner join operation between those two relations" do
+              @relation.join(@relation).on(@predicate). \
+                should == Join.new("INNER JOIN", @relation, @relation, @predicate)
+            end
+          end
+          
+          describe "when given a string" do
+            it "manufactures a join operation with the string passed through" do
+              @relation.join(arbitrary_string = "ASDF").should == Join.new(arbitrary_string, @relation) 
+            end
           end
         end
-    
+
         describe '#outer_join' do
           it "manufactures a left outer join operation between those two relations" do
-            @relation.outer_join(@relation).on(@predicate).should == Join.new("LEFT OUTER JOIN", @relation, @relation, @predicate)
-          end      
+            @relation.outer_join(@relation).on(@predicate). \
+              should == Join.new("LEFT OUTER JOIN", @relation, @relation, @predicate)
+          end
         end
       end
-  
+
       describe '#project' do
         it "manufactures a projection relation" do
-          @relation.project(@attribute1, @attribute2).should == Projection.new(@relation, @attribute1, @attribute2)
+          @relation.project(@attribute1, @attribute2). \
+            should == Projection.new(@relation, @attribute1, @attribute2)
         end
       end
-    
+
       describe '#as' do
         it "manufactures an alias relation" do
           @relation.as(:paul).should == Alias.new(@relation, :paul)
