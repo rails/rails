@@ -11,7 +11,7 @@ module ActiveRelation
       describe 'when relating to an array' do
         describe 'when the array\'s elements are the same type as the attribute' do
           before do
-            @array = [1, 2, 3].bind(@relation)
+            @array = [1, 2, 3]
           end
           
           it 'manufactures sql with a comma separated list' do
@@ -23,7 +23,7 @@ module ActiveRelation
         
         describe 'when the array\'s elements are not same type as the attribute' do
           before do
-            @array = ['1-asdf', 2, 3].bind(@relation)
+            @array = ['1-asdf', 2, 3]
           end
           
           it 'formats values in the array as the type of the attribute' do
@@ -36,7 +36,7 @@ module ActiveRelation
       
       describe 'when relating to a range' do
         before do
-          @range = (1..2).bind(@relation)
+          @range = 1..2
         end
         
         it 'manufactures sql with a between' do
