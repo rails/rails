@@ -73,7 +73,7 @@ module ActionController
       end
 
       record    = extract_record(record_or_hash_or_array)
-      format    = (options[:action].to_s == "formatted" and record_or_hash_or_array.pop)
+      format    = extract_format(record_or_hash_or_array, options)
       namespace = extract_namespace(record_or_hash_or_array)
       
       args = case record_or_hash_or_array
@@ -149,6 +149,16 @@ module ActionController
           when Array; record_or_hash_or_array.last
           when Hash;  record_or_hash_or_array[:id]
           else        record_or_hash_or_array
+        end
+      end
+      
+      def extract_format(record_or_hash_or_array, options)
+        if options[:action].to_s == "formatted" && record_or_hash_or_array.is_a?(Array)
+          record_or_hash_or_array.pop
+        elsif options[:format]
+          options[:format]
+        else
+          nil
         end
       end
       

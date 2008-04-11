@@ -65,11 +65,16 @@ uses_mocha 'polymorphic URL helpers' do
       formatted_polymorphic_url([@article, :pdf])
     end
 
-    # TODO: should this work?
-    def xtest_format_option
+    def test_format_option
       @article.save
-      expects(:article_url).with(@article, :format => :pdf)
+      expects(:article_url).with(@article, :pdf)
       polymorphic_url(@article, :format => :pdf)
+    end
+
+    def test_id_and_format_option
+      @article.save
+      expects(:article_url).with(:id => @article, :format => :pdf)
+      polymorphic_url(:id => @article, :format => :pdf)
     end
 
     def test_with_nested
