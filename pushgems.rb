@@ -12,4 +12,3 @@ end
     `cd #{pkg} && rm -rf pkg && rake pgem && cd ..`
   end
 end
-
