@@ -4,7 +4,7 @@ module ActiveRelation
     delegate :engine, :to => :relation
 
     def initialize(relation, name, options = {})
-      @relation, @name, @alias, @ancestor, @column = relation, name, options[:alias], options[:ancestor]
+      @relation, @name, @alias, @ancestor = relation, name, options[:alias], options[:ancestor]
     end
     
     def alias_or_name

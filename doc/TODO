@@ -1,8 +1,5 @@
 todo:
-- re-evaluate bind -- does bind belong inside the relation / predicate classes or in the factory methods?
-- - mock out database
-- #bind in Attribute and Expression should be doing a descend?
-- try to make aggegration testing in join spec to be a bit more unit-like
+- mock out database
 - finish pending tests
 - test relation, table reset
 - standardize quoting  
@@ -13,12 +10,6 @@ todo:
 - string passthrough:
  :joins=>"INNER JOIN posts ON comments.post_id = posts.id"
    - shit this one is hard at the moment.
-
-- need adapters for this form:
- {:conditions=>["approved = ?", false]}
- {:conditions=>{:approved=>false}}
- {:conditions=>{"topics.approved"=>false}}
- {:conditions=>{:address=>#<Address:0x3489b3c @street="Funny Street", @country="Loony Land", @city="Scary Town">, "customers.name"=>"David1"}}
 
 - cache expiry on write
   - rewrite of querycache test in light of this
@@ -67,3 +58,8 @@ done:
   - orderings
 - relation inclusion when given an array (1,2,3,4) should quote the elements using the appropriate quoting formatter taken from the attribute
   - descend on array, along with bind written in terms of it
+- re-evaluate bind -- does bind belong inside the relation / predicate classes or in the factory methods?
+
+icebox:
+- #bind in Attribute and Expression should be doing a descend?
+- try to make aggegration testing in join spec to be a bit more unit-like

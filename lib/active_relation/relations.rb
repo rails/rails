@@ -1,4 +1,5 @@
 require 'active_relation/relations/relation'
+require 'active_relation/relations/nil'
 require 'active_relation/relations/compound'
 require 'active_relation/relations/writing'
 require 'active_relation/relations/table'

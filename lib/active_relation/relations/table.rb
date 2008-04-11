@@ -45,7 +45,7 @@ module ActiveRelation
     end
 
     def table_sql
-      "#{engine.quote_table_name(name)}"
+      engine.quote_table_name(name)
     end
     
     private

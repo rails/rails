@@ -6,7 +6,7 @@ module ActiveRelation
 
     hash_on :relation1
 
-    def initialize(join_sql, relation1, relation2, *predicates)
+    def initialize(join_sql, relation1, relation2 = Nil.new, *predicates)
       @join_sql, @relation1, @relation2, @predicates = join_sql, relation1, relation2, predicates
     end
 
@@ -40,9 +40,9 @@ module ActiveRelation
       this_join = [
         join_sql,
         externalize(relation2).table_sql,
-        "ON",
+        ("ON" unless predicates.blank?),
         predicates.collect { |p| p.bind(self).to_sql }.join(' AND ')
-      ].join(" ")
+      ].compact.join(" ")
       [relation1.joins, relation2.joins, this_join].compact.join(" ")
     end
 

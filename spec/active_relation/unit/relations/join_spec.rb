@@ -108,7 +108,7 @@ module ActiveRelation
       end
     end
     
-    describe 'with aggregated relations' do
+    describe 'when joining aggregated relations' do
       before do
         @aggregation = @relation2                                 \
           .aggregate(@relation2[:user_id], @relation2[:id].count) \
@@ -157,6 +157,16 @@ module ActiveRelation
           ")
         end
       end
-    end    
+    end
+    
+    describe 'when joining with a string' do
+      it "passes the string through to the where clause" do
+        Join.new("INNER JOIN ON asdf", @relation1).to_sql.should be_like("
+          SELECT `users`.`id`, `users`.`name`
+          FROM `users`
+            INNER JOIN ON asdf
+        ")        
+      end
+    end
   end
 end

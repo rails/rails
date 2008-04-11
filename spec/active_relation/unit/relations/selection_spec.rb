@@ -48,12 +48,8 @@ module ActiveRelation
       end
       
       describe 'when given a string' do
-        before do
-          @string = "asdf"
-        end
-        
         it "passes the string through to the where clause" do
-          Selection.new(@relation, @string).to_sql.should be_like("
+          Selection.new(@relation, 'asdf').to_sql.should be_like("
             SELECT `users`.`id`, `users`.`name`
             FROM `users`
             WHERE asdf
