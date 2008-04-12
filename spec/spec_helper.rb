@@ -6,15 +6,9 @@ $LOAD_PATH.unshift "#{dir}/../lib"
 Dir["#{dir}/matchers/*"].each { |m| require "#{dir}/matchers/#{File.basename(m)}" }
 require 'active_relation'
 
-ActiveRecord::Base.configurations = {
-  'test' => {
-    :adapter  => 'mysql',
-    :username => 'root',
-    :password => 'password',
-    :encoding => 'utf8',
-    :database => 'sql_algebra_test',
-  },
-}
+FileUtils.cp("#{dir}/../config/database.yml.example", "#{dir}/../config/database.yml") unless File.exist?("#{dir}/../config/database.yml")
+
+ActiveRecord::Base.configurations = YAML::load(IO.read("#{dir}/../config/database.yml"))
 ActiveRecord::Base.establish_connection 'test'
 
 class Hash
