@@ -41,27 +41,27 @@ module ActiveRelation
       end
 
       def select(*predicates)
-        Selection.new(self, *predicates)
+        predicates.all?(&:blank?) ? self : Selection.new(self, *predicates)
       end
 
       def project(*attributes)
-        Projection.new(self, *attributes)
+        attributes.all?(&:blank?) ? self : Projection.new(self, *attributes)
       end
       
       def as(aliaz)
-        Alias.new(self, aliaz)
+        aliaz.blank?? self : Alias.new(self, aliaz)
       end
 
       def order(*attributes)
-        Order.new(self, *attributes)
+        attributes.all?(&:blank?) ? self : Order.new(self, *attributes)
       end
       
       def take(taken)
-        Take.new(self, taken)
+        taken.blank?? self : Take.new(self, taken)
       end
       
       def skip(skipped)
-        Skip.new(self, skipped)
+        skipped.blank?? self : Skip.new(self, skipped)
       end
   
       def rename(attribute, aliaz)

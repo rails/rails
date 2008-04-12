@@ -1,4 +1,6 @@
 todo:
+- test Value, in particular bind.
+- test blank checks in relation.rb
 - mock out database
 - finish pending tests
 - test relation, table reset
@@ -7,9 +9,6 @@ todo:
 - "unit" test sql strategies
   - use real world examples, so they should be like a tutorial.
 
-- string passthrough:
- :joins=>"INNER JOIN posts ON comments.post_id = posts.id"
-   - shit this one is hard at the moment.
 
 - cache expiry on write
   - rewrite of querycache test in light of this
@@ -59,6 +58,8 @@ done:
 - relation inclusion when given an array (1,2,3,4) should quote the elements using the appropriate quoting formatter taken from the attribute
   - descend on array, along with bind written in terms of it
 - re-evaluate bind -- does bind belong inside the relation / predicate classes or in the factory methods?
+- string passthrough:
+ :joins=>"INNER JOIN posts ON comments.post_id = posts.id"
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?

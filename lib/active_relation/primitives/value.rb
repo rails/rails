@@ -23,5 +23,9 @@ module ActiveRelation
     def qualify
       self
     end
+    
+    def bind(relation)
+      Value.new(value, relation)
+    end
   end
 end

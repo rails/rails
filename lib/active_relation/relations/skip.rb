@@ -7,8 +7,9 @@ module ActiveRelation
     end
 
     def ==(other)
-      relation == other.relation and
-      skipped  == other.skipped
+      self.class  == other.class    and
+      relation    == other.relation and
+      skipped     == other.skipped
     end
 
     def descend(&block)
