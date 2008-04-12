@@ -1,5 +1,7 @@
 *SVN*
 
+* Add #getutc alias for DateTime#utc [Geoff Buesing]
+
 * Refactor TimeWithZone: don't send #since, #ago, #+, #-, #advance through method_missing [Geoff Buesing]
 
 * TimeWithZone respects config.active_support.use_standard_json_time_format [Geoff Buesing]
