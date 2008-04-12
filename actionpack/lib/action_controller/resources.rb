@@ -80,7 +80,9 @@ module ActionController
       end
 
       def new_path
-        @new_path ||= "#{path}/new"
+        new_action = self.options[:path_names][:new] if self.options[:path_names]
+        new_action ||= Base.resources_path_names[:new]
+        @new_path ||= "#{path}/#{new_action}"
       end
 
       def member_path
@@ -265,6 +267,13 @@ module ActionController
     #       notes.resources :comments
     #       notes.resources :attachments
     #     end
+    #
+    # * <tt>:path_names</tt> - specify different names for the 'new' and 'edit' actions. For example:
+    #     # new_products_path == '/productos/nuevo'
+    #     map.resources :products, :as => 'productos', :path_names => { :new => 'nuevo', :edit => 'editar' }
+    #
+    #   You can also set default action names from an environment, like this:
+    #     config.action_controller.resources_path_names = { :new => 'nuevo', :edit => 'editar' }
     #
     # * <tt>:path_prefix</tt> - set a prefix to the routes with required route variables.
     #
@@ -515,8 +524,14 @@ module ActionController
         resource.member_methods.each do |method, actions|
           actions.each do |action|
             action_options = action_options_for(action, resource, method)
-            map.named_route("#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action}", action_options)
-            map.named_route("formatted_#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action}.:format",action_options)
+            action_path = action
+            if resource.options[:path_names]
+              action_path = resource.options[:path_names][action]
+              action_path ||= Base.resources_path_names[action]
+            end
+
+            map.named_route("#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action_path}", action_options)
+            map.named_route("formatted_#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action_path}.:format",action_options)
           end
         end
 
