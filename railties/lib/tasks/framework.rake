@@ -38,14 +38,17 @@ namespace :rails do
       end
     end
 
-    desc 'Lock to latest Edge Rails'
+    desc 'Lock to latest Edge Rails, for a specific release use RELEASE=1.2.0'
     task :edge do
       require 'open-uri'
+      version = ENV["RELEASE"] || "edge"
+      target  = "rails_#{version}.zip"
+      url     = "http://dev.rubyonrails.org/archives/#{target}"
 
       chdir 'vendor' do
-        puts 'Downloading Rails'
-        File.open('rails_edge.zip', 'wb') do |dst|
-          open 'http://dev.rubyonrails.org/archives/rails_edge.zip' do |src|
+        puts "Downloading Rails from #{url}"
+        File.open('rails.zip', 'wb') do |dst|
+          open url do |src|
             while chunk = src.read(4096)
               dst << chunk
             end
@@ -54,8 +57,8 @@ namespace :rails do
 
         puts 'Unpacking Rails'
         rm_rf 'rails'
-        `unzip rails_edge.zip`
-        %w(rails_edge.zip rails/Rakefile rails/cleanlogs.sh rails/pushgems.rb rails/release.rb).each do |goner|
+        `unzip rails.zip`
+        %w(rails.zip rails/Rakefile rails/cleanlogs.sh rails/pushgems.rb rails/release.rb).each do |goner|
           rm_f goner
         end
       end

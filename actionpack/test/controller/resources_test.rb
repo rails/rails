@@ -76,6 +76,12 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_override_paths_for_default_restful_actions
+    resource = ActionController::Resources::Resource.new(:messages,
+      :path_names => {:new => 'nuevo', :edit => 'editar'})
+    assert_equal resource.new_path, "#{resource.path}/nuevo"
+  end
+
   def test_multiple_default_restful_routes
     with_restful_routing :messages, :comments do
       assert_simply_restful_for :messages

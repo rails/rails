@@ -39,4 +39,20 @@ namespace :gems do
       gem.unpack_to(File.join(RAILS_ROOT, 'vendor', 'gems')) if gem.loaded?
     end
   end
+  
+  namespace :unpack do
+    desc "Unpacks the specified gems and its dependencies into vendor/gems"
+    task :dependencies => :unpack do
+      require 'rubygems'
+      require 'rubygems/gem_runner'
+      Rails.configuration.gems.each do |gem|
+        next unless ENV['GEM'].blank? || ENV['GEM'] == gem.name
+        gem.dependencies.each do |dependency|
+          dependency.add_load_paths # double check that we have not already unpacked
+          next if dependency.frozen?
+          dependency.unpack_to(File.join(RAILS_ROOT, 'vendor', 'gems'))
+        end
+      end
+    end
+  end
 end

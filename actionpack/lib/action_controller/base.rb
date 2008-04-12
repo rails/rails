@@ -337,6 +337,10 @@ module ActionController #:nodoc:
     @@resource_action_separator = "/"
     cattr_accessor :resource_action_separator
     
+    # Allow to override path names for default resources' actions
+    @@resources_path_names = { :new => 'new', :edit => 'edit' }
+    cattr_accessor :resources_path_names
+
     # Sets the token parameter name for RequestForgery.  Calling #protect_from_forgery sets it to :authenticity_token by default
     cattr_accessor :request_forgery_protection_token
 
