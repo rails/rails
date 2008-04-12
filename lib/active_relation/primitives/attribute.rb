@@ -20,10 +20,6 @@ module ActiveRelation
         relation == new_relation ? self : Attribute.new(new_relation, name, :alias => @alias, :ancestor => self)
       end
 
-      def qualify
-        self.as(qualified_name)
-      end
-      
       def to_attribute
         self
       end

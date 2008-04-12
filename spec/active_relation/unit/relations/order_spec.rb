@@ -18,20 +18,6 @@ module ActiveRelation
       end
     end
     
-    describe '#qualify' do
-      it "descends" do
-        Order.new(@relation, @attribute).qualify. \
-          should == Order.new(@relation, @attribute).descend(&:qualify)
-      end
-    end
-    
-    describe '#descend' do
-      it "distributes a block over the relation and attributes" do
-        Order.new(@relation, @attribute).descend(&:qualify). \
-          should == Order.new(@relation.descend(&:qualify), @attribute.qualify)
-      end
-    end
-  
     describe '#to_sql' do
       describe "when given an attribute" do
         it "manufactures sql with an order clause populated by the attribute" do

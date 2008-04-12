@@ -20,10 +20,6 @@ module ActiveRelation
       value == other.value
     end
     
-    def qualify
-      self
-    end
-    
     def bind(relation)
       Value.new(value, relation)
     end

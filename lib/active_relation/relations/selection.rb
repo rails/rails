@@ -14,10 +14,6 @@ module ActiveRelation
       predicate  == other.predicate
     end
     
-    def descend(&block)
-      Selection.new(relation.descend(&block), yield(predicate))
-    end
-    
     def selects
       relation.selects + [predicate]
     end    

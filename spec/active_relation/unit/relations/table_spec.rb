@@ -46,8 +46,8 @@ module ActiveRelation
     end
     
     describe '#column_for' do
-      it "" do
-        @relation[:id].column.should == @relation.columns.detect { |c| c.name == 'id' }
+      it "returns the column corresponding to the attribute" do
+        @relation.column_for(@relation[:id]).should == @relation.columns.detect { |c| c.name == 'id' }
       end
     end
     
@@ -68,19 +68,12 @@ module ActiveRelation
       
       describe '#reset' do
         it "reloads columns from the database" do
-          pending
           lambda { stub(@relation.engine).columns { [] } }.should_not change { @relation.attributes }
           lambda { @relation.reset }.should change { @relation.attributes }
         end
       end
     end
   
-    describe '#qualify' do
-      it 'manufactures a rename relation with all attribute names qualified' do
-        @relation.qualify.should == Rename.new(@relation, @relation[:name] => 'users.name', @relation[:id] => 'users.id')
-      end
-    end
-    
     describe 'hashing' do
       it "implements hash equality" do
         Table.new(:users).should hash_the_same_as(Table.new(:users))

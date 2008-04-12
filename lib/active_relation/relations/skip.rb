@@ -11,9 +11,5 @@ module ActiveRelation
       relation    == other.relation and
       skipped     == other.skipped
     end
-
-    def descend(&block)
-      Skip.new(relation.descend(&block), skipped)
-    end
   end
 end

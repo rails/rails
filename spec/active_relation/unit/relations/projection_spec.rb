@@ -30,20 +30,6 @@ module ActiveRelation
       end
     end
   
-    describe '#qualify' do
-      it "descends" do
-        Projection.new(@relation, @attribute).qualify. \
-          should == Projection.new(@relation, @attribute).descend(&:qualify)
-      end
-    end
-    
-    describe '#descend' do
-      it "distributes a block over the relation and attributes" do
-        Projection.new(@relation, @attribute).descend(&:qualify). \
-          should == Projection.new(@relation.descend(&:qualify), @attribute.qualify)
-      end
-    end
-  
     describe '#to_sql' do
       describe 'when given an attribute' do
         it "manufactures sql with a limited select clause" do

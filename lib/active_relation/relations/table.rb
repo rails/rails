@@ -15,10 +15,6 @@ module ActiveRelation
       end
     end
 
-    def qualify
-      Rename.new self, qualifications
-    end
-    
     def prefix_for(attribute)
       self[attribute] and name
     end
@@ -34,10 +30,6 @@ module ActiveRelation
     
     def columns
       @columns ||= engine.columns(name, "#{name} Columns")
-    end
-    
-    def descend
-      yield self
     end
     
     def reset

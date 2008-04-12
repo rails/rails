@@ -12,9 +12,5 @@ module ActiveRelation
     def attributes
       relation.attributes.collect { |a| a.bind(self) }
     end
-    
-    def qualify
-      descend(&:qualify)
-    end
   end
 end

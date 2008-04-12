@@ -18,10 +18,6 @@ module ActiveRelation
       relation.attributes.collect(&method(:christen))
     end
     
-    def descend(&block)
-      Rename.new(relation.descend(&block), yield(attribute) => pseudonym)
-    end
-    
     private
     def christen(attribute)
       (attribute =~ self.attribute ? attribute.as(pseudonym) : attribute).bind(self) rescue nil

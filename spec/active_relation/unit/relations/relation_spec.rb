@@ -174,12 +174,9 @@ module ActiveRelation
     end
       
     describe Relation::Enumerable do
-      it "is enumerable" do
-        pending "I don't like this mock-based test"
-        data = [1,2,3]
-        mock.instance_of(Session).read(anything) { data }
-        @relation.collect.should == data
-        @relation.first.should == data.first
+      it "implements enumerable" do
+        @relation.collect.should == @relation.session.read(@relation)
+        @relation.first.should == @relation.session.read(@relation).first
       end
     end
   end

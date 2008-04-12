@@ -15,9 +15,5 @@ module ActiveRelation
       relation    == other.relation and
       projections == other.projections
     end
-    
-    def descend(&block)
-      Projection.new(relation.descend(&block), *projections.collect(&block))
-    end
   end
 end

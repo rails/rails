@@ -17,25 +17,7 @@ module ActiveRelation
           should == Selection.new(Selection.new(@relation, @another_predicate), @predicate)
       end
     end
-  
-    describe '#qualify' do
-      it "descends" do
-        Selection.new(@relation, @predicate).qualify. \
-          should == Selection.new(@relation, @predicate).descend(&:qualify)
-      end
-    end
-
-    describe '#descend' do
-      before do
-        @selection = Selection.new(@relation, @predicate)
-      end
-      
-      it "distributes a block over the relation and predicates" do
-        @selection.descend(&:qualify). \
-          should == Selection.new(@selection.relation.descend(&:qualify), @selection.predicate.qualify)
-      end
-    end
-  
+    
     describe '#to_sql' do
       describe 'when given a predicate' do
         it "manufactures sql with where clause conditions" do

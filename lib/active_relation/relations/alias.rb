@@ -9,10 +9,6 @@ module ActiveRelation
     def alias?
       true
     end
-    
-    def descend(&block)
-      Alias.new(relation.descend(&block), @alias)
-    end
 
     def ==(other)
       self.class == other.class and

@@ -32,20 +32,6 @@ module ActiveRelation
       end
     end
 
-    describe '#qualify' do
-      it 'descends' do
-        Join.new("INNER JOIN", @relation1, @relation2, @predicate).qualify. \
-          should == Join.new("INNER JOIN", @relation1, @relation2, @predicate).descend(&:qualify)
-      end
-    end
-    
-    describe '#descend' do
-      it 'distributes over the relations and predicates' do
-        Join.new("INNER JOIN", @relation1, @relation2, @predicate).qualify. \
-          should == Join.new("INNER JOIN", @relation1.qualify, @relation2.qualify, @predicate.qualify)
-      end
-    end
-
     describe '#prefix_for' do
       describe 'when the joined relations are simple' do
         it "returns the name of the relation containing the attribute" do

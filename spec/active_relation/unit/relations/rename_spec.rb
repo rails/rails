@@ -38,20 +38,6 @@ module ActiveRelation
       end
     end
 
-    describe '#qualify' do
-      it "descends" do
-        Rename.new(@relation, @relation[:id] => :schmid).qualify. \
-          should == Rename.new(@relation, @relation[:id] => :schmid).descend(&:qualify)
-      end
-    end
-  
-    describe '#descend' do
-      it "distributes a block over the relation and renames" do
-        Rename.new(@relation, @relation[:id] => :schmid).descend(&:qualify). \
-          should == Rename.new(@relation.descend(&:qualify), @relation[:id].qualify => :schmid)
-      end
-    end
-  
     describe '#to_sql' do
       it 'manufactures sql renaming the attribute' do
         Rename.new(@relation, @relation[:id] => :schmid).to_sql.should be_like("

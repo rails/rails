@@ -13,10 +13,6 @@ module ActiveRelation
       relation    == other.relation and
       ordering    == other.ordering
     end
-
-    def descend(&block)
-      Order.new(relation.descend(&block), yield(ordering))
-    end
     
     def orders
       relation.orders + [ordering]

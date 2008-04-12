@@ -11,9 +11,5 @@ module ActiveRelation
       relation    == other.relation and
       taken       == other.taken
     end
-
-    def descend(&block)
-      Take.new(relation.descend(&block), taken)
-    end
   end
 end

@@ -21,16 +21,10 @@ module ActiveRelation
         end
         
         it "returns self if the substituting to the same relation" do
-          @attribute.should == @attribute
+          @attribute.bind(@relation).should == @attribute
         end
       end
     
-      describe '#qualify' do
-        it "manufactures an attribute aliased with that attribute's qualified name" do
-          @attribute.qualify.should == Attribute.new(@attribute.relation, @attribute.name, :alias => @attribute.qualified_name, :ancestor => @attribute)
-        end
-      end
-      
       describe '#to_attribute' do
         it "returns self" do
           @attribute.to_attribute.should == @attribute
@@ -40,16 +34,13 @@ module ActiveRelation
     
     describe '#column' do
       it "returns the corresponding column in the relation" do
-        pending "damn mock based tests are too easy"
-        stub(@relation).column_for(@attribute) { 'bruisers' }
-        @attribute.column.should == 'bruisers'
+        @attribute.column.should == @relation.column_for(@attribute)
       end
     end
     
     describe '#qualified_name' do
       it "manufactures an attribute name prefixed with the relation's name" do
-        stub(@relation).prefix_for(anything) { 'bruisers' }
-        Attribute.new(@relation, :id).qualified_name.should == 'bruisers.id'
+        @attribute.qualified_name.should == "#{@relation.prefix_for(@attribute)}.id"
       end
     end
     
@@ -80,13 +71,21 @@ module ActiveRelation
     end
     
     describe '#to_sql' do
-      it "" do
-        pending "this test is not sufficiently resilient"
+      describe 'for a simple attribute' do
+        it "manufactures sql with an alias" do
+          @attribute.to_sql.should be_like("`users`.`id`")
+        end
       end
       
-      it "manufactures sql with an alias" do
-        stub(@relation).prefix_for(anything) { 'bruisers' }
-        Attribute.new(@relation, :name, :alias => :alias).to_sql.should be_like("`bruisers`.`name`")
+      describe 'for an attribute in a join relation where the source relation is aliased' do
+        before do
+          another_relation = Table.new(:photos)
+          @join_with_alias = @relation.as(:alias).join(another_relation).on(@relation[:id].eq(another_relation[:user_id]))
+        end
+        
+        it "manufactures sql with an alias" do
+          @join_with_alias[@attribute].to_sql.should be_like("`alias`.`id`")
+        end
       end
     end
   

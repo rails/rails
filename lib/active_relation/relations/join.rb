@@ -18,10 +18,6 @@ module ActiveRelation
       )
     end
     
-    def qualify
-      descend(&:qualify)
-    end
-    
     def attributes
       (externalize(relation1).attributes +
         externalize(relation2).attributes).collect { |a| a.bind(self) }
@@ -30,10 +26,6 @@ module ActiveRelation
     def prefix_for(attribute)
       externalize(relation1).prefix_for(attribute) or
       externalize(relation2).prefix_for(attribute)
-    end
-
-    def descend(&block)
-      Join.new(join_sql, relation1.descend(&block), relation2.descend(&block), *predicates.collect(&block))
     end
     
     def joins
