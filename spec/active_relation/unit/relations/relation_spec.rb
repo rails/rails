@@ -9,12 +9,6 @@ module ActiveRelation
     end
   
     describe '[]' do
-      describe 'when given a', Range do
-        it "manufactures a range relation when given a range" do
-          @relation[1..2].should == Range.new(@relation, 1..2)
-        end
-      end
-      
       describe 'when given an', Attribute do
         it "return the attribute congruent to the provided attribute" do
           @relation[@attribute1].should == @attribute1

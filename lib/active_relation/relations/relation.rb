@@ -35,8 +35,6 @@ module ActiveRelation
         case index
         when Symbol, String
           attribute_for_name(index)
-        when ::Range
-          Range.new(self, index)
         when Attribute, Expression
           attribute_for_attribute(index)
         end
@@ -56,6 +54,14 @@ module ActiveRelation
 
       def order(*attributes)
         Order.new(self, *attributes)
+      end
+      
+      def take(taken)
+        Take.new(self, taken)
+      end
+      
+      def skip(skipped)
+        Skip.new(self, skipped)
       end
   
       def rename(attribute, aliaz)
@@ -114,8 +120,8 @@ module ActiveRelation
         ("WHERE     #{selects.collect { |s| s.to_sql(Sql::WhereClause.new(engine)) }.join("\n\tAND ")}" unless selects.blank?   ),
         ("ORDER BY  #{orders.collect { |o| o.to_sql(Sql::OrderClause.new(engine)) }.join(', ')}"        unless orders.blank?    ),
         ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                     unless groupings.blank? ),
-        ("LIMIT     #{limit}"                                                                           unless limit.blank?     ),
-        ("OFFSET    #{offset}"                                                                          unless offset.blank?    )
+        ("LIMIT     #{take}"                                                                            unless take.blank?      ),
+        ("OFFSET    #{skip}"                                                                            unless skip.blank?      )
       ].compact.join("\n"), self.alias
     end
     alias_method :to_s, :to_sql
@@ -153,8 +159,8 @@ module ActiveRelation
     def inserts;     []  end
     def groupings;   []  end
     def joins;       nil end
-    def limit;       nil end
-    def offset;      nil end
+    def take;        nil end
+    def skip;        nil end
     def alias;       nil end
   end
 end

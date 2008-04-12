@@ -4,8 +4,8 @@ module ActiveRelation
     
     hash_on :relation
     
-    delegate :joins, :selects, :orders, :groupings, :table_sql, :inserts, :limit,
-             :offset, :name, :alias, :aggregation?, :alias?, :prefix_for, :column_for,
+    delegate :joins, :selects, :orders, :groupings, :table_sql, :inserts, :take,
+             :skip, :name, :alias, :aggregation?, :alias?, :prefix_for, :column_for,
              :engine,
              :to => :relation
     

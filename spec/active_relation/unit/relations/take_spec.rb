@@ -1,33 +1,30 @@
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'spec_helper')
 
 module ActiveRelation
-  describe Range do
+  describe Take do
     before do
       @relation = Table.new(:users)
-      @range = 4..9
+      @take = 4
     end
 
     describe '#qualify' do
       it "descends" do
-        Range.new(@relation, @range).qualify.should == Range.new(@relation, @range).descend(&:qualify)
+        Take.new(@relation, @take).qualify.should == Take.new(@relation, @take).descend(&:qualify)
       end
     end
     
     describe '#descend' do
       it "distributes a block over the relation" do
-        Range.new(@relation, @range).descend(&:qualify).should == Range.new(@relation.descend(&:qualify), @range)
+        Take.new(@relation, @take).descend(&:qualify).should == Take.new(@relation.descend(&:qualify), @take)
       end
     end
     
     describe '#to_sql' do
       it "manufactures sql with limit and offset" do
-        range_size = @range.last - @range.first + 1
-        range_start = @range.first
-        Range.new(@relation, @range).to_s.should be_like("
+        Take.new(@relation, @take).to_s.should be_like("
           SELECT `users`.`id`, `users`.`name`
           FROM `users`
-          LIMIT #{range_size}
-          OFFSET #{range_start}
+          LIMIT #{@take}
         ")
       end
     end
