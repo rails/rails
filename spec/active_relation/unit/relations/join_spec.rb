@@ -99,8 +99,6 @@ module ActiveRelation
         @aggregation = @relation2                                           \
           .aggregate(@relation2[:user_id], @relation2[:id].count.as(:cnt))  \
           .group(@relation2[:user_id])                                      \
-          
-          git 
           .as('photo_count')
       end
       
