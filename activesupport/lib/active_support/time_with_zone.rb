@@ -77,7 +77,11 @@ module ActiveSupport
     alias_method :iso8601, :xmlschema
   
     def to_json(options = nil)
-      %("#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)}")
+      if ActiveSupport.use_standard_json_time_format
+        utc.xmlschema.inspect
+      else
+        %("#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)}")
+      end
     end
     
     def to_yaml(options = {})

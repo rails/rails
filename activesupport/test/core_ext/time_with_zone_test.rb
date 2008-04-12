@@ -67,6 +67,13 @@ class TimeWithZoneTest < Test::Unit::TestCase
       assert_equal "\"1999/12/31 19:00:00 -0500\"", @twz.to_json
     end
   end
+  
+  def test_to_json_with_use_standard_json_time_format_config_set_to_true
+    old, ActiveSupport.use_standard_json_time_format = ActiveSupport.use_standard_json_time_format, true
+    assert_equal "\"2000-01-01T00:00:00Z\"", @twz.to_json
+  ensure
+    ActiveSupport.use_standard_json_time_format = old
+  end
     
   def test_strftime
     silence_warnings do # silence warnings raised by tzinfo gem
