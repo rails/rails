@@ -96,10 +96,11 @@ module ActiveRelation
     
     describe 'when joining aggregated relations' do
       before do
-        @aggregation = @relation2                                 \
-          .aggregate(@relation2[:user_id], @relation2[:id].count) \
-          .group(@relation2[:user_id])                            \
-          .rename(@relation2[:id].count, :cnt)                    \
+        @aggregation = @relation2                                           \
+          .aggregate(@relation2[:user_id], @relation2[:id].count.as(:cnt))  \
+          .group(@relation2[:user_id])                                      \
+          
+          git 
           .as('photo_count')
       end
       
