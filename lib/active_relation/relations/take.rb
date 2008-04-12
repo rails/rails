@@ -1,18 +1,18 @@
 module ActiveRelation
   class Take < Compound
-    attr_reader :take
+    attr_reader :taken
 
-    def initialize(relation, take)
-      @relation, @take = relation, take
+    def initialize(relation, taken)
+      @relation, @taken = relation, taken
     end
 
     def ==(other)
       relation == other.relation and
-      take     == other.take
+      taken    == other.taken
     end
 
     def descend(&block)
-      Take.new(relation.descend(&block), take)
+      Take.new(relation.descend(&block), taken)
     end
   end
 end

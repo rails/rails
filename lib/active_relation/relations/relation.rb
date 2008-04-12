@@ -120,8 +120,8 @@ module ActiveRelation
         ("WHERE     #{selects.collect { |s| s.to_sql(Sql::WhereClause.new(engine)) }.join("\n\tAND ")}" unless selects.blank?   ),
         ("ORDER BY  #{orders.collect { |o| o.to_sql(Sql::OrderClause.new(engine)) }.join(', ')}"        unless orders.blank?    ),
         ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                     unless groupings.blank? ),
-        ("LIMIT     #{take}"                                                                            unless take.blank?      ),
-        ("OFFSET    #{skip}"                                                                            unless skip.blank?      )
+        ("LIMIT     #{taken}"                                                                           unless taken.blank?     ),
+        ("OFFSET    #{skipped}"                                                                         unless skipped.blank?   )
       ].compact.join("\n"), self.alias
     end
     alias_method :to_s, :to_sql
@@ -159,8 +159,8 @@ module ActiveRelation
     def inserts;     []  end
     def groupings;   []  end
     def joins;       nil end
-    def take;        nil end
-    def skip;        nil end
+    def taken;       nil end
+    def skipped;     nil end
     def alias;       nil end
   end
 end

@@ -106,6 +106,18 @@ module ActiveRelation
         end
       end
       
+      describe '#take' do
+        it "manufactures a take relation" do
+          @relation.take(5).should == Take.new(@relation, 5)
+        end
+      end
+      
+      describe '#skip' do
+        it "manufactures a skip relation" do
+          @relation.skip(4).should == Skip.new(@relation, 4)
+        end
+      end
+      
       describe '#call' do
         it 'executes a select_all on the connection' do
           mock(connection = Object.new).select_all(@relation.to_sql)

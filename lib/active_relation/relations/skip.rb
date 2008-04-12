@@ -1,18 +1,18 @@
 module ActiveRelation
   class Skip < Compound
-    attr_reader :skip
+    attr_reader :skipped
 
-    def initialize(relation, skip)
-      @relation, @skip = relation, skip
+    def initialize(relation, skipped)
+      @relation, @skipped = relation, skipped
     end
 
     def ==(other)
       relation == other.relation and
-      skip     == other.skip
+      skipped  == other.skipped
     end
 
     def descend(&block)
-      Skip.new(relation.descend(&block), skip)
+      Skip.new(relation.descend(&block), skipped)
     end
   end
 end
