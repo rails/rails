@@ -7,6 +7,30 @@ module ActiveRelation
     end
   
     describe '#to_sql' do
+      it 'manufactures sql inserting data when given multiple rows' do
+        pending do
+          @insertion = Insertion.new(@relation, [@relation[:name] => "nick", @relation[:name] => "bryan"])
+        
+          @insertion.to_sql.should be_like("
+            INSERT
+            INTO `users`
+            (`users`.`name`) VALUES ('nick'), ('bryan')
+          ")
+        end
+      end
+      
+      it 'manufactures sql inserting data when given multiple values' do
+        pending do
+          @insertion = Insertion.new(@relation, @relation[:id] => "1", @relation[:name] => "nick")
+        
+          @insertion.to_sql.should be_like("
+            INSERT
+            INTO `users`
+            (`users`.`name`, `users`.`id`) VALUES ('nick', 1)
+          ")
+        end
+      end
+      
       describe 'when given values whose types correspond to the types of the attributes' do
         before do
           @insertion = Insertion.new(@relation, @relation[:name] => "nick")

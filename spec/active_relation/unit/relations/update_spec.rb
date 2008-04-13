@@ -7,6 +7,25 @@ module ActiveRelation
     end
   
     describe '#to_sql' do
+      it "manufactures sql updating attributes when given multiple attributes" do
+        pending do
+          Update.new(@relation, @relation[:id] => 1, @relation[:name] => "nick").to_sql.should be_like("
+            UPDATE `users`
+            SET `users`.`name` = 'nick', `users`.`id` = 1
+          ")
+        end
+      end
+      
+      it "manufactures sql updating attributes when given a ranged relation" do
+        pending do
+          Update.new(@relation[0..0], @relation[:name] => "nick").to_sql.should be_like("
+            UPDATE `users`
+            SET `users`.`name` = 'nick'
+            LIMIT 1
+          ")
+        end
+      end
+      
       describe 'when given values whose types correspond to the types of the attributes' do
         before do
           @update = Update.new(@relation, @relation[:name] => "nick")
