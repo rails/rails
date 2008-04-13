@@ -77,7 +77,11 @@ module ActiveSupport
     alias_method :iso8601, :xmlschema
   
     def to_json(options = nil)
-      %("#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)}")
+      if ActiveSupport.use_standard_json_time_format
+        utc.xmlschema.inspect
+      else
+        %("#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)}")
+      end
     end
     
     def to_yaml(options = {})
@@ -130,7 +134,8 @@ module ActiveSupport
     # If wrapped #time is a DateTime, use DateTime#since instead of #+
     # Otherwise, just pass on to #method_missing
     def +(other)
-      time.acts_like?(:date) ? method_missing(:since, other) : method_missing(:+, other)
+      result = utc.acts_like?(:date) ? utc.since(other) : utc + other
+      result.in_time_zone(time_zone)
     end
     
     # If a time-like object is passed in, compare it with #utc
@@ -140,8 +145,21 @@ module ActiveSupport
       if other.acts_like?(:time)
         utc - other
       else
-        time.acts_like?(:date) ? method_missing(:ago, other) : method_missing(:-, other)
+        result = utc.acts_like?(:date) ? utc.ago(other) : utc - other
+        result.in_time_zone(time_zone)
       end
+    end
+    
+    def since(other)
+      utc.since(other).in_time_zone(time_zone)
+    end
+    
+    def ago(other)
+      utc.ago(other).in_time_zone(time_zone)
+    end
+    
+    def advance(options)
+      utc.advance(options).in_time_zone(time_zone)
     end
     
     def usec
@@ -204,13 +222,8 @@ module ActiveSupport
   
     # Send the missing method to time instance, and wrap result in a new TimeWithZone with the existing time_zone
     def method_missing(sym, *args, &block)
-      if %w(+ - since ago advance).include?(sym.to_s)
-        result = utc.__send__(sym, *args, &block)
-        result.acts_like?(:time) ? result.in_time_zone(time_zone) : result
-      else
-        result = time.__send__(sym, *args, &block)
-        result.acts_like?(:time) ? self.class.new(nil, time_zone, result) : result
-      end
+      result = time.__send__(sym, *args, &block)
+      result.acts_like?(:time) ? self.class.new(nil, time_zone, result) : result
     end
     
     private      

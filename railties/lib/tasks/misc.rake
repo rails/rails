@@ -24,7 +24,10 @@ namespace :time do
     
     desc 'Displays names of time zones recognized by the Rails TimeZone class with the same offset as the system local time'
     task :local do
-      build_time_zone_list(:all, Time.now.beginning_of_year.utc_offset)
+      jan_offset = Time.now.beginning_of_year.utc_offset
+      jul_offset = Time.now.beginning_of_year.change(:month => 7).utc_offset
+      offset = jan_offset < jul_offset ? jan_offset : jul_offset
+      build_time_zone_list(:all, offset)
     end
     
     # to find UTC -06:00 zones, OFFSET can be set to either -6, -6:00 or 21600
