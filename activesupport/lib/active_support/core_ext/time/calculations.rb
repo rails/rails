@@ -88,18 +88,21 @@ module ActiveSupport #:nodoc:
         end
 
         # Returns a new Time representing the time a number of seconds ago, this is basically a wrapper around the Numeric extension
-        # Do not use this method in combination with x.months, use months_ago instead!
         def ago(seconds)
           self.since(-seconds)
         end
 
         # Returns a new Time representing the time a number of seconds since the instance time, this is basically a wrapper around
-        # the Numeric extension. Do not use this method in combination with x.months, use months_since instead!
+        # the Numeric extension.
         def since(seconds)
-          initial_dst = self.dst? ? 1 : 0
           f = seconds.since(self)
-          final_dst   = f.dst? ? 1 : 0
-          (seconds.abs >= 86400 && initial_dst != final_dst) ? f + (initial_dst - final_dst).hours : f
+          if ActiveSupport::Duration === seconds
+            f
+          else
+            initial_dst = self.dst? ? 1 : 0
+            final_dst   = f.dst? ? 1 : 0
+            (seconds.abs >= 86400 && initial_dst != final_dst) ? f + (initial_dst - final_dst).hours : f
+          end
         rescue
           self.to_datetime.since(seconds)          
         end

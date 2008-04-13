@@ -1,5 +1,7 @@
 *SVN*
 
+* Time#since behaves correctly when passed a Duration. Closes #11527 [kemiller]
+
 * Add #getutc alias for DateTime#utc [Geoff Buesing]
 
 * Refactor TimeWithZone: don't send #since, #ago, #+, #-, #advance through method_missing [Geoff Buesing]
