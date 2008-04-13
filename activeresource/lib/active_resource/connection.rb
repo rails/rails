@@ -55,7 +55,7 @@ module ActiveResource
   # This class is used by ActiveResource::Base to interface with REST
   # services.
   class Connection
-    attr_reader :site, :user, :password
+    attr_reader :site, :user, :password, :timeout
     attr_accessor :format
 
     class << self
@@ -88,6 +88,11 @@ module ActiveResource
     # Set password for remote service.
     def password=(password)
       @password = password
+    end
+
+    # Set the number of seconds after which HTTP requests to the remote service should time out.
+    def timeout=(timeout)
+      @timeout = timeout
     end
 
     # Execute a GET request.
@@ -167,18 +172,19 @@ module ActiveResource
         http             = Net::HTTP.new(@site.host, @site.port)
         http.use_ssl     = @site.is_a?(URI::HTTPS)
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE if http.use_ssl
+        http.read_timeout = @timeout if @timeout # If timeout is not set, the default Net::HTTP timeout (60s) is used.
         http
       end
 
       def default_header
         @default_header ||= { 'Content-Type' => format.mime_type }
       end
-      
+
       # Builds headers for request to remote service.
       def build_request_headers(headers)
         authorization_header.update(default_header).update(headers)
       end
-      
+
       # Sets authorization header
       def authorization_header
         (@user || @password ? { 'Authorization' => 'Basic ' + ["#{@user}:#{ @password}"].pack('m').delete("\r\n") } : {})

@@ -88,6 +88,12 @@ class BaseTest < Test::Unit::TestCase
     assert_equal('test123', Forum.connection.password)
   end
 
+  def test_should_accept_setting_timeout
+    Forum.timeout = 5
+    assert_equal(5, Forum.timeout)
+    assert_equal(5, Forum.connection.timeout)
+  end
+
   def test_user_variable_can_be_reset
     actor = Class.new(ActiveResource::Base)
     actor.site = 'http://cinema'
@@ -106,6 +112,16 @@ class BaseTest < Test::Unit::TestCase
     actor.password = nil
     assert_nil actor.password
     assert_nil actor.connection.password
+  end
+
+  def test_timeout_variable_can_be_reset
+    actor = Class.new(ActiveResource::Base)
+    actor.site = 'http://cinema'
+    assert_nil actor.timeout
+    actor.timeout = 5
+    actor.timeout = nil
+    assert_nil actor.timeout
+    assert_nil actor.connection.timeout
   end
 
   def test_credentials_from_site_are_decoded
@@ -232,6 +248,40 @@ class BaseTest < Test::Unit::TestCase
     assert_equal fruit.password, apple.password, 'subclass did not adopt changes from parent class'
   end
 
+  def test_timeout_reader_uses_superclass_timeout_until_written
+    # Superclass is Object so returns nil.
+    assert_nil ActiveResource::Base.timeout
+    assert_nil Class.new(ActiveResource::Base).timeout
+    Person.timeout = 5
+
+    # Subclass uses superclass timeout.
+    actor = Class.new(Person)
+    assert_equal Person.timeout, actor.timeout
+
+    # Changing subclass timeout doesn't change superclass timeout.
+    actor.timeout = 10
+    assert_not_equal Person.timeout, actor.timeout
+
+    # Changing superclass timeout doesn't overwrite subclass timeout.
+    Person.timeout = 15
+    assert_not_equal Person.timeout, actor.timeout
+
+    # Changing superclass timeout after subclassing changes subclass timeout.
+    jester = Class.new(actor)
+    actor.timeout = 20
+    assert_equal actor.timeout, jester.timeout
+
+    # Subclasses are always equal to superclass timeout when not overridden.
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+
+    fruit.timeout = 25
+    assert_equal fruit.timeout, apple.timeout, 'subclass did not adopt changes from parent class'
+
+    fruit.timeout = 30
+    assert_equal fruit.timeout, apple.timeout, 'subclass did not adopt changes from parent class'
+  end
+
   def test_updating_baseclass_site_object_wipes_descendent_cached_connection_objects
     # Subclasses are always equal to superclass site when not overridden    
     fruit = Class.new(ActiveResource::Base)
@@ -275,6 +325,22 @@ class BaseTest < Test::Unit::TestCase
 
     fruit.password = 'supersecret'
     assert_equal fruit.connection.password, apple.connection.password
+    second_connection = apple.connection.object_id
+    assert_not_equal(first_connection, second_connection, 'Connection should be re-created')
+  end
+
+  def test_updating_baseclass_timeout_wipes_descendent_cached_connection_objects
+    # Subclasses are always equal to superclass timeout when not overridden
+    fruit = Class.new(ActiveResource::Base)
+    apple = Class.new(fruit)
+    fruit.site = 'http://market'
+
+    fruit.timeout = 5
+    assert_equal fruit.connection.timeout, apple.connection.timeout
+    first_connection = apple.connection.object_id
+
+    fruit.timeout = 10
+    assert_equal fruit.connection.timeout, apple.connection.timeout
     second_connection = apple.connection.object_id
     assert_not_equal(first_connection, second_connection, 'Connection should be re-created')
   end

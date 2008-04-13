@@ -101,6 +101,11 @@ class ConnectionTest < Test::Unit::TestCase
     assert_equal site, @conn.site
   end
 
+  def test_timeout_accessor
+    @conn.timeout = 5
+    assert_equal 5, @conn.timeout
+  end
+
   def test_get
     matz = @conn.get("/people/1.xml")
     assert_equal "Matz", matz["name"]
