@@ -18,12 +18,14 @@ module ActiveRelation
     include Enumerable
 
     module Operations
-      def join(other)
+      def join(other = nil)
         case other
         when String
           Join.new(other, self)
         when Relation
           JoinOperation.new("INNER JOIN", self, other)
+        else
+          self
         end
       end
 
@@ -48,7 +50,7 @@ module ActiveRelation
         attributes.all?(&:blank?) ? self : Projection.new(self, *attributes)
       end
       
-      def as(aliaz)
+      def as(aliaz = nil)
         aliaz.blank?? self : Alias.new(self, aliaz)
       end
 
@@ -56,18 +58,14 @@ module ActiveRelation
         attributes.all?(&:blank?) ? self : Order.new(self, *attributes)
       end
       
-      def take(taken)
+      def take(taken = nil)
         taken.blank?? self : Take.new(self, taken)
       end
       
-      def skip(skipped)
+      def skip(skipped = nil)
         skipped.blank?? self : Skip.new(self, skipped)
       end
   
-      def rename(attribute, aliaz)
-        Rename.new(self, attribute => aliaz)
-      end
-        
       def aggregate(*expressions)
         AggregateOperation.new(self, expressions)
       end

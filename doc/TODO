@@ -1,6 +1,6 @@
 todo:
-- test Value, in particular bind.
 - rename ActiveRelation to arel
+- investigate linq vocabularity
 - test blank checks in relation.rb
 - mock out database
 - standardize quoting  
@@ -64,6 +64,7 @@ done:
  :joins=>"INNER JOIN posts ON comments.post_id = posts.id"
 - finish pending tests
 - test relation, table reset
+- test Value, in particular bind.
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?

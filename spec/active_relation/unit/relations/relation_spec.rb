@@ -57,6 +57,12 @@ module ActiveRelation
               @relation.join(arbitrary_string = "ASDF").should == Join.new(arbitrary_string, @relation) 
             end
           end
+          
+          describe "when given something blank" do
+            it "returns self" do
+              @relation.join.should == @relation
+            end
+          end
         end
 
         describe '#outer_join' do
@@ -72,17 +78,23 @@ module ActiveRelation
           @relation.project(@attribute1, @attribute2). \
             should == Projection.new(@relation, @attribute1, @attribute2)
         end
+        
+        describe "when given blank attributes" do
+          it "returns self" do
+            @relation.project.should == @relation
+          end
+        end
       end
 
       describe '#as' do
         it "manufactures an alias relation" do
           @relation.as(:paul).should == Alias.new(@relation, :paul)
         end
-      end
-  
-      describe '#rename' do
-        it "manufactures a rename relation" do
-          @relation.rename(@attribute1, :users).should == Rename.new(@relation, @attribute1 => :users)
+        
+        describe 'when given a blank alias' do
+          it 'returns self' do
+            @relation.as.should == @relation
+          end
         end
       end
   
@@ -98,11 +110,23 @@ module ActiveRelation
         it "accepts arbitrary strings" do
           @relation.select("arbitrary").should == Selection.new(@relation, "arbitrary")
         end
+        
+        describe 'when given a blank predicate' do
+          it 'returns self' do
+            @relation.select.should == @relation
+          end
+        end
       end
   
       describe '#order' do
         it "manufactures an order relation" do
           @relation.order(@attribute1, @attribute2).should == Order.new(@relation, @attribute1, @attribute2)
+        end
+        
+        describe 'when given a blank ordering' do
+          it 'returns self' do
+            @relation.order.should == @relation
+          end
         end
       end
       
@@ -110,22 +134,26 @@ module ActiveRelation
         it "manufactures a take relation" do
           @relation.take(5).should == Take.new(@relation, 5)
         end
+        
+        describe 'when given a blank number of items' do
+          it 'returns self' do
+            @relation.take.should == @relation
+          end
+        end
       end
       
       describe '#skip' do
         it "manufactures a skip relation" do
           @relation.skip(4).should == Skip.new(@relation, 4)
         end
-      end
-      
-      describe '#call' do
-        it 'executes a select_all on the connection' do
-          mock(connection = Object.new).select_all(@relation.to_sql)
-          @relation.call(connection)
+        
+        describe 'when given a blank number of items' do
+          it 'returns self' do
+            @relation.skip.should == @relation
+          end
         end
       end
-      
-      
+
       describe '#aggregate' do
         before do
           @expression1 = @attribute1.sum
@@ -177,6 +205,13 @@ module ActiveRelation
       it "implements enumerable" do
         @relation.collect.should == @relation.session.read(@relation)
         @relation.first.should == @relation.session.read(@relation).first
+      end
+    end
+    
+    describe '#call' do
+      it 'executes a select_all on the connection' do
+        mock(connection = Object.new).select_all(@relation.to_sql)
+        @relation.call(connection)
       end
     end
   end
