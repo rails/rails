@@ -68,7 +68,6 @@ module ActiveRelation
       
       describe '#reset' do
         it "reloads columns from the database" do
-          pending
           lambda { stub(@relation.engine).columns { [] } }.should_not change { @relation.attributes }
           lambda { @relation.reset }.should change { @relation.attributes }
         end
