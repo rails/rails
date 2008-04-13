@@ -1,14 +1,16 @@
 todo:
 - test Value, in particular bind.
+- rename ActiveRelation to arel
 - test blank checks in relation.rb
 - mock out database
-- finish pending tests
-- test relation, table reset
 - standardize quoting  
   - use strings everywhere, not symbols ?
 - "unit" test sql strategies
   - use real world examples, so they should be like a tutorial.
-
+- investigage complex joining cases:
+  - aggregations
+  - left outer joins
+  - adjacency lists
 
 - cache expiry on write
   - rewrite of querycache test in light of this
@@ -60,6 +62,8 @@ done:
 - re-evaluate bind -- does bind belong inside the relation / predicate classes or in the factory methods?
 - string passthrough:
  :joins=>"INNER JOIN posts ON comments.post_id = posts.id"
+- finish pending tests
+- test relation, table reset
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?
