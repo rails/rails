@@ -1,7 +1,7 @@
 module ActiveRelation
   class Alias < Compound
     attr_reader :alias
-
+    
     def initialize(relation, aliaz)
       @relation, @alias = relation, aliaz
     end
@@ -9,7 +9,7 @@ module ActiveRelation
     def alias?
       true
     end
-
+    
     def ==(other)
       self.class == other.class and
       relation   == other.relation and

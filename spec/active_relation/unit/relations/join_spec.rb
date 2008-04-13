@@ -144,6 +144,19 @@ module ActiveRelation
       end
     end
     
+    describe 'when joining aliased relations' do
+      it 'aliases the table and attributes properly' do
+        pending
+        aliased_relation = @relation1.as(:alias)
+        @relation1.join(aliased_relation).on(@relation1[:id].eq(aliased_relation[:id])).to_sql.should be_like("
+          SELECT `users`.`id`, `users`.`name`, `alias`.`id`, `alias`.`name`
+          FROM `users`
+            INNER JOIN `alias`
+              ON `users`.`id` = `alias`.`id`
+        ")
+      end
+    end
+    
     describe 'when joining with a string' do
       it "passes the string through to the where clause" do
         Join.new("INNER JOIN asdf ON fdsa", @relation1).to_sql.should be_like("
