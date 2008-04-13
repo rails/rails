@@ -101,7 +101,7 @@ module ActionView
     # something like Live HTTP Headers for Firefox to verify that the cache is indeed working (and that the assets are not being 
     # requested over and over).
     module AssetTagHelper
-      ASSETS_DIR      = defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/public" : "public"
+      ASSETS_DIR      = defined?(Rails.public_path) ? Rails.public_path : "public"
       JAVASCRIPTS_DIR = "#{ASSETS_DIR}/javascripts"
       STYLESHEETS_DIR = "#{ASSETS_DIR}/stylesheets"
       

@@ -36,7 +36,7 @@ module ActionController #:nodoc:
     # == Setting the cache directory
     #
     # The cache directory should be the document root for the web server and is set using Base.page_cache_directory = "/document/root".
-    # For Rails, this directory has already been set to RAILS_ROOT + "/public".
+    # For Rails, this directory has already been set to Rails.public_path (which is usually set to RAILS_ROOT + "/public").
     #
     # == Setting the cache extension
     #
@@ -46,7 +46,7 @@ module ActionController #:nodoc:
       def self.included(base) #:nodoc:
         base.extend(ClassMethods)
         base.class_eval do
-          @@page_cache_directory = defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/public" : ""
+          @@page_cache_directory = defined?(Rails.public_path) ? Rails.public_path : ""
           cattr_accessor :page_cache_directory
 
           @@page_cache_extension = '.html'

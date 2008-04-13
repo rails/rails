@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Rails.public_path to control where HTML and assets are expected to be loaded from (defaults to Rails.root + "/public") #11581 [nicksieger]
+
 * rake time:zones:local finds correct base utc offset for zones in the Southern Hemisphere [Geoff Buesing]
 
 * Don't require rails/gem_builder during rails initialization, it's only needed for the gems:build task. [rick]

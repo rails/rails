@@ -38,6 +38,14 @@ module Rails
     def cache
       RAILS_CACHE
     end
+
+    def public_path
+      @@public_path ||= File.join(self.root, "public")
+    end
+
+    def public_path=(path)
+      @@public_path = path
+    end
   end
   
   # The Initializer is responsible for processing the Rails configuration, such

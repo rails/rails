@@ -305,7 +305,9 @@ class RescueTest < Test::Unit::TestCase
   
   def test_not_implemented
     with_all_requests_local false do
-      head :not_implemented
+      with_rails_public_path(".") do
+        head :not_implemented
+      end
     end
     assert_response :not_implemented
     assert_equal "GET, PUT", @response.headers['Allow']
@@ -313,7 +315,9 @@ class RescueTest < Test::Unit::TestCase
 
   def test_method_not_allowed
     with_all_requests_local false do
-      get :method_not_allowed
+      with_rails_public_path(".") do
+        get :method_not_allowed
+      end
     end
     assert_response :method_not_allowed
     assert_equal "GET, HEAD, PUT", @response.headers['Allow']
@@ -391,7 +395,19 @@ class RescueTest < Test::Unit::TestCase
       @request.remote_addr = old_remote_addr
     end
 
-    def with_rails_root(path = nil)
+    def with_rails_public_path(rails_root)
+      old_rails = Object.const_get(:Rails) rescue nil
+      mod = Object.const_set(:Rails, Module.new)
+      (class << mod; self; end).instance_eval do
+        define_method(:public_path) { "#{rails_root}/public" }
+      end
+      yield
+    ensure
+      Object.module_eval { remove_const(:Rails) } if defined?(Rails)
+      Object.const_set(:Rails, old_rails) if old_rails
+    end
+
+    def with_rails_root(path = nil,&block)
       old_rails_root = RAILS_ROOT if defined?(RAILS_ROOT)
       if path
         silence_warnings { Object.const_set(:RAILS_ROOT, path) }
@@ -399,7 +415,7 @@ class RescueTest < Test::Unit::TestCase
         Object.remove_const(:RAILS_ROOT) rescue nil
       end
 
-      yield
+      with_rails_public_path(path, &block)
 
     ensure
       if old_rails_root

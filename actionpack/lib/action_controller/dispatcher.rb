@@ -67,7 +67,7 @@ module ActionController
     end
 
     cattr_accessor :error_file_path
-    self.error_file_path = "#{::RAILS_ROOT}/public" if defined? ::RAILS_ROOT
+    self.error_file_path = Rails.public_path if defined?(Rails.public_path)
 
     cattr_accessor :unprepared
     self.unprepared = true
