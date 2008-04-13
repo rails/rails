@@ -50,6 +50,23 @@ class DeveloperForProjectWithAfterCreateHook < ActiveRecord::Base
     :foreign_key => "developer_id"
 end
 
+class ProjectWithSymbolsForKeys < ActiveRecord::Base
+  set_table_name 'projects'
+  has_and_belongs_to_many :developers,
+    :class_name => "DeveloperWithSymbolsForKeys",
+    :join_table => :developers_projects,
+    :foreign_key => :project_id,
+    :association_foreign_key => "developer_id"
+end
+
+class DeveloperWithSymbolsForKeys < ActiveRecord::Base
+  set_table_name 'developers'
+  has_and_belongs_to_many :projects,
+    :class_name => "ProjectWithSymbolsForKeys",
+    :join_table => :developers_projects,
+    :association_foreign_key => :project_id,
+    :foreign_key => "developer_id"
+end
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
@@ -649,5 +666,17 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_polymorphic_has_manys_works
     assert_equal [10, 20].to_set, pirates(:redbeard).treasure_estimates.map(&:price).to_set
+  end
+
+  def test_symbols_as_keys
+    developer = DeveloperWithSymbolsForKeys.new(:name => 'David')
+    project = ProjectWithSymbolsForKeys.new(:name => 'Rails Testing')
+    project.developers << developer
+    project.save!
+
+    assert_equal 1, project.developers.size
+    assert_equal 1, developer.projects.size
+    assert_equal developer, project.developers.find(:first)
+    assert_equal project, developer.projects.find(:first)
   end
 end
