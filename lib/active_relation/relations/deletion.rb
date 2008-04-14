@@ -8,7 +8,8 @@ module ActiveRelation
       [
         "DELETE",
         "FROM #{table_sql}",
-        ("WHERE #{selects.collect(&:to_sql).join('\n\tAND ')}" unless selects.blank?)
+        ("WHERE #{selects.collect(&:to_sql).join('\n\tAND ')}" unless selects.blank?  ),
+        ("LIMIT     #{taken}"                                  unless taken.blank?    ),
       ].compact.join("\n")
     end
     

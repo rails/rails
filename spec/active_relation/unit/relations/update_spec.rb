@@ -15,13 +15,11 @@ module ActiveRelation
       end
       
       it "manufactures sql updating attributes when given a ranged relation" do
-        pending do
-          Update.new(@relation.take(1), @relation[:name] => "nick").to_sql.should be_like("
-            UPDATE `users`
-            SET `users`.`name` = 'nick'
-            LIMIT 1
-          ")
-        end
+        Update.new(@relation.take(1), @relation[:name] => "nick").to_sql.should be_like("
+          UPDATE `users`
+          SET `users`.`name` = 'nick'
+          LIMIT 1
+        ")
       end
       
       describe 'when given values whose types correspond to the types of the attributes' do
