@@ -10,6 +10,10 @@ module ActiveRelation
     def alias_or_name
       @alias || name
     end
+    
+    def aggregation?
+      false
+    end
 
     module Transformations
       def as(aliaz = nil)
@@ -56,10 +60,8 @@ module ActiveRelation
       end
       
       def %(other)
-        if other
-          (history - other.history) + (other.history - history)
-        else
-          history
+        if other then (history - other.history) + (other.history - history)
+        else history
         end
       end
     end

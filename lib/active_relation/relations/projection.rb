@@ -15,5 +15,9 @@ module ActiveRelation
       relation    == other.relation and
       projections == other.projections
     end
+    
+    def aggregation?
+      attributes.any?(&:aggregation?)
+    end
   end
 end

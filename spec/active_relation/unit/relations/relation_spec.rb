@@ -154,18 +154,15 @@ module ActiveRelation
         end
       end
 
-      describe '#aggregate' do
-        before do
-          @expression1 = @attribute1.sum
-          @expression2 = @attribute2.sum
+      describe '#group' do
+        it 'manufactures a group relation' do
+          @relation.group(@attribute1, @attribute2).should == Grouping.new(@relation, @attribute1, @attribute2)
         end
         
-        it 'manufactures a group relation' do
-          @relation.aggregate(@expression1, @expression2).group(@attribute1, @attribute2). \
-            should == Aggregation.new(@relation,
-                        :expressions => [@expression1, @expression2],
-                        :groupings => [@attribute1, @attribute2]
-                      )
+        describe 'when given blank groupings' do
+          it 'returns self' do
+            @relation.group.should == @relation
+          end
         end
       end
       

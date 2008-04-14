@@ -29,6 +29,10 @@ module ActiveRelation
       "#{function_sql}(#{attribute.to_sql})" + (@alias ? " AS #{quote_column_name(@alias)}" : '')
     end
     
+    def aggregation?
+      true
+    end
+    
     def ==(other)
       self.class    == other.class          and
       attribute     == other.attribute      and

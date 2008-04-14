@@ -66,8 +66,8 @@ module ActiveRelation
         skipped.blank?? self : Skip.new(self, skipped)
       end
   
-      def aggregate(*expressions)
-        AggregateOperation.new(self, expressions)
+      def group(*groupings)
+        groupings.all?(&:blank?) ? self : Grouping.new(self, *groupings)
       end
       
       module Writes
@@ -88,12 +88,6 @@ module ActiveRelation
       JoinOperation = Struct.new(:join_sql, :relation1, :relation2) do
         def on(*predicates)
           Join.new(join_sql, relation1, relation2, *predicates)
-        end
-      end
-      
-      AggregateOperation = Struct.new(:relation, :expressions) do
-        def group(*groupings)
-          Aggregation.new(relation, :expressions => expressions, :groupings => groupings)
         end
       end
     end

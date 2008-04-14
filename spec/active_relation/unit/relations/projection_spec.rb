@@ -53,16 +53,29 @@ module ActiveRelation
       end
       
       describe 'when given a string' do
-        before do
-          @string = "asdf"
-        end
-        
         it "passes the string through to the select clause" do
-          Projection.new(@relation, @string).to_sql.should be_like("
+          Projection.new(@relation, 'asdf').to_sql.should be_like("
             SELECT asdf FROM `users`
           ")
         end
       end
+    end
+    
+    describe Projection::Externalizable do
+      describe '#aggregation?' do
+        describe 'when the projections are attributes' do
+          it 'returns false' do
+            Projection.new(@relation, @attribute).should_not be_aggregation
+          end
+        end
+        
+        describe 'when the projections include an aggregation' do
+          it "obtains" do
+            Projection.new(@relation, @attribute.sum).should be_aggregation
+          end
+        end
+      end
+
     end
   end
 end

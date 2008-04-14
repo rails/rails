@@ -97,8 +97,8 @@ module ActiveRelation
     describe 'when joining aggregated relations' do
       before do
         @aggregation = @relation2                                           \
-          .aggregate(@relation2[:user_id], @relation2[:id].count.as(:cnt))  \
           .group(@relation2[:user_id])                                      \
+          .project(@relation2[:user_id], @relation2[:id].count.as(:cnt))    \
           .as('photo_count')
       end
       
