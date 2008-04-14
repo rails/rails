@@ -1,0 +1,6 @@
+test:
+  adapter: mysql
+  username: root
+  password: password
+  encoding: utf8
+  database: sql_algebra_test
