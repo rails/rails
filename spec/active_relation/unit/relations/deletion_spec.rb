@@ -24,7 +24,7 @@ module ActiveRelation
       
       it "manufactures sql deleting a ranged relation" do
         pending do
-          Deletion.new(@relation[0..0]).to_sql.should be_like("
+          Deletion.new(@relation.take(1)).to_sql.should be_like("
             DELETE
             FROM `users`
             LIMIT 1

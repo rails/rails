@@ -8,17 +8,15 @@ module ActiveRelation
   
     describe '#to_sql' do
       it "manufactures sql updating attributes when given multiple attributes" do
-        pending do
-          Update.new(@relation, @relation[:id] => 1, @relation[:name] => "nick").to_sql.should be_like("
-            UPDATE `users`
-            SET `users`.`name` = 'nick', `users`.`id` = 1
-          ")
-        end
+        Update.new(@relation, @relation[:id] => 1, @relation[:name] => "nick").to_sql.should be_like("
+          UPDATE `users`
+          SET `users`.`id` = 1, `users`.`name` = 'nick'
+        ")
       end
       
       it "manufactures sql updating attributes when given a ranged relation" do
         pending do
-          Update.new(@relation[0..0], @relation[:name] => "nick").to_sql.should be_like("
+          Update.new(@relation.take(1), @relation[:name] => "nick").to_sql.should be_like("
             UPDATE `users`
             SET `users`.`name` = 'nick'
             LIMIT 1
