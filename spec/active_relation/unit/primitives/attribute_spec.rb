@@ -52,6 +52,7 @@ module ActiveRelation
     
     describe Attribute::Congruence do
       describe '=~' do
+        
         it "obtains if the attributes are identical" do
           Attribute.new(@relation, :name).should =~ Attribute.new(@relation, :name)
         end

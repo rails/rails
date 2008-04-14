@@ -1,20 +1,11 @@
 todo:
 - rename ActiveRelation to arel
-- investigate linq vocabularity
-- test blank checks in relation.rb
+- incorporate linq vocabularity
 - mock out database
-- standardize quoting  
-  - use strings everywhere, not symbols ?
-- "unit" test sql strategies
-  - use real world examples, so they should be like a tutorial.
-- investigage complex joining cases:
-  - aggregations
-  - left outer joins
-  - adjacency lists
-
+- fix complex joining cases:
+- extract adapters
 - cache expiry on write
-  - rewrite of querycache test in light of this
-- rename the tion (Selection) classes so that words that don't end in tion don't seem inconsistent
+  - rewrite of arecord querycache test in light of this
 
 done:
 . Relation <=> Relation -> InnerJoinOperation
@@ -65,7 +56,13 @@ done:
 - finish pending tests
 - test relation, table reset
 - test Value, in particular bind.
+- test blank checks in relation.rb
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?
 - try to make aggegration testing in join spec to be a bit more unit-like
+- standardize quoting  
+  - use strings everywhere, not symbols ?
+- "unit" test sql strategies
+  - use real world examples, so they should be like a tutorial.
+- rename the tion (Selection) classes so that words that don't end in tion don't seem inconsistent

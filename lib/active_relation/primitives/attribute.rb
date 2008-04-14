@@ -54,6 +54,14 @@ module ActiveRelation
       def =~(other)
         !(history & other.history).empty?
       end
+      
+      def %(other)
+        if other
+          (history - other.history) + (other.history - history)
+        else
+          history
+        end
+      end
     end
     include Congruence
     

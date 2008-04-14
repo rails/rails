@@ -24,8 +24,17 @@ module ActiveRelation
     end
     
     def prefix_for(attribute)
-      externalize(relation1).prefix_for(attribute) or
-      externalize(relation2).prefix_for(attribute)
+      if relation1[attribute] && !relation2[attribute]
+        externalize(relation1).prefix_for(attribute)
+      elsif relation2[attribute] && !relation1[attribute]
+        externalize(relation2).prefix_for(attribute)
+      else
+        if (attribute % relation1[attribute]).size < (attribute % relation2[attribute]).size
+          externalize(relation1).prefix_for(attribute)
+        else
+          externalize(relation2).prefix_for(attribute)
+        end
+      end
     end
     
     def joins
@@ -55,7 +64,14 @@ module ActiveRelation
       delegate :engine, :to => :relation
       
       def table_sql
-        relation.aggregation?? relation.to_sql(Sql::TableReference.new(engine)) : relation.table_sql
+        case
+        when relation.aggregation?
+          relation.to_sql(Sql::TableReference.new(engine))
+        when relation.alias?
+          relation.table_sql + ' AS ' + engine.quote_table_name(relation.alias.to_s)
+        else
+          relation.table_sql
+        end
       end
       
       def selects
