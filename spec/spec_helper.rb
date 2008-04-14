@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'spec'
 require 'pp'
+require 'fileutils'
 dir = File.dirname(__FILE__)
 $LOAD_PATH.unshift "#{dir}/../lib"
 Dir["#{dir}/matchers/*"].each { |m| require "#{dir}/matchers/#{File.basename(m)}" }
