@@ -201,6 +201,7 @@ module ActiveRelation
     describe Relation::Enumerable do
       it "implements enumerable" do
         @relation.collect.should == @relation.session.read(@relation)
+        @relation.first.should == @relation.session.read(@relation).first
       end
     end
     
