@@ -1,13 +1,13 @@
 todo:
 - rename ActiveRelation to arel
 - incorporate linq vocabularity
-- mock out database
 - fix complex joining cases:
 - extract adapters
 - cache expiry on write
   - rewrite of arecord querycache test in light of this
 
 done:
+- mock out database
 . Relation <=> Relation -> InnerJoinOperation
 . Relation << Relation -> LeftOuterJoinOperation
 . InnerJoinOperation.on(*Predicate) -> InnerJoinRelation
