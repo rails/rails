@@ -5,7 +5,7 @@ module ActiveRelation
     before do
       @relation = Table.new(:users)
     end
-  
+    
     describe '#to_sql' do
       it "manufactures sql updating attributes when given multiple attributes" do
         Update.new(@relation, @relation[:id] => 1, @relation[:name] => "nick").to_sql.should be_like("
