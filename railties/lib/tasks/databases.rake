@@ -32,7 +32,7 @@ namespace :db do
       ActiveRecord::Base.connection
     rescue
       case config['adapter']
-      when 'mysql'
+      when /mysql/
         @charset   = ENV['CHARSET']   || 'utf8'
         @collation = ENV['COLLATION'] || 'utf8_general_ci'
         begin
@@ -42,7 +42,7 @@ namespace :db do
         rescue
           $stderr.puts "Couldn't create database for #{config.inspect}, charset: #{config['charset'] || @charset}, collation: #{config['collation'] || @collation} (if you set the charset manually, make sure you have a matching collation)"
         end
-      when 'postgresql'
+      when /postgresql/
         @encoding = config[:encoding] || ENV['CHARSET'] || 'utf8'
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
@@ -52,9 +52,9 @@ namespace :db do
           $stderr.puts $!, *($!.backtrace)
           $stderr.puts "Couldn't create database for #{config.inspect}"
         end
-      when 'sqlite'
+      when /sqlite$/
         `sqlite "#{config['database']}"`
-      when 'sqlite3'
+      when /sqlite3$/
         `sqlite3 "#{config['database']}"`
       end
     else
@@ -239,7 +239,7 @@ namespace :db do
     task :dump => :environment do
       abcs = ActiveRecord::Base.configurations
       case abcs[RAILS_ENV]["adapter"]
-      when "mysql", "oci", "oracle"
+      when /mysql/, /oci/, /oracle/
         ActiveRecord::Base.establish_connection(abcs[RAILS_ENV])
         File.open("#{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
       when "postgresql"
@@ -250,13 +250,13 @@ namespace :db do
         search_path = "--schema=#{search_path}" if search_path
         `pg_dump -i -U "#{abcs[RAILS_ENV]["username"]}" -s -x -O -f db/#{RAILS_ENV}_structure.sql #{search_path} #{abcs[RAILS_ENV]["database"]}`
         raise "Error dumping database" if $?.exitstatus == 1
-      when "sqlite", "sqlite3"
+      when /sqlite/
         dbfile = abcs[RAILS_ENV]["database"] || abcs[RAILS_ENV]["dbfile"]
         `#{abcs[RAILS_ENV]["adapter"]} #{dbfile} .schema > db/#{RAILS_ENV}_structure.sql`
-      when "sqlserver"
+      when /sqlserver/
         `scptxfr /s #{abcs[RAILS_ENV]["host"]} /d #{abcs[RAILS_ENV]["database"]} /I /f db\\#{RAILS_ENV}_structure.sql /q /A /r`
         `scptxfr /s #{abcs[RAILS_ENV]["host"]} /d #{abcs[RAILS_ENV]["database"]} /I /F db\ /q /A /r`
-      when "firebird"
+      when /firebird/
         set_firebird_env(abcs[RAILS_ENV])
         db_string = firebird_db_string(abcs[RAILS_ENV])
         sh "isql -a #{db_string} > #{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql"
@@ -285,13 +285,13 @@ namespace :db do
     task :clone_structure => [ "db:structure:dump", "db:test:purge" ] do
       abcs = ActiveRecord::Base.configurations
       case abcs["test"]["adapter"]
-      when "mysql"
+      when /mysql/
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
         IO.readlines("#{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql").join.split("\n\n").each do |table|
           ActiveRecord::Base.connection.execute(table)
         end
-      when "postgresql"
+      when /postgresql/
         ENV['PGHOST']     = abcs["test"]["host"] if abcs["test"]["host"]
         ENV['PGPORT']     = abcs["test"]["port"].to_s if abcs["test"]["port"]
         ENV['PGPASSWORD'] = abcs["test"]["password"].to_s if abcs["test"]["password"]
@@ -301,12 +301,12 @@ namespace :db do
         `#{abcs["test"]["adapter"]} #{dbfile} < #{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql`
       when "sqlserver"
         `osql -E -S #{abcs["test"]["host"]} -d #{abcs["test"]["database"]} -i db\\#{RAILS_ENV}_structure.sql`
-      when "oci", "oracle"
+      when /oci/, /oracle/
         ActiveRecord::Base.establish_connection(:test)
         IO.readlines("#{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql").join.split(";\n\n").each do |ddl|
           ActiveRecord::Base.connection.execute(ddl)
         end
-      when "firebird"
+      when /firebird/
         set_firebird_env(abcs["test"])
         db_string = firebird_db_string(abcs["test"])
         sh "isql -i #{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql #{db_string}"
@@ -319,7 +319,7 @@ namespace :db do
     task :purge => :environment do
       abcs = ActiveRecord::Base.configurations
       case abcs["test"]["adapter"]
-      when "mysql"
+      when /mysql/
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.recreate_database(abcs["test"]["database"])
       when "postgresql"
@@ -329,16 +329,16 @@ namespace :db do
       when "sqlite","sqlite3"
         dbfile = abcs["test"]["database"] || abcs["test"]["dbfile"]
         File.delete(dbfile) if File.exist?(dbfile)
-      when "sqlserver"
+      when /sqlserver/
         dropfkscript = "#{abcs["test"]["host"]}.#{abcs["test"]["database"]}.DP1".gsub(/\\/,'-')
         `osql -E -S #{abcs["test"]["host"]} -d #{abcs["test"]["database"]} -i db\\#{dropfkscript}`
         `osql -E -S #{abcs["test"]["host"]} -d #{abcs["test"]["database"]} -i db\\#{RAILS_ENV}_structure.sql`
-      when "oci", "oracle"
+      when /oci/, /oracle/
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.structure_drop.split(";\n\n").each do |ddl|
           ActiveRecord::Base.connection.execute(ddl)
         end
-      when "firebird"
+      when /firebird/
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.recreate_database!
       else
@@ -372,9 +372,9 @@ end
 
 def drop_database(config)
   case config['adapter']
-  when 'mysql'
+  when /mysql/
     ActiveRecord::Base.connection.drop_database config['database']
-  when /^sqlite/
+  when /sqlite/
     FileUtils.rm(File.join(RAILS_ROOT, config['database']))
   when 'postgresql'
     ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
