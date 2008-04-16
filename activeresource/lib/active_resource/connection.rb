@@ -18,6 +18,14 @@ module ActiveResource
     end
   end
 
+  # Raised when a Timeout::Error occurs.
+  class TimeoutError < ConnectionError
+    def initialize(message)
+      @message = message
+    end
+    def to_s; @message ;end
+  end
+
   # 3xx Redirection
   class Redirection < ConnectionError # :nodoc:
     def to_s; response['Location'] ? "#{super} => #{response['Location']}" : super; end    
@@ -134,6 +142,8 @@ module ActiveResource
         time = Benchmark.realtime { result = http.send(method, path, *arguments) }
         logger.info "--> #{result.code} #{result.message} (#{result.body ? result.body : 0}b %.2fs)" % time if logger
         handle_response(result)
+      rescue Timeout::Error => e
+        raise TimeoutError.new(e.message)
       end
 
       # Handles response and error codes from remote service.

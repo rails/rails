@@ -168,6 +168,15 @@ class ConnectionTest < Test::Unit::TestCase
     assert_equal 200, response.code
   end
 
+  uses_mocha('test_timeout') do
+    def test_timeout
+      @http = mock('new Net::HTTP')
+      @conn.expects(:http).returns(@http)
+      @http.expects(:get).raises(Timeout::Error, 'execution expired')
+      assert_raises(ActiveResource::TimeoutError) { @conn.get('/people_timeout.xml') }
+    end
+  end
+
   protected
     def assert_response_raises(klass, code)
       assert_raise(klass, "Expected response code #{code} to raise #{klass}") do
