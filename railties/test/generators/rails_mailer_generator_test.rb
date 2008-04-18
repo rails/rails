@@ -8,12 +8,12 @@ class RailsMailerGeneratorTest < GeneratorTestCase
     assert_generated_model_for :notifier, 'ActionMailer::Base' do |model|
       assert_has_method model, :reset_password do |name, body|
         assert_equal [
-            "@subject    = 'Notifier#reset_password'",
-            "@body       = {}",
-            "@recipients = ''",
-            "@from       = ''",
-            "@sent_on    = sent_at",
-            "@headers    = {}"
+            "subject    'Notifier#reset_password'",
+            "recipients ''",
+            "from       ''",
+            "sent_on    sent_at",
+            "",
+            "body       :action => 'reset_password'"
           ],
           body.split("\n").map{|line| line.sub(' '*4, '') }
       end
