@@ -1,6 +1,6 @@
 == Abstract ==
 
-ActiveRelation is a Relational Algebra for Ruby. It 1) simplifies the generation of both the simplest and the most complex of SQL queries and it 2) transparently adapts to various RDBMS systems. It is intended to be a framework framework; that is, you can build your own ORM with it, focusing on innovative object and collection modeling as opposed to database compatibility and query generation.
+Arel is a Relational Algebra for Ruby. It 1) simplifies the generation of both the simplest and the most complex of SQL queries and it 2) transparently adapts to various RDBMS systems. It is intended to be a framework framework; that is, you can build your own ORM with it, focusing on innovative object and collection modeling as opposed to database compatibility and query generation.
 
 == A Gentle Introduction ==
 
@@ -10,9 +10,9 @@ Generating a query with ARel is simple. For example, in order to produce
    
 you construct a table relation and convert it to sql:
 
-    ActiveRelation::Table.new(:users).to_sql
+    Arel::Table.new(:users).to_sql
    
-In fact, you will probably never call `#to_sql`. Let `users = ActiveRelation::Table.new(:users)`. Rather, you'll work with data from the table directly. You can iterate through all rows in the `users` table like this:
+In fact, you will probably never call `#to_sql`. Let `users = Arel::Table.new(:users)`. Rather, you'll work with data from the table directly. You can iterate through all rows in the `users` table like this:
 
     users.each { |user| ... }
     
@@ -24,7 +24,7 @@ As you can see, Arel converts the rows from the database into a hash, the values
 
 == Relational Algebra ==
 
-Arel is based on the Relational Algebra, a mathematical model that is also the inspiration for relational databases. ActiveRelation::Relation objects do not represent queries per se (i.e., they are not object-representations of `SELECT`, `INSERT`, `UPDATE`, or `DELETE` statements), rather they represent a collection of data that you can select from, insert into, update, and delete. For example, to insert a row into the users table, do the following:
+Arel is based on the Relational Algebra, a mathematical model that is also the inspiration for relational databases. Arel::Relation objects do not represent queries per se (i.e., they are not object-representations of `SELECT`, `INSERT`, `UPDATE`, or `DELETE` statements), rather they represent a collection of data that you can select from, insert into, update, and delete. For example, to insert a row into the users table, do the following:
 
     users.insert({users[:name] => 'amy'}) # => INSERT INTO users (users.name) VALUES ('amy')
     
@@ -62,4 +62,4 @@ The best property of the Relational is compositionality, or closure under all op
 
 == Contributions ==
 
-I appreciate all contributions to ActiveRelation. There is only one "unusual" requirement I have concerning code style: all specs should be written without mocks, using concrete examples to elicit testable behavior. This has two benefits: it 1) ensures the tests serve as concrete documentation and 2) suits the functional nature of this library, which emphasizes algebraic transformation rather than decoupled components.
+I appreciate all contributions to Arel. There is only one "unusual" requirement I have concerning code style: all specs should be written without mocks, using concrete examples to elicit testable behavior. This has two benefits: it 1) ensures the tests serve as concrete documentation and 2) suits the functional nature of this library, which emphasizes algebraic transformation rather than decoupled components.

@@ -5,7 +5,7 @@ require 'rubygems'
 require 'spec'
 require 'pp'
 require 'fileutils'
-require 'active_relation'
+require 'arel'
 
 [:matchers, :doubles].each do |helper|
   Dir["#{dir}/#{helper}/*"].each { |m| require "#{dir}/#{helper}/#{File.basename(m)}" }
@@ -15,6 +15,6 @@ Spec::Runner.configure do |config|
   config.include(BeLikeMatcher, HashTheSameAsMatcher)
   config.mock_with :rr
   config.before do
-    ActiveRelation::Table.engine = ActiveRelation::Engine.new(Fake::Engine.new)
+    Arel::Table.engine = Arel::Engine.new(Fake::Engine.new)
   end
 end

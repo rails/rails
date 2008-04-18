@@ -1,5 +1,5 @@
 todo:
-- rename ActiveRelation to arel
+- rename Arel to arel
 - incorporate linq vocabularity
 - fix complex joining cases:
 - extract adapters
