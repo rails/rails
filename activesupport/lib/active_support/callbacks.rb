@@ -97,15 +97,14 @@ module ActiveSupport
       end
 
       def |(chain)
-        if chain.is_a?(Callback)
-          if found_callback = find(chain)
-            index = index(found_callback)
+        if chain.is_a?(CallbackChain)
+          chain.each { |callback| self | callback }
+        elsif chain.is_a?(Callback)
+          if index = index(chain)
             self[index] = chain
           else
             self << chain
           end
-        else
-          chain.each { |callback| self | callback }
         end
         self
       end
@@ -115,7 +114,7 @@ module ActiveSupport
       end
 
       def delete(callback)
-        super(find(callback))
+        super(callback.is_a?(Callback) ? callback : find(callback))
       end
 
       private
