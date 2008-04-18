@@ -13,10 +13,13 @@ class RailsMailerGeneratorTest < GeneratorTestCase
             "from       ''",
             "sent_on    sent_at",
             "",
-            "body       :action => 'reset_password'"
+            "body       :greeting => 'Hi,'"
           ],
           body.split("\n").map{|line| line.sub(' '*4, '') }
       end
+
+      assert_match /^  default_url_options\[:host\] = 'example.com'$/m, model,
+        'model should include default_url_options :host declaration'
     end
     
     assert_generated_views_for :notifier, 'reset_password.erb'

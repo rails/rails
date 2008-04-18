@@ -1,4 +1,7 @@
 class <%= class_name %> < ActionMailer::Base
+  
+  # change to your domain name
+  default_url_options[:host] = 'example.com'
 <% for action in actions -%>
 
   def <%= action %>(sent_at = Time.now)
@@ -7,7 +10,8 @@ class <%= class_name %> < ActionMailer::Base
     from       ''
     sent_on    sent_at
     
-    body       :action => '<%= action %>'
+    body       :greeting => 'Hi,'
   end
 <% end -%>
+
 end
