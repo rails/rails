@@ -1,15 +1,19 @@
 module Arel
   class Order < Compound
-    attr_reader :orders
-
-    def initialize(relation, *orders)
-      @relation, @orders = relation, orders.collect { |o| o.bind(relation) }
+    attr_reader :orderings
+    
+    def initialize(relation, *orderings)
+      @relation, @orderings = relation, orderings.collect { |o| o.bind(relation) }
     end
 
     def ==(other)
       self.class  == other.class    and
       relation    == other.relation and
-      orders      == other.orders
+      orderings   == other.orderings
+    end
+    
+    def orders
+      orderings + relation.orders
     end
   end
 end

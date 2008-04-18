@@ -52,11 +52,11 @@ module Arel
           @another_attribute = @relation[:name]
         end
         
-        it "manufactures sql with the order clause of the last ordering" do
+        it "manufactures sql with the order clause of the last ordering preceding the first ordering" do
           Order.new(@ordered_relation, @another_attribute).to_sql.should be_like("
             SELECT `users`.`id`, `users`.`name`
             FROM `users`
-            ORDER BY `users`.`name`
+            ORDER BY `users`.`name`, `users`.`id`
           ")
         end
       end
