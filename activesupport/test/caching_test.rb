@@ -18,6 +18,19 @@ class CacheStoreSettingTest < Test::Unit::TestCase
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
     assert_equal %w(localhost), store.addresses
   end
+  
+  def test_mem_cache_fragment_cache_store_with_multiple_servers
+    store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1'
+    assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
+    assert_equal %w(localhost 192.168.1.1), store.addresses
+  end
+  
+  def test_mem_cache_fragment_cache_store_with_options
+    store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1', :namespace => 'foo'
+    assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
+    assert_equal %w(localhost 192.168.1.1), store.addresses
+    assert_equal 'foo', store.instance_variable_get('@data').instance_variable_get('@namespace')
+  end
 
   def test_object_assigned_fragment_cache_store
     store = ActiveSupport::Cache.lookup_store ActiveSupport::Cache::FileStore.new("/path/to/cache/directory")

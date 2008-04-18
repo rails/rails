@@ -37,11 +37,14 @@ class DispatcherTest < Test::Unit::TestCase
     dispatch
   end
 
+  # Stub out dispatch error logger
+  class << Dispatcher
+    def log_failsafe_exception(status, exception); end
+  end
+
   def test_failsafe_response
     CGI.expects(:new).raises('some multipart parsing failure')
-
-    ActionController::Routing::Routes.stubs(:reload)
-    Dispatcher.any_instance.stubs(:log_failsafe_exception)
+    Dispatcher.expects(:log_failsafe_exception)
 
     assert_nothing_raised { dispatch }
 
