@@ -96,17 +96,26 @@ module ActiveSupport
         end
       end
 
-      def find_callback(callback, &block)
+      def |(chain)
+        if chain.is_a?(Callback)
+          if found_callback = find(chain)
+            index = index(found_callback)
+            self[index] = chain
+          else
+            self << chain
+          end
+        else
+          chain.each { |callback| self | callback }
+        end
+        self
+      end
+
+      def find(callback, &block)
         select { |c| c == callback && (!block_given? || yield(c)) }.first
       end
 
-      def replace_or_append_callback(callback)
-        if found_callback = find_callback(callback)
-          index = index(found_callback)
-          self[index] = callback
-        else
-          self << callback
-        end
+      def delete(callback)
+        super(find(callback))
       end
 
       private

@@ -285,8 +285,7 @@ module ActiveRecord
       VALIDATIONS.each do |validation_method|
         base.class_eval <<-"end_eval"
           def self.#{validation_method}(*methods, &block)
-            methods = CallbackChain.build(:#{validation_method}, *methods, &block)
-            self.#{validation_method}_callback_chain.replace(#{validation_method}_callback_chain | methods)
+            self.#{validation_method}_callback_chain | CallbackChain.build(:#{validation_method}, *methods, &block)
           end
 
           def self.#{validation_method}_callback_chain

@@ -96,6 +96,8 @@ class ConditionalCallbackTest < Test::Unit::TestCase
 end
 
 class CallbackTest < Test::Unit::TestCase
+  include ActiveSupport::Callbacks
+
   def test_eql
     callback = Callback.new(:before, :save, :identifier => :lifesaver)
     assert callback.eql?(Callback.new(:before, :save, :identifier => :lifesaver))
@@ -113,5 +115,34 @@ class CallbackTest < Test::Unit::TestCase
     b.options[:unless] = :pigs_fly
     assert_equal({:unless => :pigs_fly}, b.options)
     assert_equal({}, a.options)
+  end
+end
+
+class CallbackChainTest < Test::Unit::TestCase
+  include ActiveSupport::Callbacks
+
+  def setup
+    @chain = CallbackChain.build(:make, :bacon, :lettuce, :tomato)
+  end
+
+  def test_build
+    assert_equal 3, @chain.size
+    assert_equal [:bacon, :lettuce, :tomato], @chain.map(&:method)
+  end
+
+  def test_find
+    assert_equal :bacon, @chain.find(:bacon).method
+  end
+
+  def test_union
+    assert_equal [:bacon, :lettuce, :tomato], (@chain | Callback.new(:make, :bacon)).map(&:method)
+    assert_equal [:bacon, :lettuce, :tomato, :turkey], (@chain | CallbackChain.build(:make, :bacon, :lettuce, :tomato, :turkey)).map(&:method)
+    assert_equal [:bacon, :lettuce, :tomato, :turkey, :mayo], (@chain | Callback.new(:make, :mayo)).map(&:method)
+  end
+
+  def test_delete
+    assert_equal [:bacon, :lettuce, :tomato], @chain.map(&:method)
+    @chain.delete(:bacon)
+    assert_equal [:lettuce, :tomato], @chain.map(&:method)
   end
 end
