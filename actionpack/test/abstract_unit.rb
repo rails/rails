@@ -20,7 +20,6 @@ end
 ActiveSupport::Deprecation.debug = true
 
 ActionController::Base.logger = nil
-ActionController::Base.ignore_missing_templates = false
 ActionController::Routing::Routes.reload rescue nil
 
 

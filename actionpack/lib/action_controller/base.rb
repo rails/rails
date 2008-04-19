@@ -327,9 +327,6 @@ module ActionController #:nodoc:
     # Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
     cattr_accessor :logger
 
-    # Turn on +ignore_missing_templates+ if you want to unit test actions without making the associated templates.
-    cattr_accessor :ignore_missing_templates
-
     # Controls the resource action separator
     @@resource_action_separator = "/"
     cattr_accessor :resource_action_separator
@@ -1219,7 +1216,7 @@ module ActionController #:nodoc:
       end
 
       def add_class_variables_to_assigns
-        %w(view_paths logger ignore_missing_templates).each do |cvar|
+        %w(view_paths logger).each do |cvar|
           @assigns[cvar] = self.send(cvar)
         end
       end
