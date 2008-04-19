@@ -15,12 +15,16 @@ module ActiveRecord
     @@verification_timeout = 0
 
     # The class -> connection pool map
-    @@defined_connections = {}
+    @@connection_pools = {}
 
     class << self
       # for internal use only
       def active_connections
-        @@defined_connections.inject([]) {|arr,kv| arr << kv.last.active_connection}.compact.uniq
+        @@connection_pools.inject({}) do |hash,kv|
+          hash[kv.first] = kv.last.active_connection
+          hash.delete(kv.first) unless hash[kv.first]
+          hash
+        end
       end
 
       # Returns the connection currently associated with the class. This can
@@ -32,21 +36,27 @@ module ActiveRecord
 
       # Clears the cache which maps classes to connections.
       def clear_active_connections!
-        clear_cache!(@@defined_connections) do |name, pool|
-          pool.disconnect!
+        clear_cache!(@@connection_pools) do |name, pool|
+          pool.clear_active_connections!
         end
       end
       
       # Clears the cache which maps classes 
       def clear_reloadable_connections!
-        clear_cache!(@@defined_connections) do |name, pool|
+        clear_cache!(@@connection_pools) do |name, pool|
           pool.clear_reloadable_connections!
+        end
+      end
+
+      def clear_all_connections!
+        clear_cache!(@@connection_pools) do |name, pool|
+          pool.disconnect!
         end
       end
 
       # Verify active connections.
       def verify_active_connections! #:nodoc:
-        @@defined_connections.each_value {|pool| pool.verify_active_connections!}
+        @@connection_pools.each_value {|pool| pool.verify_active_connections!}
       end
 
       private
@@ -97,7 +107,7 @@ module ActiveRecord
           raise AdapterNotSpecified unless defined? RAILS_ENV
           establish_connection(RAILS_ENV)
         when ConnectionSpecification
-          @@defined_connections[name] = ConnectionAdapters::ConnectionPool.new(spec)
+          @@connection_pools[name] = ConnectionAdapters::ConnectionPool.new(spec)
         when Symbol, String
           if configuration = configurations[spec.to_s]
             establish_connection(configuration)
@@ -140,7 +150,7 @@ module ActiveRecord
     end
 
     def self.retrieve_connection_pool
-      pool = @@defined_connections[name]
+      pool = @@connection_pools[name]
       return pool if pool
       return nil if ActiveRecord::Base == self
       superclass.retrieve_connection_pool
@@ -156,8 +166,8 @@ module ActiveRecord
     # can be used as an argument for establish_connection, for easily
     # re-establishing the connection.
     def self.remove_connection(klass=self)
-      pool = @@defined_connections[klass.name]
-      @@defined_connections.delete_if { |key, value| value == pool }
+      pool = @@connection_pools[klass.name]
+      @@connection_pools.delete_if { |key, value| value == pool }
       pool.disconnect! if pool
       pool.spec.config if pool
     end

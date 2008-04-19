@@ -26,7 +26,7 @@ unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
       5.times do
         Thread.new do
           Topic.find :first
-          @connections << ActiveRecord::Base.active_connections.first
+          @connections << ActiveRecord::Base.active_connections.values.first
         end.join
       end
     end
