@@ -37,7 +37,7 @@ class CookieTest < Test::Unit::TestCase
     end
 
     def rescue_action(e) 
-      raise unless ActionController::MissingTemplate # No templates here, and we don't care about the output 
+      raise unless ActionView::MissingTemplate # No templates here, and we don't care about the output 
     end
   end
 

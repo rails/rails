@@ -1,6 +1,9 @@
 module ActionView #:nodoc:
   class ActionViewError < StandardError #:nodoc:
   end
+  
+  class MissingTemplate < ActionViewError #:nodoc:
+  end
 
   # Action View templates can be written in three ways. If the template file has a +.erb+ (or +.rhtml+) extension then it uses a mixture of ERb 
   # (included in Ruby) and HTML. If the template file has a +.builder+ (or +.rxml+) extension then Jim Weirich's Builder::XmlMarkup library is used. 

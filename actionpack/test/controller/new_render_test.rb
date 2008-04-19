@@ -652,7 +652,7 @@ EOS
   end  
 
   def test_bad_render_to_string_still_throws_exception
-    assert_raises(ActionController::MissingTemplate) { get :render_to_string_with_exception }
+    assert_raises(ActionView::MissingTemplate) { get :render_to_string_with_exception }
   end
   
   def test_render_to_string_that_throws_caught_exception_doesnt_break_assigns
@@ -787,7 +787,7 @@ EOS
   end
   
   def test_render_missing_partial_template
-    assert_raises(ActionView::ActionViewError) do
+    assert_raises(ActionView::MissingTemplate) do
       get :missing_partial
     end
   end

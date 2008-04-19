@@ -54,9 +54,8 @@ module ActionView #:nodoc:
           @filename = @finder.pick_template(@path_without_extension, @extension)
         else
           @extension = @finder.pick_template_extension(@path).to_s
-          unless @extension
-            raise ActionViewError, "No template found for #{@path} in #{@finder.view_paths.inspect}"
-          end
+          raise_missing_template_exception unless @extension
+          
           @filename = @finder.pick_template(@path, @extension)
           @extension = @extension.gsub(/^.+\./, '') # strip off any formats
         end
@@ -64,9 +63,14 @@ module ActionView #:nodoc:
         @filename = @path
       end
 
-      if @filename.blank?
-        raise ActionViewError, "Couldn't find template file for #{@path} in #{@finder.view_paths.inspect}"
-      end
+      raise_missing_template_exception if @filename.blank?
+    end
+    
+    def raise_missing_template_exception
+      full_template_path = @path.include?('.') ? @path : "#{@path}.#{@view.template_format}.erb"
+      display_paths = @finder.view_paths.join(':')
+      template_type = (@path =~ /layouts/i) ? 'layout' : 'template'
+      raise(MissingTemplate, "Missing #{template_type} #{full_template_path} in view path #{display_paths}")
     end
 
     # Template Handlers

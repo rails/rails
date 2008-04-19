@@ -216,7 +216,7 @@ class LayoutExceptionRaised < Test::Unit::TestCase
     @controller = SetsNonExistentLayoutFile.new
     get :hello
     @response.template.class.module_eval { attr_accessor :exception }
-    assert_equal ActionController::MissingTemplate, @response.template.exception.class
+    assert_equal ActionView::MissingTemplate, @response.template.exception.class
   end
 end
 
