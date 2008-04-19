@@ -54,4 +54,18 @@ class SynchronizationTest < Test::Unit::TestCase
     @instance.to_s
     assert_equal 2, dummy.sync_count
   end
+
+  def test_can_synchronize_method_with_punctuation
+    @target.module_eval do
+      def dangerous?
+        @dangerous
+      end
+      def dangerous!
+        @dangerous = true
+      end
+    end
+    @target.synchronize :dangerous?, :dangerous!, :with => :mutex
+    @instance.dangerous!
+    assert @instance.dangerous?
+  end
 end

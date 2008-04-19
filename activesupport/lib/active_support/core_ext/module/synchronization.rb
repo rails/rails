@@ -19,13 +19,15 @@ class Module
     end
 
     methods.each do |method|
-      if instance_methods.include?("#{method}_without_synchronization")
+      aliased_method, punctuation = method.to_s.sub(/([?!=])$/, ''), $1
+      
+      if instance_methods.include?("#{aliased_method}_without_synchronization#{punctuation}")
         raise ArgumentError, "#{method} is already synchronized. Double synchronization is not currently supported."
       end
       module_eval(<<-EOS, __FILE__, __LINE__)
-        def #{method}_with_synchronization(*args, &block)
+        def #{aliased_method}_with_synchronization#{punctuation}(*args, &block)
           #{with}.synchronize do
-            #{method}_without_synchronization(*args,&block)
+            #{aliased_method}_without_synchronization#{punctuation}(*args,&block)
           end
         end
       EOS
