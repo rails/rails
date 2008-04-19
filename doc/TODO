@@ -1,5 +1,9 @@
 todo:
-- incorporate linq vocabularity
+- incorporate linq functionality/terminology
+  - then_by (ordering)
+  - reverse
+  - any/all
+  - where
 - fix complex joining cases:
 - extract adapters
 - cache expiry on write
