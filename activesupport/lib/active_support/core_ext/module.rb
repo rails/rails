@@ -7,6 +7,7 @@ require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/module/loading'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/model_naming'
+require 'active_support/core_ext/module/synchronization'
 
 class Module
   include ActiveSupport::CoreExt::Module::ModelNaming
