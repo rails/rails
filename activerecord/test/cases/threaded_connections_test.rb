@@ -11,11 +11,15 @@ unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
     def setup
       @connection = ActiveRecord::Base.remove_connection
       @connections = []
+      @allow_concurrency = ActiveRecord::Base.allow_concurrency
+      ActiveRecord::Base.allow_concurrency = true
     end
 
     def teardown
       # clear the connection cache
       ActiveRecord::Base.clear_active_connections!
+      # set allow_concurrency to saved value
+      ActiveRecord::Base.allow_concurrency = @allow_concurrency
       # reestablish old connection
       ActiveRecord::Base.establish_connection(@connection)
     end

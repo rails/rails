@@ -1,4 +1,4 @@
-require 'set'
+require 'monitor'
 
 module ActiveRecord
   class Base
@@ -9,6 +9,15 @@ module ActiveRecord
       end
     end
 
+    class NullMonitor
+      def synchronize
+        yield
+      end
+    end
+
+    cattr_accessor :connection_pools_lock, :instance_writer => false
+    @@connection_pools_lock = NullMonitor.new
+
     # Check for activity after at least +verification_timeout+ seconds.
     # Defaults to 0 (always check.)
     cattr_accessor :verification_timeout, :instance_writer => false
@@ -18,8 +27,18 @@ module ActiveRecord
     @@connection_pools = {}
 
     class << self
+      def allow_concurrency=(flag)
+        if @@allow_concurrency != flag
+          if flag
+            self.connection_pools_lock = Monitor.new
+          else
+            self.connection_pools_lock = NullMonitor.new
+          end
+        end
+      end
+
       # for internal use only
-      def active_connections
+      def active_connections #:nodoc:
         @@connection_pools.inject({}) do |hash,kv|
           hash[kv.first] = kv.last.active_connection
           hash.delete(kv.first) unless hash[kv.first]
@@ -36,28 +55,25 @@ module ActiveRecord
 
       # Clears the cache which maps classes to connections.
       def clear_active_connections!
-        clear_cache!(@@connection_pools) do |name, pool|
-          pool.clear_active_connections!
-        end
+        @@connection_pools.each_value {|pool| pool.clear_active_connections! }
       end
       
-      # Clears the cache which maps classes 
+      # Clears the cache which maps classes
       def clear_reloadable_connections!
-        clear_cache!(@@connection_pools) do |name, pool|
-          pool.clear_reloadable_connections!
-        end
+        @@connection_pools.each_value {|pool| pool.clear_reloadable_connections! }
       end
 
       def clear_all_connections!
-        clear_cache!(@@connection_pools) do |name, pool|
-          pool.disconnect!
-        end
+        clear_cache!(@@connection_pools) {|name, pool| pool.disconnect! }
       end
 
       # Verify active connections.
       def verify_active_connections! #:nodoc:
         @@connection_pools.each_value {|pool| pool.verify_active_connections!}
       end
+
+      synchronize :active_connections, :clear_active_connections!, :clear_reloadable_connections!,
+        :clear_all_connections!, :verify_active_connections!, :with => :connection_pools_lock
 
       private
         def clear_cache!(cache, &block)
@@ -107,7 +123,9 @@ module ActiveRecord
           raise AdapterNotSpecified unless defined? RAILS_ENV
           establish_connection(RAILS_ENV)
         when ConnectionSpecification
-          @@connection_pools[name] = ConnectionAdapters::ConnectionPool.new(spec)
+          connection_pools_lock.synchronize do
+            @@connection_pools[name] = ConnectionAdapters::ConnectionPool.new(spec)
+          end
         when Symbol, String
           if configuration = configurations[spec.to_s]
             establish_connection(configuration)
@@ -170,6 +188,11 @@ module ActiveRecord
       @@connection_pools.delete_if { |key, value| value == pool }
       pool.disconnect! if pool
       pool.spec.config if pool
+    end
+
+    class << self
+      synchronize :retrieve_connection, :retrieve_connection_pool, :connected?,
+        :remove_connection, :with => :connection_pools_lock
     end
   end
 end

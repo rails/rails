@@ -1,14 +1,12 @@
+require 'set'
+
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionPool
-      # Check for activity after at least +verification_timeout+ seconds.
-      # Defaults to 0 (always check.)
-      attr_accessor :verification_timeout
+      delegate :verification_timeout, :to => "::ActiveRecord::Base"
       attr_reader :active_connections, :spec
 
       def initialize(spec)
-        @verification_timeout = 0
-
         # The thread id -> adapter cache.
         @active_connections = {}
 
@@ -44,7 +42,7 @@ module ActiveRecord
         end
       end
 
-      # Clears the cache which maps classes 
+      # Clears the cache which maps classes
       def clear_reloadable_connections!
         @active_connections.each do |name, conn|
           if conn.requires_reloading?
@@ -60,7 +58,7 @@ module ActiveRecord
           conn.disconnect!
         end
         active_connections.each_value do |connection|
-          connection.verify!(@verification_timeout)
+          connection.verify!(verification_timeout)
         end
       end
 
@@ -70,7 +68,7 @@ module ActiveRecord
         name = active_connection_name
         if conn = active_connections[name]
           # Verify the connection.
-          conn.verify!(@verification_timeout)
+          conn.verify!(verification_timeout)
         else
           self.connection = spec
           conn = active_connections[name]
@@ -119,6 +117,7 @@ module ActiveRecord
 
         def clear_entries!(cache, keys, &block)
           keys.each do |key|
+            next unless cache.has_key?(key)
             block.call(key, cache[key])
             cache.delete(key)
           end
