@@ -40,7 +40,7 @@ class SynchronizationTest < Test::Unit::TestCase
     end
   end
 
-  def test_mutex_is_entered_during_method_call
+  def dummy_sync
     dummy = Object.new
     def dummy.synchronize
       @sync_count ||= 0
@@ -48,11 +48,15 @@ class SynchronizationTest < Test::Unit::TestCase
       yield
     end
     def dummy.sync_count; @sync_count; end
-    @target.mutex = dummy
+    dummy
+  end
+
+  def test_mutex_is_entered_during_method_call
+    @target.mutex = dummy_sync
     @target.synchronize :to_s, :with => :mutex
     @instance.to_s
     @instance.to_s
-    assert_equal 2, dummy.sync_count
+    assert_equal 2, @target.mutex.sync_count
   end
 
   def test_can_synchronize_method_with_punctuation
@@ -67,5 +71,15 @@ class SynchronizationTest < Test::Unit::TestCase
     @target.synchronize :dangerous?, :dangerous!, :with => :mutex
     @instance.dangerous!
     assert @instance.dangerous?
+  end
+
+  def test_can_synchronize_singleton_methods
+    @target.mutex = dummy_sync
+    class << @target
+      synchronize :to_s, :with => :mutex
+    end
+    assert @target.respond_to?(:to_s_without_synchronization)
+    assert_nothing_raised { @target.to_s; @target.to_s }
+    assert_equal 2, @target.mutex.sync_count
   end
 end

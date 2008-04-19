@@ -20,7 +20,6 @@ class Module
 
     methods.each do |method|
       aliased_method, punctuation = method.to_s.sub(/([?!=])$/, ''), $1
-      
       if instance_methods.include?("#{aliased_method}_without_synchronization#{punctuation}")
         raise ArgumentError, "#{method} is already synchronized. Double synchronization is not currently supported."
       end
