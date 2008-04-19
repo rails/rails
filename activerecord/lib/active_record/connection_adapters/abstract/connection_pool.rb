@@ -12,6 +12,9 @@ module ActiveRecord
 
         # The ConnectionSpecification for this pool
         @spec = spec
+
+        # The mutex used to synchronize pool access
+        @connection_mutex = Monitor.new
       end
 
       def active_connection_name #:nodoc:
@@ -70,7 +73,7 @@ module ActiveRecord
           # Verify the connection.
           conn.verify!(verification_timeout)
         else
-          self.connection = spec
+          self.set_connection spec
           conn = active_connections[name]
         end
 
@@ -82,6 +85,7 @@ module ActiveRecord
         active_connections[active_connection_name] ? true : false
       end
 
+      # Disconnect all connections in the pool.
       def disconnect!
         clear_cache!(@active_connections) do |name, conn|
           conn.disconnect!
@@ -89,15 +93,19 @@ module ActiveRecord
       end
 
       # Set the connection for the class.
-      def connection=(spec) #:nodoc:
+      def set_connection(spec) #:nodoc:
         if spec.kind_of?(ActiveRecord::ConnectionAdapters::AbstractAdapter)
           active_connections[active_connection_name] = spec
         elsif spec.kind_of?(ActiveRecord::Base::ConnectionSpecification)
-          self.connection = ActiveRecord::Base.send(spec.adapter_method, spec.config)
+          self.set_connection ActiveRecord::Base.send(spec.adapter_method, spec.config)
         else
           raise ConnectionNotEstablished
         end
       end
+
+      synchronize :active_connection, :connection, :clear_active_connections!,
+        :clear_reloadable_connections!, :verify_active_connections!, :retrieve_connection,
+        :connected?, :disconnect!, :set_connection, :with => :@connection_mutex
 
       private
         def clear_cache!(cache, &block)

@@ -18,7 +18,7 @@ class Module
       raise ArgumentError, "Synchronization needs a mutex. Supply an options hash with a :with key as the last argument (e.g. synchronize :hello, :with => :@mutex)."
     end
 
-    methods.each do |method|
+    methods.flatten.each do |method|
       aliased_method, punctuation = method.to_s.sub(/([?!=])$/, ''), $1
       if instance_methods.include?("#{aliased_method}_without_synchronization#{punctuation}")
         raise ArgumentError, "#{method} is already synchronized. Double synchronization is not currently supported."
@@ -26,7 +26,7 @@ class Module
       module_eval(<<-EOS, __FILE__, __LINE__)
         def #{aliased_method}_with_synchronization#{punctuation}(*args, &block)
           #{with}.synchronize do
-            #{aliased_method}_without_synchronization#{punctuation}(*args,&block)
+            #{aliased_method}_without_synchronization#{punctuation}(*args, &block)
           end
         end
       EOS

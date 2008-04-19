@@ -27,6 +27,8 @@ module ActiveRecord
     @@connection_pools = {}
 
     class << self
+      # Turning on allow_concurrency basically switches a null mutex for a real one, so that
+      # multi-threaded access of the connection pools hash is synchronized.
       def allow_concurrency=(flag)
         if @@allow_concurrency != flag
           if flag
@@ -37,7 +39,7 @@ module ActiveRecord
         end
       end
 
-      # for internal use only
+      # for internal use only and for testing
       def active_connections #:nodoc:
         @@connection_pools.inject({}) do |hash,kv|
           hash[kv.first] = kv.last.active_connection
