@@ -1,7 +1,7 @@
 require 'abstract_unit'
 
-class NumberHelperTest < Test::Unit::TestCase
-  include ActionView::Helpers::NumberHelper
+class NumberHelperTest < ActionView::TestCase
+  tests ActionView::Helpers::NumberHelper
 
   def test_number_to_phone
     assert_equal("800-555-1212", number_to_phone(8005551212))

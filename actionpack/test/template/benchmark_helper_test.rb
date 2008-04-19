@@ -1,8 +1,8 @@
 require 'abstract_unit'
 require 'action_view/helpers/benchmark_helper'
 
-class BenchmarkHelperTest < Test::Unit::TestCase
-  include ActionView::Helpers::BenchmarkHelper
+class BenchmarkHelperTest < ActionView::TestCase
+  tests ActionView::Helpers::BenchmarkHelper
 
   class MockLogger
     attr_reader :logged

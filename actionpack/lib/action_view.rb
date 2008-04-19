@@ -38,6 +38,8 @@ require 'action_view/template_error'
 
 ActionView::Base.class_eval do
   include ActionView::Partials
-end
 
-ActionView::Base.load_helpers
+  ActionView::Base.helper_modules.each do |helper_module|
+    include helper_module
+  end
+end

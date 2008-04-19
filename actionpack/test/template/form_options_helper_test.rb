@@ -22,9 +22,8 @@ end
 
 ActionView::Helpers::FormOptionsHelper::TimeZone = MockTimeZone
 
-class FormOptionsHelperTest < Test::Unit::TestCase
-  include ActionView::Helpers::FormHelper
-  include ActionView::Helpers::FormOptionsHelper
+class FormOptionsHelperTest < ActionView::TestCase
+  tests ActionView::Helpers::FormOptionsHelper
 
   silence_warnings do
     Post      = Struct.new('Post', :title, :author_name, :body, :secret, :written_on, :category, :origin)

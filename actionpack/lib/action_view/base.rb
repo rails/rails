@@ -205,15 +205,17 @@ module ActionView #:nodoc:
     class ObjectWrapper < Struct.new(:value) #:nodoc:
     end
 
-    def self.load_helpers #:nodoc:
-      Dir.entries("#{File.dirname(__FILE__)}/helpers").sort.each do |file|
+    def self.helper_modules #:nodoc:
+      helpers = []
+      Dir.entries(File.expand_path("#{File.dirname(__FILE__)}/helpers")).sort.each do |file|
         next unless file =~ /^([a-z][a-z_]*_helper).rb$/
         require "action_view/helpers/#{$1}"
         helper_module_name = $1.camelize
         if Helpers.const_defined?(helper_module_name)
-          include Helpers.const_get(helper_module_name)
+          helpers << Helpers.const_get(helper_module_name)
         end
       end
+      return helpers
     end
 
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil)#:nodoc:
@@ -323,7 +325,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       end
     end
 
-    private    
+    private
       def wrap_content_for_layout(content)
         original_content_for_layout = @content_for_layout
         @content_for_layout = content
