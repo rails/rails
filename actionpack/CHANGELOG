@@ -1,5 +1,7 @@
 *SVN*
 
+* Add conditional options to caches_page method. [Paul Horsfall]
+
 * Move missing template logic to ActionView. [Pratik]
 
 * Introduce ActionView::InlineTemplate class. [Pratik]
