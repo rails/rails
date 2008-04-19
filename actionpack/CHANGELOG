@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce ActionView::InlineTemplate class. [Pratik]
+
 * Automatically parse posted JSON content for Mime::JSON requests.  [rick]
 
   POST /posts

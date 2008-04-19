@@ -2,22 +2,18 @@ module ActionView #:nodoc:
   class Template #:nodoc:
 
     attr_accessor :locals
-    attr_reader :handler, :path, :source, :extension, :filename, :path_without_extension, :method
+    attr_reader :handler, :path, :extension, :filename, :path_without_extension, :method
 
-    def initialize(view, path_or_source, use_full_path, locals = {}, inline = false, inline_type = nil)
+    def initialize(view, path, use_full_path, locals = {})
       @view = view
       @finder = @view.finder
 
-      unless inline
-        # Clear the forward slash at the beginning if exists
-        @path = use_full_path ? path_or_source.sub(/^\//, '') : path_or_source
-        @view.first_render ||= @path
-        @source = nil # Don't read the source until we know that it is required
-        set_extension_and_file_name(use_full_path)
-      else
-        @source = path_or_source
-        @extension = inline_type
-      end
+      # Clear the forward slash at the beginning if exists
+      @path = use_full_path ? path.sub(/^\//, '') : path
+      @view.first_render ||= @path
+      @source = nil # Don't read the source until we know that it is required
+      set_extension_and_file_name(use_full_path)
+      
       @locals = locals || {}
       @handler = self.class.handler_class_for_extension(@extension).new(@view)
     end
@@ -32,7 +28,7 @@ module ActionView #:nodoc:
     end
 
     def method_key
-      @method_key ||= (@filename || @source)
+      @filename
     end
 
     def base_path_for_exception

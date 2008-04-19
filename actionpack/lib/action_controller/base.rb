@@ -870,7 +870,7 @@ module ActionController #:nodoc:
 
           elsif inline = options[:inline]
             add_variables_to_assigns
-            tmpl = ActionView::Template.new(@template, options[:inline], false, options[:locals], true, options[:type])
+            tmpl = ActionView::InlineTemplate.new(@template, options[:inline], options[:locals], options[:type])
             render_for_text(@template.render_template(tmpl), options[:status])
 
           elsif action_name = options[:action]

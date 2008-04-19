@@ -279,7 +279,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         elsif options[:partial]
           render_partial(options[:partial], ActionView::Base::ObjectWrapper.new(options[:object]), options[:locals])
         elsif options[:inline]
-          template = Template.new(self, options[:inline], false, options[:locals], true, options[:type])
+          template = InlineTemplate.new(self, options[:inline], options[:locals], options[:type])
           render_template(template)
         end
       end
