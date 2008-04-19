@@ -1,7 +1,7 @@
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module String #:nodoc:
-      if RUBY_VERSION < '1.9'
+      unless '1.9'.respond_to?(:force_encoding)
         # Define methods for handling unicode data.
         module Unicode
           # +chars+ is a Unicode safe proxy for string methods. It creates and returns an instance of the

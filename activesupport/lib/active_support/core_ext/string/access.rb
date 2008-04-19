@@ -1,7 +1,7 @@
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module String #:nodoc:
-      if RUBY_VERSION < '1.9'
+      unless '1.9'.respond_to?(:force_encoding)
         # Makes it easier to access parts of a string, such as specific characters and substrings.
         module Access
           # Returns the character at the +position+ treating the string as an array (where 0 is the first character).
