@@ -31,6 +31,7 @@ module ActiveRecord
       # multi-threaded access of the connection pools hash is synchronized.
       def allow_concurrency=(flag)
         if @@allow_concurrency != flag
+          @@allow_concurrency = flag
           if flag
             self.connection_pools_lock = Monitor.new
           else
