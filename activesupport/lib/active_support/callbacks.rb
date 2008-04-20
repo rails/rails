@@ -99,8 +99,8 @@ module ActiveSupport
       def |(chain)
         if chain.is_a?(CallbackChain)
           chain.each { |callback| self | callback }
-        elsif chain.is_a?(Callback)
-          if index = index(chain)
+        else
+          if (found_callback = find(chain)) && (index = index(chain))
             self[index] = chain
           else
             self << chain
@@ -224,8 +224,8 @@ module ActiveSupport
       end
     end
 
-    # Runs all the callbacks defined for the given options. 
-    # 
+    # Runs all the callbacks defined for the given options.
+    #
     # If a block is given it will be called after each callback receiving as arguments:
     #
     #  * the result from the callback
@@ -236,31 +236,31 @@ module ActiveSupport
     # Example:
     #   class Storage
     #     include ActiveSupport::Callbacks
-    #   
+    #
     #     define_callbacks :before_save, :after_save
     #   end
-    #   
+    #
     #   class ConfigStorage < Storage
     #     before_save :pass
     #     before_save :pass
     #     before_save :stop
     #     before_save :pass
-    #   
+    #
     #     def pass
     #       puts "pass"
     #     end
-    #   
+    #
     #     def stop
     #       puts "stop"
     #       return false
     #     end
-    #   
+    #
     #     def save
     #       result = run_callbacks(:before_save) { |result, object| result == false }
     #       puts "- save" if result
     #     end
     #   end
-    #   
+    #
     #   config = ConfigStorage.new
     #   config.save
     #
