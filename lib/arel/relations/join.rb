@@ -37,6 +37,11 @@ module Arel
       end
     end
     
+    # TESTME: Not sure which scenario needs this method, was driven by failing tests in ActiveRecord
+    def column_for(attribute)
+      (relation1[attribute] || relation2[attribute]).column
+    end
+    
     def joins
       this_join = [
         join_sql,

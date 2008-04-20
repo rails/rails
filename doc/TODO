@@ -1,10 +1,14 @@
 todo:
+- active record query adapter
+- audit active record quoting
 - incorporate linq functionality/terminology
   - then_by (ordering)
   - reverse
   - any/all
   - where
-- fix complex joining cases:
+- limit clauses with left outer joins ?
+  - see add_limited_ids_condition
+  - select_limited_ids_list
 - extract adapters
 - cache expiry on write
   - rewrite of arecord querycache test in light of this
@@ -61,6 +65,7 @@ done:
 - test Value, in particular bind.
 - test blank checks in relation.rb
 - rename active_relation to arel
+- fix complex joining cases:
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?

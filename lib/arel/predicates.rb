@@ -23,6 +23,7 @@ module Arel
     def to_sql(formatter = nil)
       "#{operand1.to_sql} #{predicate_sql} #{operand1.format(operand2)}"
     end
+    alias_method :to_s, :to_sql
   end
 
   class Equality < Binary
