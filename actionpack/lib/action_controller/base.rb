@@ -532,9 +532,9 @@ module ActionController #:nodoc:
 
       # Returns a URL that has been rewritten according to the options hash and the defined Routes.
       # (For doing a complete redirect, use redirect_to).
-      #  
+      #
       # <tt>url_for</tt> is used to:
-      #  
+      #
       # All keys given to url_for are forwarded to the Route module, save for the following:
       # * <tt>:anchor</tt> -- specifies the anchor name to be appended to the path. For example,
       #   <tt>url_for :controller => 'posts', :action => 'show', :id => 10, :anchor => 'comments'</tt>

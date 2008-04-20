@@ -61,9 +61,9 @@ module ActionController
           # if they're using foo_url(:id=>2) it's one 
           # argument, but we don't want to generate /foos/id2
           if number_of_arguments == 1
-            "defined?(request) && request && args.size == 1 && !args.first.is_a?(Hash)"
+            "(!defined?(default_url_options) || default_url_options(nil).blank?) && defined?(request) && request && args.size == 1 && !args.first.is_a?(Hash)"
           else
-            "defined?(request) && request && args.size == #{number_of_arguments}"
+            "(!defined?(default_url_options) || default_url_options(nil).blank?) && defined?(request) && request && args.size == #{number_of_arguments}"
           end
         end
 
@@ -98,7 +98,7 @@ module ActionController
       # argument
       class PositionalArgumentsWithAdditionalParams < PositionalArguments
         def guard_condition
-          "defined?(request) && request && args.size == #{route.segment_keys.size + 1} && !args.last.has_key?(:anchor) && !args.last.has_key?(:port) && !args.last.has_key?(:host)"
+          "(!defined?(default_url_options) || default_url_options(nil).blank?) && defined?(request) && request && args.size == #{route.segment_keys.size + 1} && !args.last.has_key?(:anchor) && !args.last.has_key?(:port) && !args.last.has_key?(:host)"
         end
 
         # This case uses almost the same code as positional arguments, 
