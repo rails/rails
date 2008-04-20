@@ -9,14 +9,9 @@ class Post
   end
 end
 
-class RecordTagHelperTest < Test::Unit::TestCase
-  include ActionView::Helpers::RecordTagHelper
-  include ActionView::Helpers::CaptureHelper
-  include ActionView::Helpers::RecordIdentificationHelper  
-  include ActionView::Helpers::TagHelper
-  include ActionView::Helpers::TextHelper  
-  include ActionView::Helpers::UrlHelper  
-    
+class RecordTagHelperTest < ActionView::TestCase
+  tests ActionView::Helpers::RecordTagHelper
+
   def setup
     @post = Post.new
   end

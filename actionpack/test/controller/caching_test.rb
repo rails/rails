@@ -8,7 +8,8 @@ ActionController::Base.page_cache_directory = FILE_STORE_PATH
 ActionController::Base.cache_store = :file_store, FILE_STORE_PATH
 
 class PageCachingTestController < ActionController::Base
-  caches_page :ok, :no_content, :found, :not_found
+  caches_page :ok, :no_content, :if => Proc.new { |c| !c.request.format.json? }
+  caches_page :found, :not_found
 
   def ok
     head :ok
@@ -126,6 +127,12 @@ class PageCachingTest < Test::Unit::TestCase
         end
       end
     end
+  end
+  
+  def test_page_caching_conditional_options
+    @request.env['HTTP_ACCEPT'] = 'application/json'
+    get :ok
+    assert_page_not_cached :ok
   end
 
   private

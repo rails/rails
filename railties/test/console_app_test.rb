@@ -13,17 +13,20 @@ require 'console_app'
 Test::Unit.run = false
 
 class ConsoleAppTest < Test::Unit::TestCase
-  def test_reload_should_fire_preparation_callbacks    
-    a = b = c = nil
+  uses_mocha 'console reload test' do
+    def test_reload_should_fire_preparation_callbacks
+      a = b = c = nil
 
-    Dispatcher.to_prepare { a = b = c = 1 }
-    Dispatcher.to_prepare { b = c = 2 }
-    Dispatcher.to_prepare { c = 3 } 
+      Dispatcher.to_prepare { a = b = c = 1 }
+      Dispatcher.to_prepare { b = c = 2 }
+      Dispatcher.to_prepare { c = 3 }
+      ActionController::Routing::Routes.expects(:reload)
 
-    reload!
+      reload!
 
-    assert_equal 1, a
-    assert_equal 2, b
-    assert_equal 3, c
+      assert_equal 1, a
+      assert_equal 2, b
+      assert_equal 3, c
+    end
   end
 end

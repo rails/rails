@@ -1,12 +1,7 @@
 require 'abstract_unit'
 
-class ActiveRecordHelperTest < Test::Unit::TestCase
-  include ActionView::Helpers::FormHelper
-  include ActionView::Helpers::ActiveRecordHelper
-  include ActionView::Helpers::TextHelper
-  include ActionView::Helpers::TagHelper
-  include ActionView::Helpers::UrlHelper
-  include ActionView::Helpers::FormTagHelper
+class ActiveRecordHelperTest < ActionView::TestCase
+  tests ActionView::Helpers::ActiveRecordHelper
 
   silence_warnings do
     Post = Struct.new("Post", :title, :author_name, :body, :secret, :written_on)

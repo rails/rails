@@ -1,5 +1,11 @@
 *SVN*
 
+* Add conditional options to caches_page method. [Paul Horsfall]
+
+* Move missing template logic to ActionView. [Pratik]
+
+* Introduce ActionView::InlineTemplate class. [Pratik]
+
 * Automatically parse posted JSON content for Mime::JSON requests.  [rick]
 
   POST /posts

@@ -1,16 +1,8 @@
 require 'abstract_unit'
 
-class ScriptaculousHelperTest < Test::Unit::TestCase
-  include ActionView::Helpers::JavaScriptHelper
-  include ActionView::Helpers::PrototypeHelper
-  include ActionView::Helpers::ScriptaculousHelper
-  
-  include ActionView::Helpers::UrlHelper
-  include ActionView::Helpers::TagHelper
-  include ActionView::Helpers::TextHelper
-  include ActionView::Helpers::FormHelper
-  include ActionView::Helpers::CaptureHelper
-  
+class ScriptaculousHelperTest < ActionView::TestCase
+  tests ActionView::Helpers::ScriptaculousHelper
+
   def setup
     @controller = Class.new do
       def url_for(options)

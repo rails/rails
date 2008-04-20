@@ -364,8 +364,10 @@ module ActiveRecord
       end
 
       def current_version
-        Base.connection.select_values(
-          "SELECT version FROM #{schema_migrations_table_name}").map(&:to_i).max || 0
+        version = Base.connection.select_values(
+          "SELECT version FROM #{schema_migrations_table_name}"
+        ).map(&:to_i).max rescue nil
+        version || 0
       end
 
       def proper_table_name(name)

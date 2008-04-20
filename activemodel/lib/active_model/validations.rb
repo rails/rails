@@ -3,24 +3,7 @@ module ActiveModel
     def self.included(base) # :nodoc:
       base.extend(ClassMethods)
       base.send!(:include, ActiveSupport::Callbacks)
-
-      %w( validate validate_on_create validate_on_update ).each do |validation_method|
-        base.class_eval <<-"end_eval"
-          def self.#{validation_method}(*methods, &block)
-            methods = CallbackChain.build(:#{validation_method}, *methods, &block)
-            self.#{validation_method}_callback_chain.replace(#{validation_method}_callback_chain | methods)
-          end
-
-          def self.#{validation_method}_callback_chain
-            if chain = read_inheritable_attribute(:#{validation_method})
-              return chain
-            else
-              write_inheritable_attribute(:#{validation_method}, CallbackChain.new)
-              return #{validation_method}_callback_chain
-            end
-          end
-        end_eval
-      end
+      base.define_callbacks :validate, :validate_on_create, :validate_on_update
     end
 
     module ClassMethods

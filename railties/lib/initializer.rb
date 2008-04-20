@@ -38,6 +38,14 @@ module Rails
     def cache
       RAILS_CACHE
     end
+
+    def public_path
+      @@public_path ||= File.join(self.root, "public")
+    end
+
+    def public_path=(path)
+      @@public_path = path
+    end
   end
   
   # The Initializer is responsible for processing the Rails configuration, such
@@ -126,6 +134,9 @@ module Rails
       load_gems
 
       load_application_initializers
+
+      # Prepare dispatcher callbacks and run 'prepare' callbacks
+      prepare_dispatcher
 
       # the framework is now fully initialized
       after_initialize
@@ -432,6 +443,12 @@ module Rails
       Dir["#{configuration.root_path}/config/initializers/**/*.rb"].sort.each do |initializer|
         load(initializer)
       end
+    end
+
+    def prepare_dispatcher
+      require 'dispatcher' unless defined?(::Dispatcher)
+      Dispatcher.define_dispatcher_callbacks(configuration.cache_classes)
+      Dispatcher.new(RAILS_DEFAULT_LOGGER).send :run_callbacks, :prepare_dispatch
     end
 
   end

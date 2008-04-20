@@ -86,6 +86,7 @@ module ActiveSupport #:nodoc:
         def utc
           new_offset(0)
         end
+        alias_method :getutc, :utc
         
         # Returns true if offset == 0
         def utc?

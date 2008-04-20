@@ -20,7 +20,7 @@ class CustomHandlerTest < Test::Unit::TestCase
   end
 
   def test_custom_render
-    template = ActionView::Template.new(@view, "hello <%= one %>", false, { :one => "two" }, true, "foo")
+    template = ActionView::InlineTemplate.new(@view, "hello <%= one %>", { :one => "two" }, "foo")
 
     result = @view.render_template(template)
     assert_equal(
@@ -29,7 +29,7 @@ class CustomHandlerTest < Test::Unit::TestCase
   end
 
   def test_custom_render2
-    template = ActionView::Template.new(@view, "hello <%= one %>", false, { :one => "two" }, true, "foo2")
+    template = ActionView::InlineTemplate.new(@view, "hello <%= one %>", { :one => "two" }, "foo2")
     result = @view.render_template(template)
     assert_equal(
       [ "hello <%= one %>", { :one => "two" }, @view ],
@@ -38,7 +38,7 @@ class CustomHandlerTest < Test::Unit::TestCase
 
   def test_unhandled_extension
     # uses the ERb handler by default if the extension isn't recognized
-    template = ActionView::Template.new(@view, "hello <%= one %>", false, { :one => "two" }, true, "bar")
+    template = ActionView::InlineTemplate.new(@view, "hello <%= one %>", { :one => "two" }, "bar")
     result = @view.render_template(template)
     assert_equal "hello two", result
   end

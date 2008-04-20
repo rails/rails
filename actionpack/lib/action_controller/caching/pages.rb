@@ -36,7 +36,7 @@ module ActionController #:nodoc:
     # == Setting the cache directory
     #
     # The cache directory should be the document root for the web server and is set using Base.page_cache_directory = "/document/root".
-    # For Rails, this directory has already been set to RAILS_ROOT + "/public".
+    # For Rails, this directory has already been set to Rails.public_path (which is usually set to RAILS_ROOT + "/public").
     #
     # == Setting the cache extension
     #
@@ -46,7 +46,7 @@ module ActionController #:nodoc:
       def self.included(base) #:nodoc:
         base.extend(ClassMethods)
         base.class_eval do
-          @@page_cache_directory = defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/public" : ""
+          @@page_cache_directory = defined?(Rails.public_path) ? Rails.public_path : ""
           cattr_accessor :page_cache_directory
 
           @@page_cache_extension = '.html'
@@ -78,10 +78,18 @@ module ActionController #:nodoc:
 
         # Caches the +actions+ using the page-caching approach that'll store the cache in a path within the page_cache_directory that
         # matches the triggering url.
+        #
+        # Usage:
+        #
+        #   # cache the index action
+        #   caches_page :index
+        #
+        #   # cache the index action except for JSON requests
+        #   caches_page :index, :if => Proc.new { |c| !c.request.format.json? }
         def caches_page(*actions)
           return unless perform_caching
-          actions = actions.map(&:to_s)
-          after_filter { |c| c.cache_page if actions.include?(c.action_name) }
+          options = actions.extract_options!
+          after_filter({:only => actions}.merge(options)) { |c| c.cache_page }
         end
 
         private

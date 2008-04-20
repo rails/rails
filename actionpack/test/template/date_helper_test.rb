@@ -1,8 +1,7 @@
 require 'abstract_unit'
 
-class DateHelperTest < Test::Unit::TestCase
-  include ActionView::Helpers::DateHelper
-  include ActionView::Helpers::FormHelper
+class DateHelperTest < ActionView::TestCase
+  tests ActionView::Helpers::DateHelper
 
   silence_warnings do
     Post = Struct.new("Post", :id, :written_on, :updated_at)

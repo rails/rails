@@ -101,7 +101,7 @@ module ActionView
     # something like Live HTTP Headers for Firefox to verify that the cache is indeed working (and that the assets are not being 
     # requested over and over).
     module AssetTagHelper
-      ASSETS_DIR      = defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/public" : "public"
+      ASSETS_DIR      = defined?(Rails.public_path) ? Rails.public_path : "public"
       JAVASCRIPTS_DIR = "#{ASSETS_DIR}/javascripts"
       STYLESHEETS_DIR = "#{ASSETS_DIR}/stylesheets"
       
@@ -474,7 +474,7 @@ module ActionView
 
           ActionView::Base.computed_public_paths[cache_key] ||=
             begin
-              source += ".#{ext}" if File.extname(source).blank? && ext
+              source += ".#{ext}" if ext && File.extname(source).blank? || File.exist?(File.join(ASSETS_DIR, dir, "#{source}.#{ext}"))
 
               if source =~ %r{^[-a-z]+://}
                 source
@@ -566,7 +566,7 @@ module ActionView
 
         def expand_javascript_sources(sources)
           if sources.include?(:all)
-            all_javascript_files = Dir[File.join(JAVASCRIPTS_DIR, '*.js')].collect { |file| File.basename(file).split(".", 0).first }.sort
+            all_javascript_files = Dir[File.join(JAVASCRIPTS_DIR, '*.js')].collect { |file| File.basename(file).gsub(/\.\w+$/, '') }.sort
             @@all_javascript_sources ||= ((determine_source(:defaults, @@javascript_expansions).dup & all_javascript_files) + all_javascript_files).uniq
           else
             expanded_sources = sources.collect do |source|
@@ -579,7 +579,7 @@ module ActionView
 
         def expand_stylesheet_sources(sources)
           if sources.first == :all
-            @@all_stylesheet_sources ||= Dir[File.join(STYLESHEETS_DIR, '*.css')].collect { |file| File.basename(file).split(".", 0).first }.sort
+            @@all_stylesheet_sources ||= Dir[File.join(STYLESHEETS_DIR, '*.css')].collect { |file| File.basename(file).gsub(/\.\w+$/, '') }.sort
           else
             sources.collect do |source|
               determine_source(source, @@stylesheet_expansions)
