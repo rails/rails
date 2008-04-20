@@ -4,10 +4,11 @@ module ActiveSupport #:nodoc:
       unless '1.9'.respond_to?(:force_encoding)
         # Define methods for handling unicode data.
         module Unicode
-          def self.included(base)
+          def self.append_features(base)
             if '1.8.7'.respond_to?(:chars)
               base.class_eval { remove_method :chars }
             end
+            super
           end
 
           # +chars+ is a Unicode safe proxy for string methods. It creates and returns an instance of the
