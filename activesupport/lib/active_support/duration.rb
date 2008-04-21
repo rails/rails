@@ -51,14 +51,14 @@ module ActiveSupport
 
     # Calculates a new Time or Date that is as far in the future
     # as this Duration represents.
-    def since(time = ::Time.now)
+    def since(time = ::Time.current)
       sum(1, time)
     end
     alias :from_now :since
 
     # Calculates a new Time or Date that is as far in the past
     # as this Duration represents.
-    def ago(time = ::Time.now)
+    def ago(time = ::Time.current)
       sum(-1, time)
     end
     alias :until :ago
@@ -73,7 +73,7 @@ module ActiveSupport
 
     protected
 
-      def sum(sign, time = ::Time.now) #:nodoc:
+      def sum(sign, time = ::Time.current) #:nodoc:
         parts.inject(time) do |t,(type,number)|
           if t.acts_like?(:time) || t.acts_like?(:date)
             if type == :seconds

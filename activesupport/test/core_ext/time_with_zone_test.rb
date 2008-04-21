@@ -627,6 +627,30 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     assert_equal nil, Time.zone
   end
   
+  uses_mocha 'TestTimeCurrent' do
+    def test_current_returns_time_now_when_zone_default_not_set
+      with_env_tz 'US/Eastern' do
+        Time.stubs(:now).returns Time.local(2000)
+        assert_equal false, Time.current.is_a?(ActiveSupport::TimeWithZone)
+        assert_equal Time.local(2000), Time.current
+      end
+    end
+    
+    def test_current_returns_time_zone_now_when_zone_default_set
+      silence_warnings do # silence warnings raised by tzinfo gem
+        Time.zone_default = TimeZone['Eastern Time (US & Canada)']
+        with_env_tz 'US/Eastern' do
+          Time.stubs(:now).returns Time.local(2000)
+          assert_equal true, Time.current.is_a?(ActiveSupport::TimeWithZone)
+          assert_equal 'Eastern Time (US & Canada)', Time.current.time_zone.name
+          assert_equal Time.utc(2000), Time.current.time
+        end
+      end
+    ensure
+      Time.zone_default = nil
+    end
+  end
+  
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
