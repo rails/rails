@@ -41,7 +41,6 @@ module ActionController #:nodoc:
         base.extend(ClassMethods)
           base.class_eval do
             attr_accessor :rendered_action_cache, :action_cache_path
-            alias_method_chain :protected_instance_variables, :action_caching
           end
       end
 
@@ -55,10 +54,6 @@ module ActionController #:nodoc:
       end
 
       protected
-        def protected_instance_variables_with_action_caching
-          protected_instance_variables_without_action_caching + %w(@action_cache_path)
-        end
-
         def expire_action(options = {})
           return unless cache_configured?
 
