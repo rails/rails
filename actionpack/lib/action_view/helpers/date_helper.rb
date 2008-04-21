@@ -250,7 +250,7 @@ module ActionView
       #   # prefixed with 'payday' rather than 'date'
       #   select_datetime(my_date_time, :prefix => 'payday')
       #
-      def select_datetime(datetime = Time.now, options = {}, html_options = {})
+      def select_datetime(datetime = Time.current, options = {}, html_options = {})
         separator = options[:datetime_separator] || ''
         select_date(datetime, options, html_options) + separator + select_time(datetime, options, html_options)
        end
@@ -321,7 +321,7 @@ module ActionView
       #   # separated by ':' and includes an input for seconds
       #   select_time(my_time, :time_separator => ':', :include_seconds => true)
       #
-      def select_time(datetime = Time.now, options = {}, html_options = {})
+      def select_time(datetime = Time.current, options = {}, html_options = {})
         separator = options[:time_separator] || ''
         select_hour(datetime, options, html_options) + separator + select_minute(datetime, options, html_options) + (options[:include_seconds] ? separator + select_second(datetime, options, html_options) : '')
       end

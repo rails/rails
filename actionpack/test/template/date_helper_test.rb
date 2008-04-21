@@ -933,6 +933,24 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => 'selector')
     assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), {:include_seconds => false}, :class => 'selector')
   end
+  
+  uses_mocha 'TestDatetimeAndTimeSelectUseTimeCurrentAsDefault' do
+    def test_select_datetime_uses_time_current_as_default
+      time = stub(:year => 2004, :month => 6, :day => 15, :hour => 16, :min => 35, :sec => 0)
+      Time.expects(:current).returns time
+      expects(:select_date).with(time, anything, anything).returns('')
+      expects(:select_time).with(time, anything, anything).returns('')
+      select_datetime
+    end
+    
+    def test_select_time_uses_time_current_as_default
+      time = stub(:year => 2004, :month => 6, :day => 15, :hour => 16, :min => 35, :sec => 0)
+      Time.expects(:current).returns time
+      expects(:select_hour).with(time, anything, anything).returns('')
+      expects(:select_minute).with(time, anything, anything).returns('')
+      select_time
+    end
+  end
 
   def test_date_select
     @post = Post.new
