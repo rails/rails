@@ -1194,7 +1194,6 @@ module ActionController #:nodoc:
       def add_variables_to_assigns
         unless @variables_added
           add_instance_variables_to_assigns
-          add_class_variables_to_assigns if view_controller_internals
           @variables_added = true
         end
       end
@@ -1212,12 +1211,6 @@ module ActionController #:nodoc:
         instance_variable_names.each do |var|
           next if @@protected_variables_cache.include?(var)
           @assigns[var[1..-1]] = instance_variable_get(var)
-        end
-      end
-
-      def add_class_variables_to_assigns
-        %w(view_paths logger).each do |cvar|
-          @assigns[cvar] = self.send(cvar)
         end
       end
 
