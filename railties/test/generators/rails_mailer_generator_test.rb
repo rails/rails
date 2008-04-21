@@ -17,9 +17,9 @@ class RailsMailerGeneratorTest < GeneratorTestCase
           ],
           body.split("\n").map{|line| line.sub(' '*4, '') }
       end
-
-      assert_match /^  default_url_options\[:host\] = 'example.com'$/m, model,
-        'model should include default_url_options :host declaration'
+      
+      assert_no_match /(self.default_url_options =|default_url_options\[.*\] =)/, model,
+        'individual mailer models should not set default_url_options because the options are shared by all mailers'
     end
     
     assert_generated_views_for :notifier, 'reset_password.erb'
