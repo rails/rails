@@ -13,11 +13,9 @@ module Rails
         @requirement = options[:requirement]
       elsif options[:version]
         @requirement = Gem::Requirement.create(options[:version])
-      else
-        raise ArgumentError.new('Must pass either :version or :requirement')
       end
 
-      @version     = @requirement.instance_variable_get("@requirements").first.last if @requirement
+      @version  = @requirement.instance_variable_get("@requirements").first.last if @requirement
       @name     = name.to_s
       @lib      = options[:lib]
       @source   = options[:source]
