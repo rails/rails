@@ -33,8 +33,12 @@ class Object
   #   end
   #   
   #   C.new(0, 1).instance_variable_names # => ["@y", "@x"]
-  def instance_variable_names
-    instance_variables.map(&:to_s)
+  if RUBY_VERSION >= '1.9'
+    def instance_variable_names
+      instance_variables.map(&:to_s)
+    end
+  else
+    alias_method :instance_variable_names, :instance_variables
   end
 
   # Copies the instance variables of +object+ into +self+.
