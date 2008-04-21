@@ -1,4 +1,7 @@
 module Enumerable
+  # Ruby 1.8.7 introduces group_by, but the result isn't ordered. Override it.
+  remove_method(:group_by) if [].respond_to?(:group_by) && RUBY_VERSION < '1.9'
+
   # Collect an enumerable into sets, grouped by the result of a block. Useful,
   # for example, for grouping records by date.
   #
@@ -19,7 +22,7 @@ module Enumerable
       (grouped[yield(element)] ||= []) << element
       grouped
     end
-  end if RUBY_VERSION < '1.9'
+  end unless [].respond_to?(:group_by)
 
   # Calculates a sum from the elements. Examples:
   #
