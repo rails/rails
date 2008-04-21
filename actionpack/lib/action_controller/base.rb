@@ -256,7 +256,8 @@ module ActionController #:nodoc:
     
     # Controller specific instance variables which will not be accessible inside views.
     @@protected_view_variables = %w(@assigns @performed_redirect @performed_render @variables_added @request_origin @url @parent_controller
-                                    @action_name @before_filter_chain_aborted @action_cache_path)
+                                    @action_name @before_filter_chain_aborted @action_cache_path @_session @_cookies @_headers @_params
+                                    @_flash @_response)
     
     # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets,
     # and images to a dedicated asset server away from the main web server. Example:

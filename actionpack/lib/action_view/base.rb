@@ -156,9 +156,6 @@ module ActionView #:nodoc:
     attr_reader   :finder
     attr_accessor :base_path, :assigns, :template_extension, :first_render
     attr_accessor :controller
-
-    attr_reader :logger, :response, :headers
-    attr_internal :cookies, :flash, :headers, :params, :request, :response, :session
     
     attr_writer :template_format
     attr_accessor :current_render_extension
@@ -185,7 +182,10 @@ module ActionView #:nodoc:
     @@erb_variable = '_erbout'
     cattr_accessor :erb_variable
     
-    delegate :request_forgery_protection_token, :to => :controller
+    attr_internal :request
+
+    delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
+             :flash, :logger, :to => :controller
  
     module CompiledTemplates #:nodoc:
       # holds compiled template code
@@ -222,7 +222,6 @@ module ActionView #:nodoc:
       @assigns = assigns_for_first_render
       @assigns_added = nil
       @controller = controller
-      @logger = controller && controller.logger
       @finder = TemplateFinder.new(self, view_paths)
     end
 

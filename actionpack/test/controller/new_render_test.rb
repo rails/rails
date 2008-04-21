@@ -239,6 +239,14 @@ class NewRenderTestController < ActionController::Base
     render :inline =>  "Hello: <%= params[:name] %>"
   end
 
+  def accessing_request_in_template
+    render :inline =>  "Hello: <%= request.host %>"
+  end
+
+  def accessing_logger_in_template
+    render :inline =>  "<%= logger.class %>"
+  end
+
   def accessing_params_in_template_with_layout
     render :layout => nil, :inline =>  "Hello: <%= params[:name] %>"
   end
@@ -529,10 +537,13 @@ class NewRenderTest < Test::Unit::TestCase
   end
 
   def test_access_to_request_in_view
-    get :hello_world
-    assert !assigns.include?('request'), 'request should not be in assigns'
-    assert_kind_of ActionController::AbstractRequest, assigns['_request']
-    assert_kind_of ActionController::AbstractRequest, @response.template.request
+    get :accessing_request_in_template
+    assert_equal "Hello: www.nextangle.com", @response.body
+  end
+
+  def test_access_to_logger_in_view
+    get :accessing_logger_in_template
+    assert_equal "Logger", @response.body
   end
 
   def test_render_xml

@@ -1,5 +1,7 @@
 *SVN*
 
+* Reduce number of instance variables being copied from controller to view. [Pratik]
+
 * select_datetime and select_time default to Time.zone.now when config.time_zone is set [Geoff Buesing]
 
 * datetime_select defaults to Time.zone.now when config.time_zone is set [Geoff Buesing]
