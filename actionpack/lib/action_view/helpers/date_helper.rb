@@ -675,7 +675,7 @@ module ActionView
         def default_time_from_options(default)
           case default
             when nil
-              Time.now
+              Time.current
             when Date, Time
               default
             else
