@@ -3,10 +3,18 @@ module ActiveSupport #:nodoc:
     module String #:nodoc:
       # Additional string tests.
       module StartsEndsWith
-        def self.included(base)
-          base.class_eval do
-            alias_method :start_with?, :starts_with?
-            alias_method :end_with?, :ends_with?
+        def self.append_features(base)
+          if '1.8.7 and up'.respond_to?(:start_with?)
+            base.class_eval do
+              alias_method :starts_with?, :start_with?
+              alias_method :ends_with?, :end_with?
+            end
+          else
+            super
+            base.class_eval do
+              alias_method :start_with?, :starts_with?
+              alias_method :end_with?, :ends_with?
+            end
           end
         end
 
