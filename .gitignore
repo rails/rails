@@ -1,1 +1,7 @@
 debug.log
+activeresource/doc
+activerecord/doc
+actionpack/doc
+actionmailer/doc
+activesupport/doc
+railties/doc
