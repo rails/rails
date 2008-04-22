@@ -45,7 +45,7 @@ namespace :db do
       when 'postgresql'
         @encoding = config[:encoding] || ENV['CHARSET'] || 'utf8'
         begin
-          ActiveRecord::Base.establish_connection(config.merge('database' => nil))
+          ActiveRecord::Base.establish_connection(config.merge('database' => 'template1'))
           ActiveRecord::Base.connection.create_database(config['database'], :encoding => @encoding)
           ActiveRecord::Base.establish_connection(config)
         rescue
@@ -373,7 +373,7 @@ def drop_database(config)
   when /^sqlite/
     FileUtils.rm(File.join(RAILS_ROOT, config['database']))
   when 'postgresql'
-    ActiveRecord::Base.establish_connection(config.merge('database' => nil))
+    ActiveRecord::Base.establish_connection(config.merge('database' => 'template1'))
     ActiveRecord::Base.connection.drop_database config['database']
   end
 end
