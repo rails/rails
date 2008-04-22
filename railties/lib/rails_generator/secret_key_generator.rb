@@ -76,7 +76,12 @@ module Rails
         OpenSSL::Random.seed(rand(0).to_s + Time.now.usec.to_s)
       end
       data = OpenSSL::BN.rand(2048, -1, false).to_s
-      return OpenSSL::Digest::SHA512.new(data).hexdigest
+
+      if OpenSSL::OPENSSL_VERSION_NUMBER > 0x00908000
+        OpenSSL::Digest::SHA512.new(data).hexdigest
+      else
+        generate_secret_with_prng
+      end
     end
 
     # Generate a random secret key with /dev/urandom.
