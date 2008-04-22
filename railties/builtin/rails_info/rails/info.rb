@@ -29,8 +29,8 @@ module Rails
         "#{component.classify}::VERSION::STRING".constantize
       end
 
-      def edge_rails_revision(info = svn_info)
-        info[/^Revision: (\d+)/, 1] || freeze_edge_version
+      def edge_rails_revision(info = git_info)
+        info[/commit ([a-z0-9-]+)/, 1] || freeze_edge_version
       end
 
       def freeze_edge_version
@@ -67,10 +67,10 @@ module Rails
           @rails_vendor_root ||= "#{RAILS_ROOT}/vendor/rails"
         end
 
-        def svn_info
+        def git_info
           env_lang, ENV['LC_ALL'] = ENV['LC_ALL'], 'C'
           Dir.chdir(rails_vendor_root) do
-            silence_stderr { `svn info` }
+            silence_stderr { `git log -n 1` }
           end
         ensure
           ENV['LC_ALL'] = env_lang
@@ -98,7 +98,7 @@ module Rails
       end
     end
 
-    # The Rails SVN revision, if it's checked out into vendor/rails.
+    # The Rails Git revision, if it's checked out into vendor/rails.
     property 'Edge Rails revision' do
       edge_rails_revision
     end
