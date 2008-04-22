@@ -33,7 +33,16 @@ else
 end
 
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../lib"
-require 'generators/generator_test_helper'
+require 'initializer'
+
+# Mocks out the configuration
+module Rails
+  def self.configuration
+    Rails::Configuration.new
+  end
+end
+
+require 'rails_generator'
 
 class RailsGeneratorTest < Test::Unit::TestCase
   BUILTINS = %w(controller integration_test mailer migration model observer plugin resource scaffold session_migration)
@@ -44,9 +53,9 @@ class RailsGeneratorTest < Test::Unit::TestCase
   end
 
   def test_sources
-    expected = [:lib, :vendor, 
+    expected = [:lib, :vendor,
                 "plugins (vendor/plugins)".to_sym, # <plugin>/generators and <plugin>/rails_generators
-                :user, 
+                :user,
                 :RubyGems, :RubyGems, # gems named <x>_generator, gems containing /rails_generator/ folder
                 :builtin]
     expected.delete(:RubyGems) unless Object.const_defined?(:Gem)
