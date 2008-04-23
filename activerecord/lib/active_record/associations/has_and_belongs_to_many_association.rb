@@ -35,10 +35,10 @@ module ActiveRecord
             columns = @owner.connection.columns(@reflection.options[:join_table], "#{@reflection.options[:join_table]} Columns")
 
             attributes = columns.inject({}) do |attrs, column|
-              case column.name
-                when @reflection.primary_key_name
+              case column.name.to_s
+                when @reflection.primary_key_name.to_s
                   attrs[column.name] = @owner.quoted_id
-                when @reflection.association_foreign_key
+                when @reflection.association_foreign_key.to_s
                   attrs[column.name] = record.quoted_id
                 else
                   if record.has_attribute?(column.name)

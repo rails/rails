@@ -527,7 +527,7 @@ module ActionController
             action_path = action
             if resource.options[:path_names]
               action_path = resource.options[:path_names][action]
-              action_path ||= Base.resources_path_names[action]
+              action_path ||= Base.resources_path_names[action] || action
             end
 
             map.named_route("#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action_path}", action_options)

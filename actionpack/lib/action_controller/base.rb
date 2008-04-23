@@ -16,9 +16,6 @@ module ActionController #:nodoc:
   class SessionRestoreError < ActionControllerError #:nodoc:
   end
 
-  class MissingTemplate < ActionControllerError #:nodoc:
-  end
-
   class RenderError < ActionControllerError #:nodoc:
   end
 
@@ -256,16 +253,12 @@ module ActionController #:nodoc:
     DEFAULT_RENDER_STATUS_CODE = "200 OK"
 
     include StatusCodes
-
-    # Determines whether the view has access to controller internals @request, @response, @session, and @template.
-    # By default, it does.
-    @@view_controller_internals = true
-    cattr_accessor :view_controller_internals
-
-    # Protected instance variable cache
-    @@protected_variables_cache = nil
-    cattr_accessor :protected_variables_cache
-
+    
+    # Controller specific instance variables which will not be accessible inside views.
+    @@protected_view_variables = %w(@assigns @performed_redirect @performed_render @variables_added @request_origin @url @parent_controller
+                                    @action_name @before_filter_chain_aborted @action_cache_path @_session @_cookies @_headers @_params
+                                    @_flash @_response)
+    
     # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets,
     # and images to a dedicated asset server away from the main web server. Example:
     #   ActionController::Base.asset_host = "http://assets.example.com"
@@ -329,9 +322,6 @@ module ActionController #:nodoc:
     # The logger is used for generating information on the action run-time (including benchmarking) if available.
     # Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
     cattr_accessor :logger
-
-    # Turn on +ignore_missing_templates+ if you want to unit test actions without making the associated templates.
-    cattr_accessor :ignore_missing_templates
 
     # Controls the resource action separator
     @@resource_action_separator = "/"
@@ -870,7 +860,7 @@ module ActionController #:nodoc:
 
           elsif inline = options[:inline]
             add_variables_to_assigns
-            tmpl = ActionView::Template.new(@template, options[:inline], false, options[:locals], true, options[:type])
+            tmpl = ActionView::InlineTemplate.new(@template, options[:inline], options[:locals], options[:type])
             render_for_text(@template.render_template(tmpl), options[:status])
 
           elsif action_name = options[:action]
@@ -1105,7 +1095,6 @@ module ActionController #:nodoc:
     private
       def render_for_file(template_path, status = nil, use_full_path = false, locals = {}) #:nodoc:
         add_variables_to_assigns
-        assert_existence_of_template_file(template_path) if use_full_path
         logger.info("Rendering #{template_path}" + (status ? " (#{status})" : '')) if logger
         render_for_text(@template.render_file(template_path, use_full_path, locals), status)
       end
@@ -1201,7 +1190,6 @@ module ActionController #:nodoc:
       def add_variables_to_assigns
         unless @variables_added
           add_instance_variables_to_assigns
-          add_class_variables_to_assigns if view_controller_internals
           @variables_added = true
         end
       end
@@ -1215,27 +1203,8 @@ module ActionController #:nodoc:
       end
 
       def add_instance_variables_to_assigns
-        @@protected_variables_cache ||= Set.new(protected_instance_variables)
-        instance_variable_names.each do |var|
-          next if @@protected_variables_cache.include?(var)
+        (instance_variable_names - @@protected_view_variables).each do |var|
           @assigns[var[1..-1]] = instance_variable_get(var)
-        end
-      end
-
-      def add_class_variables_to_assigns
-        %w(view_paths logger ignore_missing_templates).each do |cvar|
-          @assigns[cvar] = self.send(cvar)
-        end
-      end
-
-      def protected_instance_variables
-        if view_controller_internals
-          %w(@assigns @performed_redirect @performed_render)
-        else
-          %w(@assigns @performed_redirect @performed_render
-             @_request @request @_response @response @_params @params
-             @_session @session @_cookies @cookies
-             @template @request_origin @parent_controller)
         end
       end
 
@@ -1265,15 +1234,6 @@ module ActionController #:nodoc:
         extension = @template && @template.finder.pick_template_extension(template_name)
         name_with_extension = !template_name.include?('.') && extension ? "#{template_name}.#{extension}" : template_name
         @@exempt_from_layout.any? { |ext| name_with_extension =~ ext }
-      end
-
-      def assert_existence_of_template_file(template_name)
-        unless template_exists?(template_name) || ignore_missing_templates
-          full_template_path = template_name.include?('.') ? template_name : "#{template_name}.#{@template.template_format}.erb"
-          display_paths = view_paths.join(':')
-          template_type = (template_name =~ /layouts/i) ? 'layout' : 'template'
-          raise(MissingTemplate, "Missing #{template_type} #{full_template_path} in view path #{display_paths}")
-        end
       end
 
       def default_template_name(action_name = self.action_name)

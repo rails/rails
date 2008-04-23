@@ -24,24 +24,11 @@ end
 class Author::Nested < Author; end
 
 
-module BaseTest
-  def self.included(base)
-    base.send :attr_accessor, :template_format
-  end
+class PrototypeHelperBaseTest < ActionView::TestCase
+  tests ActionView::Helpers::PrototypeHelper
 
-  include ActionView::Helpers::JavaScriptHelper
-  include ActionView::Helpers::PrototypeHelper
-  include ActionView::Helpers::ScriptaculousHelper
-  
-  include ActionView::Helpers::UrlHelper
-  include ActionView::Helpers::TagHelper
-  include ActionView::Helpers::TextHelper
-  include ActionView::Helpers::FormTagHelper
-  include ActionView::Helpers::FormHelper
-  include ActionView::Helpers::CaptureHelper
-  include ActionView::Helpers::RecordIdentificationHelper
-  include ActionController::PolymorphicRoutes
-  
+  attr_accessor :template_format
+
   def setup
     @template = nil
     @controller = Class.new do
@@ -59,25 +46,22 @@ module BaseTest
     end.new
   end
 
-protected
-  
-  def request_forgery_protection_token
-    nil
-  end
-  
-  def protect_against_forgery?
-    false
-  end
-  
-  def create_generator
-    block = Proc.new { |*args| yield *args if block_given? } 
-    JavaScriptGenerator.new self, &block
-  end
+  protected
+    def request_forgery_protection_token
+      nil
+    end
+
+    def protect_against_forgery?
+      false
+    end
+
+    def create_generator
+      block = Proc.new { |*args| yield *args if block_given? } 
+      JavaScriptGenerator.new self, &block
+    end
 end
 
-class PrototypeHelperTest < Test::Unit::TestCase
-  include BaseTest
-  
+class PrototypeHelperTest < PrototypeHelperBaseTest
   def setup
     @record = @author = Author.new
     @article = Article.new
@@ -294,9 +278,7 @@ class PrototypeHelperTest < Test::Unit::TestCase
     end
 end
 
-class JavaScriptGeneratorTest < Test::Unit::TestCase
-  include BaseTest
-  
+class JavaScriptGeneratorTest < PrototypeHelperBaseTest
   def setup
     super
     @generator = create_generator

@@ -617,7 +617,7 @@ module ActiveRecord
             quoted_sequence = quote_column_name(sequence)
 
             select_value <<-end_sql, 'Reset sequence'
-              SELECT setval('#{sequence}', (SELECT COALESCE(MAX(#{pk})+(SELECT increment_by FROM #{quoted_sequence}), (SELECT min_value FROM #{quoted_sequence})) FROM #{quote_table_name(table)}), false)
+              SELECT setval('#{quoted_sequence}', (SELECT COALESCE(MAX(#{quote_column_name pk})+(SELECT increment_by FROM #{quoted_sequence}), (SELECT min_value FROM #{quoted_sequence})) FROM #{quote_table_name(table)}), false)
             end_sql
           else
             @logger.warn "#{table} has primary key #{pk} with no default sequence" if @logger

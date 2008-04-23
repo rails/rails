@@ -1,9 +1,8 @@
 require 'abstract_unit'
 require 'testing_sandbox'
 
-class TextHelperTest < Test::Unit::TestCase
-  include ActionView::Helpers::TextHelper
-  include ActionView::Helpers::TagHelper
+class TextHelperTest < ActionView::TestCase
+  tests ActionView::Helpers::TextHelper
   include TestingSandbox
 
   def setup

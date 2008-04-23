@@ -82,7 +82,7 @@ class TemplateObjectTest < Test::Unit::TestCase
 
     def test_xml
       @view.template_format = :xml
-      assert_raise ActionView::ActionViewError do
+      assert_raise ActionView::MissingTemplate do
         ActionView::PartialTemplate.new(@view, @path, nil)
       end
     end

@@ -73,21 +73,36 @@ module ActionMailer #:nodoc:
   #   <%= truncate(note.body, 25) %>
   # 
   #
-  # = Generating URLs for mailer views
+  # = Generating URLs
+  # 
+  # URLs can be generated in mailer views using <tt>url_for</tt> or named routes.
+  # Unlike controllers from Action Pack, the mailer instance doesn't have any context about the incoming request, 
+  # so you'll need to provide all of the details needed to generate a URL. 
   #
-  # If your view includes URLs from the application, you need to use url_for in the mailing method instead of the view.
-  # Unlike controllers from Action Pack, the mailer instance doesn't have any context about the incoming request. That's
-  # why you need to jump this little hoop and supply all the details needed for the URL. Example:
+  # When using <tt>url_for</tt> you'll need to provide the <tt>:host</tt>, <tt>:controller</tt>, and <tt>:action</tt>:
+  # 
+  #   <%= url_for(:host => "example.com", :controller => "welcome", :action => "greeting") %>
   #
-  #    def signup_notification(recipient)
-  #      recipients recipient.email_address_with_name
-  #      from       "system@example.com"
-  #      subject    "New account information"
-  #      body       :account => recipient,
-  #                 :home_page => url_for(:host => "example.com", :controller => "welcome", :action => "greeting")
-  #    end
+  # When using named routes you only need to supply the <tt>:host</tt>:
+  # 
+  #   <%= users_url(:host => "example.com") %>
   #
-  # You can now access @home_page in the template and get http://example.com/welcome/greeting.
+  # You will want to avoid using the <tt>name_of_route_path</tt> form of named routes because it doesn't make sense to
+  # generate relative URLs in email messages.
+  #
+  # It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt> option in 
+  # the <tt>ActionMailer::Base.default_url_options</tt> hash as follows:
+  #
+  #   ActionMailer::Base.default_url_options[:host] = "example.com"
+  # 
+  # This can also be set as a configuration option in <tt>environment.rb</tt>:
+  #
+  #   config.action_mailer.default_url_options = { :host => "example.com" }
+  #
+  # If you do decide to set a default <tt>:host</tt> for your mailers you will want to use the
+  # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. This will ensure that absolute URLs are generated because
+  # the <tt>url_for</tt> view helper will, by default, generate relative URLs when a <tt>:host</tt> option isn't 
+  # explicitly provided.
   #
   # = Sending mail
   #

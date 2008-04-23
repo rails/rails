@@ -35,6 +35,11 @@ module ActiveSupport #:nodoc:
             ::Time.zone = old_zone
           end
           
+          # Returns Time.zone.now when config.time_zone is set, otherwise just returns Time.now.
+          def current
+            ::Time.zone_default ? ::Time.zone.now : ::Time.now
+          end
+          
           private
             def get_zone(time_zone)
               return time_zone if time_zone.nil? || time_zone.is_a?(TimeZone)

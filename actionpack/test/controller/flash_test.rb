@@ -52,7 +52,7 @@ class FlashTest < Test::Unit::TestCase
     end
 
     def rescue_action(e)
-      raise unless ActionController::MissingTemplate === e
+      raise unless ActionView::MissingTemplate === e
     end
 
     # methods for test_sweep_after_halted_filter_chain

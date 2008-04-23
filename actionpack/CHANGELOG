@@ -1,5 +1,19 @@
 *SVN*
 
+* Reduce number of instance variables being copied from controller to view. [Pratik]
+
+* select_datetime and select_time default to Time.zone.now when config.time_zone is set [Geoff Buesing]
+
+* datetime_select defaults to Time.zone.now when config.time_zone is set [Geoff Buesing]
+
+* Remove ActionController::Base#view_controller_internals flag. [Pratik]
+
+* Add conditional options to caches_page method. [Paul Horsfall]
+
+* Move missing template logic to ActionView. [Pratik]
+
+* Introduce ActionView::InlineTemplate class. [Pratik]
+
 * Automatically parse posted JSON content for Mime::JSON requests.  [rick]
 
   POST /posts

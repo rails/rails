@@ -178,7 +178,7 @@ module ActiveRecord
           sql = "SELECT COUNT(*) AS #{aggregate_alias}" if use_workaround
 
           sql << ", #{options[:group_field]} AS #{options[:group_alias]}" if options[:group]
-          sql << " FROM (SELECT DISTINCT #{column_name}" if use_workaround
+          sql << " FROM (SELECT #{distinct}#{column_name}" if use_workaround
           sql << " FROM #{connection.quote_table_name(table_name)} "
           if merged_includes.any?
             join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_includes, options[:joins])

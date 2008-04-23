@@ -257,7 +257,7 @@ module ActiveRecord
             record = {}
             row.each_key do |key|
               if key.is_a?(String)
-                record[key.sub(/^\w+\./, '')] = row[key]
+                record[key.sub(/^"?\w+"?\./, '')] = row[key]
               end
             end
             record

@@ -239,6 +239,14 @@ class NewRenderTestController < ActionController::Base
     render :inline =>  "Hello: <%= params[:name] %>"
   end
 
+  def accessing_request_in_template
+    render :inline =>  "Hello: <%= request.host %>"
+  end
+
+  def accessing_logger_in_template
+    render :inline =>  "<%= logger.class %>"
+  end
+
   def accessing_params_in_template_with_layout
     render :layout => nil, :inline =>  "Hello: <%= params[:name] %>"
   end
@@ -529,26 +537,13 @@ class NewRenderTest < Test::Unit::TestCase
   end
 
   def test_access_to_request_in_view
-    view_internals_old_value = ActionController::Base.view_controller_internals
+    get :accessing_request_in_template
+    assert_equal "Hello: www.nextangle.com", @response.body
+  end
 
-    ActionController::Base.view_controller_internals = false
-    ActionController::Base.protected_variables_cache = nil
-
-    get :hello_world
-    assert !assigns.include?('_request'), '_request should not be in assigns'
-    assert !assigns.include?('request'), 'request should not be in assigns'
-
-    ActionController::Base.view_controller_internals = true
-    ActionController::Base.protected_variables_cache = nil
-
-    get :hello_world
-    assert !assigns.include?('request'), 'request should not be in assigns'
-    assert_kind_of ActionController::AbstractRequest, assigns['_request']
-    assert_kind_of ActionController::AbstractRequest, @response.template.request
-
-  ensure
-    ActionController::Base.view_controller_internals = view_internals_old_value
-    ActionController::Base.protected_variables_cache = nil
+  def test_access_to_logger_in_view
+    get :accessing_logger_in_template
+    assert_equal "Logger", @response.body
   end
 
   def test_render_xml
@@ -652,7 +647,7 @@ EOS
   end  
 
   def test_bad_render_to_string_still_throws_exception
-    assert_raises(ActionController::MissingTemplate) { get :render_to_string_with_exception }
+    assert_raises(ActionView::MissingTemplate) { get :render_to_string_with_exception }
   end
   
   def test_render_to_string_that_throws_caught_exception_doesnt_break_assigns
@@ -787,7 +782,7 @@ EOS
   end
   
   def test_render_missing_partial_template
-    assert_raises(ActionView::ActionViewError) do
+    assert_raises(ActionView::MissingTemplate) do
       get :missing_partial
     end
   end

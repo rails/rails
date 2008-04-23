@@ -78,10 +78,18 @@ module ActionController #:nodoc:
 
         # Caches the +actions+ using the page-caching approach that'll store the cache in a path within the page_cache_directory that
         # matches the triggering url.
+        #
+        # Usage:
+        #
+        #   # cache the index action
+        #   caches_page :index
+        #
+        #   # cache the index action except for JSON requests
+        #   caches_page :index, :if => Proc.new { |c| !c.request.format.json? }
         def caches_page(*actions)
           return unless perform_caching
-          actions = actions.map(&:to_s)
-          after_filter { |c| c.cache_page if actions.include?(c.action_name) }
+          options = actions.extract_options!
+          after_filter({:only => actions}.merge(options)) { |c| c.cache_page }
         end
 
         private

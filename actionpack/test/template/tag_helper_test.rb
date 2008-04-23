@@ -1,10 +1,7 @@
 require 'abstract_unit'
 
-class TagHelperTest < Test::Unit::TestCase
-  include ActionView::Helpers::TagHelper
-  include ActionView::Helpers::UrlHelper
-  include ActionView::Helpers::TextHelper
-  include ActionView::Helpers::CaptureHelper
+class TagHelperTest < ActionView::TestCase
+  tests ActionView::Helpers::TagHelper
 
   def test_tag
     assert_equal "<br />", tag("br")

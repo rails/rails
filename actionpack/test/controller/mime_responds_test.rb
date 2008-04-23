@@ -468,7 +468,7 @@ class MimeControllerTest < Test::Unit::TestCase
     assert_equal '<html><div id="html_missing">Hello future from Firefox!</div></html>', @response.body 
 
     @request.env["HTTP_ACCEPT"] = "text/iphone"
-    assert_raises(ActionController::MissingTemplate) { get :iphone_with_html_response_type_without_layout }
+    assert_raises(ActionView::MissingTemplate) { get :iphone_with_html_response_type_without_layout }
   end 
 end
 

@@ -96,17 +96,25 @@ module ActiveSupport
         end
       end
 
-      def find_callback(callback, &block)
+      def |(chain)
+        if chain.is_a?(CallbackChain)
+          chain.each { |callback| self | callback }
+        else
+          if (found_callback = find(chain)) && (index = index(chain))
+            self[index] = chain
+          else
+            self << chain
+          end
+        end
+        self
+      end
+
+      def find(callback, &block)
         select { |c| c == callback && (!block_given? || yield(c)) }.first
       end
 
-      def replace_or_append_callback(callback)
-        if found_callback = find_callback(callback)
-          index = index(found_callback)
-          self[index] = callback
-        else
-          self << callback
-        end
+      def delete(callback)
+        super(callback.is_a?(Callback) ? callback : find(callback))
       end
 
       private
@@ -216,8 +224,8 @@ module ActiveSupport
       end
     end
 
-    # Runs all the callbacks defined for the given options. 
-    # 
+    # Runs all the callbacks defined for the given options.
+    #
     # If a block is given it will be called after each callback receiving as arguments:
     #
     #  * the result from the callback
@@ -228,31 +236,31 @@ module ActiveSupport
     # Example:
     #   class Storage
     #     include ActiveSupport::Callbacks
-    #   
+    #
     #     define_callbacks :before_save, :after_save
     #   end
-    #   
+    #
     #   class ConfigStorage < Storage
     #     before_save :pass
     #     before_save :pass
     #     before_save :stop
     #     before_save :pass
-    #   
+    #
     #     def pass
     #       puts "pass"
     #     end
-    #   
+    #
     #     def stop
     #       puts "stop"
     #       return false
     #     end
-    #   
+    #
     #     def save
     #       result = run_callbacks(:before_save) { |result, object| result == false }
     #       puts "- save" if result
     #     end
     #   end
-    #   
+    #
     #   config = ConfigStorage.new
     #   config.save
     #

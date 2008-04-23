@@ -19,6 +19,8 @@ RELEASE_NAME  = "REL #{PKG_VERSION}"
 RUBY_FORGE_PROJECT = "activerecord"
 RUBY_FORGE_USER    = "webster132"
 
+MYSQL_DB_USER = 'rails'
+
 PKG_FILES = FileList[
     "lib/**/*", "test/**/*", "examples/**/*", "doc/**/*", "[A-Z]*", "install.rb", "Rakefile"
 ].exclude(/\bCVS\b|~$/)
@@ -46,16 +48,14 @@ end
 namespace :mysql do
   desc 'Build the MySQL test databases'
   task :build_databases do
-    %x( mysqladmin  create activerecord_unittest )
-    %x( mysqladmin  create activerecord_unittest2 )
-    %x( mysql -e "grant all on activerecord_unittest.* to rails@localhost" )
-    %x( mysql -e "grant all on activerecord_unittest2.* to rails@localhost" )
+    %x( mysqladmin --user=#{MYSQL_DB_USER} create activerecord_unittest )
+    %x( mysqladmin --user=#{MYSQL_DB_USER} create activerecord_unittest2 )
   end
 
   desc 'Drop the MySQL test databases'
   task :drop_databases do
-    %x( mysqladmin -f drop activerecord_unittest )
-    %x( mysqladmin -f drop activerecord_unittest2 )
+    %x( mysqladmin --user=#{MYSQL_DB_USER} -f drop activerecord_unittest )
+    %x( mysqladmin --user=#{MYSQL_DB_USER} -f drop activerecord_unittest2 )
   end
 
   desc 'Rebuild the MySQL test databases'

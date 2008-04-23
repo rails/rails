@@ -1,2 +1,0 @@
-DROP ALL
-go

@@ -279,7 +279,7 @@ class RescueTest < Test::Unit::TestCase
     assert_equal ActionController::Rescue::DEFAULT_RESCUE_TEMPLATE, templates.default
     assert_equal ActionController::Rescue::DEFAULT_RESCUE_TEMPLATE, templates[Exception.new]
 
-    assert_equal 'missing_template',  templates[ActionController::MissingTemplate.name]
+    assert_equal 'missing_template',  templates[ActionView::MissingTemplate.name]
     assert_equal 'routing_error',     templates[ActionController::RoutingError.name]
     assert_equal 'unknown_action',    templates[ActionController::UnknownAction.name]
     assert_equal 'template_error',    templates[ActionView::TemplateError.name]

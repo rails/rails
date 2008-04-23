@@ -166,6 +166,26 @@ module ActiveResource
   # 
   # Learn more about Active Resource's validation features in the ActiveResource::Validations documentation.
   #
+  # === Timeouts
+  #
+  # Active Resource relies on HTTP to access RESTful APIs and as such is inherently susceptible to slow or
+  # unresponsive servers. In such cases, your Active Resource method calls could timeout. You can control the
+  # amount of time before Active Resource times out with the +timeout+ variable.
+  #
+  #   class Person < ActiveResource::Base
+  #     self.site = "http://api.people.com:3000/"
+  #     self.timeout = 5
+  #   end
+  #
+  # This sets the +timeout+ to 5 seconds. You can adjust the timeout to a value suitable for the RESTful API
+  # you are accessing. It is recommended to set this to a reasonably low value to allow your Active Resource
+  # clients (especially if you are using Active Resource in a Rails application) to fail-fast (see
+  # http://en.wikipedia.org/wiki/Fail-fast) rather than cause cascading failures that could incapacitate your
+  # server.
+  #
+  # Internally, Active Resource relies on Ruby's Net::HTTP library to make HTTP requests. Setting +timeout+
+  # sets the <tt>read_timeout</tt> of the internal Net::HTTP instance to the same value. The default
+  # <tt>read_timeout</tt> is 60 seconds on most Ruby implementations.
   class Base
     # The logger for diagnosing and tracing Active Resource calls.
     cattr_accessor :logger
@@ -257,10 +277,25 @@ module ActiveResource
         write_inheritable_attribute("format", format)
         connection.format = format if site
       end
-      
+
       # Returns the current format, default is ActiveResource::Formats::XmlFormat
       def format # :nodoc:
         read_inheritable_attribute("format") || ActiveResource::Formats[:xml]
+      end
+
+      # Sets the number of seconds after which requests to the REST API should time out.
+      def timeout=(timeout)
+        @connection = nil
+        @timeout = timeout
+      end
+
+      # Gets tthe number of seconds after which requests to the REST API should time out.
+      def timeout
+        if defined?(@timeout)
+          @timeout
+        elsif superclass != Object && superclass.timeout
+          superclass.timeout
+        end
       end
 
       # An instance of ActiveResource::Connection that is the base connection to the remote service.
@@ -271,6 +306,7 @@ module ActiveResource
           @connection = Connection.new(site, format) if refresh || @connection.nil?
           @connection.user = user if user
           @connection.password = password if password
+          @connection.timeout = timeout if timeout
           @connection
         else
           superclass.connection

@@ -1,5 +1,9 @@
 require 'plugin_test_helper'
 
+class Rails::GemDependency
+  public :install_command, :unpack_command
+end
+
 uses_mocha "Plugin Tests" do
   class GemDependencyTest < Test::Unit::TestCase
     def setup

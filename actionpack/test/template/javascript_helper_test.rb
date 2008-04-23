@@ -1,13 +1,7 @@
 require 'abstract_unit'
 
-class JavaScriptHelperTest < Test::Unit::TestCase
-  include ActionView::Helpers::JavaScriptHelper
-
-  include ActionView::Helpers::UrlHelper
-  include ActionView::Helpers::TagHelper
-  include ActionView::Helpers::TextHelper
-  include ActionView::Helpers::FormHelper
-  include ActionView::Helpers::CaptureHelper
+class JavaScriptHelperTest < ActionView::TestCase
+  tests ActionView::Helpers::JavaScriptHelper
 
   def test_define_javascript_functions
     # check if prototype.js is included first

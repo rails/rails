@@ -214,6 +214,7 @@ module ActiveRecord
 
       def include?(record)
         return false unless record.is_a?(@reflection.klass)
+        load_target if @reflection.options[:finder_sql] && !loaded?
         return @target.include?(record) if loaded?
         exists?(record)
       end

@@ -30,15 +30,8 @@ end
 class Comment::Nested < Comment; end
 
 
-class FormHelperTest < Test::Unit::TestCase
-  include ActionView::Helpers::FormHelper
-  include ActionView::Helpers::FormTagHelper
-  include ActionView::Helpers::UrlHelper
-  include ActionView::Helpers::TagHelper
-  include ActionView::Helpers::TextHelper
-  include ActionView::Helpers::ActiveRecordHelper
-  include ActionView::Helpers::RecordIdentificationHelper
-  include ActionController::PolymorphicRoutes
+class FormHelperTest < ActionView::TestCase
+  tests ActionView::Helpers::FormHelper
 
   def setup
     @post = Post.new

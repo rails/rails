@@ -265,7 +265,7 @@ module ActionController #:nodoc:
       def skip_filter_in_chain(*filters, &test)
         filters, conditions = extract_options(filters)
         filters.each do |filter|
-          if callback = find_callback(filter) then delete(callback) end
+          if callback = find(filter) then delete(callback) end
         end if conditions.empty?
         update_filter_in_chain(filters, :skip => conditions, &test)
       end
@@ -302,7 +302,7 @@ module ActionController #:nodoc:
         def find_or_create_filter(filter, filter_type, options = {})
           update_filter_in_chain([filter], options)
 
-          if found_filter = find_callback(filter) { |f| f.type == filter_type }
+          if found_filter = find(filter) { |f| f.type == filter_type }
             found_filter
           else
             filter_kind = case
@@ -326,7 +326,7 @@ module ActionController #:nodoc:
         end
 
         def update_filter_in_chain(filters, options, &test)
-          filters.map! { |f| block_given? ? find_callback(f, &test) : find_callback(f) }
+          filters.map! { |f| block_given? ? find(f, &test) : find(f) }
           filters.compact!
 
           map! do |filter|

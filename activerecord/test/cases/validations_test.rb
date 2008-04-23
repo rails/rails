@@ -58,9 +58,9 @@ class ValidationsTest < ActiveRecord::TestCase
   fixtures :topics, :developers, 'warehouse-things'
 
   def setup
-    Topic.write_inheritable_attribute(:validate, nil)
-    Topic.write_inheritable_attribute(:validate_on_create, nil)
-    Topic.write_inheritable_attribute(:validate_on_update, nil)
+    Topic.instance_variable_set("@validate_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+    Topic.instance_variable_set("@validate_on_create_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+    Topic.instance_variable_set("@validate_on_update_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
   end
 
   def test_single_field_validation
@@ -839,16 +839,16 @@ class ValidationsTest < ActiveRecord::TestCase
     reply = t.replies.build('title' => 'areply', 'content' => 'whateveragain')
     assert t.valid?
   end
-  
+
   def test_validates_size_of_association_using_within
     assert_nothing_raised { Topic.validates_size_of :replies, :within => 1..2 }
     t = Topic.new('title' => 'noreplies', 'content' => 'whatever')
     assert !t.save
     assert t.errors.on(:replies)
-    
+
     reply = t.replies.build('title' => 'areply', 'content' => 'whateveragain')
     assert t.valid?
-    
+
     2.times { t.replies.build('title' => 'areply', 'content' => 'whateveragain') }
     assert !t.save
     assert t.errors.on(:replies)
@@ -1351,9 +1351,9 @@ class ValidatesNumericalityTest < ActiveRecord::TestCase
   JUNK = ["not a number", "42 not a number", "0xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"]
 
   def setup
-    Topic.write_inheritable_attribute(:validate, nil)
-    Topic.write_inheritable_attribute(:validate_on_create, nil)
-    Topic.write_inheritable_attribute(:validate_on_update, nil)
+    Topic.instance_variable_set("@validate_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+    Topic.instance_variable_set("@validate_on_create_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+    Topic.instance_variable_set("@validate_on_update_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
   end
 
   def test_default_validates_numericality_of

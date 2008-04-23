@@ -1,11 +1,7 @@
 require 'abstract_unit'
 
-class FormTagHelperTest < Test::Unit::TestCase
-  include ActionView::Helpers::UrlHelper
-  include ActionView::Helpers::TagHelper
-  include ActionView::Helpers::FormTagHelper
-  include ActionView::Helpers::TextHelper
-  include ActionView::Helpers::CaptureHelper
+class FormTagHelperTest < ActionView::TestCase
+  tests ActionView::Helpers::FormTagHelper
 
   def setup
     @controller = Class.new do

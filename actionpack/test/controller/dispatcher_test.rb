@@ -11,7 +11,13 @@ class DispatcherTest < Test::Unit::TestCase
     @output = StringIO.new
     ENV['REQUEST_METHOD'] = 'GET'
 
+    # Clear callbacks as they are redefined by Dispatcher#define_dispatcher_callbacks
     Dispatcher.instance_variable_set("@prepare_dispatch_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+    Dispatcher.instance_variable_set("@before_dispatch_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+    Dispatcher.instance_variable_set("@after_dispatch_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
+
+    Dispatcher.stubs(:require_dependency)
+
     @dispatcher = Dispatcher.new(@output)
   end
 
@@ -20,17 +26,13 @@ class DispatcherTest < Test::Unit::TestCase
   end
 
   def test_clears_dependencies_after_dispatch_if_in_loading_mode
-    Dependencies.stubs(:load?).returns(true)
-
     ActionController::Routing::Routes.expects(:reload).once
     Dependencies.expects(:clear).once
 
-    dispatch
+    dispatch(@output, false)
   end
 
   def test_leaves_dependencies_after_dispatch_if_not_in_loading_mode
-    Dependencies.stubs(:load?).returns(false)
-
     ActionController::Routing::Routes.expects(:reload).never
     Dependencies.expects(:clear).never
 
@@ -51,40 +53,25 @@ class DispatcherTest < Test::Unit::TestCase
     assert_equal "Status: 400 Bad Request\r\nContent-Type: text/html\r\n\r\n<html><body><h1>400 Bad Request</h1></body></html>", @output.string
   end
 
-  def test_reload_application_sets_unprepared_if_loading_dependencies
-    Dependencies.stubs(:load?).returns(false)
-    ActionController::Routing::Routes.expects(:reload).never
-    @dispatcher.unprepared = false
-    @dispatcher.send!(:reload_application)
-    assert !@dispatcher.unprepared
-
-    Dependencies.stubs(:load?).returns(true)
-    ActionController::Routing::Routes.expects(:reload).once
-    @dispatcher.send!(:reload_application)
-    assert @dispatcher.unprepared
-  end
-
-  def test_prepare_application_runs_callbacks_if_unprepared
+  def test_prepare_callbacks
     a = b = c = nil
     Dispatcher.to_prepare { |*args| a = b = c = 1 }
     Dispatcher.to_prepare { |*args| b = c = 2 }
     Dispatcher.to_prepare { |*args| c = 3 }
 
-    # Skip the callbacks when already prepared.
-    @dispatcher.unprepared = false
-    @dispatcher.send! :prepare_application
+    # Ensure to_prepare callbacks are not run when defined
     assert_nil a || b || c
 
-    # Perform the callbacks when unprepared.
-    @dispatcher.unprepared = true
-    @dispatcher.send! :prepare_application
+    # Run callbacks
+    @dispatcher.send :run_callbacks, :prepare_dispatch
+
     assert_equal 1, a
     assert_equal 2, b
     assert_equal 3, c
 
-    # But when not :load, make sure they are only run once
+    # Make sure they are only run once
     a = b = c = nil
-    @dispatcher.send! :prepare_application
+    @dispatcher.send :dispatch
     assert_nil a || b || c
   end
 
@@ -93,28 +80,20 @@ class DispatcherTest < Test::Unit::TestCase
     Dispatcher.to_prepare(:unique_id) { |*args| a = b = 1 }
     Dispatcher.to_prepare(:unique_id) { |*args| a = 2 }
 
-    @dispatcher.unprepared = true
-    @dispatcher.send! :prepare_application
+    @dispatcher.send :run_callbacks, :prepare_dispatch
     assert_equal 2, a
     assert_equal nil, b
   end
 
-  def test_to_prepare_only_runs_once_if_not_loading_dependencies
-    Dependencies.stubs(:load?).returns(false)
-    called = 0
-    Dispatcher.to_prepare(:unprepared_test) { |*args| called += 1 }
-    2.times { dispatch }
-    assert_equal 1, called
-  end
-
   private
-    def dispatch(output = @output)
+    def dispatch(output = @output, cache_classes = true)
       controller = mock
       controller.stubs(:process).returns(controller)
       controller.stubs(:out).with(output).returns('response')
 
       ActionController::Routing::Routes.stubs(:recognize).returns(controller)
 
+      Dispatcher.define_dispatcher_callbacks(cache_classes)
       Dispatcher.dispatch(nil, {}, output)
     end
 

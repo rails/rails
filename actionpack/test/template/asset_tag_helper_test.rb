@@ -1,9 +1,7 @@
 require 'abstract_unit'
 
-class AssetTagHelperTest < Test::Unit::TestCase
-  include ActionView::Helpers::TagHelper
-  include ActionView::Helpers::UrlHelper
-  include ActionView::Helpers::AssetTagHelper
+class AssetTagHelperTest < ActionView::TestCase
+  tests ActionView::Helpers::AssetTagHelper
 
   def setup
     silence_warnings do
@@ -445,10 +443,8 @@ class AssetTagHelperTest < Test::Unit::TestCase
   end
 end
 
-class AssetTagHelperNonVhostTest < Test::Unit::TestCase
-  include ActionView::Helpers::TagHelper
-  include ActionView::Helpers::UrlHelper
-  include ActionView::Helpers::AssetTagHelper
+class AssetTagHelperNonVhostTest < ActionView::TestCase
+  tests ActionView::Helpers::AssetTagHelper
 
   def setup
     @controller = Class.new do

@@ -29,4 +29,46 @@ class DurationTest < Test::Unit::TestCase
       flunk("ArgumentError should be raised, but we got #{$!.class} instead")
     end
   end
+  
+  uses_mocha 'TestDurationSinceAndAgoWithCurrentTime' do
+    def test_since_and_ago_anchored_to_time_now_when_time_zone_default_not_set
+      Time.zone_default = nil
+      with_env_tz 'US/Eastern' do
+        Time.stubs(:now).returns Time.local(2000)
+        # since
+        assert_equal false, 5.seconds.since.is_a?(ActiveSupport::TimeWithZone)
+        assert_equal Time.local(2000,1,1,0,0,5), 5.seconds.since
+        # ago
+        assert_equal false, 5.seconds.ago.is_a?(ActiveSupport::TimeWithZone)
+        assert_equal Time.local(1999,12,31,23,59,55), 5.seconds.ago
+      end
+    end
+    
+    def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_default_set
+      silence_warnings do # silence warnings raised by tzinfo gem
+        Time.zone_default = TimeZone['Eastern Time (US & Canada)']
+        with_env_tz 'US/Eastern' do
+          Time.stubs(:now).returns Time.local(2000)
+          # since
+          assert_equal true, 5.seconds.since.is_a?(ActiveSupport::TimeWithZone)
+          assert_equal Time.utc(2000,1,1,0,0,5), 5.seconds.since.time
+          assert_equal 'Eastern Time (US & Canada)', 5.seconds.since.time_zone.name
+          # ago
+          assert_equal true, 5.seconds.ago.is_a?(ActiveSupport::TimeWithZone)
+          assert_equal Time.utc(1999,12,31,23,59,55), 5.seconds.ago.time
+          assert_equal 'Eastern Time (US & Canada)', 5.seconds.ago.time_zone.name
+        end
+      end
+    ensure
+      Time.zone_default = nil
+    end
+  end
+  
+  protected
+    def with_env_tz(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end
 end

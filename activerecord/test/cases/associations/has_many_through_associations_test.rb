@@ -25,7 +25,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     new_person = nil # so block binding catches it
     
     assert_queries(0) do
-      new_person = Person.new
+      new_person = Person.new :first_name => 'bob'
     end
     
     # Associating new records always saves them

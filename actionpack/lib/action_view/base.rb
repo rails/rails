@@ -1,6 +1,9 @@
 module ActionView #:nodoc:
   class ActionViewError < StandardError #:nodoc:
   end
+  
+  class MissingTemplate < ActionViewError #:nodoc:
+  end
 
   # Action View templates can be written in three ways. If the template file has a +.erb+ (or +.rhtml+) extension then it uses a mixture of ERb 
   # (included in Ruby) and HTML. If the template file has a +.builder+ (or +.rxml+) extension then Jim Weirich's Builder::XmlMarkup library is used. 
@@ -153,9 +156,6 @@ module ActionView #:nodoc:
     attr_reader   :finder
     attr_accessor :base_path, :assigns, :template_extension, :first_render
     attr_accessor :controller
-
-    attr_reader :logger, :response, :headers
-    attr_internal :cookies, :flash, :headers, :params, :request, :response, :session
     
     attr_writer :template_format
     attr_accessor :current_render_extension
@@ -182,7 +182,10 @@ module ActionView #:nodoc:
     @@erb_variable = '_erbout'
     cattr_accessor :erb_variable
     
-    delegate :request_forgery_protection_token, :to => :controller
+    attr_internal :request
+
+    delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
+             :flash, :logger, :to => :controller
  
     module CompiledTemplates #:nodoc:
       # holds compiled template code
@@ -202,22 +205,23 @@ module ActionView #:nodoc:
     class ObjectWrapper < Struct.new(:value) #:nodoc:
     end
 
-    def self.load_helpers #:nodoc:
-      Dir.entries("#{File.dirname(__FILE__)}/helpers").sort.each do |file|
+    def self.helper_modules #:nodoc:
+      helpers = []
+      Dir.entries(File.expand_path("#{File.dirname(__FILE__)}/helpers")).sort.each do |file|
         next unless file =~ /^([a-z][a-z_]*_helper).rb$/
         require "action_view/helpers/#{$1}"
         helper_module_name = $1.camelize
         if Helpers.const_defined?(helper_module_name)
-          include Helpers.const_get(helper_module_name)
+          helpers << Helpers.const_get(helper_module_name)
         end
       end
+      return helpers
     end
 
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil)#:nodoc:
       @assigns = assigns_for_first_render
       @assigns_added = nil
       @controller = controller
-      @logger = controller && controller.logger
       @finder = TemplateFinder.new(self, view_paths)
     end
 
@@ -279,7 +283,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         elsif options[:partial]
           render_partial(options[:partial], ActionView::Base::ObjectWrapper.new(options[:object]), options[:locals])
         elsif options[:inline]
-          template = Template.new(self, options[:inline], false, options[:locals], true, options[:type])
+          template = InlineTemplate.new(self, options[:inline], options[:locals], options[:type])
           render_template(template)
         end
       end
@@ -320,7 +324,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       end
     end
 
-    private    
+    private
       def wrap_content_for_layout(content)
         original_content_for_layout = @content_for_layout
         @content_for_layout = content

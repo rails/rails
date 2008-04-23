@@ -30,6 +30,7 @@ require 'action_view/template_handlers/rjs'
 require 'action_view/template_finder'
 require 'action_view/template'
 require 'action_view/partial_template'
+require 'action_view/inline_template'
 
 require 'action_view/base'
 require 'action_view/partials'
@@ -37,6 +38,8 @@ require 'action_view/template_error'
 
 ActionView::Base.class_eval do
   include ActionView::Partials
-end
 
-ActionView::Base.load_helpers
+  ActionView::Base.helper_modules.each do |helper_module|
+    include helper_module
+  end
+end

@@ -26,7 +26,7 @@ module ActionController #:nodoc:
 
     DEFAULT_RESCUE_TEMPLATE = 'diagnostics'
     DEFAULT_RESCUE_TEMPLATES = {
-      'ActionController::MissingTemplate' => 'missing_template',
+      'ActionView::MissingTemplate'       => 'missing_template',
       'ActionController::RoutingError'    => 'routing_error',
       'ActionController::UnknownAction'   => 'unknown_action',
       'ActionView::TemplateError'         => 'template_error'
