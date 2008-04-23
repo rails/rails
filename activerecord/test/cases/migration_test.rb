@@ -79,6 +79,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       # Note: changed index name from "key" to "key_idx" since "key" is a Firebird reserved word
       # OpenBase does not have named indexes.  You must specify a single column name
       unless current_adapter?(:OpenBaseAdapter)
+        Person.update_all "#{Person.connection.quote_column_name 'key'}=#{Person.connection.quote_column_name 'id'}" #some databases (including sqlite2 won't add a unique index if existing data non unique)
         assert_nothing_raised { Person.connection.add_index("people", ["key"], :name => "key_idx", :unique => true) }
         assert_nothing_raised { Person.connection.remove_index("people", :name => "key_idx", :unique => true) }
       end
