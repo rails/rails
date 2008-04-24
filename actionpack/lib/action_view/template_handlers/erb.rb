@@ -43,7 +43,7 @@ module ActionView
       include Compilable
 
       def compile(template)
-        ::ERB.new(template, nil, @view.erb_trim_mode).src
+        ::ERB.new(template.source, nil, @view.erb_trim_mode).src
       end
 
       def cache_fragment(block, name = {}, options = nil) #:nodoc:

@@ -95,7 +95,7 @@ module ActionView
 
       # Method to create the source code for a given template.
       def create_template_source(template, render_symbol)
-        body = compile(template.source)
+        body = compile(template)
 
         self.template_args[render_symbol] ||= {}
         locals_keys = self.template_args[render_symbol].keys | template.locals.keys
