@@ -9,11 +9,13 @@ require 'models/person'
 require 'models/reader'
 require 'models/owner'
 require 'models/pet'
+require 'models/reference'
+require 'models/job'
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers,
-            :owners, :pets, :author_favorites
+            :owners, :pets, :author_favorites, :jobs, :references
 
   def test_loading_with_one_association
     posts = Post.find(:all, :include => :comments)
@@ -192,6 +194,30 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_association_loading_with_belongs_to_inferred_foreign_key_from_association_name
     author_favorite = AuthorFavorite.find(:first, :include => :favorite_author)
     assert_equal authors(:mary), assert_no_queries { author_favorite.favorite_author }
+  end
+
+  def test_eager_load_belongs_to_quotes_table_and_column_names
+    job = Job.find jobs(:unicyclist).id, :include => :ideal_reference
+    references(:michael_unicyclist)
+    assert_no_queries{ assert_equal references(:michael_unicyclist), job.ideal_reference}
+  end
+
+  def test_eager_load_has_one_quotes_table_and_column_names
+    michael = Person.find(people(:michael), :include => :favourite_reference)
+    references(:michael_unicyclist)
+    assert_no_queries{ assert_equal references(:michael_unicyclist), michael.favourite_reference}
+  end
+
+  def test_eager_load_has_many_quotes_table_and_column_names
+    michael = Person.find(people(:michael), :include => :references)
+    references(:michael_magician,:michael_unicyclist)
+    assert_no_queries{ assert_equal references(:michael_magician,:michael_unicyclist), michael.references.sort_by(&:id) }
+  end
+
+  def test_eager_load_has_many_through_quotes_table_and_column_names
+    michael = Person.find(people(:michael), :include => :jobs)
+    jobs(:magician, :unicyclist)
+    assert_no_queries{ assert_equal jobs(:unicyclist, :magician), michael.jobs.sort_by(&:id) }
   end
 
   def test_eager_association_loading_with_explicit_join
