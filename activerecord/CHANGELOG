@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that the MySQL adapter should map integer to either smallint, int, or bigint depending on the :limit just like PostgreSQL [DHH]
+
 * Change validates_uniqueness_of :case_sensitive option default back to true (from [9160]).  Love your database columns, don't LOWER them.  [rick]
 
 * Add support for interleaving migrations by storing which migrations have run in the new schema_migrations table. Closes #11493 [jordi]

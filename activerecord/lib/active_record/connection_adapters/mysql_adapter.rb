@@ -463,6 +463,22 @@ module ActiveRecord
         execute "ALTER TABLE #{quote_table_name(table_name)} CHANGE #{quote_column_name(column_name)} #{quote_column_name(new_column_name)} #{current_type}"
       end
 
+      # Maps logical Rails types to MySQL-specific data types.
+      def type_to_sql(type, limit = nil, precision = nil, scale = nil)
+        return super unless type.to_s == 'integer'
+
+        case limit
+        when 0..3
+          "smallint(#{limit})"
+        when 4..8
+          "int(#{limit})"
+        when 9..20
+          "bigint(#{limit})"
+        else
+          'int(11)'
+        end
+      end
+
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
