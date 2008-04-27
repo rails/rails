@@ -160,6 +160,10 @@ module Rails
     # ActiveResource. This allows Gem plugins to depend on Rails even when
     # the Gem version of Rails shouldn't be loaded.
     def install_gem_spec_stubs
+      unless Rails.respond_to?(:vendor_rails?)
+        abort "Your config/boot.rb is outdated: Run 'rake rails:update'."
+      end
+
       if Rails.vendor_rails?
         begin; require "rubygems"; rescue LoadError; return; end
 

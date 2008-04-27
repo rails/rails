@@ -85,9 +85,8 @@ module ActiveRecord
         return id_to_record_map, ids
       end
 
-      # FIXME: quoting
       def preload_has_and_belongs_to_many_association(records, reflection, preload_options={})
-        table_name = reflection.klass.table_name
+        table_name = reflection.klass.quoted_table_name
         id_to_record_map, ids = construct_id_map(records)
         records.each {|record| record.send(reflection.name).loaded}
         options = reflection.options
@@ -97,7 +96,7 @@ module ActiveRecord
 
         associated_records = reflection.klass.find(:all, :conditions => [conditions, ids],
         :include => options[:include],
-        :joins => "INNER JOIN #{options[:join_table]} as t0 ON #{reflection.klass.table_name}.#{reflection.klass.primary_key} = t0.#{reflection.association_foreign_key}",
+        :joins => "INNER JOIN #{connection.quote_table_name options[:join_table]} as t0 ON #{reflection.klass.quoted_table_name}.#{reflection.klass.primary_key} = t0.#{reflection.association_foreign_key}",
         :select => "#{options[:select] || table_name+'.*'}, t0.#{reflection.primary_key_name} as _parent_record_id",
         :order => options[:order])
 
@@ -157,7 +156,7 @@ module ActiveRecord
 
         if reflection.options[:source_type]
           interface = reflection.source_reflection.options[:foreign_type]
-          preload_options = {:conditions => ["#{interface} = ?", reflection.options[:source_type]]}
+          preload_options = {:conditions => ["#{connection.quote_column_name interface} = ?", reflection.options[:source_type]]}
 
           records.compact!
           records.first.class.preload_associations(records, through_association, preload_options)
@@ -216,7 +215,7 @@ module ActiveRecord
           klass_name, id_map = *klass_and_id
           klass = klass_name.constantize
 
-          table_name = klass.table_name
+          table_name = klass.quoted_table_name
           primary_key = klass.primary_key
           conditions = "#{table_name}.#{primary_key} IN (?)"
           conditions << append_conditions(options, preload_options)
@@ -229,16 +228,15 @@ module ActiveRecord
         end
       end
 
-      # FIXME: quoting
       def find_associated_records(ids, reflection, preload_options)
         options = reflection.options
-        table_name = reflection.klass.table_name
+        table_name = reflection.klass.quoted_table_name
 
         if interface = reflection.options[:as]
-          conditions = "#{reflection.klass.table_name}.#{interface}_id IN (?) and #{reflection.klass.table_name}.#{interface}_type = '#{self.base_class.name.demodulize}'"
+          conditions = "#{reflection.klass.quoted_table_name}.#{connection.quote_column_name "#{interface}_id"} IN (?) and #{reflection.klass.quoted_table_name}.#{connection.quote_column_name "#{interface}_type"} = '#{self.base_class.name.demodulize}'"
         else
           foreign_key = reflection.primary_key_name
-          conditions = "#{reflection.klass.table_name}.#{foreign_key} IN (?)"
+          conditions = "#{reflection.klass.quoted_table_name}.#{foreign_key} IN (?)"
         end
 
         conditions << append_conditions(options, preload_options)

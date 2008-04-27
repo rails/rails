@@ -20,14 +20,14 @@ module ActiveSupport
         RAILS_DEFAULT_LOGGER.error "Couldn't create cache directory: #{name} (#{e.message})" if RAILS_DEFAULT_LOGGER
       end
 
-      def delete(name, options)
+      def delete(name, options = nil)
         super
         File.delete(real_file_path(name))
       rescue SystemCallError => e
         # If there's no cache, then there's nothing to complain about
       end
 
-      def delete_matched(matcher, options)
+      def delete_matched(matcher, options = nil)
         super
         search_dir(@cache_path) do |f|
           if f =~ matcher
