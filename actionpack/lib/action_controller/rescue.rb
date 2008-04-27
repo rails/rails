@@ -165,7 +165,7 @@ module ActionController #:nodoc:
       # method if you wish to redefine the meaning of a local request to
       # include remote IP addresses or other criteria.
       def local_request? #:doc:
-        request.remote_addr == LOCALHOST and request.remote_ip == LOCALHOST
+        request.remote_addr == LOCALHOST && request.remote_ip == LOCALHOST
       end
 
       # Render detailed diagnostics for unhandled exceptions rescued from
