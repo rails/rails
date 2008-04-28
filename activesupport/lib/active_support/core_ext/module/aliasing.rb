@@ -28,6 +28,10 @@ class Module
     
     with_method, without_method = "#{aliased_target}_with_#{feature}#{punctuation}", "#{aliased_target}_without_#{feature}#{punctuation}"
     
+    if method_defined?(without_method) || private_method_defined?(without_method)
+      raise NameError, "#{with_method} is already in #{target}'s alias chain."
+    end
+    
     alias_method without_method, target
     alias_method target, with_method
     
