@@ -135,11 +135,11 @@ module Rails
 
       load_application_initializers
 
-      # Prepare dispatcher callbacks and run 'prepare' callbacks
-      prepare_dispatcher
-
       # the framework is now fully initialized
       after_initialize
+
+      # Prepare dispatcher callbacks and run 'prepare' callbacks
+      prepare_dispatcher
 
       # Routing must be initialized after plugins to allow the former to extend the routes
       initialize_routing
