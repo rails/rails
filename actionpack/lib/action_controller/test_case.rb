@@ -16,9 +16,23 @@ module ActionController
   end
 
   class TestCase < ActiveSupport::TestCase
+    # When the request.remote_addr remains the default for testing, which is 0.0.0.0, the exception is simply raised inline
+    # (bystepping the regular exception handling from rescue_action). If the request.remote_addr is anything else, the regular
+    # rescue_action process takes place. This means you can test your rescue_action code by setting remote_addr to something else
+    # than 0.0.0.0.
+    #
+    # The exception is stored in the exception accessor for further inspection.
     module RaiseActionExceptions
+      attr_accessor :exception
+
       def rescue_action(e)
-        raise e
+        self.exception = e
+        
+        if request.remote_addr == "0.0.0.0"
+          raise(e)
+        else
+          super(e)
+        end
       end
     end
 
@@ -59,6 +73,11 @@ module ActionController
       @controller = self.class.controller_class.new
       @controller.request = @request = TestRequest.new
       @response = TestResponse.new
+    end
+    
+    # Cause the action to be rescued according to the regular rules for rescue_action when the visitor is not local
+    def rescue_action_in_public!
+      @request.remote_addr = '208.77.188.166' # example.com
     end
  end
 end
