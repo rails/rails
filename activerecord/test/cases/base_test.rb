@@ -1630,6 +1630,10 @@ class BasicsTest < ActiveRecord::TestCase
   def test_last
     assert_equal Developer.find(:first, :order => 'id desc'), Developer.last
   end
+
+  def test_all_with_conditions
+    assert_equal Developer.find(:all, :order => 'id desc'), Developer.all(:order => 'id desc')
+  end
   
   def test_find_ordered_last
     last  = Developer.find :last, :order => 'developers.salary ASC'

@@ -532,6 +532,12 @@ module ActiveRecord #:nodoc:
         find(:last, *args)
       end
       
+      # This is an alias for find(:all).  You can pass in all the same arguments to this method as you can
+      # to find(:all)
+      def all(*args)
+        find(:all, *args)
+      end
+      
       #
       # Executes a custom sql query against your database and returns all the results.  The results will
       # be returned as an array with columns requested encapsulated as attributes of the model you call
