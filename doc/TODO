@@ -1,17 +1,25 @@
 todo:
-- active record query adapter
+- lock
+  - SELECT suchandsuch FOR UPDATE
+- anonymous table names
+- rename select to where
+- and/or w/ predicates
 - audit active record quoting
-- incorporate linq functionality/terminology
-  - then_by (ordering)
-  - reverse
-  - any/all
-  - where
 - limit clauses with left outer joins ?
   - see add_limited_ids_condition
   - select_limited_ids_list
+- count queries
 - extract adapters
+- arbitrary sql relationships
+  - consider this code from has_many:
+    # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
+    @reflection.options[:counter_sql] = @reflection.options[:finder_sql].sub(/SELECT (\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
+    - can join with this as a subselect no problem right? it's' unclear what attributes it has, though.
 - cache expiry on write
   - rewrite of arecord querycache test in light of this
+- linq functionality
+  - reverse
+  - any/all
 
 done:
 - mock out database
@@ -66,6 +74,7 @@ done:
 - test blank checks in relation.rb
 - rename active_relation to arel
 - fix complex joining cases:
+- active record query adapter
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?

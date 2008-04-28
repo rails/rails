@@ -18,19 +18,19 @@ module Arel
     include Enumerable
 
     module Operations
-      def join(other = nil)
+      def join(other = nil, join_type = "INNER JOIN")
         case other
         when String
           Join.new(other, self)
         when Relation
-          JoinOperation.new("INNER JOIN", self, other)
+          JoinOperation.new(join_type, self, other)
         else
           self
         end
       end
 
-      def outer_join(other)
-        JoinOperation.new("LEFT OUTER JOIN", self, other)
+      def outer_join(other = nil)
+        join(other, "LEFT OUTER JOIN")
       end
 
       def [](index)
@@ -39,6 +39,8 @@ module Arel
           attribute_for_name(index)
         when Attribute, Expression
           attribute_for_attribute(index)
+        when Array
+          index.collect { |i| self[i] }
         end
       end
 
@@ -123,7 +125,12 @@ module Arel
     end
     
     def call(connection = engine.connection)
-      connection.select_all(to_sql)
+      results = connection.execute(to_sql)
+      rows = []
+      results.each do |row|
+        rows << attributes.zip(row).to_hash
+      end
+      rows
     end
        
     module AttributeAccessors 

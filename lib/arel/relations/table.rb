@@ -39,10 +39,5 @@ module Arel
     def table_sql
       engine.quote_table_name(name)
     end
-    
-    private
-    def qualifications
-      attributes.zip(attributes.collect(&:qualified_name)).to_hash
-    end
   end
 end

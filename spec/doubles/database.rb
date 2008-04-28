@@ -23,7 +23,7 @@ module Fake
       }[table_name]
     end
 
-    def select_all(*args)
+    def execute(*args)
       []
     end
   

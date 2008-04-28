@@ -207,7 +207,7 @@ module Arel
     
     describe '#call' do
       it 'executes a select_all on the connection' do
-        mock(connection = Object.new).select_all(@relation.to_sql)
+        mock(connection = Object.new).execute(@relation.to_sql) { [] }
         @relation.call(connection)
       end
     end
