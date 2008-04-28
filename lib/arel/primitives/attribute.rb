@@ -30,10 +30,6 @@ module Arel
     end
     include Transformations
     
-    def qualified_name
-      "#{prefix}.#{name}"
-    end
-    
     def column
       relation.column_for(self)
     end
@@ -122,7 +118,7 @@ module Arel
     include Expressions
 
     def to_sql(formatter = Sql::WhereCondition.new(engine))
-      formatter.attribute prefix, name, self.alias
+      formatter.attribute relation.prefix_for(self), name, self.alias
     end
     
     def format(object)
@@ -132,10 +128,6 @@ module Arel
     private
     def formatter
       Sql::Attribute.new(self)
-    end
-    
-    def prefix
-      relation.prefix_for(self)
     end
   end
 end

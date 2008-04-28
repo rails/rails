@@ -24,9 +24,13 @@ module Arel
     end
     
     def prefix_for(attribute)
-      externalize([relation1[attribute], relation2[attribute]].select { |a| a =~ attribute }.min do |a1, a2|
+      name_for(relation_for(attribute))
+    end
+    
+    def relation_for(attribute)
+      [relation1[attribute], relation2[attribute]].select { |a| a =~ attribute }.min do |a1, a2|
         (attribute % a1).size <=> (attribute % a2).size
-      end.relation).prefix_for(attribute)
+      end.relation.relation_for(attribute)
     end
     
     # TESTME: Not sure which scenario needs this method, was driven by failing tests in ActiveRecord
@@ -34,10 +38,10 @@ module Arel
       (relation1[attribute] || relation2[attribute]).column
     end
     
-    def joins
+    def joins(formatter = Sql::TableReference.new(engine))
       this_join = [
         join_sql,
-        externalize(relation2).table_sql,
+        externalize(relation2).table_sql(formatter),
         ("ON" unless predicates.blank?),
         predicates.collect { |p| p.bind(self).to_sql }.join(' AND ')
       ].compact.join(" ")
@@ -45,29 +49,35 @@ module Arel
     end
 
     def selects
-      externalize(relation1).selects + externalize(relation2).selects
+      (externalize(relation1).selects + externalize(relation2).selects).collect { |s| s.bind(self) }
     end
    
-    def table_sql
-      externalize(relation1).table_sql
+    def table_sql(formatter = Sql::TableReference.new(engine))
+      externalize(relation1).table_sql(formatter)
+    end
+    
+    def name_for(relation)
+      @used_names ||= Hash.new(0)
+      @relation_names ||= Hash.new do |h, k|
+        @used_names[k.name] += 1
+        h[k] = k.name + (@used_names[k.name] > 1 ? "_#{@used_names[k.name]}" : '')
+      end
+      @relation_names[relation]
     end
     
     private
     def externalize(relation)
-      Externalizer.new(relation)
+      Externalizer.new(self, relation)
     end
     
-    Externalizer = Struct.new(:relation) do
+    Externalizer = Struct.new(:christener, :relation) do
       delegate :engine, :to => :relation
       
-      def table_sql
-        case
-        when relation.aggregation?
-          relation.to_sql(Sql::TableReference.new(engine))
-        when relation.alias?
-          relation.table_sql + ' AS ' + engine.quote_table_name(relation.alias.to_s)
+      def table_sql(formatter = Sql::TableReference.new(engine))
+        if relation.aggregation?
+          relation.to_sql(formatter) + ' AS ' + engine.quote_table_name(christener.name_for(relation))
         else
-          relation.table_sql
+          relation.table_sql(formatter) + (relation.name != christener.name_for(relation) ? " AS " + engine.quote_table_name(christener.name_for(relation)) : '')
         end
       end
       
@@ -77,12 +87,6 @@ module Arel
       
       def attributes
         relation.aggregation?? relation.attributes.collect(&:to_attribute) : relation.attributes
-      end
-      
-      def prefix_for(attribute)
-        if relation[attribute]
-          relation.alias?? relation.alias : relation.prefix_for(attribute)
-        end
       end
     end
   end

@@ -38,12 +38,6 @@ module Arel
       end
     end
     
-    describe '#qualified_name' do
-      it "manufactures an attribute name prefixed with the relation's name" do
-        @attribute.qualified_name.should == "#{@relation.prefix_for(@attribute)}.id"
-      end
-    end
-    
     describe '#engine' do
       it "delegates to its relation" do
         Attribute.new(@relation, :id).engine.should == @relation.engine
@@ -75,17 +69,6 @@ module Arel
       describe 'for a simple attribute' do
         it "manufactures sql with an alias" do
           @attribute.to_sql.should be_like("`users`.`id`")
-        end
-      end
-      
-      describe 'for an attribute in a join relation where the source relation is aliased' do
-        before do
-          another_relation = Table.new(:photos)
-          @join_with_alias = @relation.as(:alias).join(another_relation).on(@relation[:id].eq(another_relation[:user_id]))
-        end
-        
-        it "manufactures sql with an alias" do
-          @join_with_alias[@attribute].to_sql.should be_like("`alias`.`id`")
         end
       end
     end

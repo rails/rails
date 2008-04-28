@@ -15,5 +15,9 @@ module Arel
     def aggregation?
       true
     end
+    
+    def name
+      relation.name + '_aggregation'
+    end
   end
 end

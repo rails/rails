@@ -103,6 +103,10 @@ module Arel
       def alias?
         false
       end
+      
+      def relation_for(attribute)
+        self[attribute] and self
+      end
     end
     include Externalizable
     
@@ -116,7 +120,7 @@ module Arel
         ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                     unless groupings.blank? ),
         ("LIMIT     #{taken}"                                                                           unless taken.blank?     ),
         ("OFFSET    #{skipped}"                                                                         unless skipped.blank?   )
-      ].compact.join("\n"), self.alias
+      ].compact.join("\n")
     end
     alias_method :to_s, :to_sql
     
