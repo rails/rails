@@ -24,17 +24,9 @@ module Arel
     end
     
     def prefix_for(attribute)
-      if relation1[attribute] && !relation2[attribute]
-        externalize(relation1).prefix_for(attribute)
-      elsif relation2[attribute] && !relation1[attribute]
-        externalize(relation2).prefix_for(attribute)
-      else
-        if (attribute % relation1[attribute]).size < (attribute % relation2[attribute]).size
-          externalize(relation1).prefix_for(attribute)
-        else
-          externalize(relation2).prefix_for(attribute)
-        end
-      end
+      externalize([relation1[attribute], relation2[attribute]].select { |a| a =~ attribute }.min do |a1, a2|
+        (attribute % a1).size <=> (attribute % a2).size
+      end.relation).prefix_for(attribute)
     end
     
     # TESTME: Not sure which scenario needs this method, was driven by failing tests in ActiveRecord

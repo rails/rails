@@ -8,7 +8,6 @@ todo:
 - limit clauses with left outer joins ?
   - see add_limited_ids_condition
   - select_limited_ids_list
-- count queries
 - extract adapters
 - arbitrary sql relationships
   - consider this code from has_many:
