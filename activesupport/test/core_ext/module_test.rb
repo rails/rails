@@ -166,19 +166,6 @@ class MethodAliasingTest < Test::Unit::TestCase
     assert_equal 'bar_with_baz', @instance.bar
     assert_equal 'bar', @instance.bar_without_baz
   end
-  
-  def test_alias_method_chain_complains_the_second_time
-    FooClassWithBarMethod.class_eval do
-      def bar_with_magic; end
-      alias_method_chain :bar, :magic
-    end
-    
-    assert_raise(NameError) do
-      FooClassWithBarMethod.class_eval do
-        alias_method_chain :bar, :magic
-      end
-    end
-  end
 
   def test_alias_method_chain_with_punctuation_method
     FooClassWithBarMethod.class_eval do
@@ -302,5 +289,5 @@ class MethodAliasingTest < Test::Unit::TestCase
 
     assert_equal 'duck_with_orange', @instance.duck
     assert FooClassWithBarMethod.public_method_defined?(:duck)
-  end  
+  end
 end
