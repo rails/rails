@@ -263,12 +263,15 @@ module ActionController
         if match_with = equals[:text]
           matches.delete_if do |match|
             text = ""
+            text.force_encoding(match_with.encoding) if text.respond_to?(:force_encoding)
             stack = match.children.reverse
             while node = stack.pop
               if node.tag?
                 stack.concat node.children.reverse
               else
-                text << node.content
+                content = node.content
+                content.force_encoding(match_with.encoding) if content.respond_to?(:force_encoding)
+                text << content
               end
             end
             text.strip! unless NO_STRIP.include?(match.name)

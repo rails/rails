@@ -345,10 +345,17 @@ class AssertSelectTest < Test::Unit::TestCase
       page.replace "test", "<div id=\"1\">\343\203\201\343\202\261\343\203\203\343\203\210</div>"
     end
     assert_select_rjs do
-      assert_select "#1", :text => "\343\203\201\343\202\261\343\203\203\343\203\210"
-      assert_select "#1", "\343\203\201\343\202\261\343\203\203\343\203\210"
-      assert_select "#1", Regexp.new("\343\203\201..\343\203\210",0,'U')
-      assert_raises(AssertionFailedError) { assert_select "#1", Regexp.new("\343\203\201.\343\203\210",0,'U') }
+      str = "#1"
+      assert_select str, :text => "\343\203\201\343\202\261\343\203\203\343\203\210"
+      assert_select str, "\343\203\201\343\202\261\343\203\203\343\203\210"
+      if str.respond_to?(:force_encoding)
+        str.force_encoding(Encoding::UTF_8)
+        assert_select str, /\343\203\201..\343\203\210/u
+        assert_raises(AssertionFailedError) { assert_select str, /\343\203\201.\343\203\210/u }
+      else
+        assert_select str, Regexp.new("\343\203\201..\343\203\210",0,'U')
+        assert_raises(AssertionFailedError) { assert_select str, Regexp.new("\343\203\201.\343\203\210",0,'U') }
+      end
     end
   end
 
