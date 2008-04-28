@@ -145,8 +145,7 @@ module Arel
       
       describe 'when joining the same relation to itself' do
         describe '#to_sql' do
-          it 'aliases the table and attributes properly in selects'
-          it 'aliases the table and attributes properly in the join predicate' do
+          it 'aliases the table and attributes properly in the join predicate and the where clause' do
             @relation1.join(@aliased_relation).on(@relation1[:id].eq(@aliased_relation[:id])).to_sql.should be_like("
               SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
               FROM `users`
@@ -158,7 +157,7 @@ module Arel
         
         describe '[]' do
           describe 'when given an attribute belonging to both sub-relations' do
-            it 'disambiguates the ...' do
+            it 'disambiguates the relation that serves as the ancestor to the attribute' do
               relation = @relation1.join(@aliased_relation).on(@relation1[:id].eq(@aliased_relation[:id]))
               relation[@relation1[:id]].ancestor.should == @relation1[:id]
               relation[@aliased_relation[:id]].ancestor.should == @aliased_relation[:id]
