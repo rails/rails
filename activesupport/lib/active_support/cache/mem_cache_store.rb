@@ -48,8 +48,26 @@ module ActiveSupport
       rescue MemCache::MemCacheError => e
         logger.error("MemCacheError (#{e}): #{e.message}")
         false
+      end              
+
+      def increment(key, amount = 1)       
+        log("incrementing", key, amount)
+        
+        response = @data.incr(key, amount)  
+        response == Response::NOT_FOUND ? nil : response
+      rescue MemCache::MemCacheError 
+        nil
       end
 
+      def decrement(key, amount = 1)
+        log("decrement", key, amount)
+        
+        response = data.decr(key, amount) 
+        response == Response::NOT_FOUND ? nil : response
+      rescue MemCache::MemCacheError 
+        nil
+      end        
+      
       def delete_matched(matcher, options = nil)
         super
         raise "Not supported by Memcache"
