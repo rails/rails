@@ -196,7 +196,7 @@ module ActiveRecord
           :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY",
           :string      => { :name => "varchar", :limit => 255 },
           :text        => { :name => "text" },
-          :integer     => { :name => "int", :limit => 11 },
+          :integer     => { :name => "int"},
           :float       => { :name => "float" },
           :decimal     => { :name => "decimal" },
           :datetime    => { :name => "datetime" },
