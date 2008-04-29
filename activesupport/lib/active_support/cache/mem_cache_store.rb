@@ -75,6 +75,10 @@ module ActiveSupport
       
       def clear
         @data.flush_all
+      end        
+      
+      def stats
+        @data.stats
       end
 
       private
