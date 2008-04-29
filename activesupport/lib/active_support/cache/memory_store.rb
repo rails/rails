@@ -24,6 +24,10 @@ module ActiveSupport
         super
         @data.delete_if { |k,v| k =~ matcher }
       end
+      
+      def clear
+        @data.clear
+      end
     end
   end
 end
