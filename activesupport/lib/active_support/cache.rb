@@ -87,8 +87,25 @@ module ActiveSupport
 
       def delete_matched(matcher, options = nil)
         log("delete matched", matcher.inspect, options)
+      end       
+      
+      def increment(key, amount = 1)
+        log("incrementing", key, amount)
+        if num = read(key)
+          write(key, num + amount)
+        else
+          nil
+        end
       end
 
+      def decrement(key, amount = 1)
+        log("decrementing", key, amount)
+        if num = read(key)
+          write(key, num - amount)
+        else
+          nil
+        end
+      end
       
       private
         def log(operation, key, options)

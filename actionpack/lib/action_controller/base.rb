@@ -277,9 +277,10 @@ module ActionController #:nodoc:
     @@debug_routes = true
     cattr_accessor :debug_routes
 
-    # Controls whether the application is thread-safe, so multi-threaded servers like WEBrick know whether to apply a mutex
-    # around the performance of each action. Action Pack and Active Record are by default thread-safe, but many applications
-    # may not be. Turned off by default.
+    # Indicates to Mongrel or Webrick whether to allow concurrent action
+    # processing. Your controller actions and any other code they call must
+    # also behave well when called from concurrent threads. Turned off by
+    # default.
     @@allow_concurrency = false
     cattr_accessor :allow_concurrency
 

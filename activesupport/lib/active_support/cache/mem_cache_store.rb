@@ -29,12 +29,11 @@ module ActiveSupport
         nil
       end
 
-      # Set key = value if key isn't already set. Pass :force => true
-      # to unconditionally set key = value. Returns a boolean indicating
-      # whether the key was set.
+      # Set key = value. Pass :unless_exist => true if you don't 
+      # want to update the cache if the key is already set. 
       def write(key, value, options = nil)
         super
-        method = options && options[:force] ? :set : :add
+        method = options && options[:unless_exist] ? :add : :set
         response = @data.send(method, key, value, expires_in(options), raw?(options))
         response == Response::STORED
       rescue MemCache::MemCacheError => e
@@ -49,15 +48,37 @@ module ActiveSupport
       rescue MemCache::MemCacheError => e
         logger.error("MemCacheError (#{e}): #{e.message}")
         false
+      end              
+
+      def increment(key, amount = 1)       
+        log("incrementing", key, amount)
+        
+        response = @data.incr(key, amount)  
+        response == Response::NOT_FOUND ? nil : response
+      rescue MemCache::MemCacheError 
+        nil
       end
 
+      def decrement(key, amount = 1)
+        log("decrement", key, amount)
+        
+        response = data.decr(key, amount) 
+        response == Response::NOT_FOUND ? nil : response
+      rescue MemCache::MemCacheError 
+        nil
+      end        
+      
       def delete_matched(matcher, options = nil)
         super
         raise "Not supported by Memcache"
-      end
-
+      end        
+      
       def clear
         @data.flush_all
+      end        
+      
+      def stats
+        @data.stats
       end
 
       private

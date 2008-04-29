@@ -423,7 +423,9 @@ module ActiveRecord #:nodoc:
     @@default_timezone = :local
 
     # Determines whether to use a connection for each thread, or a single shared connection for all threads.
-    # Defaults to false. Set to true if you're writing a threaded application.
+    # Defaults to false. If you're writing a threaded application, set to true
+    # and periodically call verify_active_connections! to clear out connections
+    # assigned to stale threads.
     cattr_accessor :allow_concurrency, :instance_writer => false
     @@allow_concurrency = false
 
