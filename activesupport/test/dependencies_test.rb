@@ -584,6 +584,12 @@ class DependenciesTest < Test::Unit::TestCase
     assert_equal [], m
   end
 
+  def test_new_constants_in_with_illegal_module_name_raises_correct_error
+    assert_raises(NameError) do
+      Dependencies.new_constants_in("Illegal-Name") {}
+    end
+  end
+
   def test_file_with_multiple_constants_and_require_dependency
     with_loading 'autoloading_fixtures' do
       assert ! defined?(MultipleConstantFile)
