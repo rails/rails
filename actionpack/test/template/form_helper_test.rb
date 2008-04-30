@@ -540,6 +540,18 @@ class FormHelperTest < ActionView::TestCase
       _erbout
   end
 
+  def test_fields_for_object_with_bracketed_name_and_index
+    _erbout = ''
+    fields_for("author[post]", @post, :index => 1) do |f|
+      _erbout.concat f.label(:title)
+      _erbout.concat f.text_field(:title)
+    end
+
+    assert_dom_equal "<label for=\"author_post_1_title\">Title</label>" +
+      "<input name='author[post][1][title]' size='30' type='text' id='author_post_1_title' value='Hello World' />",
+      _erbout
+  end
+
   def test_form_builder_does_not_have_form_for_method
     assert ! ActionView::Helpers::FormBuilder.instance_methods.include?('form_for')
   end

@@ -471,6 +471,7 @@ module ActionView
         options = options.stringify_keys
         name_and_id = options.dup
         add_default_name_and_id(name_and_id)
+        options.delete("index")
         options["for"] ||= name_and_id["id"]
         content = (text.blank? ? nil : text.to_s) || method_name.humanize
         label_tag(name_and_id["id"], content, options)
