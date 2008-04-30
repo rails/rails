@@ -1,6 +1,8 @@
 require 'models/topic'
 
 class Reply < Topic
+  named_scope :base
+
   belongs_to :topic, :foreign_key => "parent_id", :counter_cache => true
   has_many :replies, :class_name => "SillyReply", :dependent => :destroy, :foreign_key => "parent_id"
 

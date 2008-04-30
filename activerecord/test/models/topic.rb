@@ -1,4 +1,5 @@
 class Topic < ActiveRecord::Base
+  named_scope :base
   named_scope :written_before, lambda { |time|
     { :conditions => ['written_on < ?', time] }
   }
