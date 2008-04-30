@@ -206,6 +206,7 @@ ActiveRecord::Schema.define do
     t.integer :person_id
     t.integer :job_id
     t.boolean :favourite
+    t.integer :lock_version, :default => 0
   end
 
   create_table :minimalistics, :force => true do |t|

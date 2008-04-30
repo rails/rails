@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/person'
 require 'models/reader'
 require 'models/legacy_thing'
+require 'models/reference'
 
 class LockWithoutDefault < ActiveRecord::Base; end
 
@@ -15,7 +16,7 @@ class ReadonlyFirstNamePerson < Person
 end
 
 class OptimisticLockingTest < ActiveRecord::TestCase
-  fixtures :people, :legacy_things
+  fixtures :people, :legacy_things, :references
 
   # need to disable transactional fixtures, because otherwise the sqlite3
   # adapter (at least) chokes when we try and change the schema in the middle
@@ -137,6 +138,12 @@ class OptimisticLockingTest < ActiveRecord::TestCase
         model.update_counters id, :test_count => 1
       end
     end
+  end
+  
+  def test_quote_table_name
+    ref = references(:michael_magician)
+    ref.favourite = !ref.favourite
+    assert ref.save
   end
 
   private
