@@ -23,7 +23,7 @@ module ActionView
       def benchmark(message = "Benchmarking", level = :info)
         if controller.logger
           real = Benchmark.realtime { yield }
-          controller.logger.send level, "#{message} (#{'%.5f' % real})"
+          controller.logger.send(level, "#{message} (#{'%.5f' % real})")
         else
           yield
         end
