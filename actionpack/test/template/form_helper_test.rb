@@ -6,11 +6,11 @@ silence_warnings do
     alias_method :title_before_type_cast, :title unless respond_to?(:title_before_type_cast)
     alias_method :body_before_type_cast, :body unless respond_to?(:body_before_type_cast)
     alias_method :author_name_before_type_cast, :author_name unless respond_to?(:author_name_before_type_cast)
-    
+
     def new_record=(boolean)
       @new_record = boolean
     end
-    
+
     def new_record?
       @new_record
     end
@@ -36,13 +36,13 @@ class FormHelperTest < ActionView::TestCase
   def setup
     @post = Post.new
     @comment = Comment.new
-    def @post.errors() 
-      Class.new{ 
-        def on(field); "can't be empty" if field == "author_name"; end 
-        def empty?() false end 
+    def @post.errors()
+      Class.new{
+        def on(field); "can't be empty" if field == "author_name"; end
+        def empty?() false end
         def count() 1 end
-        def full_messages() [ "Author name can't be empty" ] end  
-      }.new 
+        def full_messages() [ "Author name can't be empty" ] end
+      }.new
     end
     def @post.id; 123; end
     def @post.id_before_type_cast; 123; end
@@ -72,9 +72,17 @@ class FormHelperTest < ActionView::TestCase
       label("post", "title", nil, :class => 'title_label')
     )
   end
-  
+
   def test_label_with_symbols
     assert_dom_equal('<label for="post_title">Title</label>', label(:post, :title))
+  end
+
+  def test_label_with_for_attribute_as_symbol
+    assert_dom_equal('<label for="my_for">Title</label>', label(:post, :title, nil, :for => "my_for"))
+  end
+
+  def test_label_with_for_attribute_as_string
+    assert_dom_equal('<label for="my_for">Title</label>', label(:post, :title, nil, "for" => "my_for"))
   end
 
   def test_text_field
@@ -303,7 +311,7 @@ class FormHelperTest < ActionView::TestCase
       _erbout.concat f.submit('Create post')
     end
 
-    expected = 
+    expected =
       "<form action='http://www.example.com' id='create-post' method='post'>" +
       "<label for='post_title'>Title</label>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
@@ -325,7 +333,7 @@ class FormHelperTest < ActionView::TestCase
       _erbout.concat f.check_box(:secret)
     end
 
-    expected = 
+    expected =
       "<form action='http://www.example.com' id='create-post' method='post'>" +
       "<div style='margin:0;padding:0'><input name='_method' type='hidden' value='put' /></div>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
@@ -346,7 +354,7 @@ class FormHelperTest < ActionView::TestCase
       _erbout.concat f.check_box(:secret)
     end
 
-    expected = 
+    expected =
       "<form action='http://www.example.com' id='create-post' method='post'>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
@@ -367,7 +375,7 @@ class FormHelperTest < ActionView::TestCase
       _erbout.concat f.check_box(:secret)
     end
 
-    expected = 
+    expected =
       "<form action='http://www.example.com' method='post'>" +
       "<label for=\"post_123_title\">Title</label>" +
       "<input name='post[123][title]' size='30' type='text' id='post_123_title' value='Hello World' />" +
@@ -423,7 +431,7 @@ class FormHelperTest < ActionView::TestCase
       _erbout.concat f.check_box(:secret)
     end
 
-    expected = 
+    expected =
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
@@ -494,7 +502,7 @@ class FormHelperTest < ActionView::TestCase
       _erbout.concat f.check_box(:secret)
     end
 
-    expected = 
+    expected =
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
@@ -511,7 +519,7 @@ class FormHelperTest < ActionView::TestCase
       _erbout.concat f.check_box(:secret)
     end
 
-    expected = 
+    expected =
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
@@ -548,7 +556,7 @@ class FormHelperTest < ActionView::TestCase
       end
     end
 
-    expected = 
+    expected =
       "<form action='http://www.example.com' id='create-post' method='post'>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
@@ -571,7 +579,7 @@ class FormHelperTest < ActionView::TestCase
       end
     end
 
-    expected = 
+    expected =
       "<form action='http://www.example.com' id='create-post' method='post'>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
@@ -601,7 +609,7 @@ class FormHelperTest < ActionView::TestCase
       _erbout.concat f.check_box(:secret)
     end
 
-    expected = 
+    expected =
       "<form action='http://www.example.com' method='post'>" +
       "<label for='title'>Title:</label> <input name='post[title]' size='30' type='text' id='post_title' value='Hello World' /><br/>" +
       "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea><br/>" +
@@ -623,7 +631,7 @@ class FormHelperTest < ActionView::TestCase
       _erbout.concat f.check_box(:secret)
     end
 
-    expected = 
+    expected =
       "<form action='http://www.example.com' method='post'>" +
       "<label for='title'>Title:</label> <input name='post[title]' size='30' type='text' id='post_title' value='Hello World' /><br/>" +
       "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea><br/>" +
@@ -637,39 +645,39 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_default_form_builder_with_active_record_helpers
-     
-    _erbout = '' 
+
+    _erbout = ''
     form_for(:post, @post) do |f|
        _erbout.concat f.error_message_on('author_name')
        _erbout.concat f.error_messages
-    end    
-    
-    expected = %(<form action='http://www.example.com' method='post'>) + 
-               %(<div class='formError'>can't be empty</div>) + 
+    end
+
+    expected = %(<form action='http://www.example.com' method='post'>) +
+               %(<div class='formError'>can't be empty</div>) +
                %(<div class="errorExplanation" id="errorExplanation"><h2>1 error prohibited this post from being saved</h2><p>There were problems with the following fields:</p><ul><li>Author name can't be empty</li></ul></div>) +
                %(</form>)
-    
+
     assert_dom_equal expected, _erbout
 
   end
-  
+
   def test_default_form_builder_no_instance_variable
     post = @post
     @post = nil
-    
-    _erbout = '' 
+
+    _erbout = ''
     form_for(:post, post) do |f|
        _erbout.concat f.error_message_on('author_name')
        _erbout.concat f.error_messages
-    end    
-    
-    expected = %(<form action='http://www.example.com' method='post'>) + 
-               %(<div class='formError'>can't be empty</div>) + 
+    end
+
+    expected = %(<form action='http://www.example.com' method='post'>) +
+               %(<div class='formError'>can't be empty</div>) +
                %(<div class="errorExplanation" id="errorExplanation"><h2>1 error prohibited this post from being saved</h2><p>There were problems with the following fields:</p><ul><li>Author name can't be empty</li></ul></div>) +
                %(</form>)
-    
+
     assert_dom_equal expected, _erbout
-    
+
   end
 
   # Perhaps this test should be moved to prototype helper tests.
@@ -683,7 +691,7 @@ class FormHelperTest < ActionView::TestCase
        _erbout.concat f.check_box(:secret)
      end
 
-     expected = 
+     expected =
        %(<form action="http://www.example.com" onsubmit="new Ajax.Request('http://www.example.com', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" method="post">) +
        "<label for='title'>Title:</label> <input name='post[title]' size='30' type='text' id='post_title' value='Hello World' /><br/>" +
        "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea><br/>" +
@@ -693,31 +701,31 @@ class FormHelperTest < ActionView::TestCase
 
      assert_dom_equal expected, _erbout
   end
-   
+
   def test_fields_for_with_labelled_builder
     _erbout = ''
-    
+
     fields_for(:post, @post, :builder => LabelledFormBuilder) do |f|
       _erbout.concat f.text_field(:title)
       _erbout.concat f.text_area(:body)
       _erbout.concat f.check_box(:secret)
     end
-    
-    expected = 
+
+    expected =
       "<label for='title'>Title:</label> <input name='post[title]' size='30' type='text' id='post_title' value='Hello World' /><br/>" +
       "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea><br/>" +
       "<label for='secret'>Secret:</label> <input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
       "<input name='post[secret]' type='hidden' value='0' /><br/>"
-    
+
     assert_dom_equal expected, _erbout
   end
 
   def test_form_for_with_html_options_adds_options_to_form_tag
     _erbout = ''
-    
+
     form_for(:post, @post, :html => {:id => 'some_form', :class => 'some_class'}) do |f| end
     expected = "<form action=\"http://www.example.com\" class=\"some_class\" id=\"some_form\" method=\"post\"></form>"
-    
+
     assert_dom_equal expected, _erbout
   end
 
@@ -793,16 +801,16 @@ class FormHelperTest < ActionView::TestCase
     @comment.save
     _erbout = ''
     form_for([:admin, @post, @comment]) {}
-  
+
     expected = %(<form action="#{admin_comment_path(@post, @comment)}" class="edit_comment" id="edit_comment_1" method="post"><div style="margin:0;padding:0"><input name="_method" type="hidden" value="put" /></div></form>)
     assert_dom_equal expected, _erbout
   end
-  
+
   def test_form_for_with_new_object_and_namespace_in_list
     @post.new_record = false
     _erbout = ''
     form_for([:admin, @post, @comment]) {}
-  
+
     expected = %(<form action="#{admin_comments_path(@post)}" class="new_comment" id="new_comment" method="post"></form>)
     assert_dom_equal expected, _erbout
   end
@@ -819,10 +827,10 @@ class FormHelperTest < ActionView::TestCase
   def test_remote_form_for_with_html_options_adds_options_to_form_tag
     self.extend ActionView::Helpers::PrototypeHelper
     _erbout = ''
-    
+
     remote_form_for(:post, @post, :html => {:id => 'some_form', :class => 'some_class'}) do |f| end
     expected = "<form action=\"http://www.example.com\" class=\"some_class\" id=\"some_form\" method=\"post\" onsubmit=\"new Ajax.Request('http://www.example.com', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\"></form>"
-    
+
     assert_dom_equal expected, _erbout
   end
 
@@ -837,21 +845,21 @@ class FormHelperTest < ActionView::TestCase
       "/posts/#{post.id}/comments/#{comment.id}"
     end
     alias_method :post_comment_path, :comment_path
-    
+
     def admin_comments_path(post)
       "/admin/posts/#{post.id}/comments"
     end
     alias_method :admin_post_comments_path, :admin_comments_path
-    
+
     def admin_comment_path(post, comment)
       "/admin/posts/#{post.id}/comments/#{comment.id}"
     end
     alias_method :admin_post_comment_path, :admin_comment_path
-    
+
     def posts_path
       "/posts"
-    end 
-    
+    end
+
     def post_path(post)
       "/posts/#{post.id}"
     end
