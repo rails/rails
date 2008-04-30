@@ -111,7 +111,7 @@ module ActionView
         when ActionView::Helpers::FormBuilder
           builder_partial_path = partial_path.class.to_s.demodulize.underscore.sub(/_builder$/, '')
           render_partial(builder_partial_path, object_assigns, (local_assigns || {}).merge(builder_partial_path.to_sym => partial_path))
-        when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Associations::HasManyThroughAssociation
+        when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope
           if partial_path.any?
             collection = partial_path
             render_partial_collection(nil, collection, nil, local_assigns)
