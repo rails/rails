@@ -41,3 +41,9 @@ CREATE TABLE 'developers_projects' (
   'joined_on' DATE DEFAULT NULL,
   'access_level' INTEGER DEFAULT 1
 );
+
+CREATE TABLE 'mascots' (
+  'id' INTEGER PRIMARY KEY NOT NULL, 
+  'company_id' INTEGER NOT NULL,
+  'name' TEXT DEFAULT NULL
+);
