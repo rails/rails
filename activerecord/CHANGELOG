@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed has_many :through .create with no parameters caused a "can't dup NilClass" error (Steven Soroka) [#85]
+
 * Added block-setting of attributes for Base.create like Base.new already has (Adam Meehan) [#39]
 
 * Fixed that pessimistic locking you reference the quoted table name (Josh Susser) [#67]
