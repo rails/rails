@@ -23,6 +23,14 @@ class TestController < ActionController::Base
   def render_hello_world_with_forward_slash
     render :template => "/test/hello_world"
   end
+  
+  def render_template_in_top_directory
+    render :template => 'shared'
+  end
+  
+  def render_template_in_top_directory_with_slash
+    render :template => '/shared'
+  end
 
   def render_hello_world_from_variable
     @person = "david"
@@ -242,6 +250,18 @@ class RenderTest < Test::Unit::TestCase
   def test_render_with_forward_slash
     get :render_hello_world_with_forward_slash
     assert_template "test/hello_world"
+  end
+  
+  def test_render_in_top_directory
+    get :render_template_in_top_directory
+    assert_template "shared"
+    assert_equal "Elastica", @response.body
+  end
+  
+  def test_render_in_top_directory_with_slash
+    get :render_template_in_top_directory_with_slash
+    assert_template "shared"
+    assert_equal "Elastica", @response.body
   end
 
   def test_render_from_variable

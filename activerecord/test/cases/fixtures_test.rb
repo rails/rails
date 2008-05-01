@@ -96,6 +96,10 @@ class FixturesTest < ActiveRecord::TestCase
 
       second_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_topics_suffix WHERE author_name = 'Mary'")
       assert_nil(second_row["author_email_address"])
+
+      # This checks for a caching problem which causes a bug in the fixtures 
+      # class-level configuration helper.
+      assert_not_nil topics, "Fixture data inserted, but fixture objects not returned from create"
     ensure
       # Restore prefix/suffix to its previous values
       ActiveRecord::Base.table_name_prefix = old_prefix

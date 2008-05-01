@@ -349,6 +349,11 @@ ActiveRecord::Schema.define do
   end
   add_index :subscribers, :nick, :unique => true
 
+  create_table :subscriptions, :force => true do |t|
+    t.string :subscriber_id
+    t.integer :book_id
+  end
+
   create_table :tasks, :force => true do |t|
     t.datetime :starting
     t.datetime :ending

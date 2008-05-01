@@ -603,13 +603,25 @@ module ActiveRecord #:nodoc:
       # ==== Examples
       #   # Create a single new object
       #   User.create(:first_name => 'Jamie')
+      #
       #   # Create an Array of new objects
       #   User.create([{:first_name => 'Jamie'}, {:first_name => 'Jeremy'}])
-      def create(attributes = nil)
+      #
+      #   # Create a single object and pass it into a block to set other attributes.
+      #   User.create(:first_name => 'Jamie') do |u|
+      #     u.is_admin = false
+      #   end
+      #
+      #   # Creating an Array of new objects using a block, where the block is executed for each object:
+      #   User.create([{:first_name => 'Jamie'}, {:first_name => 'Jeremy'}]) do |u|
+      #     u.is_admin = false
+      #   end 
+      def create(attributes = nil, &block)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr) }
+          attributes.collect { |attr| create(attr, &block) }
         else
           object = new(attributes)
+          yield(object) if block_given?
           object.save
           object
         end

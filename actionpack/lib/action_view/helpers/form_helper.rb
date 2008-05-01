@@ -1,6 +1,7 @@
 require 'cgi'
 require 'action_view/helpers/date_helper'
 require 'action_view/helpers/tag_helper'
+require 'action_view/helpers/form_tag_helper'
 
 module ActionView
   module Helpers
@@ -51,7 +52,7 @@ module ActionView
     #
     # If the object name contains square brackets the id for the object will be inserted. For example:
     #
-    #   <%= text_field "person[]", "name" %> 
+    #   <%= text_field "person[]", "name" %>
     #
     # ...will generate the following ERb.
     #
@@ -91,7 +92,7 @@ module ActionView
       #
       # Even further, the form_for method allows you to more easily escape the instance variable convention. So while the stand-alone
       # approach would require <tt>text_field :person, :name, :object => person</tt>
-      # to work with local variables instead of instance ones, the form_for calls remain the same. You simply declare once with 
+      # to work with local variables instead of instance ones, the form_for calls remain the same. You simply declare once with
       # <tt>:person, person</tt> and all subsequent field calls save <tt>:person</tt> and <tt>:object => person</tt>.
       #
       # Also note that form_for doesn't create an exclusive scope. It's still possible to use both the stand-alone FormHelper methods
@@ -149,7 +150,7 @@ module ActionView
       #     ...
       #   <% end %>
       #
-      # And for namespaced routes, like admin_post_url: 
+      # And for namespaced routes, like admin_post_url:
       #
       #   <% form_for([:admin, @post]) do |f| %>
       #    ...
@@ -337,7 +338,7 @@ module ActionView
       # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
       # shown.
       #
-      # ==== Examples 
+      # ==== Examples
       #   hidden_field(:signup, :pass_confirm)
       #   # => <input type="hidden" id="signup_pass_confirm" name="signup[pass_confirm]" value="#{@signup.pass_confirm}" />
       #
@@ -404,7 +405,7 @@ module ActionView
       # is set to 0 which is convenient for boolean values. Since HTTP standards say that unchecked checkboxes don't post anything,
       # we add a hidden value with the same name as the checkbox as a work around.
       #
-      # ==== Examples 
+      # ==== Examples
       #   # Let's say that @post.validated? is 1:
       #   check_box("post", "validated")
       #   # => <input type="checkbox" id="post_validated" name="post[validated]" value="1" />
@@ -445,7 +446,7 @@ module ActionView
     end
 
     class InstanceTag #:nodoc:
-      include Helpers::TagHelper
+      include Helpers::TagHelper, Helpers::FormTagHelper
 
       attr_reader :method_name, :object_name
 
@@ -467,11 +468,13 @@ module ActionView
       end
 
       def to_label_tag(text = nil, options = {})
+        options = options.stringify_keys
         name_and_id = options.dup
         add_default_name_and_id(name_and_id)
-        options["for"] = name_and_id["id"]
+        options.delete("index")
+        options["for"] ||= name_and_id["id"]
         content = (text.blank? ? nil : text.to_s) || method_name.humanize
-        content_tag("label", content, options)
+        label_tag(name_and_id["id"], content, options)
       end
 
       def to_input_field_tag(field_type, options = {})

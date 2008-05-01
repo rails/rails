@@ -1,5 +1,7 @@
 *SVN*
 
+* Added block-setting of attributes for Base.create like Base.new already has (Adam Meehan) [#39]
+
 * Fixed that pessimistic locking you reference the quoted table name (Josh Susser) [#67]
 
 * Fixed that change_column should be able to use :null => true on a field that formerly had false [Nate Wiger] [#26]

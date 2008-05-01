@@ -11,11 +11,14 @@ require 'models/owner'
 require 'models/pet'
 require 'models/reference'
 require 'models/job'
+require 'models/subscriber'
+require 'models/subscription'
+require 'models/book'
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers,
-            :owners, :pets, :author_favorites, :jobs, :references
+            :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books
 
   def test_loading_with_one_association
     posts = Post.find(:all, :include => :comments)
@@ -218,6 +221,24 @@ class EagerAssociationTest < ActiveRecord::TestCase
     michael = Person.find(people(:michael), :include => :jobs)
     jobs(:magician, :unicyclist)
     assert_no_queries{ assert_equal jobs(:unicyclist, :magician), michael.jobs.sort_by(&:id) }
+  end
+
+  def test_eager_load_has_many_with_string_keys
+    subscriptions = subscriptions(:webster_awdr, :webster_rfr)
+    subscriber =Subscriber.find(subscribers(:second).id, :include => :subscriptions)
+    assert_equal subscriptions, subscriber.subscriptions.sort_by(&:id)
+  end
+  
+  def test_eager_load_has_many_through_with_string_keys
+    books = books(:awdr, :rfr)
+    subscriber = Subscriber.find(subscribers(:second).id, :include => :books)
+    assert_equal books, subscriber.books.sort_by(&:id)
+  end
+  
+  def test_eager_load_belongs_to_with_string_keys
+    subscriber = subscribers(:second)
+    subscription = Subscription.find(subscriptions(:webster_awdr).id, :include => :subscriber)
+    assert_equal subscriber, subscription.subscriber
   end
 
   def test_eager_association_loading_with_explicit_join

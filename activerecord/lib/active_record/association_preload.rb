@@ -59,14 +59,14 @@ module ActiveRecord
 
       def set_association_collection_records(id_to_record_map, reflection_name, associated_records, key)
         associated_records.each do |associated_record|
-          mapped_records = id_to_record_map[associated_record[key].to_i]
+          mapped_records = id_to_record_map[associated_record[key].to_s]
           add_preloaded_records_to_collection(mapped_records, reflection_name, associated_record)
         end
       end
 
       def set_association_single_records(id_to_record_map, reflection_name, associated_records, key)
         associated_records.each do |associated_record|
-          mapped_records = id_to_record_map[associated_record[key].to_i]
+          mapped_records = id_to_record_map[associated_record[key].to_s]
           mapped_records.each do |mapped_record|
             mapped_record.send("set_#{reflection_name}_target", associated_record)
           end
@@ -78,7 +78,7 @@ module ActiveRecord
         ids = []
         records.each do |record|
           ids << record.id
-          mapped_records = (id_to_record_map[record.id] ||= [])
+          mapped_records = (id_to_record_map[record.id.to_s] ||= [])
           mapped_records << record
         end
         ids.uniq!
@@ -115,7 +115,7 @@ module ActiveRecord
             source = reflection.source_reflection.name
             through_records.first.class.preload_associations(through_records, source)
             through_records.each do |through_record|
-              add_preloaded_record_to_collection(id_to_record_map[through_record[through_primary_key].to_i],
+              add_preloaded_record_to_collection(id_to_record_map[through_record[through_primary_key].to_s],
                                                  reflection.name, through_record.send(source))
             end
           end
@@ -140,7 +140,7 @@ module ActiveRecord
             source = reflection.source_reflection.name
             through_records.first.class.preload_associations(through_records, source)
             through_records.each do |through_record|
-              add_preloaded_records_to_collection(id_to_record_map[through_record[through_primary_key].to_i],
+              add_preloaded_records_to_collection(id_to_record_map[through_record[through_primary_key].to_s],
                                                  reflection.name, through_record.send(source))
             end
           end
@@ -195,18 +195,22 @@ module ActiveRecord
           records.each do |record|
             if klass = record.send(polymorph_type)
               klass_id = record.send(primary_key_name)
-
-              id_map = klasses_and_ids[klass] ||= {}
-              id_list_for_klass_id = (id_map[klass_id] ||= [])
-              id_list_for_klass_id << record
+              if klass_id
+                id_map = klasses_and_ids[klass] ||= {}
+                id_list_for_klass_id = (id_map[klass_id.to_s] ||= [])
+                id_list_for_klass_id << record
+              end
             end
           end
           klasses_and_ids = klasses_and_ids.to_a
         else
           id_map = {}
           records.each do |record|
-            mapped_records = (id_map[record.send(primary_key_name)] ||= [])
-            mapped_records << record
+            key = record.send(primary_key_name)
+            if key
+              mapped_records = (id_map[key.to_s] ||= [])
+              mapped_records << record
+            end
           end
           klasses_and_ids = [[reflection.klass.name, id_map]]
         end
