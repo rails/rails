@@ -251,6 +251,27 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.create("title" => "New Topic")
     topicReloaded = Topic.find(topic.id)
     assert_equal(topic, topicReloaded)
+  end  
+
+  def test_create_through_factory_with_block
+    topic = Topic.create("title" => "New Topic") do |t|
+      t.author_name = "David"
+    end
+    topicReloaded = Topic.find(topic.id)
+    assert_equal("New Topic", topic.title)
+    assert_equal("David", topic.author_name)
+  end
+
+  def test_create_many_through_factory_with_block
+    topics = Topic.create([ { "title" => "first" }, { "title" => "second" }]) do |t|
+      t.author_name = "David"
+    end
+    assert_equal 2, topics.size
+    topic1, topic2 = Topic.find(topics[0].id), Topic.find(topics[1].id)
+    assert_equal "first", topic1.title
+    assert_equal "David", topic1.author_name
+    assert_equal "second", topic2.title
+    assert_equal "David", topic2.author_name
   end
 
   def test_update
