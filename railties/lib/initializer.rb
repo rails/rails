@@ -28,7 +28,11 @@ module Rails
     end
   
     def root
-      RAILS_ROOT
+      if defined?(RAILS_ROOT)
+        RAILS_ROOT
+      else
+        nil
+      end
     end
   
     def env
@@ -40,7 +44,7 @@ module Rails
     end
 
     def public_path
-      @@public_path ||= File.join(self.root, "public")
+      @@public_path ||= self.root ? File.join(self.root, "public") : "public"
     end
 
     def public_path=(path)
