@@ -29,6 +29,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
     post = Post.find(:first, :include => :comments, :conditions => "posts.title = 'Welcome to the weblog'")
     assert_equal 2, post.comments.size
     assert post.comments.include?(comments(:greetings))
+
+    posts = Post.find(:all, :include => :last_comment)
+    post = posts.find { |p| p.id == 1 }
+    assert_equal Post.find(1).last_comment, post.last_comment
   end
 
   def test_loading_conditions_with_or
