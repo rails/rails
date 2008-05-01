@@ -115,6 +115,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert posts(:thinking).reload.people(true).collect(&:first_name).include?("Jeb")
   end
 
+  def test_associate_with_create_and_no_options
+    peeps = posts(:thinking).people.count
+    posts(:thinking).people.create
+    assert_equal peeps + 1, posts(:thinking).people.count
+  end
+
+  def test_associate_with_create_exclaimation_and_no_options
+    peeps = posts(:thinking).people.count
+    posts(:thinking).people.create!
+    assert_equal peeps + 1, posts(:thinking).people.count
+  end
+
   def test_clear_associations
     assert_queries(2) { posts(:welcome);posts(:welcome).people(true) }
     
