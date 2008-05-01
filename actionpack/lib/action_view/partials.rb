@@ -107,7 +107,7 @@ module ActionView
         case partial_path
         when String, Symbol, NilClass
           # Render the template
-          ActionView::PartialTemplate.new(self, partial_path, object_assigns, local_assigns).render
+          ActionView::PartialTemplate.new(self, partial_path, object_assigns, local_assigns).render_template
         when ActionView::Helpers::FormBuilder
           builder_partial_path = partial_path.class.to_s.demodulize.underscore.sub(/_builder$/, '')
           render_partial(builder_partial_path, object_assigns, (local_assigns || {}).merge(builder_partial_path.to_sym => partial_path))

@@ -17,6 +17,18 @@ module ActionView #:nodoc:
       @locals = locals || {}
       @handler = self.class.handler_class_for_extension(@extension).new(@view)
     end
+
+    def render_template
+      render
+    rescue Exception => e
+      raise e unless filename
+      if TemplateError === e
+        e.sub_template_of(filename)
+        raise e
+      else
+        raise TemplateError.new(self, @view.assigns, e)
+      end
+    end
     
     def render
       prepare!

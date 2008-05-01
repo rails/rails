@@ -244,16 +244,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       
       template = Template.new(self, template_path, use_full_path, local_assigns)
 
-      begin
-        render_template(template)
-      rescue Exception => e
-        if TemplateError === e
-          e.sub_template_of(template.filename)
-          raise e
-        else
-          raise TemplateError.new(template, @assigns, e)
-        end
-      end
+      render_template(template)
     end
     
     # Renders the template present at <tt>template_path</tt> (relative to the view_paths array). 
@@ -290,7 +281,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
     end
 
     def render_template(template) #:nodoc:
-      template.render
+      template.render_template
     end
 
     # Returns true is the file may be rendered implicitly.
