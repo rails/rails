@@ -52,8 +52,8 @@ module Arel
         attributes.all?(&:blank?) ? self : Projection.new(self, *attributes)
       end
       
-      def as(aliaz = nil)
-        aliaz.blank?? self : Alias.new(self, aliaz)
+      def alias
+        Alias.new(self)
       end
 
       def order(*attributes)
@@ -100,10 +100,6 @@ module Arel
         false
       end
     
-      def alias?
-        false
-      end
-      
       def relation_for(attribute)
         self[attribute] and self
       end
@@ -166,6 +162,5 @@ module Arel
     def joins;       nil end
     def taken;       nil end
     def skipped;     nil end
-    def alias;       nil end
   end
 end

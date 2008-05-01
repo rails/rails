@@ -30,12 +30,6 @@ module Arel
           @relation.should_not be_aggregation
         end
       end
-
-      describe '#alias?' do
-        it "returns false" do
-          @relation.should_not be_alias
-        end
-      end
     end
     
     describe Relation::Operations do
@@ -86,31 +80,25 @@ module Arel
         end
       end
 
-      describe '#as' do
+      describe '#alias' do
         it "manufactures an alias relation" do
-          @relation.as(:paul).should == Alias.new(@relation, :paul)
-        end
-        
-        describe 'when given a blank alias' do
-          it 'returns self' do
-            @relation.as.should == @relation
-          end
+          @relation.alias.relation.should == Alias.new(@relation).relation
         end
       end
-  
+
       describe '#select' do
         before do
           @predicate = Equality.new(@attribute1, @attribute2)
         end
-    
+
         it "manufactures a selection relation" do
           @relation.select(@predicate).should == Selection.new(@relation, @predicate)
         end
-    
+
         it "accepts arbitrary strings" do
           @relation.select("arbitrary").should == Selection.new(@relation, "arbitrary")
         end
-        
+
         describe 'when given a blank predicate' do
           it 'returns self' do
             @relation.select.should == @relation

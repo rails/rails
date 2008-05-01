@@ -129,7 +129,7 @@ module Arel
     
     describe 'when joining a relation to itself' do
       before do
-        @aliased_relation = @relation1.as(:alias)
+        @aliased_relation = @relation1.alias
         @predicate = @relation1[:id].eq(@aliased_relation[:id])
       end      
       
@@ -145,6 +145,13 @@ module Arel
       
       describe 'when joining the same relation to itself' do
         describe '#to_sql' do
+          it '' do
+            @relation1 \
+              .join(@relation1.alias.join(@relation1.alias).on(@relation1[:id].eq(1))) \
+                .on(@relation1[:id].eq(1)) \
+            .to_sql.should be_like("")
+          end
+          
           it 'aliases the table and attributes properly in the join predicate and the where clause' do
             @relation1.join(@aliased_relation).on(@relation1[:id].eq(@aliased_relation[:id])).to_sql.should be_like("
               SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
@@ -173,7 +180,7 @@ module Arel
           SELECT `users`.`id`, `users`.`name`
           FROM `users`
             INNER JOIN asdf ON fdsa
-        ")        
+        ")
       end
     end
   end

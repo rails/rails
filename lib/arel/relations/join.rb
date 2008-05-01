@@ -48,6 +48,11 @@ module Arel
       [relation1.joins, relation2.joins, this_join].compact.join(" ")
     end
 
+    # FIXME
+    def name
+      'user'
+    end
+    
     def selects
       (externalize(relation1).selects + externalize(relation2).selects).collect { |s| s.bind(self) }
     end

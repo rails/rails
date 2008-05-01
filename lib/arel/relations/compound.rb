@@ -5,7 +5,7 @@ module Arel
     hash_on :relation
     
     delegate :joins, :selects, :orders, :groupings, :table_sql, :inserts, :taken,
-             :skipped, :name, :alias, :aggregation?, :alias?, :prefix_for, :column_for,
+             :skipped, :name, :alias, :aggregation?, :prefix_for, :column_for,
              :engine,
              :to => :relation
     

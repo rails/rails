@@ -4,12 +4,12 @@ module Arel
   describe Alias do
     before do
       @relation = Table.new(:users)
-      @alias_relation = Alias.new(@relation, :foo)
     end
     
-    describe '#alias' do
+    describe '==' do
       it "returns the alias" do
-        @alias_relation.alias.should == :foo
+        Alias.new(@relation).should_not == Alias.new(@relation)
+        (aliaz = Alias.new(@relation)).should == aliaz
       end
     end
   end
