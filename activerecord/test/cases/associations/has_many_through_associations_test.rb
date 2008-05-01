@@ -117,13 +117,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_associate_with_create_and_no_options
     peeps = posts(:thinking).people.count
-    posts(:thinking).people.create
+    posts(:thinking).people.create(:first_name => 'foo')
     assert_equal peeps + 1, posts(:thinking).people.count
   end
 
-  def test_associate_with_create_exclaimation_and_no_options
+  def test_associate_with_create_exclamation_and_no_options
     peeps = posts(:thinking).people.count
-    posts(:thinking).people.create!
+    posts(:thinking).people.create!(:first_name => 'foo')
     assert_equal peeps + 1, posts(:thinking).people.count
   end
 
