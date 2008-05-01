@@ -149,7 +149,14 @@ module Arel
             @relation1 \
               .join(@relation1.alias.join(@relation1.alias).on(@relation1[:id].eq(1))) \
                 .on(@relation1[:id].eq(1)) \
-            .to_sql.should be_like("")
+            .to_sql.should be_like("
+              SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`, `users_3`.`id`, `users_3`.`name`
+              FROM `users`
+                INNER JOIN `users` AS `users_2`
+                  ON `users`.`id` = 1
+                INNER JOIN `users` AS `users_3`
+                  ON `users`.`id` = 1
+            ")
           end
           
           it 'aliases the table and attributes properly in the join predicate and the where clause' do
