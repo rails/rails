@@ -278,12 +278,12 @@ class MemCache
 
     results = {}
 
-    server_keys.each do |server, keys|
-      keys = keys.join ' '
+    server_keys.each do |server, keys_for_server|
+      keys_for_server = keys_for_server.join ' '
       values = if @multithread then
-                 threadsafe_cache_get_multi server, keys
+                 threadsafe_cache_get_multi server, keys_for_server
                else
-                 cache_get_multi server, keys
+                 cache_get_multi server, keys_for_server
                end
       values.each do |key, value|
         results[cache_keys[key]] = Marshal.load value
