@@ -2341,11 +2341,13 @@ uses_mocha 'route loading' do
     def setup
       routes.instance_variable_set '@routes_last_modified', nil
       silence_warnings { Object.const_set :RAILS_ROOT, '.' }
+      ActionController::Routing::Routes.configuration_file = File.join(RAILS_ROOT, 'config', 'routes.rb')
 
       @stat = stub_everything
     end
 
     def teardown
+      ActionController::Routing::Routes.configuration_file = nil
       Object.send :remove_const, :RAILS_ROOT
     end
 
@@ -2385,6 +2387,14 @@ uses_mocha 'route loading' do
       routes.expects(:reload!)
 
       Inflector.inflections { |inflect| inflect.uncountable('equipment') }
+    end
+    
+    def test_load_with_configuration
+      routes.configuration_file = "foobarbaz"
+      File.expects(:stat).returns(@stat)
+      routes.expects(:load).with("foobarbaz")
+
+      routes.reload
     end
 
     private
