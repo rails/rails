@@ -104,6 +104,14 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_text_field_with_html_entities
+    @post.title = "The HTML Entity for & is &amp;"
+    assert_dom_equal(
+      '<input id="post_title" name="post[title]" size="30" type="text" value="The HTML Entity for &amp; is &amp;amp;" />',
+      text_field("post", "title")
+    )
+  end
+
   def test_text_field_with_options
     expected = '<input id="post_title" name="post[title]" size="35" type="text" value="Hello World" />'
     assert_dom_equal expected, text_field("post", "title", "size" => 35)
@@ -224,6 +232,14 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(
       '<textarea cols="40" id="post_body" name="post[body]" rows="20">Testing alternate values.</textarea>',
       text_area("post", "body", :value => 'Testing alternate values.')
+    )
+  end
+
+  def test_text_area_with_html_entities
+    @post.body        = "The HTML Entity for & is &amp;"
+    assert_dom_equal(
+      '<textarea cols="40" id="post_body" name="post[body]" rows="20">The HTML Entity for &amp; is &amp;amp;</textarea>',
+      text_area("post", "body")
     )
   end
 

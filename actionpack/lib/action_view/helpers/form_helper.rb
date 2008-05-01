@@ -486,6 +486,7 @@ module ActionView
         end
         options["type"] = field_type
         options["value"] ||= value_before_type_cast(object) unless field_type == "file"
+        options["value"] &&= html_escape(options["value"])
         add_default_name_and_id(options)
         tag("input", options)
       end
