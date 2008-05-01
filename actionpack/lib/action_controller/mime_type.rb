@@ -71,8 +71,11 @@ module Mime
         # keep track of creation order to keep the subsequent sort stable
         list = []
         accept_header.split(/,/).each_with_index do |header, index| 
-          params = header.split(/;\s*q=/)
-          list << AcceptItem.new(index, *params) unless params.empty?
+          params, q = header.split(/;\s*q=/)       
+          if params
+            params.strip!          
+            list << AcceptItem.new(index, params, q) unless params.empty?
+          end
         end
         list.sort!
 
@@ -145,7 +148,7 @@ module Mime
     end
     
     def ==(mime_type)
-      return false unless mime_type
+      return false if mime_type.blank?
       (@synonyms + [ self ]).any? do |synonym| 
         synonym.to_s == mime_type.to_s || synonym.to_sym == mime_type.to_sym 
       end
