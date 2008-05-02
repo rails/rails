@@ -35,9 +35,5 @@ module Arel
     def reset
       @attributes = @columns = nil
     end
-
-    def table_sql(formatter = Sql::TableReference.new(engine))
-      formatter.table name
-    end
   end
 end

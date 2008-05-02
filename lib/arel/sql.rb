@@ -68,12 +68,18 @@ module Arel
     end
     
     class TableReference < Formatter
+      delegate :name_for, :to => :@christener
+      
+      def initialize(christener)
+        @christener, @engine = christener, christener.engine
+      end
+      
       def select(select_sql)
         "(#{select_sql})"
       end
       
-      def table(name)
-        quote_table_name(name)
+      def table(name, aliaz)
+        quote_table_name(name) + (name != aliaz ? " AS " + engine.quote_table_name(aliaz) : '')
       end
     end
     

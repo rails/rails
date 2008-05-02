@@ -1,6 +1,6 @@
 module Arel
   class Grouping < Compound
-    attr_reader :expressions, :groupings
+    attr_reader :groupings
 
     def initialize(relation, *groupings)
       @relation, @groupings = relation, groupings.collect { |g| g.bind(relation) }
@@ -14,10 +14,6 @@ module Arel
 
     def aggregation?
       true
-    end
-    
-    def name
-      relation.name + '_aggregation'
     end
   end
 end

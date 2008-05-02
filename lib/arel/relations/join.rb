@@ -1,4 +1,6 @@
 module Arel
+  # TODO Explicitly model recursive structural decomposition / polymorphism
+  # TODO Explicitly model the namer/externalizer using interpreter jargon
   class Join < Relation
     attr_reader :join_sql, :relation1, :relation2, :predicates
     
@@ -24,7 +26,7 @@ module Arel
     end
     
     def prefix_for(attribute)
-      name_for(relation_for(attribute))
+      externalize(relation_for(attribute)).table_sql # externalize or something?
     end
     
     def relation_for(attribute)
@@ -38,14 +40,14 @@ module Arel
       (relation1[attribute] || relation2[attribute]).column
     end
     
-    def joins(formatter = Sql::TableReference.new(engine))
+    def joins(formatter = Sql::TableReference.new(self))
       this_join = [
         join_sql,
         externalize(relation2).table_sql(formatter),
         ("ON" unless predicates.blank?),
         predicates.collect { |p| p.bind(self).to_sql }.join(' AND ')
       ].compact.join(" ")
-      [relation1.joins, relation2.joins, this_join].compact.join(" ")
+      [relation1.joins(formatter), relation2.joins(formatter), this_join].compact.join(" ")
     end
 
     # FIXME
@@ -57,7 +59,7 @@ module Arel
       (externalize(relation1).selects + externalize(relation2).selects).collect { |s| s.bind(self) }
     end
    
-    def table_sql(formatter = Sql::TableReference.new(engine))
+    def table_sql(formatter = Sql::TableReference.new(self))
       externalize(relation1).table_sql(formatter)
     end
     
@@ -78,11 +80,13 @@ module Arel
     Externalizer = Struct.new(:christener, :relation) do
       delegate :engine, :to => :relation
       
-      def table_sql(formatter = Sql::TableReference.new(engine))
+      def table_sql(formatter = Sql::TableReference.new(self))
         if relation.aggregation?
-          relation.to_sql(formatter) + ' AS ' + engine.quote_table_name(christener.name_for(relation))
+          relation.to_sql(formatter) + ' AS ' + engine.quote_table_name(christener.name_for(relation) + '_aggregation')
         else
-          relation.table_sql(formatter) + (relation.name != christener.name_for(relation) ? " AS " + engine.quote_table_name(christener.name_for(relation)) : '')
+          # not an aggregation
+          # all this can be is a join or a compound or a table
+          relation.table_sql(formatter)
         end
       end
       

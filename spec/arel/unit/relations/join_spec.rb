@@ -146,16 +146,18 @@ module Arel
       describe 'when joining the same relation to itself' do
         describe '#to_sql' do
           it '' do
+            relation2 = @relation1.alias
+            relation3 = @relation1.alias
             @relation1 \
-              .join(@relation1.alias.join(@relation1.alias).on(@relation1[:id].eq(1))) \
-                .on(@relation1[:id].eq(1)) \
+              .join(relation2.join(relation3).on(relation2[:id].eq(relation3[:id]))) \
+                .on(@relation1[:id].eq(relation2[:id])) \
             .to_sql.should be_like("
               SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`, `users_3`.`id`, `users_3`.`name`
               FROM `users`
                 INNER JOIN `users` AS `users_2`
-                  ON `users`.`id` = 1
+                  ON `users_2`.`id` = `users_3`.`id`
                 INNER JOIN `users` AS `users_3`
-                  ON `users`.`id` = 1
+                  ON `users_2`.`id` = `users_3`.`id`
             ")
           end
           

@@ -103,14 +103,22 @@ module Arel
       def relation_for(attribute)
         self[attribute] and self
       end
+      
+      def name_for(relation)
+        relation.name
+      end
+      
+      def table_sql(formatter = Sql::TableReference.new(self))
+        formatter.table name, formatter.name_for(self)
+      end
     end
     include Externalizable
     
     def to_sql(formatter = Sql::SelectStatement.new(engine))
       formatter.select [
         "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectClause.new(engine)) }.join(', ')}",
-        "FROM       #{table_sql}",
-        (joins                                                                                          unless joins.blank?     ),
+        "FROM       #{table_sql(Sql::TableReference.new(self))}",
+        (joins(Sql::TableReference.new(self))                                                                                          unless joins.blank?     ),
         ("WHERE     #{selects.collect { |s| s.to_sql(Sql::WhereClause.new(engine)) }.join("\n\tAND ")}" unless selects.blank?   ),
         ("ORDER BY  #{orders.collect { |o| o.to_sql(Sql::OrderClause.new(engine)) }.join(', ')}"        unless orders.blank?    ),
         ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                     unless groupings.blank? ),
@@ -159,7 +167,7 @@ module Arel
     def orders;      []  end
     def inserts;     []  end
     def groupings;   []  end
-    def joins;       nil end
+    def joins(formatter = nil);       nil end
     def taken;       nil end
     def skipped;     nil end
   end
