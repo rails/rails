@@ -1,6 +1,4 @@
 module Arel
-  # TODO Explicitly model recursive structural decomposition / polymorphism
-  # TODO Explicitly model the namer/externalizer using interpreter jargon
   class Join < Relation
     attr_reader :join_sql, :relation1, :relation2, :predicates
     
@@ -26,13 +24,7 @@ module Arel
     end
     
     def prefix_for(attribute)
-      externalize(relation_for(attribute)).table_sql # externalize or something?
-    end
-    
-    def relation_for(attribute)
-      [relation1[attribute], relation2[attribute]].select { |a| a =~ attribute }.min do |a1, a2|
-        (attribute % a1).size <=> (attribute % a2).size
-      end.relation.relation_for(attribute)
+      externalize(relation_for(attribute)).prefix_for(attribute)
     end
     
     # TESTME: Not sure which scenario needs this method, was driven by failing tests in ActiveRecord
@@ -45,14 +37,9 @@ module Arel
         join_sql,
         externalize(relation2).table_sql(formatter),
         ("ON" unless predicates.blank?),
-        predicates.collect { |p| p.bind(self).to_sql }.join(' AND ')
+        predicates.collect { |p| p.bind(formatter.christener).to_sql }.join(' AND ')
       ].compact.join(" ")
-      [relation1.joins(formatter), relation2.joins(formatter), this_join].compact.join(" ")
-    end
-
-    # FIXME
-    def name
-      'user'
+      [relation1.joins(formatter), this_join, relation2.joins(formatter)].compact.join(" ")
     end
     
     def selects
@@ -72,6 +59,13 @@ module Arel
       @relation_names[relation]
     end
     
+    protected
+    def relation_for(attribute)
+      [relation1[attribute], relation2[attribute]].select { |a| a =~ attribute }.min do |a1, a2|
+        (attribute % a1).size <=> (attribute % a2).size
+      end.relation.relation_for(attribute)
+    end
+    
     private
     def externalize(relation)
       Externalizer.new(self, relation)
@@ -82,10 +76,8 @@ module Arel
       
       def table_sql(formatter = Sql::TableReference.new(self))
         if relation.aggregation?
-          relation.to_sql(formatter) + ' AS ' + engine.quote_table_name(christener.name_for(relation) + '_aggregation')
+          relation.to_sql(formatter) + ' AS ' + engine.quote_table_name(formatter.name_for(relation) + (relation.aggregation?? '_aggregation' :  ''))
         else
-          # not an aggregation
-          # all this can be is a join or a compound or a table
           relation.table_sql(formatter)
         end
       end
@@ -96,6 +88,10 @@ module Arel
       
       def attributes
         relation.aggregation?? relation.attributes.collect(&:to_attribute) : relation.attributes
+      end
+      
+      def prefix_for(attribute)
+        christener.name_for(relation) + (relation.aggregation?? '_aggregation' :  '')
       end
     end
   end

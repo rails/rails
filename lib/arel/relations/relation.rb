@@ -115,10 +115,11 @@ module Arel
     include Externalizable
     
     def to_sql(formatter = Sql::SelectStatement.new(engine))
+      tr = Sql::TableReference.new(self)
       formatter.select [
         "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectClause.new(engine)) }.join(', ')}",
-        "FROM       #{table_sql(Sql::TableReference.new(self))}",
-        (joins(Sql::TableReference.new(self))                                                                                          unless joins.blank?     ),
+        "FROM       #{table_sql(tr)}",
+        (joins(tr)                                                                                      unless joins.blank?     ),
         ("WHERE     #{selects.collect { |s| s.to_sql(Sql::WhereClause.new(engine)) }.join("\n\tAND ")}" unless selects.blank?   ),
         ("ORDER BY  #{orders.collect { |o| o.to_sql(Sql::OrderClause.new(engine)) }.join(', ')}"        unless orders.blank?    ),
         ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                     unless groupings.blank? ),

@@ -68,6 +68,7 @@ module Arel
     end
     
     class TableReference < Formatter
+      attr_reader :christener
       delegate :name_for, :to => :@christener
       
       def initialize(christener)

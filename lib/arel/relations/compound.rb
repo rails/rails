@@ -6,7 +6,7 @@ module Arel
     
     delegate :joins, :selects, :orders, :groupings, :inserts, :taken,
              :skipped, :name, :alias, :aggregation?, :prefix_for, :column_for,
-             :engine,
+             :engine, :name_for,
              :to => :relation
     
     def attributes

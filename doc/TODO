@@ -1,24 +1,14 @@
 todo:
+- Explicitly model recursive structural decomposition / polymorphism
+- Explicitly model the namer/externalizer using interpreter jargon
+- All Sql Strategies should be accumulations with the top-level relation?
 - lock
   - SELECT suchandsuch FOR UPDATE
-- anonymous table names
 - rename select to where
 - and/or w/ predicates
-- audit active record quoting
-- limit clauses with left outer joins ?
-  - see add_limited_ids_condition
-  - select_limited_ids_list
-- extract adapters
-- arbitrary sql relationships
-  - consider this code from has_many:
-    # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
-    @reflection.options[:counter_sql] = @reflection.options[:finder_sql].sub(/SELECT (\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
-    - can join with this as a subselect no problem right? it's' unclear what attributes it has, though.
 - cache expiry on write
   - rewrite of arecord querycache test in light of this
-- linq functionality
-  - reverse
-  - any/all
+- scoped writes
 
 done:
 - mock out database
@@ -74,6 +64,7 @@ done:
 - rename active_relation to arel
 - fix complex joining cases:
 - active record query adapter
+- anonymous table names
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?
@@ -83,3 +74,6 @@ icebox:
 - "unit" test sql strategies
   - use real world examples, so they should be like a tutorial.
 - rename the tion (Selection) classes so that words that don't end in tion don't seem inconsistent
+- consider this code from has_many:
+  # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
+  @reflection.options[:counter_sql] = @reflection.options[:finder_sql].sub(/SELECT (\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
