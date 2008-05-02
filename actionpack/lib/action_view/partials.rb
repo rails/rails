@@ -100,7 +100,7 @@ module ActionView
   #     Title: <%= chief.name %>
   #   </div>
   #
-  # As you can see, the :locals hash is shared between both the partial and its layout.
+  # As you can see, the <tt>:locals</tt> hash is shared between both the partial and its layout.
   module Partials
     private
       def render_partial(partial_path, object_assigns = nil, local_assigns = {}) #:nodoc:

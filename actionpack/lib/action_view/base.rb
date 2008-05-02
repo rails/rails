@@ -287,9 +287,10 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       template_path.split('/').last[0,1] != '_'
     end
 
-    # symbolized version of the :format parameter of the request, or :html by default.
+    # Returns a symbolized version of the <tt>:format</tt> parameter of the request,
+    # or <tt>:html</tt> by default.
     #
-    # EXCEPTION: If the :format parameter is not set, the Accept header will be examined for
+    # EXCEPTION: If the <tt>:format</tt> parameter is not set, the Accept header will be examined for
     # whether it contains the JavaScript mime type as its first priority. If that's the case,
     # it will be used. This ensures that Ajax applications can use the same URL to support both
     # JavaScript and non-JavaScript users.

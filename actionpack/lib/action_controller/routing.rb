@@ -23,7 +23,8 @@ module ActionController
   #   map.connect ':controller/:action/:id'
   #
   # This route states that it expects requests to consist of a
-  # :controller followed by an :action that in turn is fed some :id.
+  # <tt>:controller</tt> followed by an <tt>:action</tt> that in turn is fed
+  # some <tt>:id</tt>.
   #
   # Suppose you get an incoming request for <tt>/blog/edit/22</tt>, you'll end up
   # with:
@@ -36,11 +37,11 @@ module ActionController
   # Think of creating routes as drawing a map for your requests. The map tells
   # them where to go based on some predefined pattern:
   #
-  #  ActionController::Routing::Routes.draw do |map|
-  #   Pattern 1 tells some request to go to one place
-  #   Pattern 2 tell them to go to another
-  #   ...
-  #  end
+  #   ActionController::Routing::Routes.draw do |map|
+  #     Pattern 1 tells some request to go to one place
+  #     Pattern 2 tell them to go to another
+  #     ...
+  #   end
   #
   # The following symbols are special:
   #
@@ -59,12 +60,12 @@ module ActionController
   # Within blocks, the empty pattern is at the highest priority.
   # In practice this works out nicely:
   #
-  #  ActionController::Routing::Routes.draw do |map|
-  #    map.with_options :controller => 'blog' do |blog|
-  #      blog.show '',  :action => 'list'
-  #    end
-  #    map.connect ':controller/:action/:view'
-  #  end
+  #   ActionController::Routing::Routes.draw do |map|
+  #     map.with_options :controller => 'blog' do |blog|
+  #       blog.show '',  :action => 'list'
+  #     end
+  #     map.connect ':controller/:action/:view'
+  #   end
   #
   # In this case, invoking blog controller (with an URL like '/blog/')
   # without parameters will activate the 'list' action by default.
@@ -75,9 +76,10 @@ module ActionController
   # Hash at the end of your mapping to set any default parameters.
   #
   # Example:
-  #  ActionController::Routing:Routes.draw do |map|
-  #    map.connect ':controller/:action/:id', :controller => 'blog'
-  #  end
+  #
+  #   ActionController::Routing:Routes.draw do |map|
+  #     map.connect ':controller/:action/:id', :controller => 'blog'
+  #   end
   #
   # This sets up +blog+ as the default controller if no other is specified.
   # This means visiting '/' would invoke the blog controller.
@@ -93,6 +95,7 @@ module ActionController
   # for the full URL and +name_of_route_path+ for the URI path.
   #
   # Example:
+  #
   #   # In routes.rb
   #   map.login 'login', :controller => 'accounts', :action => 'login'
   #
@@ -138,22 +141,23 @@ module ActionController
   #
   # Routes can generate pretty URLs. For example:
   #
-  #  map.connect 'articles/:year/:month/:day',
-  #              :controller => 'articles',
-  #              :action     => 'find_by_date',
-  #              :year       => /\d{4}/,
-  #              :month      => /\d{1,2}/,
-  #              :day        => /\d{1,2}/
+  #   map.connect 'articles/:year/:month/:day',
+  #               :controller => 'articles',
+  #               :action     => 'find_by_date',
+  #               :year       => /\d{4}/,
+  #               :month      => /\d{1,2}/,
+  #               :day        => /\d{1,2}/
   #
-  #  # Using the route above, the url below maps to:
-  #  # params = {:year => '2005', :month => '11', :day => '06'}
-  #  # http://localhost:3000/articles/2005/11/06
+  # Using the route above, the URL "http://localhost:3000/articles/2005/11/06"
+  # maps to
+  #
+  #   params = {:year => '2005', :month => '11', :day => '06'}
   #
   # == Regular Expressions and parameters
   # You can specify a regular expression to define a format for a parameter.
   #
-  #  map.geocode 'geocode/:postalcode', :controller => 'geocode',
-  #              :action => 'show', :postalcode => /\d{5}(-\d{4})?/
+  #   map.geocode 'geocode/:postalcode', :controller => 'geocode',
+  #               :action => 'show', :postalcode => /\d{5}(-\d{4})?/
   #
   # or, more formally:
   #
@@ -182,7 +186,7 @@ module ActionController
   #
   # Specifying <tt>*[string]</tt> as part of a rule like:
   #
-  #  map.connect '*path' , :controller => 'blog' , :action => 'unrecognized?'
+  #   map.connect '*path' , :controller => 'blog' , :action => 'unrecognized?'
   #
   # will glob all remaining parts of the route that were not recognized earlier. This idiom
   # must appear at the end of the path. The globbed values are in <tt>params[:path]</tt> in
@@ -210,7 +214,7 @@ module ActionController
   #
   # You can reload routes if you feel you must:
   #
-  #  ActionController::Routing::Routes.reload
+  #   ActionController::Routing::Routes.reload
   #
   # This will clear all named routes and reload routes.rb if the file has been modified from
   # last load. To absolutely force reloading, use +reload!+.
@@ -221,19 +225,19 @@ module ActionController
   #
   # === +assert_routing+
   #
-  #  def test_movie_route_properly_splits
-  #   opts = {:controller => "plugin", :action => "checkout", :id => "2"}
-  #   assert_routing "plugin/checkout/2", opts
-  #  end
+  #   def test_movie_route_properly_splits
+  #    opts = {:controller => "plugin", :action => "checkout", :id => "2"}
+  #    assert_routing "plugin/checkout/2", opts
+  #   end
   #
   # +assert_routing+ lets you test whether or not the route properly resolves into options.
   #
   # === +assert_recognizes+
   #
-  #  def test_route_has_options
-  #   opts = {:controller => "plugin", :action => "show", :id => "12"}
-  #   assert_recognizes opts, "/plugins/show/12"
-  #  end
+  #   def test_route_has_options
+  #    opts = {:controller => "plugin", :action => "show", :id => "12"}
+  #    assert_recognizes opts, "/plugins/show/12"
+  #   end
   #
   # Note the subtle difference between the two: +assert_routing+ tests that
   # a URL fits options while +assert_recognizes+ tests that a URL
@@ -241,16 +245,16 @@ module ActionController
   #
   # In tests you can simply pass the URL or named route to +get+ or +post+.
   #
-  #  def send_to_jail
-  #    get '/jail'
-  #    assert_response :success
-  #    assert_template "jail/front"
-  #  end
+  #   def send_to_jail
+  #     get '/jail'
+  #     assert_response :success
+  #     assert_template "jail/front"
+  #   end
   #
-  #  def goes_to_login
-  #    get login_url
-  #    #...
-  #  end
+  #   def goes_to_login
+  #     get login_url
+  #     #...
+  #   end
   #
   # == View a list of all your routes
   #

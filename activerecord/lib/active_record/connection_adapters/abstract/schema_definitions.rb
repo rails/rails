@@ -398,8 +398,8 @@ module ActiveRecord
       # TableDefinition#timestamps that'll add created_at and updated_at as datetimes.
       #
       # TableDefinition#references will add an appropriately-named _id column, plus a corresponding _type
-      # column if the :polymorphic option is supplied. If :polymorphic is a hash of options, these will be
-      # used when creating the _type column. So what can be written like this:
+      # column if the <tt>:polymorphic</tt> option is supplied. If <tt>:polymorphic</tt> is a hash of options, these will be
+      # used when creating the <tt>_type</tt> column. So what can be written like this:
       #
       #   create_table :taggings do |t|
       #     t.integer :tag_id, :tagger_id, :taggable_id

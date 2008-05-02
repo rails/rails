@@ -104,17 +104,17 @@ module ActionView
 
       # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based attribute (identified by
       # +method+) on an object assigned to the template (identified by +object+). It's possible to tailor the selects through the +options+ hash,
-      # which accepts all the keys that each of the individual select builders do (like :use_month_numbers for select_month) as well as a range of
+      # which accepts all the keys that each of the individual select builders do (like <tt>:use_month_numbers</tt> for select_month) as well as a range of
       # discard options. The discard options are <tt>:discard_year</tt>, <tt>:discard_month</tt> and <tt>:discard_day</tt>. Set to true, they'll
       # drop the respective select. Discarding the month select will also automatically discard the day select. It's also possible to explicitly
       # set the order of the tags using the <tt>:order</tt> option with an array of symbols <tt>:year</tt>, <tt>:month</tt> and <tt>:day</tt> in
       # the desired order. Symbols may be omitted and the respective select is not included.
       #
-      # Pass the <tt>:default</tt> option to set the default date. Use a Time object or a Hash of :year, :month, :day, :hour, :minute, and :second.
+      # Pass the <tt>:default</tt> option to set the default date. Use a Time object or a Hash of <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>, <tt>:minute</tt>, and <tt>:second</tt>.
       #
-      # Passing :disabled => true as part of the +options+ will make elements inaccessible for change.
+      # Passing <tt>:disabled => true</tt> as part of the +options+ will make elements inaccessible for change.
       #
-      # If anything is passed in the html_options hash it will be applied to every select tag in the set.
+      # If anything is passed in the +html_options+ hash it will be applied to every select tag in the set.
       #
       # NOTE: Discarded selects will default to 1. So if no month select is available, January will be assumed.
       #

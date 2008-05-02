@@ -124,7 +124,7 @@ module ActionController
         route_requirements
       end
 
-      # Assign default options, such as 'index' as a default for :action. This
+      # Assign default options, such as 'index' as a default for <tt>:action</tt>. This
       # method must be run *after* user supplied requirements and defaults have
       # been applied to the segments.
       def assign_default_route_options(segments)
@@ -187,7 +187,7 @@ module ActionController
         end
 
         # Routes cannot use the current string interpolation method
-        # if there are user-supplied :requirements as the interpolation
+        # if there are user-supplied <tt>:requirements</tt> as the interpolation
         # code won't raise RoutingErrors when generating
         if options.key?(:requirements) || route.requirements.keys.to_set != Routing::ALLOWED_REQUIREMENTS_FOR_OPTIMISATION
           route.optimise = false

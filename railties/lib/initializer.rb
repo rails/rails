@@ -572,11 +572,11 @@ module Rails
     attr_accessor :plugin_loader
     
     # Enables or disables plugin reloading.  You can get around this setting per plugin.
-    # If #reload_plugins? == false, add this to your plugin's init.rb to make it reloadable:
+    # If <tt>reload_plugins?</tt> is false, add this to your plugin's init.rb to make it reloadable:
     #
     #   Dependencies.load_once_paths.delete lib_path
     #
-    # If #reload_plugins? == true, add this to your plugin's init.rb to only load it once:
+    # If <tt>reload_plugins?</tt> is true, add this to your plugin's init.rb to only load it once:
     #
     #   Dependencies.load_once_paths << lib_path
     #

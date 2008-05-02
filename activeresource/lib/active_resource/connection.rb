@@ -128,8 +128,8 @@ module ActiveResource
     end
 
     # Execute a HEAD request.
-    # Used to ...
-    def head(path, headers= {})
+    # Used to obtain meta-information about resources, such as whether they exist and their size (via response headers).
+    def head(path, headers = {})
       request(:head, path, build_request_headers(headers))
     end
 

@@ -233,7 +233,7 @@ module ActiveRecord
     # * <tt>:username</tt> -- Defaults to nothing
     # * <tt>:password</tt> -- Defaults to nothing
     # * <tt>:database</tt> -- The name of the database. No default, must be provided.
-    # * <tt>:schema_search_path</tt> -- An optional schema search path for the connection given as a string of comma-separated schema names.  This is backward-compatible with the :schema_order option.
+    # * <tt>:schema_search_path</tt> -- An optional schema search path for the connection given as a string of comma-separated schema names.  This is backward-compatible with the <tt>:schema_order</tt> option.
     # * <tt>:encoding</tt> -- An optional client encoding that is used in a SET client_encoding TO <encoding> call on the connection.
     # * <tt>:min_messages</tt> -- An optional client min messages that is used in a SET client_min_messages TO <min_messages> call on the connection.
     # * <tt>:allow_concurrency</tt> -- If true, use async query methods so Ruby threads don't deadlock; otherwise, use blocking query methods.
@@ -479,9 +479,9 @@ module ActiveRecord
         create_database(name)
       end
 
-      # Create a new PostgreSQL database.  Options include :owner, :template,
-      # :encoding, :tablespace, and :connection_limit (note that MySQL uses
-      # :charset while PostgreSQL uses :encoding).
+      # Create a new PostgreSQL database.  Options include <tt>:owner</tt>, <tt>:template</tt>,
+      # <tt>:encoding</tt>, <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
+      # <tt>:charset</tt> while PostgreSQL uses <tt>:encoding</tt>).
       #
       # Example:
       #   create_database config[:database], config

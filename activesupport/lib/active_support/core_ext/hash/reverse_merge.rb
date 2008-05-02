@@ -8,7 +8,7 @@ module ActiveSupport #:nodoc:
       #     options.reverse_merge! :size => 25, :velocity => 10
       #   end
       #
-      # The default :size and :velocity is only set if the +options+ passed in doesn't already have those keys set.
+      # The default <tt>:size</tt> and <tt>:velocity</tt> is only set if the +options+ passed in doesn't already have those keys set.
       module ReverseMerge
         # Performs the opposite of merge, with the keys and values from the first hash taking precedence over the second.
         def reverse_merge(other_hash)

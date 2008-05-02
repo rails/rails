@@ -457,13 +457,14 @@ module ActiveResource
       # The first argument is considered to be the scope of the query.  That is, how many 
       # resources are returned from the request.  It can be one of the following.
       #
-      # +:one+:: Returns a single resource.
-      # +:first+:: Returns the first resource found.
-      # +:all+:: Returns every resource that matches the request.
+      # * <tt>:one</tt>: Returns a single resource.
+      # * <tt>:first</tt>: Returns the first resource found.
+      # * <tt>:all</tt>: Returns every resource that matches the request.
       # 
       # ==== Options
-      # +from+:: Sets the path or custom method that resources will be fetched from.
-      # +params+:: Sets query and prefix (nested URL) parameters.
+      #
+      # * +from+: Sets the path or custom method that resources will be fetched from.
+      # * +params+: Sets query and prefix (nested URL) parameters.
       #
       # ==== Examples
       #   Person.find(1)                                         

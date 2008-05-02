@@ -16,7 +16,7 @@ module ActionView
       # instead of the fully qualified URL like http://example.com/controller/action.
       #
       # When called from a view, url_for returns an HTML escaped url. If you
-      # need an unescaped url, pass :escape => false in the +options+.
+      # need an unescaped url, pass <tt>:escape => false</tt> in the +options+.
       #
       # ==== Options
       # * <tt>:anchor</tt> -- specifies the anchor name to be appended to the path.
@@ -25,8 +25,8 @@ module ActionView
       #   is currently not recommended since it breaks caching.
       # * <tt>:host</tt> -- overrides the default (current) host if provided
       # * <tt>:protocol</tt> -- overrides the default (current) protocol if provided
-      # * <tt>:user</tt> -- Inline HTTP authentication (only plucked out if :password is also present)
-      # * <tt>:password</tt> -- Inline HTTP authentication (only plucked out if :user is also present)
+      # * <tt>:user</tt> -- Inline HTTP authentication (only plucked out if <tt>:password</tt> is also present)
+      # * <tt>:password</tt> -- Inline HTTP authentication (only plucked out if <tt>:user</tt> is also present)
       # * <tt>:escape</tt> -- Determines whether the returned URL will be HTML escaped or not (<tt>true</tt> by default)
       #
       # ==== Relying on named routes
@@ -102,21 +102,21 @@ module ActionView
       #   create an HTML form and immediately submit the form for processing using
       #   the HTTP verb specified. Useful for having links perform a POST operation
       #   in dangerous actions like deleting a record (which search bots can follow
-      #   while spidering your site). Supported verbs are :post, :delete and :put.
+      #   while spidering your site). Supported verbs are <tt>:post</tt>, <tt>:delete</tt> and <tt>:put</tt>.
       #   Note that if the user has JavaScript disabled, the request will fall back
       #   to using GET. If you are relying on the POST behavior, you should check
       #   for it in your controller's action by using the request object's methods
-      #   for post?, delete? or put?.
+      #   for <tt>post?</tt>, <tt>delete?</tt> or <tt>put?</tt>.
       # * The +html_options+ will accept a hash of html attributes for the link tag.
       #
       # Note that if the user has JavaScript disabled, the request will fall back
-      # to using GET. If :href=>'#' is used and the user has JavaScript disabled
+      # to using GET. If <tt>:href => '#'</tt> is used and the user has JavaScript disabled
       # clicking the link will have no effect. If you are relying on the POST 
       # behavior, your should check for it in your controller's action by using the 
-      # request object's methods for post?, delete? or put?. 
+      # request object's methods for <tt>post?</tt>, <tt>delete?</tt> or <tt>put?</tt>.
       #
       # You can mix and match the +html_options+ with the exception of
-      # :popup and :method which will raise an ActionView::ActionViewError
+      # <tt>:popup</tt> and <tt>:method</tt> which will raise an ActionView::ActionViewError
       # exception.
       #
       # ==== Examples

@@ -45,7 +45,7 @@ module ActiveRecord
       # The +options+ hash can include the following keys:
       # [<tt>:id</tt>]
       #   Whether to automatically add a primary key column. Defaults to true.
-      #   Join tables for has_and_belongs_to_many should set :id => false.
+      #   Join tables for +has_and_belongs_to_many+ should set <tt>:id => false</tt>.
       # [<tt>:primary_key</tt>]
       #   The name of the primary key, if one is to be added automatically.
       #   Defaults to +id+.

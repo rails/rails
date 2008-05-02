@@ -198,31 +198,31 @@ module ActionMailer #:nodoc:
   #
   # These options are specified on the class level, like <tt>ActionMailer::Base.template_root = "/my/templates"</tt>
   #
-  # * <tt>template_root</tt> - template root determines the base from which template references will be made.
+  # * <tt>template_root</tt> - Determines the base from which template references will be made.
   #
   # * <tt>logger</tt> - the logger is used for generating information on the mailing run if available.
   #   Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
   #
-  # * <tt>smtp_settings</tt> -  Allows detailed configuration for :smtp delivery method:
+  # * <tt>smtp_settings</tt> - Allows detailed configuration for <tt>:smtp</tt> delivery method:
   #   * <tt>:address</tt> Allows you to use a remote mail server. Just change it from its default "localhost" setting.
   #   * <tt>:port</tt> On the off chance that your mail server doesn't run on port 25, you can change it.
   #   * <tt>:domain</tt> If you need to specify a HELO domain, you can do it here.
   #   * <tt>:user_name</tt> If your mail server requires authentication, set the username in this setting.
   #   * <tt>:password</tt> If your mail server requires authentication, set the password in this setting.
   #   * <tt>:authentication</tt> If your mail server requires authentication, you need to specify the authentication type here. 
-  #     This is a symbol and one of :plain, :login, :cram_md5
+  #     This is a symbol and one of <tt>:plain</tt>, <tt>:login</tt>, <tt>:cram_md5</tt>
   #
-  # * <tt>sendmail_settings</tt> - Allows you to override options for the :sendmail delivery method
+  # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method
   #   * <tt>:location</tt> The location of the sendmail executable, defaults to "/usr/sbin/sendmail"
   #   * <tt>:arguments</tt> The command line arguments
   # * <tt>raise_delivery_errors</tt> - whether or not errors should be raised if the email fails to be delivered.
   #
-  # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are :smtp (default), :sendmail, and :test.
+  # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are <tt>:smtp</tt> (default), <tt>:sendmail</tt>, and <tt>:test</tt>.
   #
   # * <tt>perform_deliveries</tt> - Determines whether deliver_* methods are actually carried out. By default they are,
   #   but this can be turned off to help functional testing.
   #
-  # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful
+  # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with <tt>delivery_method :test</tt>. Most useful
   #   for unit and functional testing.
   #
   # * <tt>default_charset</tt> - The default charset used for the body and to encode the subject. Defaults to UTF-8. You can also 

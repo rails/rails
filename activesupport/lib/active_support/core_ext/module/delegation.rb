@@ -1,8 +1,8 @@
 class Module
   # Provides a delegate class method to easily expose contained objects' methods
   # as your own. Pass one or more methods (specified as symbols or strings)
-  # and the name of the target object as the final :to option (also a symbol
-  # or string).  At least one method and the :to option are required.
+  # and the name of the target object as the final <tt>:to</tt> option (also a symbol
+  # or string).  At least one method and the <tt>:to</tt> option are required.
   #
   # Delegation is particularly useful with Active Record associations:
   #
@@ -20,6 +20,7 @@ class Module
   #   Foo.new.goodbye # => NoMethodError: undefined method `goodbye' for #<Foo:0x1af30c>
   #
   # Multiple delegates to the same target are allowed:
+  #
   #   class Foo < ActiveRecord::Base
   #     belongs_to :greeter
   #     delegate :hello, :goodbye, :to => :greeter
@@ -28,7 +29,8 @@ class Module
   #   Foo.new.goodbye # => "goodbye"
   #
   # Methods can be delegated to instance variables, class variables, or constants
-  # by providing the variable as a symbol:
+  # by providing them as a symbols:
+  #
   #   class Foo
   #     CONSTANT_ARRAY = [0,1,2,3]
   #     @@class_array  = [4,5,6,7]

@@ -126,8 +126,8 @@ module ActionController #:nodoc:
     #   end
     #
     # To use a filter object with around_filter, pass an object responding
-    # to :filter or both :before and :after. With a filter method, yield to
-    # the block as above:
+    # to <tt>:filter</tt> or both <tt>:before</tt> and <tt>:after</tt>. With a
+    # filter method, yield to the block as above:
     #
     #   around_filter BenchmarkingFilter
     #
@@ -191,8 +191,9 @@ module ActionController #:nodoc:
     # == Filter conditions
     #
     # Filters may be limited to specific actions by declaring the actions to
-    # include or exclude. Both options accept single actions (:only => :index)
-    # or arrays of actions (:except => [:foo, :bar]).
+    # include or exclude. Both options accept single actions
+    # (<tt>:only => :index</tt>) or arrays of actions
+    # (<tt>:except => [:foo, :bar]</tt>).
     #
     #   class Journal < ActionController::Base
     #     # Require authentication for edit and delete.

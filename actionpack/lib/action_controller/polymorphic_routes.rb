@@ -19,7 +19,7 @@ module ActionController
   # * <tt>url_for</tt>, so you can use it with a record as the argument, e.g.
   #   <tt>url_for(@article)</tt>;
   # * ActionView::Helpers::FormHelper uses <tt>polymorphic_path</tt>, so you can write
-  #   <tt>form_for(@article)</tt> without having to specify :url parameter for the form
+  #   <tt>form_for(@article)</tt> without having to specify <tt>:url</tt> parameter for the form
   #   action;
   # * <tt>redirect_to</tt> (which, in fact, uses <tt>url_for</tt>) so you can write
   #   <tt>redirect_to(post)</tt> in your controllers;

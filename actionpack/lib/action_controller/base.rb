@@ -332,7 +332,8 @@ module ActionController #:nodoc:
     @@resources_path_names = { :new => 'new', :edit => 'edit' }
     cattr_accessor :resources_path_names
 
-    # Sets the token parameter name for RequestForgery.  Calling #protect_from_forgery sets it to :authenticity_token by default
+    # Sets the token parameter name for RequestForgery. Calling +protect_from_forgery+
+    # sets it to <tt>:authenticity_token</tt> by default.
     cattr_accessor :request_forgery_protection_token
 
     # Indicates whether or not optimise the generated named
@@ -544,8 +545,8 @@ module ActionController #:nodoc:
       # * <tt>:host</tt> -- overrides the default (current) host if provided.
       # * <tt>:protocol</tt> -- overrides the default (current) protocol if provided.
       # * <tt>:port</tt> -- optionally specify the port to connect to.
-      # * <tt>:user</tt> -- Inline HTTP authentication (only plucked out if :password is also present).
-      # * <tt>:password</tt> -- Inline HTTP authentication (only plucked out if :user is also present).
+      # * <tt>:user</tt> -- Inline HTTP authentication (only plucked out if <tt>:password</tt> is also present).
+      # * <tt>:password</tt> -- Inline HTTP authentication (only plucked out if <tt>:user</tt> is also present).
       # * <tt>:skip_relative_url_root</tt> -- if true, the url is not constructed using the relative_url_root of the request so the path
       #   will include the web server relative installation directory.
       #
@@ -598,7 +599,7 @@ module ActionController #:nodoc:
       #   url_for :controller => 'posts', :action => nil
       #
       # If you explicitly want to create a URL that's almost the same as the current URL, you can do so using the
-      # :overwrite_params options. Say for your posts you have different views for showing and printing them.
+      # <tt>:overwrite_params</tt> options. Say for your posts you have different views for showing and printing them.
       # Then, in the show view, you get the URL for the print view like this
       #
       #   url_for :overwrite_params => { :action => 'print' }
@@ -769,7 +770,7 @@ module ActionController #:nodoc:
       #   # placed in "app/views/layouts/special.r(html|xml)"
       #   render :text => "Hi there!", :layout => "special"
       #
-      # The :text option can also accept a Proc object, which can be used to manually control the page generation. This should
+      # The <tt>:text</tt> option can also accept a Proc object, which can be used to manually control the page generation. This should
       # generally be avoided, as it violates the separation between code and content, and because almost everything that can be
       # done with this method can also be done more cleanly using one of the other rendering methods, most notably templates.
       #
@@ -823,7 +824,7 @@ module ActionController #:nodoc:
       #
       # === Rendering with status and location headers
       #
-      # All renders take the :status and :location options and turn them into headers. They can even be used together:
+      # All renders take the <tt>:status</tt> and <tt>:location</tt> options and turn them into headers. They can even be used together:
       #
       #   render :xml => post.to_xml, :status => :created, :location => post_url(post)
       def render(options = nil, extra_options = {}, &block) #:doc:

@@ -16,8 +16,8 @@ module ActiveRecord #:nodoc:
     #   # => {"id": 1, "name": "Konata Izumi", "age": 16,
     #         "created_at": "2006/08/01", "awesome": true}
     #
-    # The :only and :except options can be used to limit the attributes
-    # included, and work similar to the #attributes method. For example:
+    # The <tt>:only</tt> and <tt>:except</tt> options can be used to limit the attributes
+    # included, and work similar to the +attributes+ method. For example:
     #
     #   konata.to_json(:only => [ :id, :name ])
     #   # => {"id": 1, "name": "Konata Izumi"}
@@ -25,14 +25,14 @@ module ActiveRecord #:nodoc:
     #   konata.to_json(:except => [ :id, :created_at, :age ])
     #   # => {"name": "Konata Izumi", "awesome": true}
     #
-    # To include any methods on the model, use :methods.
+    # To include any methods on the model, use <tt>:methods</tt>.
     #
     #   konata.to_json(:methods => :permalink)
     #   # => {"id": 1, "name": "Konata Izumi", "age": 16,
     #         "created_at": "2006/08/01", "awesome": true,
     #         "permalink": "1-konata-izumi"}
     #
-    # To include associations, use :include.
+    # To include associations, use <tt>:include</tt>.
     #
     #   konata.to_json(:include => :posts)
     #   # => {"id": 1, "name": "Konata Izumi", "age": 16,

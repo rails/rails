@@ -365,7 +365,7 @@ module ActiveRecord
         create_database(name)
       end
 
-      # Create a new MySQL database with optional :charset and :collation.
+      # Create a new MySQL database with optional <tt>:charset</tt> and <tt>:collation</tt>.
       # Charset defaults to utf8.
       #
       # Example:

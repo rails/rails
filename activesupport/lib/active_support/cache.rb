@@ -49,7 +49,7 @@ module ActiveSupport
         self
       end
 
-      # Pass :force => true to force a cache miss.
+      # Pass <tt>:force => true</tt> to force a cache miss.
       def fetch(key, options = {})
         @logger_off = true
         if !options[:force] && value = read(key, options)

@@ -108,7 +108,7 @@ module ActionView
       # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base,
       # like FormOptionHelper#collection_select and DateHelper#datetime_select.
       #
-      # HTML attributes for the form tag can be given as :html => {...}. For example:
+      # HTML attributes for the form tag can be given as <tt>:html => {...}</tt>. For example:
       #
       #   <% form_for :person, @person, :html => {:id => 'person_form'} do |f| %>
       #     ...

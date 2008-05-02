@@ -2,7 +2,7 @@ module ActiveRecord #:nodoc:
   module Serialization
     # Builds an XML document to represent the model. Some configuration is
     # available through +options+. However more complicated cases should
-    # override ActiveRecord's to_xml method.
+    # override ActiveRecord::Base#to_xml.
     #
     # By default the generated XML document will include the processing
     # instruction and all the object's attributes. For example:
@@ -22,12 +22,12 @@ module ActiveRecord #:nodoc:
     #     <last-read type="date">2004-04-15</last-read>
     #   </topic>
     #
-    # This behavior can be controlled with :only, :except,
-    # :skip_instruct, :skip_types and :dasherize. The :only and
-    # :except options are the same as for the #attributes method.
-    # The default is to dasherize all column names, to disable this,
-    # set :dasherize to false. To not have the column type included
-    # in the XML output, set :skip_types to true.
+    # This behavior can be controlled with <tt>:only</tt>, <tt>:except</tt>,
+    # <tt>:skip_instruct</tt>, <tt>:skip_types</tt> and <tt>:dasherize</tt>.
+    # The <tt>:only</tt> and <tt>:except</tt> options are the same as for the
+    # +attributes+ method. The default is to dasherize all column names, but you
+    # can disable this setting <tt>:dasherize</tt> to +false+. To not have the
+    # column type included in the XML output set <tt>:skip_types</tt> to +true+.
     #
     # For instance:
     #
@@ -43,7 +43,7 @@ module ActiveRecord #:nodoc:
     #     <last-read type="date">2004-04-15</last-read>
     #   </topic>
     #
-    # To include first level associations use :include
+    # To include first level associations use <tt>:include</tt>:
     #
     #   firm.to_xml :include => [ :account, :clients ]
     #
@@ -98,7 +98,7 @@ module ActiveRecord #:nodoc:
     #     </account>
     #   </firm>
     #
-    # To include any methods on the object(s) being called use :methods
+    # To include any methods on the model being called use <tt>:methods</tt>:
     #
     #   firm.to_xml :methods => [ :calculated_earnings, :real_earnings ]
     #
@@ -108,9 +108,8 @@ module ActiveRecord #:nodoc:
     #     <real-earnings>5</real-earnings>
     #   </firm>
     #
-    # To call any Procs on the object(s) use :procs. The Procs
-    # are passed a modified version of the options hash that was
-    # given to #to_xml.
+    # To call any additional Procs use <tt>:procs</tt>. The Procs are passed a
+    # modified version of the options hash that was given to +to_xml+:
     #
     #   proc = Proc.new { |options| options[:builder].tag!('abc', 'def') }
     #   firm.to_xml :procs => [ proc ]
@@ -120,7 +119,7 @@ module ActiveRecord #:nodoc:
     #     <abc>def</abc>
     #   </firm>
     #
-    # Alternatively, you can yield the builder object as part of the to_xml call:
+    # Alternatively, you can yield the builder object as part of the +to_xml+ call:
     #
     #   firm.to_xml do |xml|
     #     xml.creator do
@@ -137,8 +136,9 @@ module ActiveRecord #:nodoc:
     #     </creator>
     #   </firm>
     #
-    # You can override the to_xml method in your ActiveRecord::Base
-    # subclasses if you need to. The general form of doing this is:
+    # As noted above, you may override +to_xml+ in your ActiveRecord::Base
+    # subclasses to have complete control about what's generated. The general
+    # form of doing this is:
     #
     #   class IHaveMyOwnXML < ActiveRecord::Base
     #     def to_xml(options = {})

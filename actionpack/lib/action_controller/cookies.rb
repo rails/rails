@@ -1,31 +1,38 @@
 module ActionController #:nodoc:
-  # Cookies are read and written through ActionController#cookies. The cookies being read are what were received along with the request,
-  # the cookies being written are what will be sent out with the response. Cookies are read by value (so you won't get the cookie object
-  # itself back -- just the value it holds). Examples for writing:
+  # Cookies are read and written through ActionController#cookies.
   #
-  #   cookies[:user_name] = "david" # => Will set a simple session cookie
+  # The cookies being read are the ones received along with the request, the cookies
+  # being written will be sent out with the response. Reading a cookie does not get
+  # the cookie object itself back, just the value it holds.
+  #
+  # Examples for writing:
+  #
+  #   # Sets a simple session cookie.
+  #   cookies[:user_name] = "david"
+  #
+  #   # Sets a cookie that expires in 1 hour.
   #   cookies[:login] = { :value => "XJ-122", :expires => 1.hour.from_now }
-  #   # => Will set a cookie that expires in 1 hour
   #
   # Examples for reading:
   #
   #   cookies[:user_name] # => "david"
-  #   cookies.size         # => 2
+  #   cookies.size        # => 2
   #
   # Example for deleting:
   #
   #   cookies.delete :user_name
   #
-  # All the option symbols for setting cookies are:
+  # The option symbols for setting cookies are:
   #
-  # * <tt>value</tt> - the cookie's value or list of values (as an array).
-  # * <tt>path</tt> - the path for which this cookie applies.  Defaults to the root of the application.
-  # * <tt>domain</tt> - the domain for which this cookie applies.
-  # * <tt>expires</tt> - the time at which this cookie expires, as a +Time+ object.
-  # * <tt>secure</tt> - whether this cookie is a secure cookie or not (default to false).
-  #                     Secure cookies are only transmitted to HTTPS servers.
-  # * <tt>http_only</tt> - whether this cookie is accessible via scripting or only HTTP (defaults to false).
-  
+  # * <tt>:value</tt> - The cookie's value or list of values (as an array).
+  # * <tt>:path</tt> - The path for which this cookie applies.  Defaults to the root
+  #   of the application.
+  # * <tt>:domain</tt> - The domain for which this cookie applies.
+  # * <tt>:expires</tt> - The time at which this cookie expires, as a Time object.
+  # * <tt>:secure</tt> - Whether this cookie is a only transmitted to HTTPS servers.
+  #   Default is +false+.
+  # * <tt>:http_only</tt> - Whether this cookie is accessible via scripting or
+  #   only HTTP. Defaults to +false+.
   module Cookies
     def self.included(base)
       base.helper_method :cookies
@@ -45,8 +52,7 @@ module ActionController #:nodoc:
       update(@cookies)
     end
 
-    # Returns the value of the cookie by +name+ -- or nil if no such cookie exists. You set new cookies using cookies[]=
-    # (for simple name/value cookies without options).
+    # Returns the value of the cookie by +name+, or +nil+ if no such cookie exists.
     def [](name)
       cookie = @cookies[name.to_s]
       if cookie && cookie.respond_to?(:value)
@@ -54,6 +60,8 @@ module ActionController #:nodoc:
       end
     end
 
+    # Sets the cookie named +name+. The second argument may be the very cookie
+    # value, or a hash of options as documented above.
     def []=(name, options)
       if options.is_a?(Hash)
         options = options.inject({}) { |options, pair| options[pair.first.to_s] = pair.last; options }
@@ -66,14 +74,18 @@ module ActionController #:nodoc:
     end
 
     # Removes the cookie on the client machine by setting the value to an empty string
-    # and setting its expiration date into the past.  Like []=, you can pass in an options
-    # hash to delete cookies with extra data such as a +path+.
+    # and setting its expiration date into the past. Like <tt>[]=</tt>, you can pass in
+    # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
     def delete(name, options = {})
       options.stringify_keys!
       set_cookie(options.merge("name" => name.to_s, "value" => "", "expires" => Time.at(0)))
     end
 
     private
+      # Builds a CGI::Cookie object and adds the cookie to the response headers.
+      #
+      # The path of the cookie defaults to "/" if there's none in +options+, and
+      # everything is passed to the CGI::Cookie constructor.
       def set_cookie(options) #:doc:
         options["path"] = "/" unless options["path"]
         cookie = CGI::Cookie.new(options)

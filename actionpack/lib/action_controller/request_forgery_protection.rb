@@ -102,7 +102,8 @@ module ActionController #:nodoc:
         request.format.html? || request.format.js?
       end
     
-      # Sets the token value for the current session.  Pass a :secret option in #protect_from_forgery to add a custom salt to the hash.
+      # Sets the token value for the current session.  Pass a <tt>:secret</tt> option
+      # in +protect_from_forgery+ to add a custom salt to the hash.
       def form_authenticity_token
         @form_authenticity_token ||= if request_forgery_protection_options[:secret]
           authenticity_token_from_session_id
