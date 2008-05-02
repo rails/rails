@@ -242,9 +242,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         END_ERROR
       end
       
-      template = Template.new(self, template_path, use_full_path, local_assigns)
-
-      render_template(template)
+      Template.new(self, template_path, use_full_path, local_assigns).render_template
     end
     
     # Renders the template present at <tt>template_path</tt> (relative to the view_paths array). 

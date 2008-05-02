@@ -51,6 +51,11 @@ class TemplateObjectTest < Test::Unit::TestCase
       assert template.locals.has_key?(:partial_only)
     end
     
+    def test_partial_with_errors
+      template = ActionView::PartialTemplate.new(@view, 'test/raise', nil)
+      assert_raise(ActionView::TemplateError) { template.render_template }
+    end
+    
     uses_mocha 'Partial template preparation tests' do
       def test_should_prepare_on_initialization
         ActionView::PartialTemplate.any_instance.expects(:prepare!)
