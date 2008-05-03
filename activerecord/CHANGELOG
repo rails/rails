@@ -1,5 +1,14 @@
 *SVN*
 
+* Added change_table for migrations (Jeff Dean) [#71]. Example:
+
+    change_table :videos do |t|
+      t.timestamps                          # adds created_at, updated_at
+      t.belongs_to :goat                    # add goat_id integer
+      t.string :name, :email, :limit => 20  # adds name and email both with a 20 char limit
+      t.remove :name, :email                # removes the name and email columns
+    end
+
 * Fixed has_many :through .create with no parameters caused a "can't dup NilClass" error (Steven Soroka) [#85]
 
 * Added block-setting of attributes for Base.create like Base.new already has (Adam Meehan) [#39]

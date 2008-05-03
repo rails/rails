@@ -27,7 +27,10 @@ you can do so with:
 
    rake test_mysql TEST=test/cases/base_test.rb
    
-That'll run the base suite using the MySQL-Ruby adapter.
+That'll run the base suite using the MySQL-Ruby adapter.  Some tests rely on the schema
+being initialized - you can initialize the schema with:
+
+  rake test_mysql TEST=test/cases/aaa_create_tables_test.rb
 
 
 

@@ -164,6 +164,28 @@ A short rundown of the major features:
     ActiveRecord::Base.logger = Log4r::Logger.new("Application Log")
 
 
+* Database agnostic schema management with Migrations
+
+    class AddSystemSettings < ActiveRecord::Migration
+      def self.up
+        create_table :system_settings do |t|
+          t.string  :name
+          t.string  :label
+          t.text  :value
+          t.string  :type
+          t.integer  :position
+        end
+
+        SystemSetting.create :name => "notice", :label => "Use notice?", :value => 1
+      end
+
+      def self.down
+        drop_table :system_settings
+      end
+    end
+
+  {Learn more}[link:classes/ActiveRecord/Migration.html]
+
 == Simple example (1/2): Defining tables and classes (using MySQL)
 
 Data definitions are specified only in the database. Active Record queries the database for 

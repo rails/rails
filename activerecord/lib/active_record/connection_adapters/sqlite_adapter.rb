@@ -219,11 +219,14 @@ module ActiveRecord
         execute "VACUUM"
       end
 
-      def remove_column(table_name, column_name) #:nodoc:
-        alter_table(table_name) do |definition|
-          definition.columns.delete(definition[column_name])
+      def remove_column(table_name, *column_names) #:nodoc:
+        column_names.flatten.each do |column_name|
+          alter_table(table_name) do |definition|
+            definition.columns.delete(definition[column_name])
+          end
         end
       end
+      alias :remove_columns :remove_column
 
       def change_column_default(table_name, column_name, default) #:nodoc:
         alter_table(table_name) do |definition|
