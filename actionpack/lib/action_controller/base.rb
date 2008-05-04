@@ -998,7 +998,7 @@ module ActionController #:nodoc:
       # As you can infer from the example, this is mostly useful for situations where you want to centralize dynamic decisions about the
       # urls as they stem from the business domain. Please note that any individual url_for call can always override the defaults set
       # by this method.
-      def default_url_options(options) #:doc:
+      def default_url_options(options = nil)
       end
 
       # Redirects the browser to the target specified in +options+. This parameter can take one of three forms:

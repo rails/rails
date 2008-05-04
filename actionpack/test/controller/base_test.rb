@@ -52,7 +52,7 @@ class DefaultUrlOptionsController < ActionController::Base
   def default_url_options_action
   end
 
-  def default_url_options(options)
+  def default_url_options(options = nil)
     { :host => 'www.override.com', :action => 'new', :bacon => 'chunky' }
   end
 end
