@@ -146,19 +146,19 @@ module ActiveRecord
     #
     # Options:
     #
-    # * <tt>:host</tt> -- Defaults to localhost
-    # * <tt>:port</tt> -- Defaults to 3306
-    # * <tt>:socket</tt> -- Defaults to /tmp/mysql.sock
-    # * <tt>:username</tt> -- Defaults to root
-    # * <tt>:password</tt> -- Defaults to nothing
-    # * <tt>:database</tt> -- The name of the database. No default, must be provided.
-    # * <tt>:encoding</tt> -- (Optional) Sets the client encoding by executing "SET NAMES <encoding>" after connection
-    # * <tt>:sslkey</tt> -- Necessary to use MySQL with an SSL connection
-    # * <tt>:sslcert</tt> -- Necessary to use MySQL with an SSL connection
-    # * <tt>:sslcapath</tt> -- Necessary to use MySQL with an SSL connection
-    # * <tt>:sslcipher</tt> -- Necessary to use MySQL with an SSL connection
+    # * <tt>:host</tt> - Defaults to "localhost".
+    # * <tt>:port</tt> - Defaults to "3306".
+    # * <tt>:socket</tt> - Defaults to "/tmp/mysql.sock".
+    # * <tt>:username</tt> - Defaults to "root"
+    # * <tt>:password</tt> - Defaults to nothing.
+    # * <tt>:database</tt> - The name of the database. No default, must be provided.
+    # * <tt>:encoding</tt> - (Optional) Sets the client encoding by executing "SET NAMES <encoding>" after connection.
+    # * <tt>:sslkey</tt> - Necessary to use MySQL with an SSL connection.
+    # * <tt>:sslcert</tt> - Necessary to use MySQL with an SSL connection.
+    # * <tt>:sslcapath</tt> - Necessary to use MySQL with an SSL connection.
+    # * <tt>:sslcipher</tt> - Necessary to use MySQL with an SSL connection.
     #
-    # By default, the MysqlAdapter will consider all columns of type tinyint(1)
+    # By default, the MysqlAdapter will consider all columns of type <tt>tinyint(1)</tt>
     # as boolean. If you wish to disable this emulation (which was the default
     # behavior in versions 0.13.1 and earlier) you can add the following line
     # to your environment.rb file:
