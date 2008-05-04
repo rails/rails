@@ -1500,6 +1500,12 @@ module ActiveRecord
           order.scan(/([\.\w]+).?\./).flatten
         end
 
+        def selects_tables(options)
+          select = options[:select]
+          return [] unless select && select.is_a?(String)
+          select.scan(/"?([\.\w]+)"?.?\./).flatten
+        end
+
         # Checks if the conditions reference a table other than the current model table
         def include_eager_conditions?(options,tables = nil)
           tables = conditions_tables(options)
@@ -1518,8 +1524,16 @@ module ActiveRecord
           end
         end
 
+        def include_eager_select?(options)
+          selects = selects_tables(options)
+          return false unless selects.any?
+          selects.any? do |select|
+            select != table_name
+          end
+        end
+
         def references_eager_loaded_tables?(options)
-          include_eager_order?(options) || include_eager_conditions?(options)
+          include_eager_order?(options) || include_eager_conditions?(options) || include_eager_select?(options)
         end
 
         def using_limitable_reflections?(reflections)
