@@ -47,7 +47,7 @@ module Arel
         
         it "manufactures sql with scalar selects" do
           Projection.new(@relation, @scalar_relation).to_sql.should be_like("
-            SELECT (SELECT `users`.`name` FROM `users`) FROM `users`
+            SELECT (SELECT `users`.`name` FROM `users`) AS `users` FROM `users`
           ")
         end
       end
@@ -56,6 +56,15 @@ module Arel
         it "passes the string through to the select clause" do
           Projection.new(@relation, 'asdf').to_sql.should be_like("
             SELECT asdf FROM `users`
+          ")
+        end
+      end
+      
+      describe 'when given an expression' do
+        it 'manufactures sql with expressions' do
+          @relation.project(@attribute.count).to_sql.should be_like("
+            SELECT COUNT(`users`.`id`)
+            FROM `users`
           ")
         end
       end

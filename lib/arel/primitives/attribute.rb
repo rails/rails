@@ -7,6 +7,7 @@ module Arel
       @relation, @name, @alias, @ancestor = relation, name, options[:alias], options[:ancestor]
     end
     
+    # INVESTIGATE
     def alias_or_name
       @alias || name
     end
@@ -117,12 +118,20 @@ module Arel
     end
     include Expressions
 
-    def to_sql(formatter = Sql::WhereCondition.new(engine))
-      formatter.attribute relation.prefix_for(self), name, self.alias
+    def to_sql(formatter = Sql::WhereCondition.new(relation))
+      formatter.attribute self
     end
     
     def format(object)
       object.to_sql(formatter)
+    end
+    
+    def original_relation
+      relation.relation_for(self)
+    end
+    
+    def christener
+      relation.christener
     end
     
     private

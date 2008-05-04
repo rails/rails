@@ -6,7 +6,7 @@ module Arel
       @relation = Table.new(:users)
       @attribute = @relation[:id]
     end
-  
+    
     describe '#to_sql' do
       describe 'when given a predicate' do
         it "manufactures sql with where clause conditions" do
@@ -20,7 +20,7 @@ module Arel
       
       describe 'when given a string' do
         it "passes the string through to the where clause" do
-          pending 'it should not quote asdf'
+          pending 'it should not quote the group clause'
           Grouping.new(@relation, 'asdf').to_sql.should be_like("
             SELECT `users`.`id`, `users`.`name`
             FROM `users`

@@ -1,13 +1,19 @@
 module Arel
   class Alias < Compound
-    attr_reader :alias
-    
     def initialize(relation)
       @relation = relation
     end
     
     def ==(other)
-      self.equal? other
+      equal? other
+    end
+    
+    def table
+      self
+    end
+    
+    def relation_for(attribute)
+      self[attribute] and self
     end
   end
 end

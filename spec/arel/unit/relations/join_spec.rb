@@ -47,15 +47,6 @@ module Arel
         end
       end
 
-      describe '#prefix_for' do
-        it "returns the name of the relation containing the attribute" do
-          Join.new("INNER JOIN", @relation1, @relation2, @predicate).prefix_for(@relation1[:id]) \
-            .should == @relation1.prefix_for(@relation1[:id])
-          Join.new("INNER JOIN", @relation1, @relation2, @predicate).prefix_for(@relation2[:id]) \
-            .should == @relation2.prefix_for(@relation2[:id])
-        end
-      end
-      
       describe '#to_sql' do
         it 'manufactures sql joining the two tables on the predicate' do
           Join.new("INNER JOIN", @relation1, @relation2, @predicate).to_sql.should be_like("
@@ -116,6 +107,7 @@ module Arel
           end
         end
 
+        # TESTME try other direction too!
         it "keeps selects on the aggregation within the derived table" do
           Join.new("INNER JOIN", @relation1, @aggregation.select(@aggregation[:user_id].eq(1)), @predicate).to_sql.should be_like("
             SELECT `users`.`id`, `users`.`name`, `photos_aggregation`.`user_id`, `photos_aggregation`.`cnt`
@@ -133,16 +125,6 @@ module Arel
         @predicate = @relation1[:id].eq(@aliased_relation[:id])
       end      
       
-      describe '#prefix_for' do
-        it "returns the alias of the relation containing the attribute" do
-          relation = Join.new("INNER JOIN", @relation1, @aliased_relation, @predicate)
-          relation.prefix_for(@aliased_relation[:id]) \
-            .should == @relation1.name
-          relation.prefix_for(@relation1[:id]) \
-            .should == @relation1.name + '_2'
-        end
-      end
-      
       describe 'when joining the same relation to itself' do
         describe '#to_sql' do
           it '' do
@@ -151,6 +133,7 @@ module Arel
             @relation1 \
               .join(relation2.join(relation3).on(relation2[:id].eq(relation3[:id]))) \
                 .on(@relation1[:id].eq(relation2[:id])) \
+              .select(@relation1[:id].eq(1)) \
             .to_sql.should be_like("
               SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`, `users_3`.`id`, `users_3`.`name`
               FROM `users`
@@ -158,6 +141,7 @@ module Arel
                   ON `users`.`id` = `users_2`.`id`
                 INNER JOIN `users` AS `users_3`
                   ON `users_2`.`id` = `users_3`.`id`
+              WHERE `users`.`id` = 1
             ")
           end
           

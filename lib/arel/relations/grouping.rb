@@ -15,5 +15,13 @@ module Arel
     def aggregation?
       true
     end
+    
+    def table_sql(formatter = Sql::TableReference.new(self))
+      to_sql(formatter)
+    end
+    
+    def name
+      table.name + '_aggregation'
+    end
   end
 end

@@ -15,12 +15,16 @@ module Arel
       end
     end
 
-    def prefix_for(attribute)
-      self[attribute] and name
-    end
-    
     def column_for(attribute)
       self[attribute] and columns.detect { |c| c.name == attribute.name.to_s }
+    end
+    
+    def table
+      self
+    end
+    
+    def relation_for(attribute)
+      self[attribute] and self
     end
     
     def ==(other)

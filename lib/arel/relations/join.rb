@@ -23,10 +23,6 @@ module Arel
         externalize(relation2).attributes).collect { |a| a.bind(self) }
     end
     
-    def prefix_for(attribute)
-      externalize(relation_for(attribute)).prefix_for(attribute)
-    end
-    
     # TESTME: Not sure which scenario needs this method, was driven by failing tests in ActiveRecord
     def column_for(attribute)
       (relation1[attribute] || relation2[attribute]).column
@@ -35,7 +31,11 @@ module Arel
     def joins(formatter = Sql::TableReference.new(self))
       this_join = [
         join_sql,
-        externalize(relation2).table_sql(formatter),
+        if relation2.aggregation?
+          relation2.to_sql(formatter)
+        else
+          relation2.table.table_sql(formatter)
+        end,
         ("ON" unless predicates.blank?),
         predicates.collect { |p| p.bind(formatter.christener).to_sql }.join(' AND ')
       ].compact.join(" ")
@@ -46,10 +46,6 @@ module Arel
       (externalize(relation1).selects + externalize(relation2).selects).collect { |s| s.bind(self) }
     end
    
-    def table_sql(formatter = Sql::TableReference.new(self))
-      externalize(relation1).table_sql(formatter)
-    end
-    
     def name_for(relation)
       @used_names ||= Hash.new(0)
       @relation_names ||= Hash.new do |h, k|
@@ -59,11 +55,21 @@ module Arel
       @relation_names[relation]
     end
     
-    protected
+    def table
+      relation1.aggregation?? relation1 : relation1.table
+    end
+    
+    delegate :name, :to => :relation1
+    
     def relation_for(attribute)
-      [relation1[attribute], relation2[attribute]].select { |a| a =~ attribute }.min do |a1, a2|
+      x = [relation1[attribute], relation2[attribute]].select { |a| a =~ attribute }.min do |a1, a2|
         (attribute % a1).size <=> (attribute % a2).size
-      end.relation.relation_for(attribute)
+      end.relation
+      if x.aggregation?
+        x
+      else
+        x.relation_for(attribute) # FIXME @demeter
+      end
     end
     
     private
@@ -74,24 +80,12 @@ module Arel
     Externalizer = Struct.new(:christener, :relation) do
       delegate :engine, :to => :relation
       
-      def table_sql(formatter = Sql::TableReference.new(self))
-        if relation.aggregation?
-          relation.to_sql(formatter) + ' AS ' + engine.quote_table_name(formatter.name_for(relation) + (relation.aggregation?? '_aggregation' :  ''))
-        else
-          relation.table_sql(formatter)
-        end
-      end
-      
       def selects
         relation.aggregation?? [] : relation.selects
       end
       
       def attributes
         relation.aggregation?? relation.attributes.collect(&:to_attribute) : relation.attributes
-      end
-      
-      def prefix_for(attribute)
-        christener.name_for(relation) + (relation.aggregation?? '_aggregation' :  '')
       end
     end
   end

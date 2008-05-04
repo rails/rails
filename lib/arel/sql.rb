@@ -5,22 +5,23 @@ module Arel
     end
     
     class Formatter
-      attr_reader :engine
+      attr_reader :engine, :christener
       
       include Quoting
       
-      def initialize(engine)
-        @engine = engine
+      def initialize(environment)
+        @christener, @engine = environment.christener, environment.engine
       end
     end
     
     class SelectClause < Formatter
-      def attribute(relation_name, attribute_name, aliaz)
-        "#{quote_table_name(relation_name)}.#{quote_column_name(attribute_name)}" + (aliaz ? " AS #{quote(aliaz.to_s)}" : "")
+      def attribute(attribute)
+        relation_name = @christener.name_for(attribute.original_relation)
+        "#{quote_table_name(relation_name)}.#{quote_column_name(attribute.name)}" + (attribute.alias ? " AS #{quote(attribute.alias.to_s)}" : "")
       end
       
-      def select(select_sql)
-        "(#{select_sql})"
+      def select(select_sql, name)
+        "(#{select_sql}) AS #{quote_table_name(name.to_s)}"
       end
       
       def value(value)
@@ -37,15 +38,17 @@ module Arel
     class WhereClause < PassThrough
     end
     
-    class OrderClause < PassThrough
-      def attribute(relation_name, attribute_name, aliaz)
-        "#{quote_table_name(relation_name)}.#{quote_column_name(attribute_name)}"
+    class OrderClause < PassThrough      
+      def attribute(attribute)
+        relation_name = @christener.name_for(attribute.original_relation)
+        "#{quote_table_name(relation_name)}.#{quote_column_name(attribute.name)}"
       end
     end
     
     class WhereCondition < Formatter
-      def attribute(relation_name, attribute_name, aliaz)
-        "#{quote_table_name(relation_name)}.#{quote_column_name(attribute_name)}"
+      def attribute(attribute)
+        relation_name = @christener.name_for(attribute.original_relation)
+        "#{quote_table_name(relation_name)}.#{quote_column_name(attribute.name)}"
       end
       
       def value(value)
@@ -56,37 +59,31 @@ module Arel
         quote(value, column)
       end
       
-      def select(select_sql)
+      def select(select_sql, name)
         "(#{select_sql})"
       end
     end
     
     class SelectStatement < Formatter
-      def select(select_sql)
+      def select(select_sql, name)
         select_sql
       end
     end
     
     class TableReference < Formatter
-      attr_reader :christener
-      delegate :name_for, :to => :@christener
-      
-      def initialize(christener)
-        @christener, @engine = christener, christener.engine
+      def select(select_sql, name)
+        "(#{select_sql}) AS #{quote_table_name(name)}"
       end
       
-      def select(select_sql)
-        "(#{select_sql})"
-      end
-      
-      def table(name, aliaz)
-        quote_table_name(name) + (name != aliaz ? " AS " + engine.quote_table_name(aliaz) : '')
+      def table(table)
+        aliaz = christener.name_for(table)
+        quote_table_name(table.name) + (table.name != aliaz ? " AS " + engine.quote_table_name(aliaz) : '')
       end
     end
     
     class Attribute < WhereCondition
       def initialize(attribute)
-        @attribute, @engine = attribute, attribute.engine
+        @attribute, @christener, @engine = attribute, attribute.christener, attribute.engine
       end
       
       def scalar(scalar)

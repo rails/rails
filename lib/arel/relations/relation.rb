@@ -99,35 +99,39 @@ module Arel
       def aggregation?
         false
       end
-    
-      def relation_for(attribute)
-        self[attribute] and self
-      end
       
       def name_for(relation)
         relation.name
       end
       
       def table_sql(formatter = Sql::TableReference.new(self))
-        formatter.table name, formatter.name_for(self)
+        formatter.table self
       end
     end
     include Externalizable
     
-    def to_sql(formatter = Sql::SelectStatement.new(engine))
-      tr = Sql::TableReference.new(self)
+    def to_sql(formatter = Sql::SelectStatement.new(self))
       formatter.select [
-        "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectClause.new(engine)) }.join(', ')}",
-        "FROM       #{table_sql(tr)}",
-        (joins(tr)                                                                                      unless joins.blank?     ),
-        ("WHERE     #{selects.collect { |s| s.to_sql(Sql::WhereClause.new(engine)) }.join("\n\tAND ")}" unless selects.blank?   ),
-        ("ORDER BY  #{orders.collect { |o| o.to_sql(Sql::OrderClause.new(engine)) }.join(', ')}"        unless orders.blank?    ),
+        "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectClause.new(self)) }.join(', ')}",
+        "FROM       #{thing}",
+        (joins(Sql::TableReference.new(self))                                                           unless joins.blank?     ),
+        ("WHERE     #{selects.collect { |s| s.to_sql(Sql::WhereClause.new(self)) }.join("\n\tAND ")}" unless selects.blank?   ),
+        ("ORDER BY  #{orders.collect { |o| o.to_sql(Sql::OrderClause.new(self)) }.join(', ')}"        unless orders.blank?    ),
         ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                     unless groupings.blank? ),
         ("LIMIT     #{taken}"                                                                           unless taken.blank?     ),
         ("OFFSET    #{skipped}"                                                                         unless skipped.blank?   )
-      ].compact.join("\n")
+      ].compact.join("\n"), name
     end
     alias_method :to_s, :to_sql
+    
+    # FIXME
+    def thing
+      if table.aggregation?
+        table.to_sql(Sql::TableReference.new(self))
+      else
+        table.table_sql(Sql::TableReference.new(self))
+      end
+    end
     
     def inclusion_predicate_sql
       "IN"
@@ -159,8 +163,13 @@ module Arel
       self
     end
     
+    # INVESTIGATE
     def format(object)
-      object.to_sql(Sql::WhereCondition.new(engine))
+      object.to_sql(Sql::WhereCondition.new(self))
+    end
+    
+    def christener
+      self
     end
 
     def attributes;  []  end

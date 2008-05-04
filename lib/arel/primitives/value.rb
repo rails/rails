@@ -8,12 +8,12 @@ module Arel
       @value, @relation = value, relation
     end
     
-    def to_sql(formatter = Sql::WhereCondition.new(relation.engine))
+    def to_sql(formatter = Sql::WhereCondition.new(relation))
       formatter.value value
     end
 
     def format(object)
-      object.to_sql(Sql::Value.new(relation.engine))
+      object.to_sql(Sql::Value.new(relation))
     end
     
     def ==(other)
