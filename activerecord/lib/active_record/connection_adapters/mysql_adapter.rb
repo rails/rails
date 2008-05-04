@@ -147,7 +147,7 @@ module ActiveRecord
     # Options:
     #
     # * <tt>:host</tt> - Defaults to "localhost".
-    # * <tt>:port</tt> - Defaults to "3306".
+    # * <tt>:port</tt> - Defaults to 3306.
     # * <tt>:socket</tt> - Defaults to "/tmp/mysql.sock".
     # * <tt>:username</tt> - Defaults to "root"
     # * <tt>:password</tt> - Defaults to nothing.
