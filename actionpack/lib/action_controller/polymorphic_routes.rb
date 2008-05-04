@@ -47,25 +47,27 @@ module ActionController
     # Constructs a call to a named RESTful route for the given record and returns the
     # resulting URL string. For example:
     #
-    #   polymorphic_url(post)
-    #   # calls post_url(post) #=> "http://example.com/posts/1"
+    #   # calls post_url(post)
+    #   polymorphic_url(post) # => "http://example.com/posts/1"
     #
     # ==== Options
-    # * <tt>:action</tt> -- specifies the action prefix for the named route:
-    #   <tt>:new</tt>, <tt>:edit</tt> or <tt>:formatted</tt>. Default is no prefix.
-    # * <tt>:routing_type</tt> -- <tt>:path</tt> or <tt>:url</tt> (default <tt>:url</tt>).
+    #
+    # * <tt>:action</tt> - Specifies the action prefix for the named route:
+    #   <tt>:new</tt>, <tt>:edit</tt>, or <tt>:formatted</tt>. Default is no prefix.
+    # * <tt>:routing_type</tt> - Allowed values are <tt>:path</tt> or <tt>:url</tt>.
+    #   Default is <tt>:url</tt>.
     #
     # ==== Examples
     #
     #   # an Article record
-    #   polymorphic_url(record)  #->  article_url(record)
+    #   polymorphic_url(record)  # same as article_url(record)
     #
     #   # a Comment record
-    #   polymorphic_url(record)  #->  comment_url(record)
+    #   polymorphic_url(record)  # same as comment_url(record)
     #
     #   # it recognizes new records and maps to the collection
     #   record = Comment.new
-    #   polymorphic_url(record)  #->  comments_url()
+    #   polymorphic_url(record)  # same as comments_url()
     #
     def polymorphic_url(record_or_hash_or_array, options = {})
       if record_or_hash_or_array.kind_of?(Array)
