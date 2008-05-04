@@ -535,20 +535,20 @@ module ActionController #:nodoc:
       #
       # <tt>url_for</tt> is used to:
       #
-      # All keys given to url_for are forwarded to the Route module, save for the following:
-      # * <tt>:anchor</tt> -- specifies the anchor name to be appended to the path. For example,
+      # All keys given to +url_for+ are forwarded to the Route module, save for the following:
+      # * <tt>:anchor</tt> - Specifies the anchor name to be appended to the path. For example,
       #   <tt>url_for :controller => 'posts', :action => 'show', :id => 10, :anchor => 'comments'</tt>
       #   will produce "/posts/show/10#comments".
-      # * <tt>:only_path</tt> --  if true, returns the relative URL (omitting the protocol, host name, and port) (<tt>false</tt> by default)
-      # * <tt>:trailing_slash</tt> --  if true, adds a trailing slash, as in "/archive/2005/". Note that this
+      # * <tt>:only_path</tt> - If true, returns the relative URL (omitting the protocol, host name, and port) (<tt>false</tt> by default).
+      # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2005/". Note that this
       #   is currently not recommended since it breaks caching.
-      # * <tt>:host</tt> -- overrides the default (current) host if provided.
-      # * <tt>:protocol</tt> -- overrides the default (current) protocol if provided.
-      # * <tt>:port</tt> -- optionally specify the port to connect to.
-      # * <tt>:user</tt> -- Inline HTTP authentication (only plucked out if <tt>:password</tt> is also present).
-      # * <tt>:password</tt> -- Inline HTTP authentication (only plucked out if <tt>:user</tt> is also present).
-      # * <tt>:skip_relative_url_root</tt> -- if true, the url is not constructed using the relative_url_root of the request so the path
-      #   will include the web server relative installation directory.
+      # * <tt>:host</tt> - Overrides the default (current) host if provided.
+      # * <tt>:protocol</tt> - Overrides the default (current) protocol if provided.
+      # * <tt>:port</tt> - Optionally specify the port to connect to.
+      # * <tt>:user</tt> - Inline HTTP authentication (only plucked out if <tt>:password</tt> is also present).
+      # * <tt>:password</tt> - Inline HTTP authentication (only plucked out if <tt>:user</tt> is also present).
+      # * <tt>:skip_relative_url_root</tt> - If true, the url is not constructed using the +relative_url_root+
+      #   of the request so the path will include the web server relative installation directory.
       #
       # The URL is generated from the remaining keys in the hash. A URL contains two key parts: the <base> and a query string.
       # Routes composes a query string as the key/value pairs not included in the <base>.
