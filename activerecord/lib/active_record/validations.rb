@@ -802,8 +802,8 @@ module ActiveRecord
       end
 
       # Validates whether the value of the specified attribute is numeric by trying to convert it to
-      # a float with Kernel.Float (if <tt>integer</tt> is false) or applying it to the regular expression
-      # <tt>/\A[\+\-]?\d+\Z/</tt> (if <tt>integer</tt> is set to true).
+      # a float with Kernel.Float (if <tt>only_integer</tt> is false) or applying it to the regular expression
+      # <tt>/\A[\+\-]?\d+\Z/</tt> (if <tt>only_integer</tt> is set to true).
       #
       #   class Person < ActiveRecord::Base
       #     validates_numericality_of :value, :on => :create
