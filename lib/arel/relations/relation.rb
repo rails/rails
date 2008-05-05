@@ -159,7 +159,7 @@ module Arel
     end
     
     def christener
-      self
+      @christener ||= Sql::Christener.new
     end
 
     def attributes;  []  end

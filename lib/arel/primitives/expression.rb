@@ -1,7 +1,5 @@
 module Arel
   class Expression < Attribute
-    include Sql::Quoting
-    
     attr_reader :attribute, :function_sql
     delegate :relation, :to => :attribute
     alias_method :name, :alias
@@ -25,8 +23,8 @@ module Arel
     end
     include Transformations
     
-    def to_sql(formatter = nil)
-      "#{function_sql}(#{attribute.to_sql})" + (@alias ? " AS #{quote_column_name(@alias)}" : '')
+    def to_sql(formatter = Sql::SelectClause.new(relation))
+      formatter.expression self
     end
     
     def aggregation?

@@ -30,7 +30,7 @@ module Arel
           relation2.table.table_sql(formatter)
         end,
         ("ON" unless predicates.blank?),
-        predicates.collect { |p| p.bind(formatter.christener).to_sql }.join(' AND ')
+        predicates.collect { |p| p.bind(formatter.environment).to_sql }.join(' AND ')
       ].compact.join(" ")
       [relation1.joins(formatter), this_join, relation2.joins(formatter)].compact.join(" ")
     end
@@ -39,15 +39,6 @@ module Arel
       (externalize(relation1).selects + externalize(relation2).selects).collect { |s| s.bind(self) }
     end
    
-    def name_for(relation)
-      @used_names ||= Hash.new(0)
-      @relation_names ||= Hash.new do |h, k|
-        @used_names[k.name] += 1
-        h[k] = k.name + (@used_names[k.name] > 1 ? "_#{@used_names[k.name]}" : '')
-      end
-      @relation_names[relation]
-    end
-    
     def table
       relation1.aggregation?? relation1 : relation1.table
     end
