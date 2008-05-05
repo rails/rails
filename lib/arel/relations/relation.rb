@@ -104,8 +104,8 @@ module Arel
         relation.name
       end
       
-      def table_sql(formatter = Sql::TableReference.new(self))
-        formatter.table self
+      def table
+        self
       end
     end
     include Externalizable
@@ -113,7 +113,7 @@ module Arel
     def to_sql(formatter = Sql::SelectStatement.new(self))
       formatter.select [
         "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectClause.new(self)) }.join(', ')}",
-        "FROM       #{thing}",
+        "FROM       #{table_sql(Sql::TableReference.new(self))}",
         (joins(Sql::TableReference.new(self))                                                           unless joins.blank?     ),
         ("WHERE     #{selects.collect { |s| s.to_sql(Sql::WhereClause.new(self)) }.join("\n\tAND ")}" unless selects.blank?   ),
         ("ORDER BY  #{orders.collect { |o| o.to_sql(Sql::OrderClause.new(self)) }.join(', ')}"        unless orders.blank?    ),
@@ -123,9 +123,8 @@ module Arel
       ].compact.join("\n"), name
     end
     alias_method :to_s, :to_sql
-    
-    # FIXME
-    def thing
+
+    def table_sql(formatter = Sql::TableReference.new(self))
       if table.aggregation?
         table.to_sql(Sql::TableReference.new(self))
       else

@@ -27,6 +27,10 @@ module Arel
       self[attribute] and self
     end
     
+    def table_sql(formatter = Sql::TableReference.new(self))
+      formatter.table self
+    end
+    
     def ==(other)
       self.class == other.class and
       name       == other.name

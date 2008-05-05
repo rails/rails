@@ -23,11 +23,6 @@ module Arel
         externalize(relation2).attributes).collect { |a| a.bind(self) }
     end
     
-    # TESTME: Not sure which scenario needs this method, was driven by failing tests in ActiveRecord
-    def column_for(attribute)
-      (relation1[attribute] || relation2[attribute]).column
-    end
-    
     def joins(formatter = Sql::TableReference.new(self))
       this_join = [
         join_sql,
@@ -58,7 +53,7 @@ module Arel
     def table
       relation1.aggregation?? relation1 : relation1.table
     end
-    
+      
     delegate :name, :to => :relation1
     
     def relation_for(attribute)

@@ -1,19 +1,42 @@
 module Arel
   class Attribute
     attr_reader :relation, :name, :alias, :ancestor
-    delegate :engine, :to => :relation
+    delegate :engine, :christener, :to => :relation
 
     def initialize(relation, name, options = {})
       @relation, @name, @alias, @ancestor = relation, name, options[:alias], options[:ancestor]
     end
     
-    # INVESTIGATE
     def alias_or_name
       @alias || name
     end
     
     def aggregation?
       false
+    end
+
+    def column
+      original_relation.column_for(self)
+    end
+    
+    def original_relation
+      relation.relation_for(self)
+    end
+
+    def format(object)
+      object.to_sql(formatter)
+    end
+
+    def to_sql(formatter = Sql::WhereCondition.new(relation))
+      formatter.attribute self
+    end
+    
+    def ==(other)
+      self.class  == other.class     and
+      relation    == other.relation  and
+      name        == other.name      and
+      @alias      == other.alias     and
+      ancestor    == other.ancestor
     end
 
     module Transformations
@@ -30,18 +53,6 @@ module Arel
       end
     end
     include Transformations
-    
-    def column
-      relation.column_for(self)
-    end
-
-    def ==(other)
-      self.class  == other.class     and
-      relation    == other.relation  and
-      name        == other.name      and
-      @alias      == other.alias     and
-      ancestor    == other.ancestor
-    end
     
     module Congruence
       def self.included(klass)
@@ -117,22 +128,6 @@ module Arel
       end
     end
     include Expressions
-
-    def to_sql(formatter = Sql::WhereCondition.new(relation))
-      formatter.attribute self
-    end
-    
-    def format(object)
-      object.to_sql(formatter)
-    end
-    
-    def original_relation
-      relation.relation_for(self)
-    end
-    
-    def christener
-      relation.christener
-    end
     
     private
     def formatter
