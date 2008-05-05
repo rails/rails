@@ -1,9 +1,7 @@
 module Arel
   class Join < Relation
     attr_reader :join_sql, :relation1, :relation2, :predicates
-    
     delegate :engine, :to => :relation1
-
     hash_on :relation1
 
     def initialize(join_sql, relation1, relation2 = Nil.new, *predicates)
@@ -59,22 +57,20 @@ module Arel
     def relation_for(attribute)
       x = [relation1[attribute], relation2[attribute]].select { |a| a =~ attribute }.min do |a1, a2|
         (attribute % a1).size <=> (attribute % a2).size
-      end.relation
-      if x.aggregation?
-        x
+      end
+      if x.relation.aggregation?
+        x.relation
       else
-        x.relation_for(attribute) # FIXME @demeter
+        x.original_relation
       end
     end
     
     private
     def externalize(relation)
-      Externalizer.new(self, relation)
+      Externalizer.new(relation)
     end
     
-    Externalizer = Struct.new(:christener, :relation) do
-      delegate :engine, :to => :relation
-      
+    Externalizer = Struct.new(:relation) do
       def selects
         relation.aggregation?? [] : relation.selects
       end
