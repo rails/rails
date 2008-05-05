@@ -6,6 +6,7 @@ silence_warnings do
     alias_method :title_before_type_cast, :title unless respond_to?(:title_before_type_cast)
     alias_method :body_before_type_cast, :body unless respond_to?(:body_before_type_cast)
     alias_method :author_name_before_type_cast, :author_name unless respond_to?(:author_name_before_type_cast)
+    alias_method :secret?, :secret 
 
     def new_record=(boolean)
       @new_record = boolean
@@ -71,10 +72,12 @@ class FormHelperTest < ActionView::TestCase
       '<label class="title_label" for="post_title">Title</label>',
       label("post", "title", nil, :class => 'title_label')
     )
+    assert_dom_equal('<label for="post_secret">Secret?</label>', label("post", "secret?"))
   end
 
   def test_label_with_symbols
     assert_dom_equal('<label for="post_title">Title</label>', label(:post, :title))
+    assert_dom_equal('<label for="post_secret">Secret?</label>', label(:post, :secret?))
   end
 
   def test_label_with_for_attribute_as_symbol
@@ -140,6 +143,8 @@ class FormHelperTest < ActionView::TestCase
   def test_hidden_field
     assert_dom_equal '<input id="post_title" name="post[title]" type="hidden" value="Hello World" />',
       hidden_field("post", "title")
+      assert_dom_equal '<input id="post_secret" name="post[secret]" type="hidden" value="1" />',
+        hidden_field("post", "secret?")
   end
 
   def test_hidden_field_with_escapes
@@ -171,6 +176,10 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(
       '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
       check_box("post", "secret")
+    )
+    assert_dom_equal(
+      '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
+      check_box("post", "secret?")
     )
   end
 
