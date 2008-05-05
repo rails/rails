@@ -1,3 +1,4 @@
+require 'arel/relations/recursion'
 require 'arel/relations/relation'
 require 'arel/relations/nil'
 require 'arel/relations/compound'

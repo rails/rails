@@ -1,5 +1,7 @@
 module Arel
   class Table < Relation
+    include Recursion::BaseCase
+
     cattr_accessor :engine
     attr_reader :name, :engine
     
@@ -17,18 +19,6 @@ module Arel
 
     def column_for(attribute)
       self[attribute] and columns.detect { |c| c.name == attribute.name.to_s }
-    end
-    
-    def table
-      self
-    end
-    
-    def relation_for(attribute)
-      self[attribute] and self
-    end
-    
-    def table_sql(formatter = Sql::TableReference.new(self))
-      formatter.table self
     end
     
     def ==(other)
