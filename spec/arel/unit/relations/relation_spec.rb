@@ -23,16 +23,8 @@ module Arel
         end
       end
     end
-  
-    describe Relation::Externalizable do
-      describe '#aggregation?' do
-        it "returns false" do
-          @relation.should_not be_aggregation
-        end
-      end
-    end
-    
-    describe Relation::Operations do
+      
+    describe Relation::Operable do
       describe 'joins' do
         before do
           @predicate = @relation[:id].eq(@relation[:id])
@@ -154,7 +146,7 @@ module Arel
         end
       end
       
-      describe Relation::Operations::Writes do
+      describe Relation::Operable::Writable do
         describe '#delete' do
           it 'manufactures a deletion relation' do
             Session.start do
