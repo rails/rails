@@ -4,6 +4,7 @@ module Arel
       Session.new
     end
     
+    # INVESTIGATE
     def name_for(relation)
       relation.name
     end
@@ -12,23 +13,15 @@ module Arel
       formatter.select [
         "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectClause.new(self)) }.join(', ')}",
         "FROM       #{table_sql(Sql::TableReference.new(self))}",
-        (joins(Sql::TableReference.new(self))                                                           unless joins.blank?     ),
-        ("WHERE     #{selects.collect { |s| s.to_sql(Sql::WhereClause.new(self)) }.join("\n\tAND ")}"   unless selects.blank?   ),
-        ("ORDER BY  #{orders.collect { |o| o.to_sql(Sql::OrderClause.new(self)) }.join(', ')}"          unless orders.blank?    ),
-        ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                     unless groupings.blank? ),
-        ("LIMIT     #{taken}"                                                                           unless taken.blank?     ),
-        ("OFFSET    #{skipped}"                                                                         unless skipped.blank?   )
+        (joins(self)                                                                                    unless joins(self).blank? ),
+        ("WHERE     #{selects.collect { |s| s.to_sql(Sql::WhereClause.new(self)) }.join("\n\tAND ")}"   unless selects.blank?     ),
+        ("ORDER BY  #{orders.collect { |o| o.to_sql(Sql::OrderClause.new(self)) }.join(', ')}"          unless orders.blank?      ),
+        ("GROUP BY  #{groupings.collect(&:to_sql)}"                                                     unless groupings.blank?   ),
+        ("LIMIT     #{taken}"                                                                           unless taken.blank?       ),
+        ("OFFSET    #{skipped}"                                                                         unless skipped.blank?     )
       ].compact.join("\n"), name
     end
     alias_method :to_s, :to_sql
-
-    def table_sql(formatter = Sql::TableReference.new(self))
-      if table.aggregation?
-        table.to_sql(Sql::TableReference.new(self))
-      else
-        table.table_sql(Sql::TableReference.new(self))
-      end
-    end
     
     def inclusion_predicate_sql
       "IN"

@@ -3,8 +3,7 @@ module Arel
     include Recursion::BaseCase
 
     cattr_accessor :engine
-    attr_reader :name, :engine
-    
+    attr_reader :name, :engine    
     hash_on :name
     
     def initialize(name, engine = Table.engine)
