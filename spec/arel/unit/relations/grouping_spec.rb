@@ -20,7 +20,6 @@ module Arel
       
       describe 'when given a string' do
         it "passes the string through to the where clause" do
-          pending 'it should not quote the group clause'
           Grouping.new(@relation, 'asdf').to_sql.should be_like("
             SELECT `users`.`id`, `users`.`name`
             FROM `users`
