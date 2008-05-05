@@ -19,7 +19,14 @@ module ActiveResource
   #     end
   # 
   # Now the Person class is mapped to RESTful resources located at <tt>http://api.people.com:3000/people/</tt>, and
-  # you can now use Active Resource's lifecycles methods to manipulate resources.  
+  # you can now use Active Resource's lifecycles methods to manipulate resources. In the case where you already have 
+  # an existing model with the same name as the desired RESTful resource you can set the +element_name+ value.
+  #
+  #     class PersonResource < ActiveResource::Base
+  #       self.site = "http://api.people.com:3000/"
+  #       self.element_name = "person"
+  #     end
+  #  
   # 
   # == Lifecycle methods
   #
