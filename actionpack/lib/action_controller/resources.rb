@@ -524,11 +524,9 @@ module ActionController
         resource.member_methods.each do |method, actions|
           actions.each do |action|
             action_options = action_options_for(action, resource, method)
-            action_path = action
-            if resource.options[:path_names]
-              action_path = resource.options[:path_names][action]
-              action_path ||= Base.resources_path_names[action] || action
-            end
+
+            action_path = resource.options[:path_names][action] if resource.options[:path_names].is_a?(Hash)
+            action_path ||= Base.resources_path_names[action] || action
 
             map.named_route("#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action_path}", action_options)
             map.named_route("formatted_#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action_path}.:format",action_options)

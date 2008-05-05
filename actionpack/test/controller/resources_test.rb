@@ -226,6 +226,28 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_member_when_changed_default_restful_actions_and_path_names_not_specified
+    default_path_names = ActionController::Base.resources_path_names
+    ActionController::Base.resources_path_names = {:new => 'nuevo', :edit => 'editar'}
+
+    with_restful_routing :messages do
+      new_options = { :action => 'new', :controller => 'messages' }
+      new_path = "/messages/nuevo"
+      edit_options = { :action => 'edit', :id => '1', :controller => 'messages' }
+      edit_path = "/messages/1/editar"
+
+      assert_restful_routes_for :messages do |options|
+        assert_recognizes(options.merge(new_options), :path => new_path, :method => :get)
+      end
+
+      assert_restful_routes_for :messages do |options|
+        assert_recognizes(options.merge(edit_options), :path => edit_path, :method => :get)
+      end
+    end
+  ensure
+    ActionController::Base.resources_path_names = default_path_names
+  end
+
   def test_with_two_member_actions_with_same_method
     [:put, :post].each do |method|
       with_restful_routing :messages, :member => { :mark => method, :unmark => method } do
@@ -691,11 +713,11 @@ class ResourcesTest < Test::Unit::TestCase
       options[:options] ||= {}
       options[:options][:controller] = options[:controller] || controller_name.to_s
 
-      new_action    = "new"
-      edit_action   = "edit"
+      new_action    = ActionController::Base.resources_path_names[:new] || "new"
+      edit_action   = ActionController::Base.resources_path_names[:edit] || "edit"
       if options[:path_names]
-        new_action  = options[:path_names][:new]  || "new"
-        edit_action = options[:path_names][:edit] || "edit"
+        new_action  = options[:path_names][:new] if options[:path_names][:new]
+        edit_action = options[:path_names][:edit] if options[:path_names][:edit]
       end
 
       collection_path            = "/#{options[:path_prefix]}#{options[:as] || controller_name}"
