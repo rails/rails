@@ -601,7 +601,7 @@ module ActiveRecord #:nodoc:
       #   User.create(:first_name => 'Jamie')
       #
       #   # Create an Array of new objects
-      #   User.create([{:first_name => 'Jamie'}, {:first_name => 'Jeremy'}])
+      #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }])
       #
       #   # Create a single object and pass it into a block to set other attributes.
       #   User.create(:first_name => 'Jamie') do |u|
@@ -609,7 +609,7 @@ module ActiveRecord #:nodoc:
       #   end
       #
       #   # Creating an Array of new objects using a block, where the block is executed for each object:
-      #   User.create([{:first_name => 'Jamie'}, {:first_name => 'Jeremy'}]) do |u|
+      #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }]) do |u|
       #     u.is_admin = false
       #   end 
       def create(attributes = nil, &block)
@@ -634,10 +634,10 @@ module ActiveRecord #:nodoc:
       # ==== Examples
       #
       #   # Updating one record:
-      #   Person.update(15, {:user_name => 'Samuel', :group => 'expert'})
+      #   Person.update(15, { :user_name => 'Samuel', :group => 'expert' })
       #
       #   # Updating multiple records:
-      #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy"} }
+      #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
       #   Person.update(people.keys, people.values)
       def update(id, attributes)
         if id.is_a?(Array)
@@ -1768,7 +1768,7 @@ module ActiveRecord #:nodoc:
         #   class Article < ActiveRecord::Base
         #     def self.find_with_scope
         #       with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }, :create => { :blog_id => 1 }) do
-        #         with_scope(:find => { :limit => 10})
+        #         with_scope(:find => { :limit => 10 })
         #           find(:all) # => SELECT * from articles WHERE blog_id = 1 LIMIT 10
         #         end
         #         with_scope(:find => { :conditions => "author_id = 3" })
