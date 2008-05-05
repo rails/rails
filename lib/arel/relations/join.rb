@@ -44,9 +44,12 @@ module Arel
     end
     
     def relation_for(attribute)
-      externalize([relation1[attribute], relation2[attribute]].select { |a| a =~ attribute }.min do |a1, a2|
-        (attribute % a1).size <=> (attribute % a2).size
-      end.relation).relation_for(attribute)
+      x = [externalize(relation1), externalize(relation2)].max do |r1, r2|
+        o1, o2 = r1.relation_for(attribute), r2.relation_for(attribute)
+        a1, a2 = o1 && o1[attribute], o2 && o2[attribute]
+        
+        attribute / a1 <=> attribute / a2
+      end.relation_for(attribute)
     end
     
     private

@@ -140,8 +140,8 @@ module Arel
       end
 
       def attribute_for_attribute(attribute)
-        attributes.select { |a| a =~ attribute }.min do |a1, a2|
-          (attribute % a1).size <=> (attribute % a2).size
+        attributes.select { |a| a =~ attribute }.max do |a1, a2|
+          (attribute / a1) <=> (attribute / a2)
         end
       end
     end

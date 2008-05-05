@@ -57,6 +57,35 @@ module Arel
         end
       end
       
+      describe '/' do
+        before do
+          @aliased_relation = @relation.alias
+          @doubly_aliased_relation = @aliased_relation.alias.alias.alias.alias
+        end
+        
+        describe 'when dividing two identical attributes' do
+          it "returns 1.0" do
+            (@relation[:id] / @relation[:id]).should == 1.0
+            (@aliased_relation[:id] / @aliased_relation[:id]).should == 1.0
+          end
+        end
+        
+        describe 'when dividing two unrelated attributes' do
+          it "returns 0.0" do
+            (@relation[:id] / @relation[:name]).should == 0.0
+          end
+        end
+        
+        describe 'when dividing two similar attributes' do
+          it 'returns a the highest score for the most similar attributes' do
+            (@aliased_relation[:id] / @relation[:id]) \
+              .should == (@aliased_relation[:id] / @relation[:id])
+            (@aliased_relation[:id] / @relation[:id]) \
+              .should < (@aliased_relation[:id] / @aliased_relation[:id])
+          end
+        end
+      end
+      
       describe 'hashing' do
         it "implements hash equality" do
           Attribute.new(@relation, 'name').should hash_the_same_as(Attribute.new(@relation, 'name'))

@@ -1,3 +1,5 @@
+require 'set'
+
 module Arel
   class Attribute
     attr_reader :relation, :name, :alias, :ancestor
@@ -67,9 +69,9 @@ module Arel
         !(history & other.history).empty?
       end
       
-      def %(other)
-        if other then (history - other.history) + (other.history - history)
-        else history
+      def /(other)
+        if other then (history & other.history).size.to_f / Set.new(history + other.history).size
+        else 0
         end
       end
     end

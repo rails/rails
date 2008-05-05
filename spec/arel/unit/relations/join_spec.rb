@@ -203,6 +203,23 @@ module Arel
           end
         end
       end
+      
+      describe 'something really really complex' do
+        it '' do
+          users = @relation1
+          photos = @relation2
+          users_2 = users.alias
+          photos_2 = photos.alias
+          r = users \
+            .join(photos) \
+              .on(photos[:user_id].eq users[:id]) \
+            .join(users_2) \
+              .on(users_2[:id].eq photos[:user_id]) \
+            .join(photos_2) \
+              .on(users_2[:id].eq photos_2[:user_id])
+          r.relation_for(photos[:user_id]).should == photos
+        end
+      end
         
       describe '[]' do
         describe 'when given an attribute belonging to both sub-relations' do
