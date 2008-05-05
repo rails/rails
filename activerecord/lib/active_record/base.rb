@@ -628,8 +628,8 @@ module ActiveRecord #:nodoc:
       #
       # ==== Options
       #
-      # +id+          This should be the id or an array of ids to be updated
-      # +attributes+  This should be a Hash of attributes to be set on the object, or an array of Hashes.
+      # * +id+          This should be the id or an array of ids to be updated
+      # * +attributes+  This should be a Hash of attributes to be set on the object, or an array of Hashes.
       #
       # ==== Examples
       #
@@ -658,7 +658,7 @@ module ActiveRecord #:nodoc:
       #
       # ==== Options
       #
-      # +id+  Can be either an Integer or an Array of Integers
+      # * +id+  Can be either an Integer or an Array of Integers
       #
       # ==== Examples
       #
@@ -681,7 +681,7 @@ module ActiveRecord #:nodoc:
       #
       # ==== Options
       #
-      # +id+  Can be either an Integer or an Array of Integers
+      # * +id+  Can be either an Integer or an Array of Integers
       #
       # ==== Examples
       #
@@ -704,10 +704,10 @@ module ActiveRecord #:nodoc:
       #
       # ==== Options
       #
-      # +updates+     A String of column and value pairs that will be set on any records that match conditions
-      # +conditions+  An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
-      #               See conditions in the intro for more info.
-      # +options+     Additional options are <tt>:limit</tt> and/or <tt>:order</tt>, see the examples for usage.
+      # * +updates+     A String of column and value pairs that will be set on any records that match conditions
+      # * +conditions+  An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
+      #                 See conditions in the intro for more info.
+      # * +options+     Additional options are <tt>:limit</tt> and/or <tt>:order</tt>, see the examples for usage.
       #
       # ==== Examples
       #
@@ -736,7 +736,7 @@ module ActiveRecord #:nodoc:
       #
       # ==== Options
       #
-      # +conditions+   Conditions are specified the same way as with +find+ method.
+      # * +conditions+   Conditions are specified the same way as with +find+ method.
       #
       # ==== Example
       #
@@ -754,7 +754,7 @@ module ActiveRecord #:nodoc:
       #
       # ==== Options
       #
-      # +conditions+   Conditions are specified the same way as with +find+ method.
+      # * +conditions+   Conditions are specified the same way as with +find+ method.
       #
       # ==== Example
       #
@@ -774,7 +774,7 @@ module ActiveRecord #:nodoc:
       #
       # ==== Options
       #
-      # +sql+: An SQL statement which should return a count query from the database, see the example below
+      # * +sql+   An SQL statement which should return a count query from the database, see the example below
       #
       # ==== Examples
       #
@@ -792,10 +792,10 @@ module ActiveRecord #:nodoc:
       #
       # ==== Options
       #
-      # +id+        The id of the object you wish to update a counter on
-      # +counters+  An Array of Hashes containing the names of the fields
-      #             to update as keys and the amount to update the field by as
-      #             values
+      # * +id+        The id of the object you wish to update a counter on
+      # * +counters+  An Array of Hashes containing the names of the fields
+      #               to update as keys and the amount to update the field by as
+      #               values
       #
       # ==== Examples
       #
@@ -823,8 +823,8 @@ module ActiveRecord #:nodoc:
       #
       # ==== Options
       #
-      # +counter_name+  The name of the field that should be incremented
-      # +id+            The id of the object that should be incremented
+      # * +counter_name+  The name of the field that should be incremented
+      # * +id+            The id of the object that should be incremented
       #
       # ==== Examples
       #
@@ -840,8 +840,8 @@ module ActiveRecord #:nodoc:
       #
       # ==== Options
       #
-      # +counter_name+  The name of the field that should be decremented
-      # +id+            The id of the object that should be decremented
+      # * +counter_name+  The name of the field that should be decremented
+      # * +id+            The id of the object that should be decremented
       #
       # ==== Examples
       #
@@ -888,7 +888,7 @@ module ActiveRecord #:nodoc:
       #
       # ==== Options
       #
-      # <tt>*attributes</tt>   A comma separated list of symbols that represent columns _not_ to be protected
+      # * <tt>*attributes</tt>   A comma separated list of symbols that represent columns _not_ to be protected
       #
       # ==== Examples
       #
@@ -929,8 +929,8 @@ module ActiveRecord #:nodoc:
       #
       # ==== Options
       #
-      # +attr_name+   The field name that should be serialized
-      # +class_name+  Optional, class name that the object type should be equal to
+      # * +attr_name+   The field name that should be serialized
+      # * +class_name+  Optional, class name that the object type should be equal to
       #
       # ==== Example
       #   # Serialize a preferences attribute
