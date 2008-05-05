@@ -57,11 +57,11 @@ module Arel
     def relation_for(attribute)
       x = [relation1[attribute], relation2[attribute]].select { |a| a =~ attribute }.min do |a1, a2|
         (attribute % a1).size <=> (attribute % a2).size
-      end
-      if x.relation.aggregation?
-        x.relation
+      end.relation
+      if x.aggregation?
+        x
       else
-        x.original_relation
+        x.relation_for(attribute)
       end
     end
     

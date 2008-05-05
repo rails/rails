@@ -103,10 +103,6 @@ module Arel
       def name_for(relation)
         relation.name
       end
-      
-      def table
-        self
-      end
     end
     include Externalizable
     
