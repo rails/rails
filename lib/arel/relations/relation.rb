@@ -4,11 +4,6 @@ module Arel
       Session.new
     end
     
-    # INVESTIGATE
-    def name_for(relation)
-      relation.name
-    end
-    
     def to_sql(formatter = Sql::SelectStatement.new(self))
       formatter.select [
         "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectClause.new(self)) }.join(', ')}",

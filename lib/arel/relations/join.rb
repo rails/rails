@@ -51,29 +51,7 @@ module Arel
     
     private
     def externalize(relation)
-      Externalizer.new(relation)
-    end
-    
-    Externalizer = Struct.new(:relation) do
-      def selects
-        relation.aggregation?? [] : relation.selects
-      end
-      
-      def table
-        relation.aggregation?? relation : relation.table
-      end
-      
-      def relation_for(attribute)
-        relation.aggregation?? relation : relation.relation_for(attribute)
-      end
-      
-      def table_sql(formatter = Sql::TableReference.new(relation))
-        relation.aggregation?? relation.to_sql(formatter) : relation.table.table_sql(formatter)
-      end
-      
-      def attributes
-        relation.aggregation?? relation.attributes.collect(&:to_attribute) : relation.attributes
-      end
+      relation.aggregation?? Aggregation.new(relation) : relation
     end
   end
 end
