@@ -157,6 +157,8 @@ module ActionView #:nodoc:
     attr_reader :logger, :response, :headers
     attr_internal :cookies, :flash, :headers, :params, :request, :response, :session
     
+    delegate :logger, :action_name, :to => :controller
+    
     attr_writer :template_format
 
     # Specify trim mode for the ERB compiler. Defaults to '-'.
@@ -524,10 +526,18 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       def template_handler_is_compilable?(handler)
         handler.new(self).respond_to?(:compile)
       end
-
+      
       # Assigns instance variables from the controller to the view.
       def assign_variables_from_controller
-        @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+        @assigns.each do |key, value|
+          if ['logger'].include?(key)
+            instance_variable_set("@#{key}", ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, key.to_sym))
+          elsif ['action_name'].include?(key)
+            instance_variable_set("@#{key}", ActiveSupport::Deprecation::DeprecatedInstanceVariable.new(value, key))
+          else
+            instance_variable_set("@#{key}", value)
+          end
+        end
       end
 
 
