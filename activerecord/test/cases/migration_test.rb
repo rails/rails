@@ -209,6 +209,24 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.primary_key_prefix_type = nil
     end
 
+    uses_mocha('test_create_table_with_force_true_does_not_drop_nonexisting_table') do
+      def test_create_table_with_force_true_does_not_drop_nonexisting_table
+        if Person.connection.table_exists?(:testings2)
+          Person.connection.drop_table :testings2
+        end
+
+        # using a copy as we need the drop_table method to
+        # continue to work for the ensure block of the test
+        temp_conn = Person.connection.dup
+        temp_conn.expects(:drop_table).never
+        temp_conn.create_table :testings2, :force => true do |t|
+          t.column :foo, :string
+        end
+      ensure
+        Person.connection.drop_table :testings2 rescue nil
+      end
+    end
+
 
     # SQL Server, Sybase, and SQLite3 will not allow you to add a NOT NULL
     # column to a table without a default value.

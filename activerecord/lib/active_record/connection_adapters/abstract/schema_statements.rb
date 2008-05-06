@@ -97,8 +97,8 @@ module ActiveRecord
 
         yield table_definition
 
-        if options[:force]
-          drop_table(table_name, options) rescue nil
+        if options[:force] && table_exists?(table_name)
+          drop_table(table_name, options)
         end
 
         create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
