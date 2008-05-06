@@ -46,7 +46,7 @@ namespace :db do
         @encoding = config[:encoding] || ENV['CHARSET'] || 'utf8'
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => 'template1'))
-          ActiveRecord::Base.connection.create_database(config['database'], :encoding => @encoding)
+          ActiveRecord::Base.connection.create_database(config['database'], config.merge('encoding' => @encoding))
           ActiveRecord::Base.establish_connection(config)
         rescue
           $stderr.puts $!, *($!.backtrace)
@@ -314,14 +314,9 @@ namespace :db do
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.recreate_database(abcs["test"]["database"])
       when "postgresql"
-        ENV['PGHOST']     = abcs["test"]["host"] if abcs["test"]["host"]
-        ENV['PGPORT']     = abcs["test"]["port"].to_s if abcs["test"]["port"]
-        ENV['PGPASSWORD'] = abcs["test"]["password"].to_s if abcs["test"]["password"]
-        enc_option = "-E #{abcs["test"]["encoding"]}" if abcs["test"]["encoding"]
-
         ActiveRecord::Base.clear_active_connections!
-        `dropdb -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
-        `createdb #{enc_option} -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
+        drop_database(abcs['test'])
+        create_database(abcs['test'])
       when "sqlite","sqlite3"
         dbfile = abcs["test"]["database"] || abcs["test"]["dbfile"]
         File.delete(dbfile) if File.exist?(dbfile)

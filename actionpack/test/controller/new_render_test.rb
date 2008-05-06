@@ -246,6 +246,10 @@ class NewRenderTestController < ActionController::Base
   def accessing_logger_in_template
     render :inline =>  "<%= logger.class %>"
   end
+  
+  def accessing_action_name_in_template
+    render :inline =>  "<%= action_name %>"
+  end
 
   def accessing_params_in_template_with_layout
     render :layout => nil, :inline =>  "Hello: <%= params[:name] %>"
@@ -544,6 +548,11 @@ class NewRenderTest < Test::Unit::TestCase
   def test_access_to_logger_in_view
     get :accessing_logger_in_template
     assert_equal "Logger", @response.body
+  end
+  
+  def test_access_to_action_name_in_view
+    get :accessing_action_name_in_template
+    assert_equal "accessing_action_name_in_template", @response.body
   end
 
   def test_render_xml

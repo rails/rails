@@ -1446,6 +1446,12 @@ module ActiveRecord
           tables_from_conditions = conditions_tables(options)
           tables_from_order      = order_tables(options)
           all_tables             = tables_from_conditions + tables_from_order
+          distinct_join_associations = all_tables.uniq.map{|table|
+            join_dependency.joins_for_table_name(table)
+          }.flatten.compact.uniq
+
+
+
 
           is_distinct = !options[:joins].blank? || include_eager_conditions?(options, tables_from_conditions) || include_eager_order?(options, tables_from_order)
           sql = "SELECT "
@@ -1457,7 +1463,7 @@ module ActiveRecord
           sql << " FROM #{connection.quote_table_name table_name} "
 
           if is_distinct
-            sql << join_dependency.join_associations.reject{ |ja| !all_tables.include?(ja.table_name) }.collect(&:association_join).join
+            sql << distinct_join_associations.collect(&:association_join).join
             add_joins!(sql, options, scope)
           end
 
@@ -1615,6 +1621,23 @@ module ActiveRecord
                   remove_duplicate_results!(reflection.class_name.constantize, parent_records, associations[name]) unless parent_records.empty?
                 end
             end
+          end
+
+          def join_for_table_name(table_name)
+            @joins.select{|j|j.aliased_table_name == table_name.gsub(/^\"(.*)\"$/){$1} }.first rescue nil
+          end
+
+          def joins_for_table_name(table_name)
+            join = join_for_table_name(table_name)
+            result = nil
+            if join && join.is_a?(JoinAssociation)
+              result = [join]
+              if join.parent && join.parent.is_a?(JoinAssociation)
+                result = joins_for_table_name(join.parent.aliased_table_name) +
+                         result
+              end
+            end
+            result
           end
 
           protected
