@@ -14,18 +14,18 @@ module ActiveResource
   # Person maps to the resources people, very similarly to Active Record) and a +site+ value, which holds the
   # URI of the resources.
   # 
-  #     class Person < ActiveResource::Base
-  #       self.site = "http://api.people.com:3000/"
-  #     end
+  #   class Person < ActiveResource::Base
+  #     self.site = "http://api.people.com:3000/"
+  #   end
   # 
   # Now the Person class is mapped to RESTful resources located at <tt>http://api.people.com:3000/people/</tt>, and
   # you can now use Active Resource's lifecycles methods to manipulate resources. In the case where you already have 
   # an existing model with the same name as the desired RESTful resource you can set the +element_name+ value.
   #
-  #     class PersonResource < ActiveResource::Base
-  #       self.site = "http://api.people.com:3000/"
-  #       self.element_name = "person"
-  #     end
+  #   class PersonResource < ActiveResource::Base
+  #     self.site = "http://api.people.com:3000/"
+  #     self.element_name = "person"
+  #   end
   #  
   # 
   # == Lifecycle methods
@@ -79,13 +79,13 @@ module ActiveResource
   #
   # You can validate resources client side by overriding validation methods in the base class.
   # 
-  #     class Person < ActiveResource::Base
-  #        self.site = "http://api.people.com:3000/"
-  #        protected
-  #          def validate
-  #            errors.add("last", "has invalid characters") unless last =~ /[a-zA-Z]*/
-  #          end
-  #     end
+  #   class Person < ActiveResource::Base
+  #      self.site = "http://api.people.com:3000/"
+  #      protected
+  #        def validate
+  #          errors.add("last", "has invalid characters") unless last =~ /[a-zA-Z]*/
+  #        end
+  #   end
   # 
   # See the ActiveResource::Validations documentation for more information.
   #
@@ -125,18 +125,17 @@ module ActiveResource
   # exception.
   # 
   #   # GET http://api.people.com:3000/people/999.xml
-  #   ryan = Person.find(999) # => Raises ActiveResource::ResourceNotFound
-  #   # => Response = 404
+  #   ryan = Person.find(999) # 404, raises ActiveResource::ResourceNotFound
   # 
   # <tt>404</tt> is just one of the HTTP error response codes that ActiveResource will handle with its own exception. The
   # following HTTP response codes will also result in these exceptions:
   # 
-  # 200 - 399:: Valid response, no exception
-  # 404:: ActiveResource::ResourceNotFound
-  # 409:: ActiveResource::ResourceConflict
-  # 422:: ActiveResource::ResourceInvalid (rescued by save as validation errors)
-  # 401 - 499:: ActiveResource::ClientError
-  # 500 - 599:: ActiveResource::ServerError
+  # * 200..399 - Valid response, no exception
+  # * 404 - ActiveResource::ResourceNotFound
+  # * 409 - ActiveResource::ResourceConflict
+  # * 422 - ActiveResource::ResourceInvalid (rescued by save as validation errors)
+  # * 401..499 - ActiveResource::ClientError
+  # * 500..599 - ActiveResource::ServerError
   #
   # These custom exceptions allow you to deal with resource errors more naturally and with more precision
   # rather than returning a general HTTP error.  For example:
@@ -236,7 +235,7 @@ module ActiveResource
         end
       end
 
-      # Gets the user for REST HTTP authentication
+      # Gets the user for REST HTTP authentication.
       def user
         # Not using superclass_delegating_reader. See +site+ for explanation
         if defined?(@user)
@@ -246,13 +245,13 @@ module ActiveResource
         end
       end
 
-      # Sets the user for REST HTTP authentication
+      # Sets the user for REST HTTP authentication.
       def user=(user)
         @connection = nil
         @user = user
       end
 
-      # Gets the password for REST HTTP authentication
+      # Gets the password for REST HTTP authentication.
       def password
         # Not using superclass_delegating_reader. See +site+ for explanation
         if defined?(@password)
@@ -262,13 +261,13 @@ module ActiveResource
         end
       end
 
-      # Sets the password for REST HTTP authentication
+      # Sets the password for REST HTTP authentication.
       def password=(password)
         @connection = nil
         @password = password
       end
 
-      # Sets the format that attributes are sent and received in from a mime type reference. Example:
+      # Sets the format that attributes are sent and received in from a mime type reference:
       #
       #   Person.format = :json
       #   Person.find(1) # => GET /people/1.json
@@ -276,7 +275,7 @@ module ActiveResource
       #   Person.format = ActiveResource::Formats::XmlFormat
       #   Person.find(1) # => GET /people/1.xml
       #
-      # Default format is :xml.
+      # Default format is <tt>:xml</tt>.
       def format=(mime_type_reference_or_format)
         format = mime_type_reference_or_format.is_a?(Symbol) ? 
           ActiveResource::Formats[mime_type_reference_or_format] : mime_type_reference_or_format
@@ -285,7 +284,7 @@ module ActiveResource
         connection.format = format if site
       end
 
-      # Returns the current format, default is ActiveResource::Formats::XmlFormat
+      # Returns the current format, default is ActiveResource::Formats::XmlFormat.
       def format # :nodoc:
         read_inheritable_attribute("format") || ActiveResource::Formats[:xml]
       end
@@ -374,9 +373,9 @@ module ActiveResource
       # will split from the prefix options.
       #
       # ==== Options
-      # +prefix_options+:: A hash to add a prefix to the request for nested URL's (e.g., <tt>:account_id => 19</tt>
+      # +prefix_options+ - A hash to add a prefix to the request for nested URLs (e.g., <tt>:account_id => 19</tt>
       #                    would yield a URL like <tt>/accounts/19/purchases.xml</tt>).
-      # +query_options+:: A hash to add items to the query string for the request.
+      # +query_options+ - A hash to add items to the query string for the request.
       #
       # ==== Examples
       #   Post.element_path(1) 
@@ -400,9 +399,9 @@ module ActiveResource
       # will split from the +prefix_options+.
       #
       # ==== Options
-      # +prefix_options+:: A hash to add a prefix to the request for nested URL's (e.g., <tt>:account_id => 19</tt>
-      #                    would yield a URL like <tt>/accounts/19/purchases.xml</tt>).
-      # +query_options+:: A hash to add items to the query string for the request.
+      # * +prefix_options+ - A hash to add a prefix to the request for nested URL's (e.g., <tt>:account_id => 19</tt>
+      #   would yield a URL like <tt>/accounts/19/purchases.xml</tt>).
+      # * +query_options+ - A hash to add items to the query string for the request.
       #
       # ==== Examples
       #   Post.collection_path
@@ -438,40 +437,34 @@ module ActiveResource
       # ==== Examples
       #   Person.create(:name => 'Jeremy', :email => 'myname@nospam.com', :enabled => true)
       #   my_person = Person.find(:first)
-      #   my_person.email
-      #   # => myname@nospam.com
+      #   my_person.email # => myname@nospam.com
       #
       #   dhh = Person.create(:name => 'David', :email => 'dhh@nospam.com', :enabled => true)
-      #   dhh.valid?
-      #   # => true
-      #   dhh.new?
-      #   # => false
+      #   dhh.valid? # => true
+      #   dhh.new?   # => false
       #
       #   # We'll assume that there's a validation that requires the name attribute
       #   that_guy = Person.create(:name => '', :email => 'thatguy@nospam.com', :enabled => true)
-      #   that_guy.valid?
-      #   # => false
-      #   that_guy.new?
-      #   # => true
-      #
+      #   that_guy.valid? # => false
+      #   that_guy.new?   # => true
       def create(attributes = {})
         returning(self.new(attributes)) { |res| res.save }        
       end
 
-      # Core method for finding resources.  Used similarly to Active Record's find method.
+      # Core method for finding resources.  Used similarly to Active Record's +find+ method.
       #
       # ==== Arguments
       # The first argument is considered to be the scope of the query.  That is, how many 
       # resources are returned from the request.  It can be one of the following.
       #
-      # * <tt>:one</tt>: Returns a single resource.
-      # * <tt>:first</tt>: Returns the first resource found.
-      # * <tt>:all</tt>: Returns every resource that matches the request.
+      # * <tt>:one</tt> - Returns a single resource.
+      # * <tt>:first</tt> - Returns the first resource found.
+      # * <tt>:all</tt> - Returns every resource that matches the request.
       # 
       # ==== Options
       #
-      # * +from+: Sets the path or custom method that resources will be fetched from.
-      # * +params+: Sets query and prefix (nested URL) parameters.
+      # * <tt>:from</tt> - Sets the path or custom method that resources will be fetched from.
+      # * <tt>:params</tt> - Sets query and prefix (nested URL) parameters.
       #
       # ==== Examples
       #   Person.find(1)                                         
@@ -518,19 +511,14 @@ module ActiveResource
       # All options specify prefix and query parameters.
       #
       # ==== Examples
-      #   Event.delete(2)
-      #   # => DELETE /events/2
+      #   Event.delete(2) # sends DELETE /events/2
       #
       #   Event.create(:name => 'Free Concert', :location => 'Community Center')
-      #   my_event = Event.find(:first)
-      #   # => Events (id: 7)
-      #   Event.delete(my_event.id)
-      #   # => DELETE /events/7
+      #   my_event = Event.find(:first) # let's assume this is event with ID 7
+      #   Event.delete(my_event.id) # sends DELETE /events/7
       #
       #   # Let's assume a request to events/5/cancel.xml
-      #   Event.delete(params[:id])
-      #   # => DELETE /events/5
-      #
+      #   Event.delete(params[:id]) # sends DELETE /events/5
       def delete(id, options = {})
         connection.delete(element_path(id, options))
       end
@@ -539,11 +527,9 @@ module ActiveResource
       #
       # ==== Examples
       #   Note.create(:title => 'Hello, world.', :body => 'Nothing more for now...')
-      #   Note.exists?(1)
-      #   # => true
+      #   Note.exists?(1) # => true
       #
-      #   Note.exists(1349)
-      #   # => false
+      #   Note.exists(1349) # => false
       def exists?(id, options = {})
         if id
           prefix_options, query_options = split_options(options[:params])
@@ -633,7 +619,7 @@ module ActiveResource
     attr_accessor :attributes #:nodoc:
     attr_accessor :prefix_options #:nodoc:
 
-    # Constructor method for new resources; the optional +attributes+ parameter takes a +Hash+
+    # Constructor method for new resources; the optional +attributes+ parameter takes a hash
     # of attributes for the new resource.
     #
     # ==== Examples
@@ -650,27 +636,26 @@ module ActiveResource
       load(attributes)
     end
 
-    # Returns a clone of the resource that hasn't been assigned an id yet and
+    # Returns a clone of the resource that hasn't been assigned an +id+ yet and
     # is treated as a new resource.
     #
-    #  ryan = Person.find(1)
-    #  not_ryan = ryan.clone
-    #  not_ryan.new?  # => true
+    #   ryan = Person.find(1)
+    #   not_ryan = ryan.clone
+    #   not_ryan.new?  # => true
     #
     # Any active resource member attributes will NOT be cloned, though all other
-    # attributes are.  This is to prevent the conflict between any prefix_options
+    # attributes are.  This is to prevent the conflict between any +prefix_options+
     # that refer to the original parent resource and the newly cloned parent
     # resource that does not exist.
     #
-    #  ryan = Person.find(1)
-    #  ryan.address = StreetAddress.find(1, :person_id => ryan.id)
-    #  ryan.hash = {:not => "an ARes instance"}
-    #
-    #  not_ryan = ryan.clone
-    #  not_ryan.new?            # => true
-    #  not_ryan.address         # => NoMethodError
-    #  not_ryan.hash            # => {:not => "an ARes instance"}
-    #
+    #   ryan = Person.find(1)
+    #   ryan.address = StreetAddress.find(1, :person_id => ryan.id)
+    #   ryan.hash = {:not => "an ARes instance"}
+    #   
+    #   not_ryan = ryan.clone
+    #   not_ryan.new?            # => true
+    #   not_ryan.address         # => NoMethodError
+    #   not_ryan.hash            # => {:not => "an ARes instance"}
     def clone
       # Clone all attributes except the pk and any nested ARes
       cloned = attributes.reject {|k,v| k == self.class.primary_key || v.is_a?(ActiveResource::Base)}.inject({}) do |attrs, (k, v)|
@@ -691,16 +676,13 @@ module ActiveResource
     #
     # ==== Examples
     #   not_new = Computer.create(:brand => 'Apple', :make => 'MacBook', :vendor => 'MacMall')
-    #   not_new.new?
-    #   # => false
+    #   not_new.new? # => false
     #
     #   is_new = Computer.new(:brand => 'IBM', :make => 'Thinkpad', :vendor => 'IBM')
-    #   is_new.new?
-    #   # => true
+    #   is_new.new? # => true
     #
     #   is_new.save
-    #   is_new.new?
-    #   # => false
+    #   is_new.new? # => false
     #
     def new?
       id.nil?
@@ -763,17 +745,13 @@ module ActiveResource
     # ==== Examples
     #   my_invoice = Invoice.create(:customer => 'That Company')
     #   next_invoice = my_invoice.dup
-    #   next_invoice.new?
-    #   # => true
+    #   next_invoice.new? # => true
     #
     #   next_invoice.save
-    #   next_invoice == my_invoice
-    #   # => false (different id attributes)
+    #   next_invoice == my_invoice # => false (different id attributes)
     #
-    #   my_invoice.customer
-    #   # => That Company
-    #   next_invoice.customer
-    #   # => That Company
+    #   my_invoice.customer   # => That Company
+    #   next_invoice.customer # => That Company
     def dup
       returning self.class.new do |resource|
         resource.attributes     = @attributes
@@ -788,16 +766,12 @@ module ActiveResource
     #
     # ==== Examples
     #   my_company = Company.new(:name => 'RoleModel Software', :owner => 'Ken Auer', :size => 2)
-    #   my_company.new?
-    #   # => true
-    #   my_company.save
-    #   # => POST /companies/ (create)
+    #   my_company.new? # => true
+    #   my_company.save # sends POST /companies/ (create)
     #
-    #   my_company.new?
-    #   # => false
+    #   my_company.new? # => false
     #   my_company.size = 10
-    #   my_company.save
-    #   # => PUT /companies/1 (update)
+    #   my_company.save # sends PUT /companies/1 (update)
     def save
       new? ? create : update
     end
@@ -808,15 +782,12 @@ module ActiveResource
     #   my_id = 3
     #   my_person = Person.find(my_id)
     #   my_person.destroy
-    #   Person.find(my_id)
-    #   # => 404 (Resource Not Found)
+    #   Person.find(my_id) # 404 (Resource Not Found)
     #   
     #   new_person = Person.create(:name => 'James')
-    #   new_id = new_person.id 
-    #   # => 7
+    #   new_id = new_person.id # => 7
     #   new_person.destroy
-    #   Person.find(new_id)
-    #   # => 404 (Resource Not Found)
+    #   Person.find(new_id) # 404 (Resource Not Found)
     def destroy
       connection.delete(element_path, self.class.headers)
     end
@@ -829,17 +800,14 @@ module ActiveResource
     # ==== Examples
     #   Person.create(:name => 'Theodore Roosevelt')
     #   that_guy = Person.find(:first)
-    #   that_guy.exists?
-    #   # => true
+    #   that_guy.exists? # => true
     #
     #   that_lady = Person.new(:name => 'Paul Bean')
-    #   that_lady.exists?
-    #   # => false
+    #   that_lady.exists? # => false
     #
     #   guys_id = that_guy.id
     #   Person.delete(guys_id)
-    #   that_guy.exists?
-    #   # => false
+    #   that_guy.exists? # => false
     def exists?
       !new? && self.class.exists?(to_param, :params => prefix_options)      
     end
@@ -851,11 +819,11 @@ module ActiveResource
     # attribute, so it has the same options as the +to_xml+ methods in
     # ActiveSupport.
     #
-    # indent:: Set the indent level for the XML output (default is +2+).
-    # dasherize:: Boolean option to determine whether or not element names should
-    #             replace underscores with dashes (default is <tt>false</tt>).
-    # skip_instruct::  Toggle skipping the +instruct!+ call on the XML builder 
-    #                  that generates the XML declaration (default is <tt>false</tt>).
+    # * <tt>:indent</tt> - Set the indent level for the XML output (default is +2+).
+    # * <tt>:dasherize</tt> - Boolean option to determine whether or not element names should
+    #   replace underscores with dashes (default is <tt>false</tt>).
+    # * <tt>:skip_instruct</tt> - Toggle skipping the +instruct!+ call on the XML builder 
+    #   that generates the XML declaration (default is <tt>false</tt>).
     #
     # ==== Examples
     #   my_group = SubsidiaryGroup.find(:first)
@@ -877,30 +845,26 @@ module ActiveResource
     #
     # ==== Examples
     #   my_branch = Branch.find(:first)
-    #   my_branch.name
-    #   # => Wislon Raod
+    #   my_branch.name # => "Wislon Raod"
     #   
     #   # Another client fixes the typo...
     #
-    #   my_branch.name
-    #   # => Wislon Raod
+    #   my_branch.name # => "Wislon Raod"
     #   my_branch.reload
-    #   my_branch.name
-    #   # => Wilson Road
+    #   my_branch.name # => "Wilson Road"
     def reload
       self.load(self.class.find(to_param, :params => @prefix_options).attributes)
     end
 
     # A method to manually load attributes from a hash. Recursively loads collections of
-    # resources.  This method is called in initialize and create when a +Hash+ of attributes
+    # resources.  This method is called in +initialize+ and +create+ when a hash of attributes
     # is provided.
     #
     # ==== Examples
     #   my_attrs = {:name => 'J&J Textiles', :industry => 'Cloth and textiles'}
     #
     #   the_supplier = Supplier.find(:first)
-    #   the_supplier.name
-    #   # => 'J&M Textiles'
+    #   the_supplier.name # => 'J&M Textiles'
     #   the_supplier.load(my_attrs)
     #   the_supplier.name('J&J Textiles')
     #
@@ -931,10 +895,10 @@ module ActiveResource
       self
     end
     
-    # For checking respond_to? without searching the attributes (which is faster).
+    # For checking +respond_to?+ without searching the attributes (which is faster).
     alias_method :respond_to_without_attributes?, :respond_to?
 
-    # A method to determine if an object responds to a message (e.g., a method call). In Active Resource, a +Person+ object with a
+    # A method to determine if an object responds to a message (e.g., a method call). In Active Resource, a Person object with a
     # +name+ attribute can answer <tt>true</tt> to <tt>my_person.respond_to?("name")</tt>, <tt>my_person.respond_to?("name=")</tt>, and
     # <tt>my_person.respond_to?("name?")</tt>.
     def respond_to?(method, include_priv = false)
