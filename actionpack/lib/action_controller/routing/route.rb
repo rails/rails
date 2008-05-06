@@ -139,8 +139,8 @@ module ActionController
       # those that were not used to generate a particular route. The extra
       # keys also do not include those recalled from the prior request, nor
       # do they include any keys that were implied in the route (like a
-      # :controller that is required, but not explicitly used in the text of
-      # the route.)
+      # <tt>:controller</tt> that is required, but not explicitly used in the
+      # text of the route.)
       def extra_keys(hash, recall={})
         (hash || {}).keys.map { |k| k.to_sym } - (recall || {}).keys - significant_keys
       end

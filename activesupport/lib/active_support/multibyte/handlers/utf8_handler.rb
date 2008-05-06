@@ -284,7 +284,9 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
       # passing strings to databases and validations.
       #
       # * <tt>str</tt> - The string to perform normalization on.
-      # * <tt>form</tt> - The form you want to normalize in. Should be one of the following: :c, :kc, :d or :kd.
+      # * <tt>form</tt> - The form you want to normalize in. Should be one of the following:
+      #   <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>. Default is
+      #   ActiveSupport::Multibyte::DEFAULT_NORMALIZATION_FORM.
       def normalize(str, form=ActiveSupport::Multibyte::DEFAULT_NORMALIZATION_FORM)
         # See http://www.unicode.org/reports/tr15, Table 1
         codepoints = u_unpack(str)

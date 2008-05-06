@@ -11,15 +11,15 @@ class NamedScopeTest < ActiveRecord::TestCase
   def test_implements_enumerable
     assert !Topic.find(:all).empty?
 
-    assert_equal Topic.find(:all),   Topic.all
-    assert_equal Topic.find(:all),   Topic.all.to_a
-    assert_equal Topic.find(:first), Topic.all.first
-    assert_equal Topic.find(:all),   Topic.all.each { |i| i }
+    assert_equal Topic.find(:all),   Topic.base
+    assert_equal Topic.find(:all),   Topic.base.to_a
+    assert_equal Topic.find(:first), Topic.base.first
+    assert_equal Topic.find(:all),   Topic.base.each { |i| i }
   end
 
   def test_found_items_are_cached
     Topic.columns
-    all_posts = Topic.all
+    all_posts = Topic.base
 
     assert_queries(1) do
       all_posts.collect
@@ -28,7 +28,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_reload_expires_cache_of_found_items
-    all_posts = Topic.all
+    all_posts = Topic.base
     all_posts.inspect
 
     new_post = Topic.create!
@@ -39,17 +39,17 @@ class NamedScopeTest < ActiveRecord::TestCase
   def test_delegates_finds_and_calculations_to_the_base_class
     assert !Topic.find(:all).empty?
 
-    assert_equal Topic.find(:all),               Topic.all.find(:all)
-    assert_equal Topic.find(:first),             Topic.all.find(:first)
-    assert_equal Topic.count,                    Topic.all.count
-    assert_equal Topic.average(:replies_count), Topic.all.average(:replies_count)
+    assert_equal Topic.find(:all),               Topic.base.find(:all)
+    assert_equal Topic.find(:first),             Topic.base.find(:first)
+    assert_equal Topic.count,                    Topic.base.count
+    assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
   end
 
   def test_subclasses_inherit_scopes
-    assert Topic.scopes.include?(:all)
+    assert Topic.scopes.include?(:base)
 
-    assert Reply.scopes.include?(:all)
-    assert_equal Reply.find(:all), Reply.all
+    assert Reply.scopes.include?(:base)
+    assert_equal Reply.find(:all), Reply.base
   end
 
   def test_scopes_with_options_limit_finds_to_those_matching_the_criteria_specified
@@ -104,7 +104,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   def test_active_records_have_scope_named__all__
     assert !Topic.find(:all).empty?
 
-    assert_equal Topic.find(:all), Topic.all
+    assert_equal Topic.find(:all), Topic.base
   end
 
   def test_active_records_have_scope_named__scoped__

@@ -8,47 +8,55 @@ module ActionView
   end
 
   module Helpers
-    # The Active Record Helper makes it easier to create forms for records kept in instance variables. The most far-reaching is the form
+    # The Active Record Helper makes it easier to create forms for records kept in instance variables. The most far-reaching is the +form+
     # method that creates a complete form for all the basic content types of the record (not associations or aggregations, though). This
     # is a great way of making the record quickly available for editing, but likely to prove lackluster for a complicated real-world form.
-    # In that case, it's better to use the input method and the specialized form methods in link:classes/ActionView/Helpers/FormHelper.html
+    # In that case, it's better to use the +input+ method and the specialized +form+ methods in link:classes/ActionView/Helpers/FormHelper.html
     module ActiveRecordHelper
-      # Returns a default input tag for the type of object returned by the method. For example, let's say you have a model
-      # that has an attribute +title+ of type VARCHAR column, and this instance holds "Hello World":
-      #   input("post", "title") =>
-      #     <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
+      # Returns a default input tag for the type of object returned by the method. For example, if <tt>@post</tt>
+      # has an attribute +title+ mapped to a +VARCHAR+ column that holds "Hello World":
+      #
+      #   input("post", "title")
+      #   # => <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
       def input(record_name, method, options = {})
         InstanceTag.new(record_name, method, self).to_tag(options)
       end
 
-      # Returns an entire form with all needed input tags for a specified Active Record object. For example, let's say you 
-      # have a table model <tt>Post</tt> with attributes named <tt>title</tt> of type <tt>VARCHAR</tt> and <tt>body</tt> of type <tt>TEXT</tt>:
+      # Returns an entire form with all needed input tags for a specified Active Record object. For example, if <tt>@post</tt>
+      # has attributes named +title+ of type +VARCHAR+ and +body+ of type +TEXT+ then
+      #
       #   form("post") 
-      # That line would yield a form like the following:
-      #     <form action='/post/create' method='post'>
-      #       <p>
-      #         <label for="post_title">Title</label><br />
-      #         <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
-      #       </p>
-      #       <p>
-      #         <label for="post_body">Body</label><br />
-      #         <textarea cols="40" id="post_body" name="post[body]" rows="20">
-      #         </textarea>
-      #       </p>
-      #       <input type='submit' value='Create' />
-      #     </form>
+      #
+      # would yield a form like the following (modulus formatting):
+      #
+      #   <form action='/posts/create' method='post'>
+      #     <p>
+      #       <label for="post_title">Title</label><br />
+      #       <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
+      #     </p>
+      #     <p>
+      #       <label for="post_body">Body</label><br />
+      #       <textarea cols="40" id="post_body" name="post[body]" rows="20"></textarea>
+      #     </p>
+      #     <input name="commit" type="submit" value="Create" />
+      #   </form>
       #
       # It's possible to specialize the form builder by using a different action name and by supplying another
-      # block renderer. For example, let's say you have a model <tt>Entry</tt> with an attribute <tt>message</tt> of type <tt>VARCHAR</tt>:
+      # block renderer. For example, if <tt>@entry</tt> has an attribute +message+ of type +VARCHAR+ then
       #
-      #   form("entry", :action => "sign", :input_block =>
-      #        Proc.new { |record, column| "#{column.human_name}: #{input(record, column.name)}<br />" }) =>
+      #   form("entry",
+      #     :action => "sign",
+      #     :input_block => Proc.new { |record, column|
+      #       "#{column.human_name}: #{input(record, column.name)}<br />"
+      #   })
       #
-      #     <form action='/post/sign' method='post'>
-      #       Message:
-      #       <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" /><br />
-      #       <input type='submit' value='Sign' />
-      #     </form>
+      # would yield a form like the following (modulus formatting):
+      #
+      #   <form action="/entries/sign" method="post">
+      #     Message:
+      #     <input id="entry_message" name="entry[message]" size="30" type="text" /><br />
+      #     <input name="commit" type="submit" value="Sign" />
+      #   </form>
       #
       # It's also possible to add additional content to the form by giving it a block, such as:
       #
@@ -59,11 +67,11 @@ module ActionView
       #
       # The following options are available:
       #
-      # * <tt>action</tt> - the action used when submitting the form (default: create if a new record, otherwise update)
-      # * <tt>input_block</tt> - specialize the output using a different block, see above
-      # * <tt>method</tt> - the method used when submitting the form (default: post)
-      # * <tt>multipart</tt> - whether to change the enctype of the form to multipart/form-date, used when uploading a file (default: false)
-      # * <tt>submit_value</tt> - the text of the submit button (default: Create if a new record, otherwise Update)
+      # * <tt>:action</tt> - The action used when submitting the form (default: +create+ if a new record, otherwise +update+).
+      # * <tt>:input_block</tt> - Specialize the output using a different block, see above.
+      # * <tt>:method</tt> - The method used when submitting the form (default: +post+).
+      # * <tt>:multipart</tt> - Whether to change the enctype of the form to "multipart/form-data", used when uploading a file (default: +false+).
+      # * <tt>:submit_value</tt> - The text of the submit button (default: "Create" if a new record, otherwise "Update").
       def form(record_name, options = {})
         record = instance_variable_get("@#{record_name}")
 
@@ -84,17 +92,16 @@ module ActionView
       # Returns a string containing the error message attached to the +method+ on the +object+ if one exists.
       # This error message is wrapped in a <tt>DIV</tt> tag, which can be extended to include a +prepend_text+ and/or +append_text+
       # (to properly explain the error), and a +css_class+ to style it accordingly. +object+ should either be the name of an instance variable or
-      # the actual object. As an example, let's say you have a model
-      # +post+ that has an error message on the +title+ attribute:
+      # the actual object. As an example, let's say you have a model <tt>@post</tt> that has an error message on the +title+ attribute:
       #
-      #   <%= error_message_on "post", "title" %> =>
-      #     <div class="formError">can't be empty</div>
+      #   <%= error_message_on "post", "title" %>
+      #   # => <div class="formError">can't be empty</div>
       #
-      #   <%= error_message_on @post, "title" %> =>
-      #     <div class="formError">can't be empty</div>
+      #   <%= error_message_on @post, "title" %>
+      #   # => <div class="formError">can't be empty</div>
       #
-      #   <%= error_message_on "post", "title", "Title simply ", " (or it won't work).", "inputError" %> =>
-      #     <div class="inputError">Title simply can't be empty (or it won't work).</div>
+      #   <%= error_message_on "post", "title", "Title simply ", " (or it won't work).", "inputError" %>
+      #   # => <div class="inputError">Title simply can't be empty (or it won't work).</div>
       def error_message_on(object, method, prepend_text = "", append_text = "", css_class = "formError")
         if (obj = (object.respond_to?(:errors) ? object : instance_variable_get("@#{object}"))) &&
           (errors = obj.errors.on(method))
@@ -110,30 +117,37 @@ module ActionView
       #
       # This <tt>DIV</tt> can be tailored by the following options:
       #
-      # * <tt>header_tag</tt> - Used for the header of the error div (default: h2)
-      # * <tt>id</tt> - The id of the error div (default: errorExplanation)
-      # * <tt>class</tt> - The class of the error div (default: errorExplanation)
-      # * <tt>object</tt> - The object (or array of objects) for which to display errors, if you need to escape the instance variable convention
-      # * <tt>object_name</tt> - The object name to use in the header, or any text that you prefer. If <tt>object_name</tt> is not set, the name of the first object will be used.
-      # * <tt>header_message</tt> - The message in the header of the error div.  Pass +nil+ or an empty string to avoid the header message altogether. (default: X errors prohibited this object from being saved)
-      # * <tt>message</tt> - The explanation message after the header message and before the error list.  Pass +nil+ or an empty string to avoid the explanation message altogether.  (default: There were problems with the following fields:)
+      # * <tt>:header_tag</tt> - Used for the header of the error div (default: "h2").
+      # * <tt>:id</tt> - The id of the error div (default: "errorExplanation").
+      # * <tt>:class</tt> - The class of the error div (default: "errorExplanation").
+      # * <tt>:object</tt> - The object (or array of objects) for which to display errors,
+      #   if you need to escape the instance variable convention.
+      # * <tt>:object_name</tt> - The object name to use in the header, or any text that you prefer.
+      #   If <tt>:object_name</tt> is not set, the name of the first object will be used.
+      # * <tt>:header_message</tt> - The message in the header of the error div.  Pass +nil+
+      #   or an empty string to avoid the header message altogether. (Default: "X errors
+      #   prohibited this object from being saved").
+      # * <tt>:message</tt> - The explanation message after the header message and before
+      #   the error list.  Pass +nil+ or an empty string to avoid the explanation message
+      #   altogether. (Default: "There were problems with the following fields:").
       #
-      # To specify the display for one object, you simply provide its name as a parameter.  For example, for the +User+ model:
+      # To specify the display for one object, you simply provide its name as a parameter.
+      # For example, for the <tt>@user</tt> model:
       # 
       #   error_messages_for 'user'
       #
-      # To specify more than one object, you simply list them; optionally, you can add an extra +object_name+ parameter, which
-      # will be the name used in the header message.
+      # To specify more than one object, you simply list them; optionally, you can add an extra <tt>:object_name</tt> parameter, which
+      # will be the name used in the header message:
       #
       #   error_messages_for 'user_common', 'user', :object_name => 'user'
       #
-      # If the objects cannot be located as instance variables, you can add an extra +object+ paremeter which gives the actual
-      # object (or array of objects to use)
+      # If the objects cannot be located as instance variables, you can add an extra <tt>:object</tt> paremeter which gives the actual
+      # object (or array of objects to use):
       #
       #   error_messages_for 'user', :object => @question.user
       #
       # NOTE: This is a pre-packaged presentation of the errors with embedded strings and a certain HTML structure. If what
-      # you need is significantly different from the default presentation, it makes plenty of sense to access the object.errors
+      # you need is significantly different from the default presentation, it makes plenty of sense to access the <tt>object.errors</tt>
       # instance yourself and set it up. View the source of this method to see how easy it is.
       def error_messages_for(*params)
         options = params.extract_options!.symbolize_keys

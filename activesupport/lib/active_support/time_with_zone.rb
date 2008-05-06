@@ -101,7 +101,8 @@ module ActiveSupport
     end
     alias_method :rfc822, :rfc2822
   
-    # :db format outputs time in UTC; all others output time in local. Uses TimeWithZone's strftime, so %Z and %z work correctly
+    # <tt>:db</tt> format outputs time in UTC; all others output time in local.
+    # Uses TimeWithZone's +strftime+, so <tt>%Z</tt> and <tt>%z</tt> work correctly.
     def to_s(format = :default) 
       return utc.to_s(format) if format == :db
       if formatter = ::Time::DATE_FORMATS[format]
@@ -111,7 +112,7 @@ module ActiveSupport
       end
     end
     
-    # Replaces %Z and %z directives with #zone and #formatted_offset, respectively, before passing to 
+    # Replaces <tt>%Z</tt> and <tt>%z</tt> directives with +zone+ and +formatted_offset+, respectively, before passing to
     # Time#strftime, so that zone information is correct
     def strftime(format)
       format = format.gsub('%Z', zone).gsub('%z', formatted_offset(false))
@@ -138,9 +139,9 @@ module ActiveSupport
       result.in_time_zone(time_zone)
     end
     
-    # If a time-like object is passed in, compare it with #utc
-    # Else if wrapped #time is a DateTime, use DateTime#ago instead of #-
-    # Otherwise, just pass on to method missing
+    # If a time-like object is passed in, compare it with +utc+.
+    # Else if wrapped +time+ is a DateTime, use DateTime#ago instead of DateTime#-.
+    # Otherwise, just pass on to +method_missing+.
     def -(other)
       if other.acts_like?(:time)
         utc - other
@@ -180,7 +181,7 @@ module ActiveSupport
     alias_method :hash, :to_i
     alias_method :tv_sec, :to_i
   
-    # A TimeWithZone acts like a Time, so just return self
+    # A TimeWithZone acts like a Time, so just return +self+.
     def to_time
       self
     end

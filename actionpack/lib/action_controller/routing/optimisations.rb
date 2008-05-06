@@ -1,11 +1,11 @@
 module ActionController
   module Routing
     # Much of the slow performance from routes comes from the 
-    # complexity of expiry, :requirements matching, defaults providing
+    # complexity of expiry, <tt>:requirements</tt> matching, defaults providing
     # and figuring out which url pattern to use.  With named routes 
     # we can avoid the expense of finding the right route.  So if 
     # they've provided the right number of arguments, and have no
-    # :requirements, we can just build up a string and return it.
+    # <tt>:requirements</tt>, we can just build up a string and return it.
     # 
     # To support building optimisations for other common cases, the 
     # generation code is separated into several classes 
@@ -41,28 +41,29 @@ module ActionController
           end
         end
 
-        # Temporarily disabled :url optimisation pending proper solution to 
+        # Temporarily disabled <tt>:url</tt> optimisation pending proper solution to
         # Issues around request.host etc.
         def applicable?
           true
         end
       end
 
-      # Given a route:
-      # map.person '/people/:id'
+      # Given a route
       #
-      # If the user calls person_url(@person), we can simply
+      #   map.person '/people/:id'
+      #
+      # If the user calls <tt>person_url(@person)</tt>, we can simply
       # return a string like "/people/#{@person.to_param}" 
-      # rather than triggering the expensive logic in url_for
+      # rather than triggering the expensive logic in +url_for+.
       class PositionalArguments < Optimiser
         def guard_condition
           number_of_arguments = route.segment_keys.size
           # if they're using foo_url(:id=>2) it's one 
           # argument, but we don't want to generate /foos/id2
           if number_of_arguments == 1
-            "defined?(request) && request && args.size == 1 && !args.first.is_a?(Hash)"
+            "(!defined?(default_url_options) || default_url_options(nil).blank?) && defined?(request) && request && args.size == 1 && !args.first.is_a?(Hash)"
           else
-            "defined?(request) && request && args.size == #{number_of_arguments}"
+            "(!defined?(default_url_options) || default_url_options(nil).blank?) && defined?(request) && request && args.size == #{number_of_arguments}"
           end
         end
 
@@ -77,7 +78,7 @@ module ActionController
 
           elements << '#{request.relative_url_root if request.relative_url_root}'
 
-          # The last entry in route.segments appears to # *always* be a
+          # The last entry in <tt>route.segments</tt> appears to *always* be a
           # 'divider segment' for '/' but we have assertions to ensure that
           # we don't include the trailing slashes, so skip them.
           (route.segments.size == 1 ? route.segments : route.segments[0..-2]).each do |segment|
@@ -97,7 +98,7 @@ module ActionController
       # argument
       class PositionalArgumentsWithAdditionalParams < PositionalArguments
         def guard_condition
-          "defined?(request) && request && args.size == #{route.segment_keys.size + 1} && !args.last.has_key?(:anchor) && !args.last.has_key?(:port) && !args.last.has_key?(:host)"
+          "(!defined?(default_url_options) || default_url_options(nil).blank?) && defined?(request) && request && args.size == #{route.segment_keys.size + 1} && !args.last.has_key?(:anchor) && !args.last.has_key?(:port) && !args.last.has_key?(:host)"
         end
 
         # This case uses almost the same code as positional arguments, 
@@ -106,7 +107,7 @@ module ActionController
           super.insert(-2, '?#{args.last.to_query}')
         end
 
-        # To avoid generating http://localhost/?host=foo.example.com we
+        # To avoid generating "http://localhost/?host=foo.example.com" we
         # can't use this optimisation on routes without any segments
         def applicable?
           super && route.segment_keys.size > 0 

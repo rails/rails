@@ -67,17 +67,35 @@ module ActiveSupport #:nodoc:
           end
         end
 
-        # Returns a string that represents this array in XML by sending
-        # <tt>to_xml</tt> to each element.
+        # Returns a string that represents this array in XML by sending +to_xml+
+        # to each element. Active Record collections delegate their representation
+        # in XML to this method.
         #
-        # All elements are expected to respond to <tt>to_xml</tt>, if any of
-        # them does not an exception is raised.
+        # All elements are expected to respond to +to_xml+, if any of them does
+        # not an exception is raised.
         #
         # The root node reflects the class name of the first element in plural
-        # if all elements belong to the same type and that's not <tt>Hash</tt>.
-        # Otherwise the root element is "records".
+        # if all elements belong to the same type and that's not Hash:
         #
-        # Root children have as node name the one of the root singularized.
+        #   customer.projects.to_xml
+        #
+        #   <?xml version="1.0" encoding="UTF-8"?>
+        #   <projects type="array">
+        #     <project>
+        #       <amount type="decimal">20000.0</amount>
+        #       <customer-id type="integer">1567</customer-id>
+        #       <deal-date type="date">2008-04-09</deal-date>
+        #       ...
+        #     </project>
+        #     <project>
+        #       <amount type="decimal">57230.0</amount>
+        #       <customer-id type="integer">1567</customer-id>
+        #       <deal-date type="date">2008-04-15</deal-date>
+        #       ...
+        #     </project>
+        #   </projects>
+        #
+        # Otherwise the root element is "records":
         #
         #   [{:foo => 1, :bar => 2}, {:baz => 3}].to_xml
         #
@@ -92,9 +110,26 @@ module ActiveSupport #:nodoc:
         #     </record>
         #   </records>
         #
+        # If the collection is empty the root element is "nil-classes" by default:
+        #
+        #   [].to_xml
+        #
+        #   <?xml version="1.0" encoding="UTF-8"?>
+        #   <nil-classes type="array"/>
+        #
+        # To ensure a meaningful root element use the <tt>:root</tt> option:
+        #
+        #   customer_with_no_projects.projects.to_xml(:root => "projects")
+        #
+        #   <?xml version="1.0" encoding="UTF-8"?>
+        #   <projects type="array"/>
+        #
+        # By default root children have as node name the one of the root
+        # singularized. You can change it with the <tt>:children</tt> option.
+        #
         # The +options+ hash is passed downwards:
         #
-        #   [Message.find(:first)].to_xml(:skip_types => true)
+        #   Message.all.to_xml(:skip_types => true)
         #
         #   <?xml version="1.0" encoding="UTF-8"?>
         #   <messages>

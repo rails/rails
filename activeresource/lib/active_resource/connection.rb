@@ -128,8 +128,8 @@ module ActiveResource
     end
 
     # Execute a HEAD request.
-    # Used to ...
-    def head(path, headers= {})
+    # Used to obtain meta-information about resources, such as whether they exist and their size (via response headers).
+    def head(path, headers = {})
       request(:head, path, build_request_headers(headers))
     end
 
@@ -140,7 +140,7 @@ module ActiveResource
         logger.info "#{method.to_s.upcase} #{site.scheme}://#{site.host}:#{site.port}#{path}" if logger
         result = nil
         time = Benchmark.realtime { result = http.send(method, path, *arguments) }
-        logger.info "--> #{result.code} #{result.message} (#{result.body ? result.body : 0}b %.2fs)" % time if logger
+        logger.info "--> #{result.code} #{result.message} (#{result.body ? result.body.length : 0}b %.2fs)" % time if logger
         handle_response(result)
       rescue Timeout::Error => e
         raise TimeoutError.new(e.message)

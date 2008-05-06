@@ -469,8 +469,8 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
     fixtures.size > 1 ? fixtures : fixtures.first
   end
 
-  def self.cache_fixtures(connection, fixtures)
-    cache_for_connection(connection).update(fixtures.index_by { |f| f.table_name })
+  def self.cache_fixtures(connection, fixtures_map)
+    cache_for_connection(connection).update(fixtures_map)
   end
 
   def self.instantiate_fixtures(object, table_name, fixtures, load_instances = true)
@@ -526,7 +526,7 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
             end
           end
 
-          cache_fixtures(connection, fixtures)
+          cache_fixtures(connection, fixtures_map)
         end
       end
     end

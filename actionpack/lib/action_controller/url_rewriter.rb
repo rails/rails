@@ -15,8 +15,8 @@ module ActionController
   # In addition to providing +url_for+, named routes are also accessible after
   # including UrlWriter.
   module UrlWriter
-    # The default options for urls written by this writer. Typically a :host pair
-    # is provided.
+    # The default options for urls written by this writer. Typically a <tt>:host</tt>
+    # pair is provided.
     mattr_accessor :default_url_options
     self.default_url_options = {}
 
@@ -29,16 +29,19 @@ module ActionController
     # Generate a url based on the options provided, default_url_options and the
     # routes defined in routes.rb.  The following options are supported:
     #
-    # * <tt>:only_path</tt> If true, the relative url is returned. Defaults to false.
+    # * <tt>:only_path</tt> If true, the relative url is returned. Defaults to +false+.
     # * <tt>:protocol</tt> The protocol to connect to. Defaults to 'http'.
-    # * <tt>:host</tt> Specifies the host the link should be targetted at. If <tt>:only_path</tt> is false, this option must be
-    #   provided either explicitly, or via default_url_options.
+    # * <tt>:host</tt> Specifies the host the link should be targetted at.
+    #   If <tt>:only_path</tt> is false, this option must be
+    #   provided either explicitly, or via +default_url_options+.
     # * <tt>:port</tt> Optionally specify the port to connect to.
     # * <tt>:anchor</tt> An anchor name to be appended to the path.
-    # * <tt>:skip_relative_url_root</tt> If true, the url is not constructed using the relative_url_root set in <tt>ActionController::AbstractRequest.relative_url_root</tt>.
+    # * <tt>:skip_relative_url_root</tt> If true, the url is not constructed using the
+    #   +relative_url_root+ set in ActionController::AbstractRequest.relative_url_root.
     # * <tt>:trailing_slash</tt> If true, adds a trailing slash, as in "/archive/2009/"
     #
-    # Any other key(:controller, :action, etc...) given to <tt>url_for</tt> is forwarded to the Routes module.
+    # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
+    # +url_for+ is forwarded to the Routes module.
     #
     # Examples:
     #

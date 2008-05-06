@@ -24,7 +24,12 @@ module ActionView #:nodoc:
         view_paths.flatten.compact.each do |dir|
           next if @@processed_view_paths.has_key?(dir)
           @@processed_view_paths[dir] = []
-          Dir.glob("#{dir}/**/*/**").each do |file|
+          
+          # 
+          # Dir.glob("#{dir}/**/*/**") reads all the directories in view path and templates inside those directories
+          # Dir.glob("#{dir}/**") reads templates residing at top level of view path
+          # 
+          (Dir.glob("#{dir}/**/*/**") | Dir.glob("#{dir}/**")).each do |file|
             unless File.directory?(file)
               @@processed_view_paths[dir] << file.split(dir).last.sub(/^\//, '')
 

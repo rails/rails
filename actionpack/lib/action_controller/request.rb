@@ -15,7 +15,7 @@ module ActionController
     # such as { 'RAILS_ENV' => 'production' }.
     attr_reader :env
 
-    # The true HTTP request method as a lowercase symbol, such as :get.
+    # The true HTTP request method as a lowercase symbol, such as <tt>:get</tt>.
     # UnknownHttpMethod is raised for invalid methods not listed in ACCEPTED_HTTP_METHODS.
     def request_method
       @request_method ||= begin
@@ -28,35 +28,35 @@ module ActionController
       end
     end
 
-    # The HTTP request method as a lowercase symbol, such as :get.
-    # Note, HEAD is returned as :get since the two are functionally
+    # The HTTP request method as a lowercase symbol, such as <tt>:get</tt>.
+    # Note, HEAD is returned as <tt>:get</tt> since the two are functionally
     # equivalent from the application's perspective.
     def method
       request_method == :head ? :get : request_method
     end
 
-    # Is this a GET (or HEAD) request?  Equivalent to request.method == :get
+    # Is this a GET (or HEAD) request?  Equivalent to <tt>request.method == :get</tt>.
     def get?
       method == :get
     end
 
-    # Is this a POST request?  Equivalent to request.method == :post
+    # Is this a POST request?  Equivalent to <tt>request.method == :post</tt>.
     def post?
       request_method == :post
     end
 
-    # Is this a PUT request?  Equivalent to request.method == :put
+    # Is this a PUT request?  Equivalent to <tt>request.method == :put</tt>.
     def put?
       request_method == :put
     end
 
-    # Is this a DELETE request?  Equivalent to request.method == :delete
+    # Is this a DELETE request?  Equivalent to <tt>request.method == :delete</tt>.
     def delete?
       request_method == :delete
     end
 
-    # Is this a HEAD request? request.method sees HEAD as :get, so check the
-    # HTTP method directly.
+    # Is this a HEAD request? <tt>request.method</tt> sees HEAD as <tt>:get</tt>,
+    # so check the HTTP method directly.
     def head?
       request_method == :head
     end

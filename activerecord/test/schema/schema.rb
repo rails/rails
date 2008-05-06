@@ -162,6 +162,11 @@ ActiveRecord::Schema.define do
     t.column :type, :string
   end
 
+
+  create_table :jobs, :force => true do |t|
+    t.integer :ideal_reference_id
+  end
+
   create_table :keyboards, :force => true, :id  => false do |t|
     t.primary_key :key_number
     t.string      :name
@@ -195,6 +200,13 @@ ActiveRecord::Schema.define do
     t.integer :club_id, :member_id
     t.boolean :favourite, :default => false
     t.string :type
+  end
+
+  create_table :references, :force => true do |t|
+    t.integer :person_id
+    t.integer :job_id
+    t.boolean :favourite
+    t.integer :lock_version, :default => 0
   end
 
   create_table :minimalistics, :force => true do |t|
@@ -336,6 +348,11 @@ ActiveRecord::Schema.define do
     t.string :name
   end
   add_index :subscribers, :nick, :unique => true
+
+  create_table :subscriptions, :force => true do |t|
+    t.string :subscriber_id
+    t.integer :book_id
+  end
 
   create_table :tasks, :force => true do |t|
     t.datetime :starting

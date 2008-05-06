@@ -155,12 +155,12 @@ module ActionController #:nodoc:
   # A refactoring of TestResponse to allow the same behavior to be applied
   # to the "real" CgiResponse class in integration tests.
   module TestResponseBehavior #:nodoc:
-    # the response code of the request
+    # The response code of the request
     def response_code
       headers['Status'][0,3].to_i rescue 0
     end
     
-    # returns a String to ensure compatibility with Net::HTTPResponse
+    # Returns a String to ensure compatibility with Net::HTTPResponse
     def code
       headers['Status'].to_s.split(' ')[0]
     end
@@ -169,34 +169,34 @@ module ActionController #:nodoc:
       headers['Status'].to_s.split(' ',2)[1]
     end
 
-    # was the response successful?
+    # Was the response successful?
     def success?
       response_code == 200
     end
 
-    # was the URL not found?
+    # Was the URL not found?
     def missing?
       response_code == 404
     end
 
-    # were we redirected?
+    # Were we redirected?
     def redirect?
       (300..399).include?(response_code)
     end
 
-    # was there a server-side error?
+    # Was there a server-side error?
     def error?
       (500..599).include?(response_code)
     end
 
     alias_method :server_error?, :error?
 
-    # returns the redirection location or nil
+    # Returns the redirection location or nil
     def redirect_url
       headers['Location']
     end
 
-    # does the redirect location match this regexp pattern?
+    # Does the redirect location match this regexp pattern?
     def redirect_url_match?( pattern )
       return false if redirect_url.nil?
       p = Regexp.new(pattern) if pattern.class == String
@@ -205,7 +205,7 @@ module ActionController #:nodoc:
       p.match(redirect_url) != nil
     end
 
-    # returns the template path of the file which was used to
+    # Returns the template path of the file which was used to
     # render this response (or nil) 
     def rendered_file(with_controller=false)
       unless template.first_render.nil?
@@ -217,50 +217,49 @@ module ActionController #:nodoc:
       end
     end
 
-    # was this template rendered by a file?
+    # Was this template rendered by a file?
     def rendered_with_file?
       !rendered_file.nil?
     end
 
-    # a shortcut to the flash (or an empty hash if no flash.. hey! that rhymes!)
+    # A shortcut to the flash. Returns an empyt hash if no session flash exists.
     def flash
       session['flash'] || {}
     end
 
-    # do we have a flash? 
+    # Do we have a flash?
     def has_flash?
       !session['flash'].empty?
     end
 
-    # do we have a flash that has contents?
+    # Do we have a flash that has contents?
     def has_flash_with_contents?
       !flash.empty?
     end
 
-    # does the specified flash object exist?
+    # Does the specified flash object exist?
     def has_flash_object?(name=nil)
       !flash[name].nil?
     end
 
-    # does the specified object exist in the session?
+    # Does the specified object exist in the session?
     def has_session_object?(name=nil)
       !session[name].nil?
     end
 
-    # a shortcut to the template.assigns
+    # A shortcut to the template.assigns
     def template_objects
       template.assigns || {}
     end
 
-    # does the specified template object exist? 
+    # Does the specified template object exist?
     def has_template_object?(name=nil)
       !template_objects[name].nil?      
     end
 
     # Returns the response cookies, converted to a Hash of (name => CGI::Cookie) pairs
-    # Example:
     # 
-    # assert_equal ['AuthorOfNewPage'], r.cookies['author'].value
+    #   assert_equal ['AuthorOfNewPage'], r.cookies['author'].value
     def cookies
       headers['cookie'].inject({}) { |hash, cookie| hash[cookie.name] = cookie; hash }
     end
@@ -465,10 +464,13 @@ module ActionController #:nodoc:
       return super
     end
     
-    # Shortcut for ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + path, type). Example:
+    # Shortcut for <tt>ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + path, type)</tt>:
+    #
     #   post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png')
     #
-    # To upload binary files on Windows, pass :binary as the last parameter. This will not affect other platforms.
+    # To upload binary files on Windows, pass <tt>:binary</tt> as the last parameter.
+    # This will not affect other platforms:
+    #
     #   post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png', :binary)
     def fixture_file_upload(path, mime_type = nil, binary = false)
       ActionController::TestUploadedFile.new(
@@ -483,17 +485,17 @@ module ActionController #:nodoc:
     # with a new RouteSet instance. 
     #
     # The new instance is yielded to the passed block. Typically the block
-    # will create some routes using map.draw { map.connect ... }:
+    # will create some routes using <tt>map.draw { map.connect ... }</tt>:
     #
-    #  with_routing do |set|
-    #    set.draw do |map|
-    #      map.connect ':controller/:action/:id'
-    #        assert_equal(
-    #          ['/content/10/show', {}],
-    #          map.generate(:controller => 'content', :id => 10, :action => 'show')
-    #      end
-    #    end
-    #  end
+    #   with_routing do |set|
+    #     set.draw do |map|
+    #       map.connect ':controller/:action/:id'
+    #         assert_equal(
+    #           ['/content/10/show', {}],
+    #           map.generate(:controller => 'content', :id => 10, :action => 'show')
+    #       end
+    #     end
+    #   end
     #
     def with_routing
       real_routes = ActionController::Routing::Routes

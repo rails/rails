@@ -164,7 +164,7 @@ module ActionView
       # current page or you can pass the full path relative to your document
       # root. To include the Prototype and Scriptaculous javascript libraries in
       # your application, pass <tt>:defaults</tt> as the source. When using
-      # :defaults, if an <tt>application.js</tt> file exists in your public
+      # <tt>:defaults</tt>, if an application.js file exists in your public
       # javascripts directory, it will be included as well. You can modify the
       # html attributes of the script tag by passing a hash as the last argument.
       #
@@ -332,7 +332,7 @@ module ActionView
       #     <link href="/stylesheets/random.styles" media="screen" rel="stylesheet" type="text/css" />
       #     <link href="/css/stylish.css" media="screen" rel="stylesheet" type="text/css" />
       #
-      # You can also include all styles in the stylesheet directory using :all as the source:
+      # You can also include all styles in the stylesheet directory using <tt>:all</tt> as the source:
       #
       #   stylesheet_link_tag :all # =>
       #     <link href="/stylesheets/style1.css"  media="screen" rel="stylesheet" type="text/css" />

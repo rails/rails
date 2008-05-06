@@ -11,22 +11,18 @@ module ActiveRecord #:nodoc:
   class SubclassNotFound < ActiveRecordError #:nodoc:
   end
 
-  # Raised when object assigned to association is of incorrect type.
+  # Raised when an object assigned to an association has an incorrect type.
   #
-  # Example:
+  #   class Ticket < ActiveRecord::Base
+  #     has_many :patches
+  #   end
   #
-  # class Ticket < ActiveRecord::Base
-  #   has_many :patches
-  # end
+  #   class Patch < ActiveRecord::Base
+  #     belongs_to :ticket
+  #   end
   #
-  # class Patch < ActiveRecord::Base
-  #   belongs_to :ticket
-  # end
-  #
-  # and somewhere in the code:
-  #
-  # @ticket.patches << Comment.new(:content => "Please attach tests to your patch.")
-  # @ticket.save
+  #   # Comments are not patches, this assignment raises AssociationTypeMismatch.
+  #   @ticket.patches << Comment.new(:content => "Please attach tests to your patch.")
   class AssociationTypeMismatch < ActiveRecordError
   end
 
@@ -59,14 +55,14 @@ module ActiveRecord #:nodoc:
   class StatementInvalid < ActiveRecordError
   end
 
-  # Raised when number of bind variables in statement given to :condition key (for example, when using +find+ method)
+  # Raised when number of bind variables in statement given to <tt>:condition</tt> key (for example, when using +find+ method)
   # does not match number of expected variables.
   #
-  # Example:
+  # For example, in
   #
-  # Location.find :all, :conditions => ["lat = ? AND lng = ?", 53.7362]
+  #   Location.find :all, :conditions => ["lat = ? AND lng = ?", 53.7362]
   #
-  # in example above two placeholders are given but only one variable to fill them.
+  # two placeholders are given but only one variable to fill them.
   class PreparedStatementInvalid < ActiveRecordError
   end
 
@@ -97,8 +93,8 @@ module ActiveRecord #:nodoc:
   end
 
   # Raised when you've tried to access a column which wasn't
-  # loaded by your finder.  Typically this is because :select
-  # has been specified
+  # loaded by your finder.  Typically this is because <tt>:select</tt>
+  # has been specified.
   class MissingAttributeError < NoMethodError
   end
 
@@ -206,7 +202,7 @@ module ActiveRecord #:nodoc:
   #     # Uses an integer of seconds to hold the length of the song
   #
   #     def length=(minutes)
-  #       write_attribute(:length, minutes * 60)
+  #       write_attribute(:length, minutes.to_i * 60)
   #     end
   #
   #     def length
@@ -256,7 +252,7 @@ module ActiveRecord #:nodoc:
   #
   # It's even possible to use all the additional parameters to find. For example, the full interface for Payment.find_all_by_amount
   # is actually Payment.find_all_by_amount(amount, options). And the full interface to Person.find_by_user_name is
-  # actually Person.find_by_user_name(user_name, options). So you could call <tt>Payment.find_all_by_amount(50, :order => "created_on")</tt>.
+  # actually <tt>Person.find_by_user_name(user_name, options)</tt>. So you could call <tt>Payment.find_all_by_amount(50, :order => "created_on")</tt>.
   #
   # The same dynamic finder style can be used to create the object if it doesn't already exist. This dynamic finder is called with
   # <tt>find_or_create_by_</tt> and will return the object if it already exists and otherwise creates it, then returns it. Protected attributes won't be set unless they are given in a block. For example:
@@ -423,7 +419,9 @@ module ActiveRecord #:nodoc:
     @@default_timezone = :local
 
     # Determines whether to use a connection for each thread, or a single shared connection for all threads.
-    # Defaults to false. Set to true if you're writing a threaded application.
+    # Defaults to false. If you're writing a threaded application, set to true
+    # and periodically call verify_active_connections! to clear out connections
+    # assigned to stale threads.
     cattr_accessor :allow_concurrency, :instance_writer => false
     @@allow_concurrency = false
 
@@ -455,9 +453,9 @@ module ActiveRecord #:nodoc:
       # * <tt>:limit</tt>: An integer determining the limit on the number of rows that should be returned.
       # * <tt>:offset</tt>: An integer determining the offset from where the rows should be fetched. So at 5, it would skip rows 0 through 4.
       # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed)
-      #   or named associations in the same form used for the :include option, which will perform an INNER JOIN on the associated table(s).
+      #   or named associations in the same form used for the <tt>:include</tt> option, which will perform an INNER JOIN on the associated table(s).
       #   If the value is a string, then the records will be returned read-only since they will have attributes that do not correspond to the table's columns.
-      #   Pass :readonly => false to override.
+      #   Pass <tt>:readonly => false</tt> to override.
       # * <tt>:include</tt>: Names associations that should be loaded alongside using LEFT OUTER JOINs. The symbols named refer
       #   to already defined associations. See eager loading under Associations.
       # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you, for example, want to do a join but not
@@ -466,7 +464,7 @@ module ActiveRecord #:nodoc:
       #   of a database view).
       # * <tt>:readonly</tt>: Mark the returned records read-only so they cannot be saved or updated.
       # * <tt>:lock</tt>: An SQL fragment like "FOR UPDATE" or "LOCK IN SHARE MODE".
-      #   :lock => true gives connection's default exclusive lock, usually "FOR UPDATE".
+      #   <tt>:lock => true</tt> gives connection's default exclusive lock, usually "FOR UPDATE".
       #
       # Examples for find by id:
       #   Person.find(1)       # returns the object for ID = 1
@@ -476,7 +474,7 @@ module ActiveRecord #:nodoc:
       #   Person.find(1, :conditions => "administrator = 1", :order => "created_on DESC")
       #
       # Note that returned records may not be in the same order as the ids you
-      # provide since database rows are unordered. Give an explicit :order
+      # provide since database rows are unordered. Give an explicit <tt>:order</tt>
       # to ensure the results are sorted.
       #
       # Examples for find first:
@@ -530,6 +528,12 @@ module ActiveRecord #:nodoc:
       # to find(:last)
       def last(*args)
         find(:last, *args)
+      end
+      
+      # This is an alias for find(:all).  You can pass in all the same arguments to this method as you can
+      # to find(:all)
+      def all(*args)
+        find(:all, *args)
       end
       
       #
@@ -595,13 +599,25 @@ module ActiveRecord #:nodoc:
       # ==== Examples
       #   # Create a single new object
       #   User.create(:first_name => 'Jamie')
+      #
       #   # Create an Array of new objects
       #   User.create([{:first_name => 'Jamie'}, {:first_name => 'Jeremy'}])
-      def create(attributes = nil)
+      #
+      #   # Create a single object and pass it into a block to set other attributes.
+      #   User.create(:first_name => 'Jamie') do |u|
+      #     u.is_admin = false
+      #   end
+      #
+      #   # Creating an Array of new objects using a block, where the block is executed for each object:
+      #   User.create([{:first_name => 'Jamie'}, {:first_name => 'Jeremy'}]) do |u|
+      #     u.is_admin = false
+      #   end 
+      def create(attributes = nil, &block)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr) }
+          attributes.collect { |attr| create(attr, &block) }
         else
           object = new(attributes)
+          yield(object) if block_given?
           object.save
           object
         end
@@ -691,7 +707,7 @@ module ActiveRecord #:nodoc:
       # +updates+     A String of column and value pairs that will be set on any records that match conditions
       # +conditions+  An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
       #               See conditions in the intro for more info.
-      # +options+     Additional options are :limit and/or :order, see the examples for usage.
+      # +options+     Additional options are <tt>:limit</tt> and/or <tt>:order</tt>, see the examples for usage.
       #
       # ==== Examples
       #
@@ -1272,7 +1288,7 @@ module ActiveRecord #:nodoc:
 
       private
         def find_initial(options)
-          options.update(:limit => 1) unless options[:include]
+          options.update(:limit => 1)
           find_every(options).first
         end
 
@@ -1501,7 +1517,7 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # The optional scope argument is for the current :find scope.
+        # The optional scope argument is for the current <tt>:find</tt> scope.
         def add_limit!(sql, options, scope = :auto)
           scope = scope(:find) if :auto == scope
 
@@ -1513,15 +1529,15 @@ module ActiveRecord #:nodoc:
           connection.add_limit_offset!(sql, options)
         end
 
-        # The optional scope argument is for the current :find scope.
-        # The :lock option has precedence over a scoped :lock.
+        # The optional scope argument is for the current <tt>:find</tt> scope.
+        # The <tt>:lock</tt> option has precedence over a scoped <tt>:lock</tt>.
         def add_lock!(sql, options, scope = :auto)
           scope = scope(:find) if :auto == scope
           options = options.reverse_merge(:lock => scope[:lock]) if scope
           connection.add_lock!(sql, options)
         end
 
-        # The optional scope argument is for the current :find scope.
+        # The optional scope argument is for the current <tt>:find</tt> scope.
         def add_joins!(sql, options, scope = :auto)
           scope = scope(:find) if :auto == scope
           [(scope && scope[:joins]), options[:joins]].each do |join|
@@ -1536,7 +1552,7 @@ module ActiveRecord #:nodoc:
         end
 
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that the passed-in +sql+ string is changed.
-        # The optional scope argument is for the current :find scope.
+        # The optional scope argument is for the current <tt>:find</tt> scope.
         def add_conditions!(sql, conditions, scope = :auto)
           scope = scope(:find) if :auto == scope
           conditions = [conditions]
@@ -1733,8 +1749,8 @@ module ActiveRecord #:nodoc:
 
       protected
         # Scope parameters to method calls within the block.  Takes a hash of method_name => parameters hash.
-        # method_name may be :find or :create. :find parameters may include the <tt>:conditions</tt>, <tt>:joins</tt>,
-        # <tt>:include</tt>, <tt>:offset</tt>, <tt>:limit</tt>, and <tt>:readonly</tt> options. :create parameters are an attributes hash.
+        # method_name may be <tt>:find</tt> or <tt>:create</tt>. <tt>:find</tt> parameters may include the <tt>:conditions</tt>, <tt>:joins</tt>,
+        # <tt>:include</tt>, <tt>:offset</tt>, <tt>:limit</tt>, and <tt>:readonly</tt> options. <tt>:create</tt> parameters are an attributes hash.
         #
         #   class Article < ActiveRecord::Base
         #     def self.create_with_scope
@@ -1747,7 +1763,7 @@ module ActiveRecord #:nodoc:
         #   end
         #
         # In nested scopings, all previous parameters are overwritten by the innermost rule, with the exception of
-        # :conditions and :include options in :find, which are merged.
+        # <tt>:conditions</tt> and <tt>:include</tt> options in <tt>:find</tt>, which are merged.
         #
         #   class Article < ActiveRecord::Base
         #     def self.find_with_scope
@@ -2197,9 +2213,9 @@ module ActiveRecord #:nodoc:
         record
       end
 
-      # Returns an instance of the specified klass with the attributes of the current record. This is mostly useful in relation to
+      # Returns an instance of the specified +klass+ with the attributes of the current record. This is mostly useful in relation to
       # single-table inheritance structures where you want a subclass to appear as the superclass. This can be used along with record
-      # identification in Action Pack to allow, say, Client < Company to do something like render :partial => @client.becomes(Company)
+      # identification in Action Pack to allow, say, <tt>Client < Company</tt> to do something like render <tt>:partial => @client.becomes(Company)</tt>
       # to render that instance using the companies/company partial instead of clients/client.
       #
       # Note: The new instance will share a link to the same attributes as the original class. So any change to the attributes in either

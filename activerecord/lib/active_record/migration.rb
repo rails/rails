@@ -76,16 +76,16 @@ module ActiveRecord
   # * <tt>rename_table(old_name, new_name)</tt>: Renames the table called +old_name+ to +new_name+.
   # * <tt>add_column(table_name, column_name, type, options)</tt>: Adds a new column to the table called +table_name+
   #   named +column_name+ specified to be one of the following types:
-  #   :string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time,
-  #   :date, :binary, :boolean. A default value can be specified by passing an
-  #   +options+ hash like { :default => 11 }. Other options include :limit and :null (e.g. { :limit => 50, :null => false })
+  #   <tt>:string</tt>, <tt>:text</tt>, <tt>:integer</tt>, <tt>:float</tt>, <tt>:decimal</tt>, <tt>:datetime</tt>, <tt>:timestamp</tt>, <tt>:time</tt>,
+  #   <tt>:date</tt>, <tt>:binary</tt>, <tt>:boolean</tt>. A default value can be specified by passing an
+  #   +options+ hash like <tt>{ :default => 11 }</tt>. Other options include <tt>:limit</tt> and <tt>:null</tt> (e.g. <tt>{ :limit => 50, :null => false }</tt>)
   #   -- see ActiveRecord::ConnectionAdapters::TableDefinition#column for details.
   # * <tt>rename_column(table_name, column_name, new_column_name)</tt>: Renames a column but keeps the type and content.
   # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes the column to a different type using the same
   #   parameters as add_column.
   # * <tt>remove_column(table_name, column_name)</tt>: Removes the column named +column_name+ from the table called +table_name+.
   # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index with the name of the column. Other options include
-  #   :name and :unique (e.g. { :name => "users_name_index", :unique => true }).
+  #   <tt>:name</tt> and <tt>:unique</tt> (e.g. <tt>{ :name => "users_name_index", :unique => true }</tt>).
   # * <tt>remove_index(table_name, index_name)</tt>: Removes the index specified by +index_name+.
   #
   # == Irreversible transformations

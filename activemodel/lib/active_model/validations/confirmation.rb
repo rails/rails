@@ -15,20 +15,20 @@ module ActiveModel
       #
       # The added +password_confirmation+ attribute is virtual; it exists only as an in-memory attribute for validating the password.
       # To achieve this, the validation adds accessors to the model for the confirmation attribute. NOTE: This check is performed
-      # only if +password_confirmation+ is not nil, and by default only on save. To require confirmation, make sure to add a presence
+      # only if +password_confirmation+ is not +nil+, and by default only on save. To require confirmation, make sure to add a presence
       # check for the confirmation attribute:
       #
       #   validates_presence_of :password_confirmation, :if => :password_changed?
       #
       # Configuration options:
-      # * <tt>message</tt> - A custom error message (default is: "doesn't match confirmation")
-      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
-      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # * <tt>:message</tt> - A custom error message (default is: "doesn't match confirmation")
+      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>)
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
-      #   method, proc or string should return or evaluate to a true or false value.      
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
+      #   method, proc or string should return or evaluate to a true or false value.
       def validates_confirmation_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:confirmation], :on => :save }
         configuration.update(attr_names.extract_options!)

@@ -9,7 +9,7 @@ module ActionView
 
       def compile(template)
         "controller.response.content_type ||= Mime::JS\n" +
-        "update_page do |page|\n#{template}\nend"
+        "update_page do |page|\n#{template.source}\nend"
       end
 
       def cache_fragment(block, name = {}, options = nil) #:nodoc:

@@ -2,7 +2,7 @@ ActiveRecord::Schema.define do
 
   %w(postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings
       postgresql_oids defaults geometrics).each do |table_name|
-        drop_table table_name
+    execute "DROP TABLE  IF EXISTS #{quote_table_name table_name}"
   end
 
   execute 'DROP SEQUENCE IF EXISTS companies_nonstd_seq CASCADE'

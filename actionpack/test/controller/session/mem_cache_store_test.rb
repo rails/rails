@@ -62,9 +62,8 @@ class MemCacheStoreTest < Test::Unit::TestCase
       assert_equal d, s.cache.get(session_key)[:test]
       assert_equal d, s[:test]
     end
-  end
-
-
+  end         
+  
   def test_deletion
     new_session do |s|
       session_key = 'session:' + s.session_id

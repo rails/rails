@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Ruby 1.8 implementation of Process.daemon
+
 * Duration #since and #ago with no argument (e.g., 5.days.ago) return TimeWithZone when config.time_zone is set. Introducing Time.current, which returns Time.zone.now if config.time_zone is set, otherwise just returns Time.now [Geoff Buesing]
 
 * Time#since behaves correctly when passed a Duration. Closes #11527 [kemiller]

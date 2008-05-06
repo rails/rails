@@ -34,10 +34,10 @@ end
 
 puts "=> Rails application starting on http://#{OPTIONS[:ip]}:#{OPTIONS[:port]}"
 
-parameters = [ 
-  "start", 
-  "-p", OPTIONS[:port].to_s, 
-  "-a", OPTIONS[:ip].to_s, 
+parameters = [
+  "start",
+  "-p", OPTIONS[:port].to_s,
+  "-a", OPTIONS[:ip].to_s,
   "-e", OPTIONS[:environment],
   "-P", "#{RAILS_ROOT}/tmp/pids/mongrel.pid"
 ]
@@ -50,12 +50,12 @@ else
 
   start_debugger if OPTIONS[:debugger]
 
-  require 'initializer'
-  Rails::Initializer.run(:initialize_logger)
-
   puts "=> Call with -d to detach"
   puts "=> Ctrl-C to shutdown server"
-  tail_thread = tail(Pathname.new("#{File.expand_path(RAILS_ROOT)}/log/#{RAILS_ENV}.log").cleanpath)
+
+  log = Pathname.new("#{File.expand_path(RAILS_ROOT)}/log/#{RAILS_ENV}.log").cleanpath
+  open(log, (File::WRONLY | File::APPEND | File::CREAT)) unless File.exist? log
+  tail_thread = tail(log)
 
   trap(:INT) { exit }
 

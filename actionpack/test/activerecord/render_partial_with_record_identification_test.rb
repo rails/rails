@@ -1,7 +1,7 @@
 require 'active_record_unit'
 
 class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
-  fixtures :developers, :projects, :developers_projects, :topics, :replies
+  fixtures :developers, :projects, :developers_projects, :topics, :replies, :companies, :mascots
 
   class RenderPartialWithRecordIdentificationController < ActionController::Base
     def render_with_has_many_and_belongs_to_association
@@ -14,9 +14,18 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
       render :partial => @topic.replies
     end
     
+    def render_with_named_scope
+      render :partial => Reply.base
+    end
+    
     def render_with_has_many_through_association
       @developer = Developer.find(:first)
       render :partial => @developer.topics
+    end
+    
+    def render_with_has_one_association
+      @company = Company.find(1)
+      render :partial => @company.mascot
     end
     
     def render_with_belongs_to_association
@@ -53,16 +62,9 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
     assert_template 'replies/_reply'
   end
   
-  def test_rendering_partial_with_has_many_association
-    get :render_with_has_many_through_association
-    assert_template 'topics/_topic'
-  end
-  
-  def test_rendering_partial_with_belongs_to_association
-    topic = Reply.find(1).topic
-    get :render_with_belongs_to_association
-    assert_template 'topics/_topic'
-    assert_equal topic.title, @response.body
+  def test_rendering_partial_with_named_scope
+    get :render_with_named_scope
+    assert_template 'replies/_reply'
   end
   
   def test_render_with_record
@@ -73,5 +75,12 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
   def test_render_with_record_collection
     get :render_with_record_collection
     assert_template 'developers/_developer'
+  end
+
+  def test_rendering_partial_with_has_one_association
+    mascot = Company.find(1).mascot
+    get :render_with_has_one_association
+    assert_template 'mascots/_mascot'
+    assert_equal mascot.name, @response.body
   end
 end

@@ -196,7 +196,7 @@ module ActiveRecord
           :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY",
           :string      => { :name => "varchar", :limit => 255 },
           :text        => { :name => "text" },
-          :integer     => { :name => "int", :limit => 11 },
+          :integer     => { :name => "int"},
           :float       => { :name => "float" },
           :decimal     => { :name => "decimal" },
           :datetime    => { :name => "datetime" },
@@ -365,7 +365,7 @@ module ActiveRecord
         create_database(name)
       end
 
-      # Create a new MySQL database with optional :charset and :collation.
+      # Create a new MySQL database with optional <tt>:charset</tt> and <tt>:collation</tt>.
       # Charset defaults to utf8.
       #
       # Example:
@@ -461,6 +461,22 @@ module ActiveRecord
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
         current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'")["Type"]
         execute "ALTER TABLE #{quote_table_name(table_name)} CHANGE #{quote_column_name(column_name)} #{quote_column_name(new_column_name)} #{current_type}"
+      end
+
+      # Maps logical Rails types to MySQL-specific data types.
+      def type_to_sql(type, limit = nil, precision = nil, scale = nil)
+        return super unless type.to_s == 'integer'
+
+        case limit
+        when 0..3
+          "smallint(#{limit})"
+        when 4..8
+          "int(#{limit})"
+        when 9..20
+          "bigint(#{limit})"
+        else
+          'int(11)'
+        end
       end
 
 

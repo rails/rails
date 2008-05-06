@@ -1,5 +1,7 @@
 *SVN*
 
+* Made the location of the routes file configurable with config.routes_configuration_file (Scott Fleckenstein) [#88]
+
 * Rails Edge info returns the latest git commit hash [Francesc Esplugas]
 
 * Added Rails.public_path to control where HTML and assets are expected to be loaded from (defaults to Rails.root + "/public") #11581 [nicksieger]

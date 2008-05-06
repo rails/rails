@@ -13,7 +13,7 @@ module ActionView
         content_type_handler = (@view.send!(:controller).respond_to?(:response) ? "controller.response" : "controller")
         "#{content_type_handler}.content_type ||= Mime::XML\n" +
         "xml = ::Builder::XmlMarkup.new(:indent => 2)\n" +
-        template +
+        template.source +
         "\nxml.target!\n"
       end
 

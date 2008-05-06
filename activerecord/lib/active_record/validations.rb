@@ -201,7 +201,7 @@ module ActiveRecord
     alias_method :count, :size
     alias_method :length, :size
 
-    # Return an XML representation of this error object.
+    # Returns an XML representation of this error object.
     #
     #   class Company < ActiveRecord::Base
     #     validates_presence_of :name, :address, :email
@@ -266,7 +266,7 @@ module ActiveRecord
   #   person.attributes = { "last_name" => "Heinemeier", "phone_number" => "555-555" }
   #   person.save # => true (and person is now saved in the database)
   #
-  # An +Errors+ object is automatically created for every Active Record.
+  # An Errors object is automatically created for every Active Record.
   #
   # Please do have a look at ActiveRecord::Validations::ClassMethods for a higher level of validations.
   module Validations
@@ -286,7 +286,7 @@ module ActiveRecord
 
     # All of the following validations are defined in the class scope of the model that you're interested in validating.
     # They offer a more declarative way of specifying when the model is valid and when it is not. It is recommended to use
-    # these over the low-level calls to validate and validate_on_create when possible.
+    # these over the low-level calls to +validate+ and +validate_on_create+ when possible.
     module ClassMethods
       DEFAULT_VALIDATION_OPTIONS = {
         :on => :save,
@@ -337,14 +337,14 @@ module ActiveRecord
       #   end
       #
       # Options:
-      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
-      # * <tt>allow_nil</tt> - Skip validation if attribute is nil.
-      # * <tt>allow_blank</tt> - Skip validation if attribute is blank.
-      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
+      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
+      # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_each(*attrs)
         options = attrs.extract_options!.symbolize_keys
@@ -374,19 +374,19 @@ module ActiveRecord
       #
       # The added +password_confirmation+ attribute is virtual; it exists only as an in-memory attribute for validating the password.
       # To achieve this, the validation adds accessors to the model for the confirmation attribute. NOTE: This check is performed
-      # only if +password_confirmation+ is not nil, and by default only on save. To require confirmation, make sure to add a presence
+      # only if +password_confirmation+ is not +nil+, and by default only on save. To require confirmation, make sure to add a presence
       # check for the confirmation attribute:
       #
       #   validates_presence_of :password_confirmation, :if => :password_changed?
       #
       # Configuration options:
-      # * <tt>message</tt> - A custom error message (default is: "doesn't match confirmation")
-      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
-      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # * <tt>:message</tt> - A custom error message (default is: "doesn't match confirmation").
+      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_confirmation_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:confirmation], :on => :save }
@@ -406,21 +406,21 @@ module ActiveRecord
       #     validates_acceptance_of :eula, :message => "must be abided"
       #   end
       #
-      # If the database column does not exist, the terms_of_service attribute is entirely virtual. This check is
-      # performed only if terms_of_service is not nil and by default on save.
+      # If the database column does not exist, the +terms_of_service+ attribute is entirely virtual. This check is
+      # performed only if +terms_of_service+ is not +nil+ and by default on save.
       #
       # Configuration options:
-      # * <tt>message</tt> - A custom error message (default is: "must be accepted")
-      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
-      # * <tt>allow_nil</tt> - Skip validation if attribute is nil. (default is true)
-      # * <tt>accept</tt> - Specifies value that is considered accepted.  The default value is a string "1", which
-      #   makes it easy to relate to an HTML checkbox. This should be set to 'true' if you are validating a database
-      #   column, since the attribute is typecast from "1" to <tt>true</tt> before validation.
-      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # * <tt>:message</tt> - A custom error message (default is: "must be accepted").
+      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
+      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is true).
+      # * <tt>:accept</tt> - Specifies value that is considered accepted.  The default value is a string "1", which
+      #   makes it easy to relate to an HTML checkbox. This should be set to +true+ if you are validating a database
+      #   column, since the attribute is typecast from "1" to +true+ before validation.
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_acceptance_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save, :allow_nil => true, :accept => "1" }
@@ -452,8 +452,8 @@ module ActiveRecord
       # This is due to the way Object#blank? handles boolean values. false.blank? # => true
       #
       # Configuration options:
-      # * <tt>message</tt> - A custom error message (default is: "can't be blank")
-      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>message</tt> - A custom error message (default is: "can't be blank").
+      # * <tt>on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       #   method, proc or string should return or evaluate to a true or false value.
@@ -485,24 +485,24 @@ module ActiveRecord
       #   end
       #
       # Configuration options:
-      # * <tt>minimum</tt> - The minimum size of the attribute
-      # * <tt>maximum</tt> - The maximum size of the attribute
-      # * <tt>is</tt> - The exact size of the attribute
-      # * <tt>within</tt> - A range specifying the minimum and maximum size of the attribute
-      # * <tt>in</tt> - A synonym(or alias) for :within
-      # * <tt>allow_nil</tt> - Attribute may be nil; skip validation.
-      # * <tt>allow_blank</tt> - Attribute may be blank; skip validation.
+      # * <tt>:minimum</tt> - The minimum size of the attribute.
+      # * <tt>:maximum</tt> - The maximum size of the attribute.
+      # * <tt>:is</tt> - The exact size of the attribute.
+      # * <tt>:within</tt> - A range specifying the minimum and maximum size of the attribute.
+      # * <tt>:in</tt> - A synonym(or alias) for <tt>:within</tt>.
+      # * <tt>:allow_nil</tt> - Attribute may be +nil+; skip validation.
+      # * <tt>:allow_blank</tt> - Attribute may be blank; skip validation.
       #
-      # * <tt>too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (maximum is %d characters)")
-      # * <tt>too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is %d characters)")
-      # * <tt>wrong_length</tt> - The error message if using the :is method and the attribute is the wrong size (default is: "is the wrong length (should be %d characters)")
-      # * <tt>message</tt> - The error message to use for a :minimum, :maximum, or :is violation.  An alias of the appropriate too_long/too_short/wrong_length message
-      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
-      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # * <tt>:too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (maximum is %d characters)").
+      # * <tt>:too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is %d characters)").
+      # * <tt>:wrong_length</tt> - The error message if using the <tt>:is</tt> method and the attribute is the wrong size (default is: "is the wrong length (should be %d characters)").
+      # * <tt>:message</tt> - The error message to use for a <tt>:minimum</tt>, <tt>:maximum</tt>, or <tt>:is</tt> violation.  An alias of the appropriate <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
+      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_length_of(*attrs)
         # Merge given options with defaults.
@@ -584,16 +584,16 @@ module ActiveRecord
       # unique index on the field. See +add_index+ for more information.
       #
       # Configuration options:
-      # * <tt>message</tt> - Specifies a custom error message (default is: "has already been taken")
-      # * <tt>scope</tt> - One or more columns by which to limit the scope of the uniqueness constraint.
-      # * <tt>case_sensitive</tt> - Looks for an exact match.  Ignored by non-text columns (true by default).
-      # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
-      # * <tt>allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is: false)
-      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # * <tt>:message</tt> - Specifies a custom error message (default is: "has already been taken").
+      # * <tt>:scope</tt> - One or more columns by which to limit the scope of the uniqueness constraint.
+      # * <tt>:case_sensitive</tt> - Looks for an exact match.  Ignored by non-text columns (+false+ by default).
+      # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute is +nil+ (default is +false+).
+      # * <tt>:allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is +false+).
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_uniqueness_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken], :case_sensitive => true }
@@ -669,21 +669,21 @@ module ActiveRecord
       #     validates_format_of :email, :with => /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i, :on => :create
       #   end
       #
-      # Note: use \A and \Z to match the start and end of the string, ^ and $ match the start/end of a line.
+      # Note: use <tt>\A</tt> and <tt>\Z</tt> to match the start and end of the string, <tt>^</tt> and <tt>$</tt> match the start/end of a line.
       #
       # A regular expression must be provided or else an exception will be raised.
       #
       # Configuration options:
-      # * <tt>message</tt> - A custom error message (default is: "is invalid")
-      # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
-      # * <tt>allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is: false)
-      # * <tt>with</tt> - The regular expression used to validate the format with (note: must be supplied!)
-      # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
-      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # * <tt>:message</tt> - A custom error message (default is: "is invalid").
+      # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute is +nil+ (default is +false+).
+      # * <tt>:allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is +false+).
+      # * <tt>:with</tt> - The regular expression used to validate the format with (note: must be supplied!).
+      # * <tt>:on</tt> Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_format_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save, :with => nil }
@@ -705,15 +705,15 @@ module ActiveRecord
       #   end
       #
       # Configuration options:
-      # * <tt>in</tt> - An enumerable object of available items
-      # * <tt>message</tt> - Specifies a custom error message (default is: "is not included in the list")
-      # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
-      # * <tt>allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is: false)
-      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # * <tt>:in</tt> - An enumerable object of available items.
+      # * <tt>:message</tt> - Specifies a custom error message (default is: "is not included in the list").
+      # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute is +nil+ (default is +false+).
+      # * <tt>:allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is +false+).
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_inclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:inclusion], :on => :save }
@@ -737,15 +737,15 @@ module ActiveRecord
       #   end
       #
       # Configuration options:
-      # * <tt>in</tt> - An enumerable object of items that the value shouldn't be part of
-      # * <tt>message</tt> - Specifies a custom error message (default is: "is reserved")
-      # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
-      # * <tt>allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is: false)
-      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # * <tt>:in</tt> - An enumerable object of items that the value shouldn't be part of.
+      # * <tt>:message</tt> - Specifies a custom error message (default is: "is reserved").
+      # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute is +nil+ (default is +false+).
+      # * <tt>:allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is +false+).
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_exclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:exclusion], :on => :save }
@@ -777,19 +777,19 @@ module ActiveRecord
       #     validates_associated :book
       #   end
       #
-      # ...this would specify a circular dependency and cause infinite recursion.
+      # this would specify a circular dependency and cause infinite recursion.
       #
       # NOTE: This validation will not fail if the association hasn't been assigned. If you want to ensure that the association
-      # is both present and guaranteed to be valid, you also need to use validates_presence_of.
+      # is both present and guaranteed to be valid, you also need to use +validates_presence_of+.
       #
       # Configuration options:
-      # * <tt>message</tt> - A custom error message (default is: "is invalid")
-      # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
-      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # * <tt>:message</tt> - A custom error message (default is: "is invalid")
+      # * <tt>:on</tt> Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>)
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_associated(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save }
@@ -810,22 +810,22 @@ module ActiveRecord
       #   end
       #
       # Configuration options:
-      # * <tt>message</tt> - A custom error message (default is: "is not a number")
-      # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
-      # * <tt>only_integer</tt> Specifies whether the value has to be an integer, e.g. an integral value (default is false)
-      # * <tt>allow_nil</tt> Skip validation if attribute is nil (default is false). Notice that for fixnum and float columns empty strings are converted to nil
-      # * <tt>greater_than</tt> Specifies the value must be greater than the supplied value
-      # * <tt>greater_than_or_equal_to</tt> Specifies the value must be greater than or equal the supplied value
-      # * <tt>equal_to</tt> Specifies the value must be equal to the supplied value
-      # * <tt>less_than</tt> Specifies the value must be less than the supplied value
-      # * <tt>less_than_or_equal_to</tt> Specifies the value must be less than or equal the supplied value
-      # * <tt>odd</tt> Specifies the value must be an odd number
-      # * <tt>even</tt> Specifies the value must be an even number
-      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # * <tt>:message</tt> - A custom error message (default is: "is not a number").
+      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
+      # * <tt>:only_integer</tt> - Specifies whether the value has to be an integer, e.g. an integral value (default is +false+).
+      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is +false+). Notice that for fixnum and float columns empty strings are converted to +nil+.
+      # * <tt>:greater_than</tt> - Specifies the value must be greater than the supplied value.
+      # * <tt>:greater_than_or_equal_to</tt> - Specifies the value must be greater than or equal the supplied value.
+      # * <tt>:equal_to</tt> - Specifies the value must be equal to the supplied value.
+      # * <tt>:less_than</tt> - Specifies the value must be less than the supplied value.
+      # * <tt>:less_than_or_equal_to</tt> - Specifies the value must be less than or equal the supplied value.
+      # * <tt>:odd</tt> - Specifies the value must be an odd number.
+      # * <tt>:even</tt> - Specifies the value must be an even number.
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. :unless => :skip_validation, or :unless => Proc.new { |user| user.signup_step <= 2 }).  The
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_numericality_of(*attr_names)
         configuration = { :on => :save, :only_integer => false, :allow_nil => false }
@@ -873,11 +873,12 @@ module ActiveRecord
 
       # Creates an object just like Base.create but calls save! instead of save
       # so an exception is raised if the record is invalid.
-      def create!(attributes = nil)
+      def create!(attributes = nil, &block)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| create!(attr) }
+          attributes.collect { |attr| create!(attr, &block) }
         else
           object = new(attributes)
+          yield(object) if block_given?
           object.save!
           object
         end
@@ -921,7 +922,7 @@ module ActiveRecord
       save(false)
     end
 
-    # Runs validate and validate_on_create or validate_on_update and returns true if no errors were added otherwise false.
+    # Runs +validate+ and +validate_on_create+ or +validate_on_update+ and returns true if no errors were added otherwise false.
     def valid?
       errors.clear
 
@@ -945,7 +946,7 @@ module ActiveRecord
     end
 
     protected
-      # Overwrite this method for validation checks on all saves and use Errors.add(field, msg) for invalid attributes.
+      # Overwrite this method for validation checks on all saves and use <tt>Errors.add(field, msg)</tt> for invalid attributes.
       def validate #:doc:
       end
 

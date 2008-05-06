@@ -1,0 +1,12 @@
+webster_awdr:
+  id: 1
+  subscriber_id: webster132
+  book_id: 1
+webster_rfr:
+  id: 2
+  subscriber_id: webster132
+  book_id: 2
+alterself_awdr:
+  id: 3
+  subscriber_id: alterself
+  book_id: 3

@@ -45,7 +45,7 @@ module ActiveRecord
       # The +options+ hash can include the following keys:
       # [<tt>:id</tt>]
       #   Whether to automatically add a primary key column. Defaults to true.
-      #   Join tables for has_and_belongs_to_many should set :id => false.
+      #   Join tables for +has_and_belongs_to_many+ should set <tt>:id => false</tt>.
       # [<tt>:primary_key</tt>]
       #   The name of the primary key, if one is to be added automatically.
       #   Defaults to +id+.
@@ -104,6 +104,67 @@ module ActiveRecord
         execute create_sql
       end
 
+      # A block for changing columns in +table+.
+      #
+      # === Example
+      #  # change_table() yields a Table instance
+      #  change_table(:suppliers) do |t|
+      #    t.column :name, :string, :limit => 60
+      #    # Other column alterations here
+      #  end
+      #
+      # ===== Examples
+      # ====== Add a column
+      #  change_table(:suppliers) do |t|
+      #    t.column :name, :string, :limit => 60
+      #  end
+      #
+      # ====== Add 2 integer columns
+      #  change_table(:suppliers) do |t|
+      #    t.integer :width, :height, :null => false, :default => 0
+      #  end
+      #
+      # ====== Add created_at/updated_at columns
+      #  change_table(:suppliers) do |t|
+      #    t.timestamps
+      #  end
+      #
+      # ====== Add a foreign key column
+      #  change_table(:suppliers) do |t|
+      #    t.references :company
+      #  end
+      #
+      # Creates a <tt>company_id(integer)</tt> column
+      #
+      # ====== Add a polymorphic foreign key column
+      #  change_table(:suppliers) do |t|
+      #    t.belongs_to :company, :polymorphic => true
+      #  end
+      #
+      # Creates <tt>company_type(varchar)</tt> and <tt>company_id(integer)</tt> columns
+      #
+      # ====== Remove a column
+      #  change_table(:suppliers) do |t|
+      #    t.remove :company
+      #  end
+      #
+      # ====== Remove a column
+      #  change_table(:suppliers) do |t|
+      #    t.remove :company_id
+      #    t.remove :width, :height
+      #  end
+      #
+      # ====== Remove an index
+      #  change_table(:suppliers) do |t|
+      #    t.remove_index :company_id
+      #  end
+      #
+      # See also Table for details on
+      # all of the various column transformation
+      def change_table(table_name)
+        yield Table.new(table_name, self)
+      end
+      
       # Renames a table.
       # ===== Example
       #  rename_table('octopuses', 'octopi')
@@ -124,13 +185,17 @@ module ActiveRecord
         execute(add_column_sql)
       end
 
-      # Removes the column from the table definition.
+      # Removes the column(s) from the table definition.
       # ===== Examples
       #  remove_column(:suppliers, :qualification)
-      def remove_column(table_name, column_name)
-        execute "ALTER TABLE #{quote_table_name(table_name)} DROP #{quote_column_name(column_name)}"
+      #  remove_columns(:suppliers, :qualification, :experience)
+      def remove_column(table_name, *column_names)
+        column_names.flatten.each do |column_name|
+          execute "ALTER TABLE #{quote_table_name(table_name)} DROP #{quote_column_name(column_name)}"
+        end
       end
-
+      alias :remove_columns :remove_column
+      
       # Changes the column's definition according to the new options.
       # See TableDefinition#column for details of the options you can use.
       # ===== Examples
@@ -297,7 +362,14 @@ module ActiveRecord
 
       def add_column_options!(sql, options) #:nodoc:
         sql << " DEFAULT #{quote(options[:default], options[:column])}" if options_include_default?(options)
-        sql << " NOT NULL" if options[:null] == false
+        # must explcitly check for :null to allow change_column to work on migrations
+        if options.has_key? :null
+          if options[:null] == false
+            sql << " NOT NULL"
+          else
+            sql << " NULL"
+          end
+        end
       end
 
       # SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.

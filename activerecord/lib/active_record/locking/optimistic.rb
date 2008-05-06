@@ -78,7 +78,7 @@ module ActiveRecord
 
           begin
             affected_rows = connection.update(<<-end_sql, "#{self.class.name} Update with optimistic locking")
-              UPDATE #{self.class.table_name}
+              UPDATE #{self.class.quoted_table_name}
               SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false, false, attribute_names))}
               WHERE #{self.class.primary_key} = #{quote_value(id)}
               AND #{self.class.quoted_locking_column} = #{quote_value(previous_value)}

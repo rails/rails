@@ -189,7 +189,7 @@ module ActionController
           end
       end
 
-      attr_accessor :routes, :named_routes
+      attr_accessor :routes, :named_routes, :configuration_file
 
       def initialize
         self.routes = []
@@ -238,8 +238,8 @@ module ActionController
       alias reload! load!
 
       def reload
-        if @routes_last_modified && defined?(RAILS_ROOT)
-          mtime = File.stat("#{RAILS_ROOT}/config/routes.rb").mtime
+        if @routes_last_modified && configuration_file
+          mtime = File.stat(configuration_file).mtime
           # if it hasn't been changed, then just return
           return if mtime == @routes_last_modified
           # if it has changed then record the new time and fall to the load! below
@@ -249,9 +249,9 @@ module ActionController
       end
 
       def load_routes!
-        if defined?(RAILS_ROOT) && defined?(::ActionController::Routing::Routes) && self == ::ActionController::Routing::Routes
-          load File.join("#{RAILS_ROOT}/config/routes.rb")
-          @routes_last_modified = File.stat("#{RAILS_ROOT}/config/routes.rb").mtime
+        if configuration_file
+          load configuration_file
+          @routes_last_modified = File.stat(configuration_file).mtime
         else
           add_route ":controller/:action/:id"
         end

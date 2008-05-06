@@ -1,5 +1,9 @@
 *SVN*
 
+* Fixed that TextHelper#text_field would corrypt when raw HTML was used as the value (mchenryc, Kevin Glowacz) [#80]
+
+* Added ActionController::TestCase#rescue_action_in_public! to control whether the action under test should use the regular rescue_action path instead of simply raising the exception inline (great for error testing) [DHH]
+
 * Reduce number of instance variables being copied from controller to view. [Pratik]
 
 * select_datetime and select_time default to Time.zone.now when config.time_zone is set [Geoff Buesing]

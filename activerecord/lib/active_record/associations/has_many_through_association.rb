@@ -10,14 +10,14 @@ module ActiveRecord
 
       def create!(attrs = nil)
         @reflection.klass.transaction do
-          self << (object = @reflection.klass.send(:with_scope, :create => attrs) { @reflection.klass.create! })
+          self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.klass.create! } : @reflection.klass.create!)
           object
         end
       end
 
       def create(attrs = nil)
         @reflection.klass.transaction do
-          self << (object = @reflection.klass.send(:with_scope, :create => attrs) { @reflection.klass.create })
+          self << (object = attrs ? @reflection.klass.send(:with_scope, :create => attrs) { @reflection.klass.create } : @reflection.klass.create)
           object
         end
       end

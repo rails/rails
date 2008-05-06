@@ -35,8 +35,8 @@ module ActionView
       # This would fade the element that was dropped on the drop receiving 
       # element.
       #
-      # For toggling visual effects, you can use :toggle_appear, :toggle_slide, and
-      # :toggle_blind which will alternate between appear/fade, slidedown/slideup, and
+      # For toggling visual effects, you can use <tt>:toggle_appear</tt>, <tt>:toggle_slide</tt>, and
+      # <tt>:toggle_blind</tt> which will alternate between appear/fade, slidedown/slideup, and
       # blinddown/blindup respectively.
       #
       # You can change the behaviour with various options, see

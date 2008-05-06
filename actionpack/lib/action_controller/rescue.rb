@@ -58,33 +58,35 @@ module ActionController #:nodoc:
       # Rescue exceptions raised in controller actions.
       #
       # <tt>rescue_from</tt> receives a series of exception classes or class
-      # names, and a trailing :with option with the name of a method or a Proc
-      # object to be called to handle them. Alternatively a block can be given.
+      # names, and a trailing <tt>:with</tt> option with the name of a method
+      # or a Proc object to be called to handle them. Alternatively a block can
+      # be given.
       #
       # Handlers that take one argument will be called with the exception, so
       # that the exception can be inspected when dealing with it.
       #
       # Handlers are inherited. They are searched from right to left, from
       # bottom to top, and up the hierarchy. The handler of the first class for
-      # which exception.is_a?(klass) holds true is the one invoked, if any.
+      # which <tt>exception.is_a?(klass)</tt> holds true is the one invoked, if
+      # any.
       #
-      # class ApplicationController < ActionController::Base
-      #   rescue_from User::NotAuthorized, :with => :deny_access # self defined exception
-      #   rescue_from ActiveRecord::RecordInvalid, :with => :show_errors
+      #   class ApplicationController < ActionController::Base
+      #     rescue_from User::NotAuthorized, :with => :deny_access # self defined exception
+      #     rescue_from ActiveRecord::RecordInvalid, :with => :show_errors
       #
-      #   rescue_from 'MyAppError::Base' do |exception|
-      #     render :xml => exception, :status => 500
+      #     rescue_from 'MyAppError::Base' do |exception|
+      #       render :xml => exception, :status => 500
+      #     end
+      #
+      #     protected
+      #       def deny_access
+      #         ...
+      #       end
+      #
+      #       def show_errors(exception)
+      #         exception.record.new_record? ? ...
+      #       end
       #   end
-      #
-      #   protected
-      #     def deny_access
-      #       ...
-      #     end
-      #
-      #     def show_errors(exception)
-      #       exception.record.new_record? ? ...
-      #     end
-      # end
       def rescue_from(*klasses, &block)
         options = klasses.extract_options!
         unless options.has_key?(:with)
@@ -165,7 +167,7 @@ module ActionController #:nodoc:
       # method if you wish to redefine the meaning of a local request to
       # include remote IP addresses or other criteria.
       def local_request? #:doc:
-        request.remote_addr == LOCALHOST and request.remote_ip == LOCALHOST
+        request.remote_addr == LOCALHOST && request.remote_ip == LOCALHOST
       end
 
       # Render detailed diagnostics for unhandled exceptions rescued from

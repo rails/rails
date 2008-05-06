@@ -16,32 +16,20 @@ class BenchmarkHelperTest < ActionView::TestCase
     end
   end
 
-  def setup
-    @logger = MockLogger.new
-  end
-
-  def test_without_logger_or_block
-    @logger = nil
-    assert_nothing_raised { benchmark }
+  def controller
+    @controller ||= Struct.new(:logger).new(MockLogger.new)
   end
 
   def test_without_block
     assert_raise(LocalJumpError) { benchmark }
-    assert @logger.logged.empty?
-  end
-
-  def test_without_logger
-    @logger = nil
-    i_was_run = false
-    benchmark { i_was_run = true }
-    assert !i_was_run
+    assert controller.logger.logged.empty?
   end
 
   def test_defaults
     i_was_run = false
     benchmark { i_was_run = true }
     assert i_was_run
-    assert 1, @logger.logged.size
+    assert 1, controller.logger.logged.size
     assert_last_logged
   end
 
@@ -49,7 +37,7 @@ class BenchmarkHelperTest < ActionView::TestCase
     i_was_run = false
     benchmark('test_run') { i_was_run = true }
     assert i_was_run
-    assert 1, @logger.logged.size
+    assert 1, controller.logger.logged.size
     assert_last_logged 'test_run'
   end
 
@@ -57,13 +45,13 @@ class BenchmarkHelperTest < ActionView::TestCase
     i_was_run = false
     benchmark('debug_run', :debug) { i_was_run = true }
     assert i_was_run
-    assert 1, @logger.logged.size
+    assert 1, controller.logger.logged.size
     assert_last_logged 'debug_run', :debug
   end
 
   private
     def assert_last_logged(message = 'Benchmarking', level = :info)
-      last = @logger.logged.last
+      last = controller.logger.logged.last
       assert 2, last.size
       assert_equal level, last.first
       assert 1, last[1].size

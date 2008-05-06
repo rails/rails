@@ -21,9 +21,11 @@ module ActionView
       # You may give an optional logger level as the second argument
       # (:debug, :info, :warn, :error); the default value is :info.
       def benchmark(message = "Benchmarking", level = :info)
-        if @logger
+        if controller.logger
           real = Benchmark.realtime { yield }
-          @logger.send level, "#{message} (#{'%.5f' % real})"
+          controller.logger.send(level, "#{message} (#{'%.5f' % real})")
+        else
+          yield
         end
       end
     end

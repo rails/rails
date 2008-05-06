@@ -11,7 +11,6 @@ module ActiveRecord
     def self.included(base)
       base.class_eval do
         extend ClassMethods
-        named_scope :all
         named_scope :scoped, lambda { |scope| scope }
       end
     end

@@ -398,8 +398,8 @@ module ActiveRecord
       # TableDefinition#timestamps that'll add created_at and updated_at as datetimes.
       #
       # TableDefinition#references will add an appropriately-named _id column, plus a corresponding _type
-      # column if the :polymorphic option is supplied. If :polymorphic is a hash of options, these will be
-      # used when creating the _type column. So what can be written like this:
+      # column if the <tt>:polymorphic</tt> option is supplied. If <tt>:polymorphic</tt> is a hash of options, these will be
+      # used when creating the <tt>_type</tt> column. So what can be written like this:
       #
       #   create_table :taggings do |t|
       #     t.integer :tag_id, :tagger_id, :taggable_id
@@ -469,5 +469,195 @@ module ActiveRecord
           @base.native_database_types
         end
     end
+
+    # Represents a SQL table in an abstract way for updating a table.
+    # Also see TableDefinition and SchemaStatements#create_table
+    #
+    # Available transformations are:
+    #
+    #   change_table :table do |t|
+    #     t.column
+    #     t.index
+    #     t.timestamps
+    #     t.change
+    #     t.change_default
+    #     t.rename
+    #     t.references
+    #     t.belongs_to
+    #     t.string
+    #     t.text
+    #     t.integer
+    #     t.float
+    #     t.decimal
+    #     t.datetime
+    #     t.timestamp
+    #     t.time
+    #     t.date
+    #     t.binary
+    #     t.boolean
+    #     t.remove
+    #     t.remove_references
+    #     t.remove_belongs_to
+    #     t.remove_index
+    #     t.remove_timestamps
+    #   end
+    #
+    class Table
+      def initialize(table_name, base)
+        @table_name = table_name
+        @base = base
+      end
+
+      # Adds a new column to the named table.
+      # See TableDefinition#column for details of the options you can use.
+      # ===== Examples
+      # ====== Creating a simple columns
+      #  t.column(:name, :string)
+      def column(column_name, type, options = {})
+        @base.add_column(@table_name, column_name, type, options)
+      end
+
+      # Adds a new index to the table.  +column_name+ can be a single Symbol, or
+      # an Array of Symbols.  See SchemaStatements#add_index
+      #
+      # ===== Examples
+      # ====== Creating a simple index
+      #  t.index(:name)
+      # ====== Creating a unique index
+      #  t.index([:branch_id, :party_id], :unique => true)
+      # ====== Creating a named index
+      #  t.index([:branch_id, :party_id], :unique => true, :name => 'by_branch_party')
+      def index(column_name, options = {})
+        @base.add_index(@table_name, column_name, options)
+      end
+
+      # Adds timestamps (created_at and updated_at) columns to the table.  See SchemaStatements#timestamps
+      # ===== Examples
+      #  t.timestamps
+      def timestamps
+        @base.add_timestamps(@table_name)
+      end
+
+      # Changes the column's definition according to the new options.
+      # See TableDefinition#column for details of the options you can use.
+      # ===== Examples
+      #  t.change(:name, :string, :limit => 80)
+      #  t.change(:description, :text)
+      def change(column_name, type, options = {})
+        @base.change_column(@table_name, column_name, type, options)
+      end
+
+      # Sets a new default value for a column.  See
+      # ===== Examples
+      #  t.change_default(:qualification, 'new')
+      #  t.change_default(:authorized, 1)
+      def change_default(column_name, default)
+        @base.change_column_default(@table_name, column_name, default)
+      end
+
+      # Removes the column(s) from the table definition.
+      # ===== Examples
+      #  t.remove(:qualification)
+      #  t.remove(:qualification, :experience)
+      #  t.removes(:qualification, :experience)
+      def remove(*column_names)
+        @base.remove_column(@table_name, column_names)
+      end
+
+      # Remove the given index from the table.
+      #
+      # Remove the suppliers_name_index in the suppliers table.
+      #   t.remove_index :name
+      # Remove the index named accounts_branch_id_index in the accounts table.
+      #   t.remove_index :column => :branch_id
+      # Remove the index named accounts_branch_id_party_id_index in the accounts table.
+      #   t.remove_index :column => [:branch_id, :party_id]
+      # Remove the index named by_branch_party in the accounts table.
+      #   t.remove_index :name => :by_branch_party
+      def remove_index(options = {})
+        @base.remove_index(@table_name, options)
+      end
+
+      # Removes the timestamp columns (created_at and updated_at) from the table.
+      # ===== Examples
+      #  t.remove_timestamps
+      def remove_timestamps
+        @base.remove_timestamps(@table_name)
+      end
+
+      # Renames a column.
+      # ===== Example
+      #  t.rename(:description, :name)
+      def rename(column_name, new_column_name)
+        @base.rename_column(@table_name, column_name, new_column_name)
+      end
+
+      # Adds a reference.  Optionally adds a +type+ column.  <tt>reference</tt>,
+      # <tt>references</tt> and <tt>belongs_to</tt> are all acceptable
+      # ===== Example
+      #  t.references(:goat)
+      #  t.references(:goat, :polymorphic => true)
+      #  t.references(:goat)
+      #  t.belongs_to(:goat)
+      def references(*args)
+        options = args.extract_options!
+        polymorphic = options.delete(:polymorphic)
+        args.each do |col|
+          @base.add_column(@table_name, "#{col}_id", :integer, options)
+          @base.add_column(@table_name, "#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) unless polymorphic.nil?
+        end
+      end
+      alias :belongs_to :references
+
+      # Adds a reference.  Optionally removes a +type+ column.  <tt>remove_reference</tt>,
+      # <tt>remove_references</tt> and <tt>remove_belongs_to</tt> are all acceptable
+      # ===== Example
+      #  t.remove_reference(:goat)
+      #  t.remove_reference(:goat, :polymorphic => true)
+      #  t.remove_references(:goat)
+      #  t.remove_belongs_to(:goat)
+      def remove_references(*args)
+        options = args.extract_options!
+        polymorphic = options.delete(:polymorphic)
+        args.each do |col|
+          @base.remove_column(@table_name, "#{col}_id")
+          @base.remove_column(@table_name, "#{col}_type") unless polymorphic.nil?
+        end
+      end
+      alias :remove_belongs_to  :remove_references
+
+      # Adds a column or columns of a specified type
+      # ===== Example
+      #  t.string(:goat)
+      #  t.string(:goat, :sheep)
+      %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |column_type|
+        class_eval <<-EOV
+          def #{column_type}(*args)
+            options = args.extract_options!
+            column_names = args
+
+            column_names.each do |name|
+              column = ColumnDefinition.new(@base, name, '#{column_type}')
+              if options[:limit]
+                column.limit = options[:limit]
+              elsif native['#{column_type}'.to_sym].is_a?(Hash)
+                column.limit = native['#{column_type}'.to_sym][:limit]
+              end
+              column.precision = options[:precision]
+              column.scale = options[:scale]
+              column.default = options[:default]
+              column.null = options[:null]
+              @base.add_column(@table_name, name, column.sql_type, options)
+            end
+          end
+        EOV
+      end
+
+      private
+        def native
+          @base.native_database_types
+        end
+    end
+
   end
 end

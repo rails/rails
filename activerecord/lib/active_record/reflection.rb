@@ -45,7 +45,7 @@ module ActiveRecord
       end
 
       # Returns an array of AssociationReflection objects for all the associations in the class. If you only want to reflect on a
-      # certain association type, pass in the symbol (:has_many, :has_one, :belongs_to) for that as the first parameter. 
+      # certain association type, pass in the symbol (<tt>:has_many</tt>, <tt>:has_one</tt>, <tt>:belongs_to</tt>) for that as the first parameter.
       # Example:
       #
       #   Account.reflect_on_all_associations             # returns an array of all associations
@@ -90,13 +90,12 @@ module ActiveRecord
 
       # Returns the hash of options used for the macro.  For example, it would return <tt>{ :class_name => "Money" }</tt> for
       # <tt>composed_of :balance, :class_name => 'Money'</tt> or +{}+ for <tt>has_many :clients</tt>.
-
       def options
         @options
       end
 
-      # Returns the class for the macro.  For example, <tt>composed_of :balance, :class_name => 'Money'</tt> returns the +Money+
-      # class and <tt>has_many :clients</tt> returns the +Client+ class.
+      # Returns the class for the macro.  For example, <tt>composed_of :balance, :class_name => 'Money'</tt> returns the Money
+      # class and <tt>has_many :clients</tt> returns the Client class.
       def klass
         @klass ||= class_name.constantize
       end
@@ -158,16 +157,16 @@ module ActiveRecord
         @through_reflection ||= options[:through] ? active_record.reflect_on_association(options[:through]) : false
       end
 
-      # Gets an array of possible :through source reflection names
+      # Gets an array of possible <tt>:through</tt> source reflection names:
       #
-      #   [singularized, pluralized]
+      #   [:singularized, :pluralized]
       #
       def source_reflection_names
         @source_reflection_names ||= (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }
       end
 
-      # Gets the source of the through reflection.  It checks both a singularized and pluralized form for :belongs_to or :has_many.
-      # (The :tags association on Tagging below)
+      # Gets the source of the through reflection.  It checks both a singularized and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
+      # (The <tt>:tags</tt> association on Tagging below.)
       # 
       #   class Post
       #     has_many :tags, :through => :taggings

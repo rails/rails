@@ -14,27 +14,27 @@ require 'openssl'       # to generate the HMAC message digest
 # TamperedWithCookie is raised if the data integrity check fails.
 #
 # A message digest is included with the cookie to ensure data integrity:
-# a user cannot alter his user_id without knowing the secret key included in
+# a user cannot alter his +user_id+ without knowing the secret key included in
 # the hash. New apps are generated with a pregenerated secret in
 # config/environment.rb. Set your own for old apps you're upgrading.
 #
 # Session options:
-#   :secret   An application-wide key string or block returning a string
-#             called per generated digest. The block is called with the
-#             CGI::Session instance as an argument. It's important that the
-#             secret is not vulnerable to a dictionary attack. Therefore,
-#             you should choose a secret consisting of random numbers and
-#             letters and more than 30 characters.
 #
-#             Example:  :secret => '449fe2e7daee471bffae2fd8dc02313d'
-#                       :secret => Proc.new { User.current_user.secret_key }
+# * <tt>:secret</tt>: An application-wide key string or block returning a string
+#   called per generated digest. The block is called with the CGI::Session
+#   instance as an argument. It's important that the secret is not vulnerable to
+#   a dictionary attack. Therefore, you should choose a secret consisting of
+#   random numbers and letters and more than 30 characters. Examples:
 #
-#   :digest   The message digest algorithm used to verify session integrity
-#             defaults to 'SHA1' but may be any digest provided by OpenSSL,
-#             such as 'MD5', 'RIPEMD160', 'SHA256', etc.
+#     :secret => '449fe2e7daee471bffae2fd8dc02313d'
+#     :secret => Proc.new { User.current_user.secret_key }
+#
+# * <tt>:digest</tt>: The message digest algorithm used to verify session
+#   integrity defaults to 'SHA1' but may be any digest provided by OpenSSL,
+#   such as 'MD5', 'RIPEMD160', 'SHA256', etc.
 #
 # To generate a secret key for an existing application, run
-# `rake secret` and set the key in config/environment.rb
+# `rake secret` and set the key in config/environment.rb.
 #
 # Note that changing digest or secret invalidates all existing sessions!
 class CGI::Session::CookieStore

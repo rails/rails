@@ -240,12 +240,12 @@ module ActionController
     # * <tt>:collection</tt> - add named routes for other actions that operate on the collection.
     #   Takes a hash of <tt>#{action} => #{method}</tt>, where method is <tt>:get</tt>/<tt>:post</tt>/<tt>:put</tt>/<tt>:delete</tt>
     #   or <tt>:any</tt> if the method does not matter.  These routes map to a URL like /messages/rss, with a route of rss_messages_url.
-    # * <tt>:member</tt> - same as :collection, but for actions that operate on a specific member.
-    # * <tt>:new</tt> - same as :collection, but for actions that operate on the new resource action.
+    # * <tt>:member</tt> - same as <tt>:collection</tt>, but for actions that operate on a specific member.
+    # * <tt>:new</tt> - same as <tt>:collection</tt>, but for actions that operate on the new resource action.
     # * <tt>:controller</tt> - specify the controller name for the routes.
     # * <tt>:singular</tt> - specify the singular name used in the member routes.
     # * <tt>:requirements</tt> - set custom routing parameter requirements.
-    # * <tt>:conditions</tt> - specify custom routing recognition conditions.  Resources sets the :method value for the method-specific routes.
+    # * <tt>:conditions</tt> - specify custom routing recognition conditions.  Resources sets the <tt>:method</tt> value for the method-specific routes.
     # * <tt>:as</tt> - specify a different resource name to use in the URL path. For example:
     #     # products_path == '/productos'
     #     map.resources :products, :as => 'productos' do |product|
@@ -254,7 +254,7 @@ module ActionController
     #     end
     #
     # * <tt>:has_one</tt> - specify nested resources, this is a shorthand for mapping singleton resources beneath the current.
-    # * <tt>:has_many</tt> -  same has :has_one, but for plural resources.
+    # * <tt>:has_many</tt> -  same has <tt>:has_one</tt>, but for plural resources.
     #
     #   You may directly specify the routing association with has_one and has_many like:
     #
@@ -288,7 +288,7 @@ module ActionController
     #       article.resources :comments
     #     end
     #
-    #   The comment resources work the same, but must now include a value for :article_id.
+    #   The comment resources work the same, but must now include a value for <tt>:article_id</tt>.
     #
     #     article_comments_url(@article)
     #     article_comment_url(@article, @comment)
@@ -302,7 +302,7 @@ module ActionController
     #     map.resources :tags, :path_prefix => '/books/:book_id', :name_prefix => 'book_'
     #     map.resources :tags, :path_prefix => '/toys/:toy_id',   :name_prefix => 'toy_'
     #
-    # You may also use :name_prefix to override the generic named routes in a nested resource:
+    # You may also use <tt>:name_prefix</tt> to override the generic named routes in a nested resource:
     # 
     #   map.resources :articles do |article|
     #     article.resources :comments, :name_prefix => nil
@@ -364,7 +364,7 @@ module ActionController
     #
     # See map.resources for general conventions.  These are the main differences:
     # * A singular name is given to map.resource.  The default controller name is still taken from the plural name.
-    # * To specify a custom plural name, use the :plural option.  There is no :singular option.
+    # * To specify a custom plural name, use the <tt>:plural</tt> option.  There is no <tt>:singular</tt> option.
     # * No default index route is created for the singleton resource controller.
     # * When nesting singleton resources, only the singular name is used as the path prefix (example: 'account/messages/1')
     #

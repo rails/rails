@@ -1,0 +1,17 @@
+michael_magician:
+  id: 1
+  person_id: 1
+  job_id: 3
+  favourite: false
+
+michael_unicyclist:
+  id: 2
+  person_id: 1
+  job_id: 1
+  favourite: true
+
+david_unicyclist:
+  id: 3
+  person_id: 2
+  job_id: 1
+  favourite: false
