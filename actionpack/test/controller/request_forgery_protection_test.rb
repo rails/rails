@@ -107,19 +107,61 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_not_allow_api_formatted_post_without_token
-    assert_raises(ActionController::InvalidAuthenticityToken) do 
+    assert_raises(ActionController::InvalidAuthenticityToken) do
       post :index, :format => 'xml'
     end
   end
 
-  def test_should_not_allow_put_without_token
+  def test_should_not_allow_api_formatted_put_without_token
     assert_raises(ActionController::InvalidAuthenticityToken) do
       put :index, :format => 'xml'
     end
   end
 
-  def test_should_not_allow_delete_without_token
+  def test_should_not_allow_api_formatted_delete_without_token
     assert_raises(ActionController::InvalidAuthenticityToken) do
+      delete :index, :format => 'xml'
+    end
+  end
+
+  def test_should_not_allow_api_formatted_post_sent_as_url_encoded_form_without_token
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      @request.env['CONTENT_TYPE'] = Mime::URL_ENCODED_FORM.to_s
+      post :index, :format => 'xml'
+    end
+  end
+
+  def test_should_not_allow_api_formatted_put_sent_as_url_encoded_form_without_token
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      @request.env['CONTENT_TYPE'] = Mime::URL_ENCODED_FORM.to_s
+      put :index, :format => 'xml'
+    end
+  end
+
+  def test_should_not_allow_api_formatted_delete_sent_as_url_encoded_form_without_token
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      @request.env['CONTENT_TYPE'] = Mime::URL_ENCODED_FORM.to_s
+      delete :index, :format => 'xml'
+    end
+  end
+
+  def test_should_not_allow_api_formatted_post_sent_as_multipart_form_without_token
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      @request.env['CONTENT_TYPE'] = Mime::MULTIPART_FORM.to_s
+      post :index, :format => 'xml'
+    end
+  end
+
+  def test_should_not_allow_api_formatted_put_sent_as_multipart_form_without_token
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      @request.env['CONTENT_TYPE'] = Mime::MULTIPART_FORM.to_s
+      put :index, :format => 'xml'
+    end
+  end
+
+  def test_should_not_allow_api_formatted_delete_sent_as_multipart_form_without_token
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      @request.env['CONTENT_TYPE'] = Mime::MULTIPART_FORM.to_s
       delete :index, :format => 'xml'
     end
   end
