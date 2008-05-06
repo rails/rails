@@ -20,7 +20,8 @@ module ActionController #:nodoc:
   #
   # == Caching stores
   #
-  # All the caching stores from ActiveSupport::Cache is available to be used as backends for Action Controller caching.
+  # All the caching stores from ActiveSupport::Cache is available to be used as backends for Action Controller caching. This setting only
+  # affects action and fragment caching as page caching is always written to disk.
   #
   # Configuration examples (MemoryStore is the default):
   #
