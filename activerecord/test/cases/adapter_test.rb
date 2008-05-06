@@ -6,15 +6,16 @@ class AdapterTest < ActiveRecord::TestCase
   end
 
   def test_tables
-    if @connection.respond_to?(:tables)
-      tables = @connection.tables
-      assert tables.include?("accounts")
-      assert tables.include?("authors")
-      assert tables.include?("tasks")
-      assert tables.include?("topics")
-    else
-      warn "#{@connection.class} does not respond to #tables"
-    end
+    tables = @connection.tables
+    assert tables.include?("accounts")
+    assert tables.include?("authors")
+    assert tables.include?("tasks")
+    assert tables.include?("topics")
+  end
+
+  def test_table_exists?
+    assert @connection.table_exists?("accounts")
+    assert !@connection.table_exists?("nonexistingtable")
   end
 
   def test_indexes

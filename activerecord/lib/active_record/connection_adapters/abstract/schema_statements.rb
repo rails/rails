@@ -20,6 +20,10 @@ module ActiveRecord
 
       # def tables(name = nil) end
 
+      def table_exists?(table_name)
+        tables.include?(table_name.to_s)
+      end
+
       # Returns an array of indexes for the given table.
       # def indexes(table_name, name = nil) end
 
