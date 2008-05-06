@@ -29,6 +29,19 @@ class OrderedHashTest < Test::Unit::TestCase
     assert_equal value, @ordered_hash.values.last
     assert_equal value, @ordered_hash[key]
   end
+  
+  def test_delete
+    key, value = 'white', 'ffffff'
+    bad_key = 'black'
+    
+    @ordered_hash[key] = value
+    assert_equal @keys.length + 1, @ordered_hash.length
+    
+    assert_equal value, @ordered_hash.delete(key)
+    assert_equal @keys.length, @ordered_hash.length
+    
+    assert_nil @ordered_hash.delete(bad_key)
+  end
 end
 
 class OrderedOptionsTest < Test::Unit::TestCase
