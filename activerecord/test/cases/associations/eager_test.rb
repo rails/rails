@@ -603,4 +603,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
       assert_equal 3, authors(:david).posts_with_comments.count(:conditions => "length(comments.body) > 15")
     end
   end
+
+  def test_load_with_sti_sharing_association
+    assert_queries(2) do #should not do 1 query per subclass
+      Comment.find :all, :include => :post
+    end
+  end
 end

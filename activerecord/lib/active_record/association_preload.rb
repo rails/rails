@@ -31,12 +31,12 @@ module ActiveRecord
       private
 
       def preload_one_association(records, association, preload_options={})
-        reflection = reflections[association]
-        raise ConfigurationError, "Association named '#{ association }' was not found; perhaps you misspelled it?" unless reflection
-
-        # Not all records have the same class, so group then preload.
-        records.group_by(&:class).each do |klass, records|
-          reflection = klass.reflections[association]
+        class_to_reflection = {}
+        # Not all records have the same class, so group then preload
+        # group on the reflection itself so that if various subclass share the same association then we do not split them
+        # unncessarily
+        records.group_by {|record| class_to_reflection[record.class] ||= record.class.reflections[association]}.each do |reflection, records|
+          raise ConfigurationError, "Association named '#{ association }' was not found; perhaps you misspelled it?" unless reflection
           send("preload_#{reflection.macro}_association", records, reflection, preload_options)
         end
       end
