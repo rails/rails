@@ -35,9 +35,9 @@ module Arel
     
     def ==(other)
       self.class  == other.class     and
-      relation    == other.relation  and
       name        == other.name      and
       @alias      == other.alias     and
+      relation    == other.relation  and
       ancestor    == other.ancestor
     end
 

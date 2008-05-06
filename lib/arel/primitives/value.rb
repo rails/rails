@@ -17,7 +17,8 @@ module Arel
     end
     
     def ==(other)
-      value == other.value
+      self.class == other.class and
+      value      == other.value
     end
     
     def bind(relation)

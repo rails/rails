@@ -10,7 +10,7 @@ class Object
   def equality_predicate_sql
     '='
   end
-  
+    
   def metaclass
     class << self
       self

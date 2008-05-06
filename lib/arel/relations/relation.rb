@@ -138,12 +138,21 @@ module Arel
       def attribute_for_name(name)
         attributes.detect { |a| a.alias_or_name.to_s == name.to_s }
       end
-
+      
+      # TESTME - added relation_for(x)[x] because of AR
       def attribute_for_attribute(attribute)
         attributes.select { |a| a =~ attribute }.max do |a1, a2|
-          (attribute / a1) <=> (attribute / a2)
+          (attribute / relation_for(a1)[a1]) <=> (attribute / relation_for(a2)[a2])
         end
       end
+      
+      def attribute_for_attribute_with_memoization(attribute)
+        @attribute_for_attribute ||= Hash.new do |h, a|
+          h[a] = attribute_for_attribute_without_memoization(a)
+        end
+        @attribute_for_attribute[attribute]
+      end
+      alias_method_chain :attribute_for_attribute, :memoization
     end
     include AttributeAccessable
 
