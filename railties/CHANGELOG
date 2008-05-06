@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix bug where plugin init.rb files from frozen gem specs weren't being run.  (pjb3) [#122 state:resolved]
+
 * Made the location of the routes file configurable with config.routes_configuration_file (Scott Fleckenstein) [#88]
 
 * Rails Edge info returns the latest git commit hash [Francesc Esplugas]

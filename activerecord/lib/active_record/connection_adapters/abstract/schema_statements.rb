@@ -295,6 +295,12 @@ module ActiveRecord
       def structure_dump
       end
 
+      def dump_schema_information #:nodoc:
+        sm_table = ActiveRecord::Migrator.schema_migrations_table_name
+        migrated = select_values("SELECT version FROM #{sm_table}")
+        migrated.map { |v| "INSERT INTO #{sm_table} (version) VALUES ('#{v}');" }.join("\n")
+      end
+
       # Should not be called normally, but this operation is non-destructive.
       # The migrations module handles this automatically.
       def initialize_schema_migrations_table

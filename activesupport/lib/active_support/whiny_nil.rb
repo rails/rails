@@ -28,12 +28,12 @@ class NilClass
   WHINERS = [::Array]
   WHINERS << ::ActiveRecord::Base if defined? ::ActiveRecord
 
-  @@method_class_map = Hash.new
+  METHOD_CLASS_MAP = Hash.new
 
   WHINERS.each do |klass|
     methods = klass.public_instance_methods - public_instance_methods
     class_name = klass.name
-    methods.each { |method| @@method_class_map[method.to_sym] = class_name }
+    methods.each { |method| METHOD_CLASS_MAP[method.to_sym] = class_name }
   end
 
   # Raises a RuntimeError when you attempt to call +id+ on +nil+.
@@ -43,7 +43,7 @@ class NilClass
 
   private
     def method_missing(method, *args, &block)
-      raise_nil_warning_for @@method_class_map[method], method, caller
+      raise_nil_warning_for METHOD_CLASS_MAP[method], method, caller
     end
 
     # Raises a NoMethodError when you attempt to call a method on +nil+.

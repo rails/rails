@@ -52,7 +52,7 @@ class DefaultUrlOptionsController < ActionController::Base
   def default_url_options_action
   end
 
-  def default_url_options(options)
+  def default_url_options(options = nil)
     { :host => 'www.override.com', :action => 'new', :bacon => 'chunky' }
   end
 end
@@ -164,6 +164,19 @@ class DefaultUrlOptionsTest < Test::Unit::TestCase
 
     assert_equal 'http://www.override.com/default_url_options/new?bacon=chunky', @controller.url_for(:controller => 'default_url_options')
     assert_equal 'http://www.override.com/default_url_options?bacon=chunky', @controller.send(:default_url_options_url)
+  ensure
+    ActionController::Routing::Routes.load!
+  end
+end
+
+class EnsureNamedRoutesWorksTicket22BugTest < Test::Unit::TestCase
+  def test_named_routes_still_work
+    ActionController::Routing::Routes.draw do |map|
+      map.resources :things
+    end
+    EmptyController.send :include, ActionController::UrlWriter
+
+    assert_equal '/things', EmptyController.new.send(:things_path)
   ensure
     ActionController::Routing::Routes.load!
   end

@@ -614,23 +614,27 @@ module ActionView
         end
 
         def tag_name
-          "#{@object_name}[#{@method_name}]"
+          "#{@object_name}[#{sanitized_method_name}]"
         end
 
         def tag_name_with_index(index)
-          "#{@object_name}[#{index}][#{@method_name}]"
+          "#{@object_name}[#{index}][#{sanitized_method_name}]"
         end
 
         def tag_id
-          "#{sanitized_object_name}_#{@method_name}"
+          "#{sanitized_object_name}_#{sanitized_method_name}"
         end
 
         def tag_id_with_index(index)
-          "#{sanitized_object_name}_#{index}_#{@method_name}"
+          "#{sanitized_object_name}_#{index}_#{sanitized_method_name}"
         end
 
         def sanitized_object_name
-          @object_name.gsub(/[^-a-zA-Z0-9:.]/, "_").sub(/_$/, "")
+          @sanitized_object_name ||= @object_name.gsub(/[^-a-zA-Z0-9:.]/, "_").sub(/_$/, "")
+        end
+
+        def sanitized_method_name
+          @sanitized_method_name ||= @method_name.sub(/\?$/,"")
         end
     end
 
