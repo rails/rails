@@ -168,3 +168,16 @@ class DefaultUrlOptionsTest < Test::Unit::TestCase
     ActionController::Routing::Routes.load!
   end
 end
+
+class EnsureNamedRoutesWorksTicket22BugTest < Test::Unit::TestCase
+  def test_named_routes_still_work
+    ActionController::Routing::Routes.draw do |map|
+      map.resources :things
+    end
+    EmptyController.send :include, ActionController::UrlWriter
+
+    assert_equal '/things', EmptyController.new.send(:things_path)
+  ensure
+    ActionController::Routing::Routes.load!
+  end
+end
