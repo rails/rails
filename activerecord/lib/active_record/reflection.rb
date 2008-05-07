@@ -153,6 +153,17 @@ module ActiveRecord
         end
       end
 
+      # Returns the AssociationReflection object specified in the <tt>:through</tt> option
+      # of a HasMantThrough or HasOneThrough association. Example:
+      #
+      #   class Post < ActiveRecord::Base
+      #     has_many :taggings
+      #     has_many :tags, :through => :taggings
+      #   end
+      #
+      #   tags_reflection = Post.reflect_on_association(:tags)
+      #   taggings_reflection = tags_reflection.through_reflection
+      #
       def through_reflection
         @through_reflection ||= options[:through] ? active_record.reflect_on_association(options[:through]) : false
       end
