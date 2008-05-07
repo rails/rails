@@ -631,6 +631,27 @@ module ActionView
         #     render(:update) { |page| page.update_time }
         #   end
         #
+        # Calls to JavaScriptGenerator not matching a helper method below
+        # generate a proxy to the JavaScript Class named by the method called.
+        #
+        # Examples:
+        #
+        #   # Generates:
+        #   #     Foo.init();
+        #   update_page do |page|
+        #     page.foo.init
+        #   end
+        #
+        #   # Generates:
+        #   #     Event.observe('one', 'click', function () {
+        #   #       $('two').show();
+        #   #     });
+        #   update_page do |page|
+        #     page.event.observe('one', 'click') do |p|
+        #      p[:two].show
+        #     end
+        #   end
+        #
         # You can also use PrototypeHelper#update_page_tag instead of 
         # PrototypeHelper#update_page to wrap the generated JavaScript in a
         # <script> tag.
@@ -855,12 +876,21 @@ module ActionView
           # 
           # Examples:
           #
-          #  # Generates: Element.replace(my_element, "My content to replace with.")
-          #  page.call 'Element.replace', 'my_element', "My content to replace with."
-          #
-          #  # Generates: alert('My message!')
-          #  page.call 'alert', 'My message!'
-          #
+          #   # Generates: Element.replace(my_element, "My content to replace with.")
+          #   page.call 'Element.replace', 'my_element', "My content to replace with."
+          #   
+          #   # Generates: alert('My message!')
+          #   page.call 'alert', 'My message!'
+          #   
+          #   # Generates:
+          #   #     my_method(function() {
+          #   #       $("one").show();
+          #   #       $("two").hide();
+          #   #    });
+          #   page.call(:my_method) do |p|
+          #      p[:one].show
+          #      p[:two].hide
+          #   end
           def call(function, *arguments, &block)
             record "#{function}(#{arguments_for_call(arguments, block)})"
           end
