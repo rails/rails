@@ -179,7 +179,8 @@ module ActiveRecord
       # Gets the source of the through reflection.  It checks both a singularized and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
       # (The <tt>:tags</tt> association on Tagging below.)
       # 
-      #   class Post
+      #   class Post < ActiveRecord::Base
+      #     has_many :taggings
       #     has_many :tags, :through => :taggings
       #   end
       #
