@@ -183,11 +183,14 @@ module ActiveResource
   #     self.timeout = 5
   #   end
   #
-  # This sets the +timeout+ to 5 seconds. You can adjust the timeout to a value suitable for the RESTful API
+  # This sets the +timeout+ to 5 seconds. You can adjust the +timeout+ to a value suitable for the RESTful API
   # you are accessing. It is recommended to set this to a reasonably low value to allow your Active Resource
   # clients (especially if you are using Active Resource in a Rails application) to fail-fast (see
   # http://en.wikipedia.org/wiki/Fail-fast) rather than cause cascading failures that could incapacitate your
   # server.
+  #
+  # When a timeout occurs, an ActiveResource::TimeoutError is raised. You should rescue from
+  # ActiveResource::TimeoutError in your Active Resource method calls.
   #
   # Internally, Active Resource relies on Ruby's Net::HTTP library to make HTTP requests. Setting +timeout+
   # sets the <tt>read_timeout</tt> of the internal Net::HTTP instance to the same value. The default
