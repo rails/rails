@@ -5,9 +5,9 @@ module ActionView #:nodoc:
   class MissingTemplate < ActionViewError #:nodoc:
   end
 
-  # Action View templates can be written in three ways. If the template file has a +.erb+ (or +.rhtml+) extension then it uses a mixture of ERb 
-  # (included in Ruby) and HTML. If the template file has a +.builder+ (or +.rxml+) extension then Jim Weirich's Builder::XmlMarkup library is used. 
-  # If the template file has a +.rjs+ extension then it will use ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.
+  # Action View templates can be written in three ways. If the template file has a <tt>.erb</tt> (or <tt>.rhtml</tt>) extension then it uses a mixture of ERb 
+  # (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> (or <tt>.rxml</tt>) extension then Jim Weirich's Builder::XmlMarkup library is used. 
+  # If the template file has a <tt>.rjs</tt> extension then it will use ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.
   # 
   # = ERb
   # 
@@ -24,7 +24,7 @@ module ActionView #:nodoc:
   #
   #   Hi, Mr. <% puts "Frodo" %>
   #
-  # If you absolutely must write from within a function, you can use the TextHelper#concat
+  # If you absolutely must write from within a function, you can use the TextHelper#concat.
   #
   # <%- and -%> suppress leading and trailing whitespace, including the trailing newline, and can be used interchangeably with <% and %>.
   #
@@ -46,7 +46,7 @@ module ActionView #:nodoc:
   #   <% @page_title = "A Wonderful Hello" %>
   #   <%= render "shared/header" %>
   #
-  # Now the header can pick up on the @page_title variable and use it for outputting a title tag:
+  # Now the header can pick up on the <tt>@page_title</tt> variable and use it for outputting a title tag:
   #
   #   <title><%= @page_title %></title>
   #
@@ -56,7 +56,7 @@ module ActionView #:nodoc:
   #
   #   <%= render "shared/header", { :headline => "Welcome", :person => person } %>
   #
-  # These can now be accessed in shared/header with:
+  # These can now be accessed in <tt>shared/header</tt> with:
   #
   #   Headline: <%= headline %>
   #   First name: <%= person.first_name %>
@@ -77,8 +77,8 @@ module ActionView #:nodoc:
   #
   # == Builder
   #
-  # Builder templates are a more programmatic alternative to ERb. They are especially useful for generating XML content. An +XmlMarkup+ object 
-  # named +xml+ is automatically made available to templates with a +.builder+ extension. 
+  # Builder templates are a more programmatic alternative to ERb. They are especially useful for generating XML content. An XmlMarkup object 
+  # named +xml+ is automatically made available to templates with a <tt>.builder</tt> extension. 
   #
   # Here are some basic examples:
   #
@@ -130,18 +130,18 @@ module ActionView #:nodoc:
   #
   # == JavaScriptGenerator
   #
-  # JavaScriptGenerator templates end in +.rjs+. Unlike conventional templates which are used to 
+  # JavaScriptGenerator templates end in <tt>.rjs</tt>. Unlike conventional templates which are used to 
   # render the results of an action, these templates generate instructions on how to modify an already rendered page. This makes it easy to 
   # modify multiple elements on your page in one declarative Ajax response. Actions with these templates are called in the background with Ajax 
   # and make updates to the page where the request originated from.
   # 
   # An instance of the JavaScriptGenerator object named +page+ is automatically made available to your template, which is implicitly wrapped in an ActionView::Helpers::PrototypeHelper#update_page block. 
   #
-  # When an .rjs action is called with +link_to_remote+, the generated JavaScript is automatically evaluated.  Example:
+  # When an <tt>.rjs</tt> action is called with +link_to_remote+, the generated JavaScript is automatically evaluated.  Example:
   #
   #   link_to_remote :url => {:action => 'delete'}
   #
-  # The subsequently rendered +delete.rjs+ might look like:
+  # The subsequently rendered <tt>delete.rjs</tt> might look like:
   #
   #   page.replace_html  'sidebar', :partial => 'sidebar'
   #   page.remove        "person-#{@person.id}"
