@@ -141,7 +141,7 @@ module Arel
       
       # TESTME - added relation_for(x)[x] because of AR
       def attribute_for_attribute(attribute)
-        attributes.select { |a| a =~ attribute }.max do |a1, a2|
+        attributes.select { |a| a.match?(attribute) }.max do |a1, a2|
           (attribute / relation_for(a1)[a1]) <=> (attribute / relation_for(a2)[a2])
         end
       end

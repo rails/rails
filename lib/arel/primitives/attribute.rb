@@ -65,7 +65,7 @@ module Arel
         [self] + (ancestor ? [ancestor, ancestor.history].flatten : [])
       end
       
-      def =~(other)
+      def match?(other)
         !(history & other.history).empty?
       end
       
