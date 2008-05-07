@@ -707,7 +707,7 @@ module ActiveResource
     end
 
     # Test for equality.  Resource are equal if and only if +other+ is the same object or 
-    # is an instance of the same class, is not +new?+, and has the same +id+.
+    # is an instance of the same class, is not <tt>new?</tt>, and has the same +id+.
     #
     # ==== Examples
     #   ryan = Person.create(:name => 'Ryan')
@@ -795,7 +795,7 @@ module ActiveResource
       connection.delete(element_path, self.class.headers)
     end
 
-    # Evaluates to <tt>true</tt> if this resource is not +new?+ and is
+    # Evaluates to <tt>true</tt> if this resource is not <tt>new?</tt> and is
     # found on the remote service.  Using this method, you can check for
     # resources that may have been deleted between the object's instantiation
     # and actions on it.
@@ -898,7 +898,7 @@ module ActiveResource
       self
     end
     
-    # For checking +respond_to?+ without searching the attributes (which is faster).
+    # For checking <tt>respond_to?</tt> without searching the attributes (which is faster).
     alias_method :respond_to_without_attributes?, :respond_to?
 
     # A method to determine if an object responds to a message (e.g., a method call). In Active Resource, a Person object with a
