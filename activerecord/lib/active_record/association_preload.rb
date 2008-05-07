@@ -143,7 +143,8 @@ module ActiveRecord
           through_primary_key = through_reflection.primary_key_name
           unless through_records.empty?
             source = reflection.source_reflection.name
-            through_records.first.class.preload_associations(through_records, source)
+            #add conditions from reflection!
+            through_records.first.class.preload_associations(through_records, source, reflection.options)
             through_records.each do |through_record|
               add_preloaded_records_to_collection(id_to_record_map[through_record[through_primary_key].to_s],
                                                  reflection.name, through_record.send(source))
@@ -251,12 +252,12 @@ module ActiveRecord
         conditions << append_conditions(options, preload_options)
 
         reflection.klass.find(:all,
-                              :select => (options[:select] || "#{table_name}.*"),
-                              :include => options[:include],
+                              :select => (preload_options[:select] || options[:select] || "#{table_name}.*"),
+                              :include => preload_options[:include] || options[:include],
                               :conditions => [conditions, ids],
                               :joins => options[:joins],
-                              :group => options[:group],
-                              :order => options[:order])
+                              :group => preload_options[:group] || options[:group],
+                              :order => preload_options[:order] || options[:order])
       end
 
 

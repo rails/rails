@@ -275,6 +275,17 @@ class EagerAssociationTest < ActiveRecord::TestCase
                  Author.find(:first, :order => 'authors.id').hello_post_comments.sort_by(&:id)
   end
 
+  def test_eager_with_has_many_through_join_model_with_conditions_on_top_level
+    assert_equal comments(:more_greetings), Author.find(authors(:david).id, :include => :comments_with_order_and_conditions).comments_with_order_and_conditions.first
+  end
+
+  def test_eager_with_has_many_through_join_model_with_include
+    author_comments = Author.find(authors(:david).id, :include => :comments_with_include).comments_with_include.to_a
+    assert_no_queries do
+      author_comments.first.post.title
+    end
+  end
+
   def test_eager_with_has_many_and_limit
     posts = Post.find(:all, :order => 'posts.id asc', :include => [ :author, :comments ], :limit => 2)
     assert_equal 2, posts.size

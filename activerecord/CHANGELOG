@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure hm:t preloading honours reflection options. Resolves #137. [Frederick Cheung]
+
 * Added protection against duplicate migration names (Aslak Hellesøy) [#112]
 
 * Base#instantiate_time_object: eliminate check for Time.zone, since we can assume this is set if time_zone_aware_attributes is set to true [Geoff Buesing]
