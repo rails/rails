@@ -159,28 +159,34 @@ module ActionController #:nodoc:
   #
   #   Hello #{session[:person]}
   #
-  # For removing objects from the session, you can either assign a single key to nil, like <tt>session[:person] = nil</tt>, or you can
-  # remove the entire session with reset_session.
+  # For removing objects from the session, you can either assign a single key to +nil+:
   #
-  # Sessions are stored in a browser cookie that's cryptographically signed, but unencrypted, by default. This prevents
-  # the user from tampering with the session but also allows him to see its contents.
+  #   # removes :person from session
+  #   session[:person] = nil
   #
-  # Do not put secret information in session!
+  # or you can remove the entire session with +reset_session+.
+  #
+  # Sessions are stored by default in a browser cookie that's cryptographically signed, but unencrypted.
+  # This prevents the user from tampering with the session but also allows him to see its contents.
+  #
+  # Do not put secret information in cookie-based sessions!
   #
   # Other options for session storage are:
   #
-  # ActiveRecordStore: sessions are stored in your database, which works better than PStore with multiple app servers and,
-  # unlike CookieStore, hides your session contents from the user. To use ActiveRecordStore, set
+  # * ActiveRecordStore - Sessions are stored in your database, which works better than PStore with multiple app servers and,
+  #   unlike CookieStore, hides your session contents from the user. To use ActiveRecordStore, set
   #
-  #   config.action_controller.session_store = :active_record_store
+  #     config.action_controller.session_store = :active_record_store
   #
-  # in your <tt>environment.rb</tt> and run <tt>rake db:sessions:create</tt>.
+  #   in your <tt>config/environment.rb</tt> and run <tt>rake db:sessions:create</tt>.
   #
-  # MemCacheStore: sessions are stored as entries in your memcached cache.  Set the session store type in <tt>environment.rb</tt>:
+  # * MemCacheStore - Sessions are stored as entries in your memcached cache.
+  #   Set the session store type in <tt>config/environment.rb</tt>:
   #
-  #   config.action_controller.session_store = :mem_cache_store
+  #     config.action_controller.session_store = :mem_cache_store
   #
-  #  This assumes that memcached has been installed and configured properly.  See the MemCacheStore docs for more information.
+  #   This assumes that memcached has been installed and configured properly.
+  #   See the MemCacheStore docs for more information.
   #
   # == Responses
   #
