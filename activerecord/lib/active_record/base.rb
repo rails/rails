@@ -98,7 +98,7 @@ module ActiveRecord #:nodoc:
   end
 
   # Raised when an error occured while doing a mass assignment to an attribute through the
-  # +attributes=+ method. The exception has an +attribute+ property that is the name of the
+  # <tt>attributes=</tt> method. The exception has an +attribute+ property that is the name of the
   # offending attribute.
   class AttributeAssignmentError < ActiveRecordError
     attr_reader :exception, :attribute
