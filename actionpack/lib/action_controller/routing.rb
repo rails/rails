@@ -15,7 +15,7 @@ module ActionController
   # The routing module provides URL rewriting in native Ruby. It's a way to
   # redirect incoming requests to controllers and actions. This replaces
   # mod_rewrite rules. Best of all, Rails' Routing works with any web server.
-  # Routes are defined in routes.rb in your RAILS_ROOT/config directory.
+  # Routes are defined in <tt>config/routes.rb</tt>.
   #
   # Consider the following route, installed by Rails when you generate your
   # application:
@@ -53,7 +53,7 @@ module ActionController
   # == Route priority
   #
   # Not all routes are created equally. Routes have priority defined by the
-  # order of appearance of the routes in the routes.rb file. The priority goes
+  # order of appearance of the routes in the <tt>config/routes.rb</tt> file. The priority goes
   # from top to bottom. The last route in that file is at the lowest priority
   # and will be applied last. If no route matches, 404 is returned.
   #
@@ -118,7 +118,7 @@ module ActionController
   #   root_url   # => 'http://www.example.com/'
   #   root_path  # => ''
   #
-  # You can also specify an already-defined named route in your map.root call:
+  # You can also specify an already-defined named route in your <tt>map.root</tt> call:
   #
   #   # In routes.rb
   #   map.new_session :controller => 'sessions', :action => 'new'
@@ -217,7 +217,7 @@ module ActionController
   #   ActionController::Routing::Routes.reload
   #
   # This will clear all named routes and reload routes.rb if the file has been modified from
-  # last load. To absolutely force reloading, use +reload!+.
+  # last load. To absolutely force reloading, use <tt>reload!</tt>.
   #
   # == Testing Routes
   #
