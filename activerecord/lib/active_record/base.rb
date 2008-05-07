@@ -235,8 +235,8 @@ module ActiveRecord #:nodoc:
   # == Accessing attributes before they have been typecasted
   #
   # Sometimes you want to be able to read the raw attribute data without having the column-determined typecast run its course first.
-  # That can be done by using the <attribute>_before_type_cast accessors that all attributes have. For example, if your Account model
-  # has a balance attribute, you can call account.balance_before_type_cast or account.id_before_type_cast.
+  # That can be done by using the <tt><attribute>_before_type_cast</tt> accessors that all attributes have. For example, if your Account model
+  # has a balance attribute, you can call <tt>account.balance_before_type_cast</tt> or <tt>account.id_before_type_cast</tt>.
   #
   # This is especially useful in validation situations where the user might supply a string for an integer field and you want to display
   # the original string back in an error message. Accessing the attribute normally would typecast the string to 0, which isn't what you
