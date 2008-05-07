@@ -110,7 +110,7 @@ module ActiveRecord #:nodoc:
   end
 
   # Raised when there are multiple errors while doing a mass assignment through the +attributes+
-  # method. The exception has an +errors+ property that contains an array of +AttributeAssignmentError+
+  # method. The exception has an +errors+ property that contains an array of AttributeAssignmentError
   # objects, each corresponding to the error while assigning to an attribute.
   class MultiparameterAssignmentErrors < ActiveRecordError
     attr_reader :errors
@@ -337,26 +337,26 @@ module ActiveRecord #:nodoc:
   #
   # == Exceptions
   #
-  # * +ActiveRecordError+ -- generic error class and superclass of all other errors raised by Active Record
-  # * +AdapterNotSpecified+ -- the configuration hash used in <tt>establish_connection</tt> didn't include an
+  # * ActiveRecordError - Generic error class and superclass of all other errors raised by Active Record.
+  # * AdapterNotSpecified - The configuration hash used in <tt>establish_connection</tt> didn't include an
   #   <tt>:adapter</tt> key.
-  # * +AdapterNotFound+ -- the <tt>:adapter</tt> key used in <tt>establish_connection</tt> specified a non-existent adapter
+  # * AdapterNotFound - The <tt>:adapter</tt> key used in <tt>establish_connection</tt> specified a non-existent adapter
   #   (or a bad spelling of an existing one).
-  # * +AssociationTypeMismatch+ -- the object assigned to the association wasn't of the type specified in the association definition.
-  # * +SerializationTypeMismatch+ -- the serialized object wasn't of the class specified as the second parameter.
-  # * +ConnectionNotEstablished+ -- no connection has been established. Use <tt>establish_connection</tt> before querying.
-  # * +RecordNotFound+ -- no record responded to the find* method.
-  #   Either the row with the given ID doesn't exist or the row didn't meet the additional restrictions.
-  # * +StatementInvalid+ -- the database server rejected the SQL statement. The precise error is added in the  message.
-  #   Either the record with the given ID doesn't exist or the record didn't meet the additional restrictions.
-  # * +MultiparameterAssignmentErrors+ -- collection of errors that occurred during a mass assignment using the
-  #   +attributes=+ method. The +errors+ property of this exception contains an array of +AttributeAssignmentError+
+  # * AssociationTypeMismatch - The object assigned to the association wasn't of the type specified in the association definition.
+  # * SerializationTypeMismatch - The serialized object wasn't of the class specified as the second parameter.
+  # * ConnectionNotEstablished+ - No connection has been established. Use <tt>establish_connection</tt> before querying.
+  # * RecordNotFound - No record responded to the +find+ method. Either the row with the given ID doesn't exist
+  #   or the row didn't meet the additional restrictions. Some +find+ calls do not raise this exception to signal
+  #   nothing was found, please check its documentation for further details.
+  # * StatementInvalid - The database server rejected the SQL statement. The precise error is added in the message.
+  # * MultiparameterAssignmentErrors - Collection of errors that occurred during a mass assignment using the
+  #   <tt>attributes=</tt> method. The +errors+ property of this exception contains an array of AttributeAssignmentError
   #   objects that should be inspected to determine which attributes triggered the errors.
-  # * +AttributeAssignmentError+ -- an error occurred while doing a mass assignment through the +attributes=+ method.
+  # * AttributeAssignmentError - An error occurred while doing a mass assignment through the <tt>attributes=</tt> method.
   #   You can inspect the +attribute+ property of the exception object to determine which attribute triggered the error.
   #
   # *Note*: The attributes listed are class-level attributes (accessible from both the class and instance level).
-  # So it's possible to assign a logger to the class through Base.logger= which will then be used by all
+  # So it's possible to assign a logger to the class through <tt>Base.logger=</tt> which will then be used by all
   # instances in the current object space.
   class Base
     # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed
