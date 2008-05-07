@@ -4,24 +4,24 @@ require 'uri'
 module ActionController #:nodoc:
   module Caching
     # Page caching is an approach to caching where the entire action output of is stored as a HTML file that the web server
-    # can serve without going through the Action Pack. This is the fastest way to cache your content as opposed to going dynamically
+    # can serve without going through Action Pack. This is the fastest way to cache your content as opposed to going dynamically
     # through the process of generating the content. Unfortunately, this incredible speed-up is only available to stateless pages
     # where all visitors are treated the same. Content management systems -- including weblogs and wikis -- have many pages that are
     # a great fit for this approach, but account-based systems where people log in and manipulate their own data are often less
     # likely candidates.
     #
-    # Specifying which actions to cache is done through the <tt>caches</tt> class method:
+    # Specifying which actions to cache is done through the <tt>caches_page</tt> class method:
     #
     #   class WeblogController < ActionController::Base
     #     caches_page :show, :new
     #   end
     #
-    # This will generate cache files such as weblog/show/5.html and weblog/new.html, which match the URLs used to trigger the dynamic
-    # generation. This is how the web server is able pick up a cache file when it exists and otherwise let the request pass on to
-    # the Action Pack to generate it.
+    # This will generate cache files such as <tt>weblog/show/5.html</tt> and <tt>weblog/new.html</tt>,
+    # which match the URLs used to trigger the dynamic generation. This is how the web server is able
+    # pick up a cache file when it exists and otherwise let the request pass on to Action Pack to generate it.
     #
     # Expiration of the cache is handled by deleting the cached file, which results in a lazy regeneration approach where the cache
-    # is not restored before another hit is made against it. The API for doing so mimics the options from url_for and friends:
+    # is not restored before another hit is made against it. The API for doing so mimics the options from +url_for+ and friends:
     #
     #   class WeblogController < ActionController::Base
     #     def update
@@ -36,17 +36,17 @@ module ActionController #:nodoc:
     #
     # == Setting the cache directory
     #
-    # The cache directory should be the document root for the web server and is set using Base.page_cache_directory = "/document/root".
-    # For Rails, this directory has already been set to Rails.public_path (which is usually set to RAILS_ROOT + "/public"). Changing
-    # this setting can be useful to avoid naming conflicts with files in public/, but doing so will likely require configuring your
+    # The cache directory should be the document root for the web server and is set using <tt>Base.page_cache_directory = "/document/root"</tt>.
+    # For Rails, this directory has already been set to Rails.public_path (which is usually set to <tt>RAILS_ROOT + "/public"</tt>). Changing
+    # this setting can be useful to avoid naming conflicts with files in <tt>public/</tt>, but doing so will likely require configuring your
     # web server to look in the new location for cached files.
     #
     # == Setting the cache extension
     #
-    # Most Rails requests do not have an extension, such as /weblog/new. In these cases, the page caching mechanism will add one in
-    # order to make it easy for the cached files to be picked up properly by the web server. By default, this cache extension is .html.
-    # If you want something else, like .php or .shtml, just set Base.page_cache_extension. In cases where a request already has an
-    # extension, such as .xml or .rss, page caching will not add an extension. This allows it to work well with RESTful apps.
+    # Most Rails requests do not have an extension, such as <tt>/weblog/new</tt>. In these cases, the page caching mechanism will add one in
+    # order to make it easy for the cached files to be picked up properly by the web server. By default, this cache extension is <tt>.html</tt>.
+    # If you want something else, like <tt>.php</tt> or <tt>.shtml</tt>, just set Base.page_cache_extension. In cases where a request already has an
+    # extension, such as <tt>.xml</tt> or <tt>.rss</tt>, page caching will not add an extension. This allows it to work well with RESTful apps.
     module Pages
       def self.included(base) #:nodoc:
         base.extend(ClassMethods)
