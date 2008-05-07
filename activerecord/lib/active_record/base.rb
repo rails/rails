@@ -631,7 +631,7 @@ module ActiveRecord #:nodoc:
       # Updates an object (or multiple objects) and saves it to the database, if validations pass.
       # The resulting object is returned whether the object was saved successfully to the database or not.
       #
-      # ==== Options
+      # ==== Attributes
       #
       # * +id+          This should be the id or an array of ids to be updated
       # * +attributes+  This should be a Hash of attributes to be set on the object, or an array of Hashes.
@@ -661,7 +661,7 @@ module ActiveRecord #:nodoc:
       #
       # Objects are _not_ instantiated with this method.
       #
-      # ==== Options
+      # ==== Attributes
       #
       # * +id+  Can be either an Integer or an Array of Integers
       #
@@ -684,7 +684,7 @@ module ActiveRecord #:nodoc:
       # This essentially finds the object (or multiple objects) with the given id, creates a new object
       # from the attributes, and then calls destroy on it.
       #
-      # ==== Options
+      # ==== Attributes
       #
       # * +id+  Can be either an Integer or an Array of Integers
       #
@@ -707,7 +707,7 @@ module ActiveRecord #:nodoc:
       # Updates all records with details given if they match a set of conditions supplied, limits and order can
       # also be supplied.
       #
-      # ==== Options
+      # ==== Attributes
       #
       # * +updates+     A String of column and value pairs that will be set on any records that match conditions
       # * +conditions+  An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
@@ -739,7 +739,7 @@ module ActiveRecord #:nodoc:
       # many records. If you want to simply delete records without worrying about dependent associations or
       # callbacks, use the much faster +delete_all+ method instead.
       #
-      # ==== Options
+      # ==== Attributes
       #
       # * +conditions+   Conditions are specified the same way as with +find+ method.
       #
@@ -757,7 +757,7 @@ module ActiveRecord #:nodoc:
       # calling the destroy method and invoking callbacks. This is a single SQL query, much more efficient
       # than destroy_all.
       #
-      # ==== Options
+      # ==== Attributes
       #
       # * +conditions+   Conditions are specified the same way as with +find+ method.
       #
@@ -777,7 +777,7 @@ module ActiveRecord #:nodoc:
       # The use of this method should be restricted to complicated SQL queries that can't be executed
       # using the ActiveRecord::Calculations class methods.  Look into those before using this.
       #
-      # ==== Options
+      # ==== Attributes
       #
       # * +sql+   An SQL statement which should return a count query from the database, see the example below
       #
@@ -795,7 +795,7 @@ module ActiveRecord #:nodoc:
       # with the given ID, altering the given hash of counters by the amount
       # given by the corresponding value:
       #
-      # ==== Options
+      # ==== Attributes
       #
       # * +id+        The id of the object you wish to update a counter on
       # * +counters+  An Array of Hashes containing the names of the fields
@@ -826,7 +826,7 @@ module ActiveRecord #:nodoc:
       # For example, a DiscussionBoard may cache post_count and comment_count otherwise every time the board is
       # shown it would have to run an SQL query to find how many posts and comments there are.
       #
-      # ==== Options
+      # ==== Attributes
       #
       # * +counter_name+  The name of the field that should be incremented
       # * +id+            The id of the object that should be incremented
@@ -843,7 +843,7 @@ module ActiveRecord #:nodoc:
       #
       # This works the same as increment_counter but reduces the column value by 1 instead of increasing it.
       #
-      # ==== Options
+      # ==== Attributes
       #
       # * +counter_name+  The name of the field that should be decremented
       # * +id+            The id of the object that should be decremented
@@ -891,7 +891,7 @@ module ActiveRecord #:nodoc:
       # overwritten by URL/form hackers. If you'd rather start from an all-open default and restrict
       # attributes as needed, have a look at attr_protected.
       #
-      # ==== Options
+      # ==== Attributes
       #
       # * <tt>*attributes</tt>   A comma separated list of symbols that represent columns _not_ to be protected
       #
@@ -932,7 +932,7 @@ module ActiveRecord #:nodoc:
       # The serialization is done through YAML. If +class_name+ is specified, the serialized object must be of that
       # class on retrieval or +SerializationTypeMismatch+ will be raised.
       #
-      # ==== Options
+      # ==== Attributes
       #
       # * +attr_name+   The field name that should be serialized
       # * +class_name+  Optional, class name that the object type should be equal to
