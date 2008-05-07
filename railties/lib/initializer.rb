@@ -678,7 +678,7 @@ module Rails
       YAML::load(ERB.new(IO.read(database_configuration_file)).result)
     end
 
-    # The path to the current environment's file (<tt>development</tt>.rb, etc.). By
+    # The path to the current environment's file (<tt>development.rb</tt>, etc.). By
     # default the file is at <tt>config/environments/#{environment}.rb</tt>.
     def environment_path
       "#{root_path}/config/environments/#{environment}.rb"
