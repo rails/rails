@@ -127,32 +127,33 @@ module Arel
       def [](index)
         case index
         when Symbol, String
-          attribute_for_name(index)
+          find_attribute_matching_name(index)
         when Attribute, Expression
-          attribute_for_attribute(index)
+          find_attribute_matching_attribute(index)
         when Array
           index.collect { |i| self[i] }
         end
       end
       
-      def attribute_for_name(name)
+      def find_attribute_matching_name(name)
         attributes.detect { |a| a.alias_or_name.to_s == name.to_s }
       end
       
       # TESTME - added relation_for(x)[x] because of AR
-      def attribute_for_attribute(attribute)
+      def find_attribute_matching_attribute(attribute)
         attributes.select { |a| a.match?(attribute) }.max do |a1, a2|
+          # FIXME relation_for(a1)[a1] should be a1.original or something
           (attribute / relation_for(a1)[a1]) <=> (attribute / relation_for(a2)[a2])
         end
       end
       
-      def attribute_for_attribute_with_memoization(attribute)
+      def find_attribute_matching_attribute_with_memoization(attribute)
         @attribute_for_attribute ||= Hash.new do |h, a|
-          h[a] = attribute_for_attribute_without_memoization(a)
+          h[a] = find_attribute_matching_attribute_without_memoization(a)
         end
         @attribute_for_attribute[attribute]
       end
-      alias_method_chain :attribute_for_attribute, :memoization
+      alias_method_chain :find_attribute_matching_attribute, :memoization
     end
     include AttributeAccessable
 
