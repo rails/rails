@@ -173,6 +173,33 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_setting_time_zone_aware_attribute_with_string
+    utc_time = Time.utc(2008, 1, 1)
+    (-11..13).each do |timezone_offset|
+      time_string = utc_time.in_time_zone(timezone_offset).to_s
+      in_time_zone "Pacific Time (US & Canada)" do
+        record   = @target.new
+        record.written_on = time_string
+        assert_equal Time.zone.parse(time_string), record.written_on
+        assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
+        assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time
+      end
+    end
+  end
+
+  def test_setting_time_zone_aware_attribute_interprets_time_zone_unaware_string_in_time_zone
+    time_string = 'Tue Jan 01 00:00:00 2008'
+    (-11..13).each do |timezone_offset|
+      in_time_zone timezone_offset do
+        record   = @target.new
+        record.written_on = time_string
+        assert_equal Time.zone.parse(time_string), record.written_on
+        assert_equal TimeZone[timezone_offset], record.written_on.time_zone
+        assert_equal Time.utc(2008, 1, 1), record.written_on.time
+      end
+    end
+  end
+
   def test_setting_time_zone_aware_attribute_in_current_time_zone
     utc_time = Time.utc(2008, 1, 1)
     in_time_zone "Pacific Time (US & Canada)" do

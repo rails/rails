@@ -180,7 +180,7 @@ module ActiveRecord
           method_body = <<-EOV
             def #{attr_name}=(time)
               if time
-                time = time.to_time rescue time unless time.acts_like?(:time)
+                time = Time.zone.parse(time) rescue time unless time.acts_like?(:time)
                 time = time.in_time_zone if time.acts_like?(:time)
               end
               write_attribute(:#{attr_name}, time)

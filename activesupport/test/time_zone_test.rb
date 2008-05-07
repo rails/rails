@@ -173,6 +173,14 @@ class TimeZoneTest < Test::Unit::TestCase
     assert_equal zone, twz.time_zone
   end
 
+  def test_parse_string_with_timezone
+    (-11..13).each do |timezone_offset|
+      zone = TimeZone[timezone_offset]
+      twz = zone.parse('1999-12-31 19:00:00')
+      assert_equal twz, zone.parse(twz.to_s)
+    end
+  end
+
   def test_parse_with_old_date
     silence_warnings do # silence warnings raised by tzinfo gem
       zone = TimeZone['Eastern Time (US & Canada)']

@@ -214,6 +214,9 @@ class TimeZone
   #   Time.zone.parse('22:30:00')   # => Fri, 31 Dec 1999 22:30:00 HST -10:00
   def parse(str, now=now)
     time = Time.parse(str, now) rescue DateTime.parse(str)
+    unless time.is_a?(DateTime) || Date._parse(str)[:offset].nil?
+      time += time.in_time_zone(self).utc_offset - time.utc_offset
+    end
     ActiveSupport::TimeWithZone.new(nil, self, time)
   end
 
