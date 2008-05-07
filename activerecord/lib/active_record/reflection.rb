@@ -154,7 +154,7 @@ module ActiveRecord
       end
 
       # Returns the AssociationReflection object specified in the <tt>:through</tt> option
-      # of a HasMantThrough or HasOneThrough association. Example:
+      # of a HasManyThrough or HasOneThrough association. Example:
       #
       #   class Post < ActiveRecord::Base
       #     has_many :taggings
