@@ -95,7 +95,7 @@ module ActionMailer #:nodoc:
   #
   #   ActionMailer::Base.default_url_options[:host] = "example.com"
   # 
-  # This can also be set as a configuration option in <tt>environment.rb</tt>:
+  # This can also be set as a configuration option in <tt>config/environment.rb</tt>:
   #
   #   config.action_mailer.default_url_options = { :host => "example.com" }
   #
@@ -407,7 +407,7 @@ module ActionMailer #:nodoc:
       # templating language other than rhtml or rxml are supported.
       # To use this, include in your template-language plugin's init
       # code or on a per-application basis, this can be invoked from
-      # config/environment.rb:
+      # <tt>config/environment.rb</tt>:
       #
       #   ActionMailer::Base.register_template_extension('haml')
       def register_template_extension(extension)
