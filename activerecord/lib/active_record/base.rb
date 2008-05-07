@@ -92,13 +92,15 @@ module ActiveRecord #:nodoc:
   class DangerousAttributeError < ActiveRecordError
   end
 
-  # Raised when you've tried to access a column which wasn't
-  # loaded by your finder.  Typically this is because <tt>:select</tt>
-  # has been specified.
+  # Raised when you've tried to access a column which wasn't loaded by your finder.
+  # Typically this is because <tt>:select</tt> has been specified.
   class MissingAttributeError < NoMethodError
   end
 
-  class AttributeAssignmentError < ActiveRecordError #:nodoc:
+  # Raised when an error occured while doing a mass assignment to an attribute through the
+  # +attributes=+ method. The exception has an +attribute+ property that is the name of the
+  # offending attribute.
+  class AttributeAssignmentError < ActiveRecordError
     attr_reader :exception, :attribute
     def initialize(message, exception, attribute)
       @exception = exception
@@ -107,7 +109,10 @@ module ActiveRecord #:nodoc:
     end
   end
 
-  class MultiparameterAssignmentErrors < ActiveRecordError #:nodoc:
+  # Raised when there are multiple errors while doing a mass assignment through the +attributes+
+  # method. The exception has an +errors+ property that contains an array of +AttributeAssignmentError+
+  # objects, each corresponding to the error while assigning to an attribute.
+  class MultiparameterAssignmentErrors < ActiveRecordError
     attr_reader :errors
     def initialize(errors)
       @errors = errors
