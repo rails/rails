@@ -572,11 +572,13 @@ module Rails
     attr_accessor :plugin_loader
     
     # Enables or disables plugin reloading.  You can get around this setting per plugin.
-    # If <tt>reload_plugins?</tt> is false, add this to your plugin's init.rb to make it reloadable:
+    # If <tt>reload_plugins?</tt> is false, add this to your plugin's <tt>init.rb</tt>
+    # to make it reloadable:
     #
     #   Dependencies.load_once_paths.delete lib_path
     #
-    # If <tt>reload_plugins?</tt> is true, add this to your plugin's init.rb to only load it once:
+    # If <tt>reload_plugins?</tt> is true, add this to your plugin's <tt>init.rb</tt>
+    # to only load it once:
     #
     #   Dependencies.load_once_paths << lib_path
     #
@@ -676,7 +678,7 @@ module Rails
       YAML::load(ERB.new(IO.read(database_configuration_file)).result)
     end
 
-    # The path to the current environment's file (development.rb, etc.). By
+    # The path to the current environment's file (<tt>development</tt>.rb, etc.). By
     # default the file is at <tt>config/environments/#{environment}.rb</tt>.
     def environment_path
       "#{root_path}/config/environments/#{environment}.rb"
