@@ -426,7 +426,7 @@ end
 # == Support for YAML defaults
 #
 # You probably already know how to use YAML to set and reuse defaults in
-# your +database.yml+ file,. You can use the same technique in your fixtures:
+# your <tt>database.yml</tt> file,. You can use the same technique in your fixtures:
 #
 #   DEFAULTS: &DEFAULTS
 #     created_on: <%= 3.weeks.ago.to_s(:db) %>
