@@ -33,11 +33,17 @@ module ActionController
 
     # Returns plural/singular for a record or class. Example:
     #
-    #   partial_path(post)   # => "posts/post"
-    #   partial_path(Person) # => "people/person"
-    def partial_path(record_or_class)
+    #   partial_path(post)                   # => "posts/post"
+    #   partial_path(Person)                 # => "people/person"
+    #   partial_path(Person, "admin/games")  # => "admin/people/person"
+    def partial_path(record_or_class, controller_path = nil)
       klass = class_from_record_or_class(record_or_class)
-      "#{klass.name.tableize}/#{klass.name.demodulize.underscore}"
+
+      if controller_path && controller_path.include?("/")
+        "#{File.dirname(controller_path)}/#{klass.name.tableize}/#{klass.name.demodulize.underscore}"
+      else
+        "#{klass.name.tableize}/#{klass.name.demodulize.underscore}"
+      end
     end
 
     # The DOM class convention is to use the singular form of an object or class. Examples:

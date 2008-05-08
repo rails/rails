@@ -119,7 +119,7 @@ module ActionView
             ""
           end
         else
-          render_partial(ActionController::RecordIdentifier.partial_path(partial_path), partial_path, local_assigns)
+          render_partial(ActionController::RecordIdentifier.partial_path(partial_path, controller.class.controller_path), partial_path, local_assigns)
         end
       end
 
@@ -147,7 +147,7 @@ module ActionView
         templates = Hash.new
         i = 0
         collection.map do |element|
-          partial_path = ActionController::RecordIdentifier.partial_path(element)
+          partial_path = ActionController::RecordIdentifier.partial_path(element, controller.class.controller_path)
           template = templates[partial_path] ||= ActionView::PartialTemplate.new(self, partial_path, nil, local_assigns)
           template.counter = i
           i += 1
