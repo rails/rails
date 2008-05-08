@@ -2242,15 +2242,18 @@ module ActiveRecord #:nodoc:
         save!
       end
 
-      # Initializes the +attribute+ to zero if nil and adds the value passed as +by+ (default is one). Only makes sense for number-based attributes. Returns self.
+      # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).
+      # The increment is performed directly on the underlying attribute, no setter is invoked.
+      # Only makes sense for number-based attributes. Returns +self+.
       def increment(attribute, by = 1)
         self[attribute] ||= 0
         self[attribute] += by
         self
       end
 
-      # Increments the +attribute+ and saves the record.
-      # Note: Updates made with this method aren't subjected to validation checks
+      # Increments +attribute+ via and saves the record. This method differs from
+      # its non-bang version in that it passes through the attribute setter.
+      # Saving is not subjected to validation checks. Returns +self+.
       def increment!(attribute, by = 1)
         increment(attribute, by).update_attribute(attribute, self[attribute])
       end
