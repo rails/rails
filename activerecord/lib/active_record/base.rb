@@ -2251,34 +2251,44 @@ module ActiveRecord #:nodoc:
         self
       end
 
-      # Increments +attribute+ and saves the record. This method differs from
+      # Wrapper around +increment+ that saves the record. This method differs from
       # its non-bang version in that it passes through the attribute setter.
-      # Saving is not subjected to validation checks. Returns +self+.
+      # Saving is not subjected to validation checks. Returns +true+ if the
+      # record could be saved.
       def increment!(attribute, by = 1)
         increment(attribute, by).update_attribute(attribute, self[attribute])
       end
 
-      # Initializes the +attribute+ to zero if nil and subtracts the value passed as +by+ (default is one). Only makes sense for number-based attributes. Returns self.
+      # Initializes +attribute+ to zero if +nil+ and subtracts the value passed as +by+ (default is 1).
+      # The decrement is performed directly on the underlying attribute, no setter is invoked.
+      # Only makes sense for number-based attributes. Returns +self+.
       def decrement(attribute, by = 1)
         self[attribute] ||= 0
         self[attribute] -= by
         self
       end
 
-      # Decrements the +attribute+ and saves the record.
-      # Note: Updates made with this method aren't subjected to validation checks
+      # Wrapper around +decrement+ that saves the record. This method differs from
+      # its non-bang version in that it passes through the attribute setter.
+      # Saving is not subjected to validation checks. Returns +true+ if the
+      # record could be saved.
       def decrement!(attribute, by = 1)
         decrement(attribute, by).update_attribute(attribute, self[attribute])
       end
 
-      # Turns an +attribute+ that's currently true into false and vice versa. Returns self.
+      # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So
+      # if the predicate returns +true+ the attribute will become +false+. This
+      # method toggles directly the underlying value without calling any setter.
+      # Returns +self+.
       def toggle(attribute)
         self[attribute] = !send("#{attribute}?")
         self
       end
 
-      # Toggles the +attribute+ and saves the record.
-      # Note: Updates made with this method aren't subjected to validation checks
+      # Wrapper around +toggle+ that saves the record. This method differs from
+      # its non-bang version in that it passes through the attribute setter.
+      # Saving is not subjected to validation checks. Returns +true+ if the
+      # record could be saved.
       def toggle!(attribute)
         toggle(attribute).update_attribute(attribute, self[attribute])
       end
