@@ -149,6 +149,12 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert !david.projects.loaded?
   end
 
+  def test_inspect_does_not_reload_a_not_yet_loaded_target
+    andreas = Developer.new :name => 'Andreas', :log => 'new developer added'
+    assert !andreas.audit_logs.loaded?
+    assert_match(/message: "new developer added"/, andreas.audit_logs.inspect)
+  end
+
   def test_save_on_parent_saves_children
     developer = Developer.create :name => "Bryan", :salary => 50_000
     assert_equal 1, developer.reload.audit_logs.size
