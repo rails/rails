@@ -2251,7 +2251,7 @@ module ActiveRecord #:nodoc:
         self
       end
 
-      # Increments +attribute+ via and saves the record. This method differs from
+      # Increments +attribute+ and saves the record. This method differs from
       # its non-bang version in that it passes through the attribute setter.
       # Saving is not subjected to validation checks. Returns +self+.
       def increment!(attribute, by = 1)
