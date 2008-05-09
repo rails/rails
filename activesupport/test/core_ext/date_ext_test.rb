@@ -208,6 +208,29 @@ class DateExtCalculationsTest < Test::Unit::TestCase
       end
     end
   end
+  
+  uses_mocha 'TestDateCurrent' do
+    def test_current_returns_date_today_when_zone_default_not_set
+      with_env_tz 'US/Central' do
+        Time.stubs(:now).returns Time.local(1999, 12, 31, 23)
+        assert_equal Date.new(1999, 12, 31), Date.today
+        assert_equal Date.new(1999, 12, 31), Date.current
+      end
+    end
+    
+    def test_current_returns_time_zone_today_when_zone_default_set
+      silence_warnings do # silence warnings raised by tzinfo gem
+        Time.zone_default = TimeZone['Eastern Time (US & Canada)']
+        with_env_tz 'US/Central' do
+          Time.stubs(:now).returns Time.local(1999, 12, 31, 23)
+          assert_equal Date.new(1999, 12, 31), Date.today
+          assert_equal Date.new(2000, 1, 1), Date.current
+        end
+      end
+    ensure
+      Time.zone_default = nil
+    end
+  end
 
   protected
     def with_env_tz(new_tz = 'US/Eastern')

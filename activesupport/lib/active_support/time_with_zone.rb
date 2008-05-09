@@ -163,6 +163,14 @@ module ActiveSupport
       utc.advance(options).in_time_zone(time_zone)
     end
     
+    %w(year mon month day mday hour min sec).each do |method_name|
+      class_eval <<-EOV
+        def #{method_name}
+          time.#{method_name}
+        end
+      EOV
+    end
+    
     def usec
       time.respond_to?(:usec) ? time.usec : 0
     end

@@ -1,5 +1,9 @@
 *SVN*
 
+* Base#instantiate_time_object: eliminate check for Time.zone, since we can assume this is set if time_zone_aware_attributes is set to true [Geoff Buesing]
+
+* Time zone aware attribute methods use Time.zone.parse instead of #to_time for String arguments, so that offset information in String is respected. Resolves #105. [Scott Fleckenstein, Geoff Buesing]
+
 * Added change_table for migrations (Jeff Dean) [#71]. Example:
 
     change_table :videos do |t|

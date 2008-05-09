@@ -49,6 +49,10 @@ class Developer < ActiveRecord::Base
   before_create do |developer|
     developer.audit_logs.build :message => "Computer created"
   end
+
+  def log=(message)
+    audit_logs.build :message => message
+  end
 end
 
 class AuditLog < ActiveRecord::Base

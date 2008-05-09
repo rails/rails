@@ -25,6 +25,11 @@ module ActiveSupport #:nodoc:
           def tomorrow
             ::Date.today.tomorrow
           end
+          
+          # Returns Time.zone.today when config.time_zone is set, otherwise just returns Date.today.
+          def current
+            ::Time.zone_default ? ::Time.zone.today : ::Date.today
+          end
         end
         
         # Converts Date to a Time (or DateTime if necessary) with the time portion set to the beginning of the day (0:00)

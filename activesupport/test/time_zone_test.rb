@@ -173,12 +173,37 @@ class TimeZoneTest < Test::Unit::TestCase
     assert_equal zone, twz.time_zone
   end
 
+  def test_parse_string_with_timezone
+    (-11..13).each do |timezone_offset|
+      zone = TimeZone[timezone_offset]
+      twz = zone.parse('1999-12-31 19:00:00')
+      assert_equal twz, zone.parse(twz.to_s)
+    end
+  end
+
   def test_parse_with_old_date
     silence_warnings do # silence warnings raised by tzinfo gem
       zone = TimeZone['Eastern Time (US & Canada)']
       twz = zone.parse('1850-12-31 19:00:00')
       assert_equal [0,0,19,31,12,1850], twz.to_a[0,6]
       assert_equal zone, twz.time_zone
+    end
+  end
+  
+  def test_parse_far_future_date_with_time_zone_offset_in_string
+    silence_warnings do # silence warnings raised by tzinfo gem
+      zone = TimeZone['Eastern Time (US & Canada)']
+      twz = zone.parse('2050-12-31 19:00:00 -10:00') # i.e., 2050-01-01 05:00:00 UTC
+      assert_equal [0,0,0,1,1,2051], twz.to_a[0,6]
+      assert_equal zone, twz.time_zone
+    end
+  end
+  
+  def test_parse_returns_nil_when_string_without_date_information_is_passed_in
+    silence_warnings do # silence warnings raised by tzinfo gem
+      zone = TimeZone['Eastern Time (US & Canada)']
+      assert_nil zone.parse('foobar')
+      assert_nil zone.parse('   ')
     end
   end
 
