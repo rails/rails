@@ -169,10 +169,10 @@ A short rundown of the major features:
     class AddSystemSettings < ActiveRecord::Migration
       def self.up
         create_table :system_settings do |t|
-          t.string  :name
-          t.string  :label
-          t.text  :value
-          t.string  :type
+          t.string :name
+          t.string :label
+          t.text :value
+          t.string :type
           t.integer  :position
         end
 
@@ -289,16 +289,6 @@ Bi-directional associations thanks to the "belongs_to" macro
    thirty_seven_signals.firm.nil? # true
 
 
-== Examples
-
-Active Record ships with a couple of examples that should give you a good feel for
-operating usage. Be sure to edit the <tt>examples/shared_setup.rb</tt> file for your
-own database before running the examples. Possibly also the table definition SQL in 
-the examples themselves.
-
-It's also highly recommended to have a look at the unit tests. Read more in link:files/RUNNING_UNIT_TESTS.html
-
-
 == Philosophy 
 
 Active Record attempts to provide a coherent wrapper as a solution for the inconvenience that is 
@@ -336,7 +326,7 @@ then use:
 
   % [sudo] gem install activerecord-1.10.0.gem
 
-You can also install Active Record the old-fashion way with the following command:
+You can also install Active Record the old-fashioned way with the following command:
 
   % [sudo] ruby install.rb
 
@@ -357,5 +347,5 @@ RubyForge page at http://rubyforge.org/projects/activerecord. And as Jim from Ra
    remember to update the corresponding unit tests.  If fact, I prefer
    new feature to be submitted in the form of new unit tests.
 
-For other information, feel free to ask on the ruby-talk mailing list
-(which is mirrored to comp.lang.ruby) or contact mailto:david@loudthinking.com.
+For other information, feel free to ask on the rubyonrails-talk 
+(http://groups.google.com/group/rubyonrails-talk) mailing list.

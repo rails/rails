@@ -21,11 +21,11 @@ module ActionController
     # from the response HTML or elements selected by the enclosing assertion.
     # 
     # In addition to HTML responses, you can make the following assertions:
-    # * #assert_select_rjs    -- Assertions on HTML content of RJS update and
+    # * +assert_select_rjs+ - Assertions on HTML content of RJS update and
     #     insertion operations.
-    # * #assert_select_encoded  -- Assertions on HTML encoded inside XML,
+    # * +assert_select_encoded+ - Assertions on HTML encoded inside XML,
     #     for example for dealing with feed item descriptions.
-    # * #assert_select_email    -- Assertions on the HTML body of an e-mail.
+    # * +assert_select_email+ - Assertions on the HTML body of an e-mail.
     #
     # Also see HTML::Selector to learn how to use selectors.
     module SelectorAssertions
@@ -136,27 +136,27 @@ module ActionController
       # === Equality Tests
       #
       # The equality test may be one of the following:
-      # * <tt>true</tt> -- Assertion is true if at least one element selected.
-      # * <tt>false</tt> -- Assertion is true if no element selected.
-      # * <tt>String/Regexp</tt> -- Assertion is true if the text value of at least
+      # * <tt>true</tt> - Assertion is true if at least one element selected.
+      # * <tt>false</tt> - Assertion is true if no element selected.
+      # * <tt>String/Regexp</tt> - Assertion is true if the text value of at least
       #   one element matches the string or regular expression.
-      # * <tt>Integer</tt> -- Assertion is true if exactly that number of
+      # * <tt>Integer</tt> - Assertion is true if exactly that number of
       #   elements are selected.
-      # * <tt>Range</tt> -- Assertion is true if the number of selected
+      # * <tt>Range</tt> - Assertion is true if the number of selected
       #   elements fit the range.
       # If no equality test specified, the assertion is true if at least one
       # element selected.
       #
       # To perform more than one equality tests, use a hash with the following keys:
-      # * <tt>:text</tt> -- Narrow the selection to elements that have this text
+      # * <tt>:text</tt> - Narrow the selection to elements that have this text
       #   value (string or regexp).
-      # * <tt>:html</tt> -- Narrow the selection to elements that have this HTML
+      # * <tt>:html</tt> - Narrow the selection to elements that have this HTML
       #   content (string or regexp).
-      # * <tt>:count</tt> -- Assertion is true if the number of selected elements
+      # * <tt>:count</tt> - Assertion is true if the number of selected elements
       #   is equal to this value.
-      # * <tt>:minimum</tt> -- Assertion is true if the number of selected
+      # * <tt>:minimum</tt> - Assertion is true if the number of selected
       #   elements is at least this value.
-      # * <tt>:maximum</tt> -- Assertion is true if the number of selected
+      # * <tt>:maximum</tt> - Assertion is true if the number of selected
       #   elements is at most this value.
       #
       # If the method is called with a block, once all equality tests are

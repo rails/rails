@@ -23,10 +23,7 @@ class HashWithIndifferentAccess < Hash
   alias_method :regular_writer, :[]= unless method_defined?(:regular_writer)
   alias_method :regular_update, :update unless method_defined?(:regular_update)
 
-  #
-  # Assigns a new value to the hash.
-  #
-  # Example:
+  # Assigns a new value to the hash:
   #
   #   hash = HashWithIndifferentAccess.new
   #   hash[:key] = "value"
@@ -35,25 +32,15 @@ class HashWithIndifferentAccess < Hash
     regular_writer(convert_key(key), convert_value(value))
   end
 
+  # Updates the instantized hash with values from the second:
   # 
-  # Updates the instantized hash with values from the second.
+  #   hash_1 = HashWithIndifferentAccess.new
+  #   hash_1[:key] = "value"
   # 
-  # Example:
+  #   hash_2 = HashWithIndifferentAccess.new
+  #   hash_2[:key] = "New Value!"
   # 
-  #   >> hash_1 = HashWithIndifferentAccess.new
-  #   => {}
-  # 
-  #   >> hash_1[:key] = "value"
-  #   => "value"
-  # 
-  #   >> hash_2 = HashWithIndifferentAccess.new
-  #   => {}
-  # 
-  #   >> hash_2[:key] = "New Value!"
-  #   => "New Value!"
-  # 
-  #   >> hash_1.update(hash_2)
-  #   => {"key"=>"New Value!"}
+  #   hash_1.update(hash_2) # => {"key"=>"New Value!"}
   # 
   def update(other_hash)
     other_hash.each_pair { |key, value| regular_writer(convert_key(key), convert_value(value)) }
@@ -62,7 +49,13 @@ class HashWithIndifferentAccess < Hash
 
   alias_method :merge!, :update
 
-  # Checks the hash for a key matching the argument passed in
+  # Checks the hash for a key matching the argument passed in:
+  #
+  #   hash = HashWithIndifferentAccess.new
+  #   hash["key"] = "value"
+  #   hash.key? :key  # => true
+  #   hash.key? "key" # => true
+  #
   def key?(key)
     super(convert_key(key))
   end
@@ -76,7 +69,13 @@ class HashWithIndifferentAccess < Hash
     super(convert_key(key), *extras)
   end
 
-  # Returns an array of the values at the specified indicies. 
+  # Returns an array of the values at the specified indices:
+  #
+  #   hash = HashWithIndifferentAccess.new
+  #   hash[:a] = "x"
+  #   hash[:b] = "y"
+  #   hash.values_at("a", "b") # => ["x", "y"]
+  #
   def values_at(*indices)
     indices.collect {|key| self[convert_key(key)]}
   end

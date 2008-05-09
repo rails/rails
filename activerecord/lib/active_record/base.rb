@@ -92,13 +92,15 @@ module ActiveRecord #:nodoc:
   class DangerousAttributeError < ActiveRecordError
   end
 
-  # Raised when you've tried to access a column which wasn't
-  # loaded by your finder.  Typically this is because <tt>:select</tt>
-  # has been specified.
+  # Raised when you've tried to access a column which wasn't loaded by your finder.
+  # Typically this is because <tt>:select</tt> has been specified.
   class MissingAttributeError < NoMethodError
   end
 
-  class AttributeAssignmentError < ActiveRecordError #:nodoc:
+  # Raised when an error occured while doing a mass assignment to an attribute through the
+  # <tt>attributes=</tt> method. The exception has an +attribute+ property that is the name of the
+  # offending attribute.
+  class AttributeAssignmentError < ActiveRecordError
     attr_reader :exception, :attribute
     def initialize(message, exception, attribute)
       @exception = exception
@@ -107,7 +109,10 @@ module ActiveRecord #:nodoc:
     end
   end
 
-  class MultiparameterAssignmentErrors < ActiveRecordError #:nodoc:
+  # Raised when there are multiple errors while doing a mass assignment through the +attributes+
+  # method. The exception has an +errors+ property that contains an array of AttributeAssignmentError
+  # objects, each corresponding to the error while assigning to an attribute.
+  class MultiparameterAssignmentErrors < ActiveRecordError
     attr_reader :errors
     def initialize(errors)
       @errors = errors
@@ -230,8 +235,8 @@ module ActiveRecord #:nodoc:
   # == Accessing attributes before they have been typecasted
   #
   # Sometimes you want to be able to read the raw attribute data without having the column-determined typecast run its course first.
-  # That can be done by using the <attribute>_before_type_cast accessors that all attributes have. For example, if your Account model
-  # has a balance attribute, you can call account.balance_before_type_cast or account.id_before_type_cast.
+  # That can be done by using the <tt><attribute>_before_type_cast</tt> accessors that all attributes have. For example, if your Account model
+  # has a balance attribute, you can call <tt>account.balance_before_type_cast</tt> or <tt>account.id_before_type_cast</tt>.
   #
   # This is especially useful in validation situations where the user might supply a string for an integer field and you want to display
   # the original string back in an error message. Accessing the attribute normally would typecast the string to 0, which isn't what you
@@ -332,26 +337,26 @@ module ActiveRecord #:nodoc:
   #
   # == Exceptions
   #
-  # * +ActiveRecordError+ -- generic error class and superclass of all other errors raised by Active Record
-  # * +AdapterNotSpecified+ -- the configuration hash used in <tt>establish_connection</tt> didn't include an
+  # * ActiveRecordError - Generic error class and superclass of all other errors raised by Active Record.
+  # * AdapterNotSpecified - The configuration hash used in <tt>establish_connection</tt> didn't include an
   #   <tt>:adapter</tt> key.
-  # * +AdapterNotFound+ -- the <tt>:adapter</tt> key used in <tt>establish_connection</tt> specified a non-existent adapter
+  # * AdapterNotFound - The <tt>:adapter</tt> key used in <tt>establish_connection</tt> specified a non-existent adapter
   #   (or a bad spelling of an existing one).
-  # * +AssociationTypeMismatch+ -- the object assigned to the association wasn't of the type specified in the association definition.
-  # * +SerializationTypeMismatch+ -- the serialized object wasn't of the class specified as the second parameter.
-  # * +ConnectionNotEstablished+ -- no connection has been established. Use <tt>establish_connection</tt> before querying.
-  # * +RecordNotFound+ -- no record responded to the find* method.
-  #   Either the row with the given ID doesn't exist or the row didn't meet the additional restrictions.
-  # * +StatementInvalid+ -- the database server rejected the SQL statement. The precise error is added in the  message.
-  #   Either the record with the given ID doesn't exist or the record didn't meet the additional restrictions.
-  # * +MultiparameterAssignmentErrors+ -- collection of errors that occurred during a mass assignment using the
-  #   +attributes=+ method. The +errors+ property of this exception contains an array of +AttributeAssignmentError+
+  # * AssociationTypeMismatch - The object assigned to the association wasn't of the type specified in the association definition.
+  # * SerializationTypeMismatch - The serialized object wasn't of the class specified as the second parameter.
+  # * ConnectionNotEstablished+ - No connection has been established. Use <tt>establish_connection</tt> before querying.
+  # * RecordNotFound - No record responded to the +find+ method. Either the row with the given ID doesn't exist
+  #   or the row didn't meet the additional restrictions. Some +find+ calls do not raise this exception to signal
+  #   nothing was found, please check its documentation for further details.
+  # * StatementInvalid - The database server rejected the SQL statement. The precise error is added in the message.
+  # * MultiparameterAssignmentErrors - Collection of errors that occurred during a mass assignment using the
+  #   <tt>attributes=</tt> method. The +errors+ property of this exception contains an array of AttributeAssignmentError
   #   objects that should be inspected to determine which attributes triggered the errors.
-  # * +AttributeAssignmentError+ -- an error occurred while doing a mass assignment through the +attributes=+ method.
+  # * AttributeAssignmentError - An error occurred while doing a mass assignment through the <tt>attributes=</tt> method.
   #   You can inspect the +attribute+ property of the exception object to determine which attribute triggered the error.
   #
   # *Note*: The attributes listed are class-level attributes (accessible from both the class and instance level).
-  # So it's possible to assign a logger to the class through Base.logger= which will then be used by all
+  # So it's possible to assign a logger to the class through <tt>Base.logger=</tt> which will then be used by all
   # instances in the current object space.
   class Base
     # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed
@@ -601,7 +606,7 @@ module ActiveRecord #:nodoc:
       #   User.create(:first_name => 'Jamie')
       #
       #   # Create an Array of new objects
-      #   User.create([{:first_name => 'Jamie'}, {:first_name => 'Jeremy'}])
+      #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }])
       #
       #   # Create a single object and pass it into a block to set other attributes.
       #   User.create(:first_name => 'Jamie') do |u|
@@ -609,7 +614,7 @@ module ActiveRecord #:nodoc:
       #   end
       #
       #   # Creating an Array of new objects using a block, where the block is executed for each object:
-      #   User.create([{:first_name => 'Jamie'}, {:first_name => 'Jeremy'}]) do |u|
+      #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }]) do |u|
       #     u.is_admin = false
       #   end 
       def create(attributes = nil, &block)
@@ -626,18 +631,18 @@ module ActiveRecord #:nodoc:
       # Updates an object (or multiple objects) and saves it to the database, if validations pass.
       # The resulting object is returned whether the object was saved successfully to the database or not.
       #
-      # ==== Options
+      # ==== Attributes
       #
-      # +id+          This should be the id or an array of ids to be updated
-      # +attributes+  This should be a Hash of attributes to be set on the object, or an array of Hashes.
+      # * +id+ - This should be the id or an array of ids to be updated.
+      # * +attributes+ - This should be a Hash of attributes to be set on the object, or an array of Hashes.
       #
       # ==== Examples
       #
       #   # Updating one record:
-      #   Person.update(15, {:user_name => 'Samuel', :group => 'expert'})
+      #   Person.update(15, { :user_name => 'Samuel', :group => 'expert' })
       #
       #   # Updating multiple records:
-      #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy"} }
+      #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
       #   Person.update(people.keys, people.values)
       def update(id, attributes)
         if id.is_a?(Array)
@@ -656,9 +661,9 @@ module ActiveRecord #:nodoc:
       #
       # Objects are _not_ instantiated with this method.
       #
-      # ==== Options
+      # ==== Attributes
       #
-      # +id+  Can be either an Integer or an Array of Integers
+      # * +id+ - Can be either an Integer or an Array of Integers.
       #
       # ==== Examples
       #
@@ -679,9 +684,9 @@ module ActiveRecord #:nodoc:
       # This essentially finds the object (or multiple objects) with the given id, creates a new object
       # from the attributes, and then calls destroy on it.
       #
-      # ==== Options
+      # ==== Attributes
       #
-      # +id+  Can be either an Integer or an Array of Integers
+      # * +id+ - Can be either an Integer or an Array of Integers.
       #
       # ==== Examples
       #
@@ -702,12 +707,12 @@ module ActiveRecord #:nodoc:
       # Updates all records with details given if they match a set of conditions supplied, limits and order can
       # also be supplied.
       #
-      # ==== Options
+      # ==== Attributes
       #
-      # +updates+     A String of column and value pairs that will be set on any records that match conditions
-      # +conditions+  An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
-      #               See conditions in the intro for more info.
-      # +options+     Additional options are <tt>:limit</tt> and/or <tt>:order</tt>, see the examples for usage.
+      # * +updates+ - A String of column and value pairs that will be set on any records that match conditions.
+      # * +conditions+ - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
+      #   See conditions in the intro for more info.
+      # * +options+ - Additional options are <tt>:limit</tt> and/or <tt>:order</tt>, see the examples for usage.
       #
       # ==== Examples
       #
@@ -734,9 +739,9 @@ module ActiveRecord #:nodoc:
       # many records. If you want to simply delete records without worrying about dependent associations or
       # callbacks, use the much faster +delete_all+ method instead.
       #
-      # ==== Options
+      # ==== Attributes
       #
-      # +conditions+   Conditions are specified the same way as with +find+ method.
+      # * +conditions+ - Conditions are specified the same way as with +find+ method.
       #
       # ==== Example
       #
@@ -752,9 +757,9 @@ module ActiveRecord #:nodoc:
       # calling the destroy method and invoking callbacks. This is a single SQL query, much more efficient
       # than destroy_all.
       #
-      # ==== Options
+      # ==== Attributes
       #
-      # +conditions+   Conditions are specified the same way as with +find+ method.
+      # * +conditions+ - Conditions are specified the same way as with +find+ method.
       #
       # ==== Example
       #
@@ -772,9 +777,9 @@ module ActiveRecord #:nodoc:
       # The use of this method should be restricted to complicated SQL queries that can't be executed
       # using the ActiveRecord::Calculations class methods.  Look into those before using this.
       #
-      # ==== Options
+      # ==== Attributes
       #
-      # +sql+: An SQL statement which should return a count query from the database, see the example below
+      # * +sql+ - An SQL statement which should return a count query from the database, see the example below.
       #
       # ==== Examples
       #
@@ -790,12 +795,11 @@ module ActiveRecord #:nodoc:
       # with the given ID, altering the given hash of counters by the amount
       # given by the corresponding value:
       #
-      # ==== Options
+      # ==== Attributes
       #
-      # +id+        The id of the object you wish to update a counter on
-      # +counters+  An Array of Hashes containing the names of the fields
-      #             to update as keys and the amount to update the field by as
-      #             values
+      # * +id+ - The id of the object you wish to update a counter on.
+      # * +counters+ - An Array of Hashes containing the names of the fields
+      #   to update as keys and the amount to update the field by as values.
       #
       # ==== Examples
       #
@@ -821,10 +825,10 @@ module ActiveRecord #:nodoc:
       # For example, a DiscussionBoard may cache post_count and comment_count otherwise every time the board is
       # shown it would have to run an SQL query to find how many posts and comments there are.
       #
-      # ==== Options
+      # ==== Attributes
       #
-      # +counter_name+  The name of the field that should be incremented
-      # +id+            The id of the object that should be incremented
+      # * +counter_name+ - The name of the field that should be incremented.
+      # * +id+ - The id of the object that should be incremented.
       #
       # ==== Examples
       #
@@ -838,10 +842,10 @@ module ActiveRecord #:nodoc:
       #
       # This works the same as increment_counter but reduces the column value by 1 instead of increasing it.
       #
-      # ==== Options
+      # ==== Attributes
       #
-      # +counter_name+  The name of the field that should be decremented
-      # +id+            The id of the object that should be decremented
+      # * +counter_name+ - The name of the field that should be decremented.
+      # * +id+ - The id of the object that should be decremented.
       #
       # ==== Examples
       #
@@ -886,9 +890,9 @@ module ActiveRecord #:nodoc:
       # overwritten by URL/form hackers. If you'd rather start from an all-open default and restrict
       # attributes as needed, have a look at attr_protected.
       #
-      # ==== Options
+      # ==== Attributes
       #
-      # <tt>*attributes</tt>   A comma separated list of symbols that represent columns _not_ to be protected
+      # * <tt>*attributes</tt>   A comma separated list of symbols that represent columns _not_ to be protected
       #
       # ==== Examples
       #
@@ -927,10 +931,10 @@ module ActiveRecord #:nodoc:
       # The serialization is done through YAML. If +class_name+ is specified, the serialized object must be of that
       # class on retrieval or +SerializationTypeMismatch+ will be raised.
       #
-      # ==== Options
+      # ==== Attributes
       #
-      # +attr_name+   The field name that should be serialized
-      # +class_name+  Optional, class name that the object type should be equal to
+      # * +attr_name+ - The field name that should be serialized.
+      # * +class_name+ - Optional, class name that the object type should be equal to.
       #
       # ==== Example
       #   # Serialize a preferences attribute
@@ -1757,7 +1761,7 @@ module ActiveRecord #:nodoc:
         #   class Article < ActiveRecord::Base
         #     def self.find_with_scope
         #       with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }, :create => { :blog_id => 1 }) do
-        #         with_scope(:find => { :limit => 10})
+        #         with_scope(:find => { :limit => 10 })
         #           find(:all) # => SELECT * from articles WHERE blog_id = 1 LIMIT 10
         #         end
         #         with_scope(:find => { :conditions => "author_id = 3" })
@@ -2238,40 +2242,53 @@ module ActiveRecord #:nodoc:
         save!
       end
 
-      # Initializes the +attribute+ to zero if nil and adds the value passed as +by+ (default is one). Only makes sense for number-based attributes. Returns self.
+      # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).
+      # The increment is performed directly on the underlying attribute, no setter is invoked.
+      # Only makes sense for number-based attributes. Returns +self+.
       def increment(attribute, by = 1)
         self[attribute] ||= 0
         self[attribute] += by
         self
       end
 
-      # Increments the +attribute+ and saves the record.
-      # Note: Updates made with this method aren't subjected to validation checks
+      # Wrapper around +increment+ that saves the record. This method differs from
+      # its non-bang version in that it passes through the attribute setter.
+      # Saving is not subjected to validation checks. Returns +true+ if the
+      # record could be saved.
       def increment!(attribute, by = 1)
         increment(attribute, by).update_attribute(attribute, self[attribute])
       end
 
-      # Initializes the +attribute+ to zero if nil and subtracts the value passed as +by+ (default is one). Only makes sense for number-based attributes. Returns self.
+      # Initializes +attribute+ to zero if +nil+ and subtracts the value passed as +by+ (default is 1).
+      # The decrement is performed directly on the underlying attribute, no setter is invoked.
+      # Only makes sense for number-based attributes. Returns +self+.
       def decrement(attribute, by = 1)
         self[attribute] ||= 0
         self[attribute] -= by
         self
       end
 
-      # Decrements the +attribute+ and saves the record.
-      # Note: Updates made with this method aren't subjected to validation checks
+      # Wrapper around +decrement+ that saves the record. This method differs from
+      # its non-bang version in that it passes through the attribute setter.
+      # Saving is not subjected to validation checks. Returns +true+ if the
+      # record could be saved.
       def decrement!(attribute, by = 1)
         decrement(attribute, by).update_attribute(attribute, self[attribute])
       end
 
-      # Turns an +attribute+ that's currently true into false and vice versa. Returns self.
+      # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So
+      # if the predicate returns +true+ the attribute will become +false+. This
+      # method toggles directly the underlying value without calling any setter.
+      # Returns +self+.
       def toggle(attribute)
         self[attribute] = !send("#{attribute}?")
         self
       end
 
-      # Toggles the +attribute+ and saves the record.
-      # Note: Updates made with this method aren't subjected to validation checks
+      # Wrapper around +toggle+ that saves the record. This method differs from
+      # its non-bang version in that it passes through the attribute setter.
+      # Saving is not subjected to validation checks. Returns +true+ if the
+      # record could be saved.
       def toggle!(attribute)
         toggle(attribute).update_attribute(attribute, self[attribute])
       end

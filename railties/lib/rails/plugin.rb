@@ -1,14 +1,14 @@
 module Rails
   # The Plugin class should be an object which provides the following methods:
   #
-  # * +name+       - used during initialisation to order the plugin (based on name and
-  #                  the contents of <tt>config.plugins</tt>)
-  # * +valid?+     - returns true if this plugin can be loaded
-  # * +load_paths+ - each path within the returned array will be added to the $LOAD_PATH
-  # * +load+       - finally 'load' the plugin.
+  # * +name+       - Used during initialisation to order the plugin (based on name and
+  #                  the contents of <tt>config.plugins</tt>).
+  # * +valid?+     - Returns true if this plugin can be loaded.
+  # * +load_paths+ - Each path within the returned array will be added to the <tt>$LOAD_PATH</tt>.
+  # * +load+       - Finally 'load' the plugin.
   #
   # These methods are expected by the Rails::Plugin::Locator and Rails::Plugin::Loader classes.
-  # The default implementation returns the <tt>lib</tt> directory as its </tt>load_paths</tt>, 
+  # The default implementation returns the <tt>lib</tt> directory as its <tt>load_paths</tt>, 
   # and evaluates <tt>init.rb</tt> when <tt>load</tt> is called.
   #
   # You can also inspect the about.yml data programmatically:
@@ -31,13 +31,13 @@ module Rails
       File.directory?(directory) && (has_lib_directory? || has_init_file?)
     end
   
-    # Returns a list of paths this plugin wishes to make available in $LOAD_PATH
+    # Returns a list of paths this plugin wishes to make available in <tt>$LOAD_PATH</tt>.
     def load_paths
       report_nonexistant_or_empty_plugin! unless valid?
       has_lib_directory? ? [lib_path] : []
     end
 
-    # Evaluates a plugin's init.rb file
+    # Evaluates a plugin's init.rb file.
     def load(initializer)
       return if loaded?
       report_nonexistant_or_empty_plugin! unless valid?
