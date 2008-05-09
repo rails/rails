@@ -78,9 +78,14 @@ Example:
     end
   end
 
-This Mailman can be the target for Postfix. In Rails, you would use the runner like this:
+This Mailman can be the target for Postfix or other MTAs. In Rails, you would use the runner in the 
+trivial case like this:
 
   ./script/runner 'Mailman.receive(STDIN.read)'
+
+However, invoking Rails in the runner for each mail to be received is very resource intensive.  A single 
+instance of Rails should be run within a daemon if it is going to be utilized to process more than just 
+a limited number of email.
 
 == Configuration
 
