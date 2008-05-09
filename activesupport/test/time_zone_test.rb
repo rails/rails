@@ -189,6 +189,15 @@ class TimeZoneTest < Test::Unit::TestCase
       assert_equal zone, twz.time_zone
     end
   end
+  
+  def test_parse_far_future_date_with_time_zone_offset_in_string
+    silence_warnings do # silence warnings raised by tzinfo gem
+      zone = TimeZone['Eastern Time (US & Canada)']
+      twz = zone.parse('2050-12-31 19:00:00 -10:00') # i.e., 2050-01-01 05:00:00 UTC
+      assert_equal [0,0,0,1,1,2051], twz.to_a[0,6]
+      assert_equal zone, twz.time_zone
+    end
+  end
 
   uses_mocha 'TestParseWithIncompleteDate' do
     def test_parse_with_incomplete_date
