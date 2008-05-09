@@ -1708,4 +1708,27 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, datetime_select("post", "updated_at", {}, :class => 'selector')
   end
 
+  uses_mocha 'TestInstanceTagDefaultTimeFromOptions' do
+    def test_instance_tag_default_time_from_options_uses_time_current_as_default_when_hash_passed_as_arg
+      dummy_instance_tag = ActionView::Helpers::InstanceTag.new(1,2,3)
+      Time.expects(:current).returns Time.now
+      dummy_instance_tag.send!(:default_time_from_options, :hour => 2)
+    end
+
+    def test_instance_tag_default_time_from_options_respects_hash_arg_settings_when_time_falls_in_system_local_dst_spring_gap
+      with_env_tz('US/Central') do
+        dummy_instance_tag = ActionView::Helpers::InstanceTag.new(1,2,3)
+        Time.stubs(:now).returns Time.local(2006, 4, 2, 1)
+        assert_equal 2, dummy_instance_tag.send!(:default_time_from_options, :hour => 2).hour
+      end
+    end
+  end
+  
+  protected
+    def with_env_tz(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end  
 end

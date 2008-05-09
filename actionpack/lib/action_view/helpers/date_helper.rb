@@ -683,12 +683,13 @@ module ActionView
               default[:min] ||= default[:minute]
               default[:sec] ||= default[:second]
 
+              time = Time.current
+                
               [:year, :month, :day, :hour, :min, :sec].each do |key|
-                default[key] ||= Time.now.send(key)
+                default[key] ||= time.send(key)
               end
 
-              Time.mktime(default[:year], default[:month], default[:day],
-                          default[:hour], default[:min],   default[:sec])
+              Time.utc(default[:year], default[:month], default[:day], default[:hour], default[:min], default[:sec])
             end
         end
     end
