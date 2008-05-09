@@ -1,5 +1,7 @@
 *SVN*
 
+* TimeWithZone: date part getter methods (#year #mon #day etc) are defined on class; no longer relying on method_missing [Geoff Buesing]
+
 * Time.zone.parse return nil for strings with no date information [Geoff Buesing]
 
 * Time.zone.parse respects offset information in string. Resolves #105. [Scott Fleckenstein, Geoff Buesing]
