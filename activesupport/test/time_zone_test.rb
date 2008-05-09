@@ -198,6 +198,14 @@ class TimeZoneTest < Test::Unit::TestCase
       assert_equal zone, twz.time_zone
     end
   end
+  
+  def test_parse_returns_nil_when_string_without_date_information_is_passed_in
+    silence_warnings do # silence warnings raised by tzinfo gem
+      zone = TimeZone['Eastern Time (US & Canada)']
+      assert_nil zone.parse('foobar')
+      assert_nil zone.parse('   ')
+    end
+  end
 
   uses_mocha 'TestParseWithIncompleteDate' do
     def test_parse_with_incomplete_date

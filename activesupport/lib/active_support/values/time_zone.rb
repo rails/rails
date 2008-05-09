@@ -213,8 +213,10 @@ class TimeZone
   #   Time.zone.now                 # => Fri, 31 Dec 1999 14:00:00 HST -10:00
   #   Time.zone.parse('22:30:00')   # => Fri, 31 Dec 1999 22:30:00 HST -10:00
   def parse(str, now=now)
+    date_parts = Date._parse(str)
+    return if date_parts.blank?
     time = Time.parse(str, now) rescue DateTime.parse(str)
-    if Date._parse(str)[:offset].nil?
+    if date_parts[:offset].nil?
       ActiveSupport::TimeWithZone.new(nil, self, time)
     else
       time.in_time_zone(self)
