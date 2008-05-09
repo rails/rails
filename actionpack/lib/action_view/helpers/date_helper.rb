@@ -283,7 +283,7 @@ module ActionView
       #   # prefixed with 'payday' rather than 'date'
       #   select_datetime(my_date_time, :prefix => 'payday')
       #
-      def select_date(date = Date.today, options = {}, html_options = {})
+      def select_date(date = Date.current, options = {}, html_options = {})
         options[:order] ||= []
         [:year, :month, :day].each { |o| options[:order].push(o) unless options[:order].include?(o) }
 

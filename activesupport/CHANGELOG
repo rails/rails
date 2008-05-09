@@ -1,5 +1,7 @@
 *SVN*
 
+* Adding Date.current, which returns Time.zone.today if config.time_zone is set; otherwise returns Date.today [Geoff Buesing]
+
 * TimeWithZone: date part getter methods (#year #mon #day etc) are defined on class; no longer relying on method_missing [Geoff Buesing]
 
 * Time.zone.parse return nil for strings with no date information [Geoff Buesing]

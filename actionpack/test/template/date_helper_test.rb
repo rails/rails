@@ -950,6 +950,15 @@ class DateHelperTest < ActionView::TestCase
       expects(:select_minute).with(time, anything, anything).returns('')
       select_time
     end
+    
+    def test_select_date_uses_date_current_as_default
+      date = stub(:year => 2004, :month => 6, :day => 15)
+      Date.expects(:current).returns date
+      expects(:select_year).with(date, anything, anything).returns('')
+      expects(:select_month).with(date, anything, anything).returns('')
+      expects(:select_day).with(date, anything, anything).returns('')
+      select_date
+    end
   end
 
   def test_date_select
