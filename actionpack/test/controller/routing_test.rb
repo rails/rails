@@ -25,7 +25,7 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
     ActionController::Routing.use_controllers! ['controller']
     @set = ActionController::Routing::RouteSet.new
     @set.draw do |map|
-      map.connect ':controller/:action/:variable'
+      map.connect ':controller/:action/:variable/*additional'
     end
 
     safe, unsafe = %w(: @ & = + $ , ;), %w(^ / ? # [ ])
@@ -36,17 +36,19 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
   end
 
   def test_route_generation_escapes_unsafe_path_characters
-    assert_equal "/contr#{@segment}oller/act#{@escaped}ion/var#{@escaped}iable",
+    assert_equal "/contr#{@segment}oller/act#{@escaped}ion/var#{@escaped}iable/add#{@escaped}itional-1/add#{@escaped}itional-2",
       @set.generate(:controller => "contr#{@segment}oller",
                     :action => "act#{@segment}ion",
-                    :variable => "var#{@segment}iable")
+                    :variable => "var#{@segment}iable",
+                    :additional => ["add#{@segment}itional-1", "add#{@segment}itional-2"])
   end
 
   def test_route_recognition_unescapes_path_components
     options = { :controller => "controller",
                 :action => "act#{@segment}ion",
-                :variable => "var#{@segment}iable" }
-    assert_equal options, @set.recognize_path("/controller/act#{@escaped}ion/var#{@escaped}iable")
+                :variable => "var#{@segment}iable",
+                :additional => ["add#{@segment}itional-1", "add#{@segment}itional-2"] }
+    assert_equal options, @set.recognize_path("/controller/act#{@escaped}ion/var#{@escaped}iable/add#{@escaped}itional-1/add#{@escaped}itional-2")
   end
 end
 
