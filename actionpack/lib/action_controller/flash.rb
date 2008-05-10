@@ -28,7 +28,6 @@ module ActionController #:nodoc:
       base.class_eval do
         include InstanceMethods
         alias_method_chain :assign_shortcuts, :flash
-        alias_method_chain :process_cleanup,  :flash
         alias_method_chain :reset_session,    :flash
       end
     end
@@ -166,11 +165,7 @@ module ActionController #:nodoc:
         def assign_shortcuts_with_flash(request, response) #:nodoc:
           assign_shortcuts_without_flash(request, response)
           flash(:refresh)
-        end
-    
-        def process_cleanup_with_flash
-          flash.sweep if @_session
-          process_cleanup_without_flash
+          flash.sweep if @_session && !component_request?
         end
     end
   end
