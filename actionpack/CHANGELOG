@@ -1,5 +1,7 @@
 *SVN*
 
+* Added session(:on) to turn session management back on in a controller subclass if the superclass turned it off (Peter Jones) [#136]
+
 * InstanceTag#default_time_from_options with hash args uses Time.current as default; respects hash settings when time falls in system local spring DST gap [Geoff Buesing]
 
 * select_date defaults to Time.zone.today when config.time_zone is set [Geoff Buesing]
