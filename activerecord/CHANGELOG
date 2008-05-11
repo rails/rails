@@ -8,7 +8,7 @@
 
     change_table :videos do |t|
       t.timestamps                          # adds created_at, updated_at
-      t.belongs_to :goat                    # add goat_id integer
+      t.belongs_to :goat                    # adds goat_id integer
       t.string :name, :email, :limit => 20  # adds name and email both with a 20 char limit
       t.remove :name, :email                # removes the name and email columns
     end

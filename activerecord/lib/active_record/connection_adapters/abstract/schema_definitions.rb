@@ -18,11 +18,11 @@ module ActiveRecord
       #
       # +name+ is the column's name, as in <tt><b>supplier_id</b> int(11)</tt>.
       # +default+ is the type-casted default value, such as <tt>sales_stage varchar(20) default <b>'new'</b></tt>.
-      # +sql_type+ is only used to extract the column's length, if necessary.  For example, <tt>company_name varchar(<b>60</b>)</tt>.
+      # +sql_type+ is only used to extract the column's length, if necessary. For example, <tt>company_name varchar(<b>60</b>)</tt>.
       # +null+ determines if this column allows +NULL+ values.
       def initialize(name, default, sql_type = nil, null = true)
         @name, @sql_type, @null = name, sql_type, null
-        @limit, @precision, @scale  = extract_limit(sql_type), extract_precision(sql_type), extract_scale(sql_type) 
+        @limit, @precision, @scale = extract_limit(sql_type), extract_precision(sql_type), extract_scale(sql_type)
         @type = simplified_type(sql_type)
         @default = extract_default(default)
 
@@ -172,7 +172,7 @@ module ActiveRecord
           def new_time(year, mon, mday, hour, min, sec, microsec)
             # Treat 0000-00-00 00:00:00 as nil.
             return nil if year.nil? || year == 0
-            
+
             Time.time_with_datetime_fallback(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
           end
 
@@ -250,11 +250,11 @@ module ActiveRecord
     end
 
     class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :precision, :scale, :default, :null) #:nodoc:
-      
+
       def sql_type
         base.type_to_sql(type.to_sym, limit, precision, scale) rescue type
       end
-      
+
       def to_sql
         column_sql = "#{base.quote_column_name(name)} #{sql_type}"
         add_column_options!(column_sql, :null => null, :default => default) unless type.to_sym == :primary_key
@@ -309,39 +309,39 @@ module ActiveRecord
       # * <tt>:default</tt> -
       #   The column's default value. Use nil for NULL.
       # * <tt>:null</tt> -
-      #   Allows or disallows +NULL+ values in the column.  This option could
+      #   Allows or disallows +NULL+ values in the column. This option could
       #   have been named <tt>:null_allowed</tt>.
       # * <tt>:precision</tt> -
-      #   Specifies the precision for a <tt>:decimal</tt> column. 
+      #   Specifies the precision for a <tt>:decimal</tt> column.
       # * <tt>:scale</tt> -
-      #   Specifies the scale for a <tt>:decimal</tt> column. 
+      #   Specifies the scale for a <tt>:decimal</tt> column.
       #
       # Please be aware of different RDBMS implementations behavior with
       # <tt>:decimal</tt> columns:
       # * The SQL standard says the default scale should be 0, <tt>:scale</tt> <=
       #   <tt>:precision</tt>, and makes no comments about the requirements of
       #   <tt>:precision</tt>.
-      # * MySQL: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..30]. 
+      # * MySQL: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..30].
       #   Default is (10,0).
-      # * PostgreSQL: <tt>:precision</tt> [1..infinity], 
+      # * PostgreSQL: <tt>:precision</tt> [1..infinity],
       #   <tt>:scale</tt> [0..infinity]. No default.
-      # * SQLite2: Any <tt>:precision</tt> and <tt>:scale</tt> may be used. 
+      # * SQLite2: Any <tt>:precision</tt> and <tt>:scale</tt> may be used.
       #   Internal storage as strings. No default.
       # * SQLite3: No restrictions on <tt>:precision</tt> and <tt>:scale</tt>,
       #   but the maximum supported <tt>:precision</tt> is 16. No default.
-      # * Oracle: <tt>:precision</tt> [1..38], <tt>:scale</tt> [-84..127]. 
+      # * Oracle: <tt>:precision</tt> [1..38], <tt>:scale</tt> [-84..127].
       #   Default is (38,0).
-      # * DB2: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..62]. 
+      # * DB2: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..62].
       #   Default unknown.
-      # * Firebird: <tt>:precision</tt> [1..18], <tt>:scale</tt> [0..18]. 
+      # * Firebird: <tt>:precision</tt> [1..18], <tt>:scale</tt> [0..18].
       #   Default (9,0). Internal types NUMERIC and DECIMAL have different
       #   storage rules, decimal being better.
-      # * FrontBase?: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38]. 
+      # * FrontBase?: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
       #   Default (38,0). WARNING Max <tt>:precision</tt>/<tt>:scale</tt> for
       #   NUMERIC is 19, and DECIMAL is 38.
-      # * SqlServer?: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38]. 
+      # * SqlServer?: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
       #   Default (38,0).
-      # * Sybase: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38]. 
+      # * Sybase: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
       #   Default (38,0).
       # * OpenBase?: Documentation unclear. Claims storage in <tt>double</tt>.
       #
@@ -394,7 +394,7 @@ module ActiveRecord
       #     t.timestamps
       #   end
       #
-      # There's a short-hand method for each of the type values declared at the top. And then there's 
+      # There's a short-hand method for each of the type values declared at the top. And then there's
       # TableDefinition#timestamps that'll add created_at and updated_at as datetimes.
       #
       # TableDefinition#references will add an appropriately-named _id column, plus a corresponding _type
@@ -434,13 +434,13 @@ module ActiveRecord
           def #{column_type}(*args)
             options = args.extract_options!
             column_names = args
-            
+
             column_names.each { |name| column(name, '#{column_type}', options) }
           end
         EOV
       end
-      
-      # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and 
+
+      # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
       # <tt>:updated_at</tt> to the table.
       def timestamps
         column(:created_at, :datetime)
@@ -458,7 +458,7 @@ module ActiveRecord
       alias :belongs_to :references
 
       # Returns a String whose contents are the column definitions
-      # concatenated together.  This string can then be prepended and appended to
+      # concatenated together. This string can then be prepended and appended to
       # to generate the final SQL to create the table.
       def to_sql
         @columns * ', '
@@ -510,15 +510,15 @@ module ActiveRecord
 
       # Adds a new column to the named table.
       # See TableDefinition#column for details of the options you can use.
-      # ===== Examples
-      # ====== Creating a simple columns
+      # ===== Example
+      # ====== Creating a simple column
       #  t.column(:name, :string)
       def column(column_name, type, options = {})
         @base.add_column(@table_name, column_name, type, options)
       end
 
-      # Adds a new index to the table.  +column_name+ can be a single Symbol, or
-      # an Array of Symbols.  See SchemaStatements#add_index
+      # Adds a new index to the table. +column_name+ can be a single Symbol, or
+      # an Array of Symbols. See SchemaStatements#add_index
       #
       # ===== Examples
       # ====== Creating a simple index
@@ -531,8 +531,8 @@ module ActiveRecord
         @base.add_index(@table_name, column_name, options)
       end
 
-      # Adds timestamps (created_at and updated_at) columns to the table.  See SchemaStatements#timestamps
-      # ===== Examples
+      # Adds timestamps (created_at and updated_at) columns to the table. See SchemaStatements#add_timestamps
+      # ===== Example
       #  t.timestamps
       def timestamps
         @base.add_timestamps(@table_name)
@@ -547,7 +547,7 @@ module ActiveRecord
         @base.change_column(@table_name, column_name, type, options)
       end
 
-      # Sets a new default value for a column.  See
+      # Sets a new default value for a column. See SchemaStatements#change_column_default
       # ===== Examples
       #  t.change_default(:qualification, 'new')
       #  t.change_default(:authorized, 1)
@@ -559,27 +559,27 @@ module ActiveRecord
       # ===== Examples
       #  t.remove(:qualification)
       #  t.remove(:qualification, :experience)
-      #  t.removes(:qualification, :experience)
       def remove(*column_names)
         @base.remove_column(@table_name, column_names)
       end
 
-      # Remove the given index from the table.
+      # Removes the given index from the table.
       #
-      # Remove the suppliers_name_index in the suppliers table.
+      # ===== Examples
+      # ====== Remove the suppliers_name_index in the suppliers table
       #   t.remove_index :name
-      # Remove the index named accounts_branch_id_index in the accounts table.
+      # ====== Remove the index named accounts_branch_id_index in the accounts table
       #   t.remove_index :column => :branch_id
-      # Remove the index named accounts_branch_id_party_id_index in the accounts table.
+      # ====== Remove the index named accounts_branch_id_party_id_index in the accounts table
       #   t.remove_index :column => [:branch_id, :party_id]
-      # Remove the index named by_branch_party in the accounts table.
+      # ====== Remove the index named by_branch_party in the accounts table
       #   t.remove_index :name => :by_branch_party
       def remove_index(options = {})
         @base.remove_index(@table_name, options)
       end
 
       # Removes the timestamp columns (created_at and updated_at) from the table.
-      # ===== Examples
+      # ===== Example
       #  t.remove_timestamps
       def remove_timestamps
         @base.remove_timestamps(@table_name)
@@ -592,12 +592,11 @@ module ActiveRecord
         @base.rename_column(@table_name, column_name, new_column_name)
       end
 
-      # Adds a reference.  Optionally adds a +type+ column.  <tt>reference</tt>,
-      # <tt>references</tt> and <tt>belongs_to</tt> are all acceptable
-      # ===== Example
+      # Adds a reference. Optionally adds a +type+ column.
+      # <tt>references</tt> and <tt>belongs_to</tt> are acceptable.
+      # ===== Examples
       #  t.references(:goat)
       #  t.references(:goat, :polymorphic => true)
-      #  t.references(:goat)
       #  t.belongs_to(:goat)
       def references(*args)
         options = args.extract_options!
@@ -609,12 +608,11 @@ module ActiveRecord
       end
       alias :belongs_to :references
 
-      # Adds a reference.  Optionally removes a +type+ column.  <tt>remove_reference</tt>,
-      # <tt>remove_references</tt> and <tt>remove_belongs_to</tt> are all acceptable
-      # ===== Example
-      #  t.remove_reference(:goat)
-      #  t.remove_reference(:goat, :polymorphic => true)
+      # Removes a reference. Optionally removes a +type+ column.
+      # <tt>remove_references</tt> and <tt>remove_belongs_to</tt> are acceptable.
+      # ===== Examples
       #  t.remove_references(:goat)
+      #  t.remove_references(:goat, :polymorphic => true)
       #  t.remove_belongs_to(:goat)
       def remove_references(*args)
         options = args.extract_options!
@@ -627,7 +625,7 @@ module ActiveRecord
       alias :remove_belongs_to  :remove_references
 
       # Adds a column or columns of a specified type
-      # ===== Example
+      # ===== Examples
       #  t.string(:goat)
       #  t.string(:goat, :sheep)
       %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |column_type|
