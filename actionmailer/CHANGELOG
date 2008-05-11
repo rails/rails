@@ -1,4 +1,4 @@
-*SVN*
+*2.0.3* (12th May 2008)
 
 * Less verbose mail logging: just recipients for :info log level; the whole email for :debug only.  #8000 [iaddict, Tarmo Tänav]
 
