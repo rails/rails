@@ -105,12 +105,12 @@ module ActionController #:nodoc:
       # Sets the token value for the current session.  Pass a <tt>:secret</tt> option
       # in +protect_from_forgery+ to add a custom salt to the hash.
       def form_authenticity_token
-        @form_authenticity_token ||= if request_forgery_protection_options[:secret]
+        @form_authenticity_token ||= if !session.respond_to?(:session_id)
+          raise InvalidAuthenticityToken, "Request Forgery Protection requires a valid session.  Use #allow_forgery_protection to disable it, or use a valid session."
+        elsif request_forgery_protection_options[:secret]
           authenticity_token_from_session_id
         elsif session.respond_to?(:dbman) && session.dbman.respond_to?(:generate_digest)
           authenticity_token_from_cookie_session
-        elsif session.nil?
-          raise InvalidAuthenticityToken, "Request Forgery Protection requires a valid session.  Use #allow_forgery_protection to disable it, or use a valid session."
         else
           raise InvalidAuthenticityToken, "No :secret given to the #protect_from_forgery call.  Set that or use a session store capable of generating its own keys (Cookie Session Store)."
         end

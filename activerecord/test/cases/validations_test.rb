@@ -5,6 +5,7 @@ require 'models/reply'
 require 'models/person'
 require 'models/developer'
 require 'models/warehouse_thing'
+require 'models/guid'
 
 # The following methods in Topic are used in test_conditional_validation_*
 class Topic
@@ -491,6 +492,13 @@ class ValidationsTest < ActiveRecord::TestCase
       t2 = Topic.new("title" => "I'm unique!", "author_name" => "David")
       assert !t2.valid?
     end
+  end
+
+  def test_validate_uniqueness_with_columns_which_are_sql_keywords
+    Guid.validates_uniqueness_of :key
+    g = Guid.new
+    g.key = "foo"
+    assert_nothing_raised { !g.valid? }
   end
 
   def test_validate_straight_inheritance_uniqueness

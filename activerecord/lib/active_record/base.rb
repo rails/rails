@@ -1910,6 +1910,8 @@ module ActiveRecord #:nodoc:
         #   { :name => "foo'bar", :group_id => 4 }  returns "name='foo''bar' and group_id='4'"
         #   "name='foo''bar' and group_id='4'" returns "name='foo''bar' and group_id='4'"
         def sanitize_sql_for_conditions(condition)
+          return nil if condition.blank?
+
           case condition
             when Array; sanitize_sql_array(condition)
             when Hash;  sanitize_sql_hash_for_conditions(condition)

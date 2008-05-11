@@ -403,6 +403,10 @@ ActiveRecord::Schema.define do
     create_table(t, :force => true) { }
   end
 
+  create_table :guids, :force => true do |t|
+    t.column :key, :string
+  end
+
   except 'SQLite' do
     # fk_test_has_fk should be before fk_test_has_pk
     create_table :fk_test_has_fk, :force => true do |t|

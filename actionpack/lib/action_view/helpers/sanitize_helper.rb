@@ -48,6 +48,11 @@ module ActionView
       #     config.action_view.sanitized_allowed_attributes = 'id', 'class', 'style'
       #   end
       # 
+      # Please note that sanitizing user-provided text does not guarantee that the
+      # resulting markup is valid (conforming to a document type) or even well-formed.
+      # The output may still contain e.g. unescaped '<', '>', '&' characters and
+      # confuse browsers.
+      #
       def sanitize(html, options = {})
         self.class.white_list_sanitizer.sanitize(html, options)
       end

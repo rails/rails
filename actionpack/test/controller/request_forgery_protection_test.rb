@@ -50,6 +50,14 @@ class CsrfCookieMonsterController < ActionController::Base
   protect_from_forgery :only => :index
 end
 
+# sessions are turned off
+class SessionOffController < ActionController::Base
+  protect_from_forgery :secret => 'foobar'
+  session :off
+  def rescue_action(e) raise e end
+  include RequestForgeryProtectionActions
+end
+
 class FreeCookieController < CsrfCookieMonsterController
   self.allow_forgery_protection = false
   
@@ -221,6 +229,22 @@ class FreeCookieControllerTest < Test::Unit::TestCase
   def test_should_allow_all_methods_without_token
     [:post, :put, :delete].each do |method|
       assert_nothing_raised { send(method, :index)}
+    end
+  end
+end
+
+class SessionOffControllerTest < Test::Unit::TestCase
+  def setup
+    @controller = SessionOffController.new
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    @token      = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new('SHA1'), 'abc', '123')
+  end
+
+  def test_should_raise_correct_exception
+    @request.session = {} # session(:off) doesn't appear to work with controller tests
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      post :index, :authenticity_token => @token
     end
   end
 end

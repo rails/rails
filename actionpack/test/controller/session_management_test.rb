@@ -13,6 +13,19 @@ class SessionManagementTest < Test::Unit::TestCase
     end
   end
 
+  class SessionOffOnController < ActionController::Base
+    session :off
+    session :on, :only => :tell
+
+    def show
+      render :text => "done"
+    end
+
+    def tell
+      render :text => "done"
+    end
+  end
+
   class TestController < ActionController::Base
     session :off, :only => :show
     session :session_secure => true, :except => :show
@@ -100,6 +113,15 @@ class SessionManagementTest < Test::Unit::TestCase
     assert_equal false, @request.session_options
   end
 
+  def test_session_off_then_on_globally
+    @controller = SessionOffOnController.new
+    get :show
+    assert_equal false, @request.session_options
+    get :tell
+    assert_instance_of Hash, @request.session_options
+    assert_equal false, @request.session_options[:disabled]
+  end
+  
   def test_session_off_conditionally
     @controller = TestController.new
     get :show
