@@ -29,16 +29,16 @@ module ActionController
     # Generate a url based on the options provided, default_url_options and the
     # routes defined in routes.rb.  The following options are supported:
     #
-    # * <tt>:only_path</tt> If true, the relative url is returned. Defaults to +false+.
-    # * <tt>:protocol</tt> The protocol to connect to. Defaults to 'http'.
-    # * <tt>:host</tt> Specifies the host the link should be targetted at.
+    # * <tt>:only_path</tt> - If true, the relative url is returned. Defaults to +false+.
+    # * <tt>:protocol</tt> - The protocol to connect to. Defaults to 'http'.
+    # * <tt>:host</tt> - Specifies the host the link should be targetted at.
     #   If <tt>:only_path</tt> is false, this option must be
     #   provided either explicitly, or via +default_url_options+.
-    # * <tt>:port</tt> Optionally specify the port to connect to.
-    # * <tt>:anchor</tt> An anchor name to be appended to the path.
-    # * <tt>:skip_relative_url_root</tt> If true, the url is not constructed using the
+    # * <tt>:port</tt> - Optionally specify the port to connect to.
+    # * <tt>:anchor</tt> - An anchor name to be appended to the path.
+    # * <tt>:skip_relative_url_root</tt> - If true, the url is not constructed using the
     #   +relative_url_root+ set in ActionController::AbstractRequest.relative_url_root.
-    # * <tt>:trailing_slash</tt> If true, adds a trailing slash, as in "/archive/2009/"
+    # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2009/"
     #
     # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
     # +url_for+ is forwarded to the Routes module.

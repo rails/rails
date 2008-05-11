@@ -175,6 +175,20 @@ module ActiveSupport
           ActiveSupport::Deprecation.warn("#{@var} is deprecated! Call #{@method}.#{called} instead of #{@var}.#{called}. Args: #{args.inspect}", callstack)
         end
     end
+
+    class DeprecatedInstanceVariable < Delegator #:nodoc:
+      def initialize(value, method)
+        super(value)
+        @method = method
+        @value = value
+      end
+
+      def __getobj__
+        ActiveSupport::Deprecation.warn("Instance variable @#{@method} is deprecated! Call instance method #{@method} instead.")
+        @value
+      end
+    end
+
   end
 end
 

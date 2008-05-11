@@ -69,10 +69,10 @@ module ActionController #:nodoc:
       #
       # Valid Options:
       #
-      # * <tt>:only/:except</tt> - passed to the <tt>before_filter</tt> call.  Set which actions are verified.
+      # * <tt>:only/:except</tt> - Passed to the <tt>before_filter</tt> call.  Set which actions are verified.
       # * <tt>:secret</tt> - Custom salt used to generate the <tt>form_authenticity_token</tt>.
       #   Leave this off if you are using the cookie session store.
-      # * <tt>:digest</tt> - Message digest used for hashing.  Defaults to 'SHA1'
+      # * <tt>:digest</tt> - Message digest used for hashing.  Defaults to 'SHA1'.
       def protect_from_forgery(options = {})
         self.request_forgery_protection_token ||= :authenticity_token
         before_filter :verify_authenticity_token, :only => options.delete(:only), :except => options.delete(:except)

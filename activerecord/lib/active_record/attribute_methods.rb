@@ -179,10 +179,10 @@ module ActiveRecord
         def define_write_method_for_time_zone_conversion(attr_name)
           method_body = <<-EOV
             def #{attr_name}=(time)
-              if time
-                time = time.to_time rescue time unless time.acts_like?(:time)
-                time = time.in_time_zone if time.acts_like?(:time)
+              unless time.acts_like?(:time)
+                time = time.is_a?(String) ? Time.zone.parse(time) : time.to_time rescue time
               end
+              time = time.in_time_zone rescue nil if time
               write_attribute(:#{attr_name}, time)
             end
           EOV

@@ -15,7 +15,7 @@ module ActionController
   # The routing module provides URL rewriting in native Ruby. It's a way to
   # redirect incoming requests to controllers and actions. This replaces
   # mod_rewrite rules. Best of all, Rails' Routing works with any web server.
-  # Routes are defined in routes.rb in your RAILS_ROOT/config directory.
+  # Routes are defined in <tt>config/routes.rb</tt>.
   #
   # Consider the following route, installed by Rails when you generate your
   # application:
@@ -53,7 +53,7 @@ module ActionController
   # == Route priority
   #
   # Not all routes are created equally. Routes have priority defined by the
-  # order of appearance of the routes in the routes.rb file. The priority goes
+  # order of appearance of the routes in the <tt>config/routes.rb</tt> file. The priority goes
   # from top to bottom. The last route in that file is at the lowest priority
   # and will be applied last. If no route matches, 404 is returned.
   #
@@ -118,7 +118,7 @@ module ActionController
   #   root_url   # => 'http://www.example.com/'
   #   root_path  # => ''
   #
-  # You can also specify an already-defined named route in your map.root call:
+  # You can also specify an already-defined named route in your <tt>map.root</tt> call:
   #
   #   # In routes.rb
   #   map.new_session :controller => 'sessions', :action => 'new'
@@ -217,7 +217,7 @@ module ActionController
   #   ActionController::Routing::Routes.reload
   #
   # This will clear all named routes and reload routes.rb if the file has been modified from
-  # last load. To absolutely force reloading, use +reload!+.
+  # last load. To absolutely force reloading, use <tt>reload!</tt>.
   #
   # == Testing Routes
   #
@@ -277,6 +277,9 @@ module ActionController
     end
 
     class << self
+	  # Expects an array of controller names as the first argument.  
+	  # Executes the passed block with only the named controllers named available.
+	  # This method is used in internal Rails testing.
       def with_controllers(names)
         prior_controllers = @possible_controllers
         use_controllers! names
@@ -285,6 +288,10 @@ module ActionController
         use_controllers! prior_controllers
       end
 
+	  # Returns an array of paths, cleaned of double-slashes and relative path references.
+	  # * "\\\" and "//"  become "\\" or "/". 
+	  # * "/foo/bar/../config" becomes "/foo/config".
+	  # The returned array is sorted by length, descending.
       def normalize_paths(paths)
         # do the hokey-pokey of path normalization...
         paths = paths.collect do |path|
@@ -303,6 +310,7 @@ module ActionController
         paths = paths.uniq.sort_by { |path| - path.length }
       end
 
+	  # Returns the array of controller names currently available to ActionController::Routing.
       def possible_controllers
         unless @possible_controllers
           @possible_controllers = []
@@ -327,10 +335,28 @@ module ActionController
         @possible_controllers
       end
 
+	  # Replaces the internal list of controllers available to ActionController::Routing with the passed argument.
+	  #   ActionController::Routing.use_controllers!([ "posts", "comments", "admin/comments" ])
       def use_controllers!(controller_names)
         @possible_controllers = controller_names
       end
 
+	  # Returns a controller path for a new +controller+ based on a +previous+ controller path.
+	  # Handles 4 scenarios:
+	  #
+	  # * stay in the previous controller:
+	  #     controller_relative_to( nil, "groups/discussion" ) # => "groups/discussion"
+	  #
+	  # * stay in the previous namespace:
+	  #     controller_relative_to( "posts", "groups/discussion" ) # => "groups/posts"
+	  #
+	  # * forced move to the root namespace:
+	  #     controller_relative_to( "/posts", "groups/discussion" ) # => "posts"
+	  #
+	  # * previous namespace is root:
+	  #     controller_relative_to( "posts", "anything_with_no_slashes" ) # =>"posts"
+	  #
+	  
       def controller_relative_to(controller, previous)
         if controller.nil?           then previous
         elsif controller[0] == ?/    then controller[1..-1]
@@ -344,6 +370,7 @@ module ActionController
     Routes = RouteSet.new
 
     ::Inflector.module_eval do
+	  # Ensures that routes are reloaded when Rails inflections are updated.
       def inflections_with_route_reloading(&block)
         returning(inflections_without_route_reloading(&block)) {
           ActionController::Routing::Routes.reload! if block_given?

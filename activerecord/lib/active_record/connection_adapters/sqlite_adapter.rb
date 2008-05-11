@@ -70,7 +70,7 @@ module ActiveRecord
     #
     # Options:
     #
-    # * <tt>:database</tt> -- Path to the database file.
+    # * <tt>:database</tt> - Path to the database file.
     class SQLiteAdapter < AbstractAdapter
       def adapter_name #:nodoc:
         'SQLite'

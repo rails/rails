@@ -1,49 +1,49 @@
 require 'active_record_unit'
 
+class RenderPartialWithRecordIdentificationController < ActionController::Base
+  def render_with_has_many_and_belongs_to_association
+    @developer = Developer.find(1)
+    render :partial => @developer.projects
+  end
+
+  def render_with_has_many_association
+    @topic = Topic.find(1)
+    render :partial => @topic.replies
+  end
+
+  def render_with_named_scope
+    render :partial => Reply.base
+  end
+
+  def render_with_has_many_through_association
+    @developer = Developer.find(:first)
+    render :partial => @developer.topics
+  end
+
+  def render_with_has_one_association
+    @company = Company.find(1)
+    render :partial => @company.mascot
+  end
+
+  def render_with_belongs_to_association
+    @reply = Reply.find(1)
+    render :partial => @reply.topic
+  end
+
+  def render_with_record
+    @developer = Developer.find(:first)
+    render :partial => @developer
+  end
+
+  def render_with_record_collection
+    @developers = Developer.find(:all)
+    render :partial => @developers
+  end
+end
+RenderPartialWithRecordIdentificationController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
+
 class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
   fixtures :developers, :projects, :developers_projects, :topics, :replies, :companies, :mascots
-
-  class RenderPartialWithRecordIdentificationController < ActionController::Base
-    def render_with_has_many_and_belongs_to_association
-      @developer = Developer.find(1)
-      render :partial => @developer.projects
-    end
-    
-    def render_with_has_many_association
-      @topic = Topic.find(1)
-      render :partial => @topic.replies
-    end
-    
-    def render_with_named_scope
-      render :partial => Reply.base
-    end
-    
-    def render_with_has_many_through_association
-      @developer = Developer.find(:first)
-      render :partial => @developer.topics
-    end
-    
-    def render_with_has_one_association
-      @company = Company.find(1)
-      render :partial => @company.mascot
-    end
-    
-    def render_with_belongs_to_association
-      @reply = Reply.find(1)
-      render :partial => @reply.topic
-    end
-    
-    def render_with_record
-      @developer = Developer.find(:first)
-      render :partial => @developer
-    end
-    
-    def render_with_record_collection
-      @developers = Developer.find(:all)
-      render :partial => @developers
-    end
-  end
-  RenderPartialWithRecordIdentificationController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
   
   def setup
     @controller = RenderPartialWithRecordIdentificationController.new
@@ -83,4 +83,109 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
     assert_template 'mascots/_mascot'
     assert_equal mascot.name, @response.body
   end
+end
+
+class RenderPartialWithRecordIdentificationController < ActionController::Base
+  def render_with_has_many_and_belongs_to_association
+    @developer = Developer.find(1)
+    render :partial => @developer.projects
+  end
+
+  def render_with_has_many_association
+    @topic = Topic.find(1)
+    render :partial => @topic.replies
+  end
+
+  def render_with_has_many_through_association
+    @developer = Developer.find(:first)
+    render :partial => @developer.topics
+  end
+
+  def render_with_belongs_to_association
+    @reply = Reply.find(1)
+    render :partial => @reply.topic
+  end
+
+  def render_with_record
+    @developer = Developer.find(:first)
+    render :partial => @developer
+  end
+
+  def render_with_record_collection
+    @developers = Developer.find(:all)
+    render :partial => @developers
+  end
+end
+RenderPartialWithRecordIdentificationController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
+
+class Game < Struct.new(:name, :id)
+  def to_param
+    id.to_s
+  end
+end
+
+module Fun
+  class NestedController < ActionController::Base
+    def render_with_record_in_nested_controller
+      render :partial => Game.new("Pong")
+    end
+
+    def render_with_record_collection_in_nested_controller
+      render :partial => [ Game.new("Pong"), Game.new("Tank") ]
+    end
+  end
+  NestedController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
+
+  module Serious
+    class NestedDeeperController < ActionController::Base
+      def render_with_record_in_deeper_nested_controller
+        render :partial => Game.new("Chess")
+      end
+
+      def render_with_record_collection_in_deeper_nested_controller
+        render :partial => [ Game.new("Chess"), Game.new("Sudoku"), Game.new("Solitaire") ]
+      end
+    end
+    NestedDeeperController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
+  end
+end
+
+class RenderPartialWithRecordIdentificationAndNestedControllersTest < ActiveRecordTestCase
+  def setup
+    @controller = Fun::NestedController.new
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    super
+  end
+
+  def test_render_with_record_in_nested_controller
+    get :render_with_record_in_nested_controller
+    assert_template 'fun/games/_game'
+  end
+
+  def test_render_with_record_collection_in_nested_controller
+    get :render_with_record_collection_in_nested_controller
+    assert_template 'fun/games/_game'
+  end
+
+end
+
+class RenderPartialWithRecordIdentificationAndNestedDeeperControllersTest < ActiveRecordTestCase
+  def setup
+    @controller = Fun::Serious::NestedDeeperController.new
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    super
+  end
+
+  def test_render_with_record_in_deeper_nested_controller
+    get :render_with_record_in_deeper_nested_controller
+    assert_template 'fun/serious/games/_game'
+  end
+
+  def test_render_with_record_collection_in_deeper_nested_controller
+    get :render_with_record_collection_in_deeper_nested_controller
+    assert_template 'fun/serious/games/_game'
+  end
+
 end

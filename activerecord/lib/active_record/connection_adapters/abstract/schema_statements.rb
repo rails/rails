@@ -20,6 +20,10 @@ module ActiveRecord
 
       # def tables(name = nil) end
 
+      def table_exists?(table_name)
+        tables.include?(table_name.to_s)
+      end
+
       # Returns an array of indexes for the given table.
       # def indexes(table_name, name = nil) end
 
@@ -93,8 +97,8 @@ module ActiveRecord
 
         yield table_definition
 
-        if options[:force]
-          drop_table(table_name, options) rescue nil
+        if options[:force] && table_exists?(table_name)
+          drop_table(table_name, options)
         end
 
         create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "

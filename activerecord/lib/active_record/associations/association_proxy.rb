@@ -118,7 +118,7 @@ module ActiveRecord
       end
 
       def inspect
-        reload unless loaded?
+        load_target
         @target.inspect
       end
 
@@ -167,7 +167,7 @@ module ActiveRecord
         def with_scope(*args, &block)
           @reflection.klass.send :with_scope, *args, &block
         end
-          
+
       private
         def method_missing(method, *args)
           if load_target

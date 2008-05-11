@@ -3,6 +3,11 @@ require 'singleton'
 # The Inflector transforms words from singular to plural, class names to table names, modularized class names to ones without,
 # and class names to foreign keys. The default inflections for pluralization, singularization, and uncountable words are kept
 # in inflections.rb.
+#
+# The Rails core team has stated patches for the inflections library will not be accepted
+# in order to avoid breaking legacy applications which may be relying on errant inflections.
+# If you discover an incorrect inflection and require it for your application, you'll need
+# to correct it yourself (explained below).
 module Inflector
   # A singleton instance of this class is yielded by Inflector.inflections, which can then be used to specify additional
   # inflection rules. Examples:

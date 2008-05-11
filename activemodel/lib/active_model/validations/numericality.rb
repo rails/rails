@@ -15,17 +15,17 @@ module ActiveModel
       #   end
       #
       # Configuration options:
-      # * <tt>:message</tt> - A custom error message (default is: "is not a number")
-      # * <tt>:on</tt> Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>)
-      # * <tt>:only_integer</tt> Specifies whether the value has to be an integer, e.g. an integral value (default is +false+)
-      # * <tt>:allow_nil</tt> Skip validation if attribute is +nil+ (default is +false+). Notice that for fixnum and float columns empty strings are converted to +nil+
-      # * <tt>:greater_than</tt> Specifies the value must be greater than the supplied value
-      # * <tt>:greater_than_or_equal_to</tt> Specifies the value must be greater than or equal the supplied value
-      # * <tt>:equal_to</tt> Specifies the value must be equal to the supplied value
-      # * <tt>:less_than</tt> Specifies the value must be less than the supplied value
-      # * <tt>:less_than_or_equal_to</tt> Specifies the value must be less than or equal the supplied value
-      # * <tt>:odd</tt> Specifies the value must be an odd number
-      # * <tt>:even</tt> Specifies the value must be an even number
+      # * <tt>:message</tt> - A custom error message (default is: "is not a number").
+      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
+      # * <tt>:only_integer</tt> - Specifies whether the value has to be an integer, e.g. an integral value (default is +false+).
+      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is +false+). Notice that for fixnum and float columns empty strings are converted to +nil+.
+      # * <tt>:greater_than</tt> - Specifies the value must be greater than the supplied value.
+      # * <tt>:greater_than_or_equal_to</tt> - Specifies the value must be greater than or equal the supplied value.
+      # * <tt>:equal_to</tt> - Specifies the value must be equal to the supplied value.
+      # * <tt>:less_than</tt> - Specifies the value must be less than the supplied value.
+      # * <tt>:less_than_or_equal_to</tt> - Specifies the value must be less than or equal the supplied value.
+      # * <tt>:odd</tt> - Specifies the value must be an odd number.
+      # * <tt>:even</tt> - Specifies the value must be an even number.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.

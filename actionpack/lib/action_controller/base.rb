@@ -159,28 +159,34 @@ module ActionController #:nodoc:
   #
   #   Hello #{session[:person]}
   #
-  # For removing objects from the session, you can either assign a single key to nil, like <tt>session[:person] = nil</tt>, or you can
-  # remove the entire session with reset_session.
+  # For removing objects from the session, you can either assign a single key to +nil+:
   #
-  # Sessions are stored in a browser cookie that's cryptographically signed, but unencrypted, by default. This prevents
-  # the user from tampering with the session but also allows him to see its contents.
+  #   # removes :person from session
+  #   session[:person] = nil
   #
-  # Do not put secret information in session!
+  # or you can remove the entire session with +reset_session+.
+  #
+  # Sessions are stored by default in a browser cookie that's cryptographically signed, but unencrypted.
+  # This prevents the user from tampering with the session but also allows him to see its contents.
+  #
+  # Do not put secret information in cookie-based sessions!
   #
   # Other options for session storage are:
   #
-  # ActiveRecordStore: sessions are stored in your database, which works better than PStore with multiple app servers and,
-  # unlike CookieStore, hides your session contents from the user. To use ActiveRecordStore, set
+  # * ActiveRecordStore - Sessions are stored in your database, which works better than PStore with multiple app servers and,
+  #   unlike CookieStore, hides your session contents from the user. To use ActiveRecordStore, set
   #
-  #   config.action_controller.session_store = :active_record_store
+  #     config.action_controller.session_store = :active_record_store
   #
-  # in your <tt>environment.rb</tt> and run <tt>rake db:sessions:create</tt>.
+  #   in your <tt>config/environment.rb</tt> and run <tt>rake db:sessions:create</tt>.
   #
-  # MemCacheStore: sessions are stored as entries in your memcached cache.  Set the session store type in <tt>environment.rb</tt>:
+  # * MemCacheStore - Sessions are stored as entries in your memcached cache.
+  #   Set the session store type in <tt>config/environment.rb</tt>:
   #
-  #   config.action_controller.session_store = :mem_cache_store
+  #     config.action_controller.session_store = :mem_cache_store
   #
-  #  This assumes that memcached has been installed and configured properly.  See the MemCacheStore docs for more information.
+  #   This assumes that memcached has been installed and configured properly.
+  #   See the MemCacheStore docs for more information.
   #
   # == Responses
   #
@@ -535,20 +541,20 @@ module ActionController #:nodoc:
       #
       # <tt>url_for</tt> is used to:
       #
-      # All keys given to url_for are forwarded to the Route module, save for the following:
-      # * <tt>:anchor</tt> -- specifies the anchor name to be appended to the path. For example,
+      # All keys given to +url_for+ are forwarded to the Route module, save for the following:
+      # * <tt>:anchor</tt> - Specifies the anchor name to be appended to the path. For example,
       #   <tt>url_for :controller => 'posts', :action => 'show', :id => 10, :anchor => 'comments'</tt>
       #   will produce "/posts/show/10#comments".
-      # * <tt>:only_path</tt> --  if true, returns the relative URL (omitting the protocol, host name, and port) (<tt>false</tt> by default)
-      # * <tt>:trailing_slash</tt> --  if true, adds a trailing slash, as in "/archive/2005/". Note that this
+      # * <tt>:only_path</tt> - If true, returns the relative URL (omitting the protocol, host name, and port) (<tt>false</tt> by default).
+      # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2005/". Note that this
       #   is currently not recommended since it breaks caching.
-      # * <tt>:host</tt> -- overrides the default (current) host if provided.
-      # * <tt>:protocol</tt> -- overrides the default (current) protocol if provided.
-      # * <tt>:port</tt> -- optionally specify the port to connect to.
-      # * <tt>:user</tt> -- Inline HTTP authentication (only plucked out if <tt>:password</tt> is also present).
-      # * <tt>:password</tt> -- Inline HTTP authentication (only plucked out if <tt>:user</tt> is also present).
-      # * <tt>:skip_relative_url_root</tt> -- if true, the url is not constructed using the relative_url_root of the request so the path
-      #   will include the web server relative installation directory.
+      # * <tt>:host</tt> - Overrides the default (current) host if provided.
+      # * <tt>:protocol</tt> - Overrides the default (current) protocol if provided.
+      # * <tt>:port</tt> - Optionally specify the port to connect to.
+      # * <tt>:user</tt> - Inline HTTP authentication (only plucked out if <tt>:password</tt> is also present).
+      # * <tt>:password</tt> - Inline HTTP authentication (only plucked out if <tt>:user</tt> is also present).
+      # * <tt>:skip_relative_url_root</tt> - If true, the url is not constructed using the +relative_url_root+
+      #   of the request so the path will include the web server relative installation directory.
       #
       # The URL is generated from the remaining keys in the hash. A URL contains two key parts: the <base> and a query string.
       # Routes composes a query string as the key/value pairs not included in the <base>.

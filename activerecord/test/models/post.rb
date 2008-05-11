@@ -9,6 +9,8 @@ class Post < ActiveRecord::Base
 
   belongs_to :author_with_posts, :class_name => "Author", :foreign_key => :author_id, :include => :posts
 
+  has_one :last_comment, :class_name => 'Comment', :order => 'id desc'
+
   has_many   :comments, :order => "body" do
     def find_most_recent
       find(:first, :order => "id DESC")
