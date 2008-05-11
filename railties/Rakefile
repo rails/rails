@@ -303,7 +303,7 @@ spec = Gem::Specification.new do |s|
     on top of either MySQL, PostgreSQL, SQLite, DB2, SQL Server, or Oracle with eRuby- or Builder-based templates.
   EOF
 
-  s.add_dependency('rake', '>= 0.7.2')
+  s.add_dependency('rake', '>= 0.8.1')
   s.add_dependency('activesupport',    '= 2.0.2' + PKG_BUILD)
   s.add_dependency('activerecord',     '= 2.0.2' + PKG_BUILD)
   s.add_dependency('actionpack',       '= 2.0.2' + PKG_BUILD)
