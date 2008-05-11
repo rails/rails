@@ -2342,7 +2342,7 @@ module ActiveRecord #:nodoc:
 
 
       # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
-      def attributes(options = nil)
+      def attributes
         self.attribute_names.inject({}) do |attrs, name|
           attrs[name] = read_attribute(name)
           attrs
