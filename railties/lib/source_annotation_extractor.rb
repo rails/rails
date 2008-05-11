@@ -1,19 +1,18 @@
+# Implements the logic behind the rake tasks for annotations like
+#
+#   rake notes
+#   rake notes:optimize
+#
+# and friends. See <tt>rake -T notes</tt> and <tt>railties/lib/tasks/annotations.rake</tt>.
+#
+# Annotation objects are triplets <tt>:line</tt>, <tt>:tag</tt>, <tt>:text</tt> that
+# represent the line where the annotation lives, its tag, and its text. Note
+# the filename is not stored.
+#
+# Annotations are looked for in comments and modulus whitespace they have to
+# start with the tag optionally followed by a colon. Everything up to the end
+# of the line (or closing ERb comment tag) is considered to be their text.
 class SourceAnnotationExtractor
-
-  # Implements the logic behind the rake tasks for annotations like
-  #
-  #   rake notes
-  #   rake notes:optimize
-  #
-  # and friends. See <tt>rake -T notes</tt> and <tt>railties/lib/tasks/annotations.rake</tt>.
-  #
-  # Annotation objects are triplets <tt>:line</tt>, <tt>:tag</tt>, <tt>:text</tt> that
-  # represent the line where the annotation lives, its tag, and its text. Note
-  # the filename is not stored.
-  #
-  # Annotations are looked for in comments and modulus whitespace they have to
-  # start with the tag optionally followed by a colon. Everything up to the end
-  # of the line (or closing ERb comment tag) is considered to be their text.
   class Annotation < Struct.new(:line, :tag, :text)
 
     # Returns a representation of the annotation that looks like this:
