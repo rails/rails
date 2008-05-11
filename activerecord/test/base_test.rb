@@ -1706,20 +1706,24 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_except_attributes
-    assert_equal(
-      %w( author_name type id approved replies_count bonus_time written_on content author_email_address parent_id last_read), 
-      topics(:first).attributes(:except => :title).keys
-    )
+    assert_deprecated do
+      assert_equal(
+        %w( author_name type id approved replies_count bonus_time written_on content author_email_address parent_id last_read),
+        topics(:first).attributes(:except => :title).keys
+      )
 
-    assert_equal(
-      %w( replies_count bonus_time written_on content author_email_address parent_id last_read), 
-      topics(:first).attributes(:except => [ :title, :id, :type, :approved, :author_name ]).keys
-    )
+      assert_equal(
+        %w( replies_count bonus_time written_on content author_email_address parent_id last_read),
+        topics(:first).attributes(:except => [ :title, :id, :type, :approved, :author_name ]).keys
+      )
+    end
   end
   
   def test_include_attributes
-    assert_equal(%w( title ), topics(:first).attributes(:only => :title).keys)
-    assert_equal(%w( title author_name type id approved ), topics(:first).attributes(:only => [ :title, :id, :type, :approved, :author_name ]).keys)
+    assert_deprecated do
+      assert_equal(%w( title ), topics(:first).attributes(:only => :title).keys)
+      assert_equal(%w( title author_name type id approved ), topics(:first).attributes(:only => [ :title, :id, :type, :approved, :author_name ]).keys)
+    end
   end
   
   def test_type_name_with_module_should_handle_beginning

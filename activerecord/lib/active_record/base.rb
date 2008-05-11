@@ -2145,6 +2145,7 @@ module ActiveRecord #:nodoc:
         if options.nil?
           attributes
         else
+          ActiveSupport::Deprecation.warn "Passing options to Base#attributes is deprecated and will be removed in Rails 2.1. Please use Hash#slice or Hash#except instead"
           if except = options[:except]
             except = Array(except).collect { |attribute| attribute.to_s }
             except.each { |attribute_name| attributes.delete(attribute_name) }
