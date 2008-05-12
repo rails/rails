@@ -4,7 +4,7 @@ module Arel
   describe Attribute do
     before do
       @relation = Table.new(:users)
-      @attribute = Attribute.new(@relation, :id)
+      @attribute = @relation[:id]
     end
   
     describe Attribute::Transformations do
@@ -45,22 +45,21 @@ module Arel
     end
     
     describe Attribute::Congruence do
-      describe 'match?' do
-        
+      describe '#match?' do
         it "obtains if the attributes are identical" do
-          Attribute.new(@relation, :name).should be_match(Attribute.new(@relation, :name))
+          @attribute.should be_match(@attribute)
         end
       
         it "obtains if the attributes have an overlapping history" do
-          Attribute.new(@relation, :name, :ancestor => Attribute.new(@relation, :name)).should be_match(Attribute.new(@relation, :name))
-          Attribute.new(@relation, :name).should be_match(Attribute.new(@relation, :name, :ancestor => Attribute.new(@relation, :name)))
+          Attribute.new(@relation, :id, :ancestor => @attribute).should be_match(@attribute)
+          @attribute.should be_match(Attribute.new(@relation, :id, :ancestor => @attribute))
         end
       end
       
       describe '/' do
         before do
           @aliased_relation = @relation.alias
-          @doubly_aliased_relation = @aliased_relation.alias.alias.alias.alias
+          @doubly_aliased_relation = @aliased_relation.alias
         end
         
         describe 'when dividing two identical attributes' do
@@ -83,13 +82,6 @@ module Arel
             (@aliased_relation[:id] / @relation[:id]) \
               .should < (@aliased_relation[:id] / @aliased_relation[:id])
           end
-        end
-      end
-      
-      describe 'hashing' do
-        it "implements hash equality" do
-          Attribute.new(@relation, 'name').should hash_the_same_as(Attribute.new(@relation, 'name'))
-          Attribute.new(@relation, 'name').should_not hash_the_same_as(Attribute.new(@relation, 'id'))
         end
       end
     end

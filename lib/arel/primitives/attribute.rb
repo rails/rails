@@ -9,8 +9,8 @@ module Arel
       @relation, @name, @alias, @ancestor = relation, name, options[:alias], options[:ancestor]
     end
     
-    def alias_or_name
-      @alias || name
+    def named?(hypothetical_name)
+      (@alias || name).to_s == hypothetical_name.to_s
     end
     
     def aggregation?
@@ -57,12 +57,12 @@ module Arel
     include Transformations
     
     module Congruence
-      def self.included(klass)
-        klass.hash_on :name
-      end
-      
+      # def self.included(klass)
+      #   klass.hash_on :name
+      # end
+      # 
       def history
-        [self] + (ancestor ? [ancestor, ancestor.history].flatten : [])
+        @history ||= [self] + (ancestor ? [ancestor, ancestor.history].flatten : [])
       end
       
       def match?(other)

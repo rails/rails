@@ -10,7 +10,7 @@ module Arel
       it "manufactures sql updating attributes when given multiple attributes" do
         Update.new(@relation, @relation[:id] => 1, @relation[:name] => "nick").to_sql.should be_like("
           UPDATE `users`
-          SET `users`.`id` = 1, `users`.`name` = 'nick'
+          SET `users`.`name` = 'nick', `users`.`id` = 1
         ")
       end
       

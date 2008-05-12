@@ -136,7 +136,7 @@ module Arel
       end
       
       def find_attribute_matching_name(name)
-        attributes.detect { |a| a.alias_or_name.to_s == name.to_s }
+        attributes.detect { |a| a.named?(name) }
       end
       
       # TESTME - added relation_for(x)[x] because of AR
