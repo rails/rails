@@ -24,6 +24,10 @@ module Arel
     def original_relation
       relation.relation_for(self)
     end
+    
+    def original_attribute
+      original_relation[self]
+    end
 
     def format(object)
       object.to_sql(formatter)
@@ -57,10 +61,6 @@ module Arel
     include Transformations
     
     module Congruence
-      # def self.included(klass)
-      #   klass.hash_on :name
-      # end
-      # 
       def history
         @history ||= [self] + (ancestor ? [ancestor, ancestor.history].flatten : [])
       end

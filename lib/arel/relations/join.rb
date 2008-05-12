@@ -44,15 +44,15 @@ module Arel
     end
     
     def relation_for(attribute)
-      [externalize(relation1), externalize(relation2)].max do |r1, r2|
-        o1, o2 = r1.relation_for(attribute), r2.relation_for(attribute)
-        a1, a2 = o1 && o1[attribute], o2 && o2[attribute]
+      [externalize(relation1).relation_for(attribute), externalize(relation2).relation_for(attribute)].max do |r1, r2|
+        a1, a2 = r1 && r1[attribute], r2 && r2[attribute]
       
         attribute / a1 <=> attribute / a2
-      end.relation_for(attribute)
+      end
     end
     
     private
+    # FIXME - make instance method
     def externalize(relation)
       relation.aggregation?? Aggregation.new(relation) : relation
     end
