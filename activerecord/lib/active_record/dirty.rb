@@ -69,19 +69,19 @@ module ActiveRecord
       changed.inject({}) { |h, attr| h[attr] = attribute_change(attr); h }
     end
 
-
-    # Clear changed attributes after they are saved.
+    # Attempts to +save+ the record and clears changed attributes if successful.
     def save_with_dirty(*args) #:nodoc:
-      save_without_dirty(*args)
-    ensure
-      changed_attributes.clear
+      if status = save_without_dirty(*args)
+        changed_attributes.clear
+      end
+      status
     end
 
-    # Clear changed attributes after they are saved.
+    # Attempts to <tt>save!</tt> the record and clears changed attributes if successful.
     def save_with_dirty!(*args) #:nodoc:
-      save_without_dirty!(*args)
-    ensure
+      status = save_without_dirty!(*args)
       changed_attributes.clear
+      status
     end
 
     private

@@ -78,7 +78,7 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_association_assignment_changes_foreign_key
-    pirate = Pirate.create!
+    pirate = Pirate.create!(:catchphrase => 'jarl')
     pirate.parrot = Parrot.create!
     assert pirate.changed?
     assert_equal %w(parrot_id), pirate.changed
@@ -115,6 +115,18 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  def test_changed_attributes_should_be_preserved_if_save_failure
+    pirate = Pirate.new
+    pirate.parrot_id = 1
+    assert !pirate.save
+    check_pirate_after_save_failure(pirate)
+
+    pirate = Pirate.new
+    pirate.parrot_id = 1
+    assert_raises(ActiveRecord::RecordInvalid) { pirate.save! }
+    check_pirate_after_save_failure(pirate)
+  end
+
   private
     def with_partial_updates(klass, on = true)
       old = klass.partial_updates?
@@ -122,5 +134,12 @@ class DirtyTest < ActiveRecord::TestCase
       yield
     ensure
       klass.partial_updates = old
+    end
+
+    def check_pirate_after_save_failure(pirate)
+      assert pirate.changed?
+      assert pirate.parrot_id_changed?
+      assert_equal %w(parrot_id), pirate.changed
+      assert_nil pirate.parrot_id_was
     end
 end
