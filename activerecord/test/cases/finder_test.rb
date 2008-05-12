@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'models/author'
+require 'models/categorization'
 require 'models/comment'
 require 'models/company'
 require 'models/topic'
@@ -392,6 +393,12 @@ class FinderTest < ActiveRecord::TestCase
 
     os = [o] * 3
     assert_equal '1,1,1', bind('?', os)
+  end
+
+  def test_named_bind_with_postgresql_type_casts
+    l = Proc.new { bind(":a::integer '2009-01-01'::date", :a => '10') }
+    assert_nothing_raised(&l)
+    assert_equal "#{ActiveRecord::Base.quote_value('10')}::integer '2009-01-01'::date", l.call
   end
 
   def test_string_sanitation

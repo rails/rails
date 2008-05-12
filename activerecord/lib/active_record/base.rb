@@ -2053,9 +2053,10 @@ module ActiveRecord #:nodoc:
         end
 
         def replace_named_bind_variables(statement, bind_vars) #:nodoc:
-          statement.gsub(/:([a-zA-Z]\w*)/) do
-            match = $1.to_sym
-            if bind_vars.include?(match)
+          statement.gsub(/(:?):([a-zA-Z]\w*)/) do
+            if $1 == ':' # skip postgresql casts
+              $& # return the whole match
+            elsif bind_vars.include?(match = $2.to_sym)
               quote_bound_value(bind_vars[match])
             else
               raise PreparedStatementInvalid, "missing value for :#{match} in #{statement}"
