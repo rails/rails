@@ -43,7 +43,9 @@ class CookieStoreTest < Test::Unit::TestCase
     { :empty => ['BAgw--0686dcaccc01040f4bd4f35fe160afe9bc04c330', {}],
       :a_one => ['BAh7BiIGYWkG--5689059497d7f122a7119f171aef81dcfd807fec', { 'a' => 1 }],
       :typical => ['BAh7ByIMdXNlcl9pZGkBeyIKZmxhc2h7BiILbm90aWNlIgxIZXkgbm93--9d20154623b9eeea05c62ab819be0e2483238759', { 'user_id' => 123, 'flash' => { 'notice' => 'Hey now' }}],
-      :flashed => ['BAh7ByIMdXNlcl9pZGkBeyIKZmxhc2h7AA%3D%3D--bf9785a666d3c4ac09f7fe3353496b437546cfbf', { 'user_id' => 123, 'flash' => {} }] }
+      :flashed => ['BAh7ByIMdXNlcl9pZGkBeyIKZmxhc2h7AA==--bf9785a666d3c4ac09f7fe3353496b437546cfbf', { 'user_id' => 123, 'flash' => {} }],
+      :double_escaped => [CGI.escape('BAh7ByIMdXNlcl9pZGkBeyIKZmxhc2h7AA%3D%3D--bf9785a666d3c4ac09f7fe3353496b437546cfbf'), { 'user_id' => 123, 'flash' => {} }] }
+
   end
 
   def setup
@@ -98,6 +100,15 @@ class CookieStoreTest < Test::Unit::TestCase
     new_session do |session|
       assert_raise(CGI::Session::CookieStore::TamperedWithCookie) { session['fail'] }
       assert_cookie_deleted session
+    end
+  end
+
+  def test_restores_double_encoded_cookies
+    set_cookie! cookie_value(:double_escaped)
+    new_session do |session|
+      session.dbman.restore
+      assert_equal session["user_id"], 123
+      assert_equal session["flash"], {}
     end
   end
 
@@ -241,6 +252,7 @@ class CookieStoreWithMD5DigestTest < CookieStoreTest
     { :empty => ['BAgw--0415cc0be9579b14afc22ee2d341aa21', {}],
       :a_one => ['BAh7BiIGYWkG--5a0ed962089cc6600ff44168a5d59bc8', { 'a' => 1 }],
       :typical => ['BAh7ByIMdXNlcl9pZGkBeyIKZmxhc2h7BiILbm90aWNlIgxIZXkgbm93--f426763f6ef435b3738b493600db8d64', { 'user_id' => 123, 'flash' => { 'notice' => 'Hey now' }}],
-      :flashed => ['BAh7ByIMdXNlcl9pZGkBeyIKZmxhc2h7AA%3D%3D--0af9156650dab044a53a91a4ddec2c51', { 'user_id' => 123, 'flash' => {} }] }
+      :flashed => ['BAh7ByIMdXNlcl9pZGkBeyIKZmxhc2h7AA==--0af9156650dab044a53a91a4ddec2c51', { 'user_id' => 123, 'flash' => {} }],
+      :double_escaped => [CGI.escape('BAh7ByIMdXNlcl9pZGkBeyIKZmxhc2h7AA%3D%3D--0af9156650dab044a53a91a4ddec2c51'), { 'user_id' => 123, 'flash' => {} }] }
   end
 end
