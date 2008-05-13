@@ -24,7 +24,7 @@ module Arel
         @insertion.to_sql.should be_like("
           INSERT
           INTO `users`
-          (`users`.`name`, `users`.`id`) VALUES ('nick', 1)
+          (`users`.`id`, `users`.`name`) VALUES (1, 'nick')
         ")
       end
       

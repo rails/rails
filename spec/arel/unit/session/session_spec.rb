@@ -73,19 +73,11 @@ module Arel
       end
     end
     
-    describe Session::Transactions do
+    describe 'Transactions' do
       describe '#begin' do
       end
     
       describe '#end' do
-      end
-    end
-    
-    describe Session::UnitOfWork do
-      describe '#flush' do
-      end
-      
-      describe '#clear' do
       end
     end
   end

@@ -139,20 +139,12 @@ module Arel
         attributes.detect { |a| a.named?(name) }
       end
       
-      # TESTME - added relation_for(x)[x] because of AR
+      # TESTME - added original_attribute because of AR
       def find_attribute_matching_attribute(attribute)
         attributes.select { |a| a.match?(attribute) }.max do |a1, a2|
           (attribute / a1.original_attribute) <=> (attribute / a2.original_attribute)
         end
       end
-      
-      def find_attribute_matching_attribute_with_memoization(attribute)
-        @attribute_for_attribute ||= Hash.new do |h, a|
-          h[a] = find_attribute_matching_attribute_without_memoization(a)
-        end
-        @attribute_for_attribute[attribute]
-      end
-      alias_method_chain :find_attribute_matching_attribute, :memoization
     end
     include AttributeAccessable
 

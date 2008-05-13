@@ -3,9 +3,9 @@ module Arel
     class Christener
       def name_for(relation)
         @used_names ||= Hash.new(0)
-        @relation_names ||= Hash.new do |h, k|
-          @used_names[k.name] += 1
-          h[k] = k.name + (@used_names[k.name] > 1 ? "_#{@used_names[k.name]}" : '')
+        @relation_names ||= Hash.new do |hash, relation|
+          @used_names[name = relation.name] += 1
+          hash[relation] = name + (@used_names[name] > 1 ? "_#{@used_names[name]}" : '')
         end
         @relation_names[relation]
       end

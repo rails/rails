@@ -7,7 +7,7 @@ module Arel
     end
 
     def attributes
-      projections.collect { |p| p.bind(self) }
+      @attributes ||= projections.collect { |p| p.bind(self) }
     end
     
     def ==(other)

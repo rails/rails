@@ -44,13 +44,5 @@ module Arel
       end
     end
     include CRUD
-    
-    module Transactions
-    end
-    include Transactions
-    
-    module UnitOfWork
-    end
-    include UnitOfWork
   end
 end

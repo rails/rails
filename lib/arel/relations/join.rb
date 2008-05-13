@@ -27,7 +27,7 @@ module Arel
     end
 
     def attributes
-      (externalize(relation1).attributes +
+      @attributes ||= (externalize(relation1).attributes +
         externalize(relation2).attributes).collect { |a| a.bind(self) }
     end
     
@@ -44,9 +44,11 @@ module Arel
     end
     
     def relation_for(attribute)
-      [externalize(relation1).relation_for(attribute), externalize(relation2).relation_for(attribute)].max do |r1, r2|
+      [
+        externalize(relation1).relation_for(attribute),
+        externalize(relation2).relation_for(attribute)
+      ].max do |r1, r2|
         a1, a2 = r1 && r1[attribute], r2 && r2[attribute]
-      
         attribute / a1 <=> attribute / a2
       end
     end

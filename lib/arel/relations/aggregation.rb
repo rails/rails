@@ -16,6 +16,6 @@ Aggregation = Struct.new(:relation) do
   end
   
   def attributes
-    relation.attributes.collect(&:to_attribute)
+    @attributes ||= relation.attributes.collect(&:to_attribute)
   end
 end

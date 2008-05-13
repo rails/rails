@@ -46,6 +46,14 @@ module Arel
     end
 
     module Transformations
+      def self.included(klass)
+        alias_method :eql?, :==
+      end
+      
+      def hash
+        name.hash + history.size.hash
+      end
+      
       def as(aliaz = nil)
         Attribute.new(relation, name, :alias => aliaz, :ancestor => self)
       end

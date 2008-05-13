@@ -1,11 +1,9 @@
 todo:
-- Explicitly model recursive structural decomposition / polymorphism
-- Explicitly model the namer/externalizer using interpreter jargon
-- All Sql Strategies should be accumulations with the top-level relation?
-- lock
-  - SELECT suchandsuch FOR UPDATE
+- instance methodify externalize
+- test: find_attribute_given_attribute and all @attribute ||= everywhere and memoization of table class.
 - rename select to where
 - and/or w/ predicates
+- blocks for joins
 - cache expiry on write
   - rewrite of arecord querycache test in light of this
 - scoped writes
@@ -65,6 +63,9 @@ done:
 - fix complex joining cases:
 - active record query adapter
 - anonymous table names
+- Explicitly model recursive structural decomposition / polymorphism
+- Explicitly model the namer/externalizer using interpreter jargon
+- All Sql Strategies should be accumulations with the top-level relation?
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?
@@ -77,3 +78,5 @@ icebox:
 - consider this code from has_many:
   # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
   @reflection.options[:counter_sql] = @reflection.options[:finder_sql].sub(/SELECT (\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
+- lock
+  - SELECT suchandsuch FOR UPDATE
