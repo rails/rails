@@ -86,6 +86,11 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
       link_to_remote("Remote outauthor", { :url => { :action => "whatnot"  }, :html => { :class => "fine" } })
   end
   
+  def test_link_to_remote_url_quote_escaping
+    assert_dom_equal %(<a href="#" onclick="new Ajax.Request('http://www.example.com/whatnot\\\'s', {asynchronous:true, evalScripts:true}); return false;">Remote</a>),
+      link_to_remote("Remote", { :url => { :action => "whatnot's" } })
+  end
+
   def test_periodically_call_remote
     assert_dom_equal %(<script type="text/javascript">\n//<![CDATA[\nnew PeriodicalExecuter(function() {new Ajax.Updater('schremser_bier', 'http://www.example.com/mehr_bier', {asynchronous:true, evalScripts:true})}, 10)\n//]]>\n</script>),
       periodically_call_remote(:update => "schremser_bier", :url => { :action => "mehr_bier" })
