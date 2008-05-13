@@ -128,7 +128,7 @@ class Class # :nodoc:
         new_inheritable_attributes = EMPTY_INHERITABLE_ATTRIBUTES
       else
         new_inheritable_attributes = inheritable_attributes.inject({}) do |memo, (key, value)|
-          memo.update(key => (value.dup rescue value))
+          memo.update(key => value.duplicable? ? value.dup : value)
         end
       end
       

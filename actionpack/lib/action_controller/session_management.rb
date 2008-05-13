@@ -69,11 +69,16 @@ module ActionController #:nodoc:
       #   session :off, 
       #     :if => Proc.new { |req| !(req.format.html? || req.format.js?) }
       #
+      #   # turn the session back on, useful when it was turned off in the
+      #   # application controller, and you need it on in another controller
+      #   session :on
+      #
       # All session options described for ActionController::Base.process_cgi
       # are valid arguments.
       def session(*args)
         options = args.extract_options!
 
+        options[:disabled] = false if args.delete(:on)
         options[:disabled] = true if !args.empty?
         options[:only] = [*options[:only]].map { |o| o.to_s } if options[:only]
         options[:except] = [*options[:except]].map { |o| o.to_s } if options[:except]

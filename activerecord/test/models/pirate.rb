@@ -4,4 +4,6 @@ class Pirate < ActiveRecord::Base
   has_many :treasures, :as => :looter
 
   has_many :treasure_estimates, :through => :treasures, :source => :price_estimates
+
+  validates_presence_of :catchphrase
 end

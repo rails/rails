@@ -199,10 +199,8 @@ module ActionController #:nodoc:
     private
       def perform_action_with_rescue #:nodoc:
         perform_action_without_rescue
-      rescue Exception => exception  # errors from action performed
-        return if rescue_action_with_handler(exception)
-        
-        rescue_action(exception)
+      rescue Exception => exception
+        rescue_action_with_handler(exception) || rescue_action(exception)
       end
 
       def rescues_path(template_name)

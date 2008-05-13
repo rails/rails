@@ -1,4 +1,6 @@
-*SVN*
+*2.1.0 RC1 (May 11th, 2008)*
+
+* Remove unused JSON::RESERVED_WORDS, JSON.valid_identifier? and JSON.reserved_word? methods. Resolves #164. [Cheah Chu Yeow]
 
 * Adding Date.current, which returns Time.zone.today if config.time_zone is set; otherwise returns Date.today [Geoff Buesing]
 

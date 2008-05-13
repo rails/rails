@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2007 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us)
+// Copyright (c) 2005-2008 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us)
 //           (c) 2005-2007 Ivan Krstic (http://blogs.law.harvard.edu/ivan)
 //           (c) 2005-2007 Jon Tirsen (http://www.tirsen.com)
 // Contributors:

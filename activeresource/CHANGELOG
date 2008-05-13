@@ -1,4 +1,4 @@
-*SVN*
+*2.1.0 RC1 (May 11th, 2008)*
 
 * Fixed response logging to use length instead of the entire thing (seangeo) [#27]
 
