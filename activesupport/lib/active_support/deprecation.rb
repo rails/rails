@@ -176,23 +176,6 @@ module ActiveSupport
         end
     end
 
-    class DeprecatedInstanceVariable < Delegator #:nodoc:
-      def initialize(value, method)
-        @method = method
-        super(value)
-        __setobj__(value)
-      end
-
-      def __getobj__
-        ActiveSupport::Deprecation.warn("Instance variable @#{@method} is deprecated! Call instance method #{@method} instead.")
-        @value
-      end
-
-      def __setobj__(value)
-        @value = value
-      end
-    end
-
   end
 end
 
