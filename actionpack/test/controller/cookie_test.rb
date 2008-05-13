@@ -82,6 +82,7 @@ class CookieTest < Test::Unit::TestCase
   def test_expiring_cookie
     get :logout
     assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "", "expires" => Time.at(0)) ], @response.headers["cookie"]
+    assert_equal CGI::Cookie::new("name" => "user_name", "value" => "", "expires" => Time.at(0)).value, []
   end  
   
   def test_cookiejar_accessor
