@@ -984,6 +984,12 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_migrator_with_duplicate_names
+      assert_raises(ActiveRecord::DuplicateMigrationNameError, "Multiple migrations have the name Chunky") do
+        ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/duplicate_names", nil)
+      end
+    end
+
     def test_migrator_with_missing_version_numbers
       assert_raise(ActiveRecord::UnknownMigrationVersionError) do
         ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/missing", 500)

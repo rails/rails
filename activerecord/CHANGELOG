@@ -1,5 +1,9 @@
 *SVN*
 
+* Ensure hm:t preloading honours reflection options. Resolves #137. [Frederick Cheung]
+
+* Added protection against duplicate migration names (Aslak Hellesøy) [#112]
+
 * Base#instantiate_time_object: eliminate check for Time.zone, since we can assume this is set if time_zone_aware_attributes is set to true [Geoff Buesing]
 
 * Time zone aware attribute methods use Time.zone.parse instead of #to_time for String arguments, so that offset information in String is respected. Resolves #105. [Scott Fleckenstein, Geoff Buesing]
@@ -8,7 +12,7 @@
 
     change_table :videos do |t|
       t.timestamps                          # adds created_at, updated_at
-      t.belongs_to :goat                    # add goat_id integer
+      t.belongs_to :goat                    # adds goat_id integer
       t.string :name, :email, :limit => 20  # adds name and email both with a 20 char limit
       t.remove :name, :email                # removes the name and email columns
     end

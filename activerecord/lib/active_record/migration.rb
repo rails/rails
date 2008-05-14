@@ -8,6 +8,12 @@ module ActiveRecord
     end
   end
 
+  class DuplicateMigrationNameError < ActiveRecordError#:nodoc:
+    def initialize(name)
+      super("Multiple migrations have the name #{name}")
+    end
+  end
+
   class UnknownMigrationVersionError < ActiveRecordError #:nodoc:
     def initialize(version)
       super("No migration with version number #{version}")
@@ -439,6 +445,10 @@ module ActiveRecord
           
           if klasses.detect { |m| m.version == version }
             raise DuplicateMigrationVersionError.new(version) 
+          end
+
+          if klasses.detect { |m| m.name == name.camelize }
+            raise DuplicateMigrationNameError.new(name.camelize) 
           end
           
           load(file)

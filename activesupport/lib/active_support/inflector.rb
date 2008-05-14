@@ -92,6 +92,13 @@ module Inflector
 
   extend self
 
+  # Yields a singleton instance of Inflector::Inflections so you can specify additional
+  # inflector rules.
+  #
+  # Example:
+  #   Inflector.inflections do |inflect|
+  #     inflect.uncountable "rails"
+  #   end
   def inflections
     if block_given?
       yield Inflections.instance

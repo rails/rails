@@ -255,7 +255,7 @@ task :generate_rails_framework_doc do
 end
 
 task :generate_app_doc do
-  File.cp "doc/README_FOR_APP", "#{PKG_DESTINATION}/doc/README_FOR_APP"
+  cp "doc/README_FOR_APP", "#{PKG_DESTINATION}/doc/README_FOR_APP"
   system %{cd #{PKG_DESTINATION}; rake doc:app}
 end
 

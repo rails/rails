@@ -13,7 +13,7 @@ module ActiveRecord
         255
       end
 
-      # Truncates a table alias according to the limits of the current adapter.  
+      # Truncates a table alias according to the limits of the current adapter.
       def table_alias_for(table_name)
         table_name[0..table_alias_length-1].gsub(/\./, '_')
       end
@@ -152,7 +152,7 @@ module ActiveRecord
       #    t.remove :company
       #  end
       #
-      # ====== Remove a column
+      # ====== Remove several columns
       #  change_table(:suppliers) do |t|
       #    t.remove :company_id
       #    t.remove :width, :height
@@ -168,7 +168,7 @@ module ActiveRecord
       def change_table(table_name)
         yield Table.new(table_name, self)
       end
-      
+
       # Renames a table.
       # ===== Example
       #  rename_table('octopuses', 'octopi')
@@ -199,7 +199,7 @@ module ActiveRecord
         end
       end
       alias :remove_columns :remove_column
-      
+
       # Changes the column's definition according to the new options.
       # See TableDefinition#column for details of the options you can use.
       # ===== Examples
@@ -389,7 +389,7 @@ module ActiveRecord
       def distinct(columns, order_by)
         "DISTINCT #{columns}"
       end
-      
+
       # ORDER BY clause for the passed order option.
       # PostgreSQL overrides this due to its stricter standards compliance.
       def add_order_by_for_association_limiting!(sql, options)
@@ -401,17 +401,17 @@ module ActiveRecord
       #  add_timestamps(:suppliers)
       def add_timestamps(table_name)
         add_column table_name, :created_at, :datetime
-        add_column table_name, :updated_at, :datetime    
+        add_column table_name, :updated_at, :datetime
       end
-      
+
       # Removes the timestamp columns (created_at and updated_at) from the table definition.
       # ===== Examples
       #  remove_timestamps(:suppliers)
       def remove_timestamps(table_name)
-        remove_column table_name, :updated_at   
-        remove_column table_name, :created_at       
+        remove_column table_name, :updated_at
+        remove_column table_name, :created_at
       end
-      
+
       protected
         def options_include_default?(options)
           options.include?(:default) && !(options[:null] == false && options[:default].nil?)

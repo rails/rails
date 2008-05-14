@@ -244,11 +244,12 @@ module ActionController
     end
 
     class PathSegment < DynamicSegment #:nodoc:
-      RESERVED_PCHAR = "#{Segment::RESERVED_PCHAR}/"
-      UNSAFE_PCHAR = Regexp.new("[^#{URI::REGEXP::PATTERN::UNRESERVED}#{RESERVED_PCHAR}]", false, 'N').freeze
-
       def interpolation_chunk(value_code = "#{local_name}")
-        "\#{URI.escape(#{value_code}.to_s, ActionController::Routing::PathSegment::UNSAFE_PCHAR)}"
+        "\#{#{value_code}}"
+      end
+
+      def extract_value
+        "#{local_name} = hash[:#{key}] && hash[:#{key}].collect { |path_component| URI.escape(path_component, ActionController::Routing::Segment::UNSAFE_PCHAR) }.to_param #{"|| #{default.inspect}" if default}"
       end
 
       def default
