@@ -197,20 +197,20 @@ end
 #   class FooTest < ActiveSupport::TestCase
 #     self.use_transactional_fixtures = true
 #     self.use_instantiated_fixtures = false
-#   
+#
 #     fixtures :foos
-#   
+#
 #     def test_godzilla
 #       assert !Foo.find(:all).empty?
 #       Foo.destroy_all
 #       assert Foo.find(:all).empty?
 #     end
-#   
+#
 #     def test_godzilla_aftermath
 #       assert !Foo.find(:all).empty?
 #     end
 #   end
-#   
+#
 # If you preload your test database with all fixture data (probably in the Rakefile task) and use transactional fixtures,
 # then you may omit all fixtures declarations in your test cases since all the data's already there and every case rolls back its changes.
 #
@@ -730,7 +730,7 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
       reader.each do |row|
         data = {}
         row.each_with_index { |cell, j| data[header[j].to_s.strip] = cell.to_s.strip }
-        self["#{Inflector::underscore(@class_name)}_#{i+=1}"] = Fixture.new(data, model_class)
+        self["#{@class_name.to_s.underscore}_#{i+=1}"] = Fixture.new(data, model_class)
       end
     end
 
@@ -854,14 +854,14 @@ module Test #:nodoc:
           require_dependency file_name
         rescue LoadError => e
           # Let's hope the developer has included it himself
-          
+
           # Let's warn in case this is a subdependency, otherwise
           # subdependency error messages are totally cryptic
           if ActiveRecord::Base.logger
             ActiveRecord::Base.logger.warn("Unable to load #{file_name}, underlying cause #{e.message} \n\n #{e.backtrace.join("\n")}")
           end
         end
-        
+
         def require_fixture_classes(table_names = nil)
           (table_names || fixture_table_names).each do |table_name|
             file_name = table_name.to_s

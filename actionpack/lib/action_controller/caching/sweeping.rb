@@ -28,7 +28,7 @@ module ActionController #:nodoc:
     #   class ListsController < ApplicationController
     #     caches_action :index, :show, :public, :feed
     #     cache_sweeper OpenBar::Sweeper, :only => [ :edit, :destroy, :share ]
-    #   end    
+    #   end
     module Sweeping
       def self.included(base) #:nodoc:
         base.extend(ClassMethods)
@@ -40,7 +40,7 @@ module ActionController #:nodoc:
 
           sweepers.each do |sweeper|
             ActiveRecord::Base.observers << sweeper if defined?(ActiveRecord) and defined?(ActiveRecord::Base)
-            sweeper_instance = (sweeper.is_a?(Symbol) ? Object.const_get(Inflector.classify(sweeper)) : sweeper).instance
+            sweeper_instance = (sweeper.is_a?(Symbol) ? Object.const_get(sweeper.to_s.classify) : sweeper).instance
 
             if sweeper_instance.is_a?(Sweeper)
               around_filter(sweeper_instance, :only => configuration[:only])
