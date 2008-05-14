@@ -616,6 +616,8 @@ module ActionView
             value != 0
           when String
             value == checked_value
+          when Array
+            value.include?(checked_value)
           else
             value.to_i != 0
           end
