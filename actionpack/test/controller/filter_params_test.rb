@@ -42,8 +42,8 @@ class FilterParamTest < Test::Unit::TestCase
   end
 
   def test_filter_parameters_is_protected
-    FilterParamController.filter_parameter_logging
-    assert !@controller.send!(:action_methods).include?(:filter_parameters)
-    assert (begin @controller.filter_parameters rescue true end)
+    FilterParamController.filter_parameter_logging(:foo)
+    assert !FilterParamController.action_methods.include?('filter_parameters')
+    assert !(begin @controller.filter_parameters([{'foo' => 'bar'}]) rescue false end)
   end
 end
