@@ -43,7 +43,7 @@ class FilterParamTest < Test::Unit::TestCase
 
   def test_filter_parameters_is_protected
     FilterParamController.filter_parameter_logging(:foo)
-    assert !FilterParamController.action_methods.include?(:filter_parameters)
+    assert !FilterParamController.action_methods.include?('filter_parameters')
     assert_raise(NoMethodError) { @controller.filter_parameters([{'password' => '[FILTERED]'}]) }
   end
 end
