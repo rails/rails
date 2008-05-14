@@ -35,7 +35,7 @@ module ActionMailer #:nodoc:
   # * <tt>subject</tt> - The subject of your email. Sets the <tt>Subject:</tt> header.
   # * <tt>from</tt> - Who the email you are sending is from. Sets the <tt>From:</tt> header.
   # * <tt>cc</tt> - Takes one or more email addresses. These addresses will receive a carbon copy of your email. Sets the <tt>Cc:</tt> header.
-  # * <tt>bcc</tt> - Takes one or more email address. These addresses will receive a blind carbon copy of your email. Sets the <tt>Bcc</tt> header.
+  # * <tt>bcc</tt> - Takes one or more email address. These addresses will receive a blind carbon copy of your email. Sets the <tt>Bcc:</tt> header.
   # * <tt>sent_on</tt> - The date on which the message was sent. If not set, the header wil be set by the delivery agent.
   # * <tt>content_type</tt> - Specify the content type of the message. Defaults to <tt>text/plain</tt>.
   # * <tt>headers</tt> - Specify additional headers to be set for the message, e.g. <tt>headers 'X-Mail-Count' => 107370</tt>.
@@ -127,11 +127,11 @@ module ActionMailer #:nodoc:
   #
   #   class MyMailer < ActionMailer::Base
   #     def signup_notification(recipient)
-  #       recipients recipient.email_address_with_name
-  #       subject    "New account information"
-  #       body       "account" => recipient
-  #       from       "system@example.com"
-  #       content_type "text/html"   #    Here's where the magic happens
+  #       recipients   recipient.email_address_with_name
+  #       subject      "New account information"
+  #       from         "system@example.com"
+  #       body         :account => recipient
+  #       content_type "text/html"
   #     end
   #   end  
   #
@@ -145,6 +145,7 @@ module ActionMailer #:nodoc:
   #       recipients      recipient.email_address_with_name
   #       subject         "New account information"
   #       from            "system@example.com"
+  #       content_type    "multipart/alternative"
   #
   #       part :content_type => "text/html",
   #         :body => render_message("signup-as-html", :account => recipient)
@@ -167,9 +168,14 @@ module ActionMailer #:nodoc:
   # * signup_notification.text.x-yaml.erb
   #  
   # Each would be rendered and added as a separate part to the message,
-  # with the corresponding content type. The same body hash is passed to
-  # each template.
+  # with the corresponding content type. The content type for the entire
+  # message is automatically set to <tt>multipart/alternative</tt>, which indicates
+  # that the email contains multiple different representations of the same email
+  # body. The same body hash is passed to each template.
   #
+  # Implicit template rendering is not performed if any attachments or parts have been added to the email.
+  # This means that you'll have to manually add each part to the email and set the content type of the email
+  # to <tt>multipart/alternative</tt>.
   #
   # = Attachments
   #
@@ -210,11 +216,11 @@ module ActionMailer #:nodoc:
   #   * <tt>:user_name</tt> - If your mail server requires authentication, set the username in this setting.
   #   * <tt>:password</tt> - If your mail server requires authentication, set the password in this setting.
   #   * <tt>:authentication</tt> - If your mail server requires authentication, you need to specify the authentication type here. 
-  #     This is a symbol and one of <tt>:plain</tt>, <tt>:login</tt>, <tt>:cram_md5</tt>
+  #     This is a symbol and one of <tt>:plain</tt>, <tt>:login</tt>, <tt>:cram_md5</tt>.
   #
-  # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method
-  #   * <tt>:location</tt> - The location of the sendmail executable, defaults to "/usr/sbin/sendmail"
-  #   * <tt>:arguments</tt> - The command line arguments
+  # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
+  #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
+  #   * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>-i -t</tt>.
   #
   # * <tt>raise_delivery_errors</tt> - Whether or not errors should be raised if the email fails to be delivered.
   #
@@ -227,16 +233,16 @@ module ActionMailer #:nodoc:
   #   for unit and functional testing.
   #
   # * <tt>default_charset</tt> - The default charset used for the body and to encode the subject. Defaults to UTF-8. You can also 
-  #   pick a different charset from inside a method with <tt>@charset</tt>.
+  #   pick a different charset from inside a method with +charset+.
   # * <tt>default_content_type</tt> - The default content type used for the main part of the message. Defaults to "text/plain". You
-  #   can also pick a different content type from inside a method with <tt>@content_type</tt>. 
-  # * <tt>default_mime_version</tt> - The default mime version used for the message. Defaults to "1.0". You
-  #   can also pick a different value from inside a method with <tt>@mime_version</tt>.
+  #   can also pick a different content type from inside a method with +content_type+. 
+  # * <tt>default_mime_version</tt> - The default mime version used for the message. Defaults to <tt>1.0</tt>. You
+  #   can also pick a different value from inside a method with +mime_version+.
   # * <tt>default_implicit_parts_order</tt> - When a message is built implicitly (i.e. multiple parts are assembled from templates
   #   which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to
-  #   ["text/html", "text/enriched", "text/plain"]. Items that appear first in the array have higher priority in the mail client
+  #   <tt>["text/html", "text/enriched", "text/plain"]</tt>. Items that appear first in the array have higher priority in the mail client
   #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
-  #   <tt>@implicit_parts_order</tt>.
+  #   +implicit_parts_order+.
   class Base
     include AdvAttrAccessor, PartContainer
     include ActionController::UrlWriter if Object.const_defined?(:ActionController)
