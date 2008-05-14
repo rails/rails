@@ -23,9 +23,9 @@ class TextHelperTest < ActionView::TestCase
 
     text = "A\r\n  \nB\n\n\r\n\t\nC\nD".freeze
     assert_equal "<p>A\n<br />  \n<br />B</p>\n\n<p>\t\n<br />C\n<br />D</p>", simple_format(text)
-    
+
      assert_equal %q(<p class="test">This is a classy test</p>), simple_format("This is a classy test", :class => 'test')
-     assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", :class => 'test')     
+     assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", :class => 'test')
   end
 
   def test_truncate
@@ -41,7 +41,7 @@ class TextHelperTest < ActionView::TestCase
   if RUBY_VERSION < '1.9.0'
     def test_truncate_multibyte
       with_kcode 'none' do
-        assert_equal "\354\225\210\353\205\225\355...", truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", 10) 
+        assert_equal "\354\225\210\353\205\225\355...", truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", 10)
       end
       with_kcode 'u' do
         assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...",
@@ -73,7 +73,7 @@ class TextHelperTest < ActionView::TestCase
       "This is a <b>beautiful</b> morning, but also a <b>beautiful</b> day",
       highlight("This is a beautiful morning, but also a beautiful day", "beautiful", '<b>\1</b>')
     )
-    
+
     assert_equal(
       "This text is not changed because we supplied an empty phrase",
       highlight("This text is not changed because we supplied an empty phrase", nil)
@@ -166,18 +166,7 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("2 counters", pluralize(2, "count", "counters"))
     assert_equal("0 counters", pluralize(nil, "count", "counters"))
     assert_equal("2 people", pluralize(2, "person"))
-    assert_equal("10 buffaloes", pluralize(10, "buffalo")) 
-  end
-
-  uses_mocha("should_just_add_s_for_pluralize_without_inflector_loaded") do
-    def test_should_just_add_s_for_pluralize_without_inflector_loaded
-      Object.expects(:const_defined?).with("Inflector").times(4).returns(false)
-      assert_equal("1 count", pluralize(1, "count"))
-      assert_equal("2 persons", pluralize(2, "person"))
-      assert_equal("2 personss", pluralize("2", "persons"))
-      assert_equal("2 counts", pluralize(2, "count"))
-      assert_equal("10 buffalos", pluralize(10, "buffalo"))
-    end
+    assert_equal("10 buffaloes", pluralize(10, "buffalo"))
   end
 
   def test_auto_link_parsing
@@ -298,7 +287,7 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("2", value.to_s)
     assert_equal("3", value.to_s)
   end
-  
+
   def test_cycle_class_with_no_arguments
     assert_raise(ArgumentError) { value = Cycle.new() }
   end
@@ -311,11 +300,11 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("2", cycle("one", 2, "3"))
     assert_equal("3", cycle("one", 2, "3"))
   end
-  
+
   def test_cycle_with_no_arguments
     assert_raise(ArgumentError) { value = cycle() }
   end
-  
+
   def test_cycle_resets_with_new_values
     assert_equal("even", cycle("even", "odd"))
     assert_equal("odd", cycle("even", "odd"))
@@ -325,7 +314,7 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("3", cycle(1, 2, 3))
     assert_equal("1", cycle(1, 2, 3))
   end
-  
+
   def test_named_cycles
     assert_equal("1", cycle(1, 2, 3, :name => "numbers"))
     assert_equal("red", cycle("red", "blue", :name => "colors"))
@@ -334,24 +323,24 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("3", cycle(1, 2, 3, :name => "numbers"))
     assert_equal("red", cycle("red", "blue", :name => "colors"))
   end
-  
+
   def test_default_named_cycle
     assert_equal("1", cycle(1, 2, 3))
     assert_equal("2", cycle(1, 2, 3, :name => "default"))
     assert_equal("3", cycle(1, 2, 3))
   end
-  
+
   def test_reset_cycle
     assert_equal("1", cycle(1, 2, 3))
     assert_equal("2", cycle(1, 2, 3))
     reset_cycle
     assert_equal("1", cycle(1, 2, 3))
   end
-  
+
   def test_reset_unknown_cycle
     reset_cycle("colors")
   end
-  
+
   def test_recet_named_cycle
     assert_equal("1", cycle(1, 2, 3, :name => "numbers"))
     assert_equal("red", cycle("red", "blue", :name => "colors"))
@@ -361,7 +350,7 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("2", cycle(1, 2, 3, :name => "numbers"))
     assert_equal("red", cycle("red", "blue", :name => "colors"))
   end
-  
+
   def test_cycle_no_instance_variable_clashes
     @cycles = %w{Specialized Fuji Giant}
     assert_equal("red", cycle("red", "blue"))
