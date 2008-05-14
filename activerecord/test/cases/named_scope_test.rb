@@ -6,7 +6,7 @@ require 'models/reply'
 require 'models/author'
 
 class NamedScopeTest < ActiveRecord::TestCase
-  fixtures :posts, :authors, :topics
+  fixtures :posts, :authors, :topics, :comments
 
   def test_implements_enumerable
     assert !Topic.find(:all).empty?
@@ -95,7 +95,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_associations_have_access_to_named_scopes
-    assert_not_equal Comment.containing_the_letter_e, authors(:david).posts
+    assert_not_equal Comment.containing_the_letter_e, authors(:david).comments
     assert !Comment.containing_the_letter_e.empty?
 
     assert_equal authors(:david).comments & Comment.containing_the_letter_e, authors(:david).comments.containing_the_letter_e
