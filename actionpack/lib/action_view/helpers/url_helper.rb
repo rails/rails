@@ -120,9 +120,9 @@ module ActionView
       # exception.
       #
       # ==== Examples
-      # Because it relies on url_for, link_to supports both older-style controller/action/id arguments
-      # and newer RESTful routes.  Current Rails style favors
-      # RESTful routes whenever possible, so use 
+      # Because it relies on +url_for+, +link_to+ supports both older-style controller/action/id arguments
+      # and newer RESTful routes.  Current Rails style favors RESTful routes whenever possible, so base
+      # your application on resources and use
       #
       #   link_to "Profile", profile_path(@profile)
       #   # => <a href="/profiles/1">Profile</a>
@@ -132,9 +132,9 @@ module ActionView
       #   link_to "Profile", @profile
       #   # => <a href="/profiles/1">Profile</a>
       #
-      # in place of the more verbose
+      # in place of the older more verbose, non-resource-oriented
       #
-      #   link_to "Profile", :controller => "profiles", :action => "show", :id => @profile.id
+      #   link_to "Profile", :controller => "profiles", :action => "show", :id => @profile
       #   # => <a href="/profiles/show/1">Profile</a>
       # 
       # Similarly, 
@@ -162,7 +162,7 @@ module ActionView
       #   link_to "WRONG!", :controller => "articles", :id => "news", :class => "article"
       #   # => <a href="/articles/index/news?class=article">WRONG!</a>
       #
-      # link_to can also produce links with anchors or query strings:
+      # +link_to+ can also produce links with anchors or query strings:
       #
       #   link_to "Comment wall", profile_path(@profile, :anchor => "wall")
       #   # => <a href="/profiles/1#wall">Comment wall</a>
@@ -173,7 +173,7 @@ module ActionView
       #   link_to "Nonsense search", searches_path(:foo => "bar", :baz => "quux")
       #   # => <a href="/searches?foo=bar&amp;baz=quux">Nonsense search</a>
       #
-      # The three options specfic to link_to (<tt>confirm</tt>, <tt>popup</tt>, and <tt>method</tt>) are used as follows:
+      # The three options specfic to +link_to+ (<tt>:confirm</tt>, <tt>:popup</tt>, and <tt>:method</tt>) are used as follows:
       #
       #   link_to "Visit Other Site", "http://www.rubyonrails.org/", :confirm => "Are you sure?"
       #   # => <a href="http://www.rubyonrails.org/" onclick="return confirm('Are you sure?');">Visit Other Site</a>
