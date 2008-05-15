@@ -15,7 +15,7 @@ module Arel
     end
     
     def selects
-      relation.selects + [predicate]
+      (relation.selects + [predicate]).collect { |p| p.bind(self) }
     end    
   end
 end

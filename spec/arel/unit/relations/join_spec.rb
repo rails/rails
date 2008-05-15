@@ -56,14 +56,13 @@ module Arel
           ")
         end
 
-        it 'manufactures sql joining the two tables, merging any selects' do
+        it 'manufactures sql joining the two tables, with selects from the right table in the ON clause' do
           Join.new("INNER JOIN", @relation1.select(@relation1[:id].eq(1)),
                                  @relation2.select(@relation2[:id].eq(2)), @predicate).to_sql.should be_like("
             SELECT `users`.`id`, `users`.`name`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
             FROM `users`
-              INNER JOIN `photos` ON `users`.`id` = `photos`.`user_id`
+              INNER JOIN `photos` ON `users`.`id` = `photos`.`user_id` AND `photos`.`id` = 2
             WHERE `users`.`id` = 1
-              AND `photos`.`id` = 2
           ")
         end
       end
@@ -158,9 +157,23 @@ module Arel
               SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
               FROM `users`
                 INNER JOIN `users` AS `users_2`
-                  ON `users`.`id` = `users_2`.`id`
-              WHERE `users_2`.`id` = 1
+                  ON `users`.`id` = `users_2`.`id` AND `users_2`.`id` = 1
             ")
+          end
+          
+          describe 'when the selection occurs before the alias' do
+            it 'manufactures sql aliasing the predicates properly' do
+              aliased_relation = @relation1.select(@relation1[:id].eq(1)).alias
+              @relation1                                          \
+                .join(aliased_relation)                           \
+                  .on(aliased_relation[:id].eq(@relation1[:id])) \
+              .to_sql.should be_like("
+                SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
+                FROM `users`
+                INNER JOIN `users` AS `users_2`
+                  ON `users_2`.`id` = `users`.`id` AND `users_2`.`id` = 1
+              ")
+            end
           end
         end
         

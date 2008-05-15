@@ -47,11 +47,7 @@ module Arel
 
     module Transformations
       def self.included(klass)
-        alias_method :eql?, :==
-      end
-      
-      def hash
-        name.hash + history.size.hash
+        klass.hash_on :name
       end
       
       def as(aliaz = nil)
@@ -70,7 +66,7 @@ module Arel
     
     module Congruence
       def history
-        @history ||= [self] + (ancestor ? [ancestor, ancestor.history].flatten : [])
+        @history ||= [self] + (ancestor ? ancestor.history : [])
       end
       
       def match?(other)

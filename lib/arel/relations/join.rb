@@ -21,7 +21,7 @@ module Arel
         join_sql,
         externalize(relation2).table_sql(formatter),
         ("ON" unless predicates.blank?),
-        predicates.collect { |p| p.bind(environment).to_sql }.join(' AND ')
+        (predicates + externalize(relation2).selects).collect { |p| p.bind(environment).to_sql }.join(' AND ')
       ].compact.join(" ")
       [relation1.joins(environment), this_join, relation2.joins(environment)].compact.join(" ")
     end
@@ -32,7 +32,7 @@ module Arel
     end
     
     def selects
-      (externalize(relation1).selects + externalize(relation2).selects).collect { |s| s.bind(self) }
+      (externalize(relation1).selects).collect { |s| s.bind(self) }
     end
    
     def table
