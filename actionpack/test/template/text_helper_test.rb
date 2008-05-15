@@ -167,6 +167,8 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("0 counters", pluralize(nil, "count", "counters"))
     assert_equal("2 people", pluralize(2, "person"))
     assert_equal("10 buffaloes", pluralize(10, "buffalo"))
+    assert_equal("1 berry", pluralize(1, "berry"))
+    assert_equal("12 berries", pluralize(12, "berry"))
   end
 
   def test_auto_link_parsing
