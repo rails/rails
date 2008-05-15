@@ -82,6 +82,7 @@ class CookieTest < Test::Unit::TestCase
   def test_expiring_cookie
     get :logout
     assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "", "expires" => Time.at(0)) ], @response.headers["cookie"]
+    assert_equal CGI::Cookie::new("name" => "user_name", "value" => "", "expires" => Time.at(0)).value, []
   end  
   
   def test_cookiejar_accessor
@@ -136,5 +137,10 @@ class CookieTest < Test::Unit::TestCase
   def test_cookies_should_not_be_split_on_ampersand_values
     cookies = CGI::Cookie.parse('return_to=http://rubyonrails.org/search?term=api&scope=all&global=true')
     assert_equal({"return_to" => ["http://rubyonrails.org/search?term=api&scope=all&global=true"]}, cookies)
+  end
+
+  def test_cookies_should_not_be_split_on_values_with_newlines
+    cookies = CGI::Cookie.new("name" => "val", "value" => "this\nis\na\ntest")
+    assert cookies.size == 1
   end
 end

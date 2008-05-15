@@ -15,6 +15,10 @@ class Company < AbstractCompany
   end
 end
 
+module Namespaced
+  class Company < ::Company
+  end
+end
 
 class Firm < Company
   has_many :clients, :order => "id", :dependent => :destroy, :counter_sql =>

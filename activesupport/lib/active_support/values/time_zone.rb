@@ -325,6 +325,9 @@ class TimeZone
     ZONES.sort!
     ZONES.freeze
     ZONES_MAP.freeze
+
+    US_ZONES = ZONES.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
+    US_ZONES.freeze
   end
 
   class << self
@@ -361,14 +364,10 @@ class TimeZone
       end
     end
 
-    # A regular expression that matches the names of all time zones in
-    # the USA.
-    US_ZONES = /US|Arizona|Indiana|Hawaii|Alaska/.freeze
-
     # A convenience method for returning a collection of TimeZone objects
     # for time zones in the USA.
     def us_zones
-      all.find_all { |z| z.name =~ US_ZONES }
+      US_ZONES
     end
   end
 end
