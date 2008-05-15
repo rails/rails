@@ -1451,9 +1451,6 @@ module ActiveRecord
             join_dependency.joins_for_table_name(table)
           }.flatten.compact.uniq
 
-
-
-
           is_distinct = !options[:joins].blank? || include_eager_conditions?(options, tables_from_conditions) || include_eager_order?(options, tables_from_order)
           sql = "SELECT "
           if is_distinct
@@ -1507,29 +1504,17 @@ module ActiveRecord
         end
 
         # Checks if the conditions reference a table other than the current model table
-        def include_eager_conditions?(options,tables = nil)
-          tables = conditions_tables(options)
-          return false unless tables.any?
-          tables.any? do |condition_table_name|
-            condition_table_name != table_name
-          end
+        def include_eager_conditions?(options, tables = nil)
+          ((tables || conditions_tables(options)) - [table_name]).any?
         end
 
         # Checks if the query order references a table other than the current model's table.
-        def include_eager_order?(options,tables = nil)
-          tables = order_tables(options)
-          return false unless tables.any?
-          tables.any? do |order_table_name|
-            order_table_name != table_name
-          end
+        def include_eager_order?(options, tables = nil)
+          ((tables || order_tables(options)) - [table_name]).any?
         end
 
         def include_eager_select?(options)
-          selects = selects_tables(options)
-          return false unless selects.any?
-          selects.any? do |select|
-            select != table_name
-          end
+          (selects_tables(options) - [table_name]).any?
         end
 
         def references_eager_loaded_tables?(options)

@@ -9,6 +9,7 @@ require 'models/developer'
 require 'models/post'
 require 'models/customer'
 require 'models/job'
+require 'models/categorization'
 
 class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers
@@ -866,7 +867,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_with_limiting_with_custom_select
-    assert_equal 3, Post.find(:all, :include => :author, :select => ' posts.*, authors.id as "author_id"', :limit => 3).size
+    posts = Post.find(:all, :include => :author, :select => ' posts.*, authors.id as "author_id"', :limit => 3)
+    assert_equal 3, posts.size
+    assert_equal [0, 1, 1], posts.map(&:author_id).sort
   end
 
   protected
