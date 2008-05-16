@@ -37,16 +37,9 @@ module Arel
       ancestor    == other.ancestor
     end
 
-    module Origin
-      def original_relation
-        relation.relation_for(self)
-      end
-    
-      def original_attribute
-        original_relation[self]
-      end
+    def original_relation
+      relation.relation_for(self)
     end
-    include Origin
 
     module Transformations
       def self.included(klass)
@@ -74,6 +67,18 @@ module Arel
       
       def match?(other)
         !(history & other.history).empty?
+      end
+      
+      def descends_from?(other)
+        history.include?(other)
+      end
+      
+      def root?
+        relation.root?
+      end
+      
+      def root
+        @root ||= history.detect(&:root?)
       end
       
       def /(other)
