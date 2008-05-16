@@ -98,7 +98,7 @@ module Arel
           end
           
           describe 'when the left relation is compound' do
-            it '' do
+            it 'disambiguates the relation that serves as the ancestor to the attribute' do
               relation = @relation1           \
                           .select(@predicate) \
                           .select(@predicate) \
@@ -110,7 +110,7 @@ module Arel
           end
           
           describe 'when the right relation is compound' do
-            it '' do
+            it 'disambiguates the relation that serves as the ancestor to the attribute' do
               relation = @relation1                 \
                           .join(                    \
                             @relation2              \
