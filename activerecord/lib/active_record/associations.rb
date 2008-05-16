@@ -753,6 +753,8 @@ module ActiveRecord
       # * <tt>:source</tt> - Specifies the source association name used by <tt>has_one :through</tt> queries.  Only use it if the name cannot be
       #   inferred from the association.  <tt>has_one :favorite, :through => :favorites</tt> will look for a
       #   <tt>:favorite</tt> on Favorite, unless a <tt>:source</tt> is given.      
+      # * <tt>:source_type</tt> - Specifies type of the source association used by <tt>has_one :through</tt> queries where the source
+      #   association is a polymorphic +belongs_to+.      
       # * <tt>:readonly</tt> - If true, the associated object is readonly through the association.
       #
       # Option examples:
