@@ -4,17 +4,17 @@ module BeLikeMatcher
       @expected = expected
     end
     
-    def matches?(target)
-      @target = target
-      @expected.gsub(/\s+/, ' ').strip == @target.gsub(/\s+/, ' ').strip
+    def matches?(actual)
+      @actual = actual
+      @expected.gsub(/\s+/, ' ').strip == @actual.gsub(/\s+/, ' ').strip
     end
     
     def failure_message
-      "expected #{@target} to be like #{@expected}"
+      "expected #{@actual} to be like #{@expected}"
     end
     
     def negative_failure_message
-      "expected #{@target} to be unlike #{@expected}"
+      "expected #{@actual} to be unlike #{@expected}"
     end
   end
   

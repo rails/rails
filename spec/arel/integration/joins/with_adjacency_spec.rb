@@ -92,33 +92,33 @@ module Arel
       describe '[]' do
         describe 'when given an attribute belonging to both sub-relations' do
           it 'disambiguates the relation that serves as the ancestor to the attribute' do
-            relation = @relation1.join(@relation2).on(@predicate)
-            relation[@relation1[:id]].ancestor.should == @relation1[:id]
-            relation[@relation2[:id]].ancestor.should == @relation2[:id]
+            @relation1          \
+              .join(@relation2) \
+                .on(@predicate) \
+            .should disambiguate_attributes(@relation1[:id], @relation2[:id])
           end
           
-          describe 'when the left relation is compound' do
+          describe 'when the left relation is extremely compound' do
             it 'disambiguates the relation that serves as the ancestor to the attribute' do
-              relation = @relation1           \
-                          .select(@predicate) \
-                          .select(@predicate) \
-                          .join(@relation2)   \
-                            .on(@predicate)
-              relation[@relation1[:id]].should be_descends_from(@relation1[:id])
-              relation[@relation1[:id]].should_not be_descends_from(@relation2[:id])
+              @relation1            \
+                .select(@predicate) \
+                .select(@predicate) \
+                .join(@relation2)   \
+                  .on(@predicate)   \
+              .should disambiguate_attributes(@relation1[:id], @relation2[:id])
             end
           end
           
-          describe 'when the right relation is compound' do
+          describe 'when the right relation is extremely compound' do
             it 'disambiguates the relation that serves as the ancestor to the attribute' do
-              relation = @relation1                 \
-                          .join(                    \
-                            @relation2              \
-                              .select(@predicate)   \
-                              .select(@predicate)   \
-                              .select(@predicate))  \
-                            .on(@predicate)
-              relation[@relation2[:id]].should be_descends_from(@relation2[:id])
+              @relation1                  \
+                .join(                    \
+                  @relation2              \
+                    .select(@predicate)   \
+                    .select(@predicate)   \
+                    .select(@predicate))  \
+                  .on(@predicate)         \
+              .should disambiguate_attributes(@relation1[:id], @relation2[:id])
             end
           end
         end

@@ -12,7 +12,7 @@ require 'arel'
 end
 
 Spec::Runner.configure do |config|  
-  config.include(BeLikeMatcher, HashTheSameAsMatcher)
+  config.include(BeLikeMatcher, HashTheSameAsMatcher, DisambiguateAttributesMatcher)
   config.mock_with :rr
   config.before do
     Arel::Table.engine = Arel::Engine.new(Fake::Engine.new)
