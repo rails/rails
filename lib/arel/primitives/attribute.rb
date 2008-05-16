@@ -20,17 +20,9 @@ module Arel
     def column
       original_relation.column_for(self)
     end
-    
-    def original_relation
-      relation.relation_for(self)
-    end
-    
-    def original_attribute
-      original_relation[self]
-    end
-
+        
     def format(object)
-      object.to_sql(formatter)
+      object.to_sql(Sql::Attribute.new(self))
     end
 
     def to_sql(formatter = Sql::WhereCondition.new(relation))
@@ -44,6 +36,17 @@ module Arel
       relation    == other.relation  and
       ancestor    == other.ancestor
     end
+
+    module Origin
+      def original_relation
+        relation.relation_for(self)
+      end
+    
+      def original_attribute
+        original_relation[self]
+      end
+    end
+    include Origin
 
     module Transformations
       def self.included(klass)
@@ -134,10 +137,5 @@ module Arel
       end
     end
     include Expressions
-    
-    private
-    def formatter
-      Sql::Attribute.new(self)
-    end
   end
 end

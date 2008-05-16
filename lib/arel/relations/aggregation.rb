@@ -22,4 +22,10 @@ module Arel
       self.class == other.class and self.relation == other.relation
     end
   end
+  
+  class Relation
+    def externalize
+      aggregation?? Aggregation.new(self) : self
+    end
+  end
 end

@@ -1,5 +1,6 @@
 module Arel
   class Nil < Relation
+    # XXX
     include Recursion::BaseCase
     
     def table_sql(formatter = nil); '' end

@@ -20,17 +20,17 @@ module Arel
       self[attribute] and columns.detect { |c| c.name == attribute.name.to_s }
     end
     
-    def ==(other)
-      self.class == other.class and
-      name       == other.name
-    end
-    
     def columns
       @columns ||= engine.columns(name, "#{name} Columns")
     end
     
     def reset
       @attributes = @columns = nil
+    end
+    
+    def ==(other)
+      self.class == other.class and
+      name       == other.name
     end
   end
 end

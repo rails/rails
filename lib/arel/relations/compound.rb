@@ -11,6 +11,7 @@ module Arel
       @attributes ||= relation.attributes.collect { |a| a.bind(self) }
     end
     
+    # XXX
     def relation_for(attribute)
       join? && relation.relation_for(attribute) || self[attribute] && self
     end

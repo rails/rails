@@ -22,7 +22,7 @@ module Arel
         describe 'when joining with a selection on the same relation' do
           it 'manufactures sql aliasing the tables properly' do
             @relation1                                                      \
-              .join(@relation2.select(@relation2[:id].eq(1))) \
+              .join(@relation2.select(@relation2[:id].eq(1)))               \
                 .on(@predicate)                                             \
             .to_sql.should be_like("
               SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
@@ -35,8 +35,8 @@ module Arel
           describe 'when the selection occurs before the alias' do
             it 'manufactures sql aliasing the predicates properly' do
               relation2 = @relation1.select(@relation1[:id].eq(1)).alias
-              @relation1                                          \
-                .join(relation2)                           \
+              @relation1                                  \
+                .join(relation2)                          \
                   .on(relation2[:id].eq(@relation1[:id])) \
               .to_sql.should be_like("
                 SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
@@ -55,8 +55,10 @@ module Arel
           
           describe 'when joining left-associatively' do
             it 'manufactures sql aliasing the tables properly' do
-              @relation1 \
-                .join(@relation2.join(@relation3).on(@relation2[:id].eq(@relation3[:id]))) \
+              @relation1                                      \
+                .join(@relation2                              \
+                  .join(@relation3)                           \
+                    .on(@relation2[:id].eq(@relation3[:id]))) \
                   .on(@relation1[:id].eq(@relation2[:id]))                                 \
               .to_sql.should be_like("
                 SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`, `users_3`.`id`, `users_3`.`name`

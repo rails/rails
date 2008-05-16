@@ -16,51 +16,48 @@ module Arel
       )
     end
     
+    def table_sql(formatter = Sql::TableReference.new(self))
+      relation1.externalize.table_sql(formatter)
+    end
+    
     def joins(environment, formatter = Sql::TableReference.new(environment))
       this_join = [
         join_sql,
-        externalize(relation2).table_sql(formatter),
+        relation2.externalize.table_sql(formatter),
         ("ON" unless predicates.blank?),
-        (predicates + externalize(relation2).selects).collect { |p| p.bind(environment).to_sql }.join(' AND ')
+        (predicates + relation2.externalize.selects).collect { |p| p.bind(environment).to_sql }.join(' AND ')
       ].compact.join(" ")
       [relation1.joins(environment), this_join, relation2.joins(environment)].compact.join(" ")
     end
 
     def attributes
-      @attributes ||= (externalize(relation1).attributes +
-        externalize(relation2).attributes).collect { |a| a.bind(self) }
+      @attributes ||= (relation1.externalize.attributes +
+        relation2.externalize.attributes).collect { |a| a.bind(self) }
     end
     
+    # XXX
     def selects
-      (externalize(relation1).selects).collect { |s| s.bind(self) }
-    end
-   
-    def table_sql(formatter = Sql::TableReference.new(self))
-      externalize(relation1).table_sql(formatter)
+      (relation1.externalize.selects).collect { |s| s.bind(self) }
     end
     
+    # XXX
     def relation_for(attribute)
       [
-        externalize(relation1).relation_for(attribute),
-        externalize(relation2).relation_for(attribute)
+        relation1.externalize.relation_for(attribute),
+        relation2.externalize.relation_for(attribute)
       ].max do |r1, r2|
         a1, a2 = r1 && r1[attribute], r2 && r2[attribute]
         attribute / a1 <=> attribute / a2
       end
     end
     
+    # TESTME
     def aggregation?
       relation1.aggregation? or relation2.aggregation?
     end
     
     def join?
       true
-    end
-    
-    private
-    # FIXME - make instance method
-    def externalize(relation)
-      relation.aggregation?? Aggregation.new(relation) : relation
     end
   end
 end

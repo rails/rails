@@ -55,7 +55,7 @@ module Arel
   end
 
   class Match < Binary
-    alias_method :regexp, :operand2
+    def predicate_sql; 'LIKE' end
   end
   
   class In < Binary
