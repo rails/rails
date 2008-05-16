@@ -710,8 +710,7 @@ module ActiveRecord #:nodoc:
       # ==== Attributes
       #
       # * +updates+ - A String of column and value pairs that will be set on any records that match conditions.
-      # * +conditions+ - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
-      #   See conditions in the intro for more info.
+      # * +conditions+ - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro for more info.
       # * +options+ - Additional options are <tt>:limit</tt> and/or <tt>:order</tt>, see the examples for usage.
       #
       # ==== Examples
