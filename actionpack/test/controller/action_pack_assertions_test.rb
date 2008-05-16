@@ -131,6 +131,10 @@ class AssertResponseWithUnexpectedErrorController < ActionController::Base
   def index
     raise 'FAIL'
   end
+
+  def show
+    render :text => "Boom", :status => 500
+  end
 end
 
 module Admin
@@ -482,6 +486,16 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     flunk 'Expected non-success response'
   rescue Test::Unit::AssertionFailedError => e
     assert e.message.include?('FAIL')
+  end
+
+  def test_assert_response_failure_response_with_no_exception
+    @controller = AssertResponseWithUnexpectedErrorController.new
+    get :show
+    assert_response :success
+    flunk 'Expected non-success response'
+  rescue Test::Unit::AssertionFailedError
+  rescue
+    flunk "assert_response failed to handle failure response with missing, but optional, exception."
   end
 end
 
