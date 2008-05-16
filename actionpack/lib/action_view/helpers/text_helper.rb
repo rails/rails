@@ -454,7 +454,7 @@ module ActionView
                         (                          # leading text
                           <\w+.*?>|                # leading HTML tag, or
                           [^=!:'"/]|               # leading punctuation, or
-                          ^                        # beginning of line
+                          |                        # nothing
                         )
                         (
                           (?:https?://)|           # protocol spec, or

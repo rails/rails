@@ -50,6 +50,13 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
                 :additional => ["add#{@segment}itional-1", "add#{@segment}itional-2"] }
     assert_equal options, @set.recognize_path("/controller/act#{@escaped}ion/var#{@escaped}iable/add#{@escaped}itional-1/add#{@escaped}itional-2")
   end
+
+  def test_route_generation_allows_passing_non_string_values_to_generated_helper
+    assert_equal "/controller/action/variable/1/2", @set.generate(:controller => "controller",
+                                                                  :action => "action",
+                                                                  :variable => "variable",
+                                                                  :additional => [1, 2])
+  end
 end
 
 class LegacyRouteSetTests < Test::Unit::TestCase

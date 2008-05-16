@@ -262,6 +262,7 @@ class TextHelperTest < ActionView::TestCase
     assert_equal email2_result, auto_link(email2_raw)
     assert_equal '', auto_link(nil)
     assert_equal '', auto_link('')
+    assert_equal "#{link_result} #{link_result} #{link_result}", auto_link("#{link_raw} #{link_raw} #{link_raw}")
   end
 
   def test_auto_link_at_eol
