@@ -40,10 +40,11 @@ when "mysql"
   exec(find_cmd('mysql5', 'mysql'), *args)
 
 when "postgresql"
+  ENV['PGUSER']     = config["username"] if config["username"]
   ENV['PGHOST']     = config["host"] if config["host"]
   ENV['PGPORT']     = config["port"].to_s if config["port"]
   ENV['PGPASSWORD'] = config["password"].to_s if config["password"]
-  exec(find_cmd('psql'), '-U', config["username"], config["database"])
+  exec(find_cmd('psql'), config["database"])
 
 when "sqlite"
   exec(find_cmd('sqlite'), config["database"])
