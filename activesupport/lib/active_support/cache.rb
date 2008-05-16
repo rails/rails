@@ -87,8 +87,12 @@ module ActiveSupport
 
       def delete_matched(matcher, options = nil)
         log("delete matched", matcher.inspect, options)
-      end       
-      
+      end
+
+      def exist?(key, options = nil)
+        log("exist?", key, options)
+      end
+
       def increment(key, amount = 1)
         log("incrementing", key, amount)
         if num = read(key)

@@ -98,6 +98,17 @@ module ActionController #:nodoc:
         end
       end
 
+      # Check if a cached fragment from the location signified by <tt>key</tt> exists (see <tt>expire_fragment</tt> for acceptable formats)
+      def fragment_exist?(key, options = nil)
+        return unless cache_configured?
+
+        key = fragment_cache_key(key)
+
+        self.class.benchmark "Cached fragment exists?: #{key}" do
+          cache_store.exist?(key, options)
+        end
+      end
+
       # Name can take one of three forms:
       # * String: This would normally take the form of a path like "pages/45/notes"
       # * Hash: Is treated as an implicit call to url_for, like { :controller => "pages", :action => "notes", :id => 45 }
