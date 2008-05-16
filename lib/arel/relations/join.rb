@@ -49,16 +49,18 @@ module Arel
       end
     end
     
+    def aggregation?
+      relation1.aggregation? or relation2.aggregation?
+    end
+    
+    def join?
+      true
+    end
+    
     private
     # FIXME - make instance method
     def externalize(relation)
       relation.aggregation?? Aggregation.new(relation) : relation
-    end
-  end
-  
-  class Relation
-    def relation_for(attribute)
-      self[attribute] && self
     end
   end
 end

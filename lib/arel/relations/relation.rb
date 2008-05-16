@@ -39,10 +39,6 @@ module Arel
       @christener ||= Sql::Christener.new
     end
     
-    def aggregation?
-      false
-    end
-    
     module Enumerable
       include ::Enumerable
 

@@ -1,6 +1,7 @@
 module Arel
   class Nil < Relation
-    def table; self end
+    include Recursion::BaseCase
+    
     def table_sql(formatter = nil); '' end
     def relation_for(attribute); nil end
     def name; '' end
