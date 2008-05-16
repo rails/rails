@@ -145,7 +145,9 @@ and also on programming in general.
 
 Debugger support is available through the debugger command when you start your Mongrel or
 Webrick server with --debugger. This means that you can break out of execution at any point
-in the code, investigate and change the model, AND then resume execution! Example:
+in the code, investigate and change the model, AND then resume execution! 
+You need to install ruby-debug to run the server in debugging mode. With gems, use 'gem install ruby-debug'
+Example:
 
   class WeblogController < ActionController::Base
     def index
@@ -183,6 +185,13 @@ Passing an argument will specify a different environment, like <tt>script/consol
 
 To reload your controllers and models after launching the console run <tt>reload!</tt>
 
+== dbconsole
+
+You can go to the command line of your database directly through <tt>script/dbconsole</tt>.
+You would be connected to the database with the credentials defined in database.yml.
+Starting the script without arguments will connect you to the development database. Passing an
+argument will connect you to a different database, like <tt>script/dbconsole production</tt>.
+Currently works for mysql, postgresql and sqlite.
 
 == Description of Contents
 
@@ -200,13 +209,13 @@ app/models
 
 app/views
   Holds the template files for the view that should be named like
-  weblogs/index.erb for the WeblogsController#index action. All views use eRuby
+  weblogs/index.html.erb for the WeblogsController#index action. All views use eRuby
   syntax.
 
 app/views/layouts
   Holds the template files for layouts to be used with views. This models the common
   header/footer method of wrapping views. In your views, define a layout using the
-  <tt>layout :default</tt> and create a file named default.erb. Inside default.erb,
+  <tt>layout :default</tt> and create a file named default.html.erb. Inside default.html.erb,
   call <% yield %> to render the view using this layout.
 
 app/helpers
@@ -243,4 +252,5 @@ test
 
 vendor
   External libraries that the application depends on. Also includes the plugins subdirectory.
+  If the app has frozen rails, those gems also go here, under vendor/rails/.
   This directory is in the load path.

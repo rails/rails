@@ -19,8 +19,7 @@ are all set up this way. An example of such a method:
     recipients recipient
     subject    "[Signed up] Welcome #{recipient}"
     from       "system@loudthinking.com"
-
-    body(:recipient => recipient)
+    body       :recipient => recipient
   end
 
 The body of the email is created by using an Action View template (regular
@@ -78,21 +77,26 @@ Example:
     end
   end
 
-This Mailman can be the target for Postfix. In Rails, you would use the runner like this:
+This Mailman can be the target for Postfix or other MTAs. In Rails, you would use the runner in the 
+trivial case like this:
 
   ./script/runner 'Mailman.receive(STDIN.read)'
+
+However, invoking Rails in the runner for each mail to be received is very resource intensive.  A single 
+instance of Rails should be run within a daemon if it is going to be utilized to process more than just 
+a limited number of email.
 
 == Configuration
 
 The Base class has the full list of configuration options. Here's an example:
 
-ActionMailer::Base.smtp_settings = {
-  :address=>'smtp.yourserver.com',    # default: localhost
-  :port=>'25',                        # default: 25
-  :user_name=>'user',
-  :password=>'pass',
-  :authentication=>:plain             # :plain, :login or :cram_md5
-}
+  ActionMailer::Base.smtp_settings = {
+    :address        => 'smtp.yourserver.com', # default: localhost
+    :port           => '25',                  # default: 25
+    :user_name      => 'user',
+    :password       => 'pass',
+    :authentication => :plain                 # :plain, :login or :cram_md5
+  }
 
 == Dependencies
 

@@ -16,16 +16,20 @@ module ActiveRecord
 
     # Declare and check for suffixed attribute methods.
     module ClassMethods
-      # Declare a method available for all attributes with the given suffix.
-      # Uses method_missing and respond_to? to rewrite the method
+      # Declares a method available for all attributes with the given suffix.
+      # Uses +method_missing+ and <tt>respond_to?</tt> to rewrite the method
+      #
       #   #{attr}#{suffix}(*args, &block)
+      #
       # to
+      #
       #   attribute#{suffix}(#{attr}, *args, &block)
       #
-      # An attribute#{suffix} instance method must exist and accept at least
-      # the attr argument.
+      # An <tt>attribute#{suffix}</tt> instance method must exist and accept at least
+      # the +attr+ argument.
       #
       # For example:
+      #
       #   class Person < ActiveRecord::Base
       #     attribute_method_suffix '_changed?'
       #
@@ -60,8 +64,8 @@ module ActiveRecord
         !generated_methods.empty?
       end
       
-      # generates all the attribute related methods for columns in the database
-      # accessors, mutators and query methods
+      # Generates all the attribute related methods for columns in the database
+      # accessors, mutators and query methods.
       def define_attribute_methods
         return if generated_methods?
         columns_hash.each do |name, column|
@@ -89,8 +93,9 @@ module ActiveRecord
         end
       end
 
-      # Check to see if the method is defined in the model or any of its subclasses that also derive from ActiveRecord.
-      # Raise DangerousAttributeError if the method is defined by ActiveRecord though.
+      # Checks whether the method is defined in the model or any of its subclasses
+      # that also derive from ActiveRecord. Raises DangerousAttributeError if the
+      # method is defined by Active Record though.
       def instance_method_already_implemented?(method_name)
         method_name = method_name.to_s
         return true if method_name =~ /^id(=$|\?$|$)/
@@ -104,17 +109,19 @@ module ActiveRecord
 
       # +cache_attributes+ allows you to declare which converted attribute values should
       # be cached. Usually caching only pays off for attributes with expensive conversion
-      # methods, like date columns (e.g. created_at, updated_at).
+      # methods, like time related columns (e.g. +created_at+, +updated_at+).
       def cache_attributes(*attribute_names)
         attribute_names.each {|attr| cached_attributes << attr.to_s}
       end
 
-      # returns the attributes where
+      # Returns the attributes which are cached. By default time related columns
+      # with datatype <tt>:datetime, :timestamp, :time, :date</tt> are cached.
       def cached_attributes
         @cached_attributes ||=
           columns.select{|c| attribute_types_cached_by_default.include?(c.type)}.map(&:name).to_set
       end
 
+      # Returns +true+ if the provided attribute is being cached.
       def cache_attribute?(attr_name)
         cached_attributes.include?(attr_name)
       end
@@ -210,14 +217,14 @@ module ActiveRecord
     end #  ClassMethods
 
 
-    # Allows access to the object attributes, which are held in the @attributes hash, as though they
+    # Allows access to the object attributes, which are held in the <tt>@attributes</tt> hash, as though they
     # were first-class methods. So a Person class with a name attribute can use Person#name and
     # Person#name= and never directly use the attributes hash -- except for multiple assigns with
     # ActiveRecord#attributes=. A Milestone class can also ask Milestone#completed? to test that
-    # the completed attribute is not nil or 0.
+    # the completed attribute is not +nil+ or 0.
     #
     # It's also possible to instantiate related objects, so a Client class belonging to the clients
-    # table with a master_id foreign key can instantiate master through Client#master.
+    # table with a +master_id+ foreign key can instantiate master through Client#master.
     def method_missing(method_id, *args, &block)
       method_name = method_id.to_s
 
@@ -288,7 +295,7 @@ module ActiveRecord
   
 
     # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+. Empty strings for fixnum and float
-    # columns are turned into nil.
+    # columns are turned into +nil+.
     def write_attribute(attr_name, value)
       attr_name = attr_name.to_s
       @attributes_cache.delete(attr_name)
@@ -319,8 +326,9 @@ module ActiveRecord
       end
     end
     
-    # A Person object with a name attribute can ask person.respond_to?("name"), person.respond_to?("name="), and
-    # person.respond_to?("name?") which will all return true.
+    # A Person object with a name attribute can ask <tt>person.respond_to?("name")</tt>,
+    # <tt>person.respond_to?("name=")</tt>, and <tt>person.respond_to?("name?")</tt>
+    # which will all return +true+.
     alias :respond_to_without_attributes? :respond_to?
     def respond_to?(method, include_priv = false)
       method_name = method.to_s
