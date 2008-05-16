@@ -9,7 +9,7 @@ module ActionController #:nodoc:
     #   class ListsController < ApplicationController
     #     before_filter :authenticate, :except => :public
     #     caches_page   :public
-    #     caches_action :show, :feed
+    #     caches_action :index, :show, :feed
     #   end
     #
     # In this example, the public action doesn't require authentication, so it's possible to use the faster page caching method. But both the
@@ -27,15 +27,19 @@ module ActionController #:nodoc:
     # You can set modify the default action cache path by passing a :cache_path option.  This will be passed directly to ActionCachePath.path_for.  This is handy
     # for actions with multiple possible routes that should be cached differently.  If a block is given, it is called with the current controller instance.
     #
+    # And you can also use :if to pass a Proc that specifies when the action should be cached.
+    #
     #   class ListsController < ApplicationController
     #     before_filter :authenticate, :except => :public
     #     caches_page   :public
+    #     caches_action :index, :if => Proc.new { |c| !c.request.format.json? } # cache if is not a JSON request
     #     caches_action :show, :cache_path => { :project => 1 }
-    #     caches_action :show, :cache_path => Proc.new { |controller| 
-    #       controller.params[:user_id] ? 
+    #     caches_action :feed, :cache_path => Proc.new { |controller|
+    #       controller.params[:user_id] ?
     #         controller.send(:user_list_url, c.params[:user_id], c.params[:id]) :
     #         controller.send(:list_url, c.params[:id]) }
     #   end
+    #
     module Actions
       def self.included(base) #:nodoc:
         base.extend(ClassMethods)
@@ -49,7 +53,8 @@ module ActionController #:nodoc:
         # See ActionController::Caching::Actions for details.
         def caches_action(*actions)
           return unless cache_configured?
-          around_filter(ActionCacheFilter.new(*actions))
+          options = actions.extract_options!
+          around_filter(ActionCacheFilter.new(:cache_path => options.delete(:cache_path)), {:only => actions}.merge(options))
         end
       end
 
@@ -67,16 +72,12 @@ module ActionController #:nodoc:
         end
 
       class ActionCacheFilter #:nodoc:
-        def initialize(*actions, &block)
-          @options = actions.extract_options!
-          @actions = Set.new(actions)
+        def initialize(options, &block)
+          @options = options
         end
 
         def before(controller)
-          return unless @actions.include?(controller.action_name.intern)
-
           cache_path = ActionCachePath.new(controller, path_options_for(controller, @options))
-
           if cache = controller.read_fragment(cache_path.path)
             controller.rendered_action_cache = true
             set_content_type!(controller, cache_path.extension)
@@ -88,7 +89,7 @@ module ActionController #:nodoc:
         end
 
         def after(controller)
-          return if !@actions.include?(controller.action_name.intern) || controller.rendered_action_cache || !caching_allowed(controller)
+          return if controller.rendered_action_cache || !caching_allowed(controller)
           controller.write_fragment(controller.action_cache_path.path, controller.response.body)
         end
 
@@ -105,16 +106,16 @@ module ActionController #:nodoc:
             controller.request.get? && controller.response.headers['Status'].to_i == 200
           end
       end
-      
+
       class ActionCachePath
         attr_reader :path, :extension
-        
+
         class << self
           def path_for(controller, options)
             new(controller, options).path
           end
         end
-        
+
         def initialize(controller, options = {})
           @extension = extract_extension(controller.request.path)
           path = controller.url_for(options).split('://').last
@@ -122,16 +123,16 @@ module ActionController #:nodoc:
           add_extension!(path, @extension)
           @path = URI.unescape(path)
         end
-        
+
         private
           def normalize!(path)
             path << 'index' if path[-1] == ?/
           end
-        
+
           def add_extension!(path, extension)
             path << ".#{extension}" if extension
           end
-          
+
           def extract_extension(file_path)
             # Don't want just what comes after the last '.' to accommodate multi part extensions
             # such as tar.gz.

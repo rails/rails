@@ -610,15 +610,17 @@ class ActiveSupportSubclassWithFixturesTest < ActiveRecord::TestCase
 end
 
 class FixtureLoadingTest < ActiveRecord::TestCase
-  def test_logs_message_for_failed_dependency_load
-    Test::Unit::TestCase.expects(:require_dependency).with(:does_not_exist).raises(LoadError)
-    ActiveRecord::Base.logger.expects(:warn)
-    Test::Unit::TestCase.try_to_load_dependency(:does_not_exist)
-  end
+  uses_mocha 'reloading_fixtures_through_accessor_methods' do
+    def test_logs_message_for_failed_dependency_load
+      Test::Unit::TestCase.expects(:require_dependency).with(:does_not_exist).raises(LoadError)
+      ActiveRecord::Base.logger.expects(:warn)
+      Test::Unit::TestCase.try_to_load_dependency(:does_not_exist)
+    end
 
-  def test_does_not_logs_message_for_successful_dependency_load
-    Test::Unit::TestCase.expects(:require_dependency).with(:works_out_fine)
-    ActiveRecord::Base.logger.expects(:warn).never
-    Test::Unit::TestCase.try_to_load_dependency(:works_out_fine)
+    def test_does_not_logs_message_for_successful_dependency_load
+      Test::Unit::TestCase.expects(:require_dependency).with(:works_out_fine)
+      ActiveRecord::Base.logger.expects(:warn).never
+      Test::Unit::TestCase.try_to_load_dependency(:works_out_fine)
+    end
   end
 end

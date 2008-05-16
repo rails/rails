@@ -120,17 +120,72 @@ module ActionView
       # exception.
       #
       # ==== Examples
+      # Because it relies on +url_for+, +link_to+ supports both older-style controller/action/id arguments
+      # and newer RESTful routes.  Current Rails style favors RESTful routes whenever possible, so base
+      # your application on resources and use
+      #
+      #   link_to "Profile", profile_path(@profile)
+      #   # => <a href="/profiles/1">Profile</a>
+      #
+      # or the even pithier
+      #
+      #   link_to "Profile", @profile
+      #   # => <a href="/profiles/1">Profile</a>
+      #
+      # in place of the older more verbose, non-resource-oriented
+      #
+      #   link_to "Profile", :controller => "profiles", :action => "show", :id => @profile
+      #   # => <a href="/profiles/show/1">Profile</a>
+      # 
+      # Similarly, 
+      #
+      #   link_to "Profiles", profiles_path
+      #   # => <a href="/profiles">Profiles</a>
+      #
+      # is better than
+      #
+      #   link_to "Profiles", :controller => "profiles"
+      #   # => <a href="/profiles">Profiles</a>
+      #
+      # Classes and ids for CSS are easy to produce:
+      #
+      #   link_to "Articles", articles_path, :id => "news", :class => "article"
+      #   # => <a href="/articles" class="article" id="news">Articles</a>
+      #
+      # Be careful when using the older argument style, as an extra literal hash is needed:
+      #
+      #   link_to "Articles", { :controller => "articles" }, :id => "news", :class => "article"
+      #   # => <a href="/articles" class="article" id="news">Articles</a>
+      #
+      # Leaving the hash off gives the wrong link:
+      #
+      #   link_to "WRONG!", :controller => "articles", :id => "news", :class => "article"
+      #   # => <a href="/articles/index/news?class=article">WRONG!</a>
+      #
+      # +link_to+ can also produce links with anchors or query strings:
+      #
+      #   link_to "Comment wall", profile_path(@profile, :anchor => "wall")
+      #   # => <a href="/profiles/1#wall">Comment wall</a>
+      #
+      #   link_to "Ruby on Rails search", :controller => "searches", :query => "ruby on rails"
+      #   # => <a href="/searches?query=ruby+on+rails">Ruby on Rails search</a>
+      #
+      #   link_to "Nonsense search", searches_path(:foo => "bar", :baz => "quux")
+      #   # => <a href="/searches?foo=bar&amp;baz=quux">Nonsense search</a>
+      #
+      # The three options specfic to +link_to+ (<tt>:confirm</tt>, <tt>:popup</tt>, and <tt>:method</tt>) are used as follows:
+      #
       #   link_to "Visit Other Site", "http://www.rubyonrails.org/", :confirm => "Are you sure?"
       #   # => <a href="http://www.rubyonrails.org/" onclick="return confirm('Are you sure?');">Visit Other Site</a>
       #
       #   link_to "Help", { :action => "help" }, :popup => true
       #   # => <a href="/testing/help/" onclick="window.open(this.href);return false;">Help</a>
       #
-      #   link_to "View Image", { :action => "view" }, :popup => ['new_window_name', 'height=300,width=600']
-      #   # => <a href="/testing/view/" onclick="window.open(this.href,'new_window_name','height=300,width=600');return false;">View Image</a>
+      #   link_to "View Image", @image, :popup => ['new_window_name', 'height=300,width=600']
+      #   # => <a href="/images/9" onclick="window.open(this.href,'new_window_name','height=300,width=600');return false;">View Image</a>
       #
-      #   link_to "Delete Image", { :action => "delete", :id => @image.id }, :confirm => "Are you sure?", :method => :delete
-      #   # => <a href="/testing/delete/9/" onclick="if (confirm('Are you sure?')) { var f = document.createElement('form'); 
+      #   link_to "Delete Image", @image, :confirm => "Are you sure?", :method => :delete
+      #   # => <a href="/images/9" onclick="if (confirm('Are you sure?')) { var f = document.createElement('form'); 
       #        f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;
       #        var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); 
       #        m.setAttribute('value', 'delete'); f.appendChild(m);f.submit(); };return false;">Delete Image</a>

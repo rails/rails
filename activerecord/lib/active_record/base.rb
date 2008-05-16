@@ -438,7 +438,11 @@ module ActiveRecord #:nodoc:
     # adapters for, e.g., your development and test environments.
     cattr_accessor :schema_format , :instance_writer => false
     @@schema_format = :ruby
-    
+
+    # Determine whether to store the full constant name including namespace when using STI
+    superclass_delegating_accessor :store_full_sti_class
+    self.store_full_sti_class = false
+
     class << self # Class methods
       # Find operates with four different retrieval approaches:
       #
@@ -522,7 +526,7 @@ module ActiveRecord #:nodoc:
           else             find_from_ids(args, options)
         end
       end
-      
+
       # This is an alias for find(:first).  You can pass in all the same arguments to this method as you can
       # to find(:first)
       def first(*args)
@@ -534,13 +538,13 @@ module ActiveRecord #:nodoc:
       def last(*args)
         find(:last, *args)
       end
-      
+
       # This is an alias for find(:all).  You can pass in all the same arguments to this method as you can
       # to find(:all)
       def all(*args)
         find(:all, *args)
       end
-      
+
       #
       # Executes a custom sql query against your database and returns all the results.  The results will
       # be returned as an array with columns requested encapsulated as attributes of the model you call
@@ -587,10 +591,10 @@ module ActiveRecord #:nodoc:
       def exists?(id_or_conditions)
         connection.select_all(
           construct_finder_sql(
-            :select     => "#{quoted_table_name}.#{primary_key}", 
-            :conditions => expand_id_conditions(id_or_conditions), 
+            :select     => "#{quoted_table_name}.#{primary_key}",
+            :conditions => expand_id_conditions(id_or_conditions),
             :limit      => 1
-          ), 
+          ),
           "#{name} Exists"
         ).size > 0
       end
@@ -616,7 +620,7 @@ module ActiveRecord #:nodoc:
       #   # Creating an Array of new objects using a block, where the block is executed for each object:
       #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }]) do |u|
       #     u.is_admin = false
-      #   end 
+      #   end
       def create(attributes = nil, &block)
         if attributes.is_a?(Array)
           attributes.collect { |attr| create(attr, &block) }
@@ -1022,9 +1026,9 @@ module ActiveRecord #:nodoc:
         key = 'id'
         case primary_key_prefix_type
           when :table_name
-            key = Inflector.foreign_key(base_name, false)
+            key = base_name.to_s.foreign_key(false)
           when :table_name_with_underscore
-            key = Inflector.foreign_key(base_name)
+            key = base_name.to_s.foreign_key
         end
         key
       end
@@ -1297,7 +1301,7 @@ module ActiveRecord #:nodoc:
             scoped_order = reverse_sql_order(scope(:find, :order))
             scoped_methods.select { |s| s[:find].update(:order => scoped_order) }
           end
-          
+
           find_initial(options.merge({ :order => order }))
         end
 
@@ -1307,12 +1311,12 @@ module ActiveRecord #:nodoc:
               s.gsub!(/\s(asc|ASC)$/, ' DESC')
             elsif s.match(/\s(desc|DESC)$/)
               s.gsub!(/\s(desc|DESC)$/, ' ASC')
-            elsif !s.match(/\s(asc|ASC|desc|DESC)$/) 
+            elsif !s.match(/\s(asc|ASC|desc|DESC)$/)
               s.concat(' DESC')
             end
           }.join(',')
         end
-        
+
         def find_every(options)
           include_associations = merge_includes(scope(:find, :include), options[:include])
 
@@ -1556,8 +1560,8 @@ module ActiveRecord #:nodoc:
 
         def type_condition
           quoted_inheritance_column = connection.quote_column_name(inheritance_column)
-          type_condition = subclasses.inject("#{quoted_table_name}.#{quoted_inheritance_column} = '#{name.demodulize}' ") do |condition, subclass|
-            condition << "OR #{quoted_table_name}.#{quoted_inheritance_column} = '#{subclass.name.demodulize}' "
+          type_condition = subclasses.inject("#{quoted_table_name}.#{quoted_inheritance_column} = '#{store_full_sti_class ? name : name.demodulize}' ") do |condition, subclass|
+            condition << "OR #{quoted_table_name}.#{quoted_inheritance_column} = '#{store_full_sti_class ? subclass.name : subclass.name.demodulize}' "
           end
 
           " (#{type_condition}) "
@@ -1565,8 +1569,8 @@ module ActiveRecord #:nodoc:
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
         def undecorated_table_name(class_name = base_class.name)
-          table_name = Inflector.underscore(Inflector.demodulize(class_name))
-          table_name = Inflector.pluralize(table_name) if pluralize_table_names
+          table_name = class_name.to_s.demodulize.underscore
+          table_name = table_name.pluralize if pluralize_table_names
           table_name
         end
 
@@ -1615,7 +1619,7 @@ module ActiveRecord #:nodoc:
             self.class_eval %{
               def self.#{method_id}(*args)
                 guard_protected_attributes = false
-                
+
                 if args[0].is_a?(Hash)
                   guard_protected_attributes = true
                   attributes = args[0].with_indifferent_access
@@ -1628,7 +1632,7 @@ module ActiveRecord #:nodoc:
                 set_readonly_option!(options)
 
                 record = find_initial(options)
-                 
+
                  if record.nil?
                   record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
                   #{'yield(record) if block_given?'}
@@ -2128,14 +2132,14 @@ module ActiveRecord #:nodoc:
         # We can't use alias_method here, because method 'id' optimizes itself on the fly.
         (id = self.id) ? id.to_s : nil # Be sure to stringify the id for routes
       end
-      
+
       # Returns a cache key that can be used to identify this record. Examples:
       #
       #   Product.new.cache_key     # => "products/new"
       #   Product.find(5).cache_key # => "products/5" (updated_at not available)
       #   Person.find(5).cache_key  # => "people/5-20071224150000" (updated_at available)
       def cache_key
-        case 
+        case
         when new_record?
           "#{self.class.name.tableize}/new"
         when self[:updated_at]
@@ -2169,7 +2173,7 @@ module ActiveRecord #:nodoc:
       # Note: If your model specifies any validations then the method declaration dynamically
       # changes to:
       #   save(perform_validation=true)
-      # Calling save(false) saves the model without running validations.  
+      # Calling save(false) saves the model without running validations.
       # See ActiveRecord::Validations for more information.
       def save
         create_or_update
@@ -2341,7 +2345,7 @@ module ActiveRecord #:nodoc:
 
 
       # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
-      def attributes(options = nil)
+      def attributes
         self.attribute_names.inject({}) do |attrs, name|
           attrs[name] = read_attribute(name)
           attrs
@@ -2491,7 +2495,7 @@ module ActiveRecord #:nodoc:
       # Message class in that example.
       def ensure_proper_type
         unless self.class.descends_from_active_record?
-          write_attribute(self.class.inheritance_column, Inflector.demodulize(self.class.name))
+          write_attribute(self.class.inheritance_column, store_full_sti_class ? self.class.name : self.class.name.demodulize)
         end
       end
 

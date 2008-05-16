@@ -17,6 +17,10 @@ module Mime
   #     end
   #   end
   class Type
+    @@html_types = Set.new [:html, :all]
+    @@unverifiable_types = Set.new [:text, :json, :csv, :xml, :rss, :atom, :yaml]
+    cattr_reader :html_types, :unverifiable_types
+
     # A simple helper class used in parsing the accept header
     class AcceptItem #:nodoc:
       attr_accessor :order, :name, :q
@@ -153,12 +157,21 @@ module Mime
         synonym.to_s == mime_type.to_s || synonym.to_sym == mime_type.to_sym 
       end
     end
-    
+
+    # Returns true if ActionPack should check requests using this Mime Type for possible request forgery.  See
+    # ActionController::RequestForgerProtection.
+    def verify_request?
+      !@@unverifiable_types.include?(to_sym)
+    end
+
+    def html?
+      @@html_types.include?(to_sym) || @string =~ /html/
+    end
+
     private
       def method_missing(method, *args)
         if method.to_s =~ /(\w+)\?$/
-          mime_type = $1.downcase.to_sym
-          mime_type == @symbol || (mime_type == :html && @symbol == :all)
+          $1.downcase.to_sym == to_sym
         else
           super
         end

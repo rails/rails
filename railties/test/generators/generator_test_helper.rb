@@ -13,7 +13,7 @@ module ActiveRecord
   module ConnectionAdapters
     class Column
       attr_reader :name, :default, :type, :limit, :null, :sql_type, :precision, :scale
-      
+
       def initialize(name, default, sql_type = nil)
         @name = name
         @default = default
@@ -59,16 +59,16 @@ require 'rails_generator'
 
 class GeneratorTestCase < Test::Unit::TestCase
   include FileUtils
-  
+
   def setup
     ActiveRecord::Base.pluralize_table_names = true
-    
+
     mkdir_p "#{RAILS_ROOT}/app/views/layouts"
     mkdir_p "#{RAILS_ROOT}/config"
     mkdir_p "#{RAILS_ROOT}/db"
     mkdir_p "#{RAILS_ROOT}/test/fixtures"
     mkdir_p "#{RAILS_ROOT}/public/stylesheets"
-    
+
     File.open("#{RAILS_ROOT}/config/routes.rb", 'w') do |f|
       f << "ActionController::Routing::Routes.draw do |map|\n\nend"
     end
@@ -85,7 +85,7 @@ class GeneratorTestCase < Test::Unit::TestCase
   def test_truth
     # don't complain, test/unit
   end
-  
+
   # Instantiates the Generator
   def build_generator(name, params)
     Rails::Generator::Base.instance(name, params)
@@ -171,9 +171,16 @@ class GeneratorTestCase < Test::Unit::TestCase
   # asserts that the given class source file was generated.
   # It takes a path without the <tt>.rb</tt> part and an optional super class.
   # the contents of the class source file is passed to a block.
-  def assert_generated_class(path, parent=nil)
-    path =~ /\/?(\d+_)?(\w+)$/
-    class_name = $2.camelize
+  def assert_generated_class(path, parent = nil)
+    # FIXME: Sucky way to detect namespaced classes
+    if path.split('/').size > 3
+      path =~ /\/?(\d+_)?(\w+)\/(\w+)$/
+      class_name = "#{$2.camelize}::#{$3.camelize}"
+    else
+      path =~ /\/?(\d+_)?(\w+)$/
+      class_name = $2.camelize
+    end
+
     assert_generated_file("#{path}.rb") do |body|
       assert_match /class #{class_name}#{parent.nil? ? '':" < #{parent}"}/, body, "the file '#{path}.rb' should be a class"
       yield body if block_given?
@@ -184,8 +191,15 @@ class GeneratorTestCase < Test::Unit::TestCase
   # It takes a path without the <tt>.rb</tt> part.
   # the contents of the class source file is passed to a block.
   def assert_generated_module(path)
-    path =~ /\/?(\w+)$/
-    module_name = $1.camelize
+    # FIXME: Sucky way to detect namespaced modules
+    if path.split('/').size > 3
+      path =~ /\/?(\w+)\/(\w+)$/
+      module_name = "#{$1.camelize}::#{$2.camelize}"
+    else
+      path =~ /\/?(\w+)$/
+      module_name = $1.camelize
+    end
+
     assert_generated_file("#{path}.rb") do |body|
       assert_match /module #{module_name}/, body, "the file '#{path}.rb' should be a module"
       yield body if block_given?

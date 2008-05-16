@@ -130,17 +130,20 @@ class CGI::Session::CookieStore
     # Marshal a session hash into safe cookie data. Include an integrity hash.
     def marshal(session)
       data = ActiveSupport::Base64.encode64(Marshal.dump(session)).chop
-      CGI.escape "#{data}--#{generate_digest(data)}"
+      "#{data}--#{generate_digest(data)}"
     end
 
     # Unmarshal cookie data to a hash and verify its integrity.
     def unmarshal(cookie)
       if cookie
-        data, digest = CGI.unescape(cookie).split('--')
-        unless digest == generate_digest(data)
+        data, digest = cookie.split('--')
+
+        # Do two checks to transparently support old double-escaped data.
+        unless digest == generate_digest(data) || digest == generate_digest(data = CGI.unescape(data))
           delete
           raise TamperedWithCookie
         end
+
         Marshal.load(ActiveSupport::Base64.decode64(data))
       end
     end

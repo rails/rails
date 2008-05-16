@@ -37,7 +37,7 @@ class CGI #:nodoc:
         @path = nil
       else
         @name = name['name']
-        @value = Array(name['value'])
+        @value = (name['value'].kind_of?(String) ? [name['value']] : Array(name['value'])).delete_if(&:blank?)
         @domain = name['domain']
         @expires = name['expires']
         @secure = name['secure'] || false
