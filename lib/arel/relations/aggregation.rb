@@ -19,13 +19,18 @@ module Arel
     end
     
     def ==(other)
-      self.class == other.class and self.relation == other.relation
+      self.class    == other.class and
+      self.relation == other.relation
     end
   end
   
   class Relation
     def externalize
-      aggregation?? Aggregation.new(self) : self
+      @externalized ||= aggregation?? Aggregation.new(self) : self
+    end
+    
+    def aggregation?
+      false
     end
   end
 end

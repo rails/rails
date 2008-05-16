@@ -35,9 +35,8 @@ module Arel
         relation2.externalize.attributes).collect { |a| a.bind(self) }
     end
     
-    # XXX
     def selects
-      (relation1.externalize.selects).collect { |s| s.bind(self) }
+      relation1.externalize.selects
     end
     
     # XXX
@@ -58,6 +57,12 @@ module Arel
     
     def join?
       true
+    end
+  end
+  
+  class Relation
+    def join?
+      false
     end
   end
 end

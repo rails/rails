@@ -13,14 +13,6 @@ module Arel
       def relation_for(attribute)
         self[attribute] && self
       end
-      
-      def join?
-        false
-      end
-      
-      def aggregation?
-        false
-      end
     end
   end
 end
