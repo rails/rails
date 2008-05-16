@@ -5,10 +5,6 @@ module Arel
         self
       end
 
-      def relation_for(attribute)
-        self[attribute] and self
-      end
-
       def table_sql(formatter = Sql::TableReference.new(self))
         formatter.table self
       end

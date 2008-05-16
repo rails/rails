@@ -14,7 +14,8 @@ module Arel
       end
       
       def bind(new_relation)
-        new_relation == relation ? self : Expression.new(attribute.bind(new_relation), function_sql, @alias, self)
+        # new_relation == relation ? self : Expression.new(attribute.bind(new_relation), function_sql, @alias, self)
+        self
       end
           
       def to_attribute

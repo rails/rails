@@ -7,7 +7,7 @@ module Arel
           @used_names[name = relation.name] += 1
           hash[relation] = name + (@used_names[name] > 1 ? "_#{@used_names[name]}" : '')
         end
-        @relation_names[relation]
+        @relation_names[relation.table]
       end
     end
   end

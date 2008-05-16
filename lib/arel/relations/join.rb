@@ -35,12 +35,8 @@ module Arel
       (externalize(relation1).selects).collect { |s| s.bind(self) }
     end
    
-    def table
-      externalize(relation1).table
-    end
-    
     def table_sql(formatter = Sql::TableReference.new(self))
-      externalize(table).table_sql(formatter)
+      externalize(relation1).table_sql(formatter)
     end
     
     def relation_for(attribute)
@@ -57,6 +53,12 @@ module Arel
     # FIXME - make instance method
     def externalize(relation)
       relation.aggregation?? Aggregation.new(relation) : relation
+    end
+  end
+  
+  class Relation
+    def relation_for(attribute)
+      self[attribute] && self
     end
   end
 end

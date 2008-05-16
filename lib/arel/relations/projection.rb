@@ -19,5 +19,9 @@ module Arel
     def aggregation?
       attributes.any?(&:aggregation?)
     end
+    
+    def relation_for(attribute)
+      self[attribute] && self || relation.relation_for(attribute)
+    end
   end
 end
