@@ -73,7 +73,7 @@ module Rails
     end
 
     def install
-      Gem::GemRunner.new.run(install_command)
+      puts `#{gem_command} #{install_command.join(' ')}`
     end
     
     def unpack_to(directory)
@@ -99,6 +99,10 @@ private ###################################################################
 
     def specification
       @spec ||= Gem.source_index.search(Gem::Dependency.new(@name, @requirement)).sort_by { |s| s.version }.last
+    end
+    
+    def gem_command
+      RUBY_PLATFORM =~ /win32/ ? 'gem.bat' : 'gem'
     end
 
     def install_command
