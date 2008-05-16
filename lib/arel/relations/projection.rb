@@ -14,11 +14,6 @@ module Arel
       attributes.any?(&:aggregation?)
     end
     
-    # XXX
-    def relation_for(attribute)
-      self[attribute] && self || relation.relation_for(attribute)
-    end
-    
     def ==(other)
       self.class  == other.class    and
       relation    == other.relation and

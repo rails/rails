@@ -1,7 +1,6 @@
 module Arel
   module Recursion
     module BaseCase
-      # XXX
       def table
         self
       end

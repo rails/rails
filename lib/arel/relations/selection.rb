@@ -8,14 +8,14 @@ module Arel
       @predicate = predicate.bind(@relation)
     end
 
+    def selects
+      (relation.selects + [predicate]).collect { |p| p.bind(self) }
+    end    
+
     def ==(other)
       self.class == other.class and
       relation   == other.relation and
       predicate  == other.predicate
     end
-    
-    def selects
-      (relation.selects + [predicate]).collect { |p| p.bind(self) }
-    end    
   end
 end
