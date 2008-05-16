@@ -69,6 +69,10 @@ module Arel
         it '' do
           p @relation1.select(@relation1[:id].eq(1)).join(@relation2).on(@predicate).select(@relation1[:id].eq(1)).to_sql
         end
+
+        it '' do
+          p @relation1.join(@relation2).on(@predicate).group(@relation1[:id]).to_sql
+        end
       end
     end
     

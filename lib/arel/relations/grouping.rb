@@ -17,7 +17,7 @@ module Arel
     end
     
     def name
-      table.name + '_aggregation'
+      relation.name + '_aggregation'
     end
   end
 end
