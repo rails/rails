@@ -137,8 +137,8 @@ module ActionView
       # In any of its variants, the rightmost argument to +form_for+ is an
       # optional hash of options:
       #
-      # * <tt>:url</tt> - The URL the form is submit to. It takes the same fields
-      #   you pass to`+url_for+ or +link_to+. In particular you may pass here a
+      # * <tt>:url</tt> - The URL the form is submitted to. It takes the same fields
+      #   you pass to +url_for+ or +link_to+. In particular you may pass here a
       #   named route directly as well. Defaults to the current action.
       # * <tt>:html</tt> - Optional HTML attributes for the form tag.
       #
@@ -185,7 +185,7 @@ module ActionView
       #     ...
       #   <% end %>
       #
-      # expands to be the same as
+      # expands to
       #
       #   <% form_for :post, Post.new, :url => posts_path, :html => { :class => "new_post", :id => "new_post" } do |f| %>
       #     ...
