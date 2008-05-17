@@ -46,8 +46,14 @@ module Arel
     end
 
     module Transformations
+      delegate :size, :to => :history
+      
       def self.included(klass)
-        klass.hash_on :name
+        klass.send :alias_method, :eql?, :==
+      end
+      
+      def hash
+        @hash ||= history.size + name.hash + relation.hash
       end
       
       def as(aliaz = nil)

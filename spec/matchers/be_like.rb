@@ -10,11 +10,11 @@ module BeLikeMatcher
     end
     
     def failure_message
-      "expected #{@actual} to be like #{@expected}"
+      "expected\n#{@actual}\nto be like\n#{@expected}"
     end
     
     def negative_failure_message
-      "expected #{@actual} to be unlike #{@expected}"
+      "expected\n#{@actual}\nto be unlike\n#{@expected}"
     end
   end
   

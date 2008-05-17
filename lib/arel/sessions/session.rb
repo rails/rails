@@ -29,10 +29,9 @@ module Arel
       end
       
       def read(select)
-        @read ||= Hash.new do |hash, select|
+        (@read ||= Hash.new do |hash, select|
           hash[select] = select.call(select.engine.connection)
-        end
-        @read[select]
+        end)[select]
       end
       
       def update(update)

@@ -1,9 +1,11 @@
 class Class
-  def hash_on(delegatee)
+  def hash_on(*delegatees)
     define_method :eql? do |other|
       self == other
     end
     
-    delegate :hash, :to => delegatee
+    define_method :hash do
+      @hash ||= delegatees.map(&:hash).sum
+    end
   end
 end

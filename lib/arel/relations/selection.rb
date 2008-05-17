@@ -9,7 +9,7 @@ module Arel
     end
 
     def selects
-      (relation.selects + [predicate]).collect { |p| p.bind(self) }
+      @selects ||= (relation.selects + [predicate]).collect { |p| p.bind(self) }
     end    
 
     def ==(other)
