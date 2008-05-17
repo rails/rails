@@ -16,6 +16,10 @@ module Arel
       end
       
       describe '#attributes' do
+        it '' do
+          @relation1.join(@aggregation).on(@predicate)[@relation2[:user_id]].should_not be_nil
+        end
+        
         it 'it transforms aggregate expressions into attributes' do
           join_with_aggregation = Join.new("INNER JOIN", @relation1, @aggregation, @predicate)
           join_with_aggregation.attributes.should ==

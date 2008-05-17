@@ -39,7 +39,6 @@ module Arel
       relation1.externalize.selects
     end
     
-    # XXX
     def relation_for(attribute)
       [
         relation1.externalize.relation_for(attribute),
