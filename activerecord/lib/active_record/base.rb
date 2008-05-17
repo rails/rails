@@ -860,9 +860,15 @@ module ActiveRecord #:nodoc:
       end
 
 
-      # Attributes named in this macro are protected from mass-assignment, such as <tt>new(attributes)</tt> and
-      # <tt>attributes=(attributes)</tt>. Their assignment will simply be ignored. Instead, you can use the direct writer
-      # methods to do assignment. This is meant to protect sensitive attributes from being overwritten by URL/form hackers. Example:
+      # Attributes named in this macro are protected from mass-assignment,
+      # such as <tt>new(attributes)</tt>,
+      # <tt>update_attributes(attributes)</tt>, or
+      # <tt>attributes=(attributes)</tt>.
+      #
+      # Mass-assignment to these attributes will simply be ignored, to assign
+      # to them you can use direct writer methods. This is meant to protect
+      # sensitive attributes from being overwritten by malicious users
+      # tampering with URLs or forms.
       #
       #   class Customer < ActiveRecord::Base
       #     attr_protected :credit_rating
@@ -876,7 +882,8 @@ module ActiveRecord #:nodoc:
       #   customer.credit_rating = "Average"
       #   customer.credit_rating # => "Average"
       #
-      # To start from an all-closed default and enable attributes as needed, have a look at attr_accessible.
+      # To start from an all-closed default and enable attributes as needed,
+      # have a look at +attr_accessible+.
       def attr_protected(*attributes)
         write_inheritable_attribute("attr_protected", Set.new(attributes.map(&:to_s)) + (protected_attributes || []))
       end
@@ -886,19 +893,18 @@ module ActiveRecord #:nodoc:
         read_inheritable_attribute("attr_protected")
       end
 
-      # Similar to the attr_protected macro, this protects attributes of your model from mass-assignment,
-      # such as <tt>new(attributes)</tt> and <tt>attributes=(attributes)</tt>
-      # however, it does it in the opposite way.  This locks all attributes and only allows access to the
-      # attributes specified.  Assignment to attributes not in this list will be ignored and need to be set
-      # using the direct writer methods instead.  This is meant to protect sensitive attributes from being
-      # overwritten by URL/form hackers. If you'd rather start from an all-open default and restrict
-      # attributes as needed, have a look at attr_protected.
+      # Specifies a white list of model attributes that can be set via
+      # mass-assignment, such as <tt>new(attributes)</tt>,
+      # <tt>update_attributes(attributes)</tt>, or
+      # <tt>attributes=(attributes)</tt>
       #
-      # ==== Attributes
-      #
-      # * <tt>*attributes</tt>   A comma separated list of symbols that represent columns _not_ to be protected
-      #
-      # ==== Examples
+      # This is the opposite of the +attr_protected+ macro: Mass-assignment
+      # will only set attributes in this list, to assign to the rest of
+      # attributes you can use direct writer methods. This is meant to protect
+      # sensitive attributes from being overwritten by malicious users
+      # tampering with URLs or forms. If you'd rather start from an all-open
+      # default and restrict attributes as needed, have a look at
+      # +attr_protected+.
       #
       #   class Customer < ActiveRecord::Base
       #     attr_accessible :name, :nickname
