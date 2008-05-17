@@ -107,6 +107,13 @@ module Arel
                   .on(@predicate)   \
               .should disambiguate_attributes(@relation1[:id], @relation2[:id])
             end
+            
+            it '' do
+              r0 = @relation1.select(@predicate)
+              r1 = r0.alias
+              r = r0.join(r1).on(@predicate)
+              r.should disambiguate_attributes(r0[:id], r1[:id])
+            end
           end
           
           describe 'when the right relation is extremely compound' do

@@ -39,6 +39,11 @@ module Arel
 
     def original_relation
       relation.relation_for(self)
+      # root.relation
+    end
+    
+    def original_attribute
+      original_relation[self]
     end
 
     module Transformations
@@ -85,6 +90,7 @@ module Arel
         if other then (history & other.history).size.to_f / Set.new(history + other.history).size
         else 0
         end
+        # 1 / (history.index(other) || -1)
       end
     end
     include Congruence

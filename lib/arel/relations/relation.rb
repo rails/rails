@@ -135,10 +135,9 @@ module Arel
         attributes.detect { |a| a.named?(name) }
       end
       
-      # TESTME - added original_attribute because of AR
       def find_attribute_matching_attribute(attribute)
         attributes.select { |a| a.match?(attribute) }.max do |a1, a2|
-          (attribute / a1.root) <=> (attribute / a2.root)
+          (a1.original_attribute / attribute) <=> (a2.original_attribute / attribute)
         end
       end
     end
