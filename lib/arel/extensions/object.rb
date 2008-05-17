@@ -3,7 +3,7 @@ class Object
     Arel::Value.new(self, relation)
   end
   
-  def to_sql(formatter = nil)
+  def to_sql(formatter)
     formatter.scalar self
   end
   

@@ -8,9 +8,25 @@ module Arel
       @predicate = @relation1[:id].eq(@relation2[:user_id])
     end
     
-    describe 'when a compound contains a join' do
-      describe '#to_sql' do
-        describe 'when the compound is a select' do
+    describe '#to_sql' do
+      describe 'when the join contains a select' do
+        describe 'and the select is given a string' do
+          it 'does not escape the string' do
+            @relation1                          \
+              .join(@relation2.select("asdf"))  \
+                .on(@predicate)                 \
+            .to_sql.should be_like("
+              SELECT `users`.`id`, `users`.`name`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
+              FROM `users`
+              INNER JOIN `photos`
+                ON `users`.`id` = `photos`.`user_id` AND asdf
+            ")
+          end
+        end
+      end
+    
+      describe 'when a compound contains a join' do
+        describe 'and the compound is a select' do
           it 'manufactures sql disambiguating the tables' do
             @relation1                        \
               .select(@relation1[:id].eq(1))  \
@@ -28,7 +44,7 @@ module Arel
           end
         end
         
-        describe 'when the compound is a group' do
+        describe 'and the compound is a group' do
           it 'manufactures sql disambiguating the tables' do
             @relation1                \
               .join(@relation2)       \
