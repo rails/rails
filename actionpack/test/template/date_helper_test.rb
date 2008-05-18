@@ -1722,6 +1722,12 @@ class DateHelperTest < ActionView::TestCase
         assert_equal 2, dummy_instance_tag.send!(:default_time_from_options, :hour => 2).hour
       end
     end
+    
+    def test_instance_tag_default_time_from_options_handles_far_future_date
+      dummy_instance_tag = ActionView::Helpers::InstanceTag.new(1,2,3)
+      time = dummy_instance_tag.send!(:default_time_from_options, :year => 2050, :month => 2, :day => 10, :hour => 15, :min => 30, :sec => 45)
+      assert_equal 2050, time.year
+    end
   end
   
   protected
