@@ -13,13 +13,15 @@ module Arel
     end
     
     def joins(environment, formatter = Sql::TableReference.new(environment))
-      this_join = [
-        join_sql,
-        relation2.externalize.table_sql(formatter),
-        ("ON" unless predicates.blank?),
-        (ons + relation2.externalize.selects).collect { |p| p.bind(environment).to_sql(Sql::WhereClause.new(environment)) }.join(' AND ')
-      ].compact.join(" ")
-      [relation1.joins(environment), this_join, relation2.joins(environment)].compact.join(" ")
+      @joins ||= begin
+        this_join = [
+          join_sql,
+          relation2.externalize.table_sql(formatter),
+          ("ON" unless predicates.blank?),
+          (ons + relation2.externalize.selects).collect { |p| p.bind(environment).to_sql(Sql::WhereClause.new(environment)) }.join(' AND ')
+        ].compact.join(" ")
+        [relation1.joins(environment), this_join, relation2.joins(environment)].compact.join(" ")
+      end
     end
 
     def attributes
@@ -45,11 +47,10 @@ module Arel
     end
     
     def ==(other)
-      Join       == other.class       and
-      predicates == other.predicates  and (
-        (relation1 == other.relation1 and relation2 == other.relation2) or
-        (relation2 == other.relation1 and relation1 == other.relation2)
-      )
+      Join       === other             and
+      predicates ==  other.predicates  and
+      relation1  ==  other.relation1   and
+      relation2  ==  other.relation2
     end
   end
   

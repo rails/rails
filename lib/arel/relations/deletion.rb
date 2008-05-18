@@ -18,8 +18,8 @@ module Arel
     end
     
     def ==(other)
-      Deletion    == other.class    and
-      relation    == other.relation
+      Deletion    === other and
+      relation    ==  other.relation
     end
   end
 end

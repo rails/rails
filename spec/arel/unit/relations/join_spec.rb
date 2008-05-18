@@ -7,23 +7,6 @@ module Arel
       @relation2 = Table.new(:photos)
       @predicate = @relation1[:id].eq(@relation2[:user_id])
     end
-
-    describe '==' do
-      before do
-        @another_predicate = @relation1[:id].eq(1)
-        @another_relation = Table.new(:cameras)
-      end
-      
-      it 'obtains if the two relations and the predicate are identical' do
-        Join.new("INNER JOIN", @relation1, @relation2, @predicate).should == Join.new("INNER JOIN", @relation1, @relation2, @predicate)
-        Join.new("INNER JOIN", @relation1, @relation2, @predicate).should_not == Join.new("INNER JOIN", @relation1, @another_relation, @predicate)
-        Join.new("INNER JOIN", @relation1, @relation2, @predicate).should_not == Join.new("INNER JOIN", @relation1, @relation2, @another_predicate)
-      end
-  
-      it 'is commutative on the relations' do
-        Join.new("INNER JOIN", @relation1, @relation2, @predicate).should == Join.new("INNER JOIN", @relation2, @relation1, @predicate)
-      end
-    end
     
     describe 'hashing' do
       it 'implements hash equality' do

@@ -4,7 +4,7 @@ module Arel
     def name; '' end
 
     def ==(other)
-      Nil == other.class
+      Nil === other
     end
   end
 end

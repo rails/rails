@@ -7,9 +7,9 @@ module Arel
     end
 
     def ==(other)
-      Grouping    == other.class      and
-      relation    == other.relation   and
-      groupings   == other.groupings
+      Grouping    === other          and
+      relation    ==  other.relation and
+      groupings   ==  other.groupings
     end
 
     def aggregation?

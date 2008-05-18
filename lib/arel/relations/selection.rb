@@ -13,9 +13,9 @@ module Arel
     end    
 
     def ==(other)
-      Selection  == other.class and
-      relation   == other.relation and
-      predicate  == other.predicate
+      Selection  === other          and
+      relation   ==  other.relation and
+      predicate  ==  other.predicate
     end
   end
 end

@@ -17,11 +17,11 @@ module Arel
     end
     
     def ==(other)
-      Expression    == other.class          and
-      attribute     == other.attribute      and
-      function_sql  == other.function_sql   and
-      ancestor      == other.ancestor       and
-      @alias        == other.alias
+      Expression    === other                and
+      attribute     ==  other.attribute      and
+      function_sql  ==  other.function_sql   and
+      ancestor      ==  other.ancestor       and
+      @alias        ==  other.alias
     end
     
     module Transformations

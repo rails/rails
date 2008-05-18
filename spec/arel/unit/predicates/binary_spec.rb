@@ -44,18 +44,6 @@ module Arel
         end
       end
     end
-    
-    describe '==' do
-      it "obtains if attribute1 and attribute2 are identical" do
-        Binary.new(@attribute1, @attribute2).should == Binary.new(@attribute1, @attribute2)
-        Binary.new(@attribute1, @attribute2).should_not == Binary.new(@attribute1, @attribute1)
-      end
-    
-      it "obtains if the concrete type of the predicates are identical" do
-        Binary.new(@attribute1, @attribute2).should == Binary.new(@attribute1, @attribute2)
-        Binary.new(@attribute1, @attribute2).should_not == ConcreteBinary.new(@attribute1, @attribute2)
-      end
-    end
   
     describe '#bind' do
       before do

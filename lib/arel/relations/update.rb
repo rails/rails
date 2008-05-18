@@ -22,9 +22,9 @@ module Arel
     end
     
     def ==(other)
-      Update      == other.class    and
-      relation    == other.relation and
-      assignments == other.assignments
+      Update      === other          and
+      relation    ==  other.relation and
+      assignments ==  other.assignments
     end
   end
 end

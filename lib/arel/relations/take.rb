@@ -7,9 +7,9 @@ module Arel
     end
 
     def ==(other)
-      Take        == other.class    and
-      relation    == other.relation and
-      taken       == other.taken
+      Take        === other          and
+      relation    ==  other.relation and
+      taken       ==  other.taken
     end
   end
 end

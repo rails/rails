@@ -30,11 +30,11 @@ module Arel
     end
     
     def ==(other)
-      Attribute   == other.class     and
-      name        == other.name      and
-      @alias      == other.alias     and
-      ancestor    == other.ancestor  and
-      relation    == other.relation
+      Attribute   === other           and
+      name        ==  other.name      and
+      @alias      ==  other.alias     and
+      ancestor    ==  other.ancestor  and
+      relation    ==  other.relation
     end
 
     def original_relation

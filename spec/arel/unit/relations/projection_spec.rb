@@ -13,20 +13,7 @@ module Arel
       end
       
       it "manufactures attributes associated with the projection relation" do
-        # @projection.attributes.should == [@attribute].collect { |a| a.bind(@projection) }
-      end
-    end
-    
-    describe '==' do
-      before do
-        @another_relation = Table.new(:photos)
-        @another_attribute = @relation[:name]
-      end
-      
-      it "obtains if the relations and attributes are identical" do
-        Projection.new(@relation, @attribute).should == Projection.new(@relation, @attribute)
-        Projection.new(@relation, @attribute).should_not == Projection.new(@another_relation, @attribute)
-        Projection.new(@relation, @attribute).should_not == Projection.new(@relation, @another_attribute)
+        @projection.attributes.should == [@attribute].collect { |a| a.bind(@projection) }
       end
     end
   

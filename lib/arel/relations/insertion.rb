@@ -20,7 +20,7 @@ module Arel
     end
     
     def ==(other)
-      Insertion   == other.class    and
+      Insertion   === other         and
       relation    == other.relation and
       record      == other.record
     end

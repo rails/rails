@@ -1,8 +1,5 @@
 module Arel
   class Predicate
-    def ==(other)
-      self.class == other.class
-    end
   end
 
   class Binary < Predicate
@@ -13,7 +10,9 @@ module Arel
     end
 
     def ==(other)
-      super and @operand1 == other.operand1 and @operand2 == other.operand2
+      self.class === other          and
+      @operand1  ==  other.operand1 and
+      @operand2  ==  other.operand2
     end
     
     def bind(relation)
@@ -28,7 +27,7 @@ module Arel
 
   class Equality < Binary
     def ==(other)
-      Equality == other.class and
+      Equality === other and
         ((operand1 == other.operand1 and operand2 == other.operand2) or
          (operand1 == other.operand2 and operand2 == other.operand1))
     end
