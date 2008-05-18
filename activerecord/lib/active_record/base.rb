@@ -456,23 +456,23 @@ module ActiveRecord #:nodoc:
       #
       # All approaches accept an options hash as their last parameter. The options are:
       #
-      # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro.
-      # * <tt>:order</tt>: An SQL fragment like "created_at DESC, name".
-      # * <tt>:group</tt>: An attribute name by which the result should be grouped. Uses the GROUP BY SQL-clause.
-      # * <tt>:limit</tt>: An integer determining the limit on the number of rows that should be returned.
-      # * <tt>:offset</tt>: An integer determining the offset from where the rows should be fetched. So at 5, it would skip rows 0 through 4.
-      # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed)
-      #   or named associations in the same form used for the <tt>:include</tt> option, which will perform an INNER JOIN on the associated table(s).
+      # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1" or <tt>[ "user_name = ?", username ]</tt>. See conditions in the intro.
+      # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name".
+      # * <tt>:group</tt> - An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
+      # * <tt>:limit</tt> - An integer determining the limit on the number of rows that should be returned.
+      # * <tt>:offset</tt> - An integer determining the offset from where the rows should be fetched. So at 5, it would skip rows 0 through 4.
+      # * <tt>:joins</tt> - Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed)
+      #   or named associations in the same form used for the <tt>:include</tt> option, which will perform an <tt>INNER JOIN</tt> on the associated table(s).
       #   If the value is a string, then the records will be returned read-only since they will have attributes that do not correspond to the table's columns.
       #   Pass <tt>:readonly => false</tt> to override.
-      # * <tt>:include</tt>: Names associations that should be loaded alongside. The symbols named refer
+      # * <tt>:include</tt> - Names associations that should be loaded alongside. The symbols named refer
       #   to already defined associations. See eager loading under Associations.
-      # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you, for example, want to do a join but not
+      # * <tt>:select</tt> - By default, this is "*" as in "SELECT * FROM", but can be changed if you, for example, want to do a join but not
       #   include the joined columns.
-      # * <tt>:from</tt>: By default, this is the table name of the class, but can be changed to an alternate table name (or even the name
+      # * <tt>:from</tt> - By default, this is the table name of the class, but can be changed to an alternate table name (or even the name
       #   of a database view).
-      # * <tt>:readonly</tt>: Mark the returned records read-only so they cannot be saved or updated.
-      # * <tt>:lock</tt>: An SQL fragment like "FOR UPDATE" or "LOCK IN SHARE MODE".
+      # * <tt>:readonly</tt> - Mark the returned records read-only so they cannot be saved or updated.
+      # * <tt>:lock</tt> - An SQL fragment like "FOR UPDATE" or "LOCK IN SHARE MODE".
       #   <tt>:lock => true</tt> gives connection's default exclusive lock, usually "FOR UPDATE".
       #
       # Examples for find by id:
@@ -504,11 +504,12 @@ module ActiveRecord #:nodoc:
       #   Person.find(:all, :include => [ :account, :friends ])
       #   Person.find(:all, :group => "category")
       #
-      # Example for find with a lock. Imagine two concurrent transactions:
-      # each will read person.visits == 2, add 1 to it, and save, resulting
-      # in two saves of person.visits = 3.  By locking the row, the second
+      # Example for find with a lock: Imagine two concurrent transactions:
+      # each will read <tt>person.visits == 2</tt>, add 1 to it, and save, resulting
+      # in two saves of <tt>person.visits = 3</tt>.  By locking the row, the second
       # transaction has to wait until the first is finished; we get the
-      # expected person.visits == 4.
+      # expected <tt>person.visits == 4</tt>.
+      #
       #   Person.transaction do
       #     person = Person.find(1, :lock => true)
       #     person.visits += 1
