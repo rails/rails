@@ -1,7 +1,34 @@
 require 'tzinfo'
 module ActiveSupport
   # A Time-like class that can represent a time in any time zone. Necessary because standard Ruby Time instances are 
-  # limited to UTC and the system's ENV['TZ'] zone
+  # limited to UTC and the system's ENV['TZ'] zone.
+  #
+  # You shouldn't ever need to create a TimeWithZone instance directly via .new -- instead, Rails provides the methods
+  # #local, #parse, #at and #now on TimeZone instances, and #in_time_zone on Time and DateTime instances, for a more
+  # user-friendly syntax. Examples:
+  #
+  #   Time.zone = 'Eastern Time (US & Canada)'        # => 'Eastern Time (US & Canada)'
+  #   Time.zone.local(2007, 2, 10, 15, 30, 45)        # => Sat, 10 Feb 2007 15:30:45 EST -05:00
+  #   Time.zone.parse('2007-02-01 15:30:45')          # => Sat, 10 Feb 2007 15:30:45 EST -05:00
+  #   Time.zone.at(1170361845)                        # => Sat, 10 Feb 2007 15:30:45 EST -05:00
+  #   Time.zone.now                                   # => Sun, 18 May 2008 13:07:55 EDT -04:00
+  #   Time.utc(2007, 2, 10, 20, 30, 45).in_time_zone  # => Sat, 10 Feb 2007 15:30:45 EST -05:00
+  #
+  # See TimeZone and ActiveSupport::CoreExtensions::Time::Zones for further documentation for these methods.
+  #
+  # TimeWithZone instances implement the same API as Ruby Time instances, so that Time and TimeWithZone instances are interchangable. Examples:
+  #
+  #   t = Time.zone.now                     # => Sun, 18 May 2008 13:27:25 EDT -04:00
+  #   t.hour                                # => 13
+  #   t.dst?                                # => true
+  #   t.utc_offset                          # => -14400
+  #   t.zone                                # => "EDT"
+  #   t.to_s(:rfc822)                       # => "Sun, 18 May 2008 13:27:25 -0400"
+  #   t + 1.day                             # => Mon, 19 May 2008 13:27:25 EDT -04:00
+  #   t.beginning_of_year                   # => Tue, 01 Jan 2008 00:00:00 EST -05:00
+  #   t > Time.utc(1999)                    # => true
+  #   t.is_a?(Time)                         # => true
+  #   t.is_a?(ActiveSupport::TimeWithZone)  # => true
   class TimeWithZone
     include Comparable
     attr_reader :time_zone
