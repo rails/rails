@@ -97,6 +97,17 @@ module Arel
                 .on(@predicate) \
             .should disambiguate_attributes(@relation1[:id], @relation2[:id])
           end
+
+          describe 'when both relations are compound and only one is an alias' do
+            it 'disambiguates the relation that serves as the ancestor to the attribute' do
+              compound1 = @relation1.select(@predicate)
+              compound2 = compound1.alias
+              compound1           \
+                .join(compound2)  \
+                  .on(@predicate) \
+              .should disambiguate_attributes(compound1[:id], compound2[:id])
+            end
+          end
           
           describe 'when the left relation is extremely compound' do
             it 'disambiguates the relation that serves as the ancestor to the attribute' do
@@ -106,13 +117,6 @@ module Arel
                 .join(@relation2)   \
                   .on(@predicate)   \
               .should disambiguate_attributes(@relation1[:id], @relation2[:id])
-            end
-            
-            it '' do
-              r0 = @relation1.select(@predicate)
-              r1 = r0.alias
-              r = r0.join(r1).on(@predicate)
-              r.should disambiguate_attributes(r0[:id], r1[:id])
             end
           end
           

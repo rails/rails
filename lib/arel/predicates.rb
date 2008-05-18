@@ -17,7 +17,7 @@ module Arel
     end
     
     def bind(relation)
-      self.class.new(operand1.circle(relation), operand2.circle(relation))
+      self.class.new(operand1.find_correlate_in(relation), operand2.find_correlate_in(relation))
     end
     
     def to_sql(formatter = nil)

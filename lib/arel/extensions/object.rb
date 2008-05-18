@@ -3,7 +3,7 @@ class Object
     Arel::Value.new(self, relation)
   end
   
-  def circle(relation)
+  def find_correlate_in(relation)
     bind(relation)
   end
   

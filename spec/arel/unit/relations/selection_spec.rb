@@ -8,13 +8,10 @@ module Arel
     end
   
     describe '#initialize' do
-      before do
-        @another_predicate = @relation[:name].lt(2)
-      end
-      
       it "manufactures nested selection relations if multiple predicates are provided" do
-        Selection.new(@relation, @predicate, @another_predicate). \
-          should == Selection.new(Selection.new(@relation, @another_predicate), @predicate)
+        another_predicate = @relation[:name].lt(2)        
+        Selection.new(@relation, @predicate, another_predicate). \
+          should == Selection.new(Selection.new(@relation, another_predicate), @predicate)
       end
     end
     

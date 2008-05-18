@@ -29,10 +29,8 @@ module Arel
         Expression.new(attribute, function_sql, aliaz, self)
       end
       
-      # FIXME
       def bind(new_relation)
-        # new_relation == relation ? self : Expression.new(attribute.bind(new_relation), function_sql, @alias, self)
-        self
+        new_relation == relation ? self : Expression.new(attribute.bind(new_relation), function_sql, @alias, self)
       end
           
       def to_attribute

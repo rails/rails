@@ -24,9 +24,5 @@ module Arel
     def bind(relation)
       Value.new(value, relation)
     end
-    
-    def circle(relation)
-      bind(relation)
-    end
   end
 end

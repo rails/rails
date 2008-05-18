@@ -20,8 +20,8 @@ module Arel
         "#{expression.function_sql}(#{expression.attribute.to_sql(self)})" + (expression.alias ? " AS #{quote_column_name(expression.alias)}" : '')
       end
       
-      def select(select_sql, name)
-        "(#{select_sql}) AS #{quote_table_name(name.to_s)}"
+      def select(select_sql, table)
+        "(#{select_sql}) AS #{quote_table_name(table)}"
       end
       
       def value(value)
@@ -67,24 +67,24 @@ module Arel
         quote(value, column)
       end
       
-      def select(select_sql, name)
+      def select(select_sql, table)
         "(#{select_sql})"
       end
     end
     
     class SelectStatement < Formatter
-      def select(select_sql, name)
+      def select(select_sql, table)
         select_sql
       end
     end
     
     class TableReference < Formatter
-      def select(select_sql, name)
-        "(#{select_sql}) AS #{quote_table_name(name)}"
+      def select(select_sql, table)
+        "(#{select_sql}) AS #{quote_table_name(table)}"
       end
       
       def table(table)
-        quote_table_name(table.name) + (table.name != name_for(table) ? " AS " + engine.quote_table_name(name_for(table)) : '')
+        quote_table_name(table.name) + (table.name != name_for(table) ? " AS " + quote_table_name(name_for(table)) : '')
       end
     end
     

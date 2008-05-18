@@ -45,7 +45,7 @@ module Arel
       @original_attribute ||= history.detect { |a| !a.join? }
     end
     
-    def circle(relation)
+    def find_correlate_in(relation)
       relation[self]
     end
 
