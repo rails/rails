@@ -452,7 +452,7 @@ module ActiveRecord
     #
     # Consider the following loop using the class above:
     #
-    #   for post in Post.find(:all)
+    #   for post in Post.all
     #     puts "Post:            " + post.title
     #     puts "Written by:      " + post.author.name
     #     puts "Last comment on: " + post.comments.first.created_on
@@ -470,7 +470,7 @@ module ActiveRecord
     #   for post in Post.find(:all, :include => [ :author, :comments ])
     #
     # This will load all comments with a single query. This reduces the total number of queries to 3. More generally the number of queries
-    # will be 1 plus the number of associations named (except if some of the associations are polymorphic belongs_to - see below).
+    # will be 1 plus the number of associations named (except if some of the associations are polymorphic +belongs_to+ - see below).
     #
     # To include a deep hierarchy of associations, use a hash:
     #
@@ -488,13 +488,13 @@ module ActiveRecord
     #  
     #   Post.find(:all, :include => [ :author, :comments ], :conditions => ['comments.approved = ?', true])
     #
-    # will result in a single sql query with joins along the lines of: <tt>LEFT OUTER JOIN comments ON comments.post_id = posts.id</tt> and
+    # will result in a single SQL query with joins along the lines of: <tt>LEFT OUTER JOIN comments ON comments.post_id = posts.id</tt> and
     # <tt>LEFT OUTER JOIN authors ON authors.id = posts.author_id</tt>. Note that using conditions like this can have unintended consequences.
-    # In the above example posts with no approved comments are not returned at all, because the conditions apply to the sql statement as a whole
+    # In the above example posts with no approved comments are not returned at all, because the conditions apply to the SQL statement as a whole
     # and not just to the association. You must disambiguate column references for this fallback to happen, for example
     # <tt>:order => "author.name DESC"</tt> will work but <tt>:order => "name DESC"</tt> will not. 
     #
-    # If you do want eagerload only some members of an association it is usually more natural to :include an association
+    # If you do want eagerload only some members of an association it is usually more natural to <tt>:include</tt> an association
     # which has conditions defined on it:
     #
     #   class Post < ActiveRecord::Base
@@ -503,7 +503,7 @@ module ActiveRecord
     #
     #   Post.find(:all, :include => :approved_comments)
     #
-    # will load posts and eager load the approved_comments association, which contains only those comments that have been approved.
+    # will load posts and eager load the +approved_comments+ association, which contains only those comments that have been approved.
     #
     # When eager loaded, conditions are interpolated in the context of the model class, not the model instance.  Conditions are lazily interpolated
     # before the actual model exists.
