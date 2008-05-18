@@ -452,7 +452,7 @@ module ActiveRecord #:nodoc:
       #   conditions or merely an order. If no record can be matched, +nil+ is returned. Use
       #   <tt>Model.find(:first, *args)</tt> or its shortcut <tt>Model.first(*args)</tt>.
       # * Find last - This will return the last record matched by the options used. These options can either be specific
-      #   conditions or merely an order. If no record can be matched, nil is returned. Use
+      #   conditions or merely an order. If no record can be matched, +nil+ is returned. Use
       #   <tt>Model.find(:last, *args)</tt> or its shortcut <tt>Model.last(*args)</tt>.
       # * Find all - This will return all the records matched by the options used.
       #   If no records are found, an empty array is returned. Use
