@@ -135,7 +135,7 @@ module ActiveSupport
     # If wrapped #time is a DateTime, use DateTime#since instead of #+
     # Otherwise, just pass on to #method_missing
     def +(other)
-      result = utc.acts_like?(:date) ? utc.since(other) : utc + other
+      result = utc.acts_like?(:date) ? utc.since(other) : utc + other rescue utc.since(other)
       result.in_time_zone(time_zone)
     end
     
@@ -146,7 +146,7 @@ module ActiveSupport
       if other.acts_like?(:time)
         utc - other
       else
-        result = utc.acts_like?(:date) ? utc.ago(other) : utc - other
+        result = utc.acts_like?(:date) ? utc.ago(other) : utc - other rescue utc.ago(other)
         result.in_time_zone(time_zone)
       end
     end

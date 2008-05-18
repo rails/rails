@@ -1,3 +1,5 @@
+* TimeWithZone #+ and #- : ensure overflow to DateTime with Numeric arg [Geoff Buesing]
+
 * Time#to_json: don't convert to utc before encoding. References #175 [Geoff Buesing]
 
 *2.1.0 RC1 (May 11th, 2008)*
