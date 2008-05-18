@@ -10,9 +10,9 @@ module Arel
     def attributes
       @attributes ||= relation.attributes.collect { |a| a.bind(self) }
     end
-
-    def relation_for(attribute)
-      join? && relation.relation_for(attribute) || has_attribute?(attribute) && self
+    
+    def selects
+      @selects || relation.selects.collect { |s| s.bind(self) }
     end
   end
 end

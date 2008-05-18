@@ -17,7 +17,7 @@ module Arel
     end
     
     def bind(relation)
-      self.class.new(operand1.bind(relation), operand2.bind(relation))
+      self.class.new(relation[operand1] || operand1, relation[operand2] || operand2)
     end
     
     def to_sql(formatter = nil)

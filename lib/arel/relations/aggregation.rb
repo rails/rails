@@ -15,7 +15,7 @@ module Arel
     end
   
     def attributes
-      @attributes ||= relation.attributes.collect(&:to_attribute)
+      @attributes ||= relation.attributes.collect(&:to_attribute).collect { |a| a.bind(self) }
     end
     
     def ==(other)

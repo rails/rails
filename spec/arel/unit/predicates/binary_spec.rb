@@ -59,12 +59,21 @@ module Arel
   
     describe '#bind' do
       before do
-        @another_relation = Table.new(:photos)
+        @another_relation = @relation.alias
       end
       
-      it "descends" do
-        ConcreteBinary.new(@attribute1, @attribute2).bind(@another_relation). \
-          should == ConcreteBinary.new(@attribute1.bind(@another_relation), @attribute2.bind(@another_relation))
+      describe 'when both operands are attributes' do
+        it "manufactures an expression with the attributes bound to the relation" do
+          ConcreteBinary.new(@attribute1, @attribute2).bind(@another_relation). \
+            should == ConcreteBinary.new(@another_relation[@attribute1], @another_relation[@attribute2])
+        end
+      end
+      
+      describe 'when an operand is a value' do
+        it "manufactures an expression with unmodified values" do
+          ConcreteBinary.new(@attribute1, "asdf").bind(@another_relation). \
+            should == ConcreteBinary.new(@another_relation[@attribute1], "asdf")
+        end
       end
     end
   end

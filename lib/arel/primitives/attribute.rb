@@ -38,16 +38,14 @@ module Arel
     end
 
     def original_relation
-      @original_relation ||= relation.relation_for(self)
+      original_attribute.relation
     end
     
     def original_attribute
-      @original_attribute ||= original_relation[self]
+      @original_attribute ||= history.detect { |a| !a.join? }
     end
 
-    module Transformations
-      delegate :size, :to => :history
-      
+    module Transformations      
       def self.included(klass)
         klass.send :alias_method, :eql?, :==
       end
@@ -75,8 +73,8 @@ module Arel
         @history ||= [self] + (ancestor ? ancestor.history : [])
       end
       
-      def match?(other)
-        history.last == other.history.last
+      def join?
+        relation.join?
       end
       
       def root

@@ -45,17 +45,6 @@ module Arel
     end
     
     describe Attribute::Congruence do
-      describe '#match?' do
-        it "obtains if the attributes are identical" do
-          @attribute.should be_match(@attribute)
-        end
-      
-        it "obtains if the attributes have an overlapping history" do
-          Attribute.new(@relation, :id, :ancestor => @attribute).should be_match(@attribute)
-          @attribute.should be_match(Attribute.new(@relation, :id, :ancestor => @attribute))
-        end
-      end
-      
       describe '/' do
         before do
           @aliased_relation = @relation.alias

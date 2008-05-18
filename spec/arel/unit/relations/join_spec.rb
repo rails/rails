@@ -55,16 +55,6 @@ module Arel
               INNER JOIN `photos` ON `users`.`id` = `photos`.`user_id`
           ")
         end
-
-        it 'manufactures sql joining the two tables, with selects from the right table in the ON clause' do
-          Join.new("INNER JOIN", @relation1.select(@relation1[:id].eq(1)),
-                                 @relation2.select(@relation2[:id].eq(2)), @predicate).to_sql.should be_like("
-            SELECT `users`.`id`, `users`.`name`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
-            FROM `users`
-              INNER JOIN `photos` ON `users`.`id` = `photos`.`user_id` AND `photos`.`id` = 2
-            WHERE `users`.`id` = 1
-          ")
-        end
       end
       
       describe 'when joining with a string' do
