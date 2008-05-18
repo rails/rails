@@ -550,8 +550,7 @@ module ActiveRecord #:nodoc:
         find(:all, *args)
       end
 
-      #
-      # Executes a custom sql query against your database and returns all the results.  The results will
+      # Executes a custom SQL query against your database and returns all the results.  The results will
       # be returned as an array with columns requested encapsulated as attributes of the model you call
       # this method from.  If you call +Product.find_by_sql+ then the results will be returned in a Product
       # object with the attributes you specified in the SQL query.
@@ -560,13 +559,13 @@ module ActiveRecord #:nodoc:
       # SELECT will be attributes of the model, whether or not they are columns of the corresponding
       # table.
       #
-      # The +sql+ parameter is a full sql query as a string.  It will be called as is, there will be
+      # The +sql+ parameter is a full SQL query as a string.  It will be called as is, there will be
       # no database agnostic conversions performed.  This should be a last resort because using, for example,
       # MySQL specific terms will lock you to using that particular database engine or require you to
       # change your call if you switch engines
       #
       # ==== Examples
-      #   # A simple sql query spanning multiple tables
+      #   # A simple SQL query spanning multiple tables
       #   Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
       #   > [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "first_name"=>"Quentin"}>, ...]
       #
@@ -1919,7 +1918,7 @@ module ActiveRecord #:nodoc:
           klass.base_class.name
         end
 
-        # Accepts an array, hash, or string of sql conditions and sanitizes
+        # Accepts an array, hash, or string of SQL conditions and sanitizes
         # them into a valid SQL fragment for a WHERE clause.
         #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
         #   { :name => "foo'bar", :group_id => 4 }  returns "name='foo''bar' and group_id='4'"
@@ -1935,7 +1934,7 @@ module ActiveRecord #:nodoc:
         end
         alias_method :sanitize_sql, :sanitize_sql_for_conditions
 
-        # Accepts an array, hash, or string of sql conditions and sanitizes
+        # Accepts an array, hash, or string of SQL conditions and sanitizes
         # them into a valid SQL fragment for a SET clause.
         #   { :name => nil, :group_id => 4 }  returns "name = NULL , group_id='4'"
         def sanitize_sql_for_assignment(assignments)
@@ -1951,7 +1950,7 @@ module ActiveRecord #:nodoc:
           mapping.first.is_a?(Array) ? mapping : [mapping]
         end
 
-        # Accepts a hash of sql conditions and replaces those attributes
+        # Accepts a hash of SQL conditions and replaces those attributes
         # that correspond to a +composed_of+ relationship with their expanded
         # aggregate attribute values.
         # Given:
@@ -2024,7 +2023,7 @@ module ActiveRecord #:nodoc:
         end
 
         # Accepts an array of conditions.  The array has each value
-        # sanitized and interpolated into the sql statement.
+        # sanitized and interpolated into the SQL statement.
         #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
         def sanitize_sql_array(ary)
           statement, *values = ary
@@ -2575,7 +2574,7 @@ module ActiveRecord #:nodoc:
         self.class.connection.quote(value, column)
       end
 
-      # Interpolate custom sql string in instance context.
+      # Interpolate custom SQL string in instance context.
       # Optional record argument is meant for custom insert_sql.
       def interpolate_sql(sql, record = nil)
         instance_eval("%@#{sql.gsub('@', '\@')}@")

@@ -4,7 +4,7 @@
 #  http://rubyforge.org/projects/ruby-oci8/
 #
 # Specify your database using any valid connection syntax, such as a
-# tnsnames.ora service name, or a sql connect url string of the form:
+# tnsnames.ora service name, or a SQL connect url string of the form:
 #
 #   //host:[port][/service name]
 #

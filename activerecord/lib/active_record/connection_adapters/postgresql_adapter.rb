@@ -776,7 +776,7 @@ module ActiveRecord
       # Returns an ORDER BY clause for the passed order option.
       # 
       # PostgreSQL does not allow arbitrary ordering when using DISTINCT ON, so we work around this
-      # by wrapping the sql as a sub-select and ordering in that query.
+      # by wrapping the +sql+ string as a sub-select and ordering in that query.
       def add_order_by_for_association_limiting!(sql, options) #:nodoc:
         return sql if options[:order].blank?
         
