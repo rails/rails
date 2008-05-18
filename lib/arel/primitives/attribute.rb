@@ -38,11 +38,15 @@ module Arel
     end
 
     def original_relation
-      original_attribute.relation
+      @original_relation ||= original_attribute.relation
     end
     
     def original_attribute
       @original_attribute ||= history.detect { |a| !a.join? }
+    end
+    
+    def circle(relation)
+      relation[self]
     end
 
     module Transformations      

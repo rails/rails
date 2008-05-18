@@ -3,6 +3,10 @@ class Object
     Arel::Value.new(self, relation)
   end
   
+  def circle(relation)
+    bind(relation)
+  end
+  
   def to_sql(formatter)
     formatter.scalar self
   end

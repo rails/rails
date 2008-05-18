@@ -72,7 +72,7 @@ module Arel
       describe 'when an operand is a value' do
         it "manufactures an expression with unmodified values" do
           ConcreteBinary.new(@attribute1, "asdf").bind(@another_relation). \
-            should == ConcreteBinary.new(@another_relation[@attribute1], "asdf")
+            should == ConcreteBinary.new(@attribute1.circle(@another_relation), "asdf".circle(@another_relation))
         end
       end
     end
