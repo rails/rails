@@ -6,7 +6,7 @@ class Time
   #   # => 2005/02/01 15:15:10 +0000"
   def to_json(options = nil)
     if ActiveSupport.use_standard_json_time_format
-      utc.xmlschema.inspect
+      xmlschema.inspect
     else
       %("#{strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)}")
     end
