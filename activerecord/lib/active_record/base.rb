@@ -446,13 +446,17 @@ module ActiveRecord #:nodoc:
     class << self # Class methods
       # Find operates with four different retrieval approaches:
       #
-      # * Find by id: This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
+      # * Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
       #   If no record can be found for all of the listed ids, then RecordNotFound will be raised.
-      # * Find first: This will return the first record matched by the options used. These options can either be specific
-      #   conditions or merely an order. If no record can be matched, nil is returned.
-      # * Find last: This will return the last record matched by the options used. These options can either be specific
-      #   conditions or merely an order. If no record can be matched, nil is returned.
-      # * Find all: This will return all the records matched by the options used. If no records are found, an empty array is returned.
+      # * Find first - This will return the first record matched by the options used. These options can either be specific
+      #   conditions or merely an order. If no record can be matched, +nil+ is returned. Use
+      #   <tt>Model.find(:first, *args)</tt> or its shortcut <tt>Model.first(*args)</tt>.
+      # * Find last - This will return the last record matched by the options used. These options can either be specific
+      #   conditions or merely an order. If no record can be matched, nil is returned. Use
+      #   <tt>Model.find(:last, *args)</tt> or its shortcut <tt>Model.last(*args)</tt>.
+      # * Find all - This will return all the records matched by the options used.
+      #   If no records are found, an empty array is returned. Use
+      #   <tt>Model.find(:all, *args)</tt> or its shortcut <tt>Model.all(*args)</tt>.
       #
       # All approaches accept an options hash as their last parameter. The options are:
       #
