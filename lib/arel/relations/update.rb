@@ -22,7 +22,7 @@ module Arel
     end
     
     def ==(other)
-      self.class  == other.class    and
+      Update      == other.class    and
       relation    == other.relation and
       assignments == other.assignments
     end

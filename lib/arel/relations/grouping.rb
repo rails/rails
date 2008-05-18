@@ -7,7 +7,7 @@ module Arel
     end
 
     def ==(other)
-      self.class  == other.class      and
+      Grouping    == other.class      and
       relation    == other.relation   and
       groupings   == other.groupings
     end

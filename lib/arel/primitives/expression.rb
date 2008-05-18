@@ -17,7 +17,7 @@ module Arel
     end
     
     def ==(other)
-      self.class    == other.class          and
+      Expression    == other.class          and
       attribute     == other.attribute      and
       function_sql  == other.function_sql   and
       ancestor      == other.ancestor       and
@@ -29,6 +29,7 @@ module Arel
         Expression.new(attribute, function_sql, aliaz, self)
       end
       
+      # FIXME
       def bind(new_relation)
         # new_relation == relation ? self : Expression.new(attribute.bind(new_relation), function_sql, @alias, self)
         self

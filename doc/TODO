@@ -1,6 +1,4 @@
 todo:
-- instance methodify externalize
-- test: find_attribute_given_attribute and all @attribute ||= everywhere and memoization of table class.
 - rename select to where
 - and/or w/ predicates
 - blocks for joins
@@ -66,6 +64,8 @@ done:
 - Explicitly model recursive structural decomposition / polymorphism
 - Explicitly model the namer/externalizer using interpreter jargon
 - All Sql Strategies should be accumulations with the top-level relation?
+- instance methodify externalize
+- test: find_attribute_given_attribute and all @attribute ||= everywhere and memoization of table class.
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?

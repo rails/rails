@@ -136,9 +136,21 @@ module Arel
       end
       
       def find_attribute_matching_attribute(attribute)
-        attributes.select { |a| a.match?(attribute) }.max do |a1, a2|
+        matching_attributes(attribute).max do |a1, a2|
           (a1.original_attribute / attribute) <=> (a2.original_attribute / attribute)
         end
+      end
+      
+      private
+      def matching_attributes(attribute)
+        (@matching_attributes ||= attributes.inject({}) do |hash, a|
+          (hash[a.root] ||= []) << a
+          hash
+        end)[attribute.root] || []
+      end
+      
+      def has_attribute?(attribute)
+        !matching_attributes(attribute).empty?
       end
     end
     include AttributeAccessable

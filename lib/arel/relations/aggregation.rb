@@ -19,7 +19,7 @@ module Arel
     end
     
     def ==(other)
-      self.class    == other.class and
+      Aggregation   == other.class and
       self.relation == other.relation
     end
   end

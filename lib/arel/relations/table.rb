@@ -17,7 +17,7 @@ module Arel
     end
 
     def column_for(attribute)
-      self[attribute] and columns.detect { |c| c.name == attribute.name.to_s }
+      has_attribute?(attribute) and columns.detect { |c| c.name == attribute.name.to_s }
     end
     
     def columns
@@ -29,7 +29,7 @@ module Arel
     end
     
     def ==(other)
-      self.class == other.class and
+      Table      == other.class and
       name       == other.name
     end
   end

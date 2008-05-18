@@ -28,7 +28,7 @@ module Arel
 
   class Equality < Binary
     def ==(other)
-      self.class == other.class and
+      Equality == other.class and
         ((operand1 == other.operand1 and operand2 == other.operand2) or
          (operand1 == other.operand2 and operand2 == other.operand1))
     end

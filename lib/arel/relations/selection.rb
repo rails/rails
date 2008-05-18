@@ -13,7 +13,7 @@ module Arel
     end    
 
     def ==(other)
-      self.class == other.class and
+      Selection  == other.class and
       relation   == other.relation and
       predicate  == other.predicate
     end

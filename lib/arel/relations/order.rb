@@ -11,7 +11,7 @@ module Arel
     end
     
     def ==(other)
-      self.class  == other.class    and
+      Order       == other.class    and
       relation    == other.relation and
       orderings   == other.orderings
     end

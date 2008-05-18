@@ -9,7 +9,7 @@ module Arel
     end
 
     def ==(other)
-      self.class == other.class       and
+      Join       == other.class       and
       predicates == other.predicates  and (
         (relation1 == other.relation1 and relation2 == other.relation2) or
         (relation2 == other.relation1 and relation1 == other.relation2)

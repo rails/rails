@@ -15,7 +15,7 @@ module Arel
     end
     
     def ==(other)
-      self.class  == other.class    and
+      Projection  == other.class    and
       relation    == other.relation and
       projections == other.projections
     end

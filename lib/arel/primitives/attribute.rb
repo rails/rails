@@ -30,11 +30,11 @@ module Arel
     end
     
     def ==(other)
-      self.class  == other.class     and
+      Attribute   == other.class     and
       name        == other.name      and
       @alias      == other.alias     and
-      relation    == other.relation  and
-      ancestor    == other.ancestor
+      ancestor    == other.ancestor  and
+      relation    == other.relation
     end
 
     def original_relation
@@ -76,7 +76,11 @@ module Arel
       end
       
       def match?(other)
-        !(history & other.history).empty?
+        history.last == other.history.last
+      end
+      
+      def root
+        history.last
       end
       
       def descends_from?(other)

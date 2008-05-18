@@ -7,7 +7,7 @@ module Arel
     end
 
     def ==(other)
-      self.class  == other.class    and
+      Skip        == other.class    and
       relation    == other.relation and
       skipped     == other.skipped
     end

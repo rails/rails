@@ -12,7 +12,7 @@ module Arel
     end
 
     def relation_for(attribute)
-      join? && relation.relation_for(attribute) || self[attribute] && self
+      join? && relation.relation_for(attribute) || has_attribute?(attribute) && self
     end
   end
 end

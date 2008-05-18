@@ -10,8 +10,8 @@ module Arel
       end
       
       def relation_for(attribute)
-        self[attribute] && self
-      end
+        has_attribute?(attribute) && self
+      end      
     end
   end
 end

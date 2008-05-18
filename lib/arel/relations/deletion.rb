@@ -18,7 +18,7 @@ module Arel
     end
     
     def ==(other)
-      self.class  == other.class    and
+      Deletion    == other.class    and
       relation    == other.relation
     end
   end
