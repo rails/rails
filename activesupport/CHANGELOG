@@ -1,3 +1,5 @@
+* Hash.from_xml: datetime xml types overflow to Ruby DateTime class when out of range of Time. Adding tests for utc offsets [Geoff Buesing]
+
 * TimeWithZone #+ and #- : ensure overflow to DateTime with Numeric arg [Geoff Buesing]
 
 * Time#to_json: don't convert to utc before encoding. References #175 [Geoff Buesing]
