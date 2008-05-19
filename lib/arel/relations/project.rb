@@ -1,5 +1,5 @@
 module Arel
-  class Projection < Compound
+  class Project < Compound
     attr_reader :projections
     
     def initialize(relation, *projections)
@@ -15,7 +15,7 @@ module Arel
     end
     
     def ==(other)
-      Projection  === other          and
+      Project  === other          and
       relation    ==  other.relation and
       projections ==  other.projections
     end

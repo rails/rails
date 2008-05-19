@@ -1,5 +1,5 @@
 module Arel
-  class Grouping < Compound
+  class Group < Compound
     attr_reader :groupings
 
     def initialize(relation, *groupings)
@@ -7,7 +7,7 @@ module Arel
     end
 
     def ==(other)
-      Grouping    === other          and
+      Group       === other          and
       relation    ==  other.relation and
       groupings   ==  other.groupings
     end

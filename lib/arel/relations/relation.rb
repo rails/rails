@@ -77,7 +77,7 @@ module Arel
       end
 
       def project(*attributes)
-        attributes.all?(&:blank?) ? self : Projection.new(self, *attributes)
+        attributes.all?(&:blank?) ? self : Project.new(self, *attributes)
       end
       
       def alias
@@ -97,12 +97,12 @@ module Arel
       end
   
       def group(*groupings)
-        groupings.all?(&:blank?) ? self : Grouping.new(self, *groupings)
+        groupings.all?(&:blank?) ? self : Group.new(self, *groupings)
       end
       
       module Writable
         def insert(record)
-          session.create Insertion.new(self, record); self
+          session.create Insert.new(self, record); self
         end
 
         def update(assignments)

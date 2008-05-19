@@ -62,7 +62,7 @@ module Arel
       describe '#project' do
         it "manufactures a projection relation" do
           @relation.project(@attribute1, @attribute2). \
-            should == Projection.new(@relation, @attribute1, @attribute2)
+            should == Project.new(@relation, @attribute1, @attribute2)
         end
         
         describe "when given blank attributes" do
@@ -136,7 +136,7 @@ module Arel
 
       describe '#group' do
         it 'manufactures a group relation' do
-          @relation.group(@attribute1, @attribute2).should == Grouping.new(@relation, @attribute1, @attribute2)
+          @relation.group(@attribute1, @attribute2).should == Group.new(@relation, @attribute1, @attribute2)
         end
         
         describe 'when given blank groupings' do
@@ -160,7 +160,7 @@ module Arel
           it 'manufactures an insertion relation' do
             Session.start do
               record = {@relation[:name] => 'carl'}
-              mock(Session.new).create(Insertion.new(@relation, record))
+              mock(Session.new).create(Insert.new(@relation, record))
               @relation.insert(record).should == @relation
             end
           end

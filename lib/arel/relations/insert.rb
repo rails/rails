@@ -1,5 +1,5 @@
 module Arel
-  class Insertion < Writing
+  class Insert < Writing
     attr_reader :record
 
     def initialize(relation, record)
@@ -20,7 +20,7 @@ module Arel
     end
     
     def ==(other)
-      Insertion   === other         and
+      Insert   === other         and
       relation    == other.relation and
       record      == other.record
     end

@@ -1,5 +1,4 @@
 todo:
-- rename select to where
 - and/or w/ predicates
 - blocks for all operations
 - result sets to attr correlation too
@@ -18,7 +17,7 @@ done:
 . Attribute == Attribute -> EqualityPredicate
 . Attribute >= Attribute -> GreaterThanOrEqualToPredicate
 . Relation.include?(Column) -> Predicate
-. Relation.project(*Column) -> ProjectionRelation
+. Relation.project(*Column) -> ProjectRelation
 . Relation.select(*Predicate) -> SelectionRelation
 . Relation.order(*Column) -> OrderRelation
 . #to_sql
@@ -67,6 +66,8 @@ done:
 - All Sql Strategies should be accumulations with the top-level relation?
 - instance methodify externalize
 - test: find_attribute_given_attribute and all @attribute ||= everywhere and memoization of table class.
+- rename select to where
+- rename all ion classes
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?

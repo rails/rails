@@ -1,7 +1,7 @@
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'spec_helper')
 
 module Arel
-  describe Grouping do
+  describe Group do
     before do
       @relation = Table.new(:users)
       @attribute = @relation[:id]
@@ -10,7 +10,7 @@ module Arel
     describe '#to_sql' do
       describe 'when given a predicate' do
         it "manufactures sql with where clause conditions" do
-          Grouping.new(@relation, @attribute).to_sql.should be_like("
+          Group.new(@relation, @attribute).to_sql.should be_like("
             SELECT `users`.`id`, `users`.`name`
             FROM `users`
             GROUP BY `users`.`id`
@@ -20,7 +20,7 @@ module Arel
       
       describe 'when given a string' do
         it "passes the string through to the where clause" do
-          Grouping.new(@relation, 'asdf').to_sql.should be_like("
+          Group.new(@relation, 'asdf').to_sql.should be_like("
             SELECT `users`.`id`, `users`.`name`
             FROM `users`
             GROUP BY asdf

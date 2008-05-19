@@ -32,7 +32,7 @@ module Arel
     
     describe Session::CRUD do
       before do
-        @insert = Insertion.new(@relation, @relation[:name] => 'nick')
+        @insert = Insert.new(@relation, @relation[:name] => 'nick')
         @update = Update.new(@relation, @relation[:name] => 'nick')
         @delete = Deletion.new(@relation)
         @read = @relation
