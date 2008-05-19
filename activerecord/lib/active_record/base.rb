@@ -200,7 +200,7 @@ module ActiveRecord #:nodoc:
   #
   # All column values are automatically available through basic accessors on the Active Record object, but sometimes you
   # want to specialize this behavior. This can be done by overwriting the default accessors (using the same
-  # name as the attribute) and calling read_attribute(attr_name) and write_attribute(attr_name, value) to actually change things.
+  # name as the attribute) and calling <tt>read_attribute(attr_name)</tt> and <tt>write_attribute(attr_name, value)</tt> to actually change things.
   # Example:
   #
   #   class Song < ActiveRecord::Base
@@ -215,8 +215,8 @@ module ActiveRecord #:nodoc:
   #     end
   #   end
   #
-  # You can alternatively use self[:attribute]=(value) and self[:attribute] instead of write_attribute(:attribute, value) and
-  # read_attribute(:attribute) as a shorter form.
+  # You can alternatively use <tt>self[:attribute]=(value)</tt> and <tt>self[:attribute]</tt> instead of <tt>write_attribute(:attribute, value)</tt> and
+  # <tt>read_attribute(:attribute)</tt> as a shorter form.
   #
   # == Attribute query methods
   #
@@ -236,7 +236,7 @@ module ActiveRecord #:nodoc:
   #
   # Sometimes you want to be able to read the raw attribute data without having the column-determined typecast run its course first.
   # That can be done by using the <tt><attribute>_before_type_cast</tt> accessors that all attributes have. For example, if your Account model
-  # has a balance attribute, you can call <tt>account.balance_before_type_cast</tt> or <tt>account.id_before_type_cast</tt>.
+  # has a <tt>balance</tt> attribute, you can call <tt>account.balance_before_type_cast</tt> or <tt>account.id_before_type_cast</tt>.
   #
   # This is especially useful in validation situations where the user might supply a string for an integer field and you want to display
   # the original string back in an error message. Accessing the attribute normally would typecast the string to 0, which isn't what you
@@ -245,8 +245,8 @@ module ActiveRecord #:nodoc:
   # == Dynamic attribute-based finders
   #
   # Dynamic attribute-based finders are a cleaner way of getting (and/or creating) objects by simple queries without turning to SQL. They work by
-  # appending the name of an attribute to <tt>find_by_</tt> or <tt>find_all_by_</tt>, so you get finders like Person.find_by_user_name,
-  # Person.find_all_by_last_name, Payment.find_by_transaction_id. So instead of writing
+  # appending the name of an attribute to <tt>find_by_</tt> or <tt>find_all_by_</tt>, so you get finders like <tt>Person.find_by_user_name</tt>,
+  # <tt>Person.find_all_by_last_name</tt>, and <tt>Payment.find_by_transaction_id</tt>. So instead of writing
   # <tt>Person.find(:first, :conditions => ["user_name = ?", user_name])</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
   # And instead of writing <tt>Person.find(:all, :conditions => ["last_name = ?", last_name])</tt>, you just do <tt>Person.find_all_by_last_name(last_name)</tt>.
   #
@@ -255,8 +255,8 @@ module ActiveRecord #:nodoc:
   # <tt>Person.find(:first, :conditions => ["user_name = ? AND password = ?", user_name, password])</tt>, you just do
   # <tt>Person.find_by_user_name_and_password(user_name, password)</tt>.
   #
-  # It's even possible to use all the additional parameters to find. For example, the full interface for Payment.find_all_by_amount
-  # is actually Payment.find_all_by_amount(amount, options). And the full interface to Person.find_by_user_name is
+  # It's even possible to use all the additional parameters to find. For example, the full interface for <tt>Payment.find_all_by_amount</tt>
+  # is actually <tt>Payment.find_all_by_amount(amount, options)</tt>. And the full interface to <tt>Person.find_by_user_name</tt> is
   # actually <tt>Person.find_by_user_name(user_name, options)</tt>. So you could call <tt>Payment.find_all_by_amount(50, :order => "created_on")</tt>.
   #
   # The same dynamic finder style can be used to create the object if it doesn't already exist. This dynamic finder is called with
@@ -316,8 +316,8 @@ module ActiveRecord #:nodoc:
   #   class Client < Company; end
   #   class PriorityClient < Client; end
   #
-  # When you do Firm.create(:name => "37signals"), this record will be saved in the companies table with type = "Firm". You can then
-  # fetch this row again using Company.find(:first, "name = '37signals'") and it will return a Firm object.
+  # When you do <tt>Firm.create(:name => "37signals")</tt>, this record will be saved in the companies table with type = "Firm". You can then
+  # fetch this row again using <tt>Company.find(:first, "name = '37signals'")</tt> and it will return a Firm object.
   #
   # If you don't have a type column defined in your table, single-table inheritance won't be triggered. In that case, it'll work just
   # like normal subclasses with no special magic for differentiating between them or reloading the right type with find.
@@ -329,8 +329,8 @@ module ActiveRecord #:nodoc:
   #
   # Connections are usually created through ActiveRecord::Base.establish_connection and retrieved by ActiveRecord::Base.connection.
   # All classes inheriting from ActiveRecord::Base will use this connection. But you can also set a class-specific connection.
-  # For example, if Course is an ActiveRecord::Base, but resides in a different database, you can just say Course.establish_connection
-  # and Course *and all its subclasses* will use this connection instead.
+  # For example, if Course is an ActiveRecord::Base, but resides in a different database, you can just say <tt>Course.establish_connection</tt>
+  # and Course and all of its subclasses will use this connection instead.
   #
   # This feature is implemented by keeping a connection pool in ActiveRecord::Base that is a Hash indexed by the class. If a connection is
   # requested, the retrieve_connection method will go up the class-hierarchy until a connection is found in the connection pool.
