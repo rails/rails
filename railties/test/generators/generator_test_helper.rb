@@ -206,7 +206,7 @@ class GeneratorTestCase < Test::Unit::TestCase
     end
   end
 
-  # Asserts that the given css stylesheet file was generated.
+  # Asserts that the given CSS stylesheet file was generated.
   # It takes a path without the <tt>.css</tt> part.
   # The contents of the stylesheet source file is passed to a block.
   def assert_generated_stylesheet(path)

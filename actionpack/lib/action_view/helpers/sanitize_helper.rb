@@ -194,7 +194,7 @@ module ActionView
           HTML::WhiteListSanitizer.allowed_css_properties.merge(attributes)
         end
 
-        # Adds to the Set of allowed css keywords for the +sanitize+ and +sanitize_css+ helpers.
+        # Adds to the Set of allowed CSS keywords for the +sanitize+ and +sanitize_css+ helpers.
         #
         #   Rails::Initializer.run do |config|
         #     config.action_view.sanitized_allowed_css_keywords = 'expression'

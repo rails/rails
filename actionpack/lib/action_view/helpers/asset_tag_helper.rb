@@ -11,8 +11,8 @@ module ActionView
     # === Using asset hosts
     # By default, Rails links to these assets on the current host in the public
     # folder, but you can direct Rails to link to assets from a dedicated assets server by 
-    # setting ActionController::Base.asset_host in your environment.rb.  For example,
-    # let's say your asset host is assets.example.com. 
+    # setting ActionController::Base.asset_host in your <tt>config/environment.rb</tt>.  For example,
+    # let's say your asset host is <tt>assets.example.com</tt>.
     #
     #   ActionController::Base.asset_host = "assets.example.com"
     #   image_tag("rails.png")
@@ -22,8 +22,8 @@ module ActionView
     #
     # This is useful since browsers typically open at most two connections to a single host,
     # which means your assets often wait in single file for their turn to load.  You can
-    # alleviate this by using a %d wildcard in <tt>asset_host</tt> (for example, "assets%d.example.com") 
-    # to automatically distribute asset requests among four hosts (e.g., assets0.example.com through assets3.example.com)
+    # alleviate this by using a <tt>%d</tt> wildcard in <tt>asset_host</tt> (for example, "assets%d.example.com") 
+    # to automatically distribute asset requests among four hosts (e.g., "assets0.example.com" through "assets3.example.com")
     # so browsers will open eight connections rather than two.  
     #
     #   image_tag("rails.png")
@@ -293,9 +293,9 @@ module ActionView
       end
 
       # Computes the path to a stylesheet asset in the public stylesheets directory.
-      # If the +source+ filename has no extension, .css will be appended.
+      # If the +source+ filename has no extension, <tt>.css</tt> will be appended.
       # Full paths from the document root will be passed through.
-      # Used internally by stylesheet_link_tag to build the stylesheet path.
+      # Used internally by +stylesheet_link_tag+ to build the stylesheet path.
       #
       # ==== Examples
       #   stylesheet_path "style" # => /stylesheets/style.css
@@ -309,7 +309,7 @@ module ActionView
       alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with a stylesheet_path named route
 
       # Returns a stylesheet link tag for the sources specified as arguments. If
-      # you don't specify an extension, .css will be appended automatically.
+      # you don't specify an extension, <tt>.css</tt> will be appended automatically.
       # You can modify the link attributes by passing a hash as the last argument.
       #
       # ==== Examples
@@ -379,7 +379,7 @@ module ActionView
 
       # Computes the path to an image asset in the public images directory.
       # Full paths from the document root will be passed through.
-      # Used internally by image_tag to build the image path.
+      # Used internally by +image_tag+ to build the image path.
       #
       # ==== Examples
       #   image_path("edit")                                         # => /images/edit
@@ -454,8 +454,8 @@ module ActionView
           end
         end
 
-        # Add the .ext if not present. Return full URLs otherwise untouched.
-        # Prefix with /dir/ if lacking a leading /. Account for relative URL
+        # Add the the extension +ext+ if not present. Return full URLs otherwise untouched.
+        # Prefix with <tt>/dir/</tt> if lacking a leading +/+. Account for relative URL
         # roots. Rewrite the asset path for cache-busting asset ids. Include
         # asset host, if configured, with the correct request protocol.
         def compute_public_path(source, dir, ext = nil, include_host = true)
@@ -502,9 +502,9 @@ module ActionView
             end
         end
 
-        # Pick an asset host for this source. Returns nil if no host is set,
+        # Pick an asset host for this source. Returns +nil+ if no host is set,
         # the host if no wildcard is set, the host interpolated with the
-        # numbers 0-3 if it contains %d (the number is the source hash mod 4),
+        # numbers 0-3 if it contains <tt>%d</tt> (the number is the source hash mod 4),
         # or the value returned from invoking the proc if it's a proc.
         def compute_asset_host(source)
           if host = ActionController::Base.asset_host
