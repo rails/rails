@@ -8,7 +8,7 @@ module Arel
       [
         "DELETE",
         "FROM #{table_sql}",
-        ("WHERE #{selects.collect(&:to_sql).join('\n\tAND ')}" unless selects.blank?  ),
+        ("WHERE #{wheres.collect(&:to_sql).join('\n\tAND ')}" unless wheres.blank?  ),
         ("LIMIT     #{taken}"                                  unless taken.blank?    ),
       ].compact.join("\n")
     end

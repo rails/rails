@@ -1,7 +1,8 @@
 todo:
 - rename select to where
 - and/or w/ predicates
-- blocks for joins
+- blocks for all operations
+- result sets to attr correlation too
 - cache expiry on write
   - rewrite of arecord querycache test in light of this
 - scoped writes

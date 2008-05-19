@@ -9,11 +9,11 @@ module Arel
     end
     
     describe '#to_sql' do
-      describe 'when the join contains a select' do
-        describe 'and the select is given a string' do
+      describe 'when the join contains a where' do
+        describe 'and the where is given a string' do
           it 'does not escape the string' do
             @relation1                          \
-              .join(@relation2.select("asdf"))  \
+              .join(@relation2.where("asdf"))   \
                 .on(@predicate)                 \
             .to_sql.should be_like("
               SELECT `users`.`id`, `users`.`name`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
@@ -26,13 +26,13 @@ module Arel
       end
     
       describe 'when a compound contains a join' do
-        describe 'and the compound is a select' do
+        describe 'and the compound is a where' do
           it 'manufactures sql disambiguating the tables' do
             @relation1                        \
-              .select(@relation1[:id].eq(1))  \
+              .where(@relation1[:id].eq(1))   \
               .join(@relation2)               \
                 .on(@predicate)               \
-              .select(@relation1[:id].eq(1))  \
+              .where(@relation1[:id].eq(1))   \
             .to_sql.should be_like("
               SELECT `users`.`id`, `users`.`name`, `photos`.`id`, `photos`.`user_id`, `photos`.`camera_id`
               FROM `users`

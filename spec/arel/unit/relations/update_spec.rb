@@ -48,15 +48,15 @@ module Arel
         end
       end
             
-      describe 'when the relation is a selection' do
+      describe 'when the relation is a where' do
         before do
           @update = Update.new(
-            @relation.select(@relation[:id].eq(1)),
+            @relation.where(@relation[:id].eq(1)),
             @relation[:name] => "nick"
           )
         end
         
-        it 'manufactures sql updating a selection relation' do
+        it 'manufactures sql updating a where relation' do
           @update.to_sql.should be_like("
             UPDATE `users`
             SET `users`.`name` = 'nick'

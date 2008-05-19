@@ -2,7 +2,7 @@ module Arel
   class Compound < Relation
     attr_reader :relation
     hash_on :relation
-    delegate :joins, :selects, :join?, :orders, :groupings, :inserts, :taken,
+    delegate :joins, :wheres, :join?, :inserts, :taken,
              :skipped, :name, :aggregation?, :column_for,
              :engine, :table, :table_sql,
              :to => :relation
@@ -11,8 +11,8 @@ module Arel
       @attributes ||= relation.attributes.collect { |a| a.bind(self) }
     end
     
-    def selects
-      @selects ||= relation.selects.collect { |s| s.bind(self) }
+    def wheres
+      @wheres ||= relation.wheres.collect { |w| w.bind(self) }
     end
     
     def groupings

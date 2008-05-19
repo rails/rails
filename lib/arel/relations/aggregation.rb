@@ -6,7 +6,7 @@ module Arel
       @relation = relation
     end
     
-    def selects
+    def wheres
       []
     end
   

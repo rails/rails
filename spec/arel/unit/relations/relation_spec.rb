@@ -78,22 +78,22 @@ module Arel
         end
       end
 
-      describe '#select' do
+      describe '#where' do
         before do
           @predicate = Equality.new(@attribute1, @attribute2)
         end
 
-        it "manufactures a selection relation" do
-          @relation.select(@predicate).should == Selection.new(@relation, @predicate)
+        it "manufactures a where relation" do
+          @relation.where(@predicate).should == Where.new(@relation, @predicate)
         end
 
         it "accepts arbitrary strings" do
-          @relation.select("arbitrary").should == Selection.new(@relation, "arbitrary")
+          @relation.where("arbitrary").should == Where.new(@relation, "arbitrary")
         end
 
         describe 'when given a blank predicate' do
           it 'returns self' do
-            @relation.select.should == @relation
+            @relation.where.should == @relation
           end
         end
       end

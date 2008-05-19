@@ -14,7 +14,7 @@ module Arel
         "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectClause.new(self)) }.join(', ')}",
         "FROM       #{table_sql(Sql::TableReference.new(self))}",
         (joins(self)                                                                                    unless joins(self).blank? ),
-        ("WHERE     #{selects  .collect { |s| s.to_sql(Sql::WhereClause.new(self)) }.join("\n\tAND ")}" unless selects.blank?     ),
+        ("WHERE     #{wheres   .collect { |w| w.to_sql(Sql::WhereClause.new(self)) }.join("\n\tAND ")}" unless wheres.blank?      ),
         ("ORDER BY  #{orders   .collect { |o| o.to_sql(Sql::OrderClause.new(self)) }.join(', ')}"       unless orders.blank?      ),
         ("GROUP BY  #{groupings.collect { |g| g.to_sql(Sql::GroupClause.new(self)) }.join(', ')}"       unless groupings.blank?   ),
         ("LIMIT     #{taken}"                                                                           unless taken.blank?       ),
@@ -72,8 +72,8 @@ module Arel
         join(other, "LEFT OUTER JOIN")
       end
       
-      def select(*predicates)
-        predicates.all?(&:blank?) ? self : Selection.new(self, *predicates)
+      def where(*predicates)
+        predicates.all?(&:blank?) ? self : Where.new(self, *predicates)
       end
 
       def project(*attributes)
@@ -161,7 +161,7 @@ module Arel
 
     module DefaultOperations
       def attributes;             []  end
-      def selects;                []  end
+      def wheres;                 []  end
       def orders;                 []  end
       def inserts;                []  end
       def groupings;              []  end

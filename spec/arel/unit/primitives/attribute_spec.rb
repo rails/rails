@@ -16,7 +16,7 @@ module Arel
     
       describe '#bind' do
         it "manufactures an attribute with the relation bound and self as an ancestor" do
-          derived_relation = @relation.select(@relation[:id].eq(1))
+          derived_relation = @relation.where(@relation[:id].eq(1))
           @attribute.bind(derived_relation).should == Attribute.new(derived_relation, @attribute.name, :ancestor => @attribute)
         end
         

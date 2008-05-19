@@ -50,10 +50,10 @@ module Arel
           end
         end
 
-        describe 'when the aggration has a selection' do
+        describe 'when the aggration has a where' do
           describe 'with the aggregation on the left' do
-            it "manufactures sql keeping selects on the aggregation within the derived table" do
-              @relation1.join(@aggregation.select(@aggregation[:user_id].eq(1))).on(@predicate).to_sql.should be_like("
+            it "manufactures sql keeping wheres on the aggregation within the derived table" do
+              @relation1.join(@aggregation.where(@aggregation[:user_id].eq(1))).on(@predicate).to_sql.should be_like("
                 SELECT `users`.`id`, `users`.`name`, `photos_aggregation`.`user_id`, `photos_aggregation`.`cnt`
                 FROM `users`
                   INNER JOIN (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` WHERE `photos`.`user_id` = 1 GROUP BY `photos`.`user_id`) AS `photos_aggregation`
@@ -63,8 +63,8 @@ module Arel
           end
           
           describe 'with the aggregation on the right' do
-            it "manufactures sql keeping selects on the aggregation within the derived table" do
-              @aggregation.select(@aggregation[:user_id].eq(1)).join(@relation1).on(@predicate).to_sql.should be_like("
+            it "manufactures sql keeping wheres on the aggregation within the derived table" do
+              @aggregation.where(@aggregation[:user_id].eq(1)).join(@relation1).on(@predicate).to_sql.should be_like("
                 SELECT `photos_aggregation`.`user_id`, `photos_aggregation`.`cnt`, `users`.`id`, `users`.`name`
                 FROM (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` WHERE `photos`.`user_id` = 1 GROUP BY `photos`.`user_id`) AS `photos_aggregation`
                   INNER JOIN `users`

@@ -12,7 +12,7 @@ module Arel
         assignments.collect do |attribute, value|
           "#{value.format(attribute)} = #{attribute.format(value)}"
         end.join(",\n"),
-        ("WHERE #{selects.collect(&:to_sql).join('\n\tAND ')}" unless selects.blank?  ),
+        ("WHERE #{wheres.collect(&:to_sql).join('\n\tAND ')}"  unless wheres.blank?  ),
         ("LIMIT     #{taken}"                                  unless taken.blank?    )
       ].join("\n")
     end

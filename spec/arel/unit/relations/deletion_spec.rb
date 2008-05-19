@@ -14,8 +14,8 @@ module Arel
         ")
       end
     
-      it 'manufactures sql deleting a selection relation' do
-        Deletion.new(@relation.select(@relation[:id].eq(1))).to_sql.should be_like("
+      it 'manufactures sql deleting a where relation' do
+        Deletion.new(@relation.where(@relation[:id].eq(1))).to_sql.should be_like("
           DELETE
           FROM `users`
           WHERE `users`.`id` = 1

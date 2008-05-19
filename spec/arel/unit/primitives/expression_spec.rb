@@ -14,7 +14,7 @@ module Arel
       
       describe '#bind' do
         it "manufactures an attribute with a rebound relation and self as the ancestor" do
-          derived_relation = @relation.select(@relation[:id].eq(1))
+          derived_relation = @relation.where(@relation[:id].eq(1))
           @expression.bind(derived_relation).should == Expression.new(@attribute.bind(derived_relation), "COUNT", nil, @expression)
         end
         

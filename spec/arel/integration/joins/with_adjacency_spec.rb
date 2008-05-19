@@ -19,10 +19,10 @@ module Arel
           ")
         end
         
-        describe 'when joining with a selection on the same relation' do
+        describe 'when joining with a where on the same relation' do
           it 'manufactures sql aliasing the tables properly' do
             @relation1                                                      \
-              .join(@relation2.select(@relation2[:id].eq(1)))               \
+              .join(@relation2.where(@relation2[:id].eq(1)))               \
                 .on(@predicate)                                             \
             .to_sql.should be_like("
               SELECT `users`.`id`, `users`.`name`, `users_2`.`id`, `users_2`.`name`
@@ -32,9 +32,9 @@ module Arel
             ")
           end
           
-          describe 'when the selection occurs before the alias' do
+          describe 'when the where occurs before the alias' do
             it 'manufactures sql aliasing the predicates properly' do
-              relation2 = @relation1.select(@relation1[:id].eq(1)).alias
+              relation2 = @relation1.where(@relation1[:id].eq(1)).alias
               @relation1                                  \
                 .join(relation2)                          \
                   .on(relation2[:id].eq(@relation1[:id])) \
@@ -100,7 +100,7 @@ module Arel
 
           describe 'when both relations are compound and only one is an alias' do
             it 'disambiguates the relation that serves as the ancestor to the attribute' do
-              compound1 = @relation1.select(@predicate)
+              compound1 = @relation1.where(@predicate)
               compound2 = compound1.alias
               compound1           \
                 .join(compound2)  \
@@ -112,8 +112,8 @@ module Arel
           describe 'when the left relation is extremely compound' do
             it 'disambiguates the relation that serves as the ancestor to the attribute' do
               @relation1            \
-                .select(@predicate) \
-                .select(@predicate) \
+                .where(@predicate)  \
+                .where(@predicate)  \
                 .join(@relation2)   \
                   .on(@predicate)   \
               .should disambiguate_attributes(@relation1[:id], @relation2[:id])
@@ -125,9 +125,9 @@ module Arel
               @relation1                  \
                 .join(                    \
                   @relation2              \
-                    .select(@predicate)   \
-                    .select(@predicate)   \
-                    .select(@predicate))  \
+                    .where(@predicate)    \
+                    .where(@predicate)    \
+                    .where(@predicate))   \
                   .on(@predicate)         \
               .should disambiguate_attributes(@relation1[:id], @relation2[:id])
             end

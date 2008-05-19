@@ -17,7 +17,7 @@ module Arel
       describe 'when there is no ambiguity' do
         it 'does not alias table names anywhere a table name can appear' do
           @relation                       \
-            .select(@relation[:id].eq(1)) \
+            .where(@relation[:id].eq(1))  \
             .order(@relation[:id])        \
             .project(@relation[:id])      \
             .group(@relation[:id])        \
