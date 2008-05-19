@@ -34,7 +34,7 @@ module ActionMailer
       #   helper FooHelper
       # includes FooHelper in the template class.
       #   helper { def foo() "#{bar} is the very best" end }
-      # evaluates the block in the template class, adding method #foo.
+      # evaluates the block in the template class, adding method +foo+.
       #   helper(:three, BlindHelper) { def mice() 'mice' end }
       # does all three.
       def helper(*args, &block)

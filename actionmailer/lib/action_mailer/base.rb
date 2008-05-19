@@ -383,8 +383,8 @@ module ActionMailer #:nodoc:
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
-      # object's #receive method. If you want your mailer to be able to
-      # process incoming messages, you'll need to implement a #receive
+      # object's +receive+ method. If you want your mailer to be able to
+      # process incoming messages, you'll need to implement a +receive+
       # method that accepts the email object as a parameter:
       #
       #   class MyMailer < ActionMailer::Base
@@ -490,7 +490,7 @@ module ActionMailer #:nodoc:
     end
 
     # Delivers a TMail::Mail object. By default, it delivers the cached mail
-    # object (from the #create! method). If no cached mail object exists, and
+    # object (from the <tt>create!</tt> method). If no cached mail object exists, and
     # no alternate has been given as the parameter, this will fail.
     def deliver!(mail = @mail)
       raise "no mail object available for delivery!" unless mail
