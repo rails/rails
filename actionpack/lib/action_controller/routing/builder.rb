@@ -23,9 +23,9 @@ module ActionController
       # Accepts a "route path" (a string defining a route), and returns the array
       # of segments that corresponds to it. Note that the segment array is only
       # partially initialized--the defaults and requirements, for instance, need
-      # to be set separately, via the #assign_route_options method, and the
-      # #optional? method for each segment will not be reliable until after
-      # #assign_route_options is called, as well.
+      # to be set separately, via the +assign_route_options+ method, and the
+      # <tt>optional?</tt> method for each segment will not be reliable until after
+      # +assign_route_options+ is called, as well.
       def segments_for_route_path(path)
         rest, segments = path, []
 

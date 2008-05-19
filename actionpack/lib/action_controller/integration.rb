@@ -136,25 +136,25 @@ module ActionController
       end
 
       # Performs a GET request, following any subsequent redirect.
-      # See #request_via_redirect() for more information.
+      # See +request_via_redirect+ for more information.
       def get_via_redirect(path, parameters = nil, headers = nil)
         request_via_redirect(:get, path, parameters, headers)
       end
 
       # Performs a POST request, following any subsequent redirect.
-      # See #request_via_redirect() for more information.
+      # See +request_via_redirect+ for more information.
       def post_via_redirect(path, parameters = nil, headers = nil)
         request_via_redirect(:post, path, parameters, headers)
       end
 
       # Performs a PUT request, following any subsequent redirect.
-      # See #request_via_redirect() for more information.
+      # See +request_via_redirect+ for more information.
       def put_via_redirect(path, parameters = nil, headers = nil)
         request_via_redirect(:put, path, parameters, headers)
       end
 
       # Performs a DELETE request, following any subsequent redirect.
-      # See #request_via_redirect() for more information.
+      # See +request_via_redirect+ for more information.
       def delete_via_redirect(path, parameters = nil, headers = nil)
         request_via_redirect(:delete, path, parameters, headers)
       end
@@ -166,12 +166,12 @@ module ActionController
 
       # Performs a GET request with the given parameters. The parameters may
       # be +nil+, a Hash, or a string that is appropriately encoded
-      # (application/x-www-form-urlencoded or multipart/form-data).  The headers
-      # should be a hash.  The keys will automatically be upcased, with the
+      # (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
+      # The headers should be a hash. The keys will automatically be upcased, with the
       # prefix 'HTTP_' added if needed.
       #
-      # You can also perform POST, PUT, DELETE, and HEAD requests with #post,
-      # #put, #delete, and #head.
+      # You can also perform POST, PUT, DELETE, and HEAD requests with +post+,
+      # +put+, +delete+, and +head+.
       def get(path, parameters = nil, headers = nil)
         process :get, path, parameters, headers
       end
