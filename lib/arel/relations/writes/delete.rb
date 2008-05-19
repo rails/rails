@@ -1,5 +1,5 @@
 module Arel
-  class Deletion < Writing
+  class Deletion < Compound
     def initialize(relation)
       @relation = relation
     end

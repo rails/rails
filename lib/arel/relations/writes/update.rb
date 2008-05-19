@@ -1,5 +1,5 @@
 module Arel
-  class Update < Writing
+  class Update < Compound
     attr_reader :assignments
 
     def initialize(relation, assignments)

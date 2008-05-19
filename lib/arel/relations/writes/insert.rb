@@ -1,5 +1,5 @@
 module Arel
-  class Insert < Writing
+  class Insert < Compound
     attr_reader :record
 
     def initialize(relation, record)

@@ -1,0 +1,8 @@
+require 'arel/relations/operations/alias'
+require 'arel/relations/operations/group'
+require 'arel/relations/operations/join'
+require 'arel/relations/operations/order'
+require 'arel/relations/operations/project'
+require 'arel/relations/operations/where'
+require 'arel/relations/operations/skip'
+require 'arel/relations/operations/take'
