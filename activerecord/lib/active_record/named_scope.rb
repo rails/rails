@@ -102,7 +102,7 @@ module ActiveRecord
     
     class Scope
       attr_reader :proxy_scope, :proxy_options
-      [].methods.each { |m| delegate m, :to => :proxy_found unless m =~ /(^__|^nil\?|^send|class|extend|find|count|sum|average|maximum|minimum|paginate)/ }
+      [].methods.each { |m| delegate m, :to => :proxy_found unless m =~ /(^__|^nil\?|^send|^object_id$|class|extend|find|count|sum|average|maximum|minimum|paginate)/ }
       delegate :scopes, :with_scope, :to => :proxy_scope
 
       def initialize(proxy_scope, options, &block)
