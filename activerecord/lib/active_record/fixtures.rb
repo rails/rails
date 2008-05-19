@@ -33,8 +33,8 @@ end
 #
 # Unlike single-file fixtures, YAML fixtures are stored in a single file per model, which are placed in the directory appointed
 # by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is automatically configured for Rails, so you can just
-# put your files in <your-rails-app>/test/fixtures/). The fixture file ends with the .yml file extension (Rails example:
-# "<your-rails-app>/test/fixtures/web_sites.yml"). The format of a YAML fixture file looks like this:
+# put your files in <tt><your-rails-app>/test/fixtures/</tt>). The fixture file ends with the <tt>.yml</tt> file extension (Rails example:
+# <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>). The format of a YAML fixture file looks like this:
 #
 #   rubyonrails:
 #     id: 1
@@ -67,7 +67,8 @@ end
 # = CSV fixtures
 #
 # Fixtures can also be kept in the Comma Separated Value format. Akin to YAML fixtures, CSV fixtures are stored
-# in a single file, but instead end with the .csv file extension (Rails example: "<your-rails-app>/test/fixtures/web_sites.csv")
+# in a single file, but instead end with the <tt>.csv</tt> file extension
+# (Rails example: <tt><your-rails-app>/test/fixtures/web_sites.csv</tt>).
 #
 # The format of this type of fixture file is much more compact than the others, but also a little harder to read by us
 # humans.  The first line of the CSV file is a comma-separated list of field names.  The rest of the file is then comprised
@@ -93,11 +94,11 @@ end
 # This type of fixture was the original format for Active Record that has since been deprecated in favor of the YAML and CSV formats.
 # Fixtures for this format are created by placing text files in a sub-directory (with the name of the model) to the directory
 # appointed by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is automatically configured for Rails, so you can just
-# put your files in <your-rails-app>/test/fixtures/<your-model-name>/ -- like <your-rails-app>/test/fixtures/web_sites/ for the WebSite
-# model).
+# put your files in <tt><your-rails-app>/test/fixtures/<your-model-name>/</tt> --
+# like <tt><your-rails-app>/test/fixtures/web_sites/</tt> for the WebSite model).
 #
 # Each text file placed in this directory represents a "record".  Usually these types of fixtures are named without
-# extensions, but if you are on a Windows machine, you might consider adding .txt as the extension.  Here's what the
+# extensions, but if you are on a Windows machine, you might consider adding <tt>.txt</tt> as the extension.  Here's what the
 # above example might look like:
 #
 #   web_sites/google
@@ -138,20 +139,20 @@ end
 #
 # In addition to being available in the database, the fixtures are also loaded into a hash stored in an instance variable
 # of the test case.  It is named after the symbol... so, in our example, there would be a hash available called
-# @web_sites.  This is where the "fixture name" comes into play.
+# <tt>@web_sites</tt>.  This is where the "fixture name" comes into play.
 #
-# On top of that, each record is automatically "found" (using Model.find(id)) and placed in the instance variable of its name.
-# So for the YAML fixtures, we'd get @rubyonrails and @google, which could be interrogated using regular Active Record semantics:
+# On top of that, each record is automatically "found" (using <tt>Model.find(id)</tt>) and placed in the instance variable of its name.
+# So for the YAML fixtures, we'd get <tt>@rubyonrails</tt> and <tt>@google</tt>, which could be interrogated using regular Active Record semantics:
 #
 #   # test if the object created from the fixture data has the same attributes as the data itself
 #   def test_find
 #     assert_equal @web_sites["rubyonrails"]["name"], @rubyonrails.name
 #   end
 #
-# As seen above, the data hash created from the YAML fixtures would have @web_sites["rubyonrails"]["url"] return
-# "http://www.rubyonrails.org" and @web_sites["google"]["name"] would return "Google". The same fixtures, but loaded
-# from a CSV fixture file, would be accessible via @web_sites["web_site_1"]["name"] == "Ruby on Rails" and have the individual
-# fixtures available as instance variables @web_site_1 and @web_site_2.
+# As seen above, the data hash created from the YAML fixtures would have <tt>@web_sites["rubyonrails"]["url"]</tt> return
+# "http://www.rubyonrails.org" and <tt>@web_sites["google"]["name"]</tt> would return "Google". The same fixtures, but loaded
+# from a CSV fixture file, would be accessible via <tt>@web_sites["web_site_1"]["name"] == "Ruby on Rails"</tt> and have the individual
+# fixtures available as instance variables <tt>@web_site_1</tt> and <tt>@web_site_2</tt>.
 #
 # If you do not wish to use instantiated fixtures (usually for performance reasons) there are two options.
 #
@@ -184,7 +185,7 @@ end
 #
 # This will create 1000 very simple YAML fixtures.
 #
-# Using ERb, you can also inject dynamic values into your fixtures with inserts like <%= Date.today.strftime("%Y-%m-%d") %>.
+# Using ERb, you can also inject dynamic values into your fixtures with inserts like <tt><%= Date.today.strftime("%Y-%m-%d") %></tt>.
 # This is however a feature to be used with some caution. The point of fixtures are that they're stable units of predictable
 # sample data. If you feel that you need to inject dynamic values, then perhaps you should reexamine whether your application
 # is properly testable. Hence, dynamic values in fixtures are to be considered a code smell.
@@ -307,7 +308,7 @@ end
 # Pow! All is made clear. ActiveRecord reflects on the fixture's model class,
 # finds all the +belongs_to+ associations, and allows you to specify
 # a target *label* for the *association* (monkey: george) rather than
-# a target *id* for the *FK* (monkey_id: 1).
+# a target *id* for the *FK* (<tt>monkey_id: 1</tt>).
 #
 # ==== Polymorphic belongs_to
 #
