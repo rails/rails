@@ -1,6 +1,14 @@
 module ActiveSupport
   module Testing
     module SetupAndTeardown
+      # For compatibility with Ruby < 1.8.6
+      PASSTHROUGH_EXCEPTIONS =
+        if defined?(Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS)
+          Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS
+        else
+          [NoMemoryError, SignalException, Interrupt, SystemExit]
+        end
+
       def self.included(base)
         base.send :include, ActiveSupport::Callbacks
         base.define_callbacks :setup, :teardown
@@ -25,7 +33,7 @@ module ActiveSupport
           __send__(@method_name)
         rescue Test::Unit::AssertionFailedError => e
           add_failure(e.message, e.backtrace)
-        rescue *Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS
+        rescue *PASSTHROUGH_EXCEPTIONS
           raise
         rescue Exception
           add_error($!)
@@ -35,7 +43,7 @@ module ActiveSupport
             run_callbacks :teardown, :enumerator => :reverse_each
           rescue Test::Unit::AssertionFailedError => e
             add_failure(e.message, e.backtrace)
-          rescue *Test::Unit::TestCase::PASSTHROUGH_EXCEPTIONS
+          rescue *PASSTHROUGH_EXCEPTIONS
             raise
           rescue Exception
             add_error($!)
