@@ -104,7 +104,7 @@ module Mime
           list[text_xml].name = Mime::XML.to_s
         end
 
-        # Look for more specific xml-based types and sort them ahead of app/xml
+        # Look for more specific XML-based types and sort them ahead of app/xml
 
         if app_xml
           idx = app_xml
