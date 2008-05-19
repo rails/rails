@@ -228,6 +228,8 @@ module ActionController
 
             super
 
+            stdinput.set_encoding(Encoding::BINARY) if stdinput.respond_to?(:set_encoding)
+            stdinput.force_encoding(Encoding::BINARY) if stdinput.respond_to?(:force_encoding)
             @stdinput = stdinput.is_a?(IO) ? stdinput : StringIO.new(stdinput || '')
           end
         end
@@ -382,6 +384,8 @@ module ActionController
           multipart_requestify(params).map do |key, value|
             if value.respond_to?(:original_filename)
               File.open(value.path) do |f|
+                f.set_encoding(Encoding::BINARY) if f.respond_to?(:set_encoding)
+
                 <<-EOF
 --#{boundary}\r
 Content-Disposition: form-data; name="#{key}"; filename="#{CGI.escape(value.original_filename)}"\r

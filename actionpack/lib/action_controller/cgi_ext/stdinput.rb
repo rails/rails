@@ -16,6 +16,7 @@ module ActionController
 
       def initialize_with_stdinput(type = nil, stdinput = $stdin)
         @stdinput = stdinput
+        @stdinput.set_encoding(Encoding::BINARY) if @stdinput.respond_to?(:set_encoding)
         initialize_without_stdinput(type || 'query')
       end
     end
