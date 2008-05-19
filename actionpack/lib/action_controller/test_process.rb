@@ -357,7 +357,7 @@ module ActionController #:nodoc:
 
   module TestProcess
     def self.included(base)
-      # execute the request simulating a specific http method and set/volley the response
+      # execute the request simulating a specific HTTP method and set/volley the response
       %w( get post put delete head ).each do |method|
         base.class_eval <<-EOV, __FILE__, __LINE__
           def #{method}(action, parameters = nil, session = nil, flash = nil)
