@@ -11,11 +11,15 @@ module Arel
     end
   
     def table_sql(formatter = Sql::TableReference.new(relation))
-      relation.to_sql(formatter)
+      formatter.select relation.select_sql, self
     end
   
     def attributes
       @attributes ||= relation.attributes.collect(&:to_attribute).collect { |a| a.bind(self) }
+    end
+    
+    def name
+      relation.name + '_aggregation'
     end
     
     def ==(other)

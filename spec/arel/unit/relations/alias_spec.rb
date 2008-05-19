@@ -12,5 +12,25 @@ module Arel
         (aliaz = Alias.new(@relation)).should == aliaz
       end
     end
+    
+    describe '#to_sql' do
+      describe 'when there is no ambiguity' do
+        it 'does not alias table names anywhere a table name can appear' do
+          @relation                       \
+            .select(@relation[:id].eq(1)) \
+            .order(@relation[:id])        \
+            .project(@relation[:id])      \
+            .group(@relation[:id])        \
+            .alias                        \
+          .to_sql.should be_like("
+            SELECT `users`.`id`
+            FROM `users`
+            WHERE `users`.`id` = 1
+            ORDER BY `users`.`id`
+            GROUP BY `users`.`id`
+          ")
+        end
+      end
+    end
   end
 end

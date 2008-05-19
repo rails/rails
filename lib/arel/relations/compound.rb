@@ -12,7 +12,15 @@ module Arel
     end
     
     def selects
-      @selects || relation.selects.collect { |s| s.bind(self) }
+      @selects ||= relation.selects.collect { |s| s.bind(self) }
+    end
+    
+    def groupings
+      @groupings ||= relation.groupings.collect { |g| g.bind(self) }
+    end
+    
+    def orders
+      @orders ||= relation.orders.collect { |o| o.bind(self) }
     end
   end
 end

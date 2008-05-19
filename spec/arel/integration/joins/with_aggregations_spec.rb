@@ -39,8 +39,14 @@ module Arel
         end
         
         describe 'with the aggregation on both sides' do
-          it '' do
-            @aggregation.join(@aggregation.alias).on(@predicate).to_sql.should == ''
+          it 'it properly aliases the aggregations' do
+            aggregation2 = @aggregation.alias
+            @aggregation.join(aggregation2).on(aggregation2[:user_id].eq(@aggregation[:user_id])).to_sql.should be_like("
+              SELECT `photos_aggregation`.`user_id`, `photos_aggregation`.`cnt`, `photos_aggregation_2`.`user_id`, `photos_aggregation_2`.`cnt`
+              FROM (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` GROUP BY  `photos`.`user_id`) AS `photos_aggregation`
+                INNER JOIN (SELECT `photos`.`user_id`, COUNT(`photos`.`id`) AS `cnt` FROM `photos` GROUP BY `photos`.`user_id`) AS `photos_aggregation_2`
+                  ON `photos_aggregation_2`.`user_id` = `photos_aggregation`.`user_id`
+            ")
           end
         end
 

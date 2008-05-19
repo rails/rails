@@ -21,7 +21,7 @@ module Arel
       end
       
       def select(select_sql, table)
-        "(#{select_sql}) AS #{quote_table_name(table)}"
+        "(#{select_sql}) AS #{quote_table_name(name_for(table))}"
       end
       
       def value(value)
@@ -80,7 +80,7 @@ module Arel
     
     class TableReference < Formatter
       def select(select_sql, table)
-        "(#{select_sql}) AS #{quote_table_name(table)}"
+        "(#{select_sql}) AS #{quote_table_name(name_for(table))}"
       end
       
       def table(table)

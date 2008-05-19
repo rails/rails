@@ -5,7 +5,12 @@ module Arel
     end
     
     def to_sql(formatter = Sql::SelectStatement.new(self))
-      formatter.select [
+      formatter.select select_sql, self
+    end
+    alias_method :to_s, :to_sql
+    
+    def select_sql
+      [
         "SELECT     #{attributes.collect { |a| a.to_sql(Sql::SelectClause.new(self)) }.join(', ')}",
         "FROM       #{table_sql(Sql::TableReference.new(self))}",
         (joins(self)                                                                                    unless joins(self).blank? ),
@@ -14,9 +19,8 @@ module Arel
         ("GROUP BY  #{groupings.collect { |g| g.to_sql(Sql::GroupClause.new(self)) }.join(', ')}"       unless groupings.blank?   ),
         ("LIMIT     #{taken}"                                                                           unless taken.blank?       ),
         ("OFFSET    #{skipped}"                                                                         unless skipped.blank?     )
-      ].compact.join("\n"), name
+      ].compact.join("\n")
     end
-    alias_method :to_s, :to_sql
     
     def inclusion_predicate_sql
       "IN"
