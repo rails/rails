@@ -217,7 +217,7 @@ module ActiveResource
   end
   
   # Module to allow validation of ActiveResource objects, which creates an Errors instance for every resource.
-  # Methods are implemented by overriding +Base#validate+ or its variants   Each of these methods can inspect 
+  # Methods are implemented by overriding Base#validate or its variants   Each of these methods can inspect 
   # the state of the object, which usually means  ensuring that a number of attributes have a certain value 
   # (such as not empty, within a given range, matching a certain regular expression and so on).
   #
