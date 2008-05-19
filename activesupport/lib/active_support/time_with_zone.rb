@@ -62,7 +62,7 @@ module ActiveSupport
       utc? && alternate_utc_string || utc_offset.to_utc_offset_s(colon)
     end
   
-    # Time uses #zone to display the time zone abbreviation, so we're duck-typing it
+    # Time uses +zone+ to display the time zone abbreviation, so we're duck-typing it.
     def zone
       period.zone_identifier.to_s
     end
@@ -132,8 +132,8 @@ module ActiveSupport
       utc == other
     end
     
-    # If wrapped #time is a DateTime, use DateTime#since instead of #+
-    # Otherwise, just pass on to #method_missing
+    # If wrapped #time is a DateTime, use DateTime#since instead of <tt>+</tt>.
+    # Otherwise, just pass on to +method_missing+.
     def +(other)
       result = utc.acts_like?(:date) ? utc.since(other) : utc + other
       result.in_time_zone(time_zone)

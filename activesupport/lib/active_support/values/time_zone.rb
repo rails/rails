@@ -335,7 +335,7 @@ class TimeZone
 
     # Return a TimeZone instance with the given name, or +nil+ if no
     # such TimeZone instance exists. (This exists to support the use of
-    # this class with the #composed_of macro.)
+    # this class with the +composed_of+ macro.)
     def new(name)
       self[name]
     end
