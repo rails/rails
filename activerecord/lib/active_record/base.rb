@@ -1277,7 +1277,7 @@ module ActiveRecord #:nodoc:
         class_of_active_record_descendant(self)
       end
 
-      # Set this to true if this is an abstract class (see #abstract_class?).
+      # Set this to true if this is an abstract class (see <tt>abstract_class?</tt>).
       attr_accessor :abstract_class
 
       # Returns whether this class is a base AR class.  If A is a base class and
@@ -1724,8 +1724,8 @@ module ActiveRecord #:nodoc:
         end
 
 
-        # Defines an "attribute" method (like #inheritance_column or
-        # #table_name). A new (class) method will be created with the
+        # Defines an "attribute" method (like +inheritance_column+ or
+        # +table_name+). A new (class) method will be created with the
         # given name. If a value is specified, the new method will
         # return that value (as a string). Otherwise, the given block
         # will be used to compute the value of the method.

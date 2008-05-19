@@ -270,7 +270,7 @@ module ActiveRecord
     end
 
     # Represents a SQL table in an abstract way.
-    # Columns are stored as a ColumnDefinition in the #columns attribute.
+    # Columns are stored as a ColumnDefinition in the +columns+ attribute.
     class TableDefinition
       attr_accessor :columns
 
@@ -395,7 +395,7 @@ module ActiveRecord
       #   end
       #
       # There's a short-hand method for each of the type values declared at the top. And then there's
-      # TableDefinition#timestamps that'll add created_at and updated_at as datetimes.
+      # TableDefinition#timestamps that'll add created_at and +updated_at+ as datetimes.
       #
       # TableDefinition#references will add an appropriately-named _id column, plus a corresponding _type
       # column if the <tt>:polymorphic</tt> option is supplied. If <tt>:polymorphic</tt> is a hash of options, these will be

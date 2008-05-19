@@ -208,7 +208,7 @@ module ActiveRecord
   #
   # You can quiet them down by setting ActiveRecord::Migration.verbose = false.
   #
-  # You can also insert your own messages and benchmarks by using the #say_with_time
+  # You can also insert your own messages and benchmarks by using the +say_with_time+
   # method:
   #
   #   def self.up

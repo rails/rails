@@ -30,8 +30,8 @@ module ActiveRecord
 
     # Eval the given block. All methods available to the current connection
     # adapter are available within the block, so you can easily use the
-    # database definition DSL to build up your schema (#create_table,
-    # #add_index, etc.).
+    # database definition DSL to build up your schema (+create_table+,
+    # +add_index+, etc.).
     #
     # The +info+ hash is optional, and if given is used to define metadata
     # about the current schema (currently, only the schema's version):

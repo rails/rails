@@ -99,7 +99,7 @@ module ActiveRecord
     # relational unique identifiers (such as primary keys). Normal <tt>ActiveRecord::Base</tt> classes are entity objects.
     #
     # It's also important to treat the value objects as immutable. Don't allow the +Money+ object to have its amount changed after
-    # creation. Create a new +Money+ object with the new value instead. This is exemplified by the <tt>Money#exchanged_to</tt> method that
+    # creation. Create a new Money object with the new value instead. This is exemplified by the <tt>Money#exchanged_to</tt> method that
     # returns a new value object instead of changing its own values. Active Record won't persist value objects that have been
     # changed through means other than the writer method.
     #
