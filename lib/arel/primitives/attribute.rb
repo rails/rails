@@ -2,7 +2,8 @@ require 'set'
 
 module Arel
   class Attribute
-    attr_reader :relation, :name, :alias, :ancestor
+    attributes :relation, :name, :alias, :ancestor
+    deriving :==
     delegate :engine, :christener, :to => :relation
 
     def initialize(relation, name, options = {})
@@ -27,26 +28,6 @@ module Arel
 
     def to_sql(formatter = Sql::WhereCondition.new(relation))
       formatter.attribute self
-    end
-    
-    def ==(other)
-      Attribute   === other           and
-      name        ==  other.name      and
-      @alias      ==  other.alias     and
-      ancestor    ==  other.ancestor  and
-      relation    ==  other.relation
-    end
-
-    def original_relation
-      @original_relation ||= original_attribute.relation
-    end
-    
-    def original_attribute
-      @original_attribute ||= history.detect { |a| !a.join? }
-    end
-    
-    def find_correlate_in(relation)
-      relation[self]
     end
 
     module Transformations      
@@ -80,11 +61,23 @@ module Arel
       def join?
         relation.join?
       end
-      
+    
       def root
         history.last
       end
       
+      def original_relation
+        @original_relation ||= original_attribute.relation
+      end
+
+      def original_attribute
+        @original_attribute ||= history.detect { |a| !a.join? }
+      end
+
+      def find_correlate_in(relation)
+        relation[self]
+      end
+          
       def descends_from?(other)
         history.include?(other)
       end

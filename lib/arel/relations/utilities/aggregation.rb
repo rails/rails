@@ -1,11 +1,9 @@
 module Arel
   class Aggregation < Compound
+    attributes :relation
+    deriving :initialize, :==
     include Recursion::BaseCase
 
-    def initialize(relation)
-      @relation = relation
-    end
-    
     def wheres
       []
     end
@@ -20,11 +18,6 @@ module Arel
     
     def name
       relation.name + '_aggregation'
-    end
-    
-    def ==(other)
-      Aggregation   === other and
-      self.relation ==  other.relation
     end
   end
   

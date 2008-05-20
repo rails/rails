@@ -1,8 +1,7 @@
 module Arel
   class Deletion < Compound
-    def initialize(relation)
-      @relation = relation
-    end
+    attributes :relation
+    deriving :initialize, :==
 
     def to_sql(formatter = nil)
       [
@@ -15,11 +14,6 @@ module Arel
     
     def call(connection = engine.connection)
       connection.delete(to_sql)
-    end
-    
-    def ==(other)
-      Deletion    === other and
-      relation    ==  other.relation
     end
   end
 end

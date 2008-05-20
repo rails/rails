@@ -1,7 +1,8 @@
 module Arel
   class Update < Compound
-    attr_reader :assignments
-
+    attributes :relation, :assignments
+    deriving :==
+    
     def initialize(relation, assignments)
       @relation, @assignments = relation, assignments.bind(relation)
     end
@@ -19,12 +20,6 @@ module Arel
     
     def call(connection = engine.connection)
       connection.update(to_sql)
-    end
-    
-    def ==(other)
-      Update      === other          and
-      relation    ==  other.relation and
-      assignments ==  other.assignments
     end
   end
 end

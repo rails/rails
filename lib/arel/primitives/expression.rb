@@ -1,6 +1,7 @@
 module Arel
   class Expression < Attribute
-    attr_reader :attribute, :function_sql
+    attributes :attribute, :function_sql, :alias, :ancestor
+    deriving :==
     delegate :relation, :to => :attribute
     alias_method :name, :alias
     
@@ -14,14 +15,6 @@ module Arel
     
     def aggregation?
       true
-    end
-    
-    def ==(other)
-      Expression    === other                and
-      attribute     ==  other.attribute      and
-      function_sql  ==  other.function_sql   and
-      ancestor      ==  other.ancestor       and
-      @alias        ==  other.alias
     end
     
     module Transformations

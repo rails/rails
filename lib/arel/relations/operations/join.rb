@@ -5,7 +5,7 @@ module Arel
     delegate :engine, :name, :to => :relation1
     hash_on :relation1
 
-    def initialize(join_sql, relation1, relation2 = Nil.new, *predicates)
+    def initialize(join_sql, relation1, relation2 = Nil.instance, *predicates)
       @join_sql, @relation1, @relation2, @predicates = join_sql, relation1, relation2, predicates
     end
     
