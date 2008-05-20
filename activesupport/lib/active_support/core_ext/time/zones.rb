@@ -10,7 +10,7 @@ module ActiveSupport #:nodoc:
           attr_accessor :zone_default
           
           # Returns the TimeZone for the current request, if this has been set (via Time.zone=). 
-          # If Time.zone has not been set for the current request, returns the TimeZone specified in <tt>config.time_zone</tt>.
+          # If <tt>Time.zone</tt> has not been set for the current request, returns the TimeZone specified in <tt>config.time_zone</tt>.
           def zone
             Thread.current[:time_zone] || zone_default
           end

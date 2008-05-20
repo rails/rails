@@ -225,12 +225,12 @@ module ActiveSupport
       utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
     
-    # So that self acts_like?(:time).
+    # So that +self+ <tt>acts_like?(:time)</tt>.
     def acts_like_time?
       true
     end
   
-    # Say we're a Time to thwart type checking
+    # Say we're a Time to thwart type checking.
     def is_a?(klass)
       klass == ::Time || super
     end
