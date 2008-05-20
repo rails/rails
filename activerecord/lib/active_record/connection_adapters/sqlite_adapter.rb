@@ -214,6 +214,10 @@ module ActiveRecord
       end
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
+        if @connection.respond_to?(:transaction_active?) && @connection.transaction_active?
+          raise StatementInvalid, 'Cannot add columns to a SQLite database while inside a transaction'
+        end
+        
         super(table_name, column_name, type, options)
         # See last paragraph on http://www.sqlite.org/lang_altertable.html
         execute "VACUUM"

@@ -179,6 +179,32 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_sqlite_add_column_in_transaction_raises_statement_invalid
+    return true unless current_adapter?(:SQLite3Adapter, :SQLiteAdapter)
+
+    # Test first if column creation/deletion works correctly when no
+    # transaction is in place.
+    #
+    # We go back to the connection for the column queries because
+    # Topic.columns is cached and won't report changes to the DB
+    
+    assert_nothing_raised do
+      Topic.reset_column_information
+      Topic.connection.add_column('topics', 'stuff', :string)
+      assert Topic.column_names.include?('stuff')
+      
+      Topic.reset_column_information
+      Topic.connection.remove_column('topics', 'stuff')
+      assert !Topic.column_names.include?('stuff')
+    end
+
+    # Test now inside a transaction: add_column should raise a StatementInvalid
+    Topic.transaction do
+      assert_raises(ActiveRecord::StatementInvalid) { Topic.connection.add_column('topics', 'stuff', :string) }
+      raise ActiveRecord::Rollback
+    end
+  end
+
   private
     def add_exception_raising_after_save_callback_to_topic
       Topic.class_eval { def after_save() raise "Make the transaction rollback" end }
