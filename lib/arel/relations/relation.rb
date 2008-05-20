@@ -57,26 +57,26 @@ module Arel
     include Enumerable
 
     module Operable
-      def join(other = nil, join_type = "INNER JOIN")
-        case other
+      def join(other_relation = nil, join_type = "INNER JOIN")
+        case other_relation
         when String
-          Join.new(other, self)
+          Join.new(other_relation, self)
         when Relation
-          JoinOperation.new(join_type, self, other)
+          JoinOperation.new(join_type, self, other_relation)
         else
           self
         end
       end
 
-      def outer_join(other = nil)
-        join(other, "LEFT OUTER JOIN")
+      def outer_join(other_relation = nil)
+        join(other_relation, "LEFT OUTER JOIN")
       end
       
-      def where(*predicates)
+      def where(*predicates, &block)
         predicates.all?(&:blank?) ? self : Where.new(self, *predicates)
       end
 
-      def project(*attributes)
+      def project(*attributes, &block)
         attributes.all?(&:blank?) ? self : Project.new(self, *attributes)
       end
       
@@ -84,7 +84,7 @@ module Arel
         Alias.new(self)
       end
 
-      def order(*attributes)
+      def order(*attributes, &block)
         attributes.all?(&:blank?) ? self : Order.new(self, *attributes)
       end
       
@@ -96,7 +96,7 @@ module Arel
         skipped.blank?? self : Skip.new(self, skipped)
       end
   
-      def group(*groupings)
+      def group(*groupings, &block)
         groupings.all?(&:blank?) ? self : Group.new(self, *groupings)
       end
       

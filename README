@@ -109,7 +109,7 @@ This will return the first comment's reply's body.
 
 Arel can actually perform the aliasing automatically, without the need for the programmer to explicitly call `alias`. However, this makes it difficult to specify the join condition:
 
-    comments.join(comments).on(comments[:parent_id].eq(comments[:id]))
+    comments.join(comments, comments[:parent_id].eq(comments[:id]))
     # => SELECT * FROM comments INNER JOIN comments AS comments_2 WHERE comments.parent_id = comments.id
     
 This does NOT have the same meaning as the previous query. As an alternative to aliasing, there is a convenient block form:

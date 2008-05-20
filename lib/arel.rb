@@ -4,6 +4,7 @@ require 'rubygems'
 require 'activesupport'
 require 'activerecord'
 
+require 'arel/arel'
 require 'arel/extensions'
 require 'arel/sql'
 require 'arel/predicates'

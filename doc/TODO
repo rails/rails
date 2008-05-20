@@ -4,6 +4,7 @@ todo:
 - result sets to attr correlation too
 - cache expiry on write
   - rewrite of arecord querycache test in light of this
+- transactions
 - scoped writes
 
 done:
