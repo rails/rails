@@ -54,8 +54,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     original_proxy = citibank.firm
     citibank.firm = another_firm
 
-    assert_equal first_firm.object_id, original_proxy.object_id
-    assert_equal another_firm.object_id, citibank.firm.object_id
+    assert_equal first_firm.object_id, original_proxy.target.object_id
+    assert_equal another_firm.object_id, citibank.firm.target.object_id
   end
 
   def test_creating_the_belonging_object
