@@ -118,4 +118,32 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal expected_proxy_options, Topic.approved.proxy_options
   end
 
+  def test_first_and_last_should_support_find_options
+    assert_equal Topic.base.first(:order => 'title'), Topic.base.find(:first, :order => 'title')
+    assert_equal Topic.base.last(:order => 'title'), Topic.base.find(:last, :order => 'title')
+  end
+
+  def test_first_and_last_should_allow_integers_for_limit
+    assert_equal Topic.base.first(2), Topic.base.to_a.first(2)
+    assert_equal Topic.base.last(2), Topic.base.to_a.last(2)
+  end
+
+  def test_first_and_last_should_not_use_query_when_results_are_loaded
+    topics = Topic.base
+    topics.reload # force load
+    assert_no_queries do
+      topics.first
+      topics.last
+    end
+  end
+
+  def test_first_and_last_find_options_should_use_query_when_results_are_loaded
+    topics = Topic.base
+    topics.reload # force load
+    assert_queries(2) do
+      topics.first(:order => 'title')
+      topics.last(:order => 'title')
+    end
+  end
+
 end
