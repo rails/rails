@@ -72,32 +72,17 @@ module Arel
         join(other_relation, "LEFT OUTER JOIN")
       end
       
-      def where(*predicates, &block)
-        predicates.all?(&:blank?) ? self : Where.new(self, *predicates)
+      [:where, :project, :order, :take, :skip, :group].each do |operation_name|
+        operation = <<-OPERATION
+          def #{operation_name}(*arguments, &block)
+            arguments.all?(&:blank?) && !block_given?? self : #{operation_name.to_s.classify}.new(self, *arguments, &block)
+          end
+        OPERATION
+        class_eval operation, __FILE__, __LINE__
       end
 
-      def project(*attributes, &block)
-        attributes.all?(&:blank?) ? self : Project.new(self, *attributes)
-      end
-      
       def alias
         Alias.new(self)
-      end
-
-      def order(*attributes, &block)
-        attributes.all?(&:blank?) ? self : Order.new(self, *attributes)
-      end
-      
-      def take(taken = nil)
-        taken.blank?? self : Take.new(self, taken)
-      end
-      
-      def skip(skipped = nil)
-        skipped.blank?? self : Skip.new(self, skipped)
-      end
-  
-      def group(*groupings, &block)
-        groupings.all?(&:blank?) ? self : Group.new(self, *groupings)
       end
       
       module Writable
