@@ -162,8 +162,8 @@ module ActiveRecord
           evaluate_attribute_method attr_name, "def #{attr_name}; unserialize_attribute('#{attr_name}'); end"
         end
         
-        # Defined for all datetime and timestamp attributes when time_zone_aware_attributes are enabled.
-        # This enhanced read method automatically converts the UTC time stored in the database to the time zone stored in Time.zone
+        # Defined for all +datetime+ and +timestamp+ attributes when +time_zone_aware_attributes+ are enabled.
+        # This enhanced read method automatically converts the UTC time stored in the database to the time zone stored in Time.zone.
         def define_read_method_for_time_zone_conversion(attr_name)
           method_body = <<-EOV
             def #{attr_name}(reload = false)
@@ -176,7 +176,7 @@ module ActiveRecord
           evaluate_attribute_method attr_name, method_body
         end
 
-        # Define an attribute ? method.
+        # Defines a predicate method <tt>attr_name?</tt>.
         def define_question_method(attr_name)
           evaluate_attribute_method attr_name, "def #{attr_name}?; query_attribute('#{attr_name}'); end", "#{attr_name}?"
         end
@@ -185,7 +185,7 @@ module ActiveRecord
           evaluate_attribute_method attr_name, "def #{attr_name}=(new_value);write_attribute('#{attr_name}', new_value);end", "#{attr_name}="
         end
         
-        # Defined for all datetime and timestamp attributes when time_zone_aware_attributes are enabled.
+        # Defined for all +datetime+ and +timestamp+ attributes when +time_zone_aware_attributes+ are enabled.
         # This enhanced write method will automatically convert the time passed to it to the zone stored in Time.zone.
         def define_write_method_for_time_zone_conversion(attr_name)
           method_body = <<-EOV

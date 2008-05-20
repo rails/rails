@@ -1,10 +1,10 @@
 require 'tzinfo'
 module ActiveSupport
   # A Time-like class that can represent a time in any time zone. Necessary because standard Ruby Time instances are 
-  # limited to UTC and the system's ENV['TZ'] zone.
+  # limited to UTC and the system's <tt>ENV['TZ']</tt> zone.
   #
-  # You shouldn't ever need to create a TimeWithZone instance directly via .new -- instead, Rails provides the methods
-  # #local, #parse, #at and #now on TimeZone instances, and #in_time_zone on Time and DateTime instances, for a more
+  # You shouldn't ever need to create a TimeWithZone instance directly via <tt>new</tt> -- instead, Rails provides the methods
+  # +local+, +parse+, +at+ and +now+ on TimeZone instances, and +in_time_zone+ on Time and DateTime instances, for a more
   # user-friendly syntax. Examples:
   #
   #   Time.zone = 'Eastern Time (US & Canada)'        # => 'Eastern Time (US & Canada)'
@@ -38,12 +38,12 @@ module ActiveSupport
       @period = @utc ? period : get_period_and_ensure_valid_local_time
     end
   
-    # Returns a Time or DateTime instance that represents the time in time_zone
+    # Returns a Time or DateTime instance that represents the time in +time_zone+.
     def time
       @time ||= period.to_local(@utc)
     end
 
-    # Returns a Time or DateTime instance that represents the time in UTC
+    # Returns a Time or DateTime instance that represents the time in UTC.
     def utc
       @utc ||= period.to_utc(@time)
     end
@@ -52,18 +52,18 @@ module ActiveSupport
     alias_method :getutc, :utc
     alias_method :gmtime, :utc
   
-    # Returns the underlying TZInfo::TimezonePeriod
+    # Returns the underlying TZInfo::TimezonePeriod.
     def period
       @period ||= time_zone.period_for_utc(@utc)
     end
 
-    # Returns the simultaneous time in Time.zone, or the specified zone
+    # Returns the simultaneous time in <tt>Time.zone</tt>, or the specified zone.
     def in_time_zone(new_zone = ::Time.zone)
       return self if time_zone == new_zone
       utc.in_time_zone(new_zone)
     end
   
-    # Returns a Time.local() instance of the simultaneous time in your system's ENV['TZ'] zone
+    # Returns a <tt>Time.local()</tt> instance of the simultaneous time in your system's <tt>ENV['TZ']</tt> zone
     def localtime
       utc.getlocal
     end
@@ -146,7 +146,7 @@ module ActiveSupport
       time.strftime(format)
     end
   
-    # Use the time in UTC for comparisons
+    # Use the time in UTC for comparisons.
     def <=>(other)
       utc <=> other
     end
@@ -159,7 +159,7 @@ module ActiveSupport
       utc == other
     end
     
-    # If wrapped #time is a DateTime, use DateTime#since instead of <tt>+</tt>.
+    # If wrapped +time+ is a DateTime, use DateTime#since instead of <tt>+</tt>.
     # Otherwise, just pass on to +method_missing+.
     def +(other)
       result = utc.acts_like?(:date) ? utc.since(other) : utc + other rescue utc.since(other)
@@ -225,7 +225,7 @@ module ActiveSupport
       utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
     
-    # so that self acts_like?(:time)
+    # So that self acts_like?(:time).
     def acts_like_time?
       true
     end
@@ -236,7 +236,7 @@ module ActiveSupport
     end
     alias_method :kind_of?, :is_a?
   
-    # Neuter freeze because freezing can cause problems with lazy loading of attributes
+    # Neuter freeze because freezing can cause problems with lazy loading of attributes.
     def freeze
       self
     end
@@ -249,14 +249,14 @@ module ActiveSupport
       initialize(variables[0], ::Time.send!(:get_zone, variables[1]), variables[2])
     end
   
-    # Ensure proxy class responds to all methods that underlying time instance responds to
+    # Ensure proxy class responds to all methods that underlying time instance responds to.
     def respond_to?(sym)
       # consistently respond false to acts_like?(:date), regardless of whether #time is a Time or DateTime
       return false if sym.to_s == 'acts_like_date?'
       super || time.respond_to?(sym)
     end
   
-    # Send the missing method to time instance, and wrap result in a new TimeWithZone with the existing time_zone
+    # Send the missing method to +time+ instance, and wrap result in a new TimeWithZone with the existing +time_zone+.
     def method_missing(sym, *args, &block)
       result = time.__send__(sym, *args, &block)
       result.acts_like?(:time) ? self.class.new(nil, time_zone, result) : result

@@ -1,11 +1,11 @@
 # The TimeZone class serves as a wrapper around TZInfo::Timezone instances. It allows us to do the following:
 #
-#   * limit the set of zones provided by TZInfo to a meaningful subset of 142 zones
-#   * retrieve and display zones with a friendlier name (e.g., "Eastern Time (US & Canada)" instead of "America/New_York")
-#   * lazily load TZInfo::Timezone instances only when they're needed
-#   * create ActiveSupport::TimeWithZone instances via TimeZone #local, #parse, #at and #now methods
+# * Limit the set of zones provided by TZInfo to a meaningful subset of 142 zones.
+# * Retrieve and display zones with a friendlier name (e.g., "Eastern Time (US & Canada)" instead of "America/New_York").
+# * Lazily load TZInfo::Timezone instances only when they're needed.
+# * Create ActiveSupport::TimeWithZone instances via TimeZone's +local+, +parse+, +at+ and +now+ methods.
 # 
-# If you set config.time_zone in the Rails Initializer, you can access this TimeZone object via Time.zone:
+# If you set <tt>config.time_zone</tt> in the Rails Initializer, you can access this TimeZone object via <tt>Time.zone</tt>:
 #
 #   # environment.rb:
 #   Rails::Initializer.run do |config|
