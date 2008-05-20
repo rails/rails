@@ -48,6 +48,26 @@ module ActiveRecord
         end
       end
       
+      # fetch first using SQL if possible
+      def first(*args)
+        if fetch_first_or_last_using_find? args
+          find(:first, *args)
+        else
+          load_target unless loaded?
+          @target.first(*args)
+        end
+      end
+
+      # fetch last using SQL if possible
+      def last(*args)
+        if fetch_first_or_last_using_find? args
+          find(:last, *args)
+        else
+          load_target unless loaded?
+          @target.last(*args)
+        end
+      end
+
       def to_ary
         load_target
         @target.to_ary
@@ -330,7 +350,10 @@ module ActiveRecord
             raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
           end
         end
-               
+
+        def fetch_first_or_last_using_find?(args)
+          args.first.kind_of?(Hash) || !(loaded? || @owner.new_record? || @reflection.options[:finder_sql] || !@target.blank? || args.first.kind_of?(Integer))
+        end
     end
   end
 end

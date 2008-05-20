@@ -664,6 +664,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_has_many_through_include_uses_array_include_after_loaded
     david = authors(:david)
+    david.categories.class # force load target
+
     category = david.categories.first
 
     assert_no_queries do

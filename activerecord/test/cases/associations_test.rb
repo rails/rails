@@ -99,12 +99,12 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david = authors(:david)
     assert_equal  david, david.posts.proxy_owner
     assert_equal  david.class.reflect_on_association(:posts), david.posts.proxy_reflection
-    david.posts.first   # force load target
+    david.posts.class   # force load target
     assert_equal  david.posts, david.posts.proxy_target
 
     assert_equal  david, david.posts_with_extension.testing_proxy_owner
     assert_equal  david.class.reflect_on_association(:posts_with_extension), david.posts_with_extension.testing_proxy_reflection
-    david.posts_with_extension.first   # force load target
+    david.posts_with_extension.class   # force load target
     assert_equal  david.posts_with_extension, david.posts_with_extension.testing_proxy_target
   end
 

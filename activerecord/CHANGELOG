@@ -1,3 +1,5 @@
+* Add first/last methods to associations/named_scope. Resolved #226. [Ryan Bates]
+
 *2.1.0 RC1 (May 11th, 2008)*
 
 * Ensure hm:t preloading honours reflection options. Resolves #137. [Frederick Cheung]

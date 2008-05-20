@@ -384,7 +384,7 @@ module Dependencies #:nodoc:
     return new_constants
   ensure
     # Remove the stack frames that we added.
-    if defined?(watch_frames) && ! watch_frames.empty?
+    if defined?(watch_frames) && ! watch_frames.blank?
       frame_ids = watch_frames.collect(&:object_id)
       constant_watch_stack.delete_if do |watch_frame|
         frame_ids.include? watch_frame.object_id

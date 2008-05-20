@@ -818,6 +818,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_include_uses_array_include_after_loaded
     firm = companies(:first_firm)
+    firm.clients.class # force load target
+
     client = firm.clients.first
 
     assert_no_queries do
@@ -855,6 +857,70 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert ! firm.clients.loaded?
     assert ! firm.clients.include?(client)
+  end
+
+  def test_calling_first_or_last_on_association_should_not_load_association
+    firm = companies(:first_firm)
+    firm.clients.first
+    firm.clients.last
+    assert !firm.clients.loaded?
+  end
+
+  def test_calling_first_or_last_on_loaded_association_should_not_fetch_with_query
+    firm = companies(:first_firm)
+    firm.clients.class # force load target
+    assert firm.clients.loaded?
+
+    assert_no_queries do
+      firm.clients.first
+      assert_equal 2, firm.clients.first(2).size
+      firm.clients.last
+      assert_equal 2, firm.clients.last(2).size
+    end
+  end
+
+  def test_calling_first_or_last_on_existing_record_with_build_should_load_association
+    firm = companies(:first_firm)
+    firm.clients.build(:name => 'Foo')
+    assert !firm.clients.loaded?
+
+    assert_queries 1 do
+      firm.clients.first
+      firm.clients.last
+    end
+
+    assert firm.clients.loaded?
+  end
+
+  def test_calling_first_or_last_on_new_record_should_not_run_queries
+    firm = Firm.new
+
+    assert_no_queries do
+      firm.clients.first
+      firm.clients.last
+    end
+  end
+
+  def test_calling_first_or_last_with_find_options_on_loaded_association_should_fetch_with_query
+    firm = companies(:first_firm)
+    firm.clients.class # force load target
+
+    assert_queries 2 do
+      assert firm.clients.loaded?
+      firm.clients.first(:order => 'name')
+      firm.clients.last(:order => 'name')
+    end
+  end
+
+  def test_calling_first_or_last_with_integer_on_association_should_load_association
+    firm = companies(:first_firm)
+
+    assert_queries 1 do
+      firm.clients.first(2)
+      firm.clients.last(2)
+    end
+
+    assert firm.clients.loaded?
   end
 
 end

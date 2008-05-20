@@ -102,7 +102,13 @@ module ActiveRecord
     
     class Scope
       attr_reader :proxy_scope, :proxy_options
-      [].methods.each { |m| delegate m, :to => :proxy_found unless m =~ /(^__|^nil\?|^send|^object_id$|class|extend|find|count|sum|average|maximum|minimum|paginate)/ }
+
+      [].methods.each do |m|
+        unless m =~ /(^__|^nil\?|^send|^object_id$|class|extend|find|count|sum|average|maximum|minimum|paginate|first|last)/
+          delegate m, :to => :proxy_found
+        end
+      end
+
       delegate :scopes, :with_scope, :to => :proxy_scope
 
       def initialize(proxy_scope, options, &block)
@@ -113,6 +119,22 @@ module ActiveRecord
 
       def reload
         load_found; self
+      end
+
+      def first(*args)
+        if args.first.kind_of?(Integer) || (@found && !args.first.kind_of?(Hash))
+          proxy_found.first(*args)
+        else
+          find(:first, *args)
+        end
+      end
+
+      def last(*args)
+        if args.first.kind_of?(Integer) || (@found && !args.first.kind_of?(Hash))
+          proxy_found.last(*args)
+        else
+          find(:last, *args)
+        end
       end
 
       protected
