@@ -117,14 +117,7 @@ module ActiveRecord
         # The attribute already has an unsaved change.
         unless changed_attributes.include?(attr)
           old = clone_attribute_value(:read_attribute, attr)
-
-          # Remember the original value if it's different.
-          typecasted = if column = column_for_attribute(attr)
-                         column.type_cast(value)
-                       else
-                         value
-                       end
-          changed_attributes[attr] = old unless old == typecasted
+          changed_attributes[attr] = old if field_changed?(attr, old, value)
         end
 
         # Carry on.
@@ -138,5 +131,20 @@ module ActiveRecord
           update_without_dirty
         end
       end
+
+      def field_changed?(attr, old, value)
+        if column = column_for_attribute(attr)
+          if column.type == :integer && column.null && old.nil?
+            # For nullable integer columns, NULL gets stored in database for blank (i.e. '') values.
+            # Hence we don't record it as a change if the value changes from nil to ''.
+            value = nil if value.blank?
+          else
+            value = column.type_cast(value)
+          end
+        end
+
+        old != value
+      end
+
   end
 end
