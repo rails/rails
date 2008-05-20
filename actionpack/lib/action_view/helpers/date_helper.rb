@@ -689,7 +689,7 @@ module ActionView
                 default[key] ||= time.send(key)
               end
 
-              Time.utc(default[:year], default[:month], default[:day], default[:hour], default[:min], default[:sec])
+              Time.utc_time(default[:year], default[:month], default[:day], default[:hour], default[:min], default[:sec])
             end
         end
     end

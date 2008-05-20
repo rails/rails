@@ -49,7 +49,7 @@ module ActionController #:nodoc:
     # Either the RAW_POST_DATA environment variable or the URL-encoded request
     # parameters.
     def raw_post
-      env['RAW_POST_DATA'] ||= url_encoded_request_parameters
+      env['RAW_POST_DATA'] ||= returning(url_encoded_request_parameters) { |b| b.force_encoding(Encoding::BINARY) if b.respond_to?(:force_encoding) }
     end
 
     def port=(number)
@@ -340,6 +340,7 @@ module ActionController #:nodoc:
       @content_type = content_type
       @original_filename = path.sub(/^.*#{File::SEPARATOR}([^#{File::SEPARATOR}]+)$/) { $1 }
       @tempfile = Tempfile.new(@original_filename)
+      @tempfile.set_encoding(Encoding::BINARY) if @tempfile.respond_to?(:set_encoding)
       @tempfile.binmode if binary
       FileUtils.copy_file(path, @tempfile.path)
     end

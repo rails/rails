@@ -146,6 +146,12 @@ module ActionView
       # to TimeZone. This may be used by users to specify a different time
       # zone model object. (See +time_zone_options_for_select+ for more
       # information.)
+      #
+      # You can also supply an array of TimeZone objects
+      # as +priority_zones+, so that they will be listed above the rest of the
+      # (long) list. (You can use TimeZone.us_zones as a convenience for
+      # obtaining a list of the US time zones.)
+      #
       # Finally, this method supports a <tt>:default</tt> option, which selects
       # a default TimeZone if the object's time zone is +nil+.
       #
@@ -155,6 +161,8 @@ module ActionView
       #   time_zone_select( "user", "time_zone", nil, :default => "Pacific Time (US & Canada)" )
       #
       #   time_zone_select( "user", 'time_zone', TimeZone.us_zones, :default => "Pacific Time (US & Canada)")
+      #
+      #   time_zone_select( "user", 'time_zone', [ TimeZone['Alaska'], TimeZone['Hawaii'] ])
       #
       #   time_zone_select( "user", "time_zone", TZInfo::Timezone.all.sort, :model => TZInfo::Timezone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})

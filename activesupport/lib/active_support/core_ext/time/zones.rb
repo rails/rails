@@ -1,9 +1,7 @@
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Time #:nodoc:
-      # Methods for creating TimeWithZone objects from Time instances
       module Zones
-        
         def self.included(base) #:nodoc:
           base.extend(ClassMethods) if base == ::Time # i.e., don't include class methods in DateTime
         end
@@ -11,18 +9,31 @@ module ActiveSupport #:nodoc:
         module ClassMethods
           attr_accessor :zone_default
           
+          # Returns the TimeZone for the current request, if this has been set (via Time.zone=). 
+          # If Time.zone has not been set for the current request, returns the TimeZone specified in config.time_zone
           def zone
             Thread.current[:time_zone] || zone_default
           end
 
-          # Sets a global default time zone, separate from the system time zone in ENV['TZ']. 
-          # Accepts either a Rails TimeZone object, a string that identifies a 
-          # Rails TimeZone object (e.g., "Central Time (US & Canada)"), or a TZInfo::Timezone object.
+          # Sets Time.zone to a TimeZone object for the current request/thread. 
           #
-          # Any Time or DateTime object can use this default time zone, via <tt>in_time_zone</tt>.
+          # This method accepts any of the following:
           #
-          #   Time.zone = 'Hawaii'          # => 'Hawaii'
-          #   Time.utc(2000).in_time_zone   # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+          #   * a Rails TimeZone object
+          #   * an identifier for a Rails TimeZone object (e.g., "Eastern Time (US & Canada)", -5.hours)
+          #   * a TZInfo::Timezone object
+          #   * an identifier for a TZInfo::Timezone object (e.g., "America/New_York")
+          #
+          # Here's an example of how you might set Time.zone on a per request basis -- current_user.time_zone
+          # just needs to return a string identifying the user's preferred TimeZone:
+          #
+          #   class ApplicationController < ActionController::Base
+          #     before_filter :set_time_zone
+          #
+          #     def set_time_zone
+          #       Time.zone = current_user.time_zone
+          #     end
+          #   end
           def zone=(time_zone)
             Thread.current[:time_zone] = get_zone(time_zone)
           end

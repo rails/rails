@@ -1068,7 +1068,7 @@ module ActionView
     
       def build_observer(klass, name, options = {})
         if options[:with] && (options[:with] !~ /[\{=(.]/)
-          options[:with] = "'#{options[:with]}=' + value"
+          options[:with] = "'#{options[:with]}=' + encodeURIComponent(value)"
         else
           options[:with] ||= 'value' unless options[:function]
         end

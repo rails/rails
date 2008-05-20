@@ -1,3 +1,5 @@
+* InstanceTag#default_time_from_options overflows to DateTime [Geoff Buesing]
+
 *2.1.0 RC1 (May 11th, 2008)*
 
 * Fixed that forgery protection can be used without session tracking (Peter Jones) [#139]

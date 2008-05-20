@@ -168,12 +168,12 @@ module ActionView #:nodoc:
     # Specify whether file modification times should be checked to see if a template needs recompilation
     @@cache_template_loading = false
     cattr_accessor :cache_template_loading
-
-    # Specify whether file extension lookup should be cached, and whether template base path lookup should be cached.
-    # Should be +false+ for development environments. Defaults to +true+.
-    @@cache_template_extensions = true
-    cattr_accessor :cache_template_extensions
     
+    def self.cache_template_extensions=(*args)
+      ActiveSupport::Deprecation.warn("config.action_view.cache_template_extensions option has been deprecated and has no affect. " <<
+                                       "Please remove it from your config files.", caller)
+    end
+
     # Specify whether RJS responses should be wrapped in a try/catch block
     # that alert()s the caught exception (and then re-raises it). 
     @@debug_rjs = false

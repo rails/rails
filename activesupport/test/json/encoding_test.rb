@@ -90,6 +90,15 @@ class TestJSONEncoding < Test::Unit::TestCase
   def test_hash_should_allow_key_filtering_with_except
     assert_equal %({"b": 2}), { 'foo' => 'bar', :b => 2, :c => 3 }.to_json(:except => ['foo', :c])
   end
+  
+  def test_time_to_json_includes_local_offset
+    ActiveSupport.use_standard_json_time_format = true
+    with_env_tz 'US/Eastern' do
+      assert_equal %("2005-02-01T15:15:10-05:00"), Time.local(2005,2,1,15,15,10).to_json
+    end
+  ensure
+    ActiveSupport.use_standard_json_time_format = false
+  end
 
   protected
     def with_kcode(code)
@@ -107,6 +116,13 @@ class TestJSONEncoding < Test::Unit::TestCase
 
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
+    end
+    
+    def with_env_tz(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
     end
 end
 

@@ -85,7 +85,7 @@ class HelperTest < Test::Unit::TestCase
   def test_helper_block_include
     assert_equal expected_helper_methods, missing_methods
     assert_nothing_raised {
-      @controller_class.helper { include TestHelper }
+      @controller_class.helper { include HelperTest::TestHelper }
     }
     assert [], missing_methods
   end
