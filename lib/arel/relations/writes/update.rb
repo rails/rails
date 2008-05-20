@@ -14,7 +14,7 @@ module Arel
           "#{value.format(attribute)} = #{attribute.format(value)}"
         end.join(",\n"),
         ("WHERE #{wheres.collect(&:to_sql).join('\n\tAND ')}"  unless wheres.blank?  ),
-        ("LIMIT     #{taken}"                                  unless taken.blank?    )
+        ("LIMIT #{taken}"                                      unless taken.blank?    )
       ].join("\n")
     end
     

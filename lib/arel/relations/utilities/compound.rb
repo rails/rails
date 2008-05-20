@@ -2,7 +2,7 @@ module Arel
   class Compound < Relation
     attr_reader :relation
     hash_on :relation
-    delegate :joins, :join?, :inserts, :taken, :skipped, :name, :aggregation?,
+    delegate :joins, :join?, :inserts, :taken, :skipped, :name, :externalizable?,
              :column_for, :engine, :table, :table_sql,
              :to => :relation
     

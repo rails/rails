@@ -3,11 +3,8 @@ module Arel
   end
 
   class Binary < Predicate
-    attr_reader :operand1, :operand2
-
-    def initialize(operand1, operand2)
-      @operand1, @operand2 = operand1, operand2
-    end
+    attributes :operand1, :operand2
+    deriving :initialize
 
     def ==(other)
       self.class === other          and

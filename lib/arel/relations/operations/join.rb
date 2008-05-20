@@ -39,8 +39,8 @@ module Arel
     end
     
     # TESTME
-    def aggregation?
-      relation1.aggregation? or relation2.aggregation?
+    def externalizable?
+      relation1.externalizable? or relation2.externalizable?
     end
     
     def join?

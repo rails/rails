@@ -1,5 +1,5 @@
 module Arel
-  class Aggregation < Compound
+  class Externalization < Compound
     attributes :relation
     deriving :initialize, :==
     include Recursion::BaseCase
@@ -17,16 +17,16 @@ module Arel
     end
     
     def name
-      relation.name + '_aggregation'
+      relation.name + '_external'
     end
   end
   
   class Relation
     def externalize
-      @externalized ||= aggregation?? Aggregation.new(self) : self
+      @externalized ||= externalizable?? Externalization.new(self) : self
     end
     
-    def aggregation?
+    def externalizable?
       false
     end
   end

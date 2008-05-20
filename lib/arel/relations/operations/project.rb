@@ -12,8 +12,8 @@ module Arel
       @attributes ||= projections.collect { |p| p.bind(self) }
     end
     
-    def aggregation?
-      attributes.any?(&:aggregation?)
+    def externalizable?
+      attributes.any?(&:aggregation?) or relation.externalizable?
     end
   end
 end

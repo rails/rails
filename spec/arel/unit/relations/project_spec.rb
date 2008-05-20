@@ -57,16 +57,16 @@ module Arel
       end
     end
     
-    describe '#aggregation?' do
+    describe '#externalizable?' do
       describe 'when the projections are attributes' do
         it 'returns false' do
-          Project.new(@relation, @attribute).should_not be_aggregation
+          Project.new(@relation, @attribute).should_not be_externalizable
         end
       end
       
       describe 'when the projections include an aggregation' do
         it "obtains" do
-          Project.new(@relation, @attribute.sum).should be_aggregation
+          Project.new(@relation, @attribute.sum).should be_externalizable
         end
       end
     end
