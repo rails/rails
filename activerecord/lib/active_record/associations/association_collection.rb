@@ -48,7 +48,7 @@ module ActiveRecord
         end
       end
       
-      # fetch first using SQL if possible
+      # Fetches the first one using SQL if possible.
       def first(*args)
         if fetch_first_or_last_using_find? args
           find(:first, *args)
@@ -58,7 +58,7 @@ module ActiveRecord
         end
       end
 
-      # fetch last using SQL if possible
+      # Fetches the last one using SQL if possible.
       def last(*args)
         if fetch_first_or_last_using_find? args
           find(:last, *args)
