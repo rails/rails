@@ -1,6 +1,7 @@
 module Arel
   class Join < Relation
-    attr_reader :join_sql, :relation1, :relation2, :predicates
+    attributes :join_sql, :relation1, :relation2, :predicates
+    deriving :==
     delegate :engine, :name, :to => :relation1
     hash_on :relation1
 
@@ -44,13 +45,6 @@ module Arel
     
     def join?
       true
-    end
-    
-    def ==(other)
-      Join       === other             and
-      predicates ==  other.predicates  and
-      relation1  ==  other.relation1   and
-      relation2  ==  other.relation2
     end
   end
   

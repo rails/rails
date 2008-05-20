@@ -1,10 +1,8 @@
 module Arel
   class Alias < Compound
     include Recursion::BaseCase
+    attributes :relation
+    deriving :initialize
     alias_method :==, :equal?
-    
-    def initialize(relation)
-      @relation = relation
-    end
   end
 end

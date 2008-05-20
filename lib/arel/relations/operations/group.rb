@@ -1,15 +1,11 @@
 module Arel
   class Group < Compound
-    attr_reader :groupings
+    attributes :relation, :groupings
+    deriving :==
 
-    def initialize(relation, *groupings)
-      @relation, @groupings = relation, groupings.collect { |g| g.bind(relation) }
-    end
-
-    def ==(other)
-      Group       === other          and
-      relation    ==  other.relation and
-      groupings   ==  other.groupings
+    def initialize(relation, *groupings, &block)
+      @relation = relation
+      @groupings = (groupings + (block_given?? [yield(self)] : [])).collect { |g| g.bind(relation) }
     end
 
     def aggregation?

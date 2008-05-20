@@ -1,9 +1,11 @@
 module Arel
   class Project < Compound
-    attr_reader :projections
+    attributes :relation, :projections
+    deriving :==
     
-    def initialize(relation, *projections)
-      @relation, @projections = relation, projections
+    def initialize(relation, *projections, &block)
+      @relation = relation
+      @projections = (projections + (block_given?? [yield(self)] : [])).collect { |p| p.bind(relation) }
     end
 
     def attributes
@@ -12,12 +14,6 @@ module Arel
     
     def aggregation?
       attributes.any?(&:aggregation?)
-    end
-    
-    def ==(other)
-      Project  === other          and
-      relation    ==  other.relation and
-      projections ==  other.projections
     end
   end
 end
