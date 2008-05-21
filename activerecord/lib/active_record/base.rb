@@ -949,7 +949,7 @@ module ActiveRecord #:nodoc:
       # If you have an attribute that needs to be saved to the database as an object, and retrieved as the same object,
       # then specify the name of that attribute using this method and it will be handled automatically.
       # The serialization is done through YAML. If +class_name+ is specified, the serialized object must be of that
-      # class on retrieval or +SerializationTypeMismatch+ will be raised.
+      # class on retrieval or SerializationTypeMismatch will be raised.
       #
       # ==== Attributes
       #
