@@ -458,7 +458,9 @@ module ActiveRecord #:nodoc:
       #   If no records are found, an empty array is returned. Use
       #   <tt>Model.find(:all, *args)</tt> or its shortcut <tt>Model.all(*args)</tt>.
       #
-      # All approaches accept an options hash as their last parameter. The options are:
+      # All approaches accept an options hash as their last parameter.
+      #
+      # ==== Attributes
       #
       # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1" or <tt>[ "user_name = ?", username ]</tt>. See conditions in the intro.
       # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name".
@@ -479,7 +481,9 @@ module ActiveRecord #:nodoc:
       # * <tt>:lock</tt> - An SQL fragment like "FOR UPDATE" or "LOCK IN SHARE MODE".
       #   <tt>:lock => true</tt> gives connection's default exclusive lock, usually "FOR UPDATE".
       #
-      # Examples for find by id:
+      # ==== Examples
+      #
+      #   # find by id
       #   Person.find(1)       # returns the object for ID = 1
       #   Person.find(1, 2, 6) # returns an array for objects with IDs in (1, 2, 6)
       #   Person.find([7, 17]) # returns an array for objects with IDs in (7, 17)
@@ -490,17 +494,19 @@ module ActiveRecord #:nodoc:
       # provide since database rows are unordered. Give an explicit <tt>:order</tt>
       # to ensure the results are sorted.
       #
-      # Examples for find first:
+      # ==== Examples
+      #
+      #   # find first
       #   Person.find(:first) # returns the first object fetched by SELECT * FROM people
       #   Person.find(:first, :conditions => [ "user_name = ?", user_name])
       #   Person.find(:first, :order => "created_on DESC", :offset => 5)
       #
-      # Examples for find last:
+      #   # find last
       #   Person.find(:last) # returns the last object fetched by SELECT * FROM people
       #   Person.find(:last, :conditions => [ "user_name = ?", user_name])
       #   Person.find(:last, :order => "created_on DESC", :offset => 5)
       #
-      # Examples for find all:
+      #   # find all
       #   Person.find(:all) # returns an array of objects for all the rows fetched by SELECT * FROM people
       #   Person.find(:all, :conditions => [ "category IN (?)", categories], :limit => 50)
       #   Person.find(:all, :conditions => { :friends => ["Bob", "Steve", "Fred"] }
@@ -943,7 +949,7 @@ module ActiveRecord #:nodoc:
       # If you have an attribute that needs to be saved to the database as an object, and retrieved as the same object,
       # then specify the name of that attribute using this method and it will be handled automatically.
       # The serialization is done through YAML. If +class_name+ is specified, the serialized object must be of that
-      # class on retrieval or SerializationTypeMismatch will be raised.
+      # class on retrieval or +SerializationTypeMismatch+ will be raised.
       #
       # ==== Attributes
       #
@@ -971,7 +977,9 @@ module ActiveRecord #:nodoc:
       # in Active Support, which knows almost all common English inflections. You can add new inflections in config/initializers/inflections.rb.
       #
       # Nested classes are given table names prefixed by the singular form of
-      # the parent's table name. Enclosing modules are not considered. Examples:
+      # the parent's table name. Enclosing modules are not considered.
+      #
+      # ==== Examples
       #
       #   class Invoice < ActiveRecord::Base; end;
       #   file                  class               table_name
@@ -1065,8 +1073,6 @@ module ActiveRecord #:nodoc:
       # Sets the table name to use to the given value, or (if the value
       # is nil or false) to the value returned by the given block.
       #
-      # Example:
-      #
       #   class Project < ActiveRecord::Base
       #     set_table_name "project"
       #   end
@@ -1079,8 +1085,6 @@ module ActiveRecord #:nodoc:
       # or (if the value is nil or false) to the value returned by the given
       # block.
       #
-      # Example:
-      #
       #   class Project < ActiveRecord::Base
       #     set_primary_key "sysid"
       #   end
@@ -1092,8 +1096,6 @@ module ActiveRecord #:nodoc:
       # Sets the name of the inheritance column to use to the given value,
       # or (if the value # is nil or false) to the value returned by the
       # given block.
-      #
-      # Example:
       #
       #   class Project < ActiveRecord::Base
       #     set_inheritance_column do
@@ -1115,8 +1117,6 @@ module ActiveRecord #:nodoc:
       #
       # If a sequence name is not explicitly set when using PostgreSQL, it
       # will discover the sequence corresponding to your primary key for you.
-      #
-      # Example:
       #
       #   class Project < ActiveRecord::Base
       #     set_sequence_name "projectseq"   # default would have been "project_seq"
@@ -2144,7 +2144,9 @@ module ActiveRecord #:nodoc:
         (id = self.id) ? id.to_s : nil # Be sure to stringify the id for routes
       end
 
-      # Returns a cache key that can be used to identify this record. Examples:
+      # Returns a cache key that can be used to identify this record.
+      #
+      # ==== Examples
       #
       #   Product.new.cache_key     # => "products/new"
       #   Product.find(5).cache_key # => "products/5" (updated_at not available)
