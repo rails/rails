@@ -21,7 +21,7 @@ module ActiveResource
   # * <tt>request_headers</tt> - Headers that are expected along with the request.  This argument uses a
   #   hash format, such as <tt>{ "Content-Type" => "application/xml" }</tt>.  This mock will only trigger
   #   if your tests sends a request with identical headers.
-  # * <tt>body</tt> - The data to be returned.  This should be a string of ActiveResource parseable content,
+  # * <tt>body</tt> - The data to be returned.  This should be a string of Active Resource parseable content,
   #   such as XML.
   # * <tt>status</tt> - The HTTP response code, as an integer, to return with the response.
   # * <tt>response_headers</tt> - Headers to be returned with the response.  Uses the same hash format as

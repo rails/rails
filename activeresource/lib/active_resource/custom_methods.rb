@@ -48,8 +48,8 @@ module ActiveResource
           #   # => [{:id => 1, :name => 'Ryan'}]
           #
           # Note: the objects returned from this method are not automatically converted
-          # into ActiveResource instances - they are ordinary Hashes. If you are expecting
-          # ActiveResource instances, use the <tt>find</tt> class method with the
+          # into Active Resource instances - they are ordinary Hashes. If you are expecting
+          # Active Resource instances, use the <tt>find</tt> class method with the
           # <tt>:from</tt> option. For example:
           #
           #   Person.find(:all, :from => :active)

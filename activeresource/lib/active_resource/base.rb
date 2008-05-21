@@ -127,7 +127,7 @@ module ActiveResource
   #   # GET http://api.people.com:3000/people/999.xml
   #   ryan = Person.find(999) # 404, raises ActiveResource::ResourceNotFound
   # 
-  # <tt>404</tt> is just one of the HTTP error response codes that ActiveResource will handle with its own exception. The
+  # <tt>404</tt> is just one of the HTTP error response codes that Active Resource will handle with its own exception. The
   # following HTTP response codes will also result in these exceptions:
   # 
   # * 200..399 - Valid response, no exception
@@ -201,7 +201,7 @@ module ActiveResource
 
     class << self
       # Gets the URI of the REST resources to map for this class.  The site variable is required 
-      # ActiveResource's mapping to work.
+      # Active Resource's mapping to work.
       def site
         # Not using superclass_delegating_reader because don't want subclasses to modify superclass instance
         #
@@ -226,7 +226,7 @@ module ActiveResource
       end
 
       # Sets the URI of the REST resources to map for this class to the value in the +site+ argument.
-      # The site variable is required ActiveResource's mapping to work.
+      # The site variable is required Active Resource's mapping to work.
       def site=(site)
         @connection = nil
         if site.nil?
@@ -701,7 +701,7 @@ module ActiveResource
       attributes[self.class.primary_key] = id
     end
 
-    # Allows ActiveResource objects to be used as parameters in Action Pack URL generation.
+    # Allows Active Resource objects to be used as parameters in Action Pack URL generation.
     def to_param
       id && id.to_s
     end
