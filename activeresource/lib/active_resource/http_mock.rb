@@ -3,11 +3,11 @@ require 'active_resource/connection'
 module ActiveResource
   class InvalidRequestError < StandardError; end #:nodoc:
   
-  # One thing that has always been a pain with remote web services is testing.  The <tt>HttpMock</tt>
+  # One thing that has always been a pain with remote web services is testing.  The HttpMock
   # class makes it easy to test your Active Resource models by creating a set of mock responses to specific
   # requests.
   #
-  # To test your Active Resource model, you simply call the <tt>ActiveResource::HttpMock.respond_to</tt>
+  # To test your Active Resource model, you simply call the ActiveResource::HttpMock.respond_to
   # method with an attached block.  The block declares a set of URIs with expected input, and the output
   # each request should return.  The passed in block has any number of entries in the following generalized
   # format:
@@ -16,7 +16,7 @@ module ActiveResource
   #
   # * <tt>http_method</tt> - The HTTP method to listen for.  This can be +get+, +post+, +put+, +delete+ or
   #   +head+.
-  # * <tt>path</tt> - A string, starting with a <tt>"/"</tt>, defining the URI that is expected to be
+  # * <tt>path</tt> - A string, starting with a "/", defining the URI that is expected to be
   #   called.
   # * <tt>request_headers</tt> - Headers that are expected along with the request.  This argument uses a
   #   hash format, such as <tt>{ "Content-Type" => "application/xml" }</tt>.  This mock will only trigger
@@ -28,7 +28,7 @@ module ActiveResource
   #   <tt>request_headers</tt> listed above.
   #
   # In order for a mock to deliver its content, the incoming request must match by the <tt>http_method</tt>,
-  # +path+ and <tt>request_headers</tt>.  If no match is found  an <tt>InvalidRequestError</tt> exception
+  # +path+ and <tt>request_headers</tt>.  If no match is found an InvalidRequestError exception
   # will be raised letting you know you need to create a new mock for that request.
   #
   # ==== Example
@@ -89,14 +89,14 @@ module ActiveResource
       end
       
       # Returns a hash of <tt>request => response</tt> pairs for all all responses this mock has delivered, where +request+
-      # is an instance of <tt>ActiveResource::Request</tt> and the response is, naturally, an instance of
-      # <tt>ActiveResource::Response</tt>.
+      # is an instance of ActiveResource::Request and the response is, naturally, an instance of
+      # ActiveResource::Response.
       def responses
         @@responses ||= {}
       end
       
       # Accepts a block which declares a set of requests and responses for the HttpMock to respond to. See the main
-      # <tt>ActiveResource::HttpMock</tt> description for a more detailed explanation.
+      # ActiveResource::HttpMock description for a more detailed explanation.
       def respond_to(pairs = {}) #:yields: mock
         reset!
         pairs.each do |(path, response)|
