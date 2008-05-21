@@ -5,12 +5,12 @@ require 'action_mailer/utils'
 require 'tmail/net'
 
 module ActionMailer #:nodoc:
-  # ActionMailer allows you to send email from your application using a mailer model and views.
+  # Action Mailer allows you to send email from your application using a mailer model and views.
   #
   #
   # = Mailer Models
   #
-  # To use ActionMailer, you need to create a mailer model.
+  # To use Action Mailer, you need to create a mailer model.
   #
   #   $ script/generate mailer Notifier
   #
@@ -157,7 +157,7 @@ module ActionMailer #:nodoc:
   #     end
   #   end
   #
-  # Multipart messages can also be used implicitly because ActionMailer will automatically
+  # Multipart messages can also be used implicitly because Action Mailer will automatically
   # detect and use multipart templates, where each template is named after the name of the action, followed
   # by the content type. Each such detected template will be added as separate part to the message.
   #
