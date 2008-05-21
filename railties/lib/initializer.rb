@@ -380,7 +380,7 @@ module Rails
       ActionController::Base.view_paths = [configuration.view_path] if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.empty?
     end
 
-    # If ActionController is not one of the loaded frameworks (Configuration#frameworks)
+    # If Action Controller is not one of the loaded frameworks (Configuration#frameworks)
     # this does nothing. Otherwise, it loads the routing definitions and sets up
     # loading module used to lazily load controllers (Configuration#controller_paths).
     def initialize_routing

@@ -54,7 +54,7 @@ module ActionMailer #:nodoc:
   #
   # = Mailer views
   #
-  # Like ActionController, each mailer class has a corresponding view directory
+  # Like Action Controller, each mailer class has a corresponding view directory
   # in which each method of the class looks for a template with its name.
   # To define a template to be used with a mailing, create an <tt>.erb</tt> file with the same name as the method
   # in your mailer model. For example, in the mailer defined above, the template at

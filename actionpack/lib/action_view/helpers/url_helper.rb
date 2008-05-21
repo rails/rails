@@ -10,7 +10,7 @@ module ActionView
       include JavaScriptHelper
 
       # Returns the URL for the set of +options+ provided. This takes the
-      # same options as url_for in ActionController (see the
+      # same options as +url_for+ in Action Controller (see the
       # documentation for ActionController::Base#url_for). Note that by default
       # <tt>:only_path</tt> is <tt>true</tt> so you'll get the relative /controller/action
       # instead of the fully qualified URL like http://example.com/controller/action.
