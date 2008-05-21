@@ -820,7 +820,7 @@ module ActiveResource
     # ==== Options
     # The +options+ parameter is handed off to the +to_xml+ method on each
     # attribute, so it has the same options as the +to_xml+ methods in
-    # ActiveSupport.
+    # Active Support.
     #
     # * <tt>:indent</tt> - Set the indent level for the XML output (default is +2+).
     # * <tt>:dasherize</tt> - Boolean option to determine whether or not element names should

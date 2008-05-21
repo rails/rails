@@ -475,22 +475,22 @@ module Rails
     # The application's base directory.
     attr_reader :root_path
 
-    # A stub for setting options on ActionController::Base
+    # A stub for setting options on ActionController::Base.
     attr_accessor :action_controller
 
-    # A stub for setting options on ActionMailer::Base
+    # A stub for setting options on ActionMailer::Base.
     attr_accessor :action_mailer
 
-    # A stub for setting options on ActionView::Base
+    # A stub for setting options on ActionView::Base.
     attr_accessor :action_view
 
-    # A stub for setting options on ActiveRecord::Base
+    # A stub for setting options on ActiveRecord::Base.
     attr_accessor :active_record
 
-    # A stub for setting options on ActiveRecord::Base
+    # A stub for setting options on ActiveRecord::Base.
     attr_accessor :active_resource
 
-    # A stub for setting options on ActiveSupport
+    # A stub for setting options on ActiveSupport.
     attr_accessor :active_support
 
     # Whether or not classes should be cached (set to false if you want
@@ -843,7 +843,7 @@ end
 
 # Needs to be duplicated from Active Support since its needed before Active
 # Support is available. Here both Options and Hash are namespaced to prevent
-# conflicts with other implementations AND with the classes residing in ActiveSupport.
+# conflicts with other implementations AND with the classes residing in Active Support.
 class Rails::OrderedOptions < Array #:nodoc:
   def []=(key, value)
     key = key.to_sym

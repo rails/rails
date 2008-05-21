@@ -16,7 +16,7 @@
 #   Time.zone.name  # => "Eastern Time (US & Canada)"
 #   Time.zone.now   # => Sun, 18 May 2008 14:30:44 EDT -04:00
 #
-# The version of TZInfo bundled with ActiveSupport only includes the definitions necessary to support the zones 
+# The version of TZInfo bundled with Active Support only includes the definitions necessary to support the zones 
 # defined by the TimeZone class. If you need to use zones that aren't defined by TimeZone, you'll need to install the TZInfo gem
 # (if a recent version of the gem is installed locally, this will be used instead of the bundled version.)
 class TimeZone
