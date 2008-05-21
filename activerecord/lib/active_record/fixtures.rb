@@ -258,7 +258,7 @@ end
 #   reginald: # generated id: 324201669
 #     name: Reginald the Pirate
 #
-# ActiveRecord looks at the fixture's model class, discovers the correct
+# Active Record looks at the fixture's model class, discovers the correct
 # primary key, and generates it right before inserting the fixture
 # into the database.
 #
@@ -268,7 +268,7 @@ end
 # == Label references for associations (belongs_to, has_one, has_many)
 #
 # Specifying foreign keys in fixtures can be very fragile, not to
-# mention difficult to read. Since ActiveRecord can figure out the ID of
+# mention difficult to read. Since Active Record can figure out the ID of
 # any fixture from its label, you can specify FK's by label instead of ID.
 #
 # === belongs_to
@@ -305,7 +305,7 @@ end
 #     name: George the Monkey
 #     pirate: reginald
 #
-# Pow! All is made clear. ActiveRecord reflects on the fixture's model class,
+# Pow! All is made clear. Active Record reflects on the fixture's model class,
 # finds all the +belongs_to+ associations, and allows you to specify
 # a target *label* for the *association* (monkey: george) rather than
 # a target *id* for the *FK* (<tt>monkey_id: 1</tt>).
@@ -313,7 +313,7 @@ end
 # ==== Polymorphic belongs_to
 #
 # Supporting polymorphic relationships is a little bit more complicated, since
-# ActiveRecord needs to know what type your association is pointing at. Something
+# Active Record needs to know what type your association is pointing at. Something
 # like this should look familiar:
 #
 #   ### in fruit.rb
@@ -333,7 +333,7 @@ end
 #   apple:
 #     eater: george (Monkey)
 #
-# Just provide the polymorphic target type and ActiveRecord will take care of the rest.
+# Just provide the polymorphic target type and Active Record will take care of the rest.
 #
 # === has_and_belongs_to_many
 #
@@ -396,15 +396,15 @@ end
 #
 # Zap! No more fruits_monkeys.yml file. We've specified the list of fruits
 # on George's fixture, but we could've just as easily specified a list
-# of monkeys on each fruit. As with +belongs_to+, ActiveRecord reflects on
+# of monkeys on each fruit. As with +belongs_to+, Active Record reflects on
 # the fixture's model class and discovers the +has_and_belongs_to_many+
 # associations.
 #
 # == Autofilled timestamp columns
 #
-# If your table/model specifies any of ActiveRecord's
-# standard timestamp columns (created_at, created_on, updated_at, updated_on),
-# they will automatically be set to Time.now.
+# If your table/model specifies any of Active Record's
+# standard timestamp columns (+created_at+, +created_on+, +updated_at+, +updated_on+),
+# they will automatically be set to <tt>Time.now</tt>.
 #
 # If you've set specific values, they'll be left alone.
 #

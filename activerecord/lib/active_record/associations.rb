@@ -155,7 +155,7 @@ module ActiveRecord
     #
     # == Cardinality and associations
     #
-    # ActiveRecord associations can be used to describe one-to-one, one-to-many and many-to-many
+    # Active Record associations can be used to describe one-to-one, one-to-many and many-to-many
     # relationships between models. Each model uses an association to describe its role in
     # the relation. The +belongs_to+ association is always used in the model that has
     # the foreign key.
@@ -520,13 +520,13 @@ module ActiveRecord
     #
     # will execute one query to load the addresses and load the addressables with one query per addressable type. 
     # For example if all the addressables are either of class Person or Company then a total of 3 queries will be executed. The list of
-    # addressable types to load is determined on the back of the addresses loaded. This is not supported if ActiveRecord has to fallback
+    # addressable types to load is determined on the back of the addresses loaded. This is not supported if Active Record has to fallback
     # to the previous implementation of eager loading and will raise ActiveRecord::EagerLoadPolymorphicError. The reason is that the parent 
     # model's type is a column value so its corresponding table name cannot be put in the +FROM+/+JOIN+ clauses of that query.
     #
     # == Table Aliasing
     #
-    # ActiveRecord uses table aliasing in the case that a table is referenced multiple times in a join.  If a table is referenced only once,
+    # Active Record uses table aliasing in the case that a table is referenced multiple times in a join.  If a table is referenced only once,
     # the standard table name is used.  The second time, the table is aliased as <tt>#{reflection_name}_#{parent_table_name}</tt>.  Indexes are appended
     # for any more successive uses of the table name.
     #

@@ -2,7 +2,7 @@ require 'yaml'
 require 'set'
 
 module ActiveRecord #:nodoc:
-  # Generic ActiveRecord exception class.
+  # Generic Active Record exception class.
   class ActiveRecordError < StandardError
   end
 
@@ -30,19 +30,19 @@ module ActiveRecord #:nodoc:
   class SerializationTypeMismatch < ActiveRecordError
   end
 
-  # Raised when adapter not specified on connection (or configuration file config/database.yml misses adapter field).
+  # Raised when adapter not specified on connection (or configuration file <tt>config/database.yml</tt> misses adapter field).
   class AdapterNotSpecified < ActiveRecordError
   end
 
-  # Raised when ActiveRecord cannot find database adapter specified in config/database.yml or programmatically.
+  # Raised when Active Record cannot find database adapter specified in <tt>config/database.yml</tt> or programmatically.
   class AdapterNotFound < ActiveRecordError
   end
 
-  # Raised when connection to the database could not been established (for example when connection= is given a nil object).
+  # Raised when connection to the database could not been established (for example when <tt>connection=</tt> is given a nil object).
   class ConnectionNotEstablished < ActiveRecordError
   end
 
-  # Raised when ActiveRecord cannot find record by given id or set of ids.
+  # Raised when Active Record cannot find record by given id or set of ids.
   class RecordNotFound < ActiveRecordError
   end
 
@@ -83,12 +83,12 @@ module ActiveRecord #:nodoc:
   class ReadOnlyRecord < ActiveRecordError
   end
 
-  # Used by ActiveRecord transaction mechanism to distinguish rollback from other exceptional situations.
+  # Used by Active Record transaction mechanism to distinguish rollback from other exceptional situations.
   # You can use it to roll your transaction back explicitly in the block passed to +transaction+ method.
   class Rollback < ActiveRecordError
   end
 
-  # Raised when attribute has a name reserved by ActiveRecord (when attribute has name of one of ActiveRecord instance methods).
+  # Raised when attribute has a name reserved by Active Record (when attribute has name of one of Active Record instance methods).
   class DangerousAttributeError < ActiveRecordError
   end
 
@@ -972,7 +972,7 @@ module ActiveRecord #:nodoc:
 
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the inheritance hierarchy descending
-      # directly from ActiveRecord. So if the hierarchy looks like: Reply < Message < ActiveRecord, then Message is used
+      # directly from ActiveRecord::Base. So if the hierarchy looks like: Reply < Message < ActiveRecord::Base, then Message is used
       # to guess the table name even when called on Reply. The rules used to do the guess are handled by the Inflector class
       # in Active Support, which knows almost all common English inflections. You can add new inflections in config/initializers/inflections.rb.
       #
@@ -993,8 +993,8 @@ module ActiveRecord #:nodoc:
       #   file                  class               table_name
       #   invoice/lineitem.rb   Invoice::Lineitem   lineitems
       #
-      # Additionally, the class-level table_name_prefix is prepended and the
-      # table_name_suffix is appended.  So if you have "myapp_" as a prefix,
+      # Additionally, the class-level +table_name_prefix+ is prepended and the
+      # +table_name_suffix+ is appended.  So if you have "myapp_" as a prefix,
       # the table name guess for an Invoice class becomes "myapp_invoices".
       # Invoice::Lineitem becomes "myapp_invoice_lineitems".
       #
@@ -1902,7 +1902,7 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Returns the class descending directly from ActiveRecord in the inheritance hierarchy.
+        # Returns the class descending directly from Active Record in the inheritance hierarchy.
         def class_of_active_record_descendant(klass)
           if klass.superclass == Base || klass.superclass.abstract_class?
             klass
@@ -1913,7 +1913,7 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Returns the name of the class descending directly from ActiveRecord in the inheritance hierarchy.
+        # Returns the name of the class descending directly from Active Record in the inheritance hierarchy.
         def class_name_of_active_record_descendant(klass) #:nodoc:
           klass.base_class.name
         end
@@ -2502,9 +2502,9 @@ module ActiveRecord #:nodoc:
         id
       end
 
-      # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord descendent.
-      # Considering the hierarchy Reply < Message < ActiveRecord, this makes it possible to do Reply.new without having to
-      # set Reply[Reply.inheritance_column] = "Reply" yourself. No such attribute would be set for objects of the
+      # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord::Base descendent.
+      # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to do Reply.new without having to
+      # set <tt>Reply[Reply.inheritance_column] = "Reply"</tt> yourself. No such attribute would be set for objects of the
       # Message class in that example.
       def ensure_proper_type
         unless self.class.descends_from_active_record?

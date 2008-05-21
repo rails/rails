@@ -30,7 +30,7 @@ module ActiveRecord
         @observers ||= []
       end
 
-      # Instantiate the global ActiveRecord observers
+      # Instantiate the global Active Record observers.
       def instantiate_observers
         return if @observers.blank?
         @observers.each do |observer|
