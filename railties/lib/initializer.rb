@@ -160,8 +160,8 @@ module Rails
     end
 
     # If Rails is vendored and RubyGems is available, install stub GemSpecs
-    # for Rails, ActiveSupport, ActiveRecord, ActionPack, ActionMailer, and
-    # ActiveResource. This allows Gem plugins to depend on Rails even when
+    # for Rails, Active Support, Active Record, Action Pack, Action Mailer, and
+    # Active Resource. This allows Gem plugins to depend on Rails even when
     # the Gem version of Rails shouldn't be loaded.
     def install_gem_spec_stubs
       unless Rails.respond_to?(:vendor_rails?)
@@ -210,8 +210,8 @@ module Rails
     end
 
     # Requires all frameworks specified by the Configuration#frameworks
-    # list. By default, all frameworks (ActiveRecord, ActiveSupport,
-    # ActionPack, ActionMailer, and ActiveResource) are loaded.
+    # list. By default, all frameworks (Active Record, Active Support,
+    # Action Pack, Action Mailer, and Active Resource) are loaded.
     def require_frameworks
       configuration.frameworks.each { |framework| require(framework.to_s) }
     rescue LoadError => e
@@ -359,7 +359,7 @@ module Rails
       silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
     end
 
-    # Sets the logger for ActiveRecord, ActionController, and ActionMailer
+    # Sets the logger for Active Record, Action Controller, and Action Mailer
     # (but only for those frameworks that are to be loaded). If the framework's
     # logger is already set, it is not changed, otherwise it is set to use
     # RAILS_DEFAULT_LOGGER.
@@ -409,7 +409,7 @@ module Rails
       end
     end
 
-    # Sets the default value for Time.zone, and turns on ActiveRecord time_zone_aware_attributes.
+    # Sets the default value for Time.zone, and turns on ActiveRecord::Base#time_zone_aware_attributes.
     # If assigned value cannot be matched to a TimeZone, an exception will be raised.
     def initialize_time_zone
       if configuration.time_zone
@@ -618,9 +618,9 @@ module Rails
     end
     alias_method :breakpoint_server=, :breakpoint_server
 
-    # Sets the default time_zone.  Setting this will enable time_zone
-    # awareness for ActiveRecord models and set the ActiveRecord default
-    # timezone to :utc.
+    # Sets the default +time_zone+.  Setting this will enable +time_zone+
+    # awareness for Active Record models and set the Active Record default
+    # timezone to <tt>:utc</tt>.
     attr_accessor :time_zone
 
     # Create a new Configuration instance, initialized with the default

@@ -3,7 +3,7 @@ require 'action_view/helpers/tag_helper'
 
 module ActionView
   module Helpers
-    # Provides a number of methods for creating form tags that doesn't rely on an ActiveRecord object assigned to the template like
+    # Provides a number of methods for creating form tags that doesn't rely on an Active Record object assigned to the template like
     # FormHelper does. Instead, you provide the names and values manually.
     #
     # NOTE: The HTML options <tt>disabled</tt>, <tt>readonly</tt>, and <tt>multiple</tt> can all be treated as booleans. So specifying 

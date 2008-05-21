@@ -298,7 +298,7 @@ module ActionView
       # a TimeZone.
       #
       # By default, +model+ is the TimeZone constant (which can be obtained
-      # in ActiveRecord as a value object). The only requirement is that the
+      # in Active Record as a value object). The only requirement is that the
       # +model+ parameter be an object that responds to +all+, and returns
       # an array of objects that represent time zones.
       #

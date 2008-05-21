@@ -94,7 +94,7 @@ module ActiveRecord
       end
 
       # Checks whether the method is defined in the model or any of its subclasses
-      # that also derive from ActiveRecord. Raises DangerousAttributeError if the
+      # that also derive from Active Record. Raises DangerousAttributeError if the
       # method is defined by Active Record though.
       def instance_method_already_implemented?(method_name)
         method_name = method_name.to_s

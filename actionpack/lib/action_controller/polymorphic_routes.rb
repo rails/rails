@@ -1,6 +1,6 @@
 module ActionController
   # Polymorphic URL helpers are methods for smart resolution to a named route call when
-  # given an ActiveRecord model instance. They are to be used in combination with
+  # given an Active Record model instance. They are to be used in combination with
   # ActionController::Resources.
   #
   # These methods are useful when you want to generate correct URL or path to a RESTful
