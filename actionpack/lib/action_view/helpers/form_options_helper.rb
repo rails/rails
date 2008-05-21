@@ -119,7 +119,7 @@ module ActionView
       #     end
       #   end
       #
-      # Sample usage (selecting the associated Author for an instance of +Post+, <tt>@post</tt>):
+      # Sample usage (selecting the associated Author for an instance of Post, <tt>@post</tt>):
       #   collection_select(:post, :author_id, Author.find(:all), :id, :name_with_initial, {:prompt => true})
       #
       # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
