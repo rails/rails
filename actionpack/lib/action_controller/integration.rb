@@ -58,7 +58,7 @@ module ActionController
       class MultiPartNeededException < Exception
       end
 
-      # Create and initialize a new +Session+ instance.
+      # Create and initialize a new Session instance.
       def initialize
         reset!
       end

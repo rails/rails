@@ -18,7 +18,7 @@ class CGI #:nodoc:
     # path:: the path for which this cookie applies.  Defaults to the
     #        base directory of the CGI script.
     # domain:: the domain for which this cookie applies.
-    # expires:: the time at which this cookie expires, as a +Time+ object.
+    # expires:: the time at which this cookie expires, as a Time object.
     # secure:: whether this cookie is a secure cookie or not (default to
     #          false).  Secure cookies are only transmitted to HTTPS
     #          servers.

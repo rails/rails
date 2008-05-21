@@ -3,7 +3,7 @@ require 'action_controller/test_case'
 
 module ActionController #:nodoc:
   class Base
-    # Process a test request called with a +TestRequest+ object.
+    # Process a test request called with a TestRequest object.
     def self.process_test(request)
       new.process_test(request)
     end

@@ -44,8 +44,8 @@ module ActionController
       # base element and any of its children. Returns an empty array if no
       # match is found.
       #
-      # The selector may be a CSS selector expression (+String+), an expression
-      # with substitution values (+Array+) or an HTML::Selector object.
+      # The selector may be a CSS selector expression (String), an expression
+      # with substitution values (Array) or an HTML::Selector object.
       #
       # ==== Examples
       #   # Selects all div tags
@@ -130,7 +130,7 @@ module ActionController
       #     assert_select "li"
       #   end
       #
-      # The selector may be a CSS selector expression (+String+), an expression
+      # The selector may be a CSS selector expression (String), an expression
       # with substitution values, or an HTML::Selector object.
       #
       # === Equality Tests

@@ -15,7 +15,7 @@ module ActionController #:nodoc:
     # * <tt>:new_session</tt> - if true, force creation of a new session.  If not set, a new session is only created if none currently
     #   exists.  If false, a new session is never created, and if none currently exists and the +session_id+ option is not set,
     #   an ArgumentError is raised.
-    # * <tt>:session_expires</tt> - the time the current session expires, as a +Time+ object.  If not set, the session will continue
+    # * <tt>:session_expires</tt> - the time the current session expires, as a Time object.  If not set, the session will continue
     #   indefinitely.
     # * <tt>:session_domain</tt> - the hostname domain for which this session is valid. If not set, defaults to the hostname of the
     #   server.

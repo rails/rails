@@ -104,7 +104,7 @@ module ActionController #:nodoc:
   #   end
   #
   # Actions, by default, render a template in the <tt>app/views</tt> directory corresponding to the name of the controller and action
-  # after executing code in the action. For example, the +index+ action of the +GuestBookController+  would render the
+  # after executing code in the action. For example, the +index+ action of the GuestBookController would render the
   # template <tt>app/views/guestbook/index.erb</tt> by default after populating the <tt>@entries</tt> instance variable.
   #
   # Unlike index, the sign action will not render a template. After performing its main purpose (creating a
