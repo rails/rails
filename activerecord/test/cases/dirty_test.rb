@@ -137,6 +137,14 @@ class DirtyTest < ActiveRecord::TestCase
     check_pirate_after_save_failure(pirate)
   end
 
+  def test_reload_should_clear_changed_attributes
+    pirate = Pirate.create!(:catchphrase => "shiver me timbers")
+    pirate.catchphrase = "*hic*"
+    assert pirate.changed?
+    pirate.reload
+    assert !pirate.changed?
+  end
+
   private
     def with_partial_updates(klass, on = true)
       old = klass.partial_updates?

@@ -40,6 +40,7 @@ module ActiveRecord
       base.alias_method_chain :save,            :dirty
       base.alias_method_chain :save!,           :dirty
       base.alias_method_chain :update,          :dirty
+      base.alias_method_chain :reload,          :dirty
 
       base.superclass_delegating_accessor :partial_updates
       base.partial_updates = false
@@ -82,6 +83,13 @@ module ActiveRecord
       status = save_without_dirty!(*args)
       changed_attributes.clear
       status
+    end
+
+    # <tt>reload</tt> the record and clears changed attributes.
+    def reload_with_dirty(*args) #:nodoc:
+      record = reload_without_dirty(*args)
+      changed_attributes.clear
+      record
     end
 
     private
