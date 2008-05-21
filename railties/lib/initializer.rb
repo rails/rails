@@ -326,7 +326,7 @@ module Rails
       end
     end
 
-    # If the +RAILS_DEFAULT_LOGGER+ constant is already set, this initialization
+    # If the RAILS_DEFAULT_LOGGER constant is already set, this initialization
     # routine does nothing. If the constant is not set, and Configuration#logger
     # is not +nil+, this also does nothing. Otherwise, a new logger instance
     # is created at Configuration#log_path, with a default log level of
@@ -362,7 +362,7 @@ module Rails
     # Sets the logger for ActiveRecord, ActionController, and ActionMailer
     # (but only for those frameworks that are to be loaded). If the framework's
     # logger is already set, it is not changed, otherwise it is set to use
-    # +RAILS_DEFAULT_LOGGER+.
+    # RAILS_DEFAULT_LOGGER.
     def initialize_framework_logging
       for framework in ([ :active_record, :action_controller, :action_mailer ] & configuration.frameworks)
         framework.to_s.camelize.constantize.const_get("Base").logger ||= RAILS_DEFAULT_LOGGER
@@ -685,7 +685,7 @@ module Rails
     end
 
     # Return the currently selected environment. By default, it returns the
-    # value of the +RAILS_ENV+ constant.
+    # value of the RAILS_ENV constant.
     def environment
       ::RAILS_ENV
     end
