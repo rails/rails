@@ -119,7 +119,7 @@ module ActionView
       #     end
       #   end
       #
-      # Sample usage (selecting the associated +Author+ for an instance of +Post+, <tt>@post</tt>):
+      # Sample usage (selecting the associated Author for an instance of +Post+, <tt>@post</tt>):
       #   collection_select(:post, :author_id, Author.find(:all), :id, :name_with_initial, {:prompt => true})
       #
       # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
@@ -172,7 +172,7 @@ module ActionView
       # Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. Given a container
       # where the elements respond to first and last (such as a two-element array), the "lasts" serve as option values and
       # the "firsts" as option text. Hashes are turned into this form automatically, so the keys become "firsts" and values
-      # become lasts. If +selected+ is specified, the matching "last" or element will get the selected option-tag.  +Selected+
+      # become lasts. If +selected+ is specified, the matching "last" or element will get the selected option-tag.  +selected+
       # may also be an array of values to be selected when using a multiple select.
       #
       # Examples (call, result):

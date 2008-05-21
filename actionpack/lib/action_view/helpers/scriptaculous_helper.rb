@@ -202,9 +202,9 @@ module ActionView
       #                                    :onDrop => "function(draggable_element, droppable_element, event) { alert('I like bananas') }"
       #                          
       #                                  This callback gets three parameters:      
-      #                                  The +Draggable+ element, the +Droppable+ element and the 
-      #                                  +Event+ object.  You can extract additional information about the 
-      #                                  drop - like if the Ctrl or Shift keys were pressed - from the +Event+ object.
+      #                                  The Draggable element, the Droppable element and the 
+      #                                  Event object.  You can extract additional information about the 
+      #                                  drop - like if the Ctrl or Shift keys were pressed - from the Event object.
       #
       # <tt>:with</tt>::                 A JavaScript expression specifying the parameters for the XMLHttpRequest.
       #                                  Any expressions should return a valid URL query string.
