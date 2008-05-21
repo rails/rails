@@ -158,7 +158,7 @@ module Mime
       end
     end
 
-    # Returns true if ActionPack should check requests using this Mime Type for possible request forgery.  See
+    # Returns true if Action Pack should check requests using this Mime Type for possible request forgery.  See
     # ActionController::RequestForgerProtection.
     def verify_request?
       !@@unverifiable_types.include?(to_sym)

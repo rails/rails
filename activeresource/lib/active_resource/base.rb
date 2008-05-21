@@ -701,7 +701,7 @@ module ActiveResource
       attributes[self.class.primary_key] = id
     end
 
-    # Allows ActiveResource objects to be used as parameters in ActionPack URL generation.
+    # Allows ActiveResource objects to be used as parameters in Action Pack URL generation.
     def to_param
       id && id.to_s
     end
