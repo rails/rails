@@ -950,7 +950,7 @@ module ActiveRecord
       #
       # Deprecated: Any additional fields added to the join table will be placed as attributes when pulling records out through
       # +has_and_belongs_to_many+ associations. Records returned from join tables with additional attributes will be marked as
-      # +ReadOnly+ (because we can't save changes to the additional attributes). It's strongly recommended that you upgrade any
+      # readonly (because we can't save changes to the additional attributes). It's strongly recommended that you upgrade any
       # associations with attributes to a real join model (see introduction).
       #
       # Adds the following methods for retrieval and query:

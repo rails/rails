@@ -92,19 +92,19 @@ module ActiveRecord
     #
     # == Writing value objects
     #
-    # Value objects are immutable and interchangeable objects that represent a given value, such as a +Money+ object representing
-    # $5. Two +Money+ objects both representing $5 should be equal (through methods such as == and <=> from +Comparable+ if ranking
-    # makes sense). This is unlike entity objects where equality is determined by identity. An entity class such as +Customer+ can
+    # Value objects are immutable and interchangeable objects that represent a given value, such as a Money object representing
+    # $5. Two Money objects both representing $5 should be equal (through methods such as <tt>==</tt> and <tt><=></tt> from Comparable if ranking
+    # makes sense). This is unlike entity objects where equality is determined by identity. An entity class such as Customer can
     # easily have two different objects that both have an address on Hyancintvej. Entity identity is determined by object or
-    # relational unique identifiers (such as primary keys). Normal <tt>ActiveRecord::Base</tt> classes are entity objects.
+    # relational unique identifiers (such as primary keys). Normal ActiveRecord::Base classes are entity objects.
     #
-    # It's also important to treat the value objects as immutable. Don't allow the +Money+ object to have its amount changed after
-    # creation. Create a new Money object with the new value instead. This is exemplified by the <tt>Money#exchanged_to</tt> method that
+    # It's also important to treat the value objects as immutable. Don't allow the Money object to have its amount changed after
+    # creation. Create a new Money object with the new value instead. This is exemplified by the Money#exchanged_to method that
     # returns a new value object instead of changing its own values. Active Record won't persist value objects that have been
     # changed through means other than the writer method.
     #
     # The immutable requirement is enforced by Active Record by freezing any object assigned as a value object. Attempting to 
-    # change it afterwards will result in a <tt>ActiveSupport::FrozenObjectError</tt>.
+    # change it afterwards will result in a ActiveSupport::FrozenObjectError.
     # 
     # Read more about value objects on http://c2.com/cgi/wiki?ValueObject and on the dangers of not keeping value objects
     # immutable on http://c2.com/cgi/wiki?ValueObjectsShouldBeImmutable
@@ -123,8 +123,8 @@ module ActiveRecord
       #
       # Options are:
       # * <tt>:class_name</tt>  - specify the class name of the association. Use it only if that name can't be inferred
-      #   from the part id. So <tt>composed_of :address</tt> will by default be linked to the +Address+ class, but
-      #   if the real class name is +CompanyAddress+, you'll have to specify it with this option.
+      #   from the part id. So <tt>composed_of :address</tt> will by default be linked to the Address class, but
+      #   if the real class name is CompanyAddress, you'll have to specify it with this option.
       # * <tt>:mapping</tt> - specifies a number of mapping arrays (attribute, parameter) that bind an attribute name
       #   to a constructor parameter on the value class.
       # * <tt>:allow_nil</tt> - specifies that the aggregate object will not be instantiated when all mapped

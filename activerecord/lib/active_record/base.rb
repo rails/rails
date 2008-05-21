@@ -70,7 +70,7 @@ module ActiveRecord #:nodoc:
   # instantiation, for example, when two users edit the same wiki page and one starts editing and saves
   # the page before the other.
   #
-  # Read more about optimistic locking in +ActiveRecord::Locking+ module RDoc.
+  # Read more about optimistic locking in ActiveRecord::Locking module RDoc.
   class StaleObjectError < ActiveRecordError
   end
 
@@ -407,7 +407,7 @@ module ActiveRecord #:nodoc:
     @@table_name_suffix = ""
 
     # Indicates whether table names should be the pluralized versions of the corresponding class names.
-    # If true, the default table name for a +Product+ class will be +products+. If false, it would just be +product+.
+    # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
     # See table_name for the full rules on table/class naming. This is true, by default.
     cattr_accessor :pluralize_table_names, :instance_writer => false
     @@pluralize_table_names = true
@@ -943,7 +943,7 @@ module ActiveRecord #:nodoc:
       # If you have an attribute that needs to be saved to the database as an object, and retrieved as the same object,
       # then specify the name of that attribute using this method and it will be handled automatically.
       # The serialization is done through YAML. If +class_name+ is specified, the serialized object must be of that
-      # class on retrieval or +SerializationTypeMismatch+ will be raised.
+      # class on retrieval or SerializationTypeMismatch will be raised.
       #
       # ==== Attributes
       #
