@@ -75,7 +75,7 @@ module Arel
       end
 
       def find_correlate_in(relation)
-        relation[self]
+        relation[self] || self
       end
           
       def descends_from?(other)

@@ -16,6 +16,7 @@ module Arel
       @attributes ||= relation.attributes.collect(&:to_attribute).collect { |a| a.bind(self) }
     end
     
+    # REMOVEME
     def name
       relation.name + '_external'
     end

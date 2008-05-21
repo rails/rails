@@ -1,4 +1,19 @@
 todo:
+- joining with LIMIT is like aggregations!!
+
+users.delete().where( 
+    addresses.c.user_id== 
+         select([users.c.id]). 
+         where(users.c.name=='jack') 
+    ) 
+
+    SELECT id, name, 
+      (select count(*) FROM addresses WHERE 
+    user_id=users.id) 
+    FROM users 
+
+    SELECT users.*, (SELECT count(id) FROM addresses WHERE 
+    addresses.user_id=users.id) FROM users
 - and/or w/ predicates
 - blocks for all operations
 - result sets to attr correlation too

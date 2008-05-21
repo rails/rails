@@ -39,6 +39,10 @@ module Arel
       self
     end
     
+    def root
+      self
+    end
+    
     def christener
       @christener ||= Sql::Christener.new
     end

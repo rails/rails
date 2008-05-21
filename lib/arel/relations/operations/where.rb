@@ -4,7 +4,7 @@ module Arel
     deriving :==
 
     def initialize(relation, *predicates, &block)
-      predicate = block_given?? yield(self) : predicates.shift
+      predicate = block_given?? yield(relation) : predicates.shift
       @relation = predicates.empty?? relation : Where.new(relation, *predicates)
       @predicate = predicate.bind(@relation)
     end

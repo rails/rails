@@ -31,6 +31,7 @@ module Arel
     end
     
     def wheres
+      # TESTME bind to self?
       relation1.externalize.wheres
     end
     

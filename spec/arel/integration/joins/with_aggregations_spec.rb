@@ -16,6 +16,7 @@ module Arel
       end
       
       describe '#to_sql' do
+        # CLEANUP
         it '' do
           @relation1.join(@relation2.take(3)).on(@predicate).to_sql.should be_like("
             SELECT `users`.`id`, `users`.`name`, `photos_external`.`id`, `photos_external`.`user_id`, `photos_external`.`camera_id`
