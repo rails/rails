@@ -181,6 +181,17 @@ class FormHelperTest < ActionView::TestCase
       '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
       check_box("post", "secret?")
     )
+
+    @post.secret = ['0']
+    assert_dom_equal(
+      '<input id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
+      check_box("post", "secret")
+    )
+    @post.secret = ['1']
+    assert_dom_equal(
+      '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
+      check_box("post", "secret")
+    )
   end
 
   def test_check_box_with_explicit_checked_and_unchecked_values

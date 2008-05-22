@@ -32,7 +32,7 @@ ARGV.clone.options do |opts|
   opts.parse!
 end
 
-puts "=> Rails application starting on http://#{OPTIONS[:ip]}:#{OPTIONS[:port]}"
+puts "=> Rails #{Rails.version} application starting on http://#{OPTIONS[:ip]}:#{OPTIONS[:port]}"
 
 parameters = [
   "start",

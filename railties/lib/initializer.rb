@@ -43,6 +43,10 @@ module Rails
       RAILS_CACHE
     end
 
+    def version
+      VERSION::STRING
+    end
+
     def public_path
       @@public_path ||= self.root ? File.join(self.root, "public") : "public"
     end
