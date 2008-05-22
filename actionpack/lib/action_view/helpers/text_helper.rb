@@ -454,7 +454,7 @@ module ActionView
                         (                          # leading text
                           <\w+.*?>|                # leading HTML tag, or
                           [^=!:'"/]|               # leading punctuation, or
-                          |                        # nothing
+                          ^                        # beginning of line
                         )
                         (
                           (?:https?://)|           # protocol spec, or
@@ -468,7 +468,7 @@ module ActionView
                           (?:\?[\w\+@%&=.;-]+)?     # query string
                           (?:\#[\w\-]*)?           # trailing anchor
                         )
-                        ([[:punct:]]|\s|<|$)       # trailing text
+                        ([[:punct:]]|<|$|)       # trailing text
                        }x unless const_defined?(:AUTO_LINK_RE)
 
         # Turns all urls into clickable links.  If a block is given, each url
