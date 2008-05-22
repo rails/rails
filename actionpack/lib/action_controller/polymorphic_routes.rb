@@ -9,7 +9,9 @@ module ActionController
   # Nested resources and/or namespaces are also supported, as illustrated in the example:
   #
   #   polymorphic_url([:admin, @article, @comment])
-  #   #-> results in:
+  #
+  # results in:
+  #   
   #   admin_article_comment_url(@article, @comment)
   #
   # == Usage within the framework
@@ -38,11 +40,8 @@ module ActionController
   #
   # Example usage:
   #
-  #   edit_polymorphic_path(@post)
-  #   #=> /posts/1/edit
-  #
-  #   formatted_polymorphic_path([@post, :pdf])
-  #   #=> /posts/1.pdf
+  #   edit_polymorphic_path(@post)              # => "/posts/1/edit"
+  #   formatted_polymorphic_path([@post, :pdf]) # => "/posts/1.pdf"
   module PolymorphicRoutes
     # Constructs a call to a named RESTful route for the given record and returns the
     # resulting URL string. For example:

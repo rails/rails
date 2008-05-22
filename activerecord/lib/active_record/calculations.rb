@@ -245,12 +245,14 @@ module ActiveRecord
           options.assert_valid_keys(CALCULATIONS_OPTIONS)
         end
 
-        # Converts a given key to the value that the database adapter returns as
-        # a usable column name.
-        #   users.id #=> users_id
-        #   sum(id) #=> sum_id
-        #   count(distinct users.id) #=> count_distinct_users_id
-        #   count(*) #=> count_all
+        # Converts the given keys to the value that the database adapter returns as
+        # a usable column name:
+        #
+        #   column_alias_for("users.id")                 # => "users_id"
+        #   column_alias_for("sum(id)")                  # => "sum_id"
+        #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
+        #   column_alias_for("count(*)")                 # => "count_all"
+        #   column_alias_for("count", "id")              # => "count_id"
         def column_alias_for(*keys)
           connection.table_alias_for(keys.join(' ').downcase.gsub(/\*/, 'all').gsub(/\W+/, ' ').strip.gsub(/ +/, '_'))
         end

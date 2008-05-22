@@ -34,18 +34,18 @@ module ActiveResource
   # from REST web services.
   # 
   #   ryan = Person.new(:first => 'Ryan', :last => 'Daigle')
-  #   ryan.save  #=> true
-  #   ryan.id  #=> 2
-  #   Person.exists?(ryan.id)  #=> true
-  #   ryan.exists?  #=> true
+  #   ryan.save                # => true
+  #   ryan.id                  # => 2
+  #   Person.exists?(ryan.id)  # => true
+  #   ryan.exists?             # => true
   # 
   #   ryan = Person.find(1)
-  #   # => Resource holding our newly created Person object
+  #   # Resource holding our newly created Person object
   # 
   #   ryan.first = 'Rizzle'
-  #   ryan.save  #=> true
+  #   ryan.save                # => true
   # 
-  #   ryan.destroy  #=> true
+  #   ryan.destroy             # => true
   #
   # As you can see, these are very similar to Active Record's lifecycle methods for database records.
   # You can read more about each of these methods in their respective documentation.
@@ -156,8 +156,8 @@ module ActiveResource
   # then fail (with a <tt>false</tt> return value) and the validation errors can be accessed on the resource in question.
   # 
   #   ryan = Person.find(1)
-  #   ryan.first #=> ''
-  #   ryan.save  #=> false
+  #   ryan.first # => ''
+  #   ryan.save  # => false
   #
   #   # When 
   #   # PUT http://api.people.com:3000/people/1.xml
@@ -167,8 +167,8 @@ module ActiveResource
   #   # <errors type="array"><error>First cannot be empty</error></errors>
   #   #
   #
-  #   ryan.errors.invalid?(:first)  #=> true
-  #   ryan.errors.full_messages  #=> ['First cannot be empty']
+  #   ryan.errors.invalid?(:first)  # => true
+  #   ryan.errors.full_messages     # => ['First cannot be empty']
   # 
   # Learn more about Active Resource's validation features in the ActiveResource::Validations documentation.
   #

@@ -324,13 +324,13 @@ module ActionView
       #
       # ==== Examples
       #   label(:post, :title)
-      #   #=> <label for="post_title">Title</label>
+      #   # => <label for="post_title">Title</label>
       #
       #   label(:post, :title, "A short title")
-      #   #=> <label for="post_title">A short title</label>
+      #   # => <label for="post_title">A short title</label>
       #
       #   label(:post, :title, "A short title", :class => "title_label")
-      #   #=> <label for="post_title" class="title_label">A short title</label>
+      #   # => <label for="post_title" class="title_label">A short title</label>
       #
       def label(object_name, method, text = nil, options = {})
         InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_label_tag(text, options)

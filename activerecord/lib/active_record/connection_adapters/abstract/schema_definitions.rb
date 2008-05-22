@@ -92,7 +92,7 @@ module ActiveRecord
       # Returns the human name of the column name.
       #
       # ===== Examples
-      #  Column.new('sales_stage', ...).human_name #=> 'Sales stage'
+      #  Column.new('sales_stage', ...).human_name # => 'Sales stage'
       def human_name
         Base.human_attribute_name(@name)
       end
@@ -350,28 +350,28 @@ module ActiveRecord
       # == Examples
       #  # Assuming td is an instance of TableDefinition
       #  td.column(:granted, :boolean)
-      #    #=> granted BOOLEAN
+      #  # granted BOOLEAN
       #
       #  td.column(:picture, :binary, :limit => 2.megabytes)
-      #    #=> picture BLOB(2097152)
+      #  # => picture BLOB(2097152)
       #
       #  td.column(:sales_stage, :string, :limit => 20, :default => 'new', :null => false)
-      #    #=> sales_stage VARCHAR(20) DEFAULT 'new' NOT NULL
+      #  # => sales_stage VARCHAR(20) DEFAULT 'new' NOT NULL
       #
-      #  def.column(:bill_gates_money, :decimal, :precision => 15, :scale => 2)
-      #    #=> bill_gates_money DECIMAL(15,2)
+      #  td.column(:bill_gates_money, :decimal, :precision => 15, :scale => 2)
+      #  # => bill_gates_money DECIMAL(15,2)
       #
-      #  def.column(:sensor_reading, :decimal, :precision => 30, :scale => 20)
-      #    #=> sensor_reading DECIMAL(30,20)
+      #  td.column(:sensor_reading, :decimal, :precision => 30, :scale => 20)
+      #  # => sensor_reading DECIMAL(30,20)
       #
       #  # While <tt>:scale</tt> defaults to zero on most databases, it
       #  # probably wouldn't hurt to include it.
-      #  def.column(:huge_integer, :decimal, :precision => 30)
-      #    #=> huge_integer DECIMAL(30)
+      #  td.column(:huge_integer, :decimal, :precision => 30)
+      #  # => huge_integer DECIMAL(30)
       #
       # == Short-hand examples
       #
-      # Instead of calling column directly, you can also work with the short-hand definitions for the default types.
+      # Instead of calling +column+ directly, you can also work with the short-hand definitions for the default types.
       # They use the type as the method name instead of as a parameter and allow for multiple columns to be defined
       # in a single statement.
       #

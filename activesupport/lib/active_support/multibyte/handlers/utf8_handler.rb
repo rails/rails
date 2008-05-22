@@ -147,13 +147,11 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
       #
       #   s = "Müller"
       #   s.chars[2] = "e" # Replace character with offset 2
-      #   s
-      #   #=> "Müeler"
+      #   s # => "Müeler"
       #
       #   s = "Müller"
       #   s.chars[1, 2] = "ö" # Replace 2 characters at character offset 1
-      #   s
-      #   #=> "Möler"
+      #   s # => "Möler"
       def []=(str, *args)
         replace_by = args.pop
         # Indexed replace with regular expressions already works
@@ -183,10 +181,10 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
       # Example:
       #
       #   "¾ cup".chars.rjust(8).to_s
-      #   #=> "   ¾ cup"
+      #   # => "   ¾ cup"
       #
       #   "¾ cup".chars.rjust(8, " ").to_s # Use non-breaking whitespace
-      #   #=> "   ¾ cup"
+      #   # => "   ¾ cup"
       def rjust(str, integer, padstr=' ')
         justify(str, integer, :right, padstr)
       end
@@ -196,10 +194,10 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
       # Example:
       #
       #   "¾ cup".chars.rjust(8).to_s
-      #   #=> "¾ cup   "
+      #   # => "¾ cup   "
       #
       #   "¾ cup".chars.rjust(8, " ").to_s # Use non-breaking whitespace
-      #   #=> "¾ cup   "
+      #   # => "¾ cup   "
       def ljust(str, integer, padstr=' ')
         justify(str, integer, :left, padstr)
       end
@@ -209,10 +207,10 @@ module ActiveSupport::Multibyte::Handlers #:nodoc:
       # Example:
       #
       #   "¾ cup".chars.center(8).to_s
-      #   #=> " ¾ cup  "
+      #   # => " ¾ cup  "
       #
       #   "¾ cup".chars.center(8, " ").to_s # Use non-breaking whitespace
-      #   #=> " ¾ cup  "
+      #   # => " ¾ cup  "
       def center(str, integer, padstr=' ')
         justify(str, integer, :center, padstr)
       end

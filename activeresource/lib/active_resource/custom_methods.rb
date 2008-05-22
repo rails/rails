@@ -7,12 +7,12 @@ module ActiveResource
   #                           :member => { :promote => :put, :deactivate => :delete }
   #                           :collection => { :active => :get }
   #
-  #  This route set creates routes for the following http requests:
+  #  This route set creates routes for the following HTTP requests:
   #
-  #    POST    /people/new/register.xml #=> PeopleController.register
-  #    PUT     /people/1/promote.xml    #=> PeopleController.promote with :id => 1
-  #    DELETE  /people/1/deactivate.xml #=> PeopleController.deactivate with :id => 1
-  #    GET     /people/active.xml       #=> PeopleController.active
+  #    POST    /people/new/register.xml # PeopleController.register
+  #    PUT     /people/1/promote.xml    # PeopleController.promote with :id => 1
+  #    DELETE  /people/1/deactivate.xml # PeopleController.deactivate with :id => 1
+  #    GET     /people/active.xml       # PeopleController.active
   #
   # Using this module, Active Resource can use these custom REST methods just like the
   # standard methods.

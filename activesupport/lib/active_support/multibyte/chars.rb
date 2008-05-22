@@ -10,7 +10,7 @@ module ActiveSupport::Multibyte #:nodoc:
   # String methods are proxied through the Chars object, and can be accessed through the +chars+ method. Methods
   # which would normally return a String object now return a Chars object so methods can be chained.
   #
-  #   "The Perfect String  ".chars.downcase.strip.normalize #=> "the perfect string"
+  #   "The Perfect String  ".chars.downcase.strip.normalize # => "the perfect string"
   #
   # Chars objects are perfectly interchangeable with String objects as long as no explicit class checks are made.
   # If certain methods do explicitly check the class, call +to_s+ before you pass chars objects to them.
