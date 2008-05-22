@@ -281,7 +281,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       # Do a manual insertion
       if current_adapter?(:OracleAdapter)
         Person.connection.execute "insert into people (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
-      elsif current_adapter?(:OpenBaseAdapter)
+      elsif current_adapter?(:OpenBaseAdapter) || (current_adapter?(:MysqlAdapter) && Mysql.client_version < 50003) #before mysql 5.0.3 decimals stored as strings
         Person.connection.execute "insert into people (wealth) values ('12345678901234567890.0123456789')"
       else
         Person.connection.execute "insert into people (wealth) values (12345678901234567890.0123456789)"
@@ -384,7 +384,7 @@ if ActiveRecord::Base.connection.supports_migrations?
           assert_not_equal "Z", bob.moment_of_truth.zone
           # US/Eastern is -5 hours from GMT
           assert_equal Rational(-5, 24), bob.moment_of_truth.offset
-          assert_equal "-05:00", bob.moment_of_truth.zone
+          assert_match /\A-05:?00\Z/, bob.moment_of_truth.zone #ruby 1.8.6 uses HH:MM, prior versions use HHMM
           assert_equal DateTime::ITALY, bob.moment_of_truth.start
         end
       end
