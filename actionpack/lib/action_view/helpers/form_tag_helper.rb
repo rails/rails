@@ -14,9 +14,9 @@ module ActionView
       #
       # ==== Options
       # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".
-      # * <tt>:method</tt>    - The method to use when submitting the form, usually either "get" or "post".
-      #                         If "put", "delete", or another verb is used, a hidden input with name _method 
-      #                         is added to simulate the verb over post.
+      # * <tt>:method</tt> - The method to use when submitting the form, usually either "get" or "post".
+      #   If "put", "delete", or another verb is used, a hidden input with name <tt>_method</tt>
+      #   is added to simulate the verb over post.
       # * A list of parameters to feed to the URL the form will be posted to.
       #
       # ==== Examples
