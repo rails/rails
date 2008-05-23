@@ -92,6 +92,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not_nil Company.find(3).firm_with_condition, "Microsoft should have a firm"
   end
 
+  def test_with_select
+    assert_equal Company.find(2).firm_with_select.attributes.size, 1
+    assert_equal Company.find(2, :include => :firm_with_select ).firm_with_select.attributes.size, 1
+  end
+
   def test_belongs_to_counter
     debate = Topic.create("title" => "debate")
     assert_equal 0, debate.send(:read_attribute, "replies_count"), "No replies yet"
