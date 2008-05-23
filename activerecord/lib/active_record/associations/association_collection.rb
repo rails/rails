@@ -166,12 +166,18 @@ module ActiveRecord
         if attrs.is_a?(Array)
           attrs.collect { |attr| create(attr) }
         else
-          create_record(attrs) { |record| record.save }
+          create_record(attrs) do |record|
+            yield(record) if block_given?
+            record.save
+          end
         end
       end
 
       def create!(attrs = {})
-        create_record(attrs) { |record| record.save! }
+        create_record(attrs) do |record|
+          yield(record) if block_given?
+          record.save!
+        end
       end
 
       # Returns the size of the collection by executing a SELECT COUNT(*) query if the collection hasn't been loaded and

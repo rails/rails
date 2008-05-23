@@ -161,12 +161,15 @@ class AssociationProxyTest < ActiveRecord::TestCase
   end
 
   def test_create_via_association_with_block
-    post1 = Post.create(:title => "setting body with a block") {|p| p.body = "will work"}
-    assert_equal post1.body, "will work"
-    assert_nothing_raised do
-      post2 = authors(:david).posts.create(:title => "setting body with a block") {|p| p.body = "won't work"}
-    end
-    assert_equal post2.body, "won't work"
+    post = authors(:david).posts.create(:title => "New on Edge") {|p| p.body = "More cool stuff!"}
+    assert_equal post.title, "New on Edge"
+    assert_equal post.body, "More cool stuff!"
+  end
+
+  def test_create_with_bang_via_association_with_block
+    post = authors(:david).posts.create!(:title => "New on Edge") {|p| p.body = "More cool stuff!"}
+    assert_equal post.title, "New on Edge"
+    assert_equal post.body, "More cool stuff!"
   end
 
   def test_failed_reload_returns_nil
