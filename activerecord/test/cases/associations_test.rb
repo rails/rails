@@ -160,6 +160,15 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_equal 1, developer.reload.audit_logs.size
   end
 
+  def test_create_via_association_with_block
+    post1 = Post.create(:title => "setting body with a block") {|p| p.body = "will work"}
+    assert_equal post1.body, "will work"
+    assert_nothing_raised do
+      post2 = authors(:david).posts.create(:title => "setting body with a block") {|p| p.body = "won't work"}
+    end
+    assert_equal post2.body, "won't work"
+  end
+
   def test_failed_reload_returns_nil
     p = setup_dangling_association
     assert_nil p.author.reload
