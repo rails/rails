@@ -169,7 +169,7 @@ module Rails
     # the Gem version of Rails shouldn't be loaded.
     def install_gem_spec_stubs
       unless Rails.respond_to?(:vendor_rails?)
-        abort "Your config/boot.rb is outdated: Run 'rake rails:update'."
+        abort %{Your config/boot.rb is outdated: Run "rake rails:update".}
       end
 
       if Rails.vendor_rails?
@@ -289,7 +289,7 @@ module Rails
     def load_observers
       if configuration.frameworks.include?(:active_record)
         if @configuration.gems.any? { |g| !g.loaded? }
-          puts "Unable to instantiate observers, some gems that this application depends on are missing.  Run 'rake gems:install'"
+          puts %{Unable to instantiate observers, some gems that this application depends on are missing.  Run "rake gems:install"}
         else
           ActiveRecord::Base.instantiate_observers
         end
@@ -419,7 +419,7 @@ module Rails
       if configuration.time_zone
         zone_default = Time.send!(:get_zone, configuration.time_zone)
         unless zone_default
-          raise "Value assigned to config.time_zone not recognized. Run `rake -D time` for a list of tasks for finding appropriate time zone names."
+          raise %{Value assigned to config.time_zone not recognized. Run "rake -D time" for a list of tasks for finding appropriate time zone names.}
         end
         Time.zone_default = zone_default
         if configuration.frameworks.include?(:active_record)
