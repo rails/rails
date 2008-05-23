@@ -16,9 +16,9 @@ module ActiveRecord
 
       # Instantiates a new column in the table.
       #
-      # +name+ is the column's name, as in <tt><b>supplier_id</b> int(11)</tt>.
-      # +default+ is the type-casted default value, such as <tt>sales_stage varchar(20) default <b>'new'</b></tt>.
-      # +sql_type+ is only used to extract the column's length, if necessary. For example, <tt>company_name varchar(<b>60</b>)</tt>.
+      # +name+ is the column's name, such as <tt>supplier_id</tt> in <tt>supplier_id int(11)</tt>.
+      # +default+ is the type-casted default value, such as +new+ in <tt>sales_stage varchar(20) default 'new'</tt>.
+      # +sql_type+ is only used to extract the column's length, if necessary. For example +60+ in <tt>company_name varchar(60)</tt>.
       # +null+ determines if this column allows +NULL+ values.
       def initialize(name, default, sql_type = nil, null = true)
         @name, @sql_type, @null = name, sql_type, null
