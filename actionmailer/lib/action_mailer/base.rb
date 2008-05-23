@@ -35,7 +35,8 @@ module ActionMailer #:nodoc:
   # * <tt>subject</tt> - The subject of your email. Sets the <tt>Subject:</tt> header.
   # * <tt>from</tt> - Who the email you are sending is from. Sets the <tt>From:</tt> header.
   # * <tt>cc</tt> - Takes one or more email addresses. These addresses will receive a carbon copy of your email. Sets the <tt>Cc:</tt> header.
-  # * <tt>bcc</tt> - Takes one or more email address. These addresses will receive a blind carbon copy of your email. Sets the <tt>Bcc:</tt> header.
+  # * <tt>bcc</tt> - Takes one or more email addresses. These addresses will receive a blind carbon copy of your email. Sets the <tt>Bcc:</tt> header.
+  # * <tt>reply_to</tt> - Takes one or more email addresses. These addresses will be listed as the default recipients when replying to your email. Sets the <tt>Reply-To:</tt> header.
   # * <tt>sent_on</tt> - The date on which the message was sent. If not set, the header wil be set by the delivery agent.
   # * <tt>content_type</tt> - Specify the content type of the message. Defaults to <tt>text/plain</tt>.
   # * <tt>headers</tt> - Specify additional headers to be set for the message, e.g. <tt>headers 'X-Mail-Count' => 107370</tt>.
@@ -317,6 +318,10 @@ module ActionMailer #:nodoc:
     # Specify the from address for the message.
     adv_attr_accessor :from
 
+    # Specify the address (if different than the "from" address) to direct
+    # replies to this message.
+    adv_attr_accessor :reply_to
+
     # Specify additional headers to be added to the message.
     adv_attr_accessor :headers
 
@@ -576,13 +581,14 @@ module ActionMailer #:nodoc:
       def create_mail
         m = TMail::Mail.new
 
-        m.subject, = quote_any_if_necessary(charset, subject)
-        m.to, m.from = quote_any_address_if_necessary(charset, recipients, from)
-        m.bcc = quote_address_if_necessary(bcc, charset) unless bcc.nil?
-        m.cc  = quote_address_if_necessary(cc, charset) unless cc.nil?
-
+        m.subject,     = quote_any_if_necessary(charset, subject)
+        m.to, m.from   = quote_any_address_if_necessary(charset, recipients, from)
+        m.bcc          = quote_address_if_necessary(bcc, charset) unless bcc.nil?
+        m.cc           = quote_address_if_necessary(cc, charset) unless cc.nil?
+        m.reply_to     = quote_address_if_necessary(reply_to, charset) unless reply_to.nil?
         m.mime_version = mime_version unless mime_version.nil?
-        m.date = sent_on.to_time rescue sent_on if sent_on
+        m.date         = sent_on.to_time rescue sent_on if sent_on
+
         headers.each { |k, v| m[k] = v }
 
         real_content_type, ctype_attrs = parse_content_type
