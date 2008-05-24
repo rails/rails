@@ -26,7 +26,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_with_select
     assert_equal Firm.find(1).account_with_select.attributes.size, 2
-    assert_equal Firm.find(1, :include => :account_with_select).attributes.size, 2
+    assert_equal Firm.find(1, :include => :account_with_select).account_with_select.attributes.size, 2
   end
 
   def test_can_marshal_has_one_association_with_nil_target

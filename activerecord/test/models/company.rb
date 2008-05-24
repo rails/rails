@@ -47,7 +47,7 @@ class Firm < Company
   has_many :readonly_clients, :class_name => 'Client', :readonly => true
 
   has_one :account, :foreign_key => "firm_id", :dependent => :destroy
-  has_one :account_with_select, :foreign_key => "firm_id", :select => "id, firm_id"
+  has_one :account_with_select, :foreign_key => "firm_id", :select => "id, firm_id", :class_name=>'Account'
   has_one :readonly_account, :foreign_key => "firm_id", :class_name => "Account", :readonly => true
 end
 
