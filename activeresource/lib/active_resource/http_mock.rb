@@ -2,7 +2,7 @@ require 'active_resource/connection'
 
 module ActiveResource
   class InvalidRequestError < StandardError; end #:nodoc:
-  
+
   # One thing that has always been a pain with remote web services is testing.  The HttpMock
   # class makes it easy to test your Active Resource models by creating a set of mock responses to specific
   # requests.
@@ -63,7 +63,7 @@ module ActiveResource
     end
 
     class << self
-      
+
       # Returns an array of all request objects that have been sent to the mock.  You can use this to check
       # wether or not your model actually sent an HTTP request.
       #
@@ -87,14 +87,14 @@ module ActiveResource
       def requests
         @@requests ||= []
       end
-      
+
       # Returns a hash of <tt>request => response</tt> pairs for all all responses this mock has delivered, where +request+
       # is an instance of ActiveResource::Request and the response is, naturally, an instance of
       # ActiveResource::Response.
       def responses
         @@responses ||= {}
       end
-      
+
       # Accepts a block which declares a set of requests and responses for the HttpMock to respond to. See the main
       # ActiveResource::HttpMock description for a more detailed explanation.
       def respond_to(pairs = {}) #:yields: mock
@@ -109,7 +109,7 @@ module ActiveResource
           Responder.new(responses)
         end
       end
-      
+
       # Deletes all logged requests and responses.
       def reset!
         requests.clear
@@ -136,7 +136,7 @@ module ActiveResource
         end
       EOE
     end
-    
+
     def initialize(site) #:nodoc:
       @site = site
     end
