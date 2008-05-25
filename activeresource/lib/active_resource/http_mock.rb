@@ -206,7 +206,7 @@ module ActiveResource
     end
   end
 
-  class Connection 
+  class Connection
     private
       silence_warnings do
         def http
