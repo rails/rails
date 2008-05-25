@@ -678,7 +678,7 @@ module ActiveRecord
       # * <tt>:limit</tt> - An integer determining the limit on the number of rows that should be returned.
       # * <tt>:offset</tt> - An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
       # * <tt>:select</tt> - By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if you, for example, want to do a join
-      #   but not include the joined columns.
+      #   but not include the joined columns. Do not forget to include the primary and foreign keys, otherwise it will rise an error.
       # * <tt>:as</tt> - Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # * <tt>:through</tt> - Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt>
       #   are ignored, as the association uses the source reflection. You can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>
@@ -758,6 +758,8 @@ module ActiveRecord
       #   as the default <tt>:foreign_key</tt>.
       # * <tt>:include</tt> - Specify second-order associations that should be eager loaded when this object is loaded.
       # * <tt>:as</tt> - Specifies a polymorphic interface (See <tt>belongs_to</tt>).
+      # * <tt>:select</tt> - By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if, for example, you want to do a join
+      #   but not include the joined columns. Do not forget to include the primary and foreign keys, otherwise it will raise an error.
       # * <tt>:through</tt>: Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt>
       #   are ignored, as the association uses the source reflection. You can only use a <tt>:through</tt> query through a 
       #   <tt>has_one</tt> or <tt>belongs_to</tt> association on the join model.
@@ -832,8 +834,8 @@ module ActiveRecord
       #   if the real class name is Person, you'll have to specify it with this option.
       # * <tt>:conditions</tt> - Specify the conditions that the associated object must meet in order to be included as a +WHERE+
       #   SQL fragment, such as <tt>authorized = 1</tt>.
-      # * <tt>:order</tt> - Specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
-      #   such as <tt>last_name, first_name DESC</tt>.
+      # * <tt>:select</tt> - By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if, for example, you want to do a join
+      #   but not include the joined columns. Do not forget to include the primary and foreign keys, otherwise it will raise an error.
       # * <tt>:foreign_key</tt> - Specify the foreign key used for the association. By default this is guessed to be the name
       #   of the association with an "_id" suffix. So a class that defines a <tt>belongs_to :person</tt> association will use
       #   "person_id" as the default <tt>:foreign_key</tt>. Similarly, <tt>belongs_to :favorite_person, :class_name => "Person"</tt>
@@ -1021,7 +1023,7 @@ module ActiveRecord
       # * <tt>:limit</tt> - An integer determining the limit on the number of rows that should be returned.
       # * <tt>:offset</tt> - An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
       # * <tt>:select</tt> - By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if, for example, you want to do a join
-      #   but not include the joined columns.
+      #   but not include the joined columns. Do not forget to include the primary and foreign keys, otherwise it will raise an error.
       # * <tt>:readonly</tt> - If true, all the associated objects are readonly through the association.
       #
       # Option examples:
@@ -1351,7 +1353,7 @@ module ActiveRecord
 
         def create_has_one_reflection(association_id, options)
           options.assert_valid_keys(
-            :class_name, :foreign_key, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :readonly
+            :class_name, :foreign_key, :remote, :select, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :readonly
           )
 
           create_reflection(:has_one, association_id, options, self)
@@ -1359,14 +1361,14 @@ module ActiveRecord
         
         def create_has_one_through_reflection(association_id, options)
           options.assert_valid_keys(
-            :class_name, :foreign_key, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :through, :source, :source_type
+            :class_name, :foreign_key, :remote, :select, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :through, :source, :source_type
           )
           create_reflection(:has_one, association_id, options, self)
         end
 
         def create_belongs_to_reflection(association_id, options)
           options.assert_valid_keys(
-            :class_name, :foreign_key, :foreign_type, :remote, :conditions, :order, :include, :dependent,
+            :class_name, :foreign_key, :foreign_type, :remote, :select, :conditions, :include, :dependent,
             :counter_cache, :extend, :polymorphic, :readonly
           )
 

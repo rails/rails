@@ -47,6 +47,7 @@ class Firm < Company
   has_many :readonly_clients, :class_name => 'Client', :readonly => true
 
   has_one :account, :foreign_key => "firm_id", :dependent => :destroy
+  has_one :account_with_select, :foreign_key => "firm_id", :select => "id, firm_id", :class_name=>'Account'
   has_one :readonly_account, :foreign_key => "firm_id", :class_name => "Account", :readonly => true
 end
 
@@ -64,6 +65,7 @@ end
 class Client < Company
   belongs_to :firm, :foreign_key => "client_of"
   belongs_to :firm_with_basic_id, :class_name => "Firm", :foreign_key => "firm_id"
+  belongs_to :firm_with_select, :class_name => "Firm", :foreign_key => "firm_id", :select => "id"
   belongs_to :firm_with_other_name, :class_name => "Firm", :foreign_key => "client_of"
   belongs_to :firm_with_condition, :class_name => "Firm", :foreign_key => "client_of", :conditions => ["1 = ?", 1]
   belongs_to :readonly_firm, :class_name => "Firm", :foreign_key => "firm_id", :readonly => true

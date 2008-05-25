@@ -42,10 +42,11 @@ module ActiveRecord
       private
         def find_target
           @reflection.klass.find(
-            @owner[@reflection.primary_key_name], 
+            @owner[@reflection.primary_key_name],
+            :select     => @reflection.options[:select],
             :conditions => conditions,
             :include    => @reflection.options[:include],
-            :readonly => @reflection.options[:readonly]
+            :readonly   => @reflection.options[:readonly]
           )
         end
 

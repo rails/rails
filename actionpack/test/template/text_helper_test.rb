@@ -264,6 +264,7 @@ class TextHelperTest < ActionView::TestCase
     assert_equal '', auto_link(nil)
     assert_equal '', auto_link('')
     assert_equal "#{link_result} #{link_result} #{link_result}", auto_link("#{link_raw} #{link_raw} #{link_raw}")
+    assert_equal '<a href="http://www.rubyonrails.com">Ruby On Rails</a>', auto_link('<a href="http://www.rubyonrails.com">Ruby On Rails</a>')
   end
 
   def test_auto_link_at_eol

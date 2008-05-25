@@ -29,12 +29,13 @@ module ActiveRecord
 
           if @reflection.options[:conditions]
             association_class.find(
-              @owner[@reflection.primary_key_name], 
+              @owner[@reflection.primary_key_name],
+              :select     => @reflection.options[:select],
               :conditions => conditions,
               :include    => @reflection.options[:include]
             )
           else
-            association_class.find(@owner[@reflection.primary_key_name], :include => @reflection.options[:include])
+            association_class.find(@owner[@reflection.primary_key_name], :select => @reflection.options[:select], :include => @reflection.options[:include])
           end
         end
 
