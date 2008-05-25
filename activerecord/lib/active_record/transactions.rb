@@ -30,9 +30,9 @@ module ActiveRecord
     # Exceptions will force a ROLLBACK that returns the database to the state before the transaction was begun. Be aware, though,
     # that the objects will _not_ have their instance data returned to their pre-transactional state.
     #
-    # == Different ActiveRecord classes in a single transaction
+    # == Different Active Record classes in a single transaction
     #
-    # Though the transaction class method is called on some ActiveRecord class,
+    # Though the transaction class method is called on some Active Record class,
     # the objects within the transaction block need not all be instances of
     # that class.
     # In this example a <tt>Balance</tt> record is transactionally saved even

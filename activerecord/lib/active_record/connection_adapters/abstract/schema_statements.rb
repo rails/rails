@@ -32,7 +32,7 @@ module ActiveRecord
       def columns(table_name, name = nil) end
 
       # Creates a new table
-      # There are two ways to work with #create_table.  You can use the block
+      # There are two ways to work with +create_table+.  You can use the block
       # form or the regular form, like this:
       #
       # === Block form

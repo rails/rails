@@ -19,7 +19,7 @@ module ActiveRecord
       #   # Same as above, just using explicit class references
       #   ActiveRecord::Base.observers = Cacher, GarbageCollector
       #
-      # Note: Setting this does not instantiate the observers yet.  #instantiate_observers is
+      # Note: Setting this does not instantiate the observers yet. +instantiate_observers+ is
       # called during startup, and before each development request.  
       def observers=(*observers)
         @observers = observers.flatten
@@ -30,7 +30,7 @@ module ActiveRecord
         @observers ||= []
       end
 
-      # Instantiate the global ActiveRecord observers
+      # Instantiate the global Active Record observers.
       def instantiate_observers
         return if @observers.blank?
         @observers.each do |observer|

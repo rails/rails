@@ -29,7 +29,7 @@ module ActiveRecord
       end
 
       # Returns an array of arrays containing the field values.
-      # Order is the same as that returned by #columns.
+      # Order is the same as that returned by +columns+.
       def select_rows(sql, name = nil)
         raise NotImplementedError, "select_rows is an abstract method"
       end
@@ -93,7 +93,7 @@ module ActiveRecord
       # done if the transaction block raises an exception or returns false.
       def rollback_db_transaction() end
 
-      # Alias for #add_limit_offset!.
+      # Alias for <tt>add_limit_offset!</tt>.
       def add_limit!(sql, options)
         add_limit_offset!(sql, options) if options
       end

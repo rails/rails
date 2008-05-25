@@ -164,12 +164,12 @@ module Rails
     end
 
     # If Rails is vendored and RubyGems is available, install stub GemSpecs
-    # for Rails, ActiveSupport, ActiveRecord, ActionPack, ActionMailer, and
-    # ActiveResource. This allows Gem plugins to depend on Rails even when
+    # for Rails, Active Support, Active Record, Action Pack, Action Mailer, and
+    # Active Resource. This allows Gem plugins to depend on Rails even when
     # the Gem version of Rails shouldn't be loaded.
     def install_gem_spec_stubs
       unless Rails.respond_to?(:vendor_rails?)
-        abort "Your config/boot.rb is outdated: Run 'rake rails:update'."
+        abort %{Your config/boot.rb is outdated: Run "rake rails:update".}
       end
 
       if Rails.vendor_rails?
@@ -214,8 +214,8 @@ module Rails
     end
 
     # Requires all frameworks specified by the Configuration#frameworks
-    # list. By default, all frameworks (ActiveRecord, ActiveSupport,
-    # ActionPack, ActionMailer, and ActiveResource) are loaded.
+    # list. By default, all frameworks (Active Record, Active Support,
+    # Action Pack, Action Mailer, and Active Resource) are loaded.
     def require_frameworks
       configuration.frameworks.each { |framework| require(framework.to_s) }
     rescue LoadError => e
@@ -289,7 +289,7 @@ module Rails
     def load_observers
       if configuration.frameworks.include?(:active_record)
         if @configuration.gems.any? { |g| !g.loaded? }
-          puts "Unable to instantiate observers, some gems that this application depends on are missing.  Run 'rake gems:install'"
+          puts %{Unable to instantiate observers, some gems that this application depends on are missing.  Run "rake gems:install"}
         else
           ActiveRecord::Base.instantiate_observers
         end
@@ -330,7 +330,7 @@ module Rails
       end
     end
 
-    # If the +RAILS_DEFAULT_LOGGER+ constant is already set, this initialization
+    # If the RAILS_DEFAULT_LOGGER constant is already set, this initialization
     # routine does nothing. If the constant is not set, and Configuration#logger
     # is not +nil+, this also does nothing. Otherwise, a new logger instance
     # is created at Configuration#log_path, with a default log level of
@@ -363,10 +363,10 @@ module Rails
       silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
     end
 
-    # Sets the logger for ActiveRecord, ActionController, and ActionMailer
+    # Sets the logger for Active Record, Action Controller, and Action Mailer
     # (but only for those frameworks that are to be loaded). If the framework's
     # logger is already set, it is not changed, otherwise it is set to use
-    # +RAILS_DEFAULT_LOGGER+.
+    # RAILS_DEFAULT_LOGGER.
     def initialize_framework_logging
       for framework in ([ :active_record, :action_controller, :action_mailer ] & configuration.frameworks)
         framework.to_s.camelize.constantize.const_get("Base").logger ||= RAILS_DEFAULT_LOGGER
@@ -384,7 +384,7 @@ module Rails
       ActionController::Base.view_paths = [configuration.view_path] if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.empty?
     end
 
-    # If ActionController is not one of the loaded frameworks (Configuration#frameworks)
+    # If Action Controller is not one of the loaded frameworks (Configuration#frameworks)
     # this does nothing. Otherwise, it loads the routing definitions and sets up
     # loading module used to lazily load controllers (Configuration#controller_paths).
     def initialize_routing
@@ -413,13 +413,13 @@ module Rails
       end
     end
 
-    # Sets the default value for Time.zone, and turns on ActiveRecord time_zone_aware_attributes.
+    # Sets the default value for Time.zone, and turns on ActiveRecord::Base#time_zone_aware_attributes.
     # If assigned value cannot be matched to a TimeZone, an exception will be raised.
     def initialize_time_zone
       if configuration.time_zone
         zone_default = Time.send!(:get_zone, configuration.time_zone)
         unless zone_default
-          raise "Value assigned to config.time_zone not recognized. Run `rake -D time` for a list of tasks for finding appropriate time zone names."
+          raise %{Value assigned to config.time_zone not recognized. Run "rake -D time" for a list of tasks for finding appropriate time zone names.}
         end
         Time.zone_default = zone_default
         if configuration.frameworks.include?(:active_record)
@@ -479,22 +479,22 @@ module Rails
     # The application's base directory.
     attr_reader :root_path
 
-    # A stub for setting options on ActionController::Base
+    # A stub for setting options on ActionController::Base.
     attr_accessor :action_controller
 
-    # A stub for setting options on ActionMailer::Base
+    # A stub for setting options on ActionMailer::Base.
     attr_accessor :action_mailer
 
-    # A stub for setting options on ActionView::Base
+    # A stub for setting options on ActionView::Base.
     attr_accessor :action_view
 
-    # A stub for setting options on ActiveRecord::Base
+    # A stub for setting options on ActiveRecord::Base.
     attr_accessor :active_record
 
-    # A stub for setting options on ActiveRecord::Base
+    # A stub for setting options on ActiveRecord::Base.
     attr_accessor :active_resource
 
-    # A stub for setting options on ActiveSupport
+    # A stub for setting options on ActiveSupport.
     attr_accessor :active_support
 
     # Whether or not classes should be cached (set to false if you want
@@ -622,9 +622,9 @@ module Rails
     end
     alias_method :breakpoint_server=, :breakpoint_server
 
-    # Sets the default time_zone.  Setting this will enable time_zone
-    # awareness for ActiveRecord models and set the ActiveRecord default
-    # timezone to :utc.
+    # Sets the default +time_zone+.  Setting this will enable +time_zone+
+    # awareness for Active Record models and set the Active Record default
+    # timezone to <tt>:utc</tt>.
     attr_accessor :time_zone
 
     # Create a new Configuration instance, initialized with the default
@@ -689,7 +689,7 @@ module Rails
     end
 
     # Return the currently selected environment. By default, it returns the
-    # value of the +RAILS_ENV+ constant.
+    # value of the RAILS_ENV constant.
     def environment
       ::RAILS_ENV
     end
@@ -847,7 +847,7 @@ end
 
 # Needs to be duplicated from Active Support since its needed before Active
 # Support is available. Here both Options and Hash are namespaced to prevent
-# conflicts with other implementations AND with the classes residing in ActiveSupport.
+# conflicts with other implementations AND with the classes residing in Active Support.
 class Rails::OrderedOptions < Array #:nodoc:
   def []=(key, value)
     key = key.to_sym

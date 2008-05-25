@@ -104,7 +104,7 @@ module ActionController #:nodoc:
   #   end
   #
   # Actions, by default, render a template in the <tt>app/views</tt> directory corresponding to the name of the controller and action
-  # after executing code in the action. For example, the +index+ action of the +GuestBookController+  would render the
+  # after executing code in the action. For example, the +index+ action of the GuestBookController would render the
   # template <tt>app/views/guestbook/index.erb</tt> by default after populating the <tt>@entries</tt> instance variable.
   #
   # Unlike index, the sign action will not render a template. After performing its main purpose (creating a
@@ -118,10 +118,10 @@ module ActionController #:nodoc:
   #
   # Requests are processed by the Action Controller framework by extracting the value of the "action" key in the request parameters.
   # This value should hold the name of the action to be performed. Once the action has been identified, the remaining
-  # request parameters, the session (if one is available), and the full request with all the http headers are made available to
+  # request parameters, the session (if one is available), and the full request with all the HTTP headers are made available to
   # the action through instance variables. Then the action is performed.
   #
-  # The full request object is available with the request accessor and is primarily used to query for http headers. These queries
+  # The full request object is available with the request accessor and is primarily used to query for HTTP headers. These queries
   # are made by accessing the environment hash, like this:
   #
   #   def server_ip
@@ -291,10 +291,10 @@ module ActionController #:nodoc:
     cattr_accessor :allow_concurrency
 
     # Modern REST web services often need to submit complex data to the web application.
-    # The param_parsers hash lets you register handlers which will process the http body and add parameters to the
-    # <tt>params</tt> hash. These handlers are invoked for post and put requests.
+    # The <tt>@@param_parsers</tt> hash lets you register handlers which will process the HTTP body and add parameters to the
+    # <tt>params</tt> hash. These handlers are invoked for POST and PUT requests.
     #
-    # By default application/xml is enabled. A XmlSimple class with the same param name as the root will be instantiated
+    # By default <tt>application/xml</tt> is enabled. A XmlSimple class with the same param name as the root will be instantiated
     # in the <tt>params</tt>. This allows XML requests to mask themselves as regular form submissions, so you can have one
     # action serve both regular forms and web service requests.
     #
@@ -307,7 +307,7 @@ module ActionController #:nodoc:
     #
     # Note: Up until release 1.1 of Rails, Action Controller would default to using XmlSimple configured to discard the
     # root node for such requests. The new default is to keep the root, such that "<r><name>David</name></r>" results
-    # in params[:r][:name] for "David" instead of params[:name]. To get the old behavior, you can
+    # in <tt>params[:r][:name]</tt> for "David" instead of <tt>params[:name]</tt>. To get the old behavior, you can
     # re-register XmlSimple as application/xml handler ike this:
     #
     #   ActionController::Base.param_parsers[Mime::XML] =

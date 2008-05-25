@@ -595,8 +595,8 @@ module ActionView
         # JavaScript sent with a Content-type of "text/javascript".
         #
         # Create new instances with PrototypeHelper#update_page or with 
-        # ActionController::Base#render, then call #insert_html, #replace_html, 
-        # #remove, #show, #hide, #visual_effect, or any other of the built-in 
+        # ActionController::Base#render, then call +insert_html+, +replace_html+, 
+        # +remove+, +show+, +hide+, +visual_effect+, or any other of the built-in 
         # methods on the yielded generator in any order you like to modify the 
         # content and appearance of the current page. 
         #
@@ -687,7 +687,7 @@ module ActionView
             end
           end
           
-          # Returns an object whose <tt>#to_json</tt> evaluates to +code+. Use this to pass a literal JavaScript 
+          # Returns an object whose <tt>to_json</tt> evaluates to +code+. Use this to pass a literal JavaScript 
           # expression as an argument to another JavaScriptGenerator method.
           def literal(code)
             ActiveSupport::JSON::Variable.new(code.to_s)
@@ -1173,7 +1173,7 @@ module ActionView
         super(generator)
       end
 
-      # The JSON Encoder calls this to check for the #to_json method
+      # The JSON Encoder calls this to check for the +to_json+ method
       # Since it's a blank slate object, I suppose it responds to anything.
       def respond_to?(method)
         true

@@ -155,7 +155,7 @@ module ActiveRecord
     #
     # == Cardinality and associations
     #
-    # ActiveRecord associations can be used to describe one-to-one, one-to-many and many-to-many
+    # Active Record associations can be used to describe one-to-one, one-to-many and many-to-many
     # relationships between models. Each model uses an association to describe its role in
     # the relation. The +belongs_to+ association is always used in the model that has
     # the foreign key.
@@ -441,9 +441,9 @@ module ActiveRecord
     #
     # == Eager loading of associations
     #
-    # Eager loading is a way to find objects of a certain class and a number of named associations along with it in a single SQL call. This is
+    # Eager loading is a way to find objects of a certain class and a number of named associations. This is
     # one of the easiest ways of to prevent the dreaded 1+N problem in which fetching 100 posts that each need to display their author
-    # triggers 101 database queries. Through the use of eager loading, the 101 queries can be reduced to 1. Example:
+    # triggers 101 database queries. Through the use of eager loading, the 101 queries can be reduced to 2. Example:
     #
     #   class Post < ActiveRecord::Base
     #     belongs_to :author
@@ -452,7 +452,7 @@ module ActiveRecord
     #
     # Consider the following loop using the class above:
     #
-    #   for post in Post.find(:all)
+    #   for post in Post.all
     #     puts "Post:            " + post.title
     #     puts "Written by:      " + post.author.name
     #     puts "Last comment on: " + post.comments.first.created_on
@@ -462,14 +462,15 @@ module ActiveRecord
     #
     #   for post in Post.find(:all, :include => :author)
     #
-    # This references the name of the +belongs_to+ association that also used the <tt>:author</tt> symbol, so the find will now weave in a join something
-    # like this: <tt>LEFT OUTER JOIN authors ON authors.id = posts.author_id</tt>. Doing so will cut down the number of queries from 201 to 101.
+    # This references the name of the +belongs_to+ association that also used the <tt>:author</tt> symbol. After loading the posts, find
+    # will collect the +author_id+ from each one and load all the referenced authors with one query. Doing so will cut down the number of queries from 201 to 102.
     #
     # We can improve upon the situation further by referencing both associations in the finder with:
     #
     #   for post in Post.find(:all, :include => [ :author, :comments ])
     #
-    # That'll add another join along the lines of: <tt>LEFT OUTER JOIN comments ON comments.post_id = posts.id</tt>. And we'll be down to 1 query.
+    # This will load all comments with a single query. This reduces the total number of queries to 3. More generally the number of queries
+    # will be 1 plus the number of associations named (except if some of the associations are polymorphic +belongs_to+ - see below).
     #
     # To include a deep hierarchy of associations, use a hash:
     #
@@ -482,81 +483,91 @@ module ActiveRecord
     # the number of queries. The database still needs to send all the data to Active Record and it still needs to be processed. So it's no
     # catch-all for performance problems, but it's a great way to cut down on the number of queries in a situation as the one described above.
     #
-    # Since the eager loading pulls from multiple tables, you'll have to disambiguate any column references in both conditions and orders. So
-    # <tt>:order => "posts.id DESC"</tt> will work while <tt>:order => "id DESC"</tt> will not. Because eager loading generates the +SELECT+ statement too, the
-    # <tt>:select</tt> option is ignored.
+    # Since only one table is loaded at a time, conditions or orders cannot reference tables other than the main one. If this is the case
+    # Active Record falls back to the previously used LEFT OUTER JOIN based strategy. For example
+    #  
+    #   Post.find(:all, :include => [ :author, :comments ], :conditions => ['comments.approved = ?', true])
     #
-    # You can use eager loading on multiple associations from the same table, but you cannot use those associations in orders and conditions
-    # as there is currently not any way to disambiguate them. Eager loading will not pull additional attributes on join tables, so "rich
-    # associations" with +has_and_belongs_to_many+ are not a good fit for eager loading.
+    # will result in a single SQL query with joins along the lines of: <tt>LEFT OUTER JOIN comments ON comments.post_id = posts.id</tt> and
+    # <tt>LEFT OUTER JOIN authors ON authors.id = posts.author_id</tt>. Note that using conditions like this can have unintended consequences.
+    # In the above example posts with no approved comments are not returned at all, because the conditions apply to the SQL statement as a whole
+    # and not just to the association. You must disambiguate column references for this fallback to happen, for example
+    # <tt>:order => "author.name DESC"</tt> will work but <tt>:order => "name DESC"</tt> will not. 
+    #
+    # If you do want eagerload only some members of an association it is usually more natural to <tt>:include</tt> an association
+    # which has conditions defined on it:
+    #
+    #   class Post < ActiveRecord::Base
+    #     has_many :approved_comments, :class_name => 'Comment', :conditions => ['approved = ?', true]
+    #   end
+    #
+    #   Post.find(:all, :include => :approved_comments)
+    #
+    # will load posts and eager load the +approved_comments+ association, which contains only those comments that have been approved.
     #
     # When eager loaded, conditions are interpolated in the context of the model class, not the model instance.  Conditions are lazily interpolated
     # before the actual model exists.
     #
-    # Eager loading is not supported with polymorphic associations up to (and including)
-    # version 2.0.2. Given
+    # Eager loading is supported with polymorphic associations.
     #
     #   class Address < ActiveRecord::Base
     #     belongs_to :addressable, :polymorphic => true
     #   end
     #
-    # a call that tries to eager load the addressable model
+    # A call that tries to eager load the addressable model
     #
-    #   Address.find(:all, :include => :addressable)   # INVALID
+    #   Address.find(:all, :include => :addressable)
     #
-    # will raise ActiveRecord::EagerLoadPolymorphicError. The reason is that the parent model's type
-    # is a column value so its corresponding table name cannot be put in the +FROM+/+JOIN+ clauses of that early query.
-    #
-    # In versions greater than 2.0.2 eager loading in polymorphic associations is supported
-    # thanks to a change in the overall preloading strategy.
-    #
-    # It does work the other way around though: if the <tt>User</tt> model is <tt>addressable</tt> you can eager load
-    # their addresses with <tt>:include</tt> just fine, every piece needed to construct the query is known beforehand.
+    # will execute one query to load the addresses and load the addressables with one query per addressable type. 
+    # For example if all the addressables are either of class Person or Company then a total of 3 queries will be executed. The list of
+    # addressable types to load is determined on the back of the addresses loaded. This is not supported if Active Record has to fallback
+    # to the previous implementation of eager loading and will raise ActiveRecord::EagerLoadPolymorphicError. The reason is that the parent 
+    # model's type is a column value so its corresponding table name cannot be put in the +FROM+/+JOIN+ clauses of that query.
     #
     # == Table Aliasing
     #
-    # ActiveRecord uses table aliasing in the case that a table is referenced multiple times in a join.  If a table is referenced only once,
+    # Active Record uses table aliasing in the case that a table is referenced multiple times in a join.  If a table is referenced only once,
     # the standard table name is used.  The second time, the table is aliased as <tt>#{reflection_name}_#{parent_table_name}</tt>.  Indexes are appended
     # for any more successive uses of the table name.
     #
-    #   Post.find :all, :include => :comments
-    #   # => SELECT ... FROM posts LEFT OUTER JOIN comments ON ...
-    #   Post.find :all, :include => :special_comments # STI
-    #   # => SELECT ... FROM posts LEFT OUTER JOIN comments ON ... AND comments.type = 'SpecialComment'
-    #   Post.find :all, :include => [:comments, :special_comments] # special_comments is the reflection name, posts is the parent table name
-    #   # => SELECT ... FROM posts LEFT OUTER JOIN comments ON ... LEFT OUTER JOIN comments special_comments_posts
+    #   Post.find :all, :joins => :comments
+    #   # => SELECT ... FROM posts INNER JOIN comments ON ...
+    #   Post.find :all, :joins => :special_comments # STI
+    #   # => SELECT ... FROM posts INNER JOIN comments ON ... AND comments.type = 'SpecialComment'
+    #   Post.find :all, :joins => [:comments, :special_comments] # special_comments is the reflection name, posts is the parent table name
+    #   # => SELECT ... FROM posts INNER JOIN comments ON ... INNER JOIN comments special_comments_posts
     #
     # Acts as tree example:
     #
-    #   TreeMixin.find :all, :include => :children
-    #   # => SELECT ... FROM mixins LEFT OUTER JOIN mixins childrens_mixins ...
-    #   TreeMixin.find :all, :include => {:children => :parent} # using cascading eager includes
-    #   # => SELECT ... FROM mixins LEFT OUTER JOIN mixins childrens_mixins ...
-    #                               LEFT OUTER JOIN parents_mixins ...
-    #   TreeMixin.find :all, :include => {:children => {:parent => :children}}
-    #   # => SELECT ... FROM mixins LEFT OUTER JOIN mixins childrens_mixins ...
-    #                               LEFT OUTER JOIN parents_mixins ...
-    #                               LEFT OUTER JOIN mixins childrens_mixins_2
+    #   TreeMixin.find :all, :joins => :children
+    #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
+    #   TreeMixin.find :all, :joins => {:children => :parent}
+    #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
+    #                               INNER JOIN parents_mixins ...
+    #   TreeMixin.find :all, :joins => {:children => {:parent => :children}}
+    #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
+    #                               INNER JOIN parents_mixins ...
+    #                               INNER JOIN mixins childrens_mixins_2
     #
     # Has and Belongs to Many join tables use the same idea, but add a <tt>_join</tt> suffix:
     #
-    #   Post.find :all, :include => :categories
-    #   # => SELECT ... FROM posts LEFT OUTER JOIN categories_posts ... LEFT OUTER JOIN categories ...
-    #   Post.find :all, :include => {:categories => :posts}
-    #   # => SELECT ... FROM posts LEFT OUTER JOIN categories_posts ... LEFT OUTER JOIN categories ...
-    #                              LEFT OUTER JOIN categories_posts posts_categories_join LEFT OUTER JOIN posts posts_categories
-    #   Post.find :all, :include => {:categories => {:posts => :categories}}
-    #   # => SELECT ... FROM posts LEFT OUTER JOIN categories_posts ... LEFT OUTER JOIN categories ...
-    #                              LEFT OUTER JOIN categories_posts posts_categories_join LEFT OUTER JOIN posts posts_categories
-    #                              LEFT OUTER JOIN categories_posts categories_posts_join LEFT OUTER JOIN categories categories_posts
+    #   Post.find :all, :joins => :categories
+    #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
+    #   Post.find :all, :joins => {:categories => :posts}
+    #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
+    #                              INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
+    #   Post.find :all, :joins => {:categories => {:posts => :categories}}
+    #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
+    #                              INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
+    #                              INNER JOIN categories_posts categories_posts_join INNER JOIN categories categories_posts_2
     #
     # If you wish to specify your own custom joins using a <tt>:joins</tt> option, those table names will take precedence over the eager associations:
     #
-    #   Post.find :all, :include => :comments, :joins => "inner join comments ..."
-    #   # => SELECT ... FROM posts LEFT OUTER JOIN comments_posts ON ... INNER JOIN comments ...
-    #   Post.find :all, :include => [:comments, :special_comments], :joins => "inner join comments ..."
-    #   # => SELECT ... FROM posts LEFT OUTER JOIN comments comments_posts ON ...
-    #                              LEFT OUTER JOIN comments special_comments_posts ...
+    #   Post.find :all, :joins => :comments, :joins => "inner join comments ..."
+    #   # => SELECT ... FROM posts INNER JOIN comments_posts ON ... INNER JOIN comments ...
+    #   Post.find :all, :joins => [:comments, :special_comments], :joins => "inner join comments ..."
+    #   # => SELECT ... FROM posts INNER JOIN comments comments_posts ON ...
+    #                              INNER JOIN comments special_comments_posts ...
     #                              INNER JOIN comments ...
     #
     # Table aliases are automatically truncated according to the maximum length of table identifiers according to the specific database.
@@ -842,7 +853,6 @@ module ActiveRecord
       #   this results in a counter with +NULL+ value, which will never increment.
       #   Note: Specifying a counter cache will add it to that model's list of readonly attributes using +attr_readonly+.
       # * <tt>:include</tt> - Specify second-order associations that should be eager loaded when this object is loaded.
-      #   Not allowed if the association is polymorphic.
       # * <tt>:polymorphic</tt> - Specify this association is a polymorphic association by passing +true+.
       #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute
       #   to the +attr_readonly+ list in the associated classes (e.g. <tt>class Post; attr_readonly :comments_count; end</tt>).
@@ -942,7 +952,7 @@ module ActiveRecord
       #
       # Deprecated: Any additional fields added to the join table will be placed as attributes when pulling records out through
       # +has_and_belongs_to_many+ associations. Records returned from join tables with additional attributes will be marked as
-      # +ReadOnly+ (because we can't save changes to the additional attributes). It's strongly recommended that you upgrade any
+      # readonly (because we can't save changes to the additional attributes). It's strongly recommended that you upgrade any
       # associations with attributes to a real join model (see introduction).
       #
       # Adds the following methods for retrieval and query:

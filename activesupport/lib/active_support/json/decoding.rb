@@ -31,7 +31,7 @@ module ActiveSupport
                 if json[pos..scanner.pos-2] =~ DATE_REGEX
                   # found a date, track the exact positions of the quotes so we can remove them later.
                   # oh, and increment them for each current mark, each one is an extra padded space that bumps
-                  # the position in the final yaml output
+                  # the position in the final YAML output
                   total_marks = marks.size
                   times << pos+total_marks << scanner.pos+total_marks
                 end

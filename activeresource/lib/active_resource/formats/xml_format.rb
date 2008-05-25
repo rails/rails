@@ -21,7 +21,7 @@ module ActiveResource
       
       private
         # Manipulate from_xml Hash, because xml_simple is not exactly what we
-        # want for ActiveResource.
+        # want for Active Resource.
         def from_xml_data(data)
           if data.is_a?(Hash) && data.keys.size == 1
             data.values.first

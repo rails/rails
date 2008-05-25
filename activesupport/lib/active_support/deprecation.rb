@@ -144,8 +144,8 @@ module ActiveSupport
         end
     end
 
-    # Stand-in for @request, @attributes, @params, etc which emits deprecation
-    # warnings on any method call (except #inspect).
+    # Stand-in for <tt>@request</tt>, <tt>@attributes</tt>, <tt>@params</tt>, etc.
+    # which emits deprecation warnings on any method call (except +inspect+).
     class DeprecatedInstanceVariableProxy #:nodoc:
       silence_warnings do
         instance_methods.each { |m| undef_method m unless m =~ /^__/ }

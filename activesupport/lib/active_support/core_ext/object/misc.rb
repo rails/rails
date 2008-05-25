@@ -48,7 +48,7 @@ class Object
     yield ActiveSupport::OptionMerger.new(self, options)
   end
   
-  # A duck-type assistant method. For example, ActiveSupport extends Date
+  # A duck-type assistant method. For example, Active Support extends Date
   # to define an acts_like_date? method, and extends Time to define
   # acts_like_time?. As a result, we can do "x.acts_like?(:time)" and
   # "x.acts_like?(:date)" to do duck-type-safe comparisons, since classes that

@@ -36,7 +36,7 @@ module Rails
   #           view.html.erb
   #
   # The directory name (+controller+) matches the name of the generator file
-  # (controller_generator.rb) and class (+ControllerGenerator+). The files
+  # (controller_generator.rb) and class (ControllerGenerator). The files
   # that will be copied or used as templates are stored in the +templates+
   # directory.
   #

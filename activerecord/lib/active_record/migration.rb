@@ -208,7 +208,7 @@ module ActiveRecord
   #
   # You can quiet them down by setting ActiveRecord::Migration.verbose = false.
   #
-  # You can also insert your own messages and benchmarks by using the #say_with_time
+  # You can also insert your own messages and benchmarks by using the +say_with_time+
   # method:
   #
   #   def self.up
@@ -377,7 +377,7 @@ module ActiveRecord
       end
 
       def proper_table_name(name)
-        # Use the ActiveRecord objects own table_name, or pre/suffix from ActiveRecord::Base if name is a symbol/string
+        # Use the Active Record objects own table_name, or pre/suffix from ActiveRecord::Base if name is a symbol/string
         name.table_name rescue "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}"
       end
     end

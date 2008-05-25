@@ -104,7 +104,7 @@ module Mime
           list[text_xml].name = Mime::XML.to_s
         end
 
-        # Look for more specific xml-based types and sort them ahead of app/xml
+        # Look for more specific XML-based types and sort them ahead of app/xml
 
         if app_xml
           idx = app_xml
@@ -158,7 +158,7 @@ module Mime
       end
     end
 
-    # Returns true if ActionPack should check requests using this Mime Type for possible request forgery.  See
+    # Returns true if Action Pack should check requests using this Mime Type for possible request forgery.  See
     # ActionController::RequestForgerProtection.
     def verify_request?
       !@@unverifiable_types.include?(to_sym)

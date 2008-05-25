@@ -5,12 +5,12 @@ require 'action_mailer/utils'
 require 'tmail/net'
 
 module ActionMailer #:nodoc:
-  # ActionMailer allows you to send email from your application using a mailer model and views.
+  # Action Mailer allows you to send email from your application using a mailer model and views.
   #
   #
   # = Mailer Models
   #
-  # To use ActionMailer, you need to create a mailer model.
+  # To use Action Mailer, you need to create a mailer model.
   #
   #   $ script/generate mailer Notifier
   #
@@ -54,7 +54,7 @@ module ActionMailer #:nodoc:
   #
   # = Mailer views
   #
-  # Like ActionController, each mailer class has a corresponding view directory
+  # Like Action Controller, each mailer class has a corresponding view directory
   # in which each method of the class looks for a template with its name.
   # To define a template to be used with a mailing, create an <tt>.erb</tt> file with the same name as the method
   # in your mailer model. For example, in the mailer defined above, the template at
@@ -157,7 +157,7 @@ module ActionMailer #:nodoc:
   #     end
   #   end
   #
-  # Multipart messages can also be used implicitly because ActionMailer will automatically
+  # Multipart messages can also be used implicitly because Action Mailer will automatically
   # detect and use multipart templates, where each template is named after the name of the action, followed
   # by the content type. Each such detected template will be added as separate part to the message.
   #
@@ -383,8 +383,8 @@ module ActionMailer #:nodoc:
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
-      # object's #receive method. If you want your mailer to be able to
-      # process incoming messages, you'll need to implement a #receive
+      # object's +receive+ method. If you want your mailer to be able to
+      # process incoming messages, you'll need to implement a +receive+
       # method that accepts the email object as a parameter:
       #
       #   class MyMailer < ActionMailer::Base
@@ -490,7 +490,7 @@ module ActionMailer #:nodoc:
     end
 
     # Delivers a TMail::Mail object. By default, it delivers the cached mail
-    # object (from the #create! method). If no cached mail object exists, and
+    # object (from the <tt>create!</tt> method). If no cached mail object exists, and
     # no alternate has been given as the parameter, this will fail.
     def deliver!(mail = @mail)
       raise "no mail object available for delivery!" unless mail

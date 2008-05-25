@@ -2,7 +2,7 @@ require 'yaml'
 require 'set'
 
 module ActiveRecord #:nodoc:
-  # Generic ActiveRecord exception class.
+  # Generic Active Record exception class.
   class ActiveRecordError < StandardError
   end
 
@@ -30,19 +30,19 @@ module ActiveRecord #:nodoc:
   class SerializationTypeMismatch < ActiveRecordError
   end
 
-  # Raised when adapter not specified on connection (or configuration file config/database.yml misses adapter field).
+  # Raised when adapter not specified on connection (or configuration file <tt>config/database.yml</tt> misses adapter field).
   class AdapterNotSpecified < ActiveRecordError
   end
 
-  # Raised when ActiveRecord cannot find database adapter specified in config/database.yml or programmatically.
+  # Raised when Active Record cannot find database adapter specified in <tt>config/database.yml</tt> or programmatically.
   class AdapterNotFound < ActiveRecordError
   end
 
-  # Raised when connection to the database could not been established (for example when connection= is given a nil object).
+  # Raised when connection to the database could not been established (for example when <tt>connection=</tt> is given a nil object).
   class ConnectionNotEstablished < ActiveRecordError
   end
 
-  # Raised when ActiveRecord cannot find record by given id or set of ids.
+  # Raised when Active Record cannot find record by given id or set of ids.
   class RecordNotFound < ActiveRecordError
   end
 
@@ -70,7 +70,7 @@ module ActiveRecord #:nodoc:
   # instantiation, for example, when two users edit the same wiki page and one starts editing and saves
   # the page before the other.
   #
-  # Read more about optimistic locking in +ActiveRecord::Locking+ module RDoc.
+  # Read more about optimistic locking in ActiveRecord::Locking module RDoc.
   class StaleObjectError < ActiveRecordError
   end
 
@@ -83,12 +83,12 @@ module ActiveRecord #:nodoc:
   class ReadOnlyRecord < ActiveRecordError
   end
 
-  # Used by ActiveRecord transaction mechanism to distinguish rollback from other exceptional situations.
+  # Used by Active Record transaction mechanism to distinguish rollback from other exceptional situations.
   # You can use it to roll your transaction back explicitly in the block passed to +transaction+ method.
   class Rollback < ActiveRecordError
   end
 
-  # Raised when attribute has a name reserved by ActiveRecord (when attribute has name of one of ActiveRecord instance methods).
+  # Raised when attribute has a name reserved by Active Record (when attribute has name of one of Active Record instance methods).
   class DangerousAttributeError < ActiveRecordError
   end
 
@@ -200,7 +200,7 @@ module ActiveRecord #:nodoc:
   #
   # All column values are automatically available through basic accessors on the Active Record object, but sometimes you
   # want to specialize this behavior. This can be done by overwriting the default accessors (using the same
-  # name as the attribute) and calling read_attribute(attr_name) and write_attribute(attr_name, value) to actually change things.
+  # name as the attribute) and calling <tt>read_attribute(attr_name)</tt> and <tt>write_attribute(attr_name, value)</tt> to actually change things.
   # Example:
   #
   #   class Song < ActiveRecord::Base
@@ -215,8 +215,8 @@ module ActiveRecord #:nodoc:
   #     end
   #   end
   #
-  # You can alternatively use self[:attribute]=(value) and self[:attribute] instead of write_attribute(:attribute, value) and
-  # read_attribute(:attribute) as a shorter form.
+  # You can alternatively use <tt>self[:attribute]=(value)</tt> and <tt>self[:attribute]</tt> instead of <tt>write_attribute(:attribute, value)</tt> and
+  # <tt>read_attribute(:attribute)</tt> as a shorter form.
   #
   # == Attribute query methods
   #
@@ -236,7 +236,7 @@ module ActiveRecord #:nodoc:
   #
   # Sometimes you want to be able to read the raw attribute data without having the column-determined typecast run its course first.
   # That can be done by using the <tt><attribute>_before_type_cast</tt> accessors that all attributes have. For example, if your Account model
-  # has a balance attribute, you can call <tt>account.balance_before_type_cast</tt> or <tt>account.id_before_type_cast</tt>.
+  # has a <tt>balance</tt> attribute, you can call <tt>account.balance_before_type_cast</tt> or <tt>account.id_before_type_cast</tt>.
   #
   # This is especially useful in validation situations where the user might supply a string for an integer field and you want to display
   # the original string back in an error message. Accessing the attribute normally would typecast the string to 0, which isn't what you
@@ -245,8 +245,8 @@ module ActiveRecord #:nodoc:
   # == Dynamic attribute-based finders
   #
   # Dynamic attribute-based finders are a cleaner way of getting (and/or creating) objects by simple queries without turning to SQL. They work by
-  # appending the name of an attribute to <tt>find_by_</tt> or <tt>find_all_by_</tt>, so you get finders like Person.find_by_user_name,
-  # Person.find_all_by_last_name, Payment.find_by_transaction_id. So instead of writing
+  # appending the name of an attribute to <tt>find_by_</tt> or <tt>find_all_by_</tt>, so you get finders like <tt>Person.find_by_user_name</tt>,
+  # <tt>Person.find_all_by_last_name</tt>, and <tt>Payment.find_by_transaction_id</tt>. So instead of writing
   # <tt>Person.find(:first, :conditions => ["user_name = ?", user_name])</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
   # And instead of writing <tt>Person.find(:all, :conditions => ["last_name = ?", last_name])</tt>, you just do <tt>Person.find_all_by_last_name(last_name)</tt>.
   #
@@ -255,8 +255,8 @@ module ActiveRecord #:nodoc:
   # <tt>Person.find(:first, :conditions => ["user_name = ? AND password = ?", user_name, password])</tt>, you just do
   # <tt>Person.find_by_user_name_and_password(user_name, password)</tt>.
   #
-  # It's even possible to use all the additional parameters to find. For example, the full interface for Payment.find_all_by_amount
-  # is actually Payment.find_all_by_amount(amount, options). And the full interface to Person.find_by_user_name is
+  # It's even possible to use all the additional parameters to find. For example, the full interface for <tt>Payment.find_all_by_amount</tt>
+  # is actually <tt>Payment.find_all_by_amount(amount, options)</tt>. And the full interface to <tt>Person.find_by_user_name</tt> is
   # actually <tt>Person.find_by_user_name(user_name, options)</tt>. So you could call <tt>Payment.find_all_by_amount(50, :order => "created_on")</tt>.
   #
   # The same dynamic finder style can be used to create the object if it doesn't already exist. This dynamic finder is called with
@@ -316,8 +316,8 @@ module ActiveRecord #:nodoc:
   #   class Client < Company; end
   #   class PriorityClient < Client; end
   #
-  # When you do Firm.create(:name => "37signals"), this record will be saved in the companies table with type = "Firm". You can then
-  # fetch this row again using Company.find(:first, "name = '37signals'") and it will return a Firm object.
+  # When you do <tt>Firm.create(:name => "37signals")</tt>, this record will be saved in the companies table with type = "Firm". You can then
+  # fetch this row again using <tt>Company.find(:first, "name = '37signals'")</tt> and it will return a Firm object.
   #
   # If you don't have a type column defined in your table, single-table inheritance won't be triggered. In that case, it'll work just
   # like normal subclasses with no special magic for differentiating between them or reloading the right type with find.
@@ -329,8 +329,8 @@ module ActiveRecord #:nodoc:
   #
   # Connections are usually created through ActiveRecord::Base.establish_connection and retrieved by ActiveRecord::Base.connection.
   # All classes inheriting from ActiveRecord::Base will use this connection. But you can also set a class-specific connection.
-  # For example, if Course is an ActiveRecord::Base, but resides in a different database, you can just say Course.establish_connection
-  # and Course *and all its subclasses* will use this connection instead.
+  # For example, if Course is an ActiveRecord::Base, but resides in a different database, you can just say <tt>Course.establish_connection</tt>
+  # and Course and all of its subclasses will use this connection instead.
   #
   # This feature is implemented by keeping a connection pool in ActiveRecord::Base that is a Hash indexed by the class. If a connection is
   # requested, the retrieve_connection method will go up the class-hierarchy until a connection is found in the connection pool.
@@ -407,7 +407,7 @@ module ActiveRecord #:nodoc:
     @@table_name_suffix = ""
 
     # Indicates whether table names should be the pluralized versions of the corresponding class names.
-    # If true, the default table name for a +Product+ class will be +products+. If false, it would just be +product+.
+    # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
     # See table_name for the full rules on table/class naming. This is true, by default.
     cattr_accessor :pluralize_table_names, :instance_writer => false
     @@pluralize_table_names = true
@@ -446,36 +446,44 @@ module ActiveRecord #:nodoc:
     class << self # Class methods
       # Find operates with four different retrieval approaches:
       #
-      # * Find by id: This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
+      # * Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
       #   If no record can be found for all of the listed ids, then RecordNotFound will be raised.
-      # * Find first: This will return the first record matched by the options used. These options can either be specific
-      #   conditions or merely an order. If no record can be matched, nil is returned.
-      # * Find last: This will return the last record matched by the options used. These options can either be specific
-      #   conditions or merely an order. If no record can be matched, nil is returned.
-      # * Find all: This will return all the records matched by the options used. If no records are found, an empty array is returned.
+      # * Find first - This will return the first record matched by the options used. These options can either be specific
+      #   conditions or merely an order. If no record can be matched, +nil+ is returned. Use
+      #   <tt>Model.find(:first, *args)</tt> or its shortcut <tt>Model.first(*args)</tt>.
+      # * Find last - This will return the last record matched by the options used. These options can either be specific
+      #   conditions or merely an order. If no record can be matched, +nil+ is returned. Use
+      #   <tt>Model.find(:last, *args)</tt> or its shortcut <tt>Model.last(*args)</tt>.
+      # * Find all - This will return all the records matched by the options used.
+      #   If no records are found, an empty array is returned. Use
+      #   <tt>Model.find(:all, *args)</tt> or its shortcut <tt>Model.all(*args)</tt>.
       #
-      # All approaches accept an options hash as their last parameter. The options are:
+      # All approaches accept an options hash as their last parameter.
       #
-      # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro.
-      # * <tt>:order</tt>: An SQL fragment like "created_at DESC, name".
-      # * <tt>:group</tt>: An attribute name by which the result should be grouped. Uses the GROUP BY SQL-clause.
-      # * <tt>:limit</tt>: An integer determining the limit on the number of rows that should be returned.
-      # * <tt>:offset</tt>: An integer determining the offset from where the rows should be fetched. So at 5, it would skip rows 0 through 4.
-      # * <tt>:joins</tt>: Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed)
-      #   or named associations in the same form used for the <tt>:include</tt> option, which will perform an INNER JOIN on the associated table(s).
+      # ==== Attributes
+      #
+      # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1" or <tt>[ "user_name = ?", username ]</tt>. See conditions in the intro.
+      # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name".
+      # * <tt>:group</tt> - An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
+      # * <tt>:limit</tt> - An integer determining the limit on the number of rows that should be returned.
+      # * <tt>:offset</tt> - An integer determining the offset from where the rows should be fetched. So at 5, it would skip rows 0 through 4.
+      # * <tt>:joins</tt> - Either an SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id" (rarely needed)
+      #   or named associations in the same form used for the <tt>:include</tt> option, which will perform an <tt>INNER JOIN</tt> on the associated table(s).
       #   If the value is a string, then the records will be returned read-only since they will have attributes that do not correspond to the table's columns.
       #   Pass <tt>:readonly => false</tt> to override.
-      # * <tt>:include</tt>: Names associations that should be loaded alongside using LEFT OUTER JOINs. The symbols named refer
+      # * <tt>:include</tt> - Names associations that should be loaded alongside. The symbols named refer
       #   to already defined associations. See eager loading under Associations.
-      # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you, for example, want to do a join but not
+      # * <tt>:select</tt> - By default, this is "*" as in "SELECT * FROM", but can be changed if you, for example, want to do a join but not
       #   include the joined columns.
-      # * <tt>:from</tt>: By default, this is the table name of the class, but can be changed to an alternate table name (or even the name
+      # * <tt>:from</tt> - By default, this is the table name of the class, but can be changed to an alternate table name (or even the name
       #   of a database view).
-      # * <tt>:readonly</tt>: Mark the returned records read-only so they cannot be saved or updated.
-      # * <tt>:lock</tt>: An SQL fragment like "FOR UPDATE" or "LOCK IN SHARE MODE".
+      # * <tt>:readonly</tt> - Mark the returned records read-only so they cannot be saved or updated.
+      # * <tt>:lock</tt> - An SQL fragment like "FOR UPDATE" or "LOCK IN SHARE MODE".
       #   <tt>:lock => true</tt> gives connection's default exclusive lock, usually "FOR UPDATE".
       #
-      # Examples for find by id:
+      # ==== Examples
+      #
+      #   # find by id
       #   Person.find(1)       # returns the object for ID = 1
       #   Person.find(1, 2, 6) # returns an array for objects with IDs in (1, 2, 6)
       #   Person.find([7, 17]) # returns an array for objects with IDs in (7, 17)
@@ -486,17 +494,19 @@ module ActiveRecord #:nodoc:
       # provide since database rows are unordered. Give an explicit <tt>:order</tt>
       # to ensure the results are sorted.
       #
-      # Examples for find first:
+      # ==== Examples
+      #
+      #   # find first
       #   Person.find(:first) # returns the first object fetched by SELECT * FROM people
       #   Person.find(:first, :conditions => [ "user_name = ?", user_name])
       #   Person.find(:first, :order => "created_on DESC", :offset => 5)
       #
-      # Examples for find last:
+      #   # find last
       #   Person.find(:last) # returns the last object fetched by SELECT * FROM people
       #   Person.find(:last, :conditions => [ "user_name = ?", user_name])
       #   Person.find(:last, :order => "created_on DESC", :offset => 5)
       #
-      # Examples for find all:
+      #   # find all
       #   Person.find(:all) # returns an array of objects for all the rows fetched by SELECT * FROM people
       #   Person.find(:all, :conditions => [ "category IN (?)", categories], :limit => 50)
       #   Person.find(:all, :conditions => { :friends => ["Bob", "Steve", "Fred"] }
@@ -504,11 +514,12 @@ module ActiveRecord #:nodoc:
       #   Person.find(:all, :include => [ :account, :friends ])
       #   Person.find(:all, :group => "category")
       #
-      # Example for find with a lock. Imagine two concurrent transactions:
-      # each will read person.visits == 2, add 1 to it, and save, resulting
-      # in two saves of person.visits = 3.  By locking the row, the second
+      # Example for find with a lock: Imagine two concurrent transactions:
+      # each will read <tt>person.visits == 2</tt>, add 1 to it, and save, resulting
+      # in two saves of <tt>person.visits = 3</tt>.  By locking the row, the second
       # transaction has to wait until the first is finished; we get the
-      # expected person.visits == 4.
+      # expected <tt>person.visits == 4</tt>.
+      #
       #   Person.transaction do
       #     person = Person.find(1, :lock => true)
       #     person.visits += 1
@@ -527,14 +538,14 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # This is an alias for find(:first).  You can pass in all the same arguments to this method as you can
-      # to find(:first)
+      # A convenience wrapper for <tt>find(:first, *args)</tt>. You can pass in all the
+      # same arguments to this method as you can to <tt>find(:first)</tt>.
       def first(*args)
         find(:first, *args)
       end
 
-      # This is an alias for find(:last).  You can pass in all the same arguments to this method as you can
-      # to find(:last)
+      # A convenience wrapper for <tt>find(:last, *args)</tt>. You can pass in all the
+      # same arguments to this method as you can to <tt>find(:last)</tt>.
       def last(*args)
         find(:last, *args)
       end
@@ -545,8 +556,7 @@ module ActiveRecord #:nodoc:
         find(:all, *args)
       end
 
-      #
-      # Executes a custom sql query against your database and returns all the results.  The results will
+      # Executes a custom SQL query against your database and returns all the results.  The results will
       # be returned as an array with columns requested encapsulated as attributes of the model you call
       # this method from.  If you call +Product.find_by_sql+ then the results will be returned in a Product
       # object with the attributes you specified in the SQL query.
@@ -555,13 +565,13 @@ module ActiveRecord #:nodoc:
       # SELECT will be attributes of the model, whether or not they are columns of the corresponding
       # table.
       #
-      # The +sql+ parameter is a full sql query as a string.  It will be called as is, there will be
+      # The +sql+ parameter is a full SQL query as a string.  It will be called as is, there will be
       # no database agnostic conversions performed.  This should be a last resort because using, for example,
       # MySQL specific terms will lock you to using that particular database engine or require you to
       # change your call if you switch engines
       #
       # ==== Examples
-      #   # A simple sql query spanning multiple tables
+      #   # A simple SQL query spanning multiple tables
       #   Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
       #   > [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "first_name"=>"Quentin"}>, ...]
       #
@@ -860,9 +870,15 @@ module ActiveRecord #:nodoc:
       end
 
 
-      # Attributes named in this macro are protected from mass-assignment, such as <tt>new(attributes)</tt> and
-      # <tt>attributes=(attributes)</tt>. Their assignment will simply be ignored. Instead, you can use the direct writer
-      # methods to do assignment. This is meant to protect sensitive attributes from being overwritten by URL/form hackers. Example:
+      # Attributes named in this macro are protected from mass-assignment,
+      # such as <tt>new(attributes)</tt>,
+      # <tt>update_attributes(attributes)</tt>, or
+      # <tt>attributes=(attributes)</tt>.
+      #
+      # Mass-assignment to these attributes will simply be ignored, to assign
+      # to them you can use direct writer methods. This is meant to protect
+      # sensitive attributes from being overwritten by malicious users
+      # tampering with URLs or forms.
       #
       #   class Customer < ActiveRecord::Base
       #     attr_protected :credit_rating
@@ -876,7 +892,8 @@ module ActiveRecord #:nodoc:
       #   customer.credit_rating = "Average"
       #   customer.credit_rating # => "Average"
       #
-      # To start from an all-closed default and enable attributes as needed, have a look at attr_accessible.
+      # To start from an all-closed default and enable attributes as needed,
+      # have a look at +attr_accessible+.
       def attr_protected(*attributes)
         write_inheritable_attribute("attr_protected", Set.new(attributes.map(&:to_s)) + (protected_attributes || []))
       end
@@ -886,19 +903,18 @@ module ActiveRecord #:nodoc:
         read_inheritable_attribute("attr_protected")
       end
 
-      # Similar to the attr_protected macro, this protects attributes of your model from mass-assignment,
-      # such as <tt>new(attributes)</tt> and <tt>attributes=(attributes)</tt>
-      # however, it does it in the opposite way.  This locks all attributes and only allows access to the
-      # attributes specified.  Assignment to attributes not in this list will be ignored and need to be set
-      # using the direct writer methods instead.  This is meant to protect sensitive attributes from being
-      # overwritten by URL/form hackers. If you'd rather start from an all-open default and restrict
-      # attributes as needed, have a look at attr_protected.
+      # Specifies a white list of model attributes that can be set via
+      # mass-assignment, such as <tt>new(attributes)</tt>,
+      # <tt>update_attributes(attributes)</tt>, or
+      # <tt>attributes=(attributes)</tt>
       #
-      # ==== Attributes
-      #
-      # * <tt>*attributes</tt>   A comma separated list of symbols that represent columns _not_ to be protected
-      #
-      # ==== Examples
+      # This is the opposite of the +attr_protected+ macro: Mass-assignment
+      # will only set attributes in this list, to assign to the rest of
+      # attributes you can use direct writer methods. This is meant to protect
+      # sensitive attributes from being overwritten by malicious users
+      # tampering with URLs or forms. If you'd rather start from an all-open
+      # default and restrict attributes as needed, have a look at
+      # +attr_protected+.
       #
       #   class Customer < ActiveRecord::Base
       #     attr_accessible :name, :nickname
@@ -933,7 +949,7 @@ module ActiveRecord #:nodoc:
       # If you have an attribute that needs to be saved to the database as an object, and retrieved as the same object,
       # then specify the name of that attribute using this method and it will be handled automatically.
       # The serialization is done through YAML. If +class_name+ is specified, the serialized object must be of that
-      # class on retrieval or +SerializationTypeMismatch+ will be raised.
+      # class on retrieval or SerializationTypeMismatch will be raised.
       #
       # ==== Attributes
       #
@@ -956,12 +972,14 @@ module ActiveRecord #:nodoc:
 
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the inheritance hierarchy descending
-      # directly from ActiveRecord. So if the hierarchy looks like: Reply < Message < ActiveRecord, then Message is used
+      # directly from ActiveRecord::Base. So if the hierarchy looks like: Reply < Message < ActiveRecord::Base, then Message is used
       # to guess the table name even when called on Reply. The rules used to do the guess are handled by the Inflector class
       # in Active Support, which knows almost all common English inflections. You can add new inflections in config/initializers/inflections.rb.
       #
       # Nested classes are given table names prefixed by the singular form of
-      # the parent's table name. Enclosing modules are not considered. Examples:
+      # the parent's table name. Enclosing modules are not considered.
+      #
+      # ==== Examples
       #
       #   class Invoice < ActiveRecord::Base; end;
       #   file                  class               table_name
@@ -975,8 +993,8 @@ module ActiveRecord #:nodoc:
       #   file                  class               table_name
       #   invoice/lineitem.rb   Invoice::Lineitem   lineitems
       #
-      # Additionally, the class-level table_name_prefix is prepended and the
-      # table_name_suffix is appended.  So if you have "myapp_" as a prefix,
+      # Additionally, the class-level +table_name_prefix+ is prepended and the
+      # +table_name_suffix+ is appended.  So if you have "myapp_" as a prefix,
       # the table name guess for an Invoice class becomes "myapp_invoices".
       # Invoice::Lineitem becomes "myapp_invoice_lineitems".
       #
@@ -1055,8 +1073,6 @@ module ActiveRecord #:nodoc:
       # Sets the table name to use to the given value, or (if the value
       # is nil or false) to the value returned by the given block.
       #
-      # Example:
-      #
       #   class Project < ActiveRecord::Base
       #     set_table_name "project"
       #   end
@@ -1069,8 +1085,6 @@ module ActiveRecord #:nodoc:
       # or (if the value is nil or false) to the value returned by the given
       # block.
       #
-      # Example:
-      #
       #   class Project < ActiveRecord::Base
       #     set_primary_key "sysid"
       #   end
@@ -1082,8 +1096,6 @@ module ActiveRecord #:nodoc:
       # Sets the name of the inheritance column to use to the given value,
       # or (if the value # is nil or false) to the value returned by the
       # given block.
-      #
-      # Example:
       #
       #   class Project < ActiveRecord::Base
       #     set_inheritance_column do
@@ -1105,8 +1117,6 @@ module ActiveRecord #:nodoc:
       #
       # If a sequence name is not explicitly set when using PostgreSQL, it
       # will discover the sequence corresponding to your primary key for you.
-      #
-      # Example:
       #
       #   class Project < ActiveRecord::Base
       #     set_sequence_name "projectseq"   # default would have been "project_seq"
@@ -1267,7 +1277,7 @@ module ActiveRecord #:nodoc:
         class_of_active_record_descendant(self)
       end
 
-      # Set this to true if this is an abstract class (see #abstract_class?).
+      # Set this to true if this is an abstract class (see <tt>abstract_class?</tt>).
       attr_accessor :abstract_class
 
       # Returns whether this class is a base AR class.  If A is a base class and
@@ -1714,8 +1724,8 @@ module ActiveRecord #:nodoc:
         end
 
 
-        # Defines an "attribute" method (like #inheritance_column or
-        # #table_name). A new (class) method will be created with the
+        # Defines an "attribute" method (like +inheritance_column+ or
+        # +table_name+). A new (class) method will be created with the
         # given name. If a value is specified, the new method will
         # return that value (as a string). Otherwise, the given block
         # will be used to compute the value of the method.
@@ -1892,7 +1902,7 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Returns the class descending directly from ActiveRecord in the inheritance hierarchy.
+        # Returns the class descending directly from Active Record in the inheritance hierarchy.
         def class_of_active_record_descendant(klass)
           if klass.superclass == Base || klass.superclass.abstract_class?
             klass
@@ -1903,12 +1913,12 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Returns the name of the class descending directly from ActiveRecord in the inheritance hierarchy.
+        # Returns the name of the class descending directly from Active Record in the inheritance hierarchy.
         def class_name_of_active_record_descendant(klass) #:nodoc:
           klass.base_class.name
         end
 
-        # Accepts an array, hash, or string of sql conditions and sanitizes
+        # Accepts an array, hash, or string of SQL conditions and sanitizes
         # them into a valid SQL fragment for a WHERE clause.
         #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
         #   { :name => "foo'bar", :group_id => 4 }  returns "name='foo''bar' and group_id='4'"
@@ -1924,7 +1934,7 @@ module ActiveRecord #:nodoc:
         end
         alias_method :sanitize_sql, :sanitize_sql_for_conditions
 
-        # Accepts an array, hash, or string of sql conditions and sanitizes
+        # Accepts an array, hash, or string of SQL conditions and sanitizes
         # them into a valid SQL fragment for a SET clause.
         #   { :name => nil, :group_id => 4 }  returns "name = NULL , group_id='4'"
         def sanitize_sql_for_assignment(assignments)
@@ -1940,7 +1950,7 @@ module ActiveRecord #:nodoc:
           mapping.first.is_a?(Array) ? mapping : [mapping]
         end
 
-        # Accepts a hash of sql conditions and replaces those attributes
+        # Accepts a hash of SQL conditions and replaces those attributes
         # that correspond to a +composed_of+ relationship with their expanded
         # aggregate attribute values.
         # Given:
@@ -2013,7 +2023,7 @@ module ActiveRecord #:nodoc:
         end
 
         # Accepts an array of conditions.  The array has each value
-        # sanitized and interpolated into the sql statement.
+        # sanitized and interpolated into the SQL statement.
         #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
         def sanitize_sql_array(ary)
           statement, *values = ary
@@ -2134,7 +2144,9 @@ module ActiveRecord #:nodoc:
         (id = self.id) ? id.to_s : nil # Be sure to stringify the id for routes
       end
 
-      # Returns a cache key that can be used to identify this record. Examples:
+      # Returns a cache key that can be used to identify this record.
+      #
+      # ==== Examples
       #
       #   Product.new.cache_key     # => "products/new"
       #   Product.find(5).cache_key # => "products/5" (updated_at not available)
@@ -2490,9 +2502,9 @@ module ActiveRecord #:nodoc:
         id
       end
 
-      # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord descendent.
-      # Considering the hierarchy Reply < Message < ActiveRecord, this makes it possible to do Reply.new without having to
-      # set Reply[Reply.inheritance_column] = "Reply" yourself. No such attribute would be set for objects of the
+      # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord::Base descendent.
+      # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to do Reply.new without having to
+      # set <tt>Reply[Reply.inheritance_column] = "Reply"</tt> yourself. No such attribute would be set for objects of the
       # Message class in that example.
       def ensure_proper_type
         unless self.class.descends_from_active_record?
@@ -2564,7 +2576,7 @@ module ActiveRecord #:nodoc:
         self.class.connection.quote(value, column)
       end
 
-      # Interpolate custom sql string in instance context.
+      # Interpolate custom SQL string in instance context.
       # Optional record argument is meant for custom insert_sql.
       def interpolate_sql(sql, record = nil)
         instance_eval("%@#{sql.gsub('@', '\@')}@")

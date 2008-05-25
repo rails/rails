@@ -193,7 +193,7 @@ module ActiveRecord
     #     :database  => "path/to/dbfile"
     #   )
     #
-    # Also accepts keys as strings (for parsing from yaml for example):
+    # Also accepts keys as strings (for parsing from YAML for example):
     #
     #   ActiveRecord::Base.establish_connection(
     #     "adapter" => "sqlite",

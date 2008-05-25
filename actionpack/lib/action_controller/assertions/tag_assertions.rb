@@ -91,7 +91,7 @@ module ActionController
       #              :descendant => { :tag => "span",
       #                               :child => /hello world/ }
       #
-      # <b>Please note</b>: #assert_tag and #assert_no_tag only work
+      # <b>Please note</b>: +assert_tag+ and +assert_no_tag+ only work
       # with well-formed XHTML. They recognize a few tags as implicitly self-closing
       # (like br and hr and such) but will not work correctly with tags
       # that allow optional closing tags (p, li, td). <em>You must explicitly
@@ -104,8 +104,8 @@ module ActionController
         end
       end
       
-      # Identical to #assert_tag, but asserts that a matching tag does _not_
-      # exist. (See #assert_tag for a full discussion of the syntax.)
+      # Identical to +assert_tag+, but asserts that a matching tag does _not_
+      # exist. (See +assert_tag+ for a full discussion of the syntax.)
       #
       # === Examples
       #   # Assert that there is not a "div" containing a "p"

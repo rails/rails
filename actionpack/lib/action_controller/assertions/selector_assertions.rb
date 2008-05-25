@@ -12,12 +12,12 @@ module ActionController
       NO_STRIP = %w{pre script style textarea}
     end
 
-    # Adds the #assert_select method for use in Rails functional
+    # Adds the +assert_select+ method for use in Rails functional
     # test cases, which can be used to make assertions on the response HTML of a controller
-    # action. You can also call #assert_select within another #assert_select to
+    # action. You can also call +assert_select+ within another +assert_select+ to
     # make assertions on elements selected by the enclosing assertion.
     #
-    # Use #css_select to select elements without making an assertions, either
+    # Use +css_select+ to select elements without making an assertions, either
     # from the response HTML or elements selected by the enclosing assertion.
     # 
     # In addition to HTML responses, you can make the following assertions:
@@ -44,8 +44,8 @@ module ActionController
       # base element and any of its children. Returns an empty array if no
       # match is found.
       #
-      # The selector may be a CSS selector expression (+String+), an expression
-      # with substitution values (+Array+) or an HTML::Selector object.
+      # The selector may be a CSS selector expression (String), an expression
+      # with substitution values (Array) or an HTML::Selector object.
       #
       # ==== Examples
       #   # Selects all div tags
@@ -114,8 +114,8 @@ module ActionController
       # starting from (and including) that element and all its children in
       # depth-first order.
       #
-      # If no element if specified, calling #assert_select will select from the
-      # response HTML. Calling #assert_select inside an #assert_select block will
+      # If no element if specified, calling +assert_select+ will select from the
+      # response HTML. Calling #assert_select inside an +assert_select+ block will
       # run the assertion for each element selected by the enclosing assertion.
       #
       # ==== Example
@@ -130,7 +130,7 @@ module ActionController
       #     assert_select "li"
       #   end
       #
-      # The selector may be a CSS selector expression (+String+), an expression
+      # The selector may be a CSS selector expression (String), an expression
       # with substitution values, or an HTML::Selector object.
       #
       # === Equality Tests
@@ -356,16 +356,16 @@ module ActionController
       #
       # === Using blocks
       #
-      # Without a block, #assert_select_rjs merely asserts that the response
+      # Without a block, +assert_select_rjs+ merely asserts that the response
       # contains one or more RJS statements that replace or update content.
       #
-      # With a block, #assert_select_rjs also selects all elements used in
+      # With a block, +assert_select_rjs+ also selects all elements used in
       # these statements and passes them to the block. Nested assertions are
       # supported.
       #
-      # Calling #assert_select_rjs with no arguments and using nested asserts
+      # Calling +assert_select_rjs+ with no arguments and using nested asserts
       # asserts that the HTML content is returned by one or more RJS statements.
-      # Using #assert_select directly makes the same assertion on the content,
+      # Using +assert_select+ directly makes the same assertion on the content,
       # but without distinguishing whether the content is returned in an HTML
       # or JavaScript.
       #
@@ -601,7 +601,7 @@ module ActionController
           RJS_PATTERN_UNICODE_ESCAPED_CHAR = /\\u([0-9a-zA-Z]{4})/
         end
 
-        # #assert_select and #css_select call this to obtain the content in the HTML
+        # +assert_select+ and +css_select+ call this to obtain the content in the HTML
         # page, or from all the RJS statements, depending on the type of response.
         def response_from_page_or_rjs()
           content_type = @response.content_type
