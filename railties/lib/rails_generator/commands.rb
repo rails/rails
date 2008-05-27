@@ -88,7 +88,7 @@ module Rails
                 Tempfile.open(File.basename(destination), File.dirname(dst)) do |temp|
                   temp.write render_file(src, file_options, &block)
                   temp.rewind
-                  $stdout.puts `#{diff_cmd} #{dst} #{temp.path}`
+                  $stdout.puts `#{diff_cmd} "#{dst}" "#{temp.path}"`
                 end
                 puts "retrying"
                 raise 'retry diff'
