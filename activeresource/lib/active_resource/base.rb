@@ -200,7 +200,7 @@ module ActiveResource
     cattr_accessor :logger
 
     class << self
-      # Gets the URI of the REST resources to map for this class.  The site variable is required 
+      # Gets the URI of the REST resources to map for this class.  The site variable is required for
       # Active Resource's mapping to work.
       def site
         # Not using superclass_delegating_reader because don't want subclasses to modify superclass instance
@@ -226,7 +226,7 @@ module ActiveResource
       end
 
       # Sets the URI of the REST resources to map for this class to the value in the +site+ argument.
-      # The site variable is required Active Resource's mapping to work.
+      # The site variable is required for Active Resource's mapping to work.
       def site=(site)
         @connection = nil
         if site.nil?
