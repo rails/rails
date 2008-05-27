@@ -1,22 +1,26 @@
 todo:
-- result sets to attr correlation too
-  - result sets should be array relations
-- fix AR
-- clean up block_given stuff
 - reorganize sql tests
-- audit unit coverage of algebra
+- reorganize memory tests
+- blocks for joins
+- implement joins in memory
+- recursive memory operations
+- result sets should be array relations
+- cross-engine joins
+- fix grouping
 - implement mnesia adapter
+- fix AR
+- rename externalize to derived.
+
+- result sets to attr correlation too
+- audit unit coverage of algebra
 - data objects
 - remove all explicit aliasing
-- blocks for joins
-- rename externalize to derived.
 - and/or w/ predicates
 - scoped writes
 - refactor adapter pattern
 - break out adapters into sep modules
 - projection is by definition distincting?
 - union/intersection
-- test ordering
 - cache expiry on write
 - transactions
 
@@ -87,6 +91,7 @@ done:
 - blocks for non-joins
 - expressions should be class-based, and joins too, anything _sql should be renamed
 - implement in memory adapter
+- clean up block_given stuff
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?
