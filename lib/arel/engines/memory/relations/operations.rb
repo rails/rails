@@ -37,4 +37,25 @@ module Arel
       raise NotImplementedError
     end
   end
+  
+  class Alias < Compound
+    def eval
+      unoperated_rows
+    end
+  end
+  
+  class Join < Relation
+    def eval
+      result = []
+      relation1.eval.each do |row1|
+        relation2.eval.each do |row2|
+          combined_row = row1.combine(row2, self)
+          if predicates.all? { |p| p.eval(combined_row) }
+            result << combined_row
+          end
+        end
+      end
+      result
+    end
+  end
 end

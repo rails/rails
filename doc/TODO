@@ -1,16 +1,13 @@
 todo:
-- reorganize memory tests
-- implement joins in memory
 - result sets should be array relations
 - deal with table tests in algebra
 - cross-engine joins
 - blocks for joins
 - implement mnesia adapter
-- fix grouping
 - fix AR
 - rename externalize to derived.
 
-- result sets to attr correlation too
+- fix grouping
 - audit unit coverage of algebra
 - data objects
 - remove all explicit aliasing
@@ -92,6 +89,9 @@ done:
 - clean up block_given stuff
 - reorganize sql tests
 - recursive memory operations
+- reorganize memory tests
+- result sets to attr correlation too
+- implement joins in memory
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?

@@ -17,5 +17,9 @@ module Arel
     def bind(relation)
       Row.new(relation, tuple)
     end
+    
+    def combine(other, relation)
+      Row.new(relation, tuple + other.tuple)
+    end
   end
 end
