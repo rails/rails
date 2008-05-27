@@ -1,10 +1,9 @@
 todo:
-- result sets should be array relations
-- deal with table tests in algebra
+- fix AR
 - cross-engine joins
 - blocks for joins
+- deal with table tests in algebra
 - implement mnesia adapter
-- fix AR
 - rename externalize to derived.
 
 - fix grouping
@@ -92,6 +91,7 @@ done:
 - reorganize memory tests
 - result sets to attr correlation too
 - implement joins in memory
+- result sets should be array relations
 
 icebox:
 - #bind in Attribute and Expression should be doing a descend?

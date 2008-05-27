@@ -19,12 +19,12 @@ module Arel
         end
 
         def read(relation)
-          results = connection.execute(relation.to_sql)
-          rows = []
-          results.each do |row|
-            rows << attributes.zip(row).to_hash
+          # FIXME
+          class << rows = connection.execute(relation.to_sql)
+            include Enumerable
           end
-          rows
+          
+          Array.new(rows, relation.attributes)
         end
 
         def update(relation)

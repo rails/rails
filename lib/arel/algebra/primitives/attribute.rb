@@ -39,8 +39,8 @@ module Arel
         relation == new_relation ? self : Attribute.new(new_relation, name, :alias => @alias, :ancestor => self)
       end
 
-      def to_attribute
-        self
+      def to_attribute(relation)
+        bind(relation)
       end
     end
     include Transformations

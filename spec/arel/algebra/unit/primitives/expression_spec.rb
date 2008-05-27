@@ -31,7 +31,7 @@ module Arel
       
       describe '#to_attribute' do
         it "manufactures an attribute with the expression as an ancestor" do
-          @expression.to_attribute.should == Attribute.new(@expression.relation, @expression.alias, :ancestor => @expression)
+          @expression.to_attribute(@relation).should == Attribute.new(@relation, @expression.alias, :ancestor => @expression)
         end
       end
     end

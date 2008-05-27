@@ -1,8 +1,8 @@
 module Arel
   class Array < Relation
     attributes :array,  :attribute_names
-    deriving :initialize
     include Recursion::BaseCase
+    deriving :==, :initialize
     
     def engine
       @engine ||= Memory::Engine.new
@@ -10,7 +10,7 @@ module Arel
 
     def attributes
       @attributes ||= @attribute_names.collect do |name|
-        Attribute.new(self, name.to_sym)
+        name.to_attribute(self)
       end
     end
 

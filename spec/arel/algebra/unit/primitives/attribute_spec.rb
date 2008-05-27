@@ -26,8 +26,16 @@ module Arel
       end
     
       describe '#to_attribute' do
-        it "returns self" do
-          @attribute.to_attribute.should == @attribute
+        describe 'when the given relation is the same as the attributes relation' do
+          it "returns self" do
+            @attribute.to_attribute(@relation).should == @attribute
+          end
+        end
+        
+        describe 'when the given relation differs from the attributes relation' do
+          it 'binds to the new relation' do
+            @attribute.to_attribute(new_relation = @relation.alias).should == @attribute.bind(new_relation)
+          end
         end
       end
     end

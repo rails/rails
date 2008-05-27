@@ -22,7 +22,7 @@ module Arel
   end
 
   class OuterJoin < Join
-    def join_sql; "OUTER JOIN" end
+    def join_sql; "LEFT OUTER JOIN" end
   end
 
   class StringJoin < Join

@@ -40,7 +40,7 @@ module Arel
           
           describe "when given a string" do
             it "manufactures a join operation with the string passed through" do
-              @relation.join(arbitrary_string = "ASDF").should == Join.new(arbitrary_string, @relation) 
+              @relation.join(arbitrary_string = "ASDF").should == StringJoin.new(@relation, arbitrary_string) 
             end
           end
           
@@ -159,7 +159,7 @@ module Arel
         describe '#insert' do
           it 'manufactures an insertion relation' do
             Session.start do
-              record = {@relation[:name] => 'carl'}
+              record = { @relation[:name] => 'carl' }
               mock(Session.new).create(Insert.new(@relation, record))
               @relation.insert(record)
             end
@@ -169,7 +169,7 @@ module Arel
         describe '#update' do
           it 'manufactures an update relation' do
             Session.start do
-              assignments = {@relation[:name] => Value.new('bob', @relation)}
+              assignments = { @relation[:name] => Value.new('bob', @relation) }
               mock(Session.new).update(Update.new(@relation, assignments))
               @relation.update(assignments)
             end
@@ -180,8 +180,8 @@ module Arel
       
     describe Relation::Enumerable do
       it "implements enumerable" do
-        @relation.collect.should == @relation.session.read(@relation)
-        @relation.first.should == @relation.session.read(@relation).first
+        @relation.collect.should == @relation.session.read(@relation).collect
+        @relation.first.should   == @relation.session.read(@relation).first
       end
     end
   end

@@ -8,7 +8,7 @@ module Arel
     end
 
     def attributes
-      @attributes ||= relation.attributes.collect(&:to_attribute).collect { |a| a.bind(self) }
+      @attributes ||= relation.attributes.collect { |a| a.to_attribute(self) }
     end
   end
 

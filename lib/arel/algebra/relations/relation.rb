@@ -31,7 +31,7 @@ module Arel
       def join(other_relation = nil, join_class = InnerJoin)
         case other_relation
         when String
-          StringJoin.new(other_relation, self)
+          StringJoin.new(self, other_relation)
         when Relation
           JoinOperation.new(join_class, self, other_relation)
         else
@@ -85,7 +85,8 @@ module Arel
           find_attribute_matching_name(index)
         when Attribute, Expression
           find_attribute_matching_attribute(index)
-        when Array
+        when ::Array
+          # TESTME
           index.collect { |i| self[i] }
         end
       end
@@ -98,6 +99,12 @@ module Arel
         matching_attributes(attribute).max do |a1, a2|
           (a1.original_attribute / attribute) <=> (a2.original_attribute / attribute)
         end
+      end
+
+      def position_of(attribute)
+        (@position_of ||= Hash.new do |h, attribute|
+          h[attribute] = attributes.index(self[attribute])
+        end)[attribute]
       end
 
       private

@@ -22,7 +22,7 @@ module Arel
         new_relation == relation ? self : self.class.new(attribute.bind(new_relation), @alias, self)
       end
 
-      def to_attribute
+      def to_attribute(relation)
         Attribute.new(relation, @alias, :ancestor => self)
       end
     end
