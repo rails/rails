@@ -14,7 +14,6 @@ users.delete().where(
 
     SELECT users.*, (SELECT count(id) FROM addresses WHERE 
     addresses.user_id=users.id) FROM users
-- and/or w/ predicates
 - blocks for all operations
 - result sets to attr correlation too
 - cache expiry on write
@@ -23,6 +22,7 @@ users.delete().where(
 - scoped writes
 
 done:
+- and/or w/ predicates
 - mock out database
 . Relation <=> Relation -> InnerJoinOperation
 . Relation << Relation -> LeftOuterJoinOperation

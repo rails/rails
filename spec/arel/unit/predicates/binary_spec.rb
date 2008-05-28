@@ -13,6 +13,33 @@ module Arel
       end
     end
 
+    describe "with compound predicates" do
+      before do
+        @operand1 = ConcreteBinary.new(@attribute1, 1)
+        @operand2 = ConcreteBinary.new(@attribute2, "name")
+      end
+      
+      describe Or do
+        describe "#to_sql" do
+          it "manufactures sql with an OR operation" do
+            Or.new(@operand1, @operand2).to_sql.should be_like("
+              (`users`.`id` <=> 1 OR `users`.`name` <=> 'name')
+            ")
+          end
+        end
+      end
+
+      describe And do
+        describe "#to_sql" do
+          it "manufactures sql with an AND operation" do
+            And.new(@operand1, @operand2).to_sql.should be_like("
+              (`users`.`id` <=> 1 AND `users`.`name` <=> 'name')
+            ")
+          end
+        end
+      end
+    end
+    
     describe '#to_sql' do
       describe 'when relating two attributes' do
         it 'manufactures sql with a binary operation' do

@@ -1,5 +1,12 @@
 module Arel
   class Predicate
+    def or(other_predicate)
+      Or.new(self, other_predicate)
+    end
+    
+    def and(other_predicate)
+      And.new(self, other_predicate)
+    end
   end
 
   class Binary < Predicate
@@ -20,6 +27,20 @@ module Arel
       "#{operand1.to_sql} #{predicate_sql} #{operand1.format(operand2)}"
     end
     alias_method :to_s, :to_sql
+  end
+  
+  class CompoundPredicate < Binary
+    def to_sql(formatter = nil)
+      "(#{operand1.to_sql(formatter)} #{predicate_sql} #{operand2.to_sql(formatter)})"
+    end
+  end
+  
+  class Or < CompoundPredicate
+    def predicate_sql; "OR" end
+  end
+  
+  class And < CompoundPredicate
+    def predicate_sql; "AND" end
   end
 
   class Equality < Binary
