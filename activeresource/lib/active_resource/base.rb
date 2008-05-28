@@ -298,7 +298,7 @@ module ActiveResource
         @timeout = timeout
       end
 
-      # Gets tthe number of seconds after which requests to the REST API should time out.
+      # Gets the number of seconds after which requests to the REST API should time out.
       def timeout
         if defined?(@timeout)
           @timeout
