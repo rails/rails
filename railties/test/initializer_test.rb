@@ -173,7 +173,7 @@ uses_mocha "Initializer plugin loading tests" do
     def test_all_plugins_are_loaded_when_registered_plugin_list_is_untouched
       failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
       load_plugins!
-      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @initializer.loaded_plugins, failure_tip
+      assert_plugins [:a, :acts_as_chunky_bacon, :gemlike, :plugin_with_no_lib_dir, :stubby], @initializer.loaded_plugins, failure_tip
     end
 
     def test_all_plugins_loaded_when_all_is_used
@@ -181,7 +181,7 @@ uses_mocha "Initializer plugin loading tests" do
       only_load_the_following_plugins! plugin_names
       load_plugins!
       failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-      assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :plugin_with_no_lib_dir], @initializer.loaded_plugins, failure_tip
+      assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :gemlike, :plugin_with_no_lib_dir], @initializer.loaded_plugins, failure_tip
     end
 
     def test_all_plugins_loaded_after_all
@@ -189,7 +189,7 @@ uses_mocha "Initializer plugin loading tests" do
       only_load_the_following_plugins! plugin_names
       load_plugins!
       failure_tip = "It's likely someone has added a new plugin fixture without updating this list"
-      assert_plugins [:stubby, :a, :plugin_with_no_lib_dir, :acts_as_chunky_bacon], @initializer.loaded_plugins, failure_tip
+      assert_plugins [:stubby, :a, :gemlike, :plugin_with_no_lib_dir, :acts_as_chunky_bacon], @initializer.loaded_plugins, failure_tip
     end
 
     def test_plugin_names_may_be_strings
