@@ -298,7 +298,7 @@ module ActiveResource
         @timeout = timeout
       end
 
-      # Gets tthe number of seconds after which requests to the REST API should time out.
+      # Gets the number of seconds after which requests to the REST API should time out.
       def timeout
         if defined?(@timeout)
           @timeout
@@ -426,16 +426,16 @@ module ActiveResource
 
       alias_method :set_primary_key, :primary_key=  #:nodoc:
 
-      # Create a new resource instance and request to the remote service
+      # Creates a new resource instance and makes a request to the remote service
       # that it be saved, making it equivalent to the following simultaneous calls:
       #
       #   ryan = Person.new(:first => 'ryan')
       #   ryan.save
       #
-      # The newly created resource is returned.  If a failure has occurred an
-      # exception will be raised (see save).  If the resource is invalid and
-      # has not been saved then valid? will return <tt>false</tt>,
-      # while new? will still return <tt>true</tt>.
+      # Returns the newly created resource.  If a failure has occurred an
+      # exception will be raised (see <tt>save</tt>).  If the resource is invalid and
+      # has not been saved then <tt>valid?</tt> will return <tt>false</tt>,
+      # while <tt>new?</tt> will still return <tt>true</tt>.
       #
       # ==== Examples
       #   Person.create(:name => 'Jeremy', :email => 'myname@nospam.com', :enabled => true)
