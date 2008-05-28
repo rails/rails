@@ -20,6 +20,7 @@ users.delete().where(
   - rewrite of arecord querycache test in light of this
 - transactions
 - scoped writes
+- asc/desc for orderings
 
 done:
 - and/or w/ predicates
