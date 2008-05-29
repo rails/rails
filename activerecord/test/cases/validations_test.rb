@@ -583,6 +583,12 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_nil t.errors.on(:title)
   end
 
+  def test_validate_format_with_formatted_message
+    Topic.validates_format_of(:title, :with => /^Valid Title$/, :message => "can't be %s")
+    t = Topic.create(:title => 'Invalid title')
+    assert_equal "can't be Invalid title", t.errors.on(:title)
+  end
+
   def test_validates_inclusion_of
     Topic.validates_inclusion_of( :title, :in => %w( a b c d e f g ) )
 
