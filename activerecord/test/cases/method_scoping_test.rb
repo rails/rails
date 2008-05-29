@@ -50,6 +50,22 @@ class MethodScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_scoped_find_select
+    Developer.with_scope(:find => { :select => "id, name" }) do
+      developer = Developer.find(:first, :conditions => "name = 'David'")
+      assert_equal "David", developer.name
+      assert !developer.has_attribute?(:salary)
+    end
+  end
+
+  def test_options_select_replaces_scope_select
+    Developer.with_scope(:find => { :select => "id, name" }) do
+      developer = Developer.find(:first, :select => 'id, salary', :conditions => "name = 'David'")
+      assert_equal 80000, developer.salary
+      assert !developer.has_attribute?(:name)
+    end
+  end
+
   def test_scoped_count
     Developer.with_scope(:find => { :conditions => "name = 'David'" }) do
       assert_equal 1, Developer.count
