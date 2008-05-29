@@ -1,14 +1,6 @@
 require 'active_support/test_case'
 
 module ActionView
-  class NonInferrableHelperError < ActionViewError
-    def initialize(name)
-      super "Unable to determine the helper to test from #{name}. " +
-        "You'll need to specify it using tests YourHelper in your " +
-        "test case definition"
-    end
-  end
-
   class TestCase < ActiveSupport::TestCase
     class_inheritable_accessor :helper_class
     @@helper_class = nil
@@ -29,7 +21,7 @@ module ActionView
       def determine_default_helper_class(name)
         name.sub(/Test$/, '').constantize
       rescue NameError
-        raise NonInferrableHelperError.new(name)
+        nil
       end
     end
 
@@ -42,7 +34,9 @@ module ActionView
     setup :setup_with_helper_class
 
     def setup_with_helper_class
-      self.class.send(:include, helper_class)
+      if helper_class && !self.class.ancestors.include?(helper_class)
+        self.class.send(:include, helper_class)
+      end
     end
 
     class TestController < ActionController::Base

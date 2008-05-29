@@ -202,7 +202,7 @@ class TimeZone
 
   # Returns a textual representation of this time zone.
   def to_s
-    "(UTC#{formatted_offset}) #{name}"
+    "(GMT#{formatted_offset}) #{name}"
   end
 
   # Method for creating new ActiveSupport::TimeWithZone instance in time zone of +self+ from given values. Example:
