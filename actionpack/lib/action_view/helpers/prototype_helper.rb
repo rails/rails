@@ -868,6 +868,16 @@ module ActionView
             record "window.location.href = #{url.inspect}"
           end
           
+          # Reloads the browser's current +location+ using JavaScript
+          #
+          # Examples:
+          #
+          #  # Generates: window.location.reload();
+          #  page.reload
+          def reload
+            record 'window.location.reload()'
+          end
+
           # Calls the JavaScript +function+, optionally with the given +arguments+.
           #
           # If a block is given, the block will be passed to a new JavaScriptGenerator;
