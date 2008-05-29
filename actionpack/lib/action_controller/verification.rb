@@ -116,7 +116,7 @@ module ActionController #:nodoc:
     end
     
     def apply_redirect_to(redirect_to_option) # :nodoc:
-      redirect_to_option.is_a?(Symbol) ? self.send!(redirect_to_option) : redirect_to_option
+      (redirect_to_option.is_a?(Symbol) && redirect_to_option != :back) ? self.send!(redirect_to_option) : redirect_to_option
     end
     
     def apply_remaining_actions(options) # :nodoc:
