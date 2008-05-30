@@ -266,16 +266,15 @@ Great - now you are ready to start development.  The first thing we'll do is to 
 
     # File: vendor/plugins/yaffle/lib/core_ext.rb
 
-    class String
-      # returns the current string, prefixed by "squawk!"
+    String.class_eval do
       def to_squawk
         "squawk! #{self}".strip
       end
     end
 
-To test that your method does what it says it does, run the unit tests.  To make sure your code is picked up by 
+When monkey-patching existing classes it's often better to use `class_eval` instead of opening the class directly.
 
-To test this, fire up a console and start squawking:
+To test that your method does what it says it does, run the unit tests.  To test this manually, fire up a console and start squawking:
 
     script/console
     >> "Hello World".to_squawk
@@ -824,3 +823,40 @@ References
 * [http://nubyonrails.com/articles/2006/05/09/the-complete-guide-to-rails-plugins-part-ii](http://nubyonrails.com/articles/2006/05/09/the-complete-guide-to-rails-plugins-part-ii)
 * [http://github.com/technoweenie/attachment_fu/tree/master](http://github.com/technoweenie/attachment_fu/tree/master)
 * [http://daddy.platte.name/2007/05/rails-plugins-keep-initrb-thin.html](http://daddy.platte.name/2007/05/rails-plugins-keep-initrb-thin.html)
+
+Appendices
+------------------------
+
+The final plugin should have a directory structure that looks something like this:
+
+    |-- MIT-LICENSE
+    |-- README
+    |-- Rakefile
+    |-- generators
+    |   `-- yaffle
+    |       |-- USAGE
+    |       |-- templates
+    |       |   `-- definition.txt
+    |       `-- yaffle_generator.rb
+    |-- init.rb
+    |-- install.rb
+    |-- lib
+    |   |-- acts_as_yaffle.rb
+    |   |-- commands.rb
+    |   |-- core_ext.rb
+    |   |-- routing.rb
+    |   `-- view_helpers.rb
+    |-- tasks
+    |   `-- yaffle_tasks.rake
+    |-- test
+    |   |-- acts_as_yaffle_test.rb
+    |   |-- core_ext_test.rb
+    |   |-- database.yml
+    |   |-- debug.log
+    |   |-- routing_test.rb
+    |   |-- schema.rb
+    |   |-- test_helper.rb
+    |   `-- view_helpers_test.rb
+    |-- uninstall.rb
+    `-- yaffle_plugin.sqlite3.db
+
