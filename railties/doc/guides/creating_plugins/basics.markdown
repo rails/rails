@@ -10,7 +10,7 @@ Core Extensions - extending String:
     # Anywhere
     "hello".squawk # => "squawk! hello! squawk!"
 
-An acts\_as\_yaffle method for Active Record models that adds a "squawk" method:
+An `acts_as_yaffle` method for Active Record models that adds a "squawk" method:
 
     class Hickwall < ActiveRecord::Base
       acts_as_yaffle :yaffle_text_field => :last_sang_at
@@ -46,6 +46,7 @@ In addition you'll learn how to:
 * test your plugins
 * work with init.rb, how to store model, views, controllers, helpers and even other plugins in your plugins
 * create documentation for your plugin.
+* write custom rake tasks in your plugin
 
 Create the basic app
 ---------------------
@@ -105,7 +106,7 @@ For this plugin you won't need the file vendor/plugins/yaffle/lib/yaffle.rb so y
 > Editor's note:  many plugin authors prefer to keep this file, and add all of the require statements in it.  That way, they only line in init.rb would be `require "yaffle"` 
 > If you are developing a plugin that has a lot of files in the lib directory, you may want to create a subdirectory like lib/yaffle and store your files in there.  That way your init.rb file stays clean
 
-Testing Setup
+Setup the plugin for testing
 ------------------------
 
 Testing plugins that use the entire Rails stack can be complex, and the generator doesn't offer any help.  In this tutorial you will learn how to test your plugin against multiple different adapters using ActiveRecord.  This tutorial will not cover how to use fixtures in plugin tests.
@@ -199,7 +200,7 @@ For this plugin you'll need 2 tables/models, Hickwalls and Wickwalls, so add the
       acts_as_yaffle :yaffle_text_field => :last_tweet, :yaffle_date_field => :last_tweeted_at
     end
   
-Update a core class: Adding "to\_squawk" to String
+Add a `to_squawk` method to String
 -----------------------
 
 To update a core class you will have to:
@@ -282,7 +283,7 @@ To test this, fire up a console and start squawking:
 
 If that worked, congratulations!  You just created your first test-driven plugin that extends a core ruby class.
 
-Adding an `acts_as_yaffle` method to ActiveRecord models
+Add an `acts_as_yaffle` method to ActiveRecord
 -----------------------  
 
 A common pattern in plugins is to add a method called `acts_as_something` to models.  In this case, you want to write a method called `acts_as_yaffle` that adds a squawk method to your models.
@@ -328,7 +329,7 @@ With structure you can easily separate the methods that will be used for the cla
 
 Let's add class method named `acts_as_yaffle` - testing it out first.  You already defined the ActiveRecord models in your test helper, so if you run tests now they will fail.
 
-Back in your `acts\_as\_yaffle` file, update ClassMethods like so:
+Back in your `acts_as_yaffle` file, update ClassMethods like so:
 
     module ClassMethods
       def acts_as_yaffle(options = {})
@@ -585,7 +586,7 @@ You will see a new file:
       end
     end
 
-Adding custom generator commands
+Add a custom generator command
 ------------------------
 
 You may have noticed above that you can used one of the built-in rails migration commands `m.migration_template`.  You can create your own commands for these, using the following steps:
@@ -647,7 +648,7 @@ Working with the internals of generators is beyond the scope of this tutorial, b
     
 This example just uses the built-in "file" method, but you could do anything that ruby allows.
       
-Adding Routes
+Add a Custom Route
 ------------------------
 
 Testing routes in plugins can be complex, especially if the controllers are also in the plugin itself.  Jamis Buck showed a great example of this in [http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2](http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2)
@@ -726,7 +727,7 @@ Once your comments are good to go, navigate to your plugin directory and run
 
     rake rdoc
   
-Working with init.rb
+Work with init.rb
 ------------------------
 
 The plugin initializer script init.rb is invoked via `eval` (not require) so it has slightly different behavior. 
@@ -743,7 +744,7 @@ The first way is to explicitly define the top-level module space for all modules
       end
     end
 
-OR you can use module\_eval or class\_eval
+OR you can use `module_eval` or `class_eval`
   
     # File: vendor/plugins/yaffle/init.rb
 
@@ -753,7 +754,7 @@ OR you can use module\_eval or class\_eval
       end
     end  
 
-Storing models, views, helpers, and controllers in your plugins
+Store models, views, helpers, and controllers in your plugins
 ------------------------
 
 You can easily store models, views, helpers and controllers in plugins.  Just create a folder for each in the lib folder, add them to the load path and remove them from the load once path:
@@ -771,7 +772,7 @@ Adding directories to the load path makes them appear just like files in the the
     
 Adding directories to the load once paths allow those changes to picked up as soon as you save the file - without having to restart the web server.
 
-Writing custom rake tasks in your plugin
+Write custom rake tasks in your plugin
 -------------------------
 
 When you created the plugin with the built-in rails generator, it generated a rake file for you in `vendor/plugins/yaffle/tasks/yaffle.rake`.  Any rake task you add here will be available to the app.
@@ -793,7 +794,7 @@ When you run `rake -T` from your plugin you will see
 
 You can add as many files as you want in the tasks directory, and if they end in .rake Rails will pick them up.
 
-Storing plugins in alternate locations
+Store plugins in alternate locations
 -------------------------
 
 You can store plugins wherever you want - you just have to add those plugins to the plugins path in environment.rb
@@ -804,15 +805,15 @@ You can even store plugins inside of other plugins for complete plugin madness!
 
     config.plugin_paths << File.join(RAILS_ROOT,"vendor","plugins","yaffle","lib","plugins")
 
-Plugin Loaders and Plugin Locators
+Create your own Plugin Loaders and Plugin Locators
 ------------------------
 
 If the built-in plugin behavior is inadequate, you can change almost every aspect of the location and loading process.  You can write your own plugin locators and plugin loaders, but that's beyond the scope of this tutorial.
 
-Custom Plugin Generators
+Use Custom Plugin Generators
 ------------------------
 
-If you are an RSpec fan, you can install the rspec\_plugin\_generator, which will generate the spec folder and database for you.
+If you are an RSpec fan, you can install the `rspec_plugin_generator`, which will generate the spec folder and database for you.
 
 [http://github.com/pat-maddox/rspec-plugin-generator/tree/master](http://github.com/pat-maddox/rspec-plugin-generator/tree/master)
 
