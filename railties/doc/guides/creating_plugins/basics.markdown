@@ -771,6 +771,28 @@ Adding directories to the load path makes them appear just like files in the the
     
 Adding directories to the load once paths allow those changes to picked up as soon as you save the file - without having to restart the web server.
 
+Writing custom rake tasks in your plugin
+-------------------------
+
+When you created the plugin with the built-in rails generator, it generated a rake file for you in `vendor/plugins/yaffle/tasks/yaffle.rake`.  Any rake task you add here will be available to the app.
+
+Many plugin authors put all of their rake tasks into a common namespace that is the same as the plugin, like so:
+
+    # File: vendor/plugins/yaffle/tasks/yaffle.rake
+
+    namespace :yaffle do
+      desc "Prints out the word 'Yaffle'"
+      task :squawk => :environment do
+        puts "squawk!"
+      end
+    end
+
+When you run `rake -T` from your plugin you will see
+
+  yaffle:squawk "Prints out..."
+
+You can add as many files as you want in the tasks directory, and if they end in .rake Rails will pick them up.
+
 Storing plugins in alternate locations
 -------------------------
 
