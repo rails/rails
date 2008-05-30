@@ -350,6 +350,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "Another Client", new_client.name
     assert new_client.new_record?
     assert_equal new_client, company.clients_of_firm.last
+    company.name += '-changed'
     assert_queries(2) { assert company.save }
     assert !new_client.new_record?
     assert_equal 2, company.clients_of_firm(true).size
@@ -360,6 +361,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     new_clients = assert_no_queries { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
     
     assert_equal 2, new_clients.size
+    company.name += '-changed'
     assert_queries(3) { assert company.save }
     assert_equal 3, company.clients_of_firm(true).size
   end
