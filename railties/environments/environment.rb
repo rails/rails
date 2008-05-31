@@ -64,7 +64,4 @@ Rails::Initializer.run do |config|
 
   # Activate observers that should always be running
   # config.active_record.observers = :cacher, :garbage_collector
-
-  # Make ActiveRecord only save the attributes that have changed since the record was loaded.
-  # config.active_record.partial_updates = true
 end
