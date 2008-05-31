@@ -36,7 +36,6 @@ module Rails
       end
       @load_paths_added = true
     rescue Gem::LoadError
-      puts $!.to_s
     end
     
     def dependencies

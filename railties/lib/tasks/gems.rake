@@ -1,5 +1,5 @@
 desc "List the gems that this rails application depends on"
-task :gems => :environment do
+task :gems => 'gems:base' do
   Rails.configuration.gems.each do |gem|
     code = gem.loaded? ? (gem.frozen? ? "F" : "I") : " "
     puts "[#{code}] #{gem.name} #{gem.requirement.to_s}"
@@ -10,8 +10,14 @@ task :gems => :environment do
 end
 
 namespace :gems do
+  task :base do
+    $rails_gem_installer = true
+    Rake::Task[:environment].invoke
+  end
+
   desc "Build any native extensions for unpacked gems"
   task :build do
+    $rails_gem_installer = true
     require 'rails/gem_builder'
     Dir[File.join(RAILS_ROOT, 'vendor', 'gems', '*')].each do |gem_dir|
       spec_file = File.join(gem_dir, '.specification')
@@ -24,14 +30,14 @@ namespace :gems do
   end
   
   desc "Installs all required gems for this application."
-  task :install => :environment do
+  task :install => :base do
     require 'rubygems'
     require 'rubygems/gem_runner'
     Rails.configuration.gems.each { |gem| gem.install unless gem.loaded? }
   end
 
   desc "Unpacks the specified gem into vendor/gems."
-  task :unpack => :environment do
+  task :unpack => :base do
     require 'rubygems'
     require 'rubygems/gem_runner'
     Rails.configuration.gems.each do |gem|
