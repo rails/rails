@@ -73,7 +73,9 @@ module Rails
     end
 
     def install
-      puts `#{gem_command} #{install_command.join(' ')}`
+      cmd = "#{gem_command} #{install_command.join(' ')}"
+      puts cmd
+      puts %x(#{cmd})
     end
     
     def unpack_to(directory)
@@ -107,7 +109,7 @@ private ###################################################################
 
     def install_command
       cmd = %w(install) << @name
-      cmd << "--version" << "#{@requirement.to_s}" if @requirement
+      cmd << "--version" << %("#{@requirement.to_s}") if @requirement
       cmd << "--source"  << @source  if @source
       cmd
     end
