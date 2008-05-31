@@ -288,7 +288,7 @@ module ActiveResource
       end
 
       # Returns the current format, default is ActiveResource::Formats::XmlFormat.
-      def format # :nodoc:
+      def format
         read_inheritable_attribute("format") || ActiveResource::Formats[:xml]
       end
 
@@ -812,7 +812,7 @@ module ActiveResource
     #   Person.delete(guys_id)
     #   that_guy.exists? # => false
     def exists?
-      !new? && self.class.exists?(to_param, :params => prefix_options)      
+      !new? && self.class.exists?(to_param, :params => prefix_options)
     end
 
     # A method to convert the the resource to an XML string.
