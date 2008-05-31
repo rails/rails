@@ -40,13 +40,15 @@ module ActiveSupport::Multibyte #:nodoc:
       # core dumps. Don't go there.
       @string
     end
-    
+
     # Make duck-typing with String possible
-    def respond_to?(method)
-      super || @string.respond_to?(method) || handler.respond_to?(method) ||
-        (method.to_s =~ /(.*)!/ && handler.respond_to?($1)) || false
+    def respond_to?(method, include_priv = false)
+      super || @string.respond_to?(method, include_priv) ||
+        handler.respond_to?(method, include_priv) ||
+        (method.to_s =~ /(.*)!/ && handler.respond_to?($1, include_priv)) ||
+        false
     end
-    
+
     # Create a new Chars instance.
     def initialize(str)
       @string = str.respond_to?(:string) ? str.string : str
