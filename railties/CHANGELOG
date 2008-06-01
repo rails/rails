@@ -1,10 +1,4 @@
-*SVN*
-
-* Consolidate error messages for missing gems, and skip them when running rake gems:* tasks.  [rick]
-
-* Use a system command to install gems, since GemRunner exits the ruby process.  #210 [Tim Morgan]
-
-*2.1.0 RC1 (May 11th, 2008)*
+*2.1.0 (May 31st, 2008)*
 
 * script/dbconsole fires up the command-line database client.  #102 [Steve Purcell]
 
