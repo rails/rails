@@ -1293,6 +1293,10 @@ module ActiveRecord #:nodoc:
         super
       end
 
+      def sti_name
+        store_full_sti_class ? name : name.demodulize
+      end
+
       private
         def find_initial(options)
           options.update(:limit => 1)
@@ -1452,7 +1456,11 @@ module ActiveRecord #:nodoc:
         # Nest the type name in the same module as this class.
         # Bar is "MyApp::Business::Bar" relative to MyApp::Business::Foo
         def type_name_with_module(type_name)
-          (/^::/ =~ type_name) ? type_name : "#{parent.name}::#{type_name}"
+          if store_full_sti_class
+            type_name
+          else
+            (/^::/ =~ type_name) ? type_name : "#{parent.name}::#{type_name}"
+          end
         end
 
         def construct_finder_sql(options)
@@ -1571,8 +1579,8 @@ module ActiveRecord #:nodoc:
 
         def type_condition
           quoted_inheritance_column = connection.quote_column_name(inheritance_column)
-          type_condition = subclasses.inject("#{quoted_table_name}.#{quoted_inheritance_column} = '#{store_full_sti_class ? name : name.demodulize}' ") do |condition, subclass|
-            condition << "OR #{quoted_table_name}.#{quoted_inheritance_column} = '#{store_full_sti_class ? subclass.name : subclass.name.demodulize}' "
+          type_condition = subclasses.inject("#{quoted_table_name}.#{quoted_inheritance_column} = '#{sti_name}' ") do |condition, subclass|
+            condition << "OR #{quoted_table_name}.#{quoted_inheritance_column} = '#{subclass.sti_name}' "
           end
 
           " (#{type_condition}) "
@@ -2508,7 +2516,7 @@ module ActiveRecord #:nodoc:
       # Message class in that example.
       def ensure_proper_type
         unless self.class.descends_from_active_record?
-          write_attribute(self.class.inheritance_column, store_full_sti_class ? self.class.name : self.class.name.demodulize)
+          write_attribute(self.class.inheritance_column, self.class.sti_name)
         end
       end
 
