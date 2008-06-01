@@ -12,13 +12,13 @@ ActiveRecord::Base.logger = RAILS_DEFAULT_LOGGER
 ActiveRecord::Base.configurations = {
   'arunit' => {
     :adapter  => 'mysql',
-    :username => 'root',
+    :username => 'rails',
     :encoding => 'utf8',
     :database => 'activerecord_unittest',
   },
   'arunit2' => {
     :adapter  => 'mysql',
-    :username => 'root',
+    :username => 'rails',
     :database => 'activerecord_unittest2'
   }
 }
