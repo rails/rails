@@ -102,6 +102,7 @@ ActiveRecord::Schema.define do
     t.string  :type
     t.string  :ruby_type
     t.integer :firm_id
+    t.string  :firm_name
     t.string  :name
     t.integer :client_of
     t.integer :rating, :default => 1

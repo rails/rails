@@ -19,6 +19,14 @@ module ActiveRecord
       end
 
       protected
+        def owner_quoted_id
+          if @reflection.options[:primary_key]
+            quote_value(@owner.send(@reflection.options[:primary_key]))
+          else
+            @owner.quoted_id
+          end
+        end
+
         def count_records
           count = if has_cached_counter?
             @owner.send(:read_attribute, cached_counter_attribute_name)

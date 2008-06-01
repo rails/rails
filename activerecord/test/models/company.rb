@@ -46,6 +46,8 @@ class Firm < Company
   has_many :clients_using_finder_sql, :class_name => "Client", :finder_sql => 'SELECT * FROM companies WHERE 1=1'
   has_many :plain_clients, :class_name => 'Client'
   has_many :readonly_clients, :class_name => 'Client', :readonly => true
+  has_many :clients_using_primary_key, :class_name => 'Client',
+           :primary_key => 'name', :foreign_key => 'firm_name'
 
   has_one :account, :foreign_key => "firm_id", :dependent => :destroy, :validate => true
   has_one :unvalidated_account, :foreign_key => "firm_id", :class_name => 'Account', :validate => false

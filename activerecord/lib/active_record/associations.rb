@@ -663,6 +663,7 @@ module ActiveRecord
       # * <tt>:foreign_key</tt> - Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_many+ association will use "person_id"
       #   as the default <tt>:foreign_key</tt>.
+      # * <tt>:primary_key</tt> - Specify the method that returns the primary key used for the association. By default this is +id+.
       # * <tt>:dependent</tt> - If set to <tt>:destroy</tt> all the associated objects are destroyed
       #   alongside this object by calling their +destroy+ method.  If set to <tt>:delete_all</tt> all associated
       #   objects are deleted *without* calling their +destroy+ method.  If set to <tt>:nullify</tt> all associated
@@ -678,7 +679,7 @@ module ActiveRecord
       # * <tt>:limit</tt> - An integer determining the limit on the number of rows that should be returned.
       # * <tt>:offset</tt> - An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
       # * <tt>:select</tt> - By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if you, for example, want to do a join
-      #   but not include the joined columns. Do not forget to include the primary and foreign keys, otherwise it will rise an error.
+      #   but not include the joined columns. Do not forget to include the primary and foreign keys, otherwise it will raise an error.
       # * <tt>:as</tt> - Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # * <tt>:through</tt> - Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt>
       #   are ignored, as the association uses the source reflection. You can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>
@@ -1347,7 +1348,7 @@ module ActiveRecord
 
         def create_has_many_reflection(association_id, options, &extension)
           options.assert_valid_keys(
-            :class_name, :table_name, :foreign_key,
+            :class_name, :table_name, :foreign_key, :primary_key,
             :dependent,
             :select, :conditions, :include, :order, :group, :limit, :offset,
             :as, :through, :source, :source_type,

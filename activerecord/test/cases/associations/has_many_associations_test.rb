@@ -129,6 +129,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "Microsoft", Firm.find(:first).clients_like_ms_with_hash_conditions.first.name
   end
 
+  def test_finding_using_primary_key
+    assert_equal "Summit", Firm.find(:first).clients_using_primary_key.first.name
+  end
+
   def test_finding_using_sql
     firm = Firm.find(:first)
     first_client = firm.clients_using_sql.first
