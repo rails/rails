@@ -1,3 +1,6 @@
+* Added Rack processor [Ezra Zygmuntowicz, Josh Peek]
+
+
 *2.1.0 (May 31st, 2008)*
 
 * InstanceTag#default_time_from_options overflows to DateTime [Geoff Buesing]

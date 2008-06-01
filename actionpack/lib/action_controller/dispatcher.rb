@@ -96,7 +96,7 @@ module ActionController
     include ActiveSupport::Callbacks
     define_callbacks :prepare_dispatch, :before_dispatch, :after_dispatch
 
-    def initialize(output, request = nil, response = nil)
+    def initialize(output = $stdout, request = nil, response = nil)
       @output, @request, @response = output, request, response
     end
 
@@ -121,6 +121,12 @@ module ActionController
       end
     rescue Exception => exception
       failsafe_rescue exception
+    end
+
+    def call(env)
+      @request = RackRequest.new(env)
+      @response = RackResponse.new
+      dispatch
     end
 
     def reload_application
