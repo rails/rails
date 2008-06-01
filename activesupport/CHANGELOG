@@ -1,3 +1,5 @@
+*2.1.0 (May 31st, 2008)*
+
 * TimeZone#to_s shows offset as GMT instead of UTC, because GMT will be more familiar to end users (see time zone selects used by Windows OS, google.com and yahoo.com.) Reverts [8370] [Geoff Buesing]
 
 * Hash.from_xml: datetime xml types overflow to Ruby DateTime class when out of range of Time. Adding tests for utc offsets [Geoff Buesing]
@@ -5,8 +7,6 @@
 * TimeWithZone #+ and #- : ensure overflow to DateTime with Numeric arg [Geoff Buesing]
 
 * Time#to_json: don't convert to utc before encoding. References #175 [Geoff Buesing]
-
-*2.1.0 RC1 (May 11th, 2008)*
 
 * Remove unused JSON::RESERVED_WORDS, JSON.valid_identifier? and JSON.reserved_word? methods. Resolves #164. [Cheah Chu Yeow]
 
