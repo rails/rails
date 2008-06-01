@@ -8,6 +8,7 @@ require 'rails/version'
 require 'rails/plugin/locator'
 require 'rails/plugin/loader'
 require 'rails/gem_dependency'
+require 'rails/rack'
 
 
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
