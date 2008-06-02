@@ -99,6 +99,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_return_zero_if_sum_conditions_return_nothing
     assert_equal 0, Account.sum(:credit_limit, :conditions => '1 = 2')
+    assert_equal 0, companies(:rails_core).companies.sum(:id, :conditions => '1 = 2')
   end
 
   def test_should_group_by_summed_field_with_conditions
@@ -266,6 +267,6 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_sum_expression
-    assert_equal "636", Account.sum("2 * credit_limit")
+    assert_equal 636, Account.sum("2 * credit_limit")
   end
 end
