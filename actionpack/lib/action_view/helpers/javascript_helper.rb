@@ -179,13 +179,7 @@ module ActionView
           content = content_or_options_with_block
         end
 
-        javascript_tag = content_tag("script", javascript_cdata_section(content), html_options.merge(:type => Mime::JS))
-        
-        if block_given? && block_is_within_action_view?(block)
-          concat(javascript_tag, block.binding)
-        else
-          javascript_tag
-        end
+        concat(content_tag("script", javascript_cdata_section(content), html_options.merge(:type => Mime::JS)))
       end
 
       def javascript_cdata_section(content) #:nodoc:

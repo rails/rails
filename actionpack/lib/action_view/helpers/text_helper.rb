@@ -15,17 +15,17 @@ module ActionView
       #
       # ==== Examples
       #   <%
-      #       concat "hello", binding
+      #       concat "hello"
       #       # is the equivalent of <%= "hello" %>
       #
       #       if (logged_in == true):
-      #         concat "Logged in!", binding
+      #         concat "Logged in!"
       #       else
-      #         concat link_to('login', :action => login), binding
+      #         concat link_to('login', :action => login)
       #       end
       #       # will either display "Logged in!" or a login link
       #   %>
-      def concat(string, binding = nil)
+      def concat(string)
         if @output_buffer
           @output_buffer << string
         else

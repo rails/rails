@@ -257,7 +257,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
         if partial_layout = options.delete(:layout)
           if block_given?
             wrap_content_for_layout capture(&block) do 
-              concat(render(options.merge(:partial => partial_layout)), block.binding)
+              concat(render(options.merge(:partial => partial_layout)))
             end
           else
             wrap_content_for_layout render(options) do
