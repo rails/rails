@@ -8,6 +8,7 @@ require 'rails/version'
 require 'rails/plugin/locator'
 require 'rails/plugin/loader'
 require 'rails/gem_dependency'
+require 'rails/rack'
 
 
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
@@ -140,7 +141,8 @@ module Rails
       # pick up any gems that plugins depend on
       add_gem_load_paths
       load_gems
-
+      check_gem_dependencies
+      
       load_application_initializers
 
       # the framework is now fully initialized
@@ -153,6 +155,7 @@ module Rails
       initialize_routing
 
       # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
+      
       load_observers
     end
 
@@ -241,7 +244,24 @@ module Rails
     end
 
     def load_gems
-      @configuration.gems.each &:load
+      @configuration.gems.each(&:load)
+    end
+
+    def check_gem_dependencies
+      unloaded_gems = @configuration.gems.reject { |g| g.loaded? }
+      if unloaded_gems.size > 0
+        @gems_dependencies_loaded = false
+        # don't print if the gems rake tasks are being run
+        unless $rails_gem_installer
+          puts %{These gems that this application depends on are missing:}
+          unloaded_gems.each do |gem|
+            puts " - #{gem.name}"
+          end
+          puts %{Run "rake gems:install" to install them.}
+        end
+      else
+        @gems_dependencies_loaded = true
+      end
     end
 
     # Loads all plugins in <tt>config.plugin_paths</tt>.  <tt>plugin_paths</tt>
@@ -287,12 +307,8 @@ module Rails
     end
 
     def load_observers
-      if configuration.frameworks.include?(:active_record)
-        if @configuration.gems.any? { |g| !g.loaded? }
-          puts %{Unable to instantiate observers, some gems that this application depends on are missing.  Run "rake gems:install"}
-        else
-          ActiveRecord::Base.instantiate_observers
-        end
+      if @gems_dependencies_loaded && configuration.frameworks.include?(:active_record)
+        ActiveRecord::Base.instantiate_observers
       end
     end
 
@@ -447,14 +463,18 @@ module Rails
 
     # Fires the user-supplied after_initialize block (Configuration#after_initialize)
     def after_initialize
-      configuration.after_initialize_blocks.each do |block|
-        block.call
+      if @gems_dependencies_loaded
+        configuration.after_initialize_blocks.each do |block|
+          block.call
+        end
       end
     end
 
     def load_application_initializers
-      Dir["#{configuration.root_path}/config/initializers/**/*.rb"].sort.each do |initializer|
-        load(initializer)
+      if @gems_dependencies_loaded
+        Dir["#{configuration.root_path}/config/initializers/**/*.rb"].sort.each do |initializer|
+          load(initializer)
+        end
       end
     end
 

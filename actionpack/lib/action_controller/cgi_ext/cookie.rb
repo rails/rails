@@ -78,6 +78,12 @@ class CGI #:nodoc:
       buf
     end
 
+    # FIXME: work around broken 1.8.7 DelegateClass#respond_to?
+    def respond_to?(method, include_private = false)
+      return true if super(method)
+      return __getobj__.respond_to?(method, include_private)
+    end
+
     # Parses a raw cookie string into a hash of <tt>cookie-name => cookie-object</tt>
     # pairs.
     #

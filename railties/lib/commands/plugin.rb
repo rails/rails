@@ -163,7 +163,7 @@ class Plugin
   end
   
   def git_url?
-    @uri =~ /^git:\/\// || @url =~ /\.git$/
+    @uri =~ /^git:\/\// || @uri =~ /\.git$/
   end
   
   def installed?

@@ -128,15 +128,11 @@ module ActiveRecord
       protected
         def log(sql, name)
           if block_given?
-            if @logger and @logger.debug?
-              result = nil
-              seconds = Benchmark.realtime { result = yield }
-              @runtime += seconds
-              log_info(sql, name, seconds)
-              result
-            else
-              yield
-            end
+            result = nil
+            seconds = Benchmark.realtime { result = yield }
+            @runtime += seconds
+            log_info(sql, name, seconds)
+            result
           else
             log_info(sql, name, 0)
             nil

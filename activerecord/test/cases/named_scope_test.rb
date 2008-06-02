@@ -146,4 +146,12 @@ class NamedScopeTest < ActiveRecord::TestCase
     end
   end
 
+  def test_empty_should_not_load_results
+    topics = Topic.base
+    assert_queries(2) do
+      topics.empty?  # use count query
+      topics.collect # force load
+      topics.empty?  # use loaded (no query)
+    end
+  end
 end

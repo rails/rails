@@ -12,6 +12,8 @@ require 'models/author'
 require 'models/tag'
 require 'models/tagging'
 require 'models/comment'
+require 'models/sponsor'
+require 'models/member'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -381,5 +383,30 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::ReadOnlyRecord) { companies(:first_client).readonly_firm.save! }
     assert companies(:first_client).readonly_firm.readonly?
   end
-
+  
+  def test_polymorphic_assignment_foreign_type_field_updating
+    # should update when assigning a saved record
+    sponsor = Sponsor.new
+    member = Member.create
+    sponsor.sponsorable = member
+    assert_equal "Member", sponsor.sponsorable_type
+    
+    # should update when assigning a new record
+    sponsor = Sponsor.new
+    member = Member.new
+    sponsor.sponsorable = member
+    assert_equal "Member", sponsor.sponsorable_type
+  end
+  
+  def test_polymorphic_assignment_updates_foreign_id_field_for_new_and_saved_records
+    sponsor = Sponsor.new
+    saved_member = Member.create
+    new_member = Member.new
+    
+    sponsor.sponsorable = saved_member
+    assert_equal saved_member.id, sponsor.sponsorable_id
+    
+    sponsor.sponsorable = new_member
+    assert_equal nil, sponsor.sponsorable_id
+  end
 end

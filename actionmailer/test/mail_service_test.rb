@@ -40,6 +40,15 @@ class TestMailer < ActionMailer::Base
     body       "Nothing to see here."
   end
 
+  def different_reply_to(recipient)
+    recipients recipient
+    subject    "testing reply_to"
+    from       "system@loudthinking.com"
+    sent_on    Time.local(2008, 5, 23)
+    reply_to   "atraver@gmail.com"
+    body       "Nothing to see here."
+  end
+
   def iso_charset(recipient)
     @recipients = recipient
     @subject    = "testing isø charsets"
@@ -439,6 +448,31 @@ class ActionMailerTest < Test::Unit::TestCase
 
     assert_nothing_raised do
       TestMailer.deliver_cc_bcc @recipient
+    end
+
+    assert_not_nil ActionMailer::Base.deliveries.first
+    assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
+  end
+
+  def test_reply_to
+    expected = new_mail
+
+    expected.to       = @recipient
+    expected.subject  = "testing reply_to"
+    expected.body     = "Nothing to see here."
+    expected.from     = "system@loudthinking.com"
+    expected.reply_to = "atraver@gmail.com"
+    expected.date     = Time.local 2008, 5, 23
+
+    created = nil
+    assert_nothing_raised do
+      created = TestMailer.create_different_reply_to @recipient
+    end
+    assert_not_nil created
+    assert_equal expected.encoded, created.encoded
+
+    assert_nothing_raised do
+      TestMailer.deliver_different_reply_to @recipient
     end
 
     assert_not_nil ActionMailer::Base.deliveries.first

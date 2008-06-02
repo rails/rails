@@ -11,3 +11,4 @@ actionpack/pkg
 actionmailer/pkg
 activesupport/pkg
 railties/pkg
+*.rbc

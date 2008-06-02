@@ -692,7 +692,7 @@ module ActiveRecord
         raise(ArgumentError, "A regular expression must be supplied as the :with option of the configuration hash") unless configuration[:with].is_a?(Regexp)
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
-          record.errors.add(attr_name, configuration[:message]) unless value.to_s =~ configuration[:with]
+          record.errors.add(attr_name, configuration[:message] % value) unless value.to_s =~ configuration[:with]
         end
       end
 

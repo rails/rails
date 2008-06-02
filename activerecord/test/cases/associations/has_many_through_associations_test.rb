@@ -59,6 +59,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     #    * 2 new records = 4
     # + 1 query to save the actual post = 5
     assert_queries(5) do
+      posts(:thinking).body += '-changed'
       posts(:thinking).save
     end
     
