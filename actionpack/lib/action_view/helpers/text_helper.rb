@@ -25,8 +25,12 @@ module ActionView
       #       end
       #       # will either display "Logged in!" or a login link
       #   %>
-      def concat(string, binding)
-        eval(ActionView::Base.erb_variable, binding) << string
+      def concat(string, binding = nil)
+        if @output_buffer
+          @output_buffer << string
+        else
+          string
+        end
       end
 
       if RUBY_VERSION < '1.9'

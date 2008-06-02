@@ -126,7 +126,7 @@ module ActionView
         end
 
         def block_is_within_action_view?(block)
-          eval("defined? _erbout", block.binding)
+          !@output_buffer.nil?
         end
     end
   end
