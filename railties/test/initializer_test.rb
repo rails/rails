@@ -38,27 +38,28 @@ class Initializer_after_initialize_with_blocks_environment_Test < Test::Unit::Te
     end
     config.after_initialize do
       $test_after_initialize_block2 = "congratulations"
-    end    
+    end
     assert_nil $test_after_initialize_block1
-    assert_nil $test_after_initialize_block2    
+    assert_nil $test_after_initialize_block2
 
+    Rails::Initializer.any_instance.expects(:gems_dependencies_loaded).returns(true)
     Rails::Initializer.run(:after_initialize, config)
   end
-  
+
   def teardown
     $test_after_initialize_block1 = nil
-    $test_after_initialize_block2 = nil    
+    $test_after_initialize_block2 = nil
   end
 
   def test_should_have_called_the_first_after_initialize_block
     assert_equal "success", $test_after_initialize_block1
   end
-  
+
   def test_should_have_called_the_second_after_initialize_block
     assert_equal "congratulations", $test_after_initialize_block2
   end
 end
-  
+
 class Initializer_after_initialize_with_no_block_environment_Test < Test::Unit::TestCase
 
   def setup
@@ -69,15 +70,16 @@ class Initializer_after_initialize_with_no_block_environment_Test < Test::Unit::
     config.after_initialize # don't pass a block, this is what we're testing!
     config.after_initialize do
       $test_after_initialize_block2 = "congratulations"
-    end    
+    end
     assert_nil $test_after_initialize_block1
 
+    Rails::Initializer.any_instance.expects(:gems_dependencies_loaded).returns(true)
     Rails::Initializer.run(:after_initialize, config)
   end
 
   def teardown
     $test_after_initialize_block1 = nil
-    $test_after_initialize_block2 = nil    
+    $test_after_initialize_block2 = nil
   end
 
   def test_should_have_called_the_first_after_initialize_block
@@ -95,7 +97,7 @@ uses_mocha 'framework paths' do
     def setup
       @config = Rails::Configuration.new
       @config.frameworks.clear
-      
+
       File.stubs(:directory?).returns(true)
       @config.stubs(:framework_root_path).returns('')
     end
@@ -112,7 +114,7 @@ uses_mocha 'framework paths' do
     def test_actioncontroller_or_actionview_add_actionpack
       @config.frameworks << :action_controller
       assert_framework_path '/actionpack/lib'
-      
+
       @config.frameworks = [:action_view]
       assert_framework_path '/actionpack/lib'
     end
@@ -204,22 +206,22 @@ uses_mocha "Initializer plugin loading tests" do
         load_plugins!
       end
     end
-    
+
     def test_should_ensure_all_loaded_plugins_load_paths_are_added_to_the_load_path
       only_load_the_following_plugins! [:stubby, :acts_as_chunky_bacon]
 
       @initializer.add_plugin_load_paths
-      
+
       assert $LOAD_PATH.include?(File.join(plugin_fixture_path('default/stubby'), 'lib'))
       assert $LOAD_PATH.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))
     end
-    
+
     private
-    
+
       def load_plugins!
         @initializer.add_plugin_load_paths
         @initializer.load_plugins
       end
   end
-  
-end  
+
+end
