@@ -156,9 +156,11 @@ module ActionView #:nodoc:
     attr_reader   :finder
     attr_accessor :base_path, :assigns, :template_extension, :first_render
     attr_accessor :controller
-    
+
     attr_writer :template_format
     attr_accessor :current_render_extension
+
+    attr_accessor :output_buffer
 
     # Specify trim mode for the ERB compiler. Defaults to '-'.
     # See ERb documentation for suitable values.
@@ -313,9 +315,10 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
 
     private
       def wrap_content_for_layout(content)
-        original_content_for_layout = @content_for_layout
-        @content_for_layout = content
-        returning(yield) { @content_for_layout = original_content_for_layout }
+        original_content_for_layout, @content_for_layout = @content_for_layout, content
+        yield
+      ensure
+        @content_for_layout = original_content_for_layout
       end
 
       # Evaluate the local assigns and pushes them to the view.

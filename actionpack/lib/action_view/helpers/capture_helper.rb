@@ -31,11 +31,11 @@ module ActionView
       #   </body></html>
       #
       def capture(*args, &block)
-        @output_buffer, old_buffer = '', @output_buffer
-        yield *args
-        @output_buffer
-      ensure
-        @output_buffer = old_buffer
+        if @output_buffer
+          with_temporary_output_buffer { yield *args }
+        else
+          block.call(*args)
+        end
       end
 
       # Calling content_for stores a block of markup in an identifier for later use.
@@ -119,6 +119,14 @@ module ActionView
       end
 
       private
+        def with_temporary_output_buffer
+          @output_buffer, old_buffer = '', @output_buffer
+          yield
+          @output_buffer
+        ensure
+          @output_buffer = old_buffer
+        end
+
         def erb_content_for(name, &block)
           ivar = "@content_for_#{name}"
           instance_variable_set(ivar, "#{instance_variable_get(ivar)}#{capture(&block)}")
