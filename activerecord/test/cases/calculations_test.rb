@@ -102,6 +102,11 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 0, companies(:rails_core).companies.sum(:id, :conditions => '1 = 2')
   end
 
+  def test_sum_should_return_valid_values_for_decimals
+    NumericData.create(:bank_balance => 19.83)
+    assert_equal 19.83, NumericData.sum(:bank_balance)
+  end
+
   def test_should_group_by_summed_field_with_conditions
     c = Account.sum(:credit_limit, :conditions => 'firm_id > 1',
                                    :group => :firm_id)

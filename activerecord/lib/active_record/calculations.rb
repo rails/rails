@@ -265,8 +265,9 @@ module ActiveRecord
         def type_cast_calculated_value(value, column, operation = nil)
           operation = operation.to_s.downcase
           case operation
-            when 'count', 'sum' then value.to_i
-            when 'avg'          then value && value.to_f
+            when 'count' then value.to_i
+            when 'sum'   then value =~ /\./ ? value.to_f : value.to_i
+            when 'avg'   then value && value.to_f
             else column ? column.type_cast(value) : value
           end
         end
