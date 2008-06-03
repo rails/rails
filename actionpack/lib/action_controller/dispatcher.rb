@@ -135,7 +135,7 @@ module ActionController
     # be reloaded on the next request without restarting the server.
     def cleanup_application
       ActiveRecord::Base.reset_subclasses if defined?(ActiveRecord)
-      Dependencies.clear
+      ActiveSupport::Dependencies.clear
       ActiveRecord::Base.clear_reloadable_connections! if defined?(ActiveRecord)
     end
 

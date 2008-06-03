@@ -55,3 +55,7 @@ require 'active_support/multibyte'
 require 'active_support/base64'
 
 require 'active_support/time_with_zone'
+
+Inflector = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Inflector', 'ActiveSupport::Inflector')
+Dependencies = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Dependencies', 'ActiveSupport::Dependencies')
+TimeZone = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('TimeZone', 'ActiveSupport::TimeZone')

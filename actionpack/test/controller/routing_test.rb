@@ -2392,10 +2392,10 @@ uses_mocha 'route loading' do
     end
 
     def test_adding_inflections_forces_reload
-      Inflector::Inflections.instance.expects(:uncountable).with('equipment')
+      ActiveSupport::Inflector::Inflections.instance.expects(:uncountable).with('equipment')
       routes.expects(:reload!)
 
-      Inflector.inflections { |inflect| inflect.uncountable('equipment') }
+      ActiveSupport::Inflector.inflections { |inflect| inflect.uncountable('equipment') }
     end
     
     def test_load_with_configuration
