@@ -76,6 +76,7 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2008,3,31),  Date.new(2008,3,31).end_of_quarter
     assert_equal Date.new(2008,12,31), Date.new(2008,10,8).end_of_quarter
     assert_equal Date.new(2008,6,30),  Date.new(2008,4,14).end_of_quarter
+    assert_equal Date.new(2008,6,30),  Date.new(2008,5,31).end_of_quarter
     assert_equal Date.new(2008,9,30),  Date.new(2008,8,21).end_of_quarter
   end
 
