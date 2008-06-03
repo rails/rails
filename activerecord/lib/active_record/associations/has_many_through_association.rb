@@ -237,7 +237,7 @@ module ActiveRecord
         end
         
         def build_sti_condition
-          "#{@reflection.through_reflection.quoted_table_name}.#{@reflection.through_reflection.klass.inheritance_column} = #{@reflection.klass.quote_value(@reflection.through_reflection.klass.name.demodulize)}"
+          "#{@reflection.through_reflection.quoted_table_name}.#{@reflection.through_reflection.klass.inheritance_column} = #{@reflection.klass.quote_value(@reflection.through_reflection.klass.sti_name)}"
         end
 
         alias_method :sql_conditions, :conditions

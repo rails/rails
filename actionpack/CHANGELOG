@@ -1,6 +1,11 @@
-* InstanceTag#default_time_from_options overflows to DateTime [Geoff Buesing]
+* Allow caches_action to accept a layout option [José Valim]
 
-*2.1.0 RC1 (May 11th, 2008)*
+* Added Rack processor [Ezra Zygmuntowicz, Josh Peek]
+
+
+*2.1.0 (May 31st, 2008)*
+
+* InstanceTag#default_time_from_options overflows to DateTime [Geoff Buesing]
 
 * Fixed that forgery protection can be used without session tracking (Peter Jones) [#139]
 

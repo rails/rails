@@ -5,7 +5,23 @@ require 'models/subscriber'
 
 class InheritanceTest < ActiveRecord::TestCase
   fixtures :companies, :projects, :subscribers, :accounts
-  
+
+  def test_class_with_store_full_sti_class_returns_full_name
+    old = ActiveRecord::Base.store_full_sti_class
+    ActiveRecord::Base.store_full_sti_class = true
+    assert_equal 'Namespaced::Company', Namespaced::Company.sti_name
+  ensure
+    ActiveRecord::Base.store_full_sti_class = old
+  end
+
+  def test_class_without_store_full_sti_class_returns_demodulized_name
+    old = ActiveRecord::Base.store_full_sti_class
+    ActiveRecord::Base.store_full_sti_class = false
+    assert_equal 'Company', Namespaced::Company.sti_name
+  ensure
+    ActiveRecord::Base.store_full_sti_class = old
+  end
+
   def test_should_store_demodulized_class_name_with_store_full_sti_class_option_disabled
     old = ActiveRecord::Base.store_full_sti_class
     ActiveRecord::Base.store_full_sti_class = false
@@ -207,11 +223,11 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
   fixtures :companies
 
   def setup
-    Dependencies.log_activity = true
+    ActiveSupport::Dependencies.log_activity = true
   end
 
   def teardown
-    Dependencies.log_activity = false
+    ActiveSupport::Dependencies.log_activity = false
     self.class.const_remove :FirmOnTheFly rescue nil
     Firm.const_remove :FirmOnTheFly rescue nil
   end

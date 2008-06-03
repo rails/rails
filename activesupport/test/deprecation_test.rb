@@ -24,6 +24,11 @@ class Deprecatee
   def d; end
   def e; end
   deprecate :a, :b, :c => :e, :d => "you now need to do something extra for this one"
+
+  module B
+    C = 1
+  end
+  A = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Deprecatee::A', 'Deprecatee::B::C')
 end
 
 
@@ -81,6 +86,11 @@ class DeprecationTest < Test::Unit::TestCase
 
   def test_deprecated_instance_variable_proxy_shouldnt_warn_on_inspect
     assert_not_deprecated { assert_equal @dtc.request.inspect, @dtc.old_request.inspect }
+  end
+
+  def test_deprecated_constant_proxy
+    assert_not_deprecated { Deprecatee::B::C }
+    assert_deprecated('Deprecatee::A') { assert_equal Deprecatee::B::C, Deprecatee::A }
   end
 
   def test_assert_deprecation_without_match

@@ -1,4 +1,4 @@
-*2.1.0 RC1 (May 11th, 2008)*
+*2.1.0 (May 31st, 2008)*
 
 * Fixed that a return-path header would be ignored #7572 [joost]
 

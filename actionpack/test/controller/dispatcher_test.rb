@@ -27,14 +27,14 @@ class DispatcherTest < Test::Unit::TestCase
 
   def test_clears_dependencies_after_dispatch_if_in_loading_mode
     ActionController::Routing::Routes.expects(:reload).once
-    Dependencies.expects(:clear).once
+    ActiveSupport::Dependencies.expects(:clear).once
 
     dispatch(@output, false)
   end
 
   def test_leaves_dependencies_after_dispatch_if_not_in_loading_mode
     ActionController::Routing::Routes.expects(:reload).never
-    Dependencies.expects(:clear).never
+    ActiveSupport::Dependencies.expects(:clear).never
 
     dispatch
   end

@@ -15,7 +15,9 @@ module ActiveSupport #:nodoc:
         # Returns a new hash with only the given keys.
         def slice(*keys)
           allowed = Set.new(respond_to?(:convert_key) ? keys.map { |key| convert_key(key) } : keys)
-          reject { |key,| !allowed.include?(key) }
+          hash = {}
+          allowed.each { |k| hash[k] = self[k] if has_key?(k) }
+          hash
         end
 
         # Replaces the hash with only the given keys.

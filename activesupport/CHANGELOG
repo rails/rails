@@ -1,3 +1,16 @@
+*Edge*
+
+* Add more standard Hash methods to ActiveSupport::OrderedHash [Steve Purcell]
+
+* Namespace Inflector, Dependencies, OrderedOptions, and TimeZone under ActiveSupport [Josh Peek]
+
+* Added StringQuestioneer for doing things like StringQuestioneer.new("production").production? # => true and StringQuestioneer.new("production").development? # => false [DHH]
+
+* Fixed Date#end_of_quarter to not blow up on May 31st [#289 state:resolved] (Danger)
+
+
+*2.1.0 (May 31st, 2008)*
+
 * TimeZone#to_s shows offset as GMT instead of UTC, because GMT will be more familiar to end users (see time zone selects used by Windows OS, google.com and yahoo.com.) Reverts [8370] [Geoff Buesing]
 
 * Hash.from_xml: datetime xml types overflow to Ruby DateTime class when out of range of Time. Adding tests for utc offsets [Geoff Buesing]
@@ -5,8 +18,6 @@
 * TimeWithZone #+ and #- : ensure overflow to DateTime with Numeric arg [Geoff Buesing]
 
 * Time#to_json: don't convert to utc before encoding. References #175 [Geoff Buesing]
-
-*2.1.0 RC1 (May 11th, 2008)*
 
 * Remove unused JSON::RESERVED_WORDS, JSON.valid_identifier? and JSON.reserved_word? methods. Resolves #164. [Cheah Chu Yeow]
 
@@ -166,7 +177,6 @@
 
 * Introduce ActiveSupport::TimeWithZone, for wrapping Time instances with a TimeZone. Introduce instance methods to Time for creating TimeWithZone instances, and class methods for managing a global time zone. [Geoff Buesing]
 
->>>>>>> .r8815
 * Replace non-dst-aware TimeZone class with dst-aware class from tzinfo_timezone plugin. TimeZone#adjust and #unadjust are no longer available; tzinfo gem must now be present in order to perform time zone calculations, via #local_to_utc and #utc_to_local methods. [Geoff Buesing]
 
 * Extract ActiveSupport::Callbacks from Active Record, test case setup and teardown, and ActionController::Dispatcher.  #10727 [Josh Peek]

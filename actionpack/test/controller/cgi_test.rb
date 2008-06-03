@@ -114,3 +114,36 @@ class CgiRequestNeedsRewoundTest < BaseCgiTest
     assert_equal 0, request.body.pos
   end
 end
+
+class CgiResponseTest < BaseCgiTest
+  def setup
+    super
+    @fake_cgi.expects(:header).returns("HTTP/1.0 200 OK\nContent-Type: text/html\n")
+    @response = ActionController::CgiResponse.new(@fake_cgi)
+    @output = StringIO.new('')
+  end
+
+  def test_simple_output
+    @response.body = "Hello, World!"
+
+    @response.out(@output)
+    assert_equal "HTTP/1.0 200 OK\nContent-Type: text/html\nHello, World!", @output.string
+  end
+
+  def test_head_request
+    @fake_cgi.env_table['REQUEST_METHOD'] = 'HEAD'
+    @response.body = "Hello, World!"
+
+    @response.out(@output)
+    assert_equal "HTTP/1.0 200 OK\nContent-Type: text/html\n", @output.string
+  end
+
+  def test_streaming_block
+    @response.body = Proc.new do |response, output|
+      5.times { |n| output.write(n) }
+    end
+
+    @response.out(@output)
+    assert_equal "HTTP/1.0 200 OK\nContent-Type: text/html\n01234", @output.string
+  end
+end

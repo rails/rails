@@ -8,6 +8,7 @@ require 'rails/version'
 require 'rails/plugin/locator'
 require 'rails/plugin/loader'
 require 'rails/gem_dependency'
+require 'rails/rack'
 
 
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
@@ -36,7 +37,7 @@ module Rails
     end
   
     def env
-      RAILS_ENV
+      StringQuestioneer.new(RAILS_ENV)
     end
   
     def cache
@@ -78,7 +79,10 @@ module Rails
 
     # The set of loaded plugins.
     attr_reader :loaded_plugins
-    
+
+    # Whether or not all the gem dependencies have been met
+    attr_reader :gems_dependencies_loaded
+
     # Runs the initializer. By default, this will invoke the #process method,
     # which simply executes all of the initialization routines. Alternately,
     # you can specify explicitly which initialization routine you want:
@@ -306,7 +310,7 @@ module Rails
     end
 
     def load_observers
-      if @gems_dependencies_loaded && configuration.frameworks.include?(:active_record)
+      if gems_dependencies_loaded && configuration.frameworks.include?(:active_record)
         ActiveRecord::Base.instantiate_observers
       end
     end
@@ -462,7 +466,7 @@ module Rails
 
     # Fires the user-supplied after_initialize block (Configuration#after_initialize)
     def after_initialize
-      if @gems_dependencies_loaded
+      if gems_dependencies_loaded
         configuration.after_initialize_blocks.each do |block|
           block.call
         end
@@ -470,7 +474,7 @@ module Rails
     end
 
     def load_application_initializers
-      if @gems_dependencies_loaded
+      if gems_dependencies_loaded
         Dir["#{configuration.root_path}/config/initializers/**/*.rb"].sort.each do |initializer|
           load(initializer)
         end

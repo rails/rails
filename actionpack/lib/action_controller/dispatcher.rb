@@ -96,7 +96,7 @@ module ActionController
     include ActiveSupport::Callbacks
     define_callbacks :prepare_dispatch, :before_dispatch, :after_dispatch
 
-    def initialize(output, request = nil, response = nil)
+    def initialize(output = $stdout, request = nil, response = nil)
       @output, @request, @response = output, request, response
     end
 
@@ -123,6 +123,12 @@ module ActionController
       failsafe_rescue exception
     end
 
+    def call(env)
+      @request = RackRequest.new(env)
+      @response = RackResponse.new(@request)
+      dispatch
+    end
+
     def reload_application
       # Run prepare callbacks before every request in development mode
       run_callbacks :prepare_dispatch
@@ -135,7 +141,7 @@ module ActionController
     # be reloaded on the next request without restarting the server.
     def cleanup_application
       ActiveRecord::Base.reset_subclasses if defined?(ActiveRecord)
-      Dependencies.clear
+      ActiveSupport::Dependencies.clear
       ActiveRecord::Base.clear_reloadable_connections! if defined?(ActiveRecord)
     end
 
