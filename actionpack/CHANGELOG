@@ -1,3 +1,7 @@
+*Edge*
+
+* Fixed Request#remote_ip to only raise hell if the HTTP_CLIENT_IP and HTTP_X_FORWARDED_FOR doesn't match (not just if they're both present) [Mark Imbriaco, Bradford Folkens]
+
 * Allow caches_action to accept a layout option [José Valim]
 
 * Added Rack processor [Ezra Zygmuntowicz, Josh Peek]
