@@ -222,6 +222,11 @@ class ArrayToXmlTests < Test::Unit::TestCase
 
     assert xml.include?(%(<count>2</count>)), xml
   end
+  
+  def test_to_xml_with_empty
+    xml = [].to_xml
+    assert_match /type="array"\/>/, xml
+  end
 end
 
 class ArrayExtractOptionsTests < Test::Unit::TestCase
