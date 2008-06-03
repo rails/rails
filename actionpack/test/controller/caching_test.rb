@@ -512,7 +512,7 @@ class FragmentCachingTest < Test::Unit::TestCase
 
   def test_cache_erb_fragment
     @store.write('views/expensive', 'fragment content')
-    @controller.template.output_buffer = 'generated till now -> '
+    @controller.response.template.output_buffer = 'generated till now -> '
 
     assert_equal( 'generated till now -> fragment content',
                   ActionView::TemplateHandlers::ERB.new(@controller).cache_fragment(Proc.new{ }, 'expensive'))
