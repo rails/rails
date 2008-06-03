@@ -198,6 +198,10 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2005,2,21,23,59,59), Date.new(2005,2,21).end_of_day
   end
   
+  def test_date_acts_like_date
+    assert Date.new.acts_like_date?
+  end
+  
   def test_xmlschema
     with_env_tz 'US/Eastern' do
       assert_match(/^1980-02-28T00:00:00-05:?00$/, Date.new(1980, 2, 28).xmlschema)
