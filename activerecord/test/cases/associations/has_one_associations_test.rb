@@ -29,6 +29,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal Firm.find(1, :include => :account_with_select).account_with_select.attributes.size, 2
   end
 
+  def test_finding_using_primary_key
+    firm = companies(:first_firm)
+    assert_equal Account.find_by_firm_id(firm.id), firm.account
+    firm.firm_id = companies(:rails_core).id
+    assert_equal accounts(:rails_core_account), firm.account_using_primary_key
+  end
+
   def test_can_marshal_has_one_association_with_nil_target
     firm = Firm.new
     assert_nothing_raised do

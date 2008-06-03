@@ -759,6 +759,7 @@ module ActiveRecord
       # * <tt>:foreign_key</tt> - Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association will use "person_id"
       #   as the default <tt>:foreign_key</tt>.
+      # * <tt>:primary_key</tt> - Specify the method that returns the primary key used for the association. By default this is +id+.
       # * <tt>:include</tt> - Specify second-order associations that should be eager loaded when this object is loaded.
       # * <tt>:as</tt> - Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # * <tt>:select</tt> - By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if, for example, you want to do a join
@@ -1366,7 +1367,7 @@ module ActiveRecord
 
         def create_has_one_reflection(association_id, options)
           options.assert_valid_keys(
-            :class_name, :foreign_key, :remote, :select, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :readonly, :validate
+            :class_name, :foreign_key, :remote, :select, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :readonly, :validate, :primary_key
           )
 
           create_reflection(:has_one, association_id, options, self)
