@@ -4,6 +4,7 @@ require 'action_controller/session/cookie_store'
 module ActionController #:nodoc:
   class RackRequest < AbstractRequest #:nodoc:
     attr_accessor :env, :session_options
+    attr_reader :cgi
 
     class SessionFixationAttempt < StandardError #:nodoc:
     end
@@ -199,7 +200,8 @@ end_msg
   class RackResponse < AbstractResponse #:nodoc:
     attr_accessor :status
 
-    def initialize
+    def initialize(request)
+      @request = request
       @writer = lambda { |x| @body << x }
       @block = nil
       super()
@@ -270,9 +272,9 @@ end_msg
               else            cookies << cookie.to_s
             end
 
-            @output_cookies.each { |c| cookies << c.to_s } if @output_cookies
+            @request.cgi.output_cookies.each { |c| cookies << c.to_s } if @request.cgi.output_cookies
 
-            headers['Set-Cookie'] = [headers['Set-Cookie'], cookies].compact.join("\n")
+            headers['Set-Cookie'] = [headers['Set-Cookie'], cookies].flatten.compact
           end
 
           options.each { |k,v| headers[k] = v }
@@ -283,6 +285,8 @@ end_msg
   end
 
   class CGIWrapper < ::CGI
+    attr_reader :output_cookies
+
     def initialize(request, *args)
       @request  = request
       @args     = *args
