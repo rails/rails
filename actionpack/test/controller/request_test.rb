@@ -59,6 +59,9 @@ class RequestTest < Test::Unit::TestCase
     assert_match /HTTP_X_FORWARDED_FOR="9.9.9.9, 3.4.5.6, 10.0.0.1, 172.31.4.4"/, e.message
     assert_match /HTTP_CLIENT_IP="8.8.8.8"/, e.message
 
+    @request.env['HTTP_X_FORWARDED_FOR'] = '8.8.8.8, 9.9.9.9'
+    assert_equal '8.8.8.8', @request.remote_ip
+
     @request.env.delete 'HTTP_CLIENT_IP'
     @request.env.delete 'HTTP_X_FORWARDED_FOR'
   end
