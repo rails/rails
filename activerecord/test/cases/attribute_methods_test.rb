@@ -137,7 +137,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       end
     end
   end
-  
+
   def test_time_attributes_are_retrieved_in_current_time_zone
     in_time_zone "Pacific Time (US & Canada)" do
       utc_time = Time.utc(2008, 1, 1)
@@ -145,7 +145,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       record[:written_on] = utc_time
       assert_equal utc_time, record.written_on # record.written on is equal to (i.e., simultaneous with) utc_time
       assert_kind_of ActiveSupport::TimeWithZone, record.written_on # but is a TimeWithZone
-      assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone # and is in the current Time.zone
+      assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone # and is in the current Time.zone
       assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time # and represents time values adjusted accordingly
     end
   end
@@ -156,7 +156,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       record   = @target.new
       record.written_on = utc_time
       assert_equal utc_time, record.written_on
-      assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
+      assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
       assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time
     end
   end
@@ -168,7 +168,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       record   = @target.new
       record.written_on = cst_time
       assert_equal utc_time, record.written_on
-      assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
+      assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
       assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time
     end
   end
@@ -181,12 +181,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
         record   = @target.new
         record.written_on = time_string
         assert_equal Time.zone.parse(time_string), record.written_on
-        assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
+        assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
         assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time
       end
     end
   end
-  
+
   def test_setting_time_zone_aware_attribute_to_blank_string_returns_nil
     in_time_zone "Pacific Time (US & Canada)" do
       record   = @target.new
@@ -202,7 +202,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
         record   = @target.new
         record.written_on = time_string
         assert_equal Time.zone.parse(time_string), record.written_on
-        assert_equal TimeZone[timezone_offset], record.written_on.time_zone
+        assert_equal ActiveSupport::TimeZone[timezone_offset], record.written_on.time_zone
         assert_equal Time.utc(2008, 1, 1), record.written_on.time
       end
     end
@@ -214,7 +214,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       record   = @target.new
       record.written_on = utc_time.in_time_zone
       assert_equal utc_time, record.written_on
-      assert_equal TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
+      assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
       assert_equal Time.utc(2007, 12, 31, 16), record.written_on.time
     end
   end
@@ -223,12 +223,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def time_related_columns_on_topic
     Topic.columns.select{|c| [:time, :date, :datetime, :timestamp].include?(c.type)}.map(&:name)
   end
-  
+
   def in_time_zone(zone)
     old_zone  = Time.zone
     old_tz    = ActiveRecord::Base.time_zone_aware_attributes
 
-    Time.zone = zone ? TimeZone[zone] : nil
+    Time.zone = zone ? ActiveSupport::TimeZone[zone] : nil
     ActiveRecord::Base.time_zone_aware_attributes = !zone.nil?
     yield
   ensure
