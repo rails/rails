@@ -538,7 +538,7 @@ module ActiveResource
           prefix_options, query_options = split_options(options[:params])
           path = element_path(id, prefix_options, query_options)
           response = connection.head(path, headers)
-          response.code == 200
+          response.code.to_i == 200
         end
         # id && !find_single(id, options).nil?
       rescue ActiveResource::ResourceNotFound

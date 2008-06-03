@@ -1,3 +1,8 @@
+*Edge*
+
+* Fixed Base#exists? to check status code as integer [#299 state:resolved] (Wes Oldenbeuving)
+
+
 *2.1.0 (May 31st, 2008)*
 
 * Fixed response logging to use length instead of the entire thing (seangeo) [#27]
