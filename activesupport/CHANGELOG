@@ -1,5 +1,9 @@
 *Edge*
 
+* Add more standard Hash methods to ActiveSupport::OrderedHash [Steve Purcell]
+
+* Namespace Inflector, Dependencies, OrderedOptions, and TimeZone under ActiveSupport [Josh Peek]
+
 * Fixed Date#end_of_quarter to not blow up on May 31st [#289 state:resolved] (Danger)
 
 
