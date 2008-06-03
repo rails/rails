@@ -16,7 +16,7 @@ module ActiveSupport #:nodoc:
         def slice(*keys)
           allowed = Set.new(respond_to?(:convert_key) ? keys.map { |key| convert_key(key) } : keys)
           hash = {}
-          allowed.each { |k| hash[k] = self[k] }
+          allowed.each { |k| hash[k] = self[k] if has_key?(k) }
           hash
         end
 
