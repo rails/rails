@@ -156,6 +156,7 @@ class ActionCachingTestController < ActionController::Base
   caches_action :show, :cache_path => 'http://test.host/custom/show'
   caches_action :edit, :cache_path => Proc.new { |c| c.params[:id] ? "http://test.host/#{c.params[:id]};edit" : "http://test.host/edit" }
   caches_action :with_layout
+  caches_action :layout_false, :layout => false
 
   layout 'talk_from_action.erb'
 
@@ -181,6 +182,7 @@ class ActionCachingTestController < ActionController::Base
   alias_method :show, :index
   alias_method :edit, :index
   alias_method :destroy, :index
+  alias_method :layout_false, :with_layout
 
   def expire
     expire_action :controller => 'action_caching_test', :action => 'index'
@@ -261,6 +263,19 @@ class ActionCacheTest < Test::Unit::TestCase
     assert_not_equal cached_time, @response.body
 
     assert_equal @response.body, read_fragment('hostname.com/action_caching_test/with_layout')
+  end
+
+  def test_action_cache_with_layout_and_layout_cache_false
+    get :layout_false
+    cached_time = content_to_cache
+    assert_not_equal cached_time, @response.body
+    assert fragment_exist?('hostname.com/action_caching_test/layout_false')
+    reset!
+
+    get :layout_false
+    assert_not_equal cached_time, @response.body
+
+    assert_equal cached_time, read_fragment('hostname.com/action_caching_test/layout_false')
   end
 
   def test_action_cache_conditional_options

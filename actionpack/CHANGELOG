@@ -1,3 +1,5 @@
+* Allow caches_action to accept a layout option [José Valim]
+
 * Added Rack processor [Ezra Zygmuntowicz, Josh Peek]
 
 
