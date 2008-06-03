@@ -1,3 +1,8 @@
+*Edge*
+
+* Fixed that RailsInfoController wasn't considering all requests local in development mode (Edgard Castro) [#310 state:resolved]
+
+
 *2.1.0 (May 31st, 2008)*
 
 * script/dbconsole fires up the command-line database client.  #102 [Steve Purcell]
