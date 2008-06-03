@@ -36,7 +36,7 @@ module Rails
     end
   
     def env
-      RAILS_ENV
+      StringQuestioneer.new(RAILS_ENV)
     end
   
     def cache
