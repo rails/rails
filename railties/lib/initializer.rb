@@ -204,10 +204,10 @@ module Rails
     # Set the paths from which Rails will automatically load source files, and
     # the load_once paths.
     def set_autoload_paths
-      Dependencies.load_paths = configuration.load_paths.uniq
-      Dependencies.load_once_paths = configuration.load_once_paths.uniq
+      ActiveSupport::Dependencies.load_paths = configuration.load_paths.uniq
+      ActiveSupport::Dependencies.load_once_paths = configuration.load_once_paths.uniq
 
-      extra = Dependencies.load_once_paths - Dependencies.load_paths
+      extra = ActiveSupport::Dependencies.load_once_paths - ActiveSupport::Dependencies.load_paths
       unless extra.empty?
         abort <<-end_error
           load_once_paths must be a subset of the load_paths.
@@ -234,7 +234,7 @@ module Rails
     end
 
     # Adds all load paths from plugins to the global set of load paths, so that
-    # code from plugins can be required (explicitly or automatically via Dependencies).
+    # code from plugins can be required (explicitly or automatically via ActiveSupport::Dependencies).
     def add_plugin_load_paths
       plugin_loader.add_plugin_load_paths
     end
@@ -416,7 +416,7 @@ module Rails
     # Sets the dependency loading mechanism based on the value of
     # Configuration#cache_classes.
     def initialize_dependency_mechanism
-      Dependencies.mechanism = configuration.cache_classes ? :require : :load
+      ActiveSupport::Dependencies.mechanism = configuration.cache_classes ? :require : :load
     end
 
     # Loads support for "whiny nil" (noisy warnings when methods are invoked
@@ -602,12 +602,12 @@ module Rails
     # If <tt>reload_plugins?</tt> is false, add this to your plugin's <tt>init.rb</tt>
     # to make it reloadable:
     #
-    #   Dependencies.load_once_paths.delete lib_path
+    #   ActiveSupport::Dependencies.load_once_paths.delete lib_path
     #
     # If <tt>reload_plugins?</tt> is true, add this to your plugin's <tt>init.rb</tt>
     # to only load it once:
     #
-    #   Dependencies.load_once_paths << lib_path
+    #   ActiveSupport::Dependencies.load_once_paths << lib_path
     #
     attr_accessor :reload_plugins
 
