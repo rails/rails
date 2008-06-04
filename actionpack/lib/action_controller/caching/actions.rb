@@ -40,6 +40,8 @@ module ActionController #:nodoc:
     #         controller.send(:list_url, c.params[:id]) }
     #   end
     #
+    # If you pass :layout => false, it will only cache your action content. It is useful when your layout has dynamic information.
+    #
     module Actions
       def self.included(base) #:nodoc:
         base.extend(ClassMethods)
@@ -54,7 +56,8 @@ module ActionController #:nodoc:
         def caches_action(*actions)
           return unless cache_configured?
           options = actions.extract_options!
-          around_filter(ActionCacheFilter.new(:cache_path => options.delete(:cache_path)), {:only => actions}.merge(options))
+          cache_filter = ActionCacheFilter.new(:layout => options.delete(:layout), :cache_path => options.delete(:cache_path))
+          around_filter(cache_filter, {:only => actions}.merge(options))
         end
       end
 
@@ -81,7 +84,9 @@ module ActionController #:nodoc:
           if cache = controller.read_fragment(cache_path.path)
             controller.rendered_action_cache = true
             set_content_type!(controller, cache_path.extension)
-            controller.send!(:render_for_text, cache)
+            options = { :text => cache }
+            options.merge!(:layout => true) if cache_layout?
+            controller.send!(:render, options)
             false
           else
             controller.action_cache_path = cache_path
@@ -90,7 +95,8 @@ module ActionController #:nodoc:
 
         def after(controller)
           return if controller.rendered_action_cache || !caching_allowed(controller)
-          controller.write_fragment(controller.action_cache_path.path, controller.response.body)
+          action_content = cache_layout? ? content_for_layout(controller) : controller.response.body
+          controller.write_fragment(controller.action_cache_path.path, action_content)
         end
 
         private
@@ -104,6 +110,14 @@ module ActionController #:nodoc:
 
           def caching_allowed(controller)
             controller.request.get? && controller.response.headers['Status'].to_i == 200
+          end
+
+          def cache_layout?
+            @options[:layout] == false
+          end
+
+          def content_for_layout(controller)
+            controller.response.layout && controller.response.template.instance_variable_get('@content_for_layout')
           end
       end
 

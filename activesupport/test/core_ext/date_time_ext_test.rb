@@ -219,14 +219,14 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
       assert_equal Rational(-6, 24), DateTime.local_offset
     end
   end
-  
+
   def test_utc?
     assert_equal true, DateTime.civil(2005, 2, 21, 10, 11, 12).utc?
     assert_equal true, DateTime.civil(2005, 2, 21, 10, 11, 12, 0).utc?
     assert_equal false, DateTime.civil(2005, 2, 21, 10, 11, 12, 0.25).utc?
     assert_equal false, DateTime.civil(2005, 2, 21, 10, 11, 12, -0.25).utc?
   end
-  
+
   def test_utc_offset
     assert_equal 0, DateTime.civil(2005, 2, 21, 10, 11, 12).utc_offset
     assert_equal 0, DateTime.civil(2005, 2, 21, 10, 11, 12, 0).utc_offset
@@ -234,7 +234,7 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal( -21600, DateTime.civil(2005, 2, 21, 10, 11, 12, -0.25).utc_offset )
     assert_equal( -18000, DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-5, 24)).utc_offset )
   end
-  
+
   def test_utc
     assert_equal DateTime.civil(2005, 2, 21, 16, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24)).utc
     assert_equal DateTime.civil(2005, 2, 21, 15, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-5, 24)).utc
@@ -242,37 +242,37 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2005, 2, 21, 9, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(1, 24)).utc
     assert_equal DateTime.civil(2005, 2, 21, 9, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(1, 24)).getutc
   end
-  
+
   def test_formatted_offset_with_utc
     assert_equal '+00:00', DateTime.civil(2000).formatted_offset
     assert_equal '+0000', DateTime.civil(2000).formatted_offset(false)
     assert_equal 'UTC', DateTime.civil(2000).formatted_offset(true, 'UTC')
   end
-  
+
   def test_formatted_offset_with_local
     dt = DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-5, 24))
     assert_equal '-05:00', dt.formatted_offset
     assert_equal '-0500', dt.formatted_offset(false)
   end
-  
+
   def test_compare_with_time
     assert_equal  1, DateTime.civil(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59)
     assert_equal  0, DateTime.civil(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0)
     assert_equal(-1, DateTime.civil(2000) <=> Time.utc(2000, 1, 1, 0, 0, 1))
   end
-  
+
   def test_compare_with_datetime
     assert_equal  1, DateTime.civil(2000) <=> DateTime.civil(1999, 12, 31, 23, 59, 59)
     assert_equal  0, DateTime.civil(2000) <=> DateTime.civil(2000, 1, 1, 0, 0, 0)
     assert_equal(-1, DateTime.civil(2000) <=> DateTime.civil(2000, 1, 1, 0, 0, 1))
   end
-  
+
   def test_compare_with_time_with_zone
-    assert_equal  1, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(1999, 12, 31, 23, 59, 59), TimeZone['UTC'] )
-    assert_equal  0, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 0), TimeZone['UTC'] )
-    assert_equal(-1, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1), TimeZone['UTC'] ))
+    assert_equal  1, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone['UTC'] )
+    assert_equal  0, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone['UTC'] )
+    assert_equal(-1, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone['UTC'] ))
   end
-  
+
   def test_to_f
     assert_equal 946684800.0, DateTime.civil(2000).to_f
     assert_equal 946684800.0, DateTime.civil(1999,12,31,19,0,0,Rational(-5,24)).to_f

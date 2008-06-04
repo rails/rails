@@ -372,7 +372,7 @@ module ActiveRecord #:nodoc:
     def self.reset_subclasses #:nodoc:
       nonreloadables = []
       subclasses.each do |klass|
-        unless Dependencies.autoloaded? klass
+        unless ActiveSupport::Dependencies.autoloaded? klass
           nonreloadables << klass
           next
         end
