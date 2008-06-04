@@ -107,12 +107,12 @@ module ActiveRecord
         # Associate attributes pointing to owner, quoted.
         def construct_quoted_owner_attributes(reflection)
           if as = reflection.options[:as]
-            { "#{as}_id" => @owner.quoted_id,
+            { "#{as}_id" => owner_quoted_id,
               "#{as}_type" => reflection.klass.quote_value(
                 @owner.class.base_class.name.to_s,
                 reflection.klass.columns_hash["#{as}_type"]) }
           else
-            { reflection.primary_key_name => @owner.quoted_id }
+            { reflection.primary_key_name => owner_quoted_id }
           end
         end
 
@@ -183,7 +183,7 @@ module ActiveRecord
             when @reflection.options[:finder_sql]
               @finder_sql = interpolate_sql(@reflection.options[:finder_sql])
 
-              @finder_sql = "#{@reflection.quoted_table_name}.#{@reflection.primary_key_name} = #{@owner.quoted_id}"
+              @finder_sql = "#{@reflection.quoted_table_name}.#{@reflection.primary_key_name} = #{owner_quoted_id}"
               @finder_sql << " AND (#{conditions})" if conditions
             else
               @finder_sql = construct_conditions

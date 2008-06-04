@@ -219,6 +219,10 @@ module ActiveRecord
         def flatten_deeper(array)
           array.collect { |element| element.respond_to?(:flatten) ? element.flatten : element }.flatten
         end
+
+        def owner_quoted_id
+          @owner.quoted_id
+        end
     end
   end
 end
