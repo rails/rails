@@ -33,10 +33,10 @@ class BaseRackTest < Test::Unit::TestCase
       "REDIRECT_STATUS" => "200",
       "REQUEST_METHOD" => "GET"
     }
+    @request = ActionController::RackRequest.new(@env)
     # some Nokia phone browsers omit the space after the semicolon separator.
     # some developers have grown accustomed to using comma in cookie values.
-    @alt_cookie_fmt_request_hash = {"HTTP_COOKIE"=>"_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes"}
-    @request = ActionController::RackRequest.new(@env)
+    @alt_cookie_fmt_request = ActionController::RackRequest.new(@env.merge({"HTTP_COOKIE"=>"_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes"}))
   end
 
   def default_test; end
@@ -100,11 +100,11 @@ class RackRequestTest < BaseRackTest
   end
 
   def test_cookie_syntax_resilience
-    cookies = CGI::Cookie::parse(@env["HTTP_COOKIE"]);
+    cookies = @request.cookies
     assert_equal ["c84ace84796670c052c6ceb2451fb0f2"], cookies["_session_id"], cookies.inspect
     assert_equal ["yes"], cookies["is_admin"], cookies.inspect
 
-    alt_cookies = CGI::Cookie::parse(@alt_cookie_fmt_request_hash["HTTP_COOKIE"]);
+    alt_cookies = @alt_cookie_fmt_request.cookies
     assert_equal ["c84ace847,96670c052c6ceb2451fb0f2"], alt_cookies["_session_id"], alt_cookies.inspect
     assert_equal ["yes"], alt_cookies["is_admin"], alt_cookies.inspect
   end

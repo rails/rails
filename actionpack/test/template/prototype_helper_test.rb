@@ -347,6 +347,11 @@ class JavaScriptGeneratorTest < PrototypeHelperBaseTest
       @generator.redirect_to("http://www.example.com/welcome?a=b&c=d")
   end
   
+  def test_reload
+    assert_equal 'window.location.reload();',
+      @generator.reload
+  end
+
   def test_delay
     @generator.delay(20) do
       @generator.hide('foo')

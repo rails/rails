@@ -49,21 +49,12 @@ module ActionController #:nodoc:
     def cookies
       return {} unless @env["HTTP_COOKIE"]
 
-      if @env["rack.request.cookie_string"] == @env["HTTP_COOKIE"]
-        @env["rack.request.cookie_hash"]
-      else
+      unless @env["rack.request.cookie_string"] == @env["HTTP_COOKIE"]
         @env["rack.request.cookie_string"] = @env["HTTP_COOKIE"]
-        # According to RFC 2109:
-        #   If multiple cookies satisfy the criteria above, they are ordered in
-        #   the Cookie header such that those with more specific Path attributes
-        #   precede those with less specific.  Ordering with respect to other
-        #   attributes (e.g., Domain) is unspecified.
-        @env["rack.request.cookie_hash"] =
-          parse_query(@env["rack.request.cookie_string"], ';,').inject({}) { |h, (k,v)|
-            h[k] = Array === v ? v.first : v
-            h
-          }
+        @env["rack.request.cookie_hash"] = CGI::Cookie::parse(@env["rack.request.cookie_string"])
       end
+
+      @env["rack.request.cookie_hash"]
     end
 
     def host_with_port_without_standard_port_handling
@@ -169,31 +160,6 @@ end_msg
 
       def session_options_with_string_keys
         @session_options_with_string_keys ||= DEFAULT_SESSION_OPTIONS.merge(@session_options).stringify_keys
-      end
-
-      # From Rack::Utils
-      def parse_query(qs, d = '&;')
-        params = {}
-        (qs || '').split(/[#{d}] */n).inject(params) { |h,p|
-          k, v = unescape(p).split('=',2)
-          if cur = params[k]
-            if cur.class == Array
-              params[k] << v
-            else
-              params[k] = [cur, v]
-            end
-          else
-            params[k] = v
-          end
-        }
-
-        return params
-      end
-
-      def unescape(s)
-        s.tr('+', ' ').gsub(/((?:%[0-9a-fA-F]{2})+)/n){
-          [$1.delete('%')].pack('H*')
-        }
       end
   end
 
