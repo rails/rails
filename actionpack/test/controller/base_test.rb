@@ -169,6 +169,22 @@ class DefaultUrlOptionsTest < Test::Unit::TestCase
   end
 end
 
+class EmptyUrlOptionsTest < Test::Unit::TestCase
+  def setup
+    @controller = NonEmptyController.new
+
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+
+    @request.host = 'www.example.com'
+  end
+
+  def test_ensure_url_for_works_as_expected_when_called_with_no_options_if_default_url_options_is_not_set
+    get :public_action
+    assert_equal "http://www.example.com/non_empty/public_action", @controller.url_for
+  end
+end
+
 class EnsureNamedRoutesWorksTicket22BugTest < Test::Unit::TestCase
   def test_named_routes_still_work
     ActionController::Routing::Routes.draw do |map|
