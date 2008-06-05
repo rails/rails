@@ -66,9 +66,9 @@ class MongrelSpawner < Spawner
       "-l #{OPTIONS[:rails_root]}/log/mongrel.log"
 
     # Add prefix functionality to spawner's call to mongrel_rails
-    # Digging through monrel's project subversion server, the earliest
+    # Digging through mongrel's project subversion server, the earliest
     # Tag that has prefix implemented in the bin/mongrel_rails file
-    # is 0.3.15 which also happens to be the earilest tag listed.
+    # is 0.3.15 which also happens to be the earliest tag listed.
     # References: http://mongrel.rubyforge.org/svn/tags
     if Mongrel::Const::MONGREL_VERSION.to_f >=0.3 && !OPTIONS[:prefix].nil?
       cmd = cmd + " --prefix #{OPTIONS[:prefix]}"

@@ -301,7 +301,7 @@ module ActiveRecord
                                   :odd => 'odd?', :even => 'even?' }.freeze
 
       # Adds a validation method or block to the class. This is useful when
-      # overriding the +validate+ instance method becomes too unwieldly and
+      # overriding the +validate+ instance method becomes too unwieldy and
       # you're looking for more descriptive declaration of your validations.
       #
       # This can be done with a symbol pointing to a method:

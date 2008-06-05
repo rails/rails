@@ -132,8 +132,8 @@ module Inflector
   # Examples:
   #   "posts".singularize            # => "post"
   #   "octopi".singularize           # => "octopus"
-  #   "sheep".singluarize            # => "sheep"
-  #   "word".singluarize             # => "word"
+  #   "sheep".singularize            # => "sheep"
+  #   "word".singularize             # => "word"
   #   "the blue mailmen".singularize # => "the blue mailman"
   #   "CamelOctopi".singularize      # => "CamelOctopus"
   def singularize(word)

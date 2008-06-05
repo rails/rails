@@ -87,7 +87,7 @@ module Rails
     #   Rails::Initializer.run(:set_load_path)
     #
     # This is useful if you only want the load path initialized, without
-    # incuring the overhead of completely loading the entire environment.
+    # incurring the overhead of completely loading the entire environment.
     def self.run(command = :process, configuration = Configuration.new)
       yield configuration if block_given?
       initializer = new configuration

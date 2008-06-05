@@ -111,7 +111,7 @@ module ActiveResource
   # over HTTPS.
   # 
   # Note: Some values cannot be provided in the URL passed to site.  e.g. email addresses 
-  # as usernames.  In those situations you should use the seperate user and password option.
+  # as usernames.  In those situations you should use the separate user and password option.
   # == Errors & Validation
   #
   # Error handling and validation is handled in much the same manner as you're used to seeing in

@@ -155,7 +155,7 @@ HELP
         # such as the rest of the user's app.
         def class_collisions(*class_names)
 
-          # Initialize some check varibles
+          # Initialize some check variables
           last_class = Object
           current_class = nil
           name = nil

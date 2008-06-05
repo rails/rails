@@ -141,7 +141,7 @@ module ActionView
       #
       #   error_messages_for 'user_common', 'user', :object_name => 'user'
       #
-      # If the objects cannot be located as instance variables, you can add an extra <tt>:object</tt> paremeter which gives the actual
+      # If the objects cannot be located as instance variables, you can add an extra <tt>:object</tt> parameter which gives the actual
       # object (or array of objects to use):
       #
       #   error_messages_for 'user', :object => @question.user

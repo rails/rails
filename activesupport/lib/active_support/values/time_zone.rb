@@ -192,7 +192,7 @@ class TimeZone
     utc_offset == 0 && alternate_utc_string || utc_offset.to_utc_offset_s(colon)
   end
 
-  # Compare this time zone to the parameter. The two are comapred first on
+  # Compare this time zone to the parameter. The two are compared first on
   # their offsets, and then by name.
   def <=>(zone)
     result = (utc_offset <=> zone.utc_offset)
