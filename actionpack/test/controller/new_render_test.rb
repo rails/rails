@@ -68,6 +68,11 @@ class NewRenderTestController < ActionController::Base
     path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb')
     render :file => path
   end
+  
+  def render_file_from_template
+    @secret = 'in the sauce'
+    @path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb'))
+  end
 
   def render_file_with_locals
     path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals.erb')
@@ -529,6 +534,11 @@ class NewRenderTest < Test::Unit::TestCase
 
   def test_render_file_with_locals
     get :render_file_with_locals
+    assert_equal "The secret is in the sauce\n", @response.body
+  end
+  
+  def test_render_file_from_template
+    get :render_file_from_template
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
