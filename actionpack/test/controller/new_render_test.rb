@@ -742,7 +742,7 @@ EOS
   
   def test_partial_collection_with_counter
     get :partial_collection_with_counter
-    assert_equal "david1mary2", @response.body
+    assert_equal "david0mary1", @response.body
   end
   
   def test_partial_collection_with_locals
@@ -762,7 +762,7 @@ EOS
 
   def test_partial_collection_shorthand_with_different_types_of_records
     get :partial_collection_shorthand_with_different_types_of_records
-    assert_equal "Bonjour bad customer: mark1Bonjour good customer: craig2Bonjour bad customer: john3Bonjour good customer: zach4Bonjour good customer: brandon5Bonjour bad customer: dan6", @response.body
+    assert_equal "Bonjour bad customer: mark0Bonjour good customer: craig1Bonjour bad customer: john2Bonjour good customer: zach3Bonjour good customer: brandon4Bonjour bad customer: dan5", @response.body
   end
 
   def test_empty_partial_collection

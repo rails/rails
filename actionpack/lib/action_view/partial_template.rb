@@ -22,10 +22,10 @@ module ActionView #:nodoc:
     end
     
     def render_member(object)
-      @locals[@counter_name] += 1
       @locals[:object] = @locals[@variable_name] = object
       
       template = render_template
+      @locals[@counter_name] += 1
       @locals.delete(@variable_name)
       @locals.delete(:object)
       
