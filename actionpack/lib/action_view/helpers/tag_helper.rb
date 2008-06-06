@@ -1,5 +1,6 @@
 require 'cgi'
 require 'erb'
+require 'set'
 
 module ActionView
   module Helpers #:nodoc:
@@ -8,7 +9,8 @@ module ActionView
     module TagHelper
       include ERB::Util
 
-      BOOLEAN_ATTRIBUTES = Set.new(%w(disabled readonly multiple))
+      BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple).to_set
+      BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML 
       # compliant. Set +open+ to true to create an open tag compatible 
@@ -37,7 +39,7 @@ module ActionView
       #   tag("img", { :src => "open &amp; shut.png" }, false, false)
       #   # => <img src="open &amp; shut.png" />
       def tag(name, options = nil, open = false, escape = true)
-        "<#{name}#{tag_options(options, escape) if options}" + (open ? ">" : " />")
+        "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}"
       end
 
       # Returns an HTML block tag of type +name+ surrounding the +content+. Add
@@ -114,7 +116,6 @@ module ActionView
             if escape
               options.each do |key, value|
                 next unless value
-                key = key.to_s
                 value = BOOLEAN_ATTRIBUTES.include?(key) ? key : escape_once(value)
                 attrs << %(#{key}="#{value}")
               end
