@@ -2064,13 +2064,18 @@ module ActiveRecord #:nodoc:
         end
 
         def expand_range_bind_variables(bind_vars) #:nodoc:
-          bind_vars.sum do |var|
+          expanded = []
+
+          bind_vars.each do |var|
             if var.is_a?(Range)
-              [var.first, var.last]
+              expanded << var.first
+              expanded << var.last
             else
-              [var]
+              expanded << var
             end
           end
+
+          expanded
         end
 
         def quote_bound_value(value) #:nodoc:
