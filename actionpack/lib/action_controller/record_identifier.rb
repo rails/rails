@@ -1,19 +1,3 @@
-class Class
-  def model_name
-    @model_name ||= ModelName.new(name)
-  end
-
-  class ModelName
-    attr_reader :singular, :plural, :path
-
-    def initialize(name)
-      @singular = name.underscore.tr('/', '_').freeze
-      @plural = @singular.pluralize.freeze
-      @path = "#{name.tableize}/#{name.demodulize.underscore}".freeze
-    end
-  end
-end
-
 module ActionController  
   # The record identifier encapsulates a number of naming conventions for dealing with records, like Active Records or 
   # Active Resources or pretty much any other model type that has an id. These patterns are then used to try elevate
@@ -59,9 +43,9 @@ module ActionController
       name = model_name_from_record_or_class(record_or_class)
 
       if controller_path && controller_path.include?("/")
-        "#{File.dirname(controller_path)}/#{name.path}"
+        "#{File.dirname(controller_path)}/#{name.partial_path}"
       else
-        name.path
+        name.partial_path
       end
     end
 
