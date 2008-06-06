@@ -252,6 +252,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       elsif options == :update
         update_page(&block)
       elsif options.is_a?(Hash)
+        use_full_path = options[:use_full_path]
         options = options.reverse_merge(:locals => {}, :use_full_path => true)
 
         if partial_layout = options.delete(:layout)
@@ -265,7 +266,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
             end
           end
         elsif options[:file]
-          render_file(options[:file], options[:use_full_path], options[:locals])
+          render_file(options[:file], use_full_path || false, options[:locals])
         elsif options[:partial] && options[:collection]
           render_partial_collection(options[:partial], options[:collection], options[:spacer_template], options[:locals])
         elsif options[:partial]
