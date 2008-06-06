@@ -854,7 +854,7 @@ module ActiveRecord
             raw_value = raw_value.to_i
           else
            begin
-              raw_value = Kernel.Float(raw_value.to_s)
+              raw_value = Kernel.Float(raw_value)
             rescue ArgumentError, TypeError
               record.errors.add(attr_name, configuration[:message] || ActiveRecord::Errors.default_error_messages[:not_a_number])
               next
