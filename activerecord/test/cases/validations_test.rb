@@ -1391,6 +1391,7 @@ class ValidatesNumericalityTest < ActiveRecord::TestCase
   INTEGERS = [0, 10, -10] + INTEGER_STRINGS
   BIGDECIMAL = BIGDECIMAL_STRINGS.collect! { |bd| BigDecimal.new(bd) }
   JUNK = ["not a number", "42 not a number", "0xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"]
+  INFINITY = [1.0/0.0]
 
   def setup
     Topic.instance_variable_set("@validate_callbacks", ActiveSupport::Callbacks::CallbackChain.new)
@@ -1402,27 +1403,27 @@ class ValidatesNumericalityTest < ActiveRecord::TestCase
     Topic.validates_numericality_of :approved
 
     invalid!(NIL + BLANK + JUNK)
-    valid!(FLOATS + INTEGERS + BIGDECIMAL)
+    valid!(FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
   end
 
   def test_validates_numericality_of_with_nil_allowed
     Topic.validates_numericality_of :approved, :allow_nil => true
 
     invalid!(BLANK + JUNK)
-    valid!(NIL + FLOATS + INTEGERS + BIGDECIMAL)
+    valid!(NIL + FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
   end
 
   def test_validates_numericality_of_with_integer_only
     Topic.validates_numericality_of :approved, :only_integer => true
 
-    invalid!(NIL + BLANK + JUNK + FLOATS + BIGDECIMAL)
+    invalid!(NIL + BLANK + JUNK + FLOATS + BIGDECIMAL + INFINITY)
     valid!(INTEGERS)
   end
 
   def test_validates_numericality_of_with_integer_only_and_nil_allowed
     Topic.validates_numericality_of :approved, :only_integer => true, :allow_nil => true
 
-    invalid!(BLANK + JUNK + FLOATS + BIGDECIMAL)
+    invalid!(BLANK + JUNK + FLOATS + BIGDECIMAL + INFINITY)
     valid!(NIL + INTEGERS)
   end
 
@@ -1443,7 +1444,7 @@ class ValidatesNumericalityTest < ActiveRecord::TestCase
   def test_validates_numericality_with_equal_to
     Topic.validates_numericality_of :approved, :equal_to => 10
 
-    invalid!([-10, 11], 'must be equal to 10')
+    invalid!([-10, 11] + INFINITY, 'must be equal to 10')
     valid!([10])
   end
 
