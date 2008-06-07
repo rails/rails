@@ -172,14 +172,17 @@ module ActionView
       #     alert('All is good')
       #   <% end -%>
       def javascript_tag(content_or_options_with_block = nil, html_options = {}, &block)
-        if block_given?
-          html_options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
-          content = capture(&block)
-        else
-          content = content_or_options_with_block
-        end
+        content =
+          if block_given?
+            html_options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
+            capture(&block)
+          else
+            content_or_options_with_block
+          end
 
-        concat(content_tag("script", javascript_cdata_section(content), html_options.merge(:type => Mime::JS)))
+        tag = content_tag("script", javascript_cdata_section(content), html_options.merge(:type => Mime::JS))
+
+        block_given? ? concat(tag) : tag
       end
 
       def javascript_cdata_section(content) #:nodoc:
