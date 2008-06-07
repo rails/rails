@@ -1,0 +1,34 @@
+== About
+
+This is Nick's connection pool branch, wherein he attempts to rewrite Rails' connection handling code to
+be more thread-safe, and to add connection pooling features.
+
+== Goals
+
+- Preserve Rails' lazy connection acquisition and caching strategy behavior as it exists prior to this work.
+- Add ability to configure a connection pool to limit the number of connections made to a database in multiple-thread scenarios.
+- Threads will block for a configurable timeout if the pool is exhausted until a connection is available.
+- If none is available during the timeout period, an exception will be raised.
+- Add a checkout/checkin API to reserve and release a connection to/from the pool.
+- Add several different connection handling/pooling classes to serve different needs:
+  - proper fixed-size connection pool
+  - connection-per-thread with no maximum on the number of connections
+  - single thread cached connection
+  - pass-through to external connection pool (JRuby/JNDI data source connection pool)
+
+== TODO
+
+Remaining tasks:
+
+- Fixed-size connection pool
+- Add checkin/checkout API
+- Add a #with_connection API that allows checkin/checkout of a connection outside of a provided block.
+
+    Model.with_connection do |conn|
+      Thread.new {
+        Model.connection = conn
+        # do something with conn
+      }
+      Model.connection.select ....
+    end
+- Look at whether existing clear_* or verify_* methods can be deprecated or removed.
