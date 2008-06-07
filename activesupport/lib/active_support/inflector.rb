@@ -15,7 +15,7 @@ module ActiveSupport
     # A singleton instance of this class is yielded by Inflector.inflections, which can then be used to specify additional
     # inflection rules. Examples:
     #
-    #   Inflector.inflections do |inflect|
+    #   ActiveSupport::Inflector.inflections do |inflect|
     #     inflect.plural /^(ox)$/i, '\1\2en'
     #     inflect.singular /^(ox)en/i, '\1'
     #
@@ -97,7 +97,7 @@ module ActiveSupport
     # inflector rules.
     #
     # Example:
-    #   Inflector.inflections do |inflect|
+    #   ActiveSupport::Inflector.inflections do |inflect|
     #     inflect.uncountable "rails"
     #   end
     def inflections
