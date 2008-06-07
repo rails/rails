@@ -26,7 +26,7 @@ module ActionView
       #       # will either display "Logged in!" or a login link
       #   %>
       def concat(string)
-        if @output_buffer
+        if @output_buffer && string
           @output_buffer << string
         else
           string
