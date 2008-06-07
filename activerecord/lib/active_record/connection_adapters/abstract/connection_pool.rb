@@ -1,3 +1,4 @@
+require 'monitor'
 require 'set'
 
 module ActiveRecord
@@ -130,6 +131,94 @@ module ActiveRecord
             block.call(key, cache[key])
             cache.delete(key)
           end
+        end
+    end
+
+    class ConnectionHandler
+      attr_reader :connection_pools_lock
+
+      def initialize
+        @connection_pools = {}
+        @connection_pools_lock = Monitor.new
+      end
+
+      def establish_connection(name, spec)
+        connection_pools_lock.synchronize do
+          @connection_pools[name] = ConnectionAdapters::ConnectionPool.new(spec)
+        end
+      end
+
+      # for internal use only and for testing
+      def active_connections #:nodoc:
+        @connection_pools.inject({}) do |hash,kv|
+          hash[kv.first] = kv.last.active_connection
+          hash.delete(kv.first) unless hash[kv.first]
+          hash
+        end
+      end
+
+      # Clears the cache which maps classes to connections.
+      def clear_active_connections!
+        @connection_pools.each_value {|pool| pool.clear_active_connections! }
+      end
+
+      # Clears the cache which maps classes
+      def clear_reloadable_connections!
+        @connection_pools.each_value {|pool| pool.clear_reloadable_connections! }
+      end
+
+      def clear_all_connections!
+        clear_cache!(@connection_pools) {|name, pool| pool.disconnect! }
+      end
+
+      # Verify active connections.
+      def verify_active_connections! #:nodoc:
+        @connection_pools.each_value {|pool| pool.verify_active_connections!}
+      end
+
+      # Locate the connection of the nearest super class. This can be an
+      # active or defined connection: if it is the latter, it will be
+      # opened and set as the active connection for the class it was defined
+      # for (not necessarily the current class).
+      def retrieve_connection(klass) #:nodoc:
+        pool = retrieve_connection_pool(klass)
+        (pool && pool.connection) or raise ConnectionNotEstablished
+      end
+
+      def retrieve_connection_pool(klass)
+        loop do
+          pool = @connection_pools[klass.name]
+          return pool if pool
+          return nil if ActiveRecord::Base == klass
+          klass = klass.superclass
+        end
+      end
+
+      # Returns true if a connection that's accessible to this class has already been opened.
+      def connected?(klass)
+        retrieve_connection_pool(klass).connected?
+      end
+
+      # Remove the connection for this class. This will close the active
+      # connection and the defined connection (if they exist). The result
+      # can be used as an argument for establish_connection, for easily
+      # re-establishing the connection.
+      def remove_connection(klass)
+        pool = @connection_pools[klass.name]
+        @connection_pools.delete_if { |key, value| value == pool }
+        pool.disconnect! if pool
+        pool.spec.config if pool
+      end
+
+      synchronize :retrieve_connection, :retrieve_connection_pool, :connected?,
+        :remove_connection, :active_connections, :clear_active_connections!,
+        :clear_reloadable_connections!, :clear_all_connections!,
+        :verify_active_connections!, :with => :connection_pools_lock
+
+      private
+        def clear_cache!(cache, &block)
+          cache.each(&block) if block_given?
+          cache.clear
         end
     end
   end

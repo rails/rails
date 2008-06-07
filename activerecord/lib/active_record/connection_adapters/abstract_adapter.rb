@@ -7,8 +7,8 @@ require 'active_record/connection_adapters/abstract/schema_definitions'
 require 'active_record/connection_adapters/abstract/schema_statements'
 require 'active_record/connection_adapters/abstract/database_statements'
 require 'active_record/connection_adapters/abstract/quoting'
-require 'active_record/connection_adapters/abstract/connection_specification'
 require 'active_record/connection_adapters/abstract/connection_pool'
+require 'active_record/connection_adapters/abstract/connection_specification'
 require 'active_record/connection_adapters/abstract/query_cache'
 
 module ActiveRecord
