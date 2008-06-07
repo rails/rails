@@ -14,12 +14,24 @@ module ActiveRecord
 
     # The connection handler
     cattr_accessor :connection_handler, :instance_writer => false
-    @@connection_handler = ConnectionAdapters::ConnectionHandler.new
+    @@connection_handler = ConnectionAdapters::SingleThreadConnectionHandler.new
 
-    # Turning on allow_concurrency basically switches a null mutex for a real one, so that
-    # multi-threaded access of the connection pools hash is synchronized.
+    # Turning on allow_concurrency changes the single threaded connection handler
+    # for a multiple threaded one, so that multi-threaded access of the
+    # connection pools is synchronized.
     def self.allow_concurrency=(flag)
-      @@allow_concurrency = flag
+      if @@allow_concurrency != flag
+        @@allow_concurrency = flag
+        # When switching connection handlers, preserve the existing pools so that
+        # #establish_connection doesn't need to be called again.
+        if @@allow_concurrency
+          self.connection_handler = ConnectionAdapters::MultipleThreadConnectionHandler.new(
+            self.connection_handler.connection_pools)
+        else
+          self.connection_handler = ConnectionAdapters::SingleThreadConnectionHandler.new(
+            self.connection_handler.connection_pools)
+        end
+      end
     end
 
     # Returns the connection currently associated with the class. This can
@@ -112,7 +124,7 @@ module ActiveRecord
         connection_handler.connected?(self)
       end
 
-      def remove_connection(klass=self)
+      def remove_connection(klass = self)
         connection_handler.remove_connection(klass)
       end
 

@@ -134,18 +134,17 @@ module ActiveRecord
         end
     end
 
-    class ConnectionHandler
-      attr_reader :connection_pools_lock
+    module ConnectionHandlerMethods
+      def initialize(pools = {})
+        @connection_pools = pools
+      end
 
-      def initialize
-        @connection_pools = {}
-        @connection_pools_lock = Monitor.new
+      def connection_pools
+        @connection_pools ||= {}
       end
 
       def establish_connection(name, spec)
-        connection_pools_lock.synchronize do
-          @connection_pools[name] = ConnectionAdapters::ConnectionPool.new(spec)
-        end
+        @connection_pools[name] = ConnectionAdapters::ConnectionPool.new(spec)
       end
 
       # for internal use only and for testing
@@ -168,7 +167,7 @@ module ActiveRecord
       end
 
       def clear_all_connections!
-        clear_cache!(@connection_pools) {|name, pool| pool.disconnect! }
+        @connection_pools.each_value {|pool| pool.disconnect! }
       end
 
       # Verify active connections.
@@ -183,15 +182,6 @@ module ActiveRecord
       def retrieve_connection(klass) #:nodoc:
         pool = retrieve_connection_pool(klass)
         (pool && pool.connection) or raise ConnectionNotEstablished
-      end
-
-      def retrieve_connection_pool(klass)
-        loop do
-          pool = @connection_pools[klass.name]
-          return pool if pool
-          return nil if ActiveRecord::Base == klass
-          klass = klass.superclass
-        end
       end
 
       # Returns true if a connection that's accessible to this class has already been opened.
@@ -210,16 +200,40 @@ module ActiveRecord
         pool.spec.config if pool
       end
 
-      synchronize :retrieve_connection, :retrieve_connection_pool, :connected?,
-        :remove_connection, :active_connections, :clear_active_connections!,
-        :clear_reloadable_connections!, :clear_all_connections!,
-        :verify_active_connections!, :with => :connection_pools_lock
-
       private
-        def clear_cache!(cache, &block)
-          cache.each(&block) if block_given?
-          cache.clear
+        def retrieve_connection_pool(klass)
+          loop do
+            pool = @connection_pools[klass.name]
+            return pool if pool
+            return nil if ActiveRecord::Base == klass
+            klass = klass.superclass
+          end
         end
+    end
+
+    # This connection handler is not thread-safe, as it does not protect access
+    # to the underlying connection pools.
+    class SingleThreadConnectionHandler
+      include ConnectionHandlerMethods
+    end
+
+    # This connection handler is thread-safe. Each access or modification of a thread
+    # pool is synchronized by an internal monitor.
+    class MultipleThreadConnectionHandler
+      attr_reader :connection_pools_lock
+      include ConnectionHandlerMethods
+
+      def initialize(pools = {})
+        super
+        @connection_pools_lock = Monitor.new
+      end
+
+      # Apply monitor to all public methods that access the pool.
+      synchronize :establish_connection, :retrieve_connection,
+        :connected?, :remove_connection, :active_connections,
+        :clear_active_connections!, :clear_reloadable_connections!,
+        :clear_all_connections!, :verify_active_connections!,
+        :with => :connection_pools_lock
     end
   end
 end
