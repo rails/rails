@@ -32,7 +32,7 @@ module ActionView
       #
       def capture(*args, &block)
         if @output_buffer
-          with_temporary_output_buffer { yield *args }
+          with_output_buffer { block.call(*args) }
         else
           block.call(*args)
         end
@@ -115,26 +115,16 @@ module ActionView
       # <tt><%= yield :footer %></tt>.
       def content_for(name, content = nil, &block)
         ivar = "@content_for_#{name}"
-        instance_variable_set("@content_for_#{name}", "#{instance_variable_get(ivar)}#{block_given? ? capture(&block) : content}")
+        content = capture(&block) if block_given?
+        instance_variable_set(ivar, "#{instance_variable_get(ivar)}#{content}")
       end
 
       private
-        def with_temporary_output_buffer
-          @output_buffer, old_buffer = '', @output_buffer
+        def with_output_buffer(buf = '')
+          @output_buffer, old_buffer = buf, @output_buffer
           yield
-          @output_buffer
         ensure
           @output_buffer = old_buffer
-        end
-
-        def erb_content_for(name, &block)
-          ivar = "@content_for_#{name}"
-          instance_variable_set(ivar, "#{instance_variable_get(ivar)}#{capture(&block)}")
-        end
-
-        def block_content_for(name)
-          ivar = "@content_for_#{name}"
-          instance_variable_set(ivar, "#{instance_variable_get(ivar)}#{yield}")
         end
     end
   end
