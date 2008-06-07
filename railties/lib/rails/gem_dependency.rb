@@ -98,27 +98,26 @@ module Rails
       self.name == other.name && self.requirement == other.requirement
     end
 
-private ###################################################################
-
     def specification
       @spec ||= Gem.source_index.search(Gem::Dependency.new(@name, @requirement)).sort_by { |s| s.version }.last
     end
 
-    def gem_command
-      RUBY_PLATFORM =~ /win32/ ? 'gem.bat' : 'gem'
-    end
+    private
+      def gem_command
+        RUBY_PLATFORM =~ /win32/ ? 'gem.bat' : 'gem'
+      end
 
-    def install_command
-      cmd = %w(install) << @name
-      cmd << "--version" << %("#{@requirement.to_s}") if @requirement
-      cmd << "--source"  << @source  if @source
-      cmd
-    end
+      def install_command
+        cmd = %w(install) << @name
+        cmd << "--version" << %("#{@requirement.to_s}") if @requirement
+        cmd << "--source"  << @source  if @source
+        cmd
+      end
 
-    def unpack_command
-      cmd = %w(unpack) << @name
-      cmd << "--version" << %("#{@requirement.to_s}") if @requirement
-      cmd
-    end
+      def unpack_command
+        cmd = %w(unpack) << @name
+        cmd << "--version" << %("#{@requirement.to_s}") if @requirement
+        cmd
+      end
   end
 end
