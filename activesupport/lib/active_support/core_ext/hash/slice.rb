@@ -1,5 +1,3 @@
-require 'set'
-
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Hash #:nodoc:
@@ -14,9 +12,9 @@ module ActiveSupport #:nodoc:
       module Slice
         # Returns a new hash with only the given keys.
         def slice(*keys)
-          allowed = Set.new(respond_to?(:convert_key) ? keys.map { |key| convert_key(key) } : keys)
+          keys = keys.map! { |key| convert_key(key) } if respond_to?(:convert_key)
           hash = {}
-          allowed.each { |k| hash[k] = self[k] if has_key?(k) }
+          keys.each { |k| hash[k] = self[k] if has_key?(k) }
           hash
         end
 
