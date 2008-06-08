@@ -23,9 +23,13 @@ module Rails
       @unpack_directory = nil
     end
 
+    def unpacked_paths
+      Dir[File.join(self.class.unpacked_path, "#{@name}-#{@version || "*"}")]
+    end
+
     def add_load_paths
       return if @loaded || @load_paths_added
-      unpacked_paths = Dir[File.join(self.class.unpacked_path, "#{@name}-#{@version || "*"}")]
+      unpacked_paths = self.unpacked_paths
       if unpacked_paths.empty?
         args = [@name]
         args << @requirement.to_s if @requirement

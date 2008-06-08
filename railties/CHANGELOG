@@ -1,6 +1,5 @@
 *Edge*
 
-
 * Wrapped Rails.env in StringQuestioneer so you can do Rails.env.development? [DHH]
 
 * Add the gem load paths before the framework is loaded, so certain gems like RedCloth and BlueCloth can be frozen.
