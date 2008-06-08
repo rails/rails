@@ -38,9 +38,9 @@ class ClassTest < Test::Unit::TestCase
     @parent   = eval("class D; end; D")
     @sub      = eval("class E < D; end; E")
     @subofsub = eval("class F < E; end; F")
-    assert @parent.subclasses.all? { |i| [@sub.to_s, @subofsub.to_s].include?(i) }
     assert_equal 2, @parent.subclasses.size
     assert_equal [@subofsub.to_s], @sub.subclasses
     assert_equal [], @subofsub.subclasses
+    assert_equal [@sub.to_s, @subofsub.to_s].sort, @parent.subclasses.sort
   end
 end
