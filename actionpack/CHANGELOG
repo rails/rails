@@ -1,5 +1,7 @@
 *Edge*
 
+* More efficient concat and capture helpers. Remove ActionView::Base.erb_variable.  [Jeremy Kemper]
+
 * Added page.reload functionality. Resolves #277. [Sean Huber]
 
 * Fixed Request#remote_ip to only raise hell if the HTTP_CLIENT_IP and HTTP_X_FORWARDED_FOR doesn't match (not just if they're both present) [Mark Imbriaco, Bradford Folkens]
