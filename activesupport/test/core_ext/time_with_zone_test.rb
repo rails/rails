@@ -336,24 +336,26 @@ class TimeWithZoneTest < Test::Unit::TestCase
     end
   end
 
-  def test_method_missing_with_non_time_return_value
-    silence_warnings do # silence warnings raised by tzinfo gem
-      @twz.time.expects(:foo).returns('bar')
-      assert_equal 'bar', @twz.foo
+  uses_mocha 'TestDatePartValueMethods' do
+    def test_method_missing_with_non_time_return_value
+      silence_warnings do # silence warnings raised by tzinfo gem
+        @twz.time.expects(:foo).returns('bar')
+        assert_equal 'bar', @twz.foo
+      end
     end
-  end
 
-  def test_date_part_value_methods
-    silence_warnings do # silence warnings raised by tzinfo gem
-      twz = ActiveSupport::TimeWithZone.new(Time.utc(1999,12,31,19,18,17,500), @time_zone)
-      twz.stubs(:method_missing).returns(nil) #ensure these methods are defined directly on class
-      assert_equal 1999, twz.year
-      assert_equal 12, twz.month
-      assert_equal 31, twz.day
-      assert_equal 14, twz.hour
-      assert_equal 18, twz.min
-      assert_equal 17, twz.sec
-      assert_equal 500, twz.usec
+    def test_date_part_value_methods
+      silence_warnings do # silence warnings raised by tzinfo gem
+        twz = ActiveSupport::TimeWithZone.new(Time.utc(1999,12,31,19,18,17,500), @time_zone)
+        twz.stubs(:method_missing).returns(nil) #ensure these methods are defined directly on class
+        assert_equal 1999, twz.year
+        assert_equal 12, twz.month
+        assert_equal 31, twz.day
+        assert_equal 14, twz.hour
+        assert_equal 18, twz.min
+        assert_equal 17, twz.sec
+        assert_equal 500, twz.usec
+      end
     end
   end
 
