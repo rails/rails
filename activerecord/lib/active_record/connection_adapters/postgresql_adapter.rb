@@ -506,7 +506,7 @@ module ActiveRecord
           end
         end
 
-        execute "CREATE DATABASE #{name}#{option_string}"
+        execute "CREATE DATABASE #{quote_table_name(name)}#{option_string}"
       end
 
       # Drops a PostgreSQL database
@@ -514,7 +514,7 @@ module ActiveRecord
       # Example:
       #   drop_database 'matt_development'
       def drop_database(name) #:nodoc:
-        execute "DROP DATABASE IF EXISTS #{name}"
+        execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
       end
 
 
@@ -676,7 +676,7 @@ module ActiveRecord
 
       # Renames a table.
       def rename_table(name, new_name)
-        execute "ALTER TABLE #{name} RENAME TO #{new_name}"
+        execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
       end
 
       # Adds a new column to the named table.
