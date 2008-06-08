@@ -1638,7 +1638,9 @@ module ActiveRecord
           end
 
           def join_for_table_name(table_name)
-            @joins.select{|j|j.aliased_table_name == table_name.gsub(/^\"(.*)\"$/){$1} }.first rescue nil
+            join = (@joins.select{|j|j.aliased_table_name == table_name.gsub(/^\"(.*)\"$/){$1} }.first) rescue nil
+            return join unless join.nil?
+            @joins.select{|j|j.is_a?(JoinAssociation) && j.aliased_join_table_name == table_name.gsub(/^\"(.*)\"$/){$1} }.first rescue nil
           end
 
           def joins_for_table_name(table_name)
