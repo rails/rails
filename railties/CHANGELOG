@@ -1,5 +1,7 @@
 *Edge*
 
+* Add the gem load paths before the framework is loaded, so certain gems like RedCloth and BlueCloth can be frozen.
+
 * Fix discrepancies with loading rails/init.rb from gems.
 
 * Plugins check for the gem init path (rails/init.rb) before the standard plugin init path (init.rb)  [Jacek Becela]

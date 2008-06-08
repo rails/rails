@@ -113,10 +113,10 @@ module Rails
       check_ruby_version
       install_gem_spec_stubs
       set_load_path
-      
+      add_gem_load_paths
+
       require_frameworks
       set_autoload_paths
-      add_gem_load_paths
       add_plugin_load_paths
       load_environment
 
@@ -242,12 +242,12 @@ module Rails
     def add_gem_load_paths
       unless @configuration.gems.empty?
         require "rubygems"
-        @configuration.gems.each &:add_load_paths
+        @configuration.gems.each { |gem| gem.add_load_paths }
       end
     end
 
     def load_gems
-      @configuration.gems.each(&:load)
+      @configuration.gems.each { |gem| gem.load }
     end
 
     def check_gem_dependencies
