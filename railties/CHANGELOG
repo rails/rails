@@ -1,5 +1,9 @@
 *Edge*
 
+* Fix discrepancies with loading rails/init.rb from gems.
+
+* Plugins check for the gem init path (rails/init.rb) before the standard plugin init path (init.rb)  [Jacek Becela]
+
 * Wrapped Rails.env in StringInquirer so you can do Rails.env.development? [DHH]
 
 * Fixed that RailsInfoController wasn't considering all requests local in development mode (Edgard Castro) [#310 state:resolved]

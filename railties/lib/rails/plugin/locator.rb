@@ -78,8 +78,9 @@ module Rails
     # a <tt>rails/init.rb</tt> file.
     class GemLocator < Locator
       def plugins
-        specs  = initializer.configuration.gems.map(&:specification)
-        specs += Gem.loaded_specs.values.select do |spec|
+        gem_index = initializer.configuration.gems.inject({}) { |memo, gem| memo.update gem.specification => gem }
+        specs     = gem_index.keys
+        specs    += Gem.loaded_specs.values.select do |spec|
           spec.loaded_from && # prune stubs
             File.exist?(File.join(spec.full_gem_path, "rails", "init.rb"))
         end
@@ -91,7 +92,7 @@ module Rails
         deps.add(*specs) unless specs.empty?
 
         deps.dependency_order.collect do |spec|
-          Rails::GemPlugin.new(spec)
+          Rails::GemPlugin.new(spec, gem_index[spec])
         end
       end
     end
