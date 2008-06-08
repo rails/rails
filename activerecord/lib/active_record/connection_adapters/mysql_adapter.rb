@@ -42,30 +42,6 @@ end
 
 module ActiveRecord
   class Base
-    def self.require_mysql
-      # Include the MySQL driver if one hasn't already been loaded
-      unless defined? Mysql
-        begin
-          require_library_or_gem 'mysql'
-        rescue LoadError => cannot_require_mysql
-          # Use the bundled Ruby/MySQL driver if no driver is already in place
-          begin
-            ActiveRecord::Base.logger.info(
-              "WARNING: You're using the Ruby-based MySQL library that ships with Rails. This library is not suited for production. " +
-              "Please install the C-based MySQL library instead (gem install mysql)."
-            ) if ActiveRecord::Base.logger
-
-            require 'active_record/vendor/mysql'
-          rescue LoadError
-            raise cannot_require_mysql
-          end
-        end
-      end
-
-      # Define Mysql::Result.all_hashes
-      MysqlCompat.define_all_hashes_method!
-    end
-
     # Establishes a connection to the database that's used by all Active Record objects.
     def self.mysql_connection(config) # :nodoc:
       config = config.symbolize_keys
@@ -81,7 +57,10 @@ module ActiveRecord
         raise ArgumentError, "No database specified. Missing argument: database."
       end
 
-      require_mysql
+      # Require the MySQL driver and define Mysql::Result.all_hashes
+      require_library_or_gem('mysql') unless defined? Mysql
+      MysqlCompat.define_all_hashes_method!
+
       mysql = Mysql.init
       mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher]) if config[:sslkey]
 
