@@ -92,7 +92,7 @@ module ActiveSupport
             class_eval(<<-EOS, __FILE__, __LINE__)
               def #{target}_with_deprecation#{punctuation}(*args, &block)
                 ::ActiveSupport::Deprecation.warn(self.class.deprecated_method_warning(:#{method_name}, #{options[method_name].inspect}), caller)
-                #{target}_without_deprecation#{punctuation}(*args, &block)
+                send(:#{target}_without_deprecation#{punctuation}, *args, &block)
               end
             EOS
           end
@@ -109,7 +109,7 @@ module ActiveSupport
       end
 
       def deprecation_horizon
-        '2.0'
+        '2.2'
       end
     end
 

@@ -178,10 +178,13 @@ module ActionView #:nodoc:
     # that alert()s the caught exception (and then re-raises it). 
     @@debug_rjs = false
     cattr_accessor :debug_rjs
-    
+
     @@erb_variable = '_erbout'
     cattr_accessor :erb_variable
-    
+    class << self
+      deprecate :erb_variable= => 'The erb variable will no longer be configurable. Use the concat helper method instead of appending to it directly.'
+    end
+
     attr_internal :request
 
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
