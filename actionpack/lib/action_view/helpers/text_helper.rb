@@ -25,7 +25,11 @@ module ActionView
       #       end
       #       # will either display "Logged in!" or a login link
       #   %>
-      def concat(string)
+      def concat(string, unused_binding = nil)
+        if unused_binding
+          ActiveSupport::Deprecation.warn("The binding argument of #concat is no longer needed.  Please remove it from your views and helpers.")
+        end
+
         if output_buffer && string
           output_buffer << string
         else
