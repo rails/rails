@@ -238,9 +238,26 @@ module ActiveRecord
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
     # * <tt>:allow_concurrency</tt> - If true, use async query methods so Ruby threads don't deadlock; otherwise, use blocking query methods.
     class PostgreSQLAdapter < AbstractAdapter
+      ADAPTER_NAME = 'PostgreSQL'.freeze
+
+      NATIVE_DATABASE_TYPES = {
+        :primary_key => "serial primary key".freeze,
+        :string      => { :name => "character varying", :limit => 255 },
+        :text        => { :name => "text" },
+        :integer     => { :name => "integer" },
+        :float       => { :name => "float" },
+        :decimal     => { :name => "decimal" },
+        :datetime    => { :name => "timestamp" },
+        :timestamp   => { :name => "timestamp" },
+        :time        => { :name => "time" },
+        :date        => { :name => "date" },
+        :binary      => { :name => "bytea" },
+        :boolean     => { :name => "boolean" }
+      }
+
       # Returns 'PostgreSQL' as adapter name for identification purposes.
       def adapter_name
-        'PostgreSQL'
+        ADAPTER_NAME
       end
 
       # Initializes and connects a PostgreSQL adapter.
@@ -282,20 +299,7 @@ module ActiveRecord
       end
 
       def native_database_types #:nodoc:
-        {
-          :primary_key => "serial primary key",
-          :string      => { :name => "character varying", :limit => 255 },
-          :text        => { :name => "text" },
-          :integer     => { :name => "integer" },
-          :float       => { :name => "float" },
-          :decimal     => { :name => "decimal" },
-          :datetime    => { :name => "timestamp" },
-          :timestamp   => { :name => "timestamp" },
-          :time        => { :name => "time" },
-          :date        => { :name => "date" },
-          :binary      => { :name => "bytea" },
-          :boolean     => { :name => "boolean" }
-        }
+        NATIVE_DATABASE_TYPES
       end
 
       # Does PostgreSQL support migrations?
