@@ -1,5 +1,7 @@
 *Edge*
 
+* Ensure ActionView::TemplateFinder view cache is rebuilt on initialize [Josh Peek]
+
 * Drop ActionController::Base.allow_concurrency flag [Josh Peek]
 
 * More efficient concat and capture helpers. Remove ActionView::Base.erb_variable.  [Jeremy Kemper]
