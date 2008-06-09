@@ -151,12 +151,29 @@ module ActiveRecord
       @@emulate_booleans = true
       cattr_accessor :emulate_booleans
 
+      ADAPTER_NAME = 'MySQL'.freeze
+
       LOST_CONNECTION_ERROR_MESSAGES = [
         "Server shutdown in progress",
         "Broken pipe",
         "Lost connection to MySQL server during query",
         "MySQL server has gone away"
       ]
+
+      NATIVE_DATABASE_TYPES = {
+        :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY".freeze,
+        :string      => { :name => "varchar", :limit => 255 },
+        :text        => { :name => "text" },
+        :integer     => { :name => "int"},
+        :float       => { :name => "float" },
+        :decimal     => { :name => "decimal" },
+        :datetime    => { :name => "datetime" },
+        :timestamp   => { :name => "datetime" },
+        :time        => { :name => "time" },
+        :date        => { :name => "date" },
+        :binary      => { :name => "blob" },
+        :boolean     => { :name => "tinyint", :limit => 1 }
+      }
 
       def initialize(connection, logger, connection_options, config)
         super(connection, logger)
@@ -166,7 +183,7 @@ module ActiveRecord
       end
 
       def adapter_name #:nodoc:
-        'MySQL'
+        ADAPTER_NAME
       end
 
       def supports_migrations? #:nodoc:
@@ -174,20 +191,7 @@ module ActiveRecord
       end
 
       def native_database_types #:nodoc:
-        {
-          :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY",
-          :string      => { :name => "varchar", :limit => 255 },
-          :text        => { :name => "text" },
-          :integer     => { :name => "int", :limit => 11 },
-          :float       => { :name => "float" },
-          :decimal     => { :name => "decimal" },
-          :datetime    => { :name => "datetime" },
-          :timestamp   => { :name => "datetime" },
-          :time        => { :name => "time" },
-          :date        => { :name => "date" },
-          :binary      => { :name => "blob" },
-          :boolean     => { :name => "tinyint", :limit => 1 }
-        }
+        NATIVE_DATABASE_TYPES
       end
 
 
