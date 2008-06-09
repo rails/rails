@@ -151,8 +151,8 @@ module ActiveRecord
     #
     #   ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans = false
     class MysqlAdapter < AbstractAdapter
-      @@emulate_booleans = true
       cattr_accessor :emulate_booleans
+      self.emulate_booleans = true
 
       ADAPTER_NAME = 'MySQL'.freeze
 
@@ -162,7 +162,7 @@ module ActiveRecord
         "Lost connection to MySQL server during query",
         "MySQL server has gone away" ]
 
-      QUOTED_TRUE, QUOTED_FALSE = '1', '0'
+      QUOTED_TRUE, QUOTED_FALSE = '1'.freeze, '0'.freeze
 
       NATIVE_DATABASE_TYPES = {
         :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY".freeze,
@@ -488,12 +488,17 @@ module ActiveRecord
 
       private
         def connect
+          @connection.reconnect = true if @connection.respond_to?(:reconnect=)
+
           encoding = @config[:encoding]
           if encoding
             @connection.options(Mysql::SET_CHARSET_NAME, encoding) rescue nil
           end
+
           @connection.ssl_set(@config[:sslkey], @config[:sslcert], @config[:sslca], @config[:sslcapath], @config[:sslcipher]) if @config[:sslkey]
+
           @connection.real_connect(*@connection_options)
+
           execute("SET NAMES '#{encoding}'") if encoding
 
           # By default, MySQL 'where id is null' selects the last inserted id.
