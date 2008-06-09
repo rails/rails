@@ -45,6 +45,7 @@ class TagHelperTest < ActionView::TestCase
   end
   
   def test_content_tag_with_block_and_options_outside_of_action_view
+    self.output_buffer = nil
     assert_equal content_tag("a", "Create", :href => "create"),
                  content_tag("a", "href" => "create") { "Create" }    
   end
