@@ -9,7 +9,6 @@ module ActionView #:nodoc:
     }
 
     class << self #:nodoc:
-
       # This method is not thread safe. Mutex should be used whenever this is accessed from an instance method
       def process_view_paths(*view_paths)
         view_paths.flatten.compact.each do |dir|
@@ -26,26 +25,13 @@ module ActionView #:nodoc:
 
               # Build extension cache
               extension = file.split(".").last
-              if template_handler_extensions.include?(extension)
+              if ActionView::Template.template_handler_extensions.include?(extension)
                 key = file.split(dir).last.sub(/^\//, '').sub(/\.(\w+)$/, '')
                 @@file_extension_cache[dir][key] << extension
               end
             end
           end
         end
-      end
-
-      def update_extension_cache_for(extension)
-        @@processed_view_paths.keys.each do |dir|
-          Dir.glob("#{dir}/**/*.#{extension}").each do |file|
-            key = file.split(dir).last.sub(/^\//, '').sub(/\.(\w+)$/, '')
-            @@file_extension_cache[dir][key] << extension
-          end
-        end
-      end
-
-      def template_handler_extensions
-        ActionView::Template.template_handler_extensions
       end
 
       def reload!

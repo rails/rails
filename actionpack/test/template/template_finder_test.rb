@@ -57,11 +57,4 @@ class TemplateFinderTest < Test::Unit::TestCase
     assert_equal false, @finder.send(:file_exists?, 'baz')
     assert_equal false, @finder.send(:file_exists?, 'baz.rb')
   end
-  
-  uses_mocha 'Template finder tests' do
-    def test_should_update_extension_cache_when_template_handler_is_registered
-      ActionView::TemplateFinder.expects(:update_extension_cache_for).with("funky")
-      ActionView::Template::register_template_handler :funky, Class.new(ActionView::TemplateHandler)
-    end
-  end
 end

@@ -99,7 +99,6 @@ module ActionView #:nodoc:
     # return the rendered template as a string.
     def self.register_template_handler(extension, klass)
       @@template_handlers[extension.to_sym] = klass
-      TemplateFinder.update_extension_cache_for(extension.to_s)
     end
 
     def self.template_handler_extensions
