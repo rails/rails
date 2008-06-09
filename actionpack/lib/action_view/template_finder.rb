@@ -1,14 +1,5 @@
 module ActionView #:nodoc:
   class TemplateFinder #:nodoc:
-
-    class InvalidViewPath < StandardError #:nodoc:
-      attr_reader :unprocessed_path
-      def initialize(path)
-        @unprocessed_path = path
-        super("Unprocessed view path found: #{@unprocessed_path.inspect}.  Set your view paths with #append_view_path, #prepend_view_path, or #view_paths=.")
-      end
-    end
-
     cattr_reader :processed_view_paths
     @@processed_view_paths = Hash.new {|hash, key| hash[key] = []}
 
@@ -76,7 +67,7 @@ module ActionView #:nodoc:
 
       @view_paths = args.flatten
       @view_paths = @view_paths.respond_to?(:find) ? @view_paths.dup : [*@view_paths].compact
-      check_view_paths(@view_paths)
+      self.class.process_view_paths(@view_paths)
     end
 
     def prepend_view_path(path)

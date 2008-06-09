@@ -11,12 +11,6 @@ class TemplateFinderTest < Test::Unit::TestCase
     @finder = ActionView::TemplateFinder.new(@template, LOAD_PATH_ROOT)
   end
 
-  def test_should_raise_exception_for_unprocessed_view_path
-    assert_raises ActionView::TemplateFinder::InvalidViewPath do
-      ActionView::TemplateFinder.new(@template, File.dirname(__FILE__))
-    end
-  end
-
   def test_should_cache_file_extension_properly
     assert_equal ["builder", "erb", "rhtml", "rjs", "rxml", "mab"].sort,
                  ActionView::TemplateFinder.file_extension_cache[LOAD_PATH_ROOT].values.flatten.uniq.sort
