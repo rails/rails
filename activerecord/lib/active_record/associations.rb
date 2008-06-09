@@ -1506,7 +1506,7 @@ module ActiveRecord
         end
 
         def order_tables(options)
-          order = options[:order]
+          order = [options[:order], scope(:find, :order) ].join(", ")
           return [] unless order && order.is_a?(String)
           order.scan(/([\.\w]+).?\./).flatten
         end
