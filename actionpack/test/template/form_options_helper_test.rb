@@ -230,16 +230,14 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_select_under_fields_for
     @post = Post.new
     @post.category = "<mus>"
-    
-    @output_buffer = ''
-    
+
     fields_for :post, @post do |f|
-      @output_buffer.concat f.select(:category, %w( abe <mus> hest))
+      concat f.select(:category, %w( abe <mus> hest))
     end
     
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      @output_buffer
+      output_buffer
     )
   end
 
@@ -352,16 +350,14 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     @post = Post.new
     @post.author_name = "Babe"
-    
-    @output_buffer = ''
-    
+
     fields_for :post, @post do |f|
-      @output_buffer.concat f.collection_select(:author_name, @posts, :author_name, :author_name)
+      concat f.collection_select(:author_name, @posts, :author_name, :author_name)
     end
     
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
-      @output_buffer
+      output_buffer
     )
   end
 
@@ -1194,11 +1190,9 @@ COUNTRIES
 
   def test_time_zone_select_under_fields_for
     @firm = Firm.new("D")
-    
-    @output_buffer = ''
-    
+
     fields_for :firm, @firm do |f|
-      @output_buffer.concat f.time_zone_select(:time_zone)
+      concat f.time_zone_select(:time_zone)
     end
     
     assert_dom_equal(
@@ -1209,7 +1203,7 @@ COUNTRIES
       "<option value=\"D\" selected=\"selected\">D</option>\n" +
       "<option value=\"E\">E</option>" +
       "</select>",
-      @output_buffer
+      output_buffer
     )
   end
 

@@ -122,10 +122,6 @@ module ActionView
             " #{attrs.sort * ' '}" unless attrs.empty?
           end
         end
-
-        def block_is_within_action_view?(block)
-          !@output_buffer.nil?
-        end
     end
   end
 end
