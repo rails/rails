@@ -157,12 +157,5 @@ module ActionView #:nodoc:
     def find_template_extension_from_first_render
       File.basename(@template.first_render.to_s)[/^[^.]+\.(.+)$/, 1]
     end
-
-    private
-      def check_view_paths(view_paths)
-        view_paths.each do |path|
-          raise InvalidViewPath.new(path) unless @@processed_view_paths.has_key?(path)
-        end
-      end
   end
 end
