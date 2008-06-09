@@ -1,5 +1,7 @@
 *Edge*
 
+* Drop ActionController::Base.allow_concurrency flag [Josh Peek]
+
 * More efficient concat and capture helpers. Remove ActionView::Base.erb_variable.  [Jeremy Kemper]
 
 * Added page.reload functionality. Resolves #277. [Sean Huber]
