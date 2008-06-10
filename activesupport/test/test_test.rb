@@ -84,6 +84,12 @@ class SetupAndTeardownTest < Test::Unit::TestCase
     assert_equal [:foo, :sentinel, :foo], self.class.teardown_callback_chain.map(&:method)
   end
 
+  def setup
+  end
+
+  def teardown
+  end
+
   protected
     def reset_callback_record
       @called_back = []
