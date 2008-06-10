@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'abstract_unit'
+require "active_support/cache/memory_store"
 
 CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed

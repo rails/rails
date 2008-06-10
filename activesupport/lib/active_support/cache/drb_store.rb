@@ -1,4 +1,5 @@
 require 'drb'
+require 'active_support/cache/memory_store'
 
 module ActiveSupport
   module Cache

@@ -1,10 +1,3 @@
-require 'action_controller/session/cookie_store'
-require 'action_controller/session/drb_store'
-require 'action_controller/session/mem_cache_store'
-if Object.const_defined?(:ActiveRecord)
-  require 'action_controller/session/active_record_store'
-end
-
 module ActionController #:nodoc:
   module SessionManagement #:nodoc:
     def self.included(base)
@@ -22,6 +15,8 @@ module ActionController #:nodoc:
       # <tt>:p_store</tt>, <tt>:drb_store</tt>, <tt>:mem_cache_store</tt>, or
       # <tt>:memory_store</tt>) or your own custom class.
       def session_store=(store)
+        require "action_controller/session/#{store.to_s}" if [:active_record_store, :drb_store, :mem_cache_store].include?(store)
+
         ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager] =
           store.is_a?(Symbol) ? CGI::Session.const_get(store == :drb_store ? "DRbStore" : store.to_s.camelize) : store
       end
