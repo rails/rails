@@ -32,7 +32,7 @@ class Deprecatee
 end
 
 
-class DeprecationTest < Test::Unit::TestCase
+class DeprecationTest < ActiveSupport::TestCase
   def setup
     # Track the last warning.
     @old_behavior = ActiveSupport::Deprecation.behavior

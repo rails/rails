@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/test_case'
 
-class AssertDifferenceTest < Test::Unit::TestCase
+class AssertDifferenceTest < ActiveSupport::TestCase
   def setup
     @object = Class.new do
       attr_accessor :num 
@@ -92,7 +92,7 @@ class AlsoDoingNothingTest < ActiveSupport::TestCase
 end
 
 # Setup and teardown callbacks.
-class SetupAndTeardownTest < Test::Unit::TestCase
+class SetupAndTeardownTest < ActiveSupport::TestCase
   setup :reset_callback_record, :foo
   teardown :foo, :sentinel, :foo
 

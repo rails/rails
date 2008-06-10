@@ -1,10 +1,14 @@
 require 'test/unit/testcase'
+require 'active_support/testing/setup_and_teardown'
+require 'active_support/testing/assertions'
 require 'active_support/testing/default'
-require 'active_support/testing/core_ext/test'
-
 
 module ActiveSupport
-  class TestCase < Test::Unit::TestCase
+  class TestCase < ::Test::Unit::TestCase
+    include ActiveSupport::Testing::SetupAndTeardown
+    include ActiveSupport::Testing::Assertions
+    include ActiveSupport::Testing::Default
+
     # test "verify something" do
     #   ...
     # end
