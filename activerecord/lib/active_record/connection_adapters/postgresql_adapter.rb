@@ -415,8 +415,23 @@ module ActiveRecord
 
       # Executes an INSERT query and returns the new record's ID
       def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        table = sql.split(" ", 4)[2].gsub('"', '')
-        super || pk && last_insert_id(table, sequence_name || default_sequence_name(table, pk))
+        if insert_id = super
+          insert_id
+        else
+          # Extract the table from the insert sql. Yuck.
+          table = sql.split(" ", 4)[2].gsub('"', '')
+
+          # If neither pk nor sequence name is given, look them up.
+          unless pk || sequence_name
+            pk, sequence_name = *pk_and_sequence_for(table)
+          end
+
+          # If a pk is given, fallback to default sequence name.
+          # Don't fetch last insert id for a table without a pk.
+          if pk && sequence_name ||= default_sequence_name(table, pk)
+            last_insert_id(table, sequence_name)
+          end
+        end
       end
 
       # create a 2D array representing the result set
