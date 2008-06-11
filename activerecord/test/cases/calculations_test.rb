@@ -1,6 +1,7 @@
 require "cases/helper"
 require 'models/company'
 require 'models/topic'
+require 'models/edge'
 
 Company.has_many :accounts
 
@@ -274,4 +275,49 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_should_sum_expression
     assert_equal 636, Account.sum("2 * credit_limit")
   end
+
+  def test_count_with_from_option
+    assert_equal Company.count(:all), Company.count(:all, :from => 'companies')
+    assert_equal Account.count(:all, :conditions => "credit_limit = 50"),
+        Account.count(:all, :from => 'accounts', :conditions => "credit_limit = 50")
+    assert_equal Company.count(:type, :conditions => {:type => "Firm"}),
+        Company.count(:type, :conditions => {:type => "Firm"}, :from => 'companies')
+  end
+
+  def test_sum_with_from_option
+    assert_equal Account.sum(:credit_limit), Account.sum(:credit_limit, :from => 'accounts')
+    assert_equal Account.sum(:credit_limit, :conditions => "credit_limit > 50"),
+        Account.sum(:credit_limit, :from => 'accounts', :conditions => "credit_limit > 50")
+  end
+
+  def test_average_with_from_option
+    assert_equal Account.average(:credit_limit), Account.average(:credit_limit, :from => 'accounts')
+    assert_equal Account.average(:credit_limit, :conditions => "credit_limit > 50"),
+        Account.average(:credit_limit, :from => 'accounts', :conditions => "credit_limit > 50")
+  end
+
+  def test_minimum_with_from_option
+    assert_equal Account.minimum(:credit_limit), Account.minimum(:credit_limit, :from => 'accounts')
+    assert_equal Account.minimum(:credit_limit, :conditions => "credit_limit > 50"),
+        Account.minimum(:credit_limit, :from => 'accounts', :conditions => "credit_limit > 50")
+  end
+
+  def test_maximum_with_from_option
+    assert_equal Account.maximum(:credit_limit), Account.maximum(:credit_limit, :from => 'accounts')
+    assert_equal Account.maximum(:credit_limit, :conditions => "credit_limit > 50"),
+        Account.maximum(:credit_limit, :from => 'accounts', :conditions => "credit_limit > 50")
+  end
+
+  def test_from_option_with_specified_index
+    if Edge.connection.adapter_name == 'MySQL'
+      assert_equal Edge.count(:all), Edge.count(:all, :from => 'edges USE INDEX(unique_edge_index)')
+      assert_equal Edge.count(:all, :conditions => 'sink_id < 5'),
+          Edge.count(:all, :from => 'edges USE INDEX(unique_edge_index)', :conditions => 'sink_id < 5')
+    end
+  end
+
+  def test_from_option_with_table_different_than_class
+    assert_equal Account.count(:all), Company.count(:all, :from => 'accounts')
+  end
+
 end
