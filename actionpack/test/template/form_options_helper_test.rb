@@ -20,7 +20,7 @@ class MockTimeZone
   end
 end
 
-ActionView::Helpers::FormOptionsHelper::TimeZone = MockTimeZone
+ActiveSupport::TimeZone = MockTimeZone
 
 class FormOptionsHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormOptionsHelper
@@ -183,7 +183,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_options_with_priority_zones
-    zones = [ TimeZone.new( "B" ), TimeZone.new( "E" ) ]
+    zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
     opts = time_zone_options_for_select( nil, zones )
     assert_dom_equal "<option value=\"B\">B</option>\n" +
                  "<option value=\"E\">E</option>" +
@@ -195,7 +195,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_options_with_selected_priority_zones
-    zones = [ TimeZone.new( "B" ), TimeZone.new( "E" ) ]
+    zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
     opts = time_zone_options_for_select( "E", zones )
     assert_dom_equal "<option value=\"B\">B</option>\n" +
                  "<option value=\"E\" selected=\"selected\">E</option>" +
@@ -207,7 +207,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_options_with_unselected_priority_zones
-    zones = [ TimeZone.new( "B" ), TimeZone.new( "E" ) ]
+    zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
     opts = time_zone_options_for_select( "C", zones )
     assert_dom_equal "<option value=\"B\">B</option>\n" +
                  "<option value=\"E\">E</option>" +
@@ -1293,7 +1293,7 @@ COUNTRIES
 
   def test_time_zone_select_with_priority_zones
     @firm = Firm.new("D")
-    zones = [ TimeZone.new("A"), TimeZone.new("D") ]
+    zones = [ ActiveSupport::TimeZone.new("A"), ActiveSupport::TimeZone.new("D") ]
     html = time_zone_select("firm", "time_zone", zones )
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                  "<option value=\"A\">A</option>\n" +
