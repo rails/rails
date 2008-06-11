@@ -173,7 +173,7 @@ namespace :db do
         pending_migrations.each do |pending_migration|
           puts '  %4d %s' % [pending_migration.version, pending_migration.name]
         end
-        abort "Run `rake db:migrate` to update your database then try again."
+        abort %{Run "rake db:migrate" to update your database then try again.}
       end
     end
   end

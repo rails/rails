@@ -191,7 +191,7 @@ module ActionController
     #     end
     #   end
     #
-    # Along with the routes themselves, #resources generates named routes for use in
+    # Along with the routes themselves, +resources+ generates named routes for use in
     # controllers and views. <tt>map.resources :messages</tt> produces the following named routes and helpers:
     #
     #   Named Route   Helpers
@@ -208,7 +208,7 @@ module ActionController
     #   edit_message  edit_message_url(id), hash_for_edit_message_url(id),
     #                 edit_message_path(id), hash_for_edit_message_path(id)
     #
-    # You can use these helpers instead of #url_for or methods that take #url_for parameters. For example:
+    # You can use these helpers instead of +url_for+ or methods that take +url_for+ parameters. For example:
     #
     #   redirect_to :controller => 'messages', :action => 'index'
     #   # and
@@ -406,7 +406,7 @@ module ActionController
     #     end
     #   end
     #
-    # Along with the routes themselves, #resource generates named routes for
+    # Along with the routes themselves, +resource+ generates named routes for
     # use in controllers and views. <tt>map.resource :account</tt> produces
     # these named routes and helpers:
     #

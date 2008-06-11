@@ -339,22 +339,36 @@ module TMail
     def scanadd( str, force = false )
       types = ''
       strs = []
-
+      if str.respond_to?(:encoding)
+        enc = str.encoding 
+        str.force_encoding(Encoding::ASCII_8BIT)
+      end
       until str.empty?
         if m = /\A[^\e\t\r\n ]+/.match(str)
           types << (force ? 'j' : 'a')
-          strs.push m[0]
-
+          if str.respond_to?(:encoding)
+            strs.push m[0].force_encoding(enc)
+          else
+            strs.push m[0]
+          end
         elsif m = /\A[\t\r\n ]+/.match(str)
           types << 's'
-          strs.push m[0]
+          if str.respond_to?(:encoding)
+            strs.push m[0].force_encoding(enc)
+          else
+            strs.push m[0]
+          end
 
         elsif m = /\A\e../.match(str)
           esc = m[0]
           str = m.post_match
           if esc != "\e(B" and m = /\A[^\e]+/.match(str)
             types << 'j'
-            strs.push m[0]
+            if str.respond_to?(:encoding)
+              strs.push m[0].force_encoding(enc)
+            else
+              strs.push m[0]
+            end
           end
 
         else
@@ -453,7 +467,13 @@ module TMail
       size = max_bytes(chunksize, str.size) - 6
       size = (size % 2 == 0) ? (size) : (size - 1)
       return nil if size <= 0
-      "\e$B#{str.slice!(0, size)}\e(B"
+      if str.respond_to?(:encoding)
+        enc = str.encoding
+        str.force_encoding(Encoding::ASCII_8BIT)
+        "\e$B#{str.slice!(0, size)}\e(B".force_encoding(enc)
+      else
+        "\e$B#{str.slice!(0, size)}\e(B"
+      end
     end
 
     def extract_A( chunksize, str )

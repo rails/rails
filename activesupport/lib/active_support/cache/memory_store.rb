@@ -24,7 +24,12 @@ module ActiveSupport
         super
         @data.delete_if { |k,v| k =~ matcher }
       end
-      
+
+      def exist?(name,options = nil)
+        super
+        @data.has_key?(name)
+      end
+
       def clear
         @data.clear
       end

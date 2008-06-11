@@ -14,7 +14,7 @@ module ActiveSupport #:nodoc:
           reject { |key,| rejected.include?(key) }
         end
 
-        # Replaces the hash without only the given keys.
+        # Replaces the hash without the given keys.
         def except!(*keys)
           replace(except(*keys))
         end

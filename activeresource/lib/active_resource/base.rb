@@ -34,18 +34,18 @@ module ActiveResource
   # from REST web services.
   # 
   #   ryan = Person.new(:first => 'Ryan', :last => 'Daigle')
-  #   ryan.save  #=> true
-  #   ryan.id  #=> 2
-  #   Person.exists?(ryan.id)  #=> true
-  #   ryan.exists?  #=> true
+  #   ryan.save                # => true
+  #   ryan.id                  # => 2
+  #   Person.exists?(ryan.id)  # => true
+  #   ryan.exists?             # => true
   # 
   #   ryan = Person.find(1)
-  #   # => Resource holding our newly created Person object
+  #   # Resource holding our newly created Person object
   # 
   #   ryan.first = 'Rizzle'
-  #   ryan.save  #=> true
+  #   ryan.save                # => true
   # 
-  #   ryan.destroy  #=> true
+  #   ryan.destroy             # => true
   #
   # As you can see, these are very similar to Active Record's lifecycle methods for database records.
   # You can read more about each of these methods in their respective documentation.
@@ -111,7 +111,7 @@ module ActiveResource
   # over HTTPS.
   # 
   # Note: Some values cannot be provided in the URL passed to site.  e.g. email addresses 
-  # as usernames.  In those situations you should use the seperate user and password option.
+  # as usernames.  In those situations you should use the separate user and password option.
   # == Errors & Validation
   #
   # Error handling and validation is handled in much the same manner as you're used to seeing in
@@ -127,7 +127,7 @@ module ActiveResource
   #   # GET http://api.people.com:3000/people/999.xml
   #   ryan = Person.find(999) # 404, raises ActiveResource::ResourceNotFound
   # 
-  # <tt>404</tt> is just one of the HTTP error response codes that ActiveResource will handle with its own exception. The
+  # <tt>404</tt> is just one of the HTTP error response codes that Active Resource will handle with its own exception. The
   # following HTTP response codes will also result in these exceptions:
   # 
   # * 200..399 - Valid response, no exception
@@ -156,8 +156,8 @@ module ActiveResource
   # then fail (with a <tt>false</tt> return value) and the validation errors can be accessed on the resource in question.
   # 
   #   ryan = Person.find(1)
-  #   ryan.first #=> ''
-  #   ryan.save  #=> false
+  #   ryan.first # => ''
+  #   ryan.save  # => false
   #
   #   # When 
   #   # PUT http://api.people.com:3000/people/1.xml
@@ -167,8 +167,8 @@ module ActiveResource
   #   # <errors type="array"><error>First cannot be empty</error></errors>
   #   #
   #
-  #   ryan.errors.invalid?(:first)  #=> true
-  #   ryan.errors.full_messages  #=> ['First cannot be empty']
+  #   ryan.errors.invalid?(:first)  # => true
+  #   ryan.errors.full_messages     # => ['First cannot be empty']
   # 
   # Learn more about Active Resource's validation features in the ActiveResource::Validations documentation.
   #
@@ -200,8 +200,8 @@ module ActiveResource
     cattr_accessor :logger
 
     class << self
-      # Gets the URI of the REST resources to map for this class.  The site variable is required 
-      # ActiveResource's mapping to work.
+      # Gets the URI of the REST resources to map for this class.  The site variable is required for
+      # Active Resource's mapping to work.
       def site
         # Not using superclass_delegating_reader because don't want subclasses to modify superclass instance
         #
@@ -226,7 +226,7 @@ module ActiveResource
       end
 
       # Sets the URI of the REST resources to map for this class to the value in the +site+ argument.
-      # The site variable is required ActiveResource's mapping to work.
+      # The site variable is required for Active Resource's mapping to work.
       def site=(site)
         @connection = nil
         if site.nil?
@@ -288,7 +288,7 @@ module ActiveResource
       end
 
       # Returns the current format, default is ActiveResource::Formats::XmlFormat.
-      def format # :nodoc:
+      def format
         read_inheritable_attribute("format") || ActiveResource::Formats[:xml]
       end
 
@@ -298,7 +298,7 @@ module ActiveResource
         @timeout = timeout
       end
 
-      # Gets tthe number of seconds after which requests to the REST API should time out.
+      # Gets the number of seconds after which requests to the REST API should time out.
       def timeout
         if defined?(@timeout)
           @timeout
@@ -426,16 +426,16 @@ module ActiveResource
 
       alias_method :set_primary_key, :primary_key=  #:nodoc:
 
-      # Create a new resource instance and request to the remote service
+      # Creates a new resource instance and makes a request to the remote service
       # that it be saved, making it equivalent to the following simultaneous calls:
       #
       #   ryan = Person.new(:first => 'ryan')
       #   ryan.save
       #
-      # The newly created resource is returned.  If a failure has occurred an
-      # exception will be raised (see save).  If the resource is invalid and
-      # has not been saved then valid? will return <tt>false</tt>,
-      # while new? will still return <tt>true</tt>.
+      # Returns the newly created resource.  If a failure has occurred an
+      # exception will be raised (see <tt>save</tt>).  If the resource is invalid and
+      # has not been saved then <tt>valid?</tt> will return <tt>false</tt>,
+      # while <tt>new?</tt> will still return <tt>true</tt>.
       #
       # ==== Examples
       #   Person.create(:name => 'Jeremy', :email => 'myname@nospam.com', :enabled => true)
@@ -701,7 +701,7 @@ module ActiveResource
       attributes[self.class.primary_key] = id
     end
 
-    # Allows ActiveResource objects to be used as parameters in ActionPack URL generation.
+    # Allows Active Resource objects to be used as parameters in Action Pack URL generation.
     def to_param
       id && id.to_s
     end
@@ -812,7 +812,7 @@ module ActiveResource
     #   Person.delete(guys_id)
     #   that_guy.exists? # => false
     def exists?
-      !new? && self.class.exists?(to_param, :params => prefix_options)      
+      !new? && self.class.exists?(to_param, :params => prefix_options)
     end
 
     # A method to convert the the resource to an XML string.
@@ -820,7 +820,7 @@ module ActiveResource
     # ==== Options
     # The +options+ parameter is handed off to the +to_xml+ method on each
     # attribute, so it has the same options as the +to_xml+ methods in
-    # ActiveSupport.
+    # Active Support.
     #
     # * <tt>:indent</tt> - Set the indent level for the XML output (default is +2+).
     # * <tt>:dasherize</tt> - Boolean option to determine whether or not element names should

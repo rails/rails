@@ -118,7 +118,7 @@ module TMail
     ATOM_UNSAFE   = /[#{Regexp.quote aspecial}#{control}#{lwsp}]/n
     PHRASE_UNSAFE = /[#{Regexp.quote aspecial}#{control}]/n
     TOKEN_UNSAFE  = /[#{Regexp.quote tspecial}#{control}#{lwsp}]/n
-
+    
     # Returns true if the string supplied is free from characters not allowed as an ATOM
     def atom_safe?( str )
       not ATOM_UNSAFE === str

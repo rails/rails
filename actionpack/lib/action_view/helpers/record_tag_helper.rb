@@ -2,7 +2,7 @@ module ActionView
   module Helpers
     module RecordTagHelper
       # Produces a wrapper DIV element with id and class parameters that
-      # relate to the specified ActiveRecord object. Usage example:
+      # relate to the specified Active Record object. Usage example:
       #
       #    <% div_for(@person, :class => "foo") do %>
       #       <%=h @person.name %>
@@ -17,7 +17,7 @@ module ActionView
       end
   
       # content_tag_for creates an HTML element with id and class parameters
-      # that relate to the specified ActiveRecord object. For example:
+      # that relate to the specified Active Record object. For example:
       #
       #    <% content_tag_for(:tr, @person) do %>
       #      <td><%=h @person.first_name %></td>

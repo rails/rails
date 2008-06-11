@@ -464,11 +464,11 @@ module ActionView
                           [-\w]+                   # subdomain or domain
                           (?:\.[-\w]+)*            # remaining subdomains or domain
                           (?::\d+)?                # port
-                          (?:/(?:(?:[~\w\+@%=-]|(?:[,.;:][^\s$]))+)?)* # path
+                          (?:/(?:(?:[~\w\+@%=\(\)-]|(?:[,.;:][^\s$]))+)?)* # path
                           (?:\?[\w\+@%&=.;-]+)?     # query string
                           (?:\#[\w\-]*)?           # trailing anchor
                         )
-                        ([[:punct:]]|\s|<|$)       # trailing text
+                        ([[:punct:]]|<|$|)       # trailing text
                        }x unless const_defined?(:AUTO_LINK_RE)
 
         # Turns all urls into clickable links.  If a block is given, each url

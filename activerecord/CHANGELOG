@@ -1,4 +1,17 @@
-*2.1.0 RC1 (May 11th, 2008)*
+*Edge*
+
+* Added SQL escaping for :limit and :offset in MySQL [Jonathan Wiess]
+
+
+*2.1.0 (May 31st, 2008)*
+
+* Add ActiveRecord::Base.sti_name that checks ActiveRecord::Base#store_full_sti_class? and returns either the full or demodulized name. [rick]
+
+* Add first/last methods to associations/named_scope. Resolved #226. [Ryan Bates]
+
+* Added SQL escaping for :limit and :offset #288 [Aaron Bedra, Steven Bristol, Jonathan Wiess] 
+
+* Added first/last methods to associations/named_scope. Resolved #226. [Ryan Bates]
 
 * Ensure hm:t preloading honours reflection options. Resolves #137. [Frederick Cheung]
 

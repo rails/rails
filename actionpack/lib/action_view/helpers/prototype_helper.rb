@@ -61,7 +61,7 @@ module ActionView
     #
     # == Designing your Rails actions for Ajax
     # When building your action handlers (that is, the Rails actions that receive your background requests), it's
-    # important to remember a few things.  First, whatever your action would normall return to the browser, it will
+    # important to remember a few things.  First, whatever your action would normally return to the browser, it will
     # return to the Ajax call.  As such, you typically don't want to render with a layout.  This call will cause
     # the layout to be transmitted back to your page, and, if you have a full HTML/CSS, will likely mess a lot of things up. 
     # You can turn the layout off on particular actions by doing the following:
@@ -595,8 +595,8 @@ module ActionView
         # JavaScript sent with a Content-type of "text/javascript".
         #
         # Create new instances with PrototypeHelper#update_page or with 
-        # ActionController::Base#render, then call #insert_html, #replace_html, 
-        # #remove, #show, #hide, #visual_effect, or any other of the built-in 
+        # ActionController::Base#render, then call +insert_html+, +replace_html+, 
+        # +remove+, +show+, +hide+, +visual_effect+, or any other of the built-in 
         # methods on the yielded generator in any order you like to modify the 
         # content and appearance of the current page. 
         #
@@ -687,7 +687,7 @@ module ActionView
             end
           end
           
-          # Returns an object whose <tt>#to_json</tt> evaluates to +code+. Use this to pass a literal JavaScript 
+          # Returns an object whose <tt>to_json</tt> evaluates to +code+. Use this to pass a literal JavaScript 
           # expression as an argument to another JavaScriptGenerator method.
           def literal(code)
             ActiveSupport::JSON::Variable.new(code.to_s)
@@ -1068,7 +1068,7 @@ module ActionView
     
       def build_observer(klass, name, options = {})
         if options[:with] && (options[:with] !~ /[\{=(.]/)
-          options[:with] = "'#{options[:with]}=' + value"
+          options[:with] = "'#{options[:with]}=' + encodeURIComponent(value)"
         else
           options[:with] ||= 'value' unless options[:function]
         end
@@ -1173,7 +1173,7 @@ module ActionView
         super(generator)
       end
 
-      # The JSON Encoder calls this to check for the #to_json method
+      # The JSON Encoder calls this to check for the +to_json+ method
       # Since it's a blank slate object, I suppose it responds to anything.
       def respond_to?(method)
         true

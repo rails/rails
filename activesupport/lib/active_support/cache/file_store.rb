@@ -40,13 +40,18 @@ module ActiveSupport
         end
       end
 
+      def exist?(name, options = nil)
+        super
+        File.exist?(real_file_path(name))
+      end
+
       private
         def real_file_path(name)
           '%s/%s.cache' % [@cache_path, name.gsub('?', '.').gsub(':', '.')]
         end
 
         def ensure_cache_path(path)
-          FileUtils.makedirs(path) unless File.exists?(path)
+          FileUtils.makedirs(path) unless File.exist?(path)
         end
 
         def search_dir(dir, &callback)

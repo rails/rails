@@ -119,7 +119,7 @@ module ActionView
       #     end
       #   end
       #
-      # Sample usage (selecting the associated +Author+ for an instance of +Post+, <tt>@post</tt>):
+      # Sample usage (selecting the associated Author for an instance of Post, <tt>@post</tt>):
       #   collection_select(:post, :author_id, Author.find(:all), :id, :name_with_initial, {:prompt => true})
       #
       # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
@@ -144,10 +144,16 @@ module ActionView
       # In addition to the <tt>:include_blank</tt> option documented above,
       # this method also supports a <tt>:model</tt> option, which defaults
       # to TimeZone. This may be used by users to specify a different time
-      # zone model object. (See #time_zone_options_for_select for more
+      # zone model object. (See +time_zone_options_for_select+ for more
       # information.)
+      #
+      # You can also supply an array of TimeZone objects
+      # as +priority_zones+, so that they will be listed above the rest of the
+      # (long) list. (You can use TimeZone.us_zones as a convenience for
+      # obtaining a list of the US time zones.)
+      #
       # Finally, this method supports a <tt>:default</tt> option, which selects
-      # a default TimeZone if the object's time zone is nil.
+      # a default TimeZone if the object's time zone is +nil+.
       #
       # Examples:
       #   time_zone_select( "user", "time_zone", nil, :include_blank => true)
@@ -155,6 +161,8 @@ module ActionView
       #   time_zone_select( "user", "time_zone", nil, :default => "Pacific Time (US & Canada)" )
       #
       #   time_zone_select( "user", 'time_zone', TimeZone.us_zones, :default => "Pacific Time (US & Canada)")
+      #
+      #   time_zone_select( "user", 'time_zone', [ TimeZone['Alaska'], TimeZone['Hawaii'] ])
       #
       #   time_zone_select( "user", "time_zone", TZInfo::Timezone.all.sort, :model => TZInfo::Timezone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
@@ -164,7 +172,7 @@ module ActionView
       # Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. Given a container
       # where the elements respond to first and last (such as a two-element array), the "lasts" serve as option values and
       # the "firsts" as option text. Hashes are turned into this form automatically, so the keys become "firsts" and values
-      # become lasts. If +selected+ is specified, the matching "last" or element will get the selected option-tag.  +Selected+
+      # become lasts. If +selected+ is specified, the matching "last" or element will get the selected option-tag.  +selected+
       # may also be an array of values to be selected when using a multiple select.
       #
       # Examples (call, result):
@@ -209,24 +217,22 @@ module ActionView
         options_for_select(options, selected)
       end
 
-      # Returns a string of <tt><option></tt> tags, like <tt>#options_from_collection_for_select</tt>, but
+      # Returns a string of <tt><option></tt> tags, like <tt>options_from_collection_for_select</tt>, but
       # groups them by <tt><optgroup></tt> tags based on the object relationships of the arguments.
       #
       # Parameters:
-      # +collection+::          An array of objects representing the <tt><optgroup></tt> tags
-      # +group_method+::        The name of a method which, when called on a member of +collection+, returns an
-      #                         array of child objects representing the <tt><option></tt> tags
-      # +group_label_method+::  The name of a method which, when called on a member of +collection+, returns a
-      #                         string to be used as the +label+ attribute for its <tt><optgroup></tt> tag
-      # +option_key_method+::   The name of a method which, when called on a child object of a member of
-      #                         +collection+, returns a value to be used as the +value+ attribute for its
-      #                         <tt><option></tt> tag
-      # +option_value_method+:: The name of a method which, when called on a child object of a member of
-      #                         +collection+, returns a value to be used as the contents of its
-      #                         <tt><option></tt> tag
-      # +selected_key+::        A value equal to the +value+ attribute for one of the <tt><option></tt> tags,
-      #                         which will have the +selected+ attribute set. Corresponds to the return value
-      #                         of one of the calls to +option_key_method+. If +nil+, no selection is made.
+      # * +collection+ - An array of objects representing the <tt><optgroup></tt> tags.
+      # * +group_method+ - The name of a method which, when called on a member of +collection+, returns an
+      #   array of child objects representing the <tt><option></tt> tags.
+      # * group_label_method+ - The name of a method which, when called on a member of +collection+, returns a
+      #   string to be used as the +label+ attribute for its <tt><optgroup></tt> tag.
+      # * +option_key_method+ - The name of a method which, when called on a child object of a member of
+      #   +collection+, returns a value to be used as the +value+ attribute for its <tt><option></tt> tag.
+      # * +option_value_method+ - The name of a method which, when called on a child object of a member of
+      #   +collection+, returns a value to be used as the contents of its <tt><option></tt> tag.
+      # * +selected_key+ - A value equal to the +value+ attribute for one of the <tt><option></tt> tags,
+      #   which will have the +selected+ attribute set. Corresponds to the return value of one of the calls
+      #   to +option_key_method+. If +nil+, no selection is made.
       #
       # Example object structure for use with this method:
       #   class Continent < ActiveRecord::Base
@@ -265,9 +271,11 @@ module ActionView
         end
       end
 
-      # Returns a string of option tags for pretty much any country in the world. Supply a country name as +selected+ to
-      # have it marked as the selected option tag. You can also supply an array of countries as +priority_countries+, so
-      # that they will be listed above the rest of the (long) list.
+      # Returns a string of option tags for most countries in the
+      # world (as defined in COUNTRIES). Supply a country name as
+      # +selected+ to have it marked as the selected option tag. You
+      # can also supply an array of countries as +priority_countries+,
+      # so that they will be listed above the rest of the (long) list.
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def country_options_for_select(selected = nil, priority_countries = nil)
@@ -292,8 +300,8 @@ module ActionView
       # a TimeZone.
       #
       # By default, +model+ is the TimeZone constant (which can be obtained
-      # in ActiveRecord as a value object). The only requirement is that the
-      # +model+ parameter be an object that responds to #all, and returns
+      # in Active Record as a value object). The only requirement is that the
+      # +model+ parameter be an object that responds to +all+, and returns
       # an array of objects that represent time zones.
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in

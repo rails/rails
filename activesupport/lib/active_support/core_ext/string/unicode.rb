@@ -17,17 +17,17 @@ module ActiveSupport #:nodoc:
           # string overrides can also be called through the +chars+ proxy.
           #
           #   name = 'Claus Müller'
-          #   name.reverse  #=> "rell??M sualC"
-          #   name.length   #=> 13
+          #   name.reverse              # => "rell??M sualC"
+          #   name.length               # => 13
           #
-          #   name.chars.reverse.to_s   #=> "rellüM sualC"
-          #   name.chars.length         #=> 12
+          #   name.chars.reverse.to_s   # => "rellüM sualC"
+          #   name.chars.length         # => 12
           #   
           #
           # All the methods on the chars proxy which normally return a string will return a Chars object. This allows
           # method chaining on the result of any of these methods.
           #
-          #   name.chars.reverse.length #=> 12
+          #   name.chars.reverse.length # => 12
           #
           # The Char object tries to be as interchangeable with String objects as possible: sorting and comparing between
           # String and Char work like expected. The bang! methods change the internal string representation in the Chars

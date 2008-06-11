@@ -73,30 +73,81 @@ module ActionView
     # There are also methods for helping to build form tags in link:classes/ActionView/Helpers/FormOptionsHelper.html,
     # link:classes/ActionView/Helpers/DateHelper.html, and link:classes/ActionView/Helpers/ActiveRecordHelper.html
     module FormHelper
-      # Creates a form and a scope around a specific model object that is used as a base for questioning about
-      # values for the fields.
+      # Creates a form and a scope around a specific model object that is used as
+      # a base for questioning about values for the fields.
       #
-      #   <% form_for :person, @person, :url => { :action => "update" } do |f| %>
-      #     <%= f.error_messages %>
-      #     First name: <%= f.text_field :first_name %>
-      #     Last name : <%= f.text_field :last_name %>
-      #     Biography : <%= f.text_area :biography %>
-      #     Admin?    : <%= f.check_box :admin %>
+      # Rails provides succinct resource-oriented form generation with +form_for+
+      # like this:
+      #
+      #   <% form_for @offer do |f| %>
+      #     <%= f.label :version, 'Version' %>:
+      #     <%= f.text_field :version %><br />
+      #     <%= f.label :author, 'Author' %>:
+      #     <%= f.text_field :author %><br />
       #   <% end %>
       #
-      # Worth noting is that the form_for tag is called in a ERb evaluation block, not an ERb output block. So that's <tt><% %></tt>,
-      # not <tt><%= %></tt>. Also worth noting is that form_for yields a <tt>form_builder</tt> object, in this example as <tt>f</tt>, which emulates
-      # the API for the stand-alone FormHelper methods, but without the object name. So instead of <tt>text_field :person, :name</tt>,
-      # you get away with <tt>f.text_field :name</tt>. Notice that you can even do <tt><%= f.error_messages %></tt> to display the
-      # error messsages of the model object in question.
+      # There, +form_for+ is able to generate the rest of RESTful form parameters
+      # based on introspection on the record, but to understand what it does we
+      # need to dig first into the alternative generic usage it is based upon.
       #
-      # Even further, the form_for method allows you to more easily escape the instance variable convention. So while the stand-alone
-      # approach would require <tt>text_field :person, :name, :object => person</tt>
-      # to work with local variables instead of instance ones, the form_for calls remain the same. You simply declare once with
-      # <tt>:person, person</tt> and all subsequent field calls save <tt>:person</tt> and <tt>:object => person</tt>.
+      # === Generic form_for
       #
-      # Also note that form_for doesn't create an exclusive scope. It's still possible to use both the stand-alone FormHelper methods
-      # and methods from FormTagHelper. For example:
+      # The generic way to call +form_for+ yields a form builder around a model:
+      #
+      #   <% form_for :person, :url => { :action => "update" } do |f| %>
+      #     <%= f.error_messages %>
+      #     First name: <%= f.text_field :first_name %><br />
+      #     Last name : <%= f.text_field :last_name %><br />
+      #     Biography : <%= f.text_area :biography %><br />
+      #     Admin?    : <%= f.check_box :admin %><br />
+      #   <% end %>
+      #
+      # There, the first argument is a symbol or string with the name of the
+      # object the form is about, and also the name of the instance variable the
+      # object is stored in.
+      #
+      # The form builder acts as a regular form helper that somehow carries the
+      # model. Thus, the idea is that
+      #
+      #   <%= f.text_field :first_name %>
+      #
+      # gets expanded to
+      #
+      #   <%= text_field :person, :first_name %>
+      #
+      # If the instance variable is not <tt>@person</tt> you can pass the actual
+      # record as the second argument:
+      #
+      #   <% form_for :person, person, :url => { :action => "update" } do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # In that case you can think
+      #
+      #   <%= f.text_field :first_name %>
+      #
+      # gets expanded to
+      #
+      #   <%= text_field :person, :first_name, :object => person %>
+      #
+      # You can even display error messages of the wrapped model this way:
+      #
+      #   <%= f.error_messages %>
+      #
+      # In any of its variants, the rightmost argument to +form_for+ is an
+      # optional hash of options:
+      #
+      # * <tt>:url</tt> - The URL the form is submitted to. It takes the same fields
+      #   you pass to +url_for+ or +link_to+. In particular you may pass here a
+      #   named route directly as well. Defaults to the current action.
+      # * <tt>:html</tt> - Optional HTML attributes for the form tag.
+      #
+      # Worth noting is that the +form_for+ tag is called in a ERb evaluation block,
+      # not an ERb output block. So that's <tt><% %></tt>, not <tt><%= %></tt>.
+      #
+      # Also note that +form_for+ doesn't create an exclusive scope. It's still
+      # possible to use both the stand-alone FormHelper methods and methods from
+      # FormTagHelper. For example:
       #
       #   <% form_for :person, @person, :url => { :action => "update" } do |f| %>
       #     First name: <%= f.text_field :first_name %>
@@ -105,42 +156,38 @@ module ActionView
       #     Admin?    : <%= check_box_tag "person[admin]", @person.company.admin? %>
       #   <% end %>
       #
-      # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base,
-      # like FormOptionHelper#collection_select and DateHelper#datetime_select.
+      # This also works for the methods in FormOptionHelper and DateHelper that are
+      # designed to work with an object as base, like FormOptionHelper#collection_select
+      # and DateHelper#datetime_select.
       #
-      # HTML attributes for the form tag can be given as <tt>:html => {...}</tt>. For example:
+      # === Resource-oriented style
       #
-      #   <% form_for :person, @person, :html => {:id => 'person_form'} do |f| %>
+      # As we said above, in addition to manually configuring the +form_for+ call,
+      # you can rely on automated resource identification, which will use the conventions
+      # and named routes of that approach. This is the preferred way to use +form_for+
+      # nowadays.
+      #
+      # For example, if <tt>@post</tt> is an existing record you want to edit
+      #
+      #   <% form_for @post do |f| %>
       #     ...
       #   <% end %>
       #
-      # The above form will then have the <tt>id</tt> attribute with the value </tt>person_form</tt>, which you can then
-      # style with CSS or manipulate with JavaScript.
-      #
-      # === Relying on record identification
-      #
-      # In addition to manually configuring the form_for call, you can also rely on record identification, which will use
-      # the conventions and named routes of that approach. Examples:
-      #
-      #   <% form_for(@post) do |f| %>
-      #     ...
-      #   <% end %>
-      #
-      # This will expand to be the same as:
+      # is equivalent to something like:
       #
       #   <% form_for :post, @post, :url => post_path(@post), :html => { :method => :put, :class => "edit_post", :id => "edit_post_45" } do |f| %>
       #     ...
       #   <% end %>
       #
-      # And for new records:
+      # And for new records
       #
       #   <% form_for(Post.new) do |f| %>
       #     ...
       #   <% end %>
       #
-      # This will expand to be the same as:
+      # expands to
       #
-      #   <% form_for :post, @post, :url => posts_path, :html => { :class => "new_post", :id => "new_post" } do |f| %>
+      #   <% form_for :post, Post.new, :url => posts_path, :html => { :class => "new_post", :id => "new_post" } do |f| %>
       #     ...
       #   <% end %>
       #
@@ -150,7 +197,7 @@ module ActionView
       #     ...
       #   <% end %>
       #
-      # And for namespaced routes, like admin_post_url:
+      # And for namespaced routes, like +admin_post_url+:
       #
       #   <% form_for([:admin, @post]) do |f| %>
       #    ...
@@ -277,13 +324,13 @@ module ActionView
       #
       # ==== Examples
       #   label(:post, :title)
-      #   #=> <label for="post_title">Title</label>
+      #   # => <label for="post_title">Title</label>
       #
       #   label(:post, :title, "A short title")
-      #   #=> <label for="post_title">A short title</label>
+      #   # => <label for="post_title">A short title</label>
       #
       #   label(:post, :title, "A short title", :class => "title_label")
-      #   #=> <label for="post_title" class="title_label">A short title</label>
+      #   # => <label for="post_title" class="title_label">A short title</label>
       #
       def label(object_name, method, text = nil, options = {})
         InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_label_tag(text, options)
@@ -588,6 +635,8 @@ module ActionView
             value != 0
           when String
             value == checked_value
+          when Array
+            value.include?(checked_value)
           else
             value.to_i != 0
           end

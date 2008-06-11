@@ -5,7 +5,7 @@ require 'action_mailer/utils'
 module ActionMailer
   # Represents a subpart of an email message. It shares many similar
   # attributes of ActionMailer::Base.  Although you can create parts manually
-  # and add them to the #parts list of the mailer, it is easier
+  # and add them to the +parts+ list of the mailer, it is easier
   # to use the helper methods in ActionMailer::PartContainer.
   class Part
     include ActionMailer::AdvAttrAccessor
@@ -13,7 +13,7 @@ module ActionMailer
 
     # Represents the body of the part, as a string. This should not be a
     # Hash (like ActionMailer::Base), but if you want a template to be rendered
-    # into the body of a subpart you can do it with the mailer's #render method
+    # into the body of a subpart you can do it with the mailer's +render+ method
     # and assign the result here.
     adv_attr_accessor :body
     

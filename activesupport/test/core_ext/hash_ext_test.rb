@@ -733,6 +733,44 @@ class HashToXmlTest < Test::Unit::TestCase
 
     assert_equal hash, Hash.from_xml(hash.to_xml(@xml_options))['person']
   end
+  
+  def test_datetime_xml_type_with_utc_time
+    alert_xml = <<-XML
+      <alert>
+        <alert_at type="datetime">2008-02-10T15:30:45Z</alert_at>
+      </alert>
+    XML
+    alert_at = Hash.from_xml(alert_xml)['alert']['alert_at']
+    assert alert_at.utc?
+    assert_equal Time.utc(2008, 2, 10, 15, 30, 45), alert_at
+  end
+  
+  def test_datetime_xml_type_with_non_utc_time
+    alert_xml = <<-XML
+      <alert>
+        <alert_at type="datetime">2008-02-10T10:30:45-05:00</alert_at>
+      </alert>
+    XML
+    alert_at = Hash.from_xml(alert_xml)['alert']['alert_at']
+    assert alert_at.utc?
+    assert_equal Time.utc(2008, 2, 10, 15, 30, 45), alert_at
+  end
+  
+  def test_datetime_xml_type_with_far_future_date
+    alert_xml = <<-XML
+      <alert>
+        <alert_at type="datetime">2050-02-10T15:30:45Z</alert_at>
+      </alert>
+    XML
+    alert_at = Hash.from_xml(alert_xml)['alert']['alert_at']
+    assert alert_at.utc?
+    assert_equal 2050,  alert_at.year
+    assert_equal 2,     alert_at.month
+    assert_equal 10,    alert_at.day
+    assert_equal 15,    alert_at.hour
+    assert_equal 30,    alert_at.min
+    assert_equal 45,    alert_at.sec
+  end
 end
 
 class QueryTest < Test::Unit::TestCase

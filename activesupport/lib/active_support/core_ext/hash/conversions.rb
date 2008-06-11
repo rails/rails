@@ -70,7 +70,7 @@ module ActiveSupport #:nodoc:
           XML_PARSING = {
             "symbol"       => Proc.new  { |symbol|  symbol.to_sym },
             "date"         => Proc.new  { |date|    ::Date.parse(date) },
-            "datetime"     => Proc.new  { |time|    ::Time.parse(time).utc },
+            "datetime"     => Proc.new  { |time|    ::Time.parse(time).utc rescue ::DateTime.parse(time).utc },
             "integer"      => Proc.new  { |integer| integer.to_i },
             "float"        => Proc.new  { |float|   float.to_f },
             "decimal"      => Proc.new  { |number|  BigDecimal(number) },
@@ -212,7 +212,7 @@ module ActiveSupport #:nodoc:
                     nil
                   # If the type is the only element which makes it then 
                   # this still makes the value nil, except if type is
-                  # a xml node(where type['value'] is a Hash)
+                  # a XML node(where type['value'] is a Hash)
                   elsif value['type'] && value.size == 1 && !value['type'].is_a?(::Hash)
                     nil
                   else

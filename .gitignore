@@ -5,3 +5,10 @@ actionpack/doc
 actionmailer/doc
 activesupport/doc
 railties/doc
+activeresource/pkg
+activerecord/pkg
+actionpack/pkg
+actionmailer/pkg
+activesupport/pkg
+railties/pkg
+*.rbc

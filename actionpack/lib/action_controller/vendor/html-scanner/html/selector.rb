@@ -64,7 +64,7 @@ module HTML
   #
   # When using a combination of the above, the element name comes first
   # followed by identifier, class names, attributes, pseudo classes and
-  # negation in any order. Do not seprate these parts with spaces!
+  # negation in any order. Do not separate these parts with spaces!
   # Space separation is used for descendant selectors.
   #
   # For example:
@@ -158,7 +158,7 @@ module HTML
   # * <tt>:not(selector)</tt> -- Match the element only if the element does not
   #   match the simple selector.
   #
-  # As you can see, <tt>:nth-child<tt> pseudo class and its varient can get quite
+  # As you can see, <tt>:nth-child<tt> pseudo class and its variant can get quite
   # tricky and the CSS specification doesn't do a much better job explaining it.
   # But after reading the examples and trying a few combinations, it's easy to
   # figure out.

@@ -100,10 +100,10 @@ module ActionController #:nodoc:
     #
     # Around filters wrap an action, executing code both before and after.
     # They may be declared as method references, blocks, or objects responding
-    # to #filter or to both #before and #after.
+    # to +filter+ or to both +before+ and +after+.
     #
-    # To use a method as an around_filter, pass a symbol naming the Ruby method.
-    # Yield (or block.call) within the method to run the action.
+    # To use a method as an +around_filter+, pass a symbol naming the Ruby method.
+    # Yield (or <tt>block.call</tt>) within the method to run the action.
     #
     #   around_filter :catch_exceptions
     #
@@ -115,9 +115,9 @@ module ActionController #:nodoc:
     #       raise
     #     end
     #
-    # To use a block as an around_filter, pass a block taking as args both
+    # To use a block as an +around_filter+, pass a block taking as args both
     # the controller and the action block. You can't call yield directly from
-    # an around_filter block; explicitly call the action block instead:
+    # an +around_filter+ block; explicitly call the action block instead:
     #
     #   around_filter do |controller, action|
     #     logger.debug "before #{controller.action_name}"
@@ -125,7 +125,7 @@ module ActionController #:nodoc:
     #     logger.debug "after #{controller.action_name}"
     #   end
     #
-    # To use a filter object with around_filter, pass an object responding
+    # To use a filter object with +around_filter+, pass an object responding
     # to <tt>:filter</tt> or both <tt>:before</tt> and <tt>:after</tt>. With a
     # filter method, yield to the block as above:
     #
@@ -137,7 +137,7 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # With before and after methods:
+    # With +before+ and +after+ methods:
     #
     #   around_filter Authorizer.new
     #
@@ -154,9 +154,9 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # If the filter has before and after methods, the before method will be
-    # called before the action. If before renders or redirects, the filter chain is
-    # halted and after will not be run. See Filter Chain Halting below for
+    # If the filter has +before+ and +after+ methods, the +before+ method will be
+    # called before the action. If +before+ renders or redirects, the filter chain is
+    # halted and +after+ will not be run. See Filter Chain Halting below for
     # an example.
     #
     # == Filter chain skipping
@@ -215,7 +215,7 @@ module ActionController #:nodoc:
     #
     # <tt>before_filter</tt> and <tt>around_filter</tt> may halt the request
     # before a controller action is run. This is useful, for example, to deny
-    # access to unauthenticated users or to redirect from http to https.
+    # access to unauthenticated users or to redirect from HTTP to HTTPS.
     # Simply call render or redirect. After filters will not be executed if the filter 
     # chain is halted.
     #
@@ -241,10 +241,10 @@ module ActionController #:nodoc:
     #   . /
     #   #after (actual filter code is run, unless the around filter does not yield)
     #
-    # If #around returns before yielding, #after will still not be run. The #before
-    # filter and controller action will not be run. If #before renders or redirects,
-    # the second half of #around and will still run but #after and the
-    # action will not. If #around fails to yield, #after will not be run.
+    # If +around+ returns before yielding, +after+ will still not be run. The +before+
+    # filter and controller action will not be run. If +before+ renders or redirects,
+    # the second half of +around+ and will still run but +after+ and the
+    # action will not. If +around+ fails to yield, +after+ will not be run.
 
     class FilterChain < ActiveSupport::Callbacks::CallbackChain #:nodoc:
       def append_filter_to_chain(filters, filter_type, &block)
@@ -471,7 +471,7 @@ module ActionController #:nodoc:
       # Shorthand for append_after_filter since it's the most common.
       alias :after_filter :append_after_filter
 
-      # If you append_around_filter A.new, B.new, the filter chain looks like
+      # If you <tt>append_around_filter A.new, B.new</tt>, the filter chain looks like
       #
       #   B#before
       #     A#before
@@ -479,13 +479,13 @@ module ActionController #:nodoc:
       #     A#after
       #   B#after
       #
-      # With around filters which yield to the action block, #before and #after
+      # With around filters which yield to the action block, +before+ and +after+
       # are the code before and after the yield.
       def append_around_filter(*filters, &block)
         filter_chain.append_filter_to_chain(filters, :around, &block)
       end
 
-      # If you prepend_around_filter A.new, B.new, the filter chain looks like:
+      # If you <tt>prepend_around_filter A.new, B.new</tt>, the filter chain looks like:
       #
       #   A#before
       #     B#before
@@ -493,13 +493,13 @@ module ActionController #:nodoc:
       #     B#after
       #   A#after
       #
-      # With around filters which yield to the action block, #before and #after
+      # With around filters which yield to the action block, +before+ and +after+
       # are the code before and after the yield.
       def prepend_around_filter(*filters, &block)
         filter_chain.prepend_filter_to_chain(filters, :around, &block)
       end
 
-      # Shorthand for append_around_filter since it's the most common.
+      # Shorthand for +append_around_filter+ since it's the most common.
       alias :around_filter :append_around_filter
 
       # Removes the specified filters from the +before+ filter chain. Note that this only works for skipping method-reference

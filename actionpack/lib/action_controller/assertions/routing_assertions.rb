@@ -59,7 +59,7 @@ module ActionController
         end
       end
 
-      # Asserts that the provided options can be used to generate the provided path.  This is the inverse of #assert_recognizes.
+      # Asserts that the provided options can be used to generate the provided path.  This is the inverse of +assert_recognizes+.
       # The +extras+ parameter is used to tell the request the names and values of additional request parameters that would be in
       # a query string. The +message+ parameter allows you to specify a custom error message for assertion failures.
       #
@@ -96,8 +96,8 @@ module ActionController
       end
 
       # Asserts that path and options match both ways; in other words, it verifies that <tt>path</tt> generates 
-      # <tt>options</tt> and then that <tt>options</tt> generates <tt>path</tt>.  This essentially combines #assert_recognizes 
-      # and #assert_generates into one step.
+      # <tt>options</tt> and then that <tt>options</tt> generates <tt>path</tt>.  This essentially combines +assert_recognizes+
+      # and +assert_generates+ into one step.
       #
       # The +extras+ hash allows you to specify options that would normally be provided as a query string to the action.  The
       # +message+ parameter allows you to specify a custom error message to display upon failure.  

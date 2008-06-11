@@ -273,14 +273,14 @@ module ActiveRecord #:nodoc:
       end
 
       # There is a significant speed improvement if the value
-      # does not need to be escaped, as #tag! escapes all values
+      # does not need to be escaped, as <tt>tag!</tt> escapes all values
       # to ensure that valid XML is generated. For known binary
       # values, it is at least an order of magnitude faster to
       # Base64 encode binary values and directly put them in the
       # output XML than to pass the original value or the Base64
-      # encoded value to the #tag! method. It definitely makes
+      # encoded value to the <tt>tag!</tt> method. It definitely makes
       # no sense to Base64 encode the value and then give it to
-      # #tag!, since that just adds additional overhead.
+      # <tt>tag!</tt>, since that just adds additional overhead.
       def needs_encoding?
         ![ :binary, :date, :datetime, :boolean, :float, :integer ].include?(type)
       end

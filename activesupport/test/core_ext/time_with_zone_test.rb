@@ -170,6 +170,13 @@ class TimeWithZoneTest < Test::Unit::TestCase
       assert_equal DateTime.civil(1999, 12, 31, 19, 0 ,5), (twz + 5).time
     end
   end
+  
+  def test_plus_when_crossing_time_class_limit
+    silence_warnings do # silence warnings raised by tzinfo gem
+      twz = ActiveSupport::TimeWithZone.new(Time.utc(2038, 1, 19), @time_zone)
+      assert_equal [0, 0, 19, 19, 1, 2038], (twz + 86_400).to_a[0,6]
+    end
+  end
     
   def test_plus_with_duration
     silence_warnings do # silence warnings raised by tzinfo gem

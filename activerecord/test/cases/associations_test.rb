@@ -99,12 +99,12 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david = authors(:david)
     assert_equal  david, david.posts.proxy_owner
     assert_equal  david.class.reflect_on_association(:posts), david.posts.proxy_reflection
-    david.posts.first   # force load target
+    david.posts.class   # force load target
     assert_equal  david.posts, david.posts.proxy_target
 
     assert_equal  david, david.posts_with_extension.testing_proxy_owner
     assert_equal  david.class.reflect_on_association(:posts_with_extension), david.posts_with_extension.testing_proxy_reflection
-    david.posts_with_extension.first   # force load target
+    david.posts_with_extension.class   # force load target
     assert_equal  david.posts_with_extension, david.posts_with_extension.testing_proxy_target
   end
 
@@ -158,6 +158,18 @@ class AssociationProxyTest < ActiveRecord::TestCase
   def test_save_on_parent_saves_children
     developer = Developer.create :name => "Bryan", :salary => 50_000
     assert_equal 1, developer.reload.audit_logs.size
+  end
+
+  def test_create_via_association_with_block
+    post = authors(:david).posts.create(:title => "New on Edge") {|p| p.body = "More cool stuff!"}
+    assert_equal post.title, "New on Edge"
+    assert_equal post.body, "More cool stuff!"
+  end
+
+  def test_create_with_bang_via_association_with_block
+    post = authors(:david).posts.create!(:title => "New on Edge") {|p| p.body = "More cool stuff!"}
+    assert_equal post.title, "New on Edge"
+    assert_equal post.body, "More cool stuff!"
   end
 
   def test_failed_reload_returns_nil

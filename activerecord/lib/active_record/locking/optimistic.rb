@@ -107,20 +107,20 @@ module ActiveRecord
         end
 
         # Is optimistic locking enabled for this table? Returns true if the
-        # #lock_optimistically flag is set to true (which it is, by default)
-        # and the table includes the #locking_column column (defaults to
-        # lock_version).
+        # +lock_optimistically+ flag is set to true (which it is, by default)
+        # and the table includes the +locking_column+ column (defaults to
+        # +lock_version+).
         def locking_enabled?
           lock_optimistically && columns_hash[locking_column]
         end
 
-        # Set the column to use for optimistic locking. Defaults to lock_version.
+        # Set the column to use for optimistic locking. Defaults to +lock_version+.
         def set_locking_column(value = nil, &block)
           define_attr_method :locking_column, value, &block
           value
         end
 
-        # The version column used for optimistic locking. Defaults to lock_version.
+        # The version column used for optimistic locking. Defaults to +lock_version+.
         def locking_column
           reset_locking_column
         end
@@ -130,12 +130,12 @@ module ActiveRecord
           connection.quote_column_name(locking_column)
         end
 
-        # Reset the column used for optimistic locking back to the lock_version default.
+        # Reset the column used for optimistic locking back to the +lock_version+ default.
         def reset_locking_column
           set_locking_column DEFAULT_LOCKING_COLUMN
         end
 
-        # make sure the lock version column gets updated when counters are
+        # Make sure the lock version column gets updated when counters are
         # updated.
         def update_counters_with_lock(id, counters)
           counters = counters.merge(locking_column => 1) if locking_enabled?

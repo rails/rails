@@ -32,7 +32,7 @@ module ActiveRecord
       def columns(table_name, name = nil) end
 
       # Creates a new table
-      # There are two ways to work with #create_table.  You can use the block
+      # There are two ways to work with +create_table+.  You can use the block
       # form or the regular form, like this:
       #
       # === Block form
@@ -302,7 +302,7 @@ module ActiveRecord
       def dump_schema_information #:nodoc:
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
         migrated = select_values("SELECT version FROM #{sm_table}")
-        migrated.map { |v| "INSERT INTO #{sm_table} (version) VALUES ('#{v}');" }.join("\n")
+        migrated.map { |v| "INSERT INTO #{sm_table} (version) VALUES ('#{v}');" }.join("\n\n")
       end
 
       # Should not be called normally, but this operation is non-destructive.
@@ -372,7 +372,7 @@ module ActiveRecord
 
       def add_column_options!(sql, options) #:nodoc:
         sql << " DEFAULT #{quote(options[:default], options[:column])}" if options_include_default?(options)
-        # must explcitly check for :null to allow change_column to work on migrations
+        # must explicitly check for :null to allow change_column to work on migrations
         if options.has_key? :null
           if options[:null] == false
             sql << " NOT NULL"

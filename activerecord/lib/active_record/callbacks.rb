@@ -50,7 +50,7 @@ module ActiveRecord
   #
   # == Inheritable callback queues
   #
-  # Besides the overwriteable callback methods, it's also possible to register callbacks through the use of the callback macros.
+  # Besides the overwritable callback methods, it's also possible to register callbacks through the use of the callback macros.
   # Their main advantage is that the macros add behavior into a callback queue that is kept intact down through an inheritance
   # hierarchy. Example:
   #
@@ -161,7 +161,7 @@ module ActiveRecord
   # == <tt>before_validation*</tt> returning statements
   #
   # If the returning value of a +before_validation+ callback can be evaluated to +false+, the process will be aborted and <tt>Base#save</tt> will return +false+.
-  # If <tt>Base#save!</tt> is called it will raise a +RecordNotSaved+ exception.
+  # If Base#save! is called it will raise a RecordNotSaved exception.
   # Nothing will be appended to the errors object.
   #
   # == Canceling callbacks

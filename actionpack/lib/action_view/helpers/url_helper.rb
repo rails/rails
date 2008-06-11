@@ -10,7 +10,7 @@ module ActionView
       include JavaScriptHelper
 
       # Returns the URL for the set of +options+ provided. This takes the
-      # same options as url_for in ActionController (see the
+      # same options as +url_for+ in Action Controller (see the
       # documentation for ActionController::Base#url_for). Note that by default
       # <tt>:only_path</tt> is <tt>true</tt> so you'll get the relative /controller/action
       # instead of the fully qualified URL like http://example.com/controller/action.
@@ -173,7 +173,7 @@ module ActionView
       #   link_to "Nonsense search", searches_path(:foo => "bar", :baz => "quux")
       #   # => <a href="/searches?foo=bar&amp;baz=quux">Nonsense search</a>
       #
-      # The three options specfic to +link_to+ (<tt>:confirm</tt>, <tt>:popup</tt>, and <tt>:method</tt>) are used as follows:
+      # The three options specific to +link_to+ (<tt>:confirm</tt>, <tt>:popup</tt>, and <tt>:method</tt>) are used as follows:
       #
       #   link_to "Visit Other Site", "http://www.rubyonrails.org/", :confirm => "Are you sure?"
       #   # => <a href="http://www.rubyonrails.org/" onclick="return confirm('Are you sure?');">Visit Other Site</a>

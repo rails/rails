@@ -232,7 +232,7 @@ class ActionCacheTest < Test::Unit::TestCase
     get :index
     cached_time = content_to_cache
     assert_equal cached_time, @response.body
-    assert_cache_exists 'hostname.com/action_caching_test'
+    assert fragment_exist?('hostname.com/action_caching_test')
     reset!
 
     get :index
@@ -243,7 +243,7 @@ class ActionCacheTest < Test::Unit::TestCase
     get :destroy
     cached_time = content_to_cache
     assert_equal cached_time, @response.body
-    assert_cache_does_not_exist 'hostname.com/action_caching_test/destroy'
+    assert !fragment_exist?('hostname.com/action_caching_test/destroy')
     reset!
 
     get :destroy
@@ -254,7 +254,7 @@ class ActionCacheTest < Test::Unit::TestCase
     get :with_layout
     cached_time = content_to_cache
     assert_not_equal cached_time, @response.body
-    assert_cache_exists 'hostname.com/action_caching_test/with_layout'
+    assert fragment_exist?('hostname.com/action_caching_test/with_layout')
     reset!
 
     get :with_layout
@@ -266,14 +266,14 @@ class ActionCacheTest < Test::Unit::TestCase
   def test_action_cache_conditional_options
     @request.env['HTTP_ACCEPT'] = 'application/json'
     get :index
-    assert_cache_does_not_exist 'hostname.com/action_caching_test'
+    assert !fragment_exist?('hostname.com/action_caching_test')
   end
 
   def test_action_cache_with_custom_cache_path
     get :show
     cached_time = content_to_cache
     assert_equal cached_time, @response.body
-    assert_cache_exists 'test.host/custom/show'
+    assert fragment_exist?('test.host/custom/show')
     reset!
 
     get :show
@@ -282,11 +282,11 @@ class ActionCacheTest < Test::Unit::TestCase
 
   def test_action_cache_with_custom_cache_path_in_block
     get :edit
-    assert_cache_exists 'test.host/edit'
+    assert fragment_exist?('test.host/edit')
     reset!
 
     get :edit, :id => 1
-    assert_cache_exists 'test.host/1;edit'
+    assert fragment_exist?('test.host/1;edit')
   end
 
   def test_cache_expiration
@@ -395,18 +395,8 @@ class ActionCacheTest < Test::Unit::TestCase
       @request.host = 'hostname.com'
     end
 
-    def assert_cache_exists(path)
-      full_path = cache_path(path)
-      assert File.exist?(full_path), "#{full_path.inspect} does not exist."
-    end
-
-    def assert_cache_does_not_exist(path)
-      full_path = cache_path(path)
-      assert !File.exist?(full_path), "#{full_path.inspect} should not exist."
-    end
-
-    def cache_path(path)
-      File.join(FILE_STORE_PATH, 'views', path + '.cache')
+    def fragment_exist?(path)
+      @controller.fragment_exist?(path)
     end
 
     def read_fragment(path)
@@ -448,6 +438,19 @@ class FragmentCachingTest < Test::Unit::TestCase
     ActionController::Base.perform_caching = false
     @store.write('views/name', 'value')
     assert_nil @controller.read_fragment('name')
+  end
+
+  def test_fragment_exist__with_caching_enabled
+    @store.write('views/name', 'value')
+    assert @controller.fragment_exist?('name')
+    assert !@controller.fragment_exist?('other_name')
+  end
+
+  def test_fragment_exist__with_caching_disabled
+    ActionController::Base.perform_caching = false
+    @store.write('views/name', 'value')
+    assert !@controller.fragment_exist?('name')
+    assert !@controller.fragment_exist?('other_name')
   end
 
   def test_write_fragment__with_caching_enabled
@@ -493,7 +496,6 @@ class FragmentCachingTest < Test::Unit::TestCase
     assert fragment_computed
     assert_equal 'generated till now -> ', buffer
   end
-
 
   def test_fragment_for
     @store.write('views/expensive', 'fragment content')

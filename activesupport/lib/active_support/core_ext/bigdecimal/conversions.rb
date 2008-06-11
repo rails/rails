@@ -21,7 +21,7 @@ module ActiveSupport #:nodoc:
             # This emits the number without any scientific notation.
             # I prefer it to using self.to_f.to_s, which would lose precision.
             #
-            # Note that YAML allows that when reconsituting floats
+            # Note that YAML allows that when reconstituting floats
             # to native types, some precision may get lost.
             # There is no full precision real YAML tag that I am aware of.
             str = self.to_s

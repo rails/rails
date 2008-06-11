@@ -61,7 +61,7 @@ module ActionController
       request_method == :head
     end
 
-    # Provides acccess to the request's HTTP headers, for example:
+    # Provides access to the request's HTTP headers, for example:
     #  request.headers["Content-Type"] # => "text/plain"
     def headers
       @headers ||= ActionController::Http::Headers.new(@env)
@@ -231,7 +231,7 @@ EOM
       parts[0..-(tld_length+2)]
     end
 
-    # Return the query string, accounting for server idiosyncracies.
+    # Return the query string, accounting for server idiosyncrasies.
     def query_string
       if uri = @env['REQUEST_URI']
         uri.split('?', 2)[1] || ''
@@ -240,7 +240,7 @@ EOM
       end
     end
 
-    # Return the request URI, accounting for server idiosyncracies.
+    # Return the request URI, accounting for server idiosyncrasies.
     # WEBrick includes the full URL. IIS leaves REQUEST_URI blank.
     def request_uri
       if uri = @env['REQUEST_URI']
@@ -466,8 +466,8 @@ EOM
         parser.result
       end
 
-      def parse_multipart_form_parameters(body, boundary, content_length, env)
-        parse_request_parameters(read_multipart(body, boundary, content_length, env))
+      def parse_multipart_form_parameters(body, boundary, body_size, env)
+        parse_request_parameters(read_multipart(body, boundary, body_size, env))
       end
 
       def extract_multipart_boundary(content_type_with_parameters)
@@ -519,7 +519,7 @@ EOM
 
         EOL = "\015\012"
 
-        def read_multipart(body, boundary, content_length, env)
+        def read_multipart(body, boundary, body_size, env)
           params = Hash.new([])
           boundary = "--" + boundary
           quoted_boundary = Regexp.quote(boundary)
@@ -529,8 +529,14 @@ EOM
 
           # start multipart/form-data
           body.binmode if defined? body.binmode
+          case body
+          when File
+            body.set_encoding(Encoding::BINARY) if body.respond_to?(:set_encoding)
+          when StringIO
+            body.string.force_encoding(Encoding::BINARY) if body.string.respond_to?(:force_encoding)
+          end
           boundary_size = boundary.size + EOL.size
-          content_length -= boundary_size
+          body_size -= boundary_size
           status = body.read(boundary_size)
           if nil == status
             raise EOFError, "no content body"
@@ -541,7 +547,7 @@ EOM
           loop do
             head = nil
             content =
-              if 10240 < content_length
+              if 10240 < body_size
                 UploadedTempfile.new("CGI")
               else
                 UploadedStringIO.new
@@ -563,24 +569,24 @@ EOM
                 buf[0 ... (buf.size - (EOL + boundary + EOL).size)] = ""
               end
 
-              c = if bufsize < content_length
+              c = if bufsize < body_size
                     body.read(bufsize)
                   else
-                    body.read(content_length)
+                    body.read(body_size)
                   end
               if c.nil? || c.empty?
                 raise EOFError, "bad content body"
               end
               buf.concat(c)
-              content_length -= c.size
+              body_size -= c.size
             end
 
             buf = buf.sub(/\A((?:.|\n)*?)(?:[\r\n]{1,2})?#{quoted_boundary}([\r\n]{1,2}|--)/n) do
               content.print $1
               if "--" == $2
-                content_length = -1
+                body_size = -1
               end
-             boundary_end = $2.dup
+              boundary_end = $2.dup
               ""
             end
 
@@ -607,7 +613,7 @@ EOM
             else
               params[name] = [content]
             end
-            break if content_length == -1
+            break if body_size == -1
           end
           raise EOFError, "bad boundary end of body part" unless boundary_end=~/--/
 

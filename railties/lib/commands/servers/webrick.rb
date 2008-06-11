@@ -61,6 +61,6 @@ require 'webrick_server'
 
 OPTIONS['working_directory'] = File.expand_path(RAILS_ROOT)
 
-puts "=> Rails application started on http://#{OPTIONS[:ip]}:#{OPTIONS[:port]}"
+puts "=> Rails #{Rails.version} application started on http://#{OPTIONS[:ip]}:#{OPTIONS[:port]}"
 puts "=> Ctrl-C to shutdown server; call with --help for options" if OPTIONS[:server_type] == WEBrick::SimpleServer
 DispatchServlet.dispatch(OPTIONS)

@@ -5,12 +5,12 @@ require 'action_mailer/utils'
 require 'tmail/net'
 
 module ActionMailer #:nodoc:
-  # ActionMailer allows you to send email from your application using a mailer model and views.
+  # Action Mailer allows you to send email from your application using a mailer model and views.
   #
   #
   # = Mailer Models
   #
-  # To use ActionMailer, you need to create a mailer model.
+  # To use Action Mailer, you need to create a mailer model.
   #
   #   $ script/generate mailer Notifier
   #
@@ -35,7 +35,8 @@ module ActionMailer #:nodoc:
   # * <tt>subject</tt> - The subject of your email. Sets the <tt>Subject:</tt> header.
   # * <tt>from</tt> - Who the email you are sending is from. Sets the <tt>From:</tt> header.
   # * <tt>cc</tt> - Takes one or more email addresses. These addresses will receive a carbon copy of your email. Sets the <tt>Cc:</tt> header.
-  # * <tt>bcc</tt> - Takes one or more email address. These addresses will receive a blind carbon copy of your email. Sets the <tt>Bcc:</tt> header.
+  # * <tt>bcc</tt> - Takes one or more email addresses. These addresses will receive a blind carbon copy of your email. Sets the <tt>Bcc:</tt> header.
+  # * <tt>reply_to</tt> - Takes one or more email addresses. These addresses will be listed as the default recipients when replying to your email. Sets the <tt>Reply-To:</tt> header.
   # * <tt>sent_on</tt> - The date on which the message was sent. If not set, the header wil be set by the delivery agent.
   # * <tt>content_type</tt> - Specify the content type of the message. Defaults to <tt>text/plain</tt>.
   # * <tt>headers</tt> - Specify additional headers to be set for the message, e.g. <tt>headers 'X-Mail-Count' => 107370</tt>.
@@ -54,7 +55,7 @@ module ActionMailer #:nodoc:
   #
   # = Mailer views
   #
-  # Like ActionController, each mailer class has a corresponding view directory
+  # Like Action Controller, each mailer class has a corresponding view directory
   # in which each method of the class looks for a template with its name.
   # To define a template to be used with a mailing, create an <tt>.erb</tt> file with the same name as the method
   # in your mailer model. For example, in the mailer defined above, the template at
@@ -157,7 +158,7 @@ module ActionMailer #:nodoc:
   #     end
   #   end
   #
-  # Multipart messages can also be used implicitly because ActionMailer will automatically
+  # Multipart messages can also be used implicitly because Action Mailer will automatically
   # detect and use multipart templates, where each template is named after the name of the action, followed
   # by the content type. Each such detected template will be added as separate part to the message.
   #
@@ -317,6 +318,10 @@ module ActionMailer #:nodoc:
     # Specify the from address for the message.
     adv_attr_accessor :from
 
+    # Specify the address (if different than the "from" address) to direct
+    # replies to this message.
+    adv_attr_accessor :reply_to
+
     # Specify additional headers to be added to the message.
     adv_attr_accessor :headers
 
@@ -383,8 +388,8 @@ module ActionMailer #:nodoc:
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
-      # object's #receive method. If you want your mailer to be able to
-      # process incoming messages, you'll need to implement a #receive
+      # object's +receive+ method. If you want your mailer to be able to
+      # process incoming messages, you'll need to implement a +receive+
       # method that accepts the email object as a parameter:
       #
       #   class MyMailer < ActionMailer::Base
@@ -490,7 +495,7 @@ module ActionMailer #:nodoc:
     end
 
     # Delivers a TMail::Mail object. By default, it delivers the cached mail
-    # object (from the #create! method). If no cached mail object exists, and
+    # object (from the <tt>create!</tt> method). If no cached mail object exists, and
     # no alternate has been given as the parameter, this will fail.
     def deliver!(mail = @mail)
       raise "no mail object available for delivery!" unless mail
@@ -576,13 +581,14 @@ module ActionMailer #:nodoc:
       def create_mail
         m = TMail::Mail.new
 
-        m.subject, = quote_any_if_necessary(charset, subject)
-        m.to, m.from = quote_any_address_if_necessary(charset, recipients, from)
-        m.bcc = quote_address_if_necessary(bcc, charset) unless bcc.nil?
-        m.cc  = quote_address_if_necessary(cc, charset) unless cc.nil?
-
+        m.subject,     = quote_any_if_necessary(charset, subject)
+        m.to, m.from   = quote_any_address_if_necessary(charset, recipients, from)
+        m.bcc          = quote_address_if_necessary(bcc, charset) unless bcc.nil?
+        m.cc           = quote_address_if_necessary(cc, charset) unless cc.nil?
+        m.reply_to     = quote_address_if_necessary(reply_to, charset) unless reply_to.nil?
         m.mime_version = mime_version unless mime_version.nil?
-        m.date = sent_on.to_time rescue sent_on if sent_on
+        m.date         = sent_on.to_time rescue sent_on if sent_on
+
         headers.each { |k, v| m[k] = v }
 
         real_content_type, ctype_attrs = parse_content_type

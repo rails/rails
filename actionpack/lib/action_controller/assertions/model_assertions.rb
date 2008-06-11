@@ -1,7 +1,8 @@
 module ActionController
   module Assertions
     module ModelAssertions
-      # Ensures that the passed record is valid by ActiveRecord standards and returns any error messages if it is not.
+      # Ensures that the passed record is valid by Active Record standards and
+      # returns any error messages if it is not.
       #
       # ==== Examples
       #

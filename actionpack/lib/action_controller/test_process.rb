@@ -3,7 +3,7 @@ require 'action_controller/test_case'
 
 module ActionController #:nodoc:
   class Base
-    # Process a test request called with a +TestRequest+ object.
+    # Process a test request called with a TestRequest object.
     def self.process_test(request)
       new.process_test(request)
     end
@@ -49,7 +49,7 @@ module ActionController #:nodoc:
     # Either the RAW_POST_DATA environment variable or the URL-encoded request
     # parameters.
     def raw_post
-      env['RAW_POST_DATA'] ||= url_encoded_request_parameters
+      env['RAW_POST_DATA'] ||= returning(url_encoded_request_parameters) { |b| b.force_encoding(Encoding::BINARY) if b.respond_to?(:force_encoding) }
     end
 
     def port=(number)
@@ -222,7 +222,7 @@ module ActionController #:nodoc:
       !rendered_file.nil?
     end
 
-    # A shortcut to the flash. Returns an empyt hash if no session flash exists.
+    # A shortcut to the flash. Returns an empty hash if no session flash exists.
     def flash
       session['flash'] || {}
     end
@@ -340,6 +340,7 @@ module ActionController #:nodoc:
       @content_type = content_type
       @original_filename = path.sub(/^.*#{File::SEPARATOR}([^#{File::SEPARATOR}]+)$/) { $1 }
       @tempfile = Tempfile.new(@original_filename)
+      @tempfile.set_encoding(Encoding::BINARY) if @tempfile.respond_to?(:set_encoding)
       @tempfile.binmode if binary
       FileUtils.copy_file(path, @tempfile.path)
     end
@@ -357,7 +358,7 @@ module ActionController #:nodoc:
 
   module TestProcess
     def self.included(base)
-      # execute the request simulating a specific http method and set/volley the response
+      # execute the request simulating a specific HTTP method and set/volley the response
       %w( get post put delete head ).each do |method|
         base.class_eval <<-EOV, __FILE__, __LINE__
           def #{method}(action, parameters = nil, session = nil, flash = nil)

@@ -42,7 +42,7 @@ module TMail
     # Allows you to query the mail object with a string to get the contents
     # of the field you want.
     # 
-    # Returns a string of the exact contnts of the field
+    # Returns a string of the exact contents of the field
     # 
     #  mail.from = "mikel <mikel@lindsaar.net>"
     #  mail.header_string("From") #=> "mikel <mikel@lindsaar.net>"
@@ -591,12 +591,17 @@ module TMail
     end
 
     # Destructively sets the message ID of the mail object instance to the passed in string
+    # 
+    # Invalid message IDs are ignored (silently, unless configured otherwise) and result in 
+    # a nil message ID.  Left and right angle brackets are required.
     #
     # Example:
     # 
     #  mail = TMail::Mail.new
+    #  mail.message_id = "<348F04F142D69C21-291E56D292BC@xxxx.net>"
+    #  mail.message_id #=> "<348F04F142D69C21-291E56D292BC@xxxx.net>"
     #  mail.message_id = "this_is_my_badly_formatted_message_id"
-    #  mail.message_id #=> "this_is_my_badly_formatted_message_id"
+    #  mail.message_id #=> nil
     def message_id=( str )
       set_string_attr 'Message-Id', str
     end

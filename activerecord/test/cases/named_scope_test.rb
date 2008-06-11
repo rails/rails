@@ -6,7 +6,7 @@ require 'models/reply'
 require 'models/author'
 
 class NamedScopeTest < ActiveRecord::TestCase
-  fixtures :posts, :authors, :topics
+  fixtures :posts, :authors, :topics, :comments
 
   def test_implements_enumerable
     assert !Topic.find(:all).empty?
@@ -95,7 +95,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_associations_have_access_to_named_scopes
-    assert_not_equal Comment.containing_the_letter_e, authors(:david).posts
+    assert_not_equal Comment.containing_the_letter_e, authors(:david).comments
     assert !Comment.containing_the_letter_e.empty?
 
     assert_equal authors(:david).comments & Comment.containing_the_letter_e, authors(:david).comments.containing_the_letter_e
@@ -118,4 +118,40 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal expected_proxy_options, Topic.approved.proxy_options
   end
 
+  def test_first_and_last_should_support_find_options
+    assert_equal Topic.base.first(:order => 'title'), Topic.base.find(:first, :order => 'title')
+    assert_equal Topic.base.last(:order => 'title'), Topic.base.find(:last, :order => 'title')
+  end
+
+  def test_first_and_last_should_allow_integers_for_limit
+    assert_equal Topic.base.first(2), Topic.base.to_a.first(2)
+    assert_equal Topic.base.last(2), Topic.base.to_a.last(2)
+  end
+
+  def test_first_and_last_should_not_use_query_when_results_are_loaded
+    topics = Topic.base
+    topics.reload # force load
+    assert_no_queries do
+      topics.first
+      topics.last
+    end
+  end
+
+  def test_first_and_last_find_options_should_use_query_when_results_are_loaded
+    topics = Topic.base
+    topics.reload # force load
+    assert_queries(2) do
+      topics.first(:order => 'title')
+      topics.last(:order => 'title')
+    end
+  end
+
+  def test_empty_should_not_load_results
+    topics = Topic.base
+    assert_queries(2) do
+      topics.empty?  # use count query
+      topics.collect # force load
+      topics.empty?  # use loaded (no query)
+    end
+  end
 end

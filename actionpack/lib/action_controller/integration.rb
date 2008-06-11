@@ -58,7 +58,7 @@ module ActionController
       class MultiPartNeededException < Exception
       end
 
-      # Create and initialize a new +Session+ instance.
+      # Create and initialize a new Session instance.
       def initialize
         reset!
       end
@@ -100,7 +100,7 @@ module ActionController
         @https = flag
       end
 
-      # Return +true+ if the session is mimicing a secure HTTPS request.
+      # Return +true+ if the session is mimicking a secure HTTPS request.
       #
       #   if session.https?
       #     ...
@@ -136,25 +136,25 @@ module ActionController
       end
 
       # Performs a GET request, following any subsequent redirect.
-      # See #request_via_redirect() for more information.
+      # See +request_via_redirect+ for more information.
       def get_via_redirect(path, parameters = nil, headers = nil)
         request_via_redirect(:get, path, parameters, headers)
       end
 
       # Performs a POST request, following any subsequent redirect.
-      # See #request_via_redirect() for more information.
+      # See +request_via_redirect+ for more information.
       def post_via_redirect(path, parameters = nil, headers = nil)
         request_via_redirect(:post, path, parameters, headers)
       end
 
       # Performs a PUT request, following any subsequent redirect.
-      # See #request_via_redirect() for more information.
+      # See +request_via_redirect+ for more information.
       def put_via_redirect(path, parameters = nil, headers = nil)
         request_via_redirect(:put, path, parameters, headers)
       end
 
       # Performs a DELETE request, following any subsequent redirect.
-      # See #request_via_redirect() for more information.
+      # See +request_via_redirect+ for more information.
       def delete_via_redirect(path, parameters = nil, headers = nil)
         request_via_redirect(:delete, path, parameters, headers)
       end
@@ -166,12 +166,12 @@ module ActionController
 
       # Performs a GET request with the given parameters. The parameters may
       # be +nil+, a Hash, or a string that is appropriately encoded
-      # (application/x-www-form-urlencoded or multipart/form-data).  The headers
-      # should be a hash.  The keys will automatically be upcased, with the
+      # (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
+      # The headers should be a hash. The keys will automatically be upcased, with the
       # prefix 'HTTP_' added if needed.
       #
-      # You can also perform POST, PUT, DELETE, and HEAD requests with #post,
-      # #put, #delete, and #head.
+      # You can also perform POST, PUT, DELETE, and HEAD requests with +post+,
+      # +put+, +delete+, and +head+.
       def get(path, parameters = nil, headers = nil)
         process :get, path, parameters, headers
       end
@@ -228,6 +228,8 @@ module ActionController
 
             super
 
+            stdinput.set_encoding(Encoding::BINARY) if stdinput.respond_to?(:set_encoding)
+            stdinput.force_encoding(Encoding::BINARY) if stdinput.respond_to?(:force_encoding)
             @stdinput = stdinput.is_a?(IO) ? stdinput : StringIO.new(stdinput || '')
           end
         end
@@ -382,6 +384,8 @@ module ActionController
           multipart_requestify(params).map do |key, value|
             if value.respond_to?(:original_filename)
               File.open(value.path) do |f|
+                f.set_encoding(Encoding::BINARY) if f.respond_to?(:set_encoding)
+
                 <<-EOF
 --#{boundary}\r
 Content-Disposition: form-data; name="#{key}"; filename="#{CGI.escape(value.original_filename)}"\r

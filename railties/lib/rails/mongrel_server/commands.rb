@@ -119,7 +119,7 @@ module Rails
         config = RailsConfigurator.new(settings) do
           defaults[:log] = $stdout if defaults[:environment] == 'development'
 
-          Mongrel.log("=> Rails application starting on http://#{defaults[:host]}:#{defaults[:port]}")
+          Mongrel.log("=> Rails #{Rails.version} application starting on http://#{defaults[:host]}:#{defaults[:port]}")
 
           unless defaults[:daemon]
             Mongrel.log("=> Call with -d to detach")

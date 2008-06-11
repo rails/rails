@@ -59,7 +59,7 @@ module TMail
       #
       # This is because a mailbox doesn't have the : after the From that designates the
       # beginning of the envelope sender (which can be different to the from address of 
-      # the emial)
+      # the email)
       #
       # Other fields can be passed as normal, "Reply-To", "Received" etc.
       #

@@ -155,7 +155,7 @@ HELP
         # such as the rest of the user's app.
         def class_collisions(*class_names)
 
-          # Initialize some check varibles
+          # Initialize some check variables
           last_class = Object
           current_class = nil
           name = nil
@@ -380,12 +380,14 @@ HELP
           # Thanks to Florian Gross (flgr).
           def raise_class_collision(class_name)
             message = <<end_message
-  The name '#{class_name}' is reserved by Ruby on Rails.
+  The name '#{class_name}' is either already used in your application or reserved by Ruby on Rails.
   Please choose an alternative and run this generator again.
 end_message
             if suggest = find_synonyms(class_name)
-              message << "\n  Suggestions:  \n\n"
-              message << suggest.join("\n")
+              if suggest.any?
+                message << "\n  Suggestions:  \n\n"
+                message << suggest.join("\n")
+              end
             end
             raise UsageError, message
           end

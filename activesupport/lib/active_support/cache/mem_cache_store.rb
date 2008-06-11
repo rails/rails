@@ -48,7 +48,13 @@ module ActiveSupport
       rescue MemCache::MemCacheError => e
         logger.error("MemCacheError (#{e}): #{e.message}")
         false
-      end              
+      end
+
+      def exist?(key, options = nil)
+        # Doesn't call super, cause exist? in memcache is in fact a read
+        # But who cares? Reading is very fast anyway
+        !read(key, options).nil?
+      end
 
       def increment(key, amount = 1)       
         log("incrementing", key, amount)

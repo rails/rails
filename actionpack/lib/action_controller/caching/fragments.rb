@@ -2,7 +2,7 @@ module ActionController #:nodoc:
   module Caching
     # Fragment caching is used for caching various blocks within templates without caching the entire action as a whole. This is useful when
     # certain elements of an action change frequently or depend on complicated state while other parts rarely change or can be shared amongst multiple
-    # parties. The caching is doing using the cache helper available in the Action View. A template with caching might look something like:
+    # parties. The caching is done using the cache helper available in the Action View. A template with caching might look something like:
     #
     #   <b>Hello <%= @name %></b>
     #   <% cache do %>
@@ -95,6 +95,17 @@ module ActionController #:nodoc:
 
         self.class.benchmark "Cached fragment hit: #{key}" do
           cache_store.read(key, options)
+        end
+      end
+
+      # Check if a cached fragment from the location signified by <tt>key</tt> exists (see <tt>expire_fragment</tt> for acceptable formats)
+      def fragment_exist?(key, options = nil)
+        return unless cache_configured?
+
+        key = fragment_cache_key(key)
+
+        self.class.benchmark "Cached fragment exists?: #{key}" do
+          cache_store.exist?(key, options)
         end
       end
 

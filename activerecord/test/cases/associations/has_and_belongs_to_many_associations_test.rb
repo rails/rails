@@ -401,6 +401,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_include_uses_array_include_after_loaded
     project = projects(:active_record)
+    project.developers.class # force load target
+
     developer = project.developers.first
     
     assert_no_queries do

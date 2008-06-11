@@ -32,6 +32,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, Firm.find(:first).plain_clients.count
   end
 
+  def test_counting_with_empty_hash_conditions
+    assert_equal 2, Firm.find(:first).plain_clients.count(:conditions => {})
+  end
+
   def test_counting_with_single_conditions
     assert_equal 2, Firm.find(:first).plain_clients.count(:conditions => '1=1')
   end
@@ -346,6 +350,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "Another Client", new_client.name
     assert new_client.new_record?
     assert_equal new_client, company.clients_of_firm.last
+    company.name += '-changed'
     assert_queries(2) { assert company.save }
     assert !new_client.new_record?
     assert_equal 2, company.clients_of_firm(true).size
@@ -356,6 +361,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     new_clients = assert_no_queries { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
     
     assert_equal 2, new_clients.size
+    company.name += '-changed'
     assert_queries(3) { assert company.save }
     assert_equal 3, company.clients_of_firm(true).size
   end
@@ -818,6 +824,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_include_uses_array_include_after_loaded
     firm = companies(:first_firm)
+    firm.clients.class # force load target
+
     client = firm.clients.first
 
     assert_no_queries do
@@ -855,6 +863,70 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert ! firm.clients.loaded?
     assert ! firm.clients.include?(client)
+  end
+
+  def test_calling_first_or_last_on_association_should_not_load_association
+    firm = companies(:first_firm)
+    firm.clients.first
+    firm.clients.last
+    assert !firm.clients.loaded?
+  end
+
+  def test_calling_first_or_last_on_loaded_association_should_not_fetch_with_query
+    firm = companies(:first_firm)
+    firm.clients.class # force load target
+    assert firm.clients.loaded?
+
+    assert_no_queries do
+      firm.clients.first
+      assert_equal 2, firm.clients.first(2).size
+      firm.clients.last
+      assert_equal 2, firm.clients.last(2).size
+    end
+  end
+
+  def test_calling_first_or_last_on_existing_record_with_build_should_load_association
+    firm = companies(:first_firm)
+    firm.clients.build(:name => 'Foo')
+    assert !firm.clients.loaded?
+
+    assert_queries 1 do
+      firm.clients.first
+      firm.clients.last
+    end
+
+    assert firm.clients.loaded?
+  end
+
+  def test_calling_first_or_last_on_new_record_should_not_run_queries
+    firm = Firm.new
+
+    assert_no_queries do
+      firm.clients.first
+      firm.clients.last
+    end
+  end
+
+  def test_calling_first_or_last_with_find_options_on_loaded_association_should_fetch_with_query
+    firm = companies(:first_firm)
+    firm.clients.class # force load target
+
+    assert_queries 2 do
+      assert firm.clients.loaded?
+      firm.clients.first(:order => 'name')
+      firm.clients.last(:order => 'name')
+    end
+  end
+
+  def test_calling_first_or_last_with_integer_on_association_should_load_association
+    firm = companies(:first_firm)
+
+    assert_queries 1 do
+      firm.clients.first(2)
+      firm.clients.last(2)
+    end
+
+    assert firm.clients.loaded?
   end
 
 end
