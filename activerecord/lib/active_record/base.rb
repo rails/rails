@@ -1903,10 +1903,12 @@ module ActiveRecord #:nodoc:
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
           modularized_name = type_name_with_module(type_name)
-          begin
-            class_eval(modularized_name, __FILE__, __LINE__)
-          rescue NameError
-            class_eval(type_name, __FILE__, __LINE__)
+          silence_warnings do
+            begin
+              class_eval(modularized_name, __FILE__, __LINE__)
+            rescue NameError
+              class_eval(type_name, __FILE__, __LINE__)
+            end
           end
         end
 
