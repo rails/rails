@@ -20,8 +20,6 @@ class MockTimeZone
   end
 end
 
-ActiveSupport::TimeZone = MockTimeZone
-
 class FormOptionsHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormOptionsHelper
 
@@ -31,6 +29,8 @@ class FormOptionsHelperTest < ActionView::TestCase
     Country   = Struct.new('Country', :country_id, :country_name)
     Firm      = Struct.new('Firm', :time_zone)
     Album     = Struct.new('Album', :id, :title, :genre)
+
+    ActiveSupport::TimeZone = MockTimeZone
   end
 
   def test_collection_options
