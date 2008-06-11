@@ -342,6 +342,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert new_firm.new_record?
   end
 
+  def test_invalid_adding_with_validate_false
+    firm = Firm.find(:first)
+    client = Client.new
+    firm.unvalidated_clients_of_firm << Client.new
+
+    assert firm.valid?
+    assert !client.valid?
+    assert firm.save
+    assert client.new_record?
+  end
+
   def test_build
     company = companies(:first_firm)
     new_client = assert_no_queries { company.clients_of_firm.build("name" => "Another Client") }
