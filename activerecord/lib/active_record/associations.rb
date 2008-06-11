@@ -859,7 +859,7 @@ module ActiveRecord
       #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute
       #   to the +attr_readonly+ list in the associated classes (e.g. <tt>class Post; attr_readonly :comments_count; end</tt>).
       # * <tt>:readonly</tt> - If true, the associated object is readonly through the association.
-      # * <tt>:validate</tt> - If false, don't validate the associated objects when saving the parent object. +true+ by default.
+      # * <tt>:validate</tt> - If false, don't validate the associated objects when saving the parent object. +false+ by default.
       #
       # Option examples:
       #   belongs_to :firm, :foreign_key => "client_of"
