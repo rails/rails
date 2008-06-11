@@ -1,5 +1,7 @@
 *Edge*
 
+* PostgreSQL: use 'INSERT ... RETURNING id' for 8.2 and later.  [Jeremy Kemper]
+
 * Added SQL escaping for :limit and :offset in MySQL [Jonathan Wiess]
 
 
