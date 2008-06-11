@@ -940,7 +940,7 @@ module ActiveRecord
           )
         end
 
-        add_single_associated_save_callbacks(reflection.name) unless options[:validate] == false
+        add_single_associated_save_callbacks(reflection.name) if options[:validate] == true
 
         configure_dependency_for_belongs_to(reflection)
       end
