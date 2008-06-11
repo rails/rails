@@ -327,6 +327,12 @@ module ActiveRecord
         has_support
       end
 
+      def supports_insert_with_returning?
+        @supports_insert_with_returning ||=
+          @connection.respond_to?(:server_version) &&
+          @connection.server_version >= 80200
+      end
+
       # Returns the configured supported identifier length supported by PostgreSQL,
       # or report the default of 63 on PostgreSQL 7.x.
       def table_alias_length
@@ -419,12 +425,23 @@ module ActiveRecord
 
       # Executes an INSERT query and returns the new record's ID
       def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+        # Extract the table from the insert sql. Yuck.
+        table = sql.split(" ", 4)[2].gsub('"', '')
+
+        # Try an insert with 'returning id' if available (PG >= 8.2)
+        if supports_insert_with_returning?
+          pk, sequence_name = *pk_and_sequence_for(table) unless pk
+          if pk
+            id = select_value("#{sql} RETURNING #{quote_column_name(pk)}")
+            clear_query_cache
+            return id
+          end
+        end
+
+        # Otherwise, insert then grab last_insert_id.
         if insert_id = super
           insert_id
         else
-          # Extract the table from the insert sql. Yuck.
-          table = sql.split(" ", 4)[2].gsub('"', '')
-
           # If neither pk nor sequence name is given, look them up.
           unless pk || sequence_name
             pk, sequence_name = *pk_and_sequence_for(table)
