@@ -21,10 +21,6 @@ module ActionController
           end
         end
 
-        to_prepare :reload_view_path_cache do
-          ActionView::TemplateFinder.reload!
-        end
-
         if defined?(ActiveRecord)
           before_dispatch { ActiveRecord::Base.verify_active_connections! }
           to_prepare(:activerecord_instantiate_observers) { ActiveRecord::Base.instantiate_observers }
@@ -138,6 +134,7 @@ module ActionController
       run_callbacks :prepare_dispatch
 
       Routing::Routes.reload
+      ActionView::TemplateFinder.reload! unless ActionView::Base.cache_template_loading
     end
 
     # Cleanup the application by clearing out loaded classes so they can
