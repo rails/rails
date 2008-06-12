@@ -1,3 +1,5 @@
+require "active_support/cache/mem_cache_store"
+
 module ActiveSupport
   module Cache
     class CompressedMemCacheStore < MemCacheStore
