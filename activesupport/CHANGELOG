@@ -1,5 +1,7 @@
 *Edge*
 
+* Added Enumberable#several? to encapsulate collection.size > 1 [DHH]
+
 * Add more standard Hash methods to ActiveSupport::OrderedHash [Steve Purcell]
 
 * Namespace Inflector, Dependencies, OrderedOptions, and TimeZone under ActiveSupport [Josh Peek]

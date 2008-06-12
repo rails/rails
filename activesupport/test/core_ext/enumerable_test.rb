@@ -63,4 +63,10 @@ class EnumerableTests < Test::Unit::TestCase
     assert_equal({ 5 => payments[0], 15 => payments[1], 10 => payments[2] },
                  payments.index_by { |p| p.price })
   end
+  
+  def test_several
+    assert ![].several?
+    assert ![ 1 ].several?
+    assert [ 1, 2 ].several?
+  end
 end
