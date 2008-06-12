@@ -37,7 +37,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_counting_with_single_conditions
-    assert_equal 1, Firm.find(:first).plain_clients.count(:conditions => 'name="Microsoft"')
+    assert_equal 1, Firm.find(:first).plain_clients.count(:conditions => ['name=?', "Microsoft"])
   end
 
   def test_counting_with_single_hash
