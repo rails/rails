@@ -31,20 +31,13 @@ module ActionView
       #   </body></html>
       #
       def capture(*args, &block)
-        # execute the block
-        begin
-          buffer = eval(ActionView::Base.erb_variable, block.binding)
-        rescue
-          buffer = nil
-        end
-        
-        if buffer.nil?
-          capture_block(*args, &block).to_s
+        if output_buffer
+          with_output_buffer { block.call(*args) }
         else
-          capture_erb_with_buffer(buffer, *args, &block).to_s
+          block.call(*args)
         end
       end
-      
+
       # Calling content_for stores a block of markup in an identifier for later use.
       # You can make subsequent calls to the stored content in other templates or the layout
       # by passing the identifier as an argument to <tt>yield</tt>.
@@ -121,40 +114,18 @@ module ActionView
       # named <tt>@content_for_#{name_of_the_content_block}</tt>. The preferred usage is now
       # <tt><%= yield :footer %></tt>.
       def content_for(name, content = nil, &block)
-        existing_content_for = instance_variable_get("@content_for_#{name}").to_s
-        new_content_for      = existing_content_for + (block_given? ? capture(&block) : content)
-        instance_variable_set("@content_for_#{name}", new_content_for)
+        ivar = "@content_for_#{name}"
+        content = capture(&block) if block_given?
+        instance_variable_set(ivar, "#{instance_variable_get(ivar)}#{content}")
       end
 
       private
-        def capture_block(*args, &block)
-          block.call(*args)
-        end
-      
-        def capture_erb(*args, &block)
-          buffer = eval(ActionView::Base.erb_variable, block.binding)
-          capture_erb_with_buffer(buffer, *args, &block)
-        end
-      
-        def capture_erb_with_buffer(buffer, *args, &block)
-          pos = buffer.length
-          block.call(*args)
-        
-          # extract the block 
-          data = buffer[pos..-1]
-        
-          # replace it in the original with empty string
-          buffer[pos..-1] = ''
-        
-          data
-        end
-      
-        def erb_content_for(name, &block)
-          eval "@content_for_#{name} = (@content_for_#{name} || '') + capture_erb(&block)"
-        end
-      
-        def block_content_for(name, &block)
-          eval "@content_for_#{name} = (@content_for_#{name} || '') + capture_block(&block)"
+        def with_output_buffer(buf = '')
+          self.output_buffer, old_buffer = buf, output_buffer
+          yield
+          output_buffer
+        ensure
+          self.output_buffer = old_buffer
         end
     end
   end

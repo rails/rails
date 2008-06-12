@@ -10,10 +10,12 @@ module ActiveSupport
   # If you discover an incorrect inflection and require it for your application, you'll need
   # to correct it yourself (explained below).
   module Inflector
+    extend self
+
     # A singleton instance of this class is yielded by Inflector.inflections, which can then be used to specify additional
     # inflection rules. Examples:
     #
-    #   Inflector.inflections do |inflect|
+    #   ActiveSupport::Inflector.inflections do |inflect|
     #     inflect.plural /^(ox)$/i, '\1\2en'
     #     inflect.singular /^(ox)en/i, '\1'
     #
@@ -91,13 +93,11 @@ module ActiveSupport
       end
     end
 
-    extend self
-
     # Yields a singleton instance of Inflector::Inflections so you can specify additional
     # inflector rules.
     #
     # Example:
-    #   Inflector.inflections do |inflect|
+    #   ActiveSupport::Inflector.inflections do |inflect|
     #     inflect.uncountable "rails"
     #   end
     def inflections
@@ -134,7 +134,7 @@ module ActiveSupport
     #   "posts".singularize            # => "post"
     #   "octopi".singularize           # => "octopus"
     #   "sheep".singluarize            # => "sheep"
-    #   "word".singluarize             # => "word"
+    #   "word".singularize             # => "word"
     #   "the blue mailmen".singularize # => "the blue mailman"
     #   "CamelOctopi".singularize      # => "CamelOctopus"
     def singularize(word)
@@ -307,4 +307,4 @@ module ActiveSupport
   end
 end
 
-require File.dirname(__FILE__) + '/inflections'
+require 'active_support/inflections'

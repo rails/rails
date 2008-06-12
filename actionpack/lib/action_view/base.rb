@@ -156,9 +156,11 @@ module ActionView #:nodoc:
     attr_reader   :finder
     attr_accessor :base_path, :assigns, :template_extension, :first_render
     attr_accessor :controller
-    
+
     attr_writer :template_format
     attr_accessor :current_render_extension
+
+    attr_accessor :output_buffer
 
     # Specify trim mode for the ERB compiler. Defaults to '-'.
     # See ERb documentation for suitable values.
@@ -178,14 +180,11 @@ module ActionView #:nodoc:
     # that alert()s the caught exception (and then re-raises it). 
     @@debug_rjs = false
     cattr_accessor :debug_rjs
-    
-    @@erb_variable = '_erbout'
-    cattr_accessor :erb_variable
-    
+
     attr_internal :request
 
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
-             :flash, :logger, :action_name, :to => :controller
+             :flash, :logger, :action_name, :controller_name, :to => :controller
  
     module CompiledTemplates #:nodoc:
       # holds compiled template code
@@ -253,12 +252,13 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       elsif options == :update
         update_page(&block)
       elsif options.is_a?(Hash)
+        use_full_path = options[:use_full_path]
         options = options.reverse_merge(:locals => {}, :use_full_path => true)
 
         if partial_layout = options.delete(:layout)
           if block_given?
             wrap_content_for_layout capture(&block) do 
-              concat(render(options.merge(:partial => partial_layout)), block.binding)
+              concat(render(options.merge(:partial => partial_layout)))
             end
           else
             wrap_content_for_layout render(options) do
@@ -266,7 +266,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
             end
           end
         elsif options[:file]
-          render_file(options[:file], options[:use_full_path], options[:locals])
+          render_file(options[:file], use_full_path || false, options[:locals])
         elsif options[:partial] && options[:collection]
           render_partial_collection(options[:partial], options[:collection], options[:spacer_template], options[:locals])
         elsif options[:partial]
@@ -316,9 +316,10 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
 
     private
       def wrap_content_for_layout(content)
-        original_content_for_layout = @content_for_layout
-        @content_for_layout = content
-        returning(yield) { @content_for_layout = original_content_for_layout }
+        original_content_for_layout, @content_for_layout = @content_for_layout, content
+        yield
+      ensure
+        @content_for_layout = original_content_for_layout
       end
 
       # Evaluate the local assigns and pushes them to the view.

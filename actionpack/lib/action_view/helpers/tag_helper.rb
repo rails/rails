@@ -1,5 +1,6 @@
 require 'cgi'
 require 'erb'
+require 'set'
 
 module ActionView
   module Helpers #:nodoc:
@@ -8,7 +9,8 @@ module ActionView
     module TagHelper
       include ERB::Util
 
-      BOOLEAN_ATTRIBUTES = Set.new(%w(disabled readonly multiple))
+      BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple).to_set
+      BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML 
       # compliant. Set +open+ to true to create an open tag compatible 
@@ -37,7 +39,7 @@ module ActionView
       #   tag("img", { :src => "open &amp; shut.png" }, false, false)
       #   # => <img src="open &amp; shut.png" />
       def tag(name, options = nil, open = false, escape = true)
-        "<#{name}#{tag_options(options, escape) if options}" + (open ? ">" : " />")
+        "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}"
       end
 
       # Returns an HTML block tag of type +name+ surrounding the +content+. Add
@@ -66,12 +68,9 @@ module ActionView
       def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, &block)
         if block_given?
           options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
-          content = capture(&block)
-          content_tag = content_tag_string(name, content, options, escape)
-          block_is_within_action_view?(block) ? concat(content_tag, block.binding) : content_tag
+          concat(content_tag_string(name, capture(&block), options, escape))
         else
-          content = content_or_options_with_block
-          content_tag_string(name, content, options, escape)
+          content_tag_string(name, content_or_options_with_block, options, escape)
         end
       end
 
@@ -114,7 +113,6 @@ module ActionView
             if escape
               options.each do |key, value|
                 next unless value
-                key = key.to_s
                 value = BOOLEAN_ATTRIBUTES.include?(key) ? key : escape_once(value)
                 attrs << %(#{key}="#{value}")
               end
@@ -123,10 +121,6 @@ module ActionView
             end
             " #{attrs.sort * ' '}" unless attrs.empty?
           end
-        end
-
-        def block_is_within_action_view?(block)
-          eval("defined? _erbout", block.binding)
         end
     end
   end

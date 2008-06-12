@@ -249,9 +249,9 @@ module ActionView
           args.unshift object
         end
 
-        concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}), proc.binding)
+        concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}))
         fields_for(object_name, *(args << options), &proc)
-        concat('</form>', proc.binding)
+        concat('</form>')
       end
 
       def apply_form_for_options!(object_or_array, options) #:nodoc:

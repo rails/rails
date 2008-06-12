@@ -407,10 +407,10 @@ module ActionView
       #   # => <fieldset><legend>Your details</legend><p><input id="name" name="name" type="text" /></p></fieldset>
       def field_set_tag(legend = nil, &block)
         content = capture(&block)
-        concat(tag(:fieldset, {}, true), block.binding)
-        concat(content_tag(:legend, legend), block.binding) unless legend.blank?
-        concat(content, block.binding)
-        concat("</fieldset>", block.binding)
+        concat(tag(:fieldset, {}, true))
+        concat(content_tag(:legend, legend)) unless legend.blank?
+        concat(content)
+        concat("</fieldset>")
       end
       
       private
@@ -442,9 +442,9 @@ module ActionView
         
         def form_tag_in_block(html_options, &block)
           content = capture(&block)
-          concat(form_tag_html(html_options), block.binding)
-          concat(content, block.binding)
-          concat("</form>", block.binding)
+          concat(form_tag_html(html_options))
+          concat(content)
+          concat("</form>")
         end
 
         def token_tag

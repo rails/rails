@@ -15,18 +15,26 @@ module ActionView
       #
       # ==== Examples
       #   <%
-      #       concat "hello", binding
+      #       concat "hello"
       #       # is the equivalent of <%= "hello" %>
       #
       #       if (logged_in == true):
-      #         concat "Logged in!", binding
+      #         concat "Logged in!"
       #       else
-      #         concat link_to('login', :action => login), binding
+      #         concat link_to('login', :action => login)
       #       end
       #       # will either display "Logged in!" or a login link
       #   %>
-      def concat(string, binding)
-        eval(ActionView::Base.erb_variable, binding) << string
+      def concat(string, unused_binding = nil)
+        if unused_binding
+          ActiveSupport::Deprecation.warn("The binding argument of #concat is no longer needed.  Please remove it from your views and helpers.")
+        end
+
+        if output_buffer && string
+          output_buffer << string
+        else
+          string
+        end
       end
 
       if RUBY_VERSION < '1.9'

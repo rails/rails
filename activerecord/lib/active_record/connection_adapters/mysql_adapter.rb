@@ -42,30 +42,6 @@ end
 
 module ActiveRecord
   class Base
-    def self.require_mysql
-      # Include the MySQL driver if one hasn't already been loaded
-      unless defined? Mysql
-        begin
-          require_library_or_gem 'mysql'
-        rescue LoadError => cannot_require_mysql
-          # Use the bundled Ruby/MySQL driver if no driver is already in place
-          begin
-            ActiveRecord::Base.logger.info(
-              "WARNING: You're using the Ruby-based MySQL library that ships with Rails. This library is not suited for production. " +
-              "Please install the C-based MySQL library instead (gem install mysql)."
-            ) if ActiveRecord::Base.logger
-
-            require 'active_record/vendor/mysql'
-          rescue LoadError
-            raise cannot_require_mysql
-          end
-        end
-      end
-
-      # Define Mysql::Result.all_hashes
-      MysqlCompat.define_all_hashes_method!
-    end
-
     # Establishes a connection to the database that's used by all Active Record objects.
     def self.mysql_connection(config) # :nodoc:
       config = config.symbolize_keys
@@ -81,7 +57,17 @@ module ActiveRecord
         raise ArgumentError, "No database specified. Missing argument: database."
       end
 
-      require_mysql
+      # Require the MySQL driver and define Mysql::Result.all_hashes
+      unless defined? Mysql
+        begin
+          require_library_or_gem('mysql')
+        rescue LoadError
+          $stderr.puts '!!! The bundled mysql.rb driver has been removed from Rails 2.2. Please install the mysql gem and try again: gem install mysql.'
+          raise
+        end
+      end
+      MysqlCompat.define_all_hashes_method!
+
       mysql = Mysql.init
       mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher]) if config[:sslkey]
 
@@ -165,8 +151,10 @@ module ActiveRecord
     #
     #   ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans = false
     class MysqlAdapter < AbstractAdapter
-      @@emulate_booleans = true
       cattr_accessor :emulate_booleans
+      self.emulate_booleans = true
+
+      ADAPTER_NAME = 'MySQL'.freeze
 
       LOST_CONNECTION_ERROR_MESSAGES = [
         "Server shutdown in progress",
@@ -174,7 +162,22 @@ module ActiveRecord
         "Lost connection to MySQL server during query",
         "MySQL server has gone away" ]
 
-      QUOTED_TRUE, QUOTED_FALSE = '1', '0'
+      QUOTED_TRUE, QUOTED_FALSE = '1'.freeze, '0'.freeze
+
+      NATIVE_DATABASE_TYPES = {
+        :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY".freeze,
+        :string      => { :name => "varchar", :limit => 255 },
+        :text        => { :name => "text" },
+        :integer     => { :name => "int"},
+        :float       => { :name => "float" },
+        :decimal     => { :name => "decimal" },
+        :datetime    => { :name => "datetime" },
+        :timestamp   => { :name => "datetime" },
+        :time        => { :name => "time" },
+        :date        => { :name => "date" },
+        :binary      => { :name => "blob" },
+        :boolean     => { :name => "tinyint", :limit => 1 }
+      }
 
       def initialize(connection, logger, connection_options, config)
         super(connection, logger)
@@ -184,7 +187,7 @@ module ActiveRecord
       end
 
       def adapter_name #:nodoc:
-        'MySQL'
+        ADAPTER_NAME
       end
 
       def supports_migrations? #:nodoc:
@@ -192,20 +195,7 @@ module ActiveRecord
       end
 
       def native_database_types #:nodoc:
-        {
-          :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY",
-          :string      => { :name => "varchar", :limit => 255 },
-          :text        => { :name => "text" },
-          :integer     => { :name => "int"},
-          :float       => { :name => "float" },
-          :decimal     => { :name => "decimal" },
-          :datetime    => { :name => "datetime" },
-          :timestamp   => { :name => "datetime" },
-          :time        => { :name => "time" },
-          :date        => { :name => "date" },
-          :binary      => { :name => "blob" },
-          :boolean     => { :name => "tinyint", :limit => 1 }
-        }
+        NATIVE_DATABASE_TYPES
       end
 
 
@@ -498,12 +488,17 @@ module ActiveRecord
 
       private
         def connect
+          @connection.reconnect = true if @connection.respond_to?(:reconnect=)
+
           encoding = @config[:encoding]
           if encoding
             @connection.options(Mysql::SET_CHARSET_NAME, encoding) rescue nil
           end
+
           @connection.ssl_set(@config[:sslkey], @config[:sslcert], @config[:sslca], @config[:sslcapath], @config[:sslcipher]) if @config[:sslkey]
+
           @connection.real_connect(*@connection_options)
+
           execute("SET NAMES '#{encoding}'") if encoding
 
           # By default, MySQL 'where id is null' selects the last inserted id.

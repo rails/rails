@@ -20,8 +20,6 @@ class MockTimeZone
   end
 end
 
-ActionView::Helpers::FormOptionsHelper::TimeZone = MockTimeZone
-
 class FormOptionsHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormOptionsHelper
 
@@ -31,6 +29,8 @@ class FormOptionsHelperTest < ActionView::TestCase
     Country   = Struct.new('Country', :country_id, :country_name)
     Firm      = Struct.new('Firm', :time_zone)
     Album     = Struct.new('Album', :id, :title, :genre)
+
+    ActiveSupport::TimeZone = MockTimeZone
   end
 
   def test_collection_options
@@ -183,7 +183,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_options_with_priority_zones
-    zones = [ TimeZone.new( "B" ), TimeZone.new( "E" ) ]
+    zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
     opts = time_zone_options_for_select( nil, zones )
     assert_dom_equal "<option value=\"B\">B</option>\n" +
                  "<option value=\"E\">E</option>" +
@@ -195,7 +195,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_options_with_selected_priority_zones
-    zones = [ TimeZone.new( "B" ), TimeZone.new( "E" ) ]
+    zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
     opts = time_zone_options_for_select( "E", zones )
     assert_dom_equal "<option value=\"B\">B</option>\n" +
                  "<option value=\"E\" selected=\"selected\">E</option>" +
@@ -207,7 +207,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_options_with_unselected_priority_zones
-    zones = [ TimeZone.new( "B" ), TimeZone.new( "E" ) ]
+    zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
     opts = time_zone_options_for_select( "C", zones )
     assert_dom_equal "<option value=\"B\">B</option>\n" +
                  "<option value=\"E\">E</option>" +
@@ -230,16 +230,14 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_select_under_fields_for
     @post = Post.new
     @post.category = "<mus>"
-    
-    _erbout = ''
-    
+
     fields_for :post, @post do |f|
-      _erbout.concat f.select(:category, %w( abe <mus> hest))
+      concat f.select(:category, %w( abe <mus> hest))
     end
     
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      _erbout
+      output_buffer
     )
   end
 
@@ -352,16 +350,14 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     @post = Post.new
     @post.author_name = "Babe"
-    
-    _erbout = ''
-    
+
     fields_for :post, @post do |f|
-      _erbout.concat f.collection_select(:author_name, @posts, :author_name, :author_name)
+      concat f.collection_select(:author_name, @posts, :author_name, :author_name)
     end
     
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
-      _erbout
+      output_buffer
     )
   end
 
@@ -1194,11 +1190,9 @@ COUNTRIES
 
   def test_time_zone_select_under_fields_for
     @firm = Firm.new("D")
-    
-    _erbout = ''
-    
+
     fields_for :firm, @firm do |f|
-      _erbout.concat f.time_zone_select(:time_zone)
+      concat f.time_zone_select(:time_zone)
     end
     
     assert_dom_equal(
@@ -1209,7 +1203,7 @@ COUNTRIES
       "<option value=\"D\" selected=\"selected\">D</option>\n" +
       "<option value=\"E\">E</option>" +
       "</select>",
-      _erbout
+      output_buffer
     )
   end
 
@@ -1293,7 +1287,7 @@ COUNTRIES
 
   def test_time_zone_select_with_priority_zones
     @firm = Firm.new("D")
-    zones = [ TimeZone.new("A"), TimeZone.new("D") ]
+    zones = [ ActiveSupport::TimeZone.new("A"), ActiveSupport::TimeZone.new("D") ]
     html = time_zone_select("firm", "time_zone", zones )
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                  "<option value=\"A\">A</option>\n" +

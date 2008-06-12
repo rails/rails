@@ -988,7 +988,11 @@ module ActiveResource
           self.class.const_get(resource_name)
         end
       rescue NameError
-        resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
+        if self.class.const_defined?(resource_name)
+          resource = self.class.const_get(resource_name)
+        else
+          resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
+        end
         resource.prefix = self.class.prefix
         resource.site   = self.class.site
         resource

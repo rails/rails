@@ -1,14 +1,5 @@
 module ActionView #:nodoc:
   class TemplateFinder #:nodoc:
-
-    class InvalidViewPath < StandardError #:nodoc:
-      attr_reader :unprocessed_path
-      def initialize(path)
-        @unprocessed_path = path
-        super("Unprocessed view path found: #{@unprocessed_path.inspect}.  Set your view paths with #append_view_path, #prepend_view_path, or #view_paths=.")
-      end
-    end
-
     cattr_reader :processed_view_paths
     @@processed_view_paths = Hash.new {|hash, key| hash[key] = []}
 
@@ -18,7 +9,6 @@ module ActionView #:nodoc:
     }
 
     class << self #:nodoc:
-
       # This method is not thread safe. Mutex should be used whenever this is accessed from an instance method
       def process_view_paths(*view_paths)
         view_paths.flatten.compact.each do |dir|
@@ -35,26 +25,13 @@ module ActionView #:nodoc:
 
               # Build extension cache
               extension = file.split(".").last
-              if template_handler_extensions.include?(extension)
+              if ActionView::Template.template_handler_extensions.include?(extension)
                 key = file.split(dir).last.sub(/^\//, '').sub(/\.(\w+)$/, '')
                 @@file_extension_cache[dir][key] << extension
               end
             end
           end
         end
-      end
-
-      def update_extension_cache_for(extension)
-        @@processed_view_paths.keys.each do |dir|
-          Dir.glob("#{dir}/**/*.#{extension}").each do |file|
-            key = file.split(dir).last.sub(/^\//, '').sub(/\.(\w+)$/, '')
-            @@file_extension_cache[dir][key] << extension
-          end
-        end
-      end
-
-      def template_handler_extensions
-        ActionView::Template.template_handler_extensions
       end
 
       def reload!
@@ -76,7 +53,7 @@ module ActionView #:nodoc:
 
       @view_paths = args.flatten
       @view_paths = @view_paths.respond_to?(:find) ? @view_paths.dup : [*@view_paths].compact
-      check_view_paths(@view_paths)
+      self.class.process_view_paths(@view_paths)
     end
 
     def prepend_view_path(path)
@@ -166,12 +143,5 @@ module ActionView #:nodoc:
     def find_template_extension_from_first_render
       File.basename(@template.first_render.to_s)[/^[^.]+\.(.+)$/, 1]
     end
-
-    private
-      def check_view_paths(view_paths)
-        view_paths.each do |path|
-          raise InvalidViewPath.new(path) unless @@processed_view_paths.has_key?(path)
-        end
-      end
   end
 end

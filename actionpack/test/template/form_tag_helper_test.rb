@@ -43,19 +43,17 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_form_tag_with_block
-    _erbout = ''
-    form_tag("http://example.com") { _erbout.concat "Hello world!" }
+    form_tag("http://example.com") { concat "Hello world!" }
 
     expected = %(<form action="http://example.com" method="post">Hello world!</form>)
-    assert_dom_equal expected, _erbout
+    assert_dom_equal expected, output_buffer
   end
 
   def test_form_tag_with_block_and_method
-    _erbout = ''
-    form_tag("http://example.com", :method => :put) { _erbout.concat "Hello world!" }
+    form_tag("http://example.com", :method => :put) { concat "Hello world!" }
 
     expected = %(<form action="http://example.com" method="post"><div style='margin:0;padding:0'><input type="hidden" name="_method" value="put" /></div>Hello world!</form>)
-    assert_dom_equal expected, _erbout
+    assert_dom_equal expected, output_buffer
   end
 
   def test_hidden_field_tag
@@ -234,23 +232,22 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_field_set_tag
-    _erbout = ''
-    field_set_tag("Your details") { _erbout.concat "Hello world!" }
+    field_set_tag("Your details") { concat "Hello world!" }
 
     expected = %(<fieldset><legend>Your details</legend>Hello world!</fieldset>)
-    assert_dom_equal expected, _erbout
+    assert_dom_equal expected, output_buffer
 
-    _erbout = ''
-    field_set_tag { _erbout.concat "Hello world!" }
-
-    expected = %(<fieldset>Hello world!</fieldset>)
-    assert_dom_equal expected, _erbout
-    
-    _erbout = ''
-    field_set_tag('') { _erbout.concat "Hello world!" }
+    self.output_buffer = ''
+    field_set_tag { concat "Hello world!" }
 
     expected = %(<fieldset>Hello world!</fieldset>)
-    assert_dom_equal expected, _erbout
+    assert_dom_equal expected, output_buffer
+
+    self.output_buffer = ''
+    field_set_tag('') { concat "Hello world!" }
+
+    expected = %(<fieldset>Hello world!</fieldset>)
+    assert_dom_equal expected, output_buffer
   end
 
   def protect_against_forgery?

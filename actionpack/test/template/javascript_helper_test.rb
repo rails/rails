@@ -82,8 +82,12 @@ class JavaScriptHelperTest < ActionView::TestCase
   end
 
   def test_javascript_tag
+    self.output_buffer = 'foo'
+
     assert_dom_equal "<script type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>",
       javascript_tag("alert('hello')")
+
+    assert_equal 'foo', output_buffer, 'javascript_tag without a block should not concat to output_buffer'
   end
 
   def test_javascript_tag_with_options
@@ -92,15 +96,13 @@ class JavaScriptHelperTest < ActionView::TestCase
   end
 
   def test_javascript_tag_with_block
-    _erbout = ''
-    javascript_tag { _erbout.concat "alert('hello')" }
-    assert_dom_equal "<script type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>", _erbout
+    javascript_tag { concat "alert('hello')" }
+    assert_dom_equal "<script type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>", output_buffer
   end
 
   def test_javascript_tag_with_block_and_options
-    _erbout = ''
-    javascript_tag(:id => "the_js_tag") { _erbout.concat "alert('hello')" }
-    assert_dom_equal "<script id=\"the_js_tag\" type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>", _erbout
+    javascript_tag(:id => "the_js_tag") { concat "alert('hello')" }
+    assert_dom_equal "<script id=\"the_js_tag\" type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>", output_buffer
   end
 
   def test_javascript_cdata_section

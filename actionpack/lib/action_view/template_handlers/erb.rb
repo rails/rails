@@ -43,13 +43,11 @@ module ActionView
       include Compilable
 
       def compile(template)
-        ::ERB.new(template.source, nil, @view.erb_trim_mode).src
+        ::ERB.new(template.source, nil, @view.erb_trim_mode, '@output_buffer').src
       end
 
       def cache_fragment(block, name = {}, options = nil) #:nodoc:
-        @view.fragment_for(block, name, options) do
-          eval(ActionView::Base.erb_variable, block.binding)
-        end
+        @view.fragment_for(block, name, options) { @view.response.template.output_buffer ||= '' }
       end
     end
   end

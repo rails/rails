@@ -283,13 +283,6 @@ module ActionController #:nodoc:
     @@debug_routes = true
     cattr_accessor :debug_routes
 
-    # Indicates to Mongrel or Webrick whether to allow concurrent action
-    # processing. Your controller actions and any other code they call must
-    # also behave well when called from concurrent threads. Turned off by
-    # default.
-    @@allow_concurrency = false
-    cattr_accessor :allow_concurrency
-
     # Modern REST web services often need to submit complex data to the web application.
     # The <tt>@@param_parsers</tt> hash lets you register handlers which will process the HTTP body and add parameters to the
     # <tt>params</tt> hash. These handlers are invoked for POST and PUT requests.

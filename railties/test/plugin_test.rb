@@ -5,9 +5,10 @@ uses_mocha "Plugin Tests" do
   class PluginTest < Test::Unit::TestCase
 
     def setup
-      @initializer       = Rails::Initializer.new(Rails::Configuration.new)
-      @valid_plugin_path = plugin_fixture_path('default/stubby')
-      @empty_plugin_path = plugin_fixture_path('default/empty')    
+      @initializer         = Rails::Initializer.new(Rails::Configuration.new)
+      @valid_plugin_path   = plugin_fixture_path('default/stubby')
+      @empty_plugin_path   = plugin_fixture_path('default/empty')
+      @gemlike_plugin_path = plugin_fixture_path('default/gemlike')
     end
 
     def test_should_determine_plugin_name_from_the_directory_of_the_plugin
@@ -70,7 +71,14 @@ uses_mocha "Plugin Tests" do
         plugin.stubs(:evaluate_init_rb)
         plugin.send(:load, @initializer)
       end
-    
+
+      # This path is fine so nothing is raised
+      assert_nothing_raised do
+        plugin = plugin_for(@gemlike_plugin_path)
+        plugin.stubs(:evaluate_init_rb)
+        plugin.send(:load, @initializer)
+      end
+
       # This is an empty path so it raises
       assert_raises(LoadError) do
         plugin = plugin_for(@empty_plugin_path)

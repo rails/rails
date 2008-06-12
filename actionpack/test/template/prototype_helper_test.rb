@@ -118,52 +118,46 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
   end
 
   def test_form_remote_tag_with_block
-    _erbout = ''
-    form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }) { _erbout.concat "Hello world!" }
-    assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater('glass_of_beer', 'http://www.example.com/fast', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\">Hello world!</form>), _erbout
+    form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }) { concat "Hello world!" }
+    assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater('glass_of_beer', 'http://www.example.com/fast', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\">Hello world!</form>), output_buffer
   end
 
   def test_remote_form_for_with_record_identification_with_new_record
-    _erbout = ''
     remote_form_for(@record, {:html => { :id => 'create-author' }}) {}
     
     expected = %(<form action='#{authors_path}' onsubmit="new Ajax.Request('#{authors_path}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='new_author' id='create-author' method='post'></form>)
-    assert_dom_equal expected, _erbout
+    assert_dom_equal expected, output_buffer
   end
 
   def test_remote_form_for_with_record_identification_without_html_options
-    _erbout = ''
     remote_form_for(@record) {}
     
     expected = %(<form action='#{authors_path}' onsubmit="new Ajax.Request('#{authors_path}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='new_author' method='post' id='new_author'></form>)
-    assert_dom_equal expected, _erbout
+    assert_dom_equal expected, output_buffer
   end
 
   def test_remote_form_for_with_record_identification_with_existing_record
     @record.save
-    _erbout = ''
     remote_form_for(@record) {}
     
     expected = %(<form action='#{author_path(@record)}' id='edit_author_1' method='post' onsubmit="new Ajax.Request('#{author_path(@record)}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='edit_author'><div style='margin:0;padding:0'><input name='_method' type='hidden' value='put' /></div></form>)
-    assert_dom_equal expected, _erbout
+    assert_dom_equal expected, output_buffer
   end
 
   def test_remote_form_for_with_new_object_in_list
-    _erbout = ''
     remote_form_for([@author, @article]) {}
     
     expected = %(<form action='#{author_articles_path(@author)}' onsubmit="new Ajax.Request('#{author_articles_path(@author)}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='new_article' method='post' id='new_article'></form>)
-    assert_dom_equal expected, _erbout
+    assert_dom_equal expected, output_buffer
   end
   
   def test_remote_form_for_with_existing_object_in_list
     @author.save
     @article.save
-    _erbout = ''
     remote_form_for([@author, @article]) {}
     
     expected = %(<form action='#{author_article_path(@author, @article)}' id='edit_article_1' method='post' onsubmit="new Ajax.Request('#{author_article_path(@author, @article)}', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;" class='edit_article'><div style='margin:0;padding:0'><input name='_method' type='hidden' value='put' /></div></form>)
-    assert_dom_equal expected, _erbout
+    assert_dom_equal expected, output_buffer
   end
 
   def test_on_callbacks

@@ -68,6 +68,11 @@ class NewRenderTestController < ActionController::Base
     path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb')
     render :file => path
   end
+  
+  def render_file_from_template
+    @secret = 'in the sauce'
+    @path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb'))
+  end
 
   def render_file_with_locals
     path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals.erb')
@@ -215,7 +220,7 @@ class NewRenderTestController < ActionController::Base
     render :action => "test/hello_world"
   end
 
- def render_to_string_with_partial
+  def render_to_string_with_partial
     @partial_only = render_to_string :partial => "partial_only"
     @partial_with_locals = render_to_string :partial => "customer", :locals => { :customer => Customer.new("david") }     
     render :action => "test/hello_world"  
@@ -246,9 +251,13 @@ class NewRenderTestController < ActionController::Base
   def accessing_logger_in_template
     render :inline =>  "<%= logger.class %>"
   end
-  
+
   def accessing_action_name_in_template
     render :inline =>  "<%= action_name %>"
+  end
+
+  def accessing_controller_name_in_template
+    render :inline =>  "<%= controller_name %>"
   end
 
   def accessing_params_in_template_with_layout
@@ -531,6 +540,11 @@ class NewRenderTest < Test::Unit::TestCase
     get :render_file_with_locals
     assert_equal "The secret is in the sauce\n", @response.body
   end
+  
+  def test_render_file_from_template
+    get :render_file_from_template
+    assert_equal "The secret is in the sauce\n", @response.body
+  end
 
   def test_attempt_to_access_object_method
     assert_raises(ActionController::UnknownAction, "No action responded to [clone]") { get :clone }
@@ -549,10 +563,15 @@ class NewRenderTest < Test::Unit::TestCase
     get :accessing_logger_in_template
     assert_equal "Logger", @response.body
   end
-  
+
   def test_access_to_action_name_in_view
     get :accessing_action_name_in_template
     assert_equal "accessing_action_name_in_template", @response.body
+  end
+
+  def test_access_to_controller_name_in_view
+    get :accessing_controller_name_in_template
+    assert_equal "test", @response.body # name is explicitly set to 'test' inside the controller.
   end
 
   def test_render_xml
@@ -742,7 +761,7 @@ EOS
   
   def test_partial_collection_with_counter
     get :partial_collection_with_counter
-    assert_equal "david1mary2", @response.body
+    assert_equal "david0mary1", @response.body
   end
   
   def test_partial_collection_with_locals
@@ -762,7 +781,7 @@ EOS
 
   def test_partial_collection_shorthand_with_different_types_of_records
     get :partial_collection_shorthand_with_different_types_of_records
-    assert_equal "Bonjour bad customer: mark1Bonjour good customer: craig2Bonjour bad customer: john3Bonjour good customer: zach4Bonjour good customer: brandon5Bonjour bad customer: dan6", @response.body
+    assert_equal "Bonjour bad customer: mark0Bonjour good customer: craig1Bonjour bad customer: john2Bonjour good customer: zach3Bonjour good customer: brandon4Bonjour bad customer: dan5", @response.body
   end
 
   def test_empty_partial_collection

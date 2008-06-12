@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'abstract_unit'
+require "active_support/cache/memory_store"
 
 CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
@@ -188,6 +189,10 @@ class ActionCachingTestController < ActionController::Base
     expire_action :controller => 'action_caching_test', :action => 'index'
     render :nothing => true
   end
+  def expire_xml
+    expire_action :controller => 'action_caching_test', :action => 'index', :format => 'xml'
+    render :nothing => true
+  end
 end
 
 class MockTime < Time
@@ -213,6 +218,7 @@ class ActionCachingMockController
     mocked_path = @mock_path
     Object.new.instance_eval(<<-EVAL)
       def path; '#{@mock_path}' end
+      def format; 'all' end
       self
     EVAL
   end
@@ -326,6 +332,20 @@ class ActionCacheTest < Test::Unit::TestCase
     assert_equal new_cached_time, @response.body
   end
 
+  def test_cache_expiration_isnt_affected_by_request_format
+    get :index
+    cached_time = content_to_cache
+    reset!
+
+    @request.set_REQUEST_URI "/action_caching_test/expire.xml"
+    get :expire, :format => :xml
+    reset!
+
+    get :index
+    new_cached_time = content_to_cache
+    assert_not_equal cached_time, @response.body
+  end
+
   def test_cache_is_scoped_by_subdomain
     @request.host = 'jamis.hostname.com'
     get :index
@@ -370,11 +390,35 @@ class ActionCacheTest < Test::Unit::TestCase
   end
 
   def test_xml_version_of_resource_is_treated_as_different_cache
-    @mock_controller.mock_url_for = 'http://example.org/posts/'
-    @mock_controller.mock_path    = '/posts/index.xml'
-    path_object = @path_class.new(@mock_controller, {})
-    assert_equal 'xml', path_object.extension
-    assert_equal 'example.org/posts/index.xml', path_object.path
+    with_routing do |set|
+      ActionController::Routing::Routes.draw do |map|
+        map.connect ':controller/:action.:format'
+        map.connect ':controller/:action'
+      end
+
+      get :index, :format => 'xml'
+      cached_time = content_to_cache
+      assert_equal cached_time, @response.body
+      assert fragment_exist?('hostname.com/action_caching_test/index.xml')
+      reset!
+
+      get :index, :format => 'xml'
+      assert_equal cached_time, @response.body
+      assert_equal 'application/xml', @response.content_type
+      reset!
+
+      @request.env['HTTP_ACCEPT'] = "application/xml"
+      get :index
+      assert_equal cached_time, @response.body
+      assert_equal 'application/xml', @response.content_type
+      reset!
+
+      get :expire_xml
+      reset!
+
+      get :index, :format => 'xml'
+      assert_not_equal cached_time, @response.body
+    end
   end
 
   def test_correct_content_type_is_returned_for_cache_hit
@@ -436,6 +480,8 @@ class FragmentCachingTest < Test::Unit::TestCase
     @controller.request = @request
     @controller.response = @response
     @controller.send(:initialize_current_url)
+    @controller.send(:initialize_template_class, @response)
+    @controller.send(:assign_shortcuts, @request, @response)
   end
 
   def test_fragment_cache_key
@@ -525,7 +571,7 @@ class FragmentCachingTest < Test::Unit::TestCase
 
   def test_cache_erb_fragment
     @store.write('views/expensive', 'fragment content')
-    _erbout = 'generated till now -> '
+    @controller.response.template.output_buffer = 'generated till now -> '
 
     assert_equal( 'generated till now -> fragment content',
                   ActionView::TemplateHandlers::ERB.new(@controller).cache_fragment(Proc.new{ }, 'expensive'))

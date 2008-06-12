@@ -11,12 +11,6 @@ class TemplateFinderTest < Test::Unit::TestCase
     @finder = ActionView::TemplateFinder.new(@template, LOAD_PATH_ROOT)
   end
 
-  def test_should_raise_exception_for_unprocessed_view_path
-    assert_raises ActionView::TemplateFinder::InvalidViewPath do
-      ActionView::TemplateFinder.new(@template, File.dirname(__FILE__))
-    end
-  end
-
   def test_should_cache_file_extension_properly
     assert_equal ["builder", "erb", "rhtml", "rjs", "rxml", "mab"].sort,
                  ActionView::TemplateFinder.file_extension_cache[LOAD_PATH_ROOT].values.flatten.uniq.sort
@@ -62,12 +56,5 @@ class TemplateFinderTest < Test::Unit::TestCase
     assert_equal 'rb', @finder.send(:find_template_extension_from_first_render)
     assert_equal false, @finder.send(:file_exists?, 'baz')
     assert_equal false, @finder.send(:file_exists?, 'baz.rb')
-  end
-  
-  uses_mocha 'Template finder tests' do
-    def test_should_update_extension_cache_when_template_handler_is_registered
-      ActionView::TemplateFinder.expects(:update_extension_cache_for).with("funky")
-      ActionView::Template::register_template_handler :funky, Class.new(ActionView::TemplateHandler)
-    end
   end
 end

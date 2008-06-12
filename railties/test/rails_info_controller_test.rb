@@ -30,6 +30,8 @@ class Rails::InfoControllerTest < Test::Unit::TestCase
     @controller = Rails::InfoController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
+
+    ActionController::Base.consider_all_requests_local = true
   end
 
   def test_rails_info_properties_table_rendered_for_local_request
@@ -41,6 +43,8 @@ class Rails::InfoControllerTest < Test::Unit::TestCase
   
   def test_rails_info_properties_error_rendered_for_non_local_request
     Rails::InfoController.local_request = false
+    ActionController::Base.consider_all_requests_local = false
+
     get :properties
     assert_tag :tag => 'p'
     assert_response 500

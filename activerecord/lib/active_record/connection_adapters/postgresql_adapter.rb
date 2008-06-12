@@ -238,9 +238,26 @@ module ActiveRecord
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
     # * <tt>:allow_concurrency</tt> - If true, use async query methods so Ruby threads don't deadlock; otherwise, use blocking query methods.
     class PostgreSQLAdapter < AbstractAdapter
+      ADAPTER_NAME = 'PostgreSQL'.freeze
+
+      NATIVE_DATABASE_TYPES = {
+        :primary_key => "serial primary key".freeze,
+        :string      => { :name => "character varying", :limit => 255 },
+        :text        => { :name => "text" },
+        :integer     => { :name => "integer" },
+        :float       => { :name => "float" },
+        :decimal     => { :name => "decimal" },
+        :datetime    => { :name => "timestamp" },
+        :timestamp   => { :name => "timestamp" },
+        :time        => { :name => "time" },
+        :date        => { :name => "date" },
+        :binary      => { :name => "bytea" },
+        :boolean     => { :name => "boolean" }
+      }
+
       # Returns 'PostgreSQL' as adapter name for identification purposes.
       def adapter_name
-        'PostgreSQL'
+        ADAPTER_NAME
       end
 
       # Initializes and connects a PostgreSQL adapter.
@@ -282,20 +299,7 @@ module ActiveRecord
       end
 
       def native_database_types #:nodoc:
-        {
-          :primary_key => "serial primary key",
-          :string      => { :name => "character varying", :limit => 255 },
-          :text        => { :name => "text" },
-          :integer     => { :name => "integer" },
-          :float       => { :name => "float" },
-          :decimal     => { :name => "decimal" },
-          :datetime    => { :name => "timestamp" },
-          :timestamp   => { :name => "timestamp" },
-          :time        => { :name => "time" },
-          :date        => { :name => "date" },
-          :binary      => { :name => "bytea" },
-          :boolean     => { :name => "boolean" }
-        }
+        NATIVE_DATABASE_TYPES
       end
 
       # Does PostgreSQL support migrations?
@@ -317,6 +321,15 @@ module ActiveRecord
         has_support = query('SHOW standard_conforming_strings')[0][0] rescue false
         self.client_min_messages = client_min_messages_old
         has_support
+      end
+
+      def supports_insert_with_returning?
+        unless defined? @supports_insert_with_returning
+          @supports_insert_with_returning =
+            @connection.respond_to?(:server_version) &&
+            @connection.server_version >= 80200
+        end
+        @supports_insert_with_returning
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL,
@@ -411,8 +424,34 @@ module ActiveRecord
 
       # Executes an INSERT query and returns the new record's ID
       def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+        # Extract the table from the insert sql. Yuck.
         table = sql.split(" ", 4)[2].gsub('"', '')
-        super || pk && last_insert_id(table, sequence_name || default_sequence_name(table, pk))
+
+        # Try an insert with 'returning id' if available (PG >= 8.2)
+        if supports_insert_with_returning?
+          pk, sequence_name = *pk_and_sequence_for(table) unless pk
+          if pk
+            id = select_value("#{sql} RETURNING #{quote_column_name(pk)}")
+            clear_query_cache
+            return id
+          end
+        end
+
+        # Otherwise, insert then grab last_insert_id.
+        if insert_id = super
+          insert_id
+        else
+          # If neither pk nor sequence name is given, look them up.
+          unless pk || sequence_name
+            pk, sequence_name = *pk_and_sequence_for(table)
+          end
+
+          # If a pk is given, fallback to default sequence name.
+          # Don't fetch last insert id for a table without a pk.
+          if pk && sequence_name ||= default_sequence_name(table, pk)
+            last_insert_id(table, sequence_name)
+          end
+        end
       end
 
       # create a 2D array representing the result set
@@ -506,7 +545,7 @@ module ActiveRecord
           end
         end
 
-        execute "CREATE DATABASE #{name}#{option_string}"
+        execute "CREATE DATABASE #{quote_table_name(name)}#{option_string}"
       end
 
       # Drops a PostgreSQL database
@@ -514,7 +553,7 @@ module ActiveRecord
       # Example:
       #   drop_database 'matt_development'
       def drop_database(name) #:nodoc:
-        execute "DROP DATABASE IF EXISTS #{name}"
+        execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
       end
 
 
@@ -676,7 +715,7 @@ module ActiveRecord
 
       # Renames a table.
       def rename_table(name, new_name)
-        execute "ALTER TABLE #{name} RENAME TO #{new_name}"
+        execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
       end
 
       # Adds a new column to the named table.

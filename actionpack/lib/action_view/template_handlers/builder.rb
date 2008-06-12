@@ -11,10 +11,11 @@ module ActionView
 
       def compile(template)
         content_type_handler = (@view.send!(:controller).respond_to?(:response) ? "controller.response" : "controller")
+
         "#{content_type_handler}.content_type ||= Mime::XML\n" +
-        "xml = ::Builder::XmlMarkup.new(:indent => 2)\n" +
-        template.source +
-        "\nxml.target!\n"
+          "xml = ::Builder::XmlMarkup.new(:indent => 2)\n" +
+          template.source +
+          "\nxml.target!\n"
       end
 
       def cache_fragment(block, name = {}, options = nil)

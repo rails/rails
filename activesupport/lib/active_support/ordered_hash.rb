@@ -12,6 +12,7 @@ module ActiveSupport
         else
           self << [key, value]
         end
+        value
       end
 
       def [](key)

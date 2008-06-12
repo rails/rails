@@ -11,6 +11,14 @@ class TextHelperTest < ActionView::TestCase
     @_cycles = nil if (defined? @_cycles)
   end
 
+  def test_concat
+    self.output_buffer = 'foo'
+    concat 'bar'
+    assert_equal 'foobar', output_buffer
+    assert_nothing_raised { concat nil }
+    assert_equal 'foobar', output_buffer
+  end
+
   def test_simple_format
     assert_equal "<p></p>", simple_format(nil)
 

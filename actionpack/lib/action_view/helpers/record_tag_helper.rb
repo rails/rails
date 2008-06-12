@@ -51,8 +51,7 @@ module ActionView
         prefix  = args.first.is_a?(Hash) ? nil : args.shift
         options = args.first.is_a?(Hash) ? args.shift : {}
         concat content_tag(tag_name, capture(&block), 
-          options.merge({ :class => "#{dom_class(record)} #{options[:class]}".strip, :id => dom_id(record, prefix) })), 
-          block.binding
+          options.merge({ :class => "#{dom_class(record)} #{options[:class]}".strip, :id => dom_id(record, prefix) }))
       end
     end
   end
