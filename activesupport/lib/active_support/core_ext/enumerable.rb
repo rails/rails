@@ -79,7 +79,7 @@ module Enumerable
   end
   
   # Returns true if the collection has more than 1 element. Functionally equivalent to collection.size > 1.
-  def several?
+  def many?
     size > 1
   end
 end

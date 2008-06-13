@@ -65,8 +65,8 @@ class EnumerableTests < Test::Unit::TestCase
   end
   
   def test_several
-    assert ![].several?
-    assert ![ 1 ].several?
-    assert [ 1, 2 ].several?
+    assert ![].many?
+    assert ![ 1 ].many?
+    assert [ 1, 2 ].many?
   end
 end
