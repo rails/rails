@@ -9,5 +9,13 @@ end
 
 module ActiveSupport
   class TestCase < Test::Unit::TestCase
+    # test "verify something" do                                   
+    #   ...
+    # end                                                     
+    def self.test(name, &block)
+      test_name = "test_#{name.gsub(/[\s]/,'_')}".to_sym
+      raise "#{test_name} is already defined in #{self}" if self.instance_methods.include?(test_name.to_s)
+      define_method(test_name, &block)
+    end
   end
 end
