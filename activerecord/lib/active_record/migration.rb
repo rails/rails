@@ -399,7 +399,10 @@ module ActiveRecord
     def run
       target = migrations.detect { |m| m.version == @target_version }
       raise UnknownMigrationVersionError.new(@target_version) if target.nil?
-      target.migrate(@direction)
+      unless (up? && migrated.include?(target.version.to_i)) || (down? && !migrated.include?(target.version.to_i))
+        target.migrate(@direction)
+        record_version_state_after_migrating(target.version)
+      end
     end
 
     def migrate
