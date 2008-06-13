@@ -1,5 +1,7 @@
 *Edge*
 
+* Changed all generated tests to use the test/do declaration style [DHH]
+
 * Wrapped Rails.env in StringInquirer so you can do Rails.env.development? [DHH]
 
 * Fixed that RailsInfoController wasn't considering all requests local in development mode (Edgard Castro) [#310 state:resolved]
