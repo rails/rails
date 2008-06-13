@@ -14,10 +14,10 @@ module ActionController
   #
   # === The Different Methods and their Usage
   #
-  # +GET+     Requests for a resource, no saving or editing of a resource should occur in a GET request
-  # +POST+    Creation of resources
-  # +PUT+     Editing of attributes on a resource
-  # +DELETE+  Deletion of a resource
+  # [+GET+]     Requests for a resource, no saving or editing of a resource should occur in a GET request
+  # [+POST+]    Creation of resources
+  # [+PUT+]     Editing of attributes on a resource
+  # [+DELETE+]  Deletion of a resource
   #
   # === Examples
   #
@@ -481,8 +481,7 @@ module ActionController
         resource.collection_methods.each do |method, actions|
           actions.each do |action|
             action_options = action_options_for(action, resource, method)
-            map.named_route("#{action}_#{resource.name_prefix}#{resource.plural}", "#{resource.path}#{resource.action_separator}#{action}", action_options)
-            map.named_route("formatted_#{action}_#{resource.name_prefix}#{resource.plural}", "#{resource.path}#{resource.action_separator}#{action}.:format", action_options)
+            map_named_routes(map, "#{action}_#{resource.name_prefix}#{resource.plural}", "#{resource.path}#{resource.action_separator}#{action}", action_options)
           end
         end
       end
@@ -495,18 +494,15 @@ module ActionController
           index_route_name << "_index"
         end
 
-        map.named_route(index_route_name, resource.path, index_action_options)
-        map.named_route("formatted_#{index_route_name}", "#{resource.path}.:format", index_action_options)
+        map_named_routes(map, index_route_name, resource.path, index_action_options)
 
         create_action_options = action_options_for("create", resource)
-        map.connect(resource.path, create_action_options)
-        map.connect("#{resource.path}.:format", create_action_options)
+        map_unnamed_routes(map, resource.path, create_action_options)
       end
 
       def map_default_singleton_actions(map, resource)
         create_action_options = action_options_for("create", resource)
-        map.connect(resource.path, create_action_options)
-        map.connect("#{resource.path}.:format", create_action_options)
+        map_unnamed_routes(map, resource.path, create_action_options)
       end
 
       def map_new_actions(map, resource)
@@ -514,11 +510,9 @@ module ActionController
           actions.each do |action|
             action_options = action_options_for(action, resource, method)
             if action == :new
-              map.named_route("new_#{resource.name_prefix}#{resource.singular}", resource.new_path, action_options)
-              map.named_route("formatted_new_#{resource.name_prefix}#{resource.singular}", "#{resource.new_path}.:format", action_options)
+              map_named_routes(map, "new_#{resource.name_prefix}#{resource.singular}", resource.new_path, action_options)
             else
-              map.named_route("#{action}_new_#{resource.name_prefix}#{resource.singular}", "#{resource.new_path}#{resource.action_separator}#{action}", action_options)
-              map.named_route("formatted_#{action}_new_#{resource.name_prefix}#{resource.singular}", "#{resource.new_path}#{resource.action_separator}#{action}.:format", action_options)
+              map_named_routes(map, "#{action}_new_#{resource.name_prefix}#{resource.singular}", "#{resource.new_path}#{resource.action_separator}#{action}", action_options)
             end
           end
         end
@@ -532,22 +526,28 @@ module ActionController
             action_path = resource.options[:path_names][action] if resource.options[:path_names].is_a?(Hash)
             action_path ||= Base.resources_path_names[action] || action
 
-            map.named_route("#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action_path}", action_options)
-            map.named_route("formatted_#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action_path}.:format",action_options)
+            map_named_routes(map, "#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action_path}", action_options)
           end
         end
 
         show_action_options = action_options_for("show", resource)
-        map.named_route("#{resource.name_prefix}#{resource.singular}", resource.member_path, show_action_options)
-        map.named_route("formatted_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}.:format", show_action_options)
+        map_named_routes(map, "#{resource.name_prefix}#{resource.singular}", resource.member_path, show_action_options)
 
         update_action_options = action_options_for("update", resource)
-        map.connect(resource.member_path, update_action_options)
-        map.connect("#{resource.member_path}.:format", update_action_options)
+        map_unnamed_routes(map, resource.member_path, update_action_options)
 
         destroy_action_options = action_options_for("destroy", resource)
-        map.connect(resource.member_path, destroy_action_options)
-        map.connect("#{resource.member_path}.:format", destroy_action_options)
+        map_unnamed_routes(map, resource.member_path, destroy_action_options)
+      end
+
+      def map_unnamed_routes(map, path_without_format, options)
+        map.connect(path_without_format, options)
+        map.connect("#{path_without_format}.:format", options)
+      end
+
+      def map_named_routes(map, name, path_without_format, options)
+        map.named_route(name, path_without_format, options)
+        map.named_route("formatted_#{name}", "#{path_without_format}.:format", options)
       end
 
       def add_conditions_for(conditions, method)
