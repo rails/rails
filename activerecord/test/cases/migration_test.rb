@@ -825,6 +825,21 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert !Reminder.table_exists?
     end
 
+    def test_migrator_double_up
+      assert_equal(0, ActiveRecord::Migrator.current_version)
+      ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1)
+      assert_nothing_raised { ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1) }
+      assert_equal(1, ActiveRecord::Migrator.current_version)
+    end
+
+    def test_migrator_double_down
+      assert_equal(0, ActiveRecord::Migrator.current_version)
+      ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1)
+      ActiveRecord::Migrator.run(:down, MIGRATIONS_ROOT + "/valid", 1)
+      assert_nothing_raised { ActiveRecord::Migrator.run(:down, MIGRATIONS_ROOT + "/valid", 1) }
+      assert_equal(0, ActiveRecord::Migrator.current_version)
+    end
+
     def test_finds_migrations
       migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid").migrations
       [['1', 'people_have_last_names'],
@@ -912,16 +927,6 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal(0, ActiveRecord::Migrator.current_version)
       
       ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-      assert_equal(0, ActiveRecord::Migrator.current_version)
-    end
-    
-    def test_migrator_run
-      assert_equal(0, ActiveRecord::Migrator.current_version)
-      ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 3)
-      assert_equal(0, ActiveRecord::Migrator.current_version)
-
-      assert_equal(0, ActiveRecord::Migrator.current_version)
-      ActiveRecord::Migrator.run(:down, MIGRATIONS_ROOT + "/valid", 3)
       assert_equal(0, ActiveRecord::Migrator.current_version)
     end
 
