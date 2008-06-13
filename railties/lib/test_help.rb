@@ -8,7 +8,6 @@ require 'test/unit'
 require 'active_support/test_case'
 require 'active_record/fixtures'
 require 'action_controller/test_case'
-require 'action_controller/test_process'
 require 'action_controller/integration'
 require 'action_mailer/test_case' if defined?(ActionMailer)
 
