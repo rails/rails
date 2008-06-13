@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'action_controller/cgi_process'
 require 'action_controller/cgi_ext'
-require 'action_controller/session/mem_cache_store'
+
 
 class CGI::Session
   def cache

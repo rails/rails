@@ -7,13 +7,10 @@ module ActiveSupport
 
       case store
       when Symbol
-        require "active_support/cache/#{store.to_s}"
-
         store_class_name = (store == :drb_store ? "DRbStore" : store.to_s.camelize)
         store_class = ActiveSupport::Cache.const_get(store_class_name)
         store_class.new(*parameters)
       when nil
-        require "active_support/cache/memory_store"
         ActiveSupport::Cache::MemoryStore.new
       else
         store
@@ -140,3 +137,9 @@ module ActiveSupport
     end
   end
 end
+
+require 'active_support/cache/file_store'
+require 'active_support/cache/memory_store'
+require 'active_support/cache/drb_store'
+require 'active_support/cache/mem_cache_store'
+require 'active_support/cache/compressed_mem_cache_store'
