@@ -59,6 +59,12 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal Topic.count(:conditions => {:approved => true}), Topic.approved.count
   end
 
+  def test_scopes_with_string_name_can_be_composed
+    # NOTE that scopes defined with a string as a name worked on their own
+    # but when called on another scope the other scope was completely replaced
+    assert_equal Topic.replied.approved, Topic.replied.approved_as_string
+  end
+
   def test_scopes_are_composable
     assert_equal (approved = Topic.find(:all, :conditions => {:approved => true})), Topic.approved
     assert_equal (replied = Topic.find(:all, :conditions => 'replies_count > 0')), Topic.replied
