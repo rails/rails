@@ -27,13 +27,15 @@ module ActionController #:nodoc:
     # You can set modify the default action cache path by passing a :cache_path option.  This will be passed directly to ActionCachePath.path_for.  This is handy
     # for actions with multiple possible routes that should be cached differently.  If a block is given, it is called with the current controller instance.
     #
-    # And you can also use :if to pass a Proc that specifies when the action should be cached.
+    # And you can also use :if (or :unless) to pass a Proc that specifies when the action should be cached.
+    #
+    # Finally, if you are using memcached, you can also pass :expires_in.
     #
     #   class ListsController < ApplicationController
     #     before_filter :authenticate, :except => :public
     #     caches_page   :public
     #     caches_action :index, :if => Proc.new { |c| !c.request.format.json? } # cache if is not a JSON request
-    #     caches_action :show, :cache_path => { :project => 1 }
+    #     caches_action :show, :cache_path => { :project => 1 }, :expires_in => 1.hour
     #     caches_action :feed, :cache_path => Proc.new { |controller|
     #       controller.params[:user_id] ?
     #         controller.send(:user_list_url, c.params[:user_id], c.params[:id]) :
@@ -56,8 +58,10 @@ module ActionController #:nodoc:
         def caches_action(*actions)
           return unless cache_configured?
           options = actions.extract_options!
-          cache_filter = ActionCacheFilter.new(:layout => options.delete(:layout), :cache_path => options.delete(:cache_path))
-          around_filter(cache_filter, {:only => actions}.merge(options))
+          filter_options = { :only => actions, :if => options.delete(:if), :unless => options.delete(:unless) }
+
+          cache_filter = ActionCacheFilter.new(:layout => options.delete(:layout), :cache_path => options.delete(:cache_path), :store_options => options)
+          around_filter(cache_filter, filter_options)
         end
       end
 
@@ -80,8 +84,8 @@ module ActionController #:nodoc:
         end
 
         def before(controller)
-          cache_path = ActionCachePath.new(controller, path_options_for(controller, @options))
-          if cache = controller.read_fragment(cache_path.path)
+          cache_path = ActionCachePath.new(controller, path_options_for(controller, @options.slice(:cache_path)))
+          if cache = controller.read_fragment(cache_path.path, @options[:store_options])
             controller.rendered_action_cache = true
             set_content_type!(controller, cache_path.extension)
             options = { :text => cache }
@@ -96,7 +100,7 @@ module ActionController #:nodoc:
         def after(controller)
           return if controller.rendered_action_cache || !caching_allowed(controller)
           action_content = cache_layout? ? content_for_layout(controller) : controller.response.body
-          controller.write_fragment(controller.action_cache_path.path, action_content)
+          controller.write_fragment(controller.action_cache_path.path, action_content, @options[:store_options])
         end
 
         private

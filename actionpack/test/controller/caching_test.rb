@@ -152,7 +152,7 @@ end
 
 
 class ActionCachingTestController < ActionController::Base
-  caches_action :index, :redirected, :forbidden, :if => Proc.new { |c| !c.request.format.json? }
+  caches_action :index, :redirected, :forbidden, :if => Proc.new { |c| !c.request.format.json? }, :expires_in => 1.hour
   caches_action :show, :cache_path => 'http://test.host/custom/show'
   caches_action :edit, :cache_path => Proc.new { |c| c.params[:id] ? "http://test.host/#{c.params[:id]};edit" : "http://test.host/edit" }
   caches_action :with_layout
@@ -188,6 +188,7 @@ class ActionCachingTestController < ActionController::Base
     expire_action :controller => 'action_caching_test', :action => 'index'
     render :nothing => true
   end
+
   def expire_xml
     expire_action :controller => 'action_caching_test', :action => 'index', :format => 'xml'
     render :nothing => true
@@ -287,6 +288,13 @@ class ActionCacheTest < Test::Unit::TestCase
     @request.env['HTTP_ACCEPT'] = 'application/json'
     get :index
     assert !fragment_exist?('hostname.com/action_caching_test')
+  end
+
+  def test_action_cache_with_store_options
+    MockTime.expects(:now).returns(12345).once
+    @controller.expects(:read_fragment).with('hostname.com/action_caching_test', :expires_in => 1.hour).once
+    @controller.expects(:write_fragment).with('hostname.com/action_caching_test', '12345.0', :expires_in => 1.hour).once
+    get :index
   end
 
   def test_action_cache_with_custom_cache_path
