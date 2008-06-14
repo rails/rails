@@ -1,5 +1,7 @@
 *Edge*
 
+* Performance: integration test benchmarking and profiling.  [Jeremy Kemper]
+
 * Make caching more aware of mime types. Ensure request format is not considered while expiring cache.  [Jonathan del Strother]
 
 * Drop ActionController::Base.allow_concurrency flag [Josh Peek]
