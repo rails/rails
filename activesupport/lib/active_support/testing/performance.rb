@@ -167,7 +167,7 @@ module ActiveSupport
 
           def record_profile(test_name, data, measure_mode)
             printer_classes.each do |printer_class|
-              fname = output_filename(test_name, printer, measure_mode)
+              fname = output_filename(test_name, printer_class, measure_mode)
 
               FileUtils.mkdir_p(File.dirname(fname))
               File.open(fname, 'wb') do |file|
@@ -177,14 +177,14 @@ module ActiveSupport
           end
 
           # The report filename is test_name + measure_mode + report_type
-          def output_filename(test_name, printer, measure_mode)
+          def output_filename(test_name, printer_class, measure_mode)
             suffix =
-              case printer
-                when RubyProf::FlatPrinter; 'flat.txt'
-                when RubyProf::GraphPrinter; 'graph.txt'
-                when RubyProf::GraphHtmlPrinter; 'graph.html'
-                when RubyProf::CallTreePrinter; 'tree.txt'
-                else printer.to_s.downcase
+              case printer_class.name.demodulize
+                when 'FlatPrinter'; 'flat.txt'
+                when 'GraphPrinter'; 'graph.txt'
+                when 'GraphHtmlPrinter'; 'graph.html'
+                when 'CallTreePrinter'; 'tree.txt'
+                else printer_class.name.sub(/Printer$/, '').underscore
               end
 
             "#{profile_options[:output]}/#{test_name}_#{ActiveSupport::Testing::Performance::Util.metric_name(measure_mode)}_#{suffix}"
