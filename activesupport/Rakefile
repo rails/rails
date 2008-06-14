@@ -119,7 +119,7 @@ namespace :tzinfo do
   task :copy_definitions => :unpack_gem do
     definitions_path = "#{destination_path}/tzinfo/definitions/"
     mkdir_p definitions_path
-    TimeZone::MAPPING.values.each do |zone|
+    ActiveSupport::TimeZone::MAPPING.values.each do |zone|
       subdir = nil
       if /\// === zone
         subdir = zone.sub(/\w+$/, '')
