@@ -40,6 +40,8 @@ module TZInfo
       super(identifier)
       @offsets = {}
       @transitions = []
+      @previous_offset = nil
+      @transitions_index = nil
     end
  
     # Defines a offset. The id uniquely identifies this offset within the
