@@ -1,5 +1,7 @@
 *Edge*
 
+* Introduce current_cycle helper method to return the current value without bumping the cycle.  #417 [Ken Collins]
+
 * Allow polymorphic_url helper to take url options. #880 [Tarmo Tänav]
 
 * Switched integration test runner to use Rack processor instead of CGI [Josh Peek]
