@@ -168,6 +168,9 @@ module Rails
       # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
       load_observers
 
+      # load application classes
+      load_application_classes
+
       # Flag initialized
       Rails.initialized = true
     end
@@ -327,6 +330,14 @@ Run `rake gems:install` to install the missing gems.
     def load_observers
       if gems_dependencies_loaded && configuration.frameworks.include?(:active_record)
         ActiveRecord::Base.instantiate_observers
+      end
+    end
+
+    def load_application_classes
+      require_dependency 'application'
+
+      Dir.glob('app/{models,controllers,helpers}/*.rb').each do |file|
+        require_dependency file
       end
     end
 
