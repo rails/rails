@@ -168,7 +168,7 @@ module ActiveSupport
         def self.[](name)
           klass = const_get(name.to_s.camelize)
           klass if klass::Mode
-        rescue
+        rescue NameError
           nil
         end
 
@@ -192,7 +192,7 @@ module ActiveSupport
           end
 
           def profile
-            RubyProf.measure_mode = MODE
+            RubyProf.measure_mode = Mode
             RubyProf.resume { yield }
           end
 
