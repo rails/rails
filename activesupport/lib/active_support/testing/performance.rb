@@ -83,7 +83,7 @@ module ActiveSupport
         end
 
       class Performer
-        delegate :profile_options, :full_test_name, :to => :@harness
+        delegate :run_test, :profile_options, :full_test_name, :to => :@harness
 
         def initialize(harness, metric)
           @harness, @metric = harness, metric
@@ -97,7 +97,7 @@ module ActiveSupport
 
       class Benchmarker < Performer
         def run
-          profile_options[:runs].times { @harness.run_test(@metric, :benchmark) }
+          profile_options[:runs].times { run_test(@metric, :benchmark) }
           @total = @metric.total
         end
 
@@ -132,7 +132,7 @@ module ActiveSupport
 
       class Profiler < Performer
         def run
-          @runs.times { @harness.run_test(@metric, :profile) }
+          profile_options[:runs].times { run_test(@metric, :profile) }
           @data = RubyProf.stop
           @total = @data.threads.values.sum(0) { |method_infos| method_infos.sort.last.total_time }
         end
