@@ -99,7 +99,8 @@ module ActiveRecord
         end
 
         def extract_limit(sql_type)
-          if sql_type =~ /blob|text/i
+          case sql_type
+          when /blob|text/i
             case sql_type
             when /tiny/i
               255
@@ -110,6 +111,10 @@ module ActiveRecord
             else
               super # we could return 65535 here, but we leave it undecorated by default
             end
+          when /^int/i;       4
+          when /^bigint/i;    8
+          when /^smallint/i;  2
+          when /^mediumint/i; 3
           else
             super
           end
@@ -168,7 +173,7 @@ module ActiveRecord
         :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY".freeze,
         :string      => { :name => "varchar", :limit => 255 },
         :text        => { :name => "text" },
-        :integer     => { :name => "int"},
+        :integer     => { :name => "int", :limit => 4 },
         :float       => { :name => "float" },
         :decimal     => { :name => "decimal" },
         :datetime    => { :name => "datetime" },
@@ -467,14 +472,10 @@ module ActiveRecord
         return super unless type.to_s == 'integer'
 
         case limit
-        when 0..3
-          "smallint(#{limit})"
-        when 4..8
-          "int(#{limit})"
-        when 9..20
-          "bigint(#{limit})"
-        else
-          'int(11)'
+        when 1..2;   'smallint'
+        when 3;      'mediumint'
+        when 4, nil; 'int(11)'
+        when 5..8;   'bigint'
         end
       end
 

@@ -407,6 +407,13 @@ ActiveRecord::Schema.define do
     t.column :key, :string
   end
 
+  create_table :integer_limits, :force => true do |t|
+    t.integer :"c_int_without_limit"
+    (1..8).each do |i|
+      t.integer :"c_int_#{i}", :limit => i
+    end
+  end
+
   except 'SQLite' do
     # fk_test_has_fk should be before fk_test_has_pk
     create_table :fk_test_has_fk, :force => true do |t|
