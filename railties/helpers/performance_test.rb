@@ -1,7 +1,4 @@
-ENV['RAILS_ENV'] ||= 'test'
-require "#{File.dirname(__FILE__)}/../../config/environment"
-require 'test/unit'
-require 'action_controller/performance_test'
+require 'performance/test_helper'
 
 # Profiling results for each test method are written to tmp/performance.
 class BrowsingTest < ActionController::PerformanceTest

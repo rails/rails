@@ -103,7 +103,7 @@ namespace :test do
   end
   Rake::Task['test:integration'].comment = "Run the integration tests in test/integration"
 
-  Rake::TestTask.new(:benchmark) do |t|
+  Rake::TestTask.new(:benchmark => 'db:test:prepare') do |t|
     t.libs << 'test'
     t.pattern = 'test/performance/**/*_test.rb'
     t.verbose = true
@@ -111,7 +111,7 @@ namespace :test do
   end
   Rake::Task['test:benchmark'].comment = 'Benchmark the performance tests'
 
-  Rake::TestTask.new(:profile) do |t|
+  Rake::TestTask.new(:profile => 'db:test:prepare') do |t|
     t.libs << 'test'
     t.pattern = 'test/performance/**/*_test.rb'
     t.verbose = true
