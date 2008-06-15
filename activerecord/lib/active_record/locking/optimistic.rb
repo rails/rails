@@ -68,6 +68,7 @@ module ActiveRecord
 
         def update_with_lock(attribute_names = @attributes.keys) #:nodoc:
           return update_without_lock(attribute_names) unless locking_enabled?
+          return 0 if attribute_names.empty?
 
           lock_col = self.class.locking_column
           previous_value = send(lock_col).to_i
