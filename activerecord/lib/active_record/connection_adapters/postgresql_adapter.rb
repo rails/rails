@@ -47,6 +47,12 @@ module ActiveRecord
       end
 
       private
+        def extract_limit(sql_type)
+          return 8 if sql_type =~ /^bigint/i
+          return 2 if sql_type =~ /^smallint/i
+          super
+        end
+
         # Extracts the scale from PostgreSQL-specific data types.
         def extract_scale(sql_type)
           # Money type has a fixed scale of 2.
@@ -766,12 +772,10 @@ module ActiveRecord
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
         return super unless type.to_s == 'integer'
 
-        if limit.nil? || limit == 4
-          'integer'
-        elsif limit < 4
-          'smallint'
-        else
-          'bigint'
+        case limit
+          when 1..2;      'smallint'
+          when 3..4, nil; 'integer'
+          when 5..8;      'bigint'
         end
       end
       
