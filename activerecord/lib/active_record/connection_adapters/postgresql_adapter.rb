@@ -529,7 +529,15 @@ module ActiveRecord
       # Example:
       #   drop_database 'matt_development'
       def drop_database(name) #:nodoc:
-        execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
+        if postgresql_version >= 80200
+          execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
+        else
+          begin
+            execute "DROP DATABASE #{quote_table_name(name)}"
+          rescue ActiveRecord::StatementInvalid
+            @logger.warn "#{name} database doesn't exist." if @logger
+          end
+        end
       end
 
 
