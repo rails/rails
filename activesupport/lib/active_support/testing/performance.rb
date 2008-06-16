@@ -97,15 +97,15 @@ module ActiveSupport
 
       class Benchmarker < Performer
         def run
-          profile_options[:runs].times { run_test(@metric, :benchmark) }
+          profile_options[:runs].to_i.times { run_test(@metric, :benchmark) }
           @total = @metric.total
         end
 
         def record
           with_output_file do |file|
             file.puts [full_test_name, @metric.name,
-              @metric.total, profile_options[:runs],
-              @metric.total / profile_options[:runs],
+              @metric.total, profile_options[:runs].to_i,
+              @metric.total / profile_options[:runs].to_i,
               Time.now.utc.xmlschema,
               Rails::VERSION::STRING,
               defined?(RUBY_ENGINE) ? RUBY_ENGINE : 'ruby',
@@ -132,16 +132,19 @@ module ActiveSupport
 
       class Profiler < Performer
         def run
-          profile_options[:runs].times { run_test(@metric, :profile) }
+          RubyProf.measure_mode = @metric.measure_mode
+          RubyProf.start
+          RubyProf.pause
+          profile_options[:runs].to_i.times { run_test(@metric, :profile) }
           @data = RubyProf.stop
           @total = @data.threads.values.sum(0) { |method_infos| method_infos.sort.last.total_time }
         end
 
-        def record(path)
+        def record
           klasses = profile_options[:formats].map { |f| RubyProf.const_get("#{f.to_s.camelize}Printer") }.compact
 
           klasses.each do |klass|
-            fname = output_filename(metric, klass)
+            fname = output_filename(klass)
             FileUtils.mkdir_p(File.dirname(fname))
             File.open(fname, 'wb') do |file|
               klass.new(@data).print(file, profile_options.slice(:min_percent))
@@ -150,7 +153,7 @@ module ActiveSupport
         end
 
         protected
-          def output_filename(metric, printer_class)
+          def output_filename(printer_class)
             suffix =
               case printer_class.name.demodulize
                 when 'FlatPrinter'; 'flat.txt'
@@ -160,7 +163,7 @@ module ActiveSupport
                 else printer_class.name.sub(/Printer$/, '').underscore
               end
 
-            "#{profile_options[:output]}/#{full_test_name}_#{metric.name}_#{suffix}"
+            "#{profile_options[:output]}/#{full_test_name}_#{@metric.name}_#{suffix}"
           end
       end
 
@@ -183,6 +186,10 @@ module ActiveSupport
             @name ||= self.class.name.demodulize.underscore
           end
 
+          def measure_mode
+            self.class::Mode
+          end
+
           def benchmark
             with_gc_stats do
               before = measure
@@ -192,8 +199,10 @@ module ActiveSupport
           end
 
           def profile
-            RubyProf.measure_mode = Mode
-            RubyProf.resume { yield }
+            RubyProf.resume
+            yield
+          ensure
+            RubyProf.pause
           end
 
           protected
@@ -273,7 +282,7 @@ module ActiveSupport
           end
 
           def format(measurement)
-            '%.2f KB' % (measurement / 1024.0)
+            '%.2f KB' % measurement
           end
         end
 
@@ -291,7 +300,7 @@ module ActiveSupport
           end
 
           def format(measurement)
-            measurement.to_s
+            measurement.to_i.to_s
           end
         end
       end
