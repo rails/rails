@@ -102,19 +102,35 @@ module ActiveSupport
         end
 
         def record
+          avg = @metric.total / profile_options[:runs].to_i
+          data = [full_test_name, @metric.name, avg, Time.now.utc.xmlschema] * ','
           with_output_file do |file|
-            file.puts [full_test_name, @metric.name,
-              @metric.total, profile_options[:runs].to_i,
-              @metric.total / profile_options[:runs].to_i,
-              Time.now.utc.xmlschema,
-              Rails::VERSION::STRING,
-              defined?(RUBY_ENGINE) ? RUBY_ENGINE : 'ruby',
-              RUBY_VERSION, RUBY_PATCHLEVEL, RUBY_PLATFORM].join(',')
+            file.puts "#{data},#{environment}"
           end
         end
 
+        def environment
+          unless defined? @env
+            app = "#{$1}.#{$2}" if `git branch -v` =~ /^\* (\S+)\s+(\S+)/
+
+            rails = Rails::VERSION::STRING
+            if File.directory?('vendor/rails/.git')
+              Dir.chdir('vendor/rails') do
+                rails += "#{$1}.#{$2}" if `git branch -v` =~ /^\* (\S+)\s+(\S+)/
+              end
+            end
+
+            ruby = defined?(RUBY_ENGINE) ? RUBY_ENGINE : 'ruby'
+            ruby += "-#{RUBY_VERSION}.#{RUBY_PATCHLEVEL}"
+
+            @env = [app, rails, ruby, RUBY_PLATFORM] * ','
+          end
+
+          @env
+        end
+
         protected
-          HEADER = 'test,metric,measurement,runs,average,created_at,rails_version,ruby_engine,ruby_version,ruby_patchlevel,ruby_platform'
+          HEADER = 'test,metric,measurement,created_at,app,rails,ruby,platform'
 
           def with_output_file
             fname = "#{profile_options[:output]}/benchmarks.csv"
