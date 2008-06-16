@@ -1,5 +1,7 @@
 *Edge*
 
+* Replaced TemplateFinder abstraction with ViewLoadPaths [Josh Peek]
+
 * Added block-call style to link_to [Sam Stephenson/DHH]. Example:
 
     <% link_to(@profile) do %>

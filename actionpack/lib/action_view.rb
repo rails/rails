@@ -22,7 +22,8 @@
 #++
 
 require 'action_view/template_handlers'
-require 'action_view/template_finder'
+require 'action_view/template_file'
+require 'action_view/view_load_paths'
 require 'action_view/template'
 require 'action_view/partial_template'
 require 'action_view/inline_template'

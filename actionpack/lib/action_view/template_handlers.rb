@@ -28,7 +28,6 @@ module ActionView #:nodoc:
     # return the rendered template as a string.
     def register_template_handler(extension, klass)
       @@template_handlers[extension.to_sym] = klass
-      ActionView::TemplateFinder.reload!
     end
 
     def template_handler_extensions

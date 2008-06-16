@@ -16,7 +16,7 @@ module ActionView #:nodoc:
     end
 
     def render
-      ActionController::Base.benchmark("Rendered #{@path}", Logger::DEBUG, false) do
+      ActionController::Base.benchmark("Rendered #{@path.path_without_format_and_extension}", Logger::DEBUG, false) do
         @handler.render(self)
       end
     end

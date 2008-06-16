@@ -426,8 +426,7 @@ module ActionMailer #:nodoc:
       end
 
       def template_root=(root)
-        write_inheritable_attribute(:template_root, root)
-        ActionView::TemplateFinder.process_view_paths(root)
+        write_inheritable_attribute(:template_root, ActionView::ViewLoadPaths.new(Array(root)))
       end
     end
 
@@ -547,7 +546,7 @@ module ActionMailer #:nodoc:
       end
 
       def initialize_template_class(assigns)
-        ActionView::Base.new([template_root], assigns, self)
+        ActionView::Base.new(template_root, assigns, self)
       end
 
       def sort_parts(parts, order = [])

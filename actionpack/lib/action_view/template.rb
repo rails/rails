@@ -3,15 +3,15 @@ module ActionView #:nodoc:
     extend TemplateHandlers
 
     attr_accessor :locals
-    attr_reader :handler, :path, :extension, :filename, :path_without_extension, :method
+    attr_reader :handler, :path, :extension, :filename, :method
 
     def initialize(view, path, use_full_path, locals = {})
       @view = view
-      @finder = @view.finder
+      @paths = view.view_paths
 
-      # Clear the forward slash at the beginning if exists
-      @path = use_full_path ? path.sub(/^\//, '') : path
-      @view.first_render ||= @path
+      @original_path = path
+      @path = TemplateFile.from_path(path, !use_full_path)
+      @view.first_render ||= @path.to_s
       @source = nil # Don't read the source until we know that it is required
       set_extension_and_file_name(use_full_path)
 
@@ -36,6 +36,10 @@ module ActionView #:nodoc:
       @handler.render(self)
     end
 
+    def path_without_extension
+      @path.path_without_extension
+    end
+
     def source
       @source ||= File.read(self.filename)
     end
@@ -45,7 +49,7 @@ module ActionView #:nodoc:
     end
 
     def base_path_for_exception
-      @finder.find_base_path_for("#{@path_without_extension}.#{@extension}") || @finder.view_paths.first
+      (@paths.find_load_path_for_path(@path) || @paths.first).to_s
     end
 
     def prepare!
@@ -60,28 +64,30 @@ module ActionView #:nodoc:
 
     private
       def set_extension_and_file_name(use_full_path)
-        @path_without_extension, @extension = @finder.path_and_extension(@path)
-        if use_full_path
-          if @extension
-            @filename = @finder.pick_template(@path_without_extension, @extension)
-          else
-            @extension = @finder.pick_template_extension(@path).to_s
-            raise_missing_template_exception unless @extension
+        @extension = @path.extension
 
-            @filename = @finder.pick_template(@path, @extension)
-            @extension = @extension.gsub(/^.+\./, '') # strip off any formats
+        if use_full_path
+          unless @extension
+            @path = @view.send(:template_file_from_name, @path)
+            raise_missing_template_exception unless @path
+            @extension = @path.extension
+          end
+
+          if @path = @paths.find_template_file_for_path(path)
+            @filename = @path.full_path
+            @extension = @path.extension
           end
         else
-          @filename = @path
+          @filename = @path.full_path
         end
 
         raise_missing_template_exception if @filename.blank?
       end
 
       def raise_missing_template_exception
-        full_template_path = @path.include?('.') ? @path : "#{@path}.#{@view.template_format}.erb"
-        display_paths = @finder.view_paths.join(':')
-        template_type = (@path =~ /layouts/i) ? 'layout' : 'template'
+        full_template_path = @original_path.include?('.') ? @original_path : "#{@original_path}.#{@view.template_format}.erb"
+        display_paths = @paths.join(':')
+        template_type = (@original_path =~ /layouts/i) ? 'layout' : 'template'
         raise(MissingTemplate, "Missing #{template_type} #{full_template_path} in view path #{display_paths}")
       end
   end
