@@ -116,7 +116,7 @@ module ActiveSupport
             rails = Rails::VERSION::STRING
             if File.directory?('vendor/rails/.git')
               Dir.chdir('vendor/rails') do
-                rails += "#{$1}.#{$2}" if `git branch -v` =~ /^\* (\S+)\s+(\S+)/
+                rails += ".#{$1}.#{$2}" if `git branch -v` =~ /^\* (\S+)\s+(\S+)/
               end
             end
 
