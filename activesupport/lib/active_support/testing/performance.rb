@@ -285,15 +285,15 @@ module ActiveSupport
 
           if RubyProf.respond_to?(:measure_memory)
             def measure
-              RubyProf.measure_memory
+              RubyProf.measure_memory / 1024.0
             end
           elsif GC.respond_to?(:allocated_size)
             def measure
-              GC.allocated_size
+              GC.allocated_size / 1024.0
             end
           elsif GC.respond_to?(:malloc_allocated_size)
             def measure
-              GC.malloc_allocated_size
+              GC.malloc_allocated_size / 1024.0
             end
           end
 
