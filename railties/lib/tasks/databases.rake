@@ -337,10 +337,10 @@ namespace :db do
       end
     end
 
-    desc 'Prepare the test database and load the schema'
-    task :prepare => %w(environment db:abort_if_pending_migrations) do
+    desc 'Check for pending migrations and load the test schema'
+    task :prepare => 'db:abort_if_pending_migrations' do
       if defined?(ActiveRecord) && !ActiveRecord::Base.configurations.blank?
-        Rake::Task[{ :sql  => "db:test:clone_structure", :ruby => "db:test:clone" }[ActiveRecord::Base.schema_format]].invoke
+        Rake::Task[{ :sql  => "db:test:clone_structure", :ruby => "db:schema:load" }[ActiveRecord::Base.schema_format]].invoke
       end
     end
   end
