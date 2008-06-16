@@ -8,16 +8,20 @@ require 'rails/version'
 module ActiveSupport
   module Testing
     module Performance
-      benchmark = ARGV.include?('--benchmark')  # HAX for rake test
-
-      DEFAULTS = {
-        :benchmark => benchmark,
-        :runs => benchmark ? 10 : 1,
-        :min_percent => 0.02,
-        :metrics => [:process_time, :wall_time, :cpu_time, :memory, :objects],
-        :formats => [:flat, :graph_html, :call_tree],
-        :output => 'tmp/performance'
-      }
+      DEFAULTS =
+        if benchmark = ARGV.include?('--benchmark')  # HAX for rake test
+          { :benchmark => true,
+            :runs => 10,
+            :metrics => [:process_time, :memory, :objects],
+            :output => 'tmp/performance' }
+        else
+          { :benchmark => false,
+            :runs => 1,
+            :min_percent => 0.02,
+            :metrics => [:wall_time, :memory, :objects],
+            :formats => [:flat, :graph_html, :call_tree],
+            :output => 'tmp/performance' }
+        end
 
       def self.included(base)
         base.class_inheritable_hash :profile_options
