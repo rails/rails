@@ -55,6 +55,33 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  def test_zero_to_blank_marked_as_changed
+    pirate = Pirate.new
+    pirate.catchphrase = "Yarrrr, me hearties"
+    pirate.parrot_id = 1
+    pirate.save
+
+    # check the change from 1 to ''
+    pirate = Pirate.find_by_catchphrase("Yarrrr, me hearties")
+    pirate.parrot_id = ''
+    assert pirate.parrot_id_changed?
+    assert_equal([1, nil], pirate.parrot_id_change)
+    pirate.save
+
+    # check the change from nil to 0
+    pirate = Pirate.find_by_catchphrase("Yarrrr, me hearties")
+    pirate.parrot_id = 0
+    assert pirate.parrot_id_changed?
+    assert_equal([nil, 0], pirate.parrot_id_change)
+    pirate.save
+
+    # check the change from 0 to ''
+    pirate = Pirate.find_by_catchphrase("Yarrrr, me hearties")
+    pirate.parrot_id = ''
+    assert pirate.parrot_id_changed?
+    assert_equal([0, nil], pirate.parrot_id_change)
+  end
+
   def test_object_should_be_changed_if_any_attribute_is_changed
     pirate = Pirate.new
     assert !pirate.changed?
