@@ -211,6 +211,14 @@ class UrlHelperTest < ActionView::TestCase
   def test_link_tag_using_post_javascript_and_popup
     assert_raises(ActionView::ActionViewError) { link_to("Hello", "http://www.example.com", :popup => true, :method => :post, :confirm => "Are you serious?") }
   end
+
+  def test_link_tag_using_block
+    self.output_buffer = ''
+
+    link_to("http://example.com") { concat("Example site") }
+
+    assert_equal '<a href="http://example.com">Example site</a>', output_buffer
+  end
   
   def test_link_to_unless
     assert_equal "Showing", link_to_unless(true, "Showing", :action => "show", :controller => "weblog")

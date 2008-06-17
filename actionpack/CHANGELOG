@@ -1,5 +1,11 @@
 *Edge*
 
+* Added block-call style to link_to [Sam Stephenson/DHH]. Example:
+
+    <% link_to(@profile) do %>
+      <strong><%= @profile.name %></strong> -- <span>Check it out!!</span>
+    <% end %>
+
 * Performance: integration test benchmarking and profiling.  [Jeremy Kemper]
 
 * Make caching more aware of mime types. Ensure request format is not considered while expiring cache.  [Jonathan del Strother]
