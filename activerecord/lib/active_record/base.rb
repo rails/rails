@@ -1297,6 +1297,20 @@ module ActiveRecord #:nodoc:
         store_full_sti_class ? name : name.demodulize
       end
 
+      # Merges conditions so that the result is a valid +condition+
+      def merge_conditions(*conditions)
+        segments = []
+
+        conditions.each do |condition|
+          unless condition.blank?
+            sql = sanitize_sql(condition)
+            segments << sql unless sql.blank?
+          end
+        end
+
+        "(#{segments.join(') AND (')})" unless segments.empty?
+      end
+
       private
         def find_initial(options)
           options.update(:limit => 1)
@@ -1482,20 +1496,6 @@ module ActiveRecord #:nodoc:
         # Merges includes so that the result is a valid +include+
         def merge_includes(first, second)
          (safe_to_array(first) + safe_to_array(second)).uniq
-        end
-
-        # Merges conditions so that the result is a valid +condition+
-        def merge_conditions(*conditions)
-          segments = []
-
-          conditions.each do |condition|
-            unless condition.blank?
-              sql = sanitize_sql(condition)
-              segments << sql unless sql.blank?
-            end
-          end
-
-          "(#{segments.join(') AND (')})" unless segments.empty?
         end
 
         # Object#to_a is deprecated, though it does have the desired behavior
