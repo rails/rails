@@ -451,7 +451,7 @@ module ActionView
       # hash with +options+. The +checked_value+ defaults to 1 while the default +unchecked_value+
       # is set to 0 which is convenient for boolean values.
       #
-      # === Gotcha
+      # ==== Gotcha
       #
       # The HTML specification says unchecked check boxes are not successful, and
       # thus web browsers do not send them. Unfortunately this introduces a gotcha:
