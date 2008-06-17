@@ -1,5 +1,7 @@
 *Edge*
 
+* Added Array#second through Array#tenth as aliases for Array#[1] through Array#[9] [DHH]
+
 * Added test/do declaration style testing to ActiveSupport::TestCase [DHH via Jay Fields]
 
 * Added Object#present? which is equivalent to !Object#blank? [DHH]
