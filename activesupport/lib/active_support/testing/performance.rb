@@ -97,6 +97,11 @@ module ActiveSupport
           rate = @total / profile_options[:runs]
           '%20s: %s/run' % [@metric.name, @metric.format(rate)]
         end
+
+        protected
+          def output_filename
+            "#{profile_options[:output]}/#{full_test_name}"
+          end
       end
 
       class Benchmarker < Performer
@@ -107,9 +112,9 @@ module ActiveSupport
 
         def record
           avg = @metric.total / profile_options[:runs].to_i
-          data = [full_test_name, @metric.name, avg, Time.now.utc.xmlschema] * ','
+          now = Time.now.utc.xmlschema
           with_output_file do |file|
-            file.puts "#{data},#{environment}"
+            file.puts "#{avg},#{now},#{environment}"
           end
         end
 
@@ -134,10 +139,10 @@ module ActiveSupport
         end
 
         protected
-          HEADER = 'test,metric,measurement,created_at,app,rails,ruby,platform'
+          HEADER = 'measurement,created_at,app,rails,ruby,platform'
 
           def with_output_file
-            fname = "#{profile_options[:output]}/benchmarks.csv"
+            fname = output_filename
 
             if new = !File.exist?(fname)
               FileUtils.mkdir_p(File.dirname(fname))
@@ -147,6 +152,10 @@ module ActiveSupport
               file.puts(HEADER) if new
               yield file
             end
+          end
+
+          def output_filename
+            "#{super}.csv"
           end
       end
 
@@ -183,7 +192,7 @@ module ActiveSupport
                 else printer_class.name.sub(/Printer$/, '').underscore
               end
 
-            "#{profile_options[:output]}/#{full_test_name}_#{@metric.name}_#{suffix}"
+            "#{super()}_#{suffix}"
           end
       end
 
@@ -287,17 +296,34 @@ module ActiveSupport
         class Memory < Base
           Mode = RubyProf::MEMORY
 
+          # ruby-prof wrapper
           if RubyProf.respond_to?(:measure_memory)
             def measure
               RubyProf.measure_memory / 1024.0
             end
+
+          # Ruby 1.8 + adymo patch
           elsif GC.respond_to?(:allocated_size)
             def measure
               GC.allocated_size / 1024.0
             end
+
+          # Ruby 1.8 + lloyd patch
+          elsif GC.respond_to?(:heap_info)
+            def measure
+              GC.heap_info['heap_current_memory'] / 1024.0
+            end
+
+          # Ruby 1.9 unpatched
           elsif GC.respond_to?(:malloc_allocated_size)
             def measure
               GC.malloc_allocated_size / 1024.0
+            end
+
+          # Unavailable
+          else
+            def measure
+              0
             end
           end
 
@@ -316,6 +342,10 @@ module ActiveSupport
           elsif ObjectSpace.respond_to?(:allocated_objects)
             def measure
               ObjectSpace.allocated_objects
+            end
+          else
+            def measure
+              0
             end
           end
 
