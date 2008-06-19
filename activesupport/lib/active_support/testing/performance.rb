@@ -100,7 +100,7 @@ module ActiveSupport
 
         protected
           def output_filename
-            "#{profile_options[:output]}/#{full_test_name}"
+            "#{profile_options[:output]}/#{full_test_name}_#{@metric.name}"
           end
       end
 
