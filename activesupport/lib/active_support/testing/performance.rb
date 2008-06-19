@@ -12,13 +12,13 @@ module ActiveSupport
         if benchmark = ARGV.include?('--benchmark')  # HAX for rake test
           { :benchmark => true,
             :runs => 10,
-            :metrics => [:process_time, :memory, :objects],
+            :metrics => [:process_time, :memory, :objects, :gc_runs, :gc_time],
             :output => 'tmp/performance' }
         else
           { :benchmark => false,
             :runs => 1,
             :min_percent => 0.02,
-            :metrics => [:wall_time, :memory, :objects],
+            :metrics => [:process_time, :memory, :objects, :gc_runs, :gc_time],
             :formats => [:flat, :graph_html, :call_tree],
             :output => 'tmp/performance' }
         end
@@ -72,9 +72,13 @@ module ActiveSupport
 
       protected
         def run_warmup
+          5.times { GC.start }
+
           time = Metrics::Time.new
           run_test(time, :benchmark)
           puts "%s (%s warmup)" % [full_test_name, time.format(time.total)]
+
+          5.times { GC.start }
         end
 
         def run_profile(metric)
@@ -219,6 +223,10 @@ module ActiveSupport
             self.class::Mode
           end
 
+          def measure
+            0
+          end
+
           def benchmark
             with_gc_stats do
               before = measure
@@ -319,12 +327,6 @@ module ActiveSupport
             def measure
               GC.malloc_allocated_size / 1024.0
             end
-
-          # Unavailable
-          else
-            def measure
-              0
-            end
           end
 
           def format(measurement)
@@ -343,14 +345,50 @@ module ActiveSupport
             def measure
               ObjectSpace.allocated_objects
             end
-          else
+          end
+
+          def format(measurement)
+            measurement.to_i.to_s
+          end
+        end
+
+        class GcRuns < Base
+          Mode = RubyProf::GC_RUNS
+
+          if RubyProf.respond_to?(:measure_gc_runs)
             def measure
-              0
+              RubyProf.measure_gc_runs
+            end
+          elsif GC.respond_to?(:collections)
+            def measure
+              GC.collections
+            end
+          elsif GC.respond_to?(:heap_info)
+            def measure
+              GC.heap_info['num_gc_passes']
             end
           end
 
           def format(measurement)
             measurement.to_i.to_s
+          end
+        end
+
+        class GcTime < Base
+          Mode = RubyProf::GC_TIME
+
+          if RubyProf.respond_to?(:measure_gc_time)
+            def measure
+              RubyProf.measure_gc_time
+            end
+          elsif GC.respond_to?(:time)
+            def measure
+              GC.time
+            end
+          end
+
+          def format(measurement)
+            '%d ms' % (measurement / 1000)
           end
         end
       end
