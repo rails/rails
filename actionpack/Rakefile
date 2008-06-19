@@ -54,7 +54,7 @@ Rake::RDocTask.new { |rdoc|
     rdoc.rdoc_files.include(ENV['DOC_FILES'].split(/,\s*/))
   else
     rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
-    rdoc.rdoc_files.include('lib/**/*.rb')
+    rdoc.rdoc_files.include(Dir['lib/**/*.rb'] - Dir['lib/*/vendor/**/*.rb'])
   end
 }
 
