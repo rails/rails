@@ -44,7 +44,7 @@ module ActiveSupport
             run_profile(klass.new)
             result.add_run
           else
-            $stderr.puts "Skipping unknown metric #{metric_name.inspect}. Expected :process_time, :wall_time, :cpu_time, :memory, or :objects."
+            $stderr.puts '%20s: unsupported' % metric_name.to_s
           end
         end
 
