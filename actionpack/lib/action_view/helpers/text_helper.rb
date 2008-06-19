@@ -29,8 +29,9 @@ module ActionView
         if unused_binding
           ActiveSupport::Deprecation.warn("The binding argument of #concat is no longer needed.  Please remove it from your views and helpers.")
         end
-        if @output_buffer && string
-          @output_buffer << string
+
+        if output_buffer && string
+          output_buffer << string
         else
           string
         end

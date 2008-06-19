@@ -66,12 +66,12 @@ module ActionController
     # The DOM id convention is to use the singular form of an object or class with the id following an underscore.
     # If no id is found, prefix with "new_" instead. Examples:
     #
-    #   dom_id(Post.new(:id => 45)) # => "post_45"
+    #   dom_id(Post.find(45))       # => "post_45"
     #   dom_id(Post.new)            # => "new_post"
     #
     # If you need to address multiple instances of the same class in the same view, you can prefix the dom_id:
     #
-    #   dom_id(Post.new(:id => 45), :edit) # => "edit_post_45"
+    #   dom_id(Post.find(45), :edit) # => "edit_post_45"
     def dom_id(record, prefix = nil) 
       if record_id = record.id
         "#{dom_class(record, prefix)}#{JOIN}#{record_id}"

@@ -1297,6 +1297,20 @@ module ActiveRecord #:nodoc:
         store_full_sti_class ? name : name.demodulize
       end
 
+      # Merges conditions so that the result is a valid +condition+
+      def merge_conditions(*conditions)
+        segments = []
+
+        conditions.each do |condition|
+          unless condition.blank?
+            sql = sanitize_sql(condition)
+            segments << sql unless sql.blank?
+          end
+        end
+
+        "(#{segments.join(') AND (')})" unless segments.empty?
+      end
+
       private
         def find_initial(options)
           options.update(:limit => 1)
@@ -1482,20 +1496,6 @@ module ActiveRecord #:nodoc:
         # Merges includes so that the result is a valid +include+
         def merge_includes(first, second)
          (safe_to_array(first) + safe_to_array(second)).uniq
-        end
-
-        # Merges conditions so that the result is a valid +condition+
-        def merge_conditions(*conditions)
-          segments = []
-
-          conditions.each do |condition|
-            unless condition.blank?
-              sql = sanitize_sql(condition)
-              segments << sql unless sql.blank?
-            end
-          end
-
-          "(#{segments.join(') AND (')})" unless segments.empty?
         end
 
         # Object#to_a is deprecated, though it does have the desired behavior
@@ -1903,10 +1903,12 @@ module ActiveRecord #:nodoc:
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
           modularized_name = type_name_with_module(type_name)
-          begin
-            class_eval(modularized_name, __FILE__, __LINE__)
-          rescue NameError
-            class_eval(type_name, __FILE__, __LINE__)
+          silence_warnings do
+            begin
+              class_eval(modularized_name, __FILE__, __LINE__)
+            rescue NameError
+              class_eval(type_name, __FILE__, __LINE__)
+            end
           end
         end
 

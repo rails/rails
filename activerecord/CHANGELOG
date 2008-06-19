@@ -1,5 +1,11 @@
 *Edge*
 
+* Add :from option to calculations.  #397 [Ben Munat]
+
+* Add :validate option to associations to enable/disable the automatic validation of associated models. Resolves #301. [Jan De Poorter]
+
+* PostgreSQL: use 'INSERT ... RETURNING id' for 8.2 and later.  [Jeremy Kemper]
+
 * Added SQL escaping for :limit and :offset in MySQL [Jonathan Wiess]
 
 

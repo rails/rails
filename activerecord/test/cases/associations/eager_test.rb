@@ -14,11 +14,14 @@ require 'models/job'
 require 'models/subscriber'
 require 'models/subscription'
 require 'models/book'
+require 'models/developer'
+require 'models/project'
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers,
-            :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books
+            :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
+            :developers, :projects
 
   def test_loading_with_one_association
     posts = Post.find(:all, :include => :comments)
@@ -608,5 +611,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_queries(2) do #should not do 1 query per subclass
       Comment.find :all, :include => :post
     end
+  end
+
+  def test_conditions_on_join_table_with_include_and_limit
+    assert_equal 3, Developer.find(:all, :include => 'projects', :conditions => 'developers_projects.access_level = 1', :limit => 5).size
+  end
+
+  def test_order_on_join_table_with_include_and_limit
+    assert_equal 5, Developer.find(:all, :include => 'projects', :order => 'developers_projects.joined_on DESC', :limit => 5).size
   end
 end

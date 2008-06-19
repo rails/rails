@@ -202,11 +202,6 @@ module ActionView
         end
         js_option
       end
-
-    private
-      def block_is_within_action_view?(block)
-        !@output_buffer.nil?
-      end
     end
     
     JavascriptHelper = JavaScriptHelper unless const_defined? :JavascriptHelper

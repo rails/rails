@@ -43,19 +43,17 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_form_tag_with_block
-    @output_buffer = ''
-    form_tag("http://example.com") { @output_buffer.concat "Hello world!" }
+    form_tag("http://example.com") { concat "Hello world!" }
 
     expected = %(<form action="http://example.com" method="post">Hello world!</form>)
-    assert_dom_equal expected, @output_buffer
+    assert_dom_equal expected, output_buffer
   end
 
   def test_form_tag_with_block_and_method
-    @output_buffer = ''
-    form_tag("http://example.com", :method => :put) { @output_buffer.concat "Hello world!" }
+    form_tag("http://example.com", :method => :put) { concat "Hello world!" }
 
     expected = %(<form action="http://example.com" method="post"><div style='margin:0;padding:0'><input type="hidden" name="_method" value="put" /></div>Hello world!</form>)
-    assert_dom_equal expected, @output_buffer
+    assert_dom_equal expected, output_buffer
   end
 
   def test_hidden_field_tag
@@ -234,23 +232,22 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_field_set_tag
-    @output_buffer = ''
-    field_set_tag("Your details") { @output_buffer.concat "Hello world!" }
+    field_set_tag("Your details") { concat "Hello world!" }
 
     expected = %(<fieldset><legend>Your details</legend>Hello world!</fieldset>)
-    assert_dom_equal expected, @output_buffer
+    assert_dom_equal expected, output_buffer
 
-    @output_buffer = ''
-    field_set_tag { @output_buffer.concat "Hello world!" }
-
-    expected = %(<fieldset>Hello world!</fieldset>)
-    assert_dom_equal expected, @output_buffer
-    
-    @output_buffer = ''
-    field_set_tag('') { @output_buffer.concat "Hello world!" }
+    self.output_buffer = ''
+    field_set_tag { concat "Hello world!" }
 
     expected = %(<fieldset>Hello world!</fieldset>)
-    assert_dom_equal expected, @output_buffer
+    assert_dom_equal expected, output_buffer
+
+    self.output_buffer = ''
+    field_set_tag('') { concat "Hello world!" }
+
+    expected = %(<fieldset>Hello world!</fieldset>)
+    assert_dom_equal expected, output_buffer
   end
 
   def protect_against_forgery?

@@ -134,7 +134,7 @@ module ActionController
       run_callbacks :prepare_dispatch
 
       Routing::Routes.reload
-      ActionView::TemplateFinder.reload! unless ActionView::Base.cache_template_loading
+      ActionController::Base.view_paths.reload!
     end
 
     # Cleanup the application by clearing out loaded classes so they can

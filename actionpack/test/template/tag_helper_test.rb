@@ -35,18 +35,17 @@ class TagHelperTest < ActionView::TestCase
   end
   
   def test_content_tag_with_block
-    @output_buffer = ''
-    content_tag(:div) { @output_buffer.concat "Hello world!" }
-    assert_dom_equal "<div>Hello world!</div>", @output_buffer
+    content_tag(:div) { concat "Hello world!" }
+    assert_dom_equal "<div>Hello world!</div>", output_buffer
   end
   
   def test_content_tag_with_block_and_options
-    @output_buffer = ''
-    content_tag(:div, :class => "green") { @output_buffer.concat "Hello world!" }
-    assert_dom_equal %(<div class="green">Hello world!</div>), @output_buffer
+    content_tag(:div, :class => "green") { concat "Hello world!" }
+    assert_dom_equal %(<div class="green">Hello world!</div>), output_buffer
   end
   
   def test_content_tag_with_block_and_options_outside_of_action_view
+    self.output_buffer = nil
     assert_equal content_tag("a", "Create", :href => "create"),
                  content_tag("a", "href" => "create") { "Create" }    
   end

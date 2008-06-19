@@ -12,11 +12,11 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_concat
-    @output_buffer = 'foo'
+    self.output_buffer = 'foo'
     concat 'bar'
-    assert_equal 'foobar', @output_buffer
+    assert_equal 'foobar', output_buffer
     assert_nothing_raised { concat nil }
-    assert_equal 'foobar', @output_buffer
+    assert_equal 'foobar', output_buffer
   end
 
   def test_simple_format

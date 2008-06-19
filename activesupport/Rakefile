@@ -36,8 +36,8 @@ Rake::RDocTask.new { |rdoc|
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/active_support.rb')
-  rdoc.rdoc_files.include('lib/active_support/*.rb')
   rdoc.rdoc_files.include('lib/active_support/**/*.rb')
+  rdoc.rdoc_files.exclude('lib/active_support/vendor/*')
 }
 
 spec = Gem::Specification.new do |s|
@@ -65,13 +65,13 @@ end
 
 desc "Publish the beta gem"
 task :pgem => [:package] do
-  Rake::SshFilePublisher.new("davidhh@wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
-  `ssh davidhh@wrath.rubyonrails.org './gemupdate.sh'`
+  Rake::SshFilePublisher.new("wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+  `ssh wrath.rubyonrails.org './gemupdate.sh'`
 end
 
 desc "Publish the API documentation"
 task :pdoc => [:rdoc] do 
-  Rake::SshDirPublisher.new("davidhh@wrath.rubyonrails.org", "public_html/as", "doc").upload
+  Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/as", "doc").upload
 end
 
 desc "Publish the release files to RubyForge."
@@ -119,7 +119,7 @@ namespace :tzinfo do
   task :copy_definitions => :unpack_gem do
     definitions_path = "#{destination_path}/tzinfo/definitions/"
     mkdir_p definitions_path
-    TimeZone::MAPPING.values.each do |zone|
+    ActiveSupport::TimeZone::MAPPING.values.each do |zone|
       subdir = nil
       if /\// === zone
         subdir = zone.sub(/\w+$/, '')

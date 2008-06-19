@@ -220,7 +220,7 @@ class NewRenderTestController < ActionController::Base
     render :action => "test/hello_world"
   end
 
- def render_to_string_with_partial
+  def render_to_string_with_partial
     @partial_only = render_to_string :partial => "partial_only"
     @partial_with_locals = render_to_string :partial => "customer", :locals => { :customer => Customer.new("david") }     
     render :action => "test/hello_world"  
@@ -251,9 +251,13 @@ class NewRenderTestController < ActionController::Base
   def accessing_logger_in_template
     render :inline =>  "<%= logger.class %>"
   end
-  
+
   def accessing_action_name_in_template
     render :inline =>  "<%= action_name %>"
+  end
+
+  def accessing_controller_name_in_template
+    render :inline =>  "<%= controller_name %>"
   end
 
   def accessing_params_in_template_with_layout
@@ -559,10 +563,15 @@ class NewRenderTest < Test::Unit::TestCase
     get :accessing_logger_in_template
     assert_equal "Logger", @response.body
   end
-  
+
   def test_access_to_action_name_in_view
     get :accessing_action_name_in_template
     assert_equal "accessing_action_name_in_template", @response.body
+  end
+
+  def test_access_to_controller_name_in_view
+    get :accessing_controller_name_in_template
+    assert_equal "test", @response.body # name is explicitly set to 'test' inside the controller.
   end
 
   def test_render_xml

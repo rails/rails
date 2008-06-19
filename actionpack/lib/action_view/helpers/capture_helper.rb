@@ -31,7 +31,7 @@ module ActionView
       #   </body></html>
       #
       def capture(*args, &block)
-        if @output_buffer
+        if output_buffer
           with_output_buffer { block.call(*args) }
         else
           block.call(*args)
@@ -121,10 +121,11 @@ module ActionView
 
       private
         def with_output_buffer(buf = '')
-          @output_buffer, old_buffer = buf, @output_buffer
+          self.output_buffer, old_buffer = buf, output_buffer
           yield
+          output_buffer
         ensure
-          @output_buffer = old_buffer
+          self.output_buffer = old_buffer
         end
     end
   end

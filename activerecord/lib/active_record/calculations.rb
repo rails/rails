@@ -1,6 +1,6 @@
 module ActiveRecord
   module Calculations #:nodoc:
-    CALCULATIONS_OPTIONS = [:conditions, :joins, :order, :select, :group, :having, :distinct, :limit, :offset, :include]
+    CALCULATIONS_OPTIONS = [:conditions, :joins, :order, :select, :group, :having, :distinct, :limit, :offset, :include, :from]
     def self.included(base)
       base.extend(ClassMethods)
     end
@@ -27,6 +27,8 @@ module ActiveRecord
       # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you, for example, want to do a join but not
       #   include the joined columns.
       # * <tt>:distinct</tt>: Set this to true to make this a distinct calculation, such as SELECT COUNT(DISTINCT posts.id) ...
+      # * <tt>:from</tt> - By default, this is the table name of the class, but can be changed to an alternate table name (or even the name
+      #   of a database view).
       #
       # Examples for counting all:
       #   Person.count         # returns the total count of all people
@@ -178,8 +180,12 @@ module ActiveRecord
           sql = "SELECT COUNT(*) AS #{aggregate_alias}" if use_workaround
 
           sql << ", #{options[:group_field]} AS #{options[:group_alias]}" if options[:group]
-          sql << " FROM (SELECT #{distinct}#{column_name}" if use_workaround
-          sql << " FROM #{connection.quote_table_name(table_name)} "
+          if options[:from]
+            sql << " FROM #{options[:from]} "
+          else
+            sql << " FROM (SELECT #{distinct}#{column_name}" if use_workaround
+            sql << " FROM #{connection.quote_table_name(table_name)} "
+          end
           if merged_includes.any?
             join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_includes, options[:joins])
             sql << join_dependency.join_associations.collect{|join| join.association_join }.join

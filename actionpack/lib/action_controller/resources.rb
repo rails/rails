@@ -72,7 +72,7 @@ module ActionController
       end
 
       def conditions
-        @conditions = @options[:conditions] || {}
+        @conditions ||= @options[:conditions] || {}
       end
 
       def path
@@ -80,9 +80,9 @@ module ActionController
       end
 
       def new_path
-        new_action = self.options[:path_names][:new] if self.options[:path_names]
+        new_action   = self.options[:path_names][:new] if self.options[:path_names]
         new_action ||= Base.resources_path_names[:new]
-        @new_path ||= "#{path}/#{new_action}"
+        @new_path  ||= "#{path}/#{new_action}"
       end
 
       def member_path

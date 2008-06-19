@@ -1,17 +1,17 @@
 module ActionView #:nodoc:
   class ActionViewError < StandardError #:nodoc:
   end
-  
+
   class MissingTemplate < ActionViewError #:nodoc:
   end
 
-  # Action View templates can be written in three ways. If the template file has a <tt>.erb</tt> (or <tt>.rhtml</tt>) extension then it uses a mixture of ERb 
-  # (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> (or <tt>.rxml</tt>) extension then Jim Weirich's Builder::XmlMarkup library is used. 
+  # Action View templates can be written in three ways. If the template file has a <tt>.erb</tt> (or <tt>.rhtml</tt>) extension then it uses a mixture of ERb
+  # (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> (or <tt>.rxml</tt>) extension then Jim Weirich's Builder::XmlMarkup library is used.
   # If the template file has a <tt>.rjs</tt> extension then it will use ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.
-  # 
+  #
   # = ERb
-  # 
-  # You trigger ERb by using embeddings such as <% %>, <% -%>, and <%= %>. The <%= %> tag set is used when you want output. Consider the 
+  #
+  # You trigger ERb by using embeddings such as <% %>, <% -%>, and <%= %>. The <%= %> tag set is used when you want output. Consider the
   # following loop for names:
   #
   #   <b>Names of all the people</b>
@@ -51,7 +51,7 @@ module ActionView #:nodoc:
   #   <title><%= @page_title %></title>
   #
   # == Passing local variables to sub templates
-  # 
+  #
   # You can pass local variables to sub templates by using a hash with the variable names as keys and the objects as values:
   #
   #   <%= render "shared/header", { :headline => "Welcome", :person => person } %>
@@ -77,8 +77,8 @@ module ActionView #:nodoc:
   #
   # == Builder
   #
-  # Builder templates are a more programmatic alternative to ERb. They are especially useful for generating XML content. An XmlMarkup object 
-  # named +xml+ is automatically made available to templates with a <tt>.builder</tt> extension. 
+  # Builder templates are a more programmatic alternative to ERb. They are especially useful for generating XML content. An XmlMarkup object
+  # named +xml+ is automatically made available to templates with a <tt>.builder</tt> extension.
   #
   # Here are some basic examples:
   #
@@ -87,7 +87,7 @@ module ActionView #:nodoc:
   #   xml.a("A Link", "href"=>"http://onestepback.org") # => <a href="http://onestepback.org">A Link</a>
   #   xml.target("name"=>"compile", "option"=>"fast")   # => <target option="fast" name="compile"\>
   #                                                     # NOTE: order of attributes is not specified.
-  # 
+  #
   # Any method with a block will be treated as an XML markup tag with nested markup in the block. For example, the following:
   #
   #   xml.div {
@@ -111,7 +111,7 @@ module ActionView #:nodoc:
   #       xml.description "Basecamp: Recent items"
   #       xml.language "en-us"
   #       xml.ttl "40"
-  # 
+  #
   #       for item in @recent_items
   #         xml.item do
   #           xml.title(item_title(item))
@@ -119,7 +119,7 @@ module ActionView #:nodoc:
   #           xml.pubDate(item_pubDate(item))
   #           xml.guid(@person.firm.account.url + @recent_items.url(item))
   #           xml.link(@person.firm.account.url + @recent_items.url(item))
-  #       
+  #
   #           xml.tag!("dc:creator", item.author_name) if item_has_creator?(item)
   #         end
   #       end
@@ -130,12 +130,12 @@ module ActionView #:nodoc:
   #
   # == JavaScriptGenerator
   #
-  # JavaScriptGenerator templates end in <tt>.rjs</tt>. Unlike conventional templates which are used to 
-  # render the results of an action, these templates generate instructions on how to modify an already rendered page. This makes it easy to 
-  # modify multiple elements on your page in one declarative Ajax response. Actions with these templates are called in the background with Ajax 
+  # JavaScriptGenerator templates end in <tt>.rjs</tt>. Unlike conventional templates which are used to
+  # render the results of an action, these templates generate instructions on how to modify an already rendered page. This makes it easy to
+  # modify multiple elements on your page in one declarative Ajax response. Actions with these templates are called in the background with Ajax
   # and make updates to the page where the request originated from.
-  # 
-  # An instance of the JavaScriptGenerator object named +page+ is automatically made available to your template, which is implicitly wrapped in an ActionView::Helpers::PrototypeHelper#update_page block. 
+  #
+  # An instance of the JavaScriptGenerator object named +page+ is automatically made available to your template, which is implicitly wrapped in an ActionView::Helpers::PrototypeHelper#update_page block.
   #
   # When an <tt>.rjs</tt> action is called with +link_to_remote+, the generated JavaScript is automatically evaluated.  Example:
   #
@@ -145,15 +145,14 @@ module ActionView #:nodoc:
   #
   #   page.replace_html  'sidebar', :partial => 'sidebar'
   #   page.remove        "person-#{@person.id}"
-  #   page.visual_effect :highlight, 'user-list' 
+  #   page.visual_effect :highlight, 'user-list'
   #
   # This refreshes the sidebar, removes a person element and highlights the user list.
-  # 
+  #
   # See the ActionView::Helpers::PrototypeHelper::GeneratorMethods documentation for more details.
   class Base
     include ERB::Util
 
-    attr_reader   :finder
     attr_accessor :base_path, :assigns, :template_extension, :first_render
     attr_accessor :controller
 
@@ -170,22 +169,22 @@ module ActionView #:nodoc:
     # Specify whether file modification times should be checked to see if a template needs recompilation
     @@cache_template_loading = false
     cattr_accessor :cache_template_loading
-    
+
     def self.cache_template_extensions=(*args)
       ActiveSupport::Deprecation.warn("config.action_view.cache_template_extensions option has been deprecated and has no affect. " <<
                                        "Please remove it from your config files.", caller)
     end
 
     # Specify whether RJS responses should be wrapped in a try/catch block
-    # that alert()s the caught exception (and then re-raises it). 
+    # that alert()s the caught exception (and then re-raises it).
     @@debug_rjs = false
     cattr_accessor :debug_rjs
 
     attr_internal :request
 
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
-             :flash, :logger, :action_name, :to => :controller
- 
+             :flash, :logger, :action_name, :controller_name, :to => :controller
+
     module CompiledTemplates #:nodoc:
       # holds compiled template code
     end
@@ -221,11 +220,17 @@ module ActionView #:nodoc:
       @assigns = assigns_for_first_render
       @assigns_added = nil
       @controller = controller
-      @finder = TemplateFinder.new(self, view_paths)
+      self.view_paths = view_paths
     end
 
-    # Renders the template present at <tt>template_path</tt>. If <tt>use_full_path</tt> is set to true, 
-    # it's relative to the view_paths array, otherwise it's absolute. The hash in <tt>local_assigns</tt> 
+    attr_reader :view_paths
+
+    def view_paths=(paths)
+      @view_paths = ViewLoadPaths.new(Array(paths))
+    end
+
+    # Renders the template present at <tt>template_path</tt>. If <tt>use_full_path</tt> is set to true,
+    # it's relative to the view_paths array, otherwise it's absolute. The hash in <tt>local_assigns</tt>
     # is made available as local variables.
     def render_file(template_path, use_full_path = true, local_assigns = {}) #:nodoc:
       if defined?(ActionMailer) && defined?(ActionMailer::Base) && controller.is_a?(ActionMailer::Base) && !template_path.include?("/")
@@ -240,11 +245,11 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
   render :partial => 'signup' # no mailer_name necessary
         END_ERROR
       end
-      
+
       Template.new(self, template_path, use_full_path, local_assigns).render_template
     end
-    
-    # Renders the template present at <tt>template_path</tt> (relative to the view_paths array). 
+
+    # Renders the template present at <tt>template_path</tt> (relative to the view_paths array).
     # The hash in <tt>local_assigns</tt> is made available as local variables.
     def render(options = {}, local_assigns = {}, &block) #:nodoc:
       if options.is_a?(String)
@@ -257,7 +262,7 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
 
         if partial_layout = options.delete(:layout)
           if block_given?
-            wrap_content_for_layout capture(&block) do 
+            wrap_content_for_layout capture(&block) do
               concat(render(options.merge(:partial => partial_layout)))
             end
           else
@@ -314,6 +319,10 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       end
     end
 
+    def file_exists?(template_path)
+      view_paths.template_exists?(template_file_from_name(template_path))
+    end
+
     private
       def wrap_content_for_layout(content)
         original_content_for_layout, @content_for_layout = @content_for_layout, content
@@ -334,11 +343,43 @@ If you are rendering a subtemplate, you must now use controller-like partial syn
       def assign_variables_from_controller
         @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
       end
-      
+
       def execute(template)
         send(template.method, template.locals) do |*names|
           instance_variable_get "@content_for_#{names.first || 'layout'}"
-        end        
+        end
+      end
+
+      def template_file_from_name(template_name)
+        template_name = TemplateFile.from_path(template_name)
+        pick_template_extension(template_name) unless template_name.extension
+      end
+
+      # Gets the extension for an existing template with the given template_path.
+      # Returns the format with the extension if that template exists.
+      #
+      #   pick_template_extension('users/show')
+      #   # => 'html.erb'
+      #
+      #   pick_template_extension('users/legacy')
+      #   # => "rhtml"
+      #
+      def pick_template_extension(file)
+        if f = self.view_paths.find_template_file_for_path(file.dup_with_extension(template_format)) || file_from_first_render(file)
+          f
+        elsif template_format == :js && f = self.view_paths.find_template_file_for_path(file.dup_with_extension(:html))
+          @template_format = :html
+          f
+        else
+          nil
+        end
+      end
+
+      # Determine the template extension from the <tt>@first_render</tt> filename
+      def file_from_first_render(file)
+        if extension = File.basename(@first_render.to_s)[/^[^.]+\.(.+)$/, 1]
+          file.dup_with_extension(extension)
+        end
       end
   end
 end

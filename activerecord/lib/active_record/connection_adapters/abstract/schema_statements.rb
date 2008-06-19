@@ -356,7 +356,7 @@ module ActiveRecord
 
       def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
         if native = native_database_types[type]
-          column_type_sql = native.is_a?(Hash) ? native[:name] : native
+          column_type_sql = (native.is_a?(Hash) ? native[:name] : native).dup
 
           if type == :decimal # ignore limit, use precision and scale
             scale ||= native[:scale]
@@ -371,7 +371,7 @@ module ActiveRecord
               raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale if specified"
             end
 
-          elsif limit ||= native.is_a?(Hash) && native[:limit]
+          elsif (type != :primary_key) && (limit ||= native.is_a?(Hash) && native[:limit])
             column_type_sql << "(#{limit})"
           end
 

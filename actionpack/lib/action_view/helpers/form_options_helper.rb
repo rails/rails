@@ -304,7 +304,7 @@ module ActionView
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in
       # a regular HTML select tag.
-      def time_zone_options_for_select(selected = nil, priority_zones = nil, model = ActiveSupport::TimeZone)
+      def time_zone_options_for_select(selected = nil, priority_zones = nil, model = ::ActiveSupport::TimeZone)
         zone_options = ""
 
         zones = model.all
