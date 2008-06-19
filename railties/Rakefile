@@ -332,10 +332,15 @@ end
 
 
 # Publishing -------------------------------------------------------
-desc "Publish the API documentation"
+desc "Publish the rails gem"
 task :pgem => [:gem] do 
   Rake::SshFilePublisher.new("wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
   `ssh wrath.rubyonrails.org './gemupdate.sh'`
+end
+
+desc "Publish the API documentation"
+task :pdoc => :rdoc do
+  # railties API isn't separately published
 end
 
 desc "Publish the release files to RubyForge."
