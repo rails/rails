@@ -76,12 +76,12 @@ end
 
 desc "Publish the API documentation"
 task :pgem => [:package] do 
-  Rake::SshFilePublisher.new("davidhh@wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+  Rake::SshFilePublisher.new("wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
 end
 
 desc "Publish the API documentation"
 task :pdoc => [:rdoc] do 
-  Rake::SshDirPublisher.new("davidhh@wrath.rubyonrails.org", "public_html/am", "doc").upload
+  Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/am", "doc").upload
 end
 
 desc "Publish the release files to RubyForge."
