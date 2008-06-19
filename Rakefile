@@ -1,5 +1,6 @@
 require 'rake'
 require 'rake/rdoctask'
+require 'rake/contrib/sshpublisher'
 
 env = %(PKG_BUILD="#{ENV['PKG_BUILD']}") if ENV['PKG_BUILD']
 
