@@ -69,13 +69,19 @@ module ActionView
       #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "", :format => "%n %u")
       #  # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
-        options   = options.stringify_keys
-        precision = options["precision"] || 2
-        unit      = options["unit"] || "$"
-        separator = precision > 0 ? options["separator"] || "." : ""
-        delimiter = options["delimiter"] || ","
-        format    = options["format"] || "%u%n"
+        options = options.symbolize_keys
+        
+        locale = options[:locale]
+        locale ||= request.locale if respond_to?(:request)
 
+        defaults  = :'currency.format'.t(locale) || {}
+        precision = options[:precision] || defaults[:precision]
+        unit      = options[:unit]      || defaults[:unit]
+        separator = options[:separator] || defaults[:separator]
+        delimiter = options[:delimiter] || defaults[:delimiter]
+        format    = options[:format]    || defaults[:format]
+        separator = '' if precision == 0
+        
         begin
           parts = number_with_precision(number, precision).split('.')
           format.gsub(/%n/, number_with_delimiter(parts[0], delimiter) + separator + parts[1].to_s).gsub(/%u/, unit)

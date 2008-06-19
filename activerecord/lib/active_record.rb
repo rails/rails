@@ -80,3 +80,5 @@ end
 require 'active_record/connection_adapters/abstract_adapter'
 
 require 'active_record/schema_dumper'
+
+require 'active_record/lang/en-US.rb'

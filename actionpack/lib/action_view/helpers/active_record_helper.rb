@@ -151,12 +151,17 @@ module ActionView
       # instance yourself and set it up. View the source of this method to see how easy it is.
       def error_messages_for(*params)
         options = params.extract_options!.symbolize_keys
+
         if object = options.delete(:object)
           objects = [object].flatten
         else
           objects = params.collect {|object_name| instance_variable_get("@#{object_name}") }.compact
         end
-        count   = objects.inject(0) {|sum, object| sum + object.errors.count }
+        
+        count  = objects.inject(0) {|sum, object| sum + object.errors.count }
+        locale = options[:locale]
+        locale ||= request.locale if respond_to?(:request)
+
         unless count.zero?
           html = {}
           [:id, :class].each do |key|
@@ -168,21 +173,29 @@ module ActionView
             end
           end
           options[:object_name] ||= params.first
-          options[:header_message] = "#{pluralize(count, 'error')} prohibited this #{options[:object_name].to_s.gsub('_', ' ')} from being saved" unless options.include?(:header_message)
-          options[:message] ||= 'There were problems with the following fields:' unless options.include?(:message)
-          error_messages = objects.sum {|object| object.errors.full_messages.map {|msg| content_tag(:li, msg) } }.join
 
-          contents = ''
-          contents << content_tag(options[:header_tag] || :h2, options[:header_message]) unless options[:header_message].blank?
-          contents << content_tag(:p, options[:message]) unless options[:message].blank?
-          contents << content_tag(:ul, error_messages)
+          I18n.with_options :locale => locale, :scope => [:active_record, :error] do |locale|
+            header_message = if options.include?(:header_message)
+              options[:header_message]
+            else 
+              object_name = options[:object_name].to_s.gsub('_', ' ')
+              locale.t :header_message, :count => count, :object_name => object_name
+            end
+            message = options.include?(:message) ? options[:message] : locale.t(:message)
+            error_messages = objects.sum {|object| object.errors.full_messages.map {|msg| content_tag(:li, msg) } }.join
 
-          content_tag(:div, contents, html)
+            contents = ''
+            contents << content_tag(options[:header_tag] || :h2, header_message) unless header_message.blank?
+            contents << content_tag(:p, message) unless message.blank?
+            contents << content_tag(:ul, error_messages)
+
+            content_tag(:div, contents, html)
+          end
         else
           ''
         end
       end
-
+      
       private
         def all_input_tags(record, record_name, options)
           input_block = options[:input_block] || default_input_block

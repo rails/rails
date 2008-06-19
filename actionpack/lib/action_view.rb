@@ -32,6 +32,8 @@ require 'action_view/base'
 require 'action_view/partials'
 require 'action_view/template_error'
 
+require 'action_view/lang/en-US.rb'
+
 ActionView::Base.class_eval do
   include ActionView::Partials
 
