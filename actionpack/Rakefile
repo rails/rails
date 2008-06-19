@@ -55,8 +55,8 @@ Rake::RDocTask.new { |rdoc|
   else
     rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
     rdoc.rdoc_files.include(Dir['lib/**/*.rb'] -
-                            Dir['lib/*/vendor/**/*.rb'] -
-                            ['lib/actionpack.rb'])
+                            Dir['lib/*/vendor/**/*.rb'])
+    rdoc.rdoc_files.exclude('lib/actionpack.rb')
   end
 }
 
