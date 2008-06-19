@@ -36,7 +36,8 @@ Rake::RDocTask.new { |rdoc|
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/active_support.rb')
-  rdoc.rdoc_files.include(Dir['lib/active_support/**/*.rb'] - Dir['lib/active_support/vendor/**/*.rb'])
+  rdoc.rdoc_files.include('lib/active_support/**/*.rb')
+  rdoc.rdoc_files.exclude('lib/active_support/vendor/*')
 }
 
 spec = Gem::Specification.new do |s|
