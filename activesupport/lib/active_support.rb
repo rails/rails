@@ -55,6 +55,7 @@ require 'active_support/multibyte'
 require 'active_support/base64'
 
 require 'active_support/time_with_zone'
+require 'active_support/lang/en-US.rb'
 
 Inflector = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Inflector', 'ActiveSupport::Inflector')
 Dependencies = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Dependencies', 'ActiveSupport::Dependencies')
