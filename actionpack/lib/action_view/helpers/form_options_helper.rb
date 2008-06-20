@@ -349,7 +349,7 @@ module ActionView
         end
 
         # All the countries included in the country_options output.
-        # only included for backwards compatibility, please use the I18n interface
+        # deprecated. please use :'countries.names'.t directly
         COUNTRIES = :'countries.names'.t 'en-US' unless const_defined?("COUNTRIES")
     end
 

@@ -1,4 +1,4 @@
-I18n.backend.add_translations :'en-US', {
+I18n.backend.set_translations :'en-US', {
   :date => {
     :formats => {
       :default => "%Y-%m-%d",

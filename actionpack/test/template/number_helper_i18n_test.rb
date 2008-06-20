@@ -7,7 +7,7 @@ class NumberHelperI18nTests < Test::Unit::TestCase
   def setup
     @request = mock
     @defaults = {:separator => ".", :unit => "$", :format => "%u%n", :delimiter => ",", :precision => 2}
-    I18n.backend.add_translations 'en-US', :currency => {:format => @defaults}
+    I18n.backend.set_translations 'en-US', :currency => {:format => @defaults}
   end
 
   def test_number_to_currency_given_a_locale_it_does_not_check_request_for_locale
