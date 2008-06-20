@@ -6,7 +6,7 @@
 
 * Added Object#present? which is equivalent to !Object#blank? [DHH]
 
-* Added Enumberable#many? to encapsulate collection.size > 1 [DHH]
+* Added Enumberable#many? to encapsulate collection.size > 1 [DHH/Damian Janowski]
 
 * Add more standard Hash methods to ActiveSupport::OrderedHash [Steve Purcell]
 
