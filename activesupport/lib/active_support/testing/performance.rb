@@ -288,7 +288,7 @@ module ActiveSupport
         end
 
         class CpuTime < Time
-          Mode = RubyProf::CPU_TIME
+          Mode = RubyProf::CPU_TIME if RubyProf.const_defined?(:CPU_TIME)
 
           def initialize(*args)
             # FIXME: yeah my CPU is 2.33 GHz
@@ -302,7 +302,7 @@ module ActiveSupport
         end
 
         class Memory < Base
-          Mode = RubyProf::MEMORY
+          Mode = RubyProf::MEMORY if RubyProf.const_defined?(:MEMORY)
 
           # ruby-prof wrapper
           if RubyProf.respond_to?(:measure_memory)
@@ -335,7 +335,7 @@ module ActiveSupport
         end
 
         class Objects < Base
-          Mode = RubyProf::ALLOCATIONS
+          Mode = RubyProf::ALLOCATIONS if RubyProf.const_defined?(:ALLOCATIONS)
 
           if RubyProf.respond_to?(:measure_allocations)
             def measure
@@ -353,7 +353,7 @@ module ActiveSupport
         end
 
         class GcRuns < Base
-          Mode = RubyProf::GC_RUNS
+          Mode = RubyProf::GC_RUNS if RubyProf.const_defined?(:GC_RUNS)
 
           if RubyProf.respond_to?(:measure_gc_runs)
             def measure
@@ -375,7 +375,7 @@ module ActiveSupport
         end
 
         class GcTime < Base
-          Mode = RubyProf::GC_TIME
+          Mode = RubyProf::GC_TIME if RubyProf.const_defined?(:GC_TIME)
 
           if RubyProf.respond_to?(:measure_gc_time)
             def measure
