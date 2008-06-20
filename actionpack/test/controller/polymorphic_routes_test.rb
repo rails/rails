@@ -118,6 +118,39 @@ uses_mocha 'polymorphic URL helpers' do
       polymorphic_url([:site, :admin, @article, @response, @tag])
     end
 
+    def test_nesting_with_array_ending_in_singleton_resource
+      expects(:article_response_url).with(@article)
+      polymorphic_url([@article, :response])
+    end
+
+    def test_nesting_with_array_containing_singleton_resource
+      @tag = Tag.new
+      @tag.save
+      expects(:article_response_tag_url).with(@article, @tag)
+      polymorphic_url([@article, :response, @tag])
+    end
+
+    def test_nesting_with_array_containing_namespace_and_singleton_resource
+      @tag = Tag.new
+      @tag.save
+      expects(:admin_article_response_tag_url).with(@article, @tag)
+      polymorphic_url([:admin, @article, :response, @tag])
+    end
+
+    def test_nesting_with_array_containing_singleton_resource_and_format
+      @tag = Tag.new
+      @tag.save
+      expects(:formatted_article_response_tag_url).with(@article, @tag, :pdf)
+      formatted_polymorphic_url([@article, :response, @tag, :pdf])
+    end
+
+    def test_nesting_with_array_containing_singleton_resource_and_format_option
+      @tag = Tag.new
+      @tag.save
+      expects(:article_response_tag_url).with(@article, @tag, :pdf)
+      polymorphic_url([@article, :response, @tag], :format => :pdf)
+    end
+
     # TODO: Needs to be updated to correctly know about whether the object is in a hash or not
     def xtest_with_hash
       expects(:article_url).with(@article)
