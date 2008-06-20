@@ -106,7 +106,13 @@ module ActionView
           locals_code << "#{key} = local_assigns[:#{key}]\n"
         end
 
-        "def #{render_symbol}(local_assigns)\nold_output_buffer = output_buffer;#{locals_code}#{body}\nensure\nself.output_buffer = old_output_buffer\nend"
+        <<-end_src
+          def #{render_symbol}(local_assigns)
+            old_output_buffer = output_buffer;#{locals_code}#{body}
+          ensure
+            self.output_buffer = old_output_buffer
+          end
+        end_src
       end
 
       # Return true if the given template was compiled for a superset of the keys in local_assigns
