@@ -25,15 +25,15 @@ module ActiveSupport
       end
 
       expanded_cache_key << case
-      when key.respond_to?(:cache_key)
-        key.cache_key
-      when key.is_a?(Array)
-        key.collect { |element| expand_cache_key(element) }.to_param
-      when key.respond_to?(:to_param)
-        key.to_param
-      else
-        key.to_s
-      end
+        when key.respond_to?(:cache_key)
+          key.cache_key
+        when key.is_a?(Array)
+          key.collect { |element| expand_cache_key(element) }.to_param
+        when key.respond_to?(:to_param)
+          key.to_param
+        else
+          key
+        end.to_s
 
       expanded_cache_key
     end
