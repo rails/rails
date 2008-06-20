@@ -1,5 +1,7 @@
 *Edge*
 
+* Fix polymorphic_url with singleton resources.  #461 [Tammer Saleh]
+
 * Replaced TemplateFinder abstraction with ViewLoadPaths [Josh Peek]
 
 * Added block-call style to link_to [Sam Stephenson/DHH]. Example:
