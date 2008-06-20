@@ -161,10 +161,9 @@ module ActionView #:nodoc:
 
     attr_accessor :output_buffer
 
-    # Specify trim mode for the ERB compiler. Defaults to '-'.
-    # See ERb documentation for suitable values.
-    @@erb_trim_mode = '-'
-    cattr_accessor :erb_trim_mode
+    class << self
+      delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
+    end
 
     # Specify whether file modification times should be checked to see if a template needs recompilation
     @@cache_template_loading = false

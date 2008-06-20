@@ -42,8 +42,13 @@ module ActionView
     class ERB < TemplateHandler
       include Compilable
 
+      # Specify trim mode for the ERB compiler. Defaults to '-'.
+      # See ERb documentation for suitable values.
+      cattr_accessor :erb_trim_mode
+      self.erb_trim_mode = '-'
+
       def compile(template)
-        ::ERB.new(template.source, nil, @view.erb_trim_mode, '@output_buffer').src
+        ::ERB.new(template.source, nil, erb_trim_mode, '@output_buffer').src
       end
 
       def cache_fragment(block, name = {}, options = nil) #:nodoc:
