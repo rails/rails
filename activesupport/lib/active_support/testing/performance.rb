@@ -18,7 +18,7 @@ module ActiveSupport
           { :benchmark => false,
             :runs => 1,
             :min_percent => 0.02,
-            :metrics => [:process_time, :memory, :objects, :gc_runs, :gc_time],
+            :metrics => [:process_time, :memory, :objects],
             :formats => [:flat, :graph_html, :call_tree],
             :output => 'tmp/performance' }
         end
