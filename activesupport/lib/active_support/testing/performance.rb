@@ -99,7 +99,7 @@ module ActiveSupport
 
         def report
           rate = @total / profile_options[:runs]
-          '%20s: %s/run' % [@metric.name, @metric.format(rate)]
+          '%20s: %s' % [@metric.name, @metric.format(rate)]
         end
 
         protected
