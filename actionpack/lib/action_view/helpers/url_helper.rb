@@ -535,7 +535,7 @@ module ActionView
             when method
               "#{method_javascript_function(method, url, href)}return false;"
             when popup
-              popup_javascript_function(popup) + 'return false;'
+              "#{popup_javascript_function(popup)}return false;"
             else
               html_options["onclick"]
           end

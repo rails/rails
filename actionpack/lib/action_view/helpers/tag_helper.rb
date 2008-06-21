@@ -115,7 +115,7 @@ module ActionView
         # can't take an <% end %> later on, so we have to use <% ... %>
         # and implicitly concat.
         def block_called_from_erb?(block)
-          eval(BLOCK_CALLED_FROM_ERB, block)
+          block && eval(BLOCK_CALLED_FROM_ERB, block)
         end
 
         def content_tag_string(name, content, options, escape = true)
