@@ -457,8 +457,16 @@ module ActiveRecord
       end
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
+        options = {}
+        if column = columns(table_name).find { |c| c.name == column_name.to_s }
+          options[:default] = column.default
+        else
+          raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
+        end
         current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'")["Type"]
-        execute "ALTER TABLE #{quote_table_name(table_name)} CHANGE #{quote_column_name(column_name)} #{quote_column_name(new_column_name)} #{current_type}"
+        rename_column_sql = "ALTER TABLE #{quote_table_name(table_name)} CHANGE #{quote_column_name(column_name)} #{quote_column_name(new_column_name)} #{current_type}"
+        add_column_options!(rename_column_sql, options)
+        execute(rename_column_sql)
       end
 
       # Maps logical Rails types to MySQL-specific data types.
