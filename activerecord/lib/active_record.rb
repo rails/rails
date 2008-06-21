@@ -82,6 +82,6 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/schema_dumper'
 
 I18n.backend.populate do
-  require 'active_record/lang/en-US.rb'
+  require 'active_record/locale/en-US.rb'
 end
 

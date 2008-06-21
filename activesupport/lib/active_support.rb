@@ -57,7 +57,7 @@ require 'active_support/base64'
 require 'active_support/time_with_zone'
 
 I18n.backend.populate do
-  require 'active_support/lang/en-US.rb'
+  require 'active_support/locale/en-US.rb'
 end
 
 Inflector = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Inflector', 'ActiveSupport::Inflector')
