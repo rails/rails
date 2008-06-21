@@ -66,9 +66,11 @@ module ActiveRecord
     end
     
     def generate_message(attr, key, options = {})
-      scope = [:active_record, :error_messages]
-      key.t(options.merge(:scope => scope + [:custom, @base.class.name.downcase, attr])) || 
-      key.t(options.merge(:scope => scope))
+      msgs = base_classes(@base.class).map{|klass| :"custom.#{klass.name.underscore}.#{attr}.#{key}"} 
+      msgs << options[:default] if options[:default]
+      msgs << key
+
+      I18n.t options.merge(:default => msgs, :scope => [:active_record, :error_messages])
     end
 
     # Returns true if the specified +attribute+ has errors associated with it.
@@ -217,6 +219,17 @@ module ActiveRecord
         full_messages.each { |msg| e.error(msg) }
       end
     end
+    
+    protected
+      
+      # TODO maybe this should be on ActiveRecord::Base, maybe #self_and_descendents_from_active_record
+      def base_classes(klass)
+        classes = [klass]
+        while klass != klass.base_class  
+          classes << klass = klass.superclass
+        end
+        classes
+      end
   end
 
 

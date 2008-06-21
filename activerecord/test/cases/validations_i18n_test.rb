@@ -40,31 +40,15 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
     global_scope = [:active_record, :error_messages]
     custom_scope = global_scope + [:custom, 'topic', :title]
     
-    I18n.expects(:translate).with(:invalid, :scope => custom_scope).returns 'translation'
-    I18n.expects(:translate).with(:invalid, :scope => global_scope).never
-    
-    @topic.errors.generate_message :title, :invalid
-  end
-  
-  def test_errors_generate_message_given_a_custom_message_translates_custom_model_attribute_key_with_custom_message_as_default
-    custom_scope = [:active_record, :error_messages, :custom, 'topic', :title]
-    
-    I18n.expects(:translate).with(:invalid, :scope => custom_scope, :default => 'default from class def').returns 'translation'
+    I18n.expects(:t).with :scope => [:active_record, :error_messages], :default => [:"custom.topic.title.invalid", 'default from class def', :invalid]
     @topic.errors.generate_message :title, :invalid, :default => 'default from class def'
   end
   
-  def test_errors_generate_message_given_no_custom_message_falls_back_to_global_default_key_translation
-    global_scope = [:active_record, :error_messages]
-    custom_scope = global_scope + [:custom, 'topic', :title]
-
-    I18n.stubs(:translate).with(:invalid, :scope => custom_scope).returns nil
-    I18n.expects(:translate).with(:invalid, :scope => global_scope)
-    @topic.errors.generate_message :title, :invalid
-  end
-  
-  def test_errors_add_given_no_message_it_translates_invalid
-    I18n.expects(:translate).with(:"active_record.error_messages.invalid")
-    @topic.errors.add :title
+  def test_errors_generate_message_translates_custom_model_attribute_keys_with_sti
+    custom_scope = [:active_record, :error_messages, :custom, 'topic', :title]
+    
+    I18n.expects(:t).with :scope => [:active_record, :error_messages], :default => [:"custom.reply.title.invalid", :"custom.topic.title.invalid", 'default from class def', :invalid]
+    Reply.new.errors.generate_message :title, :invalid, :default => 'default from class def'
   end
   
   def test_errors_add_on_empty_generates_message
@@ -115,7 +99,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   def test_validates_confirmation_of_finds_custom_model_key_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:custom => {:topic => {:title => {:confirmation => 'custom message'}}}}}
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:confirmation => 'global message'}}
-
+  
     Topic.validates_confirmation_of :title
     @topic.title_confirmation = 'foo'
     @topic.valid?
@@ -124,7 +108,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   def test_validates_confirmation_of_finds_global_default_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:confirmation => 'global message'}}
-
+  
     Topic.validates_confirmation_of :title
     @topic.title_confirmation = 'foo'
     @topic.valid?
@@ -133,13 +117,13 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   
   # validates_acceptance_of
-
+  
   def test_validates_acceptance_of_generates_message
     Topic.validates_acceptance_of :title, :allow_nil => false
     @topic.errors.expects(:generate_message).with(:title, :accepted, {:default => nil})
     @topic.valid?
   end
-
+  
   def test_validates_acceptance_of_generates_message_with_custom_default_message
     Topic.validates_acceptance_of :title, :message => 'custom', :allow_nil => false
     @topic.errors.expects(:generate_message).with(:title, :accepted, {:default => 'custom'})
@@ -149,7 +133,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   def test_validates_acceptance_of_finds_custom_model_key_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:custom => {:topic => {:title => {:accepted => 'custom message'}}}}}
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:accepted => 'global message'}}
-
+  
     Topic.validates_acceptance_of :title, :allow_nil => false
     @topic.valid?
     assert_equal 'custom message', @topic.errors.on(:title)
@@ -157,7 +141,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   def test_validates_acceptance_of_finds_global_default_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:accepted => 'global message'}}
-
+  
     Topic.validates_acceptance_of :title, :allow_nil => false
     @topic.valid?
     assert_equal 'global message', @topic.errors.on(:title)
@@ -165,7 +149,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   
   # validates_presence_of
-
+  
   def test_validates_presence_of_generates_message
     Topic.validates_presence_of :title
     @topic.errors.expects(:generate_message).with(:title, :blank, {:default => nil})
@@ -181,7 +165,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   def test_validates_presence_of_finds_custom_model_key_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:custom => {:topic => {:title => {:blank => 'custom message'}}}}}
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:blank => 'global message'}}
-
+  
     Topic.validates_presence_of :title
     @topic.valid?
     assert_equal 'custom message', @topic.errors.on(:title)
@@ -189,7 +173,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   def test_validates_presence_of_finds_global_default_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:blank => 'global message'}}
-
+  
     Topic.validates_presence_of :title
     @topic.valid?
     assert_equal 'global message', @topic.errors.on(:title)
@@ -197,7 +181,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   
   # validates_length_of :within
-
+  
   def test_validates_length_of_within_generates_message
     Topic.validates_length_of :title, :within => 3..5
     @topic.errors.expects(:generate_message).with(:title, :too_short, {:count => 3, :default => nil})
@@ -213,7 +197,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   def test_validates_length_of_within_finds_custom_model_key_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:custom => {:topic => {:title => {:too_short => 'custom message'}}}}}
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:too_short => 'global message'}}
-
+  
     Topic.validates_length_of :title, :within => 3..5
     @topic.valid?
     assert_equal 'custom message', @topic.errors.on(:title)
@@ -221,7 +205,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   def test_validates_length_of_within_finds_global_default_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:too_short => 'global message'}}
-
+  
     Topic.validates_length_of :title, :within => 3..5
     @topic.valid?
     assert_equal 'global message', @topic.errors.on(:title)
@@ -245,7 +229,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   def test_validates_length_of_within_finds_custom_model_key_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:custom => {:topic => {:title => {:wrong_length => 'custom message'}}}}}
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:wrong_length => 'global message'}}
-
+  
     Topic.validates_length_of :title, :is => 5
     @topic.valid?
     assert_equal 'custom message', @topic.errors.on(:title)
@@ -253,7 +237,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   def test_validates_length_of_within_finds_global_default_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:wrong_length => 'global message'}}
-
+  
     Topic.validates_length_of :title, :is => 5
     @topic.valid?
     assert_equal 'global message', @topic.errors.on(:title)
@@ -279,7 +263,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   def test_validates_length_of_within_finds_custom_model_key_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:custom => {:topic => {:title => {:wrong_length => 'custom message'}}}}}
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:wrong_length => 'global message'}}
-
+  
     Topic.validates_length_of :title, :is => 5
     @topic.valid?
     assert_equal 'custom message', @topic.errors.on(:title)
@@ -287,7 +271,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   def test_validates_length_of_within_finds_global_default_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:wrong_length => 'global message'}}
-
+  
     Topic.validates_length_of :title, :is => 5
     @topic.valid?
     assert_equal 'global message', @topic.errors.on(:title)
@@ -313,7 +297,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   def test_validates_format_of_finds_custom_model_key_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:custom => {:topic => {:title => {:invalid => 'custom message'}}}}}
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:invalid => 'global message'}}
-
+  
     Topic.validates_format_of :title, :with => /^[1-9][0-9]*$/
     @topic.valid?
     assert_equal 'custom message', @topic.errors.on(:title)
@@ -321,7 +305,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   def test_validates_format_of_finds_global_default_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:invalid => 'global message'}}
-
+  
     Topic.validates_format_of :title, :with => /^[1-9][0-9]*$/
     @topic.valid?
     assert_equal 'global message', @topic.errors.on(:title)
@@ -347,7 +331,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   def test_validates_inclusion_of_finds_custom_model_key_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:custom => {:topic => {:title => {:inclusion => 'custom message'}}}}}
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:inclusion => 'global message'}}
-
+  
     Topic.validates_inclusion_of :title, :in => %w(a b c)
     @topic.valid?
     assert_equal 'custom message', @topic.errors.on(:title)
@@ -355,7 +339,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   def test_validates_inclusion_of_finds_global_default_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:inclusion => 'global message'}}
-
+  
     Topic.validates_inclusion_of :title, :in => %w(a b c)
     @topic.valid?
     assert_equal 'global message', @topic.errors.on(:title)
@@ -381,7 +365,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   def test_validates_exclusion_of_finds_custom_model_key_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:custom => {:topic => {:title => {:exclusion => 'custom message'}}}}}
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:exclusion => 'global message'}}
-
+  
     Topic.validates_exclusion_of :title, :in => %w(a b c)
     @topic.title = 'a'
     @topic.valid?
@@ -390,7 +374,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   def test_validates_exclusion_of_finds_global_default_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:exclusion => 'global message'}}
-
+  
     Topic.validates_exclusion_of :title, :in => %w(a b c)
     @topic.title = 'a'
     @topic.valid?
@@ -417,7 +401,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   def test_validates_numericality_of_only_integer_finds_custom_model_key_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:custom => {:topic => {:title => {:not_a_number => 'custom message'}}}}}
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:not_a_number => 'global message'}}
-
+  
     Topic.validates_numericality_of :title, :only_integer => true
     @topic.title = 'a'
     @topic.valid?
@@ -426,7 +410,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   def test_validates_numericality_of_only_integer_finds_global_default_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:not_a_number => 'global message'}}
-
+  
     Topic.validates_numericality_of :title, :only_integer => true
     @topic.title = 'a'
     @topic.valid?
@@ -453,7 +437,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   def test_validates_numericality_of_odd_finds_custom_model_key_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:custom => {:topic => {:title => {:odd => 'custom message'}}}}}
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:odd => 'global message'}}
-
+  
     Topic.validates_numericality_of :title, :only_integer => true, :odd => true
     @topic.title = 0
     @topic.valid?
@@ -462,7 +446,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   def test_validates_numericality_of_odd_finds_global_default_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:odd => 'global message'}}
-
+  
     Topic.validates_numericality_of :title, :only_integer => true, :odd => true
     @topic.title = 0
     @topic.valid?
@@ -489,7 +473,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   def test_validates_numericality_of_less_than_finds_custom_model_key_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:custom => {:topic => {:title => {:less_than => 'custom message'}}}}}
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:less_than => 'global message'}}
-
+  
     Topic.validates_numericality_of :title, :only_integer => true, :less_than => 0
     @topic.title = 1
     @topic.valid?
@@ -498,7 +482,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   def test_validates_numericality_of_less_than_finds_global_default_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:less_than => 'global message'}}
-
+  
     Topic.validates_numericality_of :title, :only_integer => true, :less_than => 0
     @topic.title = 1
     @topic.valid?
@@ -523,7 +507,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   def test_validates_associated_finds_custom_model_key_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:custom => {:topic => {:replies => {:invalid => 'custom message'}}}}}
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:invalid => 'global message'}}
-
+  
     Topic.validates_associated :replies
     replied_topic.valid?
     assert_equal 'custom message', replied_topic.errors.on(:replies)
@@ -531,7 +515,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   def test_validates_associated_finds_global_default_translation
     I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:invalid => 'global message'}}
-
+  
     Topic.validates_associated :replies
     replied_topic.valid?
     assert_equal 'global message', replied_topic.errors.on(:replies)
