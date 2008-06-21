@@ -1,4 +1,4 @@
-I18n.backend.set_translations :'en-US', {
+I18n.backend.store_translations :'en-US', {
   :active_record => {
     :error_messages => {
       :inclusion => "is not included in the list",
