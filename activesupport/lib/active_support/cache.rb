@@ -29,10 +29,8 @@ module ActiveSupport
           key.cache_key
         when key.is_a?(Array)
           key.collect { |element| expand_cache_key(element) }.to_param
-        when key.respond_to?(:to_param)
+        when key
           key.to_param
-        else
-          key
         end.to_s
 
       expanded_cache_key
