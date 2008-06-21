@@ -1,5 +1,7 @@
 *Edge*
 
+* Fix column collision with named_scope and :joins.  #46 [Duncan Beevers, Mark Catley]
+
 * db:migrate:down and :up update schema_migrations.  #369 [Michael Raidel, RaceCondition]
 
 * PostgreSQL: support :conditions => [':foo::integer', { :foo => 1 }] without treating the ::integer typecast as a bind variable.  [Tarmo Tänav]
