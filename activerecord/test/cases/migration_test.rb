@@ -483,6 +483,32 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_rename_column_preserves_default_value_not_null
+      begin
+        default_before = Developer.connection.columns("developers").find { |c| c.name == "salary" }.default
+        assert_equal 70000, default_before
+        Developer.connection.rename_column "developers", "salary", "anual_salary"
+        Developer.reset_column_information
+        assert Developer.column_names.include?("anual_salary")
+        default_after = Developer.connection.columns("developers").find { |c| c.name == "anual_salary" }.default
+        assert_equal 70000, default_after
+      ensure
+        Developer.connection.rename_column "developers", "anual_salary", "salary"
+        Developer.reset_column_information
+      end
+    end
+
+    def test_rename_nonexistent_column
+      ActiveRecord::Base.connection.create_table(:hats) do |table|
+        table.column :hat_name, :string, :default => nil
+      end
+      assert_raises(ActiveRecord::ActiveRecordError) do
+        Person.connection.rename_column "hats", "nonexistent", "should_fail"
+      end
+    ensure
+      ActiveRecord::Base.connection.drop_table(:hats)
+    end
+
     def test_rename_column_with_sql_reserved_word
       begin
         assert_nothing_raised { Person.connection.rename_column "people", "first_name", "group" }
