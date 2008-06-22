@@ -13,7 +13,7 @@ end
 desc 'Run all tests by default'
 task :default => :test
 
-%w(test rdoc package release).each do |task_name|
+%w(test rdoc pgem package release).each do |task_name|
   desc "Run #{task_name} task for all projects"
   task task_name do
     PROJECTS.each do |project|
@@ -25,14 +25,14 @@ end
 
 desc "Generate documentation for the Rails framework"
 Rake::RDocTask.new do |rdoc|
-  rdoc.rdoc_dir = 'doc'
-  rdoc.title    = "Rails Framework Documentation"
+  rdoc.rdoc_dir = 'doc/rdoc'
+  rdoc.title    = "Ruby on Rails Documentation"
 
   rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.options << '-A cattr_accessor=object'
   rdoc.options << '--charset' << 'utf-8'
 
-  rdoc.template = "#{ENV['template']}.rb" if ENV['template']
+  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : './doc/template/horo'
 
   rdoc.rdoc_files.include('railties/CHANGELOG')
   rdoc.rdoc_files.include('railties/MIT-LICENSE')
@@ -68,13 +68,13 @@ end
 
 # Enhance rdoc task to copy referenced images also
 task :rdoc do
-  FileUtils.mkdir_p "doc/files/examples/"
-  FileUtils.copy "activerecord/examples/associations.png", "doc/files/examples/associations.png"
+  FileUtils.mkdir_p "doc/rdoc/files/examples/"
+  FileUtils.copy "activerecord/examples/associations.png", "doc/rdoc/files/examples/associations.png"
 end
 
 desc "Publish API docs for Rails as a whole and for each component"
 task :pdoc => :rdoc do
-  Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/api", "doc").upload
+  Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/api", "doc/rdoc").upload
   PROJECTS.each do |project|
     system %(cd #{project} && #{env} #{$0} pdoc)
   end

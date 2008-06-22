@@ -264,7 +264,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.title    = "Railties -- Gluing the Engine to the Rails"
   rdoc.options << '--line-numbers' << '--inline-source' << '--accessor' << 'cattr_accessor=object'
   rdoc.options << '--charset' << 'utf-8'
-  rdoc.template = "#{ENV['template']}.rb" if ENV['template']
+  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/*.rb')
   rdoc.rdoc_files.include('lib/rails/*.rb')
