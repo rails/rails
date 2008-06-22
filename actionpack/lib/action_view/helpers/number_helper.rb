@@ -72,7 +72,7 @@ module ActionView
         options = options.symbolize_keys
         
         locale = options[:locale]
-        locale ||= request.locale if respond_to?(:request)
+        locale ||= self.locale if respond_to?(:locale)
 
         defaults  = :'currency.format'.t(locale) || {}
         precision = options[:precision] || defaults[:precision]

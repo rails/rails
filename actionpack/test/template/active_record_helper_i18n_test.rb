@@ -5,22 +5,22 @@ class ActiveRecordHelperI18nTest < Test::Unit::TestCase
   
   attr_reader :request
   def setup
-    @request = mock
     @object = stub :errors => stub(:count => 1, :full_messages => ['full_messages'])
     stubs(:content_tag).returns 'content_tag'
+    stubs(:locale)
     
     I18n.stubs(:t).with(:'header_message', :locale => 'en-US', :scope => [:active_record, :error], :count => 1, :object_name => '').returns "1 error prohibited this  from being saved"
     I18n.stubs(:t).with(:'message', :locale => 'en-US', :scope => [:active_record, :error]).returns 'There were problems with the following fields:'
   end
 
   def test_error_messages_for_given_a_locale_it_does_not_check_request_for_locale
-    request.expects(:locale).never
+    expects(:locale).never
     @object.errors.stubs(:count).returns 0
     error_messages_for(:object => @object, :locale => 'en-US')
   end
   
   def test_error_messages_for_given_no_locale_it_checks_request_for_locale
-    request.expects(:locale).returns 'en-US'
+    expects(:locale).returns 'en-US'
     @object.errors.stubs(:count).returns 0
     error_messages_for(:object => @object)
   end
