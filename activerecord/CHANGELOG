@@ -1,7 +1,6 @@
 *Edge*
 
-* PostgreSQL: support :conditions => [':foo::integer', { :foo => 1 }] without
-treating the ::integer typecast as a bind variable.  [Tarmo Tänav]
+* PostgreSQL: support :conditions => [':foo::integer', { :foo => 1 }] without treating the ::integer typecast as a bind variable.  [Tarmo Tänav]
 
 * MySQL: rename_column preserves column defaults.  #466 [Diego Algorta]
 
