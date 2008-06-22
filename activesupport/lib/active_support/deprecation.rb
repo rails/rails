@@ -194,23 +194,6 @@ module ActiveSupport
           ActiveSupport::Deprecation.warn("#{@old_const} is deprecated! Use #{@new_const} instead.", callstack)
         end
     end
-
-    class DeprecatedConstantToMethodProxy < DeprecationProxy #:nodoc:
-      def initialize(old_const, new_target, new_method)
-        @old_const = old_const
-        @new_target = new_target
-        @new_method = new_method
-      end
-
-      private
-        def target
-          @new_target.__send__(@new_method)
-        end
-
-        def warn(callstack, called, args)
-          ActiveSupport::Deprecation.warn("#{@old_const} is deprecated! Use #{@new_target.inspect}.#{@new_method} instead.", callstack)
-        end
-    end
   end
 end
 
