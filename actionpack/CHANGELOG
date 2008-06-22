@@ -1,12 +1,8 @@
-*Edge*
+*2.1.1 (next release)*
 
 * Deprecate ActionView::Base.erb_variable. Use the concat helper method instead of appending to it directly.  [Jeremy Kemper]
 
 * Fixed Request#remote_ip to only raise hell if the HTTP_CLIENT_IP and HTTP_X_FORWARDED_FOR doesn't match (not just if they're both present) [Mark Imbriaco, Bradford Folkens]
-
-* Allow caches_action to accept a layout option [José Valim]
-
-* Added Rack processor [Ezra Zygmuntowicz, Josh Peek]
 
 
 *2.1.0 (May 31st, 2008)*

@@ -1,4 +1,4 @@
-*Edge*
+*2.1.1 (next release)*
 
 * Fixed Base#exists? to check status code as integer [#299 state:resolved] (Wes Oldenbeuving)
 

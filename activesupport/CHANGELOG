@@ -1,4 +1,4 @@
-*Edge*
+*2.1.1 (next release)*
 
 * Added StringQuestioneer for doing things like StringQuestioneer.new("production").production? # => true and StringQuestioneer.new("production").development? # => false [DHH]
 
