@@ -49,7 +49,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.title    = "Action Pack -- On rails from request to response"
   rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.options << '--charset' << 'utf-8'
-  rdoc.template = "#{ENV['template']}.rb" if ENV['template']
+  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
   if ENV['DOC_FILES'] 
     rdoc.rdoc_files.include(ENV['DOC_FILES'].split(/,\s*/))
   else

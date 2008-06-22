@@ -33,7 +33,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.title    = "Active Support -- Utility classes and standard library extensions from Rails"
   rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.options << '--charset' << 'utf-8'
-  rdoc.template = "#{ENV['template']}.rb" if ENV['template']
+  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/active_support.rb')
   rdoc.rdoc_files.include('lib/active_support/**/*.rb')
