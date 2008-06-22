@@ -11,7 +11,7 @@ module ActiveSupport #:nodoc:
           options.assert_valid_keys(:connector, :skip_last_comma, :locale)
           
           locale = options[:locale]
-          locale ||= request.locale if respond_to?(:request)
+          locale ||= self.locale if respond_to?(:locale)
           
           default = :'support.array.sentence_connector'.t(locale)
           options.reverse_merge! :connector => default, :skip_last_comma => false
