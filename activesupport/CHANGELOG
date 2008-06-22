@@ -1,5 +1,7 @@
 *Edge*
 
+* Move the test related core_ext stuff out of core_ext so it's only loaded by the test helpers.  [Michael Koziarski]
+
 * Add Inflection rules for String#humanize. #535 [dcmanges]
 
   ActiveSupport::Inflector.inflections do |inflect|
