@@ -6,18 +6,15 @@ task :notes do
 end
 
 namespace :notes do
-  desc "Enumerate all OPTIMIZE annotations"
-  task :optimize do
-    SourceAnnotationExtractor.enumerate "OPTIMIZE"
+  ["OPTIMIZE", "FIXME", "TODO"].each do |annotation|
+    desc "Enumerate all #{annotation} annotations"
+    task annotation.downcase.intern do
+      SourceAnnotationExtractor.enumerate annotation
+    end
   end
 
-  desc "Enumerate all FIXME annotations"
-  task :fixme do
-    SourceAnnotationExtractor.enumerate "FIXME"
-  end
-
-  desc "Enumerate all TODO annotations"
-  task :todo do
-    SourceAnnotationExtractor.enumerate "TODO"
+  desc "Enumerate a custom annotation, specify with ANNOTATION=WTFHAX"
+  task :custom do
+    SourceAnnotationExtractor.enumerate ENV['ANNOTATION']
   end
 end
