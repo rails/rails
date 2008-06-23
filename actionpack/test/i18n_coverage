@@ -1,0 +1,9 @@
+rcov -x abstract_unit.rb  \
+-i action_view/helpers/number_helper.rb,action_view/helpers/date_helper.rb,action_view/helpers/active_record_helper.rb  \
+template/number_helper_i18n_test.rb \
+template/date_helper_i18n_test.rb \
+template/active_record_helper_i18n_test.rb \
+
+# template/number_helper_test.rb \
+# template/date_helper_test.rb \
+# template/active_record_helper_test.rb
