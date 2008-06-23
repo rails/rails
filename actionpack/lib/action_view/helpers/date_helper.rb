@@ -59,15 +59,12 @@ module ActionView
       #   distance_of_time_in_words(Time.now, Time.now)           # => less than a minute
       #
       def distance_of_time_in_words(from_time, to_time = 0, include_seconds = false, options = {})
-        locale = options[:locale] 
-        locale ||= self.locale if respond_to?(:locale)
-
         from_time = from_time.to_time if from_time.respond_to?(:to_time)
         to_time = to_time.to_time if to_time.respond_to?(:to_time)
         distance_in_minutes = (((to_time - from_time).abs)/60).round
         distance_in_seconds = ((to_time - from_time).abs).round
 
-        I18n.with_options :locale => locale, :scope => :'datetime.distance_in_words' do |locale|
+        I18n.with_options :locale => options[:locale], :scope => :'datetime.distance_in_words' do |locale|
           case distance_in_minutes
             when 0..1
               return distance_in_minutes == 0 ? 

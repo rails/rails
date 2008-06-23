@@ -69,12 +69,9 @@ module ActionView
       #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "", :format => "%n %u")
       #  # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
-        options = options.symbolize_keys
-
-        locale = options[:locale]
-        locale ||= self.locale if respond_to?(:locale)
-
-        defaults  = :'currency.format'.t(locale) || {}
+        options  = options.symbolize_keys
+        defaults = :'currency.format'.t(options[:locale]) || {}
+                
         precision = options[:precision] || defaults[:precision]
         unit      = options[:unit]      || defaults[:unit]
         separator = options[:separator] || defaults[:separator]

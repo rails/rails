@@ -159,9 +159,6 @@ module ActionView
         end
         
         count  = objects.inject(0) {|sum, object| sum + object.errors.count }
-        locale = options[:locale]
-        locale ||= self.locale if respond_to?(:locale)
-
         unless count.zero?
           html = {}
           [:id, :class].each do |key|
@@ -174,7 +171,7 @@ module ActionView
           end
           options[:object_name] ||= params.first
 
-          I18n.with_options :locale => locale, :scope => [:active_record, :error] do |locale|
+          I18n.with_options :locale => options[:locale], :scope => [:active_record, :error] do |locale|
             header_message = if options.include?(:header_message)
               options[:header_message]
             else 
