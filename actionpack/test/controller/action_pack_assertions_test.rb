@@ -419,22 +419,6 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     assert_equal "Mr. David", @response.body
   end
 
-  def test_follow_redirect
-    process :redirect_to_action
-    assert_redirected_to :action => "flash_me"
-
-    follow_redirect
-    assert_equal 1, @request.parameters["id"].to_i
-
-    assert "Inconceivable!", @response.body
-  end
-
-  def test_follow_redirect_outside_current_action
-    process :redirect_to_controller
-    assert_redirected_to :controller => "elsewhere", :action => "flash_me"
-
-    assert_raises(RuntimeError, "Can't follow redirects outside of current controller (elsewhere)") { follow_redirect }
-  end
 
   def test_assert_redirection_fails_with_incorrect_controller
     process :redirect_to_controller

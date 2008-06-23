@@ -18,6 +18,11 @@
 
 * Made ActionView::Base#render_file private [Josh Peek]
 
+* Remove follow_redirect from controller functional tests.
+
+	If you want to follow redirects you can use integration tests.  The functional test
+	version was only useful if you were using redirect_to :id=>...
+
 * Fix polymorphic_url with singleton resources.  #461 [Tammer Saleh]
 
 * Replaced TemplateFinder abstraction with ViewLoadPaths [Josh Peek]
