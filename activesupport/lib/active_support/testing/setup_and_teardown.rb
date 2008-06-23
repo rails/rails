@@ -14,9 +14,9 @@ module ActiveSupport
         base.define_callbacks :setup, :teardown
 
         begin
-          gem 'mocha'
+          require 'mocha'
           base.alias_method_chain :run, :callbacks_and_mocha
-        rescue Gem::LoadError
+        rescue LoadError
           base.alias_method_chain :run, :callbacks
         end
       end
