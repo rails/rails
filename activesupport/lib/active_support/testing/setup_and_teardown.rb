@@ -18,9 +18,9 @@ module ActiveSupport
             alias_method :run, :run_with_callbacks_and_miniunit
           else
             begin
-              require 'mocha'
+              gem 'mocha'
               alias_method :run, :run_with_callbacks_and_mocha
-            rescue LoadError
+            rescue Gem::LoadError
               alias_method :run, :run_with_callbacks_and_testunit
             end
           end
