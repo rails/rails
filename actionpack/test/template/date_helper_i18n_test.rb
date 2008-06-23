@@ -5,22 +5,11 @@ class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
   attr_reader :request
   
   def setup
-    stubs(:locale)
     @from = Time.mktime(2004, 6, 6, 21, 45, 0)
   end
   
   # distance_of_time_in_words
 
-  def test_distance_of_time_in_words_given_a_locale_it_does_not_check_request_for_locale
-    expects(:locale).never
-    distance_of_time_in_words @from, @from + 1.second, false, :locale => 'en-US'
-  end
-  
-  def test_distance_of_time_in_words_given_no_locale_it_checks_request_for_locale
-    expects(:locale).returns 'en-US'
-    distance_of_time_in_words @from, @from + 1.second
-  end
-  
   def test_distance_of_time_in_words_calls_i18n
     { # with include_seconds
       [2.seconds,  true]  => [:'less_than_x_seconds', 5],   
@@ -64,7 +53,6 @@ class DateHelperSelectTagsI18nTests < Test::Unit::TestCase
   attr_reader :request
   
   def setup
-    # stubs(:locale)
     I18n.stubs(:translate).with(:'date.month_names', 'en-US').returns Date::MONTHNAMES
   end
   
