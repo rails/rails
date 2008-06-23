@@ -21,8 +21,8 @@ module ActiveRecord
     
     class << self
       def default_error_messages
-        # ActiveSupport::Deprecation.warn("ActiveRecord::Errors.default_error_messages has been deprecated. Please use :'active_record.error_messages'.t.")
-        :'active_record.error_messages'.t
+        ActiveSupport::Deprecation.warn("ActiveRecord::Errors.default_error_messages has been deprecated. Please use 'active_record.error_messages'.t.")
+        'active_record.error_messages'.t
       end
     end
 
@@ -163,7 +163,7 @@ module ActiveRecord
       @errors.each_key do |attr|
         @errors[attr].each do |message|
           next unless message
-    
+
           if attr == "base"
             full_messages << message
           else
@@ -872,7 +872,7 @@ module ActiveRecord
             end
             raw_value = raw_value.to_i
           else
-           begin
+            begin
               raw_value = Kernel.Float(raw_value.to_s)
             rescue ArgumentError, TypeError
               message = record.errors.generate_message(attr_name, :not_a_number, :value => raw_value, :default => configuration[:message])

@@ -34,6 +34,12 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
     end
   end
   
+  def test_default_error_messages_is_deprecated
+    assert_deprecated('ActiveRecord::Errors.default_error_messages') do
+      ActiveRecord::Errors.default_error_messages
+    end
+  end
+  
   # ActiveRecord::Errors
   
   def test_errors_generate_message_translates_custom_model_attribute_key
@@ -182,15 +188,29 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   # validates_length_of :within
   
-  def test_validates_length_of_within_generates_message
+  def test_validates_length_of_within_generates_message_with_title_too_short
     Topic.validates_length_of :title, :within => 3..5
     @topic.errors.expects(:generate_message).with(:title, :too_short, {:count => 3, :default => nil})
     @topic.valid?
   end
   
-  def test_validates_length_of_within_generates_message_with_custom_default_message
+  def test_validates_length_of_within_generates_message_with_title_too_short_and_custom_default_message
     Topic.validates_length_of :title, :within => 3..5, :too_short => 'custom'
     @topic.errors.expects(:generate_message).with(:title, :too_short, {:count => 3, :default => 'custom'})
+    @topic.valid?
+  end
+  
+  def test_validates_length_of_within_generates_message_with_title_too_long
+    Topic.validates_length_of :title, :within => 3..5
+    @topic.title = 'this title is too long'
+    @topic.errors.expects(:generate_message).with(:title, :too_long, {:count => 5, :default => nil})
+    @topic.valid?
+  end
+  
+  def test_validates_length_of_within_generates_message_with_title_too_long_and_custom_default_message
+    Topic.validates_length_of :title, :within => 3..5, :too_long => 'custom'
+    @topic.title = 'this title is too long'
+    @topic.errors.expects(:generate_message).with(:title, :too_long, {:count => 5, :default => 'custom'})
     @topic.valid?
   end
   
@@ -382,7 +402,43 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   end
   
   
-  # validates_numericality_of :only_integer
+  # validates_numericality_of without :only_integer
+  
+  def test_validates_numericality_of_generates_message
+    Topic.validates_numericality_of :title
+    @topic.title = 'a'
+    @topic.errors.expects(:generate_message).with(:title, :not_a_number, {:value => 'a', :default => nil})
+    @topic.valid?
+  end
+  
+  def test_validates_numericality_of_generates_message_with_custom_default_message
+    Topic.validates_numericality_of :title, :message => 'custom'
+    @topic.title = 'a'
+    @topic.errors.expects(:generate_message).with(:title, :not_a_number, {:value => 'a', :default => 'custom'})
+    @topic.valid?
+  end
+  
+  def test_validates_numericality_of_finds_custom_model_key_translation
+    I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:custom => {:topic => {:title => {:not_a_number => 'custom message'}}}}}
+    I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:not_a_number => 'global message'}}
+  
+    Topic.validates_numericality_of :title
+    @topic.title = 'a'
+    @topic.valid?
+    assert_equal 'custom message', @topic.errors.on(:title)
+  end
+  
+  def test_validates_numericality_of_finds_global_default_translation
+    I18n.backend.store_translations 'en-US', :active_record => {:error_messages => {:not_a_number => 'global message'}}
+  
+    Topic.validates_numericality_of :title, :only_integer => true
+    @topic.title = 'a'
+    @topic.valid?
+    assert_equal 'global message', @topic.errors.on(:title)
+  end
+  
+  
+  # validates_numericality_of with :only_integer
   
   def test_validates_numericality_of_only_integer_generates_message
     Topic.validates_numericality_of :title, :only_integer => true

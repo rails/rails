@@ -70,7 +70,7 @@ module ActionView
       #  # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
         options = options.symbolize_keys
-        
+
         locale = options[:locale]
         locale ||= self.locale if respond_to?(:locale)
 
