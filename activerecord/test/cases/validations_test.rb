@@ -853,7 +853,9 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_validates_length_with_globally_modified_error_message
-    ActiveRecord::Errors.default_error_messages[:too_short] = 'tu est trops petit hombre %d'
+    ActiveSupport::Deprecation.silence do
+      ActiveRecord::Errors.default_error_messages[:too_short] = 'tu est trops petit hombre %d'
+    end
     Topic.validates_length_of :title, :minimum => 10
     t = Topic.create(:title => 'too short')
     assert !t.valid?
