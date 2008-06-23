@@ -187,6 +187,7 @@ class TextHelperTest < ActionView::TestCase
               http://www.mail-archive.com/rails@lists.rubyonrails.org/
               http://www.amazon.com/Testing-Equal-Sign-In-Path/ref=pd_bbs_sr_1?ie=UTF8&s=books&qid=1198861734&sr=8-1
               http://en.wikipedia.org/wiki/Sprite_(computer_graphics)
+              http://en.wikipedia.org/wiki/Texas_hold'em
             )
 
     urls.each do |url|
