@@ -613,7 +613,8 @@ module ActionController #:nodoc:
       #
       # This takes the current URL as is and only exchanges the action. In contrast, <tt>url_for :action => 'print'</tt>
       # would have slashed-off the path components after the changed action.
-      def url_for(options = {}) #:doc:
+      def url_for(options = {})
+        options ||= {}
         case options
           when String
             options

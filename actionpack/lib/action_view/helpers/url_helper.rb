@@ -63,17 +63,15 @@ module ActionView
       #   # calls @workshop.to_s
       #   # => /workshops/5
       def url_for(options = {})
+        options ||= {}
         case options
         when Hash
-          show_path =  options[:host].nil? ? true : false
-          options = { :only_path => show_path }.update(options.symbolize_keys)
+          options = { :only_path => options[:host].nil? }.update(options.symbolize_keys)
           escape  = options.key?(:escape) ? options.delete(:escape) : true
           url     = @controller.send(:url_for, options)
         when String
           escape = true
           url    = options
-        when NilClass
-          url = @controller.send(:url_for, nil)
         else
           escape = false
           url    = polymorphic_path(options)
