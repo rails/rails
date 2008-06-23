@@ -168,21 +168,6 @@ class RedirectTest < Test::Unit::TestCase
     assert_redirected_to :action => "other_host", :only_path => false, :host => 'other.test.host'
   end
 
-  def test_redirect_error_with_pretty_diff
-    get :host_redirect
-    assert_response :redirect
-    begin
-      assert_redirected_to :action => "other_host", :only_path => true
-    rescue Test::Unit::AssertionFailedError => err
-      expected_msg, redirection_msg, diff_msg = err.message.scan(/<\{[^\}]+\}>/).collect { |s| s[2..-3] }
-      assert_match %r("only_path"=>false),        redirection_msg
-      assert_match %r("host"=>"other.test.host"), redirection_msg
-      assert_match %r("action"=>"other_host"),    redirection_msg
-      assert_match %r("only_path"=>false),        diff_msg
-      assert_match %r("host"=>"other.test.host"), diff_msg
-    end
-  end
-
   def test_module_redirect
     get :module_redirect
     assert_response :redirect
@@ -235,9 +220,11 @@ class RedirectTest < Test::Unit::TestCase
     
     get :redirect_to_existing_record
     assert_equal "http://test.host/workshops/5", redirect_to_url
+    assert_redirected_to Workshop.new(5, false)
 
     get :redirect_to_new_record
     assert_equal "http://test.host/workshops", redirect_to_url
+    assert_redirected_to Workshop.new(5, true)
   end
 
   def test_redirect_to_nil
@@ -283,7 +270,7 @@ module ModuleTest
     def test_module_redirect_using_options
       get :module_redirect
       assert_response :redirect
-      assert_redirected_to :controller => 'redirect', :action => "hello_world"
+      assert_redirected_to :controller => '/redirect', :action => "hello_world"
     end
   end
 end

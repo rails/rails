@@ -56,75 +56,18 @@ module ActionController
       #   # assert that the redirection was to the named route login_url
       #   assert_redirected_to login_url
       #
+      #   # assert that the redirection was to the url for @customer
+      #   assert_redirected_to @customer
+      #
       def assert_redirected_to(options = {}, message=nil)
         clean_backtrace do
           assert_response(:redirect, message)
           return true if options == @response.redirected_to
-          ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty?
+          redirected_to_after_normalisation = normalize_argument_to_redirection(@response.redirected_to)
+          options_after_normalisation       = normalize_argument_to_redirection(options)
 
-          begin
-            url  = {}
-            original = { :expected => options, :actual => @response.redirected_to.is_a?(Symbol) ? @response.redirected_to : @response.redirected_to.dup }
-            original.each do |key, value|
-              if value.is_a?(Symbol)
-                value = @controller.respond_to?(value, true) ? @controller.send(value) : @controller.send("hash_for_#{value}_url")
-              end
-
-              unless value.is_a?(Hash)
-                request = case value
-                  when NilClass    then nil
-                  when /^\w+:\/\// then recognized_request_for(%r{^(\w+://.*?(/|$|\?))(.*)$} =~ value ? $3 : nil)
-                  else                  recognized_request_for(value)
-                end
-                value = request.path_parameters if request
-              end
-
-              if value.is_a?(Hash) # stringify 2 levels of hash keys
-                if name = value.delete(:use_route)
-                  route = ActionController::Routing::Routes.named_routes[name]
-                  value.update(route.parameter_shell)
-                end
-
-                value.stringify_keys!
-                value.values.select { |v| v.is_a?(Hash) }.collect { |v| v.stringify_keys! }
-                if key == :expected && value['controller'] == @controller.controller_name && original[:actual].is_a?(Hash)
-                  original[:actual].stringify_keys!
-                  value.delete('controller') if original[:actual]['controller'].nil? || original[:actual]['controller'] == value['controller']
-                end
-              end
-
-              if value.respond_to?(:[]) && value['controller']
-                value['controller'] = value['controller'].to_s
-                if key == :actual && value['controller'].first != '/' && !value['controller'].include?('/')
-                  new_controller_path = ActionController::Routing.controller_relative_to(value['controller'], @controller.class.controller_path)
-                  value['controller'] = new_controller_path if value['controller'] != new_controller_path && ActionController::Routing.possible_controllers.include?(new_controller_path) && @response.redirected_to.is_a?(Hash)
-                end
-                value['controller'] = value['controller'][1..-1] if value['controller'].first == '/' # strip leading hash
-              end
-              url[key] = value
-            end
-
-            @response_diff = url[:actual].diff(url[:expected]) if url[:actual]
-            msg = build_message(message, "expected a redirect to <?>, found one to <?>, a difference of <?> ", url[:expected], url[:actual], @response_diff)
-
-            assert_block(msg) do
-              url[:expected].keys.all? do |k|
-                if k == :controller then url[:expected][k] == ActionController::Routing.controller_relative_to(url[:actual][k], @controller.class.controller_path)
-                else parameterize(url[:expected][k]) == parameterize(url[:actual][k])
-                end
-              end
-            end
-          rescue ActionController::RoutingError # routing failed us, so match the strings only.
-            msg = build_message(message, "expected a redirect to <?>, found one to <?>", options, @response.redirect_url)
-            url_regexp = %r{^(\w+://.*?(/|$|\?))(.*)$}
-            eurl, epath, url, path = [options, @response.redirect_url].collect do |url|
-              u, p = (url_regexp =~ url) ? [$1, $3] : [nil, url]
-              [u, (p.first == '/') ? p : '/' + p]
-            end.flatten
-
-            assert_equal(eurl, url, msg) if eurl && url
-            assert_equal(epath, path, msg) if epath && path
-          end
+          assert_equal redirected_to_after_normalisation, options_after_normalisation,
+                       "Expected response to be a redirect to <#{options_after_normalisation}> but was a redirect to <#{redirected_to_after_normalisation}>"
         end
       end
 
@@ -150,22 +93,23 @@ module ActionController
       end
 
       private
-        # Recognizes the route for a given path.
-        def recognized_request_for(path, request_method = nil)
-          path = "/#{path}" unless path.first == '/'
-
-          # Assume given controller
-          request = ActionController::TestRequest.new({}, {}, nil)
-          request.env["REQUEST_METHOD"] = request_method.to_s.upcase if request_method
-          request.path   = path
-
-          ActionController::Routing::Routes.recognize(request)
-          request
-        end
 
         # Proxy to to_param if the object will respond to it.
         def parameterize(value)
           value.respond_to?(:to_param) ? value.to_param : value
+        end
+
+        def normalize_argument_to_redirection(fragment)
+          after_routing = @controller.url_for(fragment)
+          if after_routing =~ %r{^\w+://.*}
+            after_routing
+          else
+            # FIXME - this should probably get removed.
+            if after_routing.first != '/'
+              after_routing = '/' + after_routing
+            end
+            @request.protocol + @request.host_with_port + after_routing
+          end
         end
     end
   end

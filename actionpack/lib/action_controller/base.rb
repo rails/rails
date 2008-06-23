@@ -1042,27 +1042,29 @@ module ActionController #:nodoc:
           status = 302
         end
 
+        response.redirected_to= options
+        logger.info("Redirected to #{options}") if logger && logger.info?
+
         case options
           when %r{^\w+://.*}
-            raise DoubleRenderError if performed?
-            logger.info("Redirected to #{options}") if logger && logger.info?
-            response.redirect(options, interpret_status(status))
-            response.redirected_to = options
-            @performed_redirect = true
-
+            redirect_to_full_url(options, status)
           when String
-            redirect_to(request.protocol + request.host_with_port + options, :status=>status)
-
+            redirect_to_full_url(request.protocol + request.host_with_port + options, status)
           when :back
-            request.env["HTTP_REFERER"] ? redirect_to(request.env["HTTP_REFERER"], :status=>status) : raise(RedirectBackError)
-
-          when Hash
-            redirect_to(url_for(options), :status=>status)
-            response.redirected_to = options
-
+            if referer = request.headers["Referer"]
+              redirect_to(referer, :status=>status)
+            else
+              raise RedirectBackError
+            end
           else
-            redirect_to(url_for(options), :status=>status)
+            redirect_to_full_url(url_for(options), status)
         end
+      end
+
+      def redirect_to_full_url(url, status)
+        raise DoubleRenderError if performed?
+        response.redirect(url, interpret_status(status))
+        @performed_redirect = true
       end
 
       # Sets a HTTP 1.1 Cache-Control header. Defaults to issuing a "private" instruction, so that

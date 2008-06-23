@@ -232,7 +232,6 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
       process :redirect_to_named_route
       assert_redirected_to 'http://test.host/route_one'
       assert_redirected_to route_one_url
-      assert_redirected_to :route_one_url
     end
   end
 
@@ -252,9 +251,6 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
       end
       assert_raise(Test::Unit::AssertionFailedError) do
         assert_redirected_to route_two_url
-      end
-      assert_raise(Test::Unit::AssertionFailedError) do
-        assert_redirected_to :route_two_url
       end
     end
   end
@@ -432,14 +428,16 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     assert_redirected_to :controller => 'action_pack_assertions', :action => "flash_me", :id => 1, :params => { :panda => 'fun' }
   end
 
-  def test_redirected_to_url_leadling_slash
+  def test_redirected_to_url_leading_slash
     process :redirect_to_path
     assert_redirected_to '/some/path'
   end
+
   def test_redirected_to_url_no_leadling_slash
     process :redirect_to_path
     assert_redirected_to 'some/path'
   end
+
   def test_redirected_to_url_full_url
     process :redirect_to_path
     assert_redirected_to 'http://test.host/some/path'
@@ -459,7 +457,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   def test_redirected_to_with_nested_controller
     @controller = Admin::InnerModuleController.new
     get :redirect_to_absolute_controller
-    assert_redirected_to :controller => 'content'
+    assert_redirected_to :controller => '/content'
 
     get :redirect_to_fellow_controller
     assert_redirected_to :controller => 'admin/user'

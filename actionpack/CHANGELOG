@@ -18,6 +18,11 @@
 
 * Made ActionView::Base#render_file private [Josh Peek]
 
+* Refactor and simplify the implementation of assert_redirected_to.  Arguments are now normalised relative to the controller being tested,  not the root of the application.  [Michael Koziarski]
+
+  This could cause some erroneous test failures if you were redirecting between controllers
+  in different namespaces and wrote your assertions relative to the root of the application.
+
 * Remove follow_redirect from controller functional tests.
 
 	If you want to follow redirects you can use integration tests.  The functional test
