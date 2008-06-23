@@ -413,6 +413,8 @@ module ActionController #:nodoc:
       get(@response.redirected_to.delete(:action), @response.redirected_to.stringify_keys)
     end
 
+    deprecate :follow_redirect => "If you wish to follow redirects, you should use integration tests"
+
     def assigns(key = nil) 
       if key.nil? 
         @response.template.assigns 
