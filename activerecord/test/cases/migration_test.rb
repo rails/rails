@@ -175,7 +175,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_equal 'bigint', eight.sql_type
       elsif current_adapter?(:MysqlAdapter)
         assert_match /^int\(\d+\)/, default.sql_type
-        assert_match /^smallint\(\d+\)/, one.sql_type
+        assert_match /^tinyint\(\d+\)/, one.sql_type
         assert_match /^int\(\d+\)/, four.sql_type
         assert_match /^bigint\(\d+\)/, eight.sql_type
       elsif current_adapter?(:OracleAdapter)
