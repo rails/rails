@@ -53,7 +53,9 @@ module ActionView
       end
 
       def cache_fragment(block, name = {}, options = nil) #:nodoc:
-        @view.fragment_for(block, name, options) { @view.response.template.output_buffer ||= '' }
+        @view.fragment_for(block, name, options) do
+          @view.response.template.output_buffer
+        end
       end
     end
   end
