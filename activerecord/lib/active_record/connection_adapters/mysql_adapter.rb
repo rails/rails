@@ -122,10 +122,11 @@ module ActiveRecord
             else
               super # we could return 65535 here, but we leave it undecorated by default
             end
-          when /^int/i;       4
           when /^bigint/i;    8
-          when /^smallint/i;  2
+          when /^int/i;       4
           when /^mediumint/i; 3
+          when /^smallint/i;  2
+          when /^tinyint/i;   1
           else
             super
           end
@@ -479,10 +480,11 @@ module ActiveRecord
         return super unless type.to_s == 'integer'
 
         case limit
-        when 1..2;   'smallint'
-        when 3;      'mediumint'
-        when 4, nil; 'int(11)'
-        when 5..8;   'bigint'
+        when 1;       'tinyint'
+        when 2;       'smallint'
+        when 3;       'mediumint'
+        when 4, nil;  'int(11)'
+        else;         'bigint'
         end
       end
 
