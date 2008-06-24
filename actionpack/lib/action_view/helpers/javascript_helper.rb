@@ -80,10 +80,9 @@ module ActionView
       #       return false;">Show me more</a>
       #
       def link_to_function(name, *args, &block)
-        html_options = args.extract_options!
+        html_options = args.extract_options!.symbolize_keys
         function = args[0] || ''
 
-        html_options.symbolize_keys!
         function = update_page(&block) if block_given?
         content_tag(
           "a", name, 
@@ -111,10 +110,9 @@ module ActionView
       #     page[:details].visual_effect :toggle_slide
       #   end
       def button_to_function(name, *args, &block)
-        html_options = args.extract_options!
+        html_options = args.extract_options!.symbolize_keys
         function = args[0] || ''
 
-        html_options.symbolize_keys!
         function = update_page(&block) if block_given?
         tag(:input, html_options.merge({ 
           :type => "button", :value => name, 
