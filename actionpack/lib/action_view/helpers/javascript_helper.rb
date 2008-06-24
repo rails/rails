@@ -80,7 +80,7 @@ module ActionView
       #       return false;">Show me more</a>
       #
       def link_to_function(name, *args, &block)
-        html_options = args.extract_options!.symbolize_keys!
+        html_options = args.extract_options!.symbolize_keys
 
         function = block_given? ? update_page(&block) : args[0] || ''
         onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function}; return false;"
@@ -106,7 +106,7 @@ module ActionView
       #     page[:details].visual_effect :toggle_slide
       #   end
       def button_to_function(name, *args, &block)
-        html_options = args.extract_options!.symbolize_keys!
+        html_options = args.extract_options!.symbolize_keys
 
         function = block_given? ? update_page(&block) : args[0] || ''
         onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function};"
