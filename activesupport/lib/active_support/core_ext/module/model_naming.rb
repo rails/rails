@@ -6,7 +6,7 @@ module ActiveSupport
       super
       @singular = underscore.tr('/', '_').freeze
       @plural = @singular.pluralize.freeze
-      @cache_key = tableize
+      @cache_key = tableize.freeze
       @partial_path = "#{@cache_key}/#{demodulize.underscore}".freeze
     end
   end
