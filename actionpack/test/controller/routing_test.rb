@@ -1694,6 +1694,12 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
         controller.send(:multi_url, 7, "hello", 5, :baz => "bar")
     end
 
+    def test_named_route_url_method_with_ordered_parameters_and_empty_hash
+      controller = setup_named_route_test
+      assert_equal "http://named.route.test/people/go/7/hello/joe/5",
+        controller.send(:multi_url, 7, "hello", 5, {})
+    end
+
     def test_named_route_url_method_with_no_positional_arguments
       controller = setup_named_route_test
       assert_equal "http://named.route.test/people?baz=bar",
