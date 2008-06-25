@@ -256,14 +256,9 @@ module ActionView #:nodoc:
         elsif options[:partial]
           render_partial(options[:partial], ActionView::Base::ObjectWrapper.new(options[:object]), options[:locals])
         elsif options[:inline]
-          template = InlineTemplate.new(self, options[:inline], options[:locals], options[:type])
-          render_template(template)
+          render_inline(options[:inline], options[:locals], options[:type])
         end
       end
-    end
-
-    def render_template(template) #:nodoc:
-      template.render_template
     end
 
     # Returns true is the file may be rendered implicitly.
@@ -321,6 +316,10 @@ module ActionView #:nodoc:
         end
 
         Template.new(self, template_path, use_full_path, local_assigns).render_template
+      end
+
+      def render_inline(text, local_assigns = {}, type = nil)
+        InlineTemplate.new(self, text, local_assigns, type).render_template
       end
 
       def wrap_content_for_layout(content)
