@@ -64,7 +64,7 @@ module ActionView
       #   <% content_tag :div, :class => "strong" do -%>
       #     Hello world!
       #   <% end -%>
-      #    # => <div class="strong"><p>Hello world!</p></div>
+      #    # => <div class="strong">Hello world!</div>
       def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, &block)
         if block_given?
           options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
