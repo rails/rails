@@ -1,5 +1,7 @@
 *Edge*
 
+* Added Thin support to script/server.  #488 [Bob Klosinski]
+
 * Fix script/about in production mode.  #370 [Cheah Chu Yeow, Xavier Noria, David Krmpotic]
 
 * Add the gem load paths before the framework is loaded, so certain gems like RedCloth and BlueCloth can be frozen.
