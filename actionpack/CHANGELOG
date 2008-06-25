@@ -1,5 +1,7 @@
 *Edge*
 
+* Made ActionView::Base#render_file private [Josh Peek]
+
 * Fix polymorphic_url with singleton resources.  #461 [Tammer Saleh]
 
 * Replaced TemplateFinder abstraction with ViewLoadPaths [Josh Peek]

@@ -254,7 +254,7 @@ module ActionController #:nodoc:
           @template.instance_variable_set("@content_for_layout", content_for_layout)
           response.layout = layout
           status = template_with_options ? options[:status] : nil
-          render_for_text(@template.render_file(layout, true), status)
+          render_for_text(@template.render(layout), status)
         else
           render_with_no_layout(options, extra_options, &block)
         end
