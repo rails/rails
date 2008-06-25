@@ -30,11 +30,11 @@ module ActiveRecord
       end
 
       def text?
-        [:string, :text].include? type
+        type == :string || type == :text
       end
 
       def number?
-        [:float, :integer, :decimal].include? type
+        type == :integer || type == :float || type == :decimal
       end
 
       # Returns the Ruby class that corresponds to the abstract data type.
