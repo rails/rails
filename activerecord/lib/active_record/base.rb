@@ -2170,11 +2170,11 @@ module ActiveRecord #:nodoc:
       def cache_key
         case
         when new_record?
-          "#{self.class.name.tableize}/new"
-        when self[:updated_at]
-          "#{self.class.name.tableize}/#{id}-#{updated_at.to_s(:number)}"
+          "#{self.class.model_name.cache_key}/new"
+        when timestamp = self[:updated_at]
+          "#{self.class.model_name.cache_key}/#{id}-#{timestamp.to_s(:number)}"
         else
-          "#{self.class.name.tableize}/#{id}"
+          "#{self.class.model_name.cache_key}/#{id}"
         end
       end
 
