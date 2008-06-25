@@ -120,4 +120,29 @@ HTML
     assert doc.find(:tag => "div", :attributes => { :id => "map" }, :content => "")
     assert doc.find(:tag => "div", :attributes => { :id => "map" }, :content => nil)
   end
+
+  def test_parse_invalid_document
+    assert_nothing_raised do
+      doc = HTML::Document.new("<html>
+        <table>
+          <tr>
+            <td style=\"color: #FFFFFF; height: 17px; onclick=\"window.location.href='http://www.rmeinc.com/about_rme.aspx'\" style=\"cursor:pointer; height: 17px;\"; nowrap onclick=\"window.location.href='http://www.rmeinc.com/about_rme.aspx'\" onmouseout=\"this.bgColor='#0066cc'; this.style.color='#FFFFFF'\" onmouseover=\"this.bgColor='#ffffff'; this.style.color='#0033cc'\">About Us</td>
+          </tr>
+        </table>
+      </html>")
+    end
+  end
+
+  def test_invalid_document_raises_exception_when_strict
+    assert_raises RuntimeError do
+      doc = HTML::Document.new("<html>
+        <table>
+          <tr>
+            <td style=\"color: #FFFFFF; height: 17px; onclick=\"window.location.href='http://www.rmeinc.com/about_rme.aspx'\" style=\"cursor:pointer; height: 17px;\"; nowrap onclick=\"window.location.href='http://www.rmeinc.com/about_rme.aspx'\" onmouseout=\"this.bgColor='#0066cc'; this.style.color='#FFFFFF'\" onmouseover=\"this.bgColor='#ffffff'; this.style.color='#0033cc'\">About Us</td>
+          </tr>
+        </table>
+      </html>", true)
+    end
+  end
+
 end
