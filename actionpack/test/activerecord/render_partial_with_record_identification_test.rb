@@ -40,11 +40,12 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
     render :partial => @developers
   end
 end
-RenderPartialWithRecordIdentificationController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
+
+RenderPartialWithRecordIdentificationController.view_paths = [FIXTURE_LOAD_PATH]
 
 class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
   fixtures :developers, :projects, :developers_projects, :topics, :replies, :companies, :mascots
-  
+
   def setup
     @controller = RenderPartialWithRecordIdentificationController.new
     @request    = ActionController::TestRequest.new
@@ -56,22 +57,22 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
     get :render_with_has_many_and_belongs_to_association
     assert_template 'projects/_project'
   end
-  
+
   def test_rendering_partial_with_has_many_association
     get :render_with_has_many_association
     assert_template 'replies/_reply'
   end
-  
+
   def test_rendering_partial_with_named_scope
     get :render_with_named_scope
     assert_template 'replies/_reply'
   end
-  
+
   def test_render_with_record
     get :render_with_record
     assert_template 'developers/_developer'
   end
-  
+
   def test_render_with_record_collection
     get :render_with_record_collection
     assert_template 'developers/_developer'
@@ -116,7 +117,8 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
     render :partial => @developers
   end
 end
-RenderPartialWithRecordIdentificationController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
+
+RenderPartialWithRecordIdentificationController.view_paths = [FIXTURE_LOAD_PATH]
 
 class Game < Struct.new(:name, :id)
   def to_param
@@ -134,7 +136,8 @@ module Fun
       render :partial => [ Game.new("Pong"), Game.new("Tank") ]
     end
   end
-  NestedController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
+
+  NestedController.view_paths = [FIXTURE_LOAD_PATH]
 
   module Serious
     class NestedDeeperController < ActionController::Base
@@ -146,7 +149,8 @@ module Fun
         render :partial => [ Game.new("Chess"), Game.new("Sudoku"), Game.new("Solitaire") ]
       end
     end
-    NestedDeeperController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
+
+    NestedDeeperController.view_paths = [FIXTURE_LOAD_PATH]
   end
 end
 
@@ -167,7 +171,6 @@ class RenderPartialWithRecordIdentificationAndNestedControllersTest < ActiveReco
     get :render_with_record_collection_in_nested_controller
     assert_template 'fun/games/_game'
   end
-
 end
 
 class RenderPartialWithRecordIdentificationAndNestedDeeperControllersTest < ActiveRecordTestCase
@@ -187,5 +190,4 @@ class RenderPartialWithRecordIdentificationAndNestedDeeperControllersTest < Acti
     get :render_with_record_collection_in_deeper_nested_controller
     assert_template 'fun/serious/games/_game'
   end
-
 end

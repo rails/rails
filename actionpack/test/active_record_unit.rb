@@ -30,7 +30,6 @@ end
 $stderr.flush
 
 
-
 # Define the rest of the connector
 class ActiveRecordTestConnector
   class << self
@@ -48,46 +47,45 @@ class ActiveRecordTestConnector
     end
 
     private
+      def setup_connection
+        if Object.const_defined?(:ActiveRecord)
+          defaults = { :database => ':memory:' }
+          begin
+            options = defaults.merge :adapter => 'sqlite3', :timeout => 500
+            ActiveRecord::Base.establish_connection(options)
+            ActiveRecord::Base.configurations = { 'sqlite3_ar_integration' => options }
+            ActiveRecord::Base.connection
+          rescue Exception  # errors from establishing a connection
+            $stderr.puts 'SQLite 3 unavailable; trying SQLite 2.'
+            options = defaults.merge :adapter => 'sqlite'
+            ActiveRecord::Base.establish_connection(options)
+            ActiveRecord::Base.configurations = { 'sqlite2_ar_integration' => options }
+            ActiveRecord::Base.connection
+          end
 
-    def setup_connection
-      if Object.const_defined?(:ActiveRecord)
-        defaults = { :database => ':memory:' }
-        begin
-          options = defaults.merge :adapter => 'sqlite3', :timeout => 500
-          ActiveRecord::Base.establish_connection(options)
-          ActiveRecord::Base.configurations = { 'sqlite3_ar_integration' => options }
-          ActiveRecord::Base.connection
-        rescue Exception  # errors from establishing a connection
-          $stderr.puts 'SQLite 3 unavailable; trying SQLite 2.'
-          options = defaults.merge :adapter => 'sqlite'
-          ActiveRecord::Base.establish_connection(options)
-          ActiveRecord::Base.configurations = { 'sqlite2_ar_integration' => options }
-          ActiveRecord::Base.connection
+          Object.send(:const_set, :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name('type')) unless Object.const_defined?(:QUOTED_TYPE)
+        else
+          raise "Can't setup connection since ActiveRecord isn't loaded."
         end
-
-        Object.send(:const_set, :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name('type')) unless Object.const_defined?(:QUOTED_TYPE)
-      else
-        raise "Can't setup connection since ActiveRecord isn't loaded."
       end
-    end
 
-    # Load actionpack sqlite tables
-    def load_schema
-      File.read(File.dirname(__FILE__) + "/fixtures/db_definitions/sqlite.sql").split(';').each do |sql|
-        ActiveRecord::Base.connection.execute(sql) unless sql.blank?
+      # Load actionpack sqlite tables
+      def load_schema
+        File.read(File.dirname(__FILE__) + "/fixtures/db_definitions/sqlite.sql").split(';').each do |sql|
+          ActiveRecord::Base.connection.execute(sql) unless sql.blank?
+        end
       end
-    end
 
-    def require_fixture_models
-      Dir.glob(File.dirname(__FILE__) + "/fixtures/*.rb").each {|f| require f}
-    end
+      def require_fixture_models
+        Dir.glob(File.dirname(__FILE__) + "/fixtures/*.rb").each {|f| require f}
+      end
   end
 end
 
 class ActiveRecordTestCase < ActiveSupport::TestCase
   # Set our fixture path
   if ActiveRecordTestConnector.able_to_connect
-    self.fixture_path = "#{File.dirname(__FILE__)}/fixtures/"
+    self.fixture_path = [FIXTURE_LOAD_PATH]
     self.use_transactional_fixtures = false
   end
 

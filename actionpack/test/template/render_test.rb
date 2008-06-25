@@ -2,11 +2,9 @@ require 'abstract_unit'
 require 'controller/fake_models'
 
 class ViewRenderTest < Test::Unit::TestCase
-  FIXTURE_LOAD_PATHS = ActionView::ViewLoadPaths.new([File.join(File.dirname(__FILE__), '..', 'fixtures')])
-
   def setup
     @assigns = { :secret => 'in the sauce' }
-    @view = ActionView::Base.new(FIXTURE_LOAD_PATHS, @assigns)
+    @view = ActionView::Base.new([FIXTURE_LOAD_PATH], @assigns)
   end
 
   def test_render_file

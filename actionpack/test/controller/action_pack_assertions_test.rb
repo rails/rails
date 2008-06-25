@@ -157,7 +157,7 @@ module Admin
     def redirect_to_fellow_controller
       redirect_to :controller => 'user'
     end
-    
+
     def redirect_to_top_level_named_route
       redirect_to top_level_url(:id => "foo")
     end
@@ -170,7 +170,7 @@ end
 # tell the controller where to find its templates but start from parent
 # directory of test_request_response to simulate the behaviour of a
 # production environment
-ActionPackAssertionsController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
+ActionPackAssertionsController.view_paths = [FIXTURE_LOAD_PATH]
 
 # a test case to exercise the new capabilities TestRequest & TestResponse
 class ActionPackAssertionsControllerTest < Test::Unit::TestCase
@@ -532,7 +532,6 @@ class ActionPackHeaderTest < Test::Unit::TestCase
     process :hello_xml_world
     assert_equal('application/pdf; charset=utf-8', @response.headers['type'])
   end
-
 
   def test_render_text_with_custom_content_type
     get :render_text_with_custom_content_type

@@ -2,7 +2,6 @@ require 'abstract_unit'
 
 class DeprecatedBaseMethodsTest < Test::Unit::TestCase
   class Target < ActionController::Base
-    
     def home_url(greeting)
       "http://example.com/#{greeting}"
     end
@@ -14,7 +13,7 @@ class DeprecatedBaseMethodsTest < Test::Unit::TestCase
     def rescue_action(e) raise e end
   end
 
-  Target.view_paths = [ File.dirname(__FILE__) + "/../../fixtures" ]
+  Target.view_paths = [FIXTURE_LOAD_PATH]
 
   def setup
     @request    = ActionController::TestRequest.new

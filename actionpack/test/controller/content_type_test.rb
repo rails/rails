@@ -13,12 +13,12 @@ class ContentTypeController < ActionController::Base
   def render_content_type_from_render
     render :text => "hello world!", :content_type => Mime::RSS
   end
-  
+
   def render_charset_from_body
     response.charset = "utf-16"
     render :text => "hello world!"
   end
-  
+
   def render_default_for_rhtml
   end
 
@@ -45,7 +45,7 @@ class ContentTypeController < ActionController::Base
   def rescue_action(e) raise end
 end
 
-ContentTypeController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
+ContentTypeController.view_paths = [FIXTURE_LOAD_PATH]
 
 class ContentTypeTest < Test::Unit::TestCase
   def setup
@@ -68,7 +68,7 @@ class ContentTypeTest < Test::Unit::TestCase
   def test_render_changed_charset_default
     ContentTypeController.default_charset = "utf-16"
     get :render_defaults
-    assert_equal "utf-16", @response.charset    
+    assert_equal "utf-16", @response.charset
     assert_equal Mime::HTML, @response.content_type
     ContentTypeController.default_charset = "utf-8"
   end
@@ -76,13 +76,13 @@ class ContentTypeTest < Test::Unit::TestCase
   def test_content_type_from_body
     get :render_content_type_from_body
     assert_equal "application/rss+xml", @response.content_type
-    assert_equal "utf-8", @response.charset    
+    assert_equal "utf-8", @response.charset
   end
 
   def test_content_type_from_render
     get :render_content_type_from_render
     assert_equal "application/rss+xml", @response.content_type
-    assert_equal "utf-8", @response.charset    
+    assert_equal "utf-8", @response.charset
   end
 
   def test_charset_from_body
@@ -94,27 +94,27 @@ class ContentTypeTest < Test::Unit::TestCase
   def test_default_for_rhtml
     get :render_default_for_rhtml
     assert_equal Mime::HTML, @response.content_type
-    assert_equal "utf-8", @response.charset    
+    assert_equal "utf-8", @response.charset
   end
 
   def test_default_for_rxml
     get :render_default_for_rxml
     assert_equal Mime::XML, @response.content_type
-    assert_equal "utf-8", @response.charset    
+    assert_equal "utf-8", @response.charset
   end
 
   def test_default_for_rjs
     xhr :post, :render_default_for_rjs
     assert_equal Mime::JS, @response.content_type
-    assert_equal "utf-8", @response.charset    
+    assert_equal "utf-8", @response.charset
   end
 
   def test_change_for_rxml
     get :render_change_for_rxml
     assert_equal Mime::HTML, @response.content_type
-    assert_equal "utf-8", @response.charset    
+    assert_equal "utf-8", @response.charset
   end
-  
+
   def test_render_default_content_types_for_respond_to
     @request.env["HTTP_ACCEPT"] = Mime::HTML.to_s
     get :render_default_content_types_for_respond_to
@@ -130,7 +130,7 @@ class ContentTypeTest < Test::Unit::TestCase
     get :render_default_content_types_for_respond_to
     assert_equal Mime::XML, @response.content_type
   end
-  
+
   def test_render_default_content_types_for_respond_to_with_overwrite
     @request.env["HTTP_ACCEPT"] = Mime::RSS.to_s
     get :render_default_content_types_for_respond_to
