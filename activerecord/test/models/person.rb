@@ -6,5 +6,5 @@ class Person < ActiveRecord::Base
   has_many :references
   has_many :jobs, :through => :references
   has_one :favourite_reference, :class_name => 'Reference', :conditions => ['favourite=?', true]
-
+  has_many :posts_with_comments_sorted_by_comment_id, :through => :readers, :source => :post, :include => :comments, :order => 'comments.id'
 end

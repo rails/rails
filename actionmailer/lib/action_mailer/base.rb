@@ -426,8 +426,7 @@ module ActionMailer #:nodoc:
       end
 
       def template_root=(root)
-        write_inheritable_attribute(:template_root, root)
-        ActionView::TemplateFinder.process_view_paths(root)
+        write_inheritable_attribute(:template_root, ActionView::ViewLoadPaths.new(Array(root)))
       end
     end
 
@@ -530,7 +529,7 @@ module ActionMailer #:nodoc:
       end
 
       def render_message(method_name, body)
-        render :file => method_name, :body => body
+        render :file => method_name, :body => body, :use_full_path => true
       end
 
       def render(opts)
@@ -538,6 +537,7 @@ module ActionMailer #:nodoc:
         if opts[:file] && opts[:file] !~ /\//
           opts[:file] = "#{mailer_name}/#{opts[:file]}"
         end
+        opts[:use_full_path] = true
         initialize_template_class(body).render(opts)
       end
 
@@ -546,7 +546,7 @@ module ActionMailer #:nodoc:
       end
 
       def initialize_template_class(assigns)
-        ActionView::Base.new([template_root], assigns, self)
+        ActionView::Base.new(template_root, assigns, self)
       end
 
       def sort_parts(parts, order = [])

@@ -82,6 +82,7 @@ module ActiveRecord
       #   expected_options = { :conditions => { :colored => 'red' } }
       #   assert_equal expected_options, Shirt.colored('red').proxy_options
       def named_scope(name, options = {}, &block)
+        name = name.to_sym
         scopes[name] = lambda do |parent_scope, *args|
           Scope.new(parent_scope, case options
             when Hash

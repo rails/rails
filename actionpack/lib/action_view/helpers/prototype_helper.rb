@@ -382,9 +382,9 @@ module ActionView
           args.unshift object
         end
 
-        concat(form_remote_tag(options), proc.binding)
+        concat(form_remote_tag(options))
         fields_for(object_name, *(args << options), &proc)
-        concat('</form>', proc.binding)
+        concat('</form>')
       end
       alias_method :form_remote_for, :remote_form_for
       
@@ -868,6 +868,16 @@ module ActionView
             record "window.location.href = #{url.inspect}"
           end
           
+          # Reloads the browser's current +location+ using JavaScript
+          #
+          # Examples:
+          #
+          #  # Generates: window.location.reload();
+          #  page.reload
+          def reload
+            record 'window.location.reload()'
+          end
+
           # Calls the JavaScript +function+, optionally with the given +arguments+.
           #
           # If a block is given, the block will be passed to a new JavaScriptGenerator;

@@ -369,7 +369,7 @@ module ActionController
 
     Routes = RouteSet.new
 
-    ::Inflector.module_eval do
+    ActiveSupport::Inflector.module_eval do
 	  # Ensures that routes are reloaded when Rails inflections are updated.
       def inflections_with_route_reloading(&block)
         returning(inflections_without_route_reloading(&block)) {

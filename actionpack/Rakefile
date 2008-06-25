@@ -49,12 +49,14 @@ Rake::RDocTask.new { |rdoc|
   rdoc.title    = "Action Pack -- On rails from request to response"
   rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.options << '--charset' << 'utf-8'
-  rdoc.template = "#{ENV['template']}.rb" if ENV['template']
+  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
   if ENV['DOC_FILES'] 
     rdoc.rdoc_files.include(ENV['DOC_FILES'].split(/,\s*/))
   else
     rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
-    rdoc.rdoc_files.include('lib/**/*.rb')
+    rdoc.rdoc_files.include(Dir['lib/**/*.rb'] -
+                            Dir['lib/*/vendor/**/*.rb'])
+    rdoc.rdoc_files.exclude('lib/actionpack.rb')
   end
 }
 
@@ -132,13 +134,13 @@ task :update_js => [ :update_scriptaculous ]
 
 desc "Publish the API documentation"
 task :pgem => [:package] do 
-  Rake::SshFilePublisher.new("davidhh@wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
-  `ssh davidhh@wrath.rubyonrails.org './gemupdate.sh'`
+  Rake::SshFilePublisher.new("wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+  `ssh wrath.rubyonrails.org './gemupdate.sh'`
 end
 
 desc "Publish the API documentation"
 task :pdoc => [:rdoc] do 
-  Rake::SshDirPublisher.new("davidhh@wrath.rubyonrails.org", "public_html/ap", "doc").upload
+  Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/ap", "doc").upload
 end
 
 desc "Publish the release files to RubyForge."

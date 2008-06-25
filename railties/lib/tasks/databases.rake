@@ -264,13 +264,15 @@ namespace :db do
   end
 
   namespace :test do
-    desc "Recreate the test database from the current environment's database schema"
-    task :clone => %w(db:schema:dump db:test:purge) do
+    desc "Recreate the test database from the current schema.rb"
+    task :load => 'db:test:purge' do
       ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['test'])
       ActiveRecord::Schema.verbose = false
       Rake::Task["db:schema:load"].invoke
     end
 
+    desc "Recreate the test database from the current environment's database schema"
+    task :clone => %w(db:schema:dump db:test:load)
 
     desc "Recreate the test databases from the development structure"
     task :clone_structure => [ "db:structure:dump", "db:test:purge" ] do
@@ -337,10 +339,10 @@ namespace :db do
       end
     end
 
-    desc 'Prepare the test database and load the schema'
-    task :prepare => %w(environment db:abort_if_pending_migrations) do
+    desc 'Check for pending migrations and load the test schema'
+    task :prepare => 'db:abort_if_pending_migrations' do
       if defined?(ActiveRecord) && !ActiveRecord::Base.configurations.blank?
-        Rake::Task[{ :sql  => "db:test:clone_structure", :ruby => "db:test:clone" }[ActiveRecord::Base.schema_format]].invoke
+        Rake::Task[{ :sql  => "db:test:clone_structure", :ruby => "db:test:load" }[ActiveRecord::Base.schema_format]].invoke
       end
     end
   end

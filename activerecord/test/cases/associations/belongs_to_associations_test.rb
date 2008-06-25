@@ -409,4 +409,23 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sponsor.sponsorable = new_member
     assert_equal nil, sponsor.sponsorable_id
   end
+
+  def test_save_fails_for_invalid_belongs_to
+    assert log = AuditLog.create(:developer_id=>0,:message=>"")
+
+    log.developer = Developer.new
+    assert !log.developer.valid?
+    assert !log.valid?
+    assert !log.save
+    assert_equal "is invalid", log.errors.on("developer")
+  end
+
+  def test_save_succeeds_for_invalid_belongs_to_with_validate_false
+    assert log = AuditLog.create(:developer_id=>0,:message=>"")
+
+    log.unvalidated_developer = Developer.new
+    assert !log.unvalidated_developer.valid?
+    assert log.valid?
+    assert log.save
+  end
 end

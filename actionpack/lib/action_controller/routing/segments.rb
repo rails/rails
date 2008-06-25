@@ -249,7 +249,7 @@ module ActionController
       end
 
       def extract_value
-        "#{local_name} = hash[:#{key}] && hash[:#{key}].collect { |path_component| URI.escape(path_component.to_param, ActionController::Routing::Segment::UNSAFE_PCHAR) }.to_param #{"|| #{default.inspect}" if default}"
+        "#{local_name} = hash[:#{key}] && Array(hash[:#{key}]).collect { |path_component| URI.escape(path_component.to_param, ActionController::Routing::Segment::UNSAFE_PCHAR) }.to_param #{"|| #{default.inspect}" if default}"
       end
 
       def default

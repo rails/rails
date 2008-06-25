@@ -1,0 +1,2 @@
+module Gemlike
+end

@@ -4,6 +4,7 @@ require 'action_controller/session/cookie_store'
 module ActionController #:nodoc:
   class RackRequest < AbstractRequest #:nodoc:
     attr_accessor :env, :session_options
+    attr_reader :cgi
 
     class SessionFixationAttempt < StandardError #:nodoc:
     end
@@ -48,21 +49,12 @@ module ActionController #:nodoc:
     def cookies
       return {} unless @env["HTTP_COOKIE"]
 
-      if @env["rack.request.cookie_string"] == @env["HTTP_COOKIE"]
-        @env["rack.request.cookie_hash"]
-      else
+      unless @env["rack.request.cookie_string"] == @env["HTTP_COOKIE"]
         @env["rack.request.cookie_string"] = @env["HTTP_COOKIE"]
-        # According to RFC 2109:
-        #   If multiple cookies satisfy the criteria above, they are ordered in
-        #   the Cookie header such that those with more specific Path attributes
-        #   precede those with less specific.  Ordering with respect to other
-        #   attributes (e.g., Domain) is unspecified.
-        @env["rack.request.cookie_hash"] =
-          parse_query(@env["rack.request.cookie_string"], ';,').inject({}) { |h, (k,v)|
-            h[k] = Array === v ? v.first : v
-            h
-          }
+        @env["rack.request.cookie_hash"] = CGI::Cookie::parse(@env["rack.request.cookie_string"])
       end
+
+      @env["rack.request.cookie_hash"]
     end
 
     def host_with_port_without_standard_port_handling
@@ -169,37 +161,13 @@ end_msg
       def session_options_with_string_keys
         @session_options_with_string_keys ||= DEFAULT_SESSION_OPTIONS.merge(@session_options).stringify_keys
       end
-
-      # From Rack::Utils
-      def parse_query(qs, d = '&;')
-        params = {}
-        (qs || '').split(/[#{d}] */n).inject(params) { |h,p|
-          k, v = unescape(p).split('=',2)
-          if cur = params[k]
-            if cur.class == Array
-              params[k] << v
-            else
-              params[k] = [cur, v]
-            end
-          else
-            params[k] = v
-          end
-        }
-
-        return params
-      end
-
-      def unescape(s)
-        s.tr('+', ' ').gsub(/((?:%[0-9a-fA-F]{2})+)/n){
-          [$1.delete('%')].pack('H*')
-        }
-      end
   end
 
   class RackResponse < AbstractResponse #:nodoc:
     attr_accessor :status
 
-    def initialize
+    def initialize(request)
+      @request = request
       @writer = lambda { |x| @body << x }
       @block = nil
       super()
@@ -221,6 +189,8 @@ end_msg
       if @body.respond_to?(:call)
         @writer = lambda { |x| callback.call(x) }
         @body.call(self, self)
+      elsif @body.is_a?(String)
+        @body.each_line(&callback)
       else
         @body.each(&callback)
       end
@@ -270,9 +240,9 @@ end_msg
               else            cookies << cookie.to_s
             end
 
-            @output_cookies.each { |c| cookies << c.to_s } if @output_cookies
+            @request.cgi.output_cookies.each { |c| cookies << c.to_s } if @request.cgi.output_cookies
 
-            headers['Set-Cookie'] = [headers['Set-Cookie'], cookies].compact.join("\n")
+            headers['Set-Cookie'] = [headers['Set-Cookie'], cookies].flatten.compact
           end
 
           options.each { |k,v| headers[k] = v }
@@ -283,6 +253,8 @@ end_msg
   end
 
   class CGIWrapper < ::CGI
+    attr_reader :output_cookies
+
     def initialize(request, *args)
       @request  = request
       @args     = *args

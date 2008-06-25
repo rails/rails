@@ -33,24 +33,40 @@ class TagHelperTest < ActionView::TestCase
     assert_equal content_tag("a", "Create", "href" => "create"),
                  content_tag("a", "Create", :href => "create")
   end
-  
-  def test_content_tag_with_block
-    _erbout = ''
-    content_tag(:div) { _erbout.concat "Hello world!" }
-    assert_dom_equal "<div>Hello world!</div>", _erbout
+
+  def test_content_tag_with_block_in_erb
+    __in_erb_template = ''
+    content_tag(:div) { concat "Hello world!" }
+    assert_dom_equal "<div>Hello world!</div>", output_buffer
   end
-  
-  def test_content_tag_with_block_and_options
-    _erbout = ''
-    content_tag(:div, :class => "green") { _erbout.concat "Hello world!" }
-    assert_dom_equal %(<div class="green">Hello world!</div>), _erbout
+
+  def test_content_tag_with_block_and_options_in_erb
+    __in_erb_template = ''
+    content_tag(:div, :class => "green") { concat "Hello world!" }
+    assert_dom_equal %(<div class="green">Hello world!</div>), output_buffer
   end
-  
-  def test_content_tag_with_block_and_options_outside_of_action_view
+
+  def test_content_tag_with_block_and_options_out_of_erb
+    assert_dom_equal %(<div class="green">Hello world!</div>), content_tag(:div, :class => "green") { "Hello world!" }
+  end
+
+  def test_content_tag_with_block_and_options_outside_out_of_erb
     assert_equal content_tag("a", "Create", :href => "create"),
-                 content_tag("a", "href" => "create") { "Create" }    
+                 content_tag("a", "href" => "create") { "Create" }
   end
-  
+
+  def test_content_tag_nested_in_content_tag_out_of_erb
+    assert_equal content_tag("p", content_tag("b", "Hello")),
+                 content_tag("p") { content_tag("b", "Hello") },
+                 output_buffer
+  end
+
+  def test_content_tag_nested_in_content_tag_in_erb
+    __in_erb_template = true
+    content_tag("p") { concat content_tag("b", "Hello") }
+    assert_equal '<p><b>Hello</b></p>', output_buffer
+  end
+
   def test_cdata_section
     assert_equal "<![CDATA[<hello world>]]>", cdata_section("<hello world>")
   end

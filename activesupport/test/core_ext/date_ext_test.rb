@@ -76,6 +76,7 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Date.new(2008,3,31),  Date.new(2008,3,31).end_of_quarter
     assert_equal Date.new(2008,12,31), Date.new(2008,10,8).end_of_quarter
     assert_equal Date.new(2008,6,30),  Date.new(2008,4,14).end_of_quarter
+    assert_equal Date.new(2008,6,30),  Date.new(2008,5,31).end_of_quarter
     assert_equal Date.new(2008,9,30),  Date.new(2008,8,21).end_of_quarter
   end
 
@@ -171,7 +172,7 @@ class DateExtCalculationsTest < Test::Unit::TestCase
 
   def test_last_month_on_31st
     assert_equal Date.new(2004, 2, 29), Date.new(2004, 3, 31).last_month
-  end  
+  end
 
   def test_yesterday_constructor
     assert_equal Date.today - 1, Date.yesterday
@@ -196,7 +197,11 @@ class DateExtCalculationsTest < Test::Unit::TestCase
   def test_end_of_day
     assert_equal Time.local(2005,2,21,23,59,59), Date.new(2005,2,21).end_of_day
   end
-  
+
+  def test_date_acts_like_date
+    assert Date.new.acts_like_date?
+  end
+
   def test_xmlschema
     with_env_tz 'US/Eastern' do
       assert_match(/^1980-02-28T00:00:00-05:?00$/, Date.new(1980, 2, 28).xmlschema)
@@ -208,7 +213,7 @@ class DateExtCalculationsTest < Test::Unit::TestCase
       end
     end
   end
-  
+
   uses_mocha 'TestDateCurrent' do
     def test_current_returns_date_today_when_zone_default_not_set
       with_env_tz 'US/Central' do
@@ -217,10 +222,10 @@ class DateExtCalculationsTest < Test::Unit::TestCase
         assert_equal Date.new(1999, 12, 31), Date.current
       end
     end
-    
+
     def test_current_returns_time_zone_today_when_zone_default_set
       silence_warnings do # silence warnings raised by tzinfo gem
-        Time.zone_default = TimeZone['Eastern Time (US & Canada)']
+        Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
         with_env_tz 'US/Central' do
           Time.stubs(:now).returns Time.local(1999, 12, 31, 23)
           assert_equal Date.new(1999, 12, 31), Date.today
@@ -238,5 +243,5 @@ class DateExtCalculationsTest < Test::Unit::TestCase
       yield
     ensure
       old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end  
+    end
 end

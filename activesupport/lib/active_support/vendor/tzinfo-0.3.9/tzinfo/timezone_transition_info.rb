@@ -48,7 +48,7 @@ module TZInfo
     # seconds since the epoch. If denominator is specified numerator_or_time
     # and denominator are used to create a DateTime as follows:
     # 
-    #  DateTime.new!(Rational.new!(numerator_or_time, denominator), 0, Date::ITALY)
+    #  DateTime.new!(Rational.send(:new!, numerator_or_time, denominator), 0, Date::ITALY)
     #
     # For performance reasons, the numerator and denominator must be specified
     # in their lowest form.
@@ -70,7 +70,7 @@ module TZInfo
         unless @denominator 
           @at = TimeOrDateTime.new(@numerator_or_time)
         else
-          r = Rational.new!(@numerator_or_time, @denominator)
+          r = Rational.send(:new!, @numerator_or_time, @denominator)
           
           # Ruby 1.8.6 introduced new! and deprecated new0.
           # Ruby 1.9.0 removed new0.

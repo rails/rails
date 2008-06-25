@@ -1,5 +1,11 @@
 require 'abstract_unit'
 
+class CacheKeyTest < Test::Unit::TestCase
+  def test_expand_cache_key
+    assert_equal 'name/1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true], :name)
+  end
+end
+
 class CacheStoreSettingTest < Test::Unit::TestCase
   def test_file_fragment_cache_store
     store = ActiveSupport::Cache.lookup_store :file_store, "/path/to/cache/directory"

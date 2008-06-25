@@ -19,19 +19,19 @@ module ActiveSupport
 
     def self.expand_cache_key(key, namespace = nil)
       expanded_cache_key = namespace ? "#{namespace}/" : ""
-      
+
       if ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
         expanded_cache_key << "#{ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]}/" 
       end
 
       expanded_cache_key << case
-      when key.respond_to?(:cache_key)
-        key.cache_key
-      when key.is_a?(Array)
-        key.collect { |element| expand_cache_key(element) }.to_param
-      when key.respond_to?(:to_param)
-        key.to_param
-      end
+        when key.respond_to?(:cache_key)
+          key.cache_key
+        when key.is_a?(Array)
+          key.collect { |element| expand_cache_key(element) }.to_param
+        when key
+          key.to_param
+        end.to_s
 
       expanded_cache_key
     end

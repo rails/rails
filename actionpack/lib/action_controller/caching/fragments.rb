@@ -61,16 +61,18 @@ module ActionController #:nodoc:
       end
 
       def fragment_for(block, name = {}, options = nil) #:nodoc:
-        unless perform_caching then block.call; return end
+        if perform_caching
+          buffer = yield
 
-        buffer = yield
-
-        if cache = read_fragment(name, options)
-          buffer.concat(cache)
+          if cache = read_fragment(name, options)
+            buffer.concat(cache)
+          else
+            pos = buffer.length
+            block.call
+            write_fragment(name, buffer[pos..-1], options)
+          end
         else
-          pos = buffer.length
           block.call
-          write_fragment(name, buffer[pos..-1], options)
         end
       end
 

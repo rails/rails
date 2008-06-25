@@ -1,5 +1,6 @@
 require 'cgi'
 require 'erb'
+require 'set'
 
 module ActionView
   module Helpers #:nodoc:
@@ -8,16 +9,17 @@ module ActionView
     module TagHelper
       include ERB::Util
 
-      BOOLEAN_ATTRIBUTES = Set.new(%w(disabled readonly multiple))
+      BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple).to_set
+      BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
 
-      # Returns an empty HTML tag of type +name+ which by default is XHTML 
-      # compliant. Set +open+ to true to create an open tag compatible 
-      # with HTML 4.0 and below. Add HTML attributes by passing an attributes 
+      # Returns an empty HTML tag of type +name+ which by default is XHTML
+      # compliant. Set +open+ to true to create an open tag compatible
+      # with HTML 4.0 and below. Add HTML attributes by passing an attributes
       # hash to +options+. Set +escape+ to false to disable attribute value
       # escaping.
       #
       # ==== Options
-      # The +options+ hash is used with attributes with no value like (<tt>disabled</tt> and 
+      # The +options+ hash is used with attributes with no value like (<tt>disabled</tt> and
       # <tt>readonly</tt>), which you can give a value of true in the +options+ hash. You can use
       # symbols or strings for the attribute names.
       #
@@ -28,7 +30,7 @@ module ActionView
       #   tag("br", nil, true)
       #   # => <br>
       #
-      #   tag("input", { :type => 'text', :disabled => true }) 
+      #   tag("input", { :type => 'text', :disabled => true })
       #   # => <input type="text" disabled="disabled" />
       #
       #   tag("img", { :src => "open & shut.png" })
@@ -37,17 +39,17 @@ module ActionView
       #   tag("img", { :src => "open &amp; shut.png" }, false, false)
       #   # => <img src="open &amp; shut.png" />
       def tag(name, options = nil, open = false, escape = true)
-        "<#{name}#{tag_options(options, escape) if options}" + (open ? ">" : " />")
+        "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}"
       end
 
       # Returns an HTML block tag of type +name+ surrounding the +content+. Add
-      # HTML attributes by passing an attributes hash to +options+. 
+      # HTML attributes by passing an attributes hash to +options+.
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +options+ as the second parameter.
       # Set escape to false to disable attribute value escaping.
       #
       # ==== Options
-      # The +options+ hash is used with attributes with no value like (<tt>disabled</tt> and 
+      # The +options+ hash is used with attributes with no value like (<tt>disabled</tt> and
       # <tt>readonly</tt>), which you can give a value of true in the +options+ hash. You can use
       # symbols or strings for the attribute names.
       #
@@ -66,12 +68,15 @@ module ActionView
       def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, &block)
         if block_given?
           options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
-          content = capture(&block)
-          content_tag = content_tag_string(name, content, options, escape)
-          block_is_within_action_view?(block) ? concat(content_tag, block.binding) : content_tag
+          content_tag = content_tag_string(name, capture(&block), options, escape)
+
+          if block_called_from_erb?(block)
+            concat(content_tag)
+          else
+            content_tag
+          end
         else
-          content = content_or_options_with_block
-          content_tag_string(name, content, options, escape)
+          content_tag_string(name, content_or_options_with_block, options, escape)
         end
       end
 
@@ -103,6 +108,16 @@ module ActionView
       end
 
       private
+        BLOCK_CALLED_FROM_ERB = 'defined? __in_erb_template'
+
+        # Check whether we're called from an erb template.
+        # We'd return a string in any other case, but erb <%= ... %>
+        # can't take an <% end %> later on, so we have to use <% ... %>
+        # and implicitly concat.
+        def block_called_from_erb?(block)
+          block && eval(BLOCK_CALLED_FROM_ERB, block)
+        end
+
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
           "<#{name}#{tag_options}>#{content}</#{name}>"
@@ -114,7 +129,6 @@ module ActionView
             if escape
               options.each do |key, value|
                 next unless value
-                key = key.to_s
                 value = BOOLEAN_ATTRIBUTES.include?(key) ? key : escape_once(value)
                 attrs << %(#{key}="#{value}")
               end
@@ -123,10 +137,6 @@ module ActionView
             end
             " #{attrs.sort * ' '}" unless attrs.empty?
           end
-        end
-
-        def block_is_within_action_view?(block)
-          eval("defined? _erbout", block.binding)
         end
     end
   end

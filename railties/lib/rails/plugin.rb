@@ -74,8 +74,16 @@ module Rails
         File.join(directory, 'lib')
       end
 
-      def init_path
+      def classic_init_path
         File.join(directory, 'init.rb')
+      end
+
+      def gem_init_path
+        File.join(directory, 'rails', 'init.rb')
+      end
+
+      def init_path
+        File.file?(gem_init_path) ? gem_init_path : classic_init_path
       end
 
       def has_lib_directory?
@@ -87,14 +95,14 @@ module Rails
       end
 
       def evaluate_init_rb(initializer)
-         if has_init_file?
-           silence_warnings do
-             # Allow plugins to reference the current configuration object
-             config = initializer.configuration
-             
-             eval(IO.read(init_path), binding, init_path)
-           end
-         end
+        if has_init_file?
+          silence_warnings do
+            # Allow plugins to reference the current configuration object
+            config = initializer.configuration
+            
+            eval(IO.read(init_path), binding, init_path)
+          end
+        end
       end               
   end
 
@@ -103,8 +111,9 @@ module Rails
   # to Dependencies.load_paths.
   class GemPlugin < Plugin
     # Initialize this plugin from a Gem::Specification.
-    def initialize(spec)
-      super(File.join(spec.full_gem_path))
+    def initialize(spec, gem)
+      directory = (gem.frozen? && gem.unpacked_paths.first) || File.join(spec.full_gem_path)
+      super(directory)
       @name = spec.name
     end
 

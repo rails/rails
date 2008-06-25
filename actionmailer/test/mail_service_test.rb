@@ -942,13 +942,13 @@ end # uses_mocha
 class InheritableTemplateRootTest < Test::Unit::TestCase
   def test_attr
     expected = "#{File.dirname(__FILE__)}/fixtures/path.with.dots"
-    assert_equal expected, FunkyPathMailer.template_root
+    assert_equal [expected], FunkyPathMailer.template_root.map(&:to_s)
 
     sub = Class.new(FunkyPathMailer)
     sub.template_root = 'test/path'
 
-    assert_equal 'test/path', sub.template_root
-    assert_equal expected, FunkyPathMailer.template_root
+    assert_equal ['test/path'], sub.template_root.map(&:to_s)
+    assert_equal [expected], FunkyPathMailer.template_root.map(&:to_s)
   end
 end
 

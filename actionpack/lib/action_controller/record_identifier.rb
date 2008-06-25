@@ -31,18 +31,21 @@ module ActionController
   module RecordIdentifier
     extend self
 
+    JOIN = '_'.freeze
+    NEW = 'new'.freeze
+
     # Returns plural/singular for a record or class. Example:
     #
     #   partial_path(post)                   # => "posts/post"
     #   partial_path(Person)                 # => "people/person"
     #   partial_path(Person, "admin/games")  # => "admin/people/person"
     def partial_path(record_or_class, controller_path = nil)
-      klass = class_from_record_or_class(record_or_class)
+      name = model_name_from_record_or_class(record_or_class)
 
       if controller_path && controller_path.include?("/")
-        "#{File.dirname(controller_path)}/#{klass.name.tableize}/#{klass.name.demodulize.underscore}"
+        "#{File.dirname(controller_path)}/#{name.partial_path}"
       else
-        "#{klass.name.tableize}/#{klass.name.demodulize.underscore}"
+        name.partial_path
       end
     end
 
@@ -56,21 +59,25 @@ module ActionController
     #   dom_class(post, :edit)   # => "edit_post"
     #   dom_class(Person, :edit) # => "edit_person"
     def dom_class(record_or_class, prefix = nil)
-      [ prefix, singular_class_name(record_or_class) ].compact * '_'
+      singular = singular_class_name(record_or_class)
+      prefix ? "#{prefix}#{JOIN}#{singular}" : singular
     end
 
     # The DOM id convention is to use the singular form of an object or class with the id following an underscore.
     # If no id is found, prefix with "new_" instead. Examples:
     #
-    #   dom_id(Post.new(:id => 45)) # => "post_45"
+    #   dom_id(Post.find(45))       # => "post_45"
     #   dom_id(Post.new)            # => "new_post"
     #
     # If you need to address multiple instances of the same class in the same view, you can prefix the dom_id:
     #
-    #   dom_id(Post.new(:id => 45), :edit) # => "edit_post_45"
+    #   dom_id(Post.find(45), :edit) # => "edit_post_45"
     def dom_id(record, prefix = nil) 
-      prefix ||= 'new' unless record.id
-      [ prefix, singular_class_name(record), record.id ].compact * '_'
+      if record_id = record.id
+        "#{dom_class(record, prefix)}#{JOIN}#{record_id}"
+      else
+        dom_class(record, prefix || NEW)
+      end
     end
 
     # Returns the plural class name of a record or class. Examples:
@@ -78,7 +85,7 @@ module ActionController
     #   plural_class_name(post)             # => "posts"
     #   plural_class_name(Highrise::Person) # => "highrise_people"
     def plural_class_name(record_or_class)
-      singular_class_name(record_or_class).pluralize
+      model_name_from_record_or_class(record_or_class).plural
     end
 
     # Returns the singular class name of a record or class. Examples:
@@ -86,12 +93,12 @@ module ActionController
     #   singular_class_name(post)             # => "post"
     #   singular_class_name(Highrise::Person) # => "highrise_person"
     def singular_class_name(record_or_class)
-      class_from_record_or_class(record_or_class).name.underscore.tr('/', '_')
+      model_name_from_record_or_class(record_or_class).singular
     end
 
     private
-      def class_from_record_or_class(record_or_class)
-        record_or_class.is_a?(Class) ? record_or_class : record_or_class.class
+      def model_name_from_record_or_class(record_or_class)
+        (record_or_class.is_a?(Class) ? record_or_class : record_or_class.class).model_name
       end
   end
 end

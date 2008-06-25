@@ -56,15 +56,15 @@ module TZInfo
     
     # Converts a UTC DateTime to local time based on the offset of this period.
     def to_local(utc)
-      TimeOrDateTime.wrap(utc) {|utc|
-        utc + @utc_total_offset
+      TimeOrDateTime.wrap(utc) {|wrapped|
+        wrapped + @utc_total_offset
       }
     end
     
     # Converts a local DateTime to UTC based on the offset of this period.
     def to_utc(local)
-      TimeOrDateTime.wrap(local) {|local|
-        local - @utc_total_offset
+      TimeOrDateTime.wrap(local) {|wrapped|
+        wrapped - @utc_total_offset
       }
     end
     

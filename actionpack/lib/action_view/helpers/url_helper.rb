@@ -90,6 +90,13 @@ module ActionView
       # link will be used in place of a referrer if none exists. If nil is passed as
       # a name, the link itself will become the name.
       #
+      # ==== Signatures
+      #
+      #   link_to(name, options = {}, html_options = nil)
+      #   link_to(options = {}, html_options = nil) do
+      #     # name
+      #   end
+      #
       # ==== Options
       # * <tt>:confirm => 'question?'</tt> - This will add a JavaScript confirm
       #   prompt with the question specified. If the user accepts, the link is
@@ -147,6 +154,13 @@ module ActionView
       #   link_to "Profiles", :controller => "profiles"
       #   # => <a href="/profiles">Profiles</a>
       #
+      # You can use a block as well if your link target is hard to fit into the name parameter. ERb example:
+      #
+      #   <% link_to(@profile) do %>
+      #     <strong><%= @profile.name %></strong> -- <span>Check it out!!</span>
+      #   <% end %>
+      #   # => <a href="/profiles/1"><strong>David</strong> -- <span>Check it out!!</span></a>
+      #
       # Classes and ids for CSS are easy to produce:
       #
       #   link_to "Articles", articles_path, :id => "news", :class => "article"
@@ -189,27 +203,37 @@ module ActionView
       #        f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;
       #        var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); 
       #        m.setAttribute('value', 'delete'); f.appendChild(m);f.submit(); };return false;">Delete Image</a>
-      def link_to(name, options = {}, html_options = nil)
-        url = case options
-          when String
-            options
-          when :back
-            @controller.request.env["HTTP_REFERER"] || 'javascript:history.back()'
-          else
-            self.url_for(options)
-          end
-
-        if html_options
-          html_options = html_options.stringify_keys
-          href = html_options['href']
-          convert_options_to_javascript!(html_options, url)
-          tag_options = tag_options(html_options)
+      def link_to(*args, &block)
+        if block_given?
+          options      = args.first || {}
+          html_options = args.second
+          concat(link_to(capture(&block), options, html_options))
         else
-          tag_options = nil
+          name         = args.first
+          options      = args.second || {}
+          html_options = args.third
+
+          url = case options
+            when String
+              options
+            when :back
+              @controller.request.env["HTTP_REFERER"] || 'javascript:history.back()'
+            else
+              self.url_for(options)
+            end
+
+          if html_options
+            html_options = html_options.stringify_keys
+            href = html_options['href']
+            convert_options_to_javascript!(html_options, url)
+            tag_options = tag_options(html_options)
+          else
+            tag_options = nil
+          end
+      
+          href_attr = "href=\"#{url}\"" unless href
+          "<a #{href_attr}#{tag_options}>#{name || url}</a>"
         end
-        
-        href_attr = "href=\"#{url}\"" unless href
-        "<a #{href_attr}#{tag_options}>#{name || url}</a>"
       end
 
       # Generates a form containing a single button that submits to the URL created
@@ -511,7 +535,7 @@ module ActionView
             when method
               "#{method_javascript_function(method, url, href)}return false;"
             when popup
-              popup_javascript_function(popup) + 'return false;'
+              "#{popup_javascript_function(popup)}return false;"
             else
               html_options["onclick"]
           end

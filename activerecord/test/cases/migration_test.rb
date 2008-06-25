@@ -173,6 +173,11 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_equal 'smallint', one.sql_type
         assert_equal 'integer', four.sql_type
         assert_equal 'bigint', eight.sql_type
+      elsif current_adapter?(:MysqlAdapter)
+        assert_match /^int\(\d+\)/, default.sql_type
+        assert_match /^tinyint\(\d+\)/, one.sql_type
+        assert_match /^int\(\d+\)/, four.sql_type
+        assert_match /^bigint\(\d+\)/, eight.sql_type
       elsif current_adapter?(:OracleAdapter)
         assert_equal 'NUMBER(38)', default.sql_type
         assert_equal 'NUMBER(1)', one.sql_type
@@ -481,6 +486,32 @@ if ActiveRecord::Base.connection.supports_migrations?
         Person.connection.remove_column("people","nick_name")
         Person.connection.add_column("people","first_name", :string)
       end
+    end
+
+    def test_rename_column_preserves_default_value_not_null
+      begin
+        default_before = Developer.connection.columns("developers").find { |c| c.name == "salary" }.default
+        assert_equal 70000, default_before
+        Developer.connection.rename_column "developers", "salary", "anual_salary"
+        Developer.reset_column_information
+        assert Developer.column_names.include?("anual_salary")
+        default_after = Developer.connection.columns("developers").find { |c| c.name == "anual_salary" }.default
+        assert_equal 70000, default_after
+      ensure
+        Developer.connection.rename_column "developers", "anual_salary", "salary"
+        Developer.reset_column_information
+      end
+    end
+
+    def test_rename_nonexistent_column
+      ActiveRecord::Base.connection.create_table(:hats) do |table|
+        table.column :hat_name, :string, :default => nil
+      end
+      assert_raises(ActiveRecord::ActiveRecordError) do
+        Person.connection.rename_column "hats", "nonexistent", "should_fail"
+      end
+    ensure
+      ActiveRecord::Base.connection.drop_table(:hats)
     end
 
     def test_rename_column_with_sql_reserved_word
@@ -799,6 +830,21 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert !Reminder.table_exists?
     end
 
+    def test_migrator_double_up
+      assert_equal(0, ActiveRecord::Migrator.current_version)
+      ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1)
+      assert_nothing_raised { ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1) }
+      assert_equal(1, ActiveRecord::Migrator.current_version)
+    end
+
+    def test_migrator_double_down
+      assert_equal(0, ActiveRecord::Migrator.current_version)
+      ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1)
+      ActiveRecord::Migrator.run(:down, MIGRATIONS_ROOT + "/valid", 1)
+      assert_nothing_raised { ActiveRecord::Migrator.run(:down, MIGRATIONS_ROOT + "/valid", 1) }
+      assert_equal(0, ActiveRecord::Migrator.current_version)
+    end
+
     def test_finds_migrations
       migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid").migrations
       [['1', 'people_have_last_names'],
@@ -886,16 +932,6 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal(0, ActiveRecord::Migrator.current_version)
       
       ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-      assert_equal(0, ActiveRecord::Migrator.current_version)
-    end
-    
-    def test_migrator_run
-      assert_equal(0, ActiveRecord::Migrator.current_version)
-      ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 3)
-      assert_equal(0, ActiveRecord::Migrator.current_version)
-
-      assert_equal(0, ActiveRecord::Migrator.current_version)
-      ActiveRecord::Migrator.run(:down, MIGRATIONS_ROOT + "/valid", 3)
       assert_equal(0, ActiveRecord::Migrator.current_version)
     end
 

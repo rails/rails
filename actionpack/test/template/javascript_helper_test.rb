@@ -48,7 +48,7 @@ class JavaScriptHelperTest < ActionView::TestCase
   end
 
   def test_link_to_function_with_href
-    assert_dom_equal %(<a href="http://example.com/" onclick="alert('Hello world!'); return false;">Greeting</a>), 
+    assert_dom_equal %(<a href="http://example.com/" onclick="alert('Hello world!'); return false;">Greeting</a>),
       link_to_function("Greeting", "alert('Hello world!')", :href => 'http://example.com/')
   end
 
@@ -82,8 +82,12 @@ class JavaScriptHelperTest < ActionView::TestCase
   end
 
   def test_javascript_tag
+    self.output_buffer = 'foo'
+
     assert_dom_equal "<script type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>",
       javascript_tag("alert('hello')")
+
+    assert_equal 'foo', output_buffer, 'javascript_tag without a block should not concat to output_buffer'
   end
 
   def test_javascript_tag_with_options
@@ -91,16 +95,16 @@ class JavaScriptHelperTest < ActionView::TestCase
       javascript_tag("alert('hello')", :id => "the_js_tag")
   end
 
-  def test_javascript_tag_with_block
-    _erbout = ''
-    javascript_tag { _erbout.concat "alert('hello')" }
-    assert_dom_equal "<script type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>", _erbout
+  def test_javascript_tag_with_block_in_erb
+    __in_erb_template = ''
+    javascript_tag { concat "alert('hello')" }
+    assert_dom_equal "<script type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>", output_buffer
   end
 
-  def test_javascript_tag_with_block_and_options
-    _erbout = ''
-    javascript_tag(:id => "the_js_tag") { _erbout.concat "alert('hello')" }
-    assert_dom_equal "<script id=\"the_js_tag\" type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>", _erbout
+  def test_javascript_tag_with_block_and_options_in_erb
+    __in_erb_template = ''
+    javascript_tag(:id => "the_js_tag") { concat "alert('hello')" }
+    assert_dom_equal "<script id=\"the_js_tag\" type=\"text/javascript\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>", output_buffer
   end
 
   def test_javascript_cdata_section

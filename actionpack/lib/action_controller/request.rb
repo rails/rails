@@ -134,14 +134,15 @@ module ActionController
     # REMOTE_ADDR is a proxy.  HTTP_X_FORWARDED_FOR may be a comma-
     # delimited list in the case of multiple chained proxies; the last
     # address which is not trusted is the originating IP.
-
     def remote_ip
       if TRUSTED_PROXIES !~ @env['REMOTE_ADDR']
         return @env['REMOTE_ADDR']
       end
 
+      remote_ips = @env['HTTP_X_FORWARDED_FOR'] && @env['HTTP_X_FORWARDED_FOR'].split(',')
+
       if @env.include? 'HTTP_CLIENT_IP'
-        if @env.include? 'HTTP_X_FORWARDED_FOR'
+        if remote_ips && !remote_ips.include?(@env['HTTP_CLIENT_IP'])
           # We don't know which came from the proxy, and which from the user
           raise ActionControllerError.new(<<EOM)
 IP spoofing attack?!
@@ -149,11 +150,11 @@ HTTP_CLIENT_IP=#{@env['HTTP_CLIENT_IP'].inspect}
 HTTP_X_FORWARDED_FOR=#{@env['HTTP_X_FORWARDED_FOR'].inspect}
 EOM
         end
+
         return @env['HTTP_CLIENT_IP']
       end
 
-      if @env.include? 'HTTP_X_FORWARDED_FOR' then
-        remote_ips = @env['HTTP_X_FORWARDED_FOR'].split(',')
+      if remote_ips
         while remote_ips.size > 1 && TRUSTED_PROXIES =~ remote_ips.last.strip
           remote_ips.pop
         end

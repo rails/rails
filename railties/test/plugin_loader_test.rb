@@ -48,16 +48,16 @@ uses_mocha "Plugin Loader Tests" do
     end
 
     def test_should_find_all_availble_plugins_and_return_as_all_plugins
-      assert_plugins [:stubby, :plugin_with_no_lib_dir, :acts_as_chunky_bacon, :a], @loader.all_plugins.reverse, @failure_tip
+      assert_plugins [:stubby, :plugin_with_no_lib_dir, :gemlike, :acts_as_chunky_bacon, :a], @loader.all_plugins.reverse, @failure_tip
     end
 
     def test_should_return_all_plugins_as_plugins_when_registered_plugin_list_is_untouched
-      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.plugins, @failure_tip
+      assert_plugins [:a, :acts_as_chunky_bacon, :gemlike, :plugin_with_no_lib_dir, :stubby], @loader.plugins, @failure_tip
     end
 
     def test_should_return_all_plugins_as_plugins_when_registered_plugin_list_is_nil
       @configuration.plugins = nil
-      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.plugins, @failure_tip
+      assert_plugins [:a, :acts_as_chunky_bacon, :gemlike, :plugin_with_no_lib_dir, :stubby], @loader.plugins, @failure_tip
     end
 
     def test_should_return_specific_plugins_named_in_config_plugins_array_if_set
@@ -74,17 +74,17 @@ uses_mocha "Plugin Loader Tests" do
 
     def test_should_load_all_plugins_in_natural_order_when_all_is_used
       only_load_the_following_plugins! [:all]
-      assert_plugins [:a, :acts_as_chunky_bacon, :plugin_with_no_lib_dir, :stubby], @loader.plugins, @failure_tip
+      assert_plugins [:a, :acts_as_chunky_bacon, :gemlike, :plugin_with_no_lib_dir, :stubby], @loader.plugins, @failure_tip
     end
 
     def test_should_load_specified_plugins_in_order_and_then_all_remaining_plugins_when_all_is_used
       only_load_the_following_plugins! [:stubby, :acts_as_chunky_bacon, :all]
-      assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :plugin_with_no_lib_dir], @loader.plugins, @failure_tip
+      assert_plugins [:stubby, :acts_as_chunky_bacon, :a, :gemlike, :plugin_with_no_lib_dir], @loader.plugins, @failure_tip
     end
 
     def test_should_be_able_to_specify_loading_of_plugins_loaded_after_all
       only_load_the_following_plugins!  [:stubby, :all, :acts_as_chunky_bacon]
-      assert_plugins [:stubby, :a, :plugin_with_no_lib_dir, :acts_as_chunky_bacon], @loader.plugins, @failure_tip
+      assert_plugins [:stubby, :a, :gemlike, :plugin_with_no_lib_dir, :acts_as_chunky_bacon], @loader.plugins, @failure_tip
     end
 
     def test_should_accept_plugin_names_given_as_strings
@@ -94,7 +94,7 @@ uses_mocha "Plugin Loader Tests" do
 
     def test_should_add_plugin_load_paths_to_global_LOAD_PATH_array
       only_load_the_following_plugins! [:stubby, :acts_as_chunky_bacon]
-      stubbed_application_lib_index_in_LOAD_PATHS = 5
+      stubbed_application_lib_index_in_LOAD_PATHS = 4
       @loader.stubs(:application_lib_index).returns(stubbed_application_lib_index_in_LOAD_PATHS)
 
       @loader.add_plugin_load_paths
@@ -108,8 +108,8 @@ uses_mocha "Plugin Loader Tests" do
 
       @loader.add_plugin_load_paths
 
-      assert Dependencies.load_paths.include?(File.join(plugin_fixture_path('default/stubby'), 'lib'))
-      assert Dependencies.load_paths.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))
+      assert ActiveSupport::Dependencies.load_paths.include?(File.join(plugin_fixture_path('default/stubby'), 'lib'))
+      assert ActiveSupport::Dependencies.load_paths.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))
     end
 
     def test_should_add_plugin_load_paths_to_Dependencies_load_once_paths
@@ -117,8 +117,8 @@ uses_mocha "Plugin Loader Tests" do
 
       @loader.add_plugin_load_paths
 
-      assert Dependencies.load_once_paths.include?(File.join(plugin_fixture_path('default/stubby'), 'lib'))
-      assert Dependencies.load_once_paths.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))
+      assert ActiveSupport::Dependencies.load_once_paths.include?(File.join(plugin_fixture_path('default/stubby'), 'lib'))
+      assert ActiveSupport::Dependencies.load_once_paths.include?(File.join(plugin_fixture_path('default/acts/acts_as_chunky_bacon'), 'lib'))
     end
 
     def test_should_add_all_load_paths_from_a_plugin_to_LOAD_PATH_array

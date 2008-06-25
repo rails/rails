@@ -37,15 +37,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_counting_with_single_conditions
-    assert_equal 2, Firm.find(:first).plain_clients.count(:conditions => '1=1')
+    assert_equal 1, Firm.find(:first).plain_clients.count(:conditions => ['name=?', "Microsoft"])
   end
 
   def test_counting_with_single_hash
-    assert_equal 2, Firm.find(:first).plain_clients.count(:conditions => '1=1')
+    assert_equal 1, Firm.find(:first).plain_clients.count(:conditions => {:name => "Microsoft"})
   end
 
   def test_counting_with_column_name_and_hash
-    assert_equal 2, Firm.find(:first).plain_clients.count(:all, :conditions => '1=1')
+    assert_equal 2, Firm.find(:first).plain_clients.count(:name)
   end
 
   def test_finding
@@ -340,6 +340,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !new_firm.save
     assert c.new_record?
     assert new_firm.new_record?
+  end
+
+  def test_invalid_adding_with_validate_false
+    firm = Firm.find(:first)
+    client = Client.new
+    firm.unvalidated_clients_of_firm << Client.new
+
+    assert firm.valid?
+    assert !client.valid?
+    assert firm.save
+    assert client.new_record?
   end
 
   def test_build

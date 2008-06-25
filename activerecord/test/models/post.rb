@@ -1,6 +1,11 @@
 class Post < ActiveRecord::Base
   named_scope :containing_the_letter_a, :conditions => "body LIKE '%a%'"
-  
+  named_scope :with_authors_at_address, lambda { |address| {
+      :conditions => [ 'authors.author_address_id = ?', address.id ],
+      :joins => 'JOIN authors ON authors.id = posts.author_id'
+    }
+  }
+
   belongs_to :author do
     def greeting
       "hello"

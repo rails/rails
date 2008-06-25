@@ -6,7 +6,7 @@ require 'models/reply'
 require 'models/author'
 
 class NamedScopeTest < ActiveRecord::TestCase
-  fixtures :posts, :authors, :topics, :comments
+  fixtures :posts, :authors, :topics, :comments, :author_addresses
 
   def test_implements_enumerable
     assert !Topic.find(:all).empty?
@@ -59,6 +59,12 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal Topic.count(:conditions => {:approved => true}), Topic.approved.count
   end
 
+  def test_scopes_with_string_name_can_be_composed
+    # NOTE that scopes defined with a string as a name worked on their own
+    # but when called on another scope the other scope was completely replaced
+    assert_equal Topic.replied.approved, Topic.replied.approved_as_string
+  end
+
   def test_scopes_are_composable
     assert_equal (approved = Topic.find(:all, :conditions => {:approved => true})), Topic.approved
     assert_equal (replied = Topic.find(:all, :conditions => 'replies_count > 0')), Topic.replied
@@ -75,6 +81,25 @@ class NamedScopeTest < ActiveRecord::TestCase
 
     assert_equal topics_written_before_the_third, Topic.written_before(topics(:third).written_on)
     assert_equal topics_written_before_the_second, Topic.written_before(topics(:second).written_on)
+  end
+
+  def test_scopes_with_joins
+    address = author_addresses(:david_address)
+    posts_with_authors_at_address = Post.find(
+      :all, :joins => 'JOIN authors ON authors.id = posts.author_id',
+      :conditions => [ 'authors.author_address_id = ?', address.id ]
+    )
+    assert_equal posts_with_authors_at_address, Post.with_authors_at_address(address)
+  end
+
+  def test_scopes_with_joins_respects_custom_select
+    address = author_addresses(:david_address)
+    posts_with_authors_at_address_titles = Post.find(:all,
+      :select => 'title',
+      :joins => 'JOIN authors ON authors.id = posts.author_id',
+      :conditions => [ 'authors.author_address_id = ?', address.id ]
+    )
+    assert_equal posts_with_authors_at_address_titles, Post.with_authors_at_address(address).find(:all, :select => 'title')
   end
 
   def test_extensions

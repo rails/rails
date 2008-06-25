@@ -293,13 +293,13 @@ module ActiveRecord
 
     private
       def callback(method)
-        notify(method)
-
         result = run_callbacks(method) { |result, object| result == false }
 
         if result != false && respond_to_without_attributes?(method)
           result = send(method)
         end
+
+        notify(method)
 
         return result
       end

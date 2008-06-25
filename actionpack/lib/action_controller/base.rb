@@ -283,13 +283,6 @@ module ActionController #:nodoc:
     @@debug_routes = true
     cattr_accessor :debug_routes
 
-    # Indicates to Mongrel or Webrick whether to allow concurrent action
-    # processing. Your controller actions and any other code they call must
-    # also behave well when called from concurrent threads. Turned off by
-    # default.
-    @@allow_concurrency = false
-    cattr_accessor :allow_concurrency
-
     # Modern REST web services often need to submit complex data to the web application.
     # The <tt>@@param_parsers</tt> hash lets you register handlers which will process the HTTP body and add parameters to the
     # <tt>params</tt> hash. These handlers are invoked for POST and PUT requests.
@@ -428,8 +421,7 @@ module ActionController #:nodoc:
       end
 
       def view_paths=(value)
-        @view_paths = value
-        ActionView::TemplateFinder.process_view_paths(value)
+        @view_paths = ActionView::ViewLoadPaths.new(Array(value)) if value
       end
 
       # Adds a view_path to the front of the view_paths array.
@@ -441,8 +433,7 @@ module ActionController #:nodoc:
       #
       def prepend_view_path(path)
         @view_paths = superclass.view_paths.dup if @view_paths.nil?
-        view_paths.unshift(*path)
-        ActionView::TemplateFinder.process_view_paths(path)
+        @view_paths.unshift(*path)
       end
 
       # Adds a view_path to the end of the view_paths array.
@@ -454,8 +445,7 @@ module ActionController #:nodoc:
       #
       def append_view_path(path)
         @view_paths = superclass.view_paths.dup if @view_paths.nil?
-        view_paths.push(*path)
-        ActionView::TemplateFinder.process_view_paths(path)
+        @view_paths.push(*path)
       end
 
       # Replace sensitive parameter data from the request log.
@@ -613,8 +603,8 @@ module ActionController #:nodoc:
       #
       # This takes the current URL as is and only exchanges the action. In contrast, <tt>url_for :action => 'print'</tt>
       # would have slashed-off the path components after the changed action.
-      def url_for(options = nil) #:doc:
-        case options || {}
+      def url_for(options = {}) #:doc:
+        case options
           when String
             options
           when Hash
@@ -647,11 +637,11 @@ module ActionController #:nodoc:
 
       # View load paths for controller.
       def view_paths
-        @template.finder.view_paths
+        @template.view_paths
       end
 
       def view_paths=(value)
-        @template.finder.view_paths = value  # Mutex needed
+        @template.view_paths = ViewLoadPaths.new(value)
       end
 
       # Adds a view_path to the front of the view_paths array.
@@ -661,7 +651,7 @@ module ActionController #:nodoc:
       #   self.prepend_view_path(["views/default", "views/custom"])
       #
       def prepend_view_path(path)
-        @template.finder.prepend_view_path(path)  # Mutex needed
+        @template.view_paths.unshift(*path)
       end
 
       # Adds a view_path to the end of the view_paths array.
@@ -671,7 +661,7 @@ module ActionController #:nodoc:
       #   self.append_view_path(["views/default", "views/custom"])
       #
       def append_view_path(path)
-        @template.finder.append_view_path(path)  # Mutex needed
+        @template.view_paths.push(*path)
       end
 
     protected
@@ -1232,7 +1222,7 @@ module ActionController #:nodoc:
       end
 
       def template_exists?(template_name = default_template_name)
-        @template.finder.file_exists?(template_name)
+        @template.file_exists?(template_name)
       end
 
       def template_public?(template_name = default_template_name)
@@ -1240,9 +1230,8 @@ module ActionController #:nodoc:
       end
 
       def template_exempt_from_layout?(template_name = default_template_name)
-        extension = @template && @template.finder.pick_template_extension(template_name)
-        name_with_extension = !template_name.include?('.') && extension ? "#{template_name}.#{extension}" : template_name
-        @@exempt_from_layout.any? { |ext| name_with_extension =~ ext }
+        template_name = @template.send(:template_file_from_name, template_name) if @template
+        @@exempt_from_layout.any? { |ext| template_name.to_s =~ ext }
       end
 
       def default_template_name(action_name = self.action_name)

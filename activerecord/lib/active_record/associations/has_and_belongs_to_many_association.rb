@@ -87,6 +87,7 @@ module ActiveRecord
                         :joins => @join_sql,
                         :readonly => false,
                         :order => @reflection.options[:order],
+                        :include => @reflection.options[:include],
                         :limit => @reflection.options[:limit] } }
         end
 

@@ -331,21 +331,32 @@ module ActiveRecord
       end
 
       def assume_migrated_upto_version(version)
+        version = version.to_i
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
+
         migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
         versions = Dir['db/migrate/[0-9]*_*.rb'].map do |filename|
           filename.split('/').last.split('_').first.to_i
         end
 
-        execute "INSERT INTO #{sm_table} (version) VALUES ('#{version}')" unless migrated.include?(version.to_i)
-        (versions - migrated).select { |v| v < version.to_i }.each do |v|
-          execute "INSERT INTO #{sm_table} (version) VALUES ('#{v}')"
+        unless migrated.include?(version)
+          execute "INSERT INTO #{sm_table} (version) VALUES ('#{version}')"
+        end
+
+        inserted = Set.new
+        (versions - migrated).each do |v|
+          if inserted.include?(v)
+            raise "Duplicate migration #{v}. Please renumber your migrations to resolve the conflict."
+          elsif v < version
+            execute "INSERT INTO #{sm_table} (version) VALUES ('#{v}')"
+            inserted << v
+          end
         end
       end
 
       def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
         if native = native_database_types[type]
-          column_type_sql = native.is_a?(Hash) ? native[:name] : native
+          column_type_sql = (native.is_a?(Hash) ? native[:name] : native).dup
 
           if type == :decimal # ignore limit, use precision and scale
             scale ||= native[:scale]
@@ -360,7 +371,7 @@ module ActiveRecord
               raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale if specified"
             end
 
-          elsif limit ||= native.is_a?(Hash) && native[:limit]
+          elsif (type != :primary_key) && (limit ||= native.is_a?(Hash) && native[:limit])
             column_type_sql << "(#{limit})"
           end
 

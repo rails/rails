@@ -42,9 +42,10 @@ Rake::RDocTask.new { |rdoc|
   rdoc.title    = "Active Resource -- Object-oriented REST services"
   rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
   rdoc.options << '--charset' << 'utf-8'
-  rdoc.template = "#{ENV['template']}.rb" if ENV['template']
+  rdoc.template = ENV['template'] ? "#{ENV['template']}.rb" : '../doc/template/horo'
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/**/*.rb')
+  rdoc.rdoc_files.exclude('lib/activeresource.rb')
 }
 
 
@@ -114,13 +115,13 @@ end
 
 desc "Publish the beta gem"
 task :pgem => [:package] do 
-  Rake::SshFilePublisher.new("davidhh@wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
-  `ssh davidhh@wrath.rubyonrails.org './gemupdate.sh'`
+  Rake::SshFilePublisher.new("wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+  `ssh wrath.rubyonrails.org './gemupdate.sh'`
 end
 
 desc "Publish the API documentation"
 task :pdoc => [:rdoc] do 
-  Rake::SshDirPublisher.new("davidhh@wrath.rubyonrails.org", "public_html/ar", "doc").upload
+  Rake::SshDirPublisher.new("wrath.rubyonrails.org", "public_html/ar", "doc").upload
 end
 
 desc "Publish the release files to RubyForge."

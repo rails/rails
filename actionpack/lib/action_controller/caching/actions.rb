@@ -40,6 +40,8 @@ module ActionController #:nodoc:
     #         controller.send(:list_url, c.params[:id]) }
     #   end
     #
+    # If you pass :layout => false, it will only cache your action content. It is useful when your layout has dynamic information.
+    #
     module Actions
       def self.included(base) #:nodoc:
         base.extend(ClassMethods)
@@ -54,7 +56,8 @@ module ActionController #:nodoc:
         def caches_action(*actions)
           return unless cache_configured?
           options = actions.extract_options!
-          around_filter(ActionCacheFilter.new(:cache_path => options.delete(:cache_path)), {:only => actions}.merge(options))
+          cache_filter = ActionCacheFilter.new(:layout => options.delete(:layout), :cache_path => options.delete(:cache_path))
+          around_filter(cache_filter, {:only => actions}.merge(options))
         end
       end
 
@@ -64,10 +67,10 @@ module ActionController #:nodoc:
 
           if options[:action].is_a?(Array)
             options[:action].dup.each do |action|
-              expire_fragment(ActionCachePath.path_for(self, options.merge({ :action => action })))
+              expire_fragment(ActionCachePath.path_for(self, options.merge({ :action => action }), false))
             end
           else
-            expire_fragment(ActionCachePath.path_for(self, options))
+            expire_fragment(ActionCachePath.path_for(self, options, false))
           end
         end
 
@@ -81,7 +84,9 @@ module ActionController #:nodoc:
           if cache = controller.read_fragment(cache_path.path)
             controller.rendered_action_cache = true
             set_content_type!(controller, cache_path.extension)
-            controller.send!(:render_for_text, cache)
+            options = { :text => cache }
+            options.merge!(:layout => true) if cache_layout?
+            controller.send!(:render, options)
             false
           else
             controller.action_cache_path = cache_path
@@ -90,7 +95,8 @@ module ActionController #:nodoc:
 
         def after(controller)
           return if controller.rendered_action_cache || !caching_allowed(controller)
-          controller.write_fragment(controller.action_cache_path.path, controller.response.body)
+          action_content = cache_layout? ? content_for_layout(controller) : controller.response.body
+          controller.write_fragment(controller.action_cache_path.path, action_content)
         end
 
         private
@@ -105,22 +111,38 @@ module ActionController #:nodoc:
           def caching_allowed(controller)
             controller.request.get? && controller.response.headers['Status'].to_i == 200
           end
+
+          def cache_layout?
+            @options[:layout] == false
+          end
+
+          def content_for_layout(controller)
+            controller.response.layout && controller.response.template.instance_variable_get('@content_for_layout')
+          end
       end
 
       class ActionCachePath
         attr_reader :path, :extension
 
         class << self
-          def path_for(controller, options)
-            new(controller, options).path
+          def path_for(controller, options, infer_extension=true)
+            new(controller, options, infer_extension).path
           end
         end
-
-        def initialize(controller, options = {})
-          @extension = extract_extension(controller.request.path)
+        
+        # When true, infer_extension will look up the cache path extension from the request's path & format.
+        # This is desirable when reading and writing the cache, but not when expiring the cache -  expire_action should expire the same files regardless of the request format.
+        def initialize(controller, options = {}, infer_extension=true)
+          if infer_extension and options.is_a? Hash
+            request_extension = extract_extension(controller.request)
+            options = options.reverse_merge(:format => request_extension)
+          end
           path = controller.url_for(options).split('://').last
           normalize!(path)
-          add_extension!(path, @extension)
+          if infer_extension
+            @extension = request_extension
+            add_extension!(path, @extension)
+          end
           @path = URI.unescape(path)
         end
 
@@ -130,13 +152,22 @@ module ActionController #:nodoc:
           end
 
           def add_extension!(path, extension)
-            path << ".#{extension}" if extension
+            path << ".#{extension}" if extension and !path.ends_with?(extension)
           end
-
-          def extract_extension(file_path)
+          
+          def extract_extension(request)
             # Don't want just what comes after the last '.' to accommodate multi part extensions
             # such as tar.gz.
-            file_path[/^[^.]+\.(.+)$/, 1]
+            extension = request.path[/^[^.]+\.(.+)$/, 1]
+
+            # If there's no extension in the path, check request.format
+            if extension.nil?
+              extension = request.format.to_sym.to_s
+              if extension=='all'
+                extension = nil
+              end
+            end
+            extension
           end
       end
     end

@@ -1,5 +1,23 @@
 *Edge*
 
+* Always treat integer :limit as byte length.  #420 [Tarmo Tänav]
+
+* Partial updates don't update lock_version if nothing changed.  #426 [Daniel Morrison]
+
+* Fix column collision with named_scope and :joins.  #46 [Duncan Beevers, Mark Catley]
+
+* db:migrate:down and :up update schema_migrations.  #369 [Michael Raidel, RaceCondition]
+
+* PostgreSQL: support :conditions => [':foo::integer', { :foo => 1 }] without treating the ::integer typecast as a bind variable.  [Tarmo Tänav]
+
+* MySQL: rename_column preserves column defaults.  #466 [Diego Algorta]
+
+* Add :from option to calculations.  #397 [Ben Munat]
+
+* Add :validate option to associations to enable/disable the automatic validation of associated models. Resolves #301. [Jan De Poorter]
+
+* PostgreSQL: use 'INSERT ... RETURNING id' for 8.2 and later.  [Jeremy Kemper]
+
 * Added SQL escaping for :limit and :offset in MySQL [Jonathan Wiess]
 
 

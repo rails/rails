@@ -187,4 +187,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post.people_with_callbacks.clear
     assert_equal (%w(Michael David Julian Roger) * 2).sort, log.last(8).collect(&:last).sort
   end
+
+  def test_dynamic_find_should_respect_association_include
+    # SQL error in sort clause if :include is not included
+    # due to Unknown column 'comments.id'
+    assert Person.find(1).posts_with_comments_sorted_by_comment_id.find_by_title('Welcome to the weblog')
+  end
 end

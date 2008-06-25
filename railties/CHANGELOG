@@ -1,3 +1,20 @@
+*Edge*
+
+* Fix script/about in production mode.  #370 [Cheah Chu Yeow, Xavier Noria, David Krmpotic]
+
+* Add the gem load paths before the framework is loaded, so certain gems like RedCloth and BlueCloth can be frozen.
+
+* Fix discrepancies with loading rails/init.rb from gems.
+
+* Plugins check for the gem init path (rails/init.rb) before the standard plugin init path (init.rb)  [Jacek Becela]
+
+* Changed all generated tests to use the test/do declaration style [DHH]
+
+* Wrapped Rails.env in StringInquirer so you can do Rails.env.development? [DHH]
+
+* Fixed that RailsInfoController wasn't considering all requests local in development mode (Edgard Castro) [#310 state:resolved]
+
+
 *2.1.0 (May 31st, 2008)*
 
 * script/dbconsole fires up the command-line database client.  #102 [Steve Purcell]

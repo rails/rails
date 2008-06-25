@@ -1,8 +1,9 @@
-require 'stringio'
-require 'uri'
-
+require 'active_support/test_case'
 require 'action_controller/dispatcher'
 require 'action_controller/test_process'
+
+require 'stringio'
+require 'uri'
 
 module ActionController
   module Integration #:nodoc:
@@ -580,7 +581,7 @@ EOF
   #         end
   #       end
   #   end
-  class IntegrationTest < Test::Unit::TestCase
+  class IntegrationTest < ActiveSupport::TestCase
     include Integration::Runner
 
     # Work around a bug in test/unit caused by the default test being named

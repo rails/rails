@@ -28,7 +28,7 @@ class SessionUploadTest < ActionController::IntegrationTest
   # end
   def test_post_with_upload
     uses_mocha "test_post_with_upload" do
-      Dependencies.stubs(:load?).returns(false)
+      ActiveSupport::Dependencies.stubs(:load?).returns(false)
       with_routing do |set|
         set.draw do |map|
           map.update 'update', :controller => "upload_test", :action => "update", :method => :post
