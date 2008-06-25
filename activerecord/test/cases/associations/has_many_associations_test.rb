@@ -345,12 +345,29 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_invalid_adding_with_validate_false
     firm = Firm.find(:first)
     client = Client.new
-    firm.unvalidated_clients_of_firm << Client.new
+    firm.unvalidated_clients_of_firm << client
 
     assert firm.valid?
     assert !client.valid?
     assert firm.save
     assert client.new_record?
+  end
+
+  def test_valid_adding_with_validate_false
+    no_of_clients = Client.count
+
+    firm = Firm.find(:first)
+    client = Client.new("name" => "Apple")
+
+    assert firm.valid?
+    assert client.valid?
+    assert client.new_record?
+
+    firm.unvalidated_clients_of_firm << client
+
+    assert firm.save
+    assert !client.new_record?
+    assert_equal no_of_clients+1, Client.count
   end
 
   def test_build
