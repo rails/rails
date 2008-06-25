@@ -6,19 +6,15 @@ module ActionView #:nodoc:
 
     class LoadPath #:nodoc:
       attr_reader :path, :paths
-      delegate :to_s, :inspect, :to => :path
+      delegate :to_s, :to_str, :inspect, :to => :path
 
       def initialize(path)
         @path = path.freeze
         reload!
       end
 
-      def eql?(view_path)
-        view_path.is_a?(ViewPath) && @path == view_path.path
-      end
-
-      def hash
-        @path.hash
+      def ==(path)
+        to_str == path.to_str
       end
 
       # Rebuild load path directory cache
