@@ -61,9 +61,9 @@ module ActiveRecord
         def delete_records(records)
           case @reflection.options[:dependent]
             when :destroy
-              records.each(&:destroy)
+              records.each { |r| r.destroy }
             when :delete_all
-              @reflection.klass.delete(records.map(&:id))
+              @reflection.klass.delete(records.map { |record| record.id })
             else
               ids = quoted_record_ids(records)
               @reflection.klass.update_all(

@@ -1145,7 +1145,7 @@ module ActiveRecord
           end
 
           define_method("#{reflection.name.to_s.singularize}_ids") do
-            send(reflection.name).map(&:id)
+            send(reflection.name).map { |record| record.id }
           end
         end
 
@@ -1490,7 +1490,7 @@ module ActiveRecord
           sql << " FROM #{connection.quote_table_name table_name} "
 
           if is_distinct
-            sql << distinct_join_associations.collect(&:association_join).join
+            sql << distinct_join_associations.collect { |assoc| assoc.association_join }.join
             add_joins!(sql, options, scope)
           end
 

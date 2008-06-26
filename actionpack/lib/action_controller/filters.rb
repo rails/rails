@@ -127,9 +127,9 @@ module ActionController #:nodoc:
 
         def included_in_action?(controller, options)
           if options[:only]
-            Array(options[:only]).map(&:to_s).include?(controller.action_name)
+            Array(options[:only]).map { |o| o.to_s }.include?(controller.action_name)
           elsif options[:except]
-            !Array(options[:except]).map(&:to_s).include?(controller.action_name)
+            !Array(options[:except]).map { |o| o.to_s }.include?(controller.action_name)
           else
             true
           end
@@ -544,13 +544,21 @@ module ActionController #:nodoc:
       # Returns all the before filters for this class and all its ancestors.
       # This method returns the actual filter that was assigned in the controller to maintain existing functionality.
       def before_filters #:nodoc:
-        filter_chain.select(&:before?).map(&:method)
+        filters = []
+        filter_chain.each do |filter|
+          filters << filter.method if filter.before?
+        end
+        filters
       end
 
       # Returns all the after filters for this class and all its ancestors.
       # This method returns the actual filter that was assigned in the controller to maintain existing functionality.
       def after_filters #:nodoc:
-        filter_chain.select(&:after?).map(&:method)
+        filters = []
+        filter_chain.each do |filter|
+          filters << filter.method if filter.after?
+        end
+        filters
       end
     end
 

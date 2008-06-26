@@ -412,7 +412,7 @@ module ActionController #:nodoc:
       # More methods can be hidden using <tt>hide_actions</tt>.
       def hidden_actions
         unless read_inheritable_attribute(:hidden_actions)
-          write_inheritable_attribute(:hidden_actions, ActionController::Base.public_instance_methods.map(&:to_s))
+          write_inheritable_attribute(:hidden_actions, ActionController::Base.public_instance_methods.map { |m| m.to_s })
         end
 
         read_inheritable_attribute(:hidden_actions)
@@ -420,12 +420,12 @@ module ActionController #:nodoc:
 
       # Hide each of the given methods from being callable as actions.
       def hide_action(*names)
-        write_inheritable_attribute(:hidden_actions, hidden_actions | names.map(&:to_s))
+        write_inheritable_attribute(:hidden_actions, hidden_actions | names.map { |name| name.to_s })
       end
 
-      ## View load paths determine the bases from which template references can be made. So a call to
-      ## render("test/template") will be looked up in the view load paths array and the closest match will be
-      ## returned.
+      # View load paths determine the bases from which template references can be made. So a call to
+      # render("test/template") will be looked up in the view load paths array and the closest match will be
+      # returned.
       def view_paths
         @view_paths || superclass.view_paths
       end
@@ -1201,7 +1201,7 @@ module ActionController #:nodoc:
       end
 
       def self.action_methods
-        @action_methods ||= Set.new(public_instance_methods.map(&:to_s)) - hidden_actions
+        @action_methods ||= Set.new(public_instance_methods.map { |m| m.to_s }) - hidden_actions
       end
 
       def add_variables_to_assigns
