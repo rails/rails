@@ -21,10 +21,8 @@ module ActionController
     # from the response HTML or elements selected by the enclosing assertion.
     # 
     # In addition to HTML responses, you can make the following assertions:
-    # * +assert_select_rjs+ - Assertions on HTML content of RJS update and
-    #     insertion operations.
-    # * +assert_select_encoded+ - Assertions on HTML encoded inside XML,
-    #     for example for dealing with feed item descriptions.
+    # * +assert_select_rjs+ - Assertions on HTML content of RJS update and insertion operations.
+    # * +assert_select_encoded+ - Assertions on HTML encoded inside XML, for example for dealing with feed item descriptions.
     # * +assert_select_email+ - Assertions on the HTML body of an e-mail.
     #
     # Also see HTML::Selector to learn how to use selectors.
