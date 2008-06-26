@@ -828,7 +828,7 @@ module ActiveRecord #:nodoc:
       def update_counters(id, counters)
         updates = counters.inject([]) { |list, (counter_name, increment)|
           sign = increment < 0 ? "-" : "+"
-          list << "#{connection.quote_column_name(counter_name)} = #{connection.quote_column_name(counter_name)} #{sign} #{increment.abs}"
+          list << "#{connection.quote_column_name(counter_name)} = COALESCE(#{connection.quote_column_name(counter_name)}, 0) #{sign} #{increment.abs}"
         }.join(", ")
         update_all(updates, "#{connection.quote_column_name(primary_key)} = #{quote_value(id)}")
       end
