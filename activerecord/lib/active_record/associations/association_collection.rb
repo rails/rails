@@ -78,11 +78,14 @@ module ActiveRecord
         @loaded = false
       end
 
-      def build(attributes = {})
+      def build(attributes = {}, &block)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| build(attr) }
+          attributes.collect { |attr| build(attr, &block) }
         else
-          build_record(attributes) { |record| set_belongs_to_association_for(record) }
+          build_record(attributes) do |record|
+            block.call(record) if block_given?
+            set_belongs_to_association_for(record)
+          end
         end
       end
 
