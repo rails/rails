@@ -1,5 +1,15 @@
 *Edge*
 
+* Disable the Accept header by default [Michael Koziarski]
+
+    The accept header is poorly implemented by browsers and causes strange
+	errors when used on public sites where crawlers make requests too.  You
+	should use formatted urls (e.g. /people/1.xml) to support API clients.
+
+	Alternatively to re-enable it you need to set:
+
+	config.action_controller.use_accept_header = true
+
 * Do not stat template files in production mode before rendering. You will no longer be able to modify templates in production mode without restarting the server [Josh Peek]
 
 * Deprecated TemplateHandler line offset [Josh Peek]

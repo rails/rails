@@ -166,10 +166,7 @@ module ActionController #:nodoc:
 
             # If there's no extension in the path, check request.format
             if extension.nil?
-              extension = request.format.to_sym.to_s
-              if extension=='all'
-                extension = nil
-              end
+              extension = request.cache_format
             end
             extension
           end
