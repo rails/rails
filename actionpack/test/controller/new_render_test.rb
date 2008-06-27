@@ -605,8 +605,7 @@ EOS
   end
 
   def test_render_with_default_from_accept_header
-    @request.env["HTTP_ACCEPT"] = "text/javascript"
-    get :greeting
+    xhr :get, :greeting
     assert_equal "$(\"body\").visualEffect(\"highlight\");", @response.body
   end
 

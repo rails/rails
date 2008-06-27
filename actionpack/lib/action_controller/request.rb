@@ -116,6 +116,19 @@ module ActionController
       @format = Mime::Type.lookup_by_extension(parameters[:format])
     end
 
+    def template_format
+      parameter_format = parameters[:format]
+
+      case
+      when parameter_format.blank? && !xhr?
+        :html
+      when parameter_format.blank? && xhr?
+        :js
+      else
+        parameter_format.to_sym
+      end
+    end
+
     # Returns true if the request's "X-Requested-With" header contains
     # "XMLHttpRequest". (The Prototype Javascript library sends this header with
     # every Ajax request.)

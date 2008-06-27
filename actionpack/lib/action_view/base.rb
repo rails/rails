@@ -273,17 +273,7 @@ module ActionView #:nodoc:
       return @template_format if @template_format
 
       if controller && controller.respond_to?(:request)
-        parameter_format = controller.request.parameters[:format]
-        accept_format    = controller.request.accepts.first
-
-        case
-        when parameter_format.blank? && accept_format != :js
-          @template_format = :html
-        when parameter_format.blank? && accept_format == :js
-          @template_format = :js
-        else
-          @template_format = parameter_format.to_sym
-        end
+        @template_format = controller.request.template_format
       else
         @template_format = :html
       end
