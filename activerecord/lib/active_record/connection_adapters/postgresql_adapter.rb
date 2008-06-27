@@ -48,9 +48,12 @@ module ActiveRecord
 
       private
         def extract_limit(sql_type)
-          return 8 if sql_type =~ /^bigint/i
-          return 2 if sql_type =~ /^smallint/i
-          super
+          case sql_type
+          when /^integer/i;   4
+          when /^bigint/i;    8
+          when /^smallint/i;  2
+          else super
+          end
         end
 
         # Extracts the scale from PostgreSQL-specific data types.
@@ -776,9 +779,10 @@ module ActiveRecord
           when 1..2;      'smallint'
           when 3..4, nil; 'integer'
           when 5..8;      'bigint'
+          else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
         end
       end
-      
+
       # Returns a SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.
       #
       # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and
