@@ -299,7 +299,7 @@ module ActiveSupport #:nodoc:
 
     # Will the provided constant descriptor be unloaded?
     def will_unload?(const_desc)
-      autoloaded?(desc) ||
+      autoloaded?(const_desc) ||
         explicitly_unloadable_constants.include?(to_constant_name(const_desc))
     end
 
