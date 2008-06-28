@@ -1,4 +1,4 @@
-require 'active_model/observing'
+require 'active_model/core'
 
 module ActiveModel
   module Validations

@@ -3,7 +3,8 @@ $:.unshift File.dirname(__FILE__)
 
 require 'test/unit'
 require 'active_model'
-require 'active_support/callbacks' # needed by ActiveSupport::TestCase
+require 'active_model/state_machine'
+require 'active_support/callbacks' # needed by ActiveModel::TestCase
 require 'active_support/test_case'
 
 def uses_gem(gem_name, test_name, version = '> 0')
@@ -19,5 +20,20 @@ end
 unless defined? uses_mocha
   def uses_mocha(test_name, &block)
     uses_gem('mocha', test_name, '>= 0.5.5', &block)
+  end
+end
+
+begin
+  require 'rubygems'
+  require 'ruby-debug'
+  Debugger.start
+rescue LoadError
+end
+
+ActiveSupport::TestCase.send :include, ActiveSupport::Testing::Default
+
+module ActiveModel
+  class TestCase < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Default
   end
 end

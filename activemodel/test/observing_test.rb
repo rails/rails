@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), 'test_helper')
+require File.expand_path(File.join(File.dirname(__FILE__), 'test_helper'))
 
 class ObservedModel < ActiveModel::Base
   class Observer
@@ -20,7 +20,7 @@ end
 class Foo < ActiveModel::Base
 end
 
-class ObservingTest < ActiveSupport::TestCase
+class ObservingTest < ActiveModel::TestCase
   def setup
     ObservedModel.observers.clear
   end
@@ -67,7 +67,7 @@ class ObservingTest < ActiveSupport::TestCase
   end
 end
   
-class ObserverTest < ActiveSupport::TestCase
+class ObserverTest < ActiveModel::TestCase
   def setup
     ObservedModel.observers = :foo_observer
     FooObserver.models = nil
