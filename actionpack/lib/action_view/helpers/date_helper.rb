@@ -696,15 +696,15 @@ module ActionView
 
     class FormBuilder
       def date_select(method, options = {}, html_options = {})
-        @template.date_select(@object_name, method, options.merge(:object => @object))
+        @template.date_select(@object_name, method, options.merge(:object => @object), html_options)
       end
 
       def time_select(method, options = {}, html_options = {})
-        @template.time_select(@object_name, method, options.merge(:object => @object))
+        @template.time_select(@object_name, method, options.merge(:object => @object), html_options)
       end
 
       def datetime_select(method, options = {}, html_options = {})
-        @template.datetime_select(@object_name, method, options.merge(:object => @object))
+        @template.datetime_select(@object_name, method, options.merge(:object => @object), html_options)
       end
     end
   end
