@@ -37,10 +37,6 @@ module ActiveModel
         @transitions.any? { |t| t.from? state }
       end
 
-      def success?
-        !!@success
-      end
-
       def ==(event)
         if event.is_a? Symbol
           name == event

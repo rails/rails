@@ -110,41 +110,38 @@ class StateMachineInitialStatesTest < ActiveModel::TestCase
     assert_equal :read, @foo.current_state(:bar)
   end
 end
-# 
-#describe AASM, '- event firing with persistence' do
-#  it 'should fire the Event' do
-#    foo = Foo.new
-# 
-#    Foo.aasm_events[:close].should_receive(:fire).with(foo)
-#    foo.close!
-#  end
-# 
-#  it 'should update the current state' do
-#    foo = Foo.new
-#    foo.close!
-# 
-#    foo.aasm_current_state.should == :closed
-#  end
-# 
-#  it 'should call the success callback if one was provided' do
-#    foo = Foo.new
-# 
-#    foo.should_receive(:success_callback)
-# 
-#    foo.close!
-#  end
-# 
-#  it 'should attempt to persist if aasm_write_state is defined' do
-#    foo = Foo.new
-#    
-#    def foo.aasm_write_state
-#    end
-# 
-#    foo.should_receive(:aasm_write_state)
-# 
-#    foo.close!
-#  end
-#end
+ 
+class StateMachineEventFiringWithPersistenceTest < ActiveModel::TestCase
+  def setup
+    @subj = StateMachineSubject.new
+  end
+
+  test 'updates the current state' do
+    @subj.close!
+
+    assert_equal :closed, @subj.current_state
+  end
+
+  uses_mocha "StateMachineEventFiringWithPersistenceTest with callbacks" do
+    test 'fires the Event' do
+      @subj.class.state_machine.events[:close].expects(:fire).with(@subj)
+      @subj.close!
+    end
+
+    test 'calls the success callback if one was provided' do
+      @subj.expects(:success_callback)
+      @subj.close!
+    end
+
+    test 'attempts to persist if write_state is defined' do
+      def @subj.write_state
+      end
+
+      @subj.expects(:write_state)
+      @subj.close!
+    end
+  end
+end
 
 class StateMachineEventFiringWithoutPersistence < ActiveModel::TestCase
   test 'updates the current state' do
@@ -162,30 +159,32 @@ class StateMachineEventFiringWithoutPersistence < ActiveModel::TestCase
       subj.close
     end
 
-    test 'should attempt to persist if aasm_write_state is defined' do
+    test 'attempts to persist if write_state is defined' do
       subj = StateMachineSubject.new
 
-      def subj.aasm_write_state
+      def subj.write_state
       end
 
-      subj.expects(:aasm_write_state_without_persistence)
+      subj.expects(:write_state_without_persistence)
 
       subj.close
     end
   end
 end
- 
-#describe AASM, '- persistence' do
-#  it 'should read the state if it has not been set and aasm_read_state is defined' do
-#    foo = Foo.new
-#    def foo.aasm_read_state
-#    end
-# 
-#    foo.should_receive(:aasm_read_state)
-# 
-#    foo.aasm_current_state
-#  end
-#end
+
+uses_mocha 'StateMachinePersistenceTest' do
+  class StateMachinePersistenceTest < ActiveModel::TestCase
+    test 'reads the state if it has not been set and read_state is defined' do
+      subj = StateMachineSubject.new
+      def subj.read_state
+      end
+
+      subj.expects(:read_state).with(StateMachineSubject.state_machine)
+
+      subj.current_state
+    end
+  end
+end
 
 uses_mocha 'StateMachineEventCallbacksTest' do
   class StateMachineEventCallbacksTest < ActiveModel::TestCase

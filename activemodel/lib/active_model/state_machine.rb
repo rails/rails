@@ -37,13 +37,29 @@ module ActiveModel
       end
     end
 
-    def current_state(name = nil, new_state = nil)
+    def current_state(name = nil, new_state = nil, persist = false)
       sm   = self.class.state_machine(name)
-      ivar = "@#{sm.name}_current_state"
+      ivar = sm.current_state_variable
       if name && new_state
+        if persist && respond_to?(:write_state)
+          write_state(sm, new_state)
+        end
+
+        if respond_to?(:write_state_without_persistence)
+          write_state_without_persistence(sm, new_state)
+        end
+
         instance_variable_set(ivar, new_state)
       else
-        instance_variable_get(ivar) || instance_variable_set(ivar, sm.initial_state)
+        instance_variable_set(ivar, nil) unless instance_variable_defined?(ivar)
+        value = instance_variable_get(ivar)
+        return value if value
+
+        if respond_to?(:read_state)
+          value = instance_variable_set(ivar, read_state(sm))
+        end
+
+        value || sm.initial_state
       end
     end
   end

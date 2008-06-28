@@ -17,7 +17,7 @@ class EventTest < ActiveModel::TestCase
   end
 
   test 'should set the success option' do
-    assert new_event.success?
+    assert_equal @success, new_event.success
   end
 
   uses_mocha 'StateTransition creation' do

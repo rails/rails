@@ -28,7 +28,9 @@ module ActiveModel
             record.send(event_fired_callback, record.current_state, new_state)
           end
 
-          record.current_state(@name, new_state)
+          record.current_state(@name, new_state, persist)
+          record.send(@events[event].success) if @events[event].success
+          true
         else
           if record.respond_to?(event_failed_callback)
             record.send(event_failed_callback, event)
@@ -45,6 +47,10 @@ module ActiveModel
       def events_for(state)
         events = @events.values.select { |event| event.transitions_from_state?(state) }
         events.map! { |event| event.name }
+      end
+
+      def current_state_variable
+        "@#{@name}_current_state"
       end
 
     private
