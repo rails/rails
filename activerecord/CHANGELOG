@@ -1,5 +1,10 @@
 *Edge*
 
+* Allow conditions on multiple tables to be specified using hash. [Pratik Naik]. Example:
+
+  User.all :joins => :items, :conditions => { :age => 10, :items => { :color => 'black' } }
+  Item.first :conditions => { :items => { :color => 'red' } }
+
 * Always treat integer :limit as byte length.  #420 [Tarmo Tänav]
 
 * Partial updates don't update lock_version if nothing changed.  #426 [Daniel Morrison]

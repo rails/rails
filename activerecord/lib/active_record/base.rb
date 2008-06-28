@@ -1999,24 +1999,28 @@ module ActiveRecord #:nodoc:
         #     # => "age BETWEEN 13 AND 18"
         #   { 'other_records.id' => 7 }
         #     # => "`other_records`.`id` = 7"
+        #   { :other_records => { :id => 7 } }
+        #     # => "`other_records`.`id` = 7"
         # And for value objects on a composed_of relationship:
         #   { :address => Address.new("123 abc st.", "chicago") }
         #     # => "address_street='123 abc st.' and address_city='chicago'"
-        def sanitize_sql_hash_for_conditions(attrs)
+        def sanitize_sql_hash_for_conditions(attrs, table_name = quoted_table_name)
           attrs = expand_hash_conditions_for_aggregates(attrs)
 
           conditions = attrs.map do |attr, value|
-            attr = attr.to_s
+            unless value.is_a?(Hash)
+              attr = attr.to_s
 
-            # Extract table name from qualified attribute names.
-            if attr.include?('.')
-              table_name, attr = attr.split('.', 2)
-              table_name = connection.quote_table_name(table_name)
+              # Extract table name from qualified attribute names.
+              if attr.include?('.')
+                table_name, attr = attr.split('.', 2)
+                table_name = connection.quote_table_name(table_name)
+              end
+
+              "#{table_name}.#{connection.quote_column_name(attr)} #{attribute_condition(value)}"
             else
-              table_name = quoted_table_name
+              sanitize_sql_hash_for_conditions(value, connection.quote_table_name(attr.to_s))
             end
-
-            "#{table_name}.#{connection.quote_column_name(attr)} #{attribute_condition(value)}"
           end.join(' AND ')
 
           replace_bind_variables(conditions, expand_range_bind_variables(attrs.values))
@@ -2070,6 +2074,8 @@ module ActiveRecord #:nodoc:
           expanded = []
 
           bind_vars.each do |var|
+            next if var.is_a?(Hash)
+
             if var.is_a?(Range)
               expanded << var.first
               expanded << var.last
