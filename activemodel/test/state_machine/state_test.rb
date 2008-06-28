@@ -10,12 +10,12 @@ end
 class StateTest < ActiveModel::TestCase
   def setup
     @name    = :astate
-    @options = { :crazy_custom_key => 'key' }
     @machine = StateTestSubject.state_machine
+    @options = { :crazy_custom_key => 'key', :machine => @machine }
   end
 
   def new_state(options={})
-    ActiveModel::StateMachine::State.new(options.delete(:machine) || @machine, @name, @options.merge(options))
+    ActiveModel::StateMachine::State.new(@name, @options.merge(options))
   end
 
   test 'sets the name' do
@@ -31,6 +31,7 @@ class StateTest < ActiveModel::TestCase
   end
   
   test 'sets the options and expose them as options' do
+    @options.delete(:machine)
     assert_equal @options, new_state.options
   end
 

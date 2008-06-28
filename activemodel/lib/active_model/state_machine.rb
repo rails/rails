@@ -5,6 +5,9 @@ end
 
 module ActiveModel
   module StateMachine
+    class InvalidTransition < Exception
+    end
+
     def self.included(base)
       base.extend ClassMethods
     end
@@ -34,10 +37,14 @@ module ActiveModel
       end
     end
 
-    def current_state(name = nil)
+    def current_state(name = nil, new_state = nil)
       sm   = self.class.state_machine(name)
       ivar = "@#{sm.name}_current_state"
-      instance_variable_get(ivar) || instance_variable_set(ivar, sm.initial_state)
+      if name && new_state
+        instance_variable_set(ivar, new_state)
+      else
+        instance_variable_get(ivar) || instance_variable_set(ivar, sm.initial_state)
+      end
     end
   end
 end

@@ -3,11 +3,15 @@ module ActiveModel
     class State
       attr_reader :name, :options
 
-      def initialize(machine, name, options={})
-        @machine, @name, @options, @display_name = machine, name, options, options.delete(:display)
-        machine.klass.send(:define_method, "#{name}?") do
-          current_state.to_s == name.to_s
+      def initialize(name, options = {})
+        @name = name
+        machine = options.delete(:machine)
+        if machine
+          machine.klass.send(:define_method, "#{name}?") do
+            current_state.to_s == name.to_s
+          end
         end
+        update(options)
       end
 
       def ==(state)
@@ -34,6 +38,12 @@ module ActiveModel
 
       def for_select
         [display_name, name.to_s]
+      end
+
+      def update(options = {})
+        if options.key?(:display) then @display_name = options.delete(:display) end
+        @options = options
+        self
       end
     end
   end

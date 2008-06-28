@@ -7,22 +7,22 @@ class StateMachineSubject
     state :open,   :exit => :exit
     state :closed, :enter => :enter
     
-    #event :close, :success => :success_callback do
-    #  transitions :to => :closed, :from => [:open]
-    #end
-    #
-    #event :null do
-    #  transitions :to => :closed, :from => [:open], :guard => :always_false
-    #end
+    event :close, :success => :success_callback do
+      transitions :to => :closed, :from => [:open]
+    end
+
+    event :null do
+      transitions :to => :closed, :from => [:open], :guard => :always_false
+    end
   end
 
   state_machine :bar do
     state :read
     state :ended
 
-    #event :foo do
-    #  transitions :to => :ended, :from => [:read]
-    #end
+    event :foo do
+      transitions :to => :ended, :from => [:read]
+    end
   end
 
   def always_false
@@ -80,9 +80,13 @@ class StateMachineInstanceLevelTest < ActiveModel::TestCase
     assert @foo.respond_to?(:open?)
   end
  
-  #test 'should define an event! inance method' do
-  #  assert @foo.respond_to?(:close!)
-  #end
+  test 'defines an event! instance method' do
+    assert @foo.respond_to?(:close!)
+  end
+ 
+  test 'defines an event instance method' do
+    assert @foo.respond_to?(:close)
+  end
 end
  
 class StateMachineInitialStatesTest < ActiveModel::TestCase
@@ -90,19 +94,19 @@ class StateMachineInitialStatesTest < ActiveModel::TestCase
     @foo = StateMachineSubject.new
   end
  
-  test 'should set the initial state' do
+  test 'sets the initial state' do
     assert_equal :open, @foo.current_state
   end
  
-  #test '#open? should be initially true' do
-  #  @foo.open?.should be_true
-  #end
-  #
-  #test '#closed? should be initially false' do
-  #  @foo.closed?.should be_false
-  #end
+  test '#open? should be initially true' do
+    assert @foo.open?
+  end
+  
+  test '#closed? should be initially false' do
+    assert !@foo.closed?
+  end
  
-  test 'should use the first state defined if no initial state is given' do
+  test 'uses the first state defined if no initial state is given' do
     assert_equal :read, @foo.current_state(:bar)
   end
 end
@@ -141,34 +145,36 @@ end
 #    foo.close!
 #  end
 #end
-# 
-#describe AASM, '- event firing without persistence' do
-#  it 'should fire the Event' do
-#    foo = Foo.new
-# 
-#    Foo.aasm_events[:close].should_receive(:fire).with(foo)
-#    foo.close
-#  end
-# 
-#  it 'should update the current state' do
-#    foo = Foo.new
-#    foo.close
-# 
-#    foo.aasm_current_state.should == :closed
-#  end
-# 
-#  it 'should attempt to persist if aasm_write_state is defined' do
-#    foo = Foo.new
-#    
-#    def foo.aasm_write_state
-#    end
-# 
-#    foo.should_receive(:aasm_write_state_without_persistence)
-# 
-#    foo.close
-#  end
-#end
-# 
+
+class StateMachineEventFiringWithoutPersistence < ActiveModel::TestCase
+  test 'updates the current state' do
+    subj = StateMachineSubject.new
+    assert_equal :open, subj.current_state
+    subj.close
+    assert_equal :closed, subj.current_state
+  end
+
+  uses_mocha 'StateMachineEventFiringWithoutPersistence' do
+    test 'fires the Event' do
+      subj = StateMachineSubject.new
+
+      StateMachineSubject.state_machine.events[:close].expects(:fire).with(subj)
+      subj.close
+    end
+
+    test 'should attempt to persist if aasm_write_state is defined' do
+      subj = StateMachineSubject.new
+
+      def subj.aasm_write_state
+      end
+
+      subj.expects(:aasm_write_state_without_persistence)
+
+      subj.close
+    end
+  end
+end
+ 
 #describe AASM, '- persistence' do
 #  it 'should read the state if it has not been set and aasm_read_state is defined' do
 #    foo = Foo.new
@@ -180,22 +186,7 @@ end
 #    foo.aasm_current_state
 #  end
 #end
-# 
-#describe AASM, '- getting events for a state' do
-#  it '#aasm_events_for_current_state should use current state' do
-#    foo = Foo.new
-#    foo.should_receive(:aasm_current_state)
-#    foo.aasm_events_for_current_state
-#  end
-# 
-#  it '#aasm_events_for_current_state should use aasm_events_for_state' do
-#    foo = Foo.new
-#    foo.stub!(:aasm_current_state).and_return(:foo)
-#    foo.should_receive(:aasm_events_for_state).with(:foo)
-#    foo.aasm_events_for_current_state
-#  end
-#end
-# 
+ 
 #describe AASM, '- event callbacks' do
 #  it 'should call aasm_event_fired if defined and successful for bang fire' do
 #    foo = Foo.new
@@ -237,32 +228,31 @@ end
 #    foo.null
 #  end
 #end
-# 
-#describe AASM, '- state actions' do
-#  it "should call enter when entering state" do
-#    foo = Foo.new
-#    foo.should_receive(:enter)
-# 
-#    foo.close
-#  end
-# 
-#  it "should call exit when exiting state" do
-#    foo = Foo.new
-#    foo.should_receive(:exit)
-# 
-#    foo.close
-#  end
-#end
-# 
-# 
+
+uses_mocha 'StateMachineStateActionsTest' do
+  class StateMachineStateActionsTest < ActiveModel::TestCase
+    test "calls enter when entering state" do
+      subj = StateMachineSubject.new
+      subj.expects(:enter)
+      subj.close
+    end
+
+    test "calls exit when exiting state" do
+      subj = StateMachineSubject.new
+      subj.expects(:exit)
+      subj.close
+    end
+  end
+end
+
 class StateMachineInheritanceTest < ActiveModel::TestCase
-  test "should have the same states as it's parent" do
+  test "has the same states as its parent" do
     assert_equal StateMachineSubject.state_machine.states, StateMachineSubjectSubclass.state_machine.states
   end
  
-  #test "should have the same events as it's parent" do
-  #  StateMachineSubjectSubclass.aasm_events.should == Bar.aasm_events
-  #end
+  test "has the same events as its parent" do
+    assert_equal StateMachineSubject.state_machine.events, StateMachineSubjectSubclass.state_machine.events
+  end
 end
 # 
 # 

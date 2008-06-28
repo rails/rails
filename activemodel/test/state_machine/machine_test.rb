@@ -4,9 +4,18 @@ class MachineTestSubject
   include ActiveModel::StateMachine
 
   state_machine do
+    state :open
+    state :closed
   end
 
   state_machine :initial => :foo do
+    event :shutdown do
+      transitions :from => :open, :to => :closed
+    end
+
+    event :timeout do
+      transitions :from => :open, :to => :closed
+    end
   end
 
   state_machine :extra, :initial => :bar do
@@ -24,5 +33,9 @@ class StateMachineMachineTest < ActiveModel::TestCase
 
   test "accesses non-default state machine" do
     assert_kind_of ActiveModel::StateMachine::Machine, MachineTestSubject.state_machine(:extra)
+  end
+
+  test "finds events for given state" do
+    assert_equal [:shutdown, :timeout], MachineTestSubject.state_machine.events_for(:open)
   end
 end
