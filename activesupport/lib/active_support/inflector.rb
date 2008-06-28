@@ -307,4 +307,9 @@ module ActiveSupport
   end
 end
 
+# in case active_support/inflector is required without the rest of active_support
 require 'active_support/inflections'
+require 'active_support/core_ext/string/inflections'
+unless String.included_modules.include?(ActiveSupport::CoreExtensions::String::Inflections)
+  String.send :include, ActiveSupport::CoreExtensions::String::Inflections
+end
