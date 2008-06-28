@@ -36,6 +36,8 @@ class StateMachineMachineTest < ActiveModel::TestCase
   end
 
   test "finds events for given state" do
-    assert_equal [:shutdown, :timeout], MachineTestSubject.state_machine.events_for(:open)
+    events = MachineTestSubject.state_machine.events_for(:open)
+    assert events.include?(:shutdown)
+    assert events.include?(:timeout)
   end
 end

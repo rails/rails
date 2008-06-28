@@ -7,7 +7,7 @@ class EventTest < ActiveModel::TestCase
   end
 
   def new_event
-    @event = ActiveModel::StateMachine::Event.new(@name, {:success => @success}) do
+    @event = ActiveModel::StateMachine::Event.new(nil, @name, {:success => @success}) do
       transitions :to => :closed, :from => [:open, :received]
     end
   end
@@ -31,7 +31,7 @@ end
 
 class EventBeingFiredTest < ActiveModel::TestCase
   test 'should raise an AASM::InvalidTransition error if the transitions are empty' do
-    event = ActiveModel::StateMachine::Event.new(:event)
+    event = ActiveModel::StateMachine::Event.new(nil, :event)
 
     assert_raises ActiveModel::StateMachine::InvalidTransition do
       event.fire(nil)
@@ -39,7 +39,7 @@ class EventBeingFiredTest < ActiveModel::TestCase
   end
 
   test 'should return the state of the first matching transition it finds' do
-    event = ActiveModel::StateMachine::Event.new(:event) do
+    event = ActiveModel::StateMachine::Event.new(nil, :event) do
       transitions :to => :closed, :from => [:open, :received]
     end
 

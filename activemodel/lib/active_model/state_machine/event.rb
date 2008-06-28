@@ -3,9 +3,8 @@ module ActiveModel
     class Event
       attr_reader :name, :success
       
-      def initialize(name, options = {}, &block)
-        @name, @transitions = name, []
-        machine = options.delete(:machine)
+      def initialize(machine, name, options = {}, &block)
+        @machine, @name, @transitions = machine, name, []
         if machine
           machine.klass.send(:define_method, "#{name.to_s}!") do |*args|
             machine.fire_event(name, self, true, *args)
@@ -19,7 +18,7 @@ module ActiveModel
       end
 
       def fire(obj, to_state = nil, *args)
-        transitions = @transitions.select { |t| t.from == obj.current_state }
+        transitions = @transitions.select { |t| t.from == obj.current_state(@machine ? @machine.name : nil) }
         raise InvalidTransition if transitions.size == 0
 
         next_state = nil

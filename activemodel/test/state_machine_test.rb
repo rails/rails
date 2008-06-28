@@ -186,48 +186,50 @@ end
 #    foo.aasm_current_state
 #  end
 #end
- 
-#describe AASM, '- event callbacks' do
-#  it 'should call aasm_event_fired if defined and successful for bang fire' do
-#    foo = Foo.new
-#    def foo.aasm_event_fired(from, to)
-#    end
-# 
-#    foo.should_receive(:aasm_event_fired)
-# 
-#    foo.close!
-#  end
-# 
-#    it 'should call aasm_event_fired if defined and successful for non-bang fire' do
-#    foo = Foo.new
-#    def foo.aasm_event_fired(from, to)
-#    end
-# 
-#    foo.should_receive(:aasm_event_fired)
-# 
-#    foo.close
-#  end
-# 
-#  it 'should call aasm_event_failed if defined and transition failed for bang fire' do
-#    foo = Foo.new
-#    def foo.aasm_event_failed(event)
-#    end
-# 
-#    foo.should_receive(:aasm_event_failed)
-# 
-#    foo.null!
-#  end
-# 
-#  it 'should call aasm_event_failed if defined and transition failed for non-bang fire' do
-#    foo = Foo.new
-#    def foo.aasm_event_failed(event)
-#    end
-# 
-#    foo.should_receive(:aasm_event_failed)
-# 
-#    foo.null
-#  end
-#end
+
+uses_mocha 'StateMachineEventCallbacksTest' do
+  class StateMachineEventCallbacksTest < ActiveModel::TestCase
+    test 'should call aasm_event_fired if defined and successful for bang fire' do
+      subj = StateMachineSubject.new
+      def subj.aasm_event_fired(from, to)
+      end
+
+      subj.expects(:event_fired)
+
+      subj.close!
+    end
+
+    test 'should call aasm_event_fired if defined and successful for non-bang fire' do
+      subj = StateMachineSubject.new
+      def subj.aasm_event_fired(from, to)
+      end
+
+      subj.expects(:event_fired)
+
+      subj.close
+    end
+
+    test 'should call aasm_event_failed if defined and transition failed for bang fire' do
+      subj = StateMachineSubject.new
+      def subj.event_failed(event)
+      end
+
+      subj.expects(:event_failed)
+
+      subj.null!
+    end
+
+    test 'should call aasm_event_failed if defined and transition failed for non-bang fire' do
+      subj = StateMachineSubject.new
+      def subj.aasm_event_failed(event)
+      end
+
+      subj.expects(:event_failed)
+
+      subj.null
+    end
+  end
+end
 
 uses_mocha 'StateMachineStateActionsTest' do
   class StateMachineStateActionsTest < ActiveModel::TestCase
@@ -254,72 +256,70 @@ class StateMachineInheritanceTest < ActiveModel::TestCase
     assert_equal StateMachineSubject.state_machine.events, StateMachineSubjectSubclass.state_machine.events
   end
 end
-# 
-# 
-#class ChetanPatil
-#  include AASM
-#  aasm_initial_state :sleeping
-#  aasm_state :sleeping
-#  aasm_state :showering
-#  aasm_state :working
-#  aasm_state :dating
-# 
-#  aasm_event :wakeup do
-#    transitions :from => :sleeping, :to => [:showering, :working]
-#  end
-# 
-#  aasm_event :dress do
-#    transitions :from => :sleeping, :to => :working, :on_transition => :wear_clothes
-#    transitions :from => :showering, :to => [:working, :dating], :on_transition => Proc.new { |obj, *args| obj.wear_clothes(*args) }
-#  end
-# 
-#  def wear_clothes(shirt_color, trouser_type)
-#  end
-#end
-# 
-# 
-#describe ChetanPatil do
-#  it 'should transition to specified next state (sleeping to showering)' do
-#    cp = ChetanPatil.new
-#    cp.wakeup! :showering
-#    
-#    cp.aasm_current_state.should == :showering
-#  end
-# 
-#  it 'should transition to specified next state (sleeping to working)' do
-#    cp = ChetanPatil.new
-#    cp.wakeup! :working
-# 
-#    cp.aasm_current_state.should == :working
-#  end
-# 
-#  it 'should transition to default (first or showering) state' do
-#    cp = ChetanPatil.new
-#    cp.wakeup!
-# 
-#    cp.aasm_current_state.should == :showering
-#  end
-# 
-#  it 'should transition to default state when on_transition invoked' do
-#    cp = ChetanPatil.new
-#    cp.dress!(nil, 'purple', 'dressy')
-# 
-#    cp.aasm_current_state.should == :working
-#  end
-# 
-#  it 'should call on_transition method with args' do
-#    cp = ChetanPatil.new
-#    cp.wakeup! :showering
-# 
-#    cp.should_receive(:wear_clothes).with('blue', 'jeans')
-#    cp.dress! :working, 'blue', 'jeans'
-#  end
-# 
-#  it 'should call on_transition proc' do
-#    cp = ChetanPatil.new
-#    cp.wakeup! :showering
-# 
-#    cp.should_receive(:wear_clothes).with('purple', 'slacks')
-#    cp.dress!(:dating, 'purple', 'slacks')
-#  end
-#end
+
+class StateMachineSubject
+  state_machine :chetan_patil, :initial => :sleeping do
+    state :sleeping
+    state :showering
+    state :working
+    state :dating
+ 
+    event :wakeup do
+      transitions :from => :sleeping, :to => [:showering, :working]
+    end
+ 
+    event :dress do
+      transitions :from => :sleeping, :to => :working, :on_transition => :wear_clothes
+      transitions :from => :showering, :to => [:working, :dating], :on_transition => Proc.new { |obj, *args| obj.wear_clothes(*args) }
+    end
+  end
+ 
+  def wear_clothes(shirt_color, trouser_type)
+  end
+end
+
+class StateMachineWithComplexTransitionsTest < ActiveModel::TestCase
+  def setup
+    @subj = StateMachineSubject.new
+  end
+
+  test 'transitions to specified next state (sleeping to showering)' do
+    @subj.wakeup! :showering
+    
+    assert_equal :showering, @subj.current_state(:chetan_patil)
+  end
+ 
+  test 'transitions to specified next state (sleeping to working)' do
+    @subj.wakeup! :working
+ 
+    assert_equal :working, @subj.current_state(:chetan_patil)
+  end
+ 
+  test 'transitions to default (first or showering) state' do
+    @subj.wakeup!
+ 
+    assert_equal :showering, @subj.current_state(:chetan_patil)
+  end
+ 
+  test 'transitions to default state when on_transition invoked' do
+    @subj.dress!(nil, 'purple', 'dressy')
+ 
+    assert_equal :working, @subj.current_state(:chetan_patil)
+  end
+
+  uses_mocha "StateMachineWithComplexTransitionsTest on_transition tests" do
+    test 'calls on_transition method with args' do
+      @subj.wakeup! :showering
+ 
+      @subj.expects(:wear_clothes).with('blue', 'jeans')
+      @subj.dress! :working, 'blue', 'jeans'
+    end
+ 
+    test 'calls on_transition proc' do
+      @subj.wakeup! :showering
+ 
+      @subj.expects(:wear_clothes).with('purple', 'slacks')
+      @subj.dress!(:dating, 'purple', 'slacks')
+    end
+  end
+end
