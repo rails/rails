@@ -198,9 +198,9 @@ module ActiveSupport
     end
 
     def advance(options)
-      # If we're advancing a value of variable length (i.e., years, months, days), advance from #time,
+      # If we're advancing a value of variable length (i.e., years, weeks, months, days), advance from #time,
       # otherwise advance from #utc, for accuracy when moving across DST boundaries
-      if options.detect {|k,v| [:years, :months, :days].include? k}
+      if options.detect {|k,v| [:years, :weeks, :months, :days].include? k}
         method_missing(:advance, options)
       else
         utc.advance(options).in_time_zone(time_zone)
