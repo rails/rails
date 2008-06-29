@@ -150,7 +150,8 @@ module ActionView
       # You can also supply an array of TimeZone objects
       # as +priority_zones+, so that they will be listed above the rest of the
       # (long) list. (You can use TimeZone.us_zones as a convenience for
-      # obtaining a list of the US time zones.)
+      # obtaining a list of the US time zones, or a Regexp to select the zones
+      # of your choice)
       #
       # Finally, this method supports a <tt>:default</tt> option, which selects
       # a default TimeZone if the object's time zone is +nil+.
@@ -163,6 +164,8 @@ module ActionView
       #   time_zone_select( "user", 'time_zone', TimeZone.us_zones, :default => "Pacific Time (US & Canada)")
       #
       #   time_zone_select( "user", 'time_zone', [ TimeZone['Alaska'], TimeZone['Hawaii'] ])
+      #
+      #   time_zone_select( "user", 'time_zone', /Australia/)
       #
       #   time_zone_select( "user", "time_zone", TZInfo::Timezone.all.sort, :model => TZInfo::Timezone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
@@ -292,7 +295,8 @@ module ActionView
       # selected option tag. You can also supply an array of TimeZone objects
       # as +priority_zones+, so that they will be listed above the rest of the
       # (long) list. (You can use TimeZone.us_zones as a convenience for
-      # obtaining a list of the US time zones.)
+      # obtaining a list of the US time zones, or a Regexp to select the zones
+      # of your choice)
       #
       # The +selected+ parameter must be either +nil+, or a string that names
       # a TimeZone.
@@ -311,6 +315,9 @@ module ActionView
         convert_zones = lambda { |list| list.map { |z| [ z.to_s, z.name ] } }
 
         if priority_zones
+	  if priority_zones.is_a?(Regexp)
+            priority_zones = model.all.find_all {|z| z =~ priority_zones}
+	  end
           zone_options += options_for_select(convert_zones[priority_zones], selected)
           zone_options += "<option value=\"\" disabled=\"disabled\">-------------</option>\n"
 
