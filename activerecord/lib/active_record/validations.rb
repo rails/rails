@@ -479,8 +479,9 @@ module ActiveRecord
       #     validates_length_of :fax, :in => 7..32, :allow_nil => true
       #     validates_length_of :phone, :in => 7..32, :allow_blank => true
       #     validates_length_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
-      #     validates_length_of :fav_bra_size, :minimum=>1, :too_short=>"please enter at least %d character"
-      #     validates_length_of :smurf_leader, :is=>4, :message=>"papa is spelled with %d characters... don't play me."
+      #     validates_length_of :fav_bra_size, :minimum => 1, :too_short => "please enter at least %d character"
+      #     validates_length_of :smurf_leader, :is => 4, :message => "papa is spelled with %d characters... don't play me."
+      #     validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least %d words."), :tokenizer => lambda {|str| str.scan(/\w+/) }
       #   end
       #
       # Configuration options:
@@ -491,7 +492,6 @@ module ActiveRecord
       # * <tt>:in</tt> - A synonym(or alias) for <tt>:within</tt>.
       # * <tt>:allow_nil</tt> - Attribute may be +nil+; skip validation.
       # * <tt>:allow_blank</tt> - Attribute may be blank; skip validation.
-      #
       # * <tt>:too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (maximum is %d characters)").
       # * <tt>:too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is %d characters)").
       # * <tt>:wrong_length</tt> - The error message if using the <tt>:is</tt> method and the attribute is the wrong size (default is: "is the wrong length (should be %d characters)").
@@ -503,12 +503,16 @@ module ActiveRecord
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
+      # * <tt>:tokenizer</tt> - Specifies how to split up the attribute string. (e.g. <tt>:tokenizer => lambda {|str| str.scan(/\w+/)}</tt> to
+      #   count words as in above example.)
+      #   Defaults to <tt>lambda{ |value| value.split(//) }</tt> which counts individual characters.
       def validates_length_of(*attrs)
         # Merge given options with defaults.
         options = {
           :too_long     => ActiveRecord::Errors.default_error_messages[:too_long],
           :too_short    => ActiveRecord::Errors.default_error_messages[:too_short],
-          :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length]
+          :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length],
+          :tokenizer    => lambda {|value| value.split(//)}
         }.merge(DEFAULT_VALIDATION_OPTIONS)
         options.update(attrs.extract_options!.symbolize_keys)
 
@@ -535,7 +539,7 @@ module ActiveRecord
             too_long  = options[:too_long]  % option_value.end
 
             validates_each(attrs, options) do |record, attr, value|
-              value = value.split(//) if value.kind_of?(String)
+              value = options[:tokenizer].call(value) if value.kind_of?(String)
               if value.nil? or value.size < option_value.begin
                 record.errors.add(attr, too_short)
               elsif value.size > option_value.end
@@ -552,7 +556,7 @@ module ActiveRecord
             message = (options[:message] || options[message_options[option]]) % option_value
 
             validates_each(attrs, options) do |record, attr, value|
-              value = value.split(//) if value.kind_of?(String)
+              value = options[:tokenizer].call(value) if value.kind_of?(String)
               record.errors.add(attr, message) unless !value.nil? and value.size.method(validity_checks[option])[option_value]
             end
         end
