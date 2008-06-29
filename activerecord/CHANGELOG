@@ -1,5 +1,10 @@
 *2.1.1 (next release)*
 
+* Add :tokenizer option to validates_length_of to specify how to split up the attribute string. #507. [David Lowenfels] Example :
+
+  # Ensure essay contains at least 100 words.
+  validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least %d words."), :tokenizer => lambda {|str| str.scan(/\w+/) }
+
 * Always treat integer :limit as byte length.  #420 [Tarmo Tänav]
 
 * Partial updates don't update lock_version if nothing changed.  #426 [Daniel Morrison]

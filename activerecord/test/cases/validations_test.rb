@@ -1059,6 +1059,18 @@ class ValidationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_validates_length_of_with_block
+    Topic.validates_length_of :content, :minimum => 5, :too_short=>"Your essay must be at least %d words.", 
+                                        :tokenizer => lambda {|str| str.scan(/\w+/) }
+    t = Topic.create!(:content => "this content should be long enough")
+    assert t.valid?
+
+    t.content = "not long enough"
+    assert !t.valid?
+    assert t.errors.on(:content)
+    assert_equal "Your essay must be at least 5 words.", t.errors[:content]
+  end
+
   def test_validates_size_of_association_utf8
     with_kcode('UTF8') do
       assert_nothing_raised { Topic.validates_size_of :replies, :minimum => 1 }
