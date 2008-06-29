@@ -1,5 +1,7 @@
 *Edge*
 
+* Added TimeZone #=~, to support matching zones by regex in time_zone_select. #195 [Ernie Miller]
+
 * Added Array#second through Array#tenth as aliases for Array#[1] through Array#[9] [DHH]
 
 * Added test/do declaration style testing to ActiveSupport::TestCase [DHH via Jay Fields]

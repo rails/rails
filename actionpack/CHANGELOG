@@ -1,5 +1,7 @@
 *Edge*
 
+* time_zone_select: support for regexp matching of priority zones. Resolves #195 [Ernie Miller]
+
 * Made ActionView::Base#render_file private [Josh Peek]
 
 * Fix polymorphic_url with singleton resources.  #461 [Tammer Saleh]
