@@ -1,5 +1,7 @@
 *Edge*
 
+* TimeWithZone: when crossing DST boundary, treat Durations of days, months or years as variable-length, and all other values as absolute length. A time + 24.hours will advance exactly 24 hours, but a time + 1.day will advance 23-25 hours, depending on the day. Ensure consistent behavior across all advancing methods [Geoff Buesing]
+
 * Added TimeZone #=~, to support matching zones by regex in time_zone_select. #195 [Ernie Miller]
 
 * Added Array#second through Array#tenth as aliases for Array#[1] through Array#[9] [DHH]
