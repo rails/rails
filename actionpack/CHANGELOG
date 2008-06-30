@@ -1,5 +1,7 @@
 *2.1.1 (next release)*
 
+* Deprecate define_javascript_functions, javascript_include_tag and friends are much better [Michael Koziarski]
+
 * Fix polymorphic_url with singleton resources.  #461 [Tammer Saleh]
 
 * Deprecate ActionView::Base.erb_variable. Use the concat helper method instead of appending to it directly.  [Jeremy Kemper]

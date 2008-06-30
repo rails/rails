@@ -147,6 +147,8 @@ module ActionView
         javascript << '</script>'
       end
 
+      deprecate :define_javascript_functions=>"use javascript_include_tag instead"
+
       # Escape carrier returns and single and double quotes for JavaScript segments.
       def escape_javascript(javascript)
         (javascript || '').gsub('\\','\0\0').gsub('</','<\/').gsub(/\r\n|\n|\r/, "\\n").gsub(/["']/) { |m| "\\#{m}" }

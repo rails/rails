@@ -4,11 +4,14 @@ class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
 
   def test_define_javascript_functions
-    # check if prototype.js is included first
-    assert_not_nil define_javascript_functions.split("\n")[1].match(/Prototype JavaScript framework/)
+    assert_deprecated(/javascript_include_tag/) do
+      # check if prototype.js is included first
+      src = define_javascript_functions
+      assert_not_nil src.split("\n")[1].match(/Prototype JavaScript framework/)
 
-    # check that scriptaculous.js is not in here, only needed if loaded remotely
-    assert_nil define_javascript_functions.split("\n")[1].match(/var Scriptaculous = \{/)
+      # check that scriptaculous.js is not in here, only needed if loaded remotely
+      assert_nil src.split("\n")[1].match(/var Scriptaculous = \{/)
+    end
   end
 
   def test_escape_javascript
