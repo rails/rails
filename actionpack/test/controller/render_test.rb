@@ -103,7 +103,7 @@ class TestController < ActionController::Base
   def render_line_offset
     begin
       render :inline => '<% raise %>', :locals => {:foo => 'bar'}
-    rescue => exc
+    rescue RuntimeError => exc
     end
     line = exc.backtrace.first
     render :text => line
