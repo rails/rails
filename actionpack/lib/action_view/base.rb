@@ -199,9 +199,6 @@ module ActionView #:nodoc:
     cattr_reader :computed_public_paths
     @@computed_public_paths = {}
 
-    class ObjectWrapper < Struct.new(:value) #:nodoc:
-    end
-
     def self.helper_modules #:nodoc:
       helpers = []
       Dir.entries(File.expand_path("#{File.dirname(__FILE__)}/helpers")).sort.each do |file|
@@ -253,7 +250,7 @@ module ActionView #:nodoc:
         elsif options[:partial] && options[:collection]
           render_partial_collection(options[:partial], options[:collection], options[:spacer_template], options[:locals], options[:as])
         elsif options[:partial]
-          render_partial(options[:partial], ActionView::Base::ObjectWrapper.new(options[:object]), options[:locals])
+          render_partial(options[:partial], options[:object], options[:locals])
         elsif options[:inline]
           render_inline(options[:inline], options[:locals], options[:type])
         end

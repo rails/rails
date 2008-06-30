@@ -897,7 +897,7 @@ module ActionController #:nodoc:
             else
               render_for_text(
                 @template.send!(:render_partial, partial,
-                ActionView::Base::ObjectWrapper.new(options[:object]), options[:locals]), options[:status]
+                options[:object], options[:locals]), options[:status]
               )
             end
 

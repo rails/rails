@@ -42,12 +42,7 @@ module ActionView #:nodoc:
     private
       def add_object_to_local_assigns!(object)
         @locals[:object] ||=
-          @locals[@variable_name] ||=
-            if object.is_a?(ActionView::Base::ObjectWrapper)
-              object.value
-            else
-              object
-            end || @view_controller.instance_variable_get("@#{variable_name}")
+          @locals[@variable_name] ||= object || @view_controller.instance_variable_get("@#{variable_name}")
         @locals[as] ||= @locals[:object] if as
       end
 
