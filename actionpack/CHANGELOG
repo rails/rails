@@ -1,5 +1,7 @@
 *Edge*
 
+* Remove define_javascript_functions, javascript_include_tag and friends are far superior. [Michael Koziarski]
+
 * Deprecate :use_full_path render option. The supplying the option no longer has an effect [Josh Peek]
 
 * Add :as option to render a collection of partials with a custom local variable name. #509 [Simon Jefford, Pratik Naik]

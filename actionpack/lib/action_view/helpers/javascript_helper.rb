@@ -114,32 +114,6 @@ module ActionView
         tag(:input, html_options.merge(:type => 'button', :value => name, :onclick => onclick))
       end
 
-      # Includes the Action Pack JavaScript libraries inside a single <script>
-      # tag. The function first includes prototype.js and then its core extensions,
-      # (determined by filenames starting with "prototype").
-      # Afterwards, any additional scripts will be included in undefined order.
-      #
-      # Note: The recommended approach is to copy the contents of
-      # lib/action_view/helpers/javascripts/ into your application's
-      # public/javascripts/ directory, and use +javascript_include_tag+ to
-      # create remote <script> links.
-      def define_javascript_functions
-        javascript = "<script type=\"#{Mime::JS}\">"
-
-        # load prototype.js and its extensions first
-        prototype_libs = Dir.glob(File.join(JAVASCRIPT_PATH, 'prototype*')).sort.reverse
-        prototype_libs.each do |filename|
-          javascript << "\n" << IO.read(filename)
-        end
-
-        # load other libraries
-        (Dir.glob(File.join(JAVASCRIPT_PATH, '*')) - prototype_libs).each do |filename|
-          javascript << "\n" << IO.read(filename)
-        end
-        javascript << '</script>'
-      end
-
-
       JS_ESCAPE_MAP = {
         '\\'    => '\\\\',
         '</'    => '<\/',
