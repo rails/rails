@@ -547,23 +547,32 @@ module ActionView
       #   select_year(2006, :start_year => 2000, :end_year => 2010)
       #
       def select_year(date, options = {}, html_options = {})
-        val = date ? (date.kind_of?(Fixnum) ? date : date.year) : ''
-        if options[:use_hidden]
-          hidden_html(options[:field_name] || 'year', val, options)
+        if !date || date == 0
+          value = ''
+          middle_year = Date.today.year
+        elsif date.kind_of?(Fixnum)
+          value = middle_year = date
         else
-          year_options = []
-          y = date ? (date.kind_of?(Fixnum) ? (y = (date == 0) ? Date.today.year : date) : date.year) : Date.today.year
+          value = middle_year = date.year
+        end
 
-          start_year, end_year = (options[:start_year] || y-5), (options[:end_year] || y+5)
-          step_val = start_year < end_year ? 1 : -1
+        if options[:use_hidden]
+          hidden_html(options[:field_name] || 'year', value, options)
+        else
+          year_options = ''
+          start_year   = options[:start_year] || middle_year - 5
+          end_year     = options[:end_year]   || middle_year + 5
+          step_val     = start_year < end_year ? 1 : -1
+
           start_year.step(end_year, step_val) do |year|
-            year_options << ((val == year) ?
-              content_tag(:option, year, :value => year, :selected => "selected") :
-              content_tag(:option, year, :value => year)
-            )
+            if value == year
+              year_options << content_tag(:option, year, :value => year, :selected => "selected")
+            else
+              year_options << content_tag(:option, year, :value => year)
+            end
             year_options << "\n"
           end
-          select_html(options[:field_name] || 'year', year_options.join, options, html_options)
+          select_html(options[:field_name] || 'year', year_options, options, html_options)
         end
       end
 
