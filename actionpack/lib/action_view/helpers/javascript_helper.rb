@@ -216,7 +216,5 @@ module ActionView
         end
       end
     end
-
-    JavascriptHelper = JavaScriptHelper unless const_defined? :JavascriptHelper
   end
 end
