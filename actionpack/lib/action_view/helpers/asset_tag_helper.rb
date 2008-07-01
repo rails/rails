@@ -243,7 +243,7 @@ module ActionView
           joined_javascript_name = (cache == true ? "all" : cache) + ".js"
           joined_javascript_path = File.join(JAVASCRIPTS_DIR, joined_javascript_name)
 
-          write_asset_file_contents(joined_javascript_path, compute_javascript_paths(sources))
+          write_asset_file_contents(joined_javascript_path, compute_javascript_paths(sources)) unless File.exists?(joined_javascript_path)
           javascript_src_tag(joined_javascript_name, options)
         else
           expand_javascript_sources(sources).collect { |source| javascript_src_tag(source, options) }.join("\n")
@@ -370,7 +370,7 @@ module ActionView
           joined_stylesheet_name = (cache == true ? "all" : cache) + ".css"
           joined_stylesheet_path = File.join(STYLESHEETS_DIR, joined_stylesheet_name)
 
-          write_asset_file_contents(joined_stylesheet_path, compute_stylesheet_paths(sources))
+          write_asset_file_contents(joined_stylesheet_path, compute_stylesheet_paths(sources)) unless File.exists?(joined_stylesheet_path)
           stylesheet_tag(joined_stylesheet_name, options)
         else
           expand_stylesheet_sources(sources).collect { |source| stylesheet_tag(source, options) }.join("\n")
@@ -601,10 +601,8 @@ module ActionView
         end
 
         def write_asset_file_contents(joined_asset_path, asset_paths)
-          unless file_exist?(joined_asset_path)
-            FileUtils.mkdir_p(File.dirname(joined_asset_path))
-            File.open(joined_asset_path, "w+") { |cache| cache.write(join_asset_file_contents(asset_paths)) }
-          end
+          FileUtils.mkdir_p(File.dirname(joined_asset_path))
+          File.open(joined_asset_path, "w+") { |cache| cache.write(join_asset_file_contents(asset_paths)) }
         end
     end
   end
