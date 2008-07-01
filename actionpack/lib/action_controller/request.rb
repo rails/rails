@@ -197,10 +197,12 @@ module ActionController
     # delimited list in the case of multiple chained proxies; the last
     # address which is not trusted is the originating IP.
     def remote_ip
-      if TRUSTED_PROXIES !~ @env['REMOTE_ADDR']
-        return @env['REMOTE_ADDR']
-      end
+      remote_addr_list = @env['REMOTE_ADDR'] && @env['REMOTE_ADDR'].split(',').collect(&:strip)
 
+      unless remote_addr_list.blank?
+        not_trusted_addrs = remote_addr_list.reject {|addr| addr =~ TRUSTED_PROXIES}
+        return not_trusted_addrs.first unless not_trusted_addrs.empty?
+      end
       remote_ips = @env['HTTP_X_FORWARDED_FOR'] && @env['HTTP_X_FORWARDED_FOR'].split(',')
 
       if @env.include? 'HTTP_CLIENT_IP'
