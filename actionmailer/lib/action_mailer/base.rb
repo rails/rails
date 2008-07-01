@@ -307,10 +307,6 @@ module ActionMailer #:nodoc:
     # Specify the CC addresses for the message.
     adv_attr_accessor :cc
 
-    # Specify the charset to use for the message. This defaults to the
-    # +default_charset+ specified for ActionMailer::Base.
-    adv_attr_accessor :charset
-
     # Specify the content type for the message. This defaults to <tt>text/plain</tt>
     # in most cases, but can be automatically set in some situations.
     adv_attr_accessor :content_type
@@ -348,6 +344,15 @@ module ActionMailer #:nodoc:
     # have multiple mailer methods share the same template.
     adv_attr_accessor :template
 
+    # Specify the charset to use for the message.
+    # It performs a lookup, on the specified charset, then on the charset from
+    # the current locale, and, finally, on the +default_charset+ specified
+    # for ActionMailer::Base.
+    def charset(charset = nil)
+      @charset ||= charset || :'charset'.t || @@default_charset
+    end
+    attr_writer :charset
+    
     # Override the mailer name, which defaults to an inflected version of the
     # mailer's class name. If you want to use a template in a non-standard
     # location, you can use this to specify that location.
@@ -517,7 +522,6 @@ module ActionMailer #:nodoc:
       # mailer. Subclasses may override this method to provide different
       # defaults.
       def initialize_defaults(method_name)
-        @charset ||= @@default_charset.dup
         @content_type ||= @@default_content_type.dup
         @implicit_parts_order ||= @@default_implicit_parts_order.dup
         @template ||= method_name
