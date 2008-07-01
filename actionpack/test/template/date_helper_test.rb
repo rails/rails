@@ -1198,6 +1198,21 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, time_select("post", "written_on")
   end
 
+  def test_time_select_without_date_hidden_fields
+    @post = Post.new
+    @post.written_on = Time.local(2004, 6, 15, 15, 16, 35)
+
+    expected = %(<select id="post_written_on_4i" name="post[written_on(4i)]">\n)
+    0.upto(23) { |i| expected << %(<option value="#{leading_zero_on_single_digits(i)}"#{' selected="selected"' if i == 15}>#{leading_zero_on_single_digits(i)}</option>\n) }
+    expected << "</select>\n"
+    expected << " : "
+    expected << %(<select id="post_written_on_5i" name="post[written_on(5i)]">\n)
+    0.upto(59) { |i| expected << %(<option value="#{leading_zero_on_single_digits(i)}"#{' selected="selected"' if i == 16}>#{leading_zero_on_single_digits(i)}</option>\n) }
+    expected << "</select>\n"
+
+    assert_dom_equal expected, time_select("post", "written_on", :ignore_date => true)
+  end
+
   def test_time_select_with_seconds
     @post = Post.new
     @post.written_on = Time.local(2004, 6, 15, 15, 16, 35)
