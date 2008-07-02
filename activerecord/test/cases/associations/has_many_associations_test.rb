@@ -384,6 +384,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, company.clients_of_firm(true).size
   end
 
+  def test_collection_size_after_building
+    company = companies(:first_firm)  # company already has one client
+    company.clients_of_firm.build("name" => "Another Client")
+    company.clients_of_firm.build("name" => "Yet Another Client")
+    assert_equal 3, company.clients_of_firm.size
+  end
+
   def test_build_many
     company = companies(:first_firm)
     new_clients = assert_no_queries { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
