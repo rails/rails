@@ -153,7 +153,7 @@ module ActionView
       # Note: If the day is not included as an option but the month is, the day will be set to the 1st to ensure that all month
       # choices are valid.
       def date_select(object_name, method, options = {}, html_options = {})
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_date_select_tag(options, html_options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_date_select_tag(options, html_options)
       end
 
       # Returns a set of select tags (one for hour, minute and optionally second) pre-selected for accessing a specified
@@ -188,7 +188,7 @@ module ActionView
       # Note: If the day is not included as an option but the month is, the day will be set to the 1st to ensure that all month
       # choices are valid.
       def time_select(object_name, method, options = {}, html_options = {})
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_time_select_tag(options, html_options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_time_select_tag(options, html_options)
       end
 
       # Returns a set of select tags (one for year, month, day, hour, and minute) pre-selected for accessing a specified datetime-based
@@ -214,7 +214,7 @@ module ActionView
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       def datetime_select(object_name, method, options = {}, html_options = {})
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_datetime_select_tag(options, html_options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_datetime_select_tag(options, html_options)
       end
 
       # Returns a set of html select-tags (one for year, month, day, hour, and minute) pre-selected with the +datetime+.
