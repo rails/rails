@@ -70,7 +70,7 @@ module ActionView
       #  # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
         options  = options.symbolize_keys
-        defaults = :'currency.format'.t(options[:locale]) || {}
+        defaults = I18n.translate(:'currency.format', options[:locale]) || {}
                 
         precision = options[:precision] || defaults[:precision]
         unit      = options[:unit]      || defaults[:unit]

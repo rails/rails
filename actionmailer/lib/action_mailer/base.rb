@@ -349,7 +349,7 @@ module ActionMailer #:nodoc:
     # the current locale, and, finally, on the +default_charset+ specified
     # for ActionMailer::Base.
     def charset(charset = nil)
-      @charset ||= charset || :'charset'.t || @@default_charset
+      @charset ||= charset || I18n.translate(:charset) || @@default_charset
     end
     attr_writer :charset
     

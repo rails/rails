@@ -13,7 +13,7 @@ module ActiveSupport #:nodoc:
           locale = options[:locale]
           locale ||= self.locale if respond_to?(:locale)
           
-          default = :'support.array.sentence_connector'.t(locale)
+          default = I18n.translate(:'support.array.sentence_connector', locale)
           options.reverse_merge! :connector => default, :skip_last_comma => false
           options[:connector] = "#{options[:connector]} " unless options[:connector].nil? || options[:connector].strip == ''
 

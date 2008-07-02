@@ -22,7 +22,7 @@ module ActiveRecord
     class << self
       def default_error_messages
         ActiveSupport::Deprecation.warn("ActiveRecord::Errors.default_error_messages has been deprecated. Please use 'active_record.error_messages'.t.")
-        'active_record.error_messages'.t
+        I18n.translate 'active_record.error_messages'
       end
     end
 
@@ -43,7 +43,7 @@ module ActiveRecord
     # error can be added to the same +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
     # If no +msg+ is supplied, "invalid" is assumed.
     def add(attribute, message = nil)
-      message ||= :"active_record.error_messages.invalid".t
+      message ||= I18n.translate :"active_record.error_messages.invalid"
       @errors[attribute.to_s] ||= []
       @errors[attribute.to_s] << message
     end    
@@ -168,7 +168,7 @@ module ActiveRecord
             full_messages << message
           else
             key = :"active_record.human_attribute_names.#{@base.class.name.underscore.to_sym}.#{attr}" 
-            attr_name = key.t(locale) || @base.class.human_attribute_name(attr)
+            attr_name = I18n.translate(key, locale, :raise => true) rescue @base.class.human_attribute_name(attr)
             full_messages << attr_name + " " + message
           end
         end
