@@ -268,6 +268,10 @@ class NewRenderTestController < ActionController::Base
     render :template => "test/hello_world"
   end
 
+  def render_with_explicit_template_with_locals
+    render :template => "test/render_file_with_locals", :locals => { :secret => 'area51' }
+  end
+
   def double_render
     render :text => "hello"
     render :text => "world"
@@ -818,6 +822,11 @@ EOS
   def test_render_text_with_assigns
     get :render_text_with_assigns
     assert_equal "world", assigns["hello"]
+  end
+
+  def test_template_with_locals
+    get :render_with_explicit_template_with_locals
+    assert_equal "The secret is area51\n", @response.body
   end
 
   def test_update_page

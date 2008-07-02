@@ -733,6 +733,9 @@ module ActionController #:nodoc:
       #   # Renders the template located in [TEMPLATE_ROOT]/weblog/show.r(html|xml) (in Rails, app/views/weblog/show.erb)
       #   render :template => "weblog/show"
       #
+      #   # Renders the template with a local variable
+      #   render :template => "weblog/show", :locals => {:customer => Customer.new}
+      #
       # === Rendering a file
       #
       # File rendering works just like action rendering except that it takes a filesystem path. By default, the path
@@ -855,7 +858,7 @@ module ActionController #:nodoc:
             render_for_file(file, options[:status], options[:use_full_path], options[:locals] || {})
 
           elsif template = options[:template]
-            render_for_file(template, options[:status], true)
+            render_for_file(template, options[:status], true, options[:locals] || {})
 
           elsif inline = options[:inline]
             add_variables_to_assigns
