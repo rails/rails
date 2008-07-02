@@ -515,7 +515,7 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
 
           all_loaded_fixtures.update(fixtures_map)
 
-          connection.transaction(Thread.current['open_transactions'].to_i == 0) do
+          connection.transaction(connection.open_transactions.zero?) do
             fixtures.reverse.each { |fixture| fixture.delete_existing_fixtures }
             fixtures.each { |fixture| fixture.insert_fixtures }
 
@@ -930,7 +930,7 @@ module Test #:nodoc:
             load_fixtures
             @@already_loaded_fixtures[self.class] = @loaded_fixtures
           end
-          ActiveRecord::Base.send :increment_open_transactions
+          ActiveRecord::Base.connection.increment_open_transactions
           ActiveRecord::Base.connection.begin_db_transaction
         # Load fixtures for every test.
         else
@@ -951,9 +951,9 @@ module Test #:nodoc:
         end
 
         # Rollback changes if a transaction is active.
-        if use_transactional_fixtures? && Thread.current['open_transactions'] != 0
+        if use_transactional_fixtures? && ActiveRecord::Base.connection.open_transactions != 0
           ActiveRecord::Base.connection.rollback_db_transaction
-          Thread.current['open_transactions'] = 0
+          ActiveRecord::Base.connection.decrement_open_transactions
         end
         ActiveRecord::Base.verify_active_connections!
       end
