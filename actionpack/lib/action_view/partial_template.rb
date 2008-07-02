@@ -23,7 +23,8 @@ module ActionView #:nodoc:
     end
 
     def render_member(object)
-      @locals[:object] = @locals[@variable_name] = @locals[as] = object
+      @locals[:object] = @locals[@variable_name] = object
+      @locals[as] = object if as
 
       template = render_template
       @locals[@counter_name] += 1
