@@ -54,6 +54,11 @@ class ViewRenderTest < Test::Unit::TestCase
   def test_render_partial_collection
     assert_equal "Hello: davidHello: mary", @view.render(:partial => "test/customer", :collection => [ Customer.new("david"), Customer.new("mary") ])
   end
+  
+  def test_render_partial_collection_as
+    assert_equal "david david davidmary mary mary", 
+      @view.render(:partial => "test/customer_with_var", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => :customer)
+  end
 
   # TODO: The reason for this test is unclear, improve documentation
   def test_render_partial_and_fallback_to_layout

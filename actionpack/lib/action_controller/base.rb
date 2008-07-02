@@ -702,6 +702,9 @@ module ActionController #:nodoc:
       #   # builds the complete response.
       #   render :partial => "person", :collection => @winners
       #
+      #   # Renders a collection of partials but with a custom local variable name
+      #   render :partial => "admin_person", :collection => @winners, :as => :person
+      #
       #   # Renders the same collection of partials, but also renders the
       #   # person_divider partial between each person partial.
       #   render :partial => "person", :collection => @winners, :spacer_template => "person_divider"
@@ -889,7 +892,7 @@ module ActionController #:nodoc:
             if collection = options[:collection]
               render_for_text(
                 @template.send!(:render_partial_collection, partial, collection,
-                options[:spacer_template], options[:locals]), options[:status]
+                options[:spacer_template], options[:locals], options[:as]), options[:status]
               )
             else
               render_for_text(

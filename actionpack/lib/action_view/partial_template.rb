@@ -1,9 +1,10 @@
 module ActionView #:nodoc:
   class PartialTemplate < Template #:nodoc:
-    attr_reader :variable_name, :object
+    attr_reader :variable_name, :object, :as
 
-    def initialize(view, partial_path, object = nil, locals = {})
+    def initialize(view, partial_path, object = nil, locals = {}, as = nil)
       @view_controller = view.controller if view.respond_to?(:controller)
+      @as = as
       set_path_and_variable_name!(partial_path)
       super(view, @path, true, locals)
       add_object_to_local_assigns!(object)
@@ -22,10 +23,11 @@ module ActionView #:nodoc:
     end
 
     def render_member(object)
-      @locals[:object] = @locals[@variable_name] = object
+      @locals[:object] = @locals[@variable_name] = @locals[as] = object
 
       template = render_template
       @locals[@counter_name] += 1
+      @locals.delete(as)
       @locals.delete(@variable_name)
       @locals.delete(:object)
 
@@ -45,6 +47,7 @@ module ActionView #:nodoc:
             else
               object
             end || @view_controller.instance_variable_get("@#{variable_name}")
+        @locals[as] ||= @locals[:object] if as
       end
 
       def set_path_and_variable_name!(partial_path)

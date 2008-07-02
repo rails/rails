@@ -152,6 +152,10 @@ class NewRenderTestController < ActionController::Base
     render :partial => "customer", :collection => [ Customer.new("david"), Customer.new("mary") ]
   end
 
+  def partial_collection_with_as
+    render :partial => "customer_with_var", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => :customer
+  end
+
   def partial_collection_with_spacer
     render :partial => "customer", :spacer_template => "partial_only", :collection => [ Customer.new("david"), Customer.new("mary") ]
   end
@@ -761,6 +765,11 @@ EOS
   def test_partial_collection
     get :partial_collection
     assert_equal "Hello: davidHello: mary", @response.body
+  end
+
+  def test_partial_collection_with_as
+    get :partial_collection_with_as
+    assert_equal "david david davidmary mary mary", @response.body
   end
 
   def test_partial_collection_with_counter

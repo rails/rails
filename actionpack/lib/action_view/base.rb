@@ -252,7 +252,7 @@ module ActionView #:nodoc:
         elsif options[:file]
           render_file(options[:file], use_full_path || false, options[:locals])
         elsif options[:partial] && options[:collection]
-          render_partial_collection(options[:partial], options[:collection], options[:spacer_template], options[:locals])
+          render_partial_collection(options[:partial], options[:collection], options[:spacer_template], options[:locals], options[:as])
         elsif options[:partial]
           render_partial(options[:partial], ActionView::Base::ObjectWrapper.new(options[:object]), options[:locals])
         elsif options[:inline]
