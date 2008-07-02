@@ -30,10 +30,10 @@ module ActiveSupport
     class Inflections
       include Singleton
 
-      attr_reader :plurals, :singulars, :uncountables
+      attr_reader :plurals, :singulars, :uncountables, :humans
 
       def initialize
-        @plurals, @singulars, @uncountables = [], [], []
+        @plurals, @singulars, @uncountables, @humans = [], [], [], []
       end
 
       # Specifies a new pluralization rule and its replacement. The rule can either be a string or a regular expression.
@@ -76,9 +76,20 @@ module ActiveSupport
         (@uncountables << words).flatten!
       end
 
+      # Specifies a humanized form of a string by a regular expression rule or by a string mapping.
+      # When using a regular expression based replacement, the normal humanize formatting is called after the replacement.
+      # When a string is used, the human form should be specified as desired (example: 'The name', not 'the_name')
+      #
+      # Examples:
+      #   human /_cnt$/i, '\1_count'
+      #   human "legacy_col_person_name", "Name"
+      def human(rule, replacement)
+        @humans.insert(0, [rule, replacement])
+      end
+
       # Clears the loaded inflections within a given scope (default is <tt>:all</tt>).
       # Give the scope as a symbol of the inflection type, the options are: <tt>:plurals</tt>,
-      # <tt>:singulars</tt>, <tt>:uncountables</tt>.
+      # <tt>:singulars</tt>, <tt>:uncountables</tt>, <tt>:humans</tt>.
       #
       # Examples:
       #   clear :all
@@ -209,7 +220,10 @@ module ActiveSupport
     #   "employee_salary" # => "Employee salary"
     #   "author_id"       # => "Author"
     def humanize(lower_case_and_underscored_word)
-      lower_case_and_underscored_word.to_s.gsub(/_id$/, "").gsub(/_/, " ").capitalize
+      result = lower_case_and_underscored_word.to_s.dup
+
+      inflections.humans.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+      result.gsub(/_id$/, "").gsub(/_/, " ").capitalize
     end
 
     # Removes the module part from the expression in the string.
