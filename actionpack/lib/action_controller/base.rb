@@ -1235,8 +1235,9 @@ module ActionController #:nodoc:
       end
 
       def template_exempt_from_layout?(template_name = default_template_name)
-        template_name = @template.send(:template_file_from_name, template_name) if @template
-        @@exempt_from_layout.any? { |ext| template_name.to_s =~ ext }
+        extension = @template && @template.pick_template_extension(template_name)
+        name_with_extension = !template_name.include?('.') && extension ? "#{template_name}.#{extension}" : template_name
+        @@exempt_from_layout.any? { |ext| name_with_extension =~ ext }
       end
 
       def default_template_name(action_name = self.action_name)

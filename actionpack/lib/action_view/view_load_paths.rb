@@ -29,12 +29,10 @@ module ActionView #:nodoc:
         @paths.freeze
       end
 
-      # Tries to find the extension for the template name.
-      # If it does not it exist, tries again without the format extension
-      #   find_template_file_for_partial_path('users/show') => 'html.erb'
-      #   find_template_file_for_partial_path('users/legacy') => 'rhtml'
-      def find_template_file_for_partial_path(file)
-        @paths[file.path] || @paths[file.path_without_extension] || @paths[file.path_without_format_and_extension]
+      def find_template_file_for_partial_path(template_path, template_format)
+        @paths["#{template_path}.#{template_format}"] ||
+          @paths[template_path] ||
+          @paths[template_path.gsub(/\..*$/, '')]
       end
 
       private
@@ -81,10 +79,10 @@ module ActionView #:nodoc:
       find { |path| path.paths[file.to_s] }
     end
 
-    def find_template_file_for_path(file)
-      file = TemplateFile.from_path(file)
+    def find_template_file_for_path(template_path)
+      template_path_without_extension, template_extension = path_and_extension(template_path.to_s)
       each do |path|
-        if f = path.find_template_file_for_partial_path(file)
+        if f = path.find_template_file_for_partial_path(template_path_without_extension, template_extension)
           return f
         end
       end
@@ -94,6 +92,12 @@ module ActionView #:nodoc:
     private
       def delete_paths!(paths)
         paths.each { |p1| delete_if { |p2| p1.to_s == p2.to_s } }
+      end
+
+      # Splits the path and extension from the given template_path and returns as an array.
+      def path_and_extension(template_path)
+        template_path_without_extension = template_path.sub(/\.(\w+)$/, '')
+        [template_path_without_extension, $1]
       end
   end
 end

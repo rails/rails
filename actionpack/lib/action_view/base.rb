@@ -284,6 +284,21 @@ module ActionView #:nodoc:
       view_paths.template_exists?(template_file_from_name(template_path))
     end
 
+    # Gets the extension for an existing template with the given template_path.
+    # Returns the format with the extension if that template exists.
+    #
+    #   pick_template_extension('users/show')
+    #   # => 'html.erb'
+    #
+    #   pick_template_extension('users/legacy')
+    #   # => "rhtml"
+    #
+    def pick_template_extension(template_path)
+      if template = template_file_from_name(template_path)
+        template.extension
+      end
+    end
+
     private
       # Renders the template present at <tt>template_path</tt>. The hash in <tt>local_assigns</tt>
       # is made available as local variables.
@@ -336,19 +351,10 @@ module ActionView #:nodoc:
 
       def template_file_from_name(template_name)
         template_name = TemplateFile.from_path(template_name)
-        pick_template_extension(template_name) unless template_name.extension
+        pick_template(template_name) unless template_name.extension
       end
 
-      # Gets the extension for an existing template with the given template_path.
-      # Returns the format with the extension if that template exists.
-      #
-      #   pick_template_extension('users/show')
-      #   # => 'html.erb'
-      #
-      #   pick_template_extension('users/legacy')
-      #   # => "rhtml"
-      #
-      def pick_template_extension(file)
+      def pick_template(file)
         if f = self.view_paths.find_template_file_for_path(file.dup_with_extension(template_format)) || file_from_first_render(file)
           f
         elsif template_format == :js && f = self.view_paths.find_template_file_for_path(file.dup_with_extension(:html))
