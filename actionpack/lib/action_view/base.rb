@@ -232,12 +232,11 @@ module ActionView #:nodoc:
     # The hash in <tt>local_assigns</tt> is made available as local variables.
     def render(options = {}, local_assigns = {}, &block) #:nodoc:
       if options.is_a?(String)
-        render_file(options, true, local_assigns)
+        render_file(options, nil, local_assigns)
       elsif options == :update
         update_page(&block)
       elsif options.is_a?(Hash)
-        use_full_path = options[:use_full_path]
-        options = options.reverse_merge(:locals => {}, :use_full_path => true)
+        options = options.reverse_merge(:locals => {})
 
         if partial_layout = options.delete(:layout)
           if block_given?
@@ -250,7 +249,7 @@ module ActionView #:nodoc:
             end
           end
         elsif options[:file]
-          render_file(options[:file], use_full_path || false, options[:locals])
+          render_file(options[:file], nil, options[:locals])
         elsif options[:partial] && options[:collection]
           render_partial_collection(options[:partial], options[:collection], options[:spacer_template], options[:locals], options[:as])
         elsif options[:partial]
@@ -298,10 +297,9 @@ module ActionView #:nodoc:
     end
 
     private
-      # Renders the template present at <tt>template_path</tt>. If <tt>use_full_path</tt> is set to true,
-      # it's relative to the view_paths array, otherwise it's absolute. The hash in <tt>local_assigns</tt>
+      # Renders the template present at <tt>template_path</tt>. The hash in <tt>local_assigns</tt>
       # is made available as local variables.
-      def render_file(template_path, use_full_path = true, local_assigns = {}) #:nodoc:
+      def render_file(template_path, use_full_path = nil, local_assigns = {}) #:nodoc:
         if defined?(ActionMailer) && defined?(ActionMailer::Base) && controller.is_a?(ActionMailer::Base) && !template_path.include?("/")
           raise ActionViewError, <<-END_ERROR
   Due to changes in ActionMailer, you need to provide the mailer_name along with the template name.

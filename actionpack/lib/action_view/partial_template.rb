@@ -6,7 +6,7 @@ module ActionView #:nodoc:
       @view_controller = view.controller if view.respond_to?(:controller)
       @as = as
       set_path_and_variable_name!(partial_path)
-      super(view, @path, true, locals)
+      super(view, @path, nil, locals)
       add_object_to_local_assigns!(object)
 
       # This is needed here in order to compile template with knowledge of 'counter'

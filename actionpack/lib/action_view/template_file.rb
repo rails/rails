@@ -4,8 +4,8 @@ module ActionView #:nodoc:
   # from the load path root e.g. "hello/index.html.erb" not
   # "app/views/hello/index.html.erb"
   class TemplateFile
-    def self.from_path(path, use_full_path = false)
-      path.is_a?(self) ? path : new(path, use_full_path)
+    def self.from_path(path)
+      path.is_a?(self) ? path : new(path)
     end
 
     def self.from_full_path(load_path, full_path)
@@ -17,11 +17,11 @@ module ActionView #:nodoc:
     attr_accessor :load_path, :base_path, :name, :format, :extension
     delegate :to_s, :inspect, :to => :path
 
-    def initialize(path, use_full_path = false)
+    def initialize(path)
       path = path.dup
 
-      # Clear the forward slash in the beginning unless using full path
-      trim_forward_slash!(path) unless use_full_path
+      # Clear the forward slash in the beginning
+      trim_forward_slash!(path)
 
       @base_path, @name, @format, @extension = split(path)
     end

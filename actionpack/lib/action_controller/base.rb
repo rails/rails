@@ -858,7 +858,7 @@ module ActionController #:nodoc:
 
         else
           if file = options[:file]
-            render_for_file(file, options[:status], options[:use_full_path], options[:locals] || {})
+            render_for_file(file, options[:status], nil, options[:locals] || {})
 
           elsif template = options[:template]
             render_for_file(template, options[:status], true, options[:locals] || {})
@@ -870,9 +870,9 @@ module ActionController #:nodoc:
           elsif action_name = options[:action]
             template = default_template_name(action_name.to_s)
             if options[:layout] && !template_exempt_from_layout?(template)
-              render_with_a_layout(:file => template, :status => options[:status], :use_full_path => true, :layout => true)
+              render_with_a_layout(:file => template, :status => options[:status], :layout => true)
             else
-              render_with_no_layout(:file => template, :status => options[:status], :use_full_path => true)
+              render_with_no_layout(:file => template, :status => options[:status])
             end
 
           elsif xml = options[:xml]
@@ -1097,10 +1097,10 @@ module ActionController #:nodoc:
 
 
     private
-      def render_for_file(template_path, status = nil, use_full_path = false, locals = {}) #:nodoc:
+      def render_for_file(template_path, status = nil, use_full_path = nil, locals = {}) #:nodoc:
         add_variables_to_assigns
         logger.info("Rendering #{template_path}" + (status ? " (#{status})" : '')) if logger
-        render_for_text(@template.render(:file => template_path, :use_full_path => use_full_path, :locals => locals), status)
+        render_for_text(@template.render(:file => template_path, :locals => locals), status)
       end
 
       def render_for_text(text = nil, status = nil, append_response = false) #:nodoc:

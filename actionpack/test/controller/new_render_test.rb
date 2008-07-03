@@ -81,12 +81,12 @@ class NewRenderTestController < ActionController::Base
 
   def render_file_not_using_full_path
     @secret = 'in the sauce'
-    render :file => 'test/render_file_with_ivar', :use_full_path => true
+    render :file => 'test/render_file_with_ivar'
   end
 
   def render_file_not_using_full_path_with_dot_in_path
     @secret = 'in the sauce'
-    render :file => 'test/dot.directory/render_file_with_ivar', :use_full_path => true
+    render :file => 'test/dot.directory/render_file_with_ivar'
   end
 
   def render_xml_hello
@@ -231,13 +231,13 @@ class NewRenderTestController < ActionController::Base
   end
 
   def render_to_string_with_exception
-    render_to_string :file => "exception that will not be caught - this will certainly not work", :use_full_path => true
+    render_to_string :file => "exception that will not be caught - this will certainly not work"
   end
 
   def render_to_string_with_caught_exception
     @before = "i'm before the render"
     begin
-      render_to_string :file => "exception that will be caught- hope my future instance vars still work!", :use_full_path => true
+      render_to_string :file => "exception that will be caught- hope my future instance vars still work!"
     rescue
     end
     @after = "i'm after the render"
