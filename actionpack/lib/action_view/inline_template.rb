@@ -7,7 +7,7 @@ module ActionView #:nodoc:
       @extension = type
       @locals = locals || {}
 
-      @handler = self.class.handler_class_for_extension(@extension).new(@view)
+      @handler = Base.handler_class_for_extension(@extension).new(@view)
     end
 
     def method_key

@@ -151,6 +151,7 @@ module ActionView #:nodoc:
   #
   # See the ActionView::Helpers::PrototypeHelper::GeneratorMethods documentation for more details.
   class Base
+    extend TemplateHandlers
     include ERB::Util
 
     attr_accessor :base_path, :assigns, :template_extension, :first_render
