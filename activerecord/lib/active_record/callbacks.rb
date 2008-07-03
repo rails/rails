@@ -262,7 +262,7 @@ module ActiveRecord
     def valid_with_callbacks? #:nodoc:
       return false if callback(:before_validation) == false
       if new_record? then result = callback(:before_validation_on_create) else result = callback(:before_validation_on_update) end
-      return false if result == false
+      return false if false == result
 
       result = valid_without_callbacks?
 
@@ -293,7 +293,7 @@ module ActiveRecord
 
     private
       def callback(method)
-        result = run_callbacks(method) { |result, object| result == false }
+        result = run_callbacks(method) { |result, object| false == result }
 
         if result != false && respond_to_without_attributes?(method)
           result = send(method)

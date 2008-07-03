@@ -45,11 +45,11 @@ class NewRenderTestController < ActionController::Base
   def render_action_hello_world_as_symbol
     render :action => :hello_world
   end
-  
+
   def render_text_hello_world
     render :text => "hello world"
   end
- 
+
   def render_text_hello_world_with_layout
     @variable_for_layout = ", I'm here!"
     render :text => "hello world", :layout => true
@@ -68,7 +68,7 @@ class NewRenderTestController < ActionController::Base
     path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb')
     render :file => path
   end
-  
+
   def render_file_from_template
     @secret = 'in the sauce'
     @path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb'))
@@ -76,17 +76,17 @@ class NewRenderTestController < ActionController::Base
 
   def render_file_with_locals
     path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals.erb')
-    render :file => path, :locals => {:secret => 'in the sauce'} 
+    render :file => path, :locals => {:secret => 'in the sauce'}
   end
 
   def render_file_not_using_full_path
     @secret = 'in the sauce'
-    render :file => 'test/render_file_with_ivar', :use_full_path => true
+    render :file => 'test/render_file_with_ivar'
   end
-  
+
   def render_file_not_using_full_path_with_dot_in_path
     @secret = 'in the sauce'
-    render :file => 'test/dot.directory/render_file_with_ivar', :use_full_path => true
+    render :file => 'test/dot.directory/render_file_with_ivar'
   end
 
   def render_xml_hello
@@ -105,7 +105,7 @@ class NewRenderTestController < ActionController::Base
   def layout_test_with_different_layout
     render :action => "hello_world", :layout => "standard"
   end
-  
+
   def rendering_without_layout
     render :action => "hello_world", :layout => false
   end
@@ -113,11 +113,11 @@ class NewRenderTestController < ActionController::Base
   def layout_overriding_layout
     render :action => "hello_world", :layout => "standard"
   end
-  
+
   def rendering_nothing_on_layout
     render :nothing => true
   end
-  
+
   def builder_layout_test
     render :action => "hello"
   end
@@ -135,9 +135,9 @@ class NewRenderTestController < ActionController::Base
   def partial_only_with_layout
     render :partial => "partial_only", :layout => true
   end
-  
+
   def partial_with_locals
-    render :partial => "customer", :locals => { :customer => Customer.new("david") } 
+    render :partial => "customer", :locals => { :customer => Customer.new("david") }
   end
 
   def partial_with_form_builder
@@ -151,11 +151,15 @@ class NewRenderTestController < ActionController::Base
   def partial_collection
     render :partial => "customer", :collection => [ Customer.new("david"), Customer.new("mary") ]
   end
-  
+
+  def partial_collection_with_as
+    render :partial => "customer_with_var", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => :customer
+  end
+
   def partial_collection_with_spacer
     render :partial => "customer", :spacer_template => "partial_only", :collection => [ Customer.new("david"), Customer.new("mary") ]
   end
-  
+
   def partial_collection_with_counter
     render :partial => "customer_counter", :collection => [ Customer.new("david"), Customer.new("mary") ]
   end
@@ -186,33 +190,33 @@ class NewRenderTestController < ActionController::Base
   def empty_partial_collection
     render :partial => "customer", :collection => []
   end
-  
+
   def partial_with_hash_object
     render :partial => "hash_object", :object => {:first_name => "Sam"}
   end
-  
+
   def partial_hash_collection
     render :partial => "hash_object", :collection => [ {:first_name => "Pratik"}, {:first_name => "Amy"} ]
   end
-  
+
   def partial_hash_collection_with_locals
     render :partial => "hash_greeting", :collection => [ {:first_name => "Pratik"}, {:first_name => "Amy"} ], :locals => { :greeting => "Hola" }
   end
-  
+
   def partial_with_implicit_local_assignment
     @customer = Customer.new("Marcel")
     render :partial => "customer"
   end
-  
+
   def missing_partial
     render :partial => 'thisFileIsntHere'
   end
-  
+
   def hello_in_a_string
     @customers = [ Customer.new("david"), Customer.new("mary") ]
     render :text =>  "How's there? " << render_to_string(:template => "test/list")
   end
-  
+
   def render_to_string_with_assigns
     @before = "i'm before the render"
     render_to_string :text => "foo"
@@ -222,18 +226,18 @@ class NewRenderTestController < ActionController::Base
 
   def render_to_string_with_partial
     @partial_only = render_to_string :partial => "partial_only"
-    @partial_with_locals = render_to_string :partial => "customer", :locals => { :customer => Customer.new("david") }     
-    render :action => "test/hello_world"  
-  end  
-  
-  def render_to_string_with_exception
-    render_to_string :file => "exception that will not be caught - this will certainly not work", :use_full_path => true
+    @partial_with_locals = render_to_string :partial => "customer", :locals => { :customer => Customer.new("david") }
+    render :action => "test/hello_world"
   end
-  
+
+  def render_to_string_with_exception
+    render_to_string :file => "exception that will not be caught - this will certainly not work"
+  end
+
   def render_to_string_with_caught_exception
     @before = "i'm before the render"
     begin
-      render_to_string :file => "exception that will be caught- hope my future instance vars still work!", :use_full_path => true
+      render_to_string :file => "exception that will be caught- hope my future instance vars still work!"
     rescue
     end
     @after = "i'm after the render"
@@ -268,6 +272,10 @@ class NewRenderTestController < ActionController::Base
     render :template => "test/hello_world"
   end
 
+  def render_with_explicit_template_with_locals
+    render :template => "test/render_file_with_locals", :locals => { :secret => 'area51' }
+  end
+
   def double_render
     render :text => "hello"
     render :text => "world"
@@ -282,7 +290,7 @@ class NewRenderTestController < ActionController::Base
     render :text => "hello"
     redirect_to :action => "double_render"
   end
-  
+
   def render_to_string_and_render
     @stuff = render_to_string :text => "here is some cached stuff"
     render :text => "Hi web users! #{@stuff}"
@@ -329,7 +337,7 @@ class NewRenderTestController < ActionController::Base
   def render_with_location
     render :xml => "<hello/>", :location => "http://example.com", :status => 201
   end
-  
+
   def render_with_object_location
     customer = Customer.new("Some guy", 1)
     render :xml => "<customer/>", :location => customer_url(customer), :status => :created
@@ -341,12 +349,12 @@ class NewRenderTestController < ActionController::Base
         "<i-am-xml/>"
       end
     end.new
-    
+
     render :xml => to_xmlable
   end
 
   helper NewRenderTestHelper
-  helper do 
+  helper do
     def rjs_helper_method(value)
       page.visual_effect :highlight, value
     end
@@ -383,7 +391,7 @@ class NewRenderTestController < ActionController::Base
       page.visual_effect :highlight, 'balance'
     end
   end
-  
+
   def update_page_with_instance_variables
     @money = '$37,000,000.00'
     @div_id = 'balance'
@@ -426,12 +434,12 @@ class NewRenderTestController < ActionController::Base
   def render_using_layout_around_block_in_main_layout_and_within_content_for_layout
     render :action => "using_layout_around_block"
   end
-  
+
   def rescue_action(e) raise end
-    
+
   private
     def determine_layout
-      case action_name 
+      case action_name
         when "hello_world", "layout_test", "rendering_without_layout",
              "rendering_nothing_on_layout", "render_text_hello_world",
              "render_text_hello_world_with_layout",
@@ -443,7 +451,7 @@ class NewRenderTestController < ActionController::Base
              "render_js_with_explicit_template",
              "render_js_with_explicit_action_template",
              "delete_with_js", "update_page", "update_page_with_instance_variables"
-    
+
           "layouts/standard"
         when "builder_layout_test"
           "layouts/builder"
@@ -457,8 +465,8 @@ class NewRenderTestController < ActionController::Base
     end
 end
 
-NewRenderTestController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
-Fun::GamesController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
+NewRenderTestController.view_paths = [FIXTURE_LOAD_PATH]
+Fun::GamesController.view_paths = [FIXTURE_LOAD_PATH]
 
 class NewRenderTest < Test::Unit::TestCase
   def setup
@@ -527,7 +535,7 @@ class NewRenderTest < Test::Unit::TestCase
   end
 
   def test_render_file_not_using_full_path
-    get :render_file_not_using_full_path 
+    get :render_file_not_using_full_path
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
@@ -540,7 +548,7 @@ class NewRenderTest < Test::Unit::TestCase
     get :render_file_with_locals
     assert_equal "The secret is in the sauce\n", @response.body
   end
-  
+
   def test_render_file_from_template
     get :render_file_from_template
     assert_equal "The secret is in the sauce\n", @response.body
@@ -597,8 +605,7 @@ EOS
   end
 
   def test_render_with_default_from_accept_header
-    @request.env["HTTP_ACCEPT"] = "text/javascript"
-    get :greeting
+    xhr :get, :greeting
     assert_equal "$(\"body\").visualEffect(\"highlight\");", @response.body
   end
 
@@ -661,7 +668,7 @@ EOS
     assert_not_deprecated { get :hello_in_a_string }
     assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", @response.body
   end
-  
+
   def test_render_to_string_doesnt_break_assigns
     get :render_to_string_with_assigns
     assert_equal "i'm before the render", assigns(:before)
@@ -672,12 +679,12 @@ EOS
     get :render_to_string_with_partial
     assert_equal "only partial", assigns(:partial_only)
     assert_equal "Hello: david", assigns(:partial_with_locals)
-  end  
+  end
 
   def test_bad_render_to_string_still_throws_exception
     assert_raises(ActionView::MissingTemplate) { get :render_to_string_with_exception }
   end
-  
+
   def test_render_to_string_that_throws_caught_exception_doesnt_break_assigns
     assert_nothing_raised { get :render_to_string_with_caught_exception }
     assert_equal "i'm before the render", assigns(:before)
@@ -715,7 +722,7 @@ EOS
   def test_render_and_redirect
     assert_raises(ActionController::DoubleRenderError) { get :render_and_redirect }
   end
-  
+
   # specify the one exception to double render rule - render_to_string followed by render
   def test_render_to_string_and_render
     get :render_to_string_and_render
@@ -736,7 +743,7 @@ EOS
     get :partials_list
     assert_equal "goodbyeHello: davidHello: marygoodbye\n", @response.body
   end
-  
+
   def test_partial_with_locals
     get :partial_with_locals
     assert_equal "Hello: david", @response.body
@@ -758,17 +765,22 @@ EOS
     get :partial_collection
     assert_equal "Hello: davidHello: mary", @response.body
   end
-  
+
+  def test_partial_collection_with_as
+    get :partial_collection_with_as
+    assert_equal "david david davidmary mary mary", @response.body
+  end
+
   def test_partial_collection_with_counter
     get :partial_collection_with_counter
     assert_equal "david0mary1", @response.body
   end
-  
+
   def test_partial_collection_with_locals
     get :partial_collection_with_locals
     assert_equal "Bonjour: davidBonjour: mary", @response.body
   end
-  
+
   def test_partial_collection_with_spacer
     get :partial_collection_with_spacer
     assert_equal "Hello: davidonly partialHello: mary", @response.body
@@ -793,12 +805,12 @@ EOS
     get :partial_with_hash_object
     assert_equal "Sam\nmaS\n", @response.body
   end
-  
+
   def test_hash_partial_collection
     get :partial_hash_collection
     assert_equal "Pratik\nkitarP\nAmy\nymA\n", @response.body
   end
-  
+
   def test_partial_hash_collection_with_locals
     get :partial_hash_collection_with_locals
     assert_equal "Hola: PratikHola: Amy", @response.body
@@ -808,25 +820,30 @@ EOS
     get :partial_with_implicit_local_assignment
     assert_equal "Hello: Marcel", @response.body
   end
-  
+
   def test_render_missing_partial_template
     assert_raises(ActionView::MissingTemplate) do
       get :missing_partial
     end
   end
-  
+
   def test_render_text_with_assigns
     get :render_text_with_assigns
     assert_equal "world", assigns["hello"]
   end
-  
+
+  def test_template_with_locals
+    get :render_with_explicit_template_with_locals
+    assert_equal "The secret is area51\n", @response.body
+  end
+
   def test_update_page
     get :update_page
     assert_template nil
     assert_equal 'text/javascript; charset=utf-8', @response.headers['type']
     assert_equal 2, @response.body.split($/).length
   end
-  
+
   def test_update_page_with_instance_variables
     get :update_page_with_instance_variables
     assert_template nil
@@ -834,7 +851,7 @@ EOS
     assert_match /balance/, @response.body
     assert_match /\$37/, @response.body
   end
-  
+
   def test_yield_content_for
     assert_not_deprecated { get :yield_content_for }
     assert_equal "<title>Putting stuff in the title!</title>\n\nGreat stuff!\n", @response.body
@@ -906,12 +923,12 @@ EOS
     get :render_with_location
     assert_equal "http://example.com", @response.headers["Location"]
   end
-  
+
   def test_rendering_xml_should_call_to_xml_if_possible
     get :render_with_to_xml
     assert_equal "<i-am-xml/>", @response.body
   end
-  
+
   def test_rendering_with_object_location_should_set_header_with_url_for
     ActionController::Routing::Routes.draw do |map|
       map.resources :customers
@@ -941,5 +958,4 @@ EOS
     get :render_using_layout_around_block_in_main_layout_and_within_content_for_layout
     assert_equal "Before (Anthony)\nInside from first block in layout\nAfter\nBefore (David)\nInside from block\nAfter\nBefore (Ramm)\nInside from second block in layout\nAfter\n", @response.body
   end
-
 end

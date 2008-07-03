@@ -301,7 +301,7 @@ end
 
 class UrlHelperWithControllerTest < ActionView::TestCase
   class UrlHelperController < ActionController::Base
-    self.view_paths = [ "#{File.dirname(__FILE__)}/../fixtures/" ]
+    self.view_paths = [FIXTURE_LOAD_PATH]
 
     def self.controller_path; 'url_helper_with_controller' end
 
@@ -356,7 +356,7 @@ end
 
 class LinkToUnlessCurrentWithControllerTest < ActionView::TestCase
   class TasksController < ActionController::Base
-    self.view_paths = ["#{File.dirname(__FILE__)}/../fixtures/"]
+    self.view_paths = [FIXTURE_LOAD_PATH]
 
     def self.controller_path; 'tasks' end
 
@@ -448,7 +448,7 @@ end
 
 class PolymorphicControllerTest < ActionView::TestCase
   class WorkshopsController < ActionController::Base
-    self.view_paths = ["#{File.dirname(__FILE__)}/../fixtures/"]
+    self.view_paths = [FIXTURE_LOAD_PATH]
 
     def self.controller_path; 'workshops' end
 
@@ -466,7 +466,7 @@ class PolymorphicControllerTest < ActionView::TestCase
   end
 
   class SessionsController < ActionController::Base
-    self.view_paths = ["#{File.dirname(__FILE__)}/../fixtures/"]
+    self.view_paths = [FIXTURE_LOAD_PATH]
 
     def self.controller_path; 'sessions' end
 

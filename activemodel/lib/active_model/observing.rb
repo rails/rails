@@ -1,4 +1,6 @@
 require 'observer'
+require 'singleton'
+require 'active_model/core'
 
 module ActiveModel
   module Observing
@@ -73,7 +75,7 @@ module ActiveModel
     # Start observing the declared classes and their subclasses.
     def initialize
       self.observed_classes = self.class.models if self.class.models
-      observed_classes.each { |klass| add_observer! klass }
+      observed_classes.each { |klass| klass.add_observer(self) }
     end
 
     # Send observed_method(object) if the method exists.
@@ -85,16 +87,12 @@ module ActiveModel
     # Passes the new subclass.
     def observed_class_inherited(subclass) #:nodoc:
       self.class.observe(observed_classes + [subclass])
-      add_observer!(subclass)
+      subclass.add_observer(self)
     end
 
-    protected
-      def observed_classes
-        @observed_classes ||= [self.class.observed_class]
-      end
-
-      def add_observer!(klass)
-        klass.add_observer(self)
-      end
+  protected
+    def observed_classes
+      @observed_classes ||= [self.class.observed_class]
+    end
   end
 end

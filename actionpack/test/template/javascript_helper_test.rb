@@ -3,14 +3,6 @@ require 'abstract_unit'
 class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
 
-  def test_define_javascript_functions
-    # check if prototype.js is included first
-    assert_not_nil define_javascript_functions.split("\n")[1].match(/Prototype JavaScript framework/)
-
-    # check that scriptaculous.js is not in here, only needed if loaded remotely
-    assert_nil define_javascript_functions.split("\n")[1].match(/var Scriptaculous = \{/)
-  end
-
   def test_escape_javascript
     assert_equal '', escape_javascript(nil)
     assert_equal %(This \\"thing\\" is really\\n netos\\'), escape_javascript(%(This "thing" is really\n netos'))

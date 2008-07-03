@@ -1,5 +1,19 @@
 *Edge*
 
+* Remove define_javascript_functions, javascript_include_tag and friends are far superior. [Michael Koziarski]
+
+* Deprecate :use_full_path render option. The supplying the option no longer has an effect [Josh Peek]
+
+* Add :as option to render a collection of partials with a custom local variable name. #509 [Simon Jefford, Pratik Naik]
+
+  render :partial => 'other_people', :collection => @people, :as => :person
+  
+  This will let you access objects of @people as 'person' local variable inside 'other_people' partial template.
+
+* time_zone_select: support for regexp matching of priority zones. Resolves #195 [Ernie Miller]
+
+* Made ActionView::Base#render_file private [Josh Peek]
+
 * Fix polymorphic_url with singleton resources.  #461 [Tammer Saleh]
 
 * Replaced TemplateFinder abstraction with ViewLoadPaths [Josh Peek]

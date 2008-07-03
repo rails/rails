@@ -6,6 +6,6 @@
 </h1>
 <pre><%=h @exception.clean_message %></pre>
 
-<%= render_file(@rescues_path + "/_trace.erb", false) %>
+<%= render(:file => @rescues_path + "/_trace.erb", :use_full_path => false) %>
 
-<%= render_file(@rescues_path + "/_request_and_response.erb", false) %>
+<%= render(:file => @rescues_path + "/_request_and_response.erb", :use_full_path => false) %>

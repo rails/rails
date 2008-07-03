@@ -632,7 +632,7 @@ module Commands
     def options
       OptionParser.new do |o|
         o.set_summary_indent('  ')
-        o.banner =    "Usage: #{@base_command.script_name} source URI [URI [URI]...]"
+        o.banner =    "Usage: #{@base_command.script_name} unsource URI [URI [URI]...]"
         o.define_head "Remove repositories from the default search list."
         o.separator ""
         o.on_tail("-h", "--help", "Show this help message.") { puts o; exit }

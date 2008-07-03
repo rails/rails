@@ -250,6 +250,13 @@ class TimeZoneTest < Test::Unit::TestCase
     assert zone1 == zone1
   end
 
+  def test_zone_match
+    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    assert zone =~ /Eastern/
+    assert zone =~ /New_York/
+    assert zone !~ /Nonexistent_Place/
+  end
+
   def test_to_s
     assert_equal "(GMT+03:00) Moscow", ActiveSupport::TimeZone['Moscow'].to_s
   end

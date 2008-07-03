@@ -1,11 +1,12 @@
 module ActionView #:nodoc:
   class PartialTemplate < Template #:nodoc:
-    attr_reader :variable_name, :object
+    attr_reader :variable_name, :object, :as
 
-    def initialize(view, partial_path, object = nil, locals = {})
+    def initialize(view, partial_path, object = nil, locals = {}, as = nil)
       @view_controller = view.controller if view.respond_to?(:controller)
+      @as = as
       set_path_and_variable_name!(partial_path)
-      super(view, @path, true, locals)
+      super(view, @path, nil, locals)
       add_object_to_local_assigns!(object)
 
       # This is needed here in order to compile template with knowledge of 'counter'
@@ -17,15 +18,17 @@ module ActionView #:nodoc:
 
     def render
       ActionController::Base.benchmark("Rendered #{@path.path_without_format_and_extension}", Logger::DEBUG, false) do
-        @handler.render(self)
+        super
       end
     end
 
     def render_member(object)
       @locals[:object] = @locals[@variable_name] = object
+      @locals[as] = object if as
 
       template = render_template
       @locals[@counter_name] += 1
+      @locals.delete(as)
       @locals.delete(@variable_name)
       @locals.delete(:object)
 
@@ -39,12 +42,8 @@ module ActionView #:nodoc:
     private
       def add_object_to_local_assigns!(object)
         @locals[:object] ||=
-          @locals[@variable_name] ||=
-            if object.is_a?(ActionView::Base::ObjectWrapper)
-              object.value
-            else
-              object
-            end || @view_controller.instance_variable_get("@#{variable_name}")
+          @locals[@variable_name] ||= object || @view_controller.instance_variable_get("@#{variable_name}")
+        @locals[as] ||= @locals[:object] if as
       end
 
       def set_path_and_variable_name!(partial_path)

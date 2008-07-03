@@ -30,11 +30,11 @@ module ActiveRecord
       end
 
       def text?
-        [:string, :text].include? type
+        type == :string || type == :text
       end
 
       def number?
-        [:float, :integer, :decimal].include? type
+        type == :integer || type == :float || type == :decimal
       end
 
       # Returns the Ruby class that corresponds to the abstract data type.
@@ -304,8 +304,7 @@ module ActiveRecord
       #
       # Available options are (none of these exists by default):
       # * <tt>:limit</tt> -
-      #   Requests a maximum column length (<tt>:string</tt>, <tt>:text</tt>,
-      #   <tt>:binary</tt> or <tt>:integer</tt> columns only)
+      #   Requests a maximum column length. This is number of characters for <tt>:string</tt> and <tt>:text</tt> columns and number of bytes for :binary and :integer columns.
       # * <tt>:default</tt> -
       #   The column's default value. Use nil for NULL.
       # * <tt>:null</tt> -

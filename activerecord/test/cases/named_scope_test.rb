@@ -65,6 +65,10 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal Topic.replied.approved, Topic.replied.approved_as_string
   end
 
+  def test_scopes_can_be_specified_with_deep_hash_conditions
+    assert_equal Topic.replied.approved, Topic.replied.approved_as_hash_condition
+  end
+
   def test_scopes_are_composable
     assert_equal (approved = Topic.find(:all, :conditions => {:approved => true})), Topic.approved
     assert_equal (replied = Topic.find(:all, :conditions => 'replies_count > 0')), Topic.replied

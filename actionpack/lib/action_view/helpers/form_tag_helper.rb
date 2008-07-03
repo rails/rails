@@ -348,11 +348,13 @@ module ActionView
         options.stringify_keys!
 
         if disable_with = options.delete("disable_with")
+          disable_with = "this.value='#{disable_with}'"
+          disable_with << ";#{options.delete('onclick')}" if options['onclick']
+          
           options["onclick"] = [
             "this.setAttribute('originalValue', this.value)",
             "this.disabled=true",
-            "this.value='#{disable_with}'",
-            "#{options["onclick"]}",
+            disable_with,
             "result = (this.form.onsubmit ? (this.form.onsubmit() ? this.form.submit() : false) : this.form.submit())",
             "if (result == false) { this.value = this.getAttribute('originalValue'); this.disabled = false }",
             "return result;",

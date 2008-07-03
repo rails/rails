@@ -1,7 +1,6 @@
 require 'abstract_unit'
 
 class Address
-
   def Address.count(conditions = nil, join = nil)
     nil
   end
@@ -20,7 +19,7 @@ class AddressesTestController < ActionController::Base
   def self.controller_path; "addresses"; end
 end
 
-AddressesTestController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
+AddressesTestController.view_paths = [FIXTURE_LOAD_PATH]
 
 class AddressesTest < Test::Unit::TestCase
   def setup

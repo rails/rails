@@ -712,7 +712,8 @@ module ActiveRecord
 
         configure_dependency_for_has_many(reflection)
 
-        add_multiple_associated_save_callbacks(reflection.name) unless options[:validate] == false
+        add_multiple_associated_validation_callbacks(reflection.name) unless options[:validate] == false
+        add_multiple_associated_save_callbacks(reflection.name)
         add_association_callbacks(reflection.name, reflection.options)
 
         if options[:through]
@@ -802,7 +803,7 @@ module ActiveRecord
           end
           after_save method_name
 
-          add_single_associated_save_callbacks(reflection.name) if options[:validate] == true
+          add_single_associated_validation_callbacks(reflection.name) if options[:validate] == true
           association_accessor_methods(reflection, HasOneAssociation)
           association_constructor_method(:build,  reflection, HasOneAssociation)
           association_constructor_method(:create, reflection, HasOneAssociation)
@@ -941,7 +942,7 @@ module ActiveRecord
           )
         end
 
-        add_single_associated_save_callbacks(reflection.name) if options[:validate] == true
+        add_single_associated_validation_callbacks(reflection.name) if options[:validate] == true
 
         configure_dependency_for_belongs_to(reflection)
       end
@@ -1044,7 +1045,8 @@ module ActiveRecord
       def has_and_belongs_to_many(association_id, options = {}, &extension)
         reflection = create_has_and_belongs_to_many_reflection(association_id, options, &extension)
 
-        add_multiple_associated_save_callbacks(reflection.name) unless options[:validate] == false
+        add_multiple_associated_validation_callbacks(reflection.name) unless options[:validate] == false
+        add_multiple_associated_save_callbacks(reflection.name)
         collection_accessor_methods(reflection, HasAndBelongsToManyAssociation)
 
         # Don't use a before_destroy callback since users' before_destroy
@@ -1164,7 +1166,7 @@ module ActiveRecord
           end
         end
         
-        def add_single_associated_save_callbacks(association_name)
+        def add_single_associated_validation_callbacks(association_name)
           method_name = "validate_associated_records_for_#{association_name}".to_sym
           define_method(method_name) do
             association = instance_variable_get("@#{association_name}")
@@ -1176,7 +1178,7 @@ module ActiveRecord
           validate method_name
         end
         
-        def add_multiple_associated_save_callbacks(association_name)
+        def add_multiple_associated_validation_callbacks(association_name)
           method_name = "validate_associated_records_for_#{association_name}".to_sym
           ivar = "@#{association_name}"
 
@@ -1197,6 +1199,10 @@ module ActiveRecord
           end
 
           validate method_name
+        end
+
+        def add_multiple_associated_save_callbacks(association_name)
+          ivar = "@#{association_name}"
 
           method_name = "before_save_associated_records_for_#{association_name}".to_sym
           define_method(method_name) do
@@ -1218,7 +1224,6 @@ module ActiveRecord
             else
               []
             end
-
             records_to_save.each { |record| association.send(:insert_record, record) } unless records_to_save.blank?
 
             # reconstruct the SQL queries now that we know the owner's id

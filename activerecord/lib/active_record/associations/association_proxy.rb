@@ -85,7 +85,7 @@ module ActiveRecord
       end
 
       def conditions
-        @conditions ||= interpolate_sql(sanitize_sql(@reflection.options[:conditions])) if @reflection.options[:conditions]
+        @conditions ||= interpolate_sql(@reflection.sanitized_conditions) if @reflection.sanitized_conditions
       end
       alias :sql_conditions :conditions
 
@@ -218,6 +218,10 @@ module ActiveRecord
         # Array#flatten has problems with recursive arrays. Going one level deeper solves the majority of the problems.
         def flatten_deeper(array)
           array.collect { |element| element.respond_to?(:flatten) ? element.flatten : element }.flatten
+        end
+
+        def owner_quoted_id
+          @owner.quoted_id
         end
     end
   end

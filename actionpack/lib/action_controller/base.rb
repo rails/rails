@@ -702,6 +702,9 @@ module ActionController #:nodoc:
       #   # builds the complete response.
       #   render :partial => "person", :collection => @winners
       #
+      #   # Renders a collection of partials but with a custom local variable name
+      #   render :partial => "admin_person", :collection => @winners, :as => :person
+      #
       #   # Renders the same collection of partials, but also renders the
       #   # person_divider partial between each person partial.
       #   render :partial => "person", :collection => @winners, :spacer_template => "person_divider"
@@ -732,6 +735,9 @@ module ActionController #:nodoc:
       #
       #   # Renders the template located in [TEMPLATE_ROOT]/weblog/show.r(html|xml) (in Rails, app/views/weblog/show.erb)
       #   render :template => "weblog/show"
+      #
+      #   # Renders the template with a local variable
+      #   render :template => "weblog/show", :locals => {:customer => Customer.new}
       #
       # === Rendering a file
       #
@@ -852,22 +858,21 @@ module ActionController #:nodoc:
 
         else
           if file = options[:file]
-            render_for_file(file, options[:status], options[:use_full_path], options[:locals] || {})
+            render_for_file(file, options[:status], nil, options[:locals] || {})
 
           elsif template = options[:template]
-            render_for_file(template, options[:status], true)
+            render_for_file(template, options[:status], true, options[:locals] || {})
 
           elsif inline = options[:inline]
             add_variables_to_assigns
-            tmpl = ActionView::InlineTemplate.new(@template, options[:inline], options[:locals], options[:type])
-            render_for_text(@template.render_template(tmpl), options[:status])
+            render_for_text(@template.render(options), options[:status])
 
           elsif action_name = options[:action]
             template = default_template_name(action_name.to_s)
             if options[:layout] && !template_exempt_from_layout?(template)
-              render_with_a_layout(:file => template, :status => options[:status], :use_full_path => true, :layout => true)
+              render_with_a_layout(:file => template, :status => options[:status], :layout => true)
             else
-              render_with_no_layout(:file => template, :status => options[:status], :use_full_path => true)
+              render_with_no_layout(:file => template, :status => options[:status])
             end
 
           elsif xml = options[:xml]
@@ -887,12 +892,12 @@ module ActionController #:nodoc:
             if collection = options[:collection]
               render_for_text(
                 @template.send!(:render_partial_collection, partial, collection,
-                options[:spacer_template], options[:locals]), options[:status]
+                options[:spacer_template], options[:locals], options[:as]), options[:status]
               )
             else
               render_for_text(
                 @template.send!(:render_partial, partial,
-                ActionView::Base::ObjectWrapper.new(options[:object]), options[:locals]), options[:status]
+                options[:object], options[:locals]), options[:status]
               )
             end
 
@@ -1092,10 +1097,10 @@ module ActionController #:nodoc:
 
 
     private
-      def render_for_file(template_path, status = nil, use_full_path = false, locals = {}) #:nodoc:
+      def render_for_file(template_path, status = nil, use_full_path = nil, locals = {}) #:nodoc:
         add_variables_to_assigns
         logger.info("Rendering #{template_path}" + (status ? " (#{status})" : '')) if logger
-        render_for_text(@template.render_file(template_path, use_full_path, locals), status)
+        render_for_text(@template.render(:file => template_path, :locals => locals), status)
       end
 
       def render_for_text(text = nil, status = nil, append_response = false) #:nodoc:
@@ -1230,8 +1235,9 @@ module ActionController #:nodoc:
       end
 
       def template_exempt_from_layout?(template_name = default_template_name)
-        template_name = @template.send(:template_file_from_name, template_name) if @template
-        @@exempt_from_layout.any? { |ext| template_name.to_s =~ ext }
+        extension = @template && @template.pick_template_extension(template_name)
+        name_with_extension = !template_name.include?('.') && extension ? "#{template_name}.#{extension}" : template_name
+        @@exempt_from_layout.any? { |ext| name_with_extension =~ ext }
       end
 
       def default_template_name(action_name = self.action_name)
