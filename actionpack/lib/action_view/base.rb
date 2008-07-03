@@ -305,7 +305,7 @@ module ActionView #:nodoc:
       end
 
       def render_inline(text, local_assigns = {}, type = nil)
-        InlineTemplate.new(self, text, local_assigns, type).render_template
+        InlineTemplate.new(self, text, local_assigns, type).render
       end
 
       def wrap_content_for_layout(content)
