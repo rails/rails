@@ -1,5 +1,7 @@
 *Edge*
 
+* Added Rails.initialized? flag [Josh Peek]
+
 * Make rake test:uncommitted work with Git. [Tim Pope]
 
 * Added Thin support to script/server.  #488 [Bob Klosinski]
