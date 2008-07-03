@@ -559,6 +559,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_nothing_raised { Post.find(:all, :include => 'comments') }
   end
 
+  def test_eager_with_floating_point_numbers
+    assert_queries(2) do
+      # Before changes, the floating point numbers will be interpreted as table names and will cause this to run in one query
+      Comment.find :all, :conditions => "123.456 = 123.456", :include => :post
+    end
+  end
+
   def test_preconfigured_includes_with_belongs_to
     author = posts(:welcome).author_with_posts
     assert_no_queries {assert_equal 5, author.posts.size}

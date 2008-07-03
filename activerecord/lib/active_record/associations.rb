@@ -1520,19 +1520,19 @@ module ActiveRecord
               else            all << cond
             end
           end
-          conditions.join(' ').scan(/([\.\w]+).?\./).flatten
+          conditions.join(' ').scan(/([\.a-zA-Z_]+).?\./).flatten
         end
 
         def order_tables(options)
           order = [options[:order], scope(:find, :order) ].join(", ")
           return [] unless order && order.is_a?(String)
-          order.scan(/([\.\w]+).?\./).flatten
+          order.scan(/([\.a-zA-Z_]+).?\./).flatten
         end
 
         def selects_tables(options)
           select = options[:select]
           return [] unless select && select.is_a?(String)
-          select.scan(/"?([\.\w]+)"?.?\./).flatten
+          select.scan(/"?([\.a-zA-Z_]+)"?.?\./).flatten
         end
 
         # Checks if the conditions reference a table other than the current model table
