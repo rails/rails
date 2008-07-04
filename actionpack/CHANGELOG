@@ -1,5 +1,7 @@
 *Edge*
 
+* Add :recursive option to javascript_include_tag and stylesheet_link_tag to be used along with :all. #480 [Damian Janowski]
+
 * Disable the Accept header by default [Michael Koziarski]
 
     The accept header is poorly implemented by browsers and causes strange
