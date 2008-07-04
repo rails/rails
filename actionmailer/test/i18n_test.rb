@@ -59,35 +59,37 @@ class I18nTest < Test::Unit::TestCase
   end
   
   def test_should_use_default_charset_if_no_current_locale
-    with_locale nil do
+    uses_locale nil do
       assert_equal @charset, mail.charset
     end
   end
   
   def test_mail_headers_should_contains_current_charset
-    with_locale 'de-DE' do
+    uses_locale 'de-DE' do
       assert_match /iso-8859-1/, mail.header['content-type'].body
     end
   end
   
   def test_should_use_charset_from_current_locale
-    with_locale 'de-DE' do
+    uses_locale 'de-DE' do
       assert_equal 'iso-8859-1', mail.charset
     end
   end
-
-  def test_should_use_default_charset_if_missing_for_current_locale
-    with_locale 'en-GB' do
-      assert_equal @charset, mail.charset
+  
+  def test_should_raise_exception_if_current_locale_doesnt_specify_a_charset
+    assert_raise I18n::MissingTranslationData do
+      uses_locale 'en-GB' do
+        mail
+      end
     end
   end
-    
+  
   def test_should_use_explicit_charset
     assert_equal 'iso-8859-2', mail('use_explicit_charset').charset
   end
   
   def test_mail_parts_charsets
-    with_locale 'de-DE' do
+    uses_locale 'de-DE' do
       charsets = mail('multiparted').parts.map(&:charset)
       assert_equal 'iso-8859-1', charsets[0]
       assert_equal 'iso-8859-1', charsets[1]
@@ -96,7 +98,7 @@ class I18nTest < Test::Unit::TestCase
   end
   
   def test_mail_parts_headers
-    with_locale 'de-DE' do
+    uses_locale 'de-DE' do
       content_types = mail('multiparted').parts.map(&:header).map do |header|
         header['content-type'].body
       end
@@ -109,7 +111,7 @@ class I18nTest < Test::Unit::TestCase
   # TODO: this case depends on XML Builder,
   # should we pass Builder::XmlMarkup.new :encoding => charset_from_i18n ?
   def _ignore_test_rxml_template_should_use_current_charset
-    with_locale 'de-DE' do
+    uses_locale 'de-DE' do
       assert_equal "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n<test/>",
         mail('rxml_template').body.strip
     end
@@ -120,7 +122,7 @@ class I18nTest < Test::Unit::TestCase
       I18nMailer.__send__('create_' + method, @recipient)
     end
     
-    def with_locale(locale, &block)
+    def uses_locale(locale, &block)
       begin
         I18n.locale = locale
         yield

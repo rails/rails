@@ -346,10 +346,10 @@ module ActionMailer #:nodoc:
 
     # Specify the charset to use for the message.
     # It performs a lookup, on the specified charset, then on the charset from
-    # the current locale, and, in the end, on the +default_charset+ specified
+    # the current locale, and, finally, on the +default_charset+ specified
     # for ActionMailer::Base.
     def charset(charset = nil)
-      @charset ||= charset || I18n.translate(:charset, :default => @@default_charset)
+      @charset ||= charset || I18n.translate(:charset) || @@default_charset
     end
     attr_writer :charset
     
