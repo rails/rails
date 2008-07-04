@@ -49,8 +49,4 @@ ActionMailer::Base.class_eval do
   helper MailHelper
 end
 
-I18n.backend.populate do
-  require 'action_mailer/locale/en-US.rb'
-end
-
 silence_warnings { TMail::Encoder.const_set("MAX_LINE_LEN", 200) }

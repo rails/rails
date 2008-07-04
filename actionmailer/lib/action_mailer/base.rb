@@ -344,15 +344,6 @@ module ActionMailer #:nodoc:
     # have multiple mailer methods share the same template.
     adv_attr_accessor :template
 
-    # Specify the charset to use for the message.
-    # It performs a lookup, on the specified charset, then on the charset from
-    # the current locale, and, finally, on the +default_charset+ specified
-    # for ActionMailer::Base.
-    def charset(charset = nil)
-      @charset ||= charset || I18n.translate(:charset) || @@default_charset
-    end
-    attr_writer :charset
-    
     # Override the mailer name, which defaults to an inflected version of the
     # mailer's class name. If you want to use a template in a non-standard
     # location, you can use this to specify that location.
