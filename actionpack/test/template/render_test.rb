@@ -101,12 +101,12 @@ class ViewRenderTest < Test::Unit::TestCase
   end
 
   def test_render_inline_with_custom_type
-    ActionView::Base.register_template_handler :foo, CustomHandler
+    ActionView::Template.register_template_handler :foo, CustomHandler
     assert_equal '["Hello, World!", {}]', @view.render(:inline => "Hello, World!", :type => :foo)
   end
 
   def test_render_inline_with_locals_and_custom_type
-    ActionView::Base.register_template_handler :foo, CustomHandler
+    ActionView::Template.register_template_handler :foo, CustomHandler
     assert_equal '["Hello, <%= name %>!", {:name=>"Josh"}]', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
   end
 
@@ -121,12 +121,12 @@ class ViewRenderTest < Test::Unit::TestCase
   end
 
   def test_render_inline_with_compilable_custom_type
-    ActionView::Base.register_template_handler :foo, CompilableCustomHandler
+    ActionView::Template.register_template_handler :foo, CompilableCustomHandler
     assert_equal 'locals: {}, source: "Hello, World!"', @view.render(:inline => "Hello, World!", :type => :foo)
   end
 
   def test_render_inline_with_locals_and_compilable_custom_type
-    ActionView::Base.register_template_handler :foo, CompilableCustomHandler
+    ActionView::Template.register_template_handler :foo, CompilableCustomHandler
     assert_equal 'locals: {:name=>"Josh"}, source: "Hello, <%= name %>!"', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
   end
 end

@@ -10,7 +10,7 @@ module ActionView #:nodoc:
       @locals = locals || {}
 
       @method_key = @source
-      @handler = Base.handler_class_for_extension(@extension).new(@view)
+      @handler = Template.handler_class_for_extension(@extension).new(@view)
     end
   end
 end

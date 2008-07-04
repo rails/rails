@@ -40,7 +40,7 @@ class MabView < ActionView::TemplateHandler
   end
 end
 
-ActionView::Base.register_template_handler :mab, MabView
+ActionView::Template::register_template_handler :mab, MabView
 
 class LayoutAutoDiscoveryTest < Test::Unit::TestCase
   def setup

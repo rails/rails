@@ -1,11 +1,7 @@
 module ActionView #:nodoc:
   class Template #:nodoc:
+    extend TemplateHandlers
     include Renderer
-
-    class << self
-      # TODO: Deprecate
-      delegate :register_template_handler, :to => 'ActionView::Base'
-    end
 
     attr_reader :path, :extension
 
@@ -25,7 +21,7 @@ module ActionView #:nodoc:
 
       @method_key = @filename
       @locals = locals || {}
-      @handler = Base.handler_class_for_extension(@extension).new(@view)
+      @handler = self.class.handler_class_for_extension(@extension).new(@view)
     end
 
     def render_template
