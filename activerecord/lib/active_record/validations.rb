@@ -168,7 +168,7 @@ module ActiveRecord
             full_messages << message
           else
             key = :"active_record.human_attribute_names.#{@base.class.name.underscore.to_sym}.#{attr}" 
-            attr_name = I18n.translate(key, locale, :raise => true) rescue @base.class.human_attribute_name(attr)
+            attr_name = I18n.translate(key, locale, :default => @base.class.human_attribute_name(attr))
             full_messages << attr_name + " " + message
           end
         end

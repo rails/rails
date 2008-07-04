@@ -79,7 +79,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
 
     def test_errors_full_messages_translates_human_attribute_name_for_model_attributes
       @topic.errors.instance_variable_set :@errors, { 'title' => 'empty' }
-      I18n.expects(:translate).with(:"active_record.human_attribute_names.topic.title", 'en-US', :raise => true).returns('Title')
+      I18n.expects(:translate).with(:"active_record.human_attribute_names.topic.title", 'en-US', :default => 'Title').returns('Title')
       @topic.errors.full_messages :locale => 'en-US'
     end
   end  
