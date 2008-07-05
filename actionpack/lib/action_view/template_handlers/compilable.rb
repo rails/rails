@@ -30,11 +30,10 @@ module ActionView
 
         render_symbol = assign_method_name(template)
         render_source = create_template_source(template, render_symbol)
-        line_offset   = self.template_args[render_symbol].size + self.line_offset
 
         begin
           file_name = template.filename || 'compiled-template'
-          ActionView::Base::CompiledTemplates.module_eval(render_source, file_name, -line_offset)
+          ActionView::Base::CompiledTemplates.module_eval(render_source, file_name, 0)
         rescue Exception => e  # errors from template code
           if Base.logger
             Base.logger.debug "ERROR: compiling #{render_symbol} RAISED #{e}"
@@ -50,65 +49,65 @@ module ActionView
       end
 
       private
+        # Method to check whether template compilation is necessary.
+        # The template will be compiled if the inline template or file has not been compiled yet,
+        # if local_assigns has a new key, which isn't supported by the compiled code yet,
+        # or if the file has changed on disk and checking file mods hasn't been disabled.
+        def compile_template?(template)
+          method_key    = template.method_key
+          render_symbol = @view.method_names[method_key]
 
-      # Method to check whether template compilation is necessary.
-      # The template will be compiled if the inline template or file has not been compiled yet,
-      # if local_assigns has a new key, which isn't supported by the compiled code yet,
-      # or if the file has changed on disk and checking file mods hasn't been disabled.
-      def compile_template?(template)
-        method_key    = template.method_key
-        render_symbol = @view.method_names[method_key]
-
-        compile_time = self.compile_time[render_symbol]
-        if compile_time && supports_local_assigns?(render_symbol, template.locals)
-          if template.filename && !@view.cache_template_loading
-            template_changed_since?(template.filename, compile_time)
+          compile_time = self.compile_time[render_symbol]
+          if compile_time && supports_local_assigns?(render_symbol, template.locals)
+            if template.filename && !@view.cache_template_loading
+              template_changed_since?(template.filename, compile_time)
+            end
+          else
+            true
           end
-        else
-          true
-        end
-      end
-
-      def assign_method_name(template)
-        @view.method_names[template.method_key] ||= template.method_name
-      end
-
-      # Method to create the source code for a given template.
-      def create_template_source(template, render_symbol)
-        body = compile(template)
-
-        self.template_args[render_symbol] ||= {}
-        locals_keys = self.template_args[render_symbol].keys | template.locals.keys
-        self.template_args[render_symbol] = locals_keys.inject({}) { |h, k| h[k] = true; h }
-
-        locals_code = ""
-        locals_keys.each do |key|
-          locals_code << "#{key} = local_assigns[:#{key}]\n"
         end
 
-        <<-end_src
-          def #{render_symbol}(local_assigns)
-            old_output_buffer = output_buffer;#{locals_code}#{body}
-          ensure
-            self.output_buffer = old_output_buffer
+        def assign_method_name(template)
+          @view.method_names[template.method_key] ||= template.method_name
+        end
+
+        # Method to create the source code for a given template.
+        def create_template_source(template, render_symbol)
+          body = compile(template)
+
+          self.template_args[render_symbol] ||= {}
+          locals_keys = self.template_args[render_symbol].keys | template.locals.keys
+          self.template_args[render_symbol] = locals_keys.inject({}) { |h, k| h[k] = true; h }
+
+          locals_code = ""
+          locals_keys.each do |key|
+            locals_code << "#{key} = local_assigns[:#{key}];"
           end
-        end_src
-      end
 
-      # Return true if the given template was compiled for a superset of the keys in local_assigns
-      def supports_local_assigns?(render_symbol, local_assigns)
-        local_assigns.empty? ||
-          ((args = self.template_args[render_symbol]) && local_assigns.all? { |k,_| args.has_key?(k) })
-      end
+          source = <<-end_src
+            def #{render_symbol}(local_assigns)
+              old_output_buffer = output_buffer;#{locals_code};#{body}
+            ensure
+              self.output_buffer = old_output_buffer
+            end
+          end_src
 
-      # Method to handle checking a whether a template has changed since last compile; isolated so that templates
-      # not stored on the file system can hook and extend appropriately.
-      def template_changed_since?(file_name, compile_time)
-        lstat = File.lstat(file_name)
-        compile_time < lstat.mtime ||
-          (lstat.symlink? && compile_time < File.stat(file_name).mtime)
-      end
+          return source
+        end
 
+        # Return true if the given template was compiled for a superset of the keys in local_assigns
+        def supports_local_assigns?(render_symbol, local_assigns)
+          local_assigns.empty? ||
+            ((args = self.template_args[render_symbol]) && local_assigns.all? { |k,_| args.has_key?(k) })
+        end
+
+        # Method to handle checking a whether a template has changed since last compile; isolated so that templates
+        # not stored on the file system can hook and extend appropriately.
+        def template_changed_since?(file_name, compile_time)
+          lstat = File.lstat(file_name)
+          compile_time < lstat.mtime ||
+            (lstat.symlink? && compile_time < File.stat(file_name).mtime)
+        end
     end
   end
 end

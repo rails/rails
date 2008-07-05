@@ -3,13 +3,9 @@ module ActionView
     class RJS < TemplateHandler
       include Compilable
 
-      def self.line_offset
-        2
-      end
-
       def compile(template)
-        "controller.response.content_type ||= Mime::JS\n" +
-        "update_page do |page|\n#{template.source}\nend"
+        "controller.response.content_type ||= Mime::JS;" +
+          "update_page do |page|;#{template.source};end"
       end
 
       def cache_fragment(block, name = {}, options = nil) #:nodoc:

@@ -5,17 +5,11 @@ module ActionView
     class Builder < TemplateHandler
       include Compilable
 
-      def self.line_offset
-        2
-      end
-
       def compile(template)
-        content_type_handler = (@view.send!(:controller).respond_to?(:response) ? "controller.response" : "controller")
-
-        "#{content_type_handler}.content_type ||= Mime::XML\n" +
-          "xml = ::Builder::XmlMarkup.new(:indent => 2)\n" +
+        "controller.response.content_type ||= Mime::XML;" +
+          "xml = ::Builder::XmlMarkup.new(:indent => 2);" +
           template.source +
-          "\nxml.target!\n"
+          ";xml.target!;"
       end
 
       def cache_fragment(block, name = {}, options = nil)

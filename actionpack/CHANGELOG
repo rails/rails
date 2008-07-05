@@ -1,5 +1,7 @@
 *Edge*
 
+* Deprecated TemplateHandler line offset [Josh Peek]
+
 * Allow caches_action to accept cache store options. #416. [José Valim]. Example:
   
   caches_action :index, :redirected, :if => Proc.new { |c| !c.request.format.json? }, :expires_in => 1.hour
