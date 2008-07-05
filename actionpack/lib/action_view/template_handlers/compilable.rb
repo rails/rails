@@ -1,7 +1,6 @@
 module ActionView
   module TemplateHandlers
     module Compilable
-
       def self.included(base)
         base.extend ClassMethod
 
@@ -12,10 +11,6 @@ module ActionView
         # Map method names to the names passed in local assigns so far
         base.cattr_accessor :template_args
         base.template_args = {}
-
-        # Count the number of inline templates
-        base.cattr_accessor :inline_template_count
-        base.inline_template_count = 0
       end
 
       module ClassMethod
@@ -24,7 +19,7 @@ module ActionView
           true
         end
       end
-      
+
       def render(template)
         @view.send :execute, template
       end
@@ -75,22 +70,7 @@ module ActionView
       end
 
       def assign_method_name(template)
-        @view.method_names[template.method_key] ||= compiled_method_name(template)
-      end
-
-      def compiled_method_name(template)
-        ['_run', self.class.to_s.demodulize.underscore, compiled_method_name_file_path_segment(template.filename)].compact.join('_').to_sym
-      end
-
-      def compiled_method_name_file_path_segment(file_name)
-        if file_name
-          s = File.expand_path(file_name)
-          s.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}/, '') if defined?(RAILS_ROOT)
-          s.gsub!(/([^a-zA-Z0-9_])/) { $1.ord }
-          s
-        else
-          (self.inline_template_count += 1).to_s
-        end
+        @view.method_names[template.method_key] ||= template.method_name
       end
 
       # Method to create the source code for a given template.

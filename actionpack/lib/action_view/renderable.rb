@@ -11,6 +11,10 @@ module ActionView
       @handler.render(self)
     end
 
+    def method_name
+      ['_run', @extension, method_name_path_segment].compact.join('_').to_sym
+    end
+
     private
       def prepare!
         unless @prepared

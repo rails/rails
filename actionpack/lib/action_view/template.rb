@@ -37,7 +37,7 @@ module ActionView #:nodoc:
     end
 
     def source
-      @source ||= File.read(self.filename)
+      @source ||= File.read(@filename)
     end
 
     def base_path_for_exception
@@ -70,6 +70,13 @@ module ActionView #:nodoc:
         display_paths = @paths.join(':')
         template_type = (@original_path =~ /layouts/i) ? 'layout' : 'template'
         raise MissingTemplate, "Missing #{template_type} #{full_template_path} in view path #{display_paths}"
+      end
+
+      def method_name_path_segment
+        s = File.expand_path(@filename)
+        s.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}/, '') if defined?(RAILS_ROOT)
+        s.gsub!(/([^a-zA-Z0-9_])/) { $1.ord }
+        s
       end
   end
 end
