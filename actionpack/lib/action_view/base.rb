@@ -165,7 +165,7 @@ module ActionView #:nodoc:
       delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
     end
 
-    # Specify whether file modification times should be checked to see if a template needs recompilation
+    # Specify whether templates should be cached. Otherwise the file we be read everytime it is accessed.
     @@cache_template_loading = false
     cattr_accessor :cache_template_loading
 

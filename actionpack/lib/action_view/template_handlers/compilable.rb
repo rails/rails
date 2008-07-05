@@ -4,10 +4,6 @@ module ActionView
       def self.included(base)
         base.extend ClassMethod
 
-        # Map method names to their compile time
-        base.cattr_accessor :compile_time
-        base.compile_time = {}
-
         # Map method names to the names passed in local assigns so far
         base.cattr_accessor :template_args
         base.template_args = {}
@@ -26,7 +22,7 @@ module ActionView
 
       # Compile and evaluate the template's code
       def compile_template(template)
-        return unless compile_template?(template)
+        return false unless compile_template?(template)
 
         render_symbol = assign_method_name(template)
         render_source = create_template_source(template, render_symbol)
@@ -43,28 +39,27 @@ module ActionView
 
           raise ActionView::TemplateError.new(template, @view.assigns, e)
         end
-
-        self.compile_time[render_symbol] = Time.now
-        # logger.debug "Compiled template #{file_name || template}\n  ==> #{render_symbol}" if logger
       end
 
       private
         # Method to check whether template compilation is necessary.
         # The template will be compiled if the inline template or file has not been compiled yet,
-        # if local_assigns has a new key, which isn't supported by the compiled code yet,
-        # or if the file has changed on disk and checking file mods hasn't been disabled.
+        # if local_assigns has a new key, which isn't supported by the compiled code yet.
         def compile_template?(template)
-          method_key    = template.method_key
-          render_symbol = @view.method_names[method_key]
+          # Unless the template has been complied yet, compile
+          return true unless render_symbol = @view.method_names[template.method_key]
 
-          compile_time = self.compile_time[render_symbol]
-          if compile_time && supports_local_assigns?(render_symbol, template.locals)
-            if template.filename && !@view.cache_template_loading
-              template_changed_since?(template.filename, compile_time)
-            end
-          else
-            true
-          end
+          # If template caching is disabled, compile
+          return true unless Base.cache_template_loading
+
+          # Always recompile inline templates
+          return true if template.is_a?(InlineTemplate)
+
+          # Unless local assigns support, recompile
+          return true unless supports_local_assigns?(render_symbol, template.locals)
+
+          # Otherwise, use compiled method
+          return false
         end
 
         def assign_method_name(template)
@@ -99,14 +94,6 @@ module ActionView
         def supports_local_assigns?(render_symbol, local_assigns)
           local_assigns.empty? ||
             ((args = self.template_args[render_symbol]) && local_assigns.all? { |k,_| args.has_key?(k) })
-        end
-
-        # Method to handle checking a whether a template has changed since last compile; isolated so that templates
-        # not stored on the file system can hook and extend appropriately.
-        def template_changed_since?(file_name, compile_time)
-          lstat = File.lstat(file_name)
-          compile_time < lstat.mtime ||
-            (lstat.symlink? && compile_time < File.stat(file_name).mtime)
         end
     end
   end

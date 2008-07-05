@@ -1,5 +1,7 @@
 *Edge*
 
+* Do not stat template files in production mode before rendering. You will no longer be able to modify templates in production mode without restarting the server [Josh Peek]
+
 * Deprecated TemplateHandler line offset [Josh Peek]
 
 * Allow caches_action to accept cache store options. #416. [José Valim]. Example:
