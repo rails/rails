@@ -105,6 +105,6 @@ module ActionView
 end
 
 if defined?(Exception::TraceSubstitutions)
-  Exception::TraceSubstitutions << [/:in\s+`_run_(html|xml).*'\s*$/, '']
+  Exception::TraceSubstitutions << [/:in\s+`_run_.*'\s*$/, '']
   Exception::TraceSubstitutions << [%r{^\s*#{Regexp.escape RAILS_ROOT}/}, ''] if defined?(RAILS_ROOT)
 end
