@@ -1,7 +1,7 @@
 module ActionView #:nodoc:
   class Template #:nodoc:
     extend TemplateHandlers
-    include Renderer
+    include Renderable
 
     attr_reader :path, :extension
 

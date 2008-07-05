@@ -1,6 +1,6 @@
 module ActionView #:nodoc:
   class InlineTemplate #:nodoc:
-    include Renderer
+    include Renderable
 
     def initialize(view, source, locals = {}, type = nil)
       @view = view

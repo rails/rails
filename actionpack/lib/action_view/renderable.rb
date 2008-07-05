@@ -1,5 +1,5 @@
 module ActionView
-  module Renderer
+  module Renderable
     # TODO: Local assigns should not be tied to template instance
     attr_accessor :locals
 
