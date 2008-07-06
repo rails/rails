@@ -9,13 +9,8 @@ module ActionView #:nodoc:
       @extension = type
       @locals = locals || {}
 
-      @method_key = "inline_#{@source.hash.abs}"
+      @method_segment = "inline_#{@source.hash.abs}"
       @handler = Template.handler_class_for_extension(@extension).new(@view)
     end
-
-    private
-      def method_name_path_segment
-        @method_key
-      end
   end
 end

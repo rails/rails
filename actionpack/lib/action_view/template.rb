@@ -19,7 +19,7 @@ module ActionView #:nodoc:
 
       set_extension_and_file_name
 
-      @method_key = @filename
+      @method_segment = compiled_method_name_file_path_segment
       @locals = locals || {}
       @handler = self.class.handler_class_for_extension(@extension).new(@view)
     end
@@ -72,7 +72,7 @@ module ActionView #:nodoc:
         raise MissingTemplate, "Missing #{template_type} #{full_template_path} in view path #{display_paths}"
       end
 
-      def method_name_path_segment
+      def compiled_method_name_file_path_segment
         s = File.expand_path(@filename)
         s.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}/, '') if defined?(RAILS_ROOT)
         s.gsub!(/([^a-zA-Z0-9_])/) { $1.ord }

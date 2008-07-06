@@ -189,10 +189,6 @@ module ActionView #:nodoc:
     end
     include CompiledTemplates
 
-    # Maps inline templates to their method names
-    cattr_accessor :method_names
-    @@method_names = {}
-
     # Cache public asset paths
     cattr_reader :computed_public_paths
     @@computed_public_paths = {}

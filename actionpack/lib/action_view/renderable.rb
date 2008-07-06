@@ -4,15 +4,15 @@ module ActionView
     attr_accessor :locals
 
     # TODO: These readers should be private
-    attr_reader :filename, :source, :handler, :method_key, :method
+    attr_reader :filename, :source, :handler
 
     def render
       prepare!
       @handler.render(self)
     end
 
-    def method_name
-      ['_run', @extension, method_name_path_segment].compact.join('_').to_sym
+    def method
+      ['_run', @extension, @method_segment].compact.join('_').to_sym
     end
 
     private
@@ -23,7 +23,6 @@ module ActionView
 
           if @handler.compilable?
             @handler.compile_template(self) # compile the given template, if necessary
-            @method = @view.method_names[method_key] # Set the method name for this template and run it
           end
 
           @prepared = true

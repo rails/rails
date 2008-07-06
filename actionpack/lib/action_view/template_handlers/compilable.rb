@@ -4,7 +4,7 @@ module ActionView
       def self.included(base)
         base.extend ClassMethod
 
-        # Map method names to the names passed in local assigns so far
+        # Map method names to the compiled local assigns
         base.cattr_accessor :template_args
         base.template_args = {}
       end
@@ -17,23 +17,34 @@ module ActionView
       end
 
       def render(template)
-        @view.send :execute, template
+        @view.send(:execute, template)
       end
 
       # Compile and evaluate the template's code
       def compile_template(template)
         return false unless compile_template?(template)
 
-        render_symbol = assign_method_name(template)
-        render_source = create_template_source(template, render_symbol)
+        locals_code = ""
+        locals_keys = cache_template_args(template.method, template.locals)
+        locals_keys.each do |key|
+          locals_code << "#{key} = local_assigns[:#{key}];"
+        end
+
+        source = <<-end_src
+          def #{template.method}(local_assigns)
+            old_output_buffer = output_buffer;#{locals_code};#{compile(template)}
+          ensure
+            self.output_buffer = old_output_buffer
+          end
+        end_src
 
         begin
           file_name = template.filename || 'compiled-template'
-          ActionView::Base::CompiledTemplates.module_eval(render_source, file_name, 0)
-        rescue Exception => e  # errors from template code
+          ActionView::Base::CompiledTemplates.module_eval(source, file_name, 0)
+        rescue Exception => e # errors from template code
           if Base.logger
-            Base.logger.debug "ERROR: compiling #{render_symbol} RAISED #{e}"
-            Base.logger.debug "Function body: #{render_source}"
+            Base.logger.debug "ERROR: compiling #{template.method} RAISED #{e}"
+            Base.logger.debug "Function body: #{source}"
             Base.logger.debug "Backtrace: #{e.backtrace.join("\n")}"
           end
 
@@ -47,7 +58,7 @@ module ActionView
         # if local_assigns has a new key, which isn't supported by the compiled code yet.
         def compile_template?(template)
           # Unless the template has been complied yet, compile
-          return true unless render_symbol = @view.method_names[template.method_key]
+          return true unless Base::CompiledTemplates.instance_methods.include?(template.method.to_s)
 
           # If template caching is disabled, compile
           return true unless Base.cache_template_loading
@@ -56,38 +67,17 @@ module ActionView
           return true if template.is_a?(InlineTemplate)
 
           # Unless local assigns support, recompile
-          return true unless supports_local_assigns?(render_symbol, template.locals)
+          return true unless supports_local_assigns?(template.method, template.locals)
 
           # Otherwise, use compiled method
           return false
         end
 
-        def assign_method_name(template)
-          @view.method_names[template.method_key] ||= template.method_name
-        end
-
-        # Method to create the source code for a given template.
-        def create_template_source(template, render_symbol)
-          body = compile(template)
-
+        def cache_template_args(render_symbol, local_assigns)
           self.template_args[render_symbol] ||= {}
-          locals_keys = self.template_args[render_symbol].keys | template.locals.keys
+          locals_keys = self.template_args[render_symbol].keys | local_assigns.keys
           self.template_args[render_symbol] = locals_keys.inject({}) { |h, k| h[k] = true; h }
-
-          locals_code = ""
-          locals_keys.each do |key|
-            locals_code << "#{key} = local_assigns[:#{key}];"
-          end
-
-          source = <<-end_src
-            def #{render_symbol}(local_assigns)
-              old_output_buffer = output_buffer;#{locals_code};#{body}
-            ensure
-              self.output_buffer = old_output_buffer
-            end
-          end_src
-
-          return source
+          locals_keys
         end
 
         # Return true if the given template was compiled for a superset of the keys in local_assigns
