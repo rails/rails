@@ -20,7 +20,7 @@ module ActionView #:nodoc:
       set_extension_and_file_name
 
       @method_segment = compiled_method_name_file_path_segment
-      @locals = locals || {}
+      @locals = (locals && locals.dup) || {}
       @handler = self.class.handler_class_for_extension(@extension).new(@view)
     end
 

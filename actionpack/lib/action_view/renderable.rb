@@ -12,7 +12,7 @@ module ActionView
     end
 
     def method
-      ['_run', @extension, @method_segment].compact.join('_').to_sym
+      ['_run', @extension, @method_segment, local_assigns_keys].compact.join('_').to_sym
     end
 
     private
@@ -26,6 +26,12 @@ module ActionView
           end
 
           @prepared = true
+        end
+      end
+
+      def local_assigns_keys
+        if @locals && @locals.any?
+          "locals_#{@locals.keys.map { |k| k.to_s }.sort.join('_')}"
         end
       end
   end
