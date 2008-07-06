@@ -10,10 +10,7 @@ module ActiveSupport #:nodoc:
         def to_sentence(options = {})          
           options.assert_valid_keys(:connector, :skip_last_comma, :locale)
           
-          locale = options[:locale]
-          locale ||= self.locale if respond_to?(:locale)
-          
-          default = I18n.translate(:'support.array.sentence_connector', locale)
+          default = I18n.translate(:'support.array.sentence_connector', :locale => options[:locale])
           options.reverse_merge! :connector => default, :skip_last_comma => false
           options[:connector] = "#{options[:connector]} " unless options[:connector].nil? || options[:connector].strip == ''
 

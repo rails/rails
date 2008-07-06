@@ -4,11 +4,11 @@ module ActionView
   module Helpers
     module TranslationHelper
       def translate(*args)
-        key, locale, options = I18n.send :process_translate_arguments, *args
-        I18n.translate key, locale, options.merge(:raise => true)
+        args << args.extract_options!.merge(:raise => true)
+        I18n.translate *args
 
       rescue I18n::MissingTranslationData => e
-        keys = I18n.send :normalize_translation_keys, locale, key, options[:scope]
+        keys = I18n.send :normalize_translation_keys, e.locale, e.key, e.options[:scope]
         content_tag('span', keys.join(', '), :class => 'translation_missing')
       end
     end

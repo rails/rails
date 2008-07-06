@@ -46,14 +46,14 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
       global_scope = [:active_record, :error_messages]
       custom_scope = global_scope + [:custom, 'topic', :title]
 
-      I18n.expects(:t).with :scope => [:active_record, :error_messages], :default => [:"custom.topic.title.invalid", 'default from class def', :invalid]
+      I18n.expects(:t).with nil, :scope => [:active_record, :error_messages], :default => [:"custom.topic.title.invalid", 'default from class def', :invalid]
       @topic.errors.generate_message :title, :invalid, :default => 'default from class def'
     end
 
     def test_errors_generate_message_translates_custom_model_attribute_keys_with_sti
       custom_scope = [:active_record, :error_messages, :custom, 'topic', :title]
 
-      I18n.expects(:t).with :scope => [:active_record, :error_messages], :default => [:"custom.reply.title.invalid", :"custom.topic.title.invalid", 'default from class def', :invalid]
+      I18n.expects(:t).with nil, :scope => [:active_record, :error_messages], :default => [:"custom.reply.title.invalid", :"custom.topic.title.invalid", 'default from class def', :invalid]
       Reply.new.errors.generate_message :title, :invalid, :default => 'default from class def'
     end
 
@@ -79,7 +79,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
 
     def test_errors_full_messages_translates_human_attribute_name_for_model_attributes
       @topic.errors.instance_variable_set :@errors, { 'title' => 'empty' }
-      I18n.expects(:translate).with(:"active_record.human_attribute_names.topic.title", 'en-US', :default => 'Title').returns('Title')
+      I18n.expects(:translate).with(:"active_record.human_attribute_names.topic.title", :locale => 'en-US', :default => 'Title').returns('Title')
       @topic.errors.full_messages :locale => 'en-US'
     end
   end  

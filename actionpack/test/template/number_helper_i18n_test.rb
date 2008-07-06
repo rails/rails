@@ -11,7 +11,7 @@ class NumberHelperI18nTests < Test::Unit::TestCase
     end
 
     def test_number_to_currency_translates_currency_formats
-      I18n.expects(:translate).with(:'currency.format', 'en-US').returns @defaults
+      I18n.expects(:translate).with(:'currency.format', :locale => 'en-US').returns @defaults
       number_to_currency(1, :locale => 'en-US')
     end
   end

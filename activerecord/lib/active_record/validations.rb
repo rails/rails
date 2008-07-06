@@ -70,7 +70,7 @@ module ActiveRecord
       msgs << options[:default] if options[:default]
       msgs << key
 
-      I18n.t options.merge(:default => msgs, :scope => [:active_record, :error_messages])
+      I18n.t nil, options.merge(:default => msgs, :scope => [:active_record, :error_messages])
     end
 
     # Returns true if the specified +attribute+ has errors associated with it.
@@ -158,7 +158,6 @@ module ActiveRecord
     #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Address can't be blank"]
     def full_messages(options = {})
       full_messages = []
-      locale = options[:locale]
 
       @errors.each_key do |attr|
         @errors[attr].each do |message|
@@ -168,7 +167,7 @@ module ActiveRecord
             full_messages << message
           else
             key = :"active_record.human_attribute_names.#{@base.class.name.underscore.to_sym}.#{attr}" 
-            attr_name = I18n.translate(key, locale, :default => @base.class.human_attribute_name(attr))
+            attr_name = I18n.translate(key, :locale => options[:locale], :default => @base.class.human_attribute_name(attr))
             full_messages << attr_name + " " + message
           end
         end

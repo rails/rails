@@ -56,7 +56,7 @@ class DateHelperSelectTagsI18nTests < Test::Unit::TestCase
   
   uses_mocha 'date_helper_select_tags_i18n_tests' do
     def setup
-      I18n.stubs(:translate).with(:'date.month_names', 'en-US').returns Date::MONTHNAMES
+      I18n.stubs(:translate).with(:'date.month_names', :locale => 'en-US').returns Date::MONTHNAMES
     end
 
     # select_month
@@ -67,12 +67,12 @@ class DateHelperSelectTagsI18nTests < Test::Unit::TestCase
     end
 
     def test_select_month_translates_monthnames
-      I18n.expects(:translate).with(:'date.month_names', 'en-US').returns Date::MONTHNAMES
+      I18n.expects(:translate).with(:'date.month_names', :locale => 'en-US').returns Date::MONTHNAMES
       select_month(8, :locale => 'en-US')
     end
 
     def test_select_month_given_use_short_month_option_translates_abbr_monthnames
-      I18n.expects(:translate).with(:'date.abbr_month_names', 'en-US').returns Date::ABBR_MONTHNAMES
+      I18n.expects(:translate).with(:'date.abbr_month_names', :locale => 'en-US').returns Date::ABBR_MONTHNAMES
       select_month(8, :locale => 'en-US', :use_short_month => true)
     end
 
@@ -84,7 +84,7 @@ class DateHelperSelectTagsI18nTests < Test::Unit::TestCase
     end
 
     def test_date_or_time_select_given_no_order_options_translates_order
-      I18n.expects(:translate).with(:'date.order', 'en-US').returns [:year, :month, :day]
+      I18n.expects(:translate).with(:'date.order', :locale => 'en-US').returns [:year, :month, :day]
       datetime_select('post', 'updated_at', :locale => 'en-US')
     end
   end

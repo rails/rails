@@ -18,15 +18,15 @@ class I18nTest < Test::Unit::TestCase
   end
   
   def test_date_localization_with_default_format
-    assert_equal "2008-07-02", I18n.localize(@date, nil, :default)
+    assert_equal "2008-07-02", I18n.localize(@date, :format => :default)
   end
   
   def test_date_localization_with_short_format
-    assert_equal "Jul 02", I18n.localize(@date, nil, :short)
+    assert_equal "Jul 02", I18n.localize(@date, :format => :short)
   end
   
   def test_date_localization_with_long_format
-    assert_equal "July 02, 2008", I18n.localize(@date, nil, :long)
+    assert_equal "July 02, 2008", I18n.localize(@date, :format => :long)
   end
   
   def test_time_localization_should_use_default_format
@@ -34,15 +34,15 @@ class I18nTest < Test::Unit::TestCase
   end
   
   def test_time_localization_with_default_format
-    assert_equal "Wed, 02 Jul 2008 16:47:01 +0100", I18n.localize(@time, nil, :default)
+    assert_equal "Wed, 02 Jul 2008 16:47:01 +0100", I18n.localize(@time, :format => :default)
   end
   
   def test_time_localization_with_short_format
-    assert_equal "02 Jul 16:47", I18n.localize(@time, nil, :short)
+    assert_equal "02 Jul 16:47", I18n.localize(@time, :format => :short)
   end
   
   def test_time_localization_with_long_format
-    assert_equal "July 02, 2008 16:47", I18n.localize(@time, nil, :long)
+    assert_equal "July 02, 2008 16:47", I18n.localize(@time, :format => :long)
   end
     
   def test_day_names

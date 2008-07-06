@@ -504,7 +504,6 @@ module ActionView
       #
       def select_month(date, options = {}, html_options = {})
         locale = options[:locale] 
-        locale ||= self.locale if respond_to?(:locale)
 
         val = date ? (date.kind_of?(Fixnum) ? date : date.month) : ''
         if options[:use_hidden]
@@ -513,7 +512,7 @@ module ActionView
           month_options = []
           month_names = options[:use_month_names] || begin
             key = options[:use_short_month] ? :'date.abbr_month_names' : :'date.month_names'
-            I18n.translate key, locale
+            I18n.translate key, :locale => locale
           end
           month_names.unshift(nil) if month_names.size < 13
 
@@ -633,7 +632,7 @@ module ActionView
     
           position = { :year => 1, :month => 2, :day => 3, :hour => 4, :minute => 5, :second => 6 }
 
-          order = options[:order] ||= I18n.translate(:'date.order', locale)
+          order = options[:order] ||= I18n.translate(:'date.order', :locale => locale)
     
           # Discard explicit and implicit by not being included in the :order
           discard = {}
