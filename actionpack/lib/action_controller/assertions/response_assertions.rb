@@ -66,7 +66,7 @@ module ActionController
           redirected_to_after_normalisation = normalize_argument_to_redirection(@response.redirected_to)
           options_after_normalisation       = normalize_argument_to_redirection(options)
 
-          assert_equal redirected_to_after_normalisation, options_after_normalisation,
+          assert_equal options_after_normalisation, redirected_to_after_normalisation,
                        "Expected response to be a redirect to <#{options_after_normalisation}> but was a redirect to <#{redirected_to_after_normalisation}>"
         end
       end
