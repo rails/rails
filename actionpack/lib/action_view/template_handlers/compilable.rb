@@ -37,10 +37,10 @@ module ActionView
             file_name = template.filename || 'compiled-template'
             ActionView::Base::CompiledTemplates.module_eval(source, file_name, 0)
           rescue Exception => e # errors from template code
-            if Base.logger
-              Base.logger.debug "ERROR: compiling #{template.method} RAISED #{e}"
-              Base.logger.debug "Function body: #{source}"
-              Base.logger.debug "Backtrace: #{e.backtrace.join("\n")}"
+            if logger = ActionController::Base.logger
+              logger.debug "ERROR: compiling #{template.method} RAISED #{e}"
+              logger.debug "Function body: #{source}"
+              logger.debug "Backtrace: #{e.backtrace.join("\n")}"
             end
 
             raise ActionView::TemplateError.new(template, @view.assigns, e)
