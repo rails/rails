@@ -523,7 +523,7 @@ module Rails
     # A stub for setting options on ActiveRecord::Base.
     attr_accessor :active_record
 
-    # A stub for setting options on ActiveRecord::Base.
+    # A stub for setting options on ActiveResource::Base.
     attr_accessor :active_resource
 
     # A stub for setting options on ActiveSupport.
