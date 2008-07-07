@@ -489,6 +489,11 @@ class NewRenderTest < Test::Unit::TestCase
     assert_equal "<html>Hello world!</html>", @response.body
   end
 
+  def test_renders_default_template_for_missing_action
+    get :'hyphen-ated'
+    assert_template 'test/hyphen-ated'
+  end
+
   def test_do_with_render
     get :render_hello_world
     assert_template "test/hello_world"

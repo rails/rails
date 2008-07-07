@@ -74,7 +74,7 @@ module ActionView #:nodoc:
       # Returns file split into an array
       #   [base_path, name, format, extension]
       def split(file)
-        if m = file.match(/^(.*\/)?(\w+)\.?(\w+)?\.?(\w+)?\.?(\w+)?$/)
+        if m = file.match(/^(.*\/)?([^\.]+)\.?(\w+)?\.?(\w+)?\.?(\w+)?$/)
           if m[5] # Mulipart formats
             [m[1], m[2], "#{m[3]}.#{m[4]}", m[5]]
           elsif m[4] # Single format
