@@ -21,7 +21,7 @@ module ActiveRecord
     
     class << self
       def default_error_messages
-        ActiveSupport::Deprecation.warn("ActiveRecord::Errors.default_error_messages has been deprecated. Please use 'active_record.error_messages'.t.")
+        ActiveSupport::Deprecation.warn("ActiveRecord::Errors.default_error_messages has been deprecated. Please use I18n.translate('active_record.error_messages').")
         I18n.translate 'active_record.error_messages'
       end
     end
