@@ -623,6 +623,19 @@ module ActiveRecord
         end
       end
 
+      # Returns the current database name.
+      def current_database
+        query('select current_database()')[0][0]
+      end
+
+      # Returns the current database encoding format.
+      def encoding
+        query(<<-end_sql)[0][0]
+          SELECT pg_encoding_to_char(pg_database.encoding) FROM pg_database
+          WHERE pg_database.datname LIKE '#{current_database}'
+        end_sql
+      end
+
       # Sets the schema search path to a string of comma-separated schema names.
       # Names beginning with $ have to be quoted (e.g. $user => '$user').
       # See: http://www.postgresql.org/docs/current/static/ddl-schemas.html
