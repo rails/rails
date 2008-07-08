@@ -176,7 +176,7 @@ module ActionView
               options[:header_message]
             else 
               object_name = options[:object_name].to_s.gsub('_', ' ')
-              object_name = I18n.t(object_name, :default => object_name) || ''
+              object_name = I18n.t(object_name, :default => object_name)
               locale.t :header_message, :count => count, :object_name => object_name
             end
             message = options.include?(:message) ? options[:message] : locale.t(:message)

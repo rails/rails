@@ -21,19 +21,19 @@ class ActiveRecordHelperI18nTest < Test::Unit::TestCase
 
     def test_error_messages_for_given_no_header_message_option_it_translates_header_message
       I18n.expects(:t).with(:'header_message', :locale => 'en-US', :scope => [:active_record, :error], :count => 1, :object_name => '').returns 'header message'
-      I18n.expects(:t).with('', :default => '').once
+      I18n.expects(:t).with('', :default => '').once.returns ''
       error_messages_for(:object => @object, :locale => 'en-US')
     end
 
     def test_error_messages_for_given_a_message_option_it_does_not_translate_message
       I18n.expects(:t).with(:'message', :locale => 'en-US', :scope => [:active_record, :error]).never
-      I18n.expects(:t).with('', :default => '').once
+      I18n.expects(:t).with('', :default => '').once.returns ''
       error_messages_for(:object => @object, :message => 'message', :locale => 'en-US')
     end
 
     def test_error_messages_for_given_no_message_option_it_translates_message
       I18n.expects(:t).with(:'message', :locale => 'en-US', :scope => [:active_record, :error]).returns 'There were problems with the following fields:'
-      I18n.expects(:t).with('', :default => '').once
+      I18n.expects(:t).with('', :default => '').once.returns ''
       error_messages_for(:object => @object, :locale => 'en-US')
     end
     
