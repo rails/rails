@@ -114,6 +114,20 @@ class ContentTypeTest < Test::Unit::TestCase
     assert_equal Mime::HTML, @response.content_type
     assert_equal "utf-8", @response.charset
   end
+end
+
+class AcceptBasedContentTypeTest < ActionController::TestCase
+
+  tests ContentTypeController
+
+  def setup
+    ActionController::Base.use_accept_header = true
+  end
+
+  def tear_down
+    ActionController::Base.use_accept_header = false
+  end
+
 
   def test_render_default_content_types_for_respond_to
     @request.env["HTTP_ACCEPT"] = Mime::HTML.to_s

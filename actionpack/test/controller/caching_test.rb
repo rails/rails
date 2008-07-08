@@ -131,8 +131,7 @@ class PageCachingTest < Test::Unit::TestCase
   end
 
   def test_page_caching_conditional_options
-    @request.env['HTTP_ACCEPT'] = 'application/json'
-    get :ok
+    get :ok, :format=>'json'
     assert_page_not_cached :ok
   end
 
@@ -219,6 +218,7 @@ class ActionCachingMockController
     Object.new.instance_eval(<<-EVAL)
       def path; '#{@mock_path}' end
       def format; 'all' end
+      def cache_format; nil end
       self
     EVAL
   end
@@ -410,12 +410,6 @@ class ActionCacheTest < Test::Unit::TestCase
       reset!
 
       get :index, :format => 'xml'
-      assert_equal cached_time, @response.body
-      assert_equal 'application/xml', @response.content_type
-      reset!
-
-      @request.env['HTTP_ACCEPT'] = "application/xml"
-      get :index
       assert_equal cached_time, @response.body
       assert_equal 'application/xml', @response.content_type
       reset!
