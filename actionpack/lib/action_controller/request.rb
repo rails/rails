@@ -82,10 +82,16 @@ module ActionController
     # Returns the accepted MIME type for the request
     def accepts
       @accepts ||=
-        if @env['HTTP_ACCEPT'].to_s.strip.empty?
-          [ content_type, Mime::ALL ].compact # make sure content_type being nil is not included
-        else
-          Mime::Type.parse(@env['HTTP_ACCEPT'])
+        begin
+          header = @env['HTTP_ACCEPT'].to_s.strip
+
+          if header.empty?
+            [content_type, Mime::ALL].compact
+          elsif header !~ /,/
+            [Mime::Type.lookup(header)].compact
+          else
+            Mime::Type.parse(header)
+          end
         end
     end
 
