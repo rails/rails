@@ -39,4 +39,10 @@ class TranslationHelperTest < Test::Unit::TestCase
     #   error_messages_for(:object => @object, :locale => 'en-US')
     # end
   end
+  
+  def test_delegates_localize_to_i18n
+    @time = Time.utc(2008, 7, 8, 12, 18, 38)
+    assert_equal "Tue, 08 Jul 2008 12:18:38 +0100", localize(@time)
+    assert_equal "08 Jul 12:18", localize(@time, :format => :short)
+  end
 end

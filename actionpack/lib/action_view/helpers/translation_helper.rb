@@ -11,6 +11,10 @@ module ActionView
         keys = I18n.send :normalize_translation_keys, e.locale, e.key, e.options[:scope]
         content_tag('span', keys.join(', '), :class => 'translation_missing')
       end
+
+      def localize(*args)
+        I18n.l *args
+      end
     end
   end
 end
