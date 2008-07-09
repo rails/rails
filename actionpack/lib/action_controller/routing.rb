@@ -88,6 +88,10 @@ module ActionController
   #
   #   map.connect ':controller/:action/:id', :action => 'show', :defaults => { :page => 'Dashboard' }
   #
+  # Note: The default routes, as provided by the Rails generator, make all actions in every
+  # controller accessible via GET requests. You should consider removing them or commenting
+  # them out if you're using named routes and resources.
+  #
   # == Named routes
   #
   # Routes can be named with the syntax <tt>map.name_of_route options</tt>,
