@@ -183,4 +183,30 @@ class NamedScopeTest < ActiveRecord::TestCase
       topics.empty?  # use loaded (no query)
     end
   end
+
+  def test_should_build_with_proxy_options
+    topic = Topic.approved.build({})
+    assert topic.approved
+  end
+
+  def test_should_build_new_with_proxy_options
+    topic = Topic.approved.new
+    assert topic.approved
+  end
+
+  def test_should_create_with_proxy_options
+    topic = Topic.approved.create({})
+    assert topic.approved
+  end
+
+  def test_should_create_with_bang_with_proxy_options
+    topic = Topic.approved.create!({})
+    assert topic.approved
+  end
+  
+  def test_should_build_with_proxy_options_chained
+    topic = Topic.approved.by_lifo.build({})
+    assert topic.approved
+    assert_equal 'lifo', topic.author_name
+  end
 end
