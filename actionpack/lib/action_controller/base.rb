@@ -343,12 +343,12 @@ module ActionController #:nodoc:
     # Indicates whether the response format should be determined by examining the Accept HTTP header,
     # or by using the simpler params + ajax rules.
     #
-    # If this is set to +true+ then +respond_to+ and +Request#format+ will take the Accept header into
-    # account.  If it is set to false (the default) then the request format will be determined solely
+    # If this is set to +true+ (the default) then +respond_to+ and +Request#format+ will take the Accept
+    # header into account.  If it is set to false then the request format will be determined solely
     # by examining params[:format].  If params format is missing, the format will be either HTML or
     # Javascript depending on whether the request is an AJAX request.
     cattr_accessor :use_accept_header
-    self.use_accept_header = false
+    self.use_accept_header = true
 
     # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
     class_inheritable_accessor :allow_forgery_protection

@@ -4,15 +4,16 @@
 
 * Add :recursive option to javascript_include_tag and stylesheet_link_tag to be used along with :all. #480 [Damian Janowski]
 
-* Disable the Accept header by default [Michael Koziarski]
+* Allow users to disable the use of the Accept header [Michael Koziarski]
 
     The accept header is poorly implemented by browsers and causes strange
 	errors when used on public sites where crawlers make requests too.  You
-	should use formatted urls (e.g. /people/1.xml) to support API clients.
+	can use formatted urls (e.g. /people/1.xml) to support API clients in a
+	much simpler way.
 
-	Alternatively to re-enable it you need to set:
+	To disable the header you need to set:
 
-	config.action_controller.use_accept_header = true
+	config.action_controller.use_accept_header = false
 
 * Do not stat template files in production mode before rendering. You will no longer be able to modify templates in production mode without restarting the server [Josh Peek]
 
