@@ -397,7 +397,7 @@ module ActionView
       #  # Generates: <input name="create_btn" onclick="new Ajax.Request('/testing/create', 
       #  #     {asynchronous:true, evalScripts:true, parameters:Form.serialize(this.form)}); 
       #  #     return false;" type="button" value="Create" />
-      #  <%= submit_to_remote 'create_btn', 'Create', :url => { :action => 'create' } %>
+      #  <%= button_to_remote 'create_btn', 'Create', :url => { :action => 'create' } %>
       #
       #  # Submit to the remote action update and update the DIV succeed or fail based
       #  # on the success or failure of the request
@@ -405,11 +405,13 @@ module ActionView
       #  # Generates: <input name="update_btn" onclick="new Ajax.Updater({success:'succeed',failure:'fail'}, 
       #  #      '/testing/update', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this.form)}); 
       #  #      return false;" type="button" value="Update" />
-      #  <%= submit_to_remote 'update_btn', 'Update', :url => { :action => 'update' },
+      #  <%= button_to_remote 'update_btn', 'Update', :url => { :action => 'update' },
       #     :update => { :success => "succeed", :failure => "fail" }
       #
       # <tt>options</tt> argument is the same as in form_remote_tag.
-      def submit_to_remote(name, value, options = {})
+      #
+      # Note: This method used to be called submit_to_remote, but that's now just an alias for button_to_remote
+      def button_to_remote(name, value, options = {})
         options[:with] ||= 'Form.serialize(this.form)'
 
         options[:html] ||= {}
@@ -420,6 +422,7 @@ module ActionView
 
         tag("input", options[:html], false)
       end
+      alias_method :submit_to_remote, :button_to_remote
       
       # Returns '<tt>eval(request.responseText)</tt>' which is the JavaScript function
       # that +form_remote_tag+ can call in <tt>:complete</tt> to evaluate a multiple

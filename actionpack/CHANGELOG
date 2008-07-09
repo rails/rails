@@ -1,5 +1,7 @@
 *Edge*
 
+* Changed PrototypeHelper#submit_to_remote to PrototypeHelper#button_to_remote to stay consistent with link_to_remote (submit_to_remote still works as an alias) #8994 [clemens]
+
 * Add :recursive option to javascript_include_tag and stylesheet_link_tag to be used along with :all. #480 [Damian Janowski]
 
 * Disable the Accept header by default [Michael Koziarski]
