@@ -87,8 +87,6 @@ module ActionController
 
           if header.empty?
             [content_type, Mime::ALL].compact
-          elsif header !~ /,/
-            [Mime::Type.lookup(header)].compact
           else
             Mime::Type.parse(header)
           end
