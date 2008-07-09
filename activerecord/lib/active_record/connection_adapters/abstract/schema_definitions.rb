@@ -138,7 +138,7 @@ module ActiveRecord
           if value == true || value == false
             value
           else
-            %w(true t 1).include?(value.to_s.downcase)
+            !(value.to_s !~ /\A(?:1|t|true)\Z/i)
           end
         end
 
