@@ -8,7 +8,7 @@ module ActiveSupport #:nodoc:
         end
 
         if RUBY_VERSION < '1.9'
-          def step_with_blockless(value, &block)
+          def step_with_blockless(value = 1, &block)
             if block_given?
               step_without_blockless(value, &block)
             else
@@ -18,7 +18,7 @@ module ActiveSupport #:nodoc:
             end
           end
         else
-          def step_with_blockless(value, &block)
+          def step_with_blockless(value = 1, &block)
             if block_given?
               step_without_blockless(value, &block)
             else
