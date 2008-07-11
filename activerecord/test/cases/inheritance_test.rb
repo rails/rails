@@ -191,6 +191,13 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_not_nil account.instance_variable_get("@firm"), "nil proves eager load failed"
   end
 
+  def test_eager_load_belongs_to_primary_key_quoting
+    con = Account.connection
+    assert_sql(/\(#{con.quote_table_name('companies')}.#{con.quote_column_name('id')} IN \(1\)\)/) do
+      Account.find(1, :include => :firm)
+    end
+  end
+
   def test_alt_eager_loading
     switch_to_alt_inheritance_column
     test_eager_load_belongs_to_something_inherited
