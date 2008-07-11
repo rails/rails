@@ -34,8 +34,8 @@ end
 class MabView < ActionView::TemplateHandler
   def initialize(view)
   end
-  
-  def render(template)
+
+  def render(template, local_assigns)
     template.source
   end
 end

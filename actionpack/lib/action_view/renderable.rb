@@ -8,7 +8,7 @@ module ActionView
 
     def render
       prepare!
-      @handler.render(self)
+      @handler.render(self, @locals)
     end
 
     def method

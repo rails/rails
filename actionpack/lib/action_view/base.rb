@@ -332,8 +332,8 @@ module ActionView #:nodoc:
         @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
       end
 
-      def execute(template)
-        send(template.method, template.locals) do |*names|
+      def execute(template, local_assigns = {})
+        send(template.method, local_assigns) do |*names|
           instance_variable_get "@content_for_#{names.first || 'layout'}"
         end
       end

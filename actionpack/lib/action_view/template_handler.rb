@@ -8,7 +8,7 @@ module ActionView
       @view = view
     end
 
-    def render(template)
+    def render(template, local_assigns = {})
     end
 
     def compile(template)
