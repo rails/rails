@@ -285,11 +285,12 @@ class ActionCacheTest < Test::Unit::TestCase
   end
 
   def test_action_cache_conditional_options
+    old_use_accept_header = ActionController::Base.use_accept_header
     ActionController::Base.use_accept_header = true
     @request.env['HTTP_ACCEPT'] = 'application/json'
     get :index
     assert !fragment_exist?('hostname.com/action_caching_test')
-    ActionController::Base.use_accept_header = false
+    ActionController::Base.use_accept_header = old_use_accept_header
   end
 
   def test_action_cache_with_store_options
