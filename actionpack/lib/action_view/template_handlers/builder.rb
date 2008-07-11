@@ -6,7 +6,8 @@ module ActionView
       include Compilable
 
       def compile(template)
-        "controller.response.content_type ||= Mime::XML;" +
+        # ActionMailer does not have a response
+        "controller.respond_to?(:response) && controller.response.content_type ||= Mime::XML;" +
           "xml = ::Builder::XmlMarkup.new(:indent => 2);" +
           template.source +
           ";xml.target!;"
