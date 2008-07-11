@@ -69,7 +69,7 @@ module ActiveRecord
       MysqlCompat.define_all_hashes_method!
 
       mysql = Mysql.init
-      mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher]) if config[:sslkey]
+      mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher]) if config[:sslca] || config[:sslkey]
 
       ConnectionAdapters::MysqlAdapter.new(mysql, logger, [host, username, password, database, port, socket], config)
     end
@@ -145,6 +145,7 @@ module ActiveRecord
     # * <tt>:password</tt> - Defaults to nothing.
     # * <tt>:database</tt> - The name of the database. No default, must be provided.
     # * <tt>:encoding</tt> - (Optional) Sets the client encoding by executing "SET NAMES <encoding>" after connection.
+    # * <tt>:sslca</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslkey</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslcert</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslcapath</tt> - Necessary to use MySQL with an SSL connection.
@@ -507,7 +508,9 @@ module ActiveRecord
             @connection.options(Mysql::SET_CHARSET_NAME, encoding) rescue nil
           end
 
-          @connection.ssl_set(@config[:sslkey], @config[:sslcert], @config[:sslca], @config[:sslcapath], @config[:sslcipher]) if @config[:sslkey]
+          if @config[:sslca] || @config[:sslkey]
+            @connection.ssl_set(@config[:sslkey], @config[:sslcert], @config[:sslca], @config[:sslcapath], @config[:sslcipher])
+          end
 
           @connection.real_connect(*@connection_options)
 
