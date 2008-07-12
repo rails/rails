@@ -1,7 +1,18 @@
 module ActionView #:nodoc:
   class PathSet < Array #:nodoc:
     def self.type_cast(obj)
-      obj.is_a?(String) ? Path.new(obj) : obj
+      if obj.is_a?(String)
+        if Base.warn_cache_misses && defined?(Rails) && Rails.initialized?
+          Rails.logger.debug "[PERFORMANCE] Processing view path during a " +
+            "request. This an expense disk operation that should be done at " +
+            "boot. You can manually process this view path with " +
+            "ActionView::Base.process_view_paths(#{obj.inspect}) and set it " +
+            "as your view path"
+        end
+        Path.new(obj)
+      else
+        obj
+      end
     end
 
     class Path #:nodoc:

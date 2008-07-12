@@ -185,6 +185,10 @@ module ActionView #:nodoc:
     @@debug_rjs = false
     cattr_accessor :debug_rjs
 
+    # A warning will be displayed whenever an action results in a cache miss on your view paths.
+    @@warn_cache_misses = false
+    cattr_accessor :warn_cache_misses
+
     attr_internal :request
 
     delegate :request_forgery_protection_token, :template, :params, :session, :cookies, :response, :headers,
@@ -212,6 +216,10 @@ module ActionView #:nodoc:
       return helpers
     end
 
+    def self.process_view_paths(value)
+      ActionView::PathSet.new(Array(value))
+    end
+
     def initialize(view_paths = [], assigns_for_first_render = {}, controller = nil)#:nodoc:
       @assigns = assigns_for_first_render
       @assigns_added = nil
@@ -222,7 +230,7 @@ module ActionView #:nodoc:
     attr_reader :view_paths
 
     def view_paths=(paths)
-      @view_paths = PathSet.new(Array(paths))
+      @view_paths = self.class.process_view_paths(paths)
     end
 
     # Renders the template present at <tt>template_path</tt> (relative to the view_paths array).
@@ -311,7 +319,17 @@ module ActionView #:nodoc:
         @template_format = :html
         template
       else
-        Template.new(template_path, view_paths)
+        template = Template.new(template_path, view_paths)
+
+        if self.class.warn_cache_misses && logger = ActionController::Base.logger
+          logger.debug "[PERFORMANCE] Rendering a template that was " +
+            "not found in view path. Templates outside the view path are " +
+            "not cached and result in expensive disk operations. Move this " + 
+            "file into #{view_paths.join(':')} or add the folder to your " + 
+            "view path list"
+        end
+
+        template
       end
     end
 

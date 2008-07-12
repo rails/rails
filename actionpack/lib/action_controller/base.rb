@@ -431,7 +431,7 @@ module ActionController #:nodoc:
       end
 
       def view_paths=(value)
-        @view_paths = ActionView::PathSet.new(Array(value)) if value
+        @view_paths = ActionView::Base.process_view_paths(value) if value
       end
 
       # Adds a view_path to the front of the view_paths array.
@@ -652,7 +652,7 @@ module ActionController #:nodoc:
       end
 
       def view_paths=(value)
-        @template.view_paths = PathSet.new(value)
+        @template.view_paths = ActionView::Base.process_view_paths(value)
       end
 
       # Adds a view_path to the front of the view_paths array.
