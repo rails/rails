@@ -41,8 +41,6 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
   end
 end
 
-RenderPartialWithRecordIdentificationController.view_paths = [FIXTURE_LOAD_PATH]
-
 class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
   fixtures :developers, :projects, :developers_projects, :topics, :replies, :companies, :mascots
 
@@ -123,8 +121,6 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
   end
 end
 
-RenderPartialWithRecordIdentificationController.view_paths = [FIXTURE_LOAD_PATH]
-
 class Game < Struct.new(:name, :id)
   def to_param
     id.to_s
@@ -142,8 +138,6 @@ module Fun
     end
   end
 
-  NestedController.view_paths = [FIXTURE_LOAD_PATH]
-
   module Serious
     class NestedDeeperController < ActionController::Base
       def render_with_record_in_deeper_nested_controller
@@ -154,8 +148,6 @@ module Fun
         render :partial => [ Game.new("Chess"), Game.new("Sudoku"), Game.new("Solitaire") ]
       end
     end
-
-    NestedDeeperController.view_paths = [FIXTURE_LOAD_PATH]
   end
 end
 

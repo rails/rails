@@ -465,9 +465,6 @@ class NewRenderTestController < ActionController::Base
     end
 end
 
-NewRenderTestController.view_paths = [FIXTURE_LOAD_PATH]
-Fun::GamesController.view_paths = [FIXTURE_LOAD_PATH]
-
 class NewRenderTest < Test::Unit::TestCase
   def setup
     @controller = NewRenderTestController.new

@@ -302,8 +302,6 @@ end
 
 class UrlHelperWithControllerTest < ActionView::TestCase
   class UrlHelperController < ActionController::Base
-    self.view_paths = [FIXTURE_LOAD_PATH]
-
     def self.controller_path; 'url_helper_with_controller' end
 
     def show_url_for
@@ -366,8 +364,6 @@ end
 
 class LinkToUnlessCurrentWithControllerTest < ActionView::TestCase
   class TasksController < ActionController::Base
-    self.view_paths = [FIXTURE_LOAD_PATH]
-
     def self.controller_path; 'tasks' end
 
     def index
@@ -458,8 +454,6 @@ end
 
 class PolymorphicControllerTest < ActionView::TestCase
   class WorkshopsController < ActionController::Base
-    self.view_paths = [FIXTURE_LOAD_PATH]
-
     def self.controller_path; 'workshops' end
 
     def index
@@ -476,8 +470,6 @@ class PolymorphicControllerTest < ActionView::TestCase
   end
 
   class SessionsController < ActionController::Base
-    self.view_paths = [FIXTURE_LOAD_PATH]
-
     def self.controller_path; 'sessions' end
 
     def index

@@ -4,7 +4,7 @@ require 'controller/fake_models'
 class ViewRenderTest < Test::Unit::TestCase
   def setup
     @assigns = { :secret => 'in the sauce' }
-    @view = ActionView::Base.new([FIXTURE_LOAD_PATH], @assigns)
+    @view = ActionView::Base.new(ActionController::Base.view_paths, @assigns)
   end
 
   def test_render_file

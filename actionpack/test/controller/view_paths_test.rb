@@ -1,8 +1,6 @@
 require 'abstract_unit'
 
 class ViewLoadPathsTest < Test::Unit::TestCase
-  ActionController::Base.view_paths = [FIXTURE_LOAD_PATH]
-
   class TestController < ActionController::Base
     def self.controller_path() "test" end
     def rescue_action(e) raise end

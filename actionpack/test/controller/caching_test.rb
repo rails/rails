@@ -6,7 +6,6 @@ CACHE_DIR = 'test_cache'
 FILE_STORE_PATH = File.join(File.dirname(__FILE__), '/../temp/', CACHE_DIR)
 ActionController::Base.page_cache_directory = FILE_STORE_PATH
 ActionController::Base.cache_store = :file_store, FILE_STORE_PATH
-ActionController::Base.view_paths = [FIXTURE_LOAD_PATH]
 
 class PageCachingTestController < ActionController::Base
   caches_page :ok, :no_content, :if => Proc.new { |c| !c.request.format.json? }
@@ -635,8 +634,6 @@ class FunctionalCachingController < ActionController::Base
     raise e
   end
 end
-
-FunctionalCachingController.view_paths = [FIXTURE_LOAD_PATH]
 
 class FunctionalFragmentCachingTest < Test::Unit::TestCase
   def setup

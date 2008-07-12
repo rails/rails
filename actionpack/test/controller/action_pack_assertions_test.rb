@@ -164,14 +164,6 @@ module Admin
   end
 end
 
-# ---------------------------------------------------------------------------
-
-
-# tell the controller where to find its templates but start from parent
-# directory of test_request_response to simulate the behaviour of a
-# production environment
-ActionPackAssertionsController.view_paths = [FIXTURE_LOAD_PATH]
-
 # a test case to exercise the new capabilities TestRequest & TestResponse
 class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   # let's get this party started
