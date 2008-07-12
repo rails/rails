@@ -1,0 +1,85 @@
+module ActionView #:nodoc:
+  class PathSet < Array #:nodoc:
+    def self.type_cast(obj)
+      obj.is_a?(String) ? Path.new(obj) : obj
+    end
+
+    class Path #:nodoc:
+      attr_reader :path, :paths
+      delegate :to_s, :to_str, :inspect, :to => :path
+
+      def initialize(path)
+        @path = path.freeze
+        reload!
+      end
+
+      def ==(path)
+        to_str == path.to_str
+      end
+
+      def [](path)
+        @paths[path]
+      end
+
+      # Rebuild load path directory cache
+      def reload!
+        @paths = {}
+
+        templates_in_path do |template|
+          @paths[template.path] = template
+          @paths[template.path_without_extension] ||= template
+        end
+
+        @paths.freeze
+      end
+
+      private
+        def templates_in_path
+          (Dir.glob("#{@path}/**/*/**") | Dir.glob("#{@path}/**")).each do |file|
+            unless File.directory?(file)
+              template = Template.new(file.split("#{self}/").last, self)
+              # Eager load memoized methods and freeze cached template
+              template.freeze if Base.cache_template_loading
+              yield template
+            end
+          end
+        end
+    end
+
+    def initialize(*args)
+      super(*args).map! { |obj| self.class.type_cast(obj) }
+    end
+
+    def reload!
+      each { |path| path.reload! }
+    end
+
+    def <<(obj)
+      super(self.class.type_cast(obj))
+    end
+
+    def push(*objs)
+      delete_paths!(objs)
+      super(*objs.map { |obj| self.class.type_cast(obj) })
+    end
+
+    def unshift(*objs)
+      delete_paths!(objs)
+      super(*objs.map { |obj| self.class.type_cast(obj) })
+    end
+
+    def [](template_path)
+      each do |path|
+        if template = path[template_path]
+          return template
+        end
+      end
+      nil
+    end
+
+    private
+      def delete_paths!(paths)
+        paths.each { |p1| delete_if { |p2| p1.to_s == p2.to_s } }
+      end
+  end
+end

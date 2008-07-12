@@ -93,7 +93,7 @@ module ActionController
             if expected.nil?
               !@response.rendered_with_file?
             else
-              expected == rendered
+              rendered.match(expected)
             end
           end
         end

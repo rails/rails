@@ -63,6 +63,7 @@ class LayoutAutoDiscoveryTest < Test::Unit::TestCase
   end
   
   def test_third_party_template_library_auto_discovers_layout
+    ThirdPartyTemplateLibraryController.view_paths.reload!
     @controller = ThirdPartyTemplateLibraryController.new
     get :hello
     assert_equal 'layouts/third_party_template_library', @controller.active_layout

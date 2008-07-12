@@ -207,13 +207,9 @@ module ActionController #:nodoc:
 
     # Returns the template path of the file which was used to
     # render this response (or nil) 
-    def rendered_file(with_controller=false)
-      unless template.first_render.nil?
-        unless with_controller
-          template.first_render
-        else
-          template.first_render.split('/').last || template.first_render
-        end
+    def rendered_file(with_controller = false)
+      if template.first_render
+        template.first_render.to_s
       end
     end
 

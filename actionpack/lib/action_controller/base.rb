@@ -431,7 +431,7 @@ module ActionController #:nodoc:
       end
 
       def view_paths=(value)
-        @view_paths = ActionView::ViewLoadPaths.new(Array(value)) if value
+        @view_paths = ActionView::PathSet.new(Array(value)) if value
       end
 
       # Adds a view_path to the front of the view_paths array.
@@ -652,7 +652,7 @@ module ActionController #:nodoc:
       end
 
       def view_paths=(value)
-        @template.view_paths = ViewLoadPaths.new(value)
+        @template.view_paths = PathSet.new(value)
       end
 
       # Adds a view_path to the front of the view_paths array.
@@ -1248,9 +1248,8 @@ module ActionController #:nodoc:
       end
 
       def template_exempt_from_layout?(template_name = default_template_name)
-        extension = @template && @template.pick_template_extension(template_name)
-        name_with_extension = !template_name.include?('.') && extension ? "#{template_name}.#{extension}" : template_name
-        @@exempt_from_layout.any? { |ext| name_with_extension =~ ext }
+        template_name = @template.pick_template(template_name).to_s if @template
+        @@exempt_from_layout.any? { |ext| template_name =~ ext }
       end
 
       def default_template_name(action_name = self.action_name)
