@@ -63,11 +63,18 @@ module ActionController
         clean_backtrace do
           assert_response(:redirect, message)
           return true if options == @response.redirected_to
+          
+          # Support partial arguments for hash redirections
+          if options.is_a?(Hash) && @response.redirected_to.is_a?(Hash)
+            return true if options.all? {|(key, value)| @response.redirected_to[key] == value}
+          end
+          
           redirected_to_after_normalisation = normalize_argument_to_redirection(@response.redirected_to)
           options_after_normalisation       = normalize_argument_to_redirection(options)
 
-          assert_equal redirected_to_after_normalisation, options_after_normalisation,
-                       "Expected response to be a redirect to <#{options_after_normalisation}> but was a redirect to <#{redirected_to_after_normalisation}>"
+          if redirected_to_after_normalisation != options_after_normalisation
+            flunk "Expected response to be a redirect to <#{options_after_normalisation}> but was a redirect to <#{redirected_to_after_normalisation}>"
+          end
         end
       end
 
