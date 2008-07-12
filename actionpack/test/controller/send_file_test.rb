@@ -19,8 +19,6 @@ class SendFileController < ActionController::Base
   def rescue_action(e) raise end
 end
 
-SendFileController.view_paths = [FIXTURE_LOAD_PATH]
-
 class SendFileTest < Test::Unit::TestCase
   include TestFileUtils
 

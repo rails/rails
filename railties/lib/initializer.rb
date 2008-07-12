@@ -137,12 +137,12 @@ module Rails
       initialize_logger
       initialize_framework_logging
 
-      initialize_framework_views
       initialize_dependency_mechanism
       initialize_whiny_nils
       initialize_temporary_session_directory
       initialize_time_zone
       initialize_framework_settings
+      initialize_framework_views
 
       add_support_load_paths
 

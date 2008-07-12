@@ -340,7 +340,17 @@ module ActionController #:nodoc:
     cattr_accessor :optimise_named_routes
     self.optimise_named_routes = true
 
-    # Controls whether request forgery protection is turned on or not. Turned off by default only in test mode.
+    # Indicates whether the response format should be determined by examining the Accept HTTP header,
+    # or by using the simpler params + ajax rules.
+    #
+    # If this is set to +true+ (the default) then +respond_to+ and +Request#format+ will take the Accept
+    # header into account.  If it is set to false then the request format will be determined solely
+    # by examining params[:format].  If params format is missing, the format will be either HTML or
+    # Javascript depending on whether the request is an AJAX request.
+    cattr_accessor :use_accept_header
+    self.use_accept_header = true
+
+    # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
     class_inheritable_accessor :allow_forgery_protection
     self.allow_forgery_protection = true
 
@@ -402,7 +412,7 @@ module ActionController #:nodoc:
       # More methods can be hidden using <tt>hide_actions</tt>.
       def hidden_actions
         unless read_inheritable_attribute(:hidden_actions)
-          write_inheritable_attribute(:hidden_actions, ActionController::Base.public_instance_methods.map(&:to_s))
+          write_inheritable_attribute(:hidden_actions, ActionController::Base.public_instance_methods.map { |m| m.to_s })
         end
 
         read_inheritable_attribute(:hidden_actions)
@@ -410,18 +420,18 @@ module ActionController #:nodoc:
 
       # Hide each of the given methods from being callable as actions.
       def hide_action(*names)
-        write_inheritable_attribute(:hidden_actions, hidden_actions | names.map(&:to_s))
+        write_inheritable_attribute(:hidden_actions, hidden_actions | names.map { |name| name.to_s })
       end
 
-      ## View load paths determine the bases from which template references can be made. So a call to
-      ## render("test/template") will be looked up in the view load paths array and the closest match will be
-      ## returned.
+      # View load paths determine the bases from which template references can be made. So a call to
+      # render("test/template") will be looked up in the view load paths array and the closest match will be
+      # returned.
       def view_paths
         @view_paths || superclass.view_paths
       end
 
       def view_paths=(value)
-        @view_paths = ActionView::ViewLoadPaths.new(Array(value)) if value
+        @view_paths = ActionView::Base.process_view_paths(value) if value
       end
 
       # Adds a view_path to the front of the view_paths array.
@@ -603,7 +613,8 @@ module ActionController #:nodoc:
       #
       # This takes the current URL as is and only exchanges the action. In contrast, <tt>url_for :action => 'print'</tt>
       # would have slashed-off the path components after the changed action.
-      def url_for(options = {}) #:doc:
+      def url_for(options = {})
+        options ||= {}
         case options
           when String
             options
@@ -641,7 +652,7 @@ module ActionController #:nodoc:
       end
 
       def view_paths=(value)
-        @template.view_paths = ViewLoadPaths.new(value)
+        @template.view_paths = ActionView::Base.process_view_paths(value)
       end
 
       # Adds a view_path to the front of the view_paths array.
@@ -1042,27 +1053,29 @@ module ActionController #:nodoc:
           status = 302
         end
 
+        response.redirected_to= options
+        logger.info("Redirected to #{options}") if logger && logger.info?
+
         case options
           when %r{^\w+://.*}
-            raise DoubleRenderError if performed?
-            logger.info("Redirected to #{options}") if logger && logger.info?
-            response.redirect(options, interpret_status(status))
-            response.redirected_to = options
-            @performed_redirect = true
-
+            redirect_to_full_url(options, status)
           when String
-            redirect_to(request.protocol + request.host_with_port + options, :status=>status)
-
+            redirect_to_full_url(request.protocol + request.host_with_port + options, status)
           when :back
-            request.env["HTTP_REFERER"] ? redirect_to(request.env["HTTP_REFERER"], :status=>status) : raise(RedirectBackError)
-
-          when Hash
-            redirect_to(url_for(options), :status=>status)
-            response.redirected_to = options
-
+            if referer = request.headers["Referer"]
+              redirect_to(referer, :status=>status)
+            else
+              raise RedirectBackError
+            end
           else
-            redirect_to(url_for(options), :status=>status)
+            redirect_to_full_url(url_for(options), status)
         end
+      end
+
+      def redirect_to_full_url(url, status)
+        raise DoubleRenderError if performed?
+        response.redirect(url, interpret_status(status))
+        @performed_redirect = true
       end
 
       # Sets a HTTP 1.1 Cache-Control header. Defaults to issuing a "private" instruction, so that
@@ -1188,7 +1201,7 @@ module ActionController #:nodoc:
       end
 
       def self.action_methods
-        @action_methods ||= Set.new(public_instance_methods.map(&:to_s)) - hidden_actions
+        @action_methods ||= Set.new(public_instance_methods.map { |m| m.to_s }) - hidden_actions
       end
 
       def add_variables_to_assigns
@@ -1235,9 +1248,8 @@ module ActionController #:nodoc:
       end
 
       def template_exempt_from_layout?(template_name = default_template_name)
-        extension = @template && @template.pick_template_extension(template_name)
-        name_with_extension = !template_name.include?('.') && extension ? "#{template_name}.#{extension}" : template_name
-        @@exempt_from_layout.any? { |ext| name_with_extension =~ ext }
+        template_name = @template.pick_template(template_name).to_s if @template
+        @@exempt_from_layout.any? { |ext| template_name =~ ext }
       end
 
       def default_template_name(action_name = self.action_name)

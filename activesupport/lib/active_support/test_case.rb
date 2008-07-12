@@ -1,11 +1,7 @@
 require 'test/unit/testcase'
-require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/default'
+require 'active_support/testing/core_ext/test'
 
-# TODO: move to core_ext
-class Test::Unit::TestCase #:nodoc:
-  include ActiveSupport::Testing::SetupAndTeardown
-end
 
 module ActiveSupport
   class TestCase < Test::Unit::TestCase

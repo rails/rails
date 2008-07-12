@@ -159,7 +159,10 @@ module ActionView
       # Returns a set of select tags (one for hour, minute and optionally second) pre-selected for accessing a specified
       # time-based attribute (identified by +method+) on an object assigned to the template (identified by +object+).
       # You can include the seconds with <tt>:include_seconds</tt>.
-      # 
+      #
+      # This method will also generate 3 input hidden tags, for the actual year, month and day unless the option
+      # <tt>:ignore_date</tt> is set to +true+.
+      #
       # If anything is passed in the html_options hash it will be applied to every select tag in the set.
       #
       # ==== Examples
@@ -655,7 +658,7 @@ module ActionView
           order.reverse.each do |param|
             # Send hidden fields for discarded elements once output has started
             # This ensures AR can reconstruct valid dates using ParseDate
-            next if discard[param] && date_or_time_select.empty?
+            next if discard[param] && (date_or_time_select.empty? || options[:ignore_date])
 
             date_or_time_select.insert(0, self.send("select_#{param}", datetime, options_with_prefix(position[param], options.merge(:use_hidden => discard[param])), html_options))
             date_or_time_select.insert(0,

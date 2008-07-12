@@ -104,10 +104,12 @@ module ActionView
   module Partials
     private
       def render_partial(partial_path, object_assigns = nil, local_assigns = {}) #:nodoc:
+        local_assigns ||= {}
+
         case partial_path
         when String, Symbol, NilClass
-          # Render the template
-          ActionView::PartialTemplate.new(self, partial_path, object_assigns, local_assigns).render_template
+          variable_name, path = partial_pieces(partial_path)
+          pick_template(path).render_partial(self, variable_name, object_assigns, local_assigns)
         when ActionView::Helpers::FormBuilder
           builder_partial_path = partial_path.class.to_s.demodulize.underscore.sub(/_builder$/, '')
           render_partial(builder_partial_path, object_assigns, (local_assigns || {}).merge(builder_partial_path.to_sym => partial_path))
@@ -128,31 +130,43 @@ module ActionView
 
         local_assigns = local_assigns ? local_assigns.clone : {}
         spacer = partial_spacer_template ? render(:partial => partial_spacer_template) : ''
+        _partial_pieces = {}
+        _templates = {}
 
-        if partial_path.nil?
-          render_partial_collection_with_unknown_partial_path(collection, local_assigns, as)
-        else
-          render_partial_collection_with_known_partial_path(collection, partial_path, local_assigns, as)
+        index = 0
+        collection.map do |object|
+          _partial_path ||= partial_path || ActionController::RecordIdentifier.partial_path(object, controller.class.controller_path)
+          variable_name, path = _partial_pieces[_partial_path] ||= partial_pieces(_partial_path)
+          template = _templates[path] ||= pick_template(path)
+
+          local_assigns["#{variable_name}_counter".to_sym] = index
+          local_assigns[:object] = local_assigns[variable_name] = object
+          local_assigns[as] = object if as
+
+          result = template.render_partial(self, variable_name, object, local_assigns)
+
+          local_assigns.delete(as)
+          local_assigns.delete(variable_name)
+          local_assigns.delete(:object)
+          index += 1
+
+          result
         end.join(spacer)
       end
 
-      def render_partial_collection_with_known_partial_path(collection, partial_path, local_assigns, as)
-        template = ActionView::PartialTemplate.new(self, partial_path, nil, local_assigns, as)
-        collection.map do |element|
-          template.render_member(element)
+      def partial_pieces(partial_path)
+        if partial_path.include?('/')
+          variable_name = File.basename(partial_path)
+          path = "#{File.dirname(partial_path)}/_#{variable_name}"
+        elsif respond_to?(:controller)
+          variable_name = partial_path
+          path = "#{controller.class.controller_path}/_#{variable_name}"
+        else
+          variable_name = partial_path
+          path = "_#{variable_name}"
         end
-      end
-
-      def render_partial_collection_with_unknown_partial_path(collection, local_assigns, as)
-        templates = Hash.new
-        i = 0
-        collection.map do |element|
-          partial_path = ActionController::RecordIdentifier.partial_path(element, controller.class.controller_path)
-          template = templates[partial_path] ||= ActionView::PartialTemplate.new(self, partial_path, nil, local_assigns, as)
-          template.counter = i
-          i += 1
-          template.render_member(element)
-        end
+        variable_name = variable_name.sub(/\..*$/, '').to_sym
+        return variable_name, path
       end
   end
 end

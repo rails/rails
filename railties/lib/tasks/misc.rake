@@ -44,7 +44,7 @@ namespace :time do
         end
       end
       previous_offset = nil
-      TimeZone.__send__(method).each do |zone|
+      ActiveSupport::TimeZone.__send__(method).each do |zone|
         if offset.nil? || offset == zone.utc_offset
           puts "\n* UTC #{zone.formatted_offset} *" unless zone.utc_offset == previous_offset
           puts zone.name

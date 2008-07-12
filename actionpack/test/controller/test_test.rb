@@ -566,24 +566,6 @@ XML
     assert_raise(RuntimeError) { ActionController::TestUploadedFile.new('non_existent_file') }
   end
 
-  def test_assert_follow_redirect_to_same_controller
-    with_foo_routing do |set|
-      get :redirect_to_same_controller
-      assert_response :redirect
-      assert_redirected_to :controller => 'test_test/test', :action => 'test_uri', :id => 5
-      assert_nothing_raised { follow_redirect }
-    end
-  end
-
-  def test_assert_follow_redirect_to_different_controller
-    with_foo_routing do |set|
-      get :redirect_to_different_controller
-      assert_response :redirect
-      assert_redirected_to :controller => 'fail', :id => 5
-      assert_raise(RuntimeError) { follow_redirect }
-    end
-  end
-
   def test_redirect_url_only_cares_about_location_header
     get :create
     assert_response :created

@@ -387,7 +387,7 @@ module ActiveSupport #:nodoc:
     ensure
       # Remove the stack frames that we added.
       if defined?(watch_frames) && ! watch_frames.blank?
-        frame_ids = watch_frames.collect(&:object_id)
+        frame_ids = watch_frames.collect { |frame| frame.object_id }
         constant_watch_stack.delete_if do |watch_frame|
           frame_ids.include? watch_frame.object_id
         end
@@ -437,7 +437,7 @@ module ActiveSupport #:nodoc:
     protected
       def log_call(*args)
         if defined?(RAILS_DEFAULT_LOGGER) && RAILS_DEFAULT_LOGGER && log_activity
-          arg_str = args.collect(&:inspect) * ', '
+          arg_str = args.collect { |arg| arg.inspect } * ', '
           /in `([a-z_\?\!]+)'/ =~ caller(1).first
           selector = $1 || '<unknown>'
           log "called #{selector}(#{arg_str})"

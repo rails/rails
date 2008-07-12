@@ -47,7 +47,16 @@ module ActiveRecord
           return (obj.nil? ? nil : self)
         end
       end
-            
+
+      protected
+        def owner_quoted_id
+          if @reflection.options[:primary_key]
+            quote_value(@owner.send(@reflection.options[:primary_key]))
+          else
+            @owner.quoted_id
+          end
+        end
+
       private
         def find_target
           @reflection.klass.find(:first, 

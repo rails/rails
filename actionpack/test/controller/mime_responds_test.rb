@@ -162,15 +162,18 @@ class RespondToController < ActionController::Base
     end
 end
 
-RespondToController.view_paths = [FIXTURE_LOAD_PATH]
-
 class MimeControllerTest < Test::Unit::TestCase
   def setup
+    ActionController::Base.use_accept_header = true
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
 
     @controller = RespondToController.new
     @request.host = "www.example.com"
+  end
+
+  def teardown
+    ActionController::Base.use_accept_header = false
   end
 
   def test_html

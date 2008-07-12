@@ -34,9 +34,8 @@ module ActionView
         # Return captured buffer in erb.
         if block_called_from_erb?(block)
           with_output_buffer { block.call(*args) }
-
-        # Return block result otherwise, but protect buffer also.
         else
+          # Return block result otherwise, but protect buffer also.
           with_output_buffer { return block.call(*args) }
         end
       end

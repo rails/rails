@@ -19,6 +19,14 @@ module ActiveRecord
       end
 
       protected
+        def owner_quoted_id
+          if @reflection.options[:primary_key]
+            quote_value(@owner.send(@reflection.options[:primary_key]))
+          else
+            @owner.quoted_id
+          end
+        end
+
         def count_records
           count = if has_cached_counter?
             @owner.send(:read_attribute, cached_counter_attribute_name)
@@ -53,9 +61,9 @@ module ActiveRecord
         def delete_records(records)
           case @reflection.options[:dependent]
             when :destroy
-              records.each(&:destroy)
+              records.each { |r| r.destroy }
             when :delete_all
-              @reflection.klass.delete(records.map(&:id))
+              @reflection.klass.delete(records.map { |record| record.id })
             else
               ids = quoted_record_ids(records)
               @reflection.klass.update_all(

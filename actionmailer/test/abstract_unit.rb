@@ -32,8 +32,7 @@ end
 
 # Wrap tests that use Mocha and skip if unavailable.
 def uses_mocha(test_name)
-  gem 'mocha', ">=0.5"
-  require 'stubba'
+  gem 'mocha', ">=0.9.0"
   yield
 rescue Gem::LoadError
   $stderr.puts "Skipping #{test_name} tests (Mocha >= 0.5 is required). `gem install mocha` and try again."

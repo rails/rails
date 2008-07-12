@@ -1,5 +1,10 @@
 *Edge*
 
+* Add :tokenizer option to validates_length_of to specify how to split up the attribute string. #507. [David Lowenfels] Example :
+
+  # Ensure essay contains at least 100 words.
+  validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least %d words."), :tokenizer => lambda {|str| str.scan(/\w+/) }
+
 * Allow conditions on multiple tables to be specified using hash. [Pratik Naik]. Example:
 
   User.all :joins => :items, :conditions => { :age => 10, :items => { :color => 'black' } }

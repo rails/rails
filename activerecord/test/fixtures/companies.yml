@@ -5,6 +5,7 @@ first_client:
   client_of: 2
   name: Summit
   ruby_type: Client
+  firm_name: 37signals
 
 first_firm:
   id: 1

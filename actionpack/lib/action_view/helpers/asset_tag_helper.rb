@@ -209,6 +209,10 @@ module ActionView
       # Note that the default javascript files will be included first. So Prototype and Scriptaculous are available to
       # all subsequently included files.
       #
+      # If you want Rails to search in all the subdirectories under javascripts, you should explicitly set <tt>:recursive</tt>:
+      #
+      #   javascript_include_tag :all, :recursive => true
+      #
       # == Caching multiple javascripts into one
       #
       # You can also cache multiple javascripts into one file, which requires less HTTP connections to download and can better be
@@ -235,18 +239,23 @@ module ActionView
       #
       #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when ActionController::Base.perform_caching is true =>
       #     <script type="text/javascript" src="/javascripts/shop.js"></script>
+      #
+      # The <tt>:recursive</tt> option is also available for caching:
+      #
+      #   javascript_include_tag :all, :cache => true, :recursive => true
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
         cache   = options.delete("cache")
+        recursive = options.delete("recursive")
 
         if ActionController::Base.perform_caching && cache
           joined_javascript_name = (cache == true ? "all" : cache) + ".js"
           joined_javascript_path = File.join(JAVASCRIPTS_DIR, joined_javascript_name)
 
-          write_asset_file_contents(joined_javascript_path, compute_javascript_paths(sources)) unless File.exists?(joined_javascript_path)
+          write_asset_file_contents(joined_javascript_path, compute_javascript_paths(sources, recursive)) unless File.exists?(joined_javascript_path)
           javascript_src_tag(joined_javascript_name, options)
         else
-          expand_javascript_sources(sources).collect { |source| javascript_src_tag(source, options) }.join("\n")
+          expand_javascript_sources(sources, recursive).collect { |source| javascript_src_tag(source, options) }.join("\n")
         end
       end
 
@@ -332,12 +341,16 @@ module ActionView
       #     <link href="/stylesheets/random.styles" media="screen" rel="stylesheet" type="text/css" />
       #     <link href="/css/stylish.css" media="screen" rel="stylesheet" type="text/css" />
       #
-      # You can also include all styles in the stylesheet directory using <tt>:all</tt> as the source:
+      # You can also include all styles in the stylesheets directory using <tt>:all</tt> as the source:
       #
       #   stylesheet_link_tag :all # =>
       #     <link href="/stylesheets/style1.css"  media="screen" rel="stylesheet" type="text/css" />
       #     <link href="/stylesheets/styleB.css"  media="screen" rel="stylesheet" type="text/css" />
       #     <link href="/stylesheets/styleX2.css" media="screen" rel="stylesheet" type="text/css" />
+      #
+      # If you want Rails to search in all the subdirectories under stylesheets, you should explicitly set <tt>:recursive</tt>:
+      #
+      #   stylesheet_link_tag :all, :recursive => true
       #
       # == Caching multiple stylesheets into one
       #
@@ -362,18 +375,23 @@ module ActionView
       #
       #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when ActionController::Base.perform_caching is true =>
       #     <link href="/stylesheets/payment.css"  media="screen" rel="stylesheet" type="text/css" />
+      #
+      # The <tt>:recursive</tt> option is also available for caching:
+      #
+      #   stylesheet_link_tag :all, :cache => true, :recursive => true
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
         cache   = options.delete("cache")
+        recursive = options.delete("recursive")
 
         if ActionController::Base.perform_caching && cache
           joined_stylesheet_name = (cache == true ? "all" : cache) + ".css"
           joined_stylesheet_path = File.join(STYLESHEETS_DIR, joined_stylesheet_name)
 
-          write_asset_file_contents(joined_stylesheet_path, compute_stylesheet_paths(sources)) unless File.exists?(joined_stylesheet_path)
+          write_asset_file_contents(joined_stylesheet_path, compute_stylesheet_paths(sources, recursive)) unless File.exists?(joined_stylesheet_path)
           stylesheet_tag(joined_stylesheet_name, options)
         else
-          expand_stylesheet_sources(sources).collect { |source| stylesheet_tag(source, options) }.join("\n")
+          expand_stylesheet_sources(sources, recursive).collect { |source| stylesheet_tag(source, options) }.join("\n")
         end
       end
 
@@ -556,18 +574,19 @@ module ActionView
           tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => html_escape(path_to_stylesheet(source)) }.merge(options), false, false)
         end
 
-        def compute_javascript_paths(sources)
-          expand_javascript_sources(sources).collect { |source| compute_public_path(source, 'javascripts', 'js', false) }
+        def compute_javascript_paths(*args)
+          expand_javascript_sources(*args).collect { |source| compute_public_path(source, 'javascripts', 'js', false) }
         end
 
-        def compute_stylesheet_paths(sources)
-          expand_stylesheet_sources(sources).collect { |source| compute_public_path(source, 'stylesheets', 'css', false) }
+        def compute_stylesheet_paths(*args)
+          expand_stylesheet_sources(*args).collect { |source| compute_public_path(source, 'stylesheets', 'css', false) }
         end
 
-        def expand_javascript_sources(sources)
+        def expand_javascript_sources(sources, recursive = false)
           if sources.include?(:all)
-            all_javascript_files = Dir[File.join(JAVASCRIPTS_DIR, '*.js')].collect { |file| File.basename(file).gsub(/\.\w+$/, '') }.sort
-            @@all_javascript_sources ||= ((determine_source(:defaults, @@javascript_expansions).dup & all_javascript_files) + all_javascript_files).uniq
+            all_javascript_files = collect_asset_files(JAVASCRIPTS_DIR, ('**' if recursive), '*.js')
+            @@all_javascript_sources ||= {}
+            @@all_javascript_sources[recursive] ||= ((determine_source(:defaults, @@javascript_expansions).dup & all_javascript_files) + all_javascript_files).uniq
           else
             expanded_sources = sources.collect do |source|
               determine_source(source, @@javascript_expansions)
@@ -577,9 +596,10 @@ module ActionView
           end
         end
 
-        def expand_stylesheet_sources(sources)
+        def expand_stylesheet_sources(sources, recursive)
           if sources.first == :all
-            @@all_stylesheet_sources ||= Dir[File.join(STYLESHEETS_DIR, '*.css')].collect { |file| File.basename(file).gsub(/\.\w+$/, '') }.sort
+            @@all_stylesheet_sources ||= {}
+            @@all_stylesheet_sources[recursive] ||= collect_asset_files(STYLESHEETS_DIR, ('**' if recursive), '*.css')
           else
             sources.collect do |source|
               determine_source(source, @@stylesheet_expansions)
@@ -603,6 +623,14 @@ module ActionView
         def write_asset_file_contents(joined_asset_path, asset_paths)
           FileUtils.mkdir_p(File.dirname(joined_asset_path))
           File.open(joined_asset_path, "w+") { |cache| cache.write(join_asset_file_contents(asset_paths)) }
+        end
+
+        def collect_asset_files(*path)
+          dir = path.first
+
+          Dir[File.join(*path.compact)].collect do |file|
+            file[-(file.size - dir.size - 1)..-1].sub(/\.\w+$/, '')
+          end.sort
         end
     end
   end

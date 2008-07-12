@@ -207,13 +207,9 @@ module ActionController #:nodoc:
 
     # Returns the template path of the file which was used to
     # render this response (or nil) 
-    def rendered_file(with_controller=false)
-      unless template.first_render.nil?
-        unless with_controller
-          template.first_render
-        else
-          template.first_render.split('/').last || template.first_render
-        end
+    def rendered_file(with_controller = false)
+      if template.first_render
+        template.first_render.to_s
       end
     end
 
@@ -403,15 +399,6 @@ module ActionController #:nodoc:
       end
     end
     alias xhr :xml_http_request
-
-    def follow_redirect
-      redirected_controller = @response.redirected_to[:controller]
-      if redirected_controller && redirected_controller != @controller.controller_name
-        raise "Can't follow redirects outside of current controller (from #{@controller.controller_name} to #{redirected_controller})"
-      end
-
-      get(@response.redirected_to.delete(:action), @response.redirected_to.stringify_keys)
-    end
 
     def assigns(key = nil) 
       if key.nil? 

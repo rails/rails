@@ -6,7 +6,6 @@ CACHE_DIR = 'test_cache'
 FILE_STORE_PATH = File.join(File.dirname(__FILE__), '/../temp/', CACHE_DIR)
 ActionController::Base.page_cache_directory = FILE_STORE_PATH
 ActionController::Base.cache_store = :file_store, FILE_STORE_PATH
-ActionController::Base.view_paths = [FIXTURE_LOAD_PATH]
 
 class PageCachingTestController < ActionController::Base
   caches_page :ok, :no_content, :if => Proc.new { |c| !c.request.format.json? }
@@ -131,8 +130,7 @@ class PageCachingTest < Test::Unit::TestCase
   end
 
   def test_page_caching_conditional_options
-    @request.env['HTTP_ACCEPT'] = 'application/json'
-    get :ok
+    get :ok, :format=>'json'
     assert_page_not_cached :ok
   end
 
@@ -152,7 +150,7 @@ end
 
 
 class ActionCachingTestController < ActionController::Base
-  caches_action :index, :redirected, :forbidden, :if => Proc.new { |c| !c.request.format.json? }
+  caches_action :index, :redirected, :forbidden, :if => Proc.new { |c| !c.request.format.json? }, :expires_in => 1.hour
   caches_action :show, :cache_path => 'http://test.host/custom/show'
   caches_action :edit, :cache_path => Proc.new { |c| c.params[:id] ? "http://test.host/#{c.params[:id]};edit" : "http://test.host/edit" }
   caches_action :with_layout
@@ -188,6 +186,7 @@ class ActionCachingTestController < ActionController::Base
     expire_action :controller => 'action_caching_test', :action => 'index'
     render :nothing => true
   end
+
   def expire_xml
     expire_action :controller => 'action_caching_test', :action => 'index', :format => 'xml'
     render :nothing => true
@@ -218,6 +217,7 @@ class ActionCachingMockController
     Object.new.instance_eval(<<-EVAL)
       def path; '#{@mock_path}' end
       def format; 'all' end
+      def cache_format; nil end
       self
     EVAL
   end
@@ -284,9 +284,19 @@ class ActionCacheTest < Test::Unit::TestCase
   end
 
   def test_action_cache_conditional_options
+    old_use_accept_header = ActionController::Base.use_accept_header
+    ActionController::Base.use_accept_header = true
     @request.env['HTTP_ACCEPT'] = 'application/json'
     get :index
     assert !fragment_exist?('hostname.com/action_caching_test')
+    ActionController::Base.use_accept_header = old_use_accept_header
+  end
+
+  def test_action_cache_with_store_options
+    MockTime.expects(:now).returns(12345).once
+    @controller.expects(:read_fragment).with('hostname.com/action_caching_test', :expires_in => 1.hour).once
+    @controller.expects(:write_fragment).with('hostname.com/action_caching_test', '12345.0', :expires_in => 1.hour).once
+    get :index
   end
 
   def test_action_cache_with_custom_cache_path
@@ -402,12 +412,6 @@ class ActionCacheTest < Test::Unit::TestCase
       reset!
 
       get :index, :format => 'xml'
-      assert_equal cached_time, @response.body
-      assert_equal 'application/xml', @response.content_type
-      reset!
-
-      @request.env['HTTP_ACCEPT'] = "application/xml"
-      get :index
       assert_equal cached_time, @response.body
       assert_equal 'application/xml', @response.content_type
       reset!
@@ -630,8 +634,6 @@ class FunctionalCachingController < ActionController::Base
     raise e
   end
 end
-
-FunctionalCachingController.view_paths = [FIXTURE_LOAD_PATH]
 
 class FunctionalFragmentCachingTest < Test::Unit::TestCase
   def setup

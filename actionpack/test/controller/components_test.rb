@@ -119,7 +119,7 @@ class ComponentsTest < Test::Unit::TestCase
   def test_component_redirect_redirects
     get :calling_redirected
 
-    assert_redirected_to :action => "being_called"
+    assert_redirected_to :controller=>"callee", :action => "being_called"
   end
 
   def test_component_multiple_redirect_redirects

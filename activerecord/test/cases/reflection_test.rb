@@ -160,9 +160,9 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_reflection_of_all_associations
     # FIXME these assertions bust a lot
-    assert_equal 22, Firm.reflect_on_all_associations.size
-    assert_equal 17, Firm.reflect_on_all_associations(:has_many).size
-    assert_equal 5, Firm.reflect_on_all_associations(:has_one).size
+    assert_equal 24, Firm.reflect_on_all_associations.size
+    assert_equal 18, Firm.reflect_on_all_associations(:has_many).size
+    assert_equal 6, Firm.reflect_on_all_associations(:has_one).size
     assert_equal 0, Firm.reflect_on_all_associations(:belongs_to).size
   end
 
