@@ -313,7 +313,7 @@ module ActionView #:nodoc:
         template
       elsif template = self.view_paths[template_file_name]
         template
-      elsif _first_render && template = self.view_paths["#{template_file_name}.#{_first_render.extension}"]
+      elsif _first_render && template = self.view_paths["#{template_file_name}.#{_first_render.format_and_extension}"]
         template
       elsif template_format == :js && template = self.view_paths["#{template_file_name}.html"]
         @template_format = :html
