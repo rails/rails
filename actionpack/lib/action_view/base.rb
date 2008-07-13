@@ -159,11 +159,11 @@ module ActionView #:nodoc:
   class Base
     include ERB::Util
 
-    attr_accessor :base_path, :assigns, :template_extension, :first_render
+    attr_accessor :base_path, :assigns, :template_extension
     attr_accessor :controller
+    attr_accessor :_first_render, :_last_render
 
     attr_writer :template_format
-    attr_accessor :current_render_extension
 
     attr_accessor :output_buffer
 
@@ -313,7 +313,7 @@ module ActionView #:nodoc:
         template
       elsif template = self.view_paths[template_file_name]
         template
-      elsif first_render && template = self.view_paths["#{template_file_name}.#{first_render.extension}"]
+      elsif _first_render && template = self.view_paths["#{template_file_name}.#{_first_render.extension}"]
         template
       elsif template_format == :js && template = self.view_paths["#{template_file_name}.html"]
         @template_format = :html

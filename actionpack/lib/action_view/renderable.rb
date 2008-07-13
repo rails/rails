@@ -18,9 +18,9 @@ module ActionView
     end
 
     def render(view, local_assigns = {})
-      view.first_render ||= self
+      view._first_render ||= self
+      view._last_render = self
       view.send(:evaluate_assigns)
-      view.current_render_extension = extension
       compile(local_assigns) if handler.compilable?
       handler.new(view).render(self, local_assigns)
     end

@@ -87,11 +87,11 @@ module ActionController
       #
       def assert_template(expected = nil, message=nil)
         clean_backtrace do
-          rendered = expected ? @response.rendered_file(!expected.include?('/')) : @response.rendered_file
+          rendered = @response.rendered_template.to_s
           msg = build_message(message, "expecting <?> but rendering with <?>", expected, rendered)
           assert_block(msg) do
             if expected.nil?
-              !@response.rendered_with_file?
+              @response.rendered_template ? true : false
             else
               rendered.match(expected)
             end
