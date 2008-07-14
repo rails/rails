@@ -1,5 +1,7 @@
 *Edge*
 
+* Fixed that create database statements would always include "DEFAULT NULL" (Nick Sieger) [#334]
+
 * Add :accessible option to associations for allowing (opt-in) mass assignment. #474. [David Dollar] Example :
 
   class Post < ActiveRecord::Base
