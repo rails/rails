@@ -4,7 +4,7 @@ module ActionView
     # So you can not set or modify any instance variables
 
     def variable_name
-      @variable_name ||= name.gsub(/^_/, '').to_sym
+      @variable_name ||= name.sub(/\A_/, '').to_sym
     end
 
     def counter_name
