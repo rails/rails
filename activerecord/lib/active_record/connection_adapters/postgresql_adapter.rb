@@ -49,7 +49,6 @@ module ActiveRecord
       private
         def extract_limit(sql_type)
           case sql_type
-          when /^integer/i;   4
           when /^bigint/i;    8
           when /^smallint/i;  2
           else super
