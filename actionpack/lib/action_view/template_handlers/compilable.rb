@@ -12,8 +12,8 @@ module ActionView
         end
       end
 
-      def render(template)
-        @view.send(:execute, template)
+      def render(template, local_assigns = {})
+        @view.send(:execute, template, local_assigns)
       end
 
       # Compile and evaluate the template's code
