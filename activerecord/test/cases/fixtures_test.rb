@@ -15,6 +15,7 @@ require 'models/pirate'
 require 'models/treasure'
 require 'models/matey'
 require 'models/ship'
+require 'models/book'
 
 class FixturesTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
@@ -369,6 +370,34 @@ class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def test_table_method
+    assert_kind_of Joke, funny_jokes(:a_joke)
+  end
+end
+
+class FixtureNameIsNotTableNameFixturesTest < ActiveRecord::TestCase
+  set_fixture_class :items => Book
+  fixtures :items
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded 
+  # and thus takes into account our set_fixture_class
+  self.use_transactional_fixtures = false
+
+  def test_named_accessor
+    assert_kind_of Book, items(:dvd)
+  end
+end
+
+class FixtureNameIsNotTableNameMultipleFixturesTest < ActiveRecord::TestCase
+  set_fixture_class :items => Book, :funny_jokes => Joke
+  fixtures :items, :funny_jokes
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded 
+  # and thus takes into account our set_fixture_class
+  self.use_transactional_fixtures = false
+
+  def test_named_accessor_of_differently_named_fixture
+    assert_kind_of Book, items(:dvd)
+  end
+
+  def test_named_accessor_of_same_named_fixture
     assert_kind_of Joke, funny_jokes(:a_joke)
   end
 end
