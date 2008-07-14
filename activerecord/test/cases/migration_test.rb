@@ -3,6 +3,7 @@ require 'bigdecimal/util'
 
 require 'models/person'
 require 'models/topic'
+require 'models/developer'
 
 require MIGRATIONS_ROOT + "/valid/1_people_have_last_names"
 require MIGRATIONS_ROOT + "/valid/2_we_need_reminders"
@@ -511,7 +512,12 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.connection.create_table(:hats) do |table|
         table.column :hat_name, :string, :default => nil
       end
-      assert_raises(ActiveRecord::ActiveRecordError) do
+      exception = if current_adapter?(:PostgreSQLAdapter)
+        ActiveRecord::StatementInvalid
+      else
+        ActiveRecord::ActiveRecordError
+      end
+      assert_raises(exception) do
         Person.connection.rename_column "hats", "nonexistent", "should_fail"
       end
     ensure
