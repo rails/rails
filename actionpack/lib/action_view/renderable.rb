@@ -69,11 +69,8 @@ module ActionView
       # The template will be compiled if the file has not been compiled yet, or
       # if local_assigns has a new key, which isn't supported by the compiled code yet.
       def recompile?(symbol)
-        unless Base::CompiledTemplates.instance_methods.include?(symbol) && Base.cache_template_loading
-          true
-        else
-          false
-        end
+        meth = Base::CompiledTemplates.instance_method(template.method) rescue nil
+        !(meth && Base.cache_template_loading)
       end
   end
 end
