@@ -7,14 +7,19 @@ module ActionView
       @@mutex = Mutex.new
     end
 
-    # NOTE: Exception to earlier notice. Ensure this is called before freeze
     def handler
       @handler ||= Template.handler_class_for_extension(extension)
     end
 
-    # NOTE: Exception to earlier notice. Ensure this is called before freeze
     def compiled_source
       @compiled_source ||= handler.new(nil).compile(self) if handler.compilable?
+    end
+
+    def freeze
+      # Eager load and freeze memoized methods
+      handler.freeze
+      compiled_source.freeze
+      super
     end
 
     def render(view, local_assigns = {})

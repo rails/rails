@@ -17,19 +17,13 @@ module ActionView #:nodoc:
     end
 
     def freeze
-      # Eager load memoized methods
-      format_and_extension
-      path
-      path_without_extension
-      path_without_format_and_extension
-      source
-      method_segment
-
-      # Eager load memoized methods from Renderable
-      handler
-      compiled_source
-
-      instance_variables.each { |ivar| ivar.freeze }
+      # Eager load and freeze memoized methods
+      format_and_extension.freeze
+      path.freeze
+      path_without_extension.freeze
+      path_without_format_and_extension.freeze
+      source.freeze
+      method_segment.freeze
 
       super
     end
@@ -51,12 +45,12 @@ module ActionView #:nodoc:
     end
 
     def source
-      @source ||= File.read(@filename)
+      @source ||= File.read(filename)
     end
 
     def method_segment
       unless @method_segment
-        segment = File.expand_path(@filename)
+        segment = File.expand_path(filename)
         segment.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}/, '') if defined?(RAILS_ROOT)
         segment.gsub!(/([^a-zA-Z0-9_])/) { $1.ord }
         @method_segment = segment
