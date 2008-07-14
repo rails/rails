@@ -1,5 +1,10 @@
 *Edge*
 
+* Make script/plugin install <plugin> -r <revision> option work with git based plugins. #257. [Tim Pope Jakub Kuźma]. Example:
+
+  script/plugin install git://github.com/mislav/will_paginate.git -r agnostic # Installs 'agnostic' branch
+  script/plugin install git://github.com/dchelimsky/rspec.git -r 'tag 1.1.4'
+
 * Added Rails.initialized? flag [Josh Peek]
 
 * Make rake test:uncommitted work with Git. [Tim Pope]
