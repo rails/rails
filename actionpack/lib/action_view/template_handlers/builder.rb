@@ -9,14 +9,9 @@ module ActionView
         # ActionMailer does not have a response
         "controller.respond_to?(:response) && controller.response.content_type ||= Mime::XML;" +
           "xml = ::Builder::XmlMarkup.new(:indent => 2);" +
+          "self.output_buffer = xml.target!;" +
           template.source +
           ";xml.target!;"
-      end
-
-      def cache_fragment(block, name = {}, options = nil)
-        @view.fragment_for(block, name, options) do
-          eval('xml.target!', block.binding)
-        end
       end
     end
   end

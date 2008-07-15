@@ -555,7 +555,7 @@ class FragmentCachingTest < Test::Unit::TestCase
     fragment_computed = false
 
     buffer = 'generated till now -> '
-    @controller.fragment_for(Proc.new { fragment_computed = true }, 'expensive') { buffer }
+    @controller.fragment_for(buffer, 'expensive') { fragment_computed = true }
 
     assert fragment_computed
     assert_equal 'generated till now -> ', buffer
@@ -566,49 +566,10 @@ class FragmentCachingTest < Test::Unit::TestCase
     fragment_computed = false
 
     buffer = 'generated till now -> '
-    @controller.fragment_for(Proc.new { fragment_computed = true }, 'expensive') { buffer}
+    @controller.fragment_for(buffer, 'expensive') { fragment_computed = true }
 
     assert !fragment_computed
     assert_equal 'generated till now -> fragment content', buffer
-  end
-
-  def test_cache_erb_fragment
-    @store.write('views/expensive', 'fragment content')
-    @controller.response.template.output_buffer = 'generated till now -> '
-
-    assert_equal( 'generated till now -> fragment content',
-                  ActionView::TemplateHandlers::ERB.new(@controller).cache_fragment(Proc.new{ }, 'expensive'))
-  end
-
-  def test_cache_rxml_fragment
-    @store.write('views/expensive', 'fragment content')
-    xml = 'generated till now -> '
-    class << xml; def target!; to_s; end; end
-
-    assert_equal( 'generated till now -> fragment content',
-                  ActionView::TemplateHandlers::Builder.new(@controller).cache_fragment(Proc.new{ }, 'expensive'))
-  end
-
-  def test_cache_rjs_fragment
-    @store.write('views/expensive', 'fragment content')
-    page = 'generated till now -> '
-
-    assert_equal( 'generated till now -> fragment content',
-                  ActionView::TemplateHandlers::RJS.new(@controller).cache_fragment(Proc.new{ }, 'expensive'))
-  end
-
-  def test_cache_rjs_fragment_debug_mode_does_not_interfere
-    @store.write('views/expensive', 'fragment content')
-    page = 'generated till now -> '
-
-    begin
-      debug_mode, ActionView::Base.debug_rjs = ActionView::Base.debug_rjs, true
-      assert_equal( 'generated till now -> fragment content',
-                     ActionView::TemplateHandlers::RJS.new(@controller).cache_fragment(Proc.new{ }, 'expensive'))
-      assert ActionView::Base.debug_rjs
-    ensure
-      ActionView::Base.debug_rjs = debug_mode
-    end
   end
 end
 

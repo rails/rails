@@ -17,9 +17,5 @@ module ActionView
     def compilable?
       self.class.compilable?
     end
-
-    # Called by CacheHelper#cache
-    def cache_fragment(block, name = {}, options = nil)
-    end
   end
 end

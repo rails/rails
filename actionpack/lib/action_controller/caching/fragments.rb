@@ -60,10 +60,8 @@ module ActionController #:nodoc:
         ActiveSupport::Cache.expand_cache_key(key.is_a?(Hash) ? url_for(key).split("://").last : key, :views)
       end
 
-      def fragment_for(block, name = {}, options = nil) #:nodoc:
+      def fragment_for(buffer, name = {}, options = nil, &block) #:nodoc:
         if perform_caching
-          buffer = yield
-
           if cache = read_fragment(name, options)
             buffer.concat(cache)
           else
