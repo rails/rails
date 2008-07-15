@@ -1,5 +1,7 @@
 *2.1.1 (next release)*
 
+* Fix TimeWithZone unmarshaling: coerce unmarshaled Time instances to utc, because Ruby's marshaling of Time instances doesn't respect the zone [Geoff Buesing]
+
 * Added StringQuestioneer for doing things like StringQuestioneer.new("production").production? # => true and StringQuestioneer.new("production").development? # => false [DHH]
 
 * Fixed Date#end_of_quarter to not blow up on May 31st [#289 state:resolved] (Danger)

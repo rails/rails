@@ -246,7 +246,7 @@ module ActiveSupport
     end
     
     def marshal_load(variables)
-      initialize(variables[0], ::Time.send!(:get_zone, variables[1]), variables[2])
+      initialize(variables[0].utc, ::Time.send!(:get_zone, variables[1]), variables[2].utc)
     end
 
     # Ensure proxy class responds to all methods that underlying time instance responds to.
