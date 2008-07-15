@@ -335,8 +335,9 @@ class AssetTagHelperTest < ActionView::TestCase
     ActionController::Base.asset_host = 'http://a%d.example.com'
     ActionController::Base.perform_caching = true
 
+    hash = '/javascripts/cache/money.js'.hash % 4
     assert_dom_equal(
-      %(<script src="http://a3.example.com/javascripts/cache/money.js" type="text/javascript"></script>),
+      %(<script src="http://a#{hash}.example.com/javascripts/cache/money.js" type="text/javascript"></script>),
       javascript_include_tag(:all, :cache => "cache/money")
     )
 
