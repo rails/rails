@@ -328,9 +328,7 @@ module ActiveRecord
       end
 
       def supports_insert_with_returning?
-        @supports_insert_with_returning ||=
-          @connection.respond_to?(:server_version) &&
-          @connection.server_version >= 80200
+        postgresql_version >= 80200
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL,
