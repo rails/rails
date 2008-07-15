@@ -3,20 +3,17 @@ module ActionView
     # NOTE: The template that this mixin is beening include into is frozen
     # So you can not set or modify any instance variables
 
+    include ActiveSupport::Memoizable
+
     def variable_name
-      @variable_name ||= name.sub(/\A_/, '').to_sym
+      name.sub(/\A_/, '').to_sym
     end
+    memorize :variable_name
 
     def counter_name
-      @counter_name ||= "#{variable_name}_counter".to_sym
+      "#{variable_name}_counter".to_sym
     end
-
-    def freeze
-      # Eager load and freeze memoized methods
-      variable_name.freeze
-      counter_name.freeze
-      super
-    end
+    memorize :counter_name
 
     def render(view, local_assigns = {})
       ActionController::Base.benchmark("Rendered #{path_without_format_and_extension}", Logger::DEBUG, false) do

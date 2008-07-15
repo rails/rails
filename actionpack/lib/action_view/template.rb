@@ -1,6 +1,7 @@
 module ActionView #:nodoc:
   class Template
     extend TemplateHandlers
+    include ActiveSupport::Memoizable
     include Renderable
 
     attr_accessor :filename, :load_path, :base_path, :name, :format, :extension
@@ -16,48 +17,37 @@ module ActionView #:nodoc:
       extend RenderablePartial if @name =~ /^_/
     end
 
-    def freeze
-      # Eager load and freeze memoized methods
-      format_and_extension.freeze
-      path.freeze
-      path_without_extension.freeze
-      path_without_format_and_extension.freeze
-      source.freeze
-      method_segment.freeze
-
-      super
-    end
-
     def format_and_extension
-      @format_and_extension ||= (extensions = [format, extension].compact.join(".")).blank? ? nil : extensions
+      (extensions = [format, extension].compact.join(".")).blank? ? nil : extensions
     end
+    memorize :format_and_extension
 
     def path
-      @path ||= [base_path, [name, format, extension].compact.join('.')].compact.join('/')
+      [base_path, [name, format, extension].compact.join('.')].compact.join('/')
     end
+    memorize :path
 
     def path_without_extension
-      @path_without_extension ||= [base_path, [name, format].compact.join('.')].compact.join('/')
+      [base_path, [name, format].compact.join('.')].compact.join('/')
     end
+    memorize :path_without_extension
 
     def path_without_format_and_extension
-      @path_without_format_and_extension ||= [base_path, name].compact.join('/')
+      [base_path, name].compact.join('/')
     end
+    memorize :path_without_format_and_extension
 
     def source
-      @source ||= File.read(filename)
+      File.read(filename)
     end
+    memorize :source
 
     def method_segment
-      unless @method_segment
-        segment = File.expand_path(filename)
-        segment.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}/, '') if defined?(RAILS_ROOT)
-        segment.gsub!(/([^a-zA-Z0-9_])/) { $1.ord }
-        @method_segment = segment
-      end
-
-      @method_segment
+      segment = File.expand_path(filename)
+      segment.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}/, '') if defined?(RAILS_ROOT)
+      segment.gsub!(/([^a-zA-Z0-9_])/) { $1.ord }
     end
+    memorize :method_segment
 
     def render_template(view, local_assigns = {})
       render(view, local_assigns)

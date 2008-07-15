@@ -7,20 +7,17 @@ module ActionView
       @@mutex = Mutex.new
     end
 
+    include ActiveSupport::Memoizable
+
     def handler
-      @handler ||= Template.handler_class_for_extension(extension)
+      Template.handler_class_for_extension(extension)
     end
+    memorize :handler
 
     def compiled_source
-      @compiled_source ||= handler.new(nil).compile(self) if handler.compilable?
+      handler.new(nil).compile(self) if handler.compilable?
     end
-
-    def freeze
-      # Eager load and freeze memoized methods
-      handler.freeze
-      compiled_source.freeze
-      super
-    end
+    memorize :compiled_source
 
     def render(view, local_assigns = {})
       view._first_render ||= self
