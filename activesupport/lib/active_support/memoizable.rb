@@ -7,15 +7,16 @@ module ActiveSupport
     module ClassMethods
       def memoize(symbol)
         original_method = "_unmemoized_#{symbol}"
+        memoized_ivar = "@_memoized_#{symbol}"
         raise "Already memoized #{symbol}" if instance_methods.map(&:to_s).include?(original_method)
 
         alias_method original_method, symbol
         class_eval <<-EOS, __FILE__, __LINE__
           def #{symbol}
-            if defined? @#{symbol}
-              @#{symbol}
+            if defined? #{memoized_ivar}
+              #{memoized_ivar}
             else
-              @#{symbol} = #{original_method}
+              #{memoized_ivar} = #{original_method}
             end
           end
         EOS
