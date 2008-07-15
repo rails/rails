@@ -260,6 +260,9 @@ module ActiveRecord
       end
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
+        unless columns(table_name).detect{|c| c.name == column_name.to_s }
+          raise ActiveRecord::ActiveRecordError, "Missing column #{table_name}.#{column_name}"
+        end
         alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
       end
 
