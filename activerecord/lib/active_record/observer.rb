@@ -20,7 +20,7 @@ module ActiveRecord
       #   ActiveRecord::Base.observers = Cacher, GarbageCollector
       #
       # Note: Setting this does not instantiate the observers yet. +instantiate_observers+ is
-      # called during startup, and before each development request.  
+      # called during startup, and before each development request.
       def observers=(*observers)
         @observers = observers.flatten
       end
@@ -130,11 +130,11 @@ module ActiveRecord
   # Observers register themselves in the model class they observe, since it is the class that
   # notifies them of events when they occur. As a side-effect, when an observer is loaded its
   # corresponding model class is loaded.
-  # 
+  #
   # Up to (and including) Rails 2.0.2 observers were instantiated between plugins and
-  # application initializers. Now observers are loaded after application initializers, 
+  # application initializers. Now observers are loaded after application initializers,
   # so observed models can make use of extensions.
-  # 
+  #
   # If by any chance you are using observed models in the initialization you can still
   # load their observers by calling <tt>ModelObserver.instance</tt> before. Observers are
   # singletons and that call instantiates and registers them.
@@ -189,7 +189,6 @@ module ActiveRecord
 
       def add_observer!(klass)
         klass.add_observer(self)
-        klass.class_eval 'def after_find() end' unless klass.method_defined?(:after_find)
       end
   end
 end
