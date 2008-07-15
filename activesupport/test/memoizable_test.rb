@@ -8,12 +8,12 @@ uses_mocha 'Memoizable' do
       def name
         fetch_name_from_floppy
       end
-      memorize :name
+      memoize :name
 
       def age
         nil
       end
-      memorize :age
+      memoize :age
 
       private
         def fetch_name_from_floppy

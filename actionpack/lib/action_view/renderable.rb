@@ -12,12 +12,12 @@ module ActionView
     def handler
       Template.handler_class_for_extension(extension)
     end
-    memorize :handler
+    memoize :handler
 
     def compiled_source
       handler.new(nil).compile(self) if handler.compilable?
     end
-    memorize :compiled_source
+    memoize :compiled_source
 
     def render(view, local_assigns = {})
       view._first_render ||= self

@@ -8,12 +8,12 @@ module ActionView
     def variable_name
       name.sub(/\A_/, '').to_sym
     end
-    memorize :variable_name
+    memoize :variable_name
 
     def counter_name
       "#{variable_name}_counter".to_sym
     end
-    memorize :counter_name
+    memoize :counter_name
 
     def render(view, local_assigns = {})
       ActionController::Base.benchmark("Rendered #{path_without_format_and_extension}", Logger::DEBUG, false) do

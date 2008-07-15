@@ -5,8 +5,8 @@ module ActiveSupport
     end
 
     module ClassMethods
-      def memorize(symbol)
-        original_method = "_unmemorized_#{symbol}"
+      def memoize(symbol)
+        original_method = "_unmemoized_#{symbol}"
         alias_method original_method, symbol
         class_eval <<-EOS, __FILE__, __LINE__
           def #{symbol}
@@ -22,7 +22,7 @@ module ActiveSupport
 
     def freeze
       methods.each do |method|
-        if m = method.to_s.match(/^_unmemorized_(.*)/)
+        if m = method.to_s.match(/^_unmemoized_(.*)/)
           send(m[1]).freeze
         end
       end

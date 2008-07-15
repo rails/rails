@@ -20,34 +20,34 @@ module ActionView #:nodoc:
     def format_and_extension
       (extensions = [format, extension].compact.join(".")).blank? ? nil : extensions
     end
-    memorize :format_and_extension
+    memoize :format_and_extension
 
     def path
       [base_path, [name, format, extension].compact.join('.')].compact.join('/')
     end
-    memorize :path
+    memoize :path
 
     def path_without_extension
       [base_path, [name, format].compact.join('.')].compact.join('/')
     end
-    memorize :path_without_extension
+    memoize :path_without_extension
 
     def path_without_format_and_extension
       [base_path, name].compact.join('/')
     end
-    memorize :path_without_format_and_extension
+    memoize :path_without_format_and_extension
 
     def source
       File.read(filename)
     end
-    memorize :source
+    memoize :source
 
     def method_segment
       segment = File.expand_path(filename)
       segment.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}/, '') if defined?(RAILS_ROOT)
       segment.gsub!(/([^a-zA-Z0-9_])/) { $1.ord }
     end
-    memorize :method_segment
+    memoize :method_segment
 
     def render_template(view, local_assigns = {})
       render(view, local_assigns)
