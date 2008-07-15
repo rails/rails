@@ -1,5 +1,7 @@
 *2.1.1 (next release)*
 
+* Fixed that create database statements would always include "DEFAULT NULL" (Nick Sieger) [#334]
+
 * change_column_default preserves the not-null constraint.  #617 [Tarmo Tänav]
 
 * Add :tokenizer option to validates_length_of to specify how to split up the attribute string. #507. [David Lowenfels] Example :

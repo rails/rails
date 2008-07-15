@@ -257,7 +257,10 @@ module ActiveRecord
 
       def to_sql
         column_sql = "#{base.quote_column_name(name)} #{sql_type}"
-        add_column_options!(column_sql, :null => null, :default => default) unless type.to_sym == :primary_key
+        column_options = {}
+        column_options[:null] = null unless null.nil?
+        column_options[:default] = default unless default.nil?
+        add_column_options!(column_sql, column_options) unless type.to_sym == :primary_key
         column_sql
       end
       alias to_s :to_sql
