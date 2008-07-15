@@ -7,10 +7,12 @@ module ActiveSupport
     module ClassMethods
       def memoize(symbol)
         original_method = "_unmemoized_#{symbol}"
+        raise "Already memoized #{symbol}" if instance_methods.map(&:to_s).include?(original_method)
+
         alias_method original_method, symbol
         class_eval <<-EOS, __FILE__, __LINE__
           def #{symbol}
-            if instance_variable_defined?(:@#{symbol})
+            if defined? @#{symbol}
               @#{symbol}
             else
               @#{symbol} = #{original_method}
@@ -22,7 +24,7 @@ module ActiveSupport
 
     def freeze
       methods.each do |method|
-        if m = method.to_s.match(/^_unmemoized_(.*)/)
+        if m = method.to_s.match(/\A_unmemoized_(.*)/)
           send(m[1]).freeze
         end
       end

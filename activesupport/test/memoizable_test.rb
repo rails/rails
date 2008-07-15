@@ -41,5 +41,9 @@ uses_mocha 'Memoizable' do
       person.freeze
       assert_equal nil, person.age
     end
+
+    def test_double_memoization
+      assert_raise(RuntimeError) { Person.memoize :name }
+    end
   end
 end
