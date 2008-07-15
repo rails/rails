@@ -101,12 +101,7 @@ class TestController < ActionController::Base
   end
 
   def render_line_offset
-    begin
-      render :inline => '<% raise %>', :locals => {:foo => 'bar'}
-    rescue RuntimeError => exc
-    end
-    line = exc.backtrace.first
-    render :text => line
+    render :inline => '<% raise %>', :locals => {:foo => 'bar'}
   end
 
   def heading
@@ -238,10 +233,15 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_line_offset
-    get :render_line_offset
-    line = @response.body
-    assert(line =~ %r{:(\d+):})
-    assert_equal "1", $1
+    begin
+      get :render_line_offset
+      flunk "the action should have raised an exception"
+    rescue RuntimeError => exc
+      line = exc.backtrace.first
+      assert(line =~ %r{:(\d+):})
+      assert_equal "1", $1,
+        "The line offset is wrong, perhaps the wrong exception has been raised, exception was: #{exc.inspect}"
+    end
   end
 
   def test_render_with_forward_slash
