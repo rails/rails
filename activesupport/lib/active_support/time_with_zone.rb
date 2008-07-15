@@ -159,19 +159,24 @@ module ActiveSupport
       utc == other
     end
     
-    # If wrapped +time+ is a DateTime, use DateTime#since instead of <tt>+</tt>.
-    # Otherwise, just pass on to +method_missing+.
     def +(other)
-      result = utc.acts_like?(:date) ? utc.since(other) : utc + other rescue utc.since(other)
-      result.in_time_zone(time_zone)
+      # If we're adding a Duration of variable length (i.e., years, months, days), move forward from #time,
+      # otherwise move forward from #utc, for accuracy when moving across DST boundaries
+      if duration_of_variable_length?(other)
+        method_missing(:+, other)
+      else
+        result = utc.acts_like?(:date) ? utc.since(other) : utc + other rescue utc.since(other)
+        result.in_time_zone(time_zone)
+      end
     end
-    
-    # If a time-like object is passed in, compare it with +utc+.
-    # Else if wrapped +time+ is a DateTime, use DateTime#ago instead of DateTime#-.
-    # Otherwise, just pass on to +method_missing+.
+
     def -(other)
+      # If we're subtracting a Duration of variable length (i.e., years, months, days), move backwards from #time,
+      # otherwise move backwards #utc, for accuracy when moving across DST boundaries
       if other.acts_like?(:time)
         utc - other
+      elsif duration_of_variable_length?(other)
+        method_missing(:-, other)
       else
         result = utc.acts_like?(:date) ? utc.ago(other) : utc - other rescue utc.ago(other)
         result.in_time_zone(time_zone)
@@ -179,15 +184,27 @@ module ActiveSupport
     end
     
     def since(other)
-      utc.since(other).in_time_zone(time_zone)
+      # If we're adding a Duration of variable length (i.e., years, months, days), move forward from #time,
+      # otherwise move forward from #utc, for accuracy when moving across DST boundaries
+      if duration_of_variable_length?(other)
+        method_missing(:since, other)
+      else
+        utc.since(other).in_time_zone(time_zone)
+      end
     end
     
     def ago(other)
-      utc.ago(other).in_time_zone(time_zone)
+      since(-other)
     end
-    
+
     def advance(options)
-      utc.advance(options).in_time_zone(time_zone)
+      # If we're advancing a value of variable length (i.e., years, weeks, months, days), advance from #time,
+      # otherwise advance from #utc, for accuracy when moving across DST boundaries
+      if options.detect {|k,v| [:years, :weeks, :months, :days].include? k}
+        method_missing(:advance, options)
+      else
+        utc.advance(options).in_time_zone(time_zone)
+      end
     end
     
     %w(year mon month day mday hour min sec).each do |method_name|
@@ -278,6 +295,10 @@ module ActiveSupport
       
       def transfer_time_values_to_utc_constructor(time)
         ::Time.utc_time(time.year, time.month, time.day, time.hour, time.min, time.sec, time.respond_to?(:usec) ? time.usec : 0)
+      end
+      
+      def duration_of_variable_length?(obj)
+        ActiveSupport::Duration === obj && obj.parts.flatten.detect {|p| [:years, :months, :days].include? p }
       end
   end
 end
