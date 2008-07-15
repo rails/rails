@@ -1,5 +1,7 @@
 *Edge*
 
+* Fix TimeWithZone unmarshaling: coerce unmarshaled Time instances to utc, because Ruby's marshaling of Time instances doesn't respect the zone [Geoff Buesing]
+
 * Added Memoizable mixin for caching simple lazy loaded attributes [Josh Peek]
 
 * Move the test related core_ext stuff out of core_ext so it's only loaded by the test helpers.  [Michael Koziarski]
