@@ -255,11 +255,16 @@ module Rails
         @gems_dependencies_loaded = false
         # don't print if the gems rake tasks are being run
         unless $rails_gem_installer
-          puts %{These gems that this application depends on are missing:}
-          unloaded_gems.each do |gem|
-            puts " - #{gem.name}"
-          end
-          puts %{Run "rake gems:install" to install them.}
+          abort <<-end_error
+Missing these required gems:
+  #{unloaded_gems.map { |gem| "#{gem.name}  #{gem.requirement}" } * "\n  "}
+
+You're running:
+  ruby #{Gem.ruby_version} at #{Gem.ruby}
+  rubygems #{Gem::RubyGemsVersion} at #{Gem.path * ', '}
+
+Run `rake gems:install` to install the missing gems.
+          end_error
         end
       else
         @gems_dependencies_loaded = true
