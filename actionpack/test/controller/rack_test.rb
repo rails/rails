@@ -166,6 +166,18 @@ class RackRequestParamsParsingTest < BaseRackTest
   end
 end
 
+class RackRequestContentTypeTest < BaseRackTest
+  def test_html_content_type_verification
+    @request.env['CONTENT_TYPE'] = Mime::HTML.to_s
+    assert @request.content_type.verify_request?
+  end
+
+  def test_xml_content_type_verification
+    @request.env['CONTENT_TYPE'] = Mime::XML.to_s
+    assert !@request.content_type.verify_request?
+  end
+end
+
 class RackRequestNeedsRewoundTest < BaseRackTest
   def test_body_should_be_rewound
     data = 'foo'
