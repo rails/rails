@@ -84,30 +84,6 @@ class CallbacksTest < Test::Unit::TestCase
   end
 end
 
-class MetaclassCallbacksTest < Test::Unit::TestCase
-  module ModuleWithCallbacks
-    def self.extended(object)
-      object.metaclass.before_save :raise_metaclass_callback_called
-    end
-
-    def module_callback_called?
-      @module_callback_called ||= false
-    end
-
-    def raise_metaclass_callback_called
-      @module_callback_called = true
-    end
-  end
-
-  def test_metaclass_callbacks
-    person = Person.new
-    person.extend(ModuleWithCallbacks)
-    assert !person.module_callback_called?
-    person.save
-    assert person.module_callback_called?
-  end
-end
-
 class ConditionalCallbackTest < Test::Unit::TestCase
   def test_save_conditional_person
     person = ConditionalPerson.new

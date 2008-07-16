@@ -1,7 +1,5 @@
 *2.1.1 (next release)*
 
-* Run callbacks from object's metaclass [Josh Peek]
-
 * TimeWithZone: when crossing DST boundary, treat Durations of days, months or years as variable-length, and all other values as absolute length. A time + 24.hours will advance exactly 24 hours, but a time + 1.day will advance 23-25 hours, depending on the day. Ensure consistent behavior across all advancing methods [Geoff Buesing]
 
 * Fix TimeWithZone unmarshaling: coerce unmarshaled Time instances to utc, because Ruby's marshaling of Time instances doesn't respect the zone [Geoff Buesing]
