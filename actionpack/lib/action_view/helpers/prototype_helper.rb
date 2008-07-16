@@ -580,9 +580,10 @@ module ActionView
       class JavaScriptGenerator #:nodoc:
         def initialize(context, &block) #:nodoc:
           @context, @lines = context, []
-          @context.output_buffer = @lines if @context
           include_helpers_from_context
-          @context.instance_exec(self, &block)
+          @context.with_output_buffer(@lines) do
+            @context.instance_exec(self, &block)
+          end
         end
 
         private

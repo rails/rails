@@ -3,7 +3,11 @@ require 'abstract_unit'
 class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
 
-  attr_accessor :output_buffer
+  attr_accessor :template_format, :output_buffer
+
+  def setup
+    @template = self
+  end
 
   def test_escape_javascript
     assert_equal '', escape_javascript(nil)

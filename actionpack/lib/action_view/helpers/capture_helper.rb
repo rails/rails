@@ -122,14 +122,15 @@ module ActionView
         nil
       end
 
-      private
-        def with_output_buffer(buf = '')
-          self.output_buffer, old_buffer = buf, output_buffer
-          yield
-          output_buffer
-        ensure
-          self.output_buffer = old_buffer
-        end
+      # Use an alternate output buffer for the duration of the block.
+      # Defaults to a new empty string.
+      def with_output_buffer(buf = '') #:nodoc:
+        self.output_buffer, old_buffer = buf, output_buffer
+        yield
+        output_buffer
+      ensure
+        self.output_buffer = old_buffer
+      end
     end
   end
 end
