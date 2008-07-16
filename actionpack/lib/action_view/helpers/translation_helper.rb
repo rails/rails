@@ -13,7 +13,7 @@ module ActionView
       end
 
       def localize(*args)
-        I18n.l *args
+        I18n.localize *args
       end
     end
   end
