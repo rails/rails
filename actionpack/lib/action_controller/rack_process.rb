@@ -250,7 +250,7 @@ end_msg
           headers['Content-Language'] = options.delete('language') if options['language']
           headers['Expires']          = options.delete('expires') if options['expires']
 
-          @status = options['Status'] || "200 OK"
+          @status = options.delete('Status') || "200 OK"
 
           # Convert 'cookie' header to 'Set-Cookie' headers.
           # Because Set-Cookie header can appear more the once in the response body,

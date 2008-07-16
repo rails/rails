@@ -252,18 +252,28 @@ class RackResponseHeadersTest < BaseRackTest
     super
     @response = ActionController::RackResponse.new(@request)
     @output = StringIO.new('')
-    @headers = proc { @response.out(@output)[1] }
+    @response.headers['Status'] = 200
   end
 
   def test_content_type
     [204, 304].each do |c|
       @response.headers['Status'] = c
-      assert !@headers.call.has_key?("Content-Type")
+      assert !response_headers.has_key?("Content-Type")
     end
 
     [200, 302, 404, 500].each do |c|
       @response.headers['Status'] = c
-      assert @headers.call.has_key?("Content-Type")
+      assert response_headers.has_key?("Content-Type")
     end
+  end
+
+  def test_status
+    assert !response_headers.has_key?('Status')
+  end
+
+  private
+
+  def response_headers
+    @response.out(@output)[1]
   end
 end
