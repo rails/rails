@@ -415,8 +415,10 @@ Run `rake gems:install` to install the missing gems.
     # set to use Configuration#view_path.
     def initialize_framework_views
       ActionView::PathSet::Path.eager_load_templates! if configuration.cache_classes
-      ActionMailer::Base.template_root ||= configuration.view_path  if configuration.frameworks.include?(:action_mailer)
-      ActionController::Base.view_paths = [configuration.view_path] if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.empty?
+      view_path = ActionView::PathSet::Path.new(configuration.view_path)
+
+      ActionMailer::Base.template_root ||= view_path if configuration.frameworks.include?(:action_mailer)
+      ActionController::Base.view_paths = view_path if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.empty?
     end
 
     # If Action Controller is not one of the loaded frameworks (Configuration#frameworks)
