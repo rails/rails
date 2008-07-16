@@ -2,6 +2,8 @@
 
 * Deprecate the limited follow_redirect in functional tests.  If you wish to follow redirects, use integration tests. [Michael Koziarski]
 
+* Fixed that AssetTagHelper#compute_public_path shouldn't cache the asset_host along with the source or per-request proc's won't run [DHH]
+
 * Deprecate define_javascript_functions, javascript_include_tag and friends are much better [Michael Koziarski]
 
 * Fix polymorphic_url with singleton resources.  #461 [Tammer Saleh]
