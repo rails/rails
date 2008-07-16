@@ -51,6 +51,14 @@ class BaseRackTest < Test::Unit::TestCase
   end
 
   def default_test; end
+
+  private
+
+  def set_content_data(data)
+    @request.env['CONTENT_LENGTH'] = data.length
+    @request.env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
+    @request.env['RAW_POST_DATA'] = data
+  end
 end
 
 class RackRequestTest < BaseRackTest
@@ -175,6 +183,31 @@ class RackRequestContentTypeTest < BaseRackTest
   def test_xml_content_type_verification
     @request.env['CONTENT_TYPE'] = Mime::XML.to_s
     assert !@request.content_type.verify_request?
+  end
+end
+
+class RackRequestMethodTest < BaseRackTest
+  def test_get
+    assert_equal :get, @request.request_method
+  end
+
+  def test_post
+    @request.env['REQUEST_METHOD'] = 'POST'
+    assert_equal :post, @request.request_method
+  end
+
+  def test_put
+    @request.env['REQUEST_METHOD'] = 'POST'
+    set_content_data '_method=put'
+
+    assert_equal :put, @request.request_method
+  end
+
+  def test_delete
+    @request.env['REQUEST_METHOD'] = 'POST'
+    set_content_data '_method=delete'
+
+    assert_equal :delete, @request.request_method
   end
 end
 

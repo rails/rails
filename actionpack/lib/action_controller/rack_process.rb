@@ -98,10 +98,6 @@ module ActionController #:nodoc:
       @env['REMOTE_ADDR']
     end
 
-    def request_method
-      @env['REQUEST_METHOD'].downcase.to_sym
-    end
-
     def server_port
       @env['SERVER_PORT'].to_i
     end
