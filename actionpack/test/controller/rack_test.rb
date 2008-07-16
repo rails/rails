@@ -55,6 +55,7 @@ class BaseRackTest < Test::Unit::TestCase
   private
 
   def set_content_data(data)
+    @request.env['REQUEST_METHOD'] = 'POST'
     @request.env['CONTENT_LENGTH'] = data.length
     @request.env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
     @request.env['RAW_POST_DATA'] = data
@@ -161,10 +162,8 @@ end
 
 class RackRequestParamsParsingTest < BaseRackTest
   def test_doesnt_break_when_content_type_has_charset
-    data = 'flamenco=love'
-    @request.env['CONTENT_LENGTH'] = data.length
-    @request.env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
-    @request.env['RAW_POST_DATA'] = data
+    set_content_data 'flamenco=love'
+
     assert_equal({"flamenco"=> "love"}, @request.request_parameters)
   end
 
@@ -197,14 +196,12 @@ class RackRequestMethodTest < BaseRackTest
   end
 
   def test_put
-    @request.env['REQUEST_METHOD'] = 'POST'
     set_content_data '_method=put'
 
     assert_equal :put, @request.request_method
   end
 
   def test_delete
-    @request.env['REQUEST_METHOD'] = 'POST'
     set_content_data '_method=delete'
 
     assert_equal :delete, @request.request_method
