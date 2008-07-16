@@ -76,7 +76,7 @@ module ActionView
       # Creates a form and a scope around a specific model object that is used as
       # a base for questioning about values for the fields.
       #
-      # Rails provides succint resource-oriented form generation with +form_for+
+      # Rails provides succinct resource-oriented form generation with +form_for+
       # like this:
       #
       #   <% form_for @offer do |f| %>
@@ -449,8 +449,37 @@ module ActionView
       # assigned to the template (identified by +object+). It's intended that +method+ returns an integer and if that
       # integer is above zero, then the checkbox is checked. Additional options on the input tag can be passed as a
       # hash with +options+. The +checked_value+ defaults to 1 while the default +unchecked_value+
-      # is set to 0 which is convenient for boolean values. Since HTTP standards say that unchecked checkboxes don't post anything,
-      # we add a hidden value with the same name as the checkbox as a work around.
+      # is set to 0 which is convenient for boolean values.
+      #
+      # ==== Gotcha
+      #
+      # The HTML specification says unchecked check boxes are not successful, and
+      # thus web browsers do not send them. Unfortunately this introduces a gotcha:
+      # if an Invoice model has a +paid+ flag, and in the form that edits a paid
+      # invoice the user unchecks its check box, no +paid+ parameter is sent. So,
+      # any mass-assignment idiom like
+      #
+      #   @invoice.update_attributes(params[:invoice])
+      #
+      # wouldn't update the flag.
+      #
+      # To prevent this the helper generates a hidden field with the same name as
+      # the checkbox after the very check box. So, the client either sends only the
+      # hidden field (representing the check box is unchecked), or both fields.
+      # Since the HTML specification says key/value pairs have to be sent in the
+      # same order they appear in the form and Rails parameters extraction always
+      # gets the first occurrence of any given key, that works in ordinary forms.
+      #
+      # Unfortunately that workaround does not work when the check box goes
+      # within an array-like parameter, as in
+      #
+      #   <% fields_for "project[invoice_attributes][]", invoice, :index => nil do |form| %>
+      #     <%= form.check_box :paid %>
+      #     ...
+      #   <% end %>
+      #
+      # because parameter name repetition is precisely what Rails seeks to distinguish
+      # the elements of the array.
       #
       # ==== Examples
       #   # Let's say that @post.validated? is 1:

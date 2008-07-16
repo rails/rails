@@ -280,11 +280,11 @@ module ActionView
       #
       #   # Generates a date select that discards the type of the field and defaults to the date in 
       #   # my_date (six days after today)
-      #   select_datetime(my_date_time, :discard_type => true)
+      #   select_date(my_date, :discard_type => true)
       #
       #   # Generates a date select that defaults to the datetime in my_date (six days after today)
       #   # prefixed with 'payday' rather than 'date'
-      #   select_datetime(my_date_time, :prefix => 'payday')
+      #   select_date(my_date, :prefix => 'payday')
       #
       def select_date(date = Date.current, options = {}, html_options = {})
         options[:order] ||= []

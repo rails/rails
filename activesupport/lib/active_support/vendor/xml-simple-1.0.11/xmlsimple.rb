@@ -121,7 +121,7 @@ class XmlSimple
   # Create a "global" cache.
   @@cache = Cache.new
 
-  # Creates and intializes a new XmlSimple object.
+  # Creates and initializes a new XmlSimple object.
   # 
   # defaults::
   #   Default values for options.
@@ -497,7 +497,7 @@ class XmlSimple
       }
     end
     
-    # Fold Hases containing a single anonymous Array up into just the Array.
+    # Fold Hashes containing a single anonymous Array up into just the Array.
     if count == 1 
       anonymoustag = @options['anonymoustag']
       if result.has_key?(anonymoustag) && result[anonymoustag].instance_of?(Array)
@@ -907,7 +907,7 @@ class XmlSimple
   # Thanks to Norbert Gawor for a bugfix.
   #
   # value::
-  #   Value to be checked for emptyness.
+  #   Value to be checked for emptiness.
   def empty(value)
     case value
       when Hash

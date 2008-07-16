@@ -44,12 +44,21 @@ module ActionView
 
       include PrototypeHelper
 
-      # Returns a link that will trigger a JavaScript +function+ using the
+      # Returns a link of the given +name+ that will trigger a JavaScript +function+ using the
       # onclick handler and return false after the fact.
+      #
+      # The first argument +name+ is used as the link text.
+      #
+      # The next arguments are optional and may include the javascript function definition and a hash of html_options.
       #
       # The +function+ argument can be omitted in favor of an +update_page+
       # block, which evaluates to a string when the template is rendered
       # (instead of making an Ajax request first).
+      #
+      # The +html_options+ will accept a hash of html attributes for the link tag. Some examples are :class => "nav_button", :id => "articles_nav_button"
+      #
+      # Note: if you choose to specify the javascript function in a block, but would like to pass html_options, set the +function+ parameter to nil
+      #
       #
       # Examples:
       #   link_to_function "Greeting", "alert('Hello world!')"
@@ -89,12 +98,20 @@ module ActionView
         content_tag(:a, name, html_options.merge(:href => href, :onclick => onclick))
       end
 
-      # Returns a button that'll trigger a JavaScript +function+ using the
+      # Returns a button with the given +name+ text that'll trigger a JavaScript +function+ using the
       # onclick handler.
+      #
+      # The first argument +name+ is used as the button's value or display text.
+      #
+      # The next arguments are optional and may include the javascript function definition and a hash of html_options.
       #
       # The +function+ argument can be omitted in favor of an +update_page+
       # block, which evaluates to a string when the template is rendered
       # (instead of making an Ajax request first).
+      #
+      # The +html_options+ will accept a hash of html attributes for the link tag. Some examples are :class => "nav_button", :id => "articles_nav_button"
+      #
+      # Note: if you choose to specify the javascript function in a block, but would like to pass html_options, set the +function+ parameter to nil
       #
       # Examples:
       #   button_to_function "Greeting", "alert('Hello world!')"

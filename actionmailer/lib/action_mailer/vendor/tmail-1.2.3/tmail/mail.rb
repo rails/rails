@@ -255,7 +255,7 @@ module TMail
     alias fetch []
 
     # Allows you to set or delete TMail header objects at will.
-    # Eamples:
+    # Examples:
     #  @mail = TMail::Mail.new
     #  @mail['to'].to_s       # => 'mikel@test.com.au'
     #  @mail['to'] = 'mikel@elsewhere.org'
@@ -265,7 +265,7 @@ module TMail
     #  @mail['to'].to_s       # => nil
     #  @mail.encoded          # => "\r\n"
     # 
-    # Note: setting mail[] = nil actualy deletes the header field in question from the object,
+    # Note: setting mail[] = nil actually deletes the header field in question from the object,
     # it does not just set the value of the hash to nil
     def []=( key, val )
       dkey = key.downcase

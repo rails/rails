@@ -867,7 +867,7 @@ module ActiveRecord
         end
 
       private
-        # The internal PostgreSQL identifer of the money data type.
+        # The internal PostgreSQL identifier of the money data type.
         MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
 
         # Connects to a PostgreSQL server and sets up the adapter depending on the

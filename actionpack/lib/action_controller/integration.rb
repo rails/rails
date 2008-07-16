@@ -101,7 +101,7 @@ module ActionController
         @https = flag
       end
 
-      # Return +true+ if the session is mimicing a secure HTTPS request.
+      # Return +true+ if the session is mimicking a secure HTTPS request.
       #
       #   if session.https?
       #     ...

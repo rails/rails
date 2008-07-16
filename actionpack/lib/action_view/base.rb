@@ -177,7 +177,7 @@ module ActionView #:nodoc:
     end
 
     def self.cache_template_extensions=(*args)
-      ActiveSupport::Deprecation.warn("config.action_view.cache_template_extensions option has been deprecated and has no affect. " <<
+      ActiveSupport::Deprecation.warn("config.action_view.cache_template_extensions option has been deprecated and has no effect. " <<
                                        "Please remove it from your config files.", caller)
     end
 

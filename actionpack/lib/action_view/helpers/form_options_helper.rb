@@ -274,9 +274,11 @@ module ActionView
         end
       end
 
-      # Returns a string of option tags for pretty much any country in the world. Supply a country name as +selected+ to
-      # have it marked as the selected option tag. You can also supply an array of countries as +priority_countries+, so
-      # that they will be listed above the rest of the (long) list.
+      # Returns a string of option tags for most countries in the
+      # world (as defined in COUNTRIES). Supply a country name as
+      # +selected+ to have it marked as the selected option tag. You
+      # can also supply an array of countries as +priority_countries+,
+      # so that they will be listed above the rest of the (long) list.
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def country_options_for_select(selected = nil, priority_countries = nil)

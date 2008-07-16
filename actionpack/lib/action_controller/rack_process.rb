@@ -250,7 +250,7 @@ end_msg
 
           # Convert 'cookie' header to 'Set-Cookie' headers.
           # Because Set-Cookie header can appear more the once in the response body,
-          # we store it in a line break seperated string that will be translated to
+          # we store it in a line break separated string that will be translated to
           # multiple Set-Cookie header by the handler.
           if cookie = options.delete('cookie')
             cookies = []

@@ -31,7 +31,7 @@ http://www.rubyonrails.org.
 A short rundown of the major features:
 
 * Actions grouped in controller as methods instead of separate command objects
-  and can therefore share helper methods.
+  and can therefore share helper methods
 
     BlogController < ActionController::Base
       def show
@@ -168,7 +168,7 @@ A short rundown of the major features:
   {Learn more}[link:classes/ActionController/Base.html]
 
 
-* Javascript and Ajax integration.
+* Javascript and Ajax integration
 
     link_to_function "Greeting", "alert('Hello world!')"
     link_to_remote "Delete this post", :update => "posts", 
@@ -177,7 +177,7 @@ A short rundown of the major features:
   {Learn more}[link:classes/ActionView/Helpers/JavaScriptHelper.html]
 
 
-* Pagination for navigating lists of results.
+* Pagination for navigating lists of results
 
     # controller
     def list
@@ -192,15 +192,9 @@ A short rundown of the major features:
   {Learn more}[link:classes/ActionController/Pagination.html]
 
 
-* Easy testing of both controller and template result through TestRequest/Response
+* Easy testing of both controller and rendered template through ActionController::TestCase
 
-    class LoginControllerTest < Test::Unit::TestCase
-      def setup
-        @controller = LoginController.new
-        @request    = ActionController::TestRequest.new
-        @response   = ActionController::TestResponse.new
-      end
-
+    class LoginControllerTest < ActionController::TestCase
       def test_failing_authenticate
         process :authenticate, :user_name => "nop", :password => ""
         assert flash.has_key?(:alert)
@@ -208,7 +202,7 @@ A short rundown of the major features:
       end
     end
 
-  {Learn more}[link:classes/ActionController/TestRequest.html]
+  {Learn more}[link:classes/ActionController/TestCase.html]
 
 
 * Automated benchmarking and integrated logging

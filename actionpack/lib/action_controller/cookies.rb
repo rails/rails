@@ -22,6 +22,16 @@ module ActionController #:nodoc:
   #
   #   cookies.delete :user_name
   #
+  # Please note that if you specify a :domain when setting a cookie, you must also specify the domain when deleting the cookie:
+  #
+  #  cookies[:key] = {
+  #    :value => 'a yummy cookie',
+  #    :expires => 1.year.from_now,
+  #    :domain => 'domain.com'
+  #  }
+  #
+  #  cookies.delete(:key, :domain => 'domain.com')
+  #
   # The option symbols for setting cookies are:
   #
   # * <tt>:value</tt> - The cookie's value or list of values (as an array).

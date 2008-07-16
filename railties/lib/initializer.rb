@@ -98,7 +98,7 @@ module Rails
     #   Rails::Initializer.run(:set_load_path)
     #
     # This is useful if you only want the load path initialized, without
-    # incuring the overhead of completely loading the entire environment.
+    # incurring the overhead of completely loading the entire environment.
     def self.run(command = :process, configuration = Configuration.new)
       yield configuration if block_given?
       initializer = new configuration
@@ -531,7 +531,7 @@ Run `rake gems:install` to install the missing gems.
     # A stub for setting options on ActiveRecord::Base.
     attr_accessor :active_record
 
-    # A stub for setting options on ActiveRecord::Base.
+    # A stub for setting options on ActiveResource::Base.
     attr_accessor :active_resource
 
     # A stub for setting options on ActiveSupport.

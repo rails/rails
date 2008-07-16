@@ -13,7 +13,7 @@ module ActiveSupport #:nodoc:
           clone.except!(*keys)
         end
 
-        # Replaces the hash without only the given keys.
+        # Replaces the hash without the given keys.
         def except!(*keys)
           keys.map! { |key| convert_key(key) } if respond_to?(:convert_key)
           keys.each { |key| delete(key) }

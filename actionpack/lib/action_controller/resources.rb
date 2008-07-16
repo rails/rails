@@ -296,6 +296,10 @@ module ActionController
     #     article_comments_url(:article_id => @article)
     #     article_comment_url(:article_id => @article, :id => @comment)
     #
+    #   If you don't want to load all objects from the database you might want to use the <tt>article_id</tt> directly:
+    #
+    #     articles_comments_url(@comment.article_id, @comment)
+    #
     # * <tt>:name_prefix</tt> - Define a prefix for all generated routes, usually ending in an underscore.
     #   Use this if you have named routes that may clash.
     #
