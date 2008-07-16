@@ -173,6 +173,14 @@ class ObjectTests < Test::Unit::TestCase
     assert duck.acts_like?(:time)
     assert !duck.acts_like?(:date)
   end
+
+  def test_metaclass
+    string = "Hello"
+    string.metaclass.instance_eval do
+      define_method(:foo) { "bar" }
+    end
+    assert_equal "bar", string.foo
+  end
 end
 
 class ObjectInstanceVariableTest < Test::Unit::TestCase
