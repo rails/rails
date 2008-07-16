@@ -1,5 +1,7 @@
 *Edge*
 
+* Fixed that AssetTagHelper#compute_public_path shouldn't cache the asset_host along with the source or per-request proc's won't run [DHH]
+
 * Add :as option to render a collection of partials with a custom local variable name. #509 [Simon Jefford, Pratik Naik]
 
   render :partial => 'other_people', :collection => @people, :as => :person
