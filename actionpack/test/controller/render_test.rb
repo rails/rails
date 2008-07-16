@@ -8,12 +8,16 @@ module Fun
   end
 end
 
-
-# FIXME: crashes Ruby 1.9
 class TestController < ActionController::Base
   layout :determine_layout
 
   def hello_world
+  end
+
+  def conditional_hello
+    etag! [:foo, 123]
+    last_modified! Time.now.utc.beginning_of_day
+    render :action => 'hello_world' unless performed?
   end
 
   def render_hello_world
@@ -408,58 +412,6 @@ class RenderTest < Test::Unit::TestCase
     assert_equal "Goodbye, Local David", @response.body
   end
 
-  def test_render_200_should_set_etag
-    get :render_hello_world_from_variable
-    assert_equal etag_for("hello david"), @response.headers['ETag']
-    assert_equal "private, max-age=0, must-revalidate", @response.headers['Cache-Control']
-  end
-
-  def test_render_against_etag_request_should_304_when_match
-    @request.headers["HTTP_IF_NONE_MATCH"] = etag_for("hello david")
-    get :render_hello_world_from_variable
-    assert_equal "304 Not Modified", @response.headers['Status']
-    assert @response.body.empty?
-  end
-
-  def test_render_against_etag_request_should_200_when_no_match
-    @request.headers["HTTP_IF_NONE_MATCH"] = etag_for("hello somewhere else")
-    get :render_hello_world_from_variable
-    assert_equal "200 OK", @response.headers['Status']
-    assert !@response.body.empty?
-  end
-
-  def test_render_with_etag
-    get :render_hello_world_from_variable
-    expected_etag = etag_for('hello david')
-    assert_equal expected_etag, @response.headers['ETag']
-
-    @request.headers["HTTP_IF_NONE_MATCH"] = expected_etag
-    get :render_hello_world_from_variable
-    assert_equal "304 Not Modified", @response.headers['Status']
-
-    @request.headers["HTTP_IF_NONE_MATCH"] = "\"diftag\""
-    get :render_hello_world_from_variable
-    assert_equal "200 OK", @response.headers['Status']
-  end
-
-  def render_with_404_shouldnt_have_etag
-    get :render_custom_code
-    assert_nil @response.headers['ETag']
-  end
-
-  def test_etag_should_not_be_changed_when_already_set
-    expected_etag = etag_for("hello somewhere else")
-    @response.headers["ETag"] = expected_etag
-    get :render_hello_world_from_variable
-    assert_equal expected_etag, @response.headers['ETag']
-  end
-
-  def test_etag_should_govern_renders_with_layouts_too
-    get :builder_layout_test
-    assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
-    assert_equal etag_for("<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n"), @response.headers['ETag']
-  end
-
   def test_should_render_formatted_template
     get :formatted_html_erb
     assert_equal 'formatted html erb', @response.body
@@ -515,9 +467,103 @@ class RenderTest < Test::Unit::TestCase
     get :render_xml_with_custom_content_type
     assert_equal "application/atomsvc+xml", @response.content_type
   end
+end
+
+class EtagRenderTest < Test::Unit::TestCase
+  def setup
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    @controller = TestController.new
+
+    @request.host = "www.nextangle.com"
+  end
+
+  def test_render_200_should_set_etag
+    get :render_hello_world_from_variable
+    assert_equal etag_for("hello david"), @response.headers['ETag']
+    assert_equal "private, max-age=0, must-revalidate", @response.headers['Cache-Control']
+  end
+
+  def test_render_against_etag_request_should_304_when_match
+    @request.headers["HTTP_IF_NONE_MATCH"] = etag_for("hello david")
+    get :render_hello_world_from_variable
+    assert_equal "304 Not Modified", @response.headers['Status']
+    assert @response.body.empty?
+  end
+
+  def test_render_against_etag_request_should_200_when_no_match
+    @request.headers["HTTP_IF_NONE_MATCH"] = etag_for("hello somewhere else")
+    get :render_hello_world_from_variable
+    assert_equal "200 OK", @response.headers['Status']
+    assert !@response.body.empty?
+  end
+
+  def test_render_with_etag
+    get :render_hello_world_from_variable
+    expected_etag = etag_for('hello david')
+    assert_equal expected_etag, @response.headers['ETag']
+
+    @request.headers["HTTP_IF_NONE_MATCH"] = expected_etag
+    get :render_hello_world_from_variable
+    assert_equal "304 Not Modified", @response.headers['Status']
+
+    @request.headers["HTTP_IF_NONE_MATCH"] = "\"diftag\""
+    get :render_hello_world_from_variable
+    assert_equal "200 OK", @response.headers['Status']
+  end
+
+  def render_with_404_shouldnt_have_etag
+    get :render_custom_code
+    assert_nil @response.headers['ETag']
+  end
+
+  def test_etag_should_not_be_changed_when_already_set
+    expected_etag = etag_for("hello somewhere else")
+    @response.headers["ETag"] = expected_etag
+    get :render_hello_world_from_variable
+    assert_equal expected_etag, @response.headers['ETag']
+  end
+
+  def test_etag_should_govern_renders_with_layouts_too
+    get :builder_layout_test
+    assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
+    assert_equal etag_for("<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n"), @response.headers['ETag']
+  end
 
   protected
     def etag_for(text)
       %("#{Digest::MD5.hexdigest(text)}")
     end
+end
+
+class LastModifiedRenderTest < Test::Unit::TestCase
+  def setup
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    @controller = TestController.new
+
+    @request.host = "www.nextangle.com"
+    @last_modified = Time.now.utc.beginning_of_day.httpdate
+  end
+
+  def test_responds_with_last_modified
+    get :conditional_hello
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_request_not_modified
+    @request.headers["HTTP_IF_MODIFIED_SINCE"] = @last_modified
+    get :conditional_hello
+    assert_equal "304 Not Modified", @response.headers['Status']
+    assert @response.body.blank?, @response.body
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_request_modified
+    @request.headers["HTTP_IF_MODIFIED_SINCE"] = 'Thu, 16 Jul 2008 00:00:00 GMT'
+    get :conditional_hello
+    assert_equal "200 OK", @response.headers['Status']
+    assert !@response.body.blank?
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
 end

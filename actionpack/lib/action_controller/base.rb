@@ -519,6 +519,8 @@ module ActionController #:nodoc:
     public
       # Extracts the action_name from the request parameters and performs that action.
       def process(request, response, method = :perform_action, *arguments) #:nodoc:
+        response.request = request
+
         initialize_template_class(response)
         assign_shortcuts(request, response)
         initialize_current_url
@@ -529,8 +531,6 @@ module ActionController #:nodoc:
         send(method, *arguments)
 
         assign_default_content_type_and_charset
-
-        response.request = request
         response.prepare! unless component_request?
         response
       ensure
@@ -968,6 +968,17 @@ module ActionController #:nodoc:
         render :nothing => true, :status => status
       end
 
+      # Sets the Last-Modified response header. Returns 304 Not Modified if the
+      # If-Modified-Since request header is <= last modified.
+      def last_modified!(utc_time)
+        head(:not_modified) if response.last_modified!(utc_time)
+      end
+
+      # Sets the ETag response header. Returns 304 Not Modified if the
+      # If-None-Match request header matches.
+      def etag!(etag)
+        head(:not_modified) if response.etag!(etag)
+      end
 
       # Clears the rendered results, allowing for another render to be performed.
       def erase_render_results #:nodoc:

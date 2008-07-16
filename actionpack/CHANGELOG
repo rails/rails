@@ -1,5 +1,9 @@
 *Edge*
 
+* Conditional GET utility methods.  [Jeremy Kemper]
+  * etag!([:admin, post, current_user]) sets the ETag response header and returns head(:not_modified) if it matches the If-None-Match request header.
+  * last_modified!(post.updated_at) sets Last-Modified and returns head(:not_modified) if it's no later than If-Modified-Since.
+
 * All 2xx requests are considered successful [Josh Peek]
 
 * Fixed that AssetTagHelper#compute_public_path shouldn't cache the asset_host along with the source or per-request proc's won't run [DHH]
