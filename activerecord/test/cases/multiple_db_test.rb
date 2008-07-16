@@ -57,4 +57,29 @@ class MultipleDbTest < ActiveRecord::TestCase
 
     assert Course.connection
   end
+
+  def test_transactions_across_databases
+    c1 = Course.find(1)
+    e1 = Entrant.find(1)
+
+    begin
+      Course.transaction do
+        Entrant.transaction do
+          c1.name = "Typo"
+          e1.name = "Typo"
+          c1.save
+          e1.save
+          raise "No I messed up."
+        end
+      end
+    rescue
+      # Yup caught it
+    end
+
+    assert_equal "Typo", c1.name
+    assert_equal "Typo", e1.name
+
+    assert_equal "Ruby Development", Course.find(1).name
+    assert_equal "Ruby Developer", Entrant.find(1).name
+  end
 end

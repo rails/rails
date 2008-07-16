@@ -96,7 +96,7 @@ module ActionView
       # By default, <tt>post.person_id</tt> is the selected option.  Specify <tt>:selected => value</tt> to use a different selection
       # or <tt>:selected => nil</tt> to leave all options unselected.
       def select(object, method, choices, options = {}, html_options = {})
-        InstanceTag.new(object, method, self, nil, options.delete(:object)).to_select_tag(choices, options, html_options)
+        InstanceTag.new(object, method, self, options.delete(:object)).to_select_tag(choices, options, html_options)
       end
 
       # Returns <tt><select></tt> and <tt><option></tt> tags for the collection of existing return values of
@@ -130,12 +130,12 @@ module ActionView
       #     <option value="3">M. Clark</option>
       #   </select>
       def collection_select(object, method, collection, value_method, text_method, options = {}, html_options = {})
-        InstanceTag.new(object, method, self, nil, options.delete(:object)).to_collection_select_tag(collection, value_method, text_method, options, html_options)
+        InstanceTag.new(object, method, self, options.delete(:object)).to_collection_select_tag(collection, value_method, text_method, options, html_options)
       end
 
       # Return select and option tags for the given object and method, using country_options_for_select to generate the list of option tags.
       def country_select(object, method, priority_countries = nil, options = {}, html_options = {})
-        InstanceTag.new(object, method, self, nil, options.delete(:object)).to_country_select_tag(priority_countries, options, html_options)
+        InstanceTag.new(object, method, self,  options.delete(:object)).to_country_select_tag(priority_countries, options, html_options)
       end
 
       # Return select and option tags for the given object and method, using
@@ -169,7 +169,7 @@ module ActionView
       #
       #   time_zone_select( "user", "time_zone", TZInfo::Timezone.all.sort, :model => TZInfo::Timezone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
-        InstanceTag.new(object, method, self, nil, options.delete(:object)).to_time_zone_select_tag(priority_zones, options, html_options)
+        InstanceTag.new(object, method, self,  options.delete(:object)).to_time_zone_select_tag(priority_zones, options, html_options)
       end
 
       # Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. Given a container
@@ -274,9 +274,11 @@ module ActionView
         end
       end
 
-      # Returns a string of option tags for pretty much any country in the world. Supply a country name as +selected+ to
-      # have it marked as the selected option tag. You can also supply an array of countries as +priority_countries+, so
-      # that they will be listed above the rest of the (long) list.
+      # Returns a string of option tags for most countries in the
+      # world (as defined in COUNTRIES). Supply a country name as
+      # +selected+ to have it marked as the selected option tag. You
+      # can also supply an array of countries as +priority_countries+,
+      # so that they will be listed above the rest of the (long) list.
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def country_options_for_select(selected = nil, priority_countries = nil)
@@ -445,19 +447,19 @@ module ActionView
 
     class FormBuilder
       def select(method, choices, options = {}, html_options = {})
-        @template.select(@object_name, method, choices, options.merge(:object => @object), html_options)
+        @template.select(@object_name, method, choices, objectify_options(options), @default_options.merge(html_options))
       end
 
       def collection_select(method, collection, value_method, text_method, options = {}, html_options = {})
-        @template.collection_select(@object_name, method, collection, value_method, text_method, options.merge(:object => @object), html_options)
+        @template.collection_select(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options))
       end
 
       def country_select(method, priority_countries = nil, options = {}, html_options = {})
-        @template.country_select(@object_name, method, priority_countries, options.merge(:object => @object), html_options)
+        @template.country_select(@object_name, method, priority_countries, objectify_options(options), @default_options.merge(html_options))
       end
 
       def time_zone_select(method, priority_zones = nil, options = {}, html_options = {})
-        @template.time_zone_select(@object_name, method, priority_zones, options.merge(:object => @object), html_options)
+        @template.time_zone_select(@object_name, method, priority_zones, objectify_options(options), @default_options.merge(html_options))
       end
     end
   end

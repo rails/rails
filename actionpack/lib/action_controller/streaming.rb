@@ -12,19 +12,21 @@ module ActionController #:nodoc:
     X_SENDFILE_HEADER = 'X-Sendfile'.freeze
 
     protected
-      # Sends the file by streaming it 4096 bytes at a time. This way the
-      # whole file doesn't need to be read into memory at once.  This makes
-      # it feasible to send even large files.
+      # Sends the file, by default streaming it 4096 bytes at a time. This way the
+      # whole file doesn't need to be read into memory at once. This makes it
+      # feasible to send even large files. You can optionally turn off streaming
+      # and send the whole file at once.
       #
-      # Be careful to sanitize the path parameter if it coming from a web
+      # Be careful to sanitize the path parameter if it is coming from a web
       # page. <tt>send_file(params[:path])</tt> allows a malicious user to
       # download any file on your server.
       #
       # Options:
       # * <tt>:filename</tt> - suggests a filename for the browser to use.
       #   Defaults to <tt>File.basename(path)</tt>.
-      # * <tt>:type</tt> - specifies an HTTP content type.
-      #   Defaults to 'application/octet-stream'.
+      # * <tt>:type</tt> - specifies an HTTP content type. Defaults to 'application/octet-stream'.
+      # * <tt>:length</tt> - used to manually override the length (in bytes) of the content that
+      #   is going to be sent to the client. Defaults to <tt>File.size(path)</tt>.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
       #   Valid values are 'inline' and 'attachment' (default).
       # * <tt>:stream</tt> - whether to send the file to the user agent as it is read (+true+)
@@ -35,6 +37,12 @@ module ActionController #:nodoc:
       # * <tt>:url_based_filename</tt> - set to +true+ if you want the browser guess the filename from
       #   the URL, which is necessary for i18n filenames on certain browsers
       #   (setting <tt>:filename</tt> overrides this option).
+      # * <tt>:x_sendfile</tt> - uses X-Sendfile to send the file when set to +true+. This is currently
+      #   only available with Lighttpd/Apache2 and specific modules installed and activated. Since this
+      #   uses the web server to send the file, this may lower memory consumption on your server and
+      #   it will not block your application for further requests.
+      #   See http://blog.lighttpd.net/articles/2006/07/02/x-sendfile and
+      #   http://tn123.ath.cx/mod_xsendfile/ for details. Defaults to +false+.
       #
       # The default Content-Type and Content-Disposition headers are
       # set to download arbitrary binary files in as many browsers as
@@ -99,8 +107,7 @@ module ActionController #:nodoc:
       #
       # Options:
       # * <tt>:filename</tt> - suggests a filename for the browser to use.
-      # * <tt>:type</tt> - specifies an HTTP content type.
-      #   Defaults to 'application/octet-stream'.
+      # * <tt>:type</tt> - specifies an HTTP content type. Defaults to 'application/octet-stream'.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
       #   Valid values are 'inline' and 'attachment' (default).
       # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to '200 OK'.

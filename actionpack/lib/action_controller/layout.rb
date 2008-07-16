@@ -304,7 +304,7 @@ module ActionController #:nodoc:
       end
 
       def layout_directory?(layout_name)
-        @template.view_paths.find_template_file_for_path("#{File.join('layouts', layout_name)}.#{@template.template_format}.erb") ? true : false
+        @template.file_exists?("#{File.join('layouts', layout_name)}.#{@template.template_format}")
       end
   end
 end

@@ -6,7 +6,7 @@ module ActiveRecord #:nodoc:
   class ActiveRecordError < StandardError
   end
 
-  # Raised when the single-table inheritance mechanism failes to locate the subclass
+  # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that +inheritance_column+ points to).
   class SubclassNotFound < ActiveRecordError #:nodoc:
   end
@@ -97,7 +97,7 @@ module ActiveRecord #:nodoc:
   class MissingAttributeError < NoMethodError
   end
 
-  # Raised when an error occured while doing a mass assignment to an attribute through the
+  # Raised when an error occurred while doing a mass assignment to an attribute through the
   # <tt>attributes=</tt> method. The exception has an +attribute+ property that is the name of the
   # offending attribute.
   class AttributeAssignmentError < ActiveRecordError
@@ -271,7 +271,7 @@ module ActiveRecord #:nodoc:
   #   # Now 'Bob' exist and is an 'admin'
   #   User.find_or_create_by_name('Bob', :age => 40) { |u| u.admin = true }
   #
-  # Use the <tt>find_or_initialize_by_</tt> finder if you want to return a new record without saving it first. Protected attributes won't be setted unless they are given in a block. For example:
+  # Use the <tt>find_or_initialize_by_</tt> finder if you want to return a new record without saving it first. Protected attributes won't be set unless they are given in a block. For example:
   #
   #   # No 'Winter' tag exists
   #   winter = Tag.find_or_initialize_by_name("Winter")
@@ -724,8 +724,7 @@ module ActiveRecord #:nodoc:
       # ==== Attributes
       #
       # * +updates+ - A String of column and value pairs that will be set on any records that match conditions.
-      # * +conditions+ - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
-      #   See conditions in the intro for more info.
+      # * +conditions+ - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro for more info.
       # * +options+ - Additional options are <tt>:limit</tt> and/or <tt>:order</tt>, see the examples for usage.
       #
       # ==== Examples
@@ -828,7 +827,7 @@ module ActiveRecord #:nodoc:
       def update_counters(id, counters)
         updates = counters.inject([]) { |list, (counter_name, increment)|
           sign = increment < 0 ? "-" : "+"
-          list << "#{connection.quote_column_name(counter_name)} = #{connection.quote_column_name(counter_name)} #{sign} #{increment.abs}"
+          list << "#{connection.quote_column_name(counter_name)} = COALESCE(#{connection.quote_column_name(counter_name)}, 0) #{sign} #{increment.abs}"
         }.join(", ")
         update_all(updates, "#{connection.quote_column_name(primary_key)} = #{quote_value(id)}")
       end

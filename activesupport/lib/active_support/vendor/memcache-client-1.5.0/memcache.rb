@@ -119,7 +119,7 @@ class MemCache
   # Valid options for +opts+ are:
   #
   #   [:namespace]   Prepends this value to all keys added or retrieved.
-  #   [:readonly]    Raises an exeception on cache writes when true.
+  #   [:readonly]    Raises an exception on cache writes when true.
   #   [:multithread] Wraps cache access in a Mutex for thread safety.
   #
   # Other options are ignored.
@@ -207,7 +207,7 @@ class MemCache
   end
 
   ##
-  # Deceremets the value for +key+ by +amount+ and returns the new value.
+  # Decrements the value for +key+ by +amount+ and returns the new value.
   # +key+ must already exist.  If +key+ is not an integer, it is assumed to be
   # 0.  +key+ can not be decremented below 0.
 

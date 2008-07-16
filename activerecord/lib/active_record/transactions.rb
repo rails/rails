@@ -73,25 +73,14 @@ module ActiveRecord
     # trigger a ROLLBACK when raised, but not be re-raised by the transaction block.
     module ClassMethods
       def transaction(&block)
-        increment_open_transactions
+        connection.increment_open_transactions
 
         begin
-          connection.transaction(Thread.current['start_db_transaction'], &block)
+          connection.transaction(connection.open_transactions == 1, &block)
         ensure
-          decrement_open_transactions
+          connection.decrement_open_transactions
         end
       end
-
-      private
-        def increment_open_transactions #:nodoc:
-          open = Thread.current['open_transactions'] ||= 0
-          Thread.current['start_db_transaction'] = open.zero?
-          Thread.current['open_transactions'] = open + 1
-        end
-
-        def decrement_open_transactions #:nodoc:
-          Thread.current['open_transactions'] -= 1
-        end
     end
 
     def transaction(&block)

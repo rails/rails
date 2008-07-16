@@ -15,6 +15,27 @@ module ActionController
     end
   end
 
+  # Superclass for Action Controller functional tests. Infers the controller under test from the test class name,
+  # and creates @controller, @request, @response instance variables.
+  #
+  #   class WidgetsControllerTest < ActionController::TestCase
+  #     def test_index
+  #       get :index
+  #     end
+  #   end
+  #
+  # * @controller - WidgetController.new
+  # * @request    - ActionController::TestRequest.new
+  # * @response   - ActionController::TestResponse.new
+  #
+  # (Earlier versions of Rails required each functional test to subclass Test::Unit::TestCase and define
+  # @controller, @request, @response in +setup+.)
+  #
+  # If the controller cannot be inferred from the test class name, you can explicity set it with +tests+.
+  #
+  #   class SpecialEdgeCaseWidgetsControllerTest < ActionController::TestCase
+  #     tests WidgetController
+  #   end
   class TestCase < ActiveSupport::TestCase
     # When the request.remote_addr remains the default for testing, which is 0.0.0.0, the exception is simply raised inline
     # (bystepping the regular exception handling from rescue_action). If the request.remote_addr is anything else, the regular
@@ -41,6 +62,8 @@ module ActionController
     @@controller_class = nil
 
     class << self
+      # Sets the controller class name. Useful if the name can't be inferred from test class.
+      # Expects +controller_class+ as a constant. Example: <tt>tests WidgetController</tt>.
       def tests(controller_class)
         self.controller_class = controller_class
       end

@@ -51,12 +51,6 @@ module ActionView
         src = ::ERB.new(template.source, nil, erb_trim_mode, '@output_buffer').src
         "__in_erb_template=true;#{src}"
       end
-
-      def cache_fragment(block, name = {}, options = nil) #:nodoc:
-        @view.fragment_for(block, name, options) do
-          @view.response.template.output_buffer
-        end
-      end
     end
   end
 end

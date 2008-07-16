@@ -34,7 +34,7 @@ module ActiveRecord
         class_to_reflection = {}
         # Not all records have the same class, so group then preload
         # group on the reflection itself so that if various subclass share the same association then we do not split them
-        # unncessarily
+        # unnecessarily
         records.group_by {|record| class_to_reflection[record.class] ||= record.class.reflections[association]}.each do |reflection, records|
           raise ConfigurationError, "Association named '#{ association }' was not found; perhaps you misspelled it?" unless reflection
           send("preload_#{reflection.macro}_association", records, reflection, preload_options)
@@ -188,7 +188,6 @@ module ActiveRecord
         through_records
       end
 
-      # FIXME: quoting
       def preload_belongs_to_association(records, reflection, preload_options={})
         options = reflection.options
         primary_key_name = reflection.primary_key_name
@@ -227,9 +226,19 @@ module ActiveRecord
 
           table_name = klass.quoted_table_name
           primary_key = klass.primary_key
-          conditions = "#{table_name}.#{primary_key} IN (?)"
+          conditions = "#{table_name}.#{connection.quote_column_name(primary_key)} IN (?)"
           conditions << append_conditions(options, preload_options)
-          associated_records = klass.find(:all, :conditions => [conditions, id_map.keys.uniq],
+          column_type = klass.columns.detect{|c| c.name == primary_key}.type
+          ids = id_map.keys.uniq.map do |id|
+            if column_type == :integer
+              id.to_i
+            elsif column_type == :float
+              id.to_f
+            else
+              id
+            end
+          end
+          associated_records = klass.find(:all, :conditions => [conditions, ids],
                                           :include => options[:include],
                                           :select => options[:select],
                                           :joins => options[:joins],

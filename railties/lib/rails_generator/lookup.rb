@@ -108,7 +108,7 @@ module Rails
             sources << PathSource.new(:vendor, "#{::RAILS_ROOT}/vendor/generators")
             Rails.configuration.plugin_paths.each do |path|
               relative_path = Pathname.new(File.expand_path(path)).relative_path_from(Pathname.new(::RAILS_ROOT))
-              sources << PathSource.new(:"plugins (#{relative_path})", "#{path}/**/{,rails_}generators")
+              sources << PathSource.new(:"plugins (#{relative_path})", "#{path}/*/**/{,rails_}generators")
             end
           end
           sources << PathSource.new(:user, "#{Dir.user_home}/.rails/generators")

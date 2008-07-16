@@ -49,7 +49,6 @@ module ActiveRecord
       private
         def extract_limit(sql_type)
           case sql_type
-          when /^integer/i;   4
           when /^bigint/i;    8
           when /^smallint/i;  2
           else super
@@ -623,6 +622,19 @@ module ActiveRecord
         end
       end
 
+      # Returns the current database name.
+      def current_database
+        query('select current_database()')[0][0]
+      end
+
+      # Returns the current database encoding format.
+      def encoding
+        query(<<-end_sql)[0][0]
+          SELECT pg_encoding_to_char(pg_database.encoding) FROM pg_database
+          WHERE pg_database.datname LIKE '#{current_database}'
+        end_sql
+      end
+
       # Sets the schema search path to a string of comma-separated schema names.
       # Names beginning with $ have to be quoted (e.g. $user => '$user').
       # See: http://www.postgresql.org/docs/current/static/ddl-schemas.html
@@ -855,7 +867,7 @@ module ActiveRecord
         end
 
       private
-        # The internal PostgreSQL identifer of the money data type.
+        # The internal PostgreSQL identifier of the money data type.
         MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
 
         # Connects to a PostgreSQL server and sets up the adapter depending on the

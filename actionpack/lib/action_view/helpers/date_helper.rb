@@ -153,13 +153,16 @@ module ActionView
       # Note: If the day is not included as an option but the month is, the day will be set to the 1st to ensure that all month
       # choices are valid.
       def date_select(object_name, method, options = {}, html_options = {})
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_date_select_tag(options, html_options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_date_select_tag(options, html_options)
       end
 
       # Returns a set of select tags (one for hour, minute and optionally second) pre-selected for accessing a specified
       # time-based attribute (identified by +method+) on an object assigned to the template (identified by +object+).
       # You can include the seconds with <tt>:include_seconds</tt>.
-      # 
+      #
+      # This method will also generate 3 input hidden tags, for the actual year, month and day unless the option
+      # <tt>:ignore_date</tt> is set to +true+.
+      #
       # If anything is passed in the html_options hash it will be applied to every select tag in the set.
       #
       # ==== Examples
@@ -188,7 +191,7 @@ module ActionView
       # Note: If the day is not included as an option but the month is, the day will be set to the 1st to ensure that all month
       # choices are valid.
       def time_select(object_name, method, options = {}, html_options = {})
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_time_select_tag(options, html_options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_time_select_tag(options, html_options)
       end
 
       # Returns a set of select tags (one for year, month, day, hour, and minute) pre-selected for accessing a specified datetime-based
@@ -214,7 +217,7 @@ module ActionView
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       def datetime_select(object_name, method, options = {}, html_options = {})
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_datetime_select_tag(options, html_options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_datetime_select_tag(options, html_options)
       end
 
       # Returns a set of html select-tags (one for year, month, day, hour, and minute) pre-selected with the +datetime+.
@@ -277,11 +280,11 @@ module ActionView
       #
       #   # Generates a date select that discards the type of the field and defaults to the date in 
       #   # my_date (six days after today)
-      #   select_datetime(my_date_time, :discard_type => true)
+      #   select_date(my_date, :discard_type => true)
       #
       #   # Generates a date select that defaults to the datetime in my_date (six days after today)
       #   # prefixed with 'payday' rather than 'date'
-      #   select_datetime(my_date_time, :prefix => 'payday')
+      #   select_date(my_date, :prefix => 'payday')
       #
       def select_date(date = Date.current, options = {}, html_options = {})
         options[:order] ||= []
@@ -547,23 +550,32 @@ module ActionView
       #   select_year(2006, :start_year => 2000, :end_year => 2010)
       #
       def select_year(date, options = {}, html_options = {})
-        val = date ? (date.kind_of?(Fixnum) ? date : date.year) : ''
-        if options[:use_hidden]
-          hidden_html(options[:field_name] || 'year', val, options)
+        if !date || date == 0
+          value = ''
+          middle_year = Date.today.year
+        elsif date.kind_of?(Fixnum)
+          value = middle_year = date
         else
-          year_options = []
-          y = date ? (date.kind_of?(Fixnum) ? (y = (date == 0) ? Date.today.year : date) : date.year) : Date.today.year
+          value = middle_year = date.year
+        end
 
-          start_year, end_year = (options[:start_year] || y-5), (options[:end_year] || y+5)
-          step_val = start_year < end_year ? 1 : -1
+        if options[:use_hidden]
+          hidden_html(options[:field_name] || 'year', value, options)
+        else
+          year_options = ''
+          start_year   = options[:start_year] || middle_year - 5
+          end_year     = options[:end_year]   || middle_year + 5
+          step_val     = start_year < end_year ? 1 : -1
+
           start_year.step(end_year, step_val) do |year|
-            year_options << ((val == year) ?
-              content_tag(:option, year, :value => year, :selected => "selected") :
-              content_tag(:option, year, :value => year)
-            )
+            if value == year
+              year_options << content_tag(:option, year, :value => year, :selected => "selected")
+            else
+              year_options << content_tag(:option, year, :value => year)
+            end
             year_options << "\n"
           end
-          select_html(options[:field_name] || 'year', year_options.join, options, html_options)
+          select_html(options[:field_name] || 'year', year_options, options, html_options)
         end
       end
 
@@ -646,7 +658,7 @@ module ActionView
           order.reverse.each do |param|
             # Send hidden fields for discarded elements once output has started
             # This ensures AR can reconstruct valid dates using ParseDate
-            next if discard[param] && date_or_time_select.empty?
+            next if discard[param] && (date_or_time_select.empty? || options[:ignore_date])
 
             date_or_time_select.insert(0, self.send("select_#{param}", datetime, options_with_prefix(position[param], options.merge(:use_hidden => discard[param])), html_options))
             date_or_time_select.insert(0,

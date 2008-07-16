@@ -66,6 +66,7 @@ ActiveRecord::Schema.define do
   create_table :categories, :force => true do |t|
     t.string :name, :null => false
     t.string :type
+    t.integer :categorizations_count
   end
 
   create_table :categories_posts, :force => true, :id => false do |t|
@@ -102,6 +103,7 @@ ActiveRecord::Schema.define do
     t.string  :type
     t.string  :ruby_type
     t.integer :firm_id
+    t.string  :firm_name
     t.string  :name
     t.integer :client_of
     t.integer :rating, :default => 1

@@ -118,6 +118,19 @@ module ActiveRecord
         @connection
       end
 
+      def open_transactions
+        @open_transactions ||= 0
+      end
+
+      def increment_open_transactions
+        @open_transactions ||= 0
+        @open_transactions += 1
+      end
+
+      def decrement_open_transactions
+        @open_transactions -= 1
+      end
+
       def log_info(sql, name, runtime)
         if @logger && @logger.debug?
           name = "#{name.nil? ? "SQL" : name} (#{sprintf("%f", runtime)})"

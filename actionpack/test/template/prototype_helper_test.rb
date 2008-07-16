@@ -25,10 +25,10 @@ class Author::Nested < Author; end
 
 
 class PrototypeHelperBaseTest < ActionView::TestCase
-  attr_accessor :template_format
+  attr_accessor :template_format, :output_buffer
 
   def setup
-    @template = nil
+    @template = self
     @controller = Class.new do
       def url_for(options)
         if options.is_a?(String)
@@ -201,9 +201,9 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
 
   end
 
-  def test_submit_to_remote
+  def test_button_to_remote
     assert_dom_equal %(<input name=\"More beer!\" onclick=\"new Ajax.Updater('empty_bottle', 'http://www.example.com/', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this.form)}); return false;\" type=\"button\" value=\"1000000\" />),
-      submit_to_remote("More beer!", 1_000_000, :update => "empty_bottle")
+      button_to_remote("More beer!", 1_000_000, :update => "empty_bottle")
   end
 
   def test_observe_field
@@ -243,8 +243,12 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
   end
 
   def test_update_page
+    old_output_buffer = output_buffer
+
     block = Proc.new { |page| page.replace_html('foo', 'bar') }
     assert_equal create_generator(&block).to_s, update_page(&block)
+
+    assert_equal old_output_buffer, output_buffer
   end
 
   def test_update_page_tag

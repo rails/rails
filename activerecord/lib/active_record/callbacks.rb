@@ -50,7 +50,7 @@ module ActiveRecord
   #
   # == Inheritable callback queues
   #
-  # Besides the overwriteable callback methods, it's also possible to register callbacks through the use of the callback macros.
+  # Besides the overwritable callback methods, it's also possible to register callbacks through the use of the callback macros.
   # Their main advantage is that the macros add behavior into a callback queue that is kept intact down through an inheritance
   # hierarchy. Example:
   #
@@ -262,7 +262,7 @@ module ActiveRecord
     def valid_with_callbacks? #:nodoc:
       return false if callback(:before_validation) == false
       if new_record? then result = callback(:before_validation_on_create) else result = callback(:before_validation_on_update) end
-      return false if result == false
+      return false if false == result
 
       result = valid_without_callbacks?
 
@@ -293,7 +293,7 @@ module ActiveRecord
 
     private
       def callback(method)
-        result = run_callbacks(method) { |result, object| result == false }
+        result = run_callbacks(method) { |result, object| false == result }
 
         if result != false && respond_to_without_attributes?(method)
           result = send(method)

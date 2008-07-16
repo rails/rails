@@ -67,10 +67,9 @@ module ActionController
         options = options.dup
 
         if options[:namespace]
-          options[:controller] = "#{options[:path_prefix]}/#{options[:controller]}"
+          options[:controller] = "#{options.delete(:namespace).sub(/\/$/, '')}/#{options[:controller]}"
           options.delete(:path_prefix)
           options.delete(:name_prefix)
-          options.delete(:namespace)
         end
 
         requirements = (options.delete(:requirements) || {}).dup

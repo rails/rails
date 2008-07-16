@@ -44,12 +44,21 @@ module ActionView
 
       include PrototypeHelper
 
-      # Returns a link that will trigger a JavaScript +function+ using the
+      # Returns a link of the given +name+ that will trigger a JavaScript +function+ using the
       # onclick handler and return false after the fact.
+      #
+      # The first argument +name+ is used as the link text.
+      #
+      # The next arguments are optional and may include the javascript function definition and a hash of html_options.
       #
       # The +function+ argument can be omitted in favor of an +update_page+
       # block, which evaluates to a string when the template is rendered
       # (instead of making an Ajax request first).
+      #
+      # The +html_options+ will accept a hash of html attributes for the link tag. Some examples are :class => "nav_button", :id => "articles_nav_button"
+      #
+      # Note: if you choose to specify the javascript function in a block, but would like to pass html_options, set the +function+ parameter to nil
+      #
       #
       # Examples:
       #   link_to_function "Greeting", "alert('Hello world!')"
@@ -89,12 +98,20 @@ module ActionView
         content_tag(:a, name, html_options.merge(:href => href, :onclick => onclick))
       end
 
-      # Returns a button that'll trigger a JavaScript +function+ using the
+      # Returns a button with the given +name+ text that'll trigger a JavaScript +function+ using the
       # onclick handler.
+      #
+      # The first argument +name+ is used as the button's value or display text.
+      #
+      # The next arguments are optional and may include the javascript function definition and a hash of html_options.
       #
       # The +function+ argument can be omitted in favor of an +update_page+
       # block, which evaluates to a string when the template is rendered
       # (instead of making an Ajax request first).
+      #
+      # The +html_options+ will accept a hash of html attributes for the link tag. Some examples are :class => "nav_button", :id => "articles_nav_button"
+      #
+      # Note: if you choose to specify the javascript function in a block, but would like to pass html_options, set the +function+ parameter to nil
       #
       # Examples:
       #   button_to_function "Greeting", "alert('Hello world!')"
@@ -113,32 +130,6 @@ module ActionView
 
         tag(:input, html_options.merge(:type => 'button', :value => name, :onclick => onclick))
       end
-
-      # Includes the Action Pack JavaScript libraries inside a single <script>
-      # tag. The function first includes prototype.js and then its core extensions,
-      # (determined by filenames starting with "prototype").
-      # Afterwards, any additional scripts will be included in undefined order.
-      #
-      # Note: The recommended approach is to copy the contents of
-      # lib/action_view/helpers/javascripts/ into your application's
-      # public/javascripts/ directory, and use +javascript_include_tag+ to
-      # create remote <script> links.
-      def define_javascript_functions
-        javascript = "<script type=\"#{Mime::JS}\">"
-
-        # load prototype.js and its extensions first
-        prototype_libs = Dir.glob(File.join(JAVASCRIPT_PATH, 'prototype*')).sort.reverse
-        prototype_libs.each do |filename|
-          javascript << "\n" << IO.read(filename)
-        end
-
-        # load other libraries
-        (Dir.glob(File.join(JAVASCRIPT_PATH, '*')) - prototype_libs).each do |filename|
-          javascript << "\n" << IO.read(filename)
-        end
-        javascript << '</script>'
-      end
-
 
       JS_ESCAPE_MAP = {
         '\\'    => '\\\\',
@@ -216,7 +207,5 @@ module ActionView
         end
       end
     end
-
-    JavascriptHelper = JavaScriptHelper unless const_defined? :JavascriptHelper
   end
 end

@@ -72,57 +72,61 @@ module Mime
       end
 
       def parse(accept_header)
-        # keep track of creation order to keep the subsequent sort stable
-        list = []
-        accept_header.split(/,/).each_with_index do |header, index| 
-          params, q = header.split(/;\s*q=/)       
-          if params
-            params.strip!          
-            list << AcceptItem.new(index, params, q) unless params.empty?
-          end
-        end
-        list.sort!
-
-        # Take care of the broken text/xml entry by renaming or deleting it
-        text_xml = list.index("text/xml")
-        app_xml = list.index(Mime::XML.to_s)
-
-        if text_xml && app_xml
-          # set the q value to the max of the two
-          list[app_xml].q = [list[text_xml].q, list[app_xml].q].max
-
-          # make sure app_xml is ahead of text_xml in the list
-          if app_xml > text_xml
-            list[app_xml], list[text_xml] = list[text_xml], list[app_xml]
-            app_xml, text_xml = text_xml, app_xml
-          end
-
-          # delete text_xml from the list
-          list.delete_at(text_xml)
-
-        elsif text_xml
-          list[text_xml].name = Mime::XML.to_s
-        end
-
-        # Look for more specific XML-based types and sort them ahead of app/xml
-
-        if app_xml
-          idx = app_xml
-          app_xml_type = list[app_xml]
-
-          while(idx < list.length)
-            type = list[idx]
-            break if type.q < app_xml_type.q
-            if type.name =~ /\+xml$/
-              list[app_xml], list[idx] = list[idx], list[app_xml]
-              app_xml = idx
+        if accept_header !~ /,/
+          [Mime::Type.lookup(accept_header)]
+        else
+          # keep track of creation order to keep the subsequent sort stable
+          list = []
+          accept_header.split(/,/).each_with_index do |header, index| 
+            params, q = header.split(/;\s*q=/)       
+            if params
+              params.strip!          
+              list << AcceptItem.new(index, params, q) unless params.empty?
             end
-            idx += 1
           end
-        end
+          list.sort!
 
-        list.map! { |i| Mime::Type.lookup(i.name) }.uniq!
-        list
+          # Take care of the broken text/xml entry by renaming or deleting it
+          text_xml = list.index("text/xml")
+          app_xml = list.index(Mime::XML.to_s)
+
+          if text_xml && app_xml
+            # set the q value to the max of the two
+            list[app_xml].q = [list[text_xml].q, list[app_xml].q].max
+
+            # make sure app_xml is ahead of text_xml in the list
+            if app_xml > text_xml
+              list[app_xml], list[text_xml] = list[text_xml], list[app_xml]
+              app_xml, text_xml = text_xml, app_xml
+            end
+
+            # delete text_xml from the list
+            list.delete_at(text_xml)
+
+          elsif text_xml
+            list[text_xml].name = Mime::XML.to_s
+          end
+
+          # Look for more specific XML-based types and sort them ahead of app/xml
+
+          if app_xml
+            idx = app_xml
+            app_xml_type = list[app_xml]
+
+            while(idx < list.length)
+              type = list[idx]
+              break if type.q < app_xml_type.q
+              if type.name =~ /\+xml$/
+                list[app_xml], list[idx] = list[idx], list[app_xml]
+                app_xml = idx
+              end
+              idx += 1
+            end
+          end
+
+          list.map! { |i| Mime::Type.lookup(i.name) }.uniq!
+          list
+        end
       end
     end
     

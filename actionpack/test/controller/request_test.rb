@@ -386,7 +386,7 @@ class RequestTest < Test::Unit::TestCase
 
   def test_nil_format
     @request.instance_eval { @parameters = { :format => nil } }
-    @request.env["HTTP_ACCEPT"] = "text/javascript"
+    @request.env["HTTP_X_REQUESTED_WITH"] = "XMLHttpRequest"
     assert_equal Mime::JS, @request.format
   end
 

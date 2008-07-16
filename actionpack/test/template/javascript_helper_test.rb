@@ -3,12 +3,10 @@ require 'abstract_unit'
 class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
 
-  def test_define_javascript_functions
-    # check if prototype.js is included first
-    assert_not_nil define_javascript_functions.split("\n")[1].match(/Prototype JavaScript framework/)
+  attr_accessor :template_format, :output_buffer
 
-    # check that scriptaculous.js is not in here, only needed if loaded remotely
-    assert_nil define_javascript_functions.split("\n")[1].match(/var Scriptaculous = \{/)
+  def setup
+    @template = self
   end
 
   def test_escape_javascript

@@ -34,9 +34,8 @@ module ActionView
         # Return captured buffer in erb.
         if block_called_from_erb?(block)
           with_output_buffer { block.call(*args) }
-
-        # Return block result otherwise, but protect buffer also.
         else
+          # Return block result otherwise, but protect buffer also.
           with_output_buffer { return block.call(*args) }
         end
       end
@@ -123,14 +122,15 @@ module ActionView
         nil
       end
 
-      private
-        def with_output_buffer(buf = '')
-          self.output_buffer, old_buffer = buf, output_buffer
-          yield
-          output_buffer
-        ensure
-          self.output_buffer = old_buffer
-        end
+      # Use an alternate output buffer for the duration of the block.
+      # Defaults to a new empty string.
+      def with_output_buffer(buf = '') #:nodoc:
+        self.output_buffer, old_buffer = buf, output_buffer
+        yield
+        output_buffer
+      ensure
+        self.output_buffer = old_buffer
+      end
     end
   end
 end

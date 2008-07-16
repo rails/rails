@@ -61,7 +61,7 @@ module ActionController
       request_method == :head
     end
 
-    # Provides acccess to the request's HTTP headers, for example:
+    # Provides access to the request's HTTP headers, for example:
     #  request.headers["Content-Type"] # => "text/plain"
     def headers
       @headers ||= ActionController::Http::Headers.new(@env)
@@ -82,21 +82,34 @@ module ActionController
     # Returns the accepted MIME type for the request
     def accepts
       @accepts ||=
-        if @env['HTTP_ACCEPT'].to_s.strip.empty?
-          [ content_type, Mime::ALL ].compact # make sure content_type being nil is not included
-        else
-          Mime::Type.parse(@env['HTTP_ACCEPT'])
+        begin
+          header = @env['HTTP_ACCEPT'].to_s.strip
+
+          if header.empty?
+            [content_type, Mime::ALL].compact
+          else
+            Mime::Type.parse(header)
+          end
         end
     end
 
-    # Returns the Mime type for the format used in the request. If there is no format available, the first of the 
-    # accept types will be used. Examples:
+    # Returns the Mime type for the format used in the request.
     #
     #   GET /posts/5.xml   | request.format => Mime::XML
     #   GET /posts/5.xhtml | request.format => Mime::HTML
-    #   GET /posts/5       | request.format => request.accepts.first (usually Mime::HTML for browsers)
+    #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first depending on the value of <tt>ActionController::Base.use_accept_header</tt>
     def format
-      @format ||= parameters[:format] ? Mime::Type.lookup_by_extension(parameters[:format]) : accepts.first
+      @format ||= begin
+        if parameters[:format]
+          Mime::Type.lookup_by_extension(parameters[:format])
+        elsif ActionController::Base.use_accept_header
+          accepts.first
+        elsif xhr?
+          Mime::Type.lookup_by_extension("js")
+        else
+          Mime::Type.lookup_by_extension("html")
+        end
+      end
     end
     
     
@@ -114,6 +127,26 @@ module ActionController
     def format=(extension)
       parameters[:format] = extension.to_s
       @format = Mime::Type.lookup_by_extension(parameters[:format])
+    end
+
+    # Returns a symbolized version of the <tt>:format</tt> parameter of the request.
+    # If no format is given it returns <tt>:js</tt>for AJAX requests and <tt>:html</tt>
+    # otherwise.
+    def template_format
+      parameter_format = parameters[:format]
+
+      if parameter_format
+        parameter_format.to_sym
+      elsif xhr?
+        :js
+      else
+        :html
+      end
+    end
+
+    def cache_format
+      parameter_format = parameters[:format]
+      parameter_format && parameter_format.to_sym
     end
 
     # Returns true if the request's "X-Requested-With" header contains
@@ -232,7 +265,7 @@ EOM
       parts[0..-(tld_length+2)]
     end
 
-    # Return the query string, accounting for server idiosyncracies.
+    # Return the query string, accounting for server idiosyncrasies.
     def query_string
       if uri = @env['REQUEST_URI']
         uri.split('?', 2)[1] || ''
@@ -241,7 +274,7 @@ EOM
       end
     end
 
-    # Return the request URI, accounting for server idiosyncracies.
+    # Return the request URI, accounting for server idiosyncrasies.
     # WEBrick includes the full URL. IIS leaves REQUEST_URI blank.
     def request_uri
       if uri = @env['REQUEST_URI']

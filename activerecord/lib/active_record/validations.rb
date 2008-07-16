@@ -1,5 +1,5 @@
 module ActiveRecord
-  # Raised by save! and create! when the record is invalid.  Use the
+  # Raised by <tt>save!</tt> and <tt>create!</tt> when the record is invalid.  Use the
   # +record+ method to retrieve the record which did not validate.
   #   begin
   #     complex_operation_that_calls_save!_internally
@@ -52,7 +52,7 @@ module ActiveRecord
     # Adds an error to the base object instead of any particular attribute. This is used
     # to report errors that don't tie to any specific attribute, but rather to the object
     # as a whole. These error messages don't get prepended with any field name when iterating
-    # with each_full, so they should be complete sentences.
+    # with +each_full+, so they should be complete sentences.
     def add_to_base(msg)
       add(:base, msg)
     end
@@ -97,7 +97,7 @@ module ActiveRecord
       !@errors[attribute.to_s].nil?
     end
 
-    # Returns nil, if no errors are associated with the specified +attribute+.
+    # Returns +nil+, if no errors are associated with the specified +attribute+.
     # Returns the error message, if one error is associated with the specified +attribute+.
     # Returns an array of error messages, if more than one error is associated with the specified +attribute+.
     #
@@ -118,7 +118,7 @@ module ActiveRecord
 
     alias :[] :on
 
-    # Returns errors assigned to the base object through add_to_base according to the normal rules of on(attribute).
+    # Returns errors assigned to the base object through +add_to_base+ according to the normal rules of <tt>on(attribute)</tt>.
     def on_base
       on(:base)
     end
@@ -131,15 +131,15 @@ module ActiveRecord
     #   end
     #
     #   company = Company.create(:address => '123 First St.')
-    #   company.errors.each{|attr,msg| puts "#{attr} - #{msg}" } # =>
-    #     name - is too short (minimum is 5 characters)
-    #     name - can't be blank
-    #     address - can't be blank
+    #   company.errors.each{|attr,msg| puts "#{attr} - #{msg}" }
+    #   # => name - is too short (minimum is 5 characters)
+    #   #    name - can't be blank
+    #   #    address - can't be blank
     def each
       @errors.each_key { |attr| @errors[attr].each { |msg| yield attr, msg } }
     end
 
-    # Yields each full error message added. So Person.errors.add("first_name", "can't be empty") will be returned
+    # Yields each full error message added. So <tt>Person.errors.add("first_name", "can't be empty")</tt> will be returned
     # through iteration as "First name can't be empty".
     #
     #   class Company < ActiveRecord::Base
@@ -148,10 +148,10 @@ module ActiveRecord
     #   end
     #
     #   company = Company.create(:address => '123 First St.')
-    #   company.errors.each_full{|msg| puts msg } # =>
-    #     Name is too short (minimum is 5 characters)
-    #     Name can't be blank
-    #     Address can't be blank
+    #   company.errors.each_full{|msg| puts msg }
+    #   # => Name is too short (minimum is 5 characters)
+    #   #    Name can't be blank
+    #   #    Address can't be blank
     def each_full
       full_messages.each { |msg| yield msg }
     end
@@ -164,8 +164,8 @@ module ActiveRecord
     #   end
     #
     #   company = Company.create(:address => '123 First St.')
-    #   company.errors.full_messages # =>
-    #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Address can't be blank"]
+    #   company.errors.full_messages
+    #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Address can't be blank"]
     def full_messages
       full_messages = []
 
@@ -209,13 +209,13 @@ module ActiveRecord
     #   end
     #
     #   company = Company.create(:address => '123 First St.')
-    #   company.errors.to_xml # =>
-    #     <?xml version="1.0" encoding="UTF-8"?>
-    #     <errors>
-    #       <error>Name is too short (minimum is 5 characters)</error>
-    #       <error>Name can't be blank</error>
-    #       <error>Address can't be blank</error>
-    #     </errors>
+    #   company.errors.to_xml
+    #   # =>  <?xml version="1.0" encoding="UTF-8"?>
+    #   #     <errors>
+    #   #       <error>Name is too short (minimum is 5 characters)</error>
+    #   #       <error>Name can't be blank</error>
+    #   #       <error>Address can't be blank</error>
+    #   #     </errors>
     def to_xml(options={})
       options[:root] ||= "errors"
       options[:indent] ||= 2
@@ -261,7 +261,7 @@ module ActiveRecord
   #   person.errors.on "phone_number"     # => "has invalid format"
   #   person.errors.each_full { |msg| puts msg }
   #                                       # => "Last name can't be empty\n" +
-  #                                            "Phone number has invalid format"
+  #                                       #    "Phone number has invalid format"
   #
   #   person.attributes = { "last_name" => "Heinemeier", "phone_number" => "555-555" }
   #   person.save # => true (and person is now saved in the database)
@@ -300,7 +300,7 @@ module ActiveRecord
                                   :odd => 'odd?', :even => 'even?' }.freeze
 
       # Adds a validation method or block to the class. This is useful when
-      # overriding the +validate+ instance method becomes too unwieldly and
+      # overriding the +validate+ instance method becomes too unwieldy and
       # you're looking for more descriptive declaration of your validations.
       #
       # This can be done with a symbol pointing to a method:
@@ -479,8 +479,9 @@ module ActiveRecord
       #     validates_length_of :fax, :in => 7..32, :allow_nil => true
       #     validates_length_of :phone, :in => 7..32, :allow_blank => true
       #     validates_length_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
-      #     validates_length_of :fav_bra_size, :minimum=>1, :too_short=>"please enter at least %d character"
-      #     validates_length_of :smurf_leader, :is=>4, :message=>"papa is spelled with %d characters... don't play me."
+      #     validates_length_of :fav_bra_size, :minimum => 1, :too_short => "please enter at least %d character"
+      #     validates_length_of :smurf_leader, :is => 4, :message => "papa is spelled with %d characters... don't play me."
+      #     validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least %d words."), :tokenizer => lambda {|str| str.scan(/\w+/) }
       #   end
       #
       # Configuration options:
@@ -491,7 +492,6 @@ module ActiveRecord
       # * <tt>:in</tt> - A synonym(or alias) for <tt>:within</tt>.
       # * <tt>:allow_nil</tt> - Attribute may be +nil+; skip validation.
       # * <tt>:allow_blank</tt> - Attribute may be blank; skip validation.
-      #
       # * <tt>:too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (maximum is %d characters)").
       # * <tt>:too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is %d characters)").
       # * <tt>:wrong_length</tt> - The error message if using the <tt>:is</tt> method and the attribute is the wrong size (default is: "is the wrong length (should be %d characters)").
@@ -503,12 +503,16 @@ module ActiveRecord
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
+      # * <tt>:tokenizer</tt> - Specifies how to split up the attribute string. (e.g. <tt>:tokenizer => lambda {|str| str.scan(/\w+/)}</tt> to
+      #   count words as in above example.)
+      #   Defaults to <tt>lambda{ |value| value.split(//) }</tt> which counts individual characters.
       def validates_length_of(*attrs)
         # Merge given options with defaults.
         options = {
           :too_long     => ActiveRecord::Errors.default_error_messages[:too_long],
           :too_short    => ActiveRecord::Errors.default_error_messages[:too_short],
-          :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length]
+          :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length],
+          :tokenizer    => lambda {|value| value.split(//)}
         }.merge(DEFAULT_VALIDATION_OPTIONS)
         options.update(attrs.extract_options!.symbolize_keys)
 
@@ -535,7 +539,7 @@ module ActiveRecord
             too_long  = options[:too_long]  % option_value.end
 
             validates_each(attrs, options) do |record, attr, value|
-              value = value.split(//) if value.kind_of?(String)
+              value = options[:tokenizer].call(value) if value.kind_of?(String)
               if value.nil? or value.size < option_value.begin
                 record.errors.add(attr, too_short)
               elsif value.size > option_value.end
@@ -552,7 +556,7 @@ module ActiveRecord
             message = (options[:message] || options[message_options[option]]) % option_value
 
             validates_each(attrs, options) do |record, attr, value|
-              value = value.split(//) if value.kind_of?(String)
+              value = options[:tokenizer].call(value) if value.kind_of?(String)
               record.errors.add(attr, message) unless !value.nil? and value.size.method(validity_checks[option])[option_value]
             end
         end
@@ -850,7 +854,7 @@ module ActiveRecord
             raw_value = raw_value.to_i
           else
            begin
-              raw_value = Kernel.Float(raw_value.to_s)
+              raw_value = Kernel.Float(raw_value)
             rescue ArgumentError, TypeError
               record.errors.add(attr_name, configuration[:message] || ActiveRecord::Errors.default_error_messages[:not_a_number])
               next

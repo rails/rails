@@ -154,35 +154,28 @@ HELP
         # Ruby or Rails.  In the future, expand to check other namespaces
         # such as the rest of the user's app.
         def class_collisions(*class_names)
-
-          # Initialize some check varibles
-          last_class = Object
-          current_class = nil
-          name = nil
-
           class_names.flatten.each do |class_name|
             # Convert to string to allow symbol arguments.
             class_name = class_name.to_s
 
             # Skip empty strings.
-            class_name.strip.empty? ? next : current_class = class_name
+            next if class_name.strip.empty?
 
             # Split the class from its module nesting.
             nesting = class_name.split('::')
             name = nesting.pop
 
             # Extract the last Module in the nesting.
-            last = nesting.inject(last_class) { |last, nest|
-              break unless last_class.const_defined?(nest)
-              last_class = last_class.const_get(nest)
+            last = nesting.inject(Object) { |last, nest|
+              break unless last.const_defined?(nest)
+              last.const_get(nest)
             }
 
-          end
-          # If the last Module exists, check whether the given
-          # class exists and raise a collision if so.
-
-          if last_class and last_class.const_defined?(name.camelize)
-            raise_class_collision(current_class)
+            # If the last Module exists, check whether the given
+            # class exists and raise a collision if so.
+            if last and last.const_defined?(name.camelize)
+              raise_class_collision(class_name)
+            end
           end
         end
 

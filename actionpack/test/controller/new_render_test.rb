@@ -81,12 +81,12 @@ class NewRenderTestController < ActionController::Base
 
   def render_file_not_using_full_path
     @secret = 'in the sauce'
-    render :file => 'test/render_file_with_ivar', :use_full_path => true
+    render :file => 'test/render_file_with_ivar'
   end
 
   def render_file_not_using_full_path_with_dot_in_path
     @secret = 'in the sauce'
-    render :file => 'test/dot.directory/render_file_with_ivar', :use_full_path => true
+    render :file => 'test/dot.directory/render_file_with_ivar'
   end
 
   def render_xml_hello
@@ -231,13 +231,13 @@ class NewRenderTestController < ActionController::Base
   end
 
   def render_to_string_with_exception
-    render_to_string :file => "exception that will not be caught - this will certainly not work", :use_full_path => true
+    render_to_string :file => "exception that will not be caught - this will certainly not work"
   end
 
   def render_to_string_with_caught_exception
     @before = "i'm before the render"
     begin
-      render_to_string :file => "exception that will be caught- hope my future instance vars still work!", :use_full_path => true
+      render_to_string :file => "exception that will be caught- hope my future instance vars still work!"
     rescue
     end
     @after = "i'm after the render"
@@ -465,9 +465,6 @@ class NewRenderTestController < ActionController::Base
     end
 end
 
-NewRenderTestController.view_paths = [FIXTURE_LOAD_PATH]
-Fun::GamesController.view_paths = [FIXTURE_LOAD_PATH]
-
 class NewRenderTest < Test::Unit::TestCase
   def setup
     @controller = NewRenderTestController.new
@@ -487,6 +484,11 @@ class NewRenderTest < Test::Unit::TestCase
     assert_response :success
     assert_template "test/hello_world"
     assert_equal "<html>Hello world!</html>", @response.body
+  end
+
+  def test_renders_default_template_for_missing_action
+    get :'hyphen-ated'
+    assert_template 'test/hyphen-ated'
   end
 
   def test_do_with_render
@@ -605,8 +607,7 @@ EOS
   end
 
   def test_render_with_default_from_accept_header
-    @request.env["HTTP_ACCEPT"] = "text/javascript"
-    get :greeting
+    xhr :get, :greeting
     assert_equal "$(\"body\").visualEffect(\"highlight\");", @response.body
   end
 
