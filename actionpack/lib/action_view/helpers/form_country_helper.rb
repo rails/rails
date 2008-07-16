@@ -3,9 +3,10 @@ require 'action_view/helpers/form_options_helper'
 module ActionView
   module Helpers
     module FormCountryHelper
+
       # Return select and option tags for the given object and method, using country_options_for_select to generate the list of option tags.
       def country_select(object, method, priority_countries = nil, options = {}, html_options = {})
-        InstanceTag.new(object, method, self, nil, options.delete(:object)).to_country_select_tag(priority_countries, options, html_options)
+        InstanceTag.new(object, method, self, options.delete(:object)).to_country_select_tag(priority_countries, options, html_options)
       end
 
       # Returns a string of option tags for pretty much any country in the world. Supply a country name as +selected+ to
@@ -15,17 +16,17 @@ module ActionView
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def country_options_for_select(selected = nil, priority_countries = nil)
         country_options = ""
- 
+
         if priority_countries
           country_options += options_for_select(priority_countries, selected)
           country_options += "<option value=\"\" disabled=\"disabled\">-------------</option>\n"
         end
- 
+
         return country_options + options_for_select(COUNTRIES, selected)
       end
       
       private
-      
+
         # All the countries included in the country_options output.
         COUNTRIES = ["Afghanistan", "Aland Islands", "Albania", "Algeria", "American Samoa", "Andorra", "Angola",
           "Anguilla", "Antarctica", "Antigua And Barbuda", "Argentina", "Armenia", "Aruba", "Australia", "Austria",
@@ -63,8 +64,7 @@ module ActionView
           "Turks and Caicos Islands", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom",
           "United States", "United States Minor Outlying Islands", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela",
           "Viet Nam", "Virgin Islands, British", "Virgin Islands, U.S.", "Wallis and Futuna", "Western Sahara",
-          "Yemen", "Zambia", "Zimbabwe"] unless const_defined?("COUNTRIES")       
-          
+          "Yemen", "Zambia", "Zimbabwe"] unless const_defined?("COUNTRIES")
     end
     
     class InstanceTag #:nodoc:
@@ -80,7 +80,13 @@ module ActionView
             options, value
           ), html_options
         )
-      end           
+      end
+    end
+
+    class FormBuilder
+      def country_select(method, priority_countries = nil, options = {}, html_options = {})
+        @template.country_select(@object_name, method, priority_countries, objectify_options(options), @default_options.merge(html_options))
+      end
     end
   end
 end
