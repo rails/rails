@@ -171,9 +171,10 @@ module ActionView #:nodoc:
       delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
     end
 
-    # Specify whether templates should be cached. Otherwise the file we be read everytime it is accessed.
-    @@cache_template_loading = false
-    cattr_accessor :cache_template_loading
+    def self.cache_template_loading=(*args)
+      ActiveSupport::Deprecation.warn("config.action_view.cache_template_loading option has been deprecated and has no affect. " <<
+                                       "Please remove it from your config files.", caller)
+    end
 
     def self.cache_template_extensions=(*args)
       ActiveSupport::Deprecation.warn("config.action_view.cache_template_extensions option has been deprecated and has no affect. " <<

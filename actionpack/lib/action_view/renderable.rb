@@ -72,7 +72,7 @@ module ActionView
       # if local_assigns has a new key, which isn't supported by the compiled code yet.
       def recompile?(symbol)
         meth = Base::CompiledTemplates.instance_method(template.method) rescue nil
-        !(meth && Base.cache_template_loading)
+        !(meth && frozen?)
       end
   end
 end

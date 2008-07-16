@@ -22,7 +22,6 @@ ActiveSupport::Deprecation.debug = true
 ActionController::Base.logger = nil
 ActionController::Routing::Routes.reload rescue nil
 
-ActionView::Base.cache_template_loading = true
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 ActionController::Base.view_paths = FIXTURE_LOAD_PATH
 
