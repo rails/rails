@@ -465,9 +465,6 @@ class NewRenderTestController < ActionController::Base
     end
 end
 
-NewRenderTestController.view_paths = [FIXTURE_LOAD_PATH]
-Fun::GamesController.view_paths = [FIXTURE_LOAD_PATH]
-
 class NewRenderTest < Test::Unit::TestCase
   def setup
     @controller = NewRenderTestController.new
@@ -487,6 +484,11 @@ class NewRenderTest < Test::Unit::TestCase
     assert_response :success
     assert_template "test/hello_world"
     assert_equal "<html>Hello world!</html>", @response.body
+  end
+
+  def test_renders_default_template_for_missing_action
+    get :'hyphen-ated'
+    assert_template 'test/hyphen-ated'
   end
 
   def test_do_with_render

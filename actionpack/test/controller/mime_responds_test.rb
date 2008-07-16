@@ -162,8 +162,6 @@ class RespondToController < ActionController::Base
     end
 end
 
-RespondToController.view_paths = [FIXTURE_LOAD_PATH]
-
 class MimeControllerTest < Test::Unit::TestCase
   def setup
     ActionController::Base.use_accept_header = true

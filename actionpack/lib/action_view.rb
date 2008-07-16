@@ -21,14 +21,14 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'action_view/template_handlers'
-require 'action_view/template_file'
-require 'action_view/view_load_paths'
 
+require 'action_view/template_handlers'
 require 'action_view/renderable'
+require 'action_view/renderable_partial'
+
 require 'action_view/template'
-require 'action_view/partial_template'
 require 'action_view/inline_template'
+require 'action_view/paths'
 
 require 'action_view/base'
 require 'action_view/partials'

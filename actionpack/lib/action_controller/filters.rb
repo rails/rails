@@ -94,7 +94,7 @@ module ActionController #:nodoc:
           map! do |filter|
             if filters.include?(filter)
               new_filter = filter.dup
-              new_filter.options.merge!(options)
+              new_filter.update_options!(options)
               new_filter
             else
               filter
@@ -104,6 +104,11 @@ module ActionController #:nodoc:
     end
 
     class Filter < ActiveSupport::Callbacks::Callback #:nodoc:
+      def initialize(kind, method, options = {})
+        super
+        update_options! options
+      end
+
       def before?
         self.class == BeforeFilter
       end
@@ -114,6 +119,18 @@ module ActionController #:nodoc:
 
       def around?
         self.class == AroundFilter
+      end
+
+      # Make sets of strings from :only/:except options
+      def update_options!(other)
+        if other
+          convert_only_and_except_options_to_sets_of_strings(other)
+          if other[:skip]
+            convert_only_and_except_options_to_sets_of_strings(other[:skip])
+          end
+        end
+
+        options.update(other)
       end
 
       private
@@ -127,9 +144,9 @@ module ActionController #:nodoc:
 
         def included_in_action?(controller, options)
           if options[:only]
-            Array(options[:only]).map(&:to_s).include?(controller.action_name)
+            options[:only].include?(controller.action_name)
           elsif options[:except]
-            !Array(options[:except]).map(&:to_s).include?(controller.action_name)
+            !options[:except].include?(controller.action_name)
           else
             true
           end
@@ -137,6 +154,14 @@ module ActionController #:nodoc:
 
         def should_run_callback?(controller)
           should_not_skip?(controller) && included_in_action?(controller, options) && super
+        end
+
+        def convert_only_and_except_options_to_sets_of_strings(opts)
+          [:only, :except].each do |key|
+            if values = opts[key]
+              opts[key] = Array(values).map(&:to_s).to_set
+            end
+          end
         end
     end
 

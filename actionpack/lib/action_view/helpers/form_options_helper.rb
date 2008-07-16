@@ -445,19 +445,19 @@ module ActionView
 
     class FormBuilder
       def select(method, choices, options = {}, html_options = {})
-        @template.select(@object_name, method, choices, options.merge(:object => @object), html_options)
+        @template.select(@object_name, method, choices, objectify_options(options), @default_options.merge(html_options))
       end
 
       def collection_select(method, collection, value_method, text_method, options = {}, html_options = {})
-        @template.collection_select(@object_name, method, collection, value_method, text_method, options.merge(:object => @object), html_options)
+        @template.collection_select(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options))
       end
 
       def country_select(method, priority_countries = nil, options = {}, html_options = {})
-        @template.country_select(@object_name, method, priority_countries, options.merge(:object => @object), html_options)
+        @template.country_select(@object_name, method, priority_countries, objectify_options(options), @default_options.merge(html_options))
       end
 
       def time_zone_select(method, priority_zones = nil, options = {}, html_options = {})
-        @template.time_zone_select(@object_name, method, priority_zones, options.merge(:object => @object), html_options)
+        @template.time_zone_select(@object_name, method, priority_zones, objectify_options(options), @default_options.merge(html_options))
       end
     end
   end

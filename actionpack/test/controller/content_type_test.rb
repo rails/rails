@@ -45,8 +45,6 @@ class ContentTypeController < ActionController::Base
   def rescue_action(e) raise end
 end
 
-ContentTypeController.view_paths = [FIXTURE_LOAD_PATH]
-
 class ContentTypeTest < Test::Unit::TestCase
   def setup
     @controller = ContentTypeController.new
@@ -124,7 +122,7 @@ class AcceptBasedContentTypeTest < ActionController::TestCase
     ActionController::Base.use_accept_header = true
   end
 
-  def tear_down
+  def teardown
     ActionController::Base.use_accept_header = false
   end
 

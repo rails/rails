@@ -19,8 +19,6 @@ class AddressesTestController < ActionController::Base
   def self.controller_path; "addresses"; end
 end
 
-AddressesTestController.view_paths = [FIXTURE_LOAD_PATH]
-
 class AddressesTest < Test::Unit::TestCase
   def setup
     @controller = AddressesTestController.new

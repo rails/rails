@@ -164,14 +164,6 @@ module Admin
   end
 end
 
-# ---------------------------------------------------------------------------
-
-
-# tell the controller where to find its templates but start from parent
-# directory of test_request_response to simulate the behaviour of a
-# production environment
-ActionPackAssertionsController.view_paths = [FIXTURE_LOAD_PATH]
-
 # a test case to exercise the new capabilities TestRequest & TestResponse
 class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   # let's get this party started
@@ -336,11 +328,11 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   # check if we were rendered by a file-based template?
   def test_rendered_action
     process :nothing
-    assert !@response.rendered_with_file?
+    assert_nil @response.rendered_template
 
     process :hello_world
-    assert @response.rendered_with_file?
-    assert 'hello_world', @response.rendered_file
+    assert @response.rendered_template
+    assert 'hello_world', @response.rendered_template.to_s
   end
 
   # check the redirection location

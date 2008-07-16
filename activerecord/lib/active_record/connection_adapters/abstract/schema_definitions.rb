@@ -1,4 +1,5 @@
 require 'date'
+require 'set'
 require 'bigdecimal'
 require 'bigdecimal/util'
 
@@ -6,6 +7,8 @@ module ActiveRecord
   module ConnectionAdapters #:nodoc:
     # An abstract definition of a column in a table.
     class Column
+      TRUE_VALUES = [true, 1, '1', 't', 'T', 'true', 'TRUE'].to_set
+
       module Format
         ISO_DATE = /\A(\d{4})-(\d\d)-(\d\d)\z/
         ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
@@ -135,11 +138,7 @@ module ActiveRecord
 
         # convert something to a boolean
         def value_to_boolean(value)
-          if value == true || value == false
-            value
-          else
-            %w(true t 1).include?(value.to_s.downcase)
-          end
+          TRUE_VALUES.include?(value)
         end
 
         # convert something to a BigDecimal
@@ -257,7 +256,10 @@ module ActiveRecord
 
       def to_sql
         column_sql = "#{base.quote_column_name(name)} #{sql_type}"
-        add_column_options!(column_sql, :null => null, :default => default) unless type.to_sym == :primary_key
+        column_options = {}
+        column_options[:null] = null unless null.nil?
+        column_options[:default] = default unless default.nil?
+        add_column_options!(column_sql, column_options) unless type.to_sym == :primary_key
         column_sql
       end
       alias to_s :to_sql

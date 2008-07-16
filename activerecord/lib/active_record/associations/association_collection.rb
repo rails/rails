@@ -14,7 +14,7 @@ module ActiveRecord
         # If using a custom finder_sql, scan the entire collection.
         if @reflection.options[:finder_sql]
           expects_array = args.first.kind_of?(Array)
-          ids           = args.flatten.compact.uniq.map(&:to_i)
+          ids           = args.flatten.compact.uniq.map { |arg| arg.to_i }
 
           if ids.size == 1
             id = ids.first
@@ -78,11 +78,14 @@ module ActiveRecord
         @loaded = false
       end
 
-      def build(attributes = {})
+      def build(attributes = {}, &block)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| build(attr) }
+          attributes.collect { |attr| build(attr, &block) }
         else
-          build_record(attributes) { |record| set_belongs_to_association_for(record) }
+          build_record(attributes) do |record|
+            block.call(record) if block_given?
+            set_belongs_to_association_for(record)
+          end
         end
       end
 
@@ -94,6 +97,8 @@ module ActiveRecord
 
         @owner.transaction do
           flatten_deeper(records).each do |record|
+            record = @reflection.klass.new(record) if @reflection.options[:accessible] && record.is_a?(Hash)
+
             raise_on_type_mismatch(record)
             add_record_to_target_with_callbacks(record) do |r|
               result &&= insert_record(record) unless @owner.new_record?
@@ -226,6 +231,10 @@ module ActiveRecord
       # Replace this collection with +other_array+
       # This will perform a diff and delete/add only records that have changed.
       def replace(other_array)
+        other_array.map! do |val|
+          val.is_a?(Hash) ? @reflection.klass.new(val) : val
+        end if @reflection.options[:accessible]
+
         other_array.each { |val| raise_on_type_mismatch(val) }
 
         load_target

@@ -189,6 +189,114 @@ class AssociationProxyTest < ActiveRecord::TestCase
     end
   end
 
+  def test_belongs_to_mass_assignment
+    post_attributes   = { :title => 'Associations', :body => 'Are They Accessible?' }
+    author_attributes = { :name  => 'David Dollar' }
+
+    assert_no_difference 'Author.count' do
+      assert_raise(ActiveRecord::AssociationTypeMismatch) do
+        Post.create(post_attributes.merge({:author => author_attributes}))
+      end
+    end
+
+    assert_difference 'Author.count' do
+      post = Post.create(post_attributes.merge({:creatable_author => author_attributes}))
+      assert_equal post.creatable_author.name, author_attributes[:name]
+    end
+  end
+
+  def test_has_one_mass_assignment
+    post_attributes    = { :title => 'Associations', :body => 'Are They Accessible?' }
+    comment_attributes = { :body  => 'Setter Takes Hash' }
+
+    assert_no_difference 'Comment.count' do
+      assert_raise(ActiveRecord::AssociationTypeMismatch) do
+        Post.create(post_attributes.merge({:uncreatable_comment => comment_attributes}))
+      end
+    end
+
+    assert_difference 'Comment.count' do
+      post = Post.create(post_attributes.merge({:creatable_comment => comment_attributes}))
+      assert_equal post.creatable_comment.body, comment_attributes[:body]
+    end
+  end
+
+  def test_has_many_mass_assignment
+    post               = posts(:welcome)
+    post_attributes    = { :title => 'Associations', :body => 'Are They Accessible?' }
+    comment_attributes = { :body  => 'Setter Takes Hash' }
+
+    assert_no_difference 'Comment.count' do
+      assert_raise(ActiveRecord::AssociationTypeMismatch) do
+        Post.create(post_attributes.merge({:comments => [comment_attributes]}))
+      end
+      assert_raise(ActiveRecord::AssociationTypeMismatch) do
+        post.comments << comment_attributes
+      end
+    end
+
+    assert_difference 'Comment.count' do
+      post = Post.create(post_attributes.merge({:creatable_comments => [comment_attributes]}))
+      assert_equal post.creatable_comments.last.body, comment_attributes[:body]
+    end
+
+    assert_difference 'Comment.count' do
+      post.creatable_comments << comment_attributes
+      assert_equal post.comments.last.body, comment_attributes[:body]
+    end
+
+    post.creatable_comments = [comment_attributes, comment_attributes]
+    assert_equal post.creatable_comments.count, 2
+  end
+
+  def test_has_and_belongs_to_many_mass_assignment
+    post                = posts(:welcome)
+    post_attributes     = { :title => 'Associations', :body => 'Are They Accessible?' }
+    category_attributes = { :name  => 'Accessible Association', :type => 'Category' }
+
+    assert_no_difference 'Category.count' do
+      assert_raise(ActiveRecord::AssociationTypeMismatch) do
+        Post.create(post_attributes.merge({:categories => [category_attributes]}))
+      end
+      assert_raise(ActiveRecord::AssociationTypeMismatch) do
+        post.categories << category_attributes
+      end
+    end
+
+    assert_difference 'Category.count' do
+      post = Post.create(post_attributes.merge({:creatable_categories => [category_attributes]}))
+      assert_equal post.creatable_categories.last.name, category_attributes[:name]
+    end
+
+    assert_difference 'Category.count' do
+      post.creatable_categories << category_attributes
+      assert_equal post.creatable_categories.last.name, category_attributes[:name]
+    end
+
+    post.creatable_categories = [category_attributes, category_attributes]
+    assert_equal post.creatable_categories.count, 2
+  end
+
+  def test_association_proxy_setter_can_take_hash
+    special_comment_attributes = { :body => 'Setter Takes Hash' }
+
+    post = posts(:welcome)
+    post.creatable_comment = { :body => 'Setter Takes Hash' }
+
+    assert_equal post.creatable_comment.body, special_comment_attributes[:body]
+  end
+
+  def test_association_collection_can_take_hash
+    post_attributes = { :title => 'Setter Takes', :body => 'Hash' }
+    david = authors(:david)
+
+    post = (david.posts << post_attributes).last
+    assert_equal post.title, post_attributes[:title]
+
+    david.posts = [post_attributes, post_attributes]
+    assert_equal david.posts.count, 2
+  end
+
   def setup_dangling_association
     josh = Author.create(:name => "Josh")
     p = Post.create(:title => "New on Edge", :body => "More cool stuff!", :author => josh)

@@ -6,7 +6,6 @@ CACHE_DIR = 'test_cache'
 FILE_STORE_PATH = File.join(File.dirname(__FILE__), '/../temp/', CACHE_DIR)
 ActionController::Base.page_cache_directory = FILE_STORE_PATH
 ActionController::Base.cache_store = :file_store, FILE_STORE_PATH
-ActionController::Base.view_paths = [FIXTURE_LOAD_PATH]
 
 class PageCachingTestController < ActionController::Base
   caches_page :ok, :no_content, :if => Proc.new { |c| !c.request.format.json? }
@@ -285,9 +284,12 @@ class ActionCacheTest < Test::Unit::TestCase
   end
 
   def test_action_cache_conditional_options
+    old_use_accept_header = ActionController::Base.use_accept_header
+    ActionController::Base.use_accept_header = true
     @request.env['HTTP_ACCEPT'] = 'application/json'
     get :index
     assert !fragment_exist?('hostname.com/action_caching_test')
+    ActionController::Base.use_accept_header = old_use_accept_header
   end
 
   def test_action_cache_with_store_options
@@ -633,8 +635,6 @@ class FunctionalCachingController < ActionController::Base
   end
 end
 
-FunctionalCachingController.view_paths = [FIXTURE_LOAD_PATH]
-
 class FunctionalFragmentCachingTest < Test::Unit::TestCase
   def setup
     ActionController::Base.perform_caching = true
@@ -662,6 +662,14 @@ CACHED
     assert_response :success
     assert_match /Fragment caching in a partial/, @response.body
     assert_match "Fragment caching in a partial", @store.read('views/test.host/functional_caching/html_fragment_cached_with_partial')
+  end
+
+  def test_render_inline_before_fragment_caching
+    get :inline_fragment_cached
+    assert_response :success
+    assert_match /Some inline content/, @response.body
+    assert_match /Some cached content/, @response.body
+    assert_match "Some cached content", @store.read('views/test.host/functional_caching/inline_fragment_cached')
   end
 
   def test_fragment_caching_in_rjs_partials

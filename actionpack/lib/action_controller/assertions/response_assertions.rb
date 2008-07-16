@@ -63,11 +63,18 @@ module ActionController
         clean_backtrace do
           assert_response(:redirect, message)
           return true if options == @response.redirected_to
+          
+          # Support partial arguments for hash redirections
+          if options.is_a?(Hash) && @response.redirected_to.is_a?(Hash)
+            return true if options.all? {|(key, value)| @response.redirected_to[key] == value}
+          end
+          
           redirected_to_after_normalisation = normalize_argument_to_redirection(@response.redirected_to)
           options_after_normalisation       = normalize_argument_to_redirection(options)
 
-          assert_equal options_after_normalisation, redirected_to_after_normalisation,
-                       "Expected response to be a redirect to <#{options_after_normalisation}> but was a redirect to <#{redirected_to_after_normalisation}>"
+          if redirected_to_after_normalisation != options_after_normalisation
+            flunk "Expected response to be a redirect to <#{options_after_normalisation}> but was a redirect to <#{redirected_to_after_normalisation}>"
+          end
         end
       end
 
@@ -80,13 +87,13 @@ module ActionController
       #
       def assert_template(expected = nil, message=nil)
         clean_backtrace do
-          rendered = expected ? @response.rendered_file(!expected.include?('/')) : @response.rendered_file
+          rendered = @response.rendered_template
           msg = build_message(message, "expecting <?> but rendering with <?>", expected, rendered)
           assert_block(msg) do
             if expected.nil?
-              !@response.rendered_with_file?
+              @response.rendered_template.nil?
             else
-              expected == rendered
+              rendered.to_s.match(expected)
             end
           end
         end

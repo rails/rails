@@ -541,10 +541,11 @@ class Fixtures < (RUBY_VERSION < '1.9' ? YAML::Omap : Hash)
     label.to_s.hash.abs
   end
 
-  attr_reader :table_name
+  attr_reader :table_name, :name
 
   def initialize(connection, table_name, class_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
     @connection, @table_name, @fixture_path, @file_filter = connection, table_name, fixture_path, file_filter
+    @name = table_name # preserve fixture base name
     @class_name = class_name ||
                   (ActiveRecord::Base.pluralize_table_names ? @table_name.singularize.camelize : @table_name.camelize)
     @table_name = "#{ActiveRecord::Base.table_name_prefix}#{@table_name}#{ActiveRecord::Base.table_name_suffix}"
@@ -963,9 +964,9 @@ module Test #:nodoc:
           fixtures = Fixtures.create_fixtures(fixture_path, fixture_table_names, fixture_class_names)
           unless fixtures.nil?
             if fixtures.instance_of?(Fixtures)
-              @loaded_fixtures[fixtures.table_name] = fixtures
+              @loaded_fixtures[fixtures.name] = fixtures
             else
-              fixtures.each { |f| @loaded_fixtures[f.table_name] = f }
+              fixtures.each { |f| @loaded_fixtures[f.name] = f }
             end
           end
         end

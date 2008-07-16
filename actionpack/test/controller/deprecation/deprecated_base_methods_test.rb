@@ -13,8 +13,6 @@ class DeprecatedBaseMethodsTest < Test::Unit::TestCase
     def rescue_action(e) raise e end
   end
 
-  Target.view_paths = [FIXTURE_LOAD_PATH]
-
   def setup
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new

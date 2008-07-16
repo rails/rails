@@ -205,21 +205,10 @@ module ActionController #:nodoc:
       p.match(redirect_url) != nil
     end
 
-    # Returns the template path of the file which was used to
-    # render this response (or nil) 
-    def rendered_file(with_controller=false)
-      unless template.first_render.nil?
-        unless with_controller
-          template.first_render
-        else
-          template.first_render.split('/').last || template.first_render
-        end
-      end
-    end
-
-    # Was this template rendered by a file?
-    def rendered_with_file?
-      !rendered_file.nil?
+    # Returns the template of the file which was used to
+    # render this response (or nil)
+    def rendered_template
+      template._first_render
     end
 
     # A shortcut to the flash. Returns an empyt hash if no session flash exists.

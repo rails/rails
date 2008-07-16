@@ -150,7 +150,8 @@ module ActiveRecord
         if scopes.include?(method)
           scopes[method].call(self, *args)
         else
-          with_scope :find => proxy_options do
+          with_scope :find => proxy_options, :create => proxy_options[:conditions].is_a?(Hash) ?  proxy_options[:conditions] : {} do
+            method = :new if method == :build
             proxy_scope.send(method, *args, &block)
           end
         end

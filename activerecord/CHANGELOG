@@ -1,5 +1,27 @@
 *Edge*
 
+* change_column_default preserves the not-null constraint.  #617 [Tarmo Tänav]
+
+* Fixed that create database statements would always include "DEFAULT NULL" (Nick Sieger) [#334]
+
+* Add :accessible option to associations for allowing (opt-in) mass assignment. #474. [David Dollar] Example :
+
+  class Post < ActiveRecord::Base
+    belongs_to :author,   :accessible => true
+    has_many   :comments, :accessible => true
+  end
+
+  post = Post.create({
+    :title    => 'Accessible Attributes',
+    :author   => { :name => 'David Dollar' },
+    :comments => [
+      { :body => 'First Post!' },
+      { :body => 'Nested Hashes are great!' }
+    ]
+  })
+
+  post.comments << { :body => 'Another Comment' }
+
 * Add :tokenizer option to validates_length_of to specify how to split up the attribute string. #507. [David Lowenfels] Example :
 
   # Ensure essay contains at least 100 words.

@@ -63,7 +63,7 @@ module Rails
         #     => <Rails::Plugin name: 'acts_as_chunky_bacon' ... >
         #
         def locate_plugins_under(base_path)
-           Dir.glob(File.join(base_path, '*')).inject([]) do |plugins, path|
+           Dir.glob(File.join(base_path, '*')).sort.inject([]) do |plugins, path|
             if plugin = create_plugin(path)
               plugins << plugin
             elsif File.directory?(path)

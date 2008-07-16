@@ -201,9 +201,9 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
 
   end
 
-  def test_submit_to_remote
+  def test_button_to_remote
     assert_dom_equal %(<input name=\"More beer!\" onclick=\"new Ajax.Updater('empty_bottle', 'http://www.example.com/', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this.form)}); return false;\" type=\"button\" value=\"1000000\" />),
-      submit_to_remote("More beer!", 1_000_000, :update => "empty_bottle")
+      button_to_remote("More beer!", 1_000_000, :update => "empty_bottle")
   end
 
   def test_observe_field

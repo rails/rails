@@ -4,7 +4,7 @@ require 'controller/fake_models'
 class ViewRenderTest < Test::Unit::TestCase
   def setup
     @assigns = { :secret => 'in the sauce' }
-    @view = ActionView::Base.new([FIXTURE_LOAD_PATH], @assigns)
+    @view = ActionView::Base.new(ActionController::Base.view_paths, @assigns)
   end
 
   def test_render_file
@@ -95,8 +95,8 @@ class ViewRenderTest < Test::Unit::TestCase
   end
 
   class CustomHandler < ActionView::TemplateHandler
-    def render(template)
-      [template.source, template.locals].inspect
+    def render(template, local_assigns)
+      [template.source, local_assigns].inspect
     end
   end
 
@@ -115,18 +115,17 @@ class ViewRenderTest < Test::Unit::TestCase
 
     def compile(template)
       "@output_buffer = ''\n" +
-        "@output_buffer << 'locals: #{template.locals.inspect}, '\n" +
         "@output_buffer << 'source: #{template.source.inspect}'\n"
     end
   end
 
   def test_render_inline_with_compilable_custom_type
     ActionView::Template.register_template_handler :foo, CompilableCustomHandler
-    assert_equal 'locals: {}, source: "Hello, World!"', @view.render(:inline => "Hello, World!", :type => :foo)
+    assert_equal 'source: "Hello, World!"', @view.render(:inline => "Hello, World!", :type => :foo)
   end
 
   def test_render_inline_with_locals_and_compilable_custom_type
     ActionView::Template.register_template_handler :foo, CompilableCustomHandler
-    assert_equal 'locals: {:name=>"Josh"}, source: "Hello, <%= name %>!"', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
+    assert_equal 'source: "Hello, <%= name %>!"', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
   end
 end
