@@ -246,3 +246,24 @@ class RackResponseTest < BaseRackTest
     assert_equal ["Hello, World!"], parts
   end
 end
+
+class RackResponseHeadersTest < BaseRackTest
+  def setup
+    super
+    @response = ActionController::RackResponse.new(@request)
+    @output = StringIO.new('')
+    @headers = proc { @response.out(@output)[1] }
+  end
+
+  def test_content_type
+    [204, 304].each do |c|
+      @response.headers['Status'] = c
+      assert !@headers.call.has_key?("Content-Type")
+    end
+
+    [200, 302, 404, 500].each do |c|
+      @response.headers['Status'] = c
+      assert @headers.call.has_key?("Content-Type")
+    end
+  end
+end
