@@ -87,6 +87,16 @@ class MethodScopingTest < ActiveRecord::TestCase
     assert_equal 1, scoped_developers.size
   end
 
+  def test_scoped_find_joins
+    scoped_developers = Developer.with_scope(:find => { :joins => 'JOIN developers_projects ON id = developer_id' } ) do
+      Developer.find(:all, :conditions => 'developers_projects.project_id = 2')
+    end
+    assert scoped_developers.include?(developers(:david))
+    assert !scoped_developers.include?(developers(:jamis))
+    assert_equal 1, scoped_developers.size
+    assert_equal developers(:david).attributes, scoped_developers.first.attributes
+  end
+
   def test_scoped_count_include
     # with the include, will retrieve only developers for the given project
     Developer.with_scope(:find => { :include => :projects }) do

@@ -1,5 +1,49 @@
 *Edge*
 
+* change_column_default preserves the not-null constraint.  #617 [Tarmo Tänav]
+
+* Fixed that create database statements would always include "DEFAULT NULL" (Nick Sieger) [#334]
+
+* Add :accessible option to associations for allowing (opt-in) mass assignment. #474. [David Dollar] Example :
+
+  class Post < ActiveRecord::Base
+    belongs_to :author,   :accessible => true
+    has_many   :comments, :accessible => true
+  end
+
+  post = Post.create({
+    :title    => 'Accessible Attributes',
+    :author   => { :name => 'David Dollar' },
+    :comments => [
+      { :body => 'First Post!' },
+      { :body => 'Nested Hashes are great!' }
+    ]
+  })
+
+  post.comments << { :body => 'Another Comment' }
+
+* Add :tokenizer option to validates_length_of to specify how to split up the attribute string. #507. [David Lowenfels] Example :
+
+  # Ensure essay contains at least 100 words.
+  validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least %d words."), :tokenizer => lambda {|str| str.scan(/\w+/) }
+
+* Allow conditions on multiple tables to be specified using hash. [Pratik Naik]. Example:
+
+  User.all :joins => :items, :conditions => { :age => 10, :items => { :color => 'black' } }
+  Item.first :conditions => { :items => { :color => 'red' } }
+
+* Always treat integer :limit as byte length.  #420 [Tarmo Tänav]
+
+* Partial updates don't update lock_version if nothing changed.  #426 [Daniel Morrison]
+
+* Fix column collision with named_scope and :joins.  #46 [Duncan Beevers, Mark Catley]
+
+* db:migrate:down and :up update schema_migrations.  #369 [Michael Raidel, RaceCondition]
+
+* PostgreSQL: support :conditions => [':foo::integer', { :foo => 1 }] without treating the ::integer typecast as a bind variable.  [Tarmo Tänav]
+
+* MySQL: rename_column preserves column defaults.  #466 [Diego Algorta]
+
 * Add :from option to calculations.  #397 [Ben Munat]
 
 * Add :validate option to associations to enable/disable the automatic validation of associated models. Resolves #301. [Jan De Poorter]

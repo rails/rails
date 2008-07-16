@@ -60,17 +60,17 @@ module ActionController #:nodoc:
         ActiveSupport::Cache.expand_cache_key(key.is_a?(Hash) ? url_for(key).split("://").last : key, :views)
       end
 
-      def fragment_for(block, name = {}, options = nil) #:nodoc:
-        unless perform_caching then block.call; return end
-
-        buffer = yield
-
-        if cache = read_fragment(name, options)
-          buffer.concat(cache)
+      def fragment_for(buffer, name = {}, options = nil, &block) #:nodoc:
+        if perform_caching
+          if cache = read_fragment(name, options)
+            buffer.concat(cache)
+          else
+            pos = buffer.length
+            block.call
+            write_fragment(name, buffer[pos..-1], options)
+          end
         else
-          pos = buffer.length
           block.call
-          write_fragment(name, buffer[pos..-1], options)
         end
       end
 

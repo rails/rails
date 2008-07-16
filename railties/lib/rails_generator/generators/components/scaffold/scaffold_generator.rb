@@ -1,5 +1,5 @@
 class ScaffoldGenerator < Rails::Generator::NamedBase
-  default_options :skip_timestamps => false, :skip_migration => false
+  default_options :skip_timestamps => false, :skip_migration => false, :force_plural => false
 
   attr_reader   :controller_name,
                 :controller_class_path,
@@ -15,6 +15,11 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
 
   def initialize(runtime_args, runtime_options = {})
     super
+
+    if @name == @name.pluralize && !options[:force_plural]
+      logger.warning "Plural version of the model detected, using singularized version.  Override with --force-plural."
+      @name = @name.singularize
+    end
 
     @controller_name = @name.pluralize
 
@@ -81,6 +86,8 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
              "Don't add timestamps to the migration file for this model") { |v| options[:skip_timestamps] = v }
       opt.on("--skip-migration",
              "Don't generate a migration file for this model") { |v| options[:skip_migration] = v }
+      opt.on("--force-plural",
+             "Forces the generation of a plural ModelName") { |v| options[:force_plural] = v }
     end
 
     def scaffold_views

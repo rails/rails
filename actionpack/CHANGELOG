@@ -1,5 +1,62 @@
 *Edge*
 
+* Get buffer for fragment cache from template's @output_buffer [Josh Peek]
+
+* Set config.action_view.warn_cache_misses = true to receive a warning if you perform an action that results in an expensive disk operation that could be cached [Josh Peek]
+
+* Refactor template preloading. New abstractions include Renderable mixins and a refactored Template class [Josh Peek]
+
+* Changed ActionView::TemplateHandler#render API method signature to render(template, local_assigns = {}) [Josh Peek]
+
+* Changed PrototypeHelper#submit_to_remote to PrototypeHelper#button_to_remote to stay consistent with link_to_remote (submit_to_remote still works as an alias) #8994 [clemens]
+
+* Add :recursive option to javascript_include_tag and stylesheet_link_tag to be used along with :all. #480 [Damian Janowski]
+
+* Allow users to disable the use of the Accept header [Michael Koziarski]
+
+    The accept header is poorly implemented by browsers and causes strange
+	errors when used on public sites where crawlers make requests too.  You
+	can use formatted urls (e.g. /people/1.xml) to support API clients in a
+	much simpler way.
+
+	To disable the header you need to set:
+
+	config.action_controller.use_accept_header = false
+
+* Do not stat template files in production mode before rendering. You will no longer be able to modify templates in production mode without restarting the server [Josh Peek]
+
+* Deprecated TemplateHandler line offset [Josh Peek]
+
+* Allow caches_action to accept cache store options. #416. [José Valim]. Example:
+  
+  caches_action :index, :redirected, :if => Proc.new { |c| !c.request.format.json? }, :expires_in => 1.hour
+
+* Remove define_javascript_functions, javascript_include_tag and friends are far superior. [Michael Koziarski]
+
+* Deprecate :use_full_path render option. The supplying the option no longer has an effect [Josh Peek]
+
+* Add :as option to render a collection of partials with a custom local variable name. #509 [Simon Jefford, Pratik Naik]
+
+  render :partial => 'other_people', :collection => @people, :as => :person
+  
+  This will let you access objects of @people as 'person' local variable inside 'other_people' partial template.
+
+* time_zone_select: support for regexp matching of priority zones. Resolves #195 [Ernie Miller]
+
+* Made ActionView::Base#render_file private [Josh Peek]
+
+* Refactor and simplify the implementation of assert_redirected_to.  Arguments are now normalised relative to the controller being tested,  not the root of the application.  [Michael Koziarski]
+
+  This could cause some erroneous test failures if you were redirecting between controllers
+  in different namespaces and wrote your assertions relative to the root of the application.
+
+* Remove follow_redirect from controller functional tests.
+
+	If you want to follow redirects you can use integration tests.  The functional test
+	version was only useful if you were using redirect_to :id=>...
+
+* Fix polymorphic_url with singleton resources.  #461 [Tammer Saleh]
+
 * Replaced TemplateFinder abstraction with ViewLoadPaths [Josh Peek]
 
 * Added block-call style to link_to [Sam Stephenson/DHH]. Example:

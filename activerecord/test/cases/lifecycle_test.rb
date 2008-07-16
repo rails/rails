@@ -143,12 +143,20 @@ class LifecycleTest < ActiveRecord::TestCase
     assert_equal developer.name, multi_observer.record.name
   end
 
-  def test_observing_after_find_when_not_defined_on_the_model
+  def test_after_find_cannot_be_observed_when_its_not_defined_on_the_model
     observer = MinimalisticObserver.instance
     assert_equal Minimalistic, MinimalisticObserver.observed_class
 
     minimalistic = Minimalistic.find(1)
-    assert_equal minimalistic, observer.minimalistic
+    assert_nil observer.minimalistic
+  end
+
+  def test_after_find_can_be_observed_when_its_defined_on_the_model
+    observer = TopicObserver.instance
+    assert_equal Topic, TopicObserver.observed_class
+
+    topic = Topic.find(1)
+    assert_equal topic, observer.topic
   end
 
   def test_invalid_observer

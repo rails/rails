@@ -47,6 +47,14 @@ module ActiveRecord
       end
 
       private
+        def extract_limit(sql_type)
+          case sql_type
+          when /^bigint/i;    8
+          when /^smallint/i;  2
+          else super
+          end
+        end
+
         # Extracts the scale from PostgreSQL-specific data types.
         def extract_scale(sql_type)
           # Money type has a fixed scale of 2.
@@ -324,12 +332,7 @@ module ActiveRecord
       end
 
       def supports_insert_with_returning?
-        unless defined? @supports_insert_with_returning
-          @supports_insert_with_returning =
-            @connection.respond_to?(:server_version) &&
-            @connection.server_version >= 80200
-        end
-        @supports_insert_with_returning
+        postgresql_version >= 80200
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL,
@@ -553,7 +556,15 @@ module ActiveRecord
       # Example:
       #   drop_database 'matt_development'
       def drop_database(name) #:nodoc:
-        execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
+        if postgresql_version >= 80200
+          execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
+        else
+          begin
+            execute "DROP DATABASE #{quote_table_name(name)}"
+          rescue ActiveRecord::StatementInvalid
+            @logger.warn "#{name} database doesn't exist." if @logger
+          end
+        end
       end
 
 
@@ -609,6 +620,19 @@ module ActiveRecord
         column_definitions(table_name).collect do |name, type, default, notnull|
           PostgreSQLColumn.new(name, default, type, notnull == 'f')
         end
+      end
+
+      # Returns the current database name.
+      def current_database
+        query('select current_database()')[0][0]
+      end
+
+      # Returns the current database encoding format.
+      def encoding
+        query(<<-end_sql)[0][0]
+          SELECT pg_encoding_to_char(pg_database.encoding) FROM pg_database
+          WHERE pg_database.datname LIKE '#{current_database}'
+        end_sql
       end
 
       # Sets the schema search path to a string of comma-separated schema names.
@@ -782,15 +806,14 @@ module ActiveRecord
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
         return super unless type.to_s == 'integer'
 
-        if limit.nil? || limit == 4
-          'integer'
-        elsif limit < 4
-          'smallint'
-        else
-          'bigint'
+        case limit
+          when 1..2;      'smallint'
+          when 3..4, nil; 'integer'
+          when 5..8;      'bigint'
+          else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
         end
       end
-      
+
       # Returns a SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.
       #
       # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and

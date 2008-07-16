@@ -24,6 +24,19 @@ module ActionController #:nodoc:
       super()
     end
 
+    %w[ AUTH_TYPE CONTENT_TYPE GATEWAY_INTERFACE PATH_INFO
+        PATH_TRANSLATED QUERY_STRING REMOTE_HOST
+        REMOTE_IDENT REMOTE_USER SCRIPT_NAME
+        SERVER_NAME SERVER_PROTOCOL
+
+        HTTP_ACCEPT HTTP_ACCEPT_CHARSET HTTP_ACCEPT_ENCODING
+        HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM HTTP_HOST
+        HTTP_NEGOTIATE HTTP_PRAGMA HTTP_REFERER HTTP_USER_AGENT ].each do |env|
+      define_method(env.sub(/^HTTP_/n, '').downcase) do
+        @env[env]
+      end
+    end
+
     # The request body is an IO input stream. If the RAW_POST_DATA environment
     # variable is already set, wrap it in a StringIO.
     def body
@@ -35,7 +48,7 @@ module ActionController #:nodoc:
     end
 
     def key?(key)
-      @env.key? key
+      @env.key?(key)
     end
 
     def query_parameters
@@ -83,6 +96,18 @@ module ActionController #:nodoc:
 
     def remote_addr
       @env['REMOTE_ADDR']
+    end
+
+    def request_method
+      @env['REQUEST_METHOD'].downcase.to_sym
+    end
+
+    def server_port
+      @env['SERVER_PORT'].to_i
+    end
+
+    def server_software
+      @env['SERVER_SOFTWARE'].split("/").first
     end
 
     def session
@@ -178,9 +203,9 @@ end_msg
       normalize_headers(@headers)
       if [204, 304].include?(@status.to_i)
         @headers.delete "Content-Type"
-        [status.to_i, @headers.to_hash, []]
+        [status, @headers.to_hash, []]
       else
-        [status.to_i, @headers.to_hash, self]
+        [status, @headers.to_hash, self]
       end
     end
     alias to_a out
@@ -225,8 +250,8 @@ end_msg
           headers['Content-Language'] = options.delete('language') if options['language']
           headers['Expires']          = options.delete('expires') if options['expires']
 
-          @status = options.delete('Status') if options['Status']
-          @status ||= 200
+          @status = options['Status'] || "200 OK"
+
           # Convert 'cookie' header to 'Set-Cookie' headers.
           # Because Set-Cookie header can appear more the once in the response body,
           # we store it in a line break seperated string that will be translated to

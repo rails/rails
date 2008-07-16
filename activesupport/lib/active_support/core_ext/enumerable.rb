@@ -79,7 +79,9 @@ module Enumerable
   end
   
   # Returns true if the collection has more than 1 element. Functionally equivalent to collection.size > 1.
-  def many?
+  # Works with a block too ala any?, so people.many? { |p| p.age > 26 } # => returns true if more than 1 person is over 26.
+  def many?(&block)
+    size = block_given? ? select(&block).size : self.size
     size > 1
   end
 end

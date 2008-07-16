@@ -17,4 +17,5 @@ Mime::Type.register "multipart/form-data", :multipart_form
 Mime::Type.register "application/x-www-form-urlencoded", :url_encoded_form
 
 # http://www.ietf.org/rfc/rfc4627.txt
-Mime::Type.register "application/json", :json, %w( text/x-json )
+# http://www.json.org/JSONRequest.html
+Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )

@@ -72,6 +72,52 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{:null => false}, output
   end
 
+  def test_schema_dump_includes_limit_constraint_for_integer_columns
+    stream = StringIO.new
+
+    ActiveRecord::SchemaDumper.ignore_tables = [/^(?!integer_limits)/]
+    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
+    output = stream.string
+
+    if current_adapter?(:PostgreSQLAdapter)
+      assert_match %r{c_int_1.*:limit => 2}, output
+      assert_match %r{c_int_2.*:limit => 2}, output
+
+      # int 3 is 4 bytes in postgresql
+      assert_match %r{c_int_3.*}, output
+      assert_no_match %r{c_int_3.*:limit}, output
+
+      assert_match %r{c_int_4.*}, output
+      assert_no_match %r{c_int_4.*:limit}, output
+    elsif current_adapter?(:MysqlAdapter)
+      assert_match %r{c_int_1.*:limit => 1}, output
+      assert_match %r{c_int_2.*:limit => 2}, output
+      assert_match %r{c_int_3.*:limit => 3}, output
+
+      assert_match %r{c_int_4.*}, output
+      assert_no_match %r{c_int_4.*:limit}, output
+    elsif current_adapter?(:SQLiteAdapter)
+      assert_match %r{c_int_1.*:limit => 1}, output
+      assert_match %r{c_int_2.*:limit => 2}, output
+      assert_match %r{c_int_3.*:limit => 3}, output
+      assert_match %r{c_int_4.*:limit => 4}, output
+    end
+    assert_match %r{c_int_without_limit.*}, output
+    assert_no_match %r{c_int_without_limit.*:limit}, output
+
+    if current_adapter?(:SQLiteAdapter)
+      assert_match %r{c_int_5.*:limit => 5}, output
+      assert_match %r{c_int_6.*:limit => 6}, output
+      assert_match %r{c_int_7.*:limit => 7}, output
+      assert_match %r{c_int_8.*:limit => 8}, output
+    else
+      assert_match %r{c_int_5.*:limit => 8}, output
+      assert_match %r{c_int_6.*:limit => 8}, output
+      assert_match %r{c_int_7.*:limit => 8}, output
+      assert_match %r{c_int_8.*:limit => 8}, output
+    end
+  end
+
   def test_schema_dump_with_string_ignored_table
     stream = StringIO.new
 

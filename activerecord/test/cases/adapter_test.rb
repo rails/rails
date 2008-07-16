@@ -65,6 +65,12 @@ class AdapterTest < ActiveRecord::TestCase
     end
   end
 
+  if current_adapter?(:PostgreSQLAdapter)
+    def test_encoding
+      assert_not_nil @connection.encoding
+    end
+  end
+
   def test_table_alias
     def @connection.test_table_alias_length() 10; end
     class << @connection

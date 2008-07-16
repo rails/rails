@@ -94,7 +94,7 @@ uses_mocha "Plugin Loader Tests" do
 
     def test_should_add_plugin_load_paths_to_global_LOAD_PATH_array
       only_load_the_following_plugins! [:stubby, :acts_as_chunky_bacon]
-      stubbed_application_lib_index_in_LOAD_PATHS = 5
+      stubbed_application_lib_index_in_LOAD_PATHS = 4
       @loader.stubs(:application_lib_index).returns(stubbed_application_lib_index_in_LOAD_PATHS)
 
       @loader.add_plugin_load_paths

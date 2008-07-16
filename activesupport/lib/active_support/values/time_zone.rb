@@ -201,6 +201,12 @@ module ActiveSupport
       result
     end
 
+    # Compare #name and TZInfo identifier to a supplied regexp, returning true
+    # if a match is found.
+    def =~(re)
+      return true if name =~ re || MAPPING[name] =~ re
+    end
+
     # Returns a textual representation of this time zone.
     def to_s
       "(GMT#{formatted_offset}) #{name}"

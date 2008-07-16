@@ -7,22 +7,33 @@ class BaseRackTest < Test::Unit::TestCase
       "HTTP_MAX_FORWARDS" => "10",
       "SERVER_NAME" => "glu.ttono.us:8007",
       "FCGI_ROLE" => "RESPONDER",
+      "AUTH_TYPE" => "Basic",
       "HTTP_X_FORWARDED_HOST" => "glu.ttono.us",
+      "HTTP_ACCEPT_CHARSET" => "UTF-8",
       "HTTP_ACCEPT_ENCODING" => "gzip, deflate",
+      "HTTP_CACHE_CONTROL" => "no-cache, max-age=0",
+      "HTTP_PRAGMA" => "no-cache",
       "HTTP_USER_AGENT" => "Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en)",
-      "PATH_INFO" => "",
+      "PATH_INFO" => "/homepage/",
       "HTTP_ACCEPT_LANGUAGE" => "en",
+      "HTTP_NEGOTIATE" => "trans",
       "HTTP_HOST" => "glu.ttono.us:8007",
+      "HTTP_REFERER" => "http://www.google.com/search?q=glu.ttono.us",
+      "HTTP_FROM" => "googlebot",
       "SERVER_PROTOCOL" => "HTTP/1.1",
       "REDIRECT_URI" => "/dispatch.fcgi",
       "SCRIPT_NAME" => "/dispatch.fcgi",
       "SERVER_ADDR" => "207.7.108.53",
       "REMOTE_ADDR" => "207.7.108.53",
+      "REMOTE_HOST" => "google.com",
+      "REMOTE_IDENT" => "kevin",
+      "REMOTE_USER" => "kevin",
       "SERVER_SOFTWARE" => "lighttpd/1.4.5",
       "HTTP_COOKIE" => "_session_id=c84ace84796670c052c6ceb2451fb0f2; is_admin=yes",
       "HTTP_X_FORWARDED_SERVER" => "glu.ttono.us",
       "REQUEST_URI" => "/admin",
       "DOCUMENT_ROOT" => "/home/kevinc/sites/typo/public",
+      "PATH_TRANSLATED" => "/home/kevinc/sites/typo/public/homepage/",
       "SERVER_PORT" => "8007",
       "QUERY_STRING" => "",
       "REMOTE_PORT" => "63137",
@@ -41,7 +52,6 @@ class BaseRackTest < Test::Unit::TestCase
 
   def default_test; end
 end
-
 
 class RackRequestTest < BaseRackTest
   def test_proxy_request
@@ -99,6 +109,37 @@ class RackRequestTest < BaseRackTest
     assert_equal "[2001:1234:5678:9abc:def0::dead:beef]", @request.host
   end
 
+  def test_cgi_environment_variables
+    assert_equal "Basic", @request.auth_type
+    assert_equal 0, @request.content_length
+    assert_equal nil, @request.content_type
+    assert_equal "CGI/1.1", @request.gateway_interface
+    assert_equal "*/*", @request.accept
+    assert_equal "UTF-8", @request.accept_charset
+    assert_equal "gzip, deflate", @request.accept_encoding
+    assert_equal "en", @request.accept_language
+    assert_equal "no-cache, max-age=0", @request.cache_control
+    assert_equal "googlebot", @request.from
+    assert_equal "glu.ttono.us", @request.host
+    assert_equal "trans", @request.negotiate
+    assert_equal "no-cache", @request.pragma
+    assert_equal "http://www.google.com/search?q=glu.ttono.us", @request.referer
+    assert_equal "Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en)", @request.user_agent
+    assert_equal "/homepage/", @request.path_info
+    assert_equal "/home/kevinc/sites/typo/public/homepage/", @request.path_translated
+    assert_equal "", @request.query_string
+    assert_equal "207.7.108.53", @request.remote_addr
+    assert_equal "google.com", @request.remote_host
+    assert_equal "kevin", @request.remote_ident
+    assert_equal "kevin", @request.remote_user
+    assert_equal :get, @request.request_method
+    assert_equal "/dispatch.fcgi", @request.script_name
+    assert_equal "glu.ttono.us:8007", @request.server_name
+    assert_equal 8007, @request.server_port
+    assert_equal "HTTP/1.1", @request.server_protocol
+    assert_equal "lighttpd", @request.server_software
+  end
+
   def test_cookie_syntax_resilience
     cookies = @request.cookies
     assert_equal ["c84ace84796670c052c6ceb2451fb0f2"], cookies["_session_id"], cookies.inspect
@@ -109,7 +150,6 @@ class RackRequestTest < BaseRackTest
     assert_equal ["yes"], alt_cookies["is_admin"], alt_cookies.inspect
   end
 end
-
 
 class RackRequestParamsParsingTest < BaseRackTest
   def test_doesnt_break_when_content_type_has_charset
@@ -125,7 +165,6 @@ class RackRequestParamsParsingTest < BaseRackTest
     assert_equal({}, @request.query_parameters)
   end
 end
-
 
 class RackRequestNeedsRewoundTest < BaseRackTest
   def test_body_should_be_rewound
@@ -143,7 +182,6 @@ class RackRequestNeedsRewoundTest < BaseRackTest
   end
 end
 
-
 class RackResponseTest < BaseRackTest
   def setup
     super
@@ -155,7 +193,7 @@ class RackResponseTest < BaseRackTest
     @response.body = "Hello, World!"
 
     status, headers, body = @response.out(@output)
-    assert_equal 200, status
+    assert_equal "200 OK", status
     assert_equal({"Content-Type" => "text/html", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
 
     parts = []
@@ -169,7 +207,7 @@ class RackResponseTest < BaseRackTest
     end
 
     status, headers, body = @response.out(@output)
-    assert_equal 200, status
+    assert_equal "200 OK", status
     assert_equal({"Content-Type" => "text/html", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
 
     parts = []
@@ -184,7 +222,7 @@ class RackResponseTest < BaseRackTest
     @response.body = "Hello, World!"
 
     status, headers, body = @response.out(@output)
-    assert_equal 200, status
+    assert_equal "200 OK", status
     assert_equal({
       "Content-Type" => "text/html",
       "Cache-Control" => "no-cache",

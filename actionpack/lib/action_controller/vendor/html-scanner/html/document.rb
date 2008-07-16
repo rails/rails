@@ -17,7 +17,7 @@ module HTML #:nodoc:
       @root = Node.new(nil)
       node_stack = [ @root ]
       while token = tokenizer.next
-        node = Node.parse(node_stack.last, tokenizer.line, tokenizer.position, token)
+        node = Node.parse(node_stack.last, tokenizer.line, tokenizer.position, token, strict)
 
         node_stack.last.children << node unless node.tag? && node.closing == :close
         if node.tag?

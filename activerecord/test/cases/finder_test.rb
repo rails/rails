@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'models/author'
+require 'models/categorization'
 require 'models/comment'
 require 'models/company'
 require 'models/topic'
@@ -199,6 +200,23 @@ class FinderTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { 'topics.approved' => true }) }
   end
 
+  def test_find_on_hash_conditions_with_hashed_table_name
+    assert Topic.find(1, :conditions => {:topics => { :approved => false }})
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => {:topics => { :approved => true }}) }
+  end
+
+  def test_find_with_hash_conditions_on_joined_table
+    firms = Firm.all :joins => :account, :conditions => {:accounts => { :credit_limit => 50 }}
+    assert_equal 1, firms.size
+    assert_equal companies(:first_firm), firms.first
+  end
+
+  def test_find_with_hash_conditions_on_joined_table_and_with_range
+    firms = DependentFirm.all :joins => :account, :conditions => {:name => 'RailsCore', :accounts => { :credit_limit => 55..60 }}
+    assert_equal 1, firms.size
+    assert_equal companies(:rails_core), firms.first
+  end
+
   def test_find_on_hash_conditions_with_explicit_table_name_and_aggregate
     david = customers(:david)
     assert Customer.find(david.id, :conditions => { 'customers.name' => david.name, :address => david.address })
@@ -392,6 +410,12 @@ class FinderTest < ActiveRecord::TestCase
 
     os = [o] * 3
     assert_equal '1,1,1', bind('?', os)
+  end
+
+  def test_named_bind_with_postgresql_type_casts
+    l = Proc.new { bind(":a::integer '2009-01-01'::date", :a => '10') }
+    assert_nothing_raised(&l)
+    assert_equal "#{ActiveRecord::Base.quote_value('10')}::integer '2009-01-01'::date", l.call
   end
 
   def test_string_sanitation

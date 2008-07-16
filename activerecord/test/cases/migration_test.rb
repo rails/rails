@@ -3,6 +3,7 @@ require 'bigdecimal/util'
 
 require 'models/person'
 require 'models/topic'
+require 'models/developer'
 
 require MIGRATIONS_ROOT + "/valid/1_people_have_last_names"
 require MIGRATIONS_ROOT + "/valid/2_we_need_reminders"
@@ -153,9 +154,10 @@ if ActiveRecord::Base.connection.supports_migrations?
 
           t.column :default_int, :integer
 
-          t.column :one_int,   :integer, :limit => 1
-          t.column :four_int,  :integer, :limit => 4
-          t.column :eight_int, :integer, :limit => 8
+          t.column :one_int,    :integer, :limit => 1
+          t.column :four_int,   :integer, :limit => 4
+          t.column :eight_int,  :integer, :limit => 8
+          t.column :eleven_int, :integer, :limit => 11
         end
       end
 
@@ -167,12 +169,20 @@ if ActiveRecord::Base.connection.supports_migrations?
       one     = columns.detect { |c| c.name == "one_int"     }
       four    = columns.detect { |c| c.name == "four_int"    }
       eight   = columns.detect { |c| c.name == "eight_int"   }
+      eleven  = columns.detect { |c| c.name == "eleven_int"   }
 
       if current_adapter?(:PostgreSQLAdapter)
         assert_equal 'integer', default.sql_type
         assert_equal 'smallint', one.sql_type
         assert_equal 'integer', four.sql_type
         assert_equal 'bigint', eight.sql_type
+        assert_equal 'integer', eleven.sql_type
+      elsif current_adapter?(:MysqlAdapter)
+        assert_match 'int(11)', default.sql_type
+        assert_match 'tinyint', one.sql_type
+        assert_match 'int', four.sql_type
+        assert_match 'bigint', eight.sql_type
+        assert_match 'int(11)', eleven.sql_type
       elsif current_adapter?(:OracleAdapter)
         assert_equal 'NUMBER(38)', default.sql_type
         assert_equal 'NUMBER(1)', one.sql_type
@@ -483,6 +493,37 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_rename_column_preserves_default_value_not_null
+      begin
+        default_before = Developer.connection.columns("developers").find { |c| c.name == "salary" }.default
+        assert_equal 70000, default_before
+        Developer.connection.rename_column "developers", "salary", "anual_salary"
+        Developer.reset_column_information
+        assert Developer.column_names.include?("anual_salary")
+        default_after = Developer.connection.columns("developers").find { |c| c.name == "anual_salary" }.default
+        assert_equal 70000, default_after
+      ensure
+        Developer.connection.rename_column "developers", "anual_salary", "salary"
+        Developer.reset_column_information
+      end
+    end
+
+    def test_rename_nonexistent_column
+      ActiveRecord::Base.connection.create_table(:hats) do |table|
+        table.column :hat_name, :string, :default => nil
+      end
+      exception = if current_adapter?(:PostgreSQLAdapter)
+        ActiveRecord::StatementInvalid
+      else
+        ActiveRecord::ActiveRecordError
+      end
+      assert_raises(exception) do
+        Person.connection.rename_column "hats", "nonexistent", "should_fail"
+      end
+    ensure
+      ActiveRecord::Base.connection.drop_table(:hats)
+    end
+
     def test_rename_column_with_sql_reserved_word
       begin
         assert_nothing_raised { Person.connection.rename_column "people", "first_name", "group" }
@@ -662,6 +703,55 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.drop_table :testings rescue nil
     end
 
+    def test_keeping_default_and_notnull_constaint_on_change
+      Person.connection.create_table :testings do |t|
+        t.column :title, :string
+      end
+      person_klass = Class.new(Person)
+      person_klass.set_table_name 'testings'
+
+      person_klass.connection.add_column "testings", "wealth", :integer, :null => false, :default => 99
+      person_klass.reset_column_information
+      assert_equal 99, person_klass.columns_hash["wealth"].default
+      assert_equal false, person_klass.columns_hash["wealth"].null
+      assert_nothing_raised {person_klass.connection.execute("insert into testings (title) values ('tester')")}
+
+      # change column default to see that column doesn't lose its not null definition
+      person_klass.connection.change_column_default "testings", "wealth", 100
+      person_klass.reset_column_information
+      assert_equal 100, person_klass.columns_hash["wealth"].default
+      assert_equal false, person_klass.columns_hash["wealth"].null
+
+      # rename column to see that column doesn't lose its not null and/or default definition
+      person_klass.connection.rename_column "testings", "wealth", "money"
+      person_klass.reset_column_information
+      assert_nil person_klass.columns_hash["wealth"]
+      assert_equal 100, person_klass.columns_hash["money"].default
+      assert_equal false, person_klass.columns_hash["money"].null
+
+      # change column
+      person_klass.connection.change_column "testings", "money", :integer, :null => false, :default => 1000
+      person_klass.reset_column_information
+      assert_equal 1000, person_klass.columns_hash["money"].default
+      assert_equal false, person_klass.columns_hash["money"].null
+
+      # change column, make it nullable and clear default
+      person_klass.connection.change_column "testings", "money", :integer, :null => true, :default => nil
+      person_klass.reset_column_information
+      assert_nil person_klass.columns_hash["money"].default
+      assert_equal true, person_klass.columns_hash["money"].null
+
+      # change_column_null, make it not nullable and set null values to a default value
+      person_klass.connection.execute('UPDATE testings SET money = NULL')
+      person_klass.connection.change_column_null "testings", "money", false, 2000
+      person_klass.reset_column_information
+      assert_nil person_klass.columns_hash["money"].default
+      assert_equal false, person_klass.columns_hash["money"].null
+      assert_equal [2000], Person.connection.select_values("SELECT money FROM testings").map { |s| s.to_i }.sort
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+
     def test_change_column_default_to_null
       Person.connection.change_column_default "people", "first_name", nil
       Person.reset_column_information
@@ -799,6 +889,21 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert !Reminder.table_exists?
     end
 
+    def test_migrator_double_up
+      assert_equal(0, ActiveRecord::Migrator.current_version)
+      ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1)
+      assert_nothing_raised { ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1) }
+      assert_equal(1, ActiveRecord::Migrator.current_version)
+    end
+
+    def test_migrator_double_down
+      assert_equal(0, ActiveRecord::Migrator.current_version)
+      ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 1)
+      ActiveRecord::Migrator.run(:down, MIGRATIONS_ROOT + "/valid", 1)
+      assert_nothing_raised { ActiveRecord::Migrator.run(:down, MIGRATIONS_ROOT + "/valid", 1) }
+      assert_equal(0, ActiveRecord::Migrator.current_version)
+    end
+
     def test_finds_migrations
       migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid").migrations
       [['1', 'people_have_last_names'],
@@ -886,16 +991,6 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal(0, ActiveRecord::Migrator.current_version)
       
       ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
-      assert_equal(0, ActiveRecord::Migrator.current_version)
-    end
-    
-    def test_migrator_run
-      assert_equal(0, ActiveRecord::Migrator.current_version)
-      ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/valid", 3)
-      assert_equal(0, ActiveRecord::Migrator.current_version)
-
-      assert_equal(0, ActiveRecord::Migrator.current_version)
-      ActiveRecord::Migrator.run(:down, MIGRATIONS_ROOT + "/valid", 3)
       assert_equal(0, ActiveRecord::Migrator.current_version)
     end
 
@@ -1206,10 +1301,10 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
 
       def integer_column
-        if current_adapter?(:SQLite3Adapter) || current_adapter?(:SQLiteAdapter) || current_adapter?(:PostgreSQLAdapter)
-          "integer"
-        else
+        if current_adapter?(:MysqlAdapter)
           'int(11)'
+        else
+          'integer'
         end
       end
 

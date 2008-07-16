@@ -23,11 +23,11 @@ class TestController < ActionController::Base
   def render_hello_world_with_forward_slash
     render :template => "/test/hello_world"
   end
-  
+
   def render_template_in_top_directory
     render :template => 'shared'
   end
-  
+
   def render_template_in_top_directory_with_slash
     render :template => '/shared'
   end
@@ -86,7 +86,7 @@ class TestController < ActionController::Base
   def render_nothing_with_appendix
     render :text => "appended"
   end
-  
+
   def render_invalid_args
     render("test/hello")
   end
@@ -101,12 +101,7 @@ class TestController < ActionController::Base
   end
 
   def render_line_offset
-    begin
-      render :inline => '<% raise %>', :locals => {:foo => 'bar'}
-    rescue => exc
-    end
-    line = exc.backtrace.first
-    render :text => line
+    render :inline => '<% raise %>', :locals => {:foo => 'bar'}
   end
 
   def heading
@@ -171,7 +166,7 @@ class TestController < ActionController::Base
   def partial_dot_html
     render :partial => 'partial.html.erb'
   end
-  
+
   def partial_as_rjs
     render :update do |page|
       page.replace :foo, :partial => 'partial'
@@ -217,9 +212,6 @@ class TestController < ActionController::Base
     end
 end
 
-TestController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
-Fun::GamesController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
-
 class RenderTest < Test::Unit::TestCase
   def setup
     @request    = ActionController::TestRequest.new
@@ -241,23 +233,28 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_line_offset
-    get :render_line_offset
-    line = @response.body
-    assert(line =~ %r{:(\d+):})
-    assert_equal "1", $1
+    begin
+      get :render_line_offset
+      flunk "the action should have raised an exception"
+    rescue RuntimeError => exc
+      line = exc.backtrace.first
+      assert(line =~ %r{:(\d+):})
+      assert_equal "1", $1,
+        "The line offset is wrong, perhaps the wrong exception has been raised, exception was: #{exc.inspect}"
+    end
   end
 
   def test_render_with_forward_slash
     get :render_hello_world_with_forward_slash
     assert_template "test/hello_world"
   end
-  
+
   def test_render_in_top_directory
     get :render_template_in_top_directory
     assert_template "shared"
     assert_equal "Elastica", @response.body
   end
-  
+
   def test_render_in_top_directory_with_slash
     get :render_template_in_top_directory_with_slash
     assert_template "shared"
@@ -336,11 +333,11 @@ class RenderTest < Test::Unit::TestCase
     assert_response 200
     assert_equal 'appended', @response.body
   end
-  
+
   def test_attempt_to_render_with_invalid_arguments
     assert_raises(ActionController::RenderError) { get :render_invalid_args }
   end
-  
+
   def test_attempt_to_access_object_method
     assert_raises(ActionController::UnknownAction, "No action responded to [clone]") { get :clone }
   end
@@ -467,17 +464,17 @@ class RenderTest < Test::Unit::TestCase
     get :formatted_html_erb
     assert_equal 'formatted html erb', @response.body
   end
-  
+
   def test_should_render_formatted_xml_erb_template
     get :formatted_xml_erb, :format => :xml
     assert_equal '<test>passed formatted xml erb</test>', @response.body
   end
-  
+
   def test_should_render_formatted_html_erb_template
     get :formatted_xml_erb
     assert_equal '<test>passed formatted html erb</test>', @response.body
   end
-  
+
   def test_should_render_formatted_html_erb_template_with_faulty_accepts_header
     @request.env["HTTP_ACCEPT"] = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, appliction/x-shockwave-flash, */*"
     get :formatted_xml_erb
@@ -520,7 +517,6 @@ class RenderTest < Test::Unit::TestCase
   end
 
   protected
-  
     def etag_for(text)
       %("#{Digest::MD5.hexdigest(text)}")
     end

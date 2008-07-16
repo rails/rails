@@ -142,9 +142,11 @@ module ActiveRecord
 
       def field_changed?(attr, old, value)
         if column = column_for_attribute(attr)
-          if column.type == :integer && column.null && old.nil?
+          if column.type == :integer && column.null && (old.nil? || old == 0)
             # For nullable integer columns, NULL gets stored in database for blank (i.e. '') values.
             # Hence we don't record it as a change if the value changes from nil to ''.
+            # If an old value of 0 is set to '' we want this to get changed to nil as otherwise it'll
+            # be typecast back to 0 (''.to_i => 0)
             value = nil if value.blank?
           else
             value = column.type_cast(value)

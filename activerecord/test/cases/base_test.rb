@@ -19,6 +19,7 @@ require 'models/warehouse_thing'
 require 'rexml/document'
 
 class Category < ActiveRecord::Base; end
+class Categorization < ActiveRecord::Base; end
 class Smarts < ActiveRecord::Base; end
 class CreditCard < ActiveRecord::Base
   class PinNumber < ActiveRecord::Base
@@ -75,7 +76,7 @@ class TopicWithProtectedContentAndAccessibleAuthorName < ActiveRecord::Base
 end
 
 class BasicsTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations
 
   def test_table_exists
     assert !NonExistentTable.table_exists?
@@ -130,7 +131,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_read_attributes_before_type_cast
     category = Category.new({:name=>"Test categoty", :type => nil})
-    category_attrs = {"name"=>"Test categoty", "type" => nil}
+    category_attrs = {"name"=>"Test categoty", "type" => nil, "categorizations_count" => nil}
     assert_equal category_attrs , category.attributes_before_type_cast
   end
 
@@ -612,6 +613,22 @@ class BasicsTest < ActiveRecord::TestCase
 
     Topic.decrement_counter("replies_count", 2)
     assert_equal -2, Topic.find(2).replies_count
+  end
+
+  def test_update_counter
+    category = Category.first
+    assert_nil category.categorizations_count
+    assert_equal 2, category.categorizations.count
+
+    Category.update_counters(category.id, "categorizations_count" => category.categorizations.count)
+    category.reload
+    assert_not_nil category.categorizations_count
+    assert_equal 2, category.categorizations_count
+
+    Category.update_counters(category.id, "categorizations_count" => category.categorizations.count)
+    category.reload
+    assert_not_nil category.categorizations_count
+    assert_equal 4, category.categorizations_count
   end
 
   def test_update_all

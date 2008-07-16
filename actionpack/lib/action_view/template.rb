@@ -1,94 +1,96 @@
 module ActionView #:nodoc:
-  class Template #:nodoc:
+  class Template
     extend TemplateHandlers
+    include ActiveSupport::Memoizable
+    include Renderable
 
-    attr_accessor :locals
-    attr_reader :handler, :path, :extension, :filename, :method
+    attr_accessor :filename, :load_path, :base_path, :name, :format, :extension
+    delegate :to_s, :to => :path
 
-    def initialize(view, path, use_full_path, locals = {})
-      @view = view
-      @paths = view.view_paths
+    def initialize(template_path, load_paths = [])
+      template_path = template_path.dup
+      @base_path, @name, @format, @extension = split(template_path)
+      @base_path.to_s.gsub!(/\/$/, '') # Push to split method
+      @load_path, @filename = find_full_path(template_path, load_paths)
 
-      @original_path = path
-      @path = TemplateFile.from_path(path, !use_full_path)
-      @view.first_render ||= @path.to_s
-      @source = nil # Don't read the source until we know that it is required
-      set_extension_and_file_name(use_full_path)
-
-      @locals = locals || {}
-      @handler = self.class.handler_class_for_extension(@extension).new(@view)
+      # Extend with partial super powers
+      extend RenderablePartial if @name =~ /^_/
     end
 
-    def render_template
-      render
+    def format_and_extension
+      (extensions = [format, extension].compact.join(".")).blank? ? nil : extensions
+    end
+    memoize :format_and_extension
+
+    def path
+      [base_path, [name, format, extension].compact.join('.')].compact.join('/')
+    end
+    memoize :path
+
+    def path_without_extension
+      [base_path, [name, format].compact.join('.')].compact.join('/')
+    end
+    memoize :path_without_extension
+
+    def path_without_format_and_extension
+      [base_path, name].compact.join('/')
+    end
+    memoize :path_without_format_and_extension
+
+    def source
+      File.read(filename)
+    end
+    memoize :source
+
+    def method_segment
+      segment = File.expand_path(filename)
+      segment.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}/, '') if defined?(RAILS_ROOT)
+      segment.gsub!(/([^a-zA-Z0-9_])/) { $1.ord }
+    end
+    memoize :method_segment
+
+    def render_template(view, local_assigns = {})
+      render(view, local_assigns)
     rescue Exception => e
       raise e unless filename
       if TemplateError === e
         e.sub_template_of(filename)
         raise e
       else
-        raise TemplateError.new(self, @view.assigns, e)
-      end
-    end
-
-    def render
-      prepare!
-      @handler.render(self)
-    end
-
-    def path_without_extension
-      @path.path_without_extension
-    end
-
-    def source
-      @source ||= File.read(self.filename)
-    end
-
-    def method_key
-      @filename
-    end
-
-    def base_path_for_exception
-      (@paths.find_load_path_for_path(@path) || @paths.first).to_s
-    end
-
-    def prepare!
-      @view.send :evaluate_assigns
-      @view.current_render_extension = @extension
-
-      if @handler.compilable?
-        @handler.compile_template(self) # compile the given template, if necessary
-        @method = @view.method_names[method_key] # Set the method name for this template and run it
+        raise TemplateError.new(self, view.assigns, e)
       end
     end
 
     private
-      def set_extension_and_file_name(use_full_path)
-        @extension = @path.extension
-
-        if use_full_path
-          unless @extension
-            @path = @view.send(:template_file_from_name, @path)
-            raise_missing_template_exception unless @path
-            @extension = @path.extension
-          end
-
-          if @path = @paths.find_template_file_for_path(path)
-            @filename = @path.full_path
-            @extension = @path.extension
-          end
-        else
-          @filename = @path.full_path
-        end
-
-        raise_missing_template_exception if @filename.blank?
+      def valid_extension?(extension)
+        Template.template_handler_extensions.include?(extension)
       end
 
-      def raise_missing_template_exception
-        full_template_path = @original_path.include?('.') ? @original_path : "#{@original_path}.#{@view.template_format}.erb"
-        display_paths = @paths.join(':')
-        template_type = (@original_path =~ /layouts/i) ? 'layout' : 'template'
-        raise(MissingTemplate, "Missing #{template_type} #{full_template_path} in view path #{display_paths}")
+      def find_full_path(path, load_paths)
+        load_paths = Array(load_paths) + [nil]
+        load_paths.each do |load_path|
+          file = [load_path, path].compact.join('/')
+          return load_path, file if File.exist?(file)
+        end
+        raise MissingTemplate.new(load_paths, path)
+      end
+
+      # Returns file split into an array
+      #   [base_path, name, format, extension]
+      def split(file)
+        if m = file.match(/^(.*\/)?([^\.]+)\.?(\w+)?\.?(\w+)?\.?(\w+)?$/)
+          if m[5] # Mulipart formats
+            [m[1], m[2], "#{m[3]}.#{m[4]}", m[5]]
+          elsif m[4] # Single format
+            [m[1], m[2], m[3], m[4]]
+          else
+            if valid_extension?(m[3]) # No format
+              [m[1], m[2], nil, m[3]]
+            else # No extension
+              [m[1], m[2], m[3], nil]
+            end
+          end
+        end
       end
   end
 end

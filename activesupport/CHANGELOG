@@ -1,12 +1,36 @@
 *Edge*
 
+* Add Array#in_groups which splits or iterates over the array in specified number of groups. #579. [Adrian Mugnolo] Example:
+  
+  a = (1..10).to_a
+  a.in_groups(3)        #=> [[1, 2, 3, 4], [5, 6, 7, nil], [8, 9, 10, nil]]
+  a.in_groups(3, false) #=> [[1, 2, 3, 4], [5, 6, 7], [8, 9, 10]]
+
+* Fix TimeWithZone unmarshaling: coerce unmarshaled Time instances to utc, because Ruby's marshaling of Time instances doesn't respect the zone [Geoff Buesing]
+
+* Added Memoizable mixin for caching simple lazy loaded attributes [Josh Peek]
+
+* Move the test related core_ext stuff out of core_ext so it's only loaded by the test helpers.  [Michael Koziarski]
+
+* Add Inflection rules for String#humanize. #535 [dcmanges]
+
+  ActiveSupport::Inflector.inflections do |inflect|
+    inflect.human(/_cnt$/i, '\1_count')
+  end
+
+  'jargon_cnt'.humanize # => 'Jargon count'
+
+* TimeWithZone: when crossing DST boundary, treat Durations of days, months or years as variable-length, and all other values as absolute length. A time + 24.hours will advance exactly 24 hours, but a time + 1.day will advance 23-25 hours, depending on the day. Ensure consistent behavior across all advancing methods [Geoff Buesing]
+
+* Added TimeZone #=~, to support matching zones by regex in time_zone_select. #195 [Ernie Miller]
+
 * Added Array#second through Array#tenth as aliases for Array#[1] through Array#[9] [DHH]
 
 * Added test/do declaration style testing to ActiveSupport::TestCase [DHH via Jay Fields]
 
 * Added Object#present? which is equivalent to !Object#blank? [DHH]
 
-* Added Enumberable#many? to encapsulate collection.size > 1 [DHH]
+* Added Enumberable#many? to encapsulate collection.size > 1 [DHH/Damian Janowski]
 
 * Add more standard Hash methods to ActiveSupport::OrderedHash [Steve Purcell]
 

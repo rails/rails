@@ -333,7 +333,7 @@ module ActionView
       #   # => <label for="post_title" class="title_label">A short title</label>
       #
       def label(object_name, method, text = nil, options = {})
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_label_tag(text, options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_label_tag(text, options)
       end
 
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
@@ -355,7 +355,7 @@ module ActionView
       #   # => <input type="text" id="snippet_code" name="snippet[code]" size="20" value="#{@snippet.code}" class="code_input" />
       #
       def text_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_input_field_tag("text", options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("text", options)
       end
 
       # Returns an input tag of the "password" type tailored for accessing a specified attribute (identified by +method+) on an object
@@ -377,7 +377,7 @@ module ActionView
       #   # => <input type="text" id="account_pin" name="account[pin]" size="20" value="#{@account.pin}" class="form_input" />
       #
       def password_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_input_field_tag("password", options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("password", options)
       end
 
       # Returns a hidden input tag tailored for accessing a specified attribute (identified by +method+) on an object
@@ -395,7 +395,7 @@ module ActionView
       #   hidden_field(:user, :token)
       #   # => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}" />
       def hidden_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_input_field_tag("hidden", options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("hidden", options)
       end
 
       # Returns an file upload input tag tailored for accessing a specified attribute (identified by +method+) on an object
@@ -414,7 +414,7 @@ module ActionView
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
       #
       def file_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_input_field_tag("file", options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("file", options)
       end
 
       # Returns a textarea opening and closing tag set tailored for accessing a specified attribute (identified by +method+)
@@ -442,7 +442,7 @@ module ActionView
       #   #      #{@entry.body}
       #   #    </textarea>
       def text_area(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_text_area_tag(options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_text_area_tag(options)
       end
 
       # Returns a checkbox tag tailored for accessing a specified attribute (identified by +method+) on an object
@@ -468,7 +468,7 @@ module ActionView
       #   #    <input name="eula[accepted]" type="hidden" value="no" />
       #
       def check_box(object_name, method, options = {}, checked_value = "1", unchecked_value = "0")
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_check_box_tag(options, checked_value, unchecked_value)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_check_box_tag(options, checked_value, unchecked_value)
       end
 
       # Returns a radio button tag for accessing a specified attribute (identified by +method+) on an object
@@ -488,7 +488,7 @@ module ActionView
       #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes" />
       #   #    <input type="radio" id="user_receive_newsletter_no" name="user[receive_newsletter]" value="no" checked="checked" />
       def radio_button(object_name, method, tag_value, options = {})
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_radio_button_tag(tag_value, options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_radio_button_tag(tag_value, options)
       end
     end
 
@@ -501,9 +501,9 @@ module ActionView
       DEFAULT_RADIO_OPTIONS     = { }.freeze unless const_defined?(:DEFAULT_RADIO_OPTIONS)
       DEFAULT_TEXT_AREA_OPTIONS = { "cols" => 40, "rows" => 20 }.freeze unless const_defined?(:DEFAULT_TEXT_AREA_OPTIONS)
 
-      def initialize(object_name, method_name, template_object, local_binding = nil, object = nil)
+      def initialize(object_name, method_name, template_object, object = nil)
         @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
-        @template_object, @local_binding = template_object, local_binding
+        @template_object= template_object
         @object = object
         if @object_name.sub!(/\[\]$/,"")
           if object ||= @template_object.instance_variable_get("@#{Regexp.last_match.pre_match}") and object.respond_to?(:to_param)
@@ -601,7 +601,11 @@ module ActionView
       end
 
       def object
-        @object || (@template_object.instance_variable_get("@#{@object_name}") rescue nil)
+        @object || @template_object.instance_variable_get("@#{@object_name}")
+      rescue NameError
+        # As @object_name may contain the nested syntax (item[subobject]) we
+        # need to fallback to nil.
+        nil
       end
 
       def value(object)

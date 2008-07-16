@@ -4,6 +4,10 @@ class Topic < ActiveRecord::Base
     { :conditions => ['written_on < ?', time] }
   }
   named_scope :approved, :conditions => {:approved => true}
+  named_scope :by_lifo, :conditions => {:author_name => 'lifo'}
+  
+  named_scope :approved_as_hash_condition, :conditions => {:topics => {:approved => true}}
+  named_scope 'approved_as_string', :conditions => {:approved => true}
   named_scope :replied, :conditions => ['replies_count > 0']
   named_scope :anonymous_extension do
     def one

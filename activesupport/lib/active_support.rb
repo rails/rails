@@ -43,6 +43,7 @@ require 'active_support/ordered_hash'
 require 'active_support/ordered_options'
 require 'active_support/option_merger'
 
+require 'active_support/memoizable'
 require 'active_support/string_inquirer'
 
 require 'active_support/values/time_zone'

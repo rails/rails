@@ -29,10 +29,12 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, p1.lock_version
     assert_equal 0, p2.lock_version
 
+    p1.first_name = 'stu'
     p1.save!
     assert_equal 1, p1.lock_version
     assert_equal 0, p2.lock_version
 
+    p2.first_name = 'sue'
     assert_raises(ActiveRecord::StaleObjectError) { p2.save! }
   end
 
@@ -42,11 +44,14 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, p1.lock_version
     assert_equal 0, p2.lock_version
 
+    p1.first_name = 'stu'
     p1.save!
     assert_equal 1, p1.lock_version
     assert_equal 0, p2.lock_version
 
+    p2.first_name = 'sue'
     assert_raises(ActiveRecord::StaleObjectError) { p2.save! }
+    p2.first_name = 'sue2'
     assert_raises(ActiveRecord::StaleObjectError) { p2.save! }
   end
 
@@ -54,15 +59,18 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p1 = Person.new(:first_name => 'anika')
     assert_equal 0, p1.lock_version
 
+    p1.first_name = 'anika2'
     p1.save!
     p2 = Person.find(p1.id)
     assert_equal 0, p1.lock_version
     assert_equal 0, p2.lock_version
 
+    p1.first_name = 'anika3'
     p1.save!
     assert_equal 1, p1.lock_version
     assert_equal 0, p2.lock_version
 
+    p2.first_name = 'sue'
     assert_raises(ActiveRecord::StaleObjectError) { p2.save! }
   end
 
@@ -81,10 +89,12 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, t1.version
     assert_equal 0, t2.version
 
+    t1.tps_report_number = 700
     t1.save!
     assert_equal 1, t1.version
     assert_equal 0, t2.version
 
+    t2.tps_report_number = 800
     assert_raises(ActiveRecord::StaleObjectError) { t2.save! }
   end
 
@@ -93,6 +103,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, p1.lock_version
     assert_equal p1.lock_version, Person.new(p1.attributes).lock_version
 
+    p1.first_name = 'bianca2'
     p1.save!
     assert_equal 1, p1.lock_version
     assert_equal p1.lock_version, Person.new(p1.attributes).lock_version
@@ -144,6 +155,15 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     ref = references(:michael_magician)
     ref.favourite = !ref.favourite
     assert ref.save
+  end
+
+  # Useful for partial updates, don't only update the lock_version if there
+  # is nothing else being updated.
+  def test_update_without_attributes_does_not_only_update_lock_version
+    assert_nothing_raised do
+      p1 = Person.new(:first_name => 'anika')
+      p1.send(:update_with_lock, [])
+    end
   end
 
   private

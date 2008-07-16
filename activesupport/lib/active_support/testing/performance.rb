@@ -12,13 +12,13 @@ module ActiveSupport
         if benchmark = ARGV.include?('--benchmark')  # HAX for rake test
           { :benchmark => true,
             :runs => 10,
-            :metrics => [:process_time, :memory, :objects],
+            :metrics => [:process_time, :memory, :objects, :gc_runs, :gc_time],
             :output => 'tmp/performance' }
         else
           { :benchmark => false,
             :runs => 1,
             :min_percent => 0.02,
-            :metrics => [:wall_time, :memory, :objects],
+            :metrics => [:process_time, :memory, :objects],
             :formats => [:flat, :graph_html, :call_tree],
             :output => 'tmp/performance' }
         end
@@ -44,7 +44,7 @@ module ActiveSupport
             run_profile(klass.new)
             result.add_run
           else
-            $stderr.puts "Skipping unknown metric #{metric_name.inspect}. Expected :process_time, :wall_time, :cpu_time, :memory, or :objects."
+            $stderr.puts '%20s: unsupported' % metric_name.to_s
           end
         end
 
@@ -72,9 +72,13 @@ module ActiveSupport
 
       protected
         def run_warmup
+          5.times { GC.start }
+
           time = Metrics::Time.new
           run_test(time, :benchmark)
           puts "%s (%s warmup)" % [full_test_name, time.format(time.total)]
+
+          5.times { GC.start }
         end
 
         def run_profile(metric)
@@ -95,8 +99,13 @@ module ActiveSupport
 
         def report
           rate = @total / profile_options[:runs]
-          '%20s: %s/run' % [@metric.name, @metric.format(rate)]
+          '%20s: %s' % [@metric.name, @metric.format(rate)]
         end
+
+        protected
+          def output_filename
+            "#{profile_options[:output]}/#{full_test_name}_#{@metric.name}"
+          end
       end
 
       class Benchmarker < Performer
@@ -107,9 +116,9 @@ module ActiveSupport
 
         def record
           avg = @metric.total / profile_options[:runs].to_i
-          data = [full_test_name, @metric.name, avg, Time.now.utc.xmlschema] * ','
+          now = Time.now.utc.xmlschema
           with_output_file do |file|
-            file.puts "#{data},#{environment}"
+            file.puts "#{avg},#{now},#{environment}"
           end
         end
 
@@ -134,10 +143,10 @@ module ActiveSupport
         end
 
         protected
-          HEADER = 'test,metric,measurement,created_at,app,rails,ruby,platform'
+          HEADER = 'measurement,created_at,app,rails,ruby,platform'
 
           def with_output_file
-            fname = "#{profile_options[:output]}/benchmarks.csv"
+            fname = output_filename
 
             if new = !File.exist?(fname)
               FileUtils.mkdir_p(File.dirname(fname))
@@ -147,6 +156,10 @@ module ActiveSupport
               file.puts(HEADER) if new
               yield file
             end
+          end
+
+          def output_filename
+            "#{super}.csv"
           end
       end
 
@@ -183,7 +196,7 @@ module ActiveSupport
                 else printer_class.name.sub(/Printer$/, '').underscore
               end
 
-            "#{profile_options[:output]}/#{full_test_name}_#{@metric.name}_#{suffix}"
+            "#{super()}_#{suffix}"
           end
       end
 
@@ -208,6 +221,10 @@ module ActiveSupport
 
           def measure_mode
             self.class::Mode
+          end
+
+          def measure
+            0
           end
 
           def benchmark
@@ -271,7 +288,7 @@ module ActiveSupport
         end
 
         class CpuTime < Time
-          Mode = RubyProf::CPU_TIME
+          Mode = RubyProf::CPU_TIME if RubyProf.const_defined?(:CPU_TIME)
 
           def initialize(*args)
             # FIXME: yeah my CPU is 2.33 GHz
@@ -285,16 +302,27 @@ module ActiveSupport
         end
 
         class Memory < Base
-          Mode = RubyProf::MEMORY
+          Mode = RubyProf::MEMORY if RubyProf.const_defined?(:MEMORY)
 
+          # ruby-prof wrapper
           if RubyProf.respond_to?(:measure_memory)
             def measure
               RubyProf.measure_memory / 1024.0
             end
+
+          # Ruby 1.8 + adymo patch
           elsif GC.respond_to?(:allocated_size)
             def measure
               GC.allocated_size / 1024.0
             end
+
+          # Ruby 1.8 + lloyd patch
+          elsif GC.respond_to?(:heap_info)
+            def measure
+              GC.heap_info['heap_current_memory'] / 1024.0
+            end
+
+          # Ruby 1.9 unpatched
           elsif GC.respond_to?(:malloc_allocated_size)
             def measure
               GC.malloc_allocated_size / 1024.0
@@ -307,7 +335,7 @@ module ActiveSupport
         end
 
         class Objects < Base
-          Mode = RubyProf::ALLOCATIONS
+          Mode = RubyProf::ALLOCATIONS if RubyProf.const_defined?(:ALLOCATIONS)
 
           if RubyProf.respond_to?(:measure_allocations)
             def measure
@@ -321,6 +349,46 @@ module ActiveSupport
 
           def format(measurement)
             measurement.to_i.to_s
+          end
+        end
+
+        class GcRuns < Base
+          Mode = RubyProf::GC_RUNS if RubyProf.const_defined?(:GC_RUNS)
+
+          if RubyProf.respond_to?(:measure_gc_runs)
+            def measure
+              RubyProf.measure_gc_runs
+            end
+          elsif GC.respond_to?(:collections)
+            def measure
+              GC.collections
+            end
+          elsif GC.respond_to?(:heap_info)
+            def measure
+              GC.heap_info['num_gc_passes']
+            end
+          end
+
+          def format(measurement)
+            measurement.to_i.to_s
+          end
+        end
+
+        class GcTime < Base
+          Mode = RubyProf::GC_TIME if RubyProf.const_defined?(:GC_TIME)
+
+          if RubyProf.respond_to?(:measure_gc_time)
+            def measure
+              RubyProf.measure_gc_time
+            end
+          elsif GC.respond_to?(:time)
+            def measure
+              GC.time
+            end
+          end
+
+          def format(measurement)
+            '%d ms' % (measurement / 1000)
           end
         end
       end

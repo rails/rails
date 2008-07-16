@@ -23,8 +23,6 @@ class CaptureController < ActionController::Base
   def rescue_action(e) raise end
 end
 
-CaptureController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
-
 class CaptureTest < Test::Unit::TestCase
   def setup
     @controller = CaptureController.new

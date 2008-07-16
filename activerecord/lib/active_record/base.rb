@@ -828,7 +828,7 @@ module ActiveRecord #:nodoc:
       def update_counters(id, counters)
         updates = counters.inject([]) { |list, (counter_name, increment)|
           sign = increment < 0 ? "-" : "+"
-          list << "#{connection.quote_column_name(counter_name)} = #{connection.quote_column_name(counter_name)} #{sign} #{increment.abs}"
+          list << "#{connection.quote_column_name(counter_name)} = COALESCE(#{connection.quote_column_name(counter_name)}, 0) #{sign} #{increment.abs}"
         }.join(", ")
         update_all(updates, "#{connection.quote_column_name(primary_key)} = #{quote_value(id)}")
       end
@@ -1479,7 +1479,7 @@ module ActiveRecord #:nodoc:
 
         def construct_finder_sql(options)
           scope = scope(:find)
-          sql  = "SELECT #{options[:select] || (scope && scope[:select]) || (options[:joins] && quoted_table_name + '.*') || '*'} "
+          sql  = "SELECT #{options[:select] || (scope && scope[:select]) || ((options[:joins] || (scope && scope[:joins])) && quoted_table_name + '.*') || '*'} "
           sql << "FROM #{(scope && scope[:from]) || options[:from] || quoted_table_name} "
 
           add_joins!(sql, options, scope)
@@ -1999,24 +1999,28 @@ module ActiveRecord #:nodoc:
         #     # => "age BETWEEN 13 AND 18"
         #   { 'other_records.id' => 7 }
         #     # => "`other_records`.`id` = 7"
+        #   { :other_records => { :id => 7 } }
+        #     # => "`other_records`.`id` = 7"
         # And for value objects on a composed_of relationship:
         #   { :address => Address.new("123 abc st.", "chicago") }
         #     # => "address_street='123 abc st.' and address_city='chicago'"
-        def sanitize_sql_hash_for_conditions(attrs)
+        def sanitize_sql_hash_for_conditions(attrs, table_name = quoted_table_name)
           attrs = expand_hash_conditions_for_aggregates(attrs)
 
           conditions = attrs.map do |attr, value|
-            attr = attr.to_s
+            unless value.is_a?(Hash)
+              attr = attr.to_s
 
-            # Extract table name from qualified attribute names.
-            if attr.include?('.')
-              table_name, attr = attr.split('.', 2)
-              table_name = connection.quote_table_name(table_name)
+              # Extract table name from qualified attribute names.
+              if attr.include?('.')
+                table_name, attr = attr.split('.', 2)
+                table_name = connection.quote_table_name(table_name)
+              end
+
+              "#{table_name}.#{connection.quote_column_name(attr)} #{attribute_condition(value)}"
             else
-              table_name = quoted_table_name
+              sanitize_sql_hash_for_conditions(value, connection.quote_table_name(attr.to_s))
             end
-
-            "#{table_name}.#{connection.quote_column_name(attr)} #{attribute_condition(value)}"
           end.join(' AND ')
 
           replace_bind_variables(conditions, expand_range_bind_variables(attrs.values))
@@ -2055,9 +2059,10 @@ module ActiveRecord #:nodoc:
         end
 
         def replace_named_bind_variables(statement, bind_vars) #:nodoc:
-          statement.gsub(/:([a-zA-Z]\w*)/) do
-            match = $1.to_sym
-            if bind_vars.include?(match)
+          statement.gsub(/(:?):([a-zA-Z]\w*)/) do
+            if $1 == ':' # skip postgresql casts
+              $& # return the whole match
+            elsif bind_vars.include?(match = $2.to_sym)
               quote_bound_value(bind_vars[match])
             else
               raise PreparedStatementInvalid, "missing value for :#{match} in #{statement}"
@@ -2069,6 +2074,8 @@ module ActiveRecord #:nodoc:
           expanded = []
 
           bind_vars.each do |var|
+            next if var.is_a?(Hash)
+
             if var.is_a?(Range)
               expanded << var.first
               expanded << var.last
@@ -2169,11 +2176,11 @@ module ActiveRecord #:nodoc:
       def cache_key
         case
         when new_record?
-          "#{self.class.name.tableize}/new"
-        when self[:updated_at]
-          "#{self.class.name.tableize}/#{id}-#{updated_at.to_s(:number)}"
+          "#{self.class.model_name.cache_key}/new"
+        when timestamp = self[:updated_at]
+          "#{self.class.model_name.cache_key}/#{id}-#{timestamp.to_s(:number)}"
         else
-          "#{self.class.name.tableize}/#{id}"
+          "#{self.class.model_name.cache_key}/#{id}"
         end
       end
 

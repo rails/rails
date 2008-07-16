@@ -31,10 +31,12 @@ module ActionView
       #   </body></html>
       #
       def capture(*args, &block)
-        if output_buffer
+        # Return captured buffer in erb.
+        if block_called_from_erb?(block)
           with_output_buffer { block.call(*args) }
         else
-          block.call(*args)
+          # Return block result otherwise, but protect buffer also.
+          with_output_buffer { return block.call(*args) }
         end
       end
 
@@ -117,6 +119,7 @@ module ActionView
         ivar = "@content_for_#{name}"
         content = capture(&block) if block_given?
         instance_variable_set(ivar, "#{instance_variable_get(ivar)}#{content}")
+        nil
       end
 
       private

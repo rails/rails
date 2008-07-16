@@ -1,12 +1,13 @@
 module ActiveSupport
   class ModelName < String
-    attr_reader :singular, :plural, :partial_path
+    attr_reader :singular, :plural, :cache_key, :partial_path
 
     def initialize(name)
       super
       @singular = underscore.tr('/', '_').freeze
       @plural = @singular.pluralize.freeze
-      @partial_path = "#{tableize}/#{demodulize.underscore}".freeze
+      @cache_key = tableize.freeze
+      @partial_path = "#{@cache_key}/#{demodulize.underscore}".freeze
     end
   end
 

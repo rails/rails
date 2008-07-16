@@ -1,12 +1,10 @@
 require 'abstract_unit'
 
-
 module TestFileUtils
   def file_name() File.basename(__FILE__) end
   def file_path() File.expand_path(__FILE__) end
   def file_data() File.open(file_path, 'rb') { |f| f.read } end
 end
-
 
 class SendFileController < ActionController::Base
   include TestFileUtils
@@ -20,8 +18,6 @@ class SendFileController < ActionController::Base
 
   def rescue_action(e) raise end
 end
-
-SendFileController.view_paths = [ File.dirname(__FILE__) + "/../fixtures/" ]
 
 class SendFileTest < Test::Unit::TestCase
   include TestFileUtils
