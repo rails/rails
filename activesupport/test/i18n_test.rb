@@ -9,40 +9,40 @@ class I18nTest < Test::Unit::TestCase
   uses_mocha 'I18nTimeZoneTest' do
     def test_time_zone_localization_with_default_format
       Time.zone.stubs(:now).returns Time.local(2000)
-      assert_equal "Sat, 01 Jan 2000 00:00:00 +0100", I18n.localize(Time.zone.now)
+      assert_equal Time.zone.now.strftime("%a, %d %b %Y %H:%M:%S %z"), I18n.localize(Time.zone.now)
     end
   end
   
   def test_date_localization_should_use_default_format
-    assert_equal "2008-07-02", I18n.localize(@date)
+    assert_equal @date.strftime("%Y-%m-%d"), I18n.localize(@date)
   end
   
   def test_date_localization_with_default_format
-    assert_equal "2008-07-02", I18n.localize(@date, :format => :default)
+    assert_equal @date.strftime("%Y-%m-%d"), I18n.localize(@date, :format => :default)
   end
   
   def test_date_localization_with_short_format
-    assert_equal "Jul 02", I18n.localize(@date, :format => :short)
+    assert_equal @date.strftime("%b %d"), I18n.localize(@date, :format => :short)
   end
   
   def test_date_localization_with_long_format
-    assert_equal "July 02, 2008", I18n.localize(@date, :format => :long)
+    assert_equal @date.strftime("%B %d, %Y"), I18n.localize(@date, :format => :long)
   end
   
-  def test_time_localization_should_use_default_format
-    assert_equal "Wed, 02 Jul 2008 16:47:01 +0100", I18n.localize(@time)
+  def test_time_localization_should_use_default_format    
+    assert_equal @time.strftime("%a, %d %b %Y %H:%M:%S %z"), I18n.localize(@time)
   end
   
   def test_time_localization_with_default_format
-    assert_equal "Wed, 02 Jul 2008 16:47:01 +0100", I18n.localize(@time, :format => :default)
+    assert_equal @time.strftime("%a, %d %b %Y %H:%M:%S %z"), I18n.localize(@time, :format => :default)
   end
   
   def test_time_localization_with_short_format
-    assert_equal "02 Jul 16:47", I18n.localize(@time, :format => :short)
+    assert_equal @time.strftime("%d %b %H:%M"), I18n.localize(@time, :format => :short)
   end
   
   def test_time_localization_with_long_format
-    assert_equal "July 02, 2008 16:47", I18n.localize(@time, :format => :long)
+    assert_equal @time.strftime("%B %d, %Y %H:%M"), I18n.localize(@time, :format => :long)
   end
     
   def test_day_names
