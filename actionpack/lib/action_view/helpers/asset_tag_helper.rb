@@ -5,12 +5,12 @@ require 'action_view/helpers/tag_helper'
 module ActionView
   module Helpers #:nodoc:
     # This module provides methods for generating HTML that links views to assets such
-    # as images, javascripts, stylesheets, and feeds. These methods do not verify 
-    # the assets exist before linking to them. 
+    # as images, javascripts, stylesheets, and feeds. These methods do not verify
+    # the assets exist before linking to them.
     #
     # === Using asset hosts
     # By default, Rails links to these assets on the current host in the public
-    # folder, but you can direct Rails to link to assets from a dedicated assets server by 
+    # folder, but you can direct Rails to link to assets from a dedicated assets server by
     # setting ActionController::Base.asset_host in your <tt>config/environment.rb</tt>.  For example,
     # let's say your asset host is <tt>assets.example.com</tt>.
     #
@@ -22,16 +22,16 @@ module ActionView
     #
     # This is useful since browsers typically open at most two connections to a single host,
     # which means your assets often wait in single file for their turn to load.  You can
-    # alleviate this by using a <tt>%d</tt> wildcard in <tt>asset_host</tt> (for example, "assets%d.example.com") 
+    # alleviate this by using a <tt>%d</tt> wildcard in <tt>asset_host</tt> (for example, "assets%d.example.com")
     # to automatically distribute asset requests among four hosts (e.g., "assets0.example.com" through "assets3.example.com")
-    # so browsers will open eight connections rather than two.  
+    # so browsers will open eight connections rather than two.
     #
     #   image_tag("rails.png")
     #     => <img src="http://assets0.example.com/images/rails.png" alt="Rails" />
     #   stylesheet_link_tag("application")
     #     => <link href="http://assets3.example.com/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
     #
-    # To do this, you can either setup 4 actual hosts, or you can use wildcard DNS to CNAME 
+    # To do this, you can either setup 4 actual hosts, or you can use wildcard DNS to CNAME
     # the wildcard to a single asset host.  You can read more about setting up your DNS CNAME records from
     # your ISP.
     #
@@ -86,7 +86,7 @@ module ActionView
     # asset far into the future, but still be able to instantly invalidate it by simply updating the file (and hence updating the timestamp,
     # which then updates the URL as the timestamp is part of that, which in turn busts the cache).
     #
-    # It's the responsibility of the web server you use to set the far-future expiration date on cache assets that you need to take 
+    # It's the responsibility of the web server you use to set the far-future expiration date on cache assets that you need to take
     # advantage of this feature. Here's an example for Apache:
     #
     # # Asset Expiration
@@ -95,16 +95,17 @@ module ActionView
     #   ExpiresDefault "access plus 1 year"
     # </FilesMatch>
     #
-    # Also note that in order for this to work, all your application servers must return the same timestamps. This means that they must 
+    # Also note that in order for this to work, all your application servers must return the same timestamps. This means that they must
     # have their clocks synchronized. If one of them drift out of sync, you'll see different timestamps at random and the cache won't
     # work. Which means that the browser will request the same assets over and over again even thought they didn't change. You can use
-    # something like Live HTTP Headers for Firefox to verify that the cache is indeed working (and that the assets are not being 
+    # something like Live HTTP Headers for Firefox to verify that the cache is indeed working (and that the assets are not being
     # requested over and over).
     module AssetTagHelper
       ASSETS_DIR      = defined?(Rails.public_path) ? Rails.public_path : "public"
       JAVASCRIPTS_DIR = "#{ASSETS_DIR}/javascripts"
       STYLESHEETS_DIR = "#{ASSETS_DIR}/stylesheets"
-      
+      JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls'].map(&:to_s).freeze unless const_defined?(:JAVASCRIPT_DEFAULT_SOURCES)
+
       # Returns a link tag that browsers and news readers can use to auto-detect
       # an RSS or ATOM feed. The +type+ can either be <tt>:rss</tt> (default) or
       # <tt>:atom</tt>. Control the link options in url_for format using the
@@ -154,10 +155,6 @@ module ActionView
       end
       alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
-      JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls'] unless const_defined?(:JAVASCRIPT_DEFAULT_SOURCES)
-      @@javascript_expansions = { :defaults => JAVASCRIPT_DEFAULT_SOURCES.dup }
-      @@stylesheet_expansions = {}
-
       # Returns an html script tag for each of the +sources+ provided. You
       # can pass in the filename (.js extension is optional) of javascript files
       # that exist in your public/javascripts directory for inclusion into the
@@ -193,7 +190,7 @@ module ActionView
       #
       # * = The application.js file is only referenced if it exists
       #
-      # Though it's not really recommended practice, if you need to extend the default JavaScript set for any reason 
+      # Though it's not really recommended practice, if you need to extend the default JavaScript set for any reason
       # (e.g., you're going to be using a certain .js file in every action), then take a look at the register_javascript_include_default method.
       #
       # You can also include all javascripts in the javascripts directory using <tt>:all</tt> as the source:
@@ -218,7 +215,7 @@ module ActionView
       # You can also cache multiple javascripts into one file, which requires less HTTP connections to download and can better be
       # compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching
       # is set to <tt>true</tt> (which is the case by default for the Rails production environment, but not for the development
-      # environment). 
+      # environment).
       #
       # ==== Examples
       #   javascript_include_tag :all, :cache => true # when ActionController::Base.perform_caching is false =>
@@ -259,6 +256,8 @@ module ActionView
         end
       end
 
+      @@javascript_expansions = { :defaults => JAVASCRIPT_DEFAULT_SOURCES.dup }
+
       # Register one or more javascript files to be included when <tt>symbol</tt>
       # is passed to <tt>javascript_include_tag</tt>. This method is typically intended
       # to be called from plugin initialization to register javascript files
@@ -273,6 +272,8 @@ module ActionView
       def self.register_javascript_expansion(expansions)
         @@javascript_expansions.merge!(expansions)
       end
+
+      @@stylesheet_expansions = {}
 
       # Register one or more stylesheet files to be included when <tt>symbol</tt>
       # is passed to <tt>stylesheet_link_tag</tt>. This method is typically intended
@@ -439,9 +440,9 @@ module ActionView
       #    <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
       #  image_tag("/icons/icon.gif", :class => "menu_icon") # =>
       #    <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
-      #  image_tag("mouse.png", :mouseover => "/images/mouse_over.png") # => 
+      #  image_tag("mouse.png", :mouseover => "/images/mouse_over.png") # =>
       #    <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
-      #  image_tag("mouse.png", :mouseover => image_path("mouse_over.png")) # => 
+      #  image_tag("mouse.png", :mouseover => image_path("mouse_over.png")) # =>
       #    <img src="/images/mouse.png" onmouseover="this.src='/images/mouse_over.png'" onmouseout="this.src='/images/mouse.png'" alt="Mouse" />
       def image_tag(source, options = {})
         options.symbolize_keys!
@@ -454,23 +455,15 @@ module ActionView
         end
 
         if mouseover = options.delete(:mouseover)
-          options[:onmouseover]	= "this.src='#{image_path(mouseover)}'"
-          options[:onmouseout]	= "this.src='#{image_path(options[:src])}'"
+          options[:onmouseover] = "this.src='#{image_path(mouseover)}'"
+          options[:onmouseout]  = "this.src='#{image_path(options[:src])}'"
         end
 
         tag("img", options)
       end
 
       private
-        def file_exist?(path)
-          @@file_exist_cache ||= {}
-          if !(@@file_exist_cache[path] ||= File.exist?(path))
-            @@file_exist_cache[path] = true
-            false
-          else
-            true
-          end
-        end
+        COMPUTED_PUBLIC_PATHS = ActiveSupport::Cache::MemoryStore.new.silence!.threadsafe!
 
         # Add the the extension +ext+ if not present. Return full URLs otherwise untouched.
         # Prefix with <tt>/dir/</tt> if lacking a leading +/+. Account for relative URL
@@ -490,7 +483,7 @@ module ActionView
                 dir, source, ext, include_host ].join
             end
 
-          ActionView::Base.computed_public_paths[cache_key] ||=
+          source = COMPUTED_PUBLIC_PATHS.fetch(cache_key) do
             begin
               source += ".#{ext}" if ext && File.extname(source).blank? || File.exist?(File.join(ASSETS_DIR, dir, "#{source}.#{ext}"))
 
@@ -507,8 +500,7 @@ module ActionView
                 rewrite_asset_path(source)
               end
             end
-
-          source = ActionView::Base.computed_public_paths[cache_key]
+          end
 
           if include_host && source !~ %r{^[-a-z]+://}
             host = compute_asset_host(source)
@@ -594,7 +586,7 @@ module ActionView
             expanded_sources = sources.collect do |source|
               determine_source(source, @@javascript_expansions)
             end.flatten
-            expanded_sources << "application" if sources.include?(:defaults) && file_exist?(File.join(JAVASCRIPTS_DIR, "application.js"))
+            expanded_sources << "application" if sources.include?(:defaults) && File.exist?(File.join(JAVASCRIPTS_DIR, "application.js"))
             expanded_sources
           end
         end

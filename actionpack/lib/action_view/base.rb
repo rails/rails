@@ -200,10 +200,6 @@ module ActionView #:nodoc:
     end
     include CompiledTemplates
 
-    # Cache public asset paths
-    cattr_reader :computed_public_paths
-    @@computed_public_paths = {}
-
     def self.helper_modules #:nodoc:
       helpers = []
       Dir.entries(File.expand_path("#{File.dirname(__FILE__)}/helpers")).sort.each do |file|

@@ -70,3 +70,70 @@ uses_mocha 'high-level cache store tests' do
     end
   end
 end
+
+class ThreadSafetyCacheStoreTest < Test::Unit::TestCase
+  def setup
+    @cache = ActiveSupport::Cache.lookup_store(:memory_store).threadsafe!
+    @cache.write('foo', 'bar')
+
+    # No way to have mocha proxy to the original method
+    @mutex = @cache.instance_variable_get(:@mutex)
+    @mutex.instance_eval %(
+      def calls; @calls; end
+      def synchronize
+        @calls ||= 0
+        @calls += 1
+        yield
+      end
+    )
+  end
+
+  def test_read_is_synchronized
+    assert_equal 'bar', @cache.read('foo')
+    assert_equal 1, @mutex.calls
+  end
+
+  def test_write_is_synchronized
+    @cache.write('foo', 'baz')
+    assert_equal 'baz', @cache.read('foo')
+    assert_equal 2, @mutex.calls
+  end
+
+  def test_delete_is_synchronized
+    assert_equal 'bar', @cache.read('foo')
+    @cache.delete('foo')
+    assert_equal nil, @cache.read('foo')
+    assert_equal 3, @mutex.calls
+  end
+
+  def test_delete_matched_is_synchronized
+    assert_equal 'bar', @cache.read('foo')
+    @cache.delete_matched(/foo/)
+    assert_equal nil, @cache.read('foo')
+    assert_equal 3, @mutex.calls
+  end
+
+  def test_fetch_is_synchronized
+    assert_equal 'bar', @cache.fetch('foo') { 'baz' }
+    assert_equal 'fu', @cache.fetch('bar') { 'fu' }
+    assert_equal 3, @mutex.calls
+  end
+
+  def test_exist_is_synchronized
+    assert @cache.exist?('foo')
+    assert !@cache.exist?('bar')
+    assert_equal 2, @mutex.calls
+  end
+
+  def test_increment_is_synchronized
+    @cache.write('foo_count', 1)
+    assert_equal 2, @cache.increment('foo_count')
+    assert_equal 4, @mutex.calls
+  end
+
+  def test_decrement_is_synchronized
+    @cache.write('foo_count', 1)
+    assert_equal 0, @cache.decrement('foo_count')
+    assert_equal 4, @mutex.calls
+  end
+end

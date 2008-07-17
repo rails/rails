@@ -39,8 +39,7 @@ class AssetTagHelperTest < ActionView::TestCase
     @controller.request = @request
 
     ActionView::Helpers::AssetTagHelper::reset_javascript_include_default
-
-    ActionView::Base.computed_public_paths.clear
+    COMPUTED_PUBLIC_PATHS.clear
   end
 
   def teardown
@@ -161,7 +160,7 @@ class AssetTagHelperTest < ActionView::TestCase
     ENV["RAILS_ASSET_ID"] = ""
     JavascriptIncludeToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
 
-    ActionView::Base.computed_public_paths.clear
+    COMPUTED_PUBLIC_PATHS.clear
 
     ENV["RAILS_ASSET_ID"] = "1"
     assert_dom_equal(%(<script src="/javascripts/prototype.js?1" type="text/javascript"></script>\n<script src="/javascripts/effects.js?1" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js?1" type="text/javascript"></script>\n<script src="/javascripts/controls.js?1" type="text/javascript"></script>\n<script src="/javascripts/application.js?1" type="text/javascript"></script>), javascript_include_tag(:defaults))
