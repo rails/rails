@@ -292,6 +292,27 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal expected, original
   end
 
+  def test_slice_with_an_array_key
+    original = { :a => 'x', :b => 'y', :c => 10, [:a, :b] => "an array key" }
+    expected = { [:a, :b] => "an array key", :c => 10 }
+
+    # Should return a new hash with only the given keys when given an array key.
+    assert_equal expected, original.slice([:a, :b], :c)
+    assert_not_equal expected, original
+
+    # Should replace the hash with only the given keys when given an array key.
+    assert_equal expected, original.slice!([:a, :b], :c)
+    assert_equal expected, original
+  end
+
+  def test_slice_with_splatted_keys
+    original = { :a => 'x', :b => 'y', :c => 10, [:a, :b] => "an array key" }
+    expected = { :a => 'x', :b => "y" }
+
+    # Should grab each of the splatted keys.
+    assert_equal expected, original.slice(*[:a, :b])
+  end
+
   def test_indifferent_slice
     original = { :a => 'x', :b => 'y', :c => 10 }.with_indifferent_access
     expected = { :a => 'x', :b => 'y' }.with_indifferent_access
