@@ -21,7 +21,7 @@ module ActiveSupport
       expanded_cache_key = namespace ? "#{namespace}/" : ""
 
       if ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
-        expanded_cache_key << "#{ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]}/" 
+        expanded_cache_key << "#{ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]}/"
       end
 
       expanded_cache_key << case
@@ -40,13 +40,8 @@ module ActiveSupport
     class Store
       cattr_accessor :logger
 
-      def initialize
-      end
-
       def threadsafe!
-        @mutex = Mutex.new
-        self.class.send :include, ThreadSafety
-        self
+        extend ThreadSafety
       end
 
       # Pass <tt>:force => true</tt> to force a cache miss.
@@ -110,29 +105,24 @@ module ActiveSupport
           nil
         end
       end
-      
+
       private
         def log(operation, key, options)
           logger.debug("Cache #{operation}: #{key}#{options ? " (#{options.inspect})" : ""}") if logger && !@logger_off
         end
     end
 
-
     module ThreadSafety #:nodoc:
-      def read(key, options = nil) #:nodoc:
-        @mutex.synchronize { super }
+      def self.extended(object) #:nodoc:
+        object.instance_variable_set(:@mutex, Mutex.new)
       end
 
-      def write(key, value, options = nil) #:nodoc:
-        @mutex.synchronize { super }
-      end
-
-      def delete(key, options = nil) #:nodoc:
-        @mutex.synchronize { super }
-      end
-
-      def delete_matched(matcher, options = nil) #:nodoc:
-        @mutex.synchronize { super }
+      %w(read write delete delete_matched exist? increment decrement).each do |method|
+        module_eval <<-EOS, __FILE__, __LINE__
+          def #{method}(*args)
+            @mutex.synchronize { super }
+          end
+        EOS
       end
     end
   end
