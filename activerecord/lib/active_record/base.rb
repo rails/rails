@@ -439,6 +439,10 @@ module ActiveRecord #:nodoc:
     cattr_accessor :schema_format , :instance_writer => false
     @@schema_format = :ruby
 
+    # Specify whether or not to use timestamps for migration numbers
+    cattr_accessor :timestamped_migrations , :instance_writer => false
+    @@timestamped_migrations = true
+
     # Determine whether to store the full constant name including namespace when using STI
     superclass_delegating_accessor :store_full_sti_class
     self.store_full_sti_class = false

@@ -1,5 +1,7 @@
 *Edge*
 
+* Set config.active_record.timestamped_migrations = false to have migrations with numeric prefix instead of UTC timestamp. #446. [Andrew Stone, Nik Wakelin]
+
 * change_column_default preserves the not-null constraint.  #617 [Tarmo Tänav]
 
 * Fixed that create database statements would always include "DEFAULT NULL" (Nick Sieger) [#334]
