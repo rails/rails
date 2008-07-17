@@ -11,7 +11,7 @@ module ActiveSupport
       DEFAULTS =
         if benchmark = ARGV.include?('--benchmark')  # HAX for rake test
           { :benchmark => true,
-            :runs => 10,
+            :runs => 4,
             :metrics => [:process_time, :memory, :objects, :gc_runs, :gc_time],
             :output => 'tmp/performance' }
         else
