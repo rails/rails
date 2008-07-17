@@ -36,12 +36,16 @@ module ActiveSupport
       expanded_cache_key
     end
 
-
     class Store
       cattr_accessor :logger
 
       def threadsafe!
         extend ThreadSafety
+      end
+
+      def silence!
+        @silence = true
+        self
       end
 
       # Pass <tt>:force => true</tt> to force a cache miss.
@@ -108,7 +112,7 @@ module ActiveSupport
 
       private
         def log(operation, key, options)
-          logger.debug("Cache #{operation}: #{key}#{options ? " (#{options.inspect})" : ""}") if logger && !@logger_off
+          logger.debug("Cache #{operation}: #{key}#{options ? " (#{options.inspect})" : ""}") if logger && !@silence && !@logger_off
         end
     end
 
