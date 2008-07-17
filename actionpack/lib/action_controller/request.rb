@@ -61,7 +61,7 @@ module ActionController
       request_method == :head
     end
 
-    # Provides acccess to the request's HTTP headers, for example:
+    # Provides access to the request's HTTP headers, for example:
     #  request.headers["Content-Type"] # => "text/plain"
     def headers
       @headers ||= ActionController::Http::Headers.new(@env)
@@ -265,7 +265,7 @@ EOM
       parts[0..-(tld_length+2)]
     end
 
-    # Return the query string, accounting for server idiosyncracies.
+    # Return the query string, accounting for server idiosyncrasies.
     def query_string
       if uri = @env['REQUEST_URI']
         uri.split('?', 2)[1] || ''
@@ -274,7 +274,7 @@ EOM
       end
     end
 
-    # Return the request URI, accounting for server idiosyncracies.
+    # Return the request URI, accounting for server idiosyncrasies.
     # WEBrick includes the full URL. IIS leaves REQUEST_URI blank.
     def request_uri
       if uri = @env['REQUEST_URI']

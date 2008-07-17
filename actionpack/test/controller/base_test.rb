@@ -7,6 +7,7 @@ module Submodule
   end
   class ContainedNonEmptyController < ActionController::Base
     def public_action
+      render :nothing => true
     end
     
     hide_action :hidden_action
@@ -105,6 +106,18 @@ end
 
 
 class PerformActionTest < Test::Unit::TestCase
+  class MockLogger
+    attr_reader :logged
+
+    def initialize
+      @logged = []
+    end
+
+    def method_missing(method, *args)
+      @logged << args.first
+    end
+  end
+
   def use_controller(controller_class)
     @controller = controller_class.new
 
@@ -141,6 +154,13 @@ class PerformActionTest < Test::Unit::TestCase
     
     get :another_hidden_action
     assert_response 404
+  end
+
+  def test_namespaced_action_should_log_module_name
+    use_controller Submodule::ContainedNonEmptyController
+    @controller.logger = MockLogger.new
+    get :public_action
+    assert_match /Processing\sSubmodule::ContainedNonEmptyController#public_action/, @controller.logger.logged[1]
   end
 end
 

@@ -6,7 +6,7 @@ module ActiveRecord #:nodoc:
   class ActiveRecordError < StandardError
   end
 
-  # Raised when the single-table inheritance mechanism failes to locate the subclass
+  # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that +inheritance_column+ points to).
   class SubclassNotFound < ActiveRecordError #:nodoc:
   end
@@ -97,7 +97,7 @@ module ActiveRecord #:nodoc:
   class MissingAttributeError < NoMethodError
   end
 
-  # Raised when an error occured while doing a mass assignment to an attribute through the
+  # Raised when an error occurred while doing a mass assignment to an attribute through the
   # <tt>attributes=</tt> method. The exception has an +attribute+ property that is the name of the
   # offending attribute.
   class AttributeAssignmentError < ActiveRecordError
@@ -271,7 +271,7 @@ module ActiveRecord #:nodoc:
   #   # Now 'Bob' exist and is an 'admin'
   #   User.find_or_create_by_name('Bob', :age => 40) { |u| u.admin = true }
   #
-  # Use the <tt>find_or_initialize_by_</tt> finder if you want to return a new record without saving it first. Protected attributes won't be setted unless they are given in a block. For example:
+  # Use the <tt>find_or_initialize_by_</tt> finder if you want to return a new record without saving it first. Protected attributes won't be set unless they are given in a block. For example:
   #
   #   # No 'Winter' tag exists
   #   winter = Tag.find_or_initialize_by_name("Winter")
@@ -438,6 +438,10 @@ module ActiveRecord #:nodoc:
     # adapters for, e.g., your development and test environments.
     cattr_accessor :schema_format , :instance_writer => false
     @@schema_format = :ruby
+
+    # Specify whether or not to use timestamps for migration numbers
+    cattr_accessor :timestamped_migrations , :instance_writer => false
+    @@timestamped_migrations = true
 
     # Determine whether to store the full constant name including namespace when using STI
     superclass_delegating_accessor :store_full_sti_class
@@ -724,8 +728,7 @@ module ActiveRecord #:nodoc:
       # ==== Attributes
       #
       # * +updates+ - A String of column and value pairs that will be set on any records that match conditions.
-      # * +conditions+ - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
-      #   See conditions in the intro for more info.
+      # * +conditions+ - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro for more info.
       # * +options+ - Additional options are <tt>:limit</tt> and/or <tt>:order</tt>, see the examples for usage.
       #
       # ==== Examples

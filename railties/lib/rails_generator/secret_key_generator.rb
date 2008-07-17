@@ -23,7 +23,7 @@ module Rails
 
     # Generate a random secret key by using the Win32 API. Raises LoadError
     # if the current platform cannot make use of the Win32 API. Raises
-    # SystemCallError if some other error occured.
+    # SystemCallError if some other error occurred.
     def generate_secret_with_win32_api
       # Following code is based on David Garamond's GUID library for Ruby.
       require 'Win32API'

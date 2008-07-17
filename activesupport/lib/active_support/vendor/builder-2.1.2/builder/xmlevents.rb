@@ -20,7 +20,7 @@ module Builder
   # markup.
   #
   # Usage:
-  #   xe = Builder::XmlEvents.new(hander)
+  #   xe = Builder::XmlEvents.new(handler)
   #   xe.title("HI")    # Sends start_tag/end_tag/text messages to the handler.
   #
   # Indentation may also be selected by providing value for the

@@ -171,7 +171,7 @@ module ActionController #:nodoc:
 
     # Was the response successful?
     def success?
-      response_code == 200
+      (200..299).include?(response_code)
     end
 
     # Was the URL not found?
@@ -211,7 +211,7 @@ module ActionController #:nodoc:
       template._first_render
     end
 
-    # A shortcut to the flash. Returns an empyt hash if no session flash exists.
+    # A shortcut to the flash. Returns an empty hash if no session flash exists.
     def flash
       session['flash'] || {}
     end

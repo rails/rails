@@ -1,0 +1,6 @@
+page.assign 'title', 'Hey'
+cache do
+  page['element_1'].visual_effect :highlight
+  page['element_2'].visual_effect :highlight
+end
+page.assign 'footer', 'Bye'

@@ -261,7 +261,7 @@ module ActiveSupport #:nodoc:
         # Layers additional behavior on Time#<=> so that DateTime and ActiveSupport::TimeWithZone instances
         # can be chronologically compared with a Time
         def compare_with_coercion(other)
-          # if other is an ActiveSupport::TimeWithZone, coerce a Time instance from it so we can do <=> comparision
+          # if other is an ActiveSupport::TimeWithZone, coerce a Time instance from it so we can do <=> comparison
           other = other.comparable_time if other.respond_to?(:comparable_time)
           if other.acts_like?(:date)
             # other is a Date/DateTime, so coerce self #to_datetime and hand off to DateTime#<=>

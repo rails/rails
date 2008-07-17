@@ -112,19 +112,23 @@ module ActionController #:nodoc:
     protected
       # Exception handler called when the performance of an action raises an exception.
       def rescue_action(exception)
-        log_error(exception) if logger
-        erase_results if performed?
-
-        # Let the exception alter the response if it wants.
-        # For example, MethodNotAllowed sets the Allow header.
-        if exception.respond_to?(:handle_response!)
-          exception.handle_response!(response)
-        end
-
-        if consider_all_requests_local || local_request?
-          rescue_action_locally(exception)
+        if handler_for_rescue(exception)
+          rescue_action_with_handler(exception)
         else
-          rescue_action_in_public(exception)
+          log_error(exception) if logger
+          erase_results if performed?
+
+          # Let the exception alter the response if it wants.
+          # For example, MethodNotAllowed sets the Allow header.
+          if exception.respond_to?(:handle_response!)
+            exception.handle_response!(response)
+          end
+
+          if consider_all_requests_local || local_request?
+            rescue_action_locally(exception)
+          else
+            rescue_action_in_public(exception)
+          end
         end
       end
 
@@ -200,7 +204,7 @@ module ActionController #:nodoc:
       def perform_action_with_rescue #:nodoc:
         perform_action_without_rescue
       rescue Exception => exception
-        rescue_action_with_handler(exception) || rescue_action(exception)
+        rescue_action(exception)
       end
 
       def rescues_path(template_name)

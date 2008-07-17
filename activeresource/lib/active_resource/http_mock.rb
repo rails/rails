@@ -65,7 +65,7 @@ module ActiveResource
     class << self
 
       # Returns an array of all request objects that have been sent to the mock.  You can use this to check
-      # wether or not your model actually sent an HTTP request.
+      # if your model actually sent an HTTP request.
       #
       # ==== Example
       #   def setup

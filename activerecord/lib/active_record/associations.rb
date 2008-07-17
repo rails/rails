@@ -582,12 +582,13 @@ module ActiveRecord
     #          has_many :clients
     #        end
     #
-    #       class Company < ActiveRecord::Base; end
+    #       class Client < ActiveRecord::Base; end
     #     end
     #   end
     #
-    # When Firm#clients is called, it will in turn call <tt>MyApplication::Business::Company.find(firm.id)</tt>. If you want to associate
-    # with a class in another module scope, this can be done by specifying the complete class name.  Example:
+    # When <tt>Firm#clients</tt> is called, it will in turn call <tt>MyApplication::Business::Client.find_all_by_firm_id(firm.id)</tt>.
+    # If you want to associate with a class in another module scope, this can be done by specifying the complete class name.
+    # Example:
     #
     #   module MyApplication
     #     module Business

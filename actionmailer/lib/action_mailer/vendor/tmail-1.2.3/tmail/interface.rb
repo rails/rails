@@ -42,7 +42,7 @@ module TMail
     # Allows you to query the mail object with a string to get the contents
     # of the field you want.
     # 
-    # Returns a string of the exact contnts of the field
+    # Returns a string of the exact contents of the field
     # 
     #  mail.from = "mikel <mikel@lindsaar.net>"
     #  mail.header_string("From") #=> "mikel <mikel@lindsaar.net>"

@@ -61,7 +61,7 @@ module ActionView
     #
     # == Designing your Rails actions for Ajax
     # When building your action handlers (that is, the Rails actions that receive your background requests), it's
-    # important to remember a few things.  First, whatever your action would normall return to the browser, it will
+    # important to remember a few things.  First, whatever your action would normally return to the browser, it will
     # return to the Ajax call.  As such, you typically don't want to render with a layout.  This call will cause
     # the layout to be transmitted back to your page, and, if you have a full HTML/CSS, will likely mess a lot of things up.
     # You can turn the layout off on particular actions by doing the following:
@@ -580,9 +580,10 @@ module ActionView
       class JavaScriptGenerator #:nodoc:
         def initialize(context, &block) #:nodoc:
           @context, @lines = context, []
-          @context.output_buffer = @lines if @context
           include_helpers_from_context
-          @context.instance_exec(self, &block)
+          @context.with_output_buffer(@lines) do
+            @context.instance_exec(self, &block)
+          end
         end
 
         private

@@ -37,7 +37,7 @@ lifecycle methods that operate against a persistent store.
    Person.exists?(1)  #=> true
 
 As you can see, the methods are quite similar to Active Record's methods for dealing with database
-records.  But rather than dealing with 
+records.  But rather than dealing directly with a database record, you're dealing with HTTP resources (which may or may not be database records).
 
 ==== Protocol
 

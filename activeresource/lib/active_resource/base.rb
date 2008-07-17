@@ -111,7 +111,7 @@ module ActiveResource
   # over HTTPS.
   # 
   # Note: Some values cannot be provided in the URL passed to site.  e.g. email addresses 
-  # as usernames.  In those situations you should use the seperate user and password option.
+  # as usernames.  In those situations you should use the separate user and password option.
   # == Errors & Validation
   #
   # Error handling and validation is handled in much the same manner as you're used to seeing in
@@ -200,7 +200,7 @@ module ActiveResource
     cattr_accessor :logger
 
     class << self
-      # Gets the URI of the REST resources to map for this class.  The site variable is required 
+      # Gets the URI of the REST resources to map for this class.  The site variable is required for
       # Active Resource's mapping to work.
       def site
         # Not using superclass_delegating_reader because don't want subclasses to modify superclass instance
@@ -226,7 +226,7 @@ module ActiveResource
       end
 
       # Sets the URI of the REST resources to map for this class to the value in the +site+ argument.
-      # The site variable is required Active Resource's mapping to work.
+      # The site variable is required for Active Resource's mapping to work.
       def site=(site)
         @connection = nil
         if site.nil?
@@ -288,7 +288,7 @@ module ActiveResource
       end
 
       # Returns the current format, default is ActiveResource::Formats::XmlFormat.
-      def format # :nodoc:
+      def format
         read_inheritable_attribute("format") || ActiveResource::Formats[:xml]
       end
 
@@ -298,7 +298,7 @@ module ActiveResource
         @timeout = timeout
       end
 
-      # Gets tthe number of seconds after which requests to the REST API should time out.
+      # Gets the number of seconds after which requests to the REST API should time out.
       def timeout
         if defined?(@timeout)
           @timeout
@@ -426,16 +426,16 @@ module ActiveResource
 
       alias_method :set_primary_key, :primary_key=  #:nodoc:
 
-      # Create a new resource instance and request to the remote service
+      # Creates a new resource instance and makes a request to the remote service
       # that it be saved, making it equivalent to the following simultaneous calls:
       #
       #   ryan = Person.new(:first => 'ryan')
       #   ryan.save
       #
-      # The newly created resource is returned.  If a failure has occurred an
-      # exception will be raised (see save).  If the resource is invalid and
-      # has not been saved then valid? will return <tt>false</tt>,
-      # while new? will still return <tt>true</tt>.
+      # Returns the newly created resource.  If a failure has occurred an
+      # exception will be raised (see <tt>save</tt>).  If the resource is invalid and
+      # has not been saved then <tt>valid?</tt> will return <tt>false</tt>,
+      # while <tt>new?</tt> will still return <tt>true</tt>.
       #
       # ==== Examples
       #   Person.create(:name => 'Jeremy', :email => 'myname@nospam.com', :enabled => true)
@@ -812,7 +812,7 @@ module ActiveResource
     #   Person.delete(guys_id)
     #   that_guy.exists? # => false
     def exists?
-      !new? && self.class.exists?(to_param, :params => prefix_options)      
+      !new? && self.class.exists?(to_param, :params => prefix_options)
     end
 
     # A method to convert the the resource to an XML string.

@@ -148,7 +148,6 @@ class PageCachingTest < Test::Unit::TestCase
     end
 end
 
-
 class ActionCachingTestController < ActionController::Base
   caches_action :index, :redirected, :forbidden, :if => Proc.new { |c| !c.request.format.json? }, :expires_in => 1.hour
   caches_action :show, :cache_path => 'http://test.host/custom/show'
@@ -489,54 +488,54 @@ class FragmentCachingTest < Test::Unit::TestCase
 
   def test_fragment_cache_key
     assert_equal 'views/what a key', @controller.fragment_cache_key('what a key')
-    assert_equal( "views/test.host/fragment_caching_test/some_action",
-                  @controller.fragment_cache_key(:controller => 'fragment_caching_test',:action => 'some_action'))
+    assert_equal "views/test.host/fragment_caching_test/some_action",
+                  @controller.fragment_cache_key(:controller => 'fragment_caching_test',:action => 'some_action')
   end
 
-  def test_read_fragment__with_caching_enabled
+  def test_read_fragment_with_caching_enabled
     @store.write('views/name', 'value')
     assert_equal 'value', @controller.read_fragment('name')
   end
 
-  def test_read_fragment__with_caching_disabled
+  def test_read_fragment_with_caching_disabled
     ActionController::Base.perform_caching = false
     @store.write('views/name', 'value')
     assert_nil @controller.read_fragment('name')
   end
 
-  def test_fragment_exist__with_caching_enabled
+  def test_fragment_exist_with_caching_enabled
     @store.write('views/name', 'value')
     assert @controller.fragment_exist?('name')
     assert !@controller.fragment_exist?('other_name')
   end
 
-  def test_fragment_exist__with_caching_disabled
+  def test_fragment_exist_with_caching_disabled
     ActionController::Base.perform_caching = false
     @store.write('views/name', 'value')
     assert !@controller.fragment_exist?('name')
     assert !@controller.fragment_exist?('other_name')
   end
 
-  def test_write_fragment__with_caching_enabled
+  def test_write_fragment_with_caching_enabled
     assert_nil @store.read('views/name')
     assert_equal 'value', @controller.write_fragment('name', 'value')
     assert_equal 'value', @store.read('views/name')
   end
 
-  def test_write_fragment__with_caching_disabled
+  def test_write_fragment_with_caching_disabled
     assert_nil @store.read('views/name')
     ActionController::Base.perform_caching = false
     assert_equal nil, @controller.write_fragment('name', 'value')
     assert_nil @store.read('views/name')
   end
 
-  def test_expire_fragment__with_simple_key
+  def test_expire_fragment_with_simple_key
     @store.write('views/name', 'value')
     @controller.expire_fragment 'name'
     assert_nil @store.read('views/name')
   end
 
-  def test_expire_fragment__with__regexp
+  def test_expire_fragment_with_regexp
     @store.write('views/name', 'value')
     @store.write('views/another_name', 'another_value')
     @store.write('views/primalgrasp', 'will not expire ;-)')
@@ -548,7 +547,7 @@ class FragmentCachingTest < Test::Unit::TestCase
     assert_equal 'will not expire ;-)', @store.read('views/primalgrasp')
   end
 
-  def test_fragment_for__with_disabled_caching
+  def test_fragment_for_with_disabled_caching
     ActionController::Base.perform_caching = false
 
     @store.write('views/expensive', 'fragment content')
@@ -573,7 +572,6 @@ class FragmentCachingTest < Test::Unit::TestCase
   end
 end
 
-
 class FunctionalCachingController < ActionController::Base
   def fragment_cached
   end
@@ -590,6 +588,13 @@ class FunctionalCachingController < ActionController::Base
     end
   end
 
+  def formatted_fragment_cached
+    respond_to do |format|
+      format.html
+      format.xml
+      format.js
+    end
+  end
 
   def rescue_action(e)
     raise e
@@ -638,5 +643,36 @@ CACHED
     assert_response :success
     assert_match /Fragment caching in a partial/, @response.body
     assert_match "Fragment caching in a partial", @store.read('views/test.host/functional_caching/js_fragment_cached_with_partial')
+  end
+
+  def test_html_formatted_fragment_caching
+    get :formatted_fragment_cached, :format => "html"
+    assert_response :success
+    expected_body = "<body>\n<p>ERB</p>\n</body>"
+
+    assert_equal expected_body, @response.body
+
+    assert_equal "<p>ERB</p>", @store.read('views/test.host/functional_caching/formatted_fragment_cached')
+  end
+
+  def test_xml_formatted_fragment_caching
+    get :formatted_fragment_cached, :format => "xml"
+    assert_response :success
+    expected_body = "<body>\n  <p>Builder</p>\n</body>\n"
+
+    assert_equal expected_body, @response.body
+
+    assert_equal "  <p>Builder</p>\n", @store.read('views/test.host/functional_caching/formatted_fragment_cached')
+  end
+
+  def test_js_formatted_fragment_caching
+    get :formatted_fragment_cached, :format => "js"
+    assert_response :success
+    expected_body = %(title = "Hey";\n$("element_1").visualEffect("highlight");\n) +
+      %($("element_2").visualEffect("highlight");\nfooter = "Bye";)
+    assert_equal expected_body, @response.body
+
+    assert_equal ['$("element_1").visualEffect("highlight");', '$("element_2").visualEffect("highlight");'],
+      @store.read('views/test.host/functional_caching/formatted_fragment_cached')
   end
 end

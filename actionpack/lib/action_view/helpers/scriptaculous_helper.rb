@@ -193,7 +193,7 @@ module ActionView
       #                          
       # * <tt>:onDrop</tt> - Called when a +draggable_element+ is dropped onto
       #   this element. Override this callback with a JavaScript expression to 
-      #   change the default drop behavour. Example:
+      #   change the default drop behaviour. Example:
       #                          
       #     :onDrop => "function(draggable_element, droppable_element, event) { alert('I like bananas') }"
       #                          

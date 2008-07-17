@@ -503,21 +503,24 @@ module ActionView
                     source = "#{@controller.request.relative_url_root}#{source}"
                   end
                 end
-                source = rewrite_asset_path(source)
 
-                if include_host
-                  host = compute_asset_host(source)
-
-                  if has_request && !host.blank? && host !~ %r{^[-a-z]+://}
-                    host = "#{@controller.request.protocol}#{host}"
-                  end
-
-                  "#{host}#{source}"
-                else
-                  source
-                end
+                rewrite_asset_path(source)
               end
             end
+
+          source = ActionView::Base.computed_public_paths[cache_key]
+
+          if include_host && source !~ %r{^[-a-z]+://}
+            host = compute_asset_host(source)
+
+            if has_request && !host.blank? && host !~ %r{^[-a-z]+://}
+              host = "#{@controller.request.protocol}#{host}"
+            end
+
+            "#{host}#{source}"
+          else
+            source
+          end
         end
 
         # Pick an asset host for this source. Returns +nil+ if no host is set,

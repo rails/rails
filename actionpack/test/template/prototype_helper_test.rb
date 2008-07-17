@@ -28,7 +28,7 @@ class PrototypeHelperBaseTest < ActionView::TestCase
   attr_accessor :template_format, :output_buffer
 
   def setup
-    @template = nil
+    @template = self
     @controller = Class.new do
       def url_for(options)
         if options.is_a?(String)
@@ -243,8 +243,12 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
   end
 
   def test_update_page
+    old_output_buffer = output_buffer
+
     block = Proc.new { |page| page.replace_html('foo', 'bar') }
     assert_equal create_generator(&block).to_s, update_page(&block)
+
+    assert_equal old_output_buffer, output_buffer
   end
 
   def test_update_page_tag

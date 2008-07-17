@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../scripts'
 module Rails::Generator::Scripts
   class Destroy < Base
     mandatory_options :command => :destroy
-    
+
     protected
     def usage_message
       usage = "\nInstalled Generators\n"
@@ -15,14 +15,13 @@ module Rails::Generator::Scripts
 
       usage << <<end_blurb
 
-This script will destroy all files created by the corresponding 
-script/generate command. For instance, script/destroy migration CreatePost
-will delete the appropriate ###_create_post.rb file in db/migrate, while 
-script/destroy scaffold Post will delete the posts controller and 
+script/generate command. For instance, 'script/destroy migration CreatePost'
+will delete the appropriate XXX_create_post.rb migration file in db/migrate,
+while 'script/destroy scaffold Post' will delete the posts controller and
 views, post model and migration, all associated tests, and the map.resources
 :posts line in config/routes.rb.
-      
-For instructions on finding new generators, run script/generate
+
+For instructions on finding new generators, run script/generate.
 end_blurb
       return usage
     end

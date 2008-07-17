@@ -98,7 +98,7 @@ module Rails
     #   Rails::Initializer.run(:set_load_path)
     #
     # This is useful if you only want the load path initialized, without
-    # incuring the overhead of completely loading the entire environment.
+    # incurring the overhead of completely loading the entire environment.
     def self.run(command = :process, configuration = Configuration.new)
       yield configuration if block_given?
       initializer = new configuration
@@ -414,8 +414,11 @@ Run `rake gems:install` to install the missing gems.
     # paths have already been set, it is not changed, otherwise it is
     # set to use Configuration#view_path.
     def initialize_framework_views
-      ActionMailer::Base.template_root ||= configuration.view_path  if configuration.frameworks.include?(:action_mailer)
-      ActionController::Base.view_paths = [configuration.view_path] if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.empty?
+      ActionView::PathSet::Path.eager_load_templates! if configuration.cache_classes
+      view_path = ActionView::PathSet::Path.new(configuration.view_path)
+
+      ActionMailer::Base.template_root ||= view_path if configuration.frameworks.include?(:action_mailer)
+      ActionController::Base.view_paths = view_path if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.empty?
     end
 
     # If Action Controller is not one of the loaded frameworks (Configuration#frameworks)
@@ -528,7 +531,7 @@ Run `rake gems:install` to install the missing gems.
     # A stub for setting options on ActiveRecord::Base.
     attr_accessor :active_record
 
-    # A stub for setting options on ActiveRecord::Base.
+    # A stub for setting options on ActiveResource::Base.
     attr_accessor :active_resource
 
     # A stub for setting options on ActiveSupport.

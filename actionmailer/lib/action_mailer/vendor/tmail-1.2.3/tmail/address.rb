@@ -38,7 +38,7 @@ module TMail
   # = Class Address
   # 
   # Provides a complete handling library for email addresses. Can parse a string of an
-  # address directly or take in preformatted addresses themseleves.  Allows you to add
+  # address directly or take in preformatted addresses themselves.  Allows you to add
   # and remove phrases from the front of the address and provides a compare function for
   # email addresses.
   # 
@@ -143,7 +143,7 @@ module TMail
       
       # This is to catch an unquoted "@" symbol in the local part of the
       # address.  Handles addresses like <"@"@me.com> and makes sure they
-      # stay like <"@"@me.com> (previously were becomming <@@me.com>)
+      # stay like <"@"@me.com> (previously were becoming <@@me.com>)
       if local && (local.join == '@' || local.join =~ /\A[^"].*?@.*?[^"]\Z/)
         @local = "\"#{local.join}\""
       else

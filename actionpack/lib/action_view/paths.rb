@@ -16,6 +16,14 @@ module ActionView #:nodoc:
     end
 
     class Path #:nodoc:
+      def self.eager_load_templates!
+        @eager_load_templates = true
+      end
+
+      def self.eager_load_templates?
+        @eager_load_templates || false
+      end
+
       attr_reader :path, :paths
       delegate :to_s, :to_str, :inspect, :to => :path
 
@@ -37,6 +45,9 @@ module ActionView #:nodoc:
         @paths = {}
 
         templates_in_path do |template|
+          # Eager load memoized methods and freeze cached template
+          template.freeze if self.class.eager_load_templates?
+
           @paths[template.path] = template
           @paths[template.path_without_extension] ||= template
         end
@@ -48,10 +59,7 @@ module ActionView #:nodoc:
         def templates_in_path
           (Dir.glob("#{@path}/**/*/**") | Dir.glob("#{@path}/**")).each do |file|
             unless File.directory?(file)
-              template = Template.new(file.split("#{self}/").last, self)
-              # Eager load memoized methods and freeze cached template
-              template.freeze if Base.cache_template_loading
-              yield template
+              yield Template.new(file.split("#{self}/").last, self)
             end
           end
         end

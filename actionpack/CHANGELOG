@@ -1,5 +1,11 @@
 *Edge*
 
+* All 2xx requests are considered successful [Josh Peek]
+
+* Fixed that AssetTagHelper#compute_public_path shouldn't cache the asset_host along with the source or per-request proc's won't run [DHH]
+
+* Removed config.action_view.cache_template_loading, use config.cache_classes instead [Josh Peek]
+
 * Get buffer for fragment cache from template's @output_buffer [Josh Peek]
 
 * Set config.action_view.warn_cache_misses = true to receive a warning if you perform an action that results in an expensive disk operation that could be cached [Josh Peek]

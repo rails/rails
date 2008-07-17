@@ -1,5 +1,5 @@
 module ActiveRecord
-  # Raised by save! and create! when the record is invalid.  Use the
+  # Raised by <tt>save!</tt> and <tt>create!</tt> when the record is invalid.  Use the
   # +record+ method to retrieve the record which did not validate.
   #   begin
   #     complex_operation_that_calls_save!_internally
@@ -33,7 +33,7 @@ module ActiveRecord
     # Adds an error to the base object instead of any particular attribute. This is used
     # to report errors that don't tie to any specific attribute, but rather to the object
     # as a whole. These error messages don't get prepended with any field name when iterating
-    # with each_full, so they should be complete sentences.
+    # with +each_full+, so they should be complete sentences.
     def add_to_base(msg)
       add(:base, msg)
     end
@@ -87,7 +87,7 @@ module ActiveRecord
       !@errors[attribute.to_s].nil?
     end
 
-    # Returns nil, if no errors are associated with the specified +attribute+.
+    # Returns +nil+, if no errors are associated with the specified +attribute+.
     # Returns the error message, if one error is associated with the specified +attribute+.
     # Returns an array of error messages, if more than one error is associated with the specified +attribute+.
     #
@@ -108,7 +108,7 @@ module ActiveRecord
 
     alias :[] :on
 
-    # Returns errors assigned to the base object through add_to_base according to the normal rules of on(attribute).
+    # Returns errors assigned to the base object through +add_to_base+ according to the normal rules of <tt>on(attribute)</tt>.
     def on_base
       on(:base)
     end
@@ -121,15 +121,15 @@ module ActiveRecord
     #   end
     #
     #   company = Company.create(:address => '123 First St.')
-    #   company.errors.each{|attr,msg| puts "#{attr} - #{msg}" } # =>
-    #     name - is too short (minimum is 5 characters)
-    #     name - can't be blank
-    #     address - can't be blank
+    #   company.errors.each{|attr,msg| puts "#{attr} - #{msg}" }
+    #   # => name - is too short (minimum is 5 characters)
+    #   #    name - can't be blank
+    #   #    address - can't be blank
     def each
       @errors.each_key { |attr| @errors[attr].each { |msg| yield attr, msg } }
     end
 
-    # Yields each full error message added. So Person.errors.add("first_name", "can't be empty") will be returned
+    # Yields each full error message added. So <tt>Person.errors.add("first_name", "can't be empty")</tt> will be returned
     # through iteration as "First name can't be empty".
     #
     #   class Company < ActiveRecord::Base
@@ -138,10 +138,10 @@ module ActiveRecord
     #   end
     #
     #   company = Company.create(:address => '123 First St.')
-    #   company.errors.each_full{|msg| puts msg } # =>
-    #     Name is too short (minimum is 5 characters)
-    #     Name can't be blank
-    #     Address can't be blank
+    #   company.errors.each_full{|msg| puts msg }
+    #   # => Name is too short (minimum is 5 characters)
+    #   #    Name can't be blank
+    #   #    Address can't be blank
     def each_full
       full_messages.each { |msg| yield msg }
     end
@@ -201,13 +201,13 @@ module ActiveRecord
     #   end
     #
     #   company = Company.create(:address => '123 First St.')
-    #   company.errors.to_xml # =>
-    #     <?xml version="1.0" encoding="UTF-8"?>
-    #     <errors>
-    #       <error>Name is too short (minimum is 5 characters)</error>
-    #       <error>Name can't be blank</error>
-    #       <error>Address can't be blank</error>
-    #     </errors>
+    #   company.errors.to_xml
+    #   # =>  <?xml version="1.0" encoding="UTF-8"?>
+    #   #     <errors>
+    #   #       <error>Name is too short (minimum is 5 characters)</error>
+    #   #       <error>Name can't be blank</error>
+    #   #       <error>Address can't be blank</error>
+    #   #     </errors>
     def to_xml(options={})
       options[:root] ||= "errors"
       options[:indent] ||= 2
@@ -264,7 +264,7 @@ module ActiveRecord
   #   person.errors.on "phone_number"     # => "has invalid format"
   #   person.errors.each_full { |msg| puts msg }
   #                                       # => "Last name can't be empty\n" +
-  #                                            "Phone number has invalid format"
+  #                                       #    "Phone number has invalid format"
   #
   #   person.attributes = { "last_name" => "Heinemeier", "phone_number" => "555-555" }
   #   person.save # => true (and person is now saved in the database)
@@ -303,7 +303,7 @@ module ActiveRecord
                                   :odd => 'odd?', :even => 'even?' }.freeze
 
       # Adds a validation method or block to the class. This is useful when
-      # overriding the +validate+ instance method becomes too unwieldly and
+      # overriding the +validate+ instance method becomes too unwieldy and
       # you're looking for more descriptive declaration of your validations.
       #
       # This can be done with a symbol pointing to a method:

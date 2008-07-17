@@ -45,7 +45,7 @@ module Rails
             usage = "\nInstalled Generators\n"
             Rails::Generator::Base.sources.inject([]) do |mem, source|
               # Using an association list instead of a hash to preserve order,
-              # for esthetic reasons more than anything else.
+              # for aesthetic reasons more than anything else.
               label = source.label.to_s.capitalize
               pair = mem.assoc(label)
               mem << (pair = [label, []]) if pair.nil?
