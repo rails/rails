@@ -269,15 +269,7 @@ module ActiveSupport
     #   pass
     #   stop
     def run_callbacks(kind, options = {}, &block)
-      callback_chain_method = "#{kind}_callback_chain"
-
-      # Meta class inherits Class so we don't have to merge it in 1.9
-      if RUBY_VERSION >= '1.9'
-        metaclass.send(callback_chain_method).run(self, options, &block)
-      else
-        callbacks = self.class.send(callback_chain_method) | metaclass.send(callback_chain_method)
-        callbacks.run(self, options, &block)
-      end
+      self.class.send("#{kind}_callback_chain").run(self, options, &block)
     end
   end
 end

@@ -1,7 +1,5 @@
 *Edge*
 
-* Run callbacks from object's metaclass [Josh Peek]
-
 * Add Array#in_groups which splits or iterates over the array in specified number of groups. #579. [Adrian Mugnolo] Example:
   
   a = (1..10).to_a
