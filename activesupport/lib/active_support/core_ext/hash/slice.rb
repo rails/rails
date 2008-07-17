@@ -12,6 +12,7 @@ module ActiveSupport #:nodoc:
       module Slice
         # Returns a new hash with only the given keys.
         def slice(*keys)
+          keys.flatten!
           keys = keys.map! { |key| convert_key(key) } if respond_to?(:convert_key)
           hash = {}
           keys.each { |k| hash[k] = self[k] if has_key?(k) }
