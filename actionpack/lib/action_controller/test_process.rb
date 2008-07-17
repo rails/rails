@@ -171,7 +171,7 @@ module ActionController #:nodoc:
 
     # Was the response successful?
     def success?
-      response_code == 200
+      (200..299).include?(response_code)
     end
 
     # Was the URL not found?
