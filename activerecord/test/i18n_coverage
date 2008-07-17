@@ -1,6 +1,0 @@
-rcov -I connections/native_mysql \
--x cases/helper,config,connection,models  \
--i active_record/validations.rb  \
-cases/validations_i18n_test.rb \
-
-# cases/validations_test.rb

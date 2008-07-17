@@ -1,5 +1,7 @@
 *Edge*
 
+* Introduce simple internationalization support.  [Ruby i18n team]
+
 * Make script/plugin install <plugin> -r <revision> option work with git based plugins. #257. [Tim Pope Jakub Kuźma]. Example:
 
   script/plugin install git://github.com/mislav/will_paginate.git -r agnostic # Installs 'agnostic' branch
