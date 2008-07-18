@@ -150,6 +150,7 @@ module ActiveRecord
     #   #others.destroy_all               |   X   |    X     |    X
     #   #others.find(*args)               |   X   |    X     |    X
     #   #others.find_first                |   X   |          |
+    #   #others.exist?                    |   X   |    X     |    X
     #   #others.uniq                      |   X   |    X     |    X
     #   #others.reset                     |   X   |    X     |    X
     #
@@ -612,31 +613,53 @@ module ActiveRecord
     # All of the association macros can be specialized through options. This makes cases more complex than the simple and guessable ones
     # possible.
     module ClassMethods
-      # Adds the following methods for retrieval and query of collections of associated objects:
-      # +collection+ is replaced with the symbol passed as the first argument, so
-      # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.
-      # * <tt>collection(force_reload = false)</tt> - Returns an array of all the associated objects.
-      #   An empty array is returned if none are found.
-      # * <tt>collection<<(object, ...)</tt> - Adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
-      # * <tt>collection.delete(object, ...)</tt> - Removes one or more objects from the collection by setting their foreign keys to +NULL+.
-      #   This will also destroy the objects if they're declared as +belongs_to+ and dependent on this model.
-      # * <tt>collection=objects</tt> - Replaces the collections content by deleting and adding objects as appropriate.
-      # * <tt>collection_singular_ids</tt> - Returns an array of the associated objects' ids
-      # * <tt>collection_singular_ids=ids</tt> - Replace the collection with the objects identified by the primary keys in +ids+
-      # * <tt>collection.clear</tt> - Removes every object from the collection. This destroys the associated objects if they
-      #   are associated with <tt>:dependent => :destroy</tt>, deletes them directly from the database if <tt>:dependent => :delete_all</tt>,
-      #   otherwise sets their foreign keys to +NULL+.
-      # * <tt>collection.empty?</tt> - Returns +true+ if there are no associated objects.
-      # * <tt>collection.size</tt> - Returns the number of associated objects.
-      # * <tt>collection.find</tt> - Finds an associated object according to the same rules as Base.find.
-      # * <tt>collection.build(attributes = {}, ...)</tt> - Returns one or more new objects of the collection type that have been instantiated
-      #   with +attributes+ and linked to this object through a foreign key, but have not yet been saved. *Note:* This only works if an
-      #   associated object already exists, not if it's +nil+!
-      # * <tt>collection.create(attributes = {})</tt> - Returns a new object of the collection type that has been instantiated
-      #   with +attributes+, linked to this object through a foreign key, and that has already been saved (if it passed the validation).
-      #   *Note:* This only works if an associated object already exists, not if it's +nil+!
+      # Specifies a one-to-many association. The following methods for retrieval and query of
+      # collections of associated objects will be added:
       #
-      # Example: A Firm class declares <tt>has_many :clients</tt>, which will add:
+      # [collection(force_reload = false)]
+      #   Returns an array of all the associated objects.
+      #   An empty array is returned if none are found.
+      # [collection<<(object, ...)]
+      #   Adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
+      # [collection.delete(object, ...)]
+      #   Removes one or more objects from the collection by setting their foreign keys to +NULL+.
+      #   This will also destroy the objects if they're declared as +belongs_to+ and dependent on this model.
+      # [collection=objects]
+      #   Replaces the collections content by deleting and adding objects as appropriate.
+      # [collection_singular_ids]
+      #   Returns an array of the associated objects' ids
+      # [collection_singular_ids=ids]
+      #   Replace the collection with the objects identified by the primary keys in +ids+
+      # [collection.clear]
+      #   Removes every object from the collection. This destroys the associated objects if they
+      #   are associated with <tt>:dependent => :destroy</tt>, deletes them directly from the
+      #   database if <tt>:dependent => :delete_all</tt>, otherwise sets their foreign keys to +NULL+.
+      # [collection.empty?]
+      #   Returns +true+ if there are no associated objects.
+      # [collection.size]
+      #   Returns the number of associated objects.
+      # [collection.find(...)]
+      #   Finds an associated object according to the same rules as Base.find.
+      # [collection.exist?(...)]
+      #   Checks whether an associated object with the given conditions exists.
+      #   Uses the same rules as Base.exists?.
+      # [collection.build(attributes = {}, ...)]
+      #   Returns one or more new objects of the collection type that have been instantiated
+      #   with +attributes+ and linked to this object through a foreign key, but have not yet
+      #   been saved. *Note:* This only works if an associated object already exists, not if
+      #   it's +nil+!
+      # [collection.create(attributes = {})]
+      #   Returns a new object of the collection type that has been instantiated
+      #   with +attributes+, linked to this object through a foreign key, and that has already
+      #   been saved (if it passed the validation). *Note:* This only works if an associated
+      #   object already exists, not if it's +nil+!
+      #
+      # (*Note*: +collection+ is replaced with the symbol passed as the first argument, so
+      # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.)
+      #
+      # === Example
+      #
+      # A Firm class declares <tt>has_many :clients</tt>, which will add:
       # * <tt>Firm#clients</tt> (similar to <tt>Clients.find :all, :conditions => "firm_id = #{id}"</tt>)
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
@@ -647,52 +670,74 @@ module ActiveRecord
       # * <tt>Firm#clients.empty?</tt> (similar to <tt>firm.clients.size == 0</tt>)
       # * <tt>Firm#clients.size</tt> (similar to <tt>Client.count "firm_id = #{id}"</tt>)
       # * <tt>Firm#clients.find</tt> (similar to <tt>Client.find(id, :conditions => "firm_id = #{id}")</tt>)
+      # * <tt>Firm#clients.exist?(:name => 'ACME')</tt> (similar to <tt>Client.exist?(:name => 'ACME', :firm_id => firm.id)</tt>)
       # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new("firm_id" => id)</tt>)
       # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save; c</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.
       #
-      # Options are:
-      # * <tt>:class_name</tt> - Specify the class name of the association. Use it only if that name can't be inferred
+      # === Supported options
+      # [:class_name]
+      #   Specify the class name of the association. Use it only if that name can't be inferred
       #   from the association name. So <tt>has_many :products</tt> will by default be linked to the Product class, but
       #   if the real class name is SpecialProduct, you'll have to specify it with this option.
-      # * <tt>:conditions</tt> - Specify the conditions that the associated objects must meet in order to be included as a +WHERE+
+      # [:conditions]
+      #   Specify the conditions that the associated objects must meet in order to be included as a +WHERE+
       #   SQL fragment, such as <tt>price > 5 AND name LIKE 'B%'</tt>.  Record creations from the association are scoped if a hash
       #   is used.  <tt>has_many :posts, :conditions => {:published => true}</tt> will create published posts with <tt>@blog.posts.create</tt>
       #   or <tt>@blog.posts.build</tt>.
-      # * <tt>:order</tt> - Specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
+      # [:order]
+      #   Specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
       #   such as <tt>last_name, first_name DESC</tt>.
-      # * <tt>:foreign_key</tt> - Specify the foreign key used for the association. By default this is guessed to be the name
+      # [:foreign_key]
+      #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_many+ association will use "person_id"
       #   as the default <tt>:foreign_key</tt>.
-      # * <tt>:primary_key</tt> - Specify the method that returns the primary key used for the association. By default this is +id+.
-      # * <tt>:dependent</tt> - If set to <tt>:destroy</tt> all the associated objects are destroyed
+      # [:primary_key]
+      #   Specify the method that returns the primary key used for the association. By default this is +id+.
+      # [:dependent]
+      #   If set to <tt>:destroy</tt> all the associated objects are destroyed
       #   alongside this object by calling their +destroy+ method.  If set to <tt>:delete_all</tt> all associated
       #   objects are deleted *without* calling their +destroy+ method.  If set to <tt>:nullify</tt> all associated
       #   objects' foreign keys are set to +NULL+ *without* calling their +save+ callbacks. *Warning:* This option is ignored when also using
       #   the <tt>:through</tt> option.
-      # * <tt>:finder_sql</tt> - Specify a complete SQL statement to fetch the association. This is a good way to go for complex
+      # [:finder_sql]
+      #   Specify a complete SQL statement to fetch the association. This is a good way to go for complex
       #   associations that depend on multiple tables. Note: When this option is used, +find_in_collection+ is _not_ added.
-      # * <tt>:counter_sql</tt> - Specify a complete SQL statement to fetch the size of the association. If <tt>:finder_sql</tt> is
+      # [:counter_sql]
+      #   Specify a complete SQL statement to fetch the size of the association. If <tt>:finder_sql</tt> is
       #   specified but not <tt>:counter_sql</tt>, <tt>:counter_sql</tt> will be generated by replacing <tt>SELECT ... FROM</tt> with <tt>SELECT COUNT(*) FROM</tt>.
-      # * <tt>:extend</tt> - Specify a named module for extending the proxy. See "Association extensions".
-      # * <tt>:include</tt> - Specify second-order associations that should be eager loaded when the collection is loaded.
-      # * <tt>:group</tt> - An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
-      # * <tt>:limit</tt> - An integer determining the limit on the number of rows that should be returned.
-      # * <tt>:offset</tt> - An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
-      # * <tt>:select</tt> - By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if you, for example, want to do a join
+      # [:extend]
+      #   Specify a named module for extending the proxy. See "Association extensions".
+      # [:include]
+      #   Specify second-order associations that should be eager loaded when the collection is loaded.
+      # [:group]
+      #   An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
+      # [:limit]
+      #   An integer determining the limit on the number of rows that should be returned.
+      # [:offset]
+      #   An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
+      # [:select]
+      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if you, for example, want to do a join
       #   but not include the joined columns. Do not forget to include the primary and foreign keys, otherwise it will raise an error.
-      # * <tt>:as</tt> - Specifies a polymorphic interface (See <tt>belongs_to</tt>).
-      # * <tt>:through</tt> - Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt>
+      # [:as]
+      #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
+      # [:through]
+      #   Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt>
       #   are ignored, as the association uses the source reflection. You can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>
       #   or <tt>has_many</tt> association on the join model.
-      # * <tt>:source</tt> - Specifies the source association name used by <tt>has_many :through</tt> queries.  Only use it if the name cannot be
+      # [:source]
+      #   Specifies the source association name used by <tt>has_many :through</tt> queries.  Only use it if the name cannot be
       #   inferred from the association.  <tt>has_many :subscribers, :through => :subscriptions</tt> will look for either <tt>:subscribers</tt> or
       #   <tt>:subscriber</tt> on Subscription, unless a <tt>:source</tt> is given.
-      # * <tt>:source_type</tt> - Specifies type of the source association used by <tt>has_many :through</tt> queries where the source
+      # [:source_type]
+      #   Specifies type of the source association used by <tt>has_many :through</tt> queries where the source
       #   association is a polymorphic +belongs_to+.
-      # * <tt>:uniq</tt> - If true, duplicates will be omitted from the collection. Useful in conjunction with <tt>:through</tt>.
-      # * <tt>:readonly</tt> - If true, all the associated objects are readonly through the association.
-      # * <tt>:validate</tt> - If false, don't validate the associated objects when saving the parent object. true by default.
+      # [:uniq]
+      #   If true, duplicates will be omitted from the collection. Useful in conjunction with <tt>:through</tt>.
+      # [:readonly]
+      #   If true, all the associated objects are readonly through the association.
+      # [:validate]
+      #   If false, don't validate the associated objects when saving the parent object. true by default.
       #
       # Option examples:
       #   has_many :comments, :order => "posted_on"
