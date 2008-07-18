@@ -19,7 +19,7 @@ module ActionView
     memoize :handler
 
     def compiled_source
-      handler.new(nil).compile(self) if handler.compilable?
+      handler.call(self)
     end
     memoize :compiled_source
 
@@ -27,8 +27,8 @@ module ActionView
       view._first_render ||= self
       view._last_render = self
       view.send(:evaluate_assigns)
-      compile(local_assigns) if handler.compilable?
-      handler.new(view).render(self, local_assigns)
+      compile(local_assigns)
+      view.send(:execute, method(local_assigns), local_assigns)
     end
 
     def method(local_assigns)

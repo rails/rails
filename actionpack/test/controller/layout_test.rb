@@ -31,16 +31,8 @@ end
 class MultipleExtensions < LayoutTest
 end
 
-class MabView < ActionView::TemplateHandler
-  def initialize(view)
-  end
-
-  def render(template, local_assigns)
-    template.source
-  end
-end
-
-ActionView::Template::register_template_handler :mab, MabView
+ActionView::Template::register_template_handler :mab,
+  lambda { |template| template.source.inspect }
 
 class LayoutAutoDiscoveryTest < Test::Unit::TestCase
   def setup
