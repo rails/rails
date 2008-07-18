@@ -273,7 +273,13 @@ module ActionController #:nodoc:
     end
   end
 
-  class TestResponse < AbstractResponse #:nodoc:
+  # Integration test methods such as ActionController::Integration::Session#get
+  # and ActionController::Integration::Session#post return objects of class
+  # TestResponse, which represent the HTTP response results of the requested
+  # controller actions.
+  #
+  # See AbstractResponse for more information on controller response objects.
+  class TestResponse < AbstractResponse
     include TestResponseBehavior
   end
 
