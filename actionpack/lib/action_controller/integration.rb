@@ -176,8 +176,8 @@ module ActionController
       #
       # This method returns an AbstractResponse object, which one can use to inspect
       # the details of the response. Furthermore, if this method was called from an
-      # ActionController::IntegrationTest object, then that object's +@response+ instance
-      # variable will point to the same response object.
+      # ActionController::IntegrationTest object, then that object's <tt>@response</tt>
+      # instance variable will point to the same response object.
       #
       # You can also perform POST, PUT, DELETE, and HEAD requests with +post+,
       # +put+, +delete+, and +head+.
