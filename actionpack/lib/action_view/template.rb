@@ -1,7 +1,7 @@
 module ActionView #:nodoc:
   class Template
     extend TemplateHandlers
-    include ActiveSupport::Memoizable
+    extend ActiveSupport::Memoizable
     include Renderable
 
     attr_accessor :filename, :load_path, :base_path, :name, :format, :extension

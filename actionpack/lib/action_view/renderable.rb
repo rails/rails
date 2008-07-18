@@ -3,11 +3,11 @@ module ActionView
     # NOTE: The template that this mixin is beening include into is frozen
     # So you can not set or modify any instance variables
 
+    extend ActiveSupport::Memoizable
+
     def self.included(base)
       @@mutex = Mutex.new
     end
-
-    include ActiveSupport::Memoizable
 
     def filename
       'compiled-template'

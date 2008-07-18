@@ -3,21 +3,24 @@ require 'abstract_unit'
 uses_mocha 'Memoizable' do
   class MemoizableTest < Test::Unit::TestCase
     class Person
-      include ActiveSupport::Memoizable
+      extend ActiveSupport::Memoizable
 
       def name
         fetch_name_from_floppy
       end
 
+      memoize :name
+
       def age
         nil
       end
 
-      def random
-        rand(0)
+      def counter
+        @counter ||= 0
+        @counter += 1
       end
 
-      memoize :name, :age, :random
+      memoize :age, :counter
 
       private
         def fetch_name_from_floppy
@@ -37,9 +40,9 @@ uses_mocha 'Memoizable' do
     end
 
     def test_reloadable
-      random = @person.random
-      assert_equal random, @person.random
-      assert_not_equal random, @person.random(:reload)
+      counter = @person.counter
+      assert_equal 1, @person.counter
+      assert_equal 2, @person.counter(:reload)
     end
 
     def test_memoized_methods_are_frozen
@@ -57,6 +60,31 @@ uses_mocha 'Memoizable' do
 
     def test_double_memoization
       assert_raise(RuntimeError) { Person.memoize :name }
+    end
+
+    class Company
+      def name
+        lookup_name
+      end
+
+      def lookup_name
+        "37signals"
+      end
+    end
+
+    def test_object_memoization
+      company = Company.new
+      company.extend ActiveSupport::Memoizable
+      company.memoize :name
+
+      assert_equal "37signals", company.name
+      # Mocha doesn't play well with frozen objects
+      company.metaclass.instance_eval { define_method(:lookup_name) { b00m } }
+      assert_equal "37signals", company.name
+
+      assert_equal true, company.name.frozen?
+      company.freeze
+      assert_equal true, company.name.frozen?
     end
   end
 end
