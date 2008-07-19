@@ -22,6 +22,11 @@ module ActionView #:nodoc:
     end
     memoize :format_and_extension
 
+    def mime_type
+      Mime::Type.lookup_by_extension(format) if format
+    end
+    memoize :mime_type
+
     def path
       [base_path, [name, format, extension].compact.join('.')].compact.join('/')
     end

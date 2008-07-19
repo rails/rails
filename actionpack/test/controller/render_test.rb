@@ -197,11 +197,11 @@ class TestController < ActionController::Base
 
   def render_alternate_default
     # For this test, the method "default_render" is overridden:
-    @alternate_default_render = lambda {
-	render :update do |page|
-	  page.replace :foo, :partial => 'partial'
-	end
-      }
+    @alternate_default_render = lambda do
+      render :update do |page|
+        page.replace :foo, :partial => 'partial'
+      end
+    end
   end
 
   def rescue_action(e) raise end
@@ -466,6 +466,11 @@ class RenderTest < Test::Unit::TestCase
   def test_should_render_xml_but_keep_custom_content_type
     get :render_xml_with_custom_content_type
     assert_equal "application/atomsvc+xml", @response.content_type
+  end
+
+  def test_should_use_implicit_content_type
+    get :implicit_content_type, :format => 'atom'
+    assert_equal Mime::ATOM, @response.content_type
   end
 end
 
