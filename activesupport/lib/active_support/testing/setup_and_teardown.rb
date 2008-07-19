@@ -15,12 +15,15 @@ module ActiveSupport
           define_callbacks :setup, :teardown
 
           if defined?(::Mini)
+            undef_method :run
             alias_method :run, :run_with_callbacks_and_miniunit
           else
             begin
               require 'mocha'
+              undef_method :run
               alias_method :run, :run_with_callbacks_and_mocha
             rescue LoadError
+              undef_method :run
               alias_method :run, :run_with_callbacks_and_testunit
             end
           end
