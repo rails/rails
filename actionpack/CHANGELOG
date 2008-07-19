@@ -1,5 +1,7 @@
 *Edge*
 
+* Update Prototype to 1.6.0.2 #599 [Patrick Joyce]
+
 * Conditional GET utility methods.  [Jeremy Kemper]
   * etag!([:admin, post, current_user]) sets the ETag response header and returns head(:not_modified) if it matches the If-None-Match request header.
   * last_modified!(post.updated_at) sets Last-Modified and returns head(:not_modified) if it's no later than If-Modified-Since.
