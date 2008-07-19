@@ -23,10 +23,10 @@ server = case ARGV.first
   when "lighttpd", "mongrel", "new_mongrel", "webrick", "thin"
     ARGV.shift
   else
-    if defined?(Thin)
-      "thin"
-    elsif defined?(Mongrel)
+    if defined?(Mongrel)
       "mongrel"
+    elsif defined?(Thin)
+      "thin"
     elsif RUBY_PLATFORM !~ /(:?mswin|mingw)/ && !silence_stderr { `lighttpd -version` }.blank? && defined?(FCGI)
       "lighttpd"
     else
