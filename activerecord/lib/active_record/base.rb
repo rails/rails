@@ -83,8 +83,33 @@ module ActiveRecord #:nodoc:
   class ReadOnlyRecord < ActiveRecordError
   end
 
-  # Used by Active Record transaction mechanism to distinguish rollback from other exceptional situations.
-  # You can use it to roll your transaction back explicitly in the block passed to +transaction+ method.
+  # ActiveRecord::Transactions::ClassMethods.transaction uses this exception
+  # to distinguish a deliberate rollback from other exceptional situations.
+  # Normally, raising an exception will cause the +transaction+ method to rollback
+  # the database transaction *and* pass on the exception. But if you raise an
+  # ActiveRecord::Rollback exception, then the database transaction will be rolled back,
+  # without passing on the exception.
+  #
+  # For example, you could do this in your controller to rollback a transaction:
+  #
+  #   class BooksController < ActionController::Base
+  #     def create
+  #       Book.transaction do
+  #         book = Book.new(params[:book])
+  #         book.save!
+  #         if today_is_friday?
+  #           # The system must fail on Friday so that our support department
+  #           # won't be out of job. We silently rollback this transaction
+  #           # without telling the user.
+  #           raise ActiveRecord::Rollback, "Call tech support!"
+  #         end
+  #       end
+  #       # ActiveRecord::Rollback is the only exception that won't be passed on
+  #       # by ActiveRecord::Base.transaction, so this line will still be reached
+  #       # even on Friday.
+  #       redirect_to root_url
+  #     end
+  #   end
   class Rollback < ActiveRecordError
   end
 
