@@ -529,7 +529,7 @@ module ActionMailer #:nodoc:
       end
 
       def render_message(method_name, body)
-        render :file => method_name, :body => body, :use_full_path => true
+        render :file => method_name, :body => body
       end
 
       def render(opts)
@@ -537,12 +537,11 @@ module ActionMailer #:nodoc:
         if opts[:file] && opts[:file] !~ /\//
           opts[:file] = "#{mailer_name}/#{opts[:file]}"
         end
-        opts[:use_full_path] = true
         initialize_template_class(body).render(opts)
       end
 
       def template_path
-        "#{template_root}/#{mailer_name}"
+        "#{template_root.join}/#{mailer_name}"
       end
 
       def initialize_template_class(assigns)
