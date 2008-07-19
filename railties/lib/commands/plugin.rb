@@ -907,7 +907,7 @@ class RecursiveHTTPFetcher
 
   def ls
     @urls_to_fetch.collect do |url|
-      if url =~ /^svn:\/\/.*/
+      if url =~ /^svn(\+ssh)?:\/\/.*/
         `svn ls #{url}`.split("\n").map {|entry| "/#{entry}"} rescue nil
       else
         open(url) do |stream|
