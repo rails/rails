@@ -172,13 +172,15 @@ module ActionView #:nodoc:
     end
 
     def self.cache_template_loading=(*args)
-      ActiveSupport::Deprecation.warn("config.action_view.cache_template_loading option has been deprecated and has no affect. " <<
-                                       "Please remove it from your config files.", caller)
+      ActiveSupport::Deprecation.warn(
+        "config.action_view.cache_template_loading option has been deprecated" +
+        "and has no effect. Please remove it from your config files.", caller)
     end
 
     def self.cache_template_extensions=(*args)
-      ActiveSupport::Deprecation.warn("config.action_view.cache_template_extensions option has been deprecated and has no effect. " <<
-                                       "Please remove it from your config files.", caller)
+      ActiveSupport::Deprecation.warn(
+        "config.action_view.cache_template_extensions option has been" +
+        "deprecated and has no effect. Please remove it from your config files.", caller)
     end
 
     # Specify whether RJS responses should be wrapped in a try/catch block
