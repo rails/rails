@@ -477,6 +477,15 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_not_equal "has already been taken", t3.errors.on(:title)
   end
 
+  def test_validate_case_sensitive_uniqueness_with_attribute_passed_as_integer
+    Topic.validates_uniqueness_of(:title, :case_sensitve => true)
+    t = Topic.create!('title' => 101)
+
+    t2 = Topic.new('title' => 101)
+    assert !t2.valid?
+    assert t2.errors.on(:title)
+  end
+
   def test_validate_uniqueness_with_non_standard_table_names
     i1 = WarehouseThing.create(:value => 1000)
     assert !i1.valid?, "i1 should not be valid"

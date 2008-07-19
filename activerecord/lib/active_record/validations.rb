@@ -664,7 +664,7 @@ module ActiveRecord
             # As MySQL/Postgres don't have case sensitive SELECT queries, we try to find duplicate
             # column in ruby when case sensitive option
             if configuration[:case_sensitive] && finder_class.columns_hash[attr_name.to_s].text?
-              found = results.any? { |a| a[attr_name.to_s] == value }
+              found = results.any? { |a| a[attr_name.to_s] == value.to_s }
             end
             
             if found
