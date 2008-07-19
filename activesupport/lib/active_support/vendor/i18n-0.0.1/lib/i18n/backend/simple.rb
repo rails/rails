@@ -23,7 +23,7 @@ module I18n
         
         def translate(locale, key, options = {})
           raise InvalidLocale.new(locale) if locale.nil?
-          return key.map{|key| translate locale, key, options } if key.is_a? Array
+          return key.map{|k| translate locale, k, options } if key.is_a? Array
 
           reserved = :scope, :default
           count, scope, default = options.values_at(:count, *reserved)
@@ -66,7 +66,7 @@ module I18n
           def lookup(locale, key, scope = [])
             return unless key
             keys = I18n.send :normalize_translation_keys, locale, key, scope
-            keys.inject(@@translations){|result, key| result[key.to_sym] or return nil }
+            keys.inject(@@translations){|result, k| result[k.to_sym] or return nil }
           end
         
           # Evaluates a default translation. 

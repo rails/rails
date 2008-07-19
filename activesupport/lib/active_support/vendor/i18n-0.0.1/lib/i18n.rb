@@ -53,7 +53,7 @@ module I18n
     # storage. Decoupled for backends like a db backend that persist their
     # translations, so the backend can decide whether/when to yield or not.
     def populate(&block)
-      backend.populate &block
+      backend.populate(&block)
     end
     
     # Stores translations for the given locale in the backend. 
@@ -173,8 +173,8 @@ module I18n
     # keys are Symbols.
     def normalize_translation_keys(locale, key, scope)
       keys = [locale] + Array(scope) + [key]
-      keys = keys.map{|key| key.to_s.split(/\./) }
-      keys.flatten.map{|key| key.to_sym}
+      keys = keys.map{|k| k.to_s.split(/\./) }
+      keys.flatten.map{|k| k.to_sym}
     end
   end
 end
