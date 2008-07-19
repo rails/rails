@@ -76,6 +76,8 @@ module ActionController
         defaults     = (options.delete(:defaults)     || {}).dup
         conditions   = (options.delete(:conditions)   || {}).dup
 
+        validate_route_conditions(conditions)
+
         path_keys = segments.collect { |segment| segment.key if segment.respond_to?(:key) }.compact
         options.each do |key, value|
           hash = (path_keys.include?(key) && ! value.is_a?(Regexp)) ? defaults : requirements
@@ -198,6 +200,19 @@ module ActionController
 
         route
       end
+
+      private
+        def validate_route_conditions(conditions)
+          if method = conditions[:method]
+            if method == :head
+              raise ArgumentError, "HTTP method HEAD is invalid in route conditions. Rails processes HEAD requests the same as GETs, returning just the response headers"
+            end
+
+            unless HTTP_METHODS.include?(method.to_sym)
+              raise ArgumentError, "Invalid HTTP method specified in route conditions: #{conditions.inspect}"
+            end
+          end
+        end
     end
   end
 end

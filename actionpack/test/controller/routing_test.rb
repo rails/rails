@@ -1801,6 +1801,22 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       end
     end
 
+    def test_route_requirements_with_invalid_http_method_is_invalid
+      assert_raises ArgumentError do
+        set.draw do |map|
+          map.connect 'valid/route', :controller => 'pages', :action => 'show', :conditions => {:method => :invalid}
+        end
+      end
+    end
+
+    def test_route_requirements_with_head_method_condition_is_invalid
+      assert_raises ArgumentError do
+        set.draw do |map|
+          map.connect 'valid/route', :controller => 'pages', :action => 'show', :conditions => {:method => :head}
+        end
+      end
+    end
+
     def test_non_path_route_requirements_match_all
       set.draw do |map|
         map.connect 'page/37s', :controller => 'pages', :action => 'show', :name => /(jamis|david)/

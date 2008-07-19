@@ -307,13 +307,13 @@ module ActionController
     #     map.resources :tags, :path_prefix => '/toys/:toy_id',   :name_prefix => 'toy_'
     #
     # You may also use <tt>:name_prefix</tt> to override the generic named routes in a nested resource:
-    # 
+    #
     #   map.resources :articles do |article|
     #     article.resources :comments, :name_prefix => nil
-    #   end 
-    # 
+    #   end
+    #
     # This will yield named resources like so:
-    # 
+    #
     #   comments_url(@article)
     #   comment_url(@article, @comment)
     #
@@ -559,6 +559,7 @@ module ActionController
       def action_options_for(action, resource, method = nil)
         default_options = { :action => action.to_s }
         require_id = !resource.kind_of?(SingletonResource)
+
         case default_options[:action]
           when "index", "new"; default_options.merge(add_conditions_for(resource.conditions, method || :get)).merge(resource.requirements)
           when "create";       default_options.merge(add_conditions_for(resource.conditions, method || :post)).merge(resource.requirements)
