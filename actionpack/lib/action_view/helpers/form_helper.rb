@@ -304,10 +304,6 @@ module ActionView
         when String, Symbol
           object_name = record_or_name_or_array
           object = args.first
-        when Array
-          object = record_or_name_or_array.last
-          object_name = ActionController::RecordIdentifier.singular_class_name(object)
-          apply_form_for_options!(record_or_name_or_array, options)
         else
           object = record_or_name_or_array
           object_name = ActionController::RecordIdentifier.singular_class_name(object)
