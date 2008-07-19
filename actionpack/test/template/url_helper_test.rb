@@ -28,6 +28,16 @@ class UrlHelperTest < ActionView::TestCase
     assert_equal "http://www.example.com?a=b&amp;c=d", url_for("http://www.example.com?a=b&amp;c=d")
   end
 
+  def test_url_for_with_back
+    @controller.request = RequestMock.new("http://www.example.com/weblog/show", nil, nil, {'HTTP_REFERER' => 'http://www.example.com/referer'})
+    assert_equal 'http://www.example.com/referer', url_for(:back)
+  end
+
+  def test_url_for_with_back_and_no_referer
+    @controller.request = RequestMock.new("http://www.example.com/weblog/show", nil, nil, {})
+    assert_equal 'javascript:history.back()', url_for(:back)
+  end
+
   # todo: missing test cases
   def test_button_to_with_straight_url
     assert_dom_equal "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com")
@@ -418,7 +428,6 @@ class LinkToUnlessCurrentWithControllerTest < ActionView::TestCase
       end
     end
 end
-
 
 class Workshop
   attr_accessor :id, :new_record
