@@ -426,7 +426,8 @@ module ActionMailer #:nodoc:
       end
 
       def template_root=(root)
-        write_inheritable_attribute(:template_root, ActionView::PathSet::Path.new(root))
+        root = ActionView::PathSet::Path.new(root) if root.is_a?(String)
+        write_inheritable_attribute(:template_root, root)
       end
     end
 

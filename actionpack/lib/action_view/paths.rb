@@ -28,6 +28,8 @@ module ActionView #:nodoc:
       delegate :to_s, :to_str, :inspect, :to => :path
 
       def initialize(path)
+        raise ArgumentError, "path already is a Path class" if path.is_a?(Path)
+
         @path = path.freeze
         reload!
       end
