@@ -272,13 +272,13 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_files.include('lib/commands/**/*.rb')
 }
 
-guides = ['securing_rails_applications', 'testing_rails_applications']
+guides = ['securing_rails_applications', 'testing_rails_applications', 'creating_plugins']
 guides_html_files = []
 guides.each do |guide_name|
   input  = "doc/guides/#{guide_name}/#{guide_name}.txt"
   output = "doc/guides/#{guide_name}/#{guide_name}.html"
   guides_html_files << output
-  task output => Dir["doc/guides/#{guide_name}/*.txt"] do
+  file output => Dir["doc/guides/#{guide_name}/*.txt"] do
     sh "mizuho", input, "--template", "manualsonrails", "--multi"
   end
 end

@@ -1,0 +1,69 @@
+== Add a custom generator command ==
+
+You may have noticed above that you can used one of the built-in rails migration commands `m.migration_template`.  You can create your own commands for these, using the following steps:
+
+ 1. Add the require and hook statements to init.rb.
+ 2. Create the commands - creating 3 sets, Create, Destroy, List.
+ 3. Add the method to your generator.
+
+Working with the internals of generators is beyond the scope of this tutorial, but here is a basic example:
+
+[source, ruby]
+-----------------------------------------------------------
+# File: vendor/plugins/yaffle/init.rb
+require "commands"
+Rails::Generator::Commands::Create.send   :include,  Yaffle::Generator::Commands::Create
+Rails::Generator::Commands::Destroy.send  :include,  Yaffle::Generator::Commands::Destroy
+Rails::Generator::Commands::List.send     :include,  Yaffle::Generator::Commands::List
+-----------------------------------------------------------
+
+[source, ruby]
+-----------------------------------------------------------
+# File: vendor/plugins/yaffle/lib/commands.rb
+
+require 'rails_generator'
+require 'rails_generator/commands'
+
+module Yaffle #:nodoc:
+  module Generator #:nodoc:
+    module Commands #:nodoc:
+      module Create
+        def yaffle_definition
+          file("definition.txt", "definition.txt")
+        end
+      end
+
+      module Destroy
+        def yaffle_definition
+          file("definition.txt", "definition.txt")
+        end
+      end
+
+      module List
+        def yaffle_definition
+          file("definition.txt", "definition.txt")
+        end
+      end
+    end
+  end
+end
+-----------------------------------------------------------
+
+-----------------------------------------------------------
+# File: vendor/plugins/yaffle/generators/yaffle/templates/definition.txt
+
+Yaffle is a bird
+-----------------------------------------------------------
+
+[source, ruby]
+-----------------------------------------------------------
+# File: vendor/plugins/yaffle/generators/yaffle/yaffle_generator.rb
+
+class YaffleGenerator < Rails::Generator::NamedBase
+  def manifest
+    m.yaffle_definition
+  end
+end
+-----------------------------------------------------------
+
+This example just uses the built-in "file" method, but you could do anything that Ruby allows.
