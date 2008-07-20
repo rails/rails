@@ -71,14 +71,16 @@ But enough about theory.
 
 As we all know, Ruby ships with a boat load of great libraries. If you're like me, you've only used a quarter of them or so. One little gem of a library is 'test/unit'. It comes packaged with Ruby 1.8.1, so there's nothing to download.
 
-By using one line of code `require 'test/unit'`, you arm your Ruby script with the capability to write tests.
+By using one line of code `require \'test/unit'`, you arm your Ruby script with the capability to write tests.
 
 Let's show you a really basic test, and then we'll step through it and explain some details.
 
 [source,ruby]
 ------------------------------------------------------
 # hello_test.rb
+
 require 'test/unit'
+
 class HelloTestCase < Test::Unit::TestCase
   def test_hello
     assert true
@@ -190,9 +192,9 @@ We won't get into test suites in this article.
 The relationship of these objects to one-another looks like this:
 
  * a test suite
-   - has many test cases
-     * which have many tests
-       - which have many assertions
+ * has many test cases
+ * which have many tests
+ * which have many assertions
 
 
 == Hello World on Steroids ==
