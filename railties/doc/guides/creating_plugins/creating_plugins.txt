@@ -1,5 +1,5 @@
-Basics of Creating Rails Plugin
-===============================
+The Basics of Creating Rails Plugins
+====================================
 
 Pretend for a moment that you are an avid bird watcher.  Your favorite bird is the Yaffle, and you want to create a plugin that allows other developers to share in the Yaffle goodness.  
 
