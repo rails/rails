@@ -999,4 +999,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert firm.clients.loaded?
   end
 
+  def test_joins_with_namespaced_model_should_use_correct_type
+    old = ActiveRecord::Base.store_full_sti_class
+    ActiveRecord::Base.store_full_sti_class = true
+
+    firm = Namespaced::Firm.create({ :name => 'Some Company' })
+    firm.clients.create({ :name => 'Some Client' })
+
+    stats = Namespaced::Firm.find(firm.id, {
+      :select => "#{Namespaced::Firm.table_name}.*, COUNT(#{Namespaced::Client.table_name}.id) AS num_clients",
+      :joins  => :clients,
+      :group  => "#{Namespaced::Firm.table_name}.id"
+    })
+    assert_equal 1, stats.num_clients.to_i
+
+  ensure
+    ActiveRecord::Base.store_full_sti_class = old
+  end
+
 end
