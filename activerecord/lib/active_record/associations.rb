@@ -1875,7 +1875,7 @@ module ActiveRecord
                           jt_sti_extra = " AND %s.%s = %s" % [
                             connection.quote_table_name(aliased_join_table_name),
                             connection.quote_column_name(through_reflection.active_record.inheritance_column),
-                            through_reflection.klass.quote_value(through_reflection.klass.name.demodulize)]
+                            through_reflection.klass.quote_value(through_reflection.klass.sti_name)]
                         end
                       when :belongs_to
                         first_key = primary_key
@@ -1943,7 +1943,7 @@ module ActiveRecord
               join << %(AND %s.%s = %s ) % [
                 connection.quote_table_name(aliased_table_name),
                 connection.quote_column_name(klass.inheritance_column),
-                klass.quote_value(klass.name.demodulize)] unless klass.descends_from_active_record?
+                klass.quote_value(klass.sti_name)] unless klass.descends_from_active_record?
 
               [through_reflection, reflection].each do |ref|
                 join << "AND #{interpolate_sql(sanitize_sql(ref.options[:conditions]))} " if ref && ref.options[:conditions]
