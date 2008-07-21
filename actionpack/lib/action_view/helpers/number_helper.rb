@@ -22,7 +22,7 @@ module ActionView
       #  number_to_phone(1235551234, :country_code => 1)                    # => +1-123-555-1234
       #
       #  number_to_phone(1235551234, :country_code => 1, :extension => 1343, :delimiter => ".")
-      #  => +1.123.555.1234 x 1343      
+      #  => +1.123.555.1234 x 1343
       def number_to_phone(number, options = {})
         number       = number.to_s.strip unless number.nil?
         options      = options.stringify_keys
@@ -71,14 +71,14 @@ module ActionView
       def number_to_currency(number, options = {})
         options  = options.symbolize_keys
         defaults = I18n.translate(:'currency.format', :locale => options[:locale]) || {}
-                
+
         precision = options[:precision] || defaults[:precision]
         unit      = options[:unit]      || defaults[:unit]
         separator = options[:separator] || defaults[:separator]
         delimiter = options[:delimiter] || defaults[:delimiter]
         format    = options[:format]    || defaults[:format]
         separator = '' if precision == 0
-        
+
         begin
           parts = number_with_precision(number, precision).split('.')
           format.gsub(/%n/, number_with_delimiter(parts[0], delimiter) + separator + parts[1].to_s).gsub(/%u/, unit)
@@ -118,49 +118,72 @@ module ActionView
         end
       end
 
-      # Formats a +number+ with grouped thousands using +delimiter+ (e.g., 12,324). You
-      # can customize the format using optional <em>delimiter</em> and <em>separator</em> parameters.
+      # Formats a +number+ with grouped thousands using +delimiter+ (e.g., 12,324). You can
+      # customize the format in the +options+ hash.
       #
       # ==== Options
-      # * <tt>delimiter</tt>  - Sets the thousands delimiter (defaults to ",").
-      # * <tt>separator</tt>  - Sets the separator between the units (defaults to ".").
+      # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to ",").
+      # * <tt>:separator</tt>  - Sets the separator between the units (defaults to ".").
       #
       # ==== Examples
-      #  number_with_delimiter(12345678)       # => 12,345,678
-      #  number_with_delimiter(12345678.05)    # => 12,345,678.05
-      #  number_with_delimiter(12345678, ".")  # => 12.345.678
-      #
-      #  number_with_delimiter(98765432.98, " ", ",")
+      #  number_with_delimiter(12345678)                        # => 12,345,678
+      #  number_with_delimiter(12345678.05)                     # => 12,345,678.05
+      #  number_with_delimiter(12345678, :delimiter => ".")     # => 12.345.678
+      #  number_with_delimiter(12345678, :seperator => ",")     # => 12,345,678
+      #  number_with_delimiter(98765432.98, :delimiter => " ", :separator => ",")
       #  # => 98 765 432,98
-      def number_with_delimiter(number, delimiter=",", separator=".")
+      #
+      # You can still use <tt>number_with_delimiter</tt> with the old API that accepts the
+      # +delimiter+ as its optional second and the +separator+ as its
+      # optional third parameter:
+      #  number_with_delimiter(12345678, " ")                   # => 12 345.678
+      #  number_with_delimiter(12345678.05, ".", ",")              # => 12.345.678,05
+      def number_with_delimiter(number, *args)
+        options = args.extract_options!
+        unless args.empty?
+          options[:delimiter] = args[0] || ","
+          options[:separator] = args[1] || "."
+        end
+        options.reverse_merge!(:delimiter => ",", :separator => ".")
+
         begin
           parts = number.to_s.split('.')
-          parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{delimiter}")
-          parts.join separator
+          parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
+          parts.join options[:separator]
         rescue
           number
         end
       end
 
-      # Formats a +number+ with the specified level of +precision+ (e.g., 112.32 has a precision of 2). The default
-      # level of precision is 3.
+      # Formats a +number+ with the specified level of <tt>:precision</tt> (e.g., 112.32 has a precision of 2).
+      # The default level of precision is 3.
       #
       # ==== Examples
-      #  number_with_precision(111.2345)     # => 111.235
-      #  number_with_precision(111.2345, 2)  # => 111.23
-      #  number_with_precision(13, 5)        # => 13.00000
-      #  number_with_precision(389.32314, 0) # => 389
-      def number_with_precision(number, precision=3)
-        "%01.#{precision}f" % ((Float(number) * (10 ** precision)).round.to_f / 10 ** precision)
+      #  number_with_precision(111.2345)                    # => 111.235
+      #  number_with_precision(111.2345, :precision => 2)   # => 111.23
+      #  number_with_precision(13, :precision => 5)         # => 13.00000
+      #  number_with_precision(389.32314, :precision => 0)  # => 389
+      #
+      # You can still use <tt>number_with_precision</tt> with the old API that accepts the
+      # +precision+ as its optional second parameter:
+      #   number_with_precision(number_with_precision(111.2345, 2)   # => 111.23
+      def number_with_precision(number, *args)
+        options = args.extract_options!
+        unless args.empty?
+          options[:precision] = args[0] || 3
+        end
+        options.reverse_merge!(:precision => 3)
+        "%01.#{options[:precision]}f" %
+          ((Float(number) * (10 ** options[:precision])).round.to_f / 10 ** options[:precision])
       rescue
         number
       end
 
       # Formats the bytes in +size+ into a more understandable representation
-      # (e.g., giving it 1500 yields 1.5 KB). This method is useful for 
+      # (e.g., giving it 1500 yields 1.5 KB). This method is useful for
       # reporting file sizes to users. This method returns nil if
       # +size+ cannot be converted into a number. You can change the default
-      # precision of 1 using the precision parameter +precision+.
+      # precision of 1 using the precision parameter <tt>:precision</tt>.
       #
       # ==== Examples
       #  number_to_human_size(123)           # => 123 Bytes
@@ -169,17 +192,28 @@ module ActionView
       #  number_to_human_size(1234567)       # => 1.2 MB
       #  number_to_human_size(1234567890)    # => 1.1 GB
       #  number_to_human_size(1234567890123) # => 1.1 TB
+      #  number_to_human_size(1234567, :precision => 2)    # => 1.18 MB
+      #  number_to_human_size(483989, :precision => 0)     # => 473 KB
+      #
+      # You can still use <tt>number_to_human_size</tt> with the old API that accepts the
+      # +precision+ as its optional second parameter:
       #  number_to_human_size(1234567, 2)    # => 1.18 MB
-      #  number_to_human_size(483989, 0)     # => 4 MB
-      def number_to_human_size(size, precision=1)
-        size = Kernel.Float(size)
+      #  number_to_human_size(483989, 0)     # => 473 KB
+      def number_to_human_size(size, *args)
+        options = args.extract_options!
+        unless args.empty?
+          options[:precision] = args[0] || 1
+        end
+        options.reverse_merge!(:precision => 1)
+
+        size = Float(size)
         case
           when size.to_i == 1;    "1 Byte"
           when size < 1.kilobyte; "%d Bytes" % size
-          when size < 1.megabyte; "%.#{precision}f KB"  % (size / 1.0.kilobyte)
-          when size < 1.gigabyte; "%.#{precision}f MB"  % (size / 1.0.megabyte)
-          when size < 1.terabyte; "%.#{precision}f GB"  % (size / 1.0.gigabyte)
-          else                    "%.#{precision}f TB"  % (size / 1.0.terabyte)
+          when size < 1.megabyte; "%.#{options[:precision]}f KB"  % (size / 1.0.kilobyte)
+          when size < 1.gigabyte; "%.#{options[:precision]}f MB"  % (size / 1.0.megabyte)
+          when size < 1.terabyte; "%.#{options[:precision]}f GB"  % (size / 1.0.gigabyte)
+          else                    "%.#{options[:precision]}f TB"  % (size / 1.0.terabyte)
         end.sub(/([0-9]\.\d*?)0+ /, '\1 ' ).sub(/\. /,' ')
       rescue
         nil
