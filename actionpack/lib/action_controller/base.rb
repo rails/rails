@@ -1261,6 +1261,8 @@ module ActionController #:nodoc:
       def template_exempt_from_layout?(template_name = default_template_name)
         template_name = @template.pick_template(template_name).to_s if @template
         @@exempt_from_layout.any? { |ext| template_name =~ ext }
+      rescue ActionView::MissingTemplate
+        false
       end
 
       def default_template_name(action_name = self.action_name)
