@@ -1,32 +1,43 @@
 module ActiveSupport
-  module Memoizable #:nodoc:
+  module Memoizable
+    module Freezable
+      def self.included(base)
+        base.class_eval do
+          unless base.method_defined?(:freeze_without_memoizable)
+            alias_method_chain :freeze, :memoizable
+          end
+        end
+      end
+
+      def freeze_with_memoizable
+        methods.each do |method|
+          if m = method.to_s.match(/^_unmemoized_(.*)/)
+            send(m[1])
+          end
+        end
+        freeze_without_memoizable
+      end
+    end
+
     def memoize(*symbols)
       symbols.each do |symbol|
-        original_method = "unmemoized_#{symbol}"
-        memoized_ivar = "@#{symbol}"
+        original_method = "_unmemoized_#{symbol}"
+        memoized_ivar = "@_memoized_#{symbol}"
 
-        klass = respond_to?(:class_eval) ? self : self.metaclass
-        raise "Already memoized #{symbol}" if klass.instance_methods.map(&:to_s).include?(original_method)
+        class_eval <<-EOS, __FILE__, __LINE__
+          include Freezable
 
-        klass.class_eval <<-EOS, __FILE__, __LINE__
-          unless instance_methods.map(&:to_s).include?("freeze_without_memoizable")
-            alias_method :freeze_without_memoizable, :freeze
-            def freeze
-              methods.each do |method|
-                if m = method.to_s.match(/^unmemoized_(.*)/)
-                  send(m[1])
-                end
-              end
-              freeze_without_memoizable
-            end
-          end
+          raise "Already memoized #{symbol}" if method_defined?(:#{original_method})
+          alias #{original_method} #{symbol}
 
-          alias_method :#{original_method}, :#{symbol}
-          def #{symbol}(reload = false)
-            if !reload && defined? #{memoized_ivar}
-              #{memoized_ivar}
+          def #{symbol}(*args)
+            #{memoized_ivar} ||= {}
+            reload = args.pop if args.last == true || args.last == :reload
+
+            if !reload && #{memoized_ivar} && #{memoized_ivar}.has_key?(args)
+              #{memoized_ivar}[args]
             else
-              #{memoized_ivar} = #{original_method}.freeze
+              #{memoized_ivar}[args] = #{original_method}(*args).freeze
             end
           end
         EOS
