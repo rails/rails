@@ -39,6 +39,7 @@ require 'active_support/cache'
 require 'active_support/dependencies'
 require 'active_support/deprecation'
 
+require 'active_support/typed_array'
 require 'active_support/ordered_hash'
 require 'active_support/ordered_options'
 require 'active_support/option_merger'
