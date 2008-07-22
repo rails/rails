@@ -407,6 +407,7 @@ module ActionController
 
           if rjs_type == :insert
             arg = args.shift
+            position  = arg
             insertion = "insert_#{arg}".to_sym
             raise ArgumentError, "Unknown RJS insertion type #{arg}" unless RJS_STATEMENTS[insertion]
             statement = "(#{RJS_STATEMENTS[insertion]})"
@@ -418,6 +419,7 @@ module ActionController
         else
           statement = "#{RJS_STATEMENTS[:any]}"
         end
+        position ||= Regexp.new(RJS_INSERTIONS.join('|'))
 
         # Next argument we're looking for is the element identifier. If missing, we pick
         # any element.
@@ -434,9 +436,14 @@ module ActionController
               Regexp.new("\\$\\(\"#{id}\"\\)#{statement}\\(#{RJS_PATTERN_HTML}\\)", Regexp::MULTILINE)
             when :remove, :show, :hide, :toggle
               Regexp.new("#{statement}\\(\"#{id}\"\\)")
-            else
-              Regexp.new("#{statement}\\(\"#{id}\", #{RJS_PATTERN_HTML}\\)", Regexp::MULTILINE)
-          end
+            when :replace, :replace_html
+              Regexp.new("#{statement}\\(\"#{id}\", #{RJS_PATTERN_HTML}\\)")
+            when :insert, :insert_html
+              Regexp.new("Element.insert\\(\\\"#{id}\\\", \\{ #{position}: #{RJS_PATTERN_HTML} \\}\\);")
+             else
+              Regexp.union(Regexp.new("#{statement}\\(\"#{id}\", #{RJS_PATTERN_HTML}\\)"),
+                Regexp.new("Element.insert\\(\\\"#{id}\\\", \\{ #{position}: #{RJS_PATTERN_HTML} \\}\\);"))
+           end
 
         # Duplicate the body since the next step involves destroying it.
         matches = nil
@@ -445,7 +452,7 @@ module ActionController
             matches = @response.body.match(pattern)
           else
             @response.body.gsub(pattern) do |match|
-              html = unescape_rjs($2)
+              html = unescape_rjs(match)
               matches ||= []
               matches.concat HTML::Document.new(html).root.children.select { |n| n.tag? }
               ""
@@ -585,17 +592,16 @@ module ActionController
             :hide                 => /Element\.hide/,
             :toggle                 => /Element\.toggle/
           }
+          RJS_STATEMENTS[:any] = Regexp.new("(#{RJS_STATEMENTS.values.join('|')})")
+          RJS_PATTERN_HTML = /"((\\"|[^"])*)"/
           RJS_INSERTIONS = [:top, :bottom, :before, :after]
           RJS_INSERTIONS.each do |insertion|
-            RJS_STATEMENTS["insert_#{insertion}".to_sym] = Regexp.new(Regexp.quote("new Insertion.#{insertion.to_s.camelize}"))
+            RJS_STATEMENTS["insert_#{insertion}".to_sym] = /Element.insert\(\"([^\"]*)\", \{ #{insertion.to_s.downcase}: #{RJS_PATTERN_HTML} \}\);/
           end
-          RJS_STATEMENTS[:any] = Regexp.new("(#{RJS_STATEMENTS.values.join('|')})")
           RJS_STATEMENTS[:insert_html] = Regexp.new(RJS_INSERTIONS.collect do |insertion|
-            Regexp.quote("new Insertion.#{insertion.to_s.camelize}")
+            /Element.insert\(\"([^\"]*)\", \{ #{insertion.to_s.downcase}: #{RJS_PATTERN_HTML} \}\);/
           end.join('|'))
-          RJS_PATTERN_HTML = /"((\\"|[^"])*)"/
-          RJS_PATTERN_EVERYTHING = Regexp.new("#{RJS_STATEMENTS[:any]}\\(\"([^\"]*)\", #{RJS_PATTERN_HTML}\\)",
-                                              Regexp::MULTILINE)
+          RJS_PATTERN_EVERYTHING = Regexp.new("#{RJS_STATEMENTS[:any]}\\(\"([^\"]*)\", #{RJS_PATTERN_HTML}\\)", Regexp::MULTILINE)
           RJS_PATTERN_UNICODE_ESCAPED_CHAR = /\\u([0-9a-zA-Z]{4})/
         end
 
