@@ -143,12 +143,12 @@ class LifecycleTest < ActiveRecord::TestCase
     assert_equal developer.name, multi_observer.record.name
   end
 
-  def test_after_find_cannot_be_observed_when_its_not_defined_on_the_model
+  def test_after_find_can_be_observed_when_its_not_defined_on_the_model
     observer = MinimalisticObserver.instance
     assert_equal Minimalistic, MinimalisticObserver.observed_class
 
     minimalistic = Minimalistic.find(1)
-    assert_nil observer.minimalistic
+    assert_equal minimalistic, observer.minimalistic
   end
 
   def test_after_find_can_be_observed_when_its_defined_on_the_model
@@ -157,6 +157,34 @@ class LifecycleTest < ActiveRecord::TestCase
 
     topic = Topic.find(1)
     assert_equal topic, observer.topic
+  end
+
+  def test_after_find_is_not_created_if_its_not_used
+    # use a fresh class so an observer can't have defined an
+    # after_find on it
+    model_class = Class.new(ActiveRecord::Base)
+    observer_class = Class.new(ActiveRecord::Observer)
+    observer_class.observe(model_class)
+
+    observer = observer_class.instance
+
+    assert !model_class.method_defined?(:after_find)
+  end
+
+  def test_after_find_is_not_clobbered_if_it_already_exists
+    # use a fresh observer class so we can instantiate it (Observer is
+    # a Singleton)
+    model_class = Class.new(ActiveRecord::Base) do
+      def after_find; end
+    end
+    original_method = model_class.instance_method(:after_find)
+    observer_class = Class.new(ActiveRecord::Observer) do
+      def after_find; end
+    end
+    observer_class.observe(model_class)
+
+    observer = observer_class.instance
+    assert_equal original_method, model_class.instance_method(:after_find)
   end
 
   def test_invalid_observer
