@@ -288,13 +288,13 @@ class JavaScriptGeneratorTest < PrototypeHelperBaseTest
   end
   
   def test_insert_html_with_string
-    assert_equal 'new Insertion.Top("element", "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E");',
+    assert_equal 'Element.insert("element", { top: "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E" });',
       @generator.insert_html(:top, 'element', '<p>This is a test</p>')
-    assert_equal 'new Insertion.Bottom("element", "\\u003Cp\u003EThis is a test\\u003C/p\u003E");',
+    assert_equal 'Element.insert("element", { bottom: "\\u003Cp\u003EThis is a test\\u003C/p\u003E" });',
       @generator.insert_html(:bottom, 'element', '<p>This is a test</p>')
-    assert_equal 'new Insertion.Before("element", "\\u003Cp\u003EThis is a test\\u003C/p\u003E");',
+    assert_equal 'Element.insert("element", { before: "\\u003Cp\u003EThis is a test\\u003C/p\u003E" });',
       @generator.insert_html(:before, 'element', '<p>This is a test</p>')
-    assert_equal 'new Insertion.After("element", "\\u003Cp\u003EThis is a test\\u003C/p\u003E");',
+    assert_equal 'Element.insert("element", { after: "\\u003Cp\u003EThis is a test\\u003C/p\u003E" });',
       @generator.insert_html(:after, 'element', '<p>This is a test</p>')
   end
   
@@ -362,8 +362,8 @@ class JavaScriptGeneratorTest < PrototypeHelperBaseTest
     @generator.replace_html('baz', '<p>This is a test</p>')
     
     assert_equal <<-EOS.chomp, @generator.to_s
-new Insertion.Top("element", "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E");
-new Insertion.Bottom("element", "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E");
+Element.insert("element", { top: "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E" });
+Element.insert("element", { bottom: "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E" });
 ["foo", "bar"].each(Element.remove);
 Element.update("baz", "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E");
     EOS
