@@ -84,7 +84,7 @@ module ActionView
       # The template will be compiled if the file has not been compiled yet, or
       # if local_assigns has a new key, which isn't supported by the compiled code yet.
       def recompile?(symbol)
-        !(frozen? && Base::CompiledTemplates.method_defined?(symbol))
+        !(ActionView::PathSet::Path.eager_load_templates? && Base::CompiledTemplates.method_defined?(symbol))
       end
   end
 end

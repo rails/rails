@@ -102,6 +102,8 @@ module ActionView
   #
   # As you can see, the <tt>:locals</tt> hash is shared between both the partial and its layout.
   module Partials
+    extend ActiveSupport::Memoizable
+
     private
       def render_partial(partial_path, object_assigns = nil, local_assigns = {}) #:nodoc:
         local_assigns ||= {}
@@ -129,14 +131,12 @@ module ActionView
 
         local_assigns = local_assigns ? local_assigns.clone : {}
         spacer = partial_spacer_template ? render(:partial => partial_spacer_template) : ''
-        _paths = {}
-        _templates = {}
 
         index = 0
         collection.map do |object|
           _partial_path ||= partial_path || ActionController::RecordIdentifier.partial_path(object, controller.class.controller_path)
-          path = _paths[_partial_path] ||= find_partial_path(_partial_path)
-          template = _templates[path] ||= pick_template(path)
+          path = find_partial_path(_partial_path)
+          template = pick_template(path)
           local_assigns[template.counter_name] = index
           result = template.render_partial(self, object, local_assigns, as)
           index += 1
@@ -153,5 +153,6 @@ module ActionView
           "_#{partial_path}"
         end
       end
+      memoize :find_partial_path
   end
 end

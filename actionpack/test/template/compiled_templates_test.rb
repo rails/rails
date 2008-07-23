@@ -30,9 +30,12 @@ uses_mocha 'TestTemplateRecompilation' do
       assert_equal "Hello world!", render("test/hello_world.erb")
     end
 
-    def test_compiled_template_will_be_recompiled_when_rendered_if_template_is_outside_cache
+    def test_compiled_template_will_always_be_recompiled_when_eager_loaded_templates_is_off
+      ActionView::PathSet::Path.expects(:eager_load_templates?).times(4).returns(false)
       assert_equal 0, @compiled_templates.instance_methods.size
       assert_equal "Hello world!", render("#{FIXTURE_LOAD_PATH}/test/hello_world.erb")
+      ActionView::Template.any_instance.expects(:compile!).times(3)
+      3.times { assert_equal "Hello world!", render("#{FIXTURE_LOAD_PATH}/test/hello_world.erb") }
       assert_equal 1, @compiled_templates.instance_methods.size
     end
 
