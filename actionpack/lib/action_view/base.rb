@@ -332,9 +332,6 @@ module ActionView #:nodoc:
       end
     end
 
-    extend ActiveSupport::Memoizable
-    memoize :pick_template
-
     private
       # Renders the template present at <tt>template_path</tt>. The hash in <tt>local_assigns</tt>
       # is made available as local variables.
