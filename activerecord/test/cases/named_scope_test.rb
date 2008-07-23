@@ -184,6 +184,28 @@ class NamedScopeTest < ActiveRecord::TestCase
     end
   end
 
+  def test_any_should_not_load_results
+    topics = Topic.base
+    assert_queries(1) do
+      topics.expects(:empty?).returns(true)
+      assert !topics.any?
+    end
+  end
+
+  def test_any_should_call_proxy_found_if_using_a_block
+    topics = Topic.base
+    assert_queries(1) do
+      topics.expects(:empty?).never
+      topics.any? { true }
+    end
+  end
+
+  def test_any_should_not_fire_query_if_named_scope_loaded
+    topics = Topic.base
+    topics.collect # force load
+    assert_no_queries { assert topics.any? }
+  end
+
   def test_should_build_with_proxy_options
     topic = Topic.approved.build({})
     assert topic.approved

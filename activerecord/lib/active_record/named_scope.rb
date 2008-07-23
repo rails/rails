@@ -103,7 +103,7 @@ module ActiveRecord
       attr_reader :proxy_scope, :proxy_options
 
       [].methods.each do |m|
-        unless m =~ /(^__|^nil\?|^send|^object_id$|class|extend|find|count|sum|average|maximum|minimum|paginate|first|last|empty?)/
+        unless m =~ /(^__|^nil\?|^send|^object_id$|class|extend|find|count|sum|average|maximum|minimum|paginate|first|last|empty?|any?)/
           delegate m, :to => :proxy_found
         end
       end
@@ -138,6 +138,14 @@ module ActiveRecord
 
       def empty?
         @found ? @found.empty? : count.zero?
+      end
+
+      def any?
+        if block_given?
+          proxy_found.any? { |*block_args| yield(*block_args) }
+        else
+          !empty?
+        end
       end
 
       protected
