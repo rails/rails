@@ -75,7 +75,7 @@ module ActionView #:nodoc:
         load_paths = Array(load_paths) + [nil]
         load_paths.each do |load_path|
           file = [load_path, path].compact.join('/')
-          return load_path, file if File.exist?(file) && File.file?(file)
+          return load_path, file if File.file?(file)
         end
         raise MissingTemplate.new(load_paths, path)
       end
