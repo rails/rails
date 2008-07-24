@@ -3,7 +3,12 @@ require 'action_controller/integration'
 
 class RequestTest < Test::Unit::TestCase
   def setup
+    ActionController::Base.relative_url_root = nil
     @request = ActionController::TestRequest.new
+  end
+
+  def teardown
+    ActionController::Base.relative_url_root = nil
   end
 
   def test_remote_ip
@@ -38,7 +43,7 @@ class RequestTest < Test::Unit::TestCase
 
     @request.env['HTTP_X_FORWARDED_FOR'] = '10.0.0.1,3.4.5.6'
     assert_equal '3.4.5.6', @request.remote_ip
-    
+
     @request.env['HTTP_X_FORWARDED_FOR'] = '10.0.0.1, 10.0.0.1, 3.4.5.6'
     assert_equal '3.4.5.6', @request.remote_ip
 
@@ -120,155 +125,105 @@ class RequestTest < Test::Unit::TestCase
     assert_equal ":8080", @request.port_string
   end
 
-  def test_relative_url_root
-    @request.env['SCRIPT_NAME'] = "/hieraki/dispatch.cgi"
-    @request.env['SERVER_SOFTWARE'] = 'lighttpd/1.2.3'
-    assert_equal '', @request.relative_url_root, "relative_url_root should be disabled on lighttpd"
-
-    @request.env['SERVER_SOFTWARE'] = 'apache/1.2.3 some random text'
-
-    @request.env['SCRIPT_NAME'] = nil
-    assert_equal "", @request.relative_url_root
-
-    @request.env['SCRIPT_NAME'] = "/dispatch.cgi"
-    assert_equal "", @request.relative_url_root
-
-    @request.env['SCRIPT_NAME'] = "/myapp.rb"
-    assert_equal "", @request.relative_url_root
-
-    @request.relative_url_root = nil
-    @request.env['SCRIPT_NAME'] = "/hieraki/dispatch.cgi"
-    assert_equal "/hieraki", @request.relative_url_root
-
-    @request.relative_url_root = nil
-    @request.env['SCRIPT_NAME'] = "/collaboration/hieraki/dispatch.cgi"
-    assert_equal "/collaboration/hieraki", @request.relative_url_root
-
-    # apache/scgi case
-    @request.relative_url_root = nil
-    @request.env['SCRIPT_NAME'] = "/collaboration/hieraki"
-    assert_equal "/collaboration/hieraki", @request.relative_url_root
-
-    @request.relative_url_root = nil
-    @request.env['SCRIPT_NAME'] = "/hieraki/dispatch.cgi"
-    @request.env['SERVER_SOFTWARE'] = 'lighttpd/1.2.3'
-    @request.env['RAILS_RELATIVE_URL_ROOT'] = "/hieraki"
-    assert_equal "/hieraki", @request.relative_url_root
-
-    # @env overrides path guess
-    @request.relative_url_root = nil
-    @request.env['SCRIPT_NAME'] = "/hieraki/dispatch.cgi"
-    @request.env['SERVER_SOFTWARE'] = 'apache/1.2.3 some random text'
-    @request.env['RAILS_RELATIVE_URL_ROOT'] = "/real_url"
-    assert_equal "/real_url", @request.relative_url_root
-  end
-
   def test_request_uri
     @request.env['SERVER_SOFTWARE'] = 'Apache 42.342.3432'
 
-    @request.relative_url_root = nil
     @request.set_REQUEST_URI "http://www.rubyonrails.org/path/of/some/uri?mapped=1"
     assert_equal "/path/of/some/uri?mapped=1", @request.request_uri
     assert_equal "/path/of/some/uri", @request.path
 
-    @request.relative_url_root = nil
     @request.set_REQUEST_URI "http://www.rubyonrails.org/path/of/some/uri"
     assert_equal "/path/of/some/uri", @request.request_uri
     assert_equal "/path/of/some/uri", @request.path
 
-    @request.relative_url_root = nil
     @request.set_REQUEST_URI "/path/of/some/uri"
     assert_equal "/path/of/some/uri", @request.request_uri
     assert_equal "/path/of/some/uri", @request.path
 
-    @request.relative_url_root = nil
     @request.set_REQUEST_URI "/"
     assert_equal "/", @request.request_uri
     assert_equal "/", @request.path
 
-    @request.relative_url_root = nil
     @request.set_REQUEST_URI "/?m=b"
     assert_equal "/?m=b", @request.request_uri
     assert_equal "/", @request.path
 
-    @request.relative_url_root = nil
     @request.set_REQUEST_URI "/"
     @request.env['SCRIPT_NAME'] = "/dispatch.cgi"
     assert_equal "/", @request.request_uri
     assert_equal "/", @request.path
 
-    @request.relative_url_root = nil
+    ActionController::Base.relative_url_root = "/hieraki"
     @request.set_REQUEST_URI "/hieraki/"
     @request.env['SCRIPT_NAME'] = "/hieraki/dispatch.cgi"
     assert_equal "/hieraki/", @request.request_uri
     assert_equal "/", @request.path
+    ActionController::Base.relative_url_root = nil
 
-    @request.relative_url_root = nil
+    ActionController::Base.relative_url_root = "/collaboration/hieraki"
     @request.set_REQUEST_URI "/collaboration/hieraki/books/edit/2"
     @request.env['SCRIPT_NAME'] = "/collaboration/hieraki/dispatch.cgi"
     assert_equal "/collaboration/hieraki/books/edit/2", @request.request_uri
     assert_equal "/books/edit/2", @request.path
+    ActionController::Base.relative_url_root = nil
 
     # The following tests are for when REQUEST_URI is not supplied (as in IIS)
-    @request.relative_url_root = nil
     @request.set_REQUEST_URI nil
     @request.env['PATH_INFO'] = "/path/of/some/uri?mapped=1"
     @request.env['SCRIPT_NAME'] = nil #"/path/dispatch.rb"
     assert_equal "/path/of/some/uri?mapped=1", @request.request_uri
     assert_equal "/path/of/some/uri", @request.path
 
+    ActionController::Base.relative_url_root = '/path'
     @request.set_REQUEST_URI nil
-    @request.relative_url_root = nil
     @request.env['PATH_INFO'] = "/path/of/some/uri?mapped=1"
     @request.env['SCRIPT_NAME'] = "/path/dispatch.rb"
     assert_equal "/path/of/some/uri?mapped=1", @request.request_uri
     assert_equal "/of/some/uri", @request.path
+    ActionController::Base.relative_url_root = nil
 
     @request.set_REQUEST_URI nil
-    @request.relative_url_root = nil
     @request.env['PATH_INFO'] = "/path/of/some/uri"
     @request.env['SCRIPT_NAME'] = nil
     assert_equal "/path/of/some/uri", @request.request_uri
     assert_equal "/path/of/some/uri", @request.path
 
     @request.set_REQUEST_URI nil
-    @request.relative_url_root = nil
     @request.env['PATH_INFO'] = "/"
     assert_equal "/", @request.request_uri
     assert_equal "/", @request.path
 
     @request.set_REQUEST_URI nil
-    @request.relative_url_root = nil
     @request.env['PATH_INFO'] = "/?m=b"
     assert_equal "/?m=b", @request.request_uri
     assert_equal "/", @request.path
 
     @request.set_REQUEST_URI nil
-    @request.relative_url_root = nil
     @request.env['PATH_INFO'] = "/"
     @request.env['SCRIPT_NAME'] = "/dispatch.cgi"
     assert_equal "/", @request.request_uri
     assert_equal "/", @request.path
 
+    ActionController::Base.relative_url_root = '/hieraki'
     @request.set_REQUEST_URI nil
-    @request.relative_url_root = nil
     @request.env['PATH_INFO'] = "/hieraki/"
     @request.env['SCRIPT_NAME'] = "/hieraki/dispatch.cgi"
     assert_equal "/hieraki/", @request.request_uri
     assert_equal "/", @request.path
+    ActionController::Base.relative_url_root = nil
 
     @request.set_REQUEST_URI '/hieraki/dispatch.cgi'
-    @request.relative_url_root = '/hieraki'
+    ActionController::Base.relative_url_root = '/hieraki'
     assert_equal "/dispatch.cgi", @request.path
-    @request.relative_url_root = nil
+    ActionController::Base.relative_url_root = nil
 
     @request.set_REQUEST_URI '/hieraki/dispatch.cgi'
-    @request.relative_url_root = '/foo'
+    ActionController::Base.relative_url_root = '/foo'
     assert_equal "/hieraki/dispatch.cgi", @request.path
-    @request.relative_url_root = nil
+    ActionController::Base.relative_url_root = nil
 
     # This test ensures that Rails uses REQUEST_URI over PATH_INFO
-    @request.relative_url_root = nil
+    ActionController::Base.relative_url_root = nil
     @request.env['REQUEST_URI'] = "/some/path"
     @request.env['PATH_INFO'] = "/another/path"
     @request.env['SCRIPT_NAME'] = "/dispatch.cgi"
@@ -276,13 +231,12 @@ class RequestTest < Test::Unit::TestCase
     assert_equal "/some/path", @request.path
   end
 
-
   def test_host_with_default_port
     @request.host = "rubyonrails.org"
     @request.port = 80
     assert_equal "rubyonrails.org", @request.host_with_port
   end
-  
+
   def test_host_with_non_default_port
     @request.host = "rubyonrails.org"
     @request.port = 81
@@ -415,15 +369,15 @@ class RequestTest < Test::Unit::TestCase
     @request.env["CONTENT_TYPE"] = "application/xml; charset=UTF-8"
     assert_equal Mime::XML, @request.content_type
   end
-  
+
   def test_user_agent
     assert_not_nil @request.user_agent
   end
-  
+
   def test_parameters
     @request.instance_eval { @request_parameters = { "foo" => 1 } }
     @request.instance_eval { @query_parameters = { "bar" => 2 } }
-    
+
     assert_equal({"foo" => 1, "bar" => 2}, @request.parameters)
     assert_equal({"foo" => 1}, @request.request_parameters)
     assert_equal({"bar" => 2}, @request.query_parameters)
@@ -774,19 +728,19 @@ class MultipartRequestParameterParsingTest < Test::Unit::TestCase
 
     file = params['file']
     foo  = params['foo']
-    
+
     if RUBY_VERSION > '1.9'
       assert_kind_of File, file
     else
       assert_kind_of Tempfile, file
     end
-    
+
     assert_equal 'file.txt', file.original_filename
     assert_equal "text/plain", file.content_type
-    
+
     assert_equal 'bar', foo
   end
-  
+
   def test_large_text_file
     params = process('large_text_file')
     assert_equal %w(file foo), params.keys.sort

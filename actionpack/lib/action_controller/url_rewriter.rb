@@ -37,7 +37,7 @@ module ActionController
     # * <tt>:port</tt> - Optionally specify the port to connect to.
     # * <tt>:anchor</tt> - An anchor name to be appended to the path.
     # * <tt>:skip_relative_url_root</tt> - If true, the url is not constructed using the
-    #   +relative_url_root+ set in ActionController::AbstractRequest.relative_url_root.
+    #   +relative_url_root+ set in ActionController::Base.relative_url_root.
     # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2009/"
     #
     # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
@@ -67,7 +67,7 @@ module ActionController
         [:protocol, :host, :port, :skip_relative_url_root].each { |k| options.delete(k) }
       end
       trailing_slash = options.delete(:trailing_slash) if options.key?(:trailing_slash)
-      url << ActionController::AbstractRequest.relative_url_root.to_s unless options[:skip_relative_url_root]
+      url << ActionController::Base.relative_url_root.to_s unless options[:skip_relative_url_root]
       anchor = "##{CGI.escape options.delete(:anchor).to_param.to_s}" if options[:anchor]
       generated = Routing::Routes.generate(options, {})
       url << (trailing_slash ? generated.sub(/\?|\z/) { "/" + $& } : generated)
@@ -108,7 +108,7 @@ module ActionController
         end
 
         path = rewrite_path(options)
-        rewritten_url << @request.relative_url_root.to_s unless options[:skip_relative_url_root]
+        rewritten_url << ActionController::Base.relative_url_root.to_s unless options[:skip_relative_url_root]
         rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
         rewritten_url << "##{options[:anchor]}" if options[:anchor]
 

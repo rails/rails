@@ -731,15 +731,10 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
     def request
       @request ||= MockRequest.new(:host => "named.route.test", :method => :get)
     end
-
-    def relative_url_root=(value)
-      request.relative_url_root=value
-    end
   end
 
   class MockRequest
-    attr_accessor :path, :path_parameters, :host, :subdomains, :domain,
-                  :method, :relative_url_root
+    attr_accessor :path, :path_parameters, :host, :subdomains, :domain, :method
 
     def initialize(values={})
       values.each { |key, value| send("#{key}=", value) }
@@ -920,10 +915,11 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
     def test_basic_named_route_with_relative_url_root
       rs.add_named_route :home, '', :controller => 'content', :action => 'list'
       x = setup_for_named_route
-      x.relative_url_root="/foo"
+      ActionController::Base.relative_url_root = "/foo"
       assert_equal("http://named.route.test/foo/",
                    x.send(:home_url))
       assert_equal "/foo/", x.send(:home_path)
+      ActionController::Base.relative_url_root = nil
     end
 
     def test_named_route_with_option

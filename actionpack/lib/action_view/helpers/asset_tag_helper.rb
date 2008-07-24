@@ -476,7 +476,7 @@ module ActionView
             if has_request
               [ @controller.request.protocol,
                 ActionController::Base.asset_host.to_s,
-                @controller.request.relative_url_root,
+                ActionController::Base.relative_url_root,
                 dir, source, ext, include_host ].join
             else
               [ ActionController::Base.asset_host.to_s,
@@ -492,8 +492,8 @@ module ActionView
               else
                 source = "/#{dir}/#{source}" unless source[0] == ?/
                 if has_request
-                  unless source =~ %r{^#{@controller.request.relative_url_root}/}
-                    source = "#{@controller.request.relative_url_root}#{source}"
+                  unless source =~ %r{^#{ActionController::Base.relative_url_root}/}
+                    source = "#{ActionController::Base.relative_url_root}#{source}"
                   end
                 end
 

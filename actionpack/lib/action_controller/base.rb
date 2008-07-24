@@ -354,6 +354,10 @@ module ActionController #:nodoc:
     class_inheritable_accessor :allow_forgery_protection
     self.allow_forgery_protection = true
 
+    # If you are deploying to a subdirectory, you will need to set
+    # <tt>config.action_controller.relative_url_root</tt>
+    class_inheritable_accessor :relative_url_root
+
     # Holds the request object that's primarily used to get environment variables through access like
     # <tt>request.env["REQUEST_URI"]</tt>.
     attr_internal :request
