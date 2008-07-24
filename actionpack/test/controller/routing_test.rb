@@ -1983,6 +1983,26 @@ class RouteSetTest < Test::Unit::TestCase
     Object.send(:remove_const, :Api)
   end
 
+  def test_namespace_with_path_prefix
+    Object.const_set(:Api, Module.new { |m| m.const_set(:ProductsController, Class.new) })
+
+    set.draw do |map|
+
+      map.namespace 'api', :path_prefix => 'prefix' do |api|
+        api.route 'inventory', :controller => "products", :action => 'inventory'
+      end
+
+    end
+
+    request.path = "/prefix/inventory"
+    request.method = :get
+    assert_nothing_raised { set.recognize(request) }
+    assert_equal("api/products", request.path_parameters[:controller])
+    assert_equal("inventory", request.path_parameters[:action])
+  ensure
+    Object.send(:remove_const, :Api)
+  end
+
   def test_generate_finds_best_fit
     set.draw do |map|
       map.connect "/people", :controller => "people", :action => "index"
