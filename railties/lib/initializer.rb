@@ -171,8 +171,11 @@ module Rails
       # Load view path cache
       load_view_paths
 
-      # load application classes
+      # Load application classes
       load_application_classes
+
+      # Disable dependency loading during request cycle
+      disable_dependency_loading
 
       # Flag initialized
       Rails.initialized = true
@@ -525,6 +528,12 @@ Run `rake gems:install` to install the missing gems.
       Dispatcher.define_dispatcher_callbacks(configuration.cache_classes)
       Dispatcher.new(RAILS_DEFAULT_LOGGER).send :run_callbacks, :prepare_dispatch
     end
+
+    def disable_dependency_loading
+      if configuration.cache_classes && !configuration.dependency_loading
+        ActiveSupport::Dependencies.unhook!
+      end
+    end
   end
 
   # The Configuration class holds all the parameters for the Initializer and
@@ -659,6 +668,17 @@ Run `rake gems:install` to install the missing gems.
       !!@reload_plugins
     end
 
+    # Enables or disables dependency loading during the request cycle. Setting
+    # <tt>dependency_loading</tt> to true will allow new classes to be loaded
+    # during a request. Setting it to false will disable this behavior.
+    #
+    # Those who want to run in a threaded environment should disable this
+    # option and eager load or require all there classes on initialization.
+    #
+    # If <tt>cache_classes</tt> is disabled, dependency loaded will always be
+    # on.
+    attr_accessor :dependency_loading
+
     # An array of gems that this rails application depends on.  Rails will automatically load
     # these gems during installation, and allow you to install any missing gems with:
     #
@@ -707,6 +727,7 @@ Run `rake gems:install` to install the missing gems.
       self.view_path                    = default_view_path
       self.controller_paths             = default_controller_paths
       self.cache_classes                = default_cache_classes
+      self.dependency_loading           = default_dependency_loading
       self.whiny_nils                   = default_whiny_nils
       self.plugins                      = default_plugins
       self.plugin_paths                 = default_plugin_paths
@@ -876,8 +897,8 @@ Run `rake gems:install` to install the missing gems.
         paths
       end
 
-      def default_dependency_mechanism
-        :load
+      def default_dependency_loading
+        true
       end
 
       def default_cache_classes

@@ -762,4 +762,16 @@ class DependenciesTest < Test::Unit::TestCase
   ensure
     ActiveSupport::Dependencies.load_once_paths = []
   end
+
+  def test_hook_called_multiple_times
+    assert_nothing_raised { ActiveSupport::Dependencies.hook! }
+  end
+
+  def test_unhook
+    ActiveSupport::Dependencies.unhook!
+    assert !Module.new.respond_to?(:const_missing_without_dependencies)
+    assert !Module.new.respond_to?(:load_without_new_constant_marking)
+  ensure
+    ActiveSupport::Dependencies.hook!
+  end
 end

@@ -51,15 +51,26 @@ module ActiveSupport #:nodoc:
     module ModuleConstMissing #:nodoc:
       def self.included(base) #:nodoc:
         base.class_eval do
-          # Rename the original handler so we can chain it to the new one
-          alias_method :rails_original_const_missing, :const_missing
-
-          # Use const_missing to autoload associations so we don't have to
-          # require_association when using single-table inheritance.
-          def const_missing(class_id)
-            ActiveSupport::Dependencies.load_missing_constant self, class_id
+          unless defined? const_missing_without_dependencies
+            alias_method_chain :const_missing, :dependencies
           end
         end
+      end
+
+      def self.excluded(base) #:nodoc:
+        base.class_eval do
+          if defined? const_missing_without_dependencies
+            undef_method :const_missing
+            alias_method :const_missing, :const_missing_without_dependencies
+            undef_method :const_missing_without_dependencies
+          end
+        end
+      end
+
+      # Use const_missing to autoload associations so we don't have to
+      # require_association when using single-table inheritance.
+      def const_missing_with_dependencies(class_id)
+        ActiveSupport::Dependencies.load_missing_constant self, class_id
       end
 
       def unloadable(const_desc = self)
@@ -92,8 +103,38 @@ module ActiveSupport #:nodoc:
 
     # Object includes this module
     module Loadable #:nodoc:
-      def load(file, *extras) #:nodoc:
-        Dependencies.new_constants_in(Object) { super }
+      def self.included(base) #:nodoc:
+        base.class_eval do
+          unless defined? load_without_new_constant_marking
+            alias_method_chain :load, :new_constant_marking
+          end
+        end
+      end
+
+      def self.excluded(base) #:nodoc:
+        base.class_eval do
+          if defined? load_without_new_constant_marking
+            undef_method :load
+            alias_method :load, :load_without_new_constant_marking
+            undef_method :load_without_new_constant_marking
+          end
+        end
+      end
+
+      def require_or_load(file_name)
+        Dependencies.require_or_load(file_name)
+      end
+
+      def require_dependency(file_name)
+        Dependencies.depend_on(file_name)
+      end
+
+      def require_association(file_name)
+        Dependencies.associate_with(file_name)
+      end
+
+      def load_with_new_constant_marking(file, *extras) #:nodoc:
+        Dependencies.new_constants_in(Object) { load_without_new_constant_marking(file, *extras) }
       rescue Exception => exception  # errors from loading file
         exception.blame_file! file
         raise
@@ -145,19 +186,18 @@ module ActiveSupport #:nodoc:
       end
     end
 
-    def inject!
-      Object.instance_eval do
-        define_method(:require_or_load)     { |file_name| Dependencies.require_or_load(file_name) } unless Object.respond_to?(:require_or_load)
-        define_method(:require_dependency)  { |file_name| Dependencies.depend_on(file_name) }       unless Object.respond_to?(:require_dependency)
-        define_method(:require_association) { |file_name| Dependencies.associate_with(file_name) }  unless Object.respond_to?(:require_association)
-
-        alias_method :load_without_new_constant_marking, :load
-        include Loadable
-      end
-
+    def hook!
+      Object.instance_eval { include Loadable }
       Module.instance_eval { include ModuleConstMissing }
       Class.instance_eval { include ClassConstMissing }
       Exception.instance_eval { include Blamable }
+      true
+    end
+
+    def unhook!
+      ModuleConstMissing.excluded(Module)
+      Loadable.excluded(Object)
+      true
     end
 
     def load?
@@ -560,4 +600,4 @@ module ActiveSupport #:nodoc:
   end
 end
 
-ActiveSupport::Dependencies.inject!
+ActiveSupport::Dependencies.hook!
