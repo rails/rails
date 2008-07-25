@@ -1,0 +1,116 @@
+In this chapter, we provide a high-level overview of Ruby on Rails.
+
+=== What Is a Web Framework? ===
+
+Ruby on Rails is a prominent member of a new generation of web frameworks. So what exactly does that term mean?
+
+To answer that question, let's consider the design of a web application written in PHP, a popular way to write web applications at this time (circa 2008). PHP is a scripting language, mostly meant for producing dynamic web pages. When you write a PHP application, you do everything yourself -- the equivalent of baking a cake from scratch. For example, here's a simple PHP script, that displays the ten most recently published books from a database:
+
+[source, php]
+-----------------------------------------
+<?php
+echo "<html><head><title>Books</title></head>\n"
+echo "<body>\n"
+echo "<h1>Books</h1>\n"
+echo "<ul>\n";
+
+mysql_connect("localhost", "me", "letmein");
+mysql_select_db("my_db");
+$result = mysql_query("SELECT name FROM books ORDER BY pub_data DESC LIMIT 10");
+while ($row = mysql_fetch($result)) {
+	echo "<li>$row[0]</li>\n";
+}
+
+echo "</ul>\n";
+echo "</body></html>\n";
+?>
+-----------------------------------------
+
+This code is straightforward. First, it prints some introductory HTML. Then, it connects to a database and executes a query that retrieves the latest ten books. Looping over those books, it generates an HTML unordered list. Finally, it prints the closing HTML and closes the database connection.
+
+With a one-off dynamic page such as this one, the write-it-from-scratch approach isn't necessarily bad. For one thing, this code is simple to comprehend -- even a novice developer can read these 14 lines of PHP and understand all it does, from start to finish. There's nothing else to learn; no other code to read. It's also simple to deploy: just save this code in a file called 'latestbooks.php', upload that file to a web server, and visit that page with a browser.
+
+But as a web application grows beyond the trivial, this approach breaks down, and you face a number of problems:
+
+ * What happens when multiple pages need to connect to the database? Surely that database-connecting code shouldn't be duplicated in each individual PHP script, so the pragmatic thing to do would be to refactor it into a shared function.
+ * Should a developer really have to worry about printing the ``Content-Type'' line and remembering to close the database connection? This sort of boilerplate reduces programmer productivity and introduces opportunities for mistakes. These setup- and teardown-related tasks would best be handled by some common infrastructure.
+ * What happens when this code is reused in multiple environments, each with a separate database and password? At this point, some environment-specific configuration becomes essential.
+ * What happens when a web designer who has no experience coding Ruby wishes to redesign the page? Ideally, the logic of the page -- the retrieval of books from the database -- would be separate from the HTML display of the page, so that a designer could edit the latter without affecting the former.
+
+These problems are precisely what a web framework intends to solve. A web framework provides a programming infrastructure for your applications, so that you can focus on writing clean, maintainable code without having to reinvent the wheel. In a nutshell, that's what Ruby on Rails does. Ruby on Rails also leverages the power of the Ruby programming language, to make web development as pleasant as possible.
+
+
+=== The MVC Design Pattern ===
+
+Let's dive in with a quick example that demonstrates the difference between the previous approach and that undertaken using a web framework. Here's how you might write the previous PHP code using Ruby on Rails:
+
+[source, ruby]
+----------------------------------------
+# File: app/models/book.rb (the database model with business logic)
+
+class Book < ActiveRecord::Base
+   def self.latest_books
+      return Book.find(:all, :order => 'pub_date DESC', :limit => 10)
+   end
+end
+----------------------------------------
+
+[source, ruby]
+----------------------------------------
+# File: app/controllers/books_controller.rb (the controller, which handles HTTP requests)
+
+class BooksController < ApplicationController
+   def index
+      @books = Book.latest_books
+   end
+end
+----------------------------------------
+
+[source, html]
+----------------------------------------
+<!-- File: app/views/books/index.html.erb (the view template) -->
+
+<html>
+<head>
+   <title>Books</title>
+</head>
+<body>
+   <h1>Books</h1>
+   <ul>
+      <% for book in @books %>
+         <li><%=h book.name %></li>
+      <% end %>
+   </ul>
+</body>
+</html>
+----------------------------------------
+
+Don't worry about the particulars of how this works just yet -- we just want you to get a feel for the overall design. The main thing to note here is the separation of concerns:
+
+  * The 'book.rb' file contains a *model* for the 'books' database table. Using this class, you can create, retrieve, update, and delete records in your database using simple Ruby code rather than writing repetitive SQL statements.
+
+  * The 'books_controller.rb' file is called the *controller*. It receives HTTP requests and processes them. It prepares information that the view will use to render the final HTML output for the HTTP client.
+
+  * The 'index.html.erb' file an HTML-ERB *template* that describes the design of the page.
+
+Taken together, these pieces loosely follow the Model-View-Controller (MVC) design pattern. Simply put, MVC defines a way of developing software so that the code for defining and accessing data (the model) is separate from request logic (the controller), which in turn is separate from the user interface (the view).
+
+A key advantage of such an approach is that components are loosely coupled. That is, each distinct piece of a Ruby on Rails-powered web application has a single key purpose and can be changed independently without affecting the other pieces. For example, a designer can change the user interface without having to understand the business logic. A database administrator can rename a database table and specify the change in a single place, rather than having to search and replace through a dozen files.
+
+
+=== Ruby on Rails's Philosophies: Convention-Over-Configuration and Don't-Repeat-Yourself ===
+
+Ruby on Rails is intended to emphasize *Convention over Configuration* (CoC), and the agile programming principle of *Don't repeat yourself* (DRY). But what do these terms mean?
+
+``Don't repeat yourself'' means that information is located in a single, unambiguous place. The careful reader will notice that that the model file lacks sort of database column definitions. Traditionally, web developers have to define database table information in their databases (in the form of a schema) and again in their applications. However, there are very few good reasons why such information should be duplicated, and -- indeed -- such duplication could lead to code maintenance problems. Ruby on Rails's database abstraction layer -- called 'ActiveRecord' -- automatically infers how your 'books' database table looks like, by performing database introspection.
+
+Ruby on Rails also places emphasis on ``Convention over Configuration''. For example, ActiveRecord automatically infers from the model class's name, `Book`, that the database table should be called 'books'. By following this naming convention, the developer need not to write a lot of configuration files.
+
+These philosophies are intended to speed up development and to reduce redundant information in the code base. DRY and CoC are key properties of the Ruby on Rails framework, and they are reflected throughout all of the framework.
+
+That said, it is still possible to tell ActiveRecord that the database table has a different name. So Ruby on Rails does not force you follow conventions, but you should carefully consider whether you will want to deviate from the convention because of the development speed advantages that following conventions will give you.
+
+
+=== What's Next ===
+
+In the next chapter, we'll get started with Ruby on Rails, covering installation and initial setup.
