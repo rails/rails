@@ -782,8 +782,8 @@ module ActionView
         @template.radio_button(@object_name, method, tag_value, objectify_options(options))
       end
 
-      def error_message_on(method, prepend_text = "", append_text = "", css_class = "formError")
-        @template.error_message_on(@object, method, prepend_text, append_text, css_class)
+      def error_message_on(method, *args)
+        @template.error_message_on(@object, method, *args)
       end
 
       def error_messages(options = {})
