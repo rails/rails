@@ -211,7 +211,6 @@ module ActiveRecord
           clear_active_connection_name
           @active_connection_name = name
           @@defined_connections[name] = spec
-          connection
         when Symbol, String
           if configuration = configurations[spec.to_s]
             establish_connection(configuration)
