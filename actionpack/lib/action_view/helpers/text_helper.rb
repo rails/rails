@@ -34,40 +34,69 @@ module ActionView
       end
 
       if RUBY_VERSION < '1.9'
-        # If +text+ is longer than +length+, +text+ will be truncated to the length of
-        # +length+ (defaults to 30) and the last characters will be replaced with the +truncate_string+
-        # (defaults to "...").
+        # Truncates a given +text+ after a given <tt>:length</tt> if +text+ is longer than <tt>:length</tt>
+        # (defaults to 30). The last characters will be replaced with the <tt>:omission</tt> (defaults to "...").
         #
         # ==== Examples
-        #   truncate("Once upon a time in a world far far away", 14)
-        #   # => Once upon a...
         #
         #   truncate("Once upon a time in a world far far away")
         #   # => Once upon a time in a world f...
         #
-        #   truncate("And they found that many people were sleeping better.", 25, "(clipped)")
+        #   truncate("Once upon a time in a world far far away", :length => 14)
+        #   # => Once upon a...
+        #
+        #   truncate("And they found that many people were sleeping better.", :length => 25, "(clipped)")
         #   # => And they found that many (clipped)
+        #
+        #   truncate("And they found that many people were sleeping better.", :omission => "... (continued)", :length => 15)
+        #   # => And they found... (continued)
+        #
+        # You can still use <tt>truncate</tt> with the old API that accepts the
+        # +length+ as its optional second and the +ellipsis+ as its
+        # optional third parameter:
+        #   truncate("Once upon a time in a world far far away", 14)
+        #   # => Once upon a time in a world f...
         #
         #   truncate("And they found that many people were sleeping better.", 15, "... (continued)")
         #   # => And they found... (continued)
-        def truncate(text, length = 30, truncate_string = "...")
+        def truncate(text, *args)
+          options = args.extract_options!
+          unless args.empty?
+            ActiveSupport::Deprecation.warn('truncate takes an option hash instead of separate ' +
+              'length and omission arguments', caller)
+
+            options[:length] = args[0] || 30
+            options[:omission] = args[1] || "..."
+          end
+          options.reverse_merge!(:length => 30, :omission => "...")
+
           if text
-            l = length - truncate_string.chars.length
+            l = options[:length] - options[:omission].chars.length
             chars = text.chars
-            (chars.length > length ? chars[0...l] + truncate_string : text).to_s
+            (chars.length > options[:length] ? chars[0...l] + options[:omission] : text).to_s
           end
         end
       else
-        def truncate(text, length = 30, truncate_string = "...") #:nodoc:
+        def truncate(text, *args) #:nodoc:
+          options = args.extract_options!
+          unless args.empty?
+            ActiveSupport::Deprecation.warn('truncate takes an option hash instead of separate ' +
+              'length and omission arguments', caller)
+
+            options[:length] = args[0] || 30
+            options[:omission] = args[1] || "..."
+          end
+          options.reverse_merge!(:length => 30, :omission => "...")
+
           if text
-            l = length - truncate_string.length
-            (text.length > length ? text[0...l] + truncate_string : text).to_s
+            l = options[:length].to_i - options[:omission].length
+            (text.length > options[:length].to_i ? text[0...l] + options[:omission] : text).to_s
           end
         end
       end
 
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
-      # a +highlighter+ string. The highlighter can be specialized by passing +highlighter+
+      # a <tt>:highlighter</tt> string. The highlighter can be specialized by passing <tt>:highlighter</tt>
       # as a single-quoted string with \1 where the phrase is to be inserted (defaults to
       # '<strong class="highlight">\1</strong>')
       #
@@ -78,52 +107,75 @@ module ActionView
       #   highlight('You searched for: ruby, rails, dhh', 'actionpack')
       #   # => You searched for: ruby, rails, dhh
       #
-      #   highlight('You searched for: rails', ['for', 'rails'], '<em>\1</em>')
+      #   highlight('You searched for: rails', ['for', 'rails'], :highlighter => '<em>\1</em>')
       #   # => You searched <em>for</em>: <em>rails</em>
       #
-      #   highlight('You searched for: rails', 'rails', "<a href='search?q=\1'>\1</a>")
-      #   # => You searched for: <a href='search?q=rails>rails</a>
-      def highlight(text, phrases, highlighter = '<strong class="highlight">\1</strong>')
+      #   highlight('You searched for: rails', 'rails', :highlighter => '<a href="search?q=\1">\1</a>')
+      #   # => You searched for: <a href="search?q=rails">rails</a>
+      #
+      # You can still use <tt>highlight</tt> with the old API that accepts the
+      # +highlighter+ as its optional third parameter:
+      #   highlight('You searched for: rails', 'rails', '<a href="search?q=\1">\1</a>')     # => You searched for: <a href="search?q=rails">rails</a>
+      def highlight(text, phrases, *args)
+        options = args.extract_options!
+        unless args.empty?
+          options[:highlighter] = args[0] || '<strong class="highlight">\1</strong>'
+        end
+        options.reverse_merge!(:highlighter => '<strong class="highlight">\1</strong>')
+
         if text.blank? || phrases.blank?
           text
         else
           match = Array(phrases).map { |p| Regexp.escape(p) }.join('|')
-          text.gsub(/(#{match})/i, highlighter)
+          text.gsub(/(#{match})/i, options[:highlighter])
         end
       end
 
       if RUBY_VERSION < '1.9'
         # Extracts an excerpt from +text+ that matches the first instance of +phrase+.
-        # The +radius+ expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
-        # defined in +radius+ (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
-        # then the +excerpt_string+ will be prepended/appended accordingly. The resulting string will be stripped in any case.
-        # If the +phrase+ isn't found, nil is returned.
+        # The <tt>:radius</tt> option expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
+        # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
+        # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. The resulting string
+        # will be stripped in any case. If the +phrase+ isn't found, nil is returned.
         #
         # ==== Examples
-        #   excerpt('This is an example', 'an', 5)
-        #   # => "...s is an exam..."
+        #   excerpt('This is an example', 'an', :radius => 5)
+        #   # => ...s is an exam...
         #
-        #   excerpt('This is an example', 'is', 5)
-        #   # => "This is a..."
+        #   excerpt('This is an example', 'is', :radius => 5)
+        #   # => This is a...
         #
         #   excerpt('This is an example', 'is')
-        #   # => "This is an example"
+        #   # => This is an example
         #
-        #   excerpt('This next thing is an example', 'ex', 2)
-        #   # => "...next..."
+        #   excerpt('This next thing is an example', 'ex', :radius => 2)
+        #   # => ...next...
         #
-        #   excerpt('This is also an example', 'an', 8, '<chop> ')
-        #   # => "<chop> is also an example"
-        def excerpt(text, phrase, radius = 100, excerpt_string = "...")
+        #   excerpt('This is also an example', 'an', :radius => 8, :omission => '<chop> ')
+        #   # => <chop> is also an example
+        #
+        # You can still use <tt>excerpt</tt> with the old API that accepts the
+        # +radius+ as its optional third and the +ellipsis+ as its
+        # optional forth parameter:
+        #   excerpt('This is an example', 'an', 5)                   # => ...s is an exam...
+        #   excerpt('This is also an example', 'an', 8, '<chop> ')   # => <chop> is also an example
+        def excerpt(text, phrase, *args)
+          options = args.extract_options!
+          unless args.empty?
+            options[:radius] = args[0] || 100
+            options[:omission] = args[1] || "..."
+          end
+          options.reverse_merge!(:radius => 100, :omission => "...")
+
           if text && phrase
             phrase = Regexp.escape(phrase)
 
             if found_pos = text.chars =~ /(#{phrase})/i
-              start_pos = [ found_pos - radius, 0 ].max
-              end_pos   = [ [ found_pos + phrase.chars.length + radius - 1, 0].max, text.chars.length ].min
+              start_pos = [ found_pos - options[:radius], 0 ].max
+              end_pos   = [ [ found_pos + phrase.chars.length + options[:radius] - 1, 0].max, text.chars.length ].min
 
-              prefix  = start_pos > 0 ? excerpt_string : ""
-              postfix = end_pos < text.chars.length - 1 ? excerpt_string : ""
+              prefix  = start_pos > 0 ? options[:omission] : ""
+              postfix = end_pos < text.chars.length - 1 ? options[:omission] : ""
 
               prefix + text.chars[start_pos..end_pos].strip + postfix
             else
@@ -132,16 +184,23 @@ module ActionView
           end
         end
       else
-        def excerpt(text, phrase, radius = 100, excerpt_string = "...") #:nodoc:
+        def excerpt(text, phrase, *args) #:nodoc:
+          options = args.extract_options!
+          unless args.empty?
+            options[:radius] = args[0] || 100
+            options[:omission] = args[1] || "..."
+          end
+          options.reverse_merge!(:radius => 100, :omission => "...")
+
           if text && phrase
             phrase = Regexp.escape(phrase)
 
             if found_pos = text =~ /(#{phrase})/i
-              start_pos = [ found_pos - radius, 0 ].max
-              end_pos   = [ [ found_pos + phrase.length + radius - 1, 0].max, text.length ].min
+              start_pos = [ found_pos - options[:radius], 0 ].max
+              end_pos   = [ [ found_pos + phrase.length + options[:radius] - 1, 0].max, text.length ].min
 
-              prefix  = start_pos > 0 ? excerpt_string : ""
-              postfix = end_pos < text.length - 1 ? excerpt_string : ""
+              prefix  = start_pos > 0 ? options[:omission] : ""
+              postfix = end_pos < text.length - 1 ? options[:omission] : ""
 
               prefix + text[start_pos..end_pos].strip + postfix
             else
@@ -176,20 +235,31 @@ module ActionView
       # (which is 80 by default).
       #
       # ==== Examples
-      #   word_wrap('Once upon a time', 4)
-      #   # => Once\nupon\na\ntime
-      #
-      #   word_wrap('Once upon a time', 8)
-      #   # => Once upon\na time
       #
       #   word_wrap('Once upon a time')
       #   # => Once upon a time
       #
-      #   word_wrap('Once upon a time', 1)
+      #   word_wrap('Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding a successor to the throne turned out to be more trouble than anyone could have imagined...')
+      #   # => Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding\n a successor to the throne turned out to be more trouble than anyone could have\n imagined...
+      #
+      #   word_wrap('Once upon a time', :line_width => 8)
+      #   # => Once upon\na time
+      #
+      #   word_wrap('Once upon a time', :line_width => 1)
       #   # => Once\nupon\na\ntime
-      def word_wrap(text, line_width = 80)
+      #
+      # You can still use <tt>word_wrap</tt> with the old API that accepts the
+      # +line_width+ as its optional second parameter:
+      #   word_wrap('Once upon a time', 8)     # => Once upon\na time
+      def word_wrap(text, *args)
+        options = args.extract_options!
+        unless args.blank?
+          options[:line_width] = args[0] || 80
+        end
+        options.reverse_merge!(:line_width => 80)
+
         text.split("\n").collect do |line|
-          line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1\n").strip : line
+          line.length > options[:line_width] ? line.gsub(/(.{1,#{options[:line_width]}})(\s+|$)/, "\\1\n").strip : line
         end * "\n"
       end
 
@@ -336,12 +406,32 @@ module ActionView
       #   # => "Welcome to my new blog at <a href=\"http://www.myblog.com/\" target=\"_blank\">http://www.m...</a>.
       #         Please e-mail me at <a href=\"mailto:me@email.com\">me@email.com</a>."
       #
-      def auto_link(text, link = :all, href_options = {}, &block)
+      #
+      # You can still use <tt>auto_link</tt> with the old API that accepts the
+      # +link+ as its optional second parameter and the +html_options+ hash
+      # as its optional third parameter:
+      #   post_body = "Welcome to my new blog at http://www.myblog.com/. Please e-mail me at me@email.com."
+      #   auto_link(post_body, :urls)     # => Once upon\na time
+      #   # => "Welcome to my new blog at <a href=\"http://www.myblog.com/\">http://www.myblog.com</a>.
+      #         Please e-mail me at me@email.com."
+      #
+      #   auto_link(post_body, :all, :target => "_blank")     # => Once upon\na time
+      #   # => "Welcome to my new blog at <a href=\"http://www.myblog.com/\" target=\"_blank\">http://www.myblog.com</a>.
+      #         Please e-mail me at <a href=\"mailto:me@email.com\">me@email.com</a>."
+      def auto_link(text, *args, &block)#link = :all, href_options = {}, &block)
         return '' if text.blank?
-        case link
-          when :all             then auto_link_email_addresses(auto_link_urls(text, href_options, &block), &block)
-          when :email_addresses then auto_link_email_addresses(text, &block)
-          when :urls            then auto_link_urls(text, href_options, &block)
+
+        options = args.size == 2 ? {} : args.extract_options! # this is necessary because the old auto_link API has a Hash as its last parameter
+        unless args.empty?
+          options[:link] = args[0] || :all
+          options[:html] = args[1] || {}
+        end
+        options.reverse_merge!(:link => :all, :html => {})
+
+        case options[:link].to_sym
+          when :all                         then auto_link_email_addresses(auto_link_urls(text, options[:html], &block), &block)
+          when :email_addresses             then auto_link_email_addresses(text, &block)
+          when :urls                        then auto_link_urls(text, options[:html], &block)
         end
       end
 
@@ -468,7 +558,7 @@ module ActionView
                           [-\w]+                   # subdomain or domain
                           (?:\.[-\w]+)*            # remaining subdomains or domain
                           (?::\d+)?                # port
-                          (?:/(?:(?:[~\w\+@%=\(\)-]|(?:[,.;:'][^\s$])))*)* # path
+                          (?:/(?:(?:[~\w\+@%=\(\)-]|(?:[,.;:'][^\s$]))+)?)* # path
                           (?:\?[\w\+@%&=.;-]+)?     # query string
                           (?:\#[\w\-]*)?           # trailing anchor
                         )
@@ -477,8 +567,8 @@ module ActionView
 
         # Turns all urls into clickable links.  If a block is given, each url
         # is yielded and the result is used as the link text.
-        def auto_link_urls(text, href_options = {})
-          extra_options = tag_options(href_options.stringify_keys) || ""
+        def auto_link_urls(text, html_options = {})
+          extra_options = tag_options(html_options.stringify_keys) || ""
           text.gsub(AUTO_LINK_RE) do
             all, a, b, c, d = $&, $1, $2, $3, $4
             if a =~ /<a\s/i # don't replace URL's that are already linked

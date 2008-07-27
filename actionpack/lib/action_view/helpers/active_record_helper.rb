@@ -109,7 +109,7 @@ module ActionView
       def error_message_on(object, method, *args)
         options = args.extract_options!
         unless args.empty?
-          ActiveSupport::Deprecation.warn('error_message_on takes an option hash instead of separate' +
+          ActiveSupport::Deprecation.warn('error_message_on takes an option hash instead of separate ' +
             'prepend_text, append_text, and css_class arguments', caller)
 
           options[:prepend_text] = args[0] || ''
