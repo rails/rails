@@ -20,6 +20,7 @@ module ActionController
 
       class Optimiser
         attr_reader :route, :kind
+
         def initialize(route, kind)
           @route = route
           @kind  = kind

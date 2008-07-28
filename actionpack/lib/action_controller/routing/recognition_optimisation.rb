@@ -67,28 +67,6 @@ module ActionController
         end
       end
 
-      def recognize_optimized(path, env)
-        write_recognize_optimized
-        recognize_optimized(path, env)
-      end
-
-      def write_recognize_optimized
-        tree = segment_tree(routes)
-        body = generate_code(tree)
-        instance_eval %{
-          def recognize_optimized(path, env)
-            segments = to_plain_segments(path)
-            index = #{body}
-            return nil unless index
-            while index < routes.size
-              result = routes[index].recognize(path, env) and return result
-              index += 1
-            end
-            nil
-          end
-        }, __FILE__, __LINE__
-      end
-
       def segment_tree(routes)
         tree = [0]
 
@@ -151,6 +129,24 @@ module ActionController
         segments << nil
         segments
       end
+
+      private
+        def write_recognize_optimized!
+          tree = segment_tree(routes)
+          body = generate_code(tree)
+          instance_eval %{
+            def recognize_optimized(path, env)
+              segments = to_plain_segments(path)
+              index = #{body}
+              return nil unless index
+              while index < routes.size
+                result = routes[index].recognize(path, env) and return result
+                index += 1
+              end
+              nil
+            end
+          }, __FILE__, __LINE__
+        end
     end
   end
 end

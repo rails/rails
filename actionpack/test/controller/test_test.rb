@@ -117,8 +117,8 @@ XML
     @controller = TestController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
-    ActionController::Routing::Routes.reload
     ActionController::Routing.use_controllers! %w(content admin/user test_test/test)
+    ActionController::Routing::Routes.load_routes!
   end
 
   def teardown
@@ -412,7 +412,7 @@ XML
 
   def test_assert_routing_with_method
     with_routing do |set|
-    	set.draw { |map| map.resources(:content) }
+      set.draw { |map| map.resources(:content) }
       assert_routing({ :method => 'post', :path => 'content' }, { :controller => 'content', :action => 'create' })
     end
   end
