@@ -1,5 +1,7 @@
 *Edge*
 
+* Added back ActionController::Base.allow_concurrency flag [Josh Peek]
+
 * AbstractRequest.relative_url_root is no longer automatically configured by a HTTP header. It can now be set in your configuration environment with config.action_controller.relative_url_root [Josh Peek]
 
 * Update Prototype to 1.6.0.2 #599 [Patrick Joyce]
