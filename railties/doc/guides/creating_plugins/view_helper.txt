@@ -36,7 +36,7 @@ require "view_helpers"
 ActionView::Base.send :include, YaffleViewHelper
 ---------------------------------------------------------------
 
-Then add the view helpers file and 
+Then add the view helpers file and
 
 [source, ruby]
 ---------------------------------------------------------------

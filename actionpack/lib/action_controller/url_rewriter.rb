@@ -19,7 +19,7 @@ module ActionController
   #
   #   <%= link_to('Click here', :controller => 'users',
   #           :action => 'new', :message => 'Welcome!') %>
-  #   
+  #
   #   #=> Generates a link to: /users/new?message=Welcome%21
   #
   # link_to, and all other functions that require URL generation functionality,
@@ -74,7 +74,7 @@ module ActionController
   #
   #   class User < ActiveRecord::Base
   #     include ActionController::UrlWriter         # !!!
-  #     
+  #
   #     def name=(value)
   #       write_attribute('name', value)
   #       write_attribute('base_uri', users_path)   # !!!

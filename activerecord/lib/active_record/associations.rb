@@ -741,7 +741,7 @@ module ActiveRecord
       #   If false, don't validate the associated objects when saving the parent object. true by default.
       # [:accessible]
       #   Mass assignment is allowed for this assocation (similar to <tt>ActiveRecord::Base#attr_accessible</tt>).
-      
+
       # Option examples:
       #   has_many :comments, :order => "posted_on"
       #   has_many :comments, :include => :author

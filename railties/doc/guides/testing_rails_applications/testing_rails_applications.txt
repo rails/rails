@@ -17,7 +17,7 @@ Make sure you have Ruby 1.8.6 or greater and Rails 2.0 or greater.
 Also, hats off to xal (and others) for creating this site.
 
 
-== Testing 1-2-3... is this thing on? 
+== Testing 1-2-3... is this thing on?
 
 === What are These Strange Creatures?
 
@@ -212,7 +212,7 @@ class SecretAgent
   attr_accessor :username
   attr_accessor :password
 
-  # our "constructor" 
+  # our "constructor"
   def initialize(username,password)
     @username = username
     @password = password
@@ -323,7 +323,7 @@ test_bam_zap_sock_pow(HelloTestCase) [/example/test.rb:62]:
 
 2) Error:
 test_uh_oh_hotdog(HelloTestCase):
-NameError: undefined local variable or method 'does_this_var_speak_korean' for 
+NameError: undefined local variable or method 'does_this_var_speak_korean' for
 #<HelloTestCase:0x28c59a0> /example/test.rb:68:in 'test_uh_oh_hotdog'
 
 4 tests, 12 assertions, 1 failures, 1 errors
@@ -618,9 +618,9 @@ On any given Sunday, a YAML fixture file may look like this:
 ---------------------------------------------
 # low & behold!  I am a YAML comment!
 david:
- id: 1 
- name: David Heinemeier Hansson 
- birthday: 1979-10-15 
+ id: 1
+ name: David Heinemeier Hansson
+ birthday: 1979-10-15
  profession: Systems development
 
 steve:
@@ -640,9 +640,9 @@ A CSV fixture looks like this:
 
 --------------------------------------------------------------
 id, username, password, stretchable, comments
-1, sclaus, ihatekids, false, I like to say ""Ho! Ho! Ho!"" 
+1, sclaus, ihatekids, false, I like to say ""Ho! Ho! Ho!""
 2, ebunny, ihateeggs, true, Hoppity hop y'all
-3, tfairy, ilovecavities, true, "Pull your teeth, I will" 
+3, tfairy, ilovecavities, true, "Pull your teeth, I will"
 --------------------------------------------------------------
 
 The first line is the header. It is a comma-separated list of fields. The rest of the file is the payload: 1 record per line. A few notes about this format:
@@ -916,7 +916,7 @@ For example, let's say we have a `MoviesController` with an action called `movie
 def movie
   @movie = Movie.find(params[:id])
   if @movie.nil?
-    flash['message'] = "That movie has been burned." 
+    flash['message'] = "That movie has been burned."
     redirect_to :controller => 'error', :action => 'missing'
   end
 end
@@ -928,7 +928,7 @@ Now, to test out if the proper movie is being set, we could have a series of tes
 ----------------------------------------------------
 # this test proves that fetching a movie works
 def test_successfully_finding_a_movie
-  get :movie, "id" => "1" 
+  get :movie, "id" => "1"
   assert_not_nil assigns["movie"]
   assert_equal 1, assigns["movie"].id
   assert flash.empty?
@@ -936,7 +936,7 @@ end
 
 # and when we can't find a movie...
 def test_movie_not_found
-  get :movie, "id" => "666999" 
+  get :movie, "id" => "666999"
   assert_nil assigns["movie"]
   assert flash.has_key?("message")
   assert assigns.empty?
@@ -966,7 +966,7 @@ Ensures the expected template was responsible for rendering. For example:
 +
 [source, ruby]
 --------------------------------------
-assert_template "user/profile" 
+assert_template "user/profile"
 --------------------------------------
 +
 This code will fail unless the template located at app/views/user/profile.rhtml was rendered.
@@ -1035,9 +1035,9 @@ These examples are taken from the same docs too:
 [source, ruby]
 -------------------------------------------------------------
   # assert that there is a "span" tag
-  assert_tag :tag => "span" 
+  assert_tag :tag => "span"
 
-  # assert that there is a "span" inside of a "div" 
+  # assert that there is a "span" inside of a "div"
   assert_tag :tag => "span", :parent => { :tag => "div" }
 
   # assert that there is a "span" somewhere inside a table
@@ -1272,7 +1272,7 @@ require 'my_mailer'
 class MyMailerTest < Test::Unit::TestCase
   fixtures :users
   FIXTURES_PATH = File.dirname(__FILE__) + '/../fixtures'
-  CHARSET = "utf-8" 
+  CHARSET = "utf-8"
 
   include ActionMailer::Quoting
 
@@ -1358,7 +1358,7 @@ class ActionMailer::Base
     mail.to = destinations
     if destinations.size > 0
       mail.ready_to_send
-      Net::SMTP.start(server_settings[:address], server_settings[:port], server_settings[:domain], 
+      Net::SMTP.start(server_settings[:address], server_settings[:port], server_settings[:domain],
                     server_settings[:user_name], server_settings[:password], server_settings[:authentication]) do |smtp|
         smtp.sendmail(mail.encoded, mail.from, destinations)
       end

@@ -50,7 +50,7 @@ Your test should fail with `no such file to load -- ./test/../lib/core_ext.rb (L
 1.) Failure ...
 No tests were specified
 --------------------------------------------------------
-  
+
 Great - now you are ready to start development.  The first thing we'll do is to add a method to String called `to_squawk` which will prefix the string with the word ``squawk!''.  The test will look something like this:
 
 [source, ruby]
@@ -73,14 +73,14 @@ end
 --------------------------------------------------------
 
 [source, ruby]
---------------------------------------------------------  
+--------------------------------------------------------
 # File: vendor/plugins/yaffle/init.rb
 
 require "core_ext"
---------------------------------------------------------  
+--------------------------------------------------------
 
 [source, ruby]
---------------------------------------------------------  
+--------------------------------------------------------
 # File: vendor/plugins/yaffle/lib/core_ext.rb
 
 String.class_eval do

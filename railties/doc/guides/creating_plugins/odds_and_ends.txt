@@ -2,7 +2,7 @@
 
 === Work with init.rb ===
 
-The plugin initializer script 'init.rb' is invoked via `eval` (not `require`) so it has slightly different behavior. 
+The plugin initializer script 'init.rb' is invoked via `eval` (not `require`) so it has slightly different behavior.
 
 If you reopen any classes in init.rb itself your changes will potentially be made to the wrong module.  There are 2 ways around this:
 
@@ -21,7 +21,7 @@ end
 
 OR you can use `module_eval` or `class_eval`:
 
----------------------------------------------------  
+---------------------------------------------------
 # File: vendor/plugins/yaffle/init.rb
 
 Hash.class_eval do

@@ -25,7 +25,7 @@ module ActionController
   #
   # Functional tests are written as follows:
   # 1. First, one uses the +get+, +post+, +put+, +delete+ or +head+ method to simulate
-  #    an HTTP request. 
+  #    an HTTP request.
   # 2. Then, one asserts whether the current state is as expected. "State" can be anything:
   #    the controller's HTTP response, the database contents, etc.
   #
@@ -35,11 +35,11 @@ module ActionController
   #     def test_create
   #       # Simulate a POST response with the given HTTP parameters.
   #       post(:create, :book => { :title => "Love Hina" })
-  #       
+  #
   #       # Assert that the controller tried to redirect us to
   #       # the created book's URI.
   #       assert_response :found
-  #       
+  #
   #       # Assert that the controller really put the book in the database.
   #       assert_not_nil Book.find_by_title("Love Hina")
   #     end

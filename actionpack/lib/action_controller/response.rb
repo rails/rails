@@ -32,7 +32,7 @@ module ActionController # :nodoc:
   class AbstractResponse
     DEFAULT_HEADERS = { "Cache-Control" => "no-cache" }
     attr_accessor :request
-    
+
     # The body content (e.g. HTML) of the response, as a String.
     attr_accessor :body
     # The headers of the response, as a Hash. It maps header names to header values.
