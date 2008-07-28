@@ -1,0 +1,46 @@
+== Appendix ==
+
+=== References ===
+
+ * http://nubyonrails.com/articles/the-complete-guide-to-rails-plugins-part-i
+ * http://nubyonrails.com/articles/2006/05/09/the-complete-guide-to-rails-plugins-part-ii
+ * http://github.com/technoweenie/attachment_fu/tree/master
+ * http://daddy.platte.name/2007/05/rails-plugins-keep-initrb-thin.html
+
+=== Final plugin directory structure ===
+
+The final plugin should have a directory structure that looks something like this:
+
+------------------------------------------------
+  |-- MIT-LICENSE
+  |-- README
+  |-- Rakefile
+  |-- generators
+  |   `-- yaffle
+  |       |-- USAGE
+  |       |-- templates
+  |       |   `-- definition.txt
+  |       `-- yaffle_generator.rb
+  |-- init.rb
+  |-- install.rb
+  |-- lib
+  |   |-- acts_as_yaffle.rb
+  |   |-- commands.rb
+  |   |-- core_ext.rb
+  |   |-- routing.rb
+  |   `-- view_helpers.rb
+  |-- tasks
+  |   `-- yaffle_tasks.rake
+  |-- test
+  |   |-- acts_as_yaffle_test.rb
+  |   |-- core_ext_test.rb
+  |   |-- database.yml
+  |   |-- debug.log
+  |   |-- routing_test.rb
+  |   |-- schema.rb
+  |   |-- test_helper.rb
+  |   `-- view_helpers_test.rb
+  |-- uninstall.rb
+  `-- yaffle_plugin.sqlite3.db
+------------------------------------------------
+

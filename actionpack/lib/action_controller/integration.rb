@@ -165,11 +165,19 @@ module ActionController
         status/100 == 3
       end
 
-      # Performs a GET request with the given parameters. The parameters may
-      # be +nil+, a Hash, or a string that is appropriately encoded
-      # (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
-      # The headers should be a hash. The keys will automatically be upcased, with the
-      # prefix 'HTTP_' added if needed.
+      # Performs a GET request with the given parameters.
+      #
+      # - +path+: The URI (as a String) on which you want to perform a GET request.
+      # - +parameters+: The HTTP parameters that you want to pass. This may be +nil+,
+      #   a Hash, or a String that is appropriately encoded
+      #   (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
+      # - +headers+: Additional HTTP headers to pass, as a Hash. The keys will
+      #   automatically be upcased, with the prefix 'HTTP_' added if needed.
+      #
+      # This method returns an AbstractResponse object, which one can use to inspect
+      # the details of the response. Furthermore, if this method was called from an
+      # ActionController::IntegrationTest object, then that object's <tt>@response</tt>
+      # instance variable will point to the same response object.
       #
       # You can also perform POST, PUT, DELETE, and HEAD requests with +post+,
       # +put+, +delete+, and +head+.

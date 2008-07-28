@@ -272,6 +272,21 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_files.include('lib/commands/**/*.rb')
 }
 
+guides = ['securing_rails_applications', 'testing_rails_applications', 'creating_plugins']
+guides_html_files = []
+guides.each do |guide_name|
+  input  = "doc/guides/#{guide_name}/#{guide_name}.txt"
+  output = "doc/guides/#{guide_name}/#{guide_name}.html"
+  guides_html_files << output
+  file output => Dir["doc/guides/#{guide_name}/*.txt"] do
+    sh "mizuho", input, "--template", "manualsonrails", "--multi-page",
+       "--icons-dir", "../icons"
+  end
+end
+
+desc "Generate HTML output for the guides"
+task :generate_guides => guides_html_files
+
 # Generate GEM ----------------------------------------------------------------------------
 
 task :copy_gem_environment do

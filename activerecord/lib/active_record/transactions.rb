@@ -66,12 +66,15 @@ module ActiveRecord
     # will happen under the protected cover of a transaction. So you can use validations to check for values that the transaction
     # depends on or you can raise exceptions in the callbacks to rollback.
     #
-    # == Exception handling
+    # == Exception handling and rolling back
     #
     # Also have in mind that exceptions thrown within a transaction block will be propagated (after triggering the ROLLBACK), so you
-    # should be ready to catch those in your application code. One exception is the ActiveRecord::Rollback exception, which will
-    # trigger a ROLLBACK when raised, but not be re-raised by the transaction block.
+    # should be ready to catch those in your application code.
+    #
+    # One exception is the ActiveRecord::Rollback exception, which will trigger a ROLLBACK when raised,
+    # but not be re-raised by the transaction block.
     module ClassMethods
+      # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
       def transaction(&block)
         connection.increment_open_transactions
 

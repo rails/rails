@@ -1,0 +1,61 @@
+== Create a `squawk_info_for` view helper ==
+
+Creating a view helper is a 3-step process:
+
+ * Add an appropriately named file to the 'lib' directory.
+ * Require the file and hooks in 'init.rb'.
+ * Write the tests.
+
+First, create the test to define the functionality you want:
+
+[source, ruby]
+---------------------------------------------------------------
+# File: vendor/plugins/yaffle/test/view_helpers_test.rb
+
+require File.dirname(__FILE__) + '/test_helper.rb'
+include YaffleViewHelper
+
+class ViewHelpersTest < Test::Unit::TestCase
+  def test_squawk_info_for_should_return_the_text_and_date
+    time = Time.now
+    hickwall = Hickwall.new
+    hickwall.last_squawk = "Hello World"
+    hickwall.last_squawked_at = time
+    assert_equal "Hello World, #{time.to_s}", squawk_info_for(hickwall)
+  end
+end
+---------------------------------------------------------------
+
+Then add the following statements to init.rb:
+
+[source, ruby]
+---------------------------------------------------------------
+# File: vendor/plugins/yaffle/init.rb
+
+require "view_helpers"
+ActionView::Base.send :include, YaffleViewHelper
+---------------------------------------------------------------
+
+Then add the view helpers file and
+
+[source, ruby]
+---------------------------------------------------------------
+# File: vendor/plugins/yaffle/lib/view_helpers.rb
+
+module YaffleViewHelper
+  def squawk_info_for(yaffle)
+    returning "" do |result|
+      result << yaffle.read_attribute(yaffle.class.yaffle_text_field)
+      result << ", "
+      result << yaffle.read_attribute(yaffle.class.yaffle_date_field).to_s
+    end
+  end
+end
+---------------------------------------------------------------
+
+You can also test this in script/console by using the `helper` method:
+
+---------------------------------------------------------------
+$ ./script/console
+>> helper.squawk_info_for(@some_yaffle_instance)
+---------------------------------------------------------------

@@ -1,0 +1,84 @@
+The Basics of Creating Rails Plugins
+====================================
+
+Pretend for a moment that you are an avid bird watcher.  Your favorite bird is the Yaffle, and you want to create a plugin that allows other developers to share in the Yaffle goodness.
+
+In this tutorial you will learn how to create a plugin that includes:
+
+ * Core Extensions - extending String with a `to_squawk` method:
++
+[source, ruby]
+-------------------------------------------
+# Anywhere
+"hello!".to_squawk # => "squawk! hello!"
+-------------------------------------------
+
+* An `acts_as_yaffle` method for ActiveRecord models that adds a `squawk` method:
++
+[source, ruby]
+-------------------------------------------
+class Hickwall < ActiveRecord::Base
+  acts_as_yaffle :yaffle_text_field => :last_sang_at
+end
+
+Hickwall.new.squawk("Hello World")
+-------------------------------------------
+
+* A view helper that will print out squawking info:
++
+[source, ruby]
+-------------------------------------------
+squawk_info_for(@hickwall)
+-------------------------------------------
+
+* A generator that creates a migration to add squawk columns to a model:
++
+-------------------------------------------
+script/generate yaffle hickwall
+-------------------------------------------
+
+* A custom generator command:
++
+[source, ruby]
+-------------------------------------------
+class YaffleGenerator < Rails::Generator::NamedBase
+  def manifest
+    m.yaffle_definition
+  end
+end
+-------------------------------------------
+
+* A custom route method:
++
+[source, ruby]
+-------------------------------------------
+ActionController::Routing::Routes.draw do |map|
+  map.yaffles
+end
+-------------------------------------------
+
+In addition you'll learn how to:
+
+ * test your plugins.
+ * work with 'init.rb', how to store model, views, controllers, helpers and even other plugins in your plugins.
+ * create documentation for your plugin.
+ * write custom Rake tasks in your plugin.
+
+
+include::preparation.txt[]
+
+include::string_to_squawk.txt[]
+
+include::acts_as_yaffle.txt[]
+
+include::view_helper.txt[]
+
+include::migration_generator.txt[]
+
+include::custom_generator.txt[]
+
+include::custom_route.txt[]
+
+include::odds_and_ends.txt[]
+
+include::appendix.txt[]

@@ -15,23 +15,61 @@ module ActionController
     end
   end
 
-  # Superclass for Action Controller functional tests. Infers the controller under test from the test class name,
-  # and creates @controller, @request, @response instance variables.
+  # Superclass for ActionController functional tests. Functional tests allow you to
+  # test a single controller action per test method. This should not be confused with
+  # integration tests (see ActionController::IntegrationTest), which are more like
+  # "stories" that can involve multiple controllers and mutliple actions (i.e. multiple
+  # different HTTP requests).
   #
-  #   class WidgetsControllerTest < ActionController::TestCase
-  #     def test_index
-  #       get :index
+  # == Basic example
+  #
+  # Functional tests are written as follows:
+  # 1. First, one uses the +get+, +post+, +put+, +delete+ or +head+ method to simulate
+  #    an HTTP request.
+  # 2. Then, one asserts whether the current state is as expected. "State" can be anything:
+  #    the controller's HTTP response, the database contents, etc.
+  #
+  # For example:
+  #
+  #   class BooksControllerTest < ActionController::TestCase
+  #     def test_create
+  #       # Simulate a POST response with the given HTTP parameters.
+  #       post(:create, :book => { :title => "Love Hina" })
+  #
+  #       # Assert that the controller tried to redirect us to
+  #       # the created book's URI.
+  #       assert_response :found
+  #
+  #       # Assert that the controller really put the book in the database.
+  #       assert_not_nil Book.find_by_title("Love Hina")
   #     end
   #   end
   #
-  # * @controller - WidgetController.new
-  # * @request    - ActionController::TestRequest.new
-  # * @response   - ActionController::TestResponse.new
+  # == Special instance variables
   #
-  # (Earlier versions of Rails required each functional test to subclass Test::Unit::TestCase and define
-  # @controller, @request, @response in +setup+.)
+  # ActionController::TestCase will also automatically provide the following instance
+  # variables for use in the tests:
   #
-  # If the controller cannot be inferred from the test class name, you can explicity set it with +tests+.
+  # <b>@controller</b>::
+  #      The controller instance that will be tested.
+  # <b>@request</b>::
+  #      An ActionController::TestRequest, representing the current HTTP
+  #      request. You can modify this object before sending the HTTP request. For example,
+  #      you might want to set some session properties before sending a GET request.
+  # <b>@response</b>::
+  #      An ActionController::TestResponse object, representing the response
+  #      of the last HTTP response. In the above example, <tt>@response</tt> becomes valid
+  #      after calling +post+. If the various assert methods are not sufficient, then you
+  #      may use this object to inspect the HTTP response in detail.
+  #
+  # (Earlier versions of Rails required each functional test to subclass
+  # Test::Unit::TestCase and define @controller, @request, @response in +setup+.)
+  #
+  # == Controller is automatically inferred
+  #
+  # ActionController::TestCase will automatically infer the controller under test
+  # from the test class name. If the controller cannot be inferred from the test
+  # class name, you can explicity set it with +tests+.
   #
   #   class SpecialEdgeCaseWidgetsControllerTest < ActionController::TestCase
   #     tests WidgetController
