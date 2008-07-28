@@ -1,8 +1,8 @@
 module ActiveRecord
   module NamedScope
     # All subclasses of ActiveRecord::Base have two named_scopes:
-    # * <tt>all</tt>, which is similar to a <tt>find(:all)</tt> query, and
-    # * <tt>scoped</tt>, which allows for the creation of anonymous scopes, on the fly: <tt>Shirt.scoped(:conditions => {:color => 'red'}).scoped(:include => :washing_instructions)</tt>
+    # * <tt>all</tt> - which is similar to a <tt>find(:all)</tt> query, and
+    # * <tt>scoped</tt> - which allows for the creation of anonymous scopes, on the fly: <tt>Shirt.scoped(:conditions => {:color => 'red'}).scoped(:include => :washing_instructions)</tt>
     #
     # These anonymous scopes tend to be useful when procedurally generating complex queries, where passing
     # intermediate values (scopes) around as first-class objects is convenient.
@@ -26,14 +26,14 @@ module ActiveRecord
       #     named_scope :dry_clean_only, :joins => :washing_instructions, :conditions => ['washing_instructions.dry_clean_only = ?', true]
       #   end
       # 
-      # The above calls to <tt>named_scope</tt> define class methods <tt>Shirt.red</tt> and <tt>Shirt.dry_clean_only</tt>. <tt>Shirt.red</tt>, 
+      # The above calls to <tt>named_scope</tt> define class methods Shirt.red and Shirt.dry_clean_only. Shirt.red, 
       # in effect, represents the query <tt>Shirt.find(:all, :conditions => {:color => 'red'})</tt>.
       #
-      # Unlike Shirt.find(...), however, the object returned by <tt>Shirt.red</tt> is not an Array; it resembles the association object
+      # Unlike <tt>Shirt.find(...)</tt>, however, the object returned by Shirt.red is not an Array; it resembles the association object
       # constructed by a <tt>has_many</tt> declaration. For instance, you can invoke <tt>Shirt.red.find(:first)</tt>, <tt>Shirt.red.count</tt>,
       # <tt>Shirt.red.find(:all, :conditions => {:size => 'small'})</tt>. Also, just
-      # as with the association objects, name scopes acts like an Array, implementing Enumerable; <tt>Shirt.red.each(&block)</tt>,
-      # <tt>Shirt.red.first</tt>, and <tt>Shirt.red.inject(memo, &block)</tt> all behave as if Shirt.red really were an Array.
+      # as with the association objects, named scopes act like an Array, implementing Enumerable; <tt>Shirt.red.each(&block)</tt>,
+      # <tt>Shirt.red.first</tt>, and <tt>Shirt.red.inject(memo, &block)</tt> all behave as if Shirt.red really was an Array.
       #
       # These named scopes are composable. For instance, <tt>Shirt.red.dry_clean_only</tt> will produce all shirts that are both red and dry clean only.
       # Nested finds and calculations also work with these compositions: <tt>Shirt.red.dry_clean_only.count</tt> returns the number of garments
