@@ -51,7 +51,6 @@ module ActionController
     #  3) segm test for /users/:id
     #     (jump to list index = 5)
     #  4) full test for /users/:id => here we are!
-
     class RouteSet
       def recognize_path(path, environment={})
         result = recognize_optimized(path, environment) and return result
@@ -152,7 +151,6 @@ module ActionController
         segments << nil
         segments
       end
-
     end
   end
 end

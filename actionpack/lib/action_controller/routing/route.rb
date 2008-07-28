@@ -226,15 +226,14 @@ module ActionController
         end
       end
 
-    protected
-      def requirement_for(key)
-        return requirements[key] if requirements.key? key
-        segments.each do |segment|
-          return segment.regexp if segment.respond_to?(:key) && segment.key == key
+      protected
+        def requirement_for(key)
+          return requirements[key] if requirements.key? key
+          segments.each do |segment|
+            return segment.regexp if segment.respond_to?(:key) && segment.key == key
+          end
+          nil
         end
-        nil
-      end
-
     end
   end
 end

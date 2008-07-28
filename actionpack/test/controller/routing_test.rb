@@ -834,6 +834,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
         puts "#{1 / per_url} url/s\n\n"
       end
     end
+
     def test_time_generation
       n = 5000
       if RunTimeTests

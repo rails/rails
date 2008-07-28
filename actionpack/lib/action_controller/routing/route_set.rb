@@ -1,6 +1,6 @@
 module ActionController
   module Routing
-    class RouteSet #:nodoc: 
+    class RouteSet #:nodoc:
       # Mapper instances are used to build routes. The object passed to the draw
       # block in config/routes.rb is a Mapper instance.
       #

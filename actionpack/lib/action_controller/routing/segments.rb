@@ -130,6 +130,7 @@ module ActionController
       def extract_value
         "#{local_name} = hash[:#{key}] && hash[:#{key}].to_param #{"|| #{default.inspect}" if default}"
       end
+
       def value_check
         if default # Then we know it won't be nil
           "#{value_regexp.inspect} =~ #{local_name}" if regexp
@@ -141,6 +142,7 @@ module ActionController
           "#{local_name} #{"&& #{value_regexp.inspect} =~ #{local_name}" if regexp}"
         end
       end
+
       def expiry_statement
         "expired, hash = true, options if !expired && expire_on[:#{key}]"
       end
@@ -175,7 +177,7 @@ module ActionController
       end
 
       def regexp_chunk
-        if regexp 
+        if regexp
           if regexp_has_modifiers?
             "(#{regexp.to_s})"
           else
@@ -214,7 +216,6 @@ module ActionController
       def regexp_has_modifiers?
         regexp.options & (Regexp::IGNORECASE | Regexp::EXTENDED) != 0
       end
-
     end
 
     class ControllerSegment < DynamicSegment #:nodoc:
