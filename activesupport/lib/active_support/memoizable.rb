@@ -11,10 +11,9 @@ module ActiveSupport
 
       def freeze_with_memoizable
         methods.each do |method|
-          if m = method.to_s.match(/^_unmemoized_(.*)/)
-            send(m[1])
-          end
-        end
+          __send__($1) if method.to_s =~ /^_unmemoized_(.*)/
+        end unless frozen?
+
         freeze_without_memoizable
       end
     end
