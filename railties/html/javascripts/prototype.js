@@ -1,5 +1,5 @@
-/*  Prototype JavaScript framework, version 1.6.0.1
- *  (c) 2005-2007 Sam Stephenson
+/*  Prototype JavaScript framework, version 1.6.0.2
+ *  (c) 2005-2008 Sam Stephenson
  *
  *  Prototype is freely distributable under the terms of an MIT-style license.
  *  For details, see the Prototype web site: http://www.prototypejs.org/
@@ -7,7 +7,7 @@
  *--------------------------------------------------------------------------*/
 
 var Prototype = {
-  Version: '1.6.0.1',
+  Version: '1.6.0.2',
 
   Browser: {
     IE:     !!(window.attachEvent && !window.opera),
@@ -110,7 +110,7 @@ Object.extend(Object, {
     try {
       if (Object.isUndefined(object)) return 'undefined';
       if (object === null) return 'null';
-      return object.inspect ? object.inspect() : object.toString();
+      return object.inspect ? object.inspect() : String(object);
     } catch (e) {
       if (e instanceof RangeError) return '...';
       throw e;
@@ -171,7 +171,8 @@ Object.extend(Object, {
   },
 
   isArray: function(object) {
-    return object && object.constructor === Array;
+    return object != null && typeof object == "object" &&
+      'splice' in object && 'join' in object;
   },
 
   isHash: function(object) {
@@ -578,7 +579,7 @@ var Template = Class.create({
       }
 
       return before + String.interpret(ctx);
-    }.bind(this));
+    });
   }
 });
 Template.Pattern = /(^|.|\r|\n)(#\{(.*?)\})/;
@@ -806,20 +807,20 @@ Object.extend(Enumerable, {
 function $A(iterable) {
   if (!iterable) return [];
   if (iterable.toArray) return iterable.toArray();
-  var length = iterable.length, results = new Array(length);
+  var length = iterable.length || 0, results = new Array(length);
   while (length--) results[length] = iterable[length];
   return results;
 }
 
 if (Prototype.Browser.WebKit) {
-  function $A(iterable) {
+  $A = function(iterable) {
     if (!iterable) return [];
     if (!(Object.isFunction(iterable) && iterable == '[object NodeList]') &&
         iterable.toArray) return iterable.toArray();
-    var length = iterable.length, results = new Array(length);
+    var length = iterable.length || 0, results = new Array(length);
     while (length--) results[length] = iterable[length];
     return results;
-  }
+  };
 }
 
 Array.from = $A;
@@ -1298,7 +1299,7 @@ Ajax.Request = Class.create(Ajax.Base, {
 
       var contentType = response.getHeader('Content-type');
       if (this.options.evalJS == 'force'
-          || (this.options.evalJS && contentType
+          || (this.options.evalJS && this.isSameOrigin() && contentType
           && contentType.match(/^\s*(text|application)\/(x-)?(java|ecma)script(;.*)?\s*$/i)))
         this.evalResponse();
     }
@@ -1316,9 +1317,18 @@ Ajax.Request = Class.create(Ajax.Base, {
     }
   },
 
+  isSameOrigin: function() {
+    var m = this.url.match(/^\s*https?:\/\/[^\/]*/);
+    return !m || (m[0] == '#{protocol}//#{domain}#{port}'.interpolate({
+      protocol: location.protocol,
+      domain: document.domain,
+      port: location.port ? ':' + location.port : ''
+    }));
+  },
+
   getHeader: function(name) {
     try {
-      return this.transport.getResponseHeader(name);
+      return this.transport.getResponseHeader(name) || null;
     } catch (e) { return null }
   },
 
@@ -1391,7 +1401,8 @@ Ajax.Response = Class.create({
     if (!json) return null;
     json = decodeURIComponent(escape(json));
     try {
-      return json.evalJSON(this.request.options.sanitizeJSON);
+      return json.evalJSON(this.request.options.sanitizeJSON ||
+        !this.request.isSameOrigin());
     } catch (e) {
       this.request.dispatchException(e);
     }
@@ -1404,7 +1415,8 @@ Ajax.Response = Class.create({
         this.responseText.blank())
           return null;
     try {
-      return this.responseText.evalJSON(options.sanitizeJSON);
+      return this.responseText.evalJSON(options.sanitizeJSON ||
+        !this.request.isSameOrigin());
     } catch (e) {
       this.request.dispatchException(e);
     }
@@ -1608,24 +1620,28 @@ Element.Methods = {
         Object.isElement(insertions) || (insertions && (insertions.toElement || insertions.toHTML)))
           insertions = {bottom:insertions};
 
-    var content, t, range;
+    var content, insert, tagName, childNodes;
 
-    for (position in insertions) {
+    for (var position in insertions) {
       content  = insertions[position];
       position = position.toLowerCase();
-      t = Element._insertionTranslations[position];
+      insert = Element._insertionTranslations[position];
 
       if (content && content.toElement) content = content.toElement();
       if (Object.isElement(content)) {
-        t.insert(element, content);
+        insert(element, content);
         continue;
       }
 
       content = Object.toHTML(content);
 
-      range = element.ownerDocument.createRange();
-      t.initializeRange(element, range);
-      t.insert(element, range.createContextualFragment(content.stripScripts()));
+      tagName = ((position == 'before' || position == 'after')
+        ? element.parentNode : element).tagName.toUpperCase();
+
+      childNodes = Element._getContentFromAnonymousElement(tagName, content.stripScripts());
+
+      if (position == 'top' || position == 'after') childNodes.reverse();
+      childNodes.each(insert.curry(element));
 
       content.evalScripts.bind(content).defer();
     }
@@ -1670,7 +1686,7 @@ Element.Methods = {
   },
 
   descendants: function(element) {
-    return $(element).getElementsBySelector("*");
+    return $(element).select("*");
   },
 
   firstDescendant: function(element) {
@@ -1709,32 +1725,31 @@ Element.Methods = {
     element = $(element);
     if (arguments.length == 1) return $(element.parentNode);
     var ancestors = element.ancestors();
-    return expression ? Selector.findElement(ancestors, expression, index) :
-      ancestors[index || 0];
+    return Object.isNumber(expression) ? ancestors[expression] :
+      Selector.findElement(ancestors, expression, index);
   },
 
   down: function(element, expression, index) {
     element = $(element);
     if (arguments.length == 1) return element.firstDescendant();
-    var descendants = element.descendants();
-    return expression ? Selector.findElement(descendants, expression, index) :
-      descendants[index || 0];
+    return Object.isNumber(expression) ? element.descendants()[expression] :
+      element.select(expression)[index || 0];
   },
 
   previous: function(element, expression, index) {
     element = $(element);
     if (arguments.length == 1) return $(Selector.handlers.previousElementSibling(element));
     var previousSiblings = element.previousSiblings();
-    return expression ? Selector.findElement(previousSiblings, expression, index) :
-      previousSiblings[index || 0];
+    return Object.isNumber(expression) ? previousSiblings[expression] :
+      Selector.findElement(previousSiblings, expression, index);
   },
 
   next: function(element, expression, index) {
     element = $(element);
     if (arguments.length == 1) return $(Selector.handlers.nextElementSibling(element));
     var nextSiblings = element.nextSiblings();
-    return expression ? Selector.findElement(nextSiblings, expression, index) :
-      nextSiblings[index || 0];
+    return Object.isNumber(expression) ? nextSiblings[expression] :
+      Selector.findElement(nextSiblings, expression, index);
   },
 
   select: function() {
@@ -1860,7 +1875,8 @@ Element.Methods = {
         do { ancestor = ancestor.parentNode; }
         while (!(nextAncestor = ancestor.nextSibling) && ancestor.parentNode);
       }
-      if (nextAncestor) return (e > a && e < nextAncestor.sourceIndex);
+      if (nextAncestor && nextAncestor.sourceIndex)
+       return (e > a && e < nextAncestor.sourceIndex);
     }
 
     while (element = element.parentNode)
@@ -2004,7 +2020,7 @@ Element.Methods = {
       if (element) {
         if (element.tagName == 'BODY') break;
         var p = Element.getStyle(element, 'position');
-        if (p == 'relative' || p == 'absolute') break;
+        if (p !== 'static') break;
       }
     } while (element);
     return Element._returnOffset(valueL, valueT);
@@ -2153,46 +2169,6 @@ Element._attributeTranslations = {
   }
 };
 
-
-if (!document.createRange || Prototype.Browser.Opera) {
-  Element.Methods.insert = function(element, insertions) {
-    element = $(element);
-
-    if (Object.isString(insertions) || Object.isNumber(insertions) ||
-        Object.isElement(insertions) || (insertions && (insertions.toElement || insertions.toHTML)))
-          insertions = { bottom: insertions };
-
-    var t = Element._insertionTranslations, content, position, pos, tagName;
-
-    for (position in insertions) {
-      content  = insertions[position];
-      position = position.toLowerCase();
-      pos      = t[position];
-
-      if (content && content.toElement) content = content.toElement();
-      if (Object.isElement(content)) {
-        pos.insert(element, content);
-        continue;
-      }
-
-      content = Object.toHTML(content);
-      tagName = ((position == 'before' || position == 'after')
-        ? element.parentNode : element).tagName.toUpperCase();
-
-      if (t.tags[tagName]) {
-        var fragments = Element._getContentFromAnonymousElement(tagName, content.stripScripts());
-        if (position == 'top' || position == 'after') fragments.reverse();
-        fragments.each(pos.insert.curry(element));
-      }
-      else element.insertAdjacentHTML(pos.adjacency, content.stripScripts());
-
-      content.evalScripts.bind(content).defer();
-    }
-
-    return element;
-  };
-}
-
 if (Prototype.Browser.Opera) {
   Element.Methods.getStyle = Element.Methods.getStyle.wrap(
     function(proceed, element, style) {
@@ -2237,12 +2213,31 @@ if (Prototype.Browser.Opera) {
 }
 
 else if (Prototype.Browser.IE) {
-  $w('positionedOffset getOffsetParent viewportOffset').each(function(method) {
+  // IE doesn't report offsets correctly for static elements, so we change them
+  // to "relative" to get the values, then change them back.
+  Element.Methods.getOffsetParent = Element.Methods.getOffsetParent.wrap(
+    function(proceed, element) {
+      element = $(element);
+      var position = element.getStyle('position');
+      if (position !== 'static') return proceed(element);
+      element.setStyle({ position: 'relative' });
+      var value = proceed(element);
+      element.setStyle({ position: position });
+      return value;
+    }
+  );
+
+  $w('positionedOffset viewportOffset').each(function(method) {
     Element.Methods[method] = Element.Methods[method].wrap(
       function(proceed, element) {
         element = $(element);
         var position = element.getStyle('position');
-        if (position != 'static') return proceed(element);
+        if (position !== 'static') return proceed(element);
+        // Trigger hasLayout on the offset parent so that IE6 reports
+        // accurate offsetTop and offsetLeft values for position: fixed.
+        var offsetParent = element.getOffsetParent();
+        if (offsetParent && offsetParent.getStyle('position') === 'fixed')
+          offsetParent.setStyle({ zoom: 1 });
         element.setStyle({ position: 'relative' });
         var value = proceed(element);
         element.setStyle({ position: position });
@@ -2324,7 +2319,10 @@ else if (Prototype.Browser.IE) {
   };
 
   Element._attributeTranslations.write = {
-    names: Object.clone(Element._attributeTranslations.read.names),
+    names: Object.extend({
+      cellpadding: 'cellPadding',
+      cellspacing: 'cellSpacing'
+    }, Element._attributeTranslations.read.names),
     values: {
       checked: function(element, value) {
         element.checked = !!value;
@@ -2444,7 +2442,7 @@ if (Prototype.Browser.IE || Prototype.Browser.Opera) {
   };
 }
 
-if (document.createElement('div').outerHTML) {
+if ('outerHTML' in document.createElement('div')) {
   Element.Methods.replace = function(element, content) {
     element = $(element);
 
@@ -2482,45 +2480,25 @@ Element._returnOffset = function(l, t) {
 
 Element._getContentFromAnonymousElement = function(tagName, html) {
   var div = new Element('div'), t = Element._insertionTranslations.tags[tagName];
-  div.innerHTML = t[0] + html + t[1];
-  t[2].times(function() { div = div.firstChild });
+  if (t) {
+    div.innerHTML = t[0] + html + t[1];
+    t[2].times(function() { div = div.firstChild });
+  } else div.innerHTML = html;
   return $A(div.childNodes);
 };
 
 Element._insertionTranslations = {
-  before: {
-    adjacency: 'beforeBegin',
-    insert: function(element, node) {
-      element.parentNode.insertBefore(node, element);
-    },
-    initializeRange: function(element, range) {
-      range.setStartBefore(element);
-    }
+  before: function(element, node) {
+    element.parentNode.insertBefore(node, element);
   },
-  top: {
-    adjacency: 'afterBegin',
-    insert: function(element, node) {
-      element.insertBefore(node, element.firstChild);
-    },
-    initializeRange: function(element, range) {
-      range.selectNodeContents(element);
-      range.collapse(true);
-    }
+  top: function(element, node) {
+    element.insertBefore(node, element.firstChild);
   },
-  bottom: {
-    adjacency: 'beforeEnd',
-    insert: function(element, node) {
-      element.appendChild(node);
-    }
+  bottom: function(element, node) {
+    element.appendChild(node);
   },
-  after: {
-    adjacency: 'afterEnd',
-    insert: function(element, node) {
-      element.parentNode.insertBefore(node, element.nextSibling);
-    },
-    initializeRange: function(element, range) {
-      range.setStartAfter(element);
-    }
+  after: function(element, node) {
+    element.parentNode.insertBefore(node, element.nextSibling);
   },
   tags: {
     TABLE:  ['<table>',                '</table>',                   1],
@@ -2532,7 +2510,6 @@ Element._insertionTranslations = {
 };
 
 (function() {
-  this.bottom.initializeRange = this.top.initializeRange;
   Object.extend(this.tags, {
     THEAD: this.tags.TBODY,
     TFOOT: this.tags.TBODY,
@@ -2716,7 +2693,7 @@ document.viewport = {
       window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop);
   }
 };
-/* Portions of the Selector class are derived from Jack Slocum’s DomQuery,
+/* Portions of the Selector class are derived from Jack Slocumâ€™s DomQuery,
  * part of YUI-Ext version 0.40, distributed under the terms of an MIT-style
  * license.  Please see http://www.yui-ext.com/ for more information. */
 
@@ -2959,13 +2936,13 @@ Object.extend(Selector, {
   },
 
   criteria: {
-    tagName:      'n = h.tagName(n, r, "#{1}", c);   c = false;',
-    className:    'n = h.className(n, r, "#{1}", c); c = false;',
-    id:           'n = h.id(n, r, "#{1}", c);        c = false;',
-    attrPresence: 'n = h.attrPresence(n, r, "#{1}"); c = false;',
+    tagName:      'n = h.tagName(n, r, "#{1}", c);      c = false;',
+    className:    'n = h.className(n, r, "#{1}", c);    c = false;',
+    id:           'n = h.id(n, r, "#{1}", c);           c = false;',
+    attrPresence: 'n = h.attrPresence(n, r, "#{1}", c); c = false;',
     attr: function(m) {
       m[3] = (m[5] || m[6]);
-      return new Template('n = h.attr(n, r, "#{1}", "#{3}", "#{2}"); c = false;').evaluate(m);
+      return new Template('n = h.attr(n, r, "#{1}", "#{3}", "#{2}", c); c = false;').evaluate(m);
     },
     pseudo: function(m) {
       if (m[6]) m[6] = m[6].replace(/"/g, '\\"');
@@ -2989,7 +2966,8 @@ Object.extend(Selector, {
     tagName:      /^\s*(\*|[\w\-]+)(\b|$)?/,
     id:           /^#([\w\-\*]+)(\b|$)/,
     className:    /^\.([\w\-\*]+)(\b|$)/,
-    pseudo:       /^:((first|last|nth|nth-last|only)(-child|-of-type)|empty|checked|(en|dis)abled|not)(\((.*?)\))?(\b|$|(?=\s)|(?=:))/,
+    pseudo:
+/^:((first|last|nth|nth-last|only)(-child|-of-type)|empty|checked|(en|dis)abled|not)(\((.*?)\))?(\b|$|(?=\s|[:+~>]))/,
     attrPresence: /^\[([\w]+)\]/,
     attr:         /\[((?:[\w-]*:)?[\w-]+)\s*(?:([!^$*~|]?=)\s*((['"])([^\4]*?)\4|([^'"][^\]]*?)))?\]/
   },
@@ -3014,7 +2992,7 @@ Object.extend(Selector, {
 
     attr: function(element, matches) {
       var nodeValue = Element.readAttribute(element, matches[1]);
-      return Selector.operators[matches[2]](nodeValue, matches[3]);
+      return nodeValue && Selector.operators[matches[2]](nodeValue, matches[5] || matches[6]);
     }
   },
 
@@ -3029,14 +3007,15 @@ Object.extend(Selector, {
 
     // marks an array of nodes for counting
     mark: function(nodes) {
+      var _true = Prototype.emptyFunction;
       for (var i = 0, node; node = nodes[i]; i++)
-        node._counted = true;
+        node._countedByPrototype = _true;
       return nodes;
     },
 
     unmark: function(nodes) {
       for (var i = 0, node; node = nodes[i]; i++)
-        node._counted = undefined;
+        node._countedByPrototype = undefined;
       return nodes;
     },
 
@@ -3044,15 +3023,15 @@ Object.extend(Selector, {
     // "ofType" flag indicates whether we're indexing for nth-of-type
     // rather than nth-child
     index: function(parentNode, reverse, ofType) {
-      parentNode._counted = true;
+      parentNode._countedByPrototype = Prototype.emptyFunction;
       if (reverse) {
         for (var nodes = parentNode.childNodes, i = nodes.length - 1, j = 1; i >= 0; i--) {
           var node = nodes[i];
-          if (node.nodeType == 1 && (!ofType || node._counted)) node.nodeIndex = j++;
+          if (node.nodeType == 1 && (!ofType || node._countedByPrototype)) node.nodeIndex = j++;
         }
       } else {
         for (var i = 0, j = 1, nodes = parentNode.childNodes; node = nodes[i]; i++)
-          if (node.nodeType == 1 && (!ofType || node._counted)) node.nodeIndex = j++;
+          if (node.nodeType == 1 && (!ofType || node._countedByPrototype)) node.nodeIndex = j++;
       }
     },
 
@@ -3061,8 +3040,8 @@ Object.extend(Selector, {
       if (nodes.length == 0) return nodes;
       var results = [], n;
       for (var i = 0, l = nodes.length; i < l; i++)
-        if (!(n = nodes[i])._counted) {
-          n._counted = true;
+        if (!(n = nodes[i])._countedByPrototype) {
+          n._countedByPrototype = Prototype.emptyFunction;
           results.push(Element.extend(n));
         }
       return Selector.handlers.unmark(results);
@@ -3114,7 +3093,7 @@ Object.extend(Selector, {
 
     // TOKEN FUNCTIONS
     tagName: function(nodes, root, tagName, combinator) {
-      tagName = tagName.toUpperCase();
+      var uTagName = tagName.toUpperCase();
       var results = [], h = Selector.handlers;
       if (nodes) {
         if (combinator) {
@@ -3127,7 +3106,7 @@ Object.extend(Selector, {
           if (tagName == "*") return nodes;
         }
         for (var i = 0, node; node = nodes[i]; i++)
-          if (node.tagName.toUpperCase() == tagName) results.push(node);
+          if (node.tagName.toUpperCase() === uTagName) results.push(node);
         return results;
       } else return root.getElementsByTagName(tagName);
     },
@@ -3174,16 +3153,18 @@ Object.extend(Selector, {
       return results;
     },
 
-    attrPresence: function(nodes, root, attr) {
+    attrPresence: function(nodes, root, attr, combinator) {
       if (!nodes) nodes = root.getElementsByTagName("*");
+      if (nodes && combinator) nodes = this[combinator](nodes);
       var results = [];
       for (var i = 0, node; node = nodes[i]; i++)
         if (Element.hasAttribute(node, attr)) results.push(node);
       return results;
     },
 
-    attr: function(nodes, root, attr, value, operator) {
+    attr: function(nodes, root, attr, value, operator, combinator) {
       if (!nodes) nodes = root.getElementsByTagName("*");
+      if (nodes && combinator) nodes = this[combinator](nodes);
       var handler = Selector.operators[operator], results = [];
       for (var i = 0, node; node = nodes[i]; i++) {
         var nodeValue = Element.readAttribute(node, attr);
@@ -3262,7 +3243,7 @@ Object.extend(Selector, {
       var h = Selector.handlers, results = [], indexed = [], m;
       h.mark(nodes);
       for (var i = 0, node; node = nodes[i]; i++) {
-        if (!node.parentNode._counted) {
+        if (!node.parentNode._countedByPrototype) {
           h.index(node.parentNode, reverse, ofType);
           indexed.push(node.parentNode);
         }
@@ -3300,7 +3281,7 @@ Object.extend(Selector, {
       var exclusions = new Selector(selector).findElements(root);
       h.mark(exclusions);
       for (var i = 0, results = [], node; node = nodes[i]; i++)
-        if (!node._counted) results.push(node);
+        if (!node._countedByPrototype) results.push(node);
       h.unmark(exclusions);
       return results;
     },
@@ -3334,11 +3315,19 @@ Object.extend(Selector, {
     '|=': function(nv, v) { return ('-' + nv.toUpperCase() + '-').include('-' + v.toUpperCase() + '-'); }
   },
 
+  split: function(expression) {
+    var expressions = [];
+    expression.scan(/(([\w#:.~>+()\s-]+|\*|\[.*?\])+)\s*(,|$)/, function(m) {
+      expressions.push(m[1].strip());
+    });
+    return expressions;
+  },
+
   matchElements: function(elements, expression) {
-    var matches = new Selector(expression).findElements(), h = Selector.handlers;
+    var matches = $$(expression), h = Selector.handlers;
     h.mark(matches);
     for (var i = 0, results = [], element; element = elements[i]; i++)
-      if (element._counted) results.push(element);
+      if (element._countedByPrototype) results.push(element);
     h.unmark(matches);
     return results;
   },
@@ -3351,11 +3340,7 @@ Object.extend(Selector, {
   },
 
   findChildElements: function(element, expressions) {
-    var exprs = expressions.join(',');
-    expressions = [];
-    exprs.scan(/(([\w#:.~>+()\s-]+|\*|\[.*?\])+)\s*(,|$)/, function(m) {
-      expressions.push(m[1].strip());
-    });
+    expressions = Selector.split(expressions.join(','));
     var results = [], h = Selector.handlers;
     for (var i = 0, l = expressions.length, selector; i < l; i++) {
       selector = new Selector(expressions[i].strip());
@@ -3366,13 +3351,22 @@ Object.extend(Selector, {
 });
 
 if (Prototype.Browser.IE) {
-  // IE returns comment nodes on getElementsByTagName("*").
-  // Filter them out.
-  Selector.handlers.concat = function(a, b) {
-    for (var i = 0, node; node = b[i]; i++)
-      if (node.tagName !== "!") a.push(node);
-    return a;
-  };
+  Object.extend(Selector.handlers, {
+    // IE returns comment nodes on getElementsByTagName("*").
+    // Filter them out.
+    concat: function(a, b) {
+      for (var i = 0, node; node = b[i]; i++)
+        if (node.tagName !== "!") a.push(node);
+      return a;
+    },
+
+    // IE improperly serializes _countedByPrototype in (inner|outer)HTML.
+    unmark: function(nodes) {
+      for (var i = 0, node; node = nodes[i]; i++)
+        node.removeAttribute('_countedByPrototype');
+      return nodes;
+    }
+  });
 }
 
 function $$() {
@@ -3850,9 +3844,9 @@ Object.extend(Event, (function() {
   var cache = Event.cache;
 
   function getEventID(element) {
-    if (element._eventID) return element._eventID;
+    if (element._prototypeEventID) return element._prototypeEventID[0];
     arguments.callee.id = arguments.callee.id || 1;
-    return element._eventID = ++arguments.callee.id;
+    return element._prototypeEventID = [++arguments.callee.id];
   }
 
   function getDOMEventName(eventName) {
@@ -3880,7 +3874,7 @@ Object.extend(Event, (function() {
           return false;
 
       Event.extend(event);
-      handler.call(element, event)
+      handler.call(element, event);
     };
 
     wrapper.handler = handler;
@@ -3962,11 +3956,12 @@ Object.extend(Event, (function() {
       if (element == document && document.createEvent && !element.dispatchEvent)
         element = document.documentElement;
 
+      var event;
       if (document.createEvent) {
-        var event = document.createEvent("HTMLEvents");
+        event = document.createEvent("HTMLEvents");
         event.initEvent("dataavailable", true, true);
       } else {
-        var event = document.createEventObject();
+        event = document.createEventObject();
         event.eventType = "ondataavailable";
       }
 
@@ -3995,20 +3990,21 @@ Element.addMethods({
 Object.extend(document, {
   fire:          Element.Methods.fire.methodize(),
   observe:       Element.Methods.observe.methodize(),
-  stopObserving: Element.Methods.stopObserving.methodize()
+  stopObserving: Element.Methods.stopObserving.methodize(),
+  loaded:        false
 });
 
 (function() {
   /* Support for the DOMContentLoaded event is based on work by Dan Webb,
      Matthias Miller, Dean Edwards and John Resig. */
 
-  var timer, fired = false;
+  var timer;
 
   function fireContentLoadedEvent() {
-    if (fired) return;
+    if (document.loaded) return;
     if (timer) window.clearInterval(timer);
     document.fire("dom:loaded");
-    fired = true;
+    document.loaded = true;
   }
 
   if (document.addEventListener) {

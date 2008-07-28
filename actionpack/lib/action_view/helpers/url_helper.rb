@@ -3,8 +3,8 @@ require 'action_view/helpers/javascript_helper'
 module ActionView
   module Helpers #:nodoc:
     # Provides a set of methods for making links and getting URLs that
-    # depend on the routing subsystem (see ActionController::Routing). 
-    # This allows you to use the same format for links in views 
+    # depend on the routing subsystem (see ActionController::Routing).
+    # This allows you to use the same format for links in views
     # and controllers.
     module UrlHelper
       include JavaScriptHelper
@@ -33,8 +33,8 @@ module ActionView
       #
       # If you instead of a hash pass a record (like an Active Record or Active Resource) as the options parameter,
       # you'll trigger the named route for that record. The lookup will happen on the name of the class. So passing
-      # a Workshop object will attempt to use the workshop_path route. If you have a nested route, such as 
-      # admin_workshop_path you'll have to call that explicitly (it's impossible for url_for to guess that route). 
+      # a Workshop object will attempt to use the workshop_path route. If you have a nested route, such as
+      # admin_workshop_path you'll have to call that explicitly (it's impossible for url_for to guess that route).
       #
       # ==== Examples
       #   <%= url_for(:action => 'index') %>
@@ -62,19 +62,33 @@ module ActionView
       #   <%= url_for(@workshop) %>
       #   # calls @workshop.to_s
       #   # => /workshops/5
+      #
+      #   <%= url_for("http://www.example.com") %>
+      #   # => http://www.example.com
+      #
+      #   <%= url_for(:back) %>
+      #   # if request.env["HTTP_REFERER"] is set to "http://www.example.com"
+      #   # => http://www.example.com
+      #
+      #   <%= url_for(:back) %>
+      #   # if request.env["HTTP_REFERER"] is not set or is blank
+      #   # => javascript:history.back()
       def url_for(options = {})
         options ||= {}
-        case options
+        url = case options
+        when String
+          escape = true
+          options
         when Hash
           options = { :only_path => options[:host].nil? }.update(options.symbolize_keys)
           escape  = options.key?(:escape) ? options.delete(:escape) : true
-          url     = @controller.send(:url_for, options)
-        when String
-          escape = true
-          url    = options
+          @controller.send(:url_for, options)
+        when :back
+          escape = false
+          @controller.request.env["HTTP_REFERER"] || 'javascript:history.back()'
         else
           escape = false
-          url    = polymorphic_path(options)
+          polymorphic_path(options)
         end
 
         escape ? escape_once(url) : url
@@ -116,8 +130,8 @@ module ActionView
       #
       # Note that if the user has JavaScript disabled, the request will fall back
       # to using GET. If <tt>:href => '#'</tt> is used and the user has JavaScript disabled
-      # clicking the link will have no effect. If you are relying on the POST 
-      # behavior, your should check for it in your controller's action by using the 
+      # clicking the link will have no effect. If you are relying on the POST
+      # behavior, your should check for it in your controller's action by using the
       # request object's methods for <tt>post?</tt>, <tt>delete?</tt> or <tt>put?</tt>.
       #
       # You can mix and match the +html_options+ with the exception of
@@ -141,8 +155,8 @@ module ActionView
       #
       #   link_to "Profile", :controller => "profiles", :action => "show", :id => @profile
       #   # => <a href="/profiles/show/1">Profile</a>
-      # 
-      # Similarly, 
+      #
+      # Similarly,
       #
       #   link_to "Profiles", profiles_path
       #   # => <a href="/profiles">Profiles</a>
@@ -197,9 +211,9 @@ module ActionView
       #   # => <a href="/images/9" onclick="window.open(this.href,'new_window_name','height=300,width=600');return false;">View Image</a>
       #
       #   link_to "Delete Image", @image, :confirm => "Are you sure?", :method => :delete
-      #   # => <a href="/images/9" onclick="if (confirm('Are you sure?')) { var f = document.createElement('form'); 
+      #   # => <a href="/images/9" onclick="if (confirm('Are you sure?')) { var f = document.createElement('form');
       #        f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;
-      #        var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); 
+      #        var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method');
       #        m.setAttribute('value', 'delete'); f.appendChild(m);f.submit(); };return false;">Delete Image</a>
       def link_to(*args, &block)
         if block_given?
@@ -211,14 +225,7 @@ module ActionView
           options      = args.second || {}
           html_options = args.third
 
-          url = case options
-            when String
-              options
-            when :back
-              @controller.request.env["HTTP_REFERER"] || 'javascript:history.back()'
-            else
-              self.url_for(options)
-            end
+          url = url_for(options)
 
           if html_options
             html_options = html_options.stringify_keys
@@ -228,7 +235,7 @@ module ActionView
           else
             tag_options = nil
           end
-      
+
           href_attr = "href=\"#{url}\"" unless href
           "<a #{href_attr}#{tag_options}>#{name || url}</a>"
         end
@@ -260,7 +267,7 @@ module ActionView
       # * <tt>:confirm</tt> - This will add a JavaScript confirm
       #   prompt with the question specified. If the user accepts, the link is
       #   processed normally, otherwise no action is taken.
-      # 
+      #
       # ==== Examples
       #   <%= button_to "New", :action => "new" %>
       #   # => "<form method="post" action="/controller/new" class="button-to">
@@ -286,12 +293,12 @@ module ActionView
         end
 
         form_method = method.to_s == 'get' ? 'get' : 'post'
-        
+
         request_token_tag = ''
         if form_method == 'post' && protect_against_forgery?
           request_token_tag = tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => form_authenticity_token)
         end
-        
+
         if confirm = html_options.delete("confirm")
           html_options["onclick"] = "return #{confirm_javascript_function(confirm)};"
         end
@@ -309,7 +316,7 @@ module ActionView
       # Creates a link tag of the given +name+ using a URL created by the set of
       # +options+ unless the current request URI is the same as the links, in
       # which case only the name is returned (or the given block is yielded, if
-      # one exists).  You can give link_to_unless_current a block which will 
+      # one exists).  You can give link_to_unless_current a block which will
       # specialize the default behavior (e.g., show a "Start Here" link rather
       # than the link's text).
       #
@@ -336,13 +343,13 @@ module ActionView
       #   </ul>
       #
       # The implicit block given to link_to_unless_current is evaluated if the current
-      # action is the action given.  So, if we had a comments page and wanted to render a 
+      # action is the action given.  So, if we had a comments page and wanted to render a
       # "Go Back" link instead of a link to the comments page, we could do something like this...
-      #   
-      #    <%= 
+      #
+      #    <%=
       #        link_to_unless_current("Comment", { :controller => 'comments', :action => 'new}) do
-      #           link_to("Go back", { :controller => 'posts', :action => 'index' }) 
-      #        end 
+      #           link_to("Go back", { :controller => 'posts', :action => 'index' })
+      #        end
       #     %>
       def link_to_unless_current(name, options = {}, html_options = {}, &block)
         link_to_unless current_page?(options), name, options, html_options, &block
@@ -359,10 +366,10 @@ module ActionView
       #   # If the user is logged in...
       #   # => <a href="/controller/reply/">Reply</a>
       #
-      #   <%= 
+      #   <%=
       #      link_to_unless(@current_user.nil?, "Reply", { :action => "reply" }) do |name|
       #        link_to(name, { :controller => "accounts", :action => "signup" })
-      #      end 
+      #      end
       #   %>
       #   # If the user is logged in...
       #   # => <a href="/controller/reply/">Reply</a>
@@ -391,10 +398,10 @@ module ActionView
       #   # If the user isn't logged in...
       #   # => <a href="/sessions/new/">Login</a>
       #
-      #   <%= 
+      #   <%=
       #      link_to_if(@current_user.nil?, "Login", { :controller => "sessions", :action => "new" }) do
       #        link_to(@current_user.login, { :controller => "accounts", :action => "show", :id => @current_user })
-      #      end 
+      #      end
       #   %>
       #   # If the user isn't logged in...
       #   # => <a href="/sessions/new/">Login</a>
@@ -431,20 +438,20 @@ module ActionView
       # * <tt>:bcc</tt>  - Blind Carbon Copy additional recipients on the email.
       #
       # ==== Examples
-      #   mail_to "me@domain.com" 
+      #   mail_to "me@domain.com"
       #   # => <a href="mailto:me@domain.com">me@domain.com</a>
       #
-      #   mail_to "me@domain.com", "My email", :encode => "javascript"  
+      #   mail_to "me@domain.com", "My email", :encode => "javascript"
       #   # => <script type="text/javascript">eval(unescape('%64%6f%63...%6d%65%6e'))</script>
       #
-      #   mail_to "me@domain.com", "My email", :encode => "hex"  
+      #   mail_to "me@domain.com", "My email", :encode => "hex"
       #   # => <a href="mailto:%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">My email</a>
       #
-      #   mail_to "me@domain.com", nil, :replace_at => "_at_", :replace_dot => "_dot_", :class => "email"  
+      #   mail_to "me@domain.com", nil, :replace_at => "_at_", :replace_dot => "_dot_", :class => "email"
       #   # => <a href="mailto:me@domain.com" class="email">me_at_domain_dot_com</a>
       #
       #   mail_to "me@domain.com", "My email", :cc => "ccaddress@domain.com",
-      #            :subject => "This is an example email"  
+      #            :subject => "This is an example email"
       #   # => <a href="mailto:me@domain.com?cc=ccaddress@domain.com&subject=This%20is%20an%20example%20email">My email</a>
       def mail_to(email_address, name = nil, html_options = {})
         html_options = html_options.stringify_keys

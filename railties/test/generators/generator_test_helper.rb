@@ -5,9 +5,10 @@ require 'fileutils'
 module ActiveRecord
   class Base
     class << self
-      attr_accessor :pluralize_table_names
+      attr_accessor :pluralize_table_names, :timestamped_migrations
     end
     self.pluralize_table_names = true
+    self.timestamped_migrations = true
   end
 
   module ConnectionAdapters

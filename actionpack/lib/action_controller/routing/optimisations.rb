@@ -76,7 +76,7 @@ module ActionController
             elements << '#{request.host_with_port}'
           end
 
-          elements << '#{request.relative_url_root if request.relative_url_root}'
+          elements << '#{ActionController::Base.relative_url_root if ActionController::Base.relative_url_root}'
 
           # The last entry in <tt>route.segments</tt> appears to *always* be a
           # 'divider segment' for '/' but we have assertions to ensure that

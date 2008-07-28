@@ -102,14 +102,15 @@ module ActionView
   #
   # As you can see, the <tt>:locals</tt> hash is shared between both the partial and its layout.
   module Partials
+    extend ActiveSupport::Memoizable
+
     private
       def render_partial(partial_path, object_assigns = nil, local_assigns = {}) #:nodoc:
         local_assigns ||= {}
 
         case partial_path
         when String, Symbol, NilClass
-          variable_name, path = partial_pieces(partial_path)
-          pick_template(path).render_partial(self, variable_name, object_assigns, local_assigns)
+          pick_template(find_partial_path(partial_path)).render_partial(self, object_assigns, local_assigns)
         when ActionView::Helpers::FormBuilder
           builder_partial_path = partial_path.class.to_s.demodulize.underscore.sub(/_builder$/, '')
           render_partial(builder_partial_path, object_assigns, (local_assigns || {}).merge(builder_partial_path.to_sym => partial_path))
@@ -130,43 +131,28 @@ module ActionView
 
         local_assigns = local_assigns ? local_assigns.clone : {}
         spacer = partial_spacer_template ? render(:partial => partial_spacer_template) : ''
-        _partial_pieces = {}
-        _templates = {}
 
         index = 0
         collection.map do |object|
           _partial_path ||= partial_path || ActionController::RecordIdentifier.partial_path(object, controller.class.controller_path)
-          variable_name, path = _partial_pieces[_partial_path] ||= partial_pieces(_partial_path)
-          template = _templates[path] ||= pick_template(path)
-
-          local_assigns["#{variable_name}_counter".to_sym] = index
-          local_assigns[:object] = local_assigns[variable_name] = object
-          local_assigns[as] = object if as
-
-          result = template.render_partial(self, variable_name, object, local_assigns)
-
-          local_assigns.delete(as)
-          local_assigns.delete(variable_name)
-          local_assigns.delete(:object)
+          path = find_partial_path(_partial_path)
+          template = pick_template(path)
+          local_assigns[template.counter_name] = index
+          result = template.render_partial(self, object, local_assigns, as)
           index += 1
-
           result
         end.join(spacer)
       end
 
-      def partial_pieces(partial_path)
+      def find_partial_path(partial_path)
         if partial_path.include?('/')
-          variable_name = File.basename(partial_path)
-          path = "#{File.dirname(partial_path)}/_#{variable_name}"
+          "#{File.dirname(partial_path)}/_#{File.basename(partial_path)}"
         elsif respond_to?(:controller)
-          variable_name = partial_path
-          path = "#{controller.class.controller_path}/_#{variable_name}"
+          "#{controller.class.controller_path}/_#{partial_path}"
         else
-          variable_name = partial_path
-          path = "_#{variable_name}"
+          "_#{partial_path}"
         end
-        variable_name = variable_name.sub(/\..*$/, '').to_sym
-        return variable_name, path
       end
+      memoize :find_partial_path
   end
 end

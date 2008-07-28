@@ -9,6 +9,11 @@ module ActiveSupport #:nodoc:
       #   end
       #
       #   search(options.slice(:mass, :velocity, :time))
+      #
+      # If you have an array of keys you want to limit to, you should splat them:
+      #
+      #   valid_keys = [:mass, :velocity, :time]
+      #   search(options.slice(*valid_keys))
       module Slice
         # Returns a new hash with only the given keys.
         def slice(*keys)

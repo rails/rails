@@ -3,6 +3,7 @@ require 'bigdecimal/util'
 
 require 'models/person'
 require 'models/topic'
+require 'models/developer'
 
 require MIGRATIONS_ROOT + "/valid/1_people_have_last_names"
 require MIGRATIONS_ROOT + "/valid/2_we_need_reminders"
@@ -511,7 +512,12 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.connection.create_table(:hats) do |table|
         table.column :hat_name, :string, :default => nil
       end
-      assert_raises(ActiveRecord::ActiveRecordError) do
+      exception = if current_adapter?(:PostgreSQLAdapter)
+        ActiveRecord::StatementInvalid
+      else
+        ActiveRecord::ActiveRecordError
+      end
+      assert_raises(exception) do
         Person.connection.rename_column "hats", "nonexistent", "should_fail"
       end
     ensure
@@ -693,6 +699,55 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nothing_raised { Person.connection.change_column :testings, :select, :string, :limit => 10 }
 
       assert_nothing_raised { Person.connection.execute "insert into testings (#{Person.connection.quote_column_name('select')}) values ('7 chars')" }
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+
+    def test_keeping_default_and_notnull_constaint_on_change
+      Person.connection.create_table :testings do |t|
+        t.column :title, :string
+      end
+      person_klass = Class.new(Person)
+      person_klass.set_table_name 'testings'
+
+      person_klass.connection.add_column "testings", "wealth", :integer, :null => false, :default => 99
+      person_klass.reset_column_information
+      assert_equal 99, person_klass.columns_hash["wealth"].default
+      assert_equal false, person_klass.columns_hash["wealth"].null
+      assert_nothing_raised {person_klass.connection.execute("insert into testings (title) values ('tester')")}
+
+      # change column default to see that column doesn't lose its not null definition
+      person_klass.connection.change_column_default "testings", "wealth", 100
+      person_klass.reset_column_information
+      assert_equal 100, person_klass.columns_hash["wealth"].default
+      assert_equal false, person_klass.columns_hash["wealth"].null
+
+      # rename column to see that column doesn't lose its not null and/or default definition
+      person_klass.connection.rename_column "testings", "wealth", "money"
+      person_klass.reset_column_information
+      assert_nil person_klass.columns_hash["wealth"]
+      assert_equal 100, person_klass.columns_hash["money"].default
+      assert_equal false, person_klass.columns_hash["money"].null
+
+      # change column
+      person_klass.connection.change_column "testings", "money", :integer, :null => false, :default => 1000
+      person_klass.reset_column_information
+      assert_equal 1000, person_klass.columns_hash["money"].default
+      assert_equal false, person_klass.columns_hash["money"].null
+
+      # change column, make it nullable and clear default
+      person_klass.connection.change_column "testings", "money", :integer, :null => true, :default => nil
+      person_klass.reset_column_information
+      assert_nil person_klass.columns_hash["money"].default
+      assert_equal true, person_klass.columns_hash["money"].null
+
+      # change_column_null, make it not nullable and set null values to a default value
+      person_klass.connection.execute('UPDATE testings SET money = NULL')
+      person_klass.connection.change_column_null "testings", "money", false, 2000
+      person_klass.reset_column_information
+      assert_nil person_klass.columns_hash["money"].default
+      assert_equal false, person_klass.columns_hash["money"].null
+      assert_equal [2000], Person.connection.select_values("SELECT money FROM testings").map { |s| s.to_i }.sort
     ensure
       Person.connection.drop_table :testings rescue nil
     end

@@ -516,6 +516,26 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_should_not_allow_invalid_head_method_for_member_routes
+    with_routing do |set|
+      set.draw do |map|
+        assert_raises(ArgumentError) do
+          map.resources :messages, :member => {:something => :head}
+        end
+      end
+    end
+  end
+
+  def test_should_not_allow_invalid_http_methods_for_member_routes
+    with_routing do |set|
+      set.draw do |map|
+        assert_raises(ArgumentError) do
+          map.resources :messages, :member => {:something => :invalid}
+        end
+      end
+    end
+  end
+
   def test_resource_action_separator
     with_routing do |set|
       set.draw do |map|

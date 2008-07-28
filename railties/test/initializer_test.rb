@@ -136,8 +136,27 @@ uses_mocha 'framework paths' do
       end
     end
 
-    protected
+    def test_action_mailer_load_paths_set_only_if_action_mailer_in_use
+      @config.frameworks = [:action_controller]
+      initializer = Rails::Initializer.new @config
+      initializer.send :require_frameworks
 
+      assert_nothing_raised NameError do
+        initializer.send :load_view_paths
+      end
+    end
+
+    def test_action_controller_load_paths_set_only_if_action_controller_in_use
+      @config.frameworks = []
+      initializer = Rails::Initializer.new @config
+      initializer.send :require_frameworks
+
+      assert_nothing_raised NameError do
+        initializer.send :load_view_paths
+      end
+    end
+
+    protected
       def assert_framework_path(path)
         assert @config.framework_paths.include?(path),
           "<#{path.inspect}> not found among <#{@config.framework_paths.inspect}>"

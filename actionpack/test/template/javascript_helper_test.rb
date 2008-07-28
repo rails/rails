@@ -3,6 +3,12 @@ require 'abstract_unit'
 class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
 
+  attr_accessor :template_format, :output_buffer
+
+  def setup
+    @template = self
+  end
+
   def test_escape_javascript
     assert_equal '', escape_javascript(nil)
     assert_equal %(This \\"thing\\" is really\\n netos\\'), escape_javascript(%(This "thing" is really\n netos'))

@@ -1,5 +1,15 @@
 *Edge*
 
+* Add Array#in_groups which splits or iterates over the array in specified number of groups. #579. [Adrian Mugnolo] Example:
+  
+  a = (1..10).to_a
+  a.in_groups(3)        #=> [[1, 2, 3, 4], [5, 6, 7, nil], [8, 9, 10, nil]]
+  a.in_groups(3, false) #=> [[1, 2, 3, 4], [5, 6, 7], [8, 9, 10]]
+
+* Fix TimeWithZone unmarshaling: coerce unmarshaled Time instances to utc, because Ruby's marshaling of Time instances doesn't respect the zone [Geoff Buesing]
+
+* Added Memoizable mixin for caching simple lazy loaded attributes [Josh Peek]
+
 * Move the test related core_ext stuff out of core_ext so it's only loaded by the test helpers.  [Michael Koziarski]
 
 * Add Inflection rules for String#humanize. #535 [dcmanges]

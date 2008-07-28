@@ -1,25 +1,14 @@
+# Legacy TemplateHandler stub
+
 module ActionView
+  module TemplateHandlers
+    module Compilable
+    end
+  end
+
   class TemplateHandler
-    def self.compilable?
-      false
-    end
-
-    def initialize(view)
-      @view = view
-    end
-
-    def render(template, local_assigns = {})
-    end
-
-    def compile(template)
-    end
-
-    def compilable?
-      self.class.compilable?
-    end
-
-    # Called by CacheHelper#cache
-    def cache_fragment(block, name = {}, options = nil)
+    def self.call(template)
+      new.compile(template)
     end
   end
 end

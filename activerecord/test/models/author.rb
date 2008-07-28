@@ -1,5 +1,5 @@
 class Author < ActiveRecord::Base
-  has_many :posts
+  has_many :posts, :accessible => true
   has_many :posts_with_comments, :include => :comments, :class_name => "Post"
   has_many :posts_with_comments_sorted_by_comment_id, :include => :comments, :class_name => "Post", :order => 'comments.id'
   has_many :posts_with_categories, :include => :categories, :class_name => "Post"

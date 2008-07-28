@@ -99,7 +99,7 @@ class ArrayExtToSTests < Test::Unit::TestCase
 end
 
 class ArrayExtGroupingTests < Test::Unit::TestCase
-  def test_group_by_with_perfect_fit
+  def test_in_groups_of_with_perfect_fit
     groups = []
     ('a'..'i').to_a.in_groups_of(3) do |group|
       groups << group
@@ -109,7 +109,7 @@ class ArrayExtGroupingTests < Test::Unit::TestCase
     assert_equal [%w(a b c), %w(d e f), %w(g h i)], ('a'..'i').to_a.in_groups_of(3)
   end
 
-  def test_group_by_with_padding
+  def test_in_groups_of_with_padding
     groups = []
     ('a'..'g').to_a.in_groups_of(3) do |group|
       groups << group
@@ -118,7 +118,7 @@ class ArrayExtGroupingTests < Test::Unit::TestCase
     assert_equal [%w(a b c), %w(d e f), ['g', nil, nil]], groups
   end
 
-  def test_group_by_pads_with_specified_values
+  def test_in_groups_of_pads_with_specified_values
     groups = []
 
     ('a'..'g').to_a.in_groups_of(3, 'foo') do |group|
@@ -128,7 +128,7 @@ class ArrayExtGroupingTests < Test::Unit::TestCase
     assert_equal [%w(a b c), %w(d e f), ['g', 'foo', 'foo']], groups
   end
 
-  def test_group_without_padding
+  def test_in_groups_of_without_padding
     groups = []
 
     ('a'..'g').to_a.in_groups_of(3, false) do |group|
@@ -136,6 +136,48 @@ class ArrayExtGroupingTests < Test::Unit::TestCase
     end
 
     assert_equal [%w(a b c), %w(d e f), ['g']], groups
+  end
+
+  def test_in_groups_returned_array_size
+    array = (1..7).to_a
+
+    1.upto(array.size + 1) do |number|
+      assert_equal number, array.in_groups(number).size
+    end
+  end
+
+  def test_in_groups_with_empty_array
+    assert_equal [[], [], []], [].in_groups(3)
+  end
+
+  def test_in_groups_with_block
+    array = (1..9).to_a
+    groups = []
+
+    array.in_groups(3) do |group|
+      groups << group
+    end
+
+    assert_equal array.in_groups(3), groups
+  end
+
+  def test_in_groups_with_perfect_fit
+    assert_equal [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+      (1..9).to_a.in_groups(3)
+  end
+
+  def test_in_groups_with_padding
+    array = (1..7).to_a
+
+    assert_equal [[1, 2, 3], [4, 5, nil], [6, 7, nil]],
+      array.in_groups(3)
+    assert_equal [[1, 2, 3], [4, 5, 'foo'], [6, 7, 'foo']],
+      array.in_groups(3, 'foo')
+  end
+
+  def test_in_groups_without_padding
+    assert_equal [[1, 2, 3], [4, 5], [6, 7]],
+      (1..7).to_a.in_groups(3, false)
   end
 end
 

@@ -44,7 +44,7 @@ module ActionView
 
       include PrototypeHelper
 
-      # Returns a link of the given +name+ that will trigger a JavaScript +function+ using the 
+      # Returns a link of the given +name+ that will trigger a JavaScript +function+ using the
       # onclick handler and return false after the fact.
       #
       # The first argument +name+ is used as the link text.
@@ -97,8 +97,8 @@ module ActionView
 
         content_tag(:a, name, html_options.merge(:href => href, :onclick => onclick))
       end
-      
-      # Returns a button with the given +name+ text that'll trigger a JavaScript +function+ using the 
+
+      # Returns a button with the given +name+ text that'll trigger a JavaScript +function+ using the
       # onclick handler.
       #
       # The first argument +name+ is used as the button's value or display text.

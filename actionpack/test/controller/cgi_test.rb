@@ -53,6 +53,15 @@ class BaseCgiTest < Test::Unit::TestCase
   end
 
   def default_test; end
+
+  private
+
+  def set_content_data(data)
+    @request.env['REQUEST_METHOD'] = 'POST'
+    @request.env['CONTENT_LENGTH'] = data.length
+    @request.env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
+    @request.env['RAW_POST_DATA'] = data
+  end
 end
 
 class CgiRequestTest < BaseCgiTest
@@ -155,16 +164,49 @@ end
 
 class CgiRequestParamsParsingTest < BaseCgiTest
   def test_doesnt_break_when_content_type_has_charset
-    data = 'flamenco=love'
-    @request.env['CONTENT_LENGTH'] = data.length
-    @request.env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
-    @request.env['RAW_POST_DATA'] = data
+    set_content_data 'flamenco=love'
+
     assert_equal({"flamenco"=> "love"}, @request.request_parameters)
   end
 
   def test_doesnt_interpret_request_uri_as_query_string_when_missing
     @request.env['REQUEST_URI'] = 'foo'
     assert_equal({}, @request.query_parameters)
+  end
+end
+
+class CgiRequestContentTypeTest < BaseCgiTest
+  def test_html_content_type_verification
+    @request.env['CONTENT_TYPE'] = Mime::HTML.to_s
+    assert @request.content_type.verify_request?
+  end
+
+  def test_xml_content_type_verification
+    @request.env['CONTENT_TYPE'] = Mime::XML.to_s
+    assert !@request.content_type.verify_request?
+  end
+end
+
+class CgiRequestMethodTest < BaseCgiTest
+  def test_get
+    assert_equal :get, @request.request_method
+  end
+
+  def test_post
+    @request.env['REQUEST_METHOD'] = 'POST'
+    assert_equal :post, @request.request_method
+  end
+
+  def test_put
+    set_content_data '_method=put'
+
+    assert_equal :put, @request.request_method
+  end
+
+  def test_delete
+    set_content_data '_method=delete'
+
+    assert_equal :delete, @request.request_method
   end
 end
 

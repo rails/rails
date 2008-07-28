@@ -100,7 +100,7 @@ module ActionController
     @@controller_class = nil
 
     class << self
-      # Sets the controller class name. Useful if the name can't be inferred from test class. 
+      # Sets the controller class name. Useful if the name can't be inferred from test class.
       # Expects +controller_class+ as a constant. Example: <tt>tests WidgetController</tt>.
       def tests(controller_class)
         self.controller_class = controller_class

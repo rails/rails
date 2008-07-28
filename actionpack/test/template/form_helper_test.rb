@@ -6,7 +6,7 @@ silence_warnings do
     alias_method :title_before_type_cast, :title unless respond_to?(:title_before_type_cast)
     alias_method :body_before_type_cast, :body unless respond_to?(:body_before_type_cast)
     alias_method :author_name_before_type_cast, :author_name unless respond_to?(:author_name_before_type_cast)
-    alias_method :secret?, :secret 
+    alias_method :secret?, :secret
 
     def new_record=(boolean)
       @new_record = boolean
@@ -22,6 +22,7 @@ silence_warnings do
     attr_reader :post_id
     def save; @id = 1; @post_id = 1 end
     def new_record?; @id.nil? end
+    def to_param; @id; end
     def name
       @id.nil? ? 'new comment' : "comment ##{@id}"
     end
@@ -29,7 +30,6 @@ silence_warnings do
 end
 
 class Comment::Nested < Comment; end
-
 
 class FormHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormHelper
@@ -447,6 +447,117 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_with_nested_collections
+    form_for('post[]', @post) do |f|
+      concat f.text_field(:title)
+      f.fields_for('comment[]', @comment) do |c|
+        concat c.text_field(:name)
+      end
+    end
+
+    expected = "<form action='http://www.example.com' method='post'>" +
+               "<input name='post[123][title]' size='30' type='text' id='post_123_title' value='Hello World' />" +
+               "<input name='post[123][comment][][name]' size='30' type='text' id='post_123_comment__name' value='new comment' />" +
+               "</form>"
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_index
+    form_for('post', @post, :index => 1) do |c|
+      concat c.text_field(:title)
+      c.fields_for('comment', @comment, :index => 1) do |r|
+        concat r.text_field(:name)
+      end
+    end
+
+    expected = "<form action='http://www.example.com' method='post'>" +
+               "<input name='post[1][title]' size='30' type='text' id='post_1_title' value='Hello World' />" +
+               "<input name='post[1][comment][1][name]' size='30' type='text' id='post_1_comment_1_name' value='new comment' />" +
+               "</form>"
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_index
+    form_for(:post, @post, :index => 1) do |f|
+      f.fields_for(:comment, @post) do |c|
+        concat c.text_field(:title)
+      end
+    end
+
+    expected = "<form action='http://www.example.com' method='post'>" +
+               "<input name='post[1][comment][title]' size='30' type='text' id='post_1_comment_title' value='Hello World' />" +
+               "</form>"
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_index_on_both
+    form_for(:post, @post, :index => 1) do |f|
+      f.fields_for(:comment, @post, :index => 5) do |c|
+        concat c.text_field(:title)
+      end
+    end
+
+    expected = "<form action='http://www.example.com' method='post'>" +
+               "<input name='post[1][comment][5][title]' size='30' type='text' id='post_1_comment_5_title' value='Hello World' />" +
+               "</form>"
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_auto_index
+    form_for("post[]", @post) do |f|
+      f.fields_for(:comment, @post) do |c|
+        concat c.text_field(:title)
+      end
+    end
+
+    expected = "<form action='http://www.example.com' method='post'>" +
+               "<input name='post[123][comment][title]' size='30' type='text' id='post_123_comment_title' value='Hello World' />" +
+               "</form>"
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_auto_index_on_both
+    form_for("post[]", @post) do |f|
+      f.fields_for("comment[]", @post) do |c|
+        concat c.text_field(:title)
+      end
+    end
+
+    expected = "<form action='http://www.example.com' method='post'>" +
+               "<input name='post[123][comment][123][title]' size='30' type='text' id='post_123_comment_123_title' value='Hello World' />" +
+               "</form>"
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_index_and_auto_index
+    form_for("post[]", @post) do |f|
+      f.fields_for(:comment, @post, :index => 5) do |c|
+        concat c.text_field(:title)
+      end
+    end
+
+    form_for(:post, @post, :index => 1) do |f|
+      f.fields_for("comment[]", @post) do |c|
+        concat c.text_field(:title)
+      end
+    end
+
+    expected = "<form action='http://www.example.com' method='post'>" +
+               "<input name='post[123][comment][5][title]' size='30' type='text' id='post_123_comment_5_title' value='Hello World' />" +
+               "</form>" +
+               "<form action='http://www.example.com' method='post'>" +
+               "<input name='post[1][comment][123][title]' size='30' type='text' id='post_1_comment_123_title' value='Hello World' />" +
+               "</form>"
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_fields_for
     fields_for(:post, @post) do |f|
       concat f.text_field(:title)
@@ -830,7 +941,6 @@ class FormHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, output_buffer
   end
-
 
   protected
     def comments_path(post)

@@ -739,7 +739,9 @@ module ActiveRecord
       #   If true, all the associated objects are readonly through the association.
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. true by default.
-      #
+      # [:accessible]
+      #   Mass assignment is allowed for this assocation (similar to <tt>ActiveRecord::Base#attr_accessible</tt>).
+      
       # Option examples:
       #   has_many :comments, :order => "posted_on"
       #   has_many :comments, :include => :author
@@ -853,6 +855,8 @@ module ActiveRecord
       #   If true, the associated object is readonly through the association.
       # [:validate]
       #   If false, don't validate the associated object when saving the parent object. +false+ by default.
+      # [:accessible]
+      #   Mass assignment is allowed for this assocation (similar to <tt>ActiveRecord::Base#attr_accessible</tt>).
       #
       # Option examples:
       #   has_one :credit_card, :dependent => :destroy  # destroys the associated credit card
@@ -969,6 +973,8 @@ module ActiveRecord
       #   If true, the associated object is readonly through the association.
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. +false+ by default.
+      # [:accessible]
+      #   Mass assignment is allowed for this assocation (similar to <tt>ActiveRecord::Base#attr_accessible</tt>).
       #
       # Option examples:
       #   belongs_to :firm, :foreign_key => "client_of"
@@ -1181,6 +1187,8 @@ module ActiveRecord
       #   If true, all the associated objects are readonly through the association.
       # [:validate]
       #   If false, don't validate the associated objects when saving the parent object. +true+ by default.
+      # [:accessible<]
+      #   Mass assignment is allowed for this assocation (similar to <tt>ActiveRecord::Base#attr_accessible</tt>).
       #
       # Option examples:
       #   has_and_belongs_to_many :projects
@@ -1255,6 +1263,8 @@ module ActiveRecord
             if association.nil? || association.target != new_value
               association = association_proxy_class.new(self, reflection)
             end
+
+            new_value = reflection.klass.new(new_value) if reflection.options[:accessible] && new_value.is_a?(Hash)
 
             if association_proxy_class == HasOneThroughAssociation
               association.create_through_record(new_value)
@@ -1504,7 +1514,7 @@ module ActiveRecord
             :finder_sql, :counter_sql,
             :before_add, :after_add, :before_remove, :after_remove,
             :extend, :readonly,
-            :validate
+            :validate, :accessible
           )
 
           options[:extend] = create_extension_modules(association_id, extension, options[:extend])
@@ -1514,7 +1524,7 @@ module ActiveRecord
 
         def create_has_one_reflection(association_id, options)
           options.assert_valid_keys(
-            :class_name, :foreign_key, :remote, :select, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :readonly, :validate, :primary_key
+            :class_name, :foreign_key, :remote, :select, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as, :readonly, :validate, :primary_key, :accessible
           )
 
           create_reflection(:has_one, association_id, options, self)
@@ -1530,7 +1540,7 @@ module ActiveRecord
         def create_belongs_to_reflection(association_id, options)
           options.assert_valid_keys(
             :class_name, :foreign_key, :foreign_type, :remote, :select, :conditions, :include, :dependent,
-            :counter_cache, :extend, :polymorphic, :readonly, :validate
+            :counter_cache, :extend, :polymorphic, :readonly, :validate, :accessible
           )
 
           reflection = create_reflection(:belongs_to, association_id, options, self)
@@ -1550,7 +1560,7 @@ module ActiveRecord
             :finder_sql, :delete_sql, :insert_sql,
             :before_add, :after_add, :before_remove, :after_remove,
             :extend, :readonly,
-            :validate
+            :validate, :accessible
           )
 
           options[:extend] = create_extension_modules(association_id, extension, options[:extend])
@@ -1627,10 +1637,15 @@ module ActiveRecord
             join_dependency.joins_for_table_name(table)
           }.flatten.compact.uniq
 
+          order = options[:order]
+          if scoped_order = (scope && scope[:order])
+            order = order ? "#{order}, #{scoped_order}" : scoped_order
+          end
+
           is_distinct = !options[:joins].blank? || include_eager_conditions?(options, tables_from_conditions) || include_eager_order?(options, tables_from_order)
           sql = "SELECT "
           if is_distinct
-            sql << connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", options[:order])
+            sql << connection.distinct("#{connection.quote_table_name table_name}.#{primary_key}", order)
           else
             sql << primary_key
           end
@@ -1644,8 +1659,8 @@ module ActiveRecord
           add_conditions!(sql, options[:conditions], scope)
           add_group!(sql, options[:group], scope)
 
-          if options[:order] && is_distinct
-            connection.add_order_by_for_association_limiting!(sql, options)
+          if order && is_distinct
+            connection.add_order_by_for_association_limiting!(sql, :order => order)
           else
             add_order!(sql, options[:order], scope)
           end
@@ -2019,7 +2034,7 @@ module ActiveRecord
                           jt_sti_extra = " AND %s.%s = %s" % [
                             connection.quote_table_name(aliased_join_table_name),
                             connection.quote_column_name(through_reflection.active_record.inheritance_column),
-                            through_reflection.klass.quote_value(through_reflection.klass.name.demodulize)]
+                            through_reflection.klass.quote_value(through_reflection.klass.sti_name)]
                         end
                       when :belongs_to
                         first_key = primary_key
@@ -2087,7 +2102,7 @@ module ActiveRecord
               join << %(AND %s.%s = %s ) % [
                 connection.quote_table_name(aliased_table_name),
                 connection.quote_column_name(klass.inheritance_column),
-                klass.quote_value(klass.name.demodulize)] unless klass.descends_from_active_record?
+                klass.quote_value(klass.sti_name)] unless klass.descends_from_active_record?
 
               [through_reflection, reflection].each do |ref|
                 join << "AND #{interpolate_sql(sanitize_sql(ref.options[:conditions]))} " if ref && ref.options[:conditions]

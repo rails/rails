@@ -3,13 +3,16 @@ require 'stringio'
 require 'strscan'
 
 module ActionController
-  # HTTP methods which are accepted by default. 
+  # HTTP methods which are accepted by default.
   ACCEPTED_HTTP_METHODS = Set.new(%w( get head put post delete options ))
 
   # CgiRequest and TestRequest provide concrete implementations.
   class AbstractRequest
-    cattr_accessor :relative_url_root
-    remove_method :relative_url_root
+    def self.relative_url_root=(*args)
+      ActiveSupport::Deprecation.warn(
+        "ActionController::AbstractRequest.relative_url_root= has been renamed." +
+        "You can now set it with config.action_controller.relative_url_root=", caller)
+    end
 
     # The hash of environment variables for this request,
     # such as { 'RAILS_ENV' => 'production' }.
@@ -111,14 +114,14 @@ module ActionController
         end
       end
     end
-    
-    
+
+
     # Sets the format by string extension, which can be used to force custom formats that are not controlled by the extension.
     # Example:
     #
     #   class ApplicationController < ActionController::Base
     #     before_filter :adjust_format_for_iphone
-    #   
+    #
     #     private
     #       def adjust_format_for_iphone
     #         request.format = :iphone if request.env["HTTP_USER_AGENT"][/iPhone/]
@@ -303,25 +306,9 @@ EOM
       path = (uri = request_uri) ? uri.split('?').first.to_s : ''
 
       # Cut off the path to the installation directory if given
-      path.sub!(%r/^#{relative_url_root}/, '')
-      path || ''      
+      path.sub!(%r/^#{ActionController::Base.relative_url_root}/, '')
+      path || ''
     end
-    
-    # Returns the path minus the web server relative installation directory.
-    # This can be set with the environment variable RAILS_RELATIVE_URL_ROOT.
-    # It can be automatically extracted for Apache setups. If the server is not
-    # Apache, this method returns an empty string.
-    def relative_url_root
-      @@relative_url_root ||= case
-        when @env["RAILS_RELATIVE_URL_ROOT"]
-          @env["RAILS_RELATIVE_URL_ROOT"]
-        when server_software == 'apache'
-          @env["SCRIPT_NAME"].to_s.sub(/\/dispatch\.(fcgi|rb|cgi)$/, '')
-        else
-          ''
-      end
-    end
-
 
     # Read the request body. This is useful for web services that need to
     # work with raw requests directly.
@@ -343,15 +330,15 @@ EOM
       @symbolized_path_parameters = @parameters = nil
     end
 
-    # The same as <tt>path_parameters</tt> with explicitly symbolized keys 
-    def symbolized_path_parameters 
+    # The same as <tt>path_parameters</tt> with explicitly symbolized keys
+    def symbolized_path_parameters
       @symbolized_path_parameters ||= path_parameters.symbolize_keys
     end
 
     # Returns a hash with the parameters used to form the path of the request.
     # Returned hash keys are strings.  See <tt>symbolized_path_parameters</tt> for symbolized keys.
     #
-    # Example: 
+    # Example:
     #
     #   {'action' => 'my_action', 'controller' => 'my_controller'}
     def path_parameters

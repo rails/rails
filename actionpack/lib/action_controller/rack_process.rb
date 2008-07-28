@@ -24,7 +24,7 @@ module ActionController #:nodoc:
       super()
     end
 
-    %w[ AUTH_TYPE CONTENT_TYPE GATEWAY_INTERFACE PATH_INFO
+    %w[ AUTH_TYPE GATEWAY_INTERFACE PATH_INFO
         PATH_TRANSLATED QUERY_STRING REMOTE_HOST
         REMOTE_IDENT REMOTE_USER SCRIPT_NAME
         SERVER_NAME SERVER_PROTOCOL
@@ -96,10 +96,6 @@ module ActionController #:nodoc:
 
     def remote_addr
       @env['REMOTE_ADDR']
-    end
-
-    def request_method
-      @env['REQUEST_METHOD'].downcase.to_sym
     end
 
     def server_port
@@ -250,7 +246,7 @@ end_msg
           headers['Content-Language'] = options.delete('language') if options['language']
           headers['Expires']          = options.delete('expires') if options['expires']
 
-          @status = options['Status'] || "200 OK"
+          @status = options.delete('Status') || "200 OK"
 
           # Convert 'cookie' header to 'Set-Cookie' headers.
           # Because Set-Cookie header can appear more the once in the response body,

@@ -15,6 +15,7 @@ require 'models/pirate'
 require 'models/treasure'
 require 'models/matey'
 require 'models/ship'
+require 'models/book'
 
 class FixturesTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
@@ -373,6 +374,34 @@ class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
   end
 end
 
+class FixtureNameIsNotTableNameFixturesTest < ActiveRecord::TestCase
+  set_fixture_class :items => Book
+  fixtures :items
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded 
+  # and thus takes into account our set_fixture_class
+  self.use_transactional_fixtures = false
+
+  def test_named_accessor
+    assert_kind_of Book, items(:dvd)
+  end
+end
+
+class FixtureNameIsNotTableNameMultipleFixturesTest < ActiveRecord::TestCase
+  set_fixture_class :items => Book, :funny_jokes => Joke
+  fixtures :items, :funny_jokes
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded 
+  # and thus takes into account our set_fixture_class
+  self.use_transactional_fixtures = false
+
+  def test_named_accessor_of_differently_named_fixture
+    assert_kind_of Book, items(:dvd)
+  end
+
+  def test_named_accessor_of_same_named_fixture
+    assert_kind_of Joke, funny_jokes(:a_joke)
+  end
+end
+
 class CustomConnectionFixturesTest < ActiveRecord::TestCase
   set_fixture_class :courses => Course
   fixtures :courses
@@ -432,11 +461,11 @@ class FixturesBrokenRollbackTest < ActiveRecord::TestCase
   alias_method :teardown, :blank_teardown
 
   def test_no_rollback_in_teardown_unless_transaction_active
-    assert_equal 0, Thread.current['open_transactions']
+    assert_equal 0, ActiveRecord::Base.connection.open_transactions
     assert_raise(RuntimeError) { ar_setup_fixtures }
-    assert_equal 0, Thread.current['open_transactions']
+    assert_equal 0, ActiveRecord::Base.connection.open_transactions
     assert_nothing_raised { ar_teardown_fixtures }
-    assert_equal 0, Thread.current['open_transactions']
+    assert_equal 0, ActiveRecord::Base.connection.open_transactions
   end
 
   private

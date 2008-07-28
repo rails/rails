@@ -1,7 +1,7 @@
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Hash #:nodoc:
-      # Allows for reverse merging two hashes where the keys in the calling hash take precedence over those 
+      # Allows for reverse merging two hashes where the keys in the calling hash take precedence over those
       # in the <tt>other_hash</tt>. This is particularly useful for initializing an option hash with default values:
       #
       #   def setup(options = {})
@@ -14,7 +14,7 @@ module ActiveSupport #:nodoc:
       #     { :size => 25, :velocity => 10 }.merge(options)
       #   end
       #
-      # The default <tt>:size</tt> and <tt>:velocity</tt> are only set if the +options+ hash passed in doesn't already 
+      # The default <tt>:size</tt> and <tt>:velocity</tt> are only set if the +options+ hash passed in doesn't already
       # have the respective key.
       module ReverseMerge
         # Performs the opposite of <tt>merge</tt>, with the keys and values from the first hash taking precedence over the second.

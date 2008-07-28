@@ -464,6 +464,10 @@ module ActiveRecord #:nodoc:
     cattr_accessor :schema_format , :instance_writer => false
     @@schema_format = :ruby
 
+    # Specify whether or not to use timestamps for migration numbers
+    cattr_accessor :timestamped_migrations , :instance_writer => false
+    @@timestamped_migrations = true
+
     # Determine whether to store the full constant name including namespace when using STI
     superclass_delegating_accessor :store_full_sti_class
     self.store_full_sti_class = false
@@ -852,7 +856,7 @@ module ActiveRecord #:nodoc:
       def update_counters(id, counters)
         updates = counters.inject([]) { |list, (counter_name, increment)|
           sign = increment < 0 ? "-" : "+"
-          list << "#{connection.quote_column_name(counter_name)} = #{connection.quote_column_name(counter_name)} #{sign} #{increment.abs}"
+          list << "#{connection.quote_column_name(counter_name)} = COALESCE(#{connection.quote_column_name(counter_name)}, 0) #{sign} #{increment.abs}"
         }.join(", ")
         update_all(updates, "#{connection.quote_column_name(primary_key)} = #{quote_value(id)}")
       end

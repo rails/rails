@@ -141,6 +141,9 @@ namespace :db do
     when 'mysql'
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.charset
+    when 'postgresql'
+      ActiveRecord::Base.establish_connection(config)
+      puts ActiveRecord::Base.connection.encoding
     else
       puts 'sorry, your database adapter is not supported yet, feel free to submit a patch'
     end
@@ -179,12 +182,15 @@ namespace :db do
   end
 
   namespace :fixtures do
-    desc "Load fixtures into the current environment's database.  Load specific fixtures using FIXTURES=x,y"
+    desc "Load fixtures into the current environment's database.  Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z."
     task :load => :environment do
       require 'active_record/fixtures'
-      ActiveRecord::Base.establish_connection(RAILS_ENV.to_sym)
-      (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/) : Dir.glob(File.join(RAILS_ROOT, 'test', 'fixtures', '*.{yml,csv}'))).each do |fixture_file|
-        Fixtures.create_fixtures('test/fixtures', File.basename(fixture_file, '.*'))
+      ActiveRecord::Base.establish_connection(Rails.env)
+      base_dir = File.join(Rails.root, 'test', 'fixtures')
+      fixtures_dir = ENV['FIXTURES_DIR'] ? File.join(base_dir, ENV['FIXTURES_DIR']) : base_dir
+
+      (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/).map {|f| File.join(fixtures_dir, f) } : Dir.glob(File.join(fixtures_dir, '*.{yml,csv}'))).each do |fixture_file|
+        Fixtures.create_fixtures(File.dirname(fixture_file), File.basename(fixture_file, '.*'))
       end
     end
 
@@ -215,14 +221,14 @@ namespace :db do
     desc "Create a db/schema.rb file that can be portably used against any DB supported by AR"
     task :dump => :environment do
       require 'active_record/schema_dumper'
-      File.open(ENV['SCHEMA'] || "db/schema.rb", "w") do |file|
+      File.open(ENV['SCHEMA'] || "#{RAILS_ROOT}/db/schema.rb", "w") do |file|
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
       end
     end
 
     desc "Load a schema.rb file into the database"
     task :load => :environment do
-      file = ENV['SCHEMA'] || "db/schema.rb"
+      file = ENV['SCHEMA'] || "#{RAILS_ROOT}/db/schema.rb"
       load(file)
     end
   end
@@ -234,7 +240,7 @@ namespace :db do
       case abcs[RAILS_ENV]["adapter"]
       when "mysql", "oci", "oracle"
         ActiveRecord::Base.establish_connection(abcs[RAILS_ENV])
-        File.open("db/#{RAILS_ENV}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
+        File.open("#{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
       when "postgresql"
         ENV['PGHOST']     = abcs[RAILS_ENV]["host"] if abcs[RAILS_ENV]["host"]
         ENV['PGPORT']     = abcs[RAILS_ENV]["port"].to_s if abcs[RAILS_ENV]["port"]
@@ -252,13 +258,13 @@ namespace :db do
       when "firebird"
         set_firebird_env(abcs[RAILS_ENV])
         db_string = firebird_db_string(abcs[RAILS_ENV])
-        sh "isql -a #{db_string} > db/#{RAILS_ENV}_structure.sql"
+        sh "isql -a #{db_string} > #{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql"
       else
         raise "Task not supported by '#{abcs["test"]["adapter"]}'"
       end
 
       if ActiveRecord::Base.connection.supports_migrations?
-        File.open("db/#{RAILS_ENV}_structure.sql", "a") { |f| f << ActiveRecord::Base.connection.dump_schema_information }
+        File.open("#{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql", "a") { |f| f << ActiveRecord::Base.connection.dump_schema_information }
       end
     end
   end
@@ -281,28 +287,28 @@ namespace :db do
       when "mysql"
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
-        IO.readlines("db/#{RAILS_ENV}_structure.sql").join.split("\n\n").each do |table|
+        IO.readlines("#{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql").join.split("\n\n").each do |table|
           ActiveRecord::Base.connection.execute(table)
         end
       when "postgresql"
         ENV['PGHOST']     = abcs["test"]["host"] if abcs["test"]["host"]
         ENV['PGPORT']     = abcs["test"]["port"].to_s if abcs["test"]["port"]
         ENV['PGPASSWORD'] = abcs["test"]["password"].to_s if abcs["test"]["password"]
-        `psql -U "#{abcs["test"]["username"]}" -f db/#{RAILS_ENV}_structure.sql #{abcs["test"]["database"]}`
+        `psql -U "#{abcs["test"]["username"]}" -f #{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql #{abcs["test"]["database"]}`
       when "sqlite", "sqlite3"
         dbfile = abcs["test"]["database"] || abcs["test"]["dbfile"]
-        `#{abcs["test"]["adapter"]} #{dbfile} < db/#{RAILS_ENV}_structure.sql`
+        `#{abcs["test"]["adapter"]} #{dbfile} < #{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql`
       when "sqlserver"
         `osql -E -S #{abcs["test"]["host"]} -d #{abcs["test"]["database"]} -i db\\#{RAILS_ENV}_structure.sql`
       when "oci", "oracle"
         ActiveRecord::Base.establish_connection(:test)
-        IO.readlines("db/#{RAILS_ENV}_structure.sql").join.split(";\n\n").each do |ddl|
+        IO.readlines("#{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql").join.split(";\n\n").each do |ddl|
           ActiveRecord::Base.connection.execute(ddl)
         end
       when "firebird"
         set_firebird_env(abcs["test"])
         db_string = firebird_db_string(abcs["test"])
-        sh "isql -i db/#{RAILS_ENV}_structure.sql #{db_string}"
+        sh "isql -i #{RAILS_ROOT}/db/#{RAILS_ENV}_structure.sql #{db_string}"
       else
         raise "Task not supported by '#{abcs["test"]["adapter"]}'"
       end

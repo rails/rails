@@ -25,7 +25,7 @@ module ActionView
       # Returns an entire form with all needed input tags for a specified Active Record object. For example, if <tt>@post</tt>
       # has attributes named +title+ of type +VARCHAR+ and +body+ of type +TEXT+ then
       #
-      #   form("post") 
+      #   form("post")
       #
       # would yield a form like the following (modulus formatting):
       #
@@ -90,23 +90,41 @@ module ActionView
       end
 
       # Returns a string containing the error message attached to the +method+ on the +object+ if one exists.
-      # This error message is wrapped in a <tt>DIV</tt> tag, which can be extended to include a +prepend_text+ and/or +append_text+
-      # (to properly explain the error), and a +css_class+ to style it accordingly. +object+ should either be the name of an instance variable or
-      # the actual object. As an example, let's say you have a model <tt>@post</tt> that has an error message on the +title+ attribute:
+      # This error message is wrapped in a <tt>DIV</tt> tag, which can be extended to include a <tt>:prepend_text</tt>
+      # and/or <tt>:append_text</tt> (to properly explain the error), and a <tt>:css_class</tt> to style it
+      # accordingly. +object+ should either be the name of an instance variable or the actual object. The method can be
+      # passed in either as a string or a symbol.
+      # As an example, let's say you have a model <tt>@post</tt> that has an error message on the +title+ attribute:
       #
       #   <%= error_message_on "post", "title" %>
       #   # => <div class="formError">can't be empty</div>
       #
-      #   <%= error_message_on @post, "title" %>
+      #   <%= error_message_on @post, :title %>
       #   # => <div class="formError">can't be empty</div>
       #
-      #   <%= error_message_on "post", "title", "Title simply ", " (or it won't work).", "inputError" %>
-      #   # => <div class="inputError">Title simply can't be empty (or it won't work).</div>
-      def error_message_on(object, method, prepend_text = "", append_text = "", css_class = "formError")
+      #   <%= error_message_on "post", "title",
+      #       :prepend_text => "Title simply ",
+      #       :append_text => " (or it won't work).",
+      #       :css_class => "inputError" %>
+      def error_message_on(object, method, *args)
+        options = args.extract_options!
+        unless args.empty?
+          ActiveSupport::Deprecation.warn('error_message_on takes an option hash instead of separate ' +
+            'prepend_text, append_text, and css_class arguments', caller)
+
+          options[:prepend_text] = args[0] || ''
+          options[:append_text] = args[1] || ''
+          options[:css_class] = args[2] || 'formError'
+        end
+        options.reverse_merge!(:prepend_text => '', :append_text => '', :css_class => 'formError')
+
         if (obj = (object.respond_to?(:errors) ? object : instance_variable_get("@#{object}"))) &&
           (errors = obj.errors.on(method))
-          content_tag("div", "#{prepend_text}#{errors.is_a?(Array) ? errors.first : errors}#{append_text}", :class => css_class)
-        else 
+          content_tag("div",
+            "#{options[:prepend_text]}#{errors.is_a?(Array) ? errors.first : errors}#{options[:append_text]}",
+            :class => options[:css_class]
+          )
+        else
           ''
         end
       end
@@ -133,7 +151,7 @@ module ActionView
       #
       # To specify the display for one object, you simply provide its name as a parameter.
       # For example, for the <tt>@user</tt> model:
-      # 
+      #
       #   error_messages_for 'user'
       #
       # To specify more than one object, you simply list them; optionally, you can add an extra <tt>:object_name</tt> parameter, which
@@ -151,12 +169,14 @@ module ActionView
       # instance yourself and set it up. View the source of this method to see how easy it is.
       def error_messages_for(*params)
         options = params.extract_options!.symbolize_keys
+
         if object = options.delete(:object)
           objects = [object].flatten
         else
           objects = params.collect {|object_name| instance_variable_get("@#{object_name}") }.compact
         end
-        count   = objects.inject(0) {|sum, object| sum + object.errors.count }
+
+        count  = objects.inject(0) {|sum, object| sum + object.errors.count }
         unless count.zero?
           html = {}
           [:id, :class].each do |key|
@@ -168,16 +188,25 @@ module ActionView
             end
           end
           options[:object_name] ||= params.first
-          options[:header_message] = "#{pluralize(count, 'error')} prohibited this #{options[:object_name].to_s.gsub('_', ' ')} from being saved" unless options.include?(:header_message)
-          options[:message] ||= 'There were problems with the following fields:' unless options.include?(:message)
-          error_messages = objects.sum {|object| object.errors.full_messages.map {|msg| content_tag(:li, msg) } }.join
 
-          contents = ''
-          contents << content_tag(options[:header_tag] || :h2, options[:header_message]) unless options[:header_message].blank?
-          contents << content_tag(:p, options[:message]) unless options[:message].blank?
-          contents << content_tag(:ul, error_messages)
+          I18n.with_options :locale => options[:locale], :scope => [:active_record, :error] do |locale|
+            header_message = if options.include?(:header_message)
+              options[:header_message]
+            else
+              object_name = options[:object_name].to_s.gsub('_', ' ')
+              object_name = I18n.t(object_name, :default => object_name)
+              locale.t :header_message, :count => count, :object_name => object_name
+            end
+            message = options.include?(:message) ? options[:message] : locale.t(:message)
+            error_messages = objects.sum {|object| object.errors.full_messages.map {|msg| content_tag(:li, msg) } }.join
 
-          content_tag(:div, contents, html)
+            contents = ''
+            contents << content_tag(options[:header_tag] || :h2, header_message) unless header_message.blank?
+            contents << content_tag(:p, message) unless message.blank?
+            contents << content_tag(:ul, error_messages)
+
+            content_tag(:div, contents, html)
+          end
         else
           ''
         end

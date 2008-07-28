@@ -22,11 +22,22 @@ module ActiveRecord
       end
     end
 
-    def assert_queries(num = 1)
-      $query_count = 0
+    def assert_sql(*patterns_to_match)
+      $queries_executed = []
       yield
     ensure
-      assert_equal num, $query_count, "#{$query_count} instead of #{num} queries were executed."
+      failed_patterns = []
+      patterns_to_match.each do |pattern|
+        failed_patterns << pattern unless $queries_executed.any?{ |sql| pattern === sql }
+      end
+      assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map(&:inspect).join(', ')} not found."
+    end
+
+    def assert_queries(num = 1)
+      $queries_executed = []
+      yield
+    ensure
+      assert_equal num, $queries_executed.size, "#{$queries_executed.size} instead of #{num} queries were executed."
     end
 
     def assert_no_queries(&block)

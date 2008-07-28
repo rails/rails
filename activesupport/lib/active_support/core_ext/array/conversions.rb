@@ -6,10 +6,12 @@ module ActiveSupport #:nodoc:
       module Conversions
         # Converts the array to a comma-separated sentence where the last element is joined by the connector word. Options:
         # * <tt>:connector</tt> - The word used to join the last element in arrays with two or more elements (default: "and")
-        # * <tt>:skip_last_comma</tt> - Set to true to return "a, b and c" instead of "a, b, and c".
-        def to_sentence(options = {})
-          options.assert_valid_keys(:connector, :skip_last_comma)
-          options.reverse_merge! :connector => 'and', :skip_last_comma => false
+        # * <tt>:skip_last_comma</tt> - Set to true to return "a, b and c" instead of "a, b, and c".        
+        def to_sentence(options = {})          
+          options.assert_valid_keys(:connector, :skip_last_comma, :locale)
+          
+          default = I18n.translate(:'support.array.sentence_connector', :locale => options[:locale])
+          options.reverse_merge! :connector => default, :skip_last_comma => false
           options[:connector] = "#{options[:connector]} " unless options[:connector].nil? || options[:connector].strip == ''
 
           case length
@@ -23,6 +25,7 @@ module ActiveSupport #:nodoc:
               "#{self[0...-1].join(', ')}#{options[:skip_last_comma] ? '' : ','} #{options[:connector]}#{self[-1]}"
           end
         end
+        
 
         # Calls <tt>to_param</tt> on all its elements and joins the result with
         # slashes. This is used by <tt>url_for</tt> in Action Pack. 

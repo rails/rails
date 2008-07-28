@@ -15,7 +15,7 @@ class DateTime
     if ActiveSupport.use_standard_json_time_format
       xmlschema.inspect
     else
-      %("#{strftime("%Y/%m/%d %H:%M:%S %z")}")
+      strftime('"%Y/%m/%d %H:%M:%S %z"')
     end
   end
 end
