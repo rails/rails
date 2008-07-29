@@ -129,7 +129,7 @@ module ActionView
       #   label_tag 'name', nil, :class => 'small_label'
       #   # => <label for="name" class="small_label">Name</label>
       def label_tag(name, text = nil, options = {})
-        content_tag :label, text || name.humanize, { "for" => name }.update(options.stringify_keys)
+        content_tag :label, text || name.to_s.humanize, { "for" => name }.update(options.stringify_keys)
       end
 
       # Creates a hidden form input field used to transmit data that would be lost due to HTTP's statelessness or
