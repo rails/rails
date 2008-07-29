@@ -40,6 +40,7 @@ module ActiveSupport
       @buffer        = []
       @auto_flushing = 1
       @no_block = false
+      @guard = Mutex.new
 
       if log.respond_to?(:write)
         @log = log
@@ -66,7 +67,9 @@ module ActiveSupport
       # If a newline is necessary then create a new message ending with a newline.
       # Ensures that the original message is not mutated.
       message = "#{message}\n" unless message[-1] == ?\n
-      buffer << message
+      @guard.synchronize do
+        buffer << message
+      end
       auto_flush
       message
     end
@@ -98,11 +101,16 @@ module ActiveSupport
     end
 
     def flush
-      unless buffer.empty?
-        if @no_block
-          @log.write_nonblock(buffer.slice!(0..-1).join)
-        else
-          @log.write(buffer.slice!(0..-1).join)
+      @guard.synchronize do
+        unless buffer.empty?
+          old_buffer    = @buffer
+          @buffer       = []
+          text_to_write = old_buffer.join
+          if @no_block
+            @log.write_nonblock(text_to_write)
+          else
+            @log.write(text_to_write)
+          end
         end
       end
     end
