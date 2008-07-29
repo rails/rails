@@ -39,7 +39,6 @@ module ActiveSupport
       @level         = level
       @buffer        = []
       @auto_flushing = 1
-      @no_block = false
       @guard = Mutex.new
 
       if log.respond_to?(:write)
@@ -52,12 +51,6 @@ module ActiveSupport
         @log = open(log, (File::WRONLY | File::APPEND | File::CREAT))
         @log.sync = true
         @log.write("# Logfile created on %s" % [Time.now.to_s])
-      end
-    end
-
-    def set_non_blocking_io
-      if !RUBY_PLATFORM.match(/java|mswin/) && !(@log == STDOUT) && @log.respond_to?(:write_nonblock)
-        @no_block = true
       end
     end
 
@@ -105,12 +98,7 @@ module ActiveSupport
         unless buffer.empty?
           old_buffer    = @buffer
           @buffer       = []
-          text_to_write = old_buffer.join
-          if @no_block
-            @log.write_nonblock(text_to_write)
-          else
-            @log.write(text_to_write)
-          end
+          @log.write(old_buffer.join)
         end
       end
     end
