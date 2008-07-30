@@ -767,6 +767,7 @@ Run `rake gems:install` to install the missing gems.
     # contents of the file are processed via ERB before being sent through
     # YAML::load.
     def database_configuration
+      require 'erb'
       YAML::load(ERB.new(IO.read(database_configuration_file)).result)
     end
 
