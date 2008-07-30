@@ -238,6 +238,22 @@ module ActiveRecord
   # lower than the current schema version: when migrating up, those
   # never-applied "interleaved" migrations will be automatically applied, and
   # when migrating down, never-applied "interleaved" migrations will be skipped.
+  # 
+  # == Timestamped Migrations
+  #
+  # By default, Rails generates migrations that look like:
+  #
+  #    20080717013526_your_migration_name.rb
+  #
+  # The prefix is a generation timestamp (in UTC).
+  #
+  # If you'd prefer to use numeric prefixes, you can turn timestamped migrations
+  # off by setting:
+  #
+  #    config.active_record.timestamped_migrations = false
+  # 
+  # In environment.rb.
+  #
   class Migration
     @@verbose = true
     cattr_accessor :verbose
