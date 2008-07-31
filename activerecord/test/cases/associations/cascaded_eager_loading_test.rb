@@ -9,7 +9,7 @@ require 'models/topic'
 require 'models/reply'
 
 class CascadedEagerLoadingTest < ActiveRecord::TestCase
-  fixtures :authors, :mixins, :companies, :posts, :topics
+  fixtures :authors, :mixins, :companies, :posts, :topics, :accounts, :comments, :categorizations
 
   def test_eager_association_loading_with_cascaded_two_levels
     authors = Author.find(:all, :include=>{:posts=>:comments}, :order=>"authors.id")
