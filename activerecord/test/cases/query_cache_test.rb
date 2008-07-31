@@ -58,7 +58,7 @@ end
 uses_mocha 'QueryCacheExpiryTest' do
 
 class QueryCacheExpiryTest < ActiveRecord::TestCase
-  fixtures :tasks
+  fixtures :tasks, :posts, :categories, :categories_posts
 
   def test_find
     Task.connection.expects(:clear_query_cache).times(1)

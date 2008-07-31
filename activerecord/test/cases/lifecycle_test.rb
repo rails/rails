@@ -74,7 +74,7 @@ class MultiObserver < ActiveRecord::Observer
 end
 
 class LifecycleTest < ActiveRecord::TestCase
-  fixtures :topics, :developers
+  fixtures :topics, :developers, :minimalistics
 
   def test_before_destroy
     original_count = Topic.count

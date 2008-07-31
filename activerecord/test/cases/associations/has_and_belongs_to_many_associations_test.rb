@@ -70,7 +70,7 @@ end
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
-           :parrots, :pirates, :treasures, :price_estimates
+           :parrots, :pirates, :treasures, :price_estimates, :tags, :taggings
 
   def test_has_and_belongs_to_many
     david = Developer.find(1)
