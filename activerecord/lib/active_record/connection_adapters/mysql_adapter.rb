@@ -511,6 +511,10 @@ module ActiveRecord
         keys.length == 1 ? [keys.first, nil] : nil
       end
 
+      def case_sensitive_equality_operator
+        "= BINARY"
+      end
+
       private
         def connect
           @connection.reconnect = true if @connection.respond_to?(:reconnect=)
