@@ -1007,7 +1007,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.clients.create({ :name => 'Some Client' })
 
     stats = Namespaced::Firm.find(firm.id, {
-      :select => "#{Namespaced::Firm.table_name}.*, COUNT(#{Namespaced::Client.table_name}.id) AS num_clients",
+      :select => "#{Namespaced::Firm.table_name}.id, COUNT(#{Namespaced::Client.table_name}.id) AS num_clients",
       :joins  => :clients,
       :group  => "#{Namespaced::Firm.table_name}.id"
     })

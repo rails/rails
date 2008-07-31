@@ -625,13 +625,25 @@ module ActiveRecord
           # class (which has a database table to query from).
           finder_class = class_hierarchy.detect { |klass| !klass.abstract_class? }
 
-          if value.nil? || (configuration[:case_sensitive] || !finder_class.columns_hash[attr_name.to_s].text?)
-            condition_sql = "#{record.class.quoted_table_name}.#{attr_name} #{attribute_condition(value)}"
+          is_text_column = finder_class.columns_hash[attr_name.to_s].text?
+
+          if value.nil?
+            comparison_operator = "IS ?"
+          else
+            comparison_operator = "#{connection.case_sensitive_equality_operator} ?"
+
+            if is_text_column
+              value = value.to_s
+            end
+          end
+
+          sql_attribute = "#{record.class.quoted_table_name}.#{connection.quote_column_name(attr_name)}"
+
+          if value.nil? || (configuration[:case_sensitive] || !is_text_column)
+            condition_sql = "#{sql_attribute} #{comparison_operator}"
             condition_params = [value]
           else
-            # sqlite has case sensitive SELECT query, while MySQL/Postgresql don't.
-            # Hence, this is needed only for sqlite.
-            condition_sql = "LOWER(#{record.class.quoted_table_name}.#{attr_name}) #{attribute_condition(value)}"
+            condition_sql = "LOWER(#{sql_attribute}) #{comparison_operator}"
             condition_params = [value.downcase]
           end
 
@@ -648,28 +660,10 @@ module ActiveRecord
             condition_params << record.send(:id)
           end
 
-          results = finder_class.with_exclusive_scope do
-            connection.select_all(
-              construct_finder_sql(
-                :select     => "#{connection.quote_column_name(attr_name)}",
-                :from       => "#{finder_class.quoted_table_name}",
-                :conditions => [condition_sql, *condition_params]
-              )
-            )
-          end
-
-          unless results.length.zero?
-            found = true
-
-            # As MySQL/Postgres don't have case sensitive SELECT queries, we try to find duplicate
-            # column in ruby when case sensitive option
-            if configuration[:case_sensitive] && finder_class.columns_hash[attr_name.to_s].text?
-              found = results.any? { |a| a[attr_name.to_s] == value.to_s }
-            end
-            
-            if found
+          finder_class.with_exclusive_scope do
+            if finder_class.exists?([condition_sql, *condition_params])
               message = record.errors.generate_message(attr_name, :taken, :default => configuration[:message])
-              record.errors.add(attr_name, message) 
+              record.errors.add(attr_name, message)
             end
           end
         end

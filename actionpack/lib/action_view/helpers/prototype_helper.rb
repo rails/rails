@@ -111,7 +111,7 @@ module ActionView
                          (100..599).to_a)
         AJAX_OPTIONS = Set.new([ :before, :after, :condition, :url,
                          :asynchronous, :method, :insertion, :position,
-                         :form, :with, :update, :script ]).merge(CALLBACKS)
+                         :form, :with, :update, :script, :type ]).merge(CALLBACKS)
       end
 
       # Returns a link to a remote action defined by <tt>options[:url]</tt>

@@ -122,6 +122,10 @@ module ActiveRecord #:nodoc:
   class MissingAttributeError < NoMethodError
   end
 
+  # Raised when unknown attributes are supplied via mass assignment.
+  class UnknownAttributeError < NoMethodError
+  end
+
   # Raised when an error occurred while doing a mass assignment to an attribute through the
   # <tt>attributes=</tt> method. The exception has an +attribute+ property that is the name of the
   # offending attribute.
@@ -2400,7 +2404,11 @@ module ActiveRecord #:nodoc:
         attributes = remove_attributes_protected_from_mass_assignment(attributes) if guard_protected_attributes
 
         attributes.each do |k, v|
-          k.include?("(") ? multi_parameter_attributes << [ k, v ] : send(k + "=", v)
+          if k.include?("(")
+            multi_parameter_attributes << [ k, v ]
+          else
+            respond_to?(:"#{k}=") ? send(:"#{k}=", v) : raise(UnknownAttributeError, "unknown attribute: #{k}")
+          end
         end
 
         assign_multiparameter_attributes(multi_parameter_attributes)

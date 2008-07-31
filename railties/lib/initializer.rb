@@ -904,7 +904,7 @@ Run `rake gems:install` to install the missing gems.
       end
 
       def default_cache_classes
-        false
+        true
       end
 
       def default_whiny_nils
