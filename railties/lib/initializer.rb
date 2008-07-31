@@ -349,8 +349,9 @@ Run `rake gems:install` to install the missing gems.
     def load_application_classes
       if configuration.cache_classes
         configuration.eager_load_paths.each do |load_path|
-          Dir.glob("#{load_path}/*.rb").each do |file|
-            require_dependency file
+          matcher = /\A#{Regexp.escape(load_path)}(.*)\.rb\Z/
+          Dir.glob("#{load_path}/**/*.rb").each do |file|
+            require_dependency file.sub(matcher, '\1')
           end
         end
       end
