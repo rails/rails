@@ -625,7 +625,13 @@ module ActiveRecord
           # class (which has a database table to query from).
           finder_class = class_hierarchy.detect { |klass| !klass.abstract_class? }
 
-          if value.nil? || (configuration[:case_sensitive] || !finder_class.columns_hash[attr_name.to_s].text?)
+          is_text_column = finder_class.columns_hash[attr_name.to_s].text?
+
+          if !value.nil? && is_text_column
+            value = value.to_s
+          end
+
+          if value.nil? || (configuration[:case_sensitive] || !is_text_column)
             condition_sql = "#{record.class.quoted_table_name}.#{attr_name} #{attribute_condition(value)}"
             condition_params = [value]
           else
