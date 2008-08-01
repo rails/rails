@@ -1208,7 +1208,7 @@ module ActionController #:nodoc:
         elsif template_exists? && template_public?
           default_render
         else
-          raise UnknownAction, "No action responded to #{action_name}", caller
+          raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.to_a.sort.to_sentence}", caller
         end
       end
 
