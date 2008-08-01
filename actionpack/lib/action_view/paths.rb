@@ -42,6 +42,7 @@ module ActionView #:nodoc:
       end
 
       def [](path)
+        raise "Unloaded view path! #{@path}" unless @loaded
         @paths[path]
       end
 
@@ -51,6 +52,7 @@ module ActionView #:nodoc:
 
       def load
         reload! unless loaded?
+        self
       end
 
       # Rebuild load path directory cache
