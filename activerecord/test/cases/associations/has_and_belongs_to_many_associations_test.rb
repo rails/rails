@@ -299,6 +299,17 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, projects(:active_record, :reload).developers.size
   end
 
+  def test_uniq_option_prevents_duplicate_push
+    project = projects(:active_record)
+    project.developers << developers(:jamis)
+    project.developers << developers(:david)
+    assert_equal 3, project.developers.size
+
+    project.developers << developers(:david)
+    project.developers << developers(:jamis)
+    assert_equal 3, project.developers.size
+  end
+
   def test_deleting
     david = Developer.find(1)
     active_record = Project.find(1)
