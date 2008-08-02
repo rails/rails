@@ -688,13 +688,17 @@ Run `rake gems:install` to install the missing gems.
     # You can add gems with the #gem method.
     attr_accessor :gems
 
-    # Adds a single Gem dependency to the rails application.
+    # Adds a single Gem dependency to the rails application. By default, it will require
+    # the library with the same name as the gem. Use :lib to specify a different name.
     #
     #   # gem 'aws-s3', '>= 0.4.0'
     #   # require 'aws/s3'
     #   config.gem 'aws-s3', :lib => 'aws/s3', :version => '>= 0.4.0', \
     #     :source => "http://code.whytheluckystiff.net"
     #
+    # To require a library be installed, but not attempt to load it, pass :lib => false
+    #
+    #   config.gem 'qrp', :version => '0.4.1', :lib => false
     def gem(name, options = {})
       @gems << Rails::GemDependency.new(name, options)
     end
