@@ -768,6 +768,18 @@ Run `rake gems:install` to install the missing gems.
       ::RAILS_ROOT.replace @root_path
     end
 
+    # Enable threaded mode. Allows concurrent requests to controller actions and
+    # multiple database connections. Also disables automatic dependency loading
+    # after boot
+    def threadsafe!
+      self.cache_classes = true
+      self.dependency_loading = false
+      self.active_record.allow_concurrency = true
+      self.action_controller.allow_concurrency = true
+      self.to_prepare { Rails.cache.threadsafe! }
+      self
+    end
+
     # Loads and returns the contents of the #database_configuration_file. The
     # contents of the file are processed via ERB before being sent through
     # YAML::load.
