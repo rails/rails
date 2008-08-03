@@ -149,6 +149,10 @@ module ActiveRecord
         "INSERT INTO #{quote_table_name(table_name)} VALUES(DEFAULT)"
       end
 
+      def case_sensitive_equality_operator
+        "="
+      end
+
       protected
         # Returns an array of record hashes with the column names as keys and
         # column values as values.

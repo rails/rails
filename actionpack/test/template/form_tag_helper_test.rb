@@ -190,6 +190,12 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_label_tag_with_symbol
+    actual = label_tag :title
+    expected = %(<label for="title">Title</label>)
+    assert_dom_equal expected, actual
+  end
+
   def test_label_tag_with_text
     actual = label_tag "title", "My Title"
     expected = %(<label for="title">My Title</label>)

@@ -111,7 +111,7 @@ module ActionView
                          (100..599).to_a)
         AJAX_OPTIONS = Set.new([ :before, :after, :condition, :url,
                          :asynchronous, :method, :insertion, :position,
-                         :form, :with, :update, :script ]).merge(CALLBACKS)
+                         :form, :with, :update, :script, :type ]).merge(CALLBACKS)
       end
 
       # Returns a link to a remote action defined by <tt>options[:url]</tt>
@@ -608,7 +608,7 @@ module ActionView
         # Example:
         #
         #   # Generates:
-        #   #     new Insertion.Bottom("list", "<li>Some item</li>");
+        #   #     new Element.insert("list", { bottom: <li>Some item</li>" });
         #   #     new Effect.Highlight("list");
         #   #     ["status-indicator", "cancel-link"].each(Element.hide);
         #   update_page do |page|
@@ -741,16 +741,16 @@ module ActionView
           #
           #   # Insert the rendered 'navigation' partial just before the DOM
           #   # element with ID 'content'.
-          #   # Generates: new Insertion.Before("content", "-- Contents of 'navigation' partial --");
+          #   # Generates: Element.insert("content", { before: "-- Contents of 'navigation' partial --" });
           #   page.insert_html :before, 'content', :partial => 'navigation'
           #
           #   # Add a list item to the bottom of the <ul> with ID 'list'.
-          #   # Generates: new Insertion.Bottom("list", "<li>Last item</li>");
+          #   # Generates: Element.insert("list", { bottom: "<li>Last item</li>" });
           #   page.insert_html :bottom, 'list', '<li>Last item</li>'
           #
           def insert_html(position, id, *options_for_render)
-            insertion = position.to_s.camelize
-            call "new Insertion.#{insertion}", id, render(*options_for_render)
+            content = javascript_object_for(render(*options_for_render))
+            record "Element.insert(\"#{id}\", { #{position.to_s.downcase}: #{content} });"
           end
 
           # Replaces the inner HTML of the DOM element with the given +id+.
@@ -1054,7 +1054,7 @@ module ActionView
 
         js_options['asynchronous'] = options[:type] != :synchronous
         js_options['method']       = method_option_to_s(options[:method]) if options[:method]
-        js_options['insertion']    = "Insertion.#{options[:position].to_s.camelize}" if options[:position]
+        js_options['insertion']    = options[:position].to_s.downcase if options[:position]
         js_options['evalScripts']  = options[:script].nil? || options[:script]
 
         if options[:form]

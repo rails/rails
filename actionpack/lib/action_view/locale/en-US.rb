@@ -14,19 +14,40 @@ I18n.backend.store_translations :'en-US', {
       :over_x_years        => ['over 1 year', 'over {{count}} years']
     }
   },
-  :currency => {
+  :number => {
     :format => {
-      :unit => '$',
-      :precision => 2,
+      :precision => 3,
       :separator => '.',
-      :delimiter => ',',
-      :format => '%u%n',
+      :delimiter => ','
+    },
+    :currency => {
+      :format => {
+        :unit => '$',
+        :precision => 2,
+        :format => '%u%n'
+      }
+    },
+    :human => {
+      :format => {
+        :precision => 1,
+        :delimiter => ''
+      }
+    },
+    :percentage => {
+      :format => {
+        :delimiter => ''
+      }
+    },
+    :precision => {
+      :format => {
+        :delimiter => ''
+      }
     }
   },
   :active_record => {
     :error => {
       :header_message => ["1 error prohibited this {{object_name}} from being saved", "{{count}} errors prohibited this {{object_name}} from being saved"],
       :message => "There were problems with the following fields:"
-    }            
-  }  
+    }
+  }
 }

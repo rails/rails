@@ -250,7 +250,7 @@ module ActionMailer #:nodoc:
 
     private_class_method :new #:nodoc:
 
-    class_inheritable_accessor :template_root
+    class_inheritable_accessor :view_paths
     cattr_accessor :logger
 
     cattr_accessor :template_extensions
@@ -425,9 +425,12 @@ module ActionMailer #:nodoc:
         template_extensions << extension
       end
 
+      def template_root
+        self.view_paths && self.view_paths.first
+      end
+
       def template_root=(root)
-        root = ActionView::PathSet::Path.new(root) if root.is_a?(String)
-        write_inheritable_attribute(:template_root, root)
+        self.view_paths = ActionView::Base.process_view_paths(root)
       end
     end
 
@@ -541,12 +544,20 @@ module ActionMailer #:nodoc:
         initialize_template_class(body).render(opts)
       end
 
+      def template_root
+        self.class.template_root
+      end
+
+      def template_root=(root)
+        self.class.template_root = root
+      end
+
       def template_path
         "#{template_root}/#{mailer_name}"
       end
 
       def initialize_template_class(assigns)
-        ActionView::Base.new(template_root, assigns, self)
+        ActionView::Base.new(view_paths, assigns, self)
       end
 
       def sort_parts(parts, order = [])

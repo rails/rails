@@ -72,13 +72,13 @@ module ActiveSupport
 
       protected
         def run_warmup
-          5.times { GC.start }
+          GC.start
 
           time = Metrics::Time.new
           run_test(time, :benchmark)
           puts "%s (%s warmup)" % [full_test_name, time.format(time.total)]
 
-          5.times { GC.start }
+          GC.start
         end
 
         def run_profile(metric)

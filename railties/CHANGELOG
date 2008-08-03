@@ -1,5 +1,7 @@
 *Edge*
 
+* Turn cache_classes on by default [Josh Peek]
+
 * Added configurable eager load paths. Defaults to app/models, app/controllers, and app/helpers [Josh Peek]
 
 * Introduce simple internationalization support.  [Ruby i18n team]

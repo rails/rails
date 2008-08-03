@@ -7,7 +7,7 @@
 # barebones base class that emulates Builder::BlankSlate while still relying on
 # Ruby 1.9's BasicObject in Ruby 1.9.
 module ActiveSupport
-  if RUBY_VERSION >= '1.9'
+  if defined? ::BasicObject
     class BasicObject < ::BasicObject
       undef_method :==
       undef_method :equal?

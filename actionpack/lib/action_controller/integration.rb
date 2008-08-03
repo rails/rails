@@ -507,7 +507,7 @@ EOF
       # Delegate unhandled messages to the current session instance.
       def method_missing(sym, *args, &block)
         reset! unless @integration_session
-        returning @integration_session.send!(sym, *args, &block) do
+        returning @integration_session.__send__(sym, *args, &block) do
           copy_session_variables!
         end
       end
