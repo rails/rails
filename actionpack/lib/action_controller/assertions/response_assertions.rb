@@ -87,11 +87,11 @@ module ActionController
       #
       def assert_template(expected = nil, message=nil)
         clean_backtrace do
-          rendered = @response.rendered_template
+          rendered = @response.rendered_template.to_s
           msg = build_message(message, "expecting <?> but rendering with <?>", expected, rendered)
           assert_block(msg) do
             if expected.nil?
-              @response.rendered_template.nil?
+              @response.rendered_template.blank?
             else
               rendered.to_s.match(expected)
             end
