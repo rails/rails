@@ -13,38 +13,25 @@ module ActiveSupport
       end
 
       def read(name, options = nil)
-        @mutex.synchronize do
-          super
-          @data[name]
-        end
+        super
+        @data[name]
       end
 
       def write(name, value, options = nil)
-        @mutex.synchronize do
-          super
-          @data[name] = value
-        end
+        super
+        @data[name] = value
       end
 
       def delete(name, options = nil)
-        @mutex.synchronize do
-          super
-          @data.delete(name)
-        end
+        @data.delete(name)
       end
 
       def delete_matched(matcher, options = nil)
-        @mutex.synchronize do
-          super
-          @data.delete_if { |k,v| k =~ matcher }
-        end
+        @data.delete_if { |k,v| k =~ matcher }
       end
 
       def exist?(name,options = nil)
-        @mutex.synchronize do
-          super
-          @data.has_key?(name)
-        end
+        @data.has_key?(name)
       end
 
       def increment(key, amount = 1)
@@ -60,9 +47,7 @@ module ActiveSupport
       end
 
       def clear
-        @mutex.synchronize do
-          @data.clear
-        end
+        @data.clear
       end
     end
   end
