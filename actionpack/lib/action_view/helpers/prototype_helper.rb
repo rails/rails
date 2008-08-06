@@ -608,7 +608,7 @@ module ActionView
         # Example:
         #
         #   # Generates:
-        #   #     new Element.insert("list", { bottom: <li>Some item</li>" });
+        #   #     new Element.insert("list", { bottom: "<li>Some item</li>" });
         #   #     new Effect.Highlight("list");
         #   #     ["status-indicator", "cancel-link"].each(Element.hide);
         #   update_page do |page|
