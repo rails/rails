@@ -1199,7 +1199,7 @@ module ActionController #:nodoc:
       end
 
       def perform_action
-        if self.class.action_methods.include?(action_name)
+        if action_methods.include?(action_name)
           send(action_name)
           default_render unless performed?
         elsif respond_to? :method_missing
@@ -1208,7 +1208,7 @@ module ActionController #:nodoc:
         elsif template_exists? && template_public?
           default_render
         else
-          raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.to_a.sort.to_sentence}", caller
+          raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.sort.to_sentence}", caller
         end
       end
 
@@ -1234,7 +1234,7 @@ module ActionController #:nodoc:
       end
 
       def self.action_methods
-        @action_methods ||= Set.new(public_instance_methods.map { |m| m.to_s }) - hidden_actions
+        @action_methods ||= Set.new(public_instance_methods.map { |m| m.to_s }) - hidden_actions + public_instance_methods(false).map { |m| m.to_s }
       end
 
       def add_variables_to_assigns
