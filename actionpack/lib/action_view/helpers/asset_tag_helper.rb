@@ -463,7 +463,7 @@ module ActionView
       end
 
       private
-        COMPUTED_PUBLIC_PATHS = ActiveSupport::Cache::MemoryStore.new.silence!.threadsafe!
+        COMPUTED_PUBLIC_PATHS = ActiveSupport::Cache::MemoryStore.new.silence!
 
         # Add the the extension +ext+ if not present. Return full URLs otherwise untouched.
         # Prefix with <tt>/dir/</tt> if lacking a leading +/+. Account for relative URL
