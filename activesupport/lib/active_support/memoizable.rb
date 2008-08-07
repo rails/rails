@@ -29,14 +29,24 @@ module ActiveSupport
           raise "Already memoized #{symbol}" if method_defined?(:#{original_method})
           alias #{original_method} #{symbol}
 
-          def #{symbol}(*args)
-            #{memoized_ivar} ||= {}
-            reload = args.pop if args.last == true || args.last == :reload
+          if instance_method(:#{symbol}).arity == 0
+            def #{symbol}(reload = false)
+              if !reload && defined? #{memoized_ivar}
+                #{memoized_ivar}
+              else
+                #{memoized_ivar} = #{original_method}.freeze
+              end
+            end
+          else
+            def #{symbol}(*args)
+              #{memoized_ivar} ||= {}
+              reload = args.pop if args.last == true || args.last == :reload
 
-            if !reload && #{memoized_ivar} && #{memoized_ivar}.has_key?(args)
-              #{memoized_ivar}[args]
-            else
-              #{memoized_ivar}[args] = #{original_method}(*args).freeze
+              if !reload && #{memoized_ivar} && #{memoized_ivar}.has_key?(args)
+                #{memoized_ivar}[args]
+              else
+                #{memoized_ivar}[args] = #{original_method}(*args).freeze
+              end
             end
           end
         EOS
