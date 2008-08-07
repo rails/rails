@@ -25,7 +25,7 @@ module ActiveSupport
 
       def self.included(base)
         base.class_inheritable_hash :profile_options
-        base.profile_options = DEFAULTS.dup
+        base.profile_options = DEFAULTS
       end
 
       def full_test_name
@@ -34,6 +34,7 @@ module ActiveSupport
 
       def run(result)
         return if method_name =~ /^default_test$/
+        self.profile_options ||= DEFAULTS
 
         yield(self.class::STARTED, name)
         @_result = result
@@ -43,8 +44,6 @@ module ActiveSupport
           if klass = Metrics[metric_name.to_sym]
             run_profile(klass.new)
             result.add_run
-          else
-            $stderr.puts '%20s: unsupported' % metric_name.to_s
           end
         end
 
@@ -164,7 +163,14 @@ module ActiveSupport
       end
 
       class Profiler < Performer
+        def initialize(*args)
+          super
+          @supported = @metric.measure_mode rescue false
+        end
+
         def run
+          return unless @supported
+
           RubyProf.measure_mode = @metric.measure_mode
           RubyProf.start
           RubyProf.pause
@@ -173,7 +179,17 @@ module ActiveSupport
           @total = @data.threads.values.sum(0) { |method_infos| method_infos.sort.last.total_time }
         end
 
+        def report
+          if @supported
+            super
+          else
+            '%20s: unsupported' % @metric.name
+          end
+        end
+
         def record
+          return unless @supported
+
           klasses = profile_options[:formats].map { |f| RubyProf.const_get("#{f.to_s.camelize}Printer") }.compact
 
           klasses.each do |klass|
@@ -202,8 +218,7 @@ module ActiveSupport
 
       module Metrics
         def self.[](name)
-          klass = const_get(name.to_s.camelize)
-          klass if klass::Mode
+          const_get(name.to_s.camelize)
         rescue NameError
           nil
         end
@@ -249,6 +264,16 @@ module ActiveSupport
                 yield
               ensure
                 GC.disable_stats
+              end
+            elsif defined?(GC::Profiler)
+              def with_gc_stats
+                GC.start
+                GC.disable
+                GC::Profiler.enable
+                yield
+              ensure
+                GC::Profiler.disable
+                GC.enable
               end
             else
               def with_gc_stats
@@ -310,7 +335,7 @@ module ActiveSupport
               RubyProf.measure_memory / 1024.0
             end
 
-          # Ruby 1.8 + adymo patch
+          # Ruby 1.8 + railsbench patch
           elsif GC.respond_to?(:allocated_size)
             def measure
               GC.allocated_size / 1024.0
@@ -322,10 +347,26 @@ module ActiveSupport
               GC.heap_info['heap_current_memory'] / 1024.0
             end
 
+          # Ruby 1.9 with total_malloc_allocated_size patch
+          elsif GC.respond_to?(:malloc_total_allocated_size)
+            def measure
+              GC.total_malloc_allocated_size / 1024.0
+            end
+
           # Ruby 1.9 unpatched
           elsif GC.respond_to?(:malloc_allocated_size)
             def measure
               GC.malloc_allocated_size / 1024.0
+            end
+
+          # Ruby 1.9 + GC profiler patch
+          elsif defined?(GC::Profiler)
+            def measure
+              GC.enable
+              GC.start
+              kb = GC::Profiler.data.last[:HEAP_USE_SIZE] / 1024.0
+              GC.disable
+              kb
             end
           end
 
@@ -341,9 +382,22 @@ module ActiveSupport
             def measure
               RubyProf.measure_allocations
             end
+
+          # Ruby 1.8 + railsbench patch
           elsif ObjectSpace.respond_to?(:allocated_objects)
             def measure
               ObjectSpace.allocated_objects
+            end
+
+          # Ruby 1.9 + GC profiler patch
+          elsif defined?(GC::Profiler)
+            def measure
+              GC.enable
+              GC.start
+              last = GC::Profiler.data.last
+              count = last[:HEAP_LIVE_OBJECTS] + last[:HEAP_FREE_OBJECTS]
+              GC.disable
+              count
             end
           end
 
