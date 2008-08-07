@@ -40,4 +40,40 @@ unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
       assert_equal @connections.length, 5
     end
   end
+
+  class PooledConnectionsTest < ActiveRecord::TestCase
+    def setup
+      @connection = ActiveRecord::Base.remove_connection
+      @connections = []
+      @allow_concurrency = ActiveRecord::Base.allow_concurrency
+      ActiveRecord::Base.allow_concurrency = true
+    end
+
+    def teardown
+      ActiveRecord::Base.clear_all_connections!
+      ActiveRecord::Base.allow_concurrency = @allow_concurrency
+      ActiveRecord::Base.establish_connection(@connection)
+    end
+
+    def gather_connections
+      ActiveRecord::Base.establish_connection(@connection.merge({:pool => 2, :wait_timeout => 0.3}))
+      @timed_out = 0
+
+      4.times do
+        Thread.new do
+          begin
+            @connections << ActiveRecord::Base.connection_pool.checkout
+          rescue ActiveRecord::ConnectionTimeoutError
+            @timed_out += 1
+          end
+        end.join
+      end
+    end
+
+    def test_threaded_connections
+      gather_connections
+      assert_equal @connections.length, 2
+      assert_equal @timed_out, 2
+    end
+  end
 end

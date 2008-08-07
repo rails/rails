@@ -116,6 +116,10 @@ module ActiveRecord
         retrieve_connection
       end
 
+      def connection_pool
+        connection_handler.retrieve_connection_pool(self)
+      end
+
       def retrieve_connection
         connection_handler.retrieve_connection(self)
       end

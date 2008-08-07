@@ -20,15 +20,5 @@ be more thread-safe, and to add connection pooling features.
 
 Remaining tasks:
 
-- Fixed-size connection pool
-- Add checkin/checkout API
-- Add a #with_connection API that allows checkin/checkout of a connection outside of a provided block.
-
-    Model.with_connection do |conn|
-      Thread.new {
-        Model.connection = conn
-        # do something with conn
-      }
-      Model.connection.select ....
-    end
+- Review and put the thing to real work.
 - Look at whether existing clear_* or verify_* methods can be deprecated or removed.
