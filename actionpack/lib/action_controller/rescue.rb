@@ -148,7 +148,7 @@ module ActionController #:nodoc:
       end
 
       # Overwrite to implement public exception handling (for requests answering false to <tt>local_request?</tt>).  By
-      # default will call render_optional_error_file.  Override this method to provide more user friendly error messages.s
+      # default will call render_optional_error_file.  Override this method to provide more user friendly error messages.
       def rescue_action_in_public(exception) #:doc:
         render_optional_error_file response_code_for_rescue(exception)
       end
