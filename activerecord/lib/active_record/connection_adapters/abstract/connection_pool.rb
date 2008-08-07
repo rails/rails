@@ -237,7 +237,7 @@ module ActiveRecord
 
       def checkin(conn)
         @connection_mutex.synchronize do
-          @checked_out -= conn
+          @checked_out.delete conn
           @queue.signal
         end
       end
