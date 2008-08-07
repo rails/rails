@@ -3,22 +3,22 @@ require 'abstract_unit'
 class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
   include ActionView::Helpers::DateHelper
   attr_reader :request
-  
+
   def setup
     @from = Time.mktime(2004, 6, 6, 21, 45, 0)
   end
-  
+
   uses_mocha 'date_helper_distance_of_time_in_words_i18n_test' do
     # distance_of_time_in_words
 
     def test_distance_of_time_in_words_calls_i18n
       { # with include_seconds
-        [2.seconds,  true]  => [:'less_than_x_seconds', 5],   
-        [9.seconds,  true]  => [:'less_than_x_seconds', 10],  
-        [19.seconds, true]  => [:'less_than_x_seconds', 20],  
-        [30.seconds, true]  => [:'half_a_minute',       nil], 
-        [59.seconds, true]  => [:'less_than_x_minutes', 1], 
-        [60.seconds, true]  => [:'x_minutes',           1], 
+        [2.seconds,  true]  => [:'less_than_x_seconds', 5],
+        [9.seconds,  true]  => [:'less_than_x_seconds', 10],
+        [19.seconds, true]  => [:'less_than_x_seconds', 20],
+        [30.seconds, true]  => [:'half_a_minute',       nil],
+        [59.seconds, true]  => [:'less_than_x_minutes', 1],
+        [60.seconds, true]  => [:'x_minutes',           1],
 
         # without include_seconds
         [29.seconds, false] => [:'less_than_x_minutes', 1],
@@ -38,7 +38,7 @@ class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
 
     def assert_distance_of_time_in_words_translates_key(passed, expected)
       diff, include_seconds = *passed
-      key, count = *expected    
+      key, count = *expected
       to = @from + diff
 
       options = {:locale => 'en-US', :scope => :'datetime.distance_in_words'}
@@ -49,11 +49,11 @@ class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
     end
   end
 end
-  
+
 class DateHelperSelectTagsI18nTests < Test::Unit::TestCase
   include ActionView::Helpers::DateHelper
   attr_reader :request
-  
+
   uses_mocha 'date_helper_select_tags_i18n_tests' do
     def setup
       I18n.stubs(:translate).with(:'date.month_names', :locale => 'en-US').returns Date::MONTHNAMES
