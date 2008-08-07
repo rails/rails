@@ -3,7 +3,7 @@ require 'set'
 
 module ActiveRecord
   module ConnectionAdapters
-    # Connection pool API for ActiveRecord database connections.
+    # Connection pool base class and ActiveRecord database connections.
     class ConnectionPool
       # Factory method for connection pools.
       # Determines pool type to use based on contents of connection specification.
@@ -14,6 +14,7 @@ module ActiveRecord
 
       delegate :verification_timeout, :to => "::ActiveRecord::Base"
       attr_reader :spec
+
       def initialize(spec)
         @spec = spec
         # The cache of reserved connections mapped to threads
@@ -22,21 +23,35 @@ module ActiveRecord
         @connection_mutex = Monitor.new
       end
 
-      # Retrieve the connection reserved for the current thread, or call #reserve to obtain one
-      # if necessary.
-      def open_connection
+      # Retrieve the connection associated with the current thread, or call
+      # #checkout to obtain one if necessary.
+      #
+      # #connection can be called any number of times; the connection is
+      # held in a hash keyed by the thread id.
+      def connection
         if conn = @reserved_connections[active_connection_name]
           conn.verify!(verification_timeout)
           conn
         else
-          @reserved_connections[active_connection_name] = reserve
+          @reserved_connections[active_connection_name] = checkout
         end
       end
-      alias connection open_connection
 
-      def close_connection
+      # Signal that the thread is finished with the current connection.
+      # #release_thread_connection releases the connection-thread association
+      # and returns the connection to the pool.
+      def release_thread_connection
         conn = @reserved_connections.delete(active_connection_name)
-        release conn if conn
+        checkin conn if conn
+      end
+
+      # Reserve a connection, and yield it to a block. Ensure the connection is
+      # checked back in when finished.
+      def with_connection
+        conn = checkout
+        yield conn
+      ensure
+        checkin conn
       end
 
       # Returns true if a connection has already been opened.
@@ -44,22 +59,10 @@ module ActiveRecord
         !connections.empty?
       end
 
-      # Reserve (check-out) a database connection for the current thread.
-      def reserve
-        raise NotImplementedError, "reserve is an abstract method"
-      end
-      alias checkout reserve
-
-      # Release (check-in) a database connection for the current thread.
-      def release(connection)
-        raise NotImplementedError, "release is an abstract method"
-      end
-      alias checkin release
-
       # Disconnect all connections in the pool.
       def disconnect!
         @reserved_connections.each do |name,conn|
-          release(conn)
+          checkin conn
         end
         connections.each do |conn|
           conn.disconnect!
@@ -70,7 +73,7 @@ module ActiveRecord
       # Clears the cache which maps classes
       def clear_reloadable_connections!
         @reserved_connections.each do |name, conn|
-          release(conn)
+          checkin conn
         end
         @reserved_connections = {}
         connections.each do |conn|
@@ -84,29 +87,41 @@ module ActiveRecord
       # Verify active connections.
       def verify_active_connections! #:nodoc:
         remove_stale_cached_threads!(@reserved_connections) do |name, conn|
-          release(conn)
+          checkin conn
         end
         connections.each do |connection|
           connection.verify!(verification_timeout)
         end
       end
 
-      synchronize :open_connection, :close_connection, :reserve, :release,
+      # Check-out a database connection from the pool.
+      def checkout
+        raise NotImplementedError, "checkout is an abstract method"
+      end
+
+      # Check-in a database connection back into the pool.
+      def checkin(connection)
+        raise NotImplementedError, "checkin is an abstract method"
+      end
+
+      def remove_connection(conn)
+        raise NotImplementedError, "remove_connection is an abstract method"
+      end
+      private :remove_connection
+
+      # Array containing all connections (reserved or available) in the pool.
+      def connections
+        raise NotImplementedError, "connections is an abstract method"
+      end
+      private :connections
+
+      synchronize :connection, :release_thread_connection, :checkout, :checkin,
         :clear_reloadable_connections!, :verify_active_connections!,
         :connected?, :disconnect!, :with => :@connection_mutex
 
       private
       def active_connection_name #:nodoc:
         Thread.current.object_id
-      end
-
-      def remove_connection(conn)
-        raise NotImplementedError, "remove_connection is an abstract method"
-      end
-
-      # Array containing all connections (reserved or available) in the pool.
-      def connections
-        raise NotImplementedError, "connections is an abstract method"
       end
 
       # Remove stale threads from the cache.
@@ -131,11 +146,11 @@ module ActiveRecord
 
       def active_connections; @reserved_connections; end
 
-      def reserve
+      def checkout
         new_connection
       end
 
-      def release(conn)
+      def checkin(conn)
         conn.disconnect!
       end
 
@@ -168,7 +183,8 @@ module ActiveRecord
         @connection_pools[name] = ConnectionAdapters::ConnectionPool.create(spec)
       end
 
-      # for internal use only and for testing
+      # for internal use only and for testing;
+      # only works with ConnectionPerThread pool class
       def active_connections #:nodoc:
         @connection_pools.inject({}) do |hash,kv|
           hash[kv.first] = kv.last.active_connection
@@ -179,7 +195,7 @@ module ActiveRecord
 
       # Clears the cache which maps classes to connections.
       def clear_active_connections!
-        @connection_pools.each_value {|pool| pool.close_connection }
+        @connection_pools.each_value {|pool| pool.release_thread_connection }
       end
 
       # Clears the cache which maps classes
@@ -205,7 +221,8 @@ module ActiveRecord
         (pool && pool.connection) or raise ConnectionNotEstablished
       end
 
-      # Returns true if a connection that's accessible to this class has already been opened.
+      # Returns true if a connection that's accessible to this class has
+      # already been opened.
       def connected?(klass)
         retrieve_connection_pool(klass).connected?
       end
