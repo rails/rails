@@ -16,6 +16,16 @@ uses_mocha 'Memoizable' do
         "Josh"
       end
 
+      def name?
+        true
+      end
+      memoize :name?
+
+      def update(name)
+        "Joshua"
+      end
+      memoize :update
+
       def age
         @age_calls += 1
         nil
@@ -88,6 +98,10 @@ uses_mocha 'Memoizable' do
       assert_equal 1, @person.name_calls
     end
 
+    def test_memoization_with_punctuation
+      assert_equal true, @person.name?
+    end
+
     def test_memoization_with_nil_value
       assert_equal nil, @person.age
       assert_equal 1, @person.age_calls
@@ -114,6 +128,7 @@ uses_mocha 'Memoizable' do
     def test_memoized_is_not_affected_by_freeze
       @person.freeze
       assert_equal "Josh", @person.name
+      assert_equal "Joshua", @person.update("Joshua")
     end
 
     def test_memoization_with_args

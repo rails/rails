@@ -10,9 +10,16 @@ module ActiveSupport
       end
 
       def freeze_with_memoizable
-        methods.each do |method|
-          __send__($1) if method.to_s =~ /^_unmemoized_(.*)/
-        end unless frozen?
+        unless frozen?
+          methods.each do |method|
+            if method.to_s =~ /^_unmemoized_(.*)/
+              begin
+                __send__($1)
+              rescue ArgumentError
+              end
+            end
+          end
+        end
 
         freeze_without_memoizable
       end
@@ -21,7 +28,7 @@ module ActiveSupport
     def memoize(*symbols)
       symbols.each do |symbol|
         original_method = "_unmemoized_#{symbol}"
-        memoized_ivar = "@_memoized_#{symbol}"
+        memoized_ivar = "@_memoized_#{symbol.to_s.sub(/\?\Z/, '_query').sub(/!\Z/, '_bang')}"
 
         class_eval <<-EOS, __FILE__, __LINE__
           include Freezable
