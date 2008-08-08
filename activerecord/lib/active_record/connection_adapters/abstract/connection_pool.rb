@@ -232,10 +232,10 @@ module ActiveRecord
       def checkout
         # Checkout an available connection
         conn = @connection_mutex.synchronize do
-          if @connections.length < @size
-            checkout_new_connection
-          elsif @checked_out.size < @connections.size
+          if @checked_out.size < @connections.size
             checkout_existing_connection
+          elsif @connections.size < @size
+            checkout_new_connection
           end
         end
         return conn if conn
