@@ -252,18 +252,17 @@ EOM
       @env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https'
     end
 
-    def host_with_port_without_standard_port_handling
+    def raw_host_with_port
       if forwarded = env["HTTP_X_FORWARDED_HOST"]
         forwarded.split(/,\s?/).last
       else
         env['HTTP_HOST'] || env['SERVER_NAME'] || "#{env['SERVER_ADDR']}:#{env['SERVER_PORT']}"
       end
     end
-    memoize :host_with_port_without_standard_port_handling
 
     # Returns the host for this request, such as example.com.
     def host
-      host_with_port_without_standard_port_handling.sub(/:\d+\Z/, '')
+      raw_host_with_port.sub(/:\d+$/, '')
     end
     memoize :host
 
@@ -276,7 +275,7 @@ EOM
 
     # Returns the port number of this request as an integer.
     def port
-      if host_with_port_without_standard_port_handling =~ /:(\d+)$/
+      if raw_host_with_port =~ /:(\d+)$/
         $1.to_i
       else
         standard_port
@@ -295,7 +294,7 @@ EOM
     # Returns a port suffix like ":8080" if the port number of this request
     # is not the default HTTP port 80 or HTTPS port 443.
     def port_string
-      ":#{port}" unless port == standard_port
+      port == standard_port ? '' : ":#{port}"
     end
 
     # Returns the domain part of a host, such as rubyonrails.org in "www.rubyonrails.org". You can specify
@@ -333,16 +332,17 @@ EOM
         (%r{^\w+\://[^/]+(/.*|$)$} =~ uri) ? $1 : uri
       else
         # Construct IIS missing REQUEST_URI from SCRIPT_NAME and PATH_INFO.
-        script_filename = @env['SCRIPT_NAME'].to_s.match(%r{[^/]+$})
-        uri = @env['PATH_INFO']
-        uri = uri.sub(/#{script_filename}\//, '') unless script_filename.nil?
-        unless (env_qs = @env['QUERY_STRING']).nil? || env_qs.empty?
-          uri << '?' << env_qs
+        uri = @env['PATH_INFO'].to_s
+
+        if script_filename = @env['SCRIPT_NAME'].to_s.match(%r{[^/]+$})
+          uri = uri.sub(/#{script_filename}\//, '')
         end
 
-        if uri.nil?
+        env_qs = @env['QUERY_STRING'].to_s
+        uri += "?#{env_qs}" unless env_qs.empty?
+
+        if uri.blank?
           @env.delete('REQUEST_URI')
-          uri
         else
           @env['REQUEST_URI'] = uri
         end
@@ -358,6 +358,7 @@ EOM
       path.sub!(%r/^#{ActionController::Base.relative_url_root}/, '')
       path || ''
     end
+    memoize :path
 
     # Read the request body. This is useful for web services that need to
     # work with raw requests directly.

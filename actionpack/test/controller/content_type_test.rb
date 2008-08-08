@@ -128,23 +128,23 @@ class AcceptBasedContentTypeTest < ActionController::TestCase
 
 
   def test_render_default_content_types_for_respond_to
-    @request.env["HTTP_ACCEPT"] = Mime::HTML.to_s
+    @request.accept = Mime::HTML.to_s
     get :render_default_content_types_for_respond_to
     assert_equal Mime::HTML, @response.content_type
 
-    @request.env["HTTP_ACCEPT"] = Mime::JS.to_s
+    @request.accept = Mime::JS.to_s
     get :render_default_content_types_for_respond_to
     assert_equal Mime::JS, @response.content_type
   end
 
   def test_render_default_content_types_for_respond_to_with_template
-    @request.env["HTTP_ACCEPT"] = Mime::XML.to_s
+    @request.accept = Mime::XML.to_s
     get :render_default_content_types_for_respond_to
     assert_equal Mime::XML, @response.content_type
   end
 
   def test_render_default_content_types_for_respond_to_with_overwrite
-    @request.env["HTTP_ACCEPT"] = Mime::RSS.to_s
+    @request.accept = Mime::RSS.to_s
     get :render_default_content_types_for_respond_to
     assert_equal Mime::XML, @response.content_type
   end
