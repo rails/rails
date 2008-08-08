@@ -14,10 +14,12 @@ module ActiveRecord
     # Connections can be obtained and used from a connection pool in several
     # ways:
     #
-    # 1. Simply use ActiveRecord::Base.connection as in pre-connection-pooled
-    #    ActiveRecord. Eventually, when you're done with the connection and
-    #    wish it to be returned to the pool, you call
-    #    ActiveRecord::Base.connection_pool.release_thread_connection.
+    # 1. Simply use ActiveRecord::Base.connection as with ActiveRecord 2.1 and
+    #    earlier (pre-connection-pooling). Eventually, when you're done with
+    #    the connection(s) and wish it to be returned to the pool, you call
+    #    ActiveRecord::Base.clear_active_connections!. This will be the
+    #    default behavior for ActiveRecord when used in conjunction with
+    #    ActionPack's request handling cycle.
     # 2. Manually check out a connection from the pool with
     #    ActiveRecord::Base.connection_pool.checkout. You are responsible for
     #    returning this connection to the pool when finished by calling
@@ -25,7 +27,7 @@ module ActiveRecord
     # 3. Use ActiveRecord::Base.connection_pool.with_connection(&block), which
     #    obtains a connection, yields it as the sole argument to the block,
     #    and returns it to the pool after the block completes.
-    class AbstractConnectionPool
+    class ConnectionPool
       # Factory method for connection pools.
       # Determines pool type to use based on contents of connection
       # specification. Additional options for connection specification:
@@ -35,9 +37,11 @@ module ActiveRecord
       #   for a connection before giving up and raising a timeout error.
       def self.create(spec)
         if spec.config[:pool] && spec.config[:pool].to_i > 0
-          ConnectionPool.new(spec)
+          FixedSizeConnectionPool.new(spec)
+        elsif spec.config[:jndi] # JRuby appserver datasource pool; passthrough
+          NewConnectionEveryTime.new(spec)
         else
-          ConnectionPerThread.new(spec)
+          CachedConnectionPerThread.new(spec)
         end
       end
 
@@ -67,9 +71,9 @@ module ActiveRecord
       end
 
       # Signal that the thread is finished with the current connection.
-      # #release_thread_connection releases the connection-thread association
+      # #release_connection releases the connection-thread association
       # and returns the connection to the pool.
-      def release_thread_connection
+      def release_connection
         conn = @reserved_connections.delete(active_connection_name)
         checkin conn if conn
       end
@@ -113,7 +117,8 @@ module ActiveRecord
         end
       end
 
-      # Verify active connections.
+      # Verify active connections and remove and disconnect connections
+      # associated with stale threads.
       def verify_active_connections! #:nodoc:
         remove_stale_cached_threads!(@reserved_connections) do |name, conn|
           checkin conn
@@ -133,18 +138,17 @@ module ActiveRecord
         raise NotImplementedError, "checkin is an abstract method"
       end
 
-      def remove_connection(conn)
+      def remove_connection(conn) #:nodoc:
         raise NotImplementedError, "remove_connection is an abstract method"
       end
       private :remove_connection
 
-      # Array containing all connections (reserved or available) in the pool.
-      def connections
+      def connections #:nodoc:
         raise NotImplementedError, "connections is an abstract method"
       end
       private :connections
 
-      synchronize :connection, :release_thread_connection,
+      synchronize :connection, :release_connection,
         :clear_reloadable_connections!, :verify_active_connections!,
         :connected?, :disconnect!, :with => :@connection_mutex
 
@@ -173,10 +177,9 @@ module ActiveRecord
       end
     end
 
-    # ConnectionPerThread is a simple implementation: always create/disconnect
-    # on checkout/checkin, and use the base class reserved connections hash to
-    # manage the per-thread connections.
-    class ConnectionPerThread < AbstractConnectionPool
+    # NewConnectionEveryTime is a simple implementation: always
+    # create/disconnect on checkout/checkin.
+    class NewConnectionEveryTime < ConnectionPool
       def active_connection
         @reserved_connections[active_connection_name]
       end
@@ -201,9 +204,21 @@ module ActiveRecord
       end
     end
 
-    # ConnectionPool provides a full, fixed-size connection pool with timed
-    # waits when the pool is exhausted.
-    class ConnectionPool < AbstractConnectionPool
+    # CachedConnectionPerThread is a compatible pseudo-connection pool that
+    # caches connections per-thread. In order to hold onto threads in the same
+    # manner as ActiveRecord 2.1 and earlier, it only disconnects the
+    # connection when the connection is checked in, or when calling
+    # ActiveRecord::Base.clear_all_connections!, and not during
+    # #release_connection.
+    class CachedConnectionPerThread < NewConnectionEveryTime
+      def release_connection
+        # no-op; keep the connection
+      end
+    end
+
+    # FixedSizeConnectionPool provides a full, fixed-size connection pool with
+    # timed waits when the pool is exhausted.
+    class FixedSizeConnectionPool < ConnectionPool
       def initialize(spec)
         super
         # default 5 second timeout
@@ -275,7 +290,7 @@ module ActiveRecord
       end
 
       def establish_connection(name, spec)
-        @connection_pools[name] = ConnectionAdapters::AbstractConnectionPool.create(spec)
+        @connection_pools[name] = ConnectionAdapters::ConnectionPool.create(spec)
       end
 
       # for internal use only and for testing;
@@ -290,7 +305,7 @@ module ActiveRecord
 
       # Clears the cache which maps classes to connections.
       def clear_active_connections!
-        @connection_pools.each_value {|pool| pool.release_thread_connection }
+        @connection_pools.each_value {|pool| pool.release_connection }
       end
 
       # Clears the cache which maps classes
@@ -304,7 +319,7 @@ module ActiveRecord
 
       # Verify active connections.
       def verify_active_connections! #:nodoc:
-        @connection_pools.each_value {|pool| pool.verify_active_connections!}
+        @connection_pools.each_value {|pool| pool.verify_active_connections! }
       end
 
       # Locate the connection of the nearest super class. This can be an
