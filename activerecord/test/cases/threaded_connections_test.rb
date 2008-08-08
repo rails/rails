@@ -105,5 +105,15 @@ unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
       assert_equal 3, @connection_count
       assert_equal 0, @timed_out
     end
+
+    def test_pooled_connection_checkout_existing_first
+      ActiveRecord::Base.establish_connection(@connection.merge({:pool => 1}))
+      conn_pool = ActiveRecord::Base.connection_pool
+      conn = conn_pool.checkout
+      conn_pool.checkin(conn)
+      conn = conn_pool.checkout
+      assert ActiveRecord::ConnectionAdapters::AbstractAdapter === conn
+      conn_pool.checkin(conn)
+    end
   end
 end

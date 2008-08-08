@@ -266,7 +266,7 @@ module ActiveRecord
       end
 
       def checkout_existing_connection
-        c = [@connections - @checked_out].first
+        c = (@connections - @checked_out).first
         @checked_out << c
         c
       end
