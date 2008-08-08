@@ -371,6 +371,9 @@ module ActionView
       # <tt>source</tt> is passed to AssetTagHelper#image_path
       #
       # ==== Options
+      # * <tt>:confirm => 'question?'</tt> - This will add a JavaScript confirm
+      #   prompt with the question specified. If the user accepts, the form is
+      #   processed normally, otherwise no action is taken.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
@@ -387,6 +390,13 @@ module ActionView
       #   image_submit_tag("agree.png", :disabled => true, :class => "agree-disagree-button")
       #   # => <input class="agree-disagree-button" disabled="disabled" src="/images/agree.png" type="image" />
       def image_submit_tag(source, options = {})
+        options.stringify_keys!
+
+        if confirm = options.delete("confirm")
+          options["onclick"] ||= ''
+          options["onclick"] += "return #{confirm_javascript_function(confirm)};"
+        end
+
         tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options.stringify_keys)
       end
 
