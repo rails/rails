@@ -3,11 +3,25 @@ module ActionController
     class Route #:nodoc:
       attr_accessor :segments, :requirements, :conditions, :optimise
 
-      def initialize
-        @segments = []
-        @requirements = {}
-        @conditions = {}
-        @optimise = true
+      def initialize(segments = [], requirements = {}, conditions = {})
+        @segments = segments
+        @requirements = requirements
+        @conditions = conditions
+
+        if !significant_keys.include?(:action) && !requirements[:action]
+          @requirements[:action] = "index"
+          @significant_keys << :action
+        end
+
+        # Routes cannot use the current string interpolation method
+        # if there are user-supplied <tt>:requirements</tt> as the interpolation
+        # code won't raise RoutingErrors when generating
+        has_requirements = @segments.detect { |segment| segment.respond_to?(:regexp) && segment.regexp }
+        if has_requirements || @requirements.keys.to_set != Routing::ALLOWED_REQUIREMENTS_FOR_OPTIMISATION
+          @optimise = false
+        else
+          @optimise = true
+        end
       end
 
       # Indicates whether the routes should be optimised with the string interpolation
@@ -20,129 +34,6 @@ module ActionController
         segments.collect do |segment|
           segment.key if segment.respond_to? :key
         end.compact
-      end
-
-      # Write and compile a +generate+ method for this Route.
-      def write_generation
-        # Build the main body of the generation
-        body = "expired = false\n#{generation_extraction}\n#{generation_structure}"
-
-        # If we have conditions that must be tested first, nest the body inside an if
-        body = "if #{generation_requirements}\n#{body}\nend" if generation_requirements
-        args = "options, hash, expire_on = {}"
-
-        # Nest the body inside of a def block, and then compile it.
-        raw_method = method_decl = "def generate_raw(#{args})\npath = begin\n#{body}\nend\n[path, hash]\nend"
-        instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
-
-        # expire_on.keys == recall.keys; in other words, the keys in the expire_on hash
-        # are the same as the keys that were recalled from the previous request. Thus,
-        # we can use the expire_on.keys to determine which keys ought to be used to build
-        # the query string. (Never use keys from the recalled request when building the
-        # query string.)
-
-        method_decl = "def generate(#{args})\npath, hash = generate_raw(options, hash, expire_on)\nappend_query_string(path, hash, extra_keys(options))\nend"
-        instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
-
-        method_decl = "def generate_extras(#{args})\npath, hash = generate_raw(options, hash, expire_on)\n[path, extra_keys(options)]\nend"
-        instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
-        raw_method
-      end
-
-      # Build several lines of code that extract values from the options hash. If any
-      # of the values are missing or rejected then a return will be executed.
-      def generation_extraction
-        segments.collect do |segment|
-          segment.extraction_code
-        end.compact * "\n"
-      end
-
-      # Produce a condition expression that will check the requirements of this route
-      # upon generation.
-      def generation_requirements
-        requirement_conditions = requirements.collect do |key, req|
-          if req.is_a? Regexp
-            value_regexp = Regexp.new "\\A#{req.to_s}\\Z"
-            "hash[:#{key}] && #{value_regexp.inspect} =~ options[:#{key}]"
-          else
-            "hash[:#{key}] == #{req.inspect}"
-          end
-        end
-        requirement_conditions * ' && ' unless requirement_conditions.empty?
-      end
-
-      def generation_structure
-        segments.last.string_structure segments[0..-2]
-      end
-
-      # Write and compile a +recognize+ method for this Route.
-      def write_recognition
-        # Create an if structure to extract the params from a match if it occurs.
-        body = "params = parameter_shell.dup\n#{recognition_extraction * "\n"}\nparams"
-        body = "if #{recognition_conditions.join(" && ")}\n#{body}\nend"
-
-        # Build the method declaration and compile it
-        method_decl = "def recognize(path, env={})\n#{body}\nend"
-        instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
-        method_decl
-      end
-
-      # Plugins may override this method to add other conditions, like checks on
-      # host, subdomain, and so forth. Note that changes here only affect route
-      # recognition, not generation.
-      def recognition_conditions
-        result = ["(match = #{Regexp.new(recognition_pattern).inspect}.match(path))"]
-        result << "conditions[:method] === env[:method]" if conditions[:method]
-        result
-      end
-
-      # Build the regular expression pattern that will match this route.
-      def recognition_pattern(wrap = true)
-        pattern = ''
-        segments.reverse_each do |segment|
-          pattern = segment.build_pattern pattern
-        end
-        wrap ? ("\\A" + pattern + "\\Z") : pattern
-      end
-
-      # Write the code to extract the parameters from a matched route.
-      def recognition_extraction
-        next_capture = 1
-        extraction = segments.collect do |segment|
-          x = segment.match_extraction(next_capture)
-          next_capture += Regexp.new(segment.regexp_chunk).number_of_captures
-          x
-        end
-        extraction.compact
-      end
-
-      # Write the real generation implementation and then resend the message.
-      def generate(options, hash, expire_on = {})
-        write_generation
-        generate options, hash, expire_on
-      end
-
-      def generate_extras(options, hash, expire_on = {})
-        write_generation
-        generate_extras options, hash, expire_on
-      end
-
-      # Generate the query string with any extra keys in the hash and append
-      # it to the given path, returning the new path.
-      def append_query_string(path, hash, query_keys=nil)
-        return nil unless path
-        query_keys ||= extra_keys(hash)
-        "#{path}#{build_query_string(hash, query_keys)}"
-      end
-
-      # Determine which keys in the given hash are "extra". Extra keys are
-      # those that were not used to generate a particular route. The extra
-      # keys also do not include those recalled from the prior request, nor
-      # do they include any keys that were implied in the route (like a
-      # <tt>:controller</tt> that is required, but not explicitly used in the
-      # text of the route.)
-      def extra_keys(hash, recall={})
-        (hash || {}).keys.map { |k| k.to_sym } - (recall || {}).keys - significant_keys
       end
 
       # Build a query string from the keys of the given hash. If +only_keys+
@@ -159,12 +50,6 @@ module ActionController
         end
 
         elements.empty? ? '' : "?#{elements.sort * '&'}"
-      end
-
-      # Write the real recognition implementation and then resend the message.
-      def recognize(path, environment={})
-        write_recognition
-        recognize path, environment
       end
 
       # A route's parameter shell contains parameter values that are not in the
@@ -186,7 +71,7 @@ module ActionController
       # includes keys that appear inside the path, and keys that have requirements
       # placed upon them.
       def significant_keys
-        @significant_keys ||= returning [] do |sk|
+        @significant_keys ||= returning([]) do |sk|
           segments.each { |segment| sk << segment.key if segment.respond_to? :key }
           sk.concat requirements.keys
           sk.uniq!
@@ -209,12 +94,7 @@ module ActionController
       end
 
       def matches_controller_and_action?(controller, action)
-        unless defined? @matching_prepared
-          @controller_requirement = requirement_for(:controller)
-          @action_requirement = requirement_for(:action)
-          @matching_prepared = true
-        end
-
+        prepare_matching!
         (@controller_requirement.nil? || @controller_requirement === controller) &&
         (@action_requirement.nil? || @action_requirement === action)
       end
@@ -226,15 +106,150 @@ module ActionController
         end
       end
 
-    protected
-      def requirement_for(key)
-        return requirements[key] if requirements.key? key
-        segments.each do |segment|
-          return segment.regexp if segment.respond_to?(:key) && segment.key == key
+      # TODO: Route should be prepared and frozen on initialize
+      def freeze
+        unless frozen?
+          write_generation!
+          write_recognition!
+          prepare_matching!
+
+          parameter_shell
+          significant_keys
+          defaults
+          to_s
         end
-        nil
+
+        super
       end
 
+      private
+        def requirement_for(key)
+          return requirements[key] if requirements.key? key
+          segments.each do |segment|
+            return segment.regexp if segment.respond_to?(:key) && segment.key == key
+          end
+          nil
+        end
+
+        # Write and compile a +generate+ method for this Route.
+        def write_generation!
+          # Build the main body of the generation
+          body = "expired = false\n#{generation_extraction}\n#{generation_structure}"
+
+          # If we have conditions that must be tested first, nest the body inside an if
+          body = "if #{generation_requirements}\n#{body}\nend" if generation_requirements
+          args = "options, hash, expire_on = {}"
+
+          # Nest the body inside of a def block, and then compile it.
+          raw_method = method_decl = "def generate_raw(#{args})\npath = begin\n#{body}\nend\n[path, hash]\nend"
+          instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
+
+          # expire_on.keys == recall.keys; in other words, the keys in the expire_on hash
+          # are the same as the keys that were recalled from the previous request. Thus,
+          # we can use the expire_on.keys to determine which keys ought to be used to build
+          # the query string. (Never use keys from the recalled request when building the
+          # query string.)
+
+          method_decl = "def generate(#{args})\npath, hash = generate_raw(options, hash, expire_on)\nappend_query_string(path, hash, extra_keys(options))\nend"
+          instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
+
+          method_decl = "def generate_extras(#{args})\npath, hash = generate_raw(options, hash, expire_on)\n[path, extra_keys(options)]\nend"
+          instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
+          raw_method
+        end
+
+        # Build several lines of code that extract values from the options hash. If any
+        # of the values are missing or rejected then a return will be executed.
+        def generation_extraction
+          segments.collect do |segment|
+            segment.extraction_code
+          end.compact * "\n"
+        end
+
+        # Produce a condition expression that will check the requirements of this route
+        # upon generation.
+        def generation_requirements
+          requirement_conditions = requirements.collect do |key, req|
+            if req.is_a? Regexp
+              value_regexp = Regexp.new "\\A#{req.to_s}\\Z"
+              "hash[:#{key}] && #{value_regexp.inspect} =~ options[:#{key}]"
+            else
+              "hash[:#{key}] == #{req.inspect}"
+            end
+          end
+          requirement_conditions * ' && ' unless requirement_conditions.empty?
+        end
+
+        def generation_structure
+          segments.last.string_structure segments[0..-2]
+        end
+
+        # Write and compile a +recognize+ method for this Route.
+        def write_recognition!
+          # Create an if structure to extract the params from a match if it occurs.
+          body = "params = parameter_shell.dup\n#{recognition_extraction * "\n"}\nparams"
+          body = "if #{recognition_conditions.join(" && ")}\n#{body}\nend"
+
+          # Build the method declaration and compile it
+          method_decl = "def recognize(path, env = {})\n#{body}\nend"
+          instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
+          method_decl
+        end
+
+        # Plugins may override this method to add other conditions, like checks on
+        # host, subdomain, and so forth. Note that changes here only affect route
+        # recognition, not generation.
+        def recognition_conditions
+          result = ["(match = #{Regexp.new(recognition_pattern).inspect}.match(path))"]
+          result << "conditions[:method] === env[:method]" if conditions[:method]
+          result
+        end
+
+        # Build the regular expression pattern that will match this route.
+        def recognition_pattern(wrap = true)
+          pattern = ''
+          segments.reverse_each do |segment|
+            pattern = segment.build_pattern pattern
+          end
+          wrap ? ("\\A" + pattern + "\\Z") : pattern
+        end
+
+        # Write the code to extract the parameters from a matched route.
+        def recognition_extraction
+          next_capture = 1
+          extraction = segments.collect do |segment|
+            x = segment.match_extraction(next_capture)
+            next_capture += Regexp.new(segment.regexp_chunk).number_of_captures
+            x
+          end
+          extraction.compact
+        end
+
+        # Generate the query string with any extra keys in the hash and append
+        # it to the given path, returning the new path.
+        def append_query_string(path, hash, query_keys = nil)
+          return nil unless path
+          query_keys ||= extra_keys(hash)
+          "#{path}#{build_query_string(hash, query_keys)}"
+        end
+
+        # Determine which keys in the given hash are "extra". Extra keys are
+        # those that were not used to generate a particular route. The extra
+        # keys also do not include those recalled from the prior request, nor
+        # do they include any keys that were implied in the route (like a
+        # <tt>:controller</tt> that is required, but not explicitly used in the
+        # text of the route.)
+        def extra_keys(hash, recall = {})
+          (hash || {}).keys.map { |k| k.to_sym } - (recall || {}).keys - significant_keys
+        end
+
+        def prepare_matching!
+          unless defined? @matching_prepared
+            @controller_requirement = requirement_for(:controller)
+            @action_requirement = requirement_for(:action)
+            @matching_prepared = true
+          end
+        end
     end
   end
 end

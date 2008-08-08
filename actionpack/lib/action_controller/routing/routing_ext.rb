@@ -1,4 +1,3 @@
-
 class Object
   def to_param
     to_s

@@ -94,38 +94,18 @@ class ViewRenderTest < Test::Unit::TestCase
     assert_equal "Hello, World!", @view.render(:inline => "Hello, World!", :type => :foo)
   end
 
-  class CustomHandler < ActionView::TemplateHandler
-    def render(template, local_assigns)
-      [template.source, local_assigns].inspect
-    end
-  end
-
-  def test_render_inline_with_custom_type
-    ActionView::Template.register_template_handler :foo, CustomHandler
-    assert_equal '["Hello, World!", {}]', @view.render(:inline => "Hello, World!", :type => :foo)
-  end
-
-  def test_render_inline_with_locals_and_custom_type
-    ActionView::Template.register_template_handler :foo, CustomHandler
-    assert_equal '["Hello, <%= name %>!", {:name=>"Josh"}]', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
-  end
-
-  class CompilableCustomHandler < ActionView::TemplateHandler
-    include ActionView::TemplateHandlers::Compilable
-
-    def compile(template)
-      "@output_buffer = ''\n" +
-        "@output_buffer << 'source: #{template.source.inspect}'\n"
-    end
+  CustomHandler = lambda do |template|
+    "@output_buffer = ''\n" +
+      "@output_buffer << 'source: #{template.source.inspect}'\n"
   end
 
   def test_render_inline_with_compilable_custom_type
-    ActionView::Template.register_template_handler :foo, CompilableCustomHandler
+    ActionView::Template.register_template_handler :foo, CustomHandler
     assert_equal 'source: "Hello, World!"', @view.render(:inline => "Hello, World!", :type => :foo)
   end
 
   def test_render_inline_with_locals_and_compilable_custom_type
-    ActionView::Template.register_template_handler :foo, CompilableCustomHandler
+    ActionView::Template.register_template_handler :foo, CustomHandler
     assert_equal 'source: "Hello, <%= name %>!"', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
   end
 end

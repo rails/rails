@@ -1,9 +1,9 @@
 A Guide to Using Partials
 ===============================
 
-This guide elaborates on the use and function of partials in Ruby on Rails. As your Rails application grows, your view templates can start to contain a lot of duplicate view code. To manage and reduce this complexity, you can by abstract view template code into partials. Partials are reusable snippets of eRB template code stored in separate files with an underscore ('_') prefix. 
+This guide elaborates on the use and function of partials in Ruby on Rails. As your Rails application grows, your view templates can start to contain a lot of duplicate view code. To manage and reduce this complexity, you can by abstract view template code into partials. Partials are reusable snippets of eRB template code stored in separate files with an underscore ('_') prefix.
 
-Partials can be located anywhere in the `app/views` directory. File extensions for partials work just like other template files, they bear an extension that denotes what kind of code they generate. For example, `_animal.html.erb` and `_animal.xml.erb` are valid filenames for partials. 
+Partials can be located anywhere in the `app/views` directory. File extensions for partials work just like other template files, they bear an extension that denotes what kind of code they generate. For example, `_animal.html.erb` and `_animal.xml.erb` are valid filenames for partials.
 
 Partials can be inserted in eRB template code by calling the `render` method with the `:partial` option. For example:
 
@@ -20,7 +20,7 @@ Abstracting views into partials can be approached in a number of different ways,
 Partials as a View Subroutine
 -----------------------------
 
-Using the `:locals` option, you can pass a hash of values which will be treated as local variables within the partial template. 
+Using the `:locals` option, you can pass a hash of values which will be treated as local variables within the partial template.
 
 	<%= render :partial => "person", :locals => { :name => "david" } %>
 
@@ -34,7 +34,7 @@ So that you can later check:
 		<p>Hello, <%= name %>!</p>
 	<% end -%>
 
-Otherwise, the if statement will throw an error at runtime. 
+Otherwise, the if statement will throw an error at runtime.
 
 Another thing to be aware of is that instance variables that are visible to the parent view template are visible to the partial. So you might be tempted to do this:
 
@@ -46,7 +46,7 @@ And then within the partial:
 		<p>Hello, <%= @name %>!</p>
 	<% end -%>
 
-The potential snag here is that if multiple templates start to rely on this partial, you will need to maintain an instance variable with the same name across all of these templates and controllers. This approach can quickly become brittle if overused. 
+The potential snag here is that if multiple templates start to rely on this partial, you will need to maintain an instance variable with the same name across all of these templates and controllers. This approach can quickly become brittle if overused.
 
 Partials as a View of an Object
 --------------------------------
@@ -61,7 +61,7 @@ If the instance variable `name` in the parent template matches the name of the p
 
 	render :partial => "person"
 
-Now the value that was in `@person` in the parent template is accessible as `person` in the partial. 
+Now the value that was in `@person` in the parent template is accessible as `person` in the partial.
 
 Partials as a View of a Collection
 -----------------------------------
@@ -83,9 +83,8 @@ Where `@winners` contains three people, produces the following output:
 	2) Jeff
 	3) Nick
 
-One last detail, you can place an arbitrary snippet of code in between the objects using the `:spacer_template` option. 
+One last detail, you can place an arbitrary snippet of code in between the objects using the `:spacer_template` option.
 
 	# Renders the same collection of partials, but also renders the
 	# person_divider partial between each person partial.
 	render :partial => "person", :collection => @winners, :spacer_template => "person_divider"
-

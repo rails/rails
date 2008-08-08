@@ -18,36 +18,17 @@ module ActiveRecord
   # determine whether the object is in a valid state to be saved. See usage example in Validations.
   class Errors
     include Enumerable
+    
+    class << self
+      def default_error_messages
+        ActiveSupport::Deprecation.warn("ActiveRecord::Errors.default_error_messages has been deprecated. Please use I18n.translate('active_record.error_messages').")
+        I18n.translate 'active_record.error_messages'
+      end
+    end
 
     def initialize(base) # :nodoc:
       @base, @errors = base, {}
     end
-
-    @@default_error_messages = {
-      :inclusion => "is not included in the list",
-      :exclusion => "is reserved",
-      :invalid => "is invalid",
-      :confirmation => "doesn't match confirmation",
-      :accepted  => "must be accepted",
-      :empty => "can't be empty",
-      :blank => "can't be blank",
-      :too_long => "is too long (maximum is %d characters)",
-      :too_short => "is too short (minimum is %d characters)",
-      :wrong_length => "is the wrong length (should be %d characters)",
-      :taken => "has already been taken",
-      :not_a_number => "is not a number",
-      :greater_than => "must be greater than %d",
-      :greater_than_or_equal_to => "must be greater than or equal to %d",
-      :equal_to => "must be equal to %d",
-      :less_than => "must be less than %d",
-      :less_than_or_equal_to => "must be less than or equal to %d",
-      :odd => "must be odd",
-      :even => "must be even"
-    }
-
-    # Holds a hash with all the default error messages that can be replaced by your own copy or localizations.
-    cattr_accessor :default_error_messages
-
 
     # Adds an error to the base object instead of any particular attribute. This is used
     # to report errors that don't tie to any specific attribute, but rather to the object
@@ -61,26 +42,35 @@ module ActiveRecord
     # for the same attribute and ensure that this error object returns false when asked if <tt>empty?</tt>. More than one
     # error can be added to the same +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
     # If no +msg+ is supplied, "invalid" is assumed.
-    def add(attribute, msg = @@default_error_messages[:invalid])
-      @errors[attribute.to_s] = [] if @errors[attribute.to_s].nil?
-      @errors[attribute.to_s] << msg
-    end
+    def add(attribute, message = nil)
+      message ||= I18n.translate :"active_record.error_messages.invalid"
+      @errors[attribute.to_s] ||= []
+      @errors[attribute.to_s] << message
+    end    
 
     # Will add an error message to each of the attributes in +attributes+ that is empty.
-    def add_on_empty(attributes, msg = @@default_error_messages[:empty])
+    def add_on_empty(attributes, custom_message = nil)
       for attr in [attributes].flatten
         value = @base.respond_to?(attr.to_s) ? @base.send(attr.to_s) : @base[attr.to_s]
-        is_empty = value.respond_to?("empty?") ? value.empty? : false
-        add(attr, msg) unless !value.nil? && !is_empty
+        is_empty = value.respond_to?("empty?") ? value.empty? : false        
+        add(attr, generate_message(attr, :empty, :default => custom_message)) unless !value.nil? && !is_empty
       end
     end
 
     # Will add an error message to each of the attributes in +attributes+ that is blank (using Object#blank?).
-    def add_on_blank(attributes, msg = @@default_error_messages[:blank])
+    def add_on_blank(attributes, custom_message = nil)
       for attr in [attributes].flatten
         value = @base.respond_to?(attr.to_s) ? @base.send(attr.to_s) : @base[attr.to_s]
-        add(attr, msg) if value.blank?
+        add(attr, generate_message(attr, :blank, :default => custom_message)) if value.blank?
       end
+    end
+    
+    def generate_message(attr, key, options = {})
+      msgs = base_classes(@base.class).map{|klass| :"custom.#{klass.name.underscore}.#{attr}.#{key}"} 
+      msgs << options[:default] if options[:default]
+      msgs << key
+
+      I18n.t nil, options.merge(:default => msgs, :scope => [:active_record, :error_messages])
     end
 
     # Returns true if the specified +attribute+ has errors associated with it.
@@ -164,24 +154,26 @@ module ActiveRecord
     #   end
     #
     #   company = Company.create(:address => '123 First St.')
-    #   company.errors.full_messages
-    #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Address can't be blank"]
-    def full_messages
+    #   company.errors.full_messages # =>
+    #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Address can't be blank"]
+    def full_messages(options = {})
       full_messages = []
 
       @errors.each_key do |attr|
-        @errors[attr].each do |msg|
-          next if msg.nil?
+        @errors[attr].each do |message|
+          next unless message
 
           if attr == "base"
-            full_messages << msg
+            full_messages << message
           else
-            full_messages << @base.class.human_attribute_name(attr) + " " + msg
+            key = :"active_record.human_attribute_names.#{@base.class.name.underscore.to_sym}.#{attr}" 
+            attr_name = I18n.translate(key, :locale => options[:locale], :default => @base.class.human_attribute_name(attr))
+            full_messages << attr_name + " " + message
           end
         end
       end
       full_messages
-    end
+    end 
 
     # Returns true if no errors have been added.
     def empty?
@@ -226,6 +218,17 @@ module ActiveRecord
         full_messages.each { |msg| e.error(msg) }
       end
     end
+    
+    protected
+      
+      # TODO maybe this should be on ActiveRecord::Base, maybe #self_and_descendents_from_active_record
+      def base_classes(klass)
+        classes = [klass]
+        while klass != klass.base_class  
+          classes << klass = klass.superclass
+        end
+        classes
+      end
   end
 
 
@@ -388,13 +391,16 @@ module ActiveRecord
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_confirmation_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:confirmation], :on => :save }
+        configuration = { :on => :save }
         configuration.update(attr_names.extract_options!)
 
         attr_accessor(*(attr_names.map { |n| "#{n}_confirmation" }))
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
-          record.errors.add(attr_name, configuration[:message]) unless record.send("#{attr_name}_confirmation").nil? or value == record.send("#{attr_name}_confirmation")
+          unless record.send("#{attr_name}_confirmation").nil? or value == record.send("#{attr_name}_confirmation")
+            message = record.errors.generate_message(attr_name, :confirmation, :default => configuration[:message])
+            record.errors.add(attr_name, message) 
+          end
         end
       end
 
@@ -422,7 +428,7 @@ module ActiveRecord
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_acceptance_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save, :allow_nil => true, :accept => "1" }
+        configuration = { :on => :save, :allow_nil => true, :accept => "1" }
         configuration.update(attr_names.extract_options!)
 
         db_cols = begin
@@ -434,7 +440,10 @@ module ActiveRecord
         attr_accessor(*names)
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
-          record.errors.add(attr_name, configuration[:message]) unless value == configuration[:accept]
+          unless value == configuration[:accept]
+            message = record.errors.generate_message(attr_name, :accepted, :default => configuration[:message])
+            record.errors.add(attr_name, message) 
+          end
         end
       end
 
@@ -461,7 +470,7 @@ module ActiveRecord
       #   method, proc or string should return or evaluate to a true or false value.
       #
       def validates_presence_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:blank], :on => :save }
+        configuration = { :on => :save }
         configuration.update(attr_names.extract_options!)
 
         # can't use validates_each here, because it cannot cope with nonexistent attributes,
@@ -509,10 +518,7 @@ module ActiveRecord
       def validates_length_of(*attrs)
         # Merge given options with defaults.
         options = {
-          :too_long     => ActiveRecord::Errors.default_error_messages[:too_long],
-          :too_short    => ActiveRecord::Errors.default_error_messages[:too_short],
-          :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length],
-          :tokenizer    => lambda {|value| value.split(//)}
+          :tokenizer => lambda {|value| value.split(//)}
         }.merge(DEFAULT_VALIDATION_OPTIONS)
         options.update(attrs.extract_options!.symbolize_keys)
 
@@ -535,15 +541,14 @@ module ActiveRecord
           when :within, :in
             raise ArgumentError, ":#{option} must be a Range" unless option_value.is_a?(Range)
 
-            too_short = options[:too_short] % option_value.begin
-            too_long  = options[:too_long]  % option_value.end
-
             validates_each(attrs, options) do |record, attr, value|
               value = options[:tokenizer].call(value) if value.kind_of?(String)
               if value.nil? or value.size < option_value.begin
-                record.errors.add(attr, too_short)
+                message = record.errors.generate_message(attr, :too_short, :default => options[:too_short], :count => option_value.begin)                
+                record.errors.add(attr, message)
               elsif value.size > option_value.end
-                record.errors.add(attr, too_long)
+                message = record.errors.generate_message(attr, :too_long, :default => options[:too_long], :count => option_value.end)
+                record.errors.add(attr, message)
               end
             end
           when :is, :minimum, :maximum
@@ -553,11 +558,14 @@ module ActiveRecord
             validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
             message_options = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }
 
-            message = (options[:message] || options[message_options[option]]) % option_value
-
             validates_each(attrs, options) do |record, attr, value|
               value = options[:tokenizer].call(value) if value.kind_of?(String)
-              record.errors.add(attr, message) unless !value.nil? and value.size.method(validity_checks[option])[option_value]
+              unless !value.nil? and value.size.method(validity_checks[option])[option_value]
+                key = message_options[option]
+                custom_message = options[:message] || options[key]
+                message = record.errors.generate_message(attr, key, :default => custom_message, :count => option_value)
+                record.errors.add(attr, message) 
+              end
             end
         end
       end
@@ -599,7 +607,7 @@ module ActiveRecord
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_uniqueness_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken], :case_sensitive => true }
+        configuration = { :case_sensitive => true }
         configuration.update(attr_names.extract_options!)
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
@@ -617,13 +625,25 @@ module ActiveRecord
           # class (which has a database table to query from).
           finder_class = class_hierarchy.detect { |klass| !klass.abstract_class? }
 
-          if value.nil? || (configuration[:case_sensitive] || !finder_class.columns_hash[attr_name.to_s].text?)
-            condition_sql = "#{record.class.quoted_table_name}.#{attr_name} #{attribute_condition(value)}"
+          is_text_column = finder_class.columns_hash[attr_name.to_s].text?
+
+          if value.nil?
+            comparison_operator = "IS ?"
+          else
+            comparison_operator = "#{connection.case_sensitive_equality_operator} ?"
+
+            if is_text_column
+              value = value.to_s
+            end
+          end
+
+          sql_attribute = "#{record.class.quoted_table_name}.#{connection.quote_column_name(attr_name)}"
+
+          if value.nil? || (configuration[:case_sensitive] || !is_text_column)
+            condition_sql = "#{sql_attribute} #{comparison_operator}"
             condition_params = [value]
           else
-            # sqlite has case sensitive SELECT query, while MySQL/Postgresql don't.
-            # Hence, this is needed only for sqlite.
-            condition_sql = "LOWER(#{record.class.quoted_table_name}.#{attr_name}) #{attribute_condition(value)}"
+            condition_sql = "LOWER(#{sql_attribute}) #{comparison_operator}"
             condition_params = [value.downcase]
           end
 
@@ -640,26 +660,11 @@ module ActiveRecord
             condition_params << record.send(:id)
           end
 
-          results = finder_class.with_exclusive_scope do
-            connection.select_all(
-              construct_finder_sql(
-                :select     => "#{connection.quote_column_name(attr_name)}",
-                :from       => "#{finder_class.quoted_table_name}",
-                :conditions => [condition_sql, *condition_params]
-              )
-            )
-          end
-
-          unless results.length.zero?
-            found = true
-
-            # As MySQL/Postgres don't have case sensitive SELECT queries, we try to find duplicate
-            # column in ruby when case sensitive option
-            if configuration[:case_sensitive] && finder_class.columns_hash[attr_name.to_s].text?
-              found = results.any? { |a| a[attr_name.to_s] == value }
+          finder_class.with_exclusive_scope do
+            if finder_class.exists?([condition_sql, *condition_params])
+              message = record.errors.generate_message(attr_name, :taken, :default => configuration[:message])
+              record.errors.add(attr_name, message)
             end
-
-            record.errors.add(attr_name, configuration[:message]) if found
           end
         end
       end
@@ -689,13 +694,16 @@ module ActiveRecord
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_format_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save, :with => nil }
+        configuration = { :on => :save, :with => nil }
         configuration.update(attr_names.extract_options!)
 
         raise(ArgumentError, "A regular expression must be supplied as the :with option of the configuration hash") unless configuration[:with].is_a?(Regexp)
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
-          record.errors.add(attr_name, configuration[:message] % value) unless value.to_s =~ configuration[:with]
+          unless value.to_s =~ configuration[:with]
+            message = record.errors.generate_message(attr_name, :invalid, :default => configuration[:message], :value => value)
+            record.errors.add(attr_name, message) 
+          end
         end
       end
 
@@ -719,7 +727,7 @@ module ActiveRecord
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_inclusion_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:inclusion], :on => :save }
+        configuration = { :on => :save }
         configuration.update(attr_names.extract_options!)
 
         enum = configuration[:in] || configuration[:within]
@@ -727,7 +735,10 @@ module ActiveRecord
         raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
-          record.errors.add(attr_name, configuration[:message] % value) unless enum.include?(value)
+          unless enum.include?(value)
+            message = record.errors.generate_message(attr_name, :inclusion, :default => configuration[:message], :value => value)
+            record.errors.add(attr_name, message) 
+          end
         end
       end
 
@@ -751,7 +762,7 @@ module ActiveRecord
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_exclusion_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:exclusion], :on => :save }
+        configuration = { :on => :save }
         configuration.update(attr_names.extract_options!)
 
         enum = configuration[:in] || configuration[:within]
@@ -759,7 +770,10 @@ module ActiveRecord
         raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
-          record.errors.add(attr_name, configuration[:message] % value) if enum.include?(value)
+          if enum.include?(value)
+            message = record.errors.generate_message(attr_name, :exclusion, :default => configuration[:message], :value => value)
+            record.errors.add(attr_name, message) 
+          end
         end
       end
 
@@ -795,12 +809,14 @@ module ActiveRecord
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_associated(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save }
+        configuration = { :on => :save }
         configuration.update(attr_names.extract_options!)
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
-          record.errors.add(attr_name, configuration[:message]) unless
-            (value.is_a?(Array) ? value : [value]).inject(true) { |v, r| (r.nil? || r.valid?) && v }
+          unless (value.is_a?(Array) ? value : [value]).inject(true) { |v, r| (r.nil? || r.valid?) && v }
+            message = record.errors.generate_message(attr_name, :invalid, :default => configuration[:message], :value => value)
+            record.errors.add(attr_name, message)
+          end
         end
       end
 
@@ -848,15 +864,17 @@ module ActiveRecord
 
           if configuration[:only_integer]
             unless raw_value.to_s =~ /\A[+-]?\d+\Z/
-              record.errors.add(attr_name, configuration[:message] || ActiveRecord::Errors.default_error_messages[:not_a_number])
+              message = record.errors.generate_message(attr_name, :not_a_number, :value => raw_value, :default => configuration[:message])
+              record.errors.add(attr_name, message)
               next
             end
             raw_value = raw_value.to_i
           else
-           begin
+            begin
               raw_value = Kernel.Float(raw_value)
             rescue ArgumentError, TypeError
-              record.errors.add(attr_name, configuration[:message] || ActiveRecord::Errors.default_error_messages[:not_a_number])
+              message = record.errors.generate_message(attr_name, :not_a_number, :value => raw_value, :default => configuration[:message])
+              record.errors.add(attr_name, message)
               next
             end
           end
@@ -864,10 +882,12 @@ module ActiveRecord
           numericality_options.each do |option|
             case option
               when :odd, :even
-                record.errors.add(attr_name, configuration[:message] || ActiveRecord::Errors.default_error_messages[option]) unless raw_value.to_i.method(ALL_NUMERICALITY_CHECKS[option])[]
+                unless raw_value.to_i.method(ALL_NUMERICALITY_CHECKS[option])[]
+                  message = record.errors.generate_message(attr_name, option, :value => raw_value, :default => configuration[:message])
+                  record.errors.add(attr_name, message) 
+                end
               else
-                message = configuration[:message] || ActiveRecord::Errors.default_error_messages[option]
-                message = message % configuration[option] if configuration[option]
+                message = record.errors.generate_message(attr_name, option, :default => configuration[:message], :value => raw_value, :count => configuration[option])
                 record.errors.add(attr_name, message) unless raw_value.method(ALL_NUMERICALITY_CHECKS[option])[configuration[option]]
             end
           end

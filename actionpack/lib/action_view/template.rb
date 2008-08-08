@@ -1,6 +1,7 @@
 module ActionView #:nodoc:
   class Template
     extend TemplateHandlers
+    extend ActiveSupport::Memoizable
     include Renderable
 
     attr_accessor :filename, :load_path, :base_path, :name, :format, :extension
@@ -16,54 +17,42 @@ module ActionView #:nodoc:
       extend RenderablePartial if @name =~ /^_/
     end
 
-    def freeze
-      # Eager load memoized methods
-      format_and_extension
-      path
-      path_without_extension
-      path_without_format_and_extension
-      source
-      method_segment
-
-      # Eager load memoized methods from Renderable
-      handler
-      compiled_source
-
-      instance_variables.each { |ivar| ivar.freeze }
-
-      super
-    end
-
     def format_and_extension
-      @format_and_extension ||= (extensions = [format, extension].compact.join(".")).blank? ? nil : extensions
+      (extensions = [format, extension].compact.join(".")).blank? ? nil : extensions
     end
+    memoize :format_and_extension
+
+    def mime_type
+      Mime::Type.lookup_by_extension(format) if format
+    end
+    memoize :mime_type
 
     def path
-      @path ||= [base_path, [name, format, extension].compact.join('.')].compact.join('/')
+      [base_path, [name, format, extension].compact.join('.')].compact.join('/')
     end
+    memoize :path
 
     def path_without_extension
-      @path_without_extension ||= [base_path, [name, format].compact.join('.')].compact.join('/')
+      [base_path, [name, format].compact.join('.')].compact.join('/')
     end
+    memoize :path_without_extension
 
     def path_without_format_and_extension
-      @path_without_format_and_extension ||= [base_path, name].compact.join('/')
+      [base_path, name].compact.join('/')
     end
+    memoize :path_without_format_and_extension
 
     def source
-      @source ||= File.read(@filename)
+      File.read(filename)
     end
+    memoize :source
 
     def method_segment
-      unless @method_segment
-        segment = File.expand_path(@filename)
-        segment.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}/, '') if defined?(RAILS_ROOT)
-        segment.gsub!(/([^a-zA-Z0-9_])/) { $1.ord }
-        @method_segment = segment
-      end
-
-      @method_segment
+      segment = File.expand_path(filename)
+      segment.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}/, '') if defined?(RAILS_ROOT)
+      segment.gsub!(/([^a-zA-Z0-9_])/) { $1.ord }
     end
+    memoize :method_segment
 
     def render_template(view, local_assigns = {})
       render(view, local_assigns)
@@ -86,7 +75,7 @@ module ActionView #:nodoc:
         load_paths = Array(load_paths) + [nil]
         load_paths.each do |load_path|
           file = [load_path, path].compact.join('/')
-          return load_path, file if File.exist?(file)
+          return load_path, file if File.file?(file)
         end
         raise MissingTemplate.new(load_paths, path)
       end

@@ -18,6 +18,13 @@ end
 module Namespaced
   class Company < ::Company
   end
+
+  class Firm < ::Company
+    has_many :clients, :class_name => 'Namespaced::Client'
+  end
+
+  class Client < ::Company
+  end
 end
 
 class Firm < Company

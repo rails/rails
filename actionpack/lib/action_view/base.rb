@@ -159,11 +159,11 @@ module ActionView #:nodoc:
   class Base
     include ERB::Util
 
-    attr_accessor :base_path, :assigns, :template_extension, :first_render
+    attr_accessor :base_path, :assigns, :template_extension
     attr_accessor :controller
+    attr_accessor :_first_render, :_last_render
 
     attr_writer :template_format
-    attr_accessor :current_render_extension
 
     attr_accessor :output_buffer
 
@@ -171,13 +171,16 @@ module ActionView #:nodoc:
       delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
     end
 
-    # Specify whether templates should be cached. Otherwise the file we be read everytime it is accessed.
-    @@cache_template_loading = false
-    cattr_accessor :cache_template_loading
+    def self.cache_template_loading=(*args)
+      ActiveSupport::Deprecation.warn(
+        "config.action_view.cache_template_loading option has been deprecated" +
+        "and has no effect. Please remove it from your config files.", caller)
+    end
 
     def self.cache_template_extensions=(*args)
-      ActiveSupport::Deprecation.warn("config.action_view.cache_template_extensions option has been deprecated and has no effect. " <<
-                                       "Please remove it from your config files.", caller)
+      ActiveSupport::Deprecation.warn(
+        "config.action_view.cache_template_extensions option has been" +
+        "deprecated and has no effect. Please remove it from your config files.", caller)
     end
 
     # Specify whether RJS responses should be wrapped in a try/catch block
@@ -198,10 +201,6 @@ module ActionView #:nodoc:
       # holds compiled template code
     end
     include CompiledTemplates
-
-    # Cache public asset paths
-    cattr_reader :computed_public_paths
-    @@computed_public_paths = {}
 
     def self.helper_modules #:nodoc:
       helpers = []
@@ -313,7 +312,7 @@ module ActionView #:nodoc:
         template
       elsif template = self.view_paths[template_file_name]
         template
-      elsif first_render && template = self.view_paths["#{template_file_name}.#{first_render.extension}"]
+      elsif _first_render && template = self.view_paths["#{template_file_name}.#{_first_render.format_and_extension}"]
         template
       elsif template_format == :js && template = self.view_paths["#{template_file_name}.html"]
         @template_format = :html
@@ -324,14 +323,17 @@ module ActionView #:nodoc:
         if self.class.warn_cache_misses && logger = ActionController::Base.logger
           logger.debug "[PERFORMANCE] Rendering a template that was " +
             "not found in view path. Templates outside the view path are " +
-            "not cached and result in expensive disk operations. Move this " + 
-            "file into #{view_paths.join(':')} or add the folder to your " + 
+            "not cached and result in expensive disk operations. Move this " +
+            "file into #{view_paths.join(':')} or add the folder to your " +
             "view path list"
         end
 
         template
       end
     end
+
+    extend ActiveSupport::Memoizable
+    memoize :pick_template
 
     private
       # Renders the template present at <tt>template_path</tt>. The hash in <tt>local_assigns</tt>
@@ -382,8 +384,14 @@ module ActionView #:nodoc:
         @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
       end
 
-      def execute(template, local_assigns = {})
-        send(template.method(local_assigns), local_assigns) do |*names|
+      def set_controller_content_type(content_type)
+        if controller.respond_to?(:response)
+          controller.response.content_type ||= content_type
+        end
+      end
+
+      def execute(method, local_assigns = {})
+        send(method, local_assigns) do |*names|
           instance_variable_get "@content_for_#{names.first || 'layout'}"
         end
       end

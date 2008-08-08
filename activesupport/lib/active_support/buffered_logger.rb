@@ -39,7 +39,7 @@ module ActiveSupport
       @level         = level
       @buffer        = []
       @auto_flushing = 1
-      @no_block = false
+      @guard = Mutex.new
 
       if log.respond_to?(:write)
         @log = log
@@ -54,19 +54,15 @@ module ActiveSupport
       end
     end
 
-    def set_non_blocking_io
-      if !RUBY_PLATFORM.match(/java|mswin/) && !(@log == STDOUT) && @log.respond_to?(:write_nonblock)
-        @no_block = true
-      end
-    end
-
     def add(severity, message = nil, progname = nil, &block)
       return if @level > severity
       message = (message || (block && block.call) || progname).to_s
       # If a newline is necessary then create a new message ending with a newline.
       # Ensures that the original message is not mutated.
       message = "#{message}\n" unless message[-1] == ?\n
-      buffer << message
+      @guard.synchronize do
+        buffer << message
+      end
       auto_flush
       message
     end
@@ -98,11 +94,11 @@ module ActiveSupport
     end
 
     def flush
-      unless buffer.empty?
-        if @no_block
-          @log.write_nonblock(buffer.slice!(0..-1).join)
-        else
-          @log.write(buffer.slice!(0..-1).join)
+      @guard.synchronize do
+        unless buffer.empty?
+          old_buffer    = @buffer
+          @buffer       = []
+          @log.write(old_buffer.join)
         end
       end
     end

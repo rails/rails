@@ -9,7 +9,7 @@ CREATE TABLE users (
   id INTEGER PRIMARY KEY,
   name VARCHAR(20) NOT NULL,  -- the login name
   password VARCHAR(20) NOT NULL,
-  role VARCHAR(20) NOT NULL DEFAULT "User", -- e.g. "Admin", "Moderator, "User" 
+  role VARCHAR(20) NOT NULL DEFAULT "User", -- e.g. "Admin", "Moderator, "User"
   approved INTEGER NOT NULL DEFAULT 0 -- is the registered accound approved by the administrator?
 );
 

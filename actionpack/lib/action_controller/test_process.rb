@@ -171,7 +171,7 @@ module ActionController #:nodoc:
 
     # Was the response successful?
     def success?
-      response_code == 200
+      (200..299).include?(response_code)
     end
 
     # Was the URL not found?
@@ -205,17 +205,10 @@ module ActionController #:nodoc:
       p.match(redirect_url) != nil
     end
 
-    # Returns the template path of the file which was used to
-    # render this response (or nil) 
-    def rendered_file(with_controller = false)
-      if template.first_render
-        template.first_render.to_s
-      end
-    end
-
-    # Was this template rendered by a file?
-    def rendered_with_file?
-      !rendered_file.nil?
+    # Returns the template of the file which was used to
+    # render this response (or nil)
+    def rendered_template
+      template._first_render
     end
 
     # A shortcut to the flash. Returns an empty hash if no session flash exists.

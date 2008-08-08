@@ -122,6 +122,10 @@ module ActiveRecord #:nodoc:
   class MissingAttributeError < NoMethodError
   end
 
+  # Raised when unknown attributes are supplied via mass assignment.
+  class UnknownAttributeError < NoMethodError
+  end
+
   # Raised when an error occurred while doing a mass assignment to an attribute through the
   # <tt>attributes=</tt> method. The exception has an +attribute+ property that is the name of the
   # offending attribute.
@@ -464,6 +468,10 @@ module ActiveRecord #:nodoc:
     cattr_accessor :schema_format , :instance_writer => false
     @@schema_format = :ruby
 
+    # Specify whether or not to use timestamps for migration numbers
+    cattr_accessor :timestamped_migrations , :instance_writer => false
+    @@timestamped_migrations = true
+
     # Determine whether to store the full constant name including namespace when using STI
     superclass_delegating_accessor :store_full_sti_class
     self.store_full_sti_class = false
@@ -499,7 +507,7 @@ module ActiveRecord #:nodoc:
       # * <tt>:include</tt> - Names associations that should be loaded alongside. The symbols named refer
       #   to already defined associations. See eager loading under Associations.
       # * <tt>:select</tt> - By default, this is "*" as in "SELECT * FROM", but can be changed if you, for example, want to do a join but not
-      #   include the joined columns.
+      #   include the joined columns. Takes a string with the SELECT SQL fragment (e.g. "id, name").
       # * <tt>:from</tt> - By default, this is the table name of the class, but can be changed to an alternate table name (or even the name
       #   of a database view).
       # * <tt>:readonly</tt> - Mark the returned records read-only so they cannot be saved or updated.
@@ -852,7 +860,7 @@ module ActiveRecord #:nodoc:
       def update_counters(id, counters)
         updates = counters.inject([]) { |list, (counter_name, increment)|
           sign = increment < 0 ? "-" : "+"
-          list << "#{connection.quote_column_name(counter_name)} = #{connection.quote_column_name(counter_name)} #{sign} #{increment.abs}"
+          list << "#{connection.quote_column_name(counter_name)} = COALESCE(#{connection.quote_column_name(counter_name)}, 0) #{sign} #{increment.abs}"
         }.join(", ")
         update_all(updates, "#{connection.quote_column_name(primary_key)} = #{quote_value(id)}")
       end
@@ -2396,7 +2404,11 @@ module ActiveRecord #:nodoc:
         attributes = remove_attributes_protected_from_mass_assignment(attributes) if guard_protected_attributes
 
         attributes.each do |k, v|
-          k.include?("(") ? multi_parameter_attributes << [ k, v ] : send(k + "=", v)
+          if k.include?("(")
+            multi_parameter_attributes << [ k, v ]
+          else
+            respond_to?(:"#{k}=") ? send(:"#{k}=", v) : raise(UnknownAttributeError, "unknown attribute: #{k}")
+          end
         end
 
         assign_multiparameter_attributes(multi_parameter_attributes)

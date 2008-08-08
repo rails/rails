@@ -7,7 +7,7 @@ We'll be relying on the built-in rails generate template for this tutorial.  Goi
 Type:
 
     script/generate
-  
+
 You should see the line:
 
     Plugins (vendor/plugins): yaffle
@@ -34,13 +34,13 @@ Now you can add code to your generator:
 class YaffleGenerator < Rails::Generator::NamedBase
   def manifest
     record do |m|
-      m.migration_template 'migration:migration.rb', "db/migrate", {:assigns => yaffle_local_assigns, 
+      m.migration_template 'migration:migration.rb', "db/migrate", {:assigns => yaffle_local_assigns,
         :migration_file_name => "add_yaffle_fields_to_#{custom_file_name}"
        }
     end
   end
 
-  private  
+  private
     def custom_file_name
       custom_name = class_name.underscore.downcase
       custom_name = custom_name.pluralize if ActiveRecord::Base.pluralize_table_names
@@ -68,7 +68,7 @@ This does a few things:
 When you run the generator like
 
     script/generate yaffle bird
-  
+
 You will see a new file:
 
 [source, ruby]

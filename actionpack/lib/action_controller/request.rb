@@ -3,19 +3,23 @@ require 'stringio'
 require 'strscan'
 
 module ActionController
-  # HTTP methods which are accepted by default. 
+  # HTTP methods which are accepted by default.
   ACCEPTED_HTTP_METHODS = Set.new(%w( get head put post delete options ))
 
   # CgiRequest and TestRequest provide concrete implementations.
   class AbstractRequest
-    cattr_accessor :relative_url_root
-    remove_method :relative_url_root
+    def self.relative_url_root=(*args)
+      ActiveSupport::Deprecation.warn(
+        "ActionController::AbstractRequest.relative_url_root= has been renamed." +
+        "You can now set it with config.action_controller.relative_url_root=", caller)
+    end
 
-    # The hash of environment variables for this request,
-    # such as { 'RAILS_ENV' => 'production' }.
+    # The hash of CGI-like environment variables for this request, such as
+    #
+    #   { 'SERVER_PROTOCOL' => 'HTTP/1.1', 'HTTP_ACCEPT_LANGUAGE' => 'en-us', ... }
     attr_reader :env
 
-    # The true HTTP request method as a lowercase symbol, such as <tt>:get</tt>.
+    # The true HTTP request \method as a lowercase symbol, such as <tt>:get</tt>.
     # UnknownHttpMethod is raised for invalid methods not listed in ACCEPTED_HTTP_METHODS.
     def request_method
       @request_method ||= begin
@@ -28,7 +32,7 @@ module ActionController
       end
     end
 
-    # The HTTP request method as a lowercase symbol, such as <tt>:get</tt>.
+    # The HTTP request \method as a lowercase symbol, such as <tt>:get</tt>.
     # Note, HEAD is returned as <tt>:get</tt> since the two are functionally
     # equivalent from the application's perspective.
     def method
@@ -55,31 +59,33 @@ module ActionController
       request_method == :delete
     end
 
-    # Is this a HEAD request? <tt>request.method</tt> sees HEAD as <tt>:get</tt>,
-    # so check the HTTP method directly.
+    # Is this a HEAD request? Since <tt>request.method</tt> sees HEAD as <tt>:get</tt>,
+    # this \method checks the actual HTTP \method directly.
     def head?
       request_method == :head
     end
 
     # Provides access to the request's HTTP headers, for example:
-    #  request.headers["Content-Type"] # => "text/plain"
+    #
+    #   request.headers["Content-Type"] # => "text/plain"
     def headers
       @headers ||= ActionController::Http::Headers.new(@env)
     end
 
+    # Returns the content length of the request as an integer.
     def content_length
       @content_length ||= env['CONTENT_LENGTH'].to_i
     end
 
     # The MIME type of the HTTP request, such as Mime::XML.
     #
-    # For backward compatibility, the post format is extracted from the
+    # For backward compatibility, the post \format is extracted from the
     # X-Post-Data-Format HTTP header if present.
     def content_type
       @content_type ||= Mime::Type.lookup(content_type_without_parameters)
     end
 
-    # Returns the accepted MIME type for the request
+    # Returns the accepted MIME type for the request.
     def accepts
       @accepts ||=
         begin
@@ -93,7 +99,7 @@ module ActionController
         end
     end
 
-    # Returns the Mime type for the format used in the request.
+    # Returns the Mime type for the \format used in the request.
     #
     #   GET /posts/5.xml   | request.format => Mime::XML
     #   GET /posts/5.xhtml | request.format => Mime::HTML
@@ -111,14 +117,14 @@ module ActionController
         end
       end
     end
-    
-    
-    # Sets the format by string extension, which can be used to force custom formats that are not controlled by the extension.
-    # Example:
+
+
+    # Sets the \format by string extension, which can be used to force custom formats
+    # that are not controlled by the extension.
     #
     #   class ApplicationController < ActionController::Base
     #     before_filter :adjust_format_for_iphone
-    #   
+    #
     #     private
     #       def adjust_format_for_iphone
     #         request.format = :iphone if request.env["HTTP_USER_AGENT"][/iPhone/]
@@ -130,7 +136,7 @@ module ActionController
     end
 
     # Returns a symbolized version of the <tt>:format</tt> parameter of the request.
-    # If no format is given it returns <tt>:js</tt>for AJAX requests and <tt>:html</tt>
+    # If no \format is given it returns <tt>:js</tt>for Ajax requests and <tt>:html</tt>
     # otherwise.
     def template_format
       parameter_format = parameters[:format]
@@ -161,7 +167,7 @@ module ActionController
     # the right-hand-side of X-Forwarded-For
     TRUSTED_PROXIES = /^127\.0\.0\.1$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\./i
 
-    # Determine originating IP address.  REMOTE_ADDR is the standard
+    # Determines originating IP address.  REMOTE_ADDR is the standard
     # but will fail if the user is behind a proxy.  HTTP_CLIENT_IP and/or
     # HTTP_X_FORWARDED_FOR are set by proxies so check for these if
     # REMOTE_ADDR is a proxy.  HTTP_X_FORWARDED_FOR may be a comma-
@@ -204,12 +210,12 @@ EOM
     end
 
 
-    # Returns the complete URL used for this request
+    # Returns the complete URL used for this request.
     def url
       protocol + host_with_port + request_uri
     end
 
-    # Return 'https://' if this is an SSL request and 'http://' otherwise.
+    # Returns 'https://' if this is an SSL request and 'http://' otherwise.
     def protocol
       ssl? ? 'https://' : 'http://'
     end
@@ -219,12 +225,12 @@ EOM
       @env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https'
     end
 
-    # Returns the host for this request, such as example.com.
+    # Returns the \host for this request, such as "example.com".
     def host
     end
 
-    # Returns a host:port string for this request, such as example.com or
-    # example.com:8080.
+    # Returns a \host:\port string for this request, such as "example.com" or
+    # "example.com:8080".
     def host_with_port
       @host_with_port ||= host + port_string
     end
@@ -234,7 +240,7 @@ EOM
       @port_as_int ||= @env['SERVER_PORT'].to_i
     end
 
-    # Returns the standard port number for this request's protocol
+    # Returns the standard \port number for this request's protocol.
     def standard_port
       case protocol
         when 'https://' then 443
@@ -242,13 +248,13 @@ EOM
       end
     end
 
-    # Returns a port suffix like ":8080" if the port number of this request
-    # is not the default HTTP port 80 or HTTPS port 443.
+    # Returns a \port suffix like ":8080" if the \port number of this request
+    # is not the default HTTP \port 80 or HTTPS \port 443.
     def port_string
       (port == standard_port) ? '' : ":#{port}"
     end
 
-    # Returns the domain part of a host, such as rubyonrails.org in "www.rubyonrails.org". You can specify
+    # Returns the \domain part of a \host, such as "rubyonrails.org" in "www.rubyonrails.org". You can specify
     # a different <tt>tld_length</tt>, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
     def domain(tld_length = 1)
       return nil unless named_host?(host)
@@ -256,8 +262,9 @@ EOM
       host.split('.').last(1 + tld_length).join('.')
     end
 
-    # Returns all the subdomains as an array, so ["dev", "www"] would be returned for "dev.www.rubyonrails.org".
-    # You can specify a different <tt>tld_length</tt>, such as 2 to catch ["www"] instead of ["www", "rubyonrails"]
+    # Returns all the \subdomains as an array, so <tt>["dev", "www"]</tt> would be
+    # returned for "dev.www.rubyonrails.org". You can specify a different <tt>tld_length</tt>,
+    # such as 2 to catch <tt>["www"]</tt> instead of <tt>["www", "rubyonrails"]</tt>
     # in "www.rubyonrails.co.uk".
     def subdomains(tld_length = 1)
       return [] unless named_host?(host)
@@ -265,7 +272,7 @@ EOM
       parts[0..-(tld_length+2)]
     end
 
-    # Return the query string, accounting for server idiosyncrasies.
+    # Returns the query string, accounting for server idiosyncrasies.
     def query_string
       if uri = @env['REQUEST_URI']
         uri.split('?', 2)[1] || ''
@@ -274,7 +281,7 @@ EOM
       end
     end
 
-    # Return the request URI, accounting for server idiosyncrasies.
+    # Returns the request URI, accounting for server idiosyncrasies.
     # WEBrick includes the full URL. IIS leaves REQUEST_URI blank.
     def request_uri
       if uri = @env['REQUEST_URI']
@@ -298,32 +305,17 @@ EOM
       end
     end
 
-    # Returns the interpreted path to requested resource after all the installation directory of this application was taken into account
+    # Returns the interpreted \path to requested resource after all the installation
+    # directory of this application was taken into account.
     def path
       path = (uri = request_uri) ? uri.split('?').first.to_s : ''
 
       # Cut off the path to the installation directory if given
-      path.sub!(%r/^#{relative_url_root}/, '')
-      path || ''      
-    end
-    
-    # Returns the path minus the web server relative installation directory.
-    # This can be set with the environment variable RAILS_RELATIVE_URL_ROOT.
-    # It can be automatically extracted for Apache setups. If the server is not
-    # Apache, this method returns an empty string.
-    def relative_url_root
-      @@relative_url_root ||= case
-        when @env["RAILS_RELATIVE_URL_ROOT"]
-          @env["RAILS_RELATIVE_URL_ROOT"]
-        when server_software == 'apache'
-          @env["SCRIPT_NAME"].to_s.sub(/\/dispatch\.(fcgi|rb|cgi)$/, '')
-        else
-          ''
-      end
+      path.sub!(%r/^#{ActionController::Base.relative_url_root}/, '')
+      path || ''
     end
 
-
-    # Read the request body. This is useful for web services that need to
+    # Read the request \body. This is useful for web services that need to
     # work with raw requests directly.
     def raw_post
       unless env.include? 'RAW_POST_DATA'
@@ -333,7 +325,7 @@ EOM
       env['RAW_POST_DATA']
     end
 
-    # Returns both GET and POST parameters in a single hash.
+    # Returns both GET and POST \parameters in a single hash.
     def parameters
       @parameters ||= request_parameters.merge(query_parameters).update(path_parameters).with_indifferent_access
     end
@@ -343,17 +335,17 @@ EOM
       @symbolized_path_parameters = @parameters = nil
     end
 
-    # The same as <tt>path_parameters</tt> with explicitly symbolized keys 
-    def symbolized_path_parameters 
+    # The same as <tt>path_parameters</tt> with explicitly symbolized keys.
+    def symbolized_path_parameters
       @symbolized_path_parameters ||= path_parameters.symbolize_keys
     end
 
-    # Returns a hash with the parameters used to form the path of the request.
-    # Returned hash keys are strings.  See <tt>symbolized_path_parameters</tt> for symbolized keys.
-    #
-    # Example: 
+    # Returns a hash with the \parameters used to form the \path of the request.
+    # Returned hash keys are strings:
     #
     #   {'action' => 'my_action', 'controller' => 'my_controller'}
+    #
+    # See <tt>symbolized_path_parameters</tt> for symbolized keys.
     def path_parameters
       @path_parameters ||= {}
     end
@@ -363,7 +355,7 @@ EOM
     # Must be implemented in the concrete request
     #++
 
-    # The request body is an IO input stream.
+    # The request \body as an IO input stream.
     def body
     end
 

@@ -17,7 +17,7 @@ end
 class ActsAsYaffleTest < Test::Unit::TestCase
 end
 ------------------------------------------------------
-  
+
 [source, ruby]
 ------------------------------------------------------
 # File: vendor/plugins/lib/acts_as_yaffle.rb
@@ -40,11 +40,11 @@ module Yaffle
     def acts_as_something
       send :include, InstanceMethods
     end
-  end  
+  end
 
   module InstanceMethods
     # any method placed here will apply to instaces, like @hickwall
-  end  
+  end
 end
 ------------------------------------------------------
 

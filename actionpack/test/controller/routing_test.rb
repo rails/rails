@@ -67,66 +67,56 @@ class SegmentTest < Test::Unit::TestCase
   end
 
   def test_interpolation_statement
-    s = ROUTING::StaticSegment.new
-    s.value = "Hello"
+    s = ROUTING::StaticSegment.new("Hello")
     assert_equal "Hello", eval(s.interpolation_statement([]))
     assert_equal "HelloHello", eval(s.interpolation_statement([s]))
 
-    s2 = ROUTING::StaticSegment.new
-    s2.value = "-"
+    s2 = ROUTING::StaticSegment.new("-")
     assert_equal "Hello-Hello", eval(s.interpolation_statement([s, s2]))
 
-    s3 = ROUTING::StaticSegment.new
-    s3.value = "World"
+    s3 = ROUTING::StaticSegment.new("World")
     assert_equal "Hello-World", eval(s3.interpolation_statement([s, s2]))
   end
 end
 
 class StaticSegmentTest < Test::Unit::TestCase
   def test_interpolation_chunk_should_respect_raw
-    s = ROUTING::StaticSegment.new
-    s.value = 'Hello World'
-    assert ! s.raw?
+    s = ROUTING::StaticSegment.new('Hello World')
+    assert !s.raw?
     assert_equal 'Hello%20World', s.interpolation_chunk
 
-    s.raw = true
+    s = ROUTING::StaticSegment.new('Hello World', :raw => true)
     assert s.raw?
     assert_equal 'Hello World', s.interpolation_chunk
   end
 
   def test_regexp_chunk_should_escape_specials
-    s = ROUTING::StaticSegment.new
-
-    s.value = 'Hello*World'
+    s = ROUTING::StaticSegment.new('Hello*World')
     assert_equal 'Hello\*World', s.regexp_chunk
 
-    s.value = 'HelloWorld'
+    s = ROUTING::StaticSegment.new('HelloWorld')
     assert_equal 'HelloWorld', s.regexp_chunk
   end
 
   def test_regexp_chunk_should_add_question_mark_for_optionals
-    s = ROUTING::StaticSegment.new
-    s.value = "/"
-    s.is_optional = true
+    s = ROUTING::StaticSegment.new("/", :optional => true)
     assert_equal "/?", s.regexp_chunk
 
-    s.value = "hello"
+    s = ROUTING::StaticSegment.new("hello", :optional => true)
     assert_equal "(?:hello)?", s.regexp_chunk
   end
 end
 
 class DynamicSegmentTest < Test::Unit::TestCase
-  def segment
+  def segment(options = {})
     unless @segment
-      @segment = ROUTING::DynamicSegment.new
-      @segment.key = :a
+      @segment = ROUTING::DynamicSegment.new(:a, options)
     end
     @segment
   end
 
   def test_extract_value
-    s = ROUTING::DynamicSegment.new
-    s.key = :a
+    s = ROUTING::DynamicSegment.new(:a)
 
     hash = {:a => '10', :b => '20'}
     assert_equal '10', eval(s.extract_value)
@@ -149,31 +139,31 @@ class DynamicSegmentTest < Test::Unit::TestCase
   end
 
   def test_regexp_value_check_rejects_nil
-    segment.regexp = /\d+/
+    segment = segment(:regexp => /\d+/)
+
     a_value = nil
-    assert ! eval(segment.value_check)
+    assert !eval(segment.value_check)
   end
 
   def test_optional_regexp_value_check_should_accept_nil
-    segment.regexp = /\d+/
-    segment.is_optional = true
+    segment = segment(:regexp => /\d+/, :optional => true)
+
     a_value = nil
     assert eval(segment.value_check)
   end
 
   def test_regexp_value_check_rejects_no_match
-    segment.regexp = /\d+/
+    segment = segment(:regexp => /\d+/)
 
     a_value = "Hello20World"
-    assert ! eval(segment.value_check)
+    assert !eval(segment.value_check)
 
     a_value = "20Hi"
-    assert ! eval(segment.value_check)
+    assert !eval(segment.value_check)
   end
 
   def test_regexp_value_check_accepts_match
-    segment.regexp = /\d+/
-
+    segment = segment(:regexp => /\d+/)
     a_value = "30"
     assert eval(segment.value_check)
   end
@@ -184,14 +174,14 @@ class DynamicSegmentTest < Test::Unit::TestCase
   end
 
   def test_optional_value_needs_no_check
-    segment.is_optional = true
+    segment = segment(:optional => true)
+
     a_value = nil
     assert_equal nil, segment.value_check
   end
 
   def test_regexp_value_check_should_accept_match_with_default
-    segment.regexp = /\d+/
-    segment.default = '200'
+    segment = segment(:regexp => /\d+/, :default => '200')
 
     a_value = '100'
     assert eval(segment.value_check)
@@ -234,7 +224,7 @@ class DynamicSegmentTest < Test::Unit::TestCase
   end
 
   def test_extraction_code_should_return_on_mismatch
-    segment.regexp = /\d+/
+    segment = segment(:regexp => /\d+/)
     hash = merged = {:a => 'Hi', :b => '3'}
     options = {:b => '3'}
     a_value = nil
@@ -292,7 +282,7 @@ class DynamicSegmentTest < Test::Unit::TestCase
   end
 
   def test_value_regexp_should_match_exacly
-    segment.regexp = /\d+/
+    segment = segment(:regexp => /\d+/)
     assert_no_match segment.value_regexp, "Hello 10 World"
     assert_no_match segment.value_regexp, "Hello 10"
     assert_no_match segment.value_regexp, "10 World"
@@ -300,40 +290,36 @@ class DynamicSegmentTest < Test::Unit::TestCase
   end
 
   def test_regexp_chunk_should_return_string
-    segment.regexp = /\d+/
+    segment = segment(:regexp => /\d+/)
     assert_kind_of String, segment.regexp_chunk
   end
 
   def test_build_pattern_non_optional_with_no_captures
     # Non optional
-    a_segment = ROUTING::DynamicSegment.new
-    a_segment.regexp = /\d+/ #number_of_captures is 0
+    a_segment = ROUTING::DynamicSegment.new(nil, :regexp => /\d+/)
     assert_equal "(\\d+)stuff", a_segment.build_pattern('stuff')
   end
 
   def test_build_pattern_non_optional_with_captures
     # Non optional
-    a_segment = ROUTING::DynamicSegment.new
-    a_segment.regexp = /(\d+)(.*?)/ #number_of_captures is 2
+    a_segment = ROUTING::DynamicSegment.new(nil, :regexp => /(\d+)(.*?)/)
     assert_equal "((\\d+)(.*?))stuff", a_segment.build_pattern('stuff')
   end
 
   def test_optionality_implied
-    a_segment = ROUTING::DynamicSegment.new
-    a_segment.key = :id
+    a_segment = ROUTING::DynamicSegment.new(:id)
     assert a_segment.optionality_implied?
 
-    a_segment.key = :action
+    a_segment = ROUTING::DynamicSegment.new(:action)
     assert a_segment.optionality_implied?
   end
 
   def test_modifiers_must_be_handled_sensibly
-    a_segment = ROUTING::DynamicSegment.new
-    a_segment.regexp = /david|jamis/i
+    a_segment = ROUTING::DynamicSegment.new(nil, :regexp => /david|jamis/i)
     assert_equal "((?i-mx:david|jamis))stuff", a_segment.build_pattern('stuff')
-    a_segment.regexp = /david|jamis/x
+    a_segment = ROUTING::DynamicSegment.new(nil, :regexp =>  /david|jamis/x)
     assert_equal "((?x-mi:david|jamis))stuff", a_segment.build_pattern('stuff')
-    a_segment.regexp = /david|jamis/
+    a_segment = ROUTING::DynamicSegment.new(nil, :regexp => /david|jamis/)
     assert_equal "(david|jamis)stuff", a_segment.build_pattern('stuff')
   end
 end
@@ -560,7 +546,7 @@ class RouteBuilderTest < Test::Unit::TestCase
     action = segments[-4]
 
     assert_equal :action, action.key
-    action.regexp = /show|in/ # Use 'in' to check partial matches
+    segments[-4] = ROUTING::DynamicSegment.new(:action, :regexp => /show|in/)
 
     builder.assign_default_route_options(segments)
 
@@ -661,10 +647,10 @@ class RoutingTest < Test::Unit::TestCase
     ActionController::Routing.controller_paths = []
     assert_equal [], ActionController::Routing.possible_controllers
 
-    ActionController::Routing::Routes.load!
     ActionController::Routing.controller_paths = [
       root, root + '/app/controllers', root + '/vendor/plugins/bad_plugin/lib'
     ]
+    ActionController::Routing::Routes.load!
 
     assert_equal ["admin/user", "plugin", "user"], ActionController::Routing.possible_controllers.sort
   ensure
@@ -731,15 +717,10 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
     def request
       @request ||= MockRequest.new(:host => "named.route.test", :method => :get)
     end
-
-    def relative_url_root=(value)
-      request.relative_url_root=value
-    end
   end
 
   class MockRequest
-    attr_accessor :path, :path_parameters, :host, :subdomains, :domain,
-                  :method, :relative_url_root
+    attr_accessor :path, :path_parameters, :host, :subdomains, :domain, :method
 
     def initialize(values={})
       values.each { |key, value| send("#{key}=", value) }
@@ -839,6 +820,7 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
         puts "#{1 / per_url} url/s\n\n"
       end
     end
+
     def test_time_generation
       n = 5000
       if RunTimeTests
@@ -920,10 +902,11 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
     def test_basic_named_route_with_relative_url_root
       rs.add_named_route :home, '', :controller => 'content', :action => 'list'
       x = setup_for_named_route
-      x.relative_url_root="/foo"
+      ActionController::Base.relative_url_root = "/foo"
       assert_equal("http://named.route.test/foo/",
                    x.send(:home_url))
       assert_equal "/foo/", x.send(:home_path)
+      ActionController::Base.relative_url_root = nil
     end
 
     def test_named_route_with_option
@@ -1377,34 +1360,20 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
     end
 
     def slash_segment(is_optional = false)
-      returning ROUTING::DividerSegment.new('/') do |s|
-        s.is_optional = is_optional
-      end
+      ROUTING::DividerSegment.new('/', :optional => is_optional)
     end
 
     def default_route
       unless defined?(@default_route)
-        @default_route = ROUTING::Route.new
-
-        @default_route.segments << (s = ROUTING::StaticSegment.new)
-        s.value = '/'
-        s.raw = true
-
-        @default_route.segments << (s = ROUTING::DynamicSegment.new)
-        s.key = :controller
-
-        @default_route.segments << slash_segment(:optional)
-        @default_route.segments << (s = ROUTING::DynamicSegment.new)
-        s.key = :action
-        s.default = 'index'
-        s.is_optional = true
-
-        @default_route.segments << slash_segment(:optional)
-        @default_route.segments << (s = ROUTING::DynamicSegment.new)
-        s.key = :id
-        s.is_optional = true
-
-        @default_route.segments << slash_segment(:optional)
+        segments = []
+        segments << ROUTING::StaticSegment.new('/', :raw => true)
+        segments << ROUTING::DynamicSegment.new(:controller)
+        segments << slash_segment(:optional)
+        segments << ROUTING::DynamicSegment.new(:action, :default => 'index', :optional => true)
+        segments << slash_segment(:optional)
+        segments << ROUTING::DynamicSegment.new(:id, :optional => true)
+        segments << slash_segment(:optional)
+        @default_route = ROUTING::Route.new(segments).freeze
       end
       @default_route
     end
@@ -1492,29 +1461,16 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
     end
 
     def test_significant_keys
-      user_url = ROUTING::Route.new
-      user_url.segments << (s = ROUTING::StaticSegment.new)
-      s.value = '/'
-      s.raw = true
+      segments = []
+      segments << ROUTING::StaticSegment.new('/', :raw => true)
+      segments << ROUTING::StaticSegment.new('user')
+      segments << ROUTING::StaticSegment.new('/', :raw => true, :optional => true)
+      segments << ROUTING::DynamicSegment.new(:user)
+      segments << ROUTING::StaticSegment.new('/', :raw => true, :optional => true)
 
-      user_url.segments << (s = ROUTING::StaticSegment.new)
-      s.value = 'user'
+      requirements = {:controller => 'users', :action => 'show'}
 
-      user_url.segments << (s = ROUTING::StaticSegment.new)
-      s.value = '/'
-      s.raw = true
-      s.is_optional = true
-
-      user_url.segments << (s = ROUTING::DynamicSegment.new)
-      s.key = :user
-
-      user_url.segments << (s = ROUTING::StaticSegment.new)
-      s.value = '/'
-      s.raw = true
-      s.is_optional = true
-
-      user_url.requirements = {:controller => 'users', :action => 'show'}
-
+      user_url = ROUTING::Route.new(segments, requirements)
       keys = user_url.significant_keys.sort_by { |k| k.to_s }
       assert_equal [:action, :controller, :user], keys
     end
@@ -1797,6 +1753,22 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
         end
         assert_raises ActionController::RoutingError do
           set.generate :controller => 'pages', :action => 'show', :id => 10
+        end
+      end
+    end
+
+    def test_route_requirements_with_invalid_http_method_is_invalid
+      assert_raises ArgumentError do
+        set.draw do |map|
+          map.connect 'valid/route', :controller => 'pages', :action => 'show', :conditions => {:method => :invalid}
+        end
+      end
+    end
+
+    def test_route_requirements_with_head_method_condition_is_invalid
+      assert_raises ArgumentError do
+        set.draw do |map|
+          map.connect 'valid/route', :controller => 'pages', :action => 'show', :conditions => {:method => :head}
         end
       end
     end

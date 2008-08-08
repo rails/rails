@@ -16,7 +16,7 @@ The Active Record class typically has methods that do the following:
 
 * Construct an instances of an Active Record class from a SQL result
 * Construct a new class instance for insertion into the table
-* Get and set column values 
+* Get and set column values
 * Wrap business logic where appropriate
 * Update existing objects and update the related rows in the database
 

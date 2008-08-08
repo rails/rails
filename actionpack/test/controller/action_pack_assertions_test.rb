@@ -328,11 +328,11 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   # check if we were rendered by a file-based template?
   def test_rendered_action
     process :nothing
-    assert !@response.rendered_with_file?
+    assert_nil @response.rendered_template
 
     process :hello_world
-    assert @response.rendered_with_file?
-    assert 'hello_world', @response.rendered_file
+    assert @response.rendered_template
+    assert 'hello_world', @response.rendered_template.to_s
   end
 
   # check the redirection location

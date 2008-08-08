@@ -320,8 +320,11 @@ class TimeWithZoneTest < Test::Unit::TestCase
       marshal_str = Marshal.dump(@twz)
       mtime = Marshal.load(marshal_str)
       assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
+      assert mtime.utc.utc?
       assert_equal ActiveSupport::TimeZone['Eastern Time (US & Canada)'], mtime.time_zone
       assert_equal Time.utc(1999, 12, 31, 19), mtime.time
+      assert mtime.time.utc?
+      assert_equal @twz.inspect, mtime.inspect
     end
   end
 
@@ -331,8 +334,11 @@ class TimeWithZoneTest < Test::Unit::TestCase
       marshal_str = Marshal.dump(twz)
       mtime = Marshal.load(marshal_str)
       assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
+      assert mtime.utc.utc?
       assert_equal 'America/New_York', mtime.time_zone.name
       assert_equal Time.utc(1999, 12, 31, 19), mtime.time
+      assert mtime.time.utc?
+      assert_equal @twz.inspect, mtime.inspect
     end
   end
 

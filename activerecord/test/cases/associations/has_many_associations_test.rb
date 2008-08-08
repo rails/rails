@@ -425,6 +425,37 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, first_topic.replies.to_ary.size
   end
 
+  def test_build_via_block
+    company = companies(:first_firm)
+    new_client = assert_no_queries { company.clients_of_firm.build {|client| client.name = "Another Client" } }
+    assert !company.clients_of_firm.loaded?
+
+    assert_equal "Another Client", new_client.name
+    assert new_client.new_record?
+    assert_equal new_client, company.clients_of_firm.last
+    company.name += '-changed'
+    assert_queries(2) { assert company.save }
+    assert !new_client.new_record?
+    assert_equal 2, company.clients_of_firm(true).size
+  end
+
+  def test_build_many_via_block
+    company = companies(:first_firm)
+    new_clients = assert_no_queries do
+      company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) do |client|
+        client.name = "changed"
+      end
+    end
+
+    assert_equal 2, new_clients.size
+    assert_equal "changed", new_clients.first.name
+    assert_equal "changed", new_clients.last.name
+
+    company.name += '-changed'
+    assert_queries(3) { assert company.save }
+    assert_equal 3, company.clients_of_firm(true).size
+  end
+
   def test_create_without_loading_association
     first_firm  = companies(:first_firm)
     Firm.column_names
@@ -966,6 +997,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
 
     assert firm.clients.loaded?
+  end
+
+  def test_joins_with_namespaced_model_should_use_correct_type
+    old = ActiveRecord::Base.store_full_sti_class
+    ActiveRecord::Base.store_full_sti_class = true
+
+    firm = Namespaced::Firm.create({ :name => 'Some Company' })
+    firm.clients.create({ :name => 'Some Client' })
+
+    stats = Namespaced::Firm.find(firm.id, {
+      :select => "#{Namespaced::Firm.table_name}.id, COUNT(#{Namespaced::Client.table_name}.id) AS num_clients",
+      :joins  => :clients,
+      :group  => "#{Namespaced::Firm.table_name}.id"
+    })
+    assert_equal 1, stats.num_clients.to_i
+
+  ensure
+    ActiveRecord::Base.store_full_sti_class = old
   end
 
 end

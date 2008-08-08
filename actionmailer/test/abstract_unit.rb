@@ -30,12 +30,20 @@ class Net::SMTP
   end
 end
 
-# Wrap tests that use Mocha and skip if unavailable.
-def uses_mocha(test_name)
-  gem 'mocha', ">=0.9.0"
+def uses_gem(gem_name, test_name, version = '> 0')
+  require 'rubygems'
+  gem gem_name.to_s, version
+  require gem_name.to_s
   yield
-rescue Gem::LoadError
-  $stderr.puts "Skipping #{test_name} tests (Mocha >= 0.5 is required). `gem install mocha` and try again."
+rescue LoadError
+  $stderr.puts "Skipping #{test_name} tests. `gem install #{gem_name}` and try again."
+end
+
+# Wrap tests that use Mocha and skip if unavailable.
+unless defined? uses_mocha
+  def uses_mocha(test_name, &block)
+    uses_gem('mocha', test_name, '>= 0.5.5', &block)
+  end
 end
 
 def set_delivery_method(delivery_method)

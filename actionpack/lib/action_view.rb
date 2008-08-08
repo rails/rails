@@ -34,6 +34,10 @@ require 'action_view/base'
 require 'action_view/partials'
 require 'action_view/template_error'
 
+I18n.backend.populate do
+  require 'action_view/locale/en-US.rb'
+end
+
 ActionView::Base.class_eval do
   include ActionView::Partials
 

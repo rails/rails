@@ -11,16 +11,16 @@ module ActionView
       #   @user = User.new({ :username => 'testing', :password => 'xyz', :age => 42}) %>
       #   debug(@user)
       #   # =>
-      #   <pre class='debug_dump'>--- !ruby/object:User 
-      #   attributes: 
-      #   &nbsp; updated_at: 
+      #   <pre class='debug_dump'>--- !ruby/object:User
+      #   attributes:
+      #   &nbsp; updated_at:
       #   &nbsp; username: testing
-      #   
+      #
       #   &nbsp; age: 42
       #   &nbsp; password: xyz
-      #   &nbsp; created_at: 
+      #   &nbsp; created_at:
       #   attributes_cache: {}
-      #   
+      #
       #   new_record: true
       #   </pre>
 

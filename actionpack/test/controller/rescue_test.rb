@@ -62,6 +62,11 @@ class RescueController < ActionController::Base
     render :text => exception.message
   end
 
+  # This is a Dispatcher exception and should be in ApplicationController.
+  rescue_from ActionController::RoutingError do
+    render :text => 'no way'
+  end
+
   def raises
     render :text => 'already rendered'
     raise "don't panic!"
@@ -378,6 +383,10 @@ class RescueTest < Test::Unit::TestCase
     assert_equal "RescueController::ResourceUnavailableToRescueAsString", @response.body
   end
 
+  def test_rescue_dispatcher_exceptions
+    RescueController.process_with_exception(@request, @response, ActionController::RoutingError.new("Route not found"))
+    assert_equal "no way", @response.body
+  end
 
   protected
     def with_all_requests_local(local = true)

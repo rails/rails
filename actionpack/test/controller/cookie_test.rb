@@ -60,7 +60,7 @@ class CookieTest < Test::Unit::TestCase
   end
 
   def test_setting_cookie_for_fourteen_days_with_symbols
-    get :authenticate_for_fourteen_days
+    get :authenticate_for_fourteen_days_with_symbols
     assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "david", "expires" => Time.local(2005, 10, 10)) ], @response.headers["cookie"]
   end
 

@@ -283,6 +283,14 @@ module ActionController #:nodoc:
     @@debug_routes = true
     cattr_accessor :debug_routes
 
+    # Indicates whether to allow concurrent action processing. Your
+    # controller actions and any other code they call must also behave well
+    # when called from concurrent threads. Turned off by default.
+    @@allow_concurrency = false
+    cattr_accessor :allow_concurrency
+
+    @@guard = Monitor.new
+
     # Modern REST web services often need to submit complex data to the web application.
     # The <tt>@@param_parsers</tt> hash lets you register handlers which will process the HTTP body and add parameters to the
     # <tt>params</tt> hash. These handlers are invoked for POST and PUT requests.
@@ -353,6 +361,15 @@ module ActionController #:nodoc:
     # Controls whether request forgergy protection is turned on or not. Turned off by default only in test mode.
     class_inheritable_accessor :allow_forgery_protection
     self.allow_forgery_protection = true
+
+    # If you are deploying to a subdirectory, you will need to set
+    # <tt>config.action_controller.relative_url_root</tt>
+    # This defaults to ENV['RAILS_RELATIVE_URL_ROOT']
+    cattr_writer :relative_url_root
+
+    def self.relative_url_root
+      @@relative_url_root || ENV['RAILS_RELATIVE_URL_ROOT']
+    end
 
     # Holds the request object that's primarily used to get environment variables through access like
     # <tt>request.env["REQUEST_URI"]</tt>.
@@ -519,6 +536,8 @@ module ActionController #:nodoc:
     public
       # Extracts the action_name from the request parameters and performs that action.
       def process(request, response, method = :perform_action, *arguments) #:nodoc:
+        response.request = request
+
         initialize_template_class(response)
         assign_shortcuts(request, response)
         initialize_current_url
@@ -526,11 +545,14 @@ module ActionController #:nodoc:
         forget_variables_added_to_assigns
 
         log_processing
-        send(method, *arguments)
+
+        if @@allow_concurrency
+          send(method, *arguments)
+        else
+          @@guard.synchronize { send(method, *arguments) }
+        end
 
         assign_default_content_type_and_charset
-
-        response.request = request
         response.prepare! unless component_request?
         response
       ensure
@@ -968,6 +990,17 @@ module ActionController #:nodoc:
         render :nothing => true, :status => status
       end
 
+      # Sets the Last-Modified response header. Returns 304 Not Modified if the
+      # If-Modified-Since request header is <= last modified.
+      def last_modified!(utc_time)
+        head(:not_modified) if response.last_modified!(utc_time)
+      end
+
+      # Sets the ETag response header. Returns 304 Not Modified if the
+      # If-None-Match request header matches.
+      def etag!(etag)
+        head(:not_modified) if response.etag!(etag)
+      end
 
       # Clears the rendered results, allowing for another render to be performed.
       def erase_render_results #:nodoc:
@@ -1155,7 +1188,7 @@ module ActionController #:nodoc:
 
       def log_processing
         if logger && logger.info?
-          logger.info "\n\nProcessing #{controller_class_name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
+          logger.info "\n\nProcessing #{self.class.name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
           logger.info "  Session ID: #{@_session.session_id}" if @_session and @_session.respond_to?(:session_id)
           logger.info "  Parameters: #{respond_to?(:filter_parameters) ? filter_parameters(params).inspect : params.inspect}"
         end
@@ -1175,7 +1208,7 @@ module ActionController #:nodoc:
         elsif template_exists? && template_public?
           default_render
         else
-          raise UnknownAction, "No action responded to #{action_name}", caller
+          raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.to_a.sort.to_sentence}", caller
         end
       end
 
@@ -1250,6 +1283,8 @@ module ActionController #:nodoc:
       def template_exempt_from_layout?(template_name = default_template_name)
         template_name = @template.pick_template(template_name).to_s if @template
         @@exempt_from_layout.any? { |ext| template_name =~ ext }
+      rescue ActionView::MissingTemplate
+        false
       end
 
       def default_template_name(action_name = self.action_name)

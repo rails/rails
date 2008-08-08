@@ -1,8 +1,3 @@
-require 'set'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/load_error'
-require 'active_support/core_ext/kernel'
-
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
     extend self
@@ -51,6 +46,159 @@ module ActiveSupport #:nodoc:
     # An internal stack used to record which constants are loaded by any block.
     mattr_accessor :constant_watch_stack
     self.constant_watch_stack = []
+
+    # Module includes this module
+    module ModuleConstMissing #:nodoc:
+      def self.included(base) #:nodoc:
+        base.class_eval do
+          unless defined? const_missing_without_dependencies
+            alias_method_chain :const_missing, :dependencies
+          end
+        end
+      end
+
+      def self.excluded(base) #:nodoc:
+        base.class_eval do
+          if defined? const_missing_without_dependencies
+            undef_method :const_missing
+            alias_method :const_missing, :const_missing_without_dependencies
+            undef_method :const_missing_without_dependencies
+          end
+        end
+      end
+
+      # Use const_missing to autoload associations so we don't have to
+      # require_association when using single-table inheritance.
+      def const_missing_with_dependencies(class_id)
+        ActiveSupport::Dependencies.load_missing_constant self, class_id
+      end
+
+      def unloadable(const_desc = self)
+        super(const_desc)
+      end
+    end
+
+    # Class includes this module
+    module ClassConstMissing #:nodoc:
+      def const_missing(const_name)
+        if [Object, Kernel].include?(self) || parent == self
+          super
+        else
+          begin
+            begin
+              Dependencies.load_missing_constant self, const_name
+            rescue NameError
+              parent.send :const_missing, const_name
+            end
+          rescue NameError => e
+            # Make sure that the name we are missing is the one that caused the error
+            parent_qualified_name = Dependencies.qualified_name_for parent, const_name
+            raise unless e.missing_name? parent_qualified_name
+            qualified_name = Dependencies.qualified_name_for self, const_name
+            raise NameError.new("uninitialized constant #{qualified_name}").copy_blame!(e)
+          end
+        end
+      end
+    end
+
+    # Object includes this module
+    module Loadable #:nodoc:
+      def self.included(base) #:nodoc:
+        base.class_eval do
+          unless defined? load_without_new_constant_marking
+            alias_method_chain :load, :new_constant_marking
+          end
+        end
+      end
+
+      def self.excluded(base) #:nodoc:
+        base.class_eval do
+          if defined? load_without_new_constant_marking
+            undef_method :load
+            alias_method :load, :load_without_new_constant_marking
+            undef_method :load_without_new_constant_marking
+          end
+        end
+      end
+
+      def require_or_load(file_name)
+        Dependencies.require_or_load(file_name)
+      end
+
+      def require_dependency(file_name)
+        Dependencies.depend_on(file_name)
+      end
+
+      def require_association(file_name)
+        Dependencies.associate_with(file_name)
+      end
+
+      def load_with_new_constant_marking(file, *extras) #:nodoc:
+        Dependencies.new_constants_in(Object) { load_without_new_constant_marking(file, *extras) }
+      rescue Exception => exception  # errors from loading file
+        exception.blame_file! file
+        raise
+      end
+
+      def require(file, *extras) #:nodoc:
+        Dependencies.new_constants_in(Object) { super }
+      rescue Exception => exception  # errors from required file
+        exception.blame_file! file
+        raise
+      end
+
+      # Mark the given constant as unloadable. Unloadable constants are removed each
+      # time dependencies are cleared.
+      #
+      # Note that marking a constant for unloading need only be done once. Setup
+      # or init scripts may list each unloadable constant that may need unloading;
+      # each constant will be removed for every subsequent clear, as opposed to for
+      # the first clear.
+      #
+      # The provided constant descriptor may be a (non-anonymous) module or class,
+      # or a qualified constant name as a string or symbol.
+      #
+      # Returns true if the constant was not previously marked for unloading, false
+      # otherwise.
+      def unloadable(const_desc)
+        Dependencies.mark_for_unload const_desc
+      end
+    end
+
+    # Exception file-blaming
+    module Blamable #:nodoc:
+      def blame_file!(file)
+        (@blamed_files ||= []).unshift file
+      end
+
+      def blamed_files
+        @blamed_files ||= []
+      end
+
+      def describe_blame
+        return nil if blamed_files.empty?
+        "This error occurred while loading the following files:\n   #{blamed_files.join "\n   "}"
+      end
+
+      def copy_blame!(exc)
+        @blamed_files = exc.blamed_files.clone
+        self
+      end
+    end
+
+    def hook!
+      Object.instance_eval { include Loadable }
+      Module.instance_eval { include ModuleConstMissing }
+      Class.instance_eval { include ClassConstMissing }
+      Exception.instance_eval { include Blamable }
+      true
+    end
+
+    def unhook!
+      ModuleConstMissing.excluded(Module)
+      Loadable.excluded(Object)
+      true
+    end
 
     def load?
       mechanism == :load
@@ -452,102 +600,4 @@ module ActiveSupport #:nodoc:
   end
 end
 
-Object.instance_eval do
-  define_method(:require_or_load)     { |file_name| ActiveSupport::Dependencies.require_or_load(file_name) } unless Object.respond_to?(:require_or_load)
-  define_method(:require_dependency)  { |file_name| ActiveSupport::Dependencies.depend_on(file_name) }       unless Object.respond_to?(:require_dependency)
-  define_method(:require_association) { |file_name| ActiveSupport::Dependencies.associate_with(file_name) }  unless Object.respond_to?(:require_association)
-end
-
-class Module #:nodoc:
-  # Rename the original handler so we can chain it to the new one
-  alias :rails_original_const_missing :const_missing
-
-  # Use const_missing to autoload associations so we don't have to
-  # require_association when using single-table inheritance.
-  def const_missing(class_id)
-    ActiveSupport::Dependencies.load_missing_constant self, class_id
-  end
-
-  def unloadable(const_desc = self)
-    super(const_desc)
-  end
-
-end
-
-class Class
-  def const_missing(const_name)
-    if [Object, Kernel].include?(self) || parent == self
-      super
-    else
-      begin
-        begin
-          ActiveSupport::Dependencies.load_missing_constant self, const_name
-        rescue NameError
-          parent.send :const_missing, const_name
-        end
-      rescue NameError => e
-        # Make sure that the name we are missing is the one that caused the error
-        parent_qualified_name = ActiveSupport::Dependencies.qualified_name_for parent, const_name
-        raise unless e.missing_name? parent_qualified_name
-        qualified_name = ActiveSupport::Dependencies.qualified_name_for self, const_name
-        raise NameError.new("uninitialized constant #{qualified_name}").copy_blame!(e)
-      end
-    end
-  end
-end
-
-class Object
-  alias_method :load_without_new_constant_marking, :load
-
-  def load(file, *extras) #:nodoc:
-    ActiveSupport::Dependencies.new_constants_in(Object) { super }
-  rescue Exception => exception  # errors from loading file
-    exception.blame_file! file
-    raise
-  end
-
-  def require(file, *extras) #:nodoc:
-    ActiveSupport::Dependencies.new_constants_in(Object) { super }
-  rescue Exception => exception  # errors from required file
-    exception.blame_file! file
-    raise
-  end
-
-  # Mark the given constant as unloadable. Unloadable constants are removed each
-  # time dependencies are cleared.
-  #
-  # Note that marking a constant for unloading need only be done once. Setup
-  # or init scripts may list each unloadable constant that may need unloading;
-  # each constant will be removed for every subsequent clear, as opposed to for
-  # the first clear.
-  #
-  # The provided constant descriptor may be a (non-anonymous) module or class,
-  # or a qualified constant name as a string or symbol.
-  #
-  # Returns true if the constant was not previously marked for unloading, false
-  # otherwise.
-  def unloadable(const_desc)
-    ActiveSupport::Dependencies.mark_for_unload const_desc
-  end
-end
-
-# Add file-blaming to exceptions
-class Exception #:nodoc:
-  def blame_file!(file)
-    (@blamed_files ||= []).unshift file
-  end
-
-  def blamed_files
-    @blamed_files ||= []
-  end
-
-  def describe_blame
-    return nil if blamed_files.empty?
-    "This error occurred while loading the following files:\n   #{blamed_files.join "\n   "}"
-  end
-
-  def copy_blame!(exc)
-    @blamed_files = exc.blamed_files.clone
-    self
-  end
-end
+ActiveSupport::Dependencies.hook!

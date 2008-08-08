@@ -4,11 +4,12 @@ module ActionController
       RESERVED_PCHAR = ':@&=+$,;'
       UNSAFE_PCHAR = Regexp.new("[^#{URI::REGEXP::PATTERN::UNRESERVED}#{RESERVED_PCHAR}]", false, 'N').freeze
 
+      # TODO: Convert :is_optional accessor to read only
       attr_accessor :is_optional
       alias_method :optional?, :is_optional
 
       def initialize
-        self.is_optional = false
+        @is_optional = false
       end
 
       def extraction_code
@@ -63,12 +64,14 @@ module ActionController
     end
 
     class StaticSegment < Segment #:nodoc:
-      attr_accessor :value, :raw
+      attr_reader :value, :raw
       alias_method :raw?, :raw
 
-      def initialize(value = nil)
+      def initialize(value = nil, options = {})
         super()
-        self.value = value
+        @value = value
+        @raw = options[:raw] if options.key?(:raw)
+        @is_optional = options[:optional] if options.key?(:optional)
       end
 
       def interpolation_chunk
@@ -97,10 +100,8 @@ module ActionController
     end
 
     class DividerSegment < StaticSegment #:nodoc:
-      def initialize(value = nil)
-        super(value)
-        self.raw = true
-        self.is_optional = true
+      def initialize(value = nil, options = {})
+        super(value, {:raw => true, :optional => true}.merge(options))
       end
 
       def optionality_implied?
@@ -109,13 +110,17 @@ module ActionController
     end
 
     class DynamicSegment < Segment #:nodoc:
-      attr_accessor :key, :default, :regexp
+      attr_reader :key
+
+      # TODO: Convert these accessors to read only
+      attr_accessor :default, :regexp
 
       def initialize(key = nil, options = {})
         super()
-        self.key = key
-        self.default = options[:default] if options.key? :default
-        self.is_optional = true if options[:optional] || options.key?(:default)
+        @key = key
+        @default = options[:default] if options.key?(:default)
+        @regexp = options[:regexp] if options.key?(:regexp)
+        @is_optional = true if options[:optional] || options.key?(:default)
       end
 
       def to_s
@@ -130,6 +135,7 @@ module ActionController
       def extract_value
         "#{local_name} = hash[:#{key}] && hash[:#{key}].to_param #{"|| #{default.inspect}" if default}"
       end
+
       def value_check
         if default # Then we know it won't be nil
           "#{value_regexp.inspect} =~ #{local_name}" if regexp
@@ -141,6 +147,7 @@ module ActionController
           "#{local_name} #{"&& #{value_regexp.inspect} =~ #{local_name}" if regexp}"
         end
       end
+
       def expiry_statement
         "expired, hash = true, options if !expired && expire_on[:#{key}]"
       end
@@ -175,7 +182,7 @@ module ActionController
       end
 
       def regexp_chunk
-        if regexp 
+        if regexp
           if regexp_has_modifiers?
             "(#{regexp.to_s})"
           else
@@ -214,7 +221,6 @@ module ActionController
       def regexp_has_modifiers?
         regexp.options & (Regexp::IGNORECASE | Regexp::EXTENDED) != 0
       end
-
     end
 
     class ControllerSegment < DynamicSegment #:nodoc:

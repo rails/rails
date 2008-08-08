@@ -41,7 +41,7 @@ module ActionController #:nodoc:
       #   only available with Lighttpd/Apache2 and specific modules installed and activated. Since this
       #   uses the web server to send the file, this may lower memory consumption on your server and
       #   it will not block your application for further requests.
-      #   See http://blog.lighttpd.net/articles/2006/07/02/x-sendfile and 
+      #   See http://blog.lighttpd.net/articles/2006/07/02/x-sendfile and
       #   http://tn123.ath.cx/mod_xsendfile/ for details. Defaults to +false+.
       #
       # The default Content-Type and Content-Disposition headers are

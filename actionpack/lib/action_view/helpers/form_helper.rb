@@ -304,10 +304,6 @@ module ActionView
         when String, Symbol
           object_name = record_or_name_or_array
           object = args.first
-        when Array
-          object = record_or_name_or_array.last
-          object_name = ActionController::RecordIdentifier.singular_class_name(object)
-          apply_form_for_options!(record_or_name_or_array, options)
         else
           object = record_or_name_or_array
           object_name = ActionController::RecordIdentifier.singular_class_name(object)
@@ -532,10 +528,10 @@ module ActionView
 
       def initialize(object_name, method_name, template_object, object = nil)
         @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
-        @template_object= template_object
+        @template_object = template_object
         @object = object
-        if @object_name.sub!(/\[\]$/,"")
-          if object ||= @template_object.instance_variable_get("@#{Regexp.last_match.pre_match}") and object.respond_to?(:to_param)
+        if @object_name.sub!(/\[\]$/,"") || @object_name.sub!(/\[\]\]$/,"]")
+          if (object ||= @template_object.instance_variable_get("@#{Regexp.last_match.pre_match}")) && object.respond_to?(:to_param)
             @auto_index = object.to_param
           else
             raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
@@ -712,7 +708,7 @@ module ActionView
         end
 
         def sanitized_object_name
-          @sanitized_object_name ||= @object_name.gsub(/[^-a-zA-Z0-9:.]/, "_").sub(/_$/, "")
+          @sanitized_object_name ||= @object_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").sub(/_$/, "")
         end
 
         def sanitized_method_name
@@ -730,6 +726,13 @@ module ActionView
       def initialize(object_name, object, template, options, proc)
         @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc
         @default_options = @options ? @options.slice(:index) : {}
+        if @object_name.to_s.match(/\[\]$/)
+          if object ||= @template.instance_variable_get("@#{Regexp.last_match.pre_match}") and object.respond_to?(:to_param)
+            @auto_index = object.to_param
+          else
+            raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
+          end
+        end
       end
 
       (field_helpers - %w(label check_box radio_button fields_for)).each do |selector|
@@ -742,16 +745,25 @@ module ActionView
       end
 
       def fields_for(record_or_name_or_array, *args, &block)
+        if options.has_key?(:index)
+          index = "[#{options[:index]}]"
+        elsif defined?(@auto_index)
+          self.object_name = @object_name.to_s.sub(/\[\]$/,"")
+          index = "[#{@auto_index}]"
+        else
+          index = ""
+        end
+
         case record_or_name_or_array
         when String, Symbol
-          name = "#{object_name}[#{record_or_name_or_array}]"
+          name = "#{object_name}#{index}[#{record_or_name_or_array}]"
         when Array
           object = record_or_name_or_array.last
-          name = "#{object_name}[#{ActionController::RecordIdentifier.singular_class_name(object)}]"
+          name = "#{object_name}#{index}[#{ActionController::RecordIdentifier.singular_class_name(object)}]"
           args.unshift(object)
         else
           object = record_or_name_or_array
-          name = "#{object_name}[#{ActionController::RecordIdentifier.singular_class_name(object)}]"
+          name = "#{object_name}#{index}[#{ActionController::RecordIdentifier.singular_class_name(object)}]"
           args.unshift(object)
         end
 
@@ -770,8 +782,8 @@ module ActionView
         @template.radio_button(@object_name, method, tag_value, objectify_options(options))
       end
 
-      def error_message_on(method, prepend_text = "", append_text = "", css_class = "formError")
-        @template.error_message_on(@object, method, prepend_text, append_text, css_class)
+      def error_message_on(method, *args)
+        @template.error_message_on(@object, method, *args)
       end
 
       def error_messages(options = {})

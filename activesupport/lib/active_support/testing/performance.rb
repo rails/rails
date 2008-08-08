@@ -11,7 +11,7 @@ module ActiveSupport
       DEFAULTS =
         if benchmark = ARGV.include?('--benchmark')  # HAX for rake test
           { :benchmark => true,
-            :runs => 10,
+            :runs => 4,
             :metrics => [:process_time, :memory, :objects, :gc_runs, :gc_time],
             :output => 'tmp/performance' }
         else
@@ -72,13 +72,13 @@ module ActiveSupport
 
       protected
         def run_warmup
-          5.times { GC.start }
+          GC.start
 
           time = Metrics::Time.new
           run_test(time, :benchmark)
           puts "%s (%s warmup)" % [full_test_name, time.format(time.total)]
 
-          5.times { GC.start }
+          GC.start
         end
 
         def run_profile(metric)

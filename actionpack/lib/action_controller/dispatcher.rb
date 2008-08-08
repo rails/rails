@@ -2,8 +2,6 @@ module ActionController
   # Dispatches requests to the appropriate controller and takes care of
   # reloading the app after each request when Dependencies.load? is true.
   class Dispatcher
-    @@guard = Mutex.new
-
     class << self
       def define_dispatcher_callbacks(cache_classes)
         unless cache_classes
@@ -101,15 +99,13 @@ module ActionController
     end
 
     def dispatch
-      @@guard.synchronize do
-        begin
-          run_callbacks :before_dispatch
-          handle_request
-        rescue Exception => exception
-          failsafe_rescue exception
-        ensure
-          run_callbacks :after_dispatch, :enumerator => :reverse_each
-        end
+      begin
+        run_callbacks :before_dispatch
+        handle_request
+      rescue Exception => exception
+        failsafe_rescue exception
+      ensure
+        run_callbacks :after_dispatch, :enumerator => :reverse_each
       end
     end
 

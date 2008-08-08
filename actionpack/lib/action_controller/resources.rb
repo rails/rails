@@ -1,23 +1,23 @@
 module ActionController
   # == Overview
   #
-  # ActionController::Resources are a way of defining RESTful resources.  A RESTful resource, in basic terms,
+  # ActionController::Resources are a way of defining RESTful \resources.  A RESTful \resource, in basic terms,
   # is something that can be pointed at and it will respond with a representation of the data requested.
   # In real terms this could mean a user with a browser requests an HTML page, or that a desktop application
   # requests XML data.
   #
   # RESTful design is based on the assumption that there are four generic verbs that a user of an
-  # application can request from a resource (the noun).
+  # application can request from a \resource (the noun).
   #
-  # Resources can be requested using four basic HTTP verbs (GET, POST, PUT, DELETE), the method used
+  # \Resources can be requested using four basic HTTP verbs (GET, POST, PUT, DELETE), the method used
   # denotes the type of action that should take place.
   #
   # === The Different Methods and their Usage
   #
-  # +GET+     Requests for a resource, no saving or editing of a resource should occur in a GET request
-  # +POST+    Creation of resources
-  # +PUT+     Editing of attributes on a resource
-  # +DELETE+  Deletion of a resource
+  # * GET    - Requests for a \resource, no saving or editing of a \resource should occur in a GET request.
+  # * POST   - Creation of \resources.
+  # * PUT    - Editing of attributes on a \resource.
+  # * DELETE - Deletion of a \resource.
   #
   # === Examples
   #
@@ -146,7 +146,7 @@ module ActionController
     end
 
     # Creates named routes for implementing verb-oriented controllers
-    # for a collection resource.
+    # for a collection \resource.
     #
     # For example:
     #
@@ -241,20 +241,20 @@ module ActionController
     #   Takes a hash of <tt>#{action} => #{method}</tt>, where method is <tt>:get</tt>/<tt>:post</tt>/<tt>:put</tt>/<tt>:delete</tt>
     #   or <tt>:any</tt> if the method does not matter.  These routes map to a URL like /messages/rss, with a route of +rss_messages_url+.
     # * <tt>:member</tt> - Same as <tt>:collection</tt>, but for actions that operate on a specific member.
-    # * <tt>:new</tt> - Same as <tt>:collection</tt>, but for actions that operate on the new resource action.
+    # * <tt>:new</tt> - Same as <tt>:collection</tt>, but for actions that operate on the new \resource action.
     # * <tt>:controller</tt> - Specify the controller name for the routes.
     # * <tt>:singular</tt> - Specify the singular name used in the member routes.
     # * <tt>:requirements</tt> - Set custom routing parameter requirements.
-    # * <tt>:conditions</tt> - Specify custom routing recognition conditions.  Resources sets the <tt>:method</tt> value for the method-specific routes.
-    # * <tt>:as</tt> - Specify a different resource name to use in the URL path. For example:
+    # * <tt>:conditions</tt> - Specify custom routing recognition conditions.  \Resources sets the <tt>:method</tt> value for the method-specific routes.
+    # * <tt>:as</tt> - Specify a different \resource name to use in the URL path. For example:
     #     # products_path == '/productos'
     #     map.resources :products, :as => 'productos' do |product|
     #       # product_reviews_path(product) == '/productos/1234/comentarios'
     #       product.resources :product_reviews, :as => 'comentarios'
     #     end
     #
-    # * <tt>:has_one</tt> - Specify nested resources, this is a shorthand for mapping singleton resources beneath the current.
-    # * <tt>:has_many</tt> - Same has <tt>:has_one</tt>, but for plural resources.
+    # * <tt>:has_one</tt> - Specify nested \resources, this is a shorthand for mapping singleton \resources beneath the current.
+    # * <tt>:has_many</tt> - Same has <tt>:has_one</tt>, but for plural \resources.
     #
     #   You may directly specify the routing association with +has_one+ and +has_many+ like:
     #
@@ -277,18 +277,18 @@ module ActionController
     #
     # * <tt>:path_prefix</tt> - Set a prefix to the routes with required route variables.
     #
-    #   Weblog comments usually belong to a post, so you might use resources like:
+    #   Weblog comments usually belong to a post, so you might use +resources+ like:
     #
     #     map.resources :articles
     #     map.resources :comments, :path_prefix => '/articles/:article_id'
     #
-    #   You can nest resources calls to set this automatically:
+    #   You can nest +resources+ calls to set this automatically:
     #
     #     map.resources :articles do |article|
     #       article.resources :comments
     #     end
     #
-    #   The comment resources work the same, but must now include a value for <tt>:article_id</tt>.
+    #   The comment \resources work the same, but must now include a value for <tt>:article_id</tt>.
     #
     #     article_comments_url(@article)
     #     article_comment_url(@article, @comment)
@@ -306,18 +306,18 @@ module ActionController
     #     map.resources :tags, :path_prefix => '/books/:book_id', :name_prefix => 'book_'
     #     map.resources :tags, :path_prefix => '/toys/:toy_id',   :name_prefix => 'toy_'
     #
-    # You may also use <tt>:name_prefix</tt> to override the generic named routes in a nested resource:
-    # 
+    # You may also use <tt>:name_prefix</tt> to override the generic named routes in a nested \resource:
+    #
     #   map.resources :articles do |article|
     #     article.resources :comments, :name_prefix => nil
-    #   end 
-    # 
-    # This will yield named resources like so:
-    # 
+    #   end
+    #
+    # This will yield named \resources like so:
+    #
     #   comments_url(@article)
     #   comment_url(@article, @comment)
     #
-    # If <tt>map.resources</tt> is called with multiple resources, they all get the same options applied.
+    # If <tt>map.resources</tt> is called with multiple \resources, they all get the same options applied.
     #
     # Examples:
     #
@@ -349,28 +349,28 @@ module ActionController
     #
     # The +resources+ method sets HTTP method restrictions on the routes it generates. For example, making an
     # HTTP POST on <tt>new_message_url</tt> will raise a RoutingError exception. The default route in
-    # <tt>config/routes.rb</tt> overrides this and allows invalid HTTP methods for resource routes.
+    # <tt>config/routes.rb</tt> overrides this and allows invalid HTTP methods for \resource routes.
     def resources(*entities, &block)
       options = entities.extract_options!
       entities.each { |entity| map_resource(entity, options.dup, &block) }
     end
 
-    # Creates named routes for implementing verb-oriented controllers for a singleton resource.
-    # A singleton resource is global to its current context.  For unnested singleton resources,
-    # the resource is global to the current user visiting the application, such as a user's
-    # /account profile.  For nested singleton resources, the resource is global to its parent
-    # resource, such as a <tt>projects</tt> resource that <tt>has_one :project_manager</tt>.
-    # The <tt>project_manager</tt> should be mapped as a singleton resource under <tt>projects</tt>:
+    # Creates named routes for implementing verb-oriented controllers for a singleton \resource.
+    # A singleton \resource is global to its current context.  For unnested singleton \resources,
+    # the \resource is global to the current user visiting the application, such as a user's
+    # <tt>/account</tt> profile.  For nested singleton \resources, the \resource is global to its parent
+    # \resource, such as a <tt>projects</tt> \resource that <tt>has_one :project_manager</tt>.
+    # The <tt>project_manager</tt> should be mapped as a singleton \resource under <tt>projects</tt>:
     #
     #   map.resources :projects do |project|
     #     project.resource :project_manager
     #   end
     #
-    # See map.resources for general conventions.  These are the main differences:
-    # * A singular name is given to map.resource.  The default controller name is still taken from the plural name.
+    # See +resources+ for general conventions.  These are the main differences:
+    # * A singular name is given to <tt>map.resource</tt>.  The default controller name is still taken from the plural name.
     # * To specify a custom plural name, use the <tt>:plural</tt> option.  There is no <tt>:singular</tt> option.
-    # * No default index route is created for the singleton resource controller.
-    # * When nesting singleton resources, only the singular name is used as the path prefix (example: 'account/messages/1')
+    # * No default index route is created for the singleton \resource controller.
+    # * When nesting singleton \resources, only the singular name is used as the path prefix (example: 'account/messages/1')
     #
     # For example:
     #
@@ -559,6 +559,7 @@ module ActionController
       def action_options_for(action, resource, method = nil)
         default_options = { :action => action.to_s }
         require_id = !resource.kind_of?(SingletonResource)
+
         case default_options[:action]
           when "index", "new"; default_options.merge(add_conditions_for(resource.conditions, method || :get)).merge(resource.requirements)
           when "create";       default_options.merge(add_conditions_for(resource.conditions, method || :post)).merge(resource.requirements)

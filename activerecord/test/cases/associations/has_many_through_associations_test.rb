@@ -2,15 +2,18 @@ require "cases/helper"
 require 'models/post'
 require 'models/person'
 require 'models/reader'
+require 'models/comment'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :readers, :people
+  fixtures :posts, :readers, :people, :comments
 
   def test_associate_existing
     assert_queries(2) { posts(:thinking);people(:david) }
-    
+
+    posts(:thinking).people
+
     assert_queries(1) do
-       posts(:thinking).people << people(:david)
+      posts(:thinking).people << people(:david)
     end
     
     assert_queries(1) do

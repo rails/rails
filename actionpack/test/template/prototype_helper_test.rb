@@ -25,10 +25,10 @@ class Author::Nested < Author; end
 
 
 class PrototypeHelperBaseTest < ActionView::TestCase
-  attr_accessor :template_format
+  attr_accessor :template_format, :output_buffer
 
   def setup
-    @template = nil
+    @template = self
     @controller = Class.new do
       def url_for(options)
         if options.is_a?(String)
@@ -77,6 +77,8 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
       link_to_remote("Remote outauthor", :failure => "alert(request.responseText)", :url => { :action => "whatnot"  })
     assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot?a=10&amp;b=20', {asynchronous:true, evalScripts:true, onFailure:function(request){alert(request.responseText)}}); return false;\">Remote outauthor</a>),
       link_to_remote("Remote outauthor", :failure => "alert(request.responseText)", :url => { :action => "whatnot", :a => '10', :b => '20' })
+    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:false, evalScripts:true}); return false;\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :type => :synchronous)
   end
 
   def test_link_to_remote_html_options
@@ -243,8 +245,12 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
   end
 
   def test_update_page
+    old_output_buffer = output_buffer
+
     block = Proc.new { |page| page.replace_html('foo', 'bar') }
     assert_equal create_generator(&block).to_s, update_page(&block)
+
+    assert_equal old_output_buffer, output_buffer
   end
 
   def test_update_page_tag
@@ -283,13 +289,13 @@ class JavaScriptGeneratorTest < PrototypeHelperBaseTest
   end
 
   def test_insert_html_with_string
-    assert_equal 'new Insertion.Top("element", "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E");',
+    assert_equal 'Element.insert("element", { top: "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E" });',
       @generator.insert_html(:top, 'element', '<p>This is a test</p>')
-    assert_equal 'new Insertion.Bottom("element", "\\u003Cp\u003EThis is a test\\u003C/p\u003E");',
+    assert_equal 'Element.insert("element", { bottom: "\\u003Cp\u003EThis is a test\\u003C/p\u003E" });',
       @generator.insert_html(:bottom, 'element', '<p>This is a test</p>')
-    assert_equal 'new Insertion.Before("element", "\\u003Cp\u003EThis is a test\\u003C/p\u003E");',
+    assert_equal 'Element.insert("element", { before: "\\u003Cp\u003EThis is a test\\u003C/p\u003E" });',
       @generator.insert_html(:before, 'element', '<p>This is a test</p>')
-    assert_equal 'new Insertion.After("element", "\\u003Cp\u003EThis is a test\\u003C/p\u003E");',
+    assert_equal 'Element.insert("element", { after: "\\u003Cp\u003EThis is a test\\u003C/p\u003E" });',
       @generator.insert_html(:after, 'element', '<p>This is a test</p>')
   end
 
@@ -362,8 +368,8 @@ class JavaScriptGeneratorTest < PrototypeHelperBaseTest
     @generator.replace_html('baz', '<p>This is a test</p>')
 
     assert_equal <<-EOS.chomp, @generator.to_s
-new Insertion.Top("element", "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E");
-new Insertion.Bottom("element", "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E");
+Element.insert("element", { top: "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E" });
+Element.insert("element", { bottom: "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E" });
 ["foo", "bar"].each(Element.remove);
 Element.update("baz", "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E");
     EOS
@@ -425,6 +431,8 @@ Element.update("baz", "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E");
   def test_sortable
     assert_equal %(Sortable.create("blah", {onUpdate:function(){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize("blah")})}});),
       @generator.sortable('blah', :url => { :action => "order" })
+    assert_equal %(Sortable.create("blah", {onUpdate:function(){new Ajax.Request('http://www.example.com/order', {asynchronous:false, evalScripts:true, parameters:Sortable.serialize("blah")})}});),
+      @generator.sortable('blah', :url => { :action => "order" }, :type => :synchronous)
   end
 
   def test_draggable
@@ -435,6 +443,8 @@ Element.update("baz", "\\u003Cp\\u003EThis is a test\\u003C/p\\u003E");
   def test_drop_receiving
     assert_equal %(Droppables.add("blah", {onDrop:function(element){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}});),
       @generator.drop_receiving('blah', :url => { :action => "order" })
+    assert_equal %(Droppables.add("blah", {onDrop:function(element){new Ajax.Request('http://www.example.com/order', {asynchronous:false, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}});),
+      @generator.drop_receiving('blah', :url => { :action => "order" }, :type => :synchronous)
   end
 
   def test_collection_first_and_last

@@ -238,6 +238,15 @@ module ActiveRecord
         end
       end
 
+      def change_column_null(table_name, column_name, null, default = nil)
+        unless null || default.nil?
+          execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+        end
+        alter_table(table_name) do |definition|
+          definition[column_name].null = null
+        end
+      end
+
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
         alter_table(table_name) do |definition|
           include_default = options_include_default?(options)
@@ -251,6 +260,9 @@ module ActiveRecord
       end
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
+        unless columns(table_name).detect{|c| c.name == column_name.to_s }
+          raise ActiveRecord::ActiveRecordError, "Missing column #{table_name}.#{column_name}"
+        end
         alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
       end
 

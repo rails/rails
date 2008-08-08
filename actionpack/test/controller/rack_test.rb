@@ -51,6 +51,15 @@ class BaseRackTest < Test::Unit::TestCase
   end
 
   def default_test; end
+
+  private
+
+  def set_content_data(data)
+    @request.env['REQUEST_METHOD'] = 'POST'
+    @request.env['CONTENT_LENGTH'] = data.length
+    @request.env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
+    @request.env['RAW_POST_DATA'] = data
+  end
 end
 
 class RackRequestTest < BaseRackTest
@@ -153,16 +162,49 @@ end
 
 class RackRequestParamsParsingTest < BaseRackTest
   def test_doesnt_break_when_content_type_has_charset
-    data = 'flamenco=love'
-    @request.env['CONTENT_LENGTH'] = data.length
-    @request.env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
-    @request.env['RAW_POST_DATA'] = data
+    set_content_data 'flamenco=love'
+
     assert_equal({"flamenco"=> "love"}, @request.request_parameters)
   end
 
   def test_doesnt_interpret_request_uri_as_query_string_when_missing
     @request.env['REQUEST_URI'] = 'foo'
     assert_equal({}, @request.query_parameters)
+  end
+end
+
+class RackRequestContentTypeTest < BaseRackTest
+  def test_html_content_type_verification
+    @request.env['CONTENT_TYPE'] = Mime::HTML.to_s
+    assert @request.content_type.verify_request?
+  end
+
+  def test_xml_content_type_verification
+    @request.env['CONTENT_TYPE'] = Mime::XML.to_s
+    assert !@request.content_type.verify_request?
+  end
+end
+
+class RackRequestMethodTest < BaseRackTest
+  def test_get
+    assert_equal :get, @request.request_method
+  end
+
+  def test_post
+    @request.env['REQUEST_METHOD'] = 'POST'
+    assert_equal :post, @request.request_method
+  end
+
+  def test_put
+    set_content_data '_method=put'
+
+    assert_equal :put, @request.request_method
+  end
+
+  def test_delete
+    set_content_data '_method=delete'
+
+    assert_equal :delete, @request.request_method
   end
 end
 
@@ -232,5 +274,36 @@ class RackResponseTest < BaseRackTest
     parts = []
     body.each { |part| parts << part }
     assert_equal ["Hello, World!"], parts
+  end
+end
+
+class RackResponseHeadersTest < BaseRackTest
+  def setup
+    super
+    @response = ActionController::RackResponse.new(@request)
+    @output = StringIO.new('')
+    @response.headers['Status'] = 200
+  end
+
+  def test_content_type
+    [204, 304].each do |c|
+      @response.headers['Status'] = c
+      assert !response_headers.has_key?("Content-Type")
+    end
+
+    [200, 302, 404, 500].each do |c|
+      @response.headers['Status'] = c
+      assert response_headers.has_key?("Content-Type")
+    end
+  end
+
+  def test_status
+    assert !response_headers.has_key?('Status')
+  end
+
+  private
+
+  def response_headers
+    @response.out(@output)[1]
   end
 end
