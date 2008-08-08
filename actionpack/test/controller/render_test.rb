@@ -15,9 +15,14 @@ class TestController < ActionController::Base
   end
 
   def conditional_hello
-    etag! [:foo, 123]
-    last_modified! Time.now.utc.beginning_of_day
-    render :action => 'hello_world' unless performed?
+    response.last_modified = Time.now.utc.beginning_of_day
+    response.etag = [:foo, 123]
+
+    if request.fresh?(response)
+      head :not_modified
+    else
+      render :action => 'hello_world'
+    end
   end
 
   def render_hello_world
