@@ -186,9 +186,10 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_any_should_not_load_results
     topics = Topic.base
-    assert_queries(1) do
-      topics.expects(:empty?).returns(true)
-      assert !topics.any?
+    assert_queries(2) do
+      topics.any?    # use count query
+      topics.collect # force load
+      topics.any?    # use loaded (no query)
     end
   end
 
