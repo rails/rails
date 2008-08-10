@@ -47,6 +47,28 @@ class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
       I18n.expects(:t).with(key, options)
       distance_of_time_in_words(@from, to, include_seconds, :locale => 'en-US')
     end
+
+    def test_distance_of_time_pluralizations
+      { [:'less_than_x_seconds', 1]   => 'less than 1 second',
+        [:'less_than_x_seconds', 2]   => 'less than 2 seconds',
+        [:'less_than_x_minutes', 1]   => 'less than a minute',
+        [:'less_than_x_minutes', 2]   => 'less than 2 minutes',
+        [:'x_minutes',           1]   => '1 minute',
+        [:'x_minutes',           2]   => '2 minutes',
+        [:'about_x_hours',       1]   => 'about 1 hour',
+        [:'about_x_hours',       2]   => 'about 2 hours',
+        [:'x_days',              1]   => '1 day',
+        [:'x_days',              2]   => '2 days',
+        [:'about_x_years',       1]   => 'about 1 year',
+        [:'about_x_years',       2]   => 'about 2 years',
+        [:'over_x_years',        1]   => 'over 1 year',
+        [:'over_x_years',        2]   => 'over 2 years' 
+
+        }.each do |args, expected|
+        key, count = *args
+        assert_equal expected, I18n.t(key, :count => count, :scope => 'datetime.distance_in_words')
+      end
+    end
   end
 end
 

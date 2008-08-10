@@ -662,7 +662,7 @@ module ActiveRecord
 
           finder_class.with_exclusive_scope do
             if finder_class.exists?([condition_sql, *condition_params])
-              message = record.errors.generate_message(attr_name, :taken, :default => configuration[:message])
+              message = record.errors.generate_message(attr_name, :taken, :default => configuration[:message], :value => value)
               record.errors.add(attr_name, message)
             end
           end
