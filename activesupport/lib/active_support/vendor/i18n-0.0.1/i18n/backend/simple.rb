@@ -12,6 +12,10 @@ module I18n
         def populate(&block)
           yield
         end
+    
+        def load_translations(*filenames)
+          filenames.each {|filename| load_file filename }
+        end
         
         # Stores translations for the given locale in memory. 
         # This uses a deep merge for the translations hash, so existing
@@ -23,7 +27,7 @@ module I18n
         
         def translate(locale, key, options = {})
           raise InvalidLocale.new(locale) if locale.nil?
-          return key.map{|k| translate locale, k, options } if key.is_a? Array
+          return key.map{|key| translate locale, key, options } if key.is_a? Array
 
           reserved = :scope, :default
           count, scope, default = options.values_at(:count, *reserved)
@@ -31,8 +35,8 @@ module I18n
           values = options.reject{|name, value| reserved.include? name }
 
           entry = lookup(locale, key, scope) || default(locale, default, options) || raise(I18n::MissingTranslationData.new(locale, key, options))
-          entry = pluralize entry, count
-          entry = interpolate entry, values
+          entry = pluralize locale, entry, count
+          entry = interpolate locale, entry, values
           entry
         end
         
@@ -66,7 +70,7 @@ module I18n
           def lookup(locale, key, scope = [])
             return unless key
             keys = I18n.send :normalize_translation_keys, locale, key, scope
-            keys.inject(@@translations){|result, k| result[k.to_sym] or return nil }
+            keys.inject(@@translations){|result, key| result[key.to_sym] or return nil }
           end
         
           # Evaluates a default translation. 
@@ -92,10 +96,13 @@ module I18n
           # rules. It will pick the first translation if count is not equal to 1
           # and the second translation if it is equal to 1. Other backends can
           # implement more flexible or complex pluralization rules.
-          def pluralize(entry, count)
-            return entry unless entry.is_a?(Array) and count
-            raise InvalidPluralizationData.new(entry, count) unless entry.size == 2
-            entry[count == 1 ? 0 : 1]
+          def pluralize(locale, entry, count)
+            return entry unless entry.is_a?(Hash) and count
+            # raise InvalidPluralizationData.new(entry, count) unless entry.is_a?(Hash)
+            key = :zero if count == 0 && entry.has_key?(:zero)
+            key ||= count == 1 ? :one : :many
+            raise InvalidPluralizationData.new(entry, count) unless entry.has_key?(key)
+            entry[key]
           end
     
           # Interpolates values into a given string.
@@ -106,7 +113,7 @@ module I18n
           # Note that you have to double escape the <tt>\\</tt> when you want to escape
           # the <tt>{{...}}</tt> key in a string (once for the string and once for the
           # interpolation).
-          def interpolate(string, values = {})
+          def interpolate(locale, string, values = {})
             return string if !string.is_a?(String)
 
             map = {'%d' => '{{count}}', '%s' => '{{value}}'} # TODO deprecate this?
@@ -126,6 +133,23 @@ module I18n
               s.unscan
             end      
             s.string
+          end
+          
+          def load_file(filename)
+            type = File.extname(filename).tr('.', '').downcase
+            raise UnknownFileType.new(type, filename) unless respond_to? :"load_#{type}"
+            data = send :"load_#{type}", filename # TODO raise a meaningful exception if this does not yield a Hash
+            data.each do |locale, data| 
+              merge_translations locale, data
+            end            
+          end
+          
+          def load_rb(filename)
+            eval IO.read(filename), binding, filename
+          end
+          
+          def load_yml(filename)
+            YAML::load IO.read(filename)
           end
           
           # Deep merges the given translations hash with the existing translations

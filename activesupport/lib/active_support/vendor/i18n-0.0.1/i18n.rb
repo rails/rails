@@ -56,6 +56,10 @@ module I18n
       backend.populate(&block)
     end
     
+    def load_translations(filename)
+      backend.load_translations filename
+    end
+    
     # Stores translations for the given locale in the backend. 
     def store_translations(locale, data)
       backend.store_translations locale, data
@@ -173,8 +177,8 @@ module I18n
     # keys are Symbols.
     def normalize_translation_keys(locale, key, scope)
       keys = [locale] + Array(scope) + [key]
-      keys = keys.map{|k| k.to_s.split(/\./) }
-      keys.flatten.map{|k| k.to_sym}
+      keys = keys.map{|key| key.to_s.split(/\./) }
+      keys.flatten.map{|key| key.to_sym}
     end
   end
 end
