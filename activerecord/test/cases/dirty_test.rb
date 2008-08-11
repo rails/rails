@@ -191,6 +191,18 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.changed?
   end
 
+  def test_save_should_store_serialized_attributes_even_with_partial_updates
+    with_partial_updates(Topic) do
+      topic = Topic.create!(:content => {:a => "a"})
+      topic.content[:b] = "b"
+      #assert topic.changed? # Known bug, will fail
+      topic.save!
+      assert_equal "b", topic.content[:b]
+      topic.reload
+      assert_equal "b", topic.content[:b]
+    end
+  end
+
   private
     def with_partial_updates(klass, on = true)
       old = klass.partial_updates?
