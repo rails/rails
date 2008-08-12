@@ -2594,7 +2594,7 @@ module ActiveRecord #:nodoc:
         removed_attributes = attributes.keys - safe_attributes.keys
 
         if removed_attributes.any?
-          logger.debug "WARNING: Can't mass-assign these protected attributes: #{removed_attributes.join(', ')}"
+          log_protected_attribute_removal(removed_attributes)
         end
 
         safe_attributes
@@ -2607,6 +2607,10 @@ module ActiveRecord #:nodoc:
         else
           attributes
         end
+      end
+
+      def log_protected_attribute_removal(*attributes)
+        logger.debug "WARNING: Can't mass-assign these protected attributes: #{attributes.join(', ')}"
       end
 
       # The primary key and inheritance column can never be set by mass-assignment for security reasons.
