@@ -752,13 +752,15 @@ module ActiveRecord #:nodoc:
       end
 
       # Updates all records with details given if they match a set of conditions supplied, limits and order can
-      # also be supplied.
+      # also be supplied. This method constructs a single SQL UPDATE statement and sends it straight to the
+      # database. It does not instantiate the involved models and it does not trigger Active Record callbacks.
       #
       # ==== Attributes
       #
-      # * +updates+ - A String of column and value pairs that will be set on any records that match conditions.
+      # * +updates+ - An string of column and value pairs that will be set on any records that match conditions.
+      #               What goes into the SET clause.
       # * +conditions+ - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro for more info.
-      # * +options+ - Additional options are <tt>:limit</tt> and/or <tt>:order</tt>, see the examples for usage.
+      # * +options+ - Additional options are <tt>:limit</tt> and <tt>:order</tt>, see the examples for usage.
       #
       # ==== Examples
       #
@@ -780,8 +782,8 @@ module ActiveRecord #:nodoc:
         connection.update(sql, "#{name} Update")
       end
 
-      # Destroys the records matching +conditions+ by instantiating each record and calling the destroy method.
-      # This means at least 2*N database queries to destroy N records, so avoid destroy_all if you are deleting
+      # Destroys the records matching +conditions+ by instantiating each record and calling their +destroy+ method.
+      # This means at least 2*N database queries to destroy N records, so avoid +destroy_all+ if you are deleting
       # many records. If you want to simply delete records without worrying about dependent associations or
       # callbacks, use the much faster +delete_all+ method instead.
       #
@@ -800,8 +802,9 @@ module ActiveRecord #:nodoc:
       end
 
       # Deletes the records matching +conditions+ without instantiating the records first, and hence not
-      # calling the destroy method and invoking callbacks. This is a single SQL query, much more efficient
-      # than destroy_all.
+      # calling the +destroy+ method nor invoking callbacks. This is a single SQL DELETE statement that
+      # goes straight to the database, much more efficient than +destroy_all+. Careful with relations
+      # though, in particular <tt>:dependent</tt> is not taken into account.
       #
       # ==== Attributes
       #
@@ -811,8 +814,8 @@ module ActiveRecord #:nodoc:
       #
       #   Post.delete_all "person_id = 5 AND (category = 'Something' OR category = 'Else')"
       #
-      # This deletes the affected posts all at once with a single DELETE query. If you need to destroy dependent
-      # associations or call your before_ or after_destroy callbacks, use the +destroy_all+ method instead.
+      # This deletes the affected posts all at once with a single DELETE statement. If you need to destroy dependent
+      # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
         sql = "DELETE FROM #{quoted_table_name} "
         add_conditions!(sql, conditions, scope(:find))
