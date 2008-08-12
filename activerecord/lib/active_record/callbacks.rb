@@ -173,7 +173,6 @@ module ActiveRecord
   # == Transactions
   #
   # The entire callback chain for +save+ and +destroy+ runs within their transaction.
-  # If the action is cancelled a rollback is performed.
   module Callbacks
     CALLBACKS = %w(
       after_find after_initialize before_save after_save before_create after_create before_update after_update before_validation
