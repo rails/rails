@@ -757,7 +757,7 @@ module ActiveRecord #:nodoc:
       #
       # ==== Attributes
       #
-      # * +updates+ - An string of column and value pairs that will be set on any records that match conditions.
+      # * +updates+ - A string of column and value pairs that will be set on any records that match conditions.
       #               What goes into the SET clause.
       # * +conditions+ - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro for more info.
       # * +options+ - Additional options are <tt>:limit</tt> and <tt>:order</tt>, see the examples for usage.
