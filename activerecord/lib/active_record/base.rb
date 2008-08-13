@@ -2582,8 +2582,15 @@ module ActiveRecord #:nodoc:
         quoted = {}
         connection = self.class.connection
         attribute_names.each do |name|
-          if column = column_for_attribute(name)
-            quoted[name] = connection.quote(read_attribute(name), column) unless !include_primary_key && column.primary
+          if (column = column_for_attribute(name)) && (include_primary_key || !column.primary)
+            value = read_attribute(name)
+
+            # We need explicit to_yaml because quote() does not properly convert Time/Date fields to YAML.
+            if value && self.class.serialized_attributes.has_key?(name) && (value.acts_like?(:date) || value.acts_like?(:time))
+              value = value.to_yaml
+            end
+
+            quoted[name] = connection.quote(value, column)
           end
         end
         include_readonly_attributes ? quoted : remove_readonly_attributes(quoted)
