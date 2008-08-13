@@ -45,6 +45,12 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
   end
 
+  def test_scope_should_respond_to_own_methods_and_methods_of_the_proxy
+    assert Topic.approved.respond_to?(:proxy_found)
+    assert Topic.approved.respond_to?(:count)
+    assert Topic.approved.respond_to?(:length)
+  end
+
   def test_subclasses_inherit_scopes
     assert Topic.scopes.include?(:base)
 
