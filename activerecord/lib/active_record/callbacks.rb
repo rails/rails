@@ -172,7 +172,16 @@ module ActiveRecord
   #
   # == Transactions
   #
-  # The entire callback chain for +save+ and +destroy+ runs within their transaction.
+  # The entire callback chain for +save+ and +destroy+ runs within their transaction, including
+  # the <tt>after_*</tt> hooks. Cancellation does not trigger a rollback. To rollback
+  # the transaction just raise an exception the same way you do for regular transactions.
+  #
+  # Note though that such an exception bypasses the regular call chain in Active Record:
+  # If ActiveRecord::Rollback is raised both +save+ and +destroy+ return +nil+. On the other
+  # hand <tt>save!</tt> does *not* raise ActiveRecord::RecordNotSaved, and does not raise
+  # anything else for that matter, <tt>save!</tt> just returns +nil+ in that case.
+  # If any other exception is raised it goes up until it reaches the caller, no matter
+  # which one of the three actions was being performed.
   module Callbacks
     CALLBACKS = %w(
       after_find after_initialize before_save after_save before_create after_create before_update after_update before_validation
