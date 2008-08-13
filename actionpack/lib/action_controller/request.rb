@@ -2,17 +2,21 @@ require 'tempfile'
 require 'stringio'
 require 'strscan'
 
-module ActionController
-  # HTTP methods which are accepted by default.
-  ACCEPTED_HTTP_METHODS = Set.new(%w( get head put post delete options ))
+require 'active_support/memoizable'
 
+module ActionController
   # CgiRequest and TestRequest provide concrete implementations.
   class AbstractRequest
+    extend ActiveSupport::Memoizable
+
     def self.relative_url_root=(*args)
       ActiveSupport::Deprecation.warn(
         "ActionController::AbstractRequest.relative_url_root= has been renamed." +
         "You can now set it with config.action_controller.relative_url_root=", caller)
     end
+
+    HTTP_METHODS = %w(get head put post delete options)
+    HTTP_METHOD_LOOKUP = HTTP_METHODS.inject({}) { |h, m| h[m] = h[m.upcase] = m.to_sym; h }
 
     # The hash of environment variables for this request,
     # such as { 'RAILS_ENV' => 'production' }.
@@ -21,15 +25,12 @@ module ActionController
     # The true HTTP request method as a lowercase symbol, such as <tt>:get</tt>.
     # UnknownHttpMethod is raised for invalid methods not listed in ACCEPTED_HTTP_METHODS.
     def request_method
-      @request_method ||= begin
-        method = ((@env['REQUEST_METHOD'] == 'POST' && !parameters[:_method].blank?) ? parameters[:_method].to_s : @env['REQUEST_METHOD']).downcase
-        if ACCEPTED_HTTP_METHODS.include?(method)
-          method.to_sym
-        else
-          raise UnknownHttpMethod, "#{method}, accepted HTTP methods are #{ACCEPTED_HTTP_METHODS.to_a.to_sentence}"
-        end
-      end
+      method = @env['REQUEST_METHOD']
+      method = parameters[:_method] if method == 'POST' && !parameters[:_method].blank?
+
+      HTTP_METHOD_LOOKUP[method] || raise(UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence}")
     end
+    memoize :request_method
 
     # The HTTP request method as a lowercase symbol, such as <tt>:get</tt>.
     # Note, HEAD is returned as <tt>:get</tt> since the two are functionally
@@ -67,33 +68,59 @@ module ActionController
     # Provides access to the request's HTTP headers, for example:
     #  request.headers["Content-Type"] # => "text/plain"
     def headers
-      @headers ||= ActionController::Http::Headers.new(@env)
+      ActionController::Http::Headers.new(@env)
     end
+    memoize :headers
 
     def content_length
-      @content_length ||= env['CONTENT_LENGTH'].to_i
+      @env['CONTENT_LENGTH'].to_i
     end
+    memoize :content_length
 
     # The MIME type of the HTTP request, such as Mime::XML.
     #
     # For backward compatibility, the post format is extracted from the
     # X-Post-Data-Format HTTP header if present.
     def content_type
-      @content_type ||= Mime::Type.lookup(content_type_without_parameters)
+      Mime::Type.lookup(content_type_without_parameters)
     end
+    memoize :content_type
 
     # Returns the accepted MIME type for the request
     def accepts
-      @accepts ||=
-        begin
-          header = @env['HTTP_ACCEPT'].to_s.strip
+      header = @env['HTTP_ACCEPT'].to_s.strip
 
-          if header.empty?
-            [content_type, Mime::ALL].compact
-          else
-            Mime::Type.parse(header)
-          end
-        end
+      if header.empty?
+        [content_type, Mime::ALL].compact
+      else
+        Mime::Type.parse(header)
+      end
+    end
+    memoize :accepts
+
+    def if_modified_since
+      if since = env['HTTP_IF_MODIFIED_SINCE']
+        Time.rfc2822(since)
+      end
+    end
+    memoize :if_modified_since
+
+    def if_none_match
+      env['HTTP_IF_NONE_MATCH']
+    end
+
+    def not_modified?(modified_at)
+      if_modified_since && modified_at && if_modified_since >= modified_at
+    end
+
+    def etag_matches?(etag)
+      if_none_match && if_none_match == etag
+    end
+
+    # Check response freshness (Last-Modified and ETag) against request
+    # If-Modified-Since and If-None-Match conditions.
+    def fresh?(response)
+      not_modified?(response.last_modified) || etag_matches?(response.etag)
     end
 
     # Returns the Mime type for the format used in the request.
@@ -102,7 +129,7 @@ module ActionController
     #   GET /posts/5.xhtml | request.format => Mime::HTML
     #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first depending on the value of <tt>ActionController::Base.use_accept_header</tt>
     def format
-      @format ||= begin
+      @format ||=
         if parameters[:format]
           Mime::Type.lookup_by_extension(parameters[:format])
         elsif ActionController::Base.use_accept_header
@@ -112,7 +139,6 @@ module ActionController
         else
           Mime::Type.lookup_by_extension("html")
         end
-      end
     end
 
 
@@ -200,42 +226,62 @@ EOM
 
       @env['REMOTE_ADDR']
     end
+    memoize :remote_ip
 
     # Returns the lowercase name of the HTTP server software.
     def server_software
       (@env['SERVER_SOFTWARE'] && /^([a-zA-Z]+)/ =~ @env['SERVER_SOFTWARE']) ? $1.downcase : nil
     end
+    memoize :server_software
 
 
     # Returns the complete URL used for this request
     def url
       protocol + host_with_port + request_uri
     end
+    memoize :url
 
     # Return 'https://' if this is an SSL request and 'http://' otherwise.
     def protocol
       ssl? ? 'https://' : 'http://'
     end
+    memoize :protocol
 
     # Is this an SSL request?
     def ssl?
       @env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https'
     end
 
+    def raw_host_with_port
+      if forwarded = env["HTTP_X_FORWARDED_HOST"]
+        forwarded.split(/,\s?/).last
+      else
+        env['HTTP_HOST'] || env['SERVER_NAME'] || "#{env['SERVER_ADDR']}:#{env['SERVER_PORT']}"
+      end
+    end
+
     # Returns the host for this request, such as example.com.
     def host
+      raw_host_with_port.sub(/:\d+$/, '')
     end
+    memoize :host
 
     # Returns a host:port string for this request, such as example.com or
     # example.com:8080.
     def host_with_port
-      @host_with_port ||= host + port_string
+      "#{host}#{port_string}"
     end
+    memoize :host_with_port
 
     # Returns the port number of this request as an integer.
     def port
-      @port_as_int ||= @env['SERVER_PORT'].to_i
+      if raw_host_with_port =~ /:(\d+)$/
+        $1.to_i
+      else
+        standard_port
+      end
     end
+    memoize :port
 
     # Returns the standard port number for this request's protocol
     def standard_port
@@ -248,7 +294,7 @@ EOM
     # Returns a port suffix like ":8080" if the port number of this request
     # is not the default HTTP port 80 or HTTPS port 443.
     def port_string
-      (port == standard_port) ? '' : ":#{port}"
+      port == standard_port ? '' : ":#{port}"
     end
 
     # Returns the domain part of a host, such as rubyonrails.org in "www.rubyonrails.org". You can specify
@@ -276,6 +322,7 @@ EOM
         @env['QUERY_STRING'] || ''
       end
     end
+    memoize :query_string
 
     # Return the request URI, accounting for server idiosyncrasies.
     # WEBrick includes the full URL. IIS leaves REQUEST_URI blank.
@@ -285,21 +332,23 @@ EOM
         (%r{^\w+\://[^/]+(/.*|$)$} =~ uri) ? $1 : uri
       else
         # Construct IIS missing REQUEST_URI from SCRIPT_NAME and PATH_INFO.
-        script_filename = @env['SCRIPT_NAME'].to_s.match(%r{[^/]+$})
-        uri = @env['PATH_INFO']
-        uri = uri.sub(/#{script_filename}\//, '') unless script_filename.nil?
-        unless (env_qs = @env['QUERY_STRING']).nil? || env_qs.empty?
-          uri << '?' << env_qs
+        uri = @env['PATH_INFO'].to_s
+
+        if script_filename = @env['SCRIPT_NAME'].to_s.match(%r{[^/]+$})
+          uri = uri.sub(/#{script_filename}\//, '')
         end
 
-        if uri.nil?
+        env_qs = @env['QUERY_STRING'].to_s
+        uri += "?#{env_qs}" unless env_qs.empty?
+
+        if uri.blank?
           @env.delete('REQUEST_URI')
-          uri
         else
           @env['REQUEST_URI'] = uri
         end
       end
     end
+    memoize :request_uri
 
     # Returns the interpreted path to requested resource after all the installation directory of this application was taken into account
     def path
@@ -309,6 +358,7 @@ EOM
       path.sub!(%r/^#{ActionController::Base.relative_url_root}/, '')
       path || ''
     end
+    memoize :path
 
     # Read the request body. This is useful for web services that need to
     # work with raw requests directly.
@@ -345,19 +395,41 @@ EOM
       @path_parameters ||= {}
     end
 
+    # The request body is an IO input stream. If the RAW_POST_DATA environment
+    # variable is already set, wrap it in a StringIO.
+    def body
+      if raw_post = env['RAW_POST_DATA']
+        raw_post.force_encoding(Encoding::BINARY) if raw_post.respond_to?(:force_encoding)
+        StringIO.new(raw_post)
+      else
+        body_stream
+      end
+    end
+
+    def remote_addr
+      @env['REMOTE_ADDR']
+    end
+
+    def referrer
+      @env['HTTP_REFERER']
+    end
+    alias referer referrer
+
+
+    def query_parameters
+      @query_parameters ||= self.class.parse_query_parameters(query_string)
+    end
+
+    def request_parameters
+      @request_parameters ||= parse_formatted_request_parameters
+    end
+
 
     #--
     # Must be implemented in the concrete request
     #++
 
-    # The request body is an IO input stream.
-    def body
-    end
-
-    def query_parameters #:nodoc:
-    end
-
-    def request_parameters #:nodoc:
+    def body_stream #:nodoc:
     end
 
     def cookies #:nodoc:
@@ -384,8 +456,9 @@ EOM
 
       # The raw content type string with its parameters stripped off.
       def content_type_without_parameters
-        @content_type_without_parameters ||= self.class.extract_content_type_without_parameters(content_type_with_parameters)
+        self.class.extract_content_type_without_parameters(content_type_with_parameters)
       end
+      memoize :content_type_without_parameters
 
     private
       def content_type_from_legacy_post_data_format_header

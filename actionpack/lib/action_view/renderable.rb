@@ -31,10 +31,10 @@ module ActionView
 
       view.send(:evaluate_assigns)
       view.send(:set_controller_content_type, mime_type) if respond_to?(:mime_type)
-      view.send(:execute, method(local_assigns), local_assigns)
+      view.send(:execute, method_name(local_assigns), local_assigns)
     end
 
-    def method(local_assigns)
+    def method_name(local_assigns)
       if local_assigns && local_assigns.any?
         local_assigns_keys = "locals_#{local_assigns.keys.map { |k| k.to_s }.sort.join('_')}"
       end
@@ -44,7 +44,7 @@ module ActionView
     private
       # Compile and evaluate the template's code (if necessary)
       def compile(local_assigns)
-        render_symbol = method(local_assigns)
+        render_symbol = method_name(local_assigns)
 
         @@mutex.synchronize do
           if recompile?(render_symbol)

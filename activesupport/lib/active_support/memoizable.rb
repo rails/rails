@@ -14,7 +14,7 @@ module ActiveSupport
           methods.each do |method|
             if method.to_s =~ /^_unmemoized_(.*)/
               begin
-                __send__($1)
+                __send__($1).freeze
               rescue ArgumentError
               end
             end
@@ -41,7 +41,7 @@ module ActiveSupport
               if !reload && defined? #{memoized_ivar}
                 #{memoized_ivar}
               else
-                #{memoized_ivar} = #{original_method}.freeze
+                #{memoized_ivar} = #{original_method}
               end
             end
           else
@@ -52,7 +52,7 @@ module ActiveSupport
               if !reload && #{memoized_ivar} && #{memoized_ivar}.has_key?(args)
                 #{memoized_ivar}[args]
               else
-                #{memoized_ivar}[args] = #{original_method}(*args).freeze
+                #{memoized_ivar}[args] = #{original_method}(*args)
               end
             end
           end

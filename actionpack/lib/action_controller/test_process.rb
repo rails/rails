@@ -23,7 +23,7 @@ module ActionController #:nodoc:
 
   class TestRequest < AbstractRequest #:nodoc:
     attr_accessor :cookies, :session_options
-    attr_accessor :query_parameters, :request_parameters, :path, :session, :env
+    attr_accessor :query_parameters, :request_parameters, :path, :session
     attr_accessor :host, :user_agent
 
     def initialize(query_parameters = nil, request_parameters = nil, session = nil)
@@ -42,7 +42,7 @@ module ActionController #:nodoc:
     end
 
     # Wraps raw_post in a StringIO.
-    def body
+    def body_stream #:nodoc:
       StringIO.new(raw_post)
     end
 
@@ -54,7 +54,7 @@ module ActionController #:nodoc:
 
     def port=(number)
       @env["SERVER_PORT"] = number.to_i
-      @port_as_int = nil
+      port(true)
     end
 
     def action=(action_name)
@@ -68,6 +68,8 @@ module ActionController #:nodoc:
       @env["REQUEST_URI"] = value
       @request_uri = nil
       @path = nil
+      request_uri(true)
+      path(true)
     end
 
     def request_uri=(uri)
@@ -77,21 +79,26 @@ module ActionController #:nodoc:
 
     def accept=(mime_types)
       @env["HTTP_ACCEPT"] = Array(mime_types).collect { |mime_types| mime_types.to_s }.join(",")
+      accepts(true)
+    end
+
+    def if_modified_since=(last_modified)
+      @env["HTTP_IF_MODIFIED_SINCE"] = last_modified
+    end
+
+    def if_none_match=(etag)
+      @env["HTTP_IF_NONE_MATCH"] = etag
     end
 
     def remote_addr=(addr)
       @env['REMOTE_ADDR'] = addr
     end
 
-    def remote_addr
-      @env['REMOTE_ADDR']
-    end
-
-    def request_uri
+    def request_uri(*args)
       @request_uri || super
     end
 
-    def path
+    def path(*args)
       @path || super
     end
 
@@ -120,10 +127,6 @@ module ActionController #:nodoc:
       self.query_parameters   = {}
       self.path_parameters    = {}
       @request_method, @accepts, @content_type = nil, nil, nil
-    end    
-
-    def referer
-      @env["HTTP_REFERER"]
     end
 
     private
@@ -448,10 +451,13 @@ module ActionController #:nodoc:
     end
 
     def method_missing(selector, *args)
-      return @controller.send!(selector, *args) if ActionController::Routing::Routes.named_routes.helpers.include?(selector)
-      return super
+      if ActionController::Routing::Routes.named_routes.helpers.include?(selector)
+        @controller.send(selector, *args)
+      else
+        super
+      end
     end
-    
+
     # Shortcut for <tt>ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + path, type)</tt>:
     #
     #   post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png')

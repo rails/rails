@@ -15,9 +15,14 @@ class TestController < ActionController::Base
   end
 
   def conditional_hello
-    etag! [:foo, 123]
-    last_modified! Time.now.utc.beginning_of_day
-    render :action => 'hello_world' unless performed?
+    response.last_modified = Time.now.utc.beginning_of_day
+    response.etag = [:foo, 123]
+
+    if request.fresh?(response)
+      head :not_modified
+    else
+      render :action => 'hello_world'
+    end
   end
 
   def render_hello_world
@@ -428,7 +433,7 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_should_render_formatted_html_erb_template_with_faulty_accepts_header
-    @request.env["HTTP_ACCEPT"] = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, appliction/x-shockwave-flash, */*"
+    @request.accept = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, appliction/x-shockwave-flash, */*"
     get :formatted_xml_erb
     assert_equal '<test>passed formatted html erb</test>', @response.body
   end
@@ -490,16 +495,16 @@ class EtagRenderTest < Test::Unit::TestCase
   end
 
   def test_render_against_etag_request_should_304_when_match
-    @request.headers["HTTP_IF_NONE_MATCH"] = etag_for("hello david")
+    @request.if_none_match = etag_for("hello david")
     get :render_hello_world_from_variable
-    assert_equal "304 Not Modified", @response.headers['Status']
+    assert_equal "304 Not Modified", @response.status
     assert @response.body.empty?
   end
 
   def test_render_against_etag_request_should_200_when_no_match
-    @request.headers["HTTP_IF_NONE_MATCH"] = etag_for("hello somewhere else")
+    @request.if_none_match = etag_for("hello somewhere else")
     get :render_hello_world_from_variable
-    assert_equal "200 OK", @response.headers['Status']
+    assert_equal "200 OK", @response.status
     assert !@response.body.empty?
   end
 
@@ -508,13 +513,13 @@ class EtagRenderTest < Test::Unit::TestCase
     expected_etag = etag_for('hello david')
     assert_equal expected_etag, @response.headers['ETag']
 
-    @request.headers["HTTP_IF_NONE_MATCH"] = expected_etag
+    @request.if_none_match = expected_etag
     get :render_hello_world_from_variable
-    assert_equal "304 Not Modified", @response.headers['Status']
+    assert_equal "304 Not Modified", @response.status
 
-    @request.headers["HTTP_IF_NONE_MATCH"] = "\"diftag\""
+    @request.if_none_match = "\"diftag\""
     get :render_hello_world_from_variable
-    assert_equal "200 OK", @response.headers['Status']
+    assert_equal "200 OK", @response.status
   end
 
   def render_with_404_shouldnt_have_etag
@@ -557,17 +562,17 @@ class LastModifiedRenderTest < Test::Unit::TestCase
   end
 
   def test_request_not_modified
-    @request.headers["HTTP_IF_MODIFIED_SINCE"] = @last_modified
+    @request.if_modified_since = @last_modified
     get :conditional_hello
-    assert_equal "304 Not Modified", @response.headers['Status']
+    assert_equal "304 Not Modified", @response.status
     assert @response.body.blank?, @response.body
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
 
   def test_request_modified
-    @request.headers["HTTP_IF_MODIFIED_SINCE"] = 'Thu, 16 Jul 2008 00:00:00 GMT'
+    @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
     get :conditional_hello
-    assert_equal "200 OK", @response.headers['Status']
+    assert_equal "200 OK", @response.status
     assert !@response.body.blank?
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
