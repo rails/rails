@@ -70,7 +70,7 @@ module ActiveRecord
       msgs << options[:default] if options[:default]
       msgs << key
 
-      I18n.t nil, options.merge(:default => msgs, :scope => [:active_record, :error_messages])
+      I18n.t msgs.shift, options.merge(:default => msgs, :scope => [:active_record, :error_messages])
     end
 
     # Returns true if the specified +attribute+ has errors associated with it.
