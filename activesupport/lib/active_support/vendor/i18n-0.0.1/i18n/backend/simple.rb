@@ -89,7 +89,7 @@ module I18n
               when Symbol then translate locale, default, options
               when Array  then default.each do |obj| 
                 result = default(locale, obj, options.dup) and return result
-              end
+              end and nil
             end
           rescue MissingTranslationData
             nil
