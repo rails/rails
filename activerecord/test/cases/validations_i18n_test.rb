@@ -46,14 +46,14 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
       global_scope = [:active_record, :error_messages]
       custom_scope = global_scope + [:custom, 'topic', :title]
   
-      I18n.expects(:t).with nil, :scope => [:active_record, :error_messages], :default => [:"custom.topic.title.invalid", 'default from class def', :invalid]
+      I18n.expects(:t).with :"custom.topic.title.invalid", :scope => [:active_record, :error_messages], :default => ['default from class def', :invalid]
       @topic.errors.generate_message :title, :invalid, :default => 'default from class def'
     end
   
     def test_errors_generate_message_translates_custom_model_attribute_keys_with_sti
       custom_scope = [:active_record, :error_messages, :custom, 'topic', :title]
   
-      I18n.expects(:t).with nil, :scope => [:active_record, :error_messages], :default => [:"custom.reply.title.invalid", :"custom.topic.title.invalid", 'default from class def', :invalid]
+      I18n.expects(:t).with :"custom.reply.title.invalid", :scope => [:active_record, :error_messages], :default => [:"custom.topic.title.invalid", 'default from class def', :invalid]
       Reply.new.errors.generate_message :title, :invalid, :default => 'default from class def'
     end
   
