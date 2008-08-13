@@ -11,7 +11,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   def teardown
     reset_callbacks Topic
-    load 'active_record/locale/en-US.rb'
+    I18n.load_translations File.dirname(__FILE__) + '/../../lib/active_record/locale/en-US.rb'
   end
   
   def unique_topic
