@@ -12,7 +12,10 @@ module I18n
         def populate(&block)
           yield
         end
-    
+      
+        # Accepts a list of paths to translation files. Loads translations from 
+        # plain Ruby (*.rb) or YAML files (*.yml). See #load_rb and #load_yml
+        # for details.
         def load_translations(*filenames)
           filenames.each {|filename| load_file filename }
         end
@@ -135,6 +138,10 @@ module I18n
             s.string
           end
           
+          # Loads a single translations file by delegating to #load_rb or 
+          # #load_yml depending on the file extension and directly merges the
+          # data to the existing translations. Raises I18n::UnknownFileType
+          # for all other file extensions.
           def load_file(filename)
             type = File.extname(filename).tr('.', '').downcase
             raise UnknownFileType.new(type, filename) unless respond_to? :"load_#{type}"
@@ -144,10 +151,14 @@ module I18n
             end            
           end
           
+          # Loads a plain Ruby translations file. eval'ing the file must yield
+          # a Hash containing translation data with locales as toplevel keys.
           def load_rb(filename)
             eval IO.read(filename), binding, filename
           end
           
+          # Loads a YAML translations file. The data must have locales as 
+          # toplevel keys.
           def load_yml(filename)
             YAML::load IO.read(filename)
           end

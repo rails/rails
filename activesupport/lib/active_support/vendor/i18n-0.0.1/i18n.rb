@@ -56,8 +56,14 @@ module I18n
       backend.populate(&block)
     end
     
-    def load_translations(filename)
-      backend.load_translations filename
+    # Allows client libraries to pass arguments that specify a source for 
+    # translation data to be loaded by the backend. The backend defines
+    # acceptable sources. 
+    # E.g. the provided SimpleBackend accepts a list of paths to translation
+    # files which are either named *.rb and contain plain Ruby Hashes or are
+    # named *.yml and contain YAML data.)
+    def load_translations(*args)
+      backend.load_translations *args
     end
     
     # Stores translations for the given locale in the backend. 
