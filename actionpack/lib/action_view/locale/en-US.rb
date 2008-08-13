@@ -74,13 +74,15 @@
         }
       }
     },
-    :active_record => {
-      :error => {
-        :header_message => {
-          :one => "1 error prohibited this {{object_name}} from being saved", 
-          :many => "{{count}} errors prohibited this {{object_name}} from being saved"
-        },
-        :message => "There were problems with the following fields:"
+    :activerecord => {
+      :errors => {
+        :template => {
+          :header => {
+            :one => "1 error prohibited this {{model}} from being saved", 
+            :many => "{{count}} errors prohibited this {{model}} from being saved"
+          },
+          :body => "There were problems with the following fields:"
+        }
       }
     }
   }
