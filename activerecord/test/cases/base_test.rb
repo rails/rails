@@ -1361,6 +1361,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(myobj, topic.content)
   end
 
+  def test_serialized_time_attribute
+    myobj = Time.local(2008,1,1,1,0)
+    topic = Topic.create("content" => myobj).reload
+    assert_equal(myobj, topic.content)
+  end
+
   def test_nil_serialized_attribute_with_class_constraint
     myobj = MyObject.new('value1', 'value2')
     topic = Topic.new
