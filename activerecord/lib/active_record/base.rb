@@ -2249,8 +2249,10 @@ module ActiveRecord #:nodoc:
         create_or_update
       end
 
-      # Attempts to save the record, but instead of just returning false if it couldn't happen, it raises a
-      # RecordNotSaved exception
+      # Attempts to save the record, but instead of just returning false if it couldn't happen, it raises an
+      # ActiveRecord::RecordNotSaved exception. However, if the callback chain raises ActiveRecord::Rollback
+      # to rollback the transaction that wraps <tt>save!</tt> no exception is raised, <tt>save!</tt> just
+      # returns +nil+. See ActiveRecord::Callbacks for further details.
       def save!
         create_or_update || raise(RecordNotSaved)
       end
