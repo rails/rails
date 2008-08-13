@@ -82,6 +82,6 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/schema_dumper'
 
 I18n.backend.populate do
-  require 'active_record/locale/en-US.rb'
+  I18n.load_translations File.dirname(__FILE__) + '/active_record/locale/en-US.rb'
 end
 
