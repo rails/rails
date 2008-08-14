@@ -120,13 +120,13 @@ module ActionController #:nodoc:
         end
       end
       @parameters = nil # reset TestRequest#parameters to use the new path_parameters
-    end                        
-    
+    end
+
     def recycle!
       self.request_parameters = {}
       self.query_parameters   = {}
       self.path_parameters    = {}
-      @request_method, @accepts, @content_type = nil, nil, nil
+      unmemoize_all
     end
 
     private
