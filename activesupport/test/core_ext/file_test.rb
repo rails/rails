@@ -29,7 +29,7 @@ class AtomicWriteTest < Test::Unit::TestCase
       assert File.exist?(file_name)
     end
     assert File.exist?(file_name)
-    assert_equal "100755", file_mode
+    assert_equal 0100755, file_mode
     assert_equal contents, File.read(file_name)
 
     File.atomic_write(file_name, Dir.pwd) do |file|
@@ -37,7 +37,7 @@ class AtomicWriteTest < Test::Unit::TestCase
       assert File.exist?(file_name)
     end
     assert File.exist?(file_name)
-    assert_equal "100755", file_mode
+    assert_equal 0100755, file_mode
     assert_equal contents, File.read(file_name)
   ensure
     File.unlink(file_name) rescue nil
@@ -50,7 +50,7 @@ class AtomicWriteTest < Test::Unit::TestCase
       assert !File.exist?(file_name)
     end
     assert File.exist?(file_name)
-    assert_equal "100644", file_mode
+    assert_equal 0100666 ^ File.umask, file_mode
     assert_equal contents, File.read(file_name)
   ensure
     File.unlink(file_name) rescue nil
@@ -62,6 +62,6 @@ class AtomicWriteTest < Test::Unit::TestCase
     end
 
     def file_mode
-      sprintf("%o", File.stat(file_name).mode)
+      File.stat(file_name).mode
     end
 end
