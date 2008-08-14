@@ -51,7 +51,7 @@ module ActiveSupport
           if instance_method(:#{symbol}).arity == 0
             def #{symbol}(reload = false)
               if reload || !defined?(#{memoized_ivar}) || #{memoized_ivar}.empty?
-                #{memoized_ivar} = [#{original_method}]
+                #{memoized_ivar} = [#{original_method}.freeze]
               end
               #{memoized_ivar}[0]
             end
@@ -64,7 +64,7 @@ module ActiveSupport
                 if !reload && #{memoized_ivar}.has_key?(args)
                   #{memoized_ivar}[args]
                 elsif #{memoized_ivar}
-                  #{memoized_ivar}[args] = #{original_method}(*args)
+                  #{memoized_ivar}[args] = #{original_method}(*args).freeze
                 end
               else
                 #{original_method}(*args)

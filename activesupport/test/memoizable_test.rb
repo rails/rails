@@ -110,6 +110,11 @@ uses_mocha 'Memoizable' do
       assert_equal 1, @person.age_calls
     end
 
+    def test_memorized_results_are_immutable
+      assert_equal "Josh", @person.name
+      assert_raise(ActiveSupport::FrozenObjectError) { @person.name.gsub!("Josh", "Gosh") }
+    end
+
     def test_reloadable
       counter = @calculator.counter
       assert_equal 1, @calculator.counter
