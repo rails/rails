@@ -291,11 +291,14 @@ module ActiveSupport
     # NameError is raised when the name is not in CamelCase or the constant is
     # unknown.
     def constantize(camel_cased_word)
-      unless /\A(?:::)?([A-Z]\w*(?:::[A-Z]\w*)*)\z/ =~ camel_cased_word
-        raise NameError, "#{camel_cased_word.inspect} is not a valid constant name!"
-      end
+      names = camel_cased_word.split('::')
+      names.shift if names.empty? || names.first.empty?
 
-      Object.module_eval("::#{$1}", __FILE__, __LINE__)
+      constant = Object
+      names.each do |name|
+        constant = constant.const_defined?(name) ? constant.const_get(name) : constant.const_missing(name)
+      end
+      constant
     end
 
     # Turns a number into an ordinal string used to denote the position in an

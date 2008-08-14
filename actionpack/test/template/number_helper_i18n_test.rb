@@ -18,35 +18,35 @@ class NumberHelperI18nTests < Test::Unit::TestCase
     end
 
     def test_number_to_currency_translates_currency_formats
-      I18n.expects(:translate).with(
-        [:'number.format', :'number.currency.format'], :locale => 'en-US'
-      ).returns([@number_defaults, @currency_defaults])
+      I18n.expects(:translate).with(:'number.format', :locale => 'en-US', :raise => true).returns(@number_defaults)
+      I18n.expects(:translate).with(:'number.currency.format', :locale => 'en-US',
+                                    :raise => true).returns(@currency_defaults)
       number_to_currency(1, :locale => 'en-US')
     end
 
     def test_number_with_precision_translates_number_formats
-      I18n.expects(:translate).with(
-        [:'number.format', :'number.precision.format'], :locale => 'en-US'
-      ).returns([@number_defaults, @precision_defaults])
+      I18n.expects(:translate).with(:'number.format', :locale => 'en-US', :raise => true).returns(@number_defaults)
+      I18n.expects(:translate).with(:'number.precision.format', :locale => 'en-US',
+                                    :raise => true).returns(@precision_defaults)
       number_with_precision(1, :locale => 'en-US')
     end
 
     def test_number_with_delimiter_translates_number_formats
-      I18n.expects(:translate).with(:'number.format', :locale => 'en-US').returns(@number_defaults)
+      I18n.expects(:translate).with(:'number.format', :locale => 'en-US', :raise => true).returns(@number_defaults)
       number_with_delimiter(1, :locale => 'en-US')
     end
 
     def test_number_to_percentage_translates_number_formats
-      I18n.expects(:translate).with(
-        [:'number.format', :'number.percentage.format'], :locale => 'en-US'
-      ).returns([@number_defaults, @percentage_defaults])
+      I18n.expects(:translate).with(:'number.format', :locale => 'en-US', :raise => true).returns(@number_defaults)
+      I18n.expects(:translate).with(:'number.percentage.format', :locale => 'en-US',
+                                    :raise => true).returns(@percentage_defaults)
       number_to_percentage(1, :locale => 'en-US')
     end
 
     def test_number_to_human_size_translates_human_formats
-      I18n.expects(:translate).with(
-        [:'number.format', :'number.human.format'], :locale => 'en-US'
-      ).returns([@number_defaults, @human_defaults])
+      I18n.expects(:translate).with(:'number.format', :locale => 'en-US', :raise => true).returns(@number_defaults)
+      I18n.expects(:translate).with(:'number.human.format', :locale => 'en-US',
+                                    :raise => true).returns(@human_defaults)
       # can't be called with 1 because this directly returns without calling I18n.translate
       number_to_human_size(1025, :locale => 'en-US')
     end

@@ -75,7 +75,7 @@ class CgiRequestTest < BaseCgiTest
     assert_equal "rubyonrails.org:8080", @request.host_with_port
 
     @request_hash['HTTP_X_FORWARDED_HOST'] = "www.firsthost.org, www.secondhost.org"
-    assert_equal "www.secondhost.org", @request.host
+    assert_equal "www.secondhost.org", @request.host(true)
   end
 
   def test_http_host_with_default_port_overrides_server_port

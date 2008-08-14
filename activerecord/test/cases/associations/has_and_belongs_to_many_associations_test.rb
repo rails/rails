@@ -70,7 +70,7 @@ end
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
-           :parrots, :pirates, :treasures, :price_estimates
+           :parrots, :pirates, :treasures, :price_estimates, :tags, :taggings
 
   def test_has_and_belongs_to_many
     david = Developer.find(1)
@@ -297,6 +297,17 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     projects(:active_record).developers << developers(:jamis)
     projects(:active_record).developers << developers(:david)
     assert_equal 3, projects(:active_record, :reload).developers.size
+  end
+
+  def test_uniq_option_prevents_duplicate_push
+    project = projects(:active_record)
+    project.developers << developers(:jamis)
+    project.developers << developers(:david)
+    assert_equal 3, project.developers.size
+
+    project.developers << developers(:david)
+    project.developers << developers(:jamis)
+    assert_equal 3, project.developers.size
   end
 
   def test_deleting

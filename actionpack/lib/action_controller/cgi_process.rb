@@ -43,7 +43,7 @@ module ActionController #:nodoc:
       :session_path     => "/",             # available to all paths in app
       :session_key      => "_session_id",
       :cookie_only      => true
-    } unless const_defined?(:DEFAULT_SESSION_OPTIONS)
+    }
 
     def initialize(cgi, session_options = {})
       @cgi = cgi
@@ -61,51 +61,12 @@ module ActionController #:nodoc:
       end
     end
 
-    # The request body is an IO input stream. If the RAW_POST_DATA environment
-    # variable is already set, wrap it in a StringIO.
-    def body
-      if raw_post = env['RAW_POST_DATA']
-        raw_post.force_encoding(Encoding::BINARY) if raw_post.respond_to?(:force_encoding)
-        StringIO.new(raw_post)
-      else
-        @cgi.stdinput
-      end
-    end
-
-    def query_parameters
-      @query_parameters ||= self.class.parse_query_parameters(query_string)
-    end
-
-    def request_parameters
-      @request_parameters ||= parse_formatted_request_parameters
+    def body_stream #:nodoc:
+      @cgi.stdinput
     end
 
     def cookies
       @cgi.cookies.freeze
-    end
-
-    def host_with_port_without_standard_port_handling
-      if forwarded = env["HTTP_X_FORWARDED_HOST"]
-        forwarded.split(/,\s?/).last
-      elsif http_host = env['HTTP_HOST']
-        http_host
-      elsif server_name = env['SERVER_NAME']
-        server_name
-      else
-        "#{env['SERVER_ADDR']}:#{env['SERVER_PORT']}"
-      end
-    end
-
-    def host
-      host_with_port_without_standard_port_handling.sub(/:\d+$/, '')
-    end
-
-    def port
-      if host_with_port_without_standard_port_handling =~ /:(\d+)$/
-        $1.to_i
-      else
-        standard_port
-      end
     end
 
     def session

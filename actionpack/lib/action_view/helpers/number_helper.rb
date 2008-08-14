@@ -71,9 +71,9 @@ module ActionView
       def number_to_currency(number, options = {})
         options.symbolize_keys!
 
-        defaults, currency = I18n.translate([:'number.format', :'number.currency.format'],
-          :locale => options[:locale]) || [{},{}]
-        defaults = defaults.merge(currency)
+        defaults  = I18n.translate(:'number.format', :locale => options[:locale], :raise => true) rescue {}
+        currency  = I18n.translate(:'number.currency.format', :locale => options[:locale], :raise => true) rescue {}
+        defaults  = defaults.merge(currency)
 
         precision = options[:precision] || defaults[:precision]
         unit      = options[:unit]      || defaults[:unit]
@@ -109,9 +109,9 @@ module ActionView
       def number_to_percentage(number, options = {})
         options.symbolize_keys!
 
-        defaults, percentage = I18n.translate([:'number.format', :'number.percentage.format'],
-          :locale => options[:locale]) || [{},{}]
-        defaults = defaults.merge(percentage)
+        defaults   = I18n.translate(:'number.format', :locale => options[:locale], :raise => true) rescue {}
+        percentage = I18n.translate(:'number.percentage.format', :locale => options[:locale], :raise => true) rescue {}
+        defaults  = defaults.merge(percentage)
 
         precision = options[:precision] || defaults[:precision]
         separator = options[:separator] || defaults[:separator]
@@ -151,7 +151,7 @@ module ActionView
         options = args.extract_options!
         options.symbolize_keys!
 
-        defaults = I18n.translate(:'number.format', :locale => options[:locale]) || {}
+        defaults = I18n.translate(:'number.format', :locale => options[:locale], :raise => true) rescue {}
 
         unless args.empty?
           ActiveSupport::Deprecation.warn('number_with_delimiter takes an option hash ' +
@@ -195,9 +195,10 @@ module ActionView
         options = args.extract_options!
         options.symbolize_keys!
 
-        defaults, precision_defaults = I18n.translate([:'number.format', :'number.precision.format'],
-          :locale => options[:locale]) || [{},{}]
-        defaults = defaults.merge(precision_defaults)
+        defaults           = I18n.translate(:'number.format', :locale => options[:locale], :raise => true) rescue {}
+        precision_defaults = I18n.translate(:'number.precision.format', :locale => options[:locale],
+                                                                        :raise => true) rescue {}
+        defaults           = defaults.merge(precision_defaults)
 
         unless args.empty?
           ActiveSupport::Deprecation.warn('number_with_precision takes an option hash ' +
@@ -209,12 +210,14 @@ module ActionView
         separator ||= (options[:separator] || defaults[:separator])
         delimiter ||= (options[:delimiter] || defaults[:delimiter])
 
-        rounded_number = (Float(number) * (10 ** precision)).round.to_f / 10 ** precision
-        number_with_delimiter("%01.#{precision}f" % rounded_number,
-          :separator => separator,
-          :delimiter => delimiter)
-      rescue
-        number
+        begin
+          rounded_number = (Float(number) * (10 ** precision)).round.to_f / 10 ** precision
+          number_with_delimiter("%01.#{precision}f" % rounded_number,
+            :separator => separator,
+            :delimiter => delimiter)
+        rescue
+          number
+        end
       end
 
       STORAGE_UNITS = %w( Bytes KB MB GB TB ).freeze
@@ -251,8 +254,8 @@ module ActionView
         options = args.extract_options!
         options.symbolize_keys!
 
-        defaults, human = I18n.translate([:'number.format', :'number.human.format'],
-          :locale => options[:locale]) || [{},{}]
+        defaults = I18n.translate(:'number.format', :locale => options[:locale], :raise => true) rescue {}
+        human    = I18n.translate(:'number.human.format', :locale => options[:locale], :raise => true) rescue {}
         defaults = defaults.merge(human)
 
         unless args.empty?
@@ -272,13 +275,16 @@ module ActionView
         number  /= 1024 ** exponent
         unit     = STORAGE_UNITS[exponent]
 
-        number_with_precision(number,
-          :precision => precision,
-          :separator => separator,
-          :delimiter => delimiter
-        ).sub(/(\d)(#{Regexp.escape(separator)}[1-9]*)?0+\z/, '\1') + " #{unit}"
-      rescue
-        number
+        begin
+          escaped_separator = Regexp.escape(separator)
+          number_with_precision(number,
+            :precision => precision,
+            :separator => separator,
+            :delimiter => delimiter
+          ).sub(/(\d)(#{escaped_separator}[1-9]*)?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, '') + " #{unit}"
+        rescue
+          number
+        end
       end
     end
   end

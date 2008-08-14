@@ -340,9 +340,11 @@ Run `rake gems:install` to install the missing gems.
     end
 
     def load_view_paths
-      ActionView::PathSet::Path.eager_load_templates! if configuration.cache_classes
-      ActionMailer::Base.template_root.load if configuration.frameworks.include?(:action_mailer)
-      ActionController::Base.view_paths.load if configuration.frameworks.include?(:action_controller)
+      if configuration.frameworks.include?(:action_view)
+        ActionView::PathSet::Path.eager_load_templates! if configuration.cache_classes
+        ActionController::Base.view_paths.load if configuration.frameworks.include?(:action_controller)
+        ActionMailer::Base.template_root.load if configuration.frameworks.include?(:action_mailer)
+      end
     end
 
     # Eager load application classes
@@ -440,9 +442,11 @@ Run `rake gems:install` to install the missing gems.
     # paths have already been set, it is not changed, otherwise it is
     # set to use Configuration#view_path.
     def initialize_framework_views
-      view_path = ActionView::PathSet::Path.new(configuration.view_path, false)
-      ActionMailer::Base.template_root ||= view_path if configuration.frameworks.include?(:action_mailer)
-      ActionController::Base.view_paths = view_path if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.empty?
+      if configuration.frameworks.include?(:action_view)
+        view_path = ActionView::PathSet::Path.new(configuration.view_path, false)
+        ActionMailer::Base.template_root ||= view_path if configuration.frameworks.include?(:action_mailer)
+        ActionController::Base.view_paths = view_path if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.empty?
+      end
     end
 
     # If Action Controller is not one of the loaded frameworks (Configuration#frameworks)
@@ -688,13 +692,17 @@ Run `rake gems:install` to install the missing gems.
     # You can add gems with the #gem method.
     attr_accessor :gems
 
-    # Adds a single Gem dependency to the rails application.
+    # Adds a single Gem dependency to the rails application. By default, it will require
+    # the library with the same name as the gem. Use :lib to specify a different name.
     #
     #   # gem 'aws-s3', '>= 0.4.0'
     #   # require 'aws/s3'
     #   config.gem 'aws-s3', :lib => 'aws/s3', :version => '>= 0.4.0', \
     #     :source => "http://code.whytheluckystiff.net"
     #
+    # To require a library be installed, but not attempt to load it, pass :lib => false
+    #
+    #   config.gem 'qrp', :version => '0.4.1', :lib => false
     def gem(name, options = {})
       @gems << Rails::GemDependency.new(name, options)
     end
@@ -762,6 +770,17 @@ Run `rake gems:install` to install the missing gems.
 
       Object.const_set(:RELATIVE_RAILS_ROOT, ::RAILS_ROOT.dup) unless defined?(::RELATIVE_RAILS_ROOT)
       ::RAILS_ROOT.replace @root_path
+    end
+
+    # Enable threaded mode. Allows concurrent requests to controller actions and
+    # multiple database connections. Also disables automatic dependency loading
+    # after boot
+    def threadsafe!
+      self.cache_classes = true
+      self.dependency_loading = false
+      self.active_record.allow_concurrency = true
+      self.action_controller.allow_concurrency = true
+      self
     end
 
     # Loads and returns the contents of the #database_configuration_file. The

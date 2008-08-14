@@ -129,7 +129,7 @@ class CGI::Session::CookieStore
   private
     # Marshal a session hash into safe cookie data. Include an integrity hash.
     def marshal(session)
-      data = ActiveSupport::Base64.encode64(Marshal.dump(session)).chop
+      data = ActiveSupport::Base64.encode64s(Marshal.dump(session))
       "#{data}--#{generate_digest(data)}"
     end
 

@@ -344,7 +344,7 @@ module ActiveRecord
           callback(:before_add, record)
           yield(record) if block_given?
           @target ||= [] unless loaded?
-          @target << record
+          @target << record unless @reflection.options[:uniq] && @target.include?(record)
           callback(:after_add, record)
           record
         end
