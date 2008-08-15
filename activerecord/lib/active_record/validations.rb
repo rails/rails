@@ -629,12 +629,11 @@ module ActiveRecord
 
           if value.nil?
             comparison_operator = "IS ?"
-          else
+          elsif is_text_column
             comparison_operator = "#{connection.case_sensitive_equality_operator} ?"
-
-            if is_text_column
-              value = value.to_s
-            end
+            value = value.to_s
+          else
+            comparison_operator = "= ?"
           end
 
           sql_attribute = "#{record.class.quoted_table_name}.#{connection.quote_column_name(attr_name)}"
