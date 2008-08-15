@@ -231,7 +231,7 @@ module ActiveResource
   #   person.valid?                 # => false
   #   person.errors.empty?          # => false
   #   person.errors.count           # => 1
-  #   person.errors.full_messages   # => "Last name can't be empty"
+  #   person.errors.full_messages   # => ["Last name can't be empty"]
   #   person.errors.on(:last_name)  # => "can't be empty"
   #   person.last_name = "Halpert"  
   #   person.save                   # => true (and person is now saved to the remote service)
