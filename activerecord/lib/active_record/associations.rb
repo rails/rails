@@ -2099,10 +2099,8 @@ module ActiveRecord
                 else
                   ""
               end || ''
-              join << %(AND %s.%s = %s ) % [
-                connection.quote_table_name(aliased_table_name),
-                connection.quote_column_name(klass.inheritance_column),
-                klass.quote_value(klass.sti_name)] unless klass.descends_from_active_record?
+              join << %(AND %s) % [
+                klass.send(:type_condition, aliased_table_name)] unless klass.descends_from_active_record?
 
               [through_reflection, reflection].each do |ref|
                 join << "AND #{interpolate_sql(sanitize_sql(ref.options[:conditions]))} " if ref && ref.options[:conditions]
