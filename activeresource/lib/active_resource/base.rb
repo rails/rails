@@ -75,20 +75,6 @@ module ActiveResource
   # For more information on using custom REST methods, see the
   # ActiveResource::CustomMethods documentation.
   #
-  # == Validations
-  #
-  # You can validate resources client side by overriding validation methods in the base class.
-  # 
-  #   class Person < ActiveResource::Base
-  #      self.site = "http://api.people.com:3000/"
-  #      protected
-  #        def validate
-  #          errors.add("last", "has invalid characters") unless last =~ /[a-zA-Z]*/
-  #        end
-  #   end
-  # 
-  # See the ActiveResource::Validations documentation for more information.
-  #
   # == Authentication
   # 
   # Many REST APIs will require authentication, usually in the form of basic
