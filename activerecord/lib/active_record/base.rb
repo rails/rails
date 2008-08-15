@@ -1581,10 +1581,11 @@ module ActiveRecord #:nodoc:
           sql << "WHERE #{merged_conditions} " unless merged_conditions.blank?
         end
 
-        def type_condition
+        def type_condition(table_alias=nil)
+          quoted_table_alias = self.connection.quote_table_name(table_alias || table_name)
           quoted_inheritance_column = connection.quote_column_name(inheritance_column)
-          type_condition = subclasses.inject("#{quoted_table_name}.#{quoted_inheritance_column} = '#{sti_name}' ") do |condition, subclass|
-            condition << "OR #{quoted_table_name}.#{quoted_inheritance_column} = '#{subclass.sti_name}' "
+          type_condition = subclasses.inject("#{quoted_table_alias}.#{quoted_inheritance_column} = '#{sti_name}' ") do |condition, subclass|
+            condition << "OR #{quoted_table_alias}.#{quoted_inheritance_column} = '#{subclass.sti_name}' "
           end
 
           " (#{type_condition}) "
