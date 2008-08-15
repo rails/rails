@@ -79,7 +79,13 @@ module ActionController # :nodoc:
     end
 
     def last_modified
-      Time.rfc2822(headers['Last-Modified'])
+      if last = headers['Last-Modified']
+        Time.httpdate(last)
+      end
+    end
+
+    def last_modified?
+      headers.include?('Last-Modified')
     end
 
     def last_modified=(utc_time)
@@ -87,6 +93,7 @@ module ActionController # :nodoc:
     end
 
     def etag; headers['ETag'] end
+    def etag?; headers.include?('ETag') end
     def etag=(etag)
       headers['ETag'] = %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(etag))}")
     end
@@ -98,22 +105,22 @@ module ActionController # :nodoc:
     end
 
     def prepare!
+      set_content_length!
       handle_conditional_get!
       convert_content_type!
-      set_content_length!
     end
 
     private
       def handle_conditional_get!
         if nonempty_ok_response?
-          set_conditional_cache_control!
-
           self.etag ||= body
           if request && request.etag_matches?(etag)
             self.status = '304 Not Modified'
             self.body = ''
           end
         end
+
+        set_conditional_cache_control! if etag? || last_modified?
       end
 
       def nonempty_ok_response?
@@ -142,7 +149,9 @@ module ActionController # :nodoc:
       # Don't set the Content-Length for block-based bodies as that would mean reading it all into memory. Not nice
       # for, say, a 2GB streaming file.
       def set_content_length!
-        self.headers["Content-Length"] = body.size unless body.respond_to?(:call)
+        unless body.respond_to?(:call) || (status && status[0..2] == '304')
+          self.headers["Content-Length"] ||= body.size
+        end
       end
   end
 end
