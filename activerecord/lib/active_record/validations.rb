@@ -92,17 +92,19 @@ module ActiveRecord
           :"custom.#{klass.name.underscore}.#{message}" ]
       end
       
-      defaults << options[:default] if options[:default]
-      defaults.flatten! << message
+      defaults << options.delete(:default)
+      defaults = defaults.compact.flatten << message
 
       model_name = @base.class.name
       key = defaults.shift
+      value = @base.send(attribute) if @base.respond_to?(attribute)
 
-      options.merge!({ 
-          :default => defaults,
-          :model => @base.class.human_name,
-          :attribute => @base.class.human_attribute_name(attribute.to_s),
-          :scope => [:activerecord, :errors, :messages] })
+      options = { :default => defaults,
+        :model => @base.class.human_name,
+        :attribute => @base.class.human_attribute_name(attribute.to_s),
+        :value => value,
+        :scope => [:activerecord, :errors, :messages]
+      }.merge(options)
 
       I18n.translate(key, options)
     end
