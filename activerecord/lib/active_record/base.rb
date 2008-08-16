@@ -1249,6 +1249,19 @@ module ActiveRecord #:nodoc:
         options[:count] ||= 1
         I18n.translate(defaults.shift, options.merge(:default => defaults, :scope => [:activerecord, :attributes]))
       end
+
+      # Transform the modelname into a more humane format, using I18n.
+      # Defaults to the basic humanize method.
+      # Default scope of the translation is activerecord.models
+      # Specify +options+ with additional translating options.
+      def human_name(options = {})
+        defaults = self_and_descendents_from_active_record.map do |klass|
+          :"#{klass.name.underscore}"
+        end 
+        defaults << self.name.humanize
+        I18n.translate(defaults.shift, {:scope => [:activerecord, :models], :count => 1, :default => defaults}.merge(options))
+      end
+
       # True if this isn't a concrete subclass needing a STI type condition.
       def descends_from_active_record?
         if superclass.abstract_class?
