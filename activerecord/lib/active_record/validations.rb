@@ -100,7 +100,7 @@ module ActiveRecord
 
       options.merge!({ 
           :default => defaults,
-          :model => I18n.translate(model_name.underscore, :default => model_name.humanize, :scope => [:activerecord, :models], :count => 1),
+          :model => @base.class.human_name,
           :attribute => @base.class.human_attribute_name(attribute.to_s),
           :scope => [:activerecord, :errors, :messages] })
 
