@@ -131,10 +131,6 @@ module ActiveRecord
           records.map { |record| record.quoted_id }.join(',')
         end
 
-        def interpolate_sql_options!(options, *keys)
-          keys.each { |key| options[key] &&= interpolate_sql(options[key]) }
-        end
-
         def interpolate_sql(sql, record = nil)
           @owner.send(:interpolate_sql, sql, record)
         end
