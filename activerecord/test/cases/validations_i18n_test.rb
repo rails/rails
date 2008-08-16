@@ -46,7 +46,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
       global_scope = [:activerecord, :errors, :messages]
       custom_scope = global_scope + [:custom, 'topic', :title]
 
-      I18n.expects(:translate).with('topic', {:count => 1, :default => 'Topic', :scope => [:activerecord, :models]}).returns('Topic')
+      I18n.expects(:translate).with(:topic, {:count => 1, :default => ['Topic'], :scope => [:activerecord, :models]}).returns('Topic')
       I18n.expects(:translate).with(:'topic.title', {:count => 1, :default => ['Title'], :scope => [:activerecord, :attributes]}).returns('Title')
       I18n.expects(:translate).with(:"custom.topic.title.invalid", :scope => global_scope, :default => [:"custom.topic.invalid", 'default from class def error 1', :invalid], :attribute => "Title", :model => "Topic").returns('default from class def error 1')
       @topic.errors.generate_message :title, :invalid, :default => 'default from class def error 1'
@@ -54,7 +54,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
 
     def test_errors_generate_message_translates_custom_model_attribute_keys_with_sti
       custom_scope = [:activerecord, :errors, :custom, 'topic', :title]
-      I18n.expects(:translate).with('reply', {:count => 1, :default => 'Reply', :scope => [:activerecord, :models]}).returns('Reply')
+      I18n.expects(:translate).with(:reply, {:count => 1, :default => [:topic, 'Reply'], :scope => [:activerecord, :models]}).returns('Reply')
       I18n.expects(:translate).with(:'reply.title', {:count => 1, :default => [:'topic.title', 'Title'], :scope => [:activerecord, :attributes]}).returns('Title')
       I18n.expects(:translate).with(:"custom.reply.title.invalid", :scope => [:activerecord, :errors, :messages], :default => [:"custom.reply.invalid", :"custom.topic.title.invalid", :"custom.topic.invalid", 'default from class def', :invalid], :model => 'Reply', :attribute => 'Title').returns("default from class def")
       Reply.new.errors.generate_message :title, :invalid, :default => 'default from class def'
