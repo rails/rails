@@ -70,10 +70,8 @@ module ActiveRecord
         end
 
         def construct_sql
-          interpolate_sql_options!(@reflection.options, :finder_sql)
-
           if @reflection.options[:finder_sql]
-            @finder_sql = @reflection.options[:finder_sql]
+            @finder_sql = interpolate_sql(@reflection.options[:finder_sql])
           else
             @finder_sql = "#{@owner.connection.quote_table_name @reflection.options[:join_table]}.#{@reflection.primary_key_name} = #{owner_quoted_id} "
             @finder_sql << " AND (#{conditions})" if conditions

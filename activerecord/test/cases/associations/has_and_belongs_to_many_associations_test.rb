@@ -450,6 +450,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal developers(:david), active_record.developers_with_finder_sql.find(developers(:david).id), "Ruby find"
   end
 
+  def test_find_in_association_with_custom_finder_sql_and_multiple_interpolations
+    # interpolate once:
+    assert_equal [developers(:david), developers(:poor_jamis), developers(:jamis)], projects(:active_record).developers_with_finder_sql, "first interpolation"
+    # interpolate again, for a different project id
+    assert_equal [developers(:david)], projects(:action_controller).developers_with_finder_sql, "second interpolation"
+  end
+
   def test_find_in_association_with_custom_finder_sql_and_string_id
     assert_equal developers(:david), projects(:active_record).developers_with_finder_sql.find(developers(:david).id.to_s), "SQL find"
   end
