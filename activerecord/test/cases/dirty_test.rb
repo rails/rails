@@ -45,6 +45,19 @@ class DirtyTest < ActiveRecord::TestCase
     assert_nil pirate.catchphrase_change
   end
 
+  def test_aliased_attribute_changes
+    # the actual attribute here is name, title is an
+    # alias setup via alias_attribute
+    parrot = Parrot.new
+    assert !parrot.title_changed?
+    assert_nil parrot.title_change
+
+    parrot.name = 'Sam'
+    assert parrot.title_changed?
+    assert_nil parrot.title_was
+    assert_equal parrot.name_change, parrot.title_change
+  end
+
   def test_nullable_integer_not_marked_as_changed_if_new_value_is_blank
     pirate = Pirate.new
 
