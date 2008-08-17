@@ -250,7 +250,7 @@ module ActiveRecord
 
         # Raises ActiveRecord::AssociationTypeMismatch unless +record+ is of
         # the kind of the class of the associated objects. Meant to be used as
-        # a sanity check when you are about to assing an associated record.
+        # a sanity check when you are about to assign an associated record.
         def raise_on_type_mismatch(record)
           unless record.is_a?(@reflection.klass)
             message = "#{@reflection.class_name}(##{@reflection.klass.object_id}) expected, got #{record.class}(##{record.class.object_id})"
