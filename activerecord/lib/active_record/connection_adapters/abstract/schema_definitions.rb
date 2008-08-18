@@ -138,7 +138,11 @@ module ActiveRecord
 
         # convert something to a boolean
         def value_to_boolean(value)
-          TRUE_VALUES.include?(value)
+          if value.is_a?(String) && value.blank?
+            nil
+          else
+            TRUE_VALUES.include?(value)
+          end
         end
 
         # convert something to a BigDecimal

@@ -60,7 +60,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :booleantests, :force => true do |t|
-    t.integer :value
+    t.boolean :value
   end
 
   create_table :categories, :force => true do |t|
