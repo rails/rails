@@ -31,7 +31,14 @@ module ActionView
 
       view.send(:evaluate_assigns)
       view.send(:set_controller_content_type, mime_type) if respond_to?(:mime_type)
-      view.send(:execute, method_name(local_assigns), local_assigns)
+
+      view.send(method_name(local_assigns), local_assigns) do |*names|
+        if proc = view.instance_variable_get("@_proc_for_layout")
+          view.capture(*names, &proc)
+        else
+          view.instance_variable_get("@content_for_#{names.first || 'layout'}")
+        end
+      end
     end
 
     def method_name(local_assigns)

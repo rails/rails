@@ -246,12 +246,18 @@ module ActionView #:nodoc:
 
         if partial_layout = options.delete(:layout)
           if block_given?
-            wrap_content_for_layout capture(&block) do
+            begin
+              @_proc_for_layout = block
               concat(render(options.merge(:partial => partial_layout)))
+            ensure
+              @_proc_for_layout = nil
             end
           else
-            wrap_content_for_layout render(options) do
+            begin
+              original_content_for_layout, @content_for_layout = @content_for_layout, render(options)
               render(options.merge(:partial => partial_layout))
+            ensure
+              @content_for_layout = original_content_for_layout
             end
           end
         elsif options[:file]
@@ -367,13 +373,6 @@ module ActionView #:nodoc:
         InlineTemplate.new(text, type).render(self, local_assigns)
       end
 
-      def wrap_content_for_layout(content)
-        original_content_for_layout, @content_for_layout = @content_for_layout, content
-        yield
-      ensure
-        @content_for_layout = original_content_for_layout
-      end
-
       # Evaluate the local assigns and pushes them to the view.
       def evaluate_assigns
         unless @assigns_added
@@ -390,12 +389,6 @@ module ActionView #:nodoc:
       def set_controller_content_type(content_type)
         if controller.respond_to?(:response)
           controller.response.content_type ||= content_type
-        end
-      end
-
-      def execute(method, local_assigns = {})
-        send(method, local_assigns) do |*names|
-          instance_variable_get "@content_for_#{names.first || 'layout'}"
         end
       end
   end
