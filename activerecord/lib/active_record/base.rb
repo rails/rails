@@ -2572,11 +2572,14 @@ module ActiveRecord #:nodoc:
       end
 
       def convert_number_column_value(value)
-        case value
-          when FalseClass; 0
-          when TrueClass;  1
-          when '';         nil
-          else value
+        if value == false
+          0
+        elsif value == true
+          1
+        elsif value.is_a?(String) && value.blank?
+          nil
+        else
+          value
         end
       end
 
