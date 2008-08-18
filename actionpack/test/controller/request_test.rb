@@ -397,7 +397,6 @@ class RequestTest < Test::Unit::TestCase
     end
 end
 
-
 class UrlEncodedRequestParameterParsingTest < Test::Unit::TestCase
   def setup
     @query_string = "action=create_customer&full_name=David%20Heinemeier%20Hansson&customerId=1"
@@ -509,7 +508,6 @@ class UrlEncodedRequestParameterParsingTest < Test::Unit::TestCase
    )
   end
 
-
   def test_request_hash_parsing
     query = {
       "note[viewers][viewer][][type]" => ["User", "Group"],
@@ -520,7 +518,6 @@ class UrlEncodedRequestParameterParsingTest < Test::Unit::TestCase
 
     assert_equal(expected, ActionController::AbstractRequest.parse_request_parameters(query))
   end
-
 
   def test_parse_params
     input = {
@@ -704,7 +701,6 @@ class UrlEncodedRequestParameterParsingTest < Test::Unit::TestCase
   end
 end
 
-
 class MultipartRequestParameterParsingTest < Test::Unit::TestCase
   FIXTURE_PATH = File.dirname(__FILE__) + '/../fixtures/multipart'
 
@@ -852,20 +848,20 @@ class XmlParamsParsingTest < Test::Unit::TestCase
 
   private
     def parse_body(body)
-      env = { 'CONTENT_TYPE'   => 'application/xml',
+      env = { 'rack.input'     => StringIO.new(body),
+              'CONTENT_TYPE'   => 'application/xml',
               'CONTENT_LENGTH' => body.size.to_s }
-      cgi = ActionController::Integration::Session::StubCGI.new(env, body)
-      ActionController::CgiRequest.new(cgi).request_parameters
+      ActionController::RackRequest.new(env).request_parameters
     end
 end
 
 class LegacyXmlParamsParsingTest < XmlParamsParsingTest
   private
     def parse_body(body)
-      env = { 'HTTP_X_POST_DATA_FORMAT' => 'xml',
-              'CONTENT_LENGTH' => body.size.to_s }
-      cgi = ActionController::Integration::Session::StubCGI.new(env, body)
-      ActionController::CgiRequest.new(cgi).request_parameters
+      env = { 'rack.input'              => StringIO.new(body),
+              'HTTP_X_POST_DATA_FORMAT' => 'xml',
+              'CONTENT_LENGTH'          => body.size.to_s }
+      ActionController::RackRequest.new(env).request_parameters
     end
 end
 
@@ -884,9 +880,9 @@ class JsonParamsParsingTest < Test::Unit::TestCase
 
   private
     def parse_body(body,content_type)
-      env = { 'CONTENT_TYPE'   => content_type,
+      env = { 'rack.input'     => StringIO.new(body),
+              'CONTENT_TYPE'   => content_type,
               'CONTENT_LENGTH' => body.size.to_s }
-      cgi = ActionController::Integration::Session::StubCGI.new(env, body)
-      ActionController::CgiRequest.new(cgi).request_parameters
+      ActionController::RackRequest.new(env).request_parameters
     end
 end
