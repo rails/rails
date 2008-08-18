@@ -138,7 +138,7 @@ module ActionController #:nodoc:
         @host                    = "test.host"
         @request_uri             = "/"
         @user_agent              = "Rails Testing"
-        self.remote_addr         = "0.0.0.0"        
+        self.remote_addr         = "0.0.0.0"
         @env["SERVER_PORT"]      = 80
         @env['REQUEST_METHOD']   = "GET"
       end
@@ -160,16 +160,16 @@ module ActionController #:nodoc:
   module TestResponseBehavior #:nodoc:
     # The response code of the request
     def response_code
-      headers['Status'][0,3].to_i rescue 0
+      status[0,3].to_i rescue 0
     end
-    
+
     # Returns a String to ensure compatibility with Net::HTTPResponse
     def code
-      headers['Status'].to_s.split(' ')[0]
+      status.to_s.split(' ')[0]
     end
 
     def message
-      headers['Status'].to_s.split(' ',2)[1]
+      status.to_s.split(' ',2)[1]
     end
 
     # Was the response successful?
@@ -246,11 +246,11 @@ module ActionController #:nodoc:
 
     # Does the specified template object exist?
     def has_template_object?(name=nil)
-      !template_objects[name].nil?      
+      !template_objects[name].nil?
     end
 
     # Returns the response cookies, converted to a Hash of (name => CGI::Cookie) pairs
-    # 
+    #
     #   assert_equal ['AuthorOfNewPage'], r.cookies['author'].value
     def cookies
       headers['cookie'].inject({}) { |hash, cookie| hash[cookie.name] = cookie; hash }
@@ -322,7 +322,7 @@ module ActionController #:nodoc:
   #
   # Usage example, within a functional test:
   #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + '/files/spongebob.png', 'image/png')
-  # 
+  #
   # Pass a true third parameter to ensure the uploaded file is opened in binary mode (only required for Windows):
   #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + '/files/spongebob.png', 'image/png', :binary)
   require 'tempfile'
@@ -403,13 +403,13 @@ module ActionController #:nodoc:
     end
     alias xhr :xml_http_request
 
-    def assigns(key = nil) 
-      if key.nil? 
-        @response.template.assigns 
-      else 
-        @response.template.assigns[key.to_s] 
-      end 
-    end 
+    def assigns(key = nil)
+      if key.nil?
+        @response.template.assigns
+      else
+        @response.template.assigns[key.to_s]
+      end
+    end
 
     def session
       @response.session
@@ -468,7 +468,7 @@ module ActionController #:nodoc:
     #   post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png', :binary)
     def fixture_file_upload(path, mime_type = nil, binary = false)
       ActionController::TestUploadedFile.new(
-        Test::Unit::TestCase.respond_to?(:fixture_path) ? Test::Unit::TestCase.fixture_path + path : path, 
+        Test::Unit::TestCase.respond_to?(:fixture_path) ? Test::Unit::TestCase.fixture_path + path : path,
         mime_type,
         binary
       )
@@ -476,7 +476,7 @@ module ActionController #:nodoc:
 
     # A helper to make it easier to test different route configurations.
     # This method temporarily replaces ActionController::Routing::Routes
-    # with a new RouteSet instance. 
+    # with a new RouteSet instance.
     #
     # The new instance is yielded to the passed block. Typically the block
     # will create some routes using <tt>map.draw { map.connect ... }</tt>:
