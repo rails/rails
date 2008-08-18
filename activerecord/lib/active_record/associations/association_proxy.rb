@@ -39,7 +39,7 @@ module ActiveRecord
     # though the object behind <tt>blog.posts</tt> is not an Array, but an
     # ActiveRecord::Associations::HasManyAssociation.
     #
-    # The <tt>@target</tt> object is not loaded until needed. For example,
+    # The <tt>@target</tt> object is not \loaded until needed. For example,
     #
     #   blog.posts.count
     #
@@ -68,18 +68,18 @@ module ActiveRecord
         @reflection
       end
 
-      # Returns the target of the proxy, same as +target+.
+      # Returns the \target of the proxy, same as +target+.
       def proxy_target
         @target
       end
 
-      # Does the proxy or its target respond to +symbol+?
+      # Does the proxy or its \target respond to +symbol+?
       def respond_to?(symbol, include_priv = false)
         proxy_respond_to?(symbol, include_priv) || (load_target && @target.respond_to?(symbol, include_priv))
       end
 
-      # Forwards <tt>===</tt> explicitly to the target because the instance method
-      # removal above doesn't catch it. Loads the target if needed.
+      # Forwards <tt>===</tt> explicitly to the \target because the instance method
+      # removal above doesn't catch it. Loads the \target if needed.
       def ===(other)
         load_target
         other === @target
@@ -100,25 +100,25 @@ module ActiveRecord
       end
       alias :sql_conditions :conditions
 
-      # Resets the loaded flag to +false+ and sets the target to +nil+.
+      # Resets the \loaded flag to +false+ and sets the \target to +nil+.
       def reset
         @loaded = false
         @target = nil
       end
 
-      # Reloads the target and returns +self+ on success.
+      # Reloads the \target and returns +self+ on success.
       def reload
         reset
         load_target
         self unless @target.nil?
       end
 
-      # Has the target been already loaded?
+      # Has the \target been already \loaded?
       def loaded?
         @loaded
       end
 
-      # Asserts the target has been loaded setting the loaded flag to +true+.
+      # Asserts the \target has been loaded setting the \loaded flag to +true+.
       def loaded
         @loaded = true
       end
@@ -128,13 +128,13 @@ module ActiveRecord
         @target
       end
 
-      # Sets the target of this proxy to +target+, and the loaded flag to +true+.
+      # Sets the target of this proxy to <tt>\target</tt>, and the \loaded flag to +true+.
       def target=(target)
         @target = target
         loaded
       end
 
-      # Forwards the call to the target. Loads the target if needed.
+      # Forwards the call to the target. Loads the \target if needed.
       def inspect
         load_target
         @target.inspect
@@ -206,7 +206,7 @@ module ActiveRecord
         end
 
       private
-        # Forwards any missing method call to the target.
+        # Forwards any missing method call to the \target.
         def method_missing(method, *args)
           if load_target
             if block_given?
@@ -217,16 +217,16 @@ module ActiveRecord
           end
         end
 
-        # Loads the target if needed and returns it.
+        # Loads the \target if needed and returns it.
         #
         # This method is abstract in the sense that it relies on +find_target+,
         # which is expected to be provided by descendants.
         #
-        # If the target is already loaded it is just returned. Thus, you can call
-        # +load_target+ unconditionally to get the target.
+        # If the \target is already \loaded it is just returned. Thus, you can call
+        # +load_target+ unconditionally to get the \target.
         #
         # ActiveRecord::RecordNotFound is rescued within the method, and it is
-        # not reraised. The proxy is reset and +nil+ is the return value.
+        # not reraised. The proxy is \reset and +nil+ is the return value.
         def load_target
           return nil unless defined?(@loaded)
 
