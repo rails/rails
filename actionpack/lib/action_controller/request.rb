@@ -100,7 +100,7 @@ module ActionController
 
     def if_modified_since
       if since = env['HTTP_IF_MODIFIED_SINCE']
-        Time.rfc2822(since)
+        Time.rfc2822(since) rescue nil
       end
     end
     memoize :if_modified_since
