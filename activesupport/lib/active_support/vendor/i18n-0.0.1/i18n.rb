@@ -9,14 +9,14 @@ require 'i18n/backend/simple'
 require 'i18n/exceptions'
 
 module I18n  
-  @@backend = Backend::Simple
+  @@backend = nil
   @@default_locale = 'en-US'
   @@exception_handler = :default_exception_handler
     
   class << self
     # Returns the current backend. Defaults to +Backend::Simple+.
     def backend
-      @@backend
+      @@backend ||= Backend::Simple.new
     end
     
     # Sets the current backend. Used to set a custom backend.
