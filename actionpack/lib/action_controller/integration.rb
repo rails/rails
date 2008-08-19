@@ -451,7 +451,7 @@ EOF
       end
 
       %w(get post put head delete cookies assigns
-         xml_http_request get_via_redirect post_via_redirect).each do |method|
+         xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
           reset! unless @integration_session
           # reset the html_document variable, but only for new get/post calls

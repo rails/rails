@@ -253,7 +253,10 @@ class IntegrationProcessTest < ActionController::IntegrationTest
     session :off
 
     def get
-      render :text => "OK", :status => 200
+      respond_to do |format|
+        format.html { render :text => "OK", :status => 200 }
+        format.js { render :text => "JS OK", :status => 200 }
+      end
     end
 
     def post
@@ -342,6 +345,20 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       assert_equal "<html><body>You are being <a href=\"http://www.example.com/get\">redirected</a>.</body></html>", response.body
       assert_kind_of HTML::Document, html_document
       assert_equal 1, request_count
+    end
+  end
+
+  def test_xml_http_request_get
+    with_test_route_set do
+      xhr :get, '/get'
+      assert_equal 200, status
+      assert_equal "OK", status_message
+      assert_equal "200 OK", response.headers["Status"]
+      assert_equal ["200 OK"], headers["status"]
+      assert_response 200
+      assert_response :success
+      assert_response :ok
+      assert_equal "JS OK", response.body
     end
   end
 
