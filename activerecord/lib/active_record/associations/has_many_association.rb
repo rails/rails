@@ -1,5 +1,9 @@
 module ActiveRecord
   module Associations
+    # This is the proxy that handles a has many association.
+    #
+    # If the association has a <tt>:through</tt> option further specialization
+    # is provided by its child HasManyThroughAssociation.
     class HasManyAssociation < AssociationCollection #:nodoc:
       # Count the number of associated records. All arguments are optional.
       def count(*args)
@@ -27,6 +31,16 @@ module ActiveRecord
           end
         end
 
+        # Returns the number of records in this collection.
+        #
+        # If the association has a counter cache it gets that value. Otherwise
+        # a count via SQL is performed, bounded to <tt>:limit</tt> if there's one.
+        # That does not depend on whether the collection has already been loaded
+        # or not. The +size+ method is the one that takes the loaded flag into
+        # account and delegates to +count_records+ if needed.
+        #
+        # If the collection is empty the target is set to an empty array and
+        # the loaded flag is set to true as well.
         def count_records
           count = if has_cached_counter?
             @owner.send(:read_attribute, cached_counter_attribute_name)
