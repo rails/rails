@@ -28,24 +28,24 @@ module ActiveResource
 
   # 3xx Redirection
   class Redirection < ConnectionError # :nodoc:
-    def to_s; response['Location'] ? "#{super} => #{response['Location']}" : super; end    
-  end 
+    def to_s; response['Location'] ? "#{super} => #{response['Location']}" : super; end
+  end
 
   # 4xx Client Error
   class ClientError < ConnectionError; end # :nodoc:
-  
+
   # 400 Bad Request
   class BadRequest < ClientError; end # :nodoc
-  
+
   # 401 Unauthorized
   class UnauthorizedAccess < ClientError; end # :nodoc
-  
+
   # 403 Forbidden
   class ForbiddenAccess < ClientError; end # :nodoc
-  
+
   # 404 Not Found
   class ResourceNotFound < ClientError; end # :nodoc:
-  
+
   # 409 Conflict
   class ResourceConflict < ClientError; end # :nodoc:
 
@@ -201,7 +201,7 @@ module ActiveResource
       end
 
       def logger #:nodoc:
-        ActiveResource::Base.logger
+        Base.logger
       end
   end
 end

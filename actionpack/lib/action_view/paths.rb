@@ -3,7 +3,7 @@ module ActionView #:nodoc:
     def self.type_cast(obj)
       if obj.is_a?(String)
         if Base.warn_cache_misses && defined?(Rails) && Rails.initialized?
-          Rails.logger.debug "[PERFORMANCE] Processing view path during a " +
+          Base.logger.debug "[PERFORMANCE] Processing view path during a " +
             "request. This an expense disk operation that should be done at " +
             "boot. You can manually process this view path with " +
             "ActionView::Base.process_view_paths(#{obj.inspect}) and set it " +

@@ -24,7 +24,7 @@ module ActionController
           to_prepare(:activerecord_instantiate_observers) { ActiveRecord::Base.instantiate_observers }
         end
 
-        after_dispatch :flush_logger if defined?(RAILS_DEFAULT_LOGGER) && RAILS_DEFAULT_LOGGER.respond_to?(:flush)
+        after_dispatch :flush_logger if Base.logger && Base.logger.respond_to?(:flush)
       end
 
       # Backward-compatible class method takes CGI-specific args. Deprecated
@@ -142,7 +142,7 @@ module ActionController
     end
 
     def flush_logger
-      RAILS_DEFAULT_LOGGER.flush
+      Base.logger.flush
     end
 
     protected

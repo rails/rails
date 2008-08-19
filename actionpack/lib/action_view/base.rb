@@ -169,6 +169,7 @@ module ActionView #:nodoc:
 
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
+      delegate :logger, :to => 'ActionController::Base'
     end
 
     def self.cache_template_loading=(*args)
@@ -328,7 +329,7 @@ module ActionView #:nodoc:
       else
         template = Template.new(template_path, view_paths)
 
-        if self.class.warn_cache_misses && logger = ActionController::Base.logger
+        if self.class.warn_cache_misses && logger
           logger.debug "[PERFORMANCE] Rendering a template that was " +
             "not found in view path. Templates outside the view path are " +
             "not cached and result in expensive disk operations. Move this " +
