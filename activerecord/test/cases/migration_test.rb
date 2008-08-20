@@ -224,7 +224,7 @@ if ActiveRecord::Base.connection.supports_migrations?
           t.column :foo, :string
       end
 
-      assert_equal %w(foo testings_id), Person.connection.columns(:testings).map { |c| c.name }.sort
+      assert_equal %w(foo testing_id), Person.connection.columns(:testings).map { |c| c.name }.sort
     ensure
       Person.connection.drop_table :testings rescue nil
       ActiveRecord::Base.primary_key_prefix_type = nil
@@ -237,7 +237,7 @@ if ActiveRecord::Base.connection.supports_migrations?
           t.column :foo, :string
       end
 
-      assert_equal %w(foo testingsid), Person.connection.columns(:testings).map { |c| c.name }.sort
+      assert_equal %w(foo testingid), Person.connection.columns(:testings).map { |c| c.name }.sort
     ensure
       Person.connection.drop_table :testings rescue nil
       ActiveRecord::Base.primary_key_prefix_type = nil
