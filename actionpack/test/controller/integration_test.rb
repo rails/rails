@@ -329,7 +329,10 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       assert_response :gone
       assert_equal nil, response.headers["Set-Cookie"]
       assert_equal ["cookie_1=; path=/", "cookie_3=chocolate; path=/"], headers['set-cookie']
-      assert_equal [[], ["chocolate"]], response.headers["cookie"]
+      assert_equal [
+        CGI::Cookie::new("name" => "cookie_1", "value" => ""),
+        CGI::Cookie::new("name" => "cookie_3", "value" => "chocolate")
+      ], response.headers["cookie"]
       assert_equal [], headers["cookie"]
       assert_equal({"cookie_1"=>"", "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate"}, cookies)
       assert_equal "Gone", response.body
