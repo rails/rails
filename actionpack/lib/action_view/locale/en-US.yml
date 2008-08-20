@@ -3,11 +3,11 @@
     # Used in number_with_delimiter()
     # These are also the defaults for 'currency', 'percentage', 'precision', and 'human'
     format:
-      # Sets the seperator between the units, for more precision (e.g. 1.0 / 2.0 == 0.5)
-      seperator: "."
+      # Sets the separator between the units, for more precision (e.g. 1.0 / 2.0 == 0.5)
+      separator: "."
       # Delimets thousands (e.g. 1,000,000 is a million) (always in groups of three)
-      delimeter: ","
-      # Number of decimals, behind the seperator (the number 1 with a precision of 2 gives: 1.00)
+      delimiter: ","
+      # Number of decimals, behind the separator (the number 1 with a precision of 2 gives: 1.00)
       precision: 3
       
     # Used in number_to_currency()
@@ -17,7 +17,7 @@
         format: "%u%n"
         unit: "$"
         # These three are to override number.format and are optional
-        seperator: "."
+        separator: "."
         delimiter: ","
         precision: 2
         
@@ -25,37 +25,38 @@
     percentage:
       format:
         # These three are to override number.format and are optional
-        seperator: "."
-        delimiter: ","
-        precision: 3
+        # separator: 
+        delimiter: ""
+        # precision: 
         
     # Used in number_to_precision()
     precision:
       format:
         # These three are to override number.format and are optional
-        seperator: "."
-        delimiter: ","
-        precision: 3
+        # separator:
+        delimiter: ""
+        # precision:
         
     # Used in number_to_human_size()
     human:
       format:
         # These three are to override number.format and are optional
-        seperator: "."
-        delimiter: ","
+        # separator: 
+        delimiter: ""
+        precision: 1
 
   # Used in distance_of_time_in_words(), distance_of_time_in_words_to_now(), time_ago_in_words()
   datetime:
     distance_in_words:
       half_a_minute: "half a minute"
       less_than_x_seconds:
-        one:  "less than a second"
+        one:  "less than 1 second"
         many: "less than {{count}} seconds"
       x_seconds:
         one:  "1 second"
         many: "{{count}} seconds"
       less_than_x_minutes:
-        one:  "less than 1 minutes"
+        one:  "less than a minute"
         many: "less than {{count}} minutes"
       x_minutes:
         one:  "1 minute"
@@ -67,7 +68,7 @@
         one:  "1 day"
         many: "{{count}} days"
       about_x_months:
-        one:  "about a month"
+        one:  "about 1 month"
         many: "about {{count}} months"
       x_months:
         one:  "1 month"
@@ -81,9 +82,10 @@
 
   activerecord:
     errors:
-      header:
-        one:   "1 error prohibited this {{model}} from being saved"
-        many:  "{{count}} errors prohibited this {{model}} from being saved"
-      # The variable :count is also available
-      message: "There were problems with the following fields:"
+      template:
+        header:
+          one:   "1 error prohibited this {{model}} from being saved"
+          many:  "{{count}} errors prohibited this {{model}} from being saved"
+        # The variable :count is also available
+        body: "There were problems with the following fields:"
 
