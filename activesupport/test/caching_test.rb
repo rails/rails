@@ -120,4 +120,10 @@ class MemoryStoreTest < Test::Unit::TestCase
   def test_fetch_with_forced_cache_miss
     @cache.fetch('foo', :force => true) { 'bar' }
   end
+
+  def test_store_objects_should_be_immutable
+    @cache.write('foo', 'bar')
+    assert_raise(ActiveSupport::FrozenObjectError) { @cache.read('foo').gsub!(/.*/, 'baz') }
+    assert_equal 'bar', @cache.read('foo')
+  end
 end

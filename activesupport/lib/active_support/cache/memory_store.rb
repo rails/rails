@@ -22,7 +22,7 @@ module ActiveSupport
       def write(name, value, options = nil)
         @guard.synchronize do
           super
-          @data[name] = value
+          @data[name] = value.freeze
         end
       end
 
