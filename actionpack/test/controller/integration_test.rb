@@ -259,6 +259,10 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       end
     end
 
+    def get_with_params
+      render :text => "foo: #{params[:foo]}", :status => 200
+    end
+
     def post
       render :text => "Created", :status => 201
     end
@@ -359,6 +363,34 @@ class IntegrationProcessTest < ActionController::IntegrationTest
       assert_response :success
       assert_response :ok
       assert_equal "JS OK", response.body
+    end
+  end
+
+  def test_get_with_query_string
+    with_test_route_set do
+      get '/get_with_params?foo=bar'
+      assert_equal '/get_with_params?foo=bar', request.env["REQUEST_URI"]
+      assert_equal '/get_with_params?foo=bar', request.request_uri
+      assert_equal nil, request.env["QUERY_STRING"]
+      assert_equal 'foo=bar', request.query_string
+      assert_equal 'bar', request.parameters['foo']
+
+      assert_equal 200, status
+      assert_equal "foo: bar", response.body
+    end
+  end
+
+  def test_get_with_parameters
+    with_test_route_set do
+      get '/get_with_params', :foo => "bar"
+      assert_equal '/get_with_params', request.env["REQUEST_URI"]
+      assert_equal '/get_with_params', request.request_uri
+      assert_equal 'foo=bar', request.env["QUERY_STRING"]
+      assert_equal 'foo=bar', request.query_string
+      assert_equal 'bar', request.parameters['foo']
+
+      assert_equal 200, status
+      assert_equal "foo: bar", response.body
     end
   end
 
