@@ -25,7 +25,7 @@ module ActionController #:nodoc:
     end
 
     %w[ AUTH_TYPE GATEWAY_INTERFACE PATH_INFO
-        PATH_TRANSLATED QUERY_STRING REMOTE_HOST
+        PATH_TRANSLATED REMOTE_HOST
         REMOTE_IDENT REMOTE_USER SCRIPT_NAME
         SERVER_NAME SERVER_PROTOCOL
 
@@ -34,6 +34,15 @@ module ActionController #:nodoc:
         HTTP_NEGOTIATE HTTP_PRAGMA HTTP_REFERER HTTP_USER_AGENT ].each do |env|
       define_method(env.sub(/^HTTP_/n, '').downcase) do
         @env[env]
+      end
+    end
+
+    def query_string
+      qs = super
+      if !qs.blank?
+        qs
+      else
+        @env['QUERY_STRING']
       end
     end
 
