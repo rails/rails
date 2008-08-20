@@ -161,7 +161,7 @@ module ActionView
       end
 
       def render_partial_collection(partial_path, collection, partial_spacer_template = nil, local_assigns = {}, as = nil) #:nodoc:
-        return " " if collection.empty?
+        return nil if collection.blank?
 
         local_assigns = local_assigns ? local_assigns.clone : {}
         spacer = partial_spacer_template ? render(:partial => partial_spacer_template) : ''

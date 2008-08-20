@@ -263,7 +263,7 @@ module ActionView #:nodoc:
           end
         elsif options[:file]
           render_file(options[:file], nil, options[:locals])
-        elsif options[:partial] && options[:collection]
+        elsif options[:partial] && options.has_key?(:collection)
           render_partial_collection(options[:partial], options[:collection], options[:spacer_template], options[:locals], options[:as])
         elsif options[:partial]
           render_partial(options[:partial], options[:object], options[:locals])

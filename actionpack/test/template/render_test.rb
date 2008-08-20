@@ -87,6 +87,14 @@ class ViewRenderTest < Test::Unit::TestCase
       @view.render(:partial => "test/local_inspector", :collection => [ Customer.new("mary") ])
   end
 
+  def test_render_partial_with_empty_collection_should_return_nil
+    assert_nil @view.render(:partial => "test/customer", :collection => [])
+  end
+
+  def test_render_partial_with_nil_collection_should_return_nil
+    assert_nil @view.render(:partial => "test/customer", :collection => nil)
+  end
+
   # TODO: The reason for this test is unclear, improve documentation
   def test_render_partial_and_fallback_to_layout
     assert_equal "Before (Josh)\n\nAfter", @view.render(:partial => "test/layout_for_partial", :locals => { :name => "Josh" })
