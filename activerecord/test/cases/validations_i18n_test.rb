@@ -42,22 +42,74 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   
   # ActiveRecord::Errors
   uses_mocha 'ActiveRecord::Errors' do
-    def test_errors_generate_message_translates_custom_model_attribute_key
-      global_scope = [:activerecord, :errors, :messages]
-      custom_scope = global_scope + [:custom, 'topic', :title]
 
-      I18n.expects(:translate).with(:topic, {:count => 1, :default => ['Topic'], :scope => [:activerecord, :models]}).returns('Topic')
-      I18n.expects(:translate).with(:'topic.title', {:count => 1, :default => ['Title'], :scope => [:activerecord, :attributes]}).returns('Title')
-      I18n.expects(:translate).with(:"custom.topic.title.invalid", :value => nil, :scope => global_scope, :default => [:"custom.topic.invalid", 'default from class def error 1', :invalid], :attribute => "Title", :model => "Topic").returns('default from class def error 1')
+    def test_errors_generate_message_translates_custom_model_attribute_key
+
+      I18n.expects(:translate).with(
+        :topic, 
+        { :count => 1, 
+          :default => ['Topic'], 
+          :scope => [:activerecord, :models]
+        }
+      ).returns('Topic')
+
+      I18n.expects(:translate).with(
+        :"topic.title", 
+        { :count => 1, 
+          :default => ['Title'], 
+          :scope => [:activerecord, :attributes]
+        }
+      ).returns('Title')
+
+      I18n.expects(:translate).with(
+        :"models.topic.attributes.title.invalid", 
+        :value => nil, 
+        :scope => [:activerecord, :errors], 
+        :default => [
+          :"models.topic.invalid", 
+          'default from class def error 1', 
+          :"messages.invalid"], 
+        :attribute => "Title", 
+        :model => "Topic"
+      ).returns('default from class def error 1')
+
       @topic.errors.generate_message :title, :invalid, :default => 'default from class def error 1'
     end
 
     def test_errors_generate_message_translates_custom_model_attribute_keys_with_sti
-      custom_scope = [:activerecord, :errors, :custom, 'topic', :title]
-      I18n.expects(:translate).with(:reply, {:count => 1, :default => [:topic, 'Reply'], :scope => [:activerecord, :models]}).returns('Reply')
-      I18n.expects(:translate).with(:'reply.title', {:count => 1, :default => [:'topic.title', 'Title'], :scope => [:activerecord, :attributes]}).returns('Title')
-      I18n.expects(:translate).with(:"custom.reply.title.invalid", :value => nil, :scope => [:activerecord, :errors, :messages], :default => [:"custom.reply.invalid", :"custom.topic.title.invalid", :"custom.topic.invalid", 'default from class def', :invalid], :model => 'Reply', :attribute => 'Title').returns("default from class def")
+
+      I18n.expects(:translate).with(
+        :reply, 
+        { :count => 1, 
+          :default => [:topic, 'Reply'], 
+          :scope => [:activerecord, :models]
+        }
+      ).returns('Reply')
+
+      I18n.expects(:translate).with(
+        :"reply.title", 
+        { :count => 1, 
+          :default => [:'topic.title', 'Title'], 
+          :scope => [:activerecord, :attributes]
+        }
+      ).returns('Title')
+      
+      I18n.expects(:translate).with(
+        :"models.reply.attributes.title.invalid", 
+        :value => nil, 
+        :scope => [:activerecord, :errors], 
+        :default => [
+          :"models.reply.invalid", 
+          :"models.topic.attributes.title.invalid", 
+          :"models.topic.invalid", 
+          'default from class def', 
+          :"messages.invalid"], 
+        :model => 'Reply', 
+        :attribute => 'Title'
+      ).returns("default from class def")
+      
       Reply.new.errors.generate_message :title, :invalid, :default => 'default from class def'
+    
     end
 
     def test_errors_add_on_empty_generates_message
@@ -347,7 +399,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   # validates_confirmation_of w/o mocha
   
   def test_validates_confirmation_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom => {:topic => {:title => {:confirmation => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:confirmation => 'custom message'}}}}}}
     I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:confirmation => 'global message'}}}
   
     Topic.validates_confirmation_of :title
@@ -368,7 +420,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   # validates_acceptance_of w/o mocha
   
   def test_validates_acceptance_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom => {:topic => {:title => {:accepted => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:accepted => 'custom message'}}}}}}
     I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:accepted => 'global message'}}}
   
     Topic.validates_acceptance_of :title, :allow_nil => false
@@ -387,7 +439,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   # validates_presence_of w/o mocha
     
   def test_validates_presence_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom => {:topic => {:title => {:blank => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:blank => 'custom message'}}}}}}
     I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:blank => 'global message'}}}
   
     Topic.validates_presence_of :title
@@ -406,7 +458,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   # validates_length_of :within w/o mocha
   
   def test_validates_length_of_within_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom => {:topic => {:title => {:too_short => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:too_short => 'custom message'}}}}}}
     I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:too_short => 'global message'}}}
   
     Topic.validates_length_of :title, :within => 3..5
@@ -425,7 +477,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   # validates_length_of :is w/o mocha
   
   def test_validates_length_of_within_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom => {:topic => {:title => {:wrong_length => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:wrong_length => 'custom message'}}}}}}
     I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:wrong_length => 'global message'}}}
   
     Topic.validates_length_of :title, :is => 5
@@ -444,7 +496,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   # validates_uniqueness_of w/o mocha
   
   def test_validates_length_of_within_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom => {:topic => {:title => {:wrong_length => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:wrong_length => 'custom message'}}}}}}
     I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:wrong_length => 'global message'}}}
   
     Topic.validates_length_of :title, :is => 5
@@ -464,7 +516,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   # validates_format_of w/o mocha
   
   def test_validates_format_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom => {:topic => {:title => {:invalid => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:invalid => 'custom message'}}}}}}
     I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:invalid => 'global message'}}}
   
     Topic.validates_format_of :title, :with => /^[1-9][0-9]*$/
@@ -483,7 +535,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   # validates_inclusion_of w/o mocha
   
   def test_validates_inclusion_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom => {:topic => {:title => {:inclusion => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:inclusion => 'custom message'}}}}}}
     I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:inclusion => 'global message'}}}
   
     Topic.validates_inclusion_of :title, :in => %w(a b c)
@@ -502,7 +554,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   # validates_exclusion_of w/o mocha
   
   def test_validates_exclusion_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom => {:topic => {:title => {:exclusion => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:exclusion => 'custom message'}}}}}}
     I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:exclusion => 'global message'}}}
   
     Topic.validates_exclusion_of :title, :in => %w(a b c)
@@ -523,7 +575,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   # validates_numericality_of without :only_integer w/o mocha
   
   def test_validates_numericality_of_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom => {:topic => {:title => {:not_a_number => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:not_a_number => 'custom message'}}}}}}
     I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:not_a_number => 'global message'}}}
   
     Topic.validates_numericality_of :title
@@ -544,7 +596,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   # validates_numericality_of with :only_integer w/o mocha
   
   def test_validates_numericality_of_only_integer_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom => {:topic => {:title => {:not_a_number => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:not_a_number => 'custom message'}}}}}}
     I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:not_a_number => 'global message'}}}
   
     Topic.validates_numericality_of :title, :only_integer => true
@@ -565,7 +617,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   # validates_numericality_of :odd w/o mocha
   
   def test_validates_numericality_of_odd_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom => {:topic => {:title => {:odd => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:odd => 'custom message'}}}}}}
     I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:odd => 'global message'}}}
   
     Topic.validates_numericality_of :title, :only_integer => true, :odd => true
@@ -586,7 +638,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   # validates_numericality_of :less_than w/o mocha
   
   def test_validates_numericality_of_less_than_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom => {:topic => {:title => {:less_than => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:less_than => 'custom message'}}}}}}
     I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:less_than => 'global message'}}}
   
     Topic.validates_numericality_of :title, :only_integer => true, :less_than => 0
@@ -608,7 +660,7 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
   # validates_associated w/o mocha
   
   def test_validates_associated_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom => {:topic => {:replies => {:invalid => 'custom message'}}}}}}
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:replies => {:invalid => 'custom message'}}}}}}
     I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:invalid => 'global message'}}}
   
     Topic.validates_associated :replies

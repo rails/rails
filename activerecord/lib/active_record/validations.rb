@@ -68,42 +68,42 @@ module ActiveRecord
     end
     
     # Translates an error message in it's default scope (<tt>activerecord.errrors.messages</tt>).
-    # Error messages are first looked up in <tt>custom.MODEL.ATTRIBUTE.MESSAGE</tt>, if it's not there, it's looked up
-    # in <tt>custom.MODEL.ATTRIBUTE</tt> and if that is not there it returns the translation of the default message
-    # (e.g. <tt>activerecord.errors.messages.MESSAGE</tt>). Both the model name and the attribute name are available for
-    # interpolation.
+    # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>, if it's not there, 
+    # it's looked up in <tt>models.MODEL.MESSAGE</tt> and if that is not there it returns the translation of the 
+    # default message (e.g. <tt>activerecord.errors.messages.MESSAGE</tt>). The translated model name, 
+    # translated attribute name and the value are available for interpolation.
     #
     # When using inheritence in your models, it will check all the inherited models too, but only if the model itself
     # hasn't been found. Say you have <tt>class Admin < User; end</tt> and you wanted the translation for the <tt>:blank</tt>
     # error +message+ for the <tt>title</tt> +attribute+, it looks for these translations:
     # 
     # <ol>
-    # <li><tt>activerecord.errors.messages.custom.admin.title.blank</tt></li>
-    # <li><tt>activerecord.errors.messages.custom.admin.blank</tt></li>
-    # <li><tt>activerecord.errors.messages.custom.user.title.blank</tt></li>
-    # <li><tt>activerecord.errors.messages.custom.user.blank</tt></li>
+    # <li><tt>activerecord.errors.models.admin.attributes.title.blank</tt></li>
+    # <li><tt>activerecord.errors.models.admin.blank</tt></li>
+    # <li><tt>activerecord.errors.models.user.attributes.title.blank</tt></li>
+    # <li><tt>activerecord.errors.models.user.blank</tt></li>
     # <li><tt>activerecord.errors.messages.blank</tt></li>
-    # <li>any default you provided through the +options+ hash</li>
+    # <li>any default you provided through the +options+ hash (in the activerecord.errors scope)</li>
     # </ol>
     def generate_message(attribute, message = :invalid, options = {})
 
       defaults = @base.class.self_and_descendents_from_active_record.map do |klass| 
-        [ :"custom.#{klass.name.underscore}.#{attribute}.#{message}", 
-          :"custom.#{klass.name.underscore}.#{message}" ]
+        [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}", 
+          :"models.#{klass.name.underscore}.#{message}" ]
       end
       
       defaults << options.delete(:default)
-      defaults = defaults.compact.flatten << message
+      defaults = defaults.compact.flatten << :"messages.#{message}"
 
       model_name = @base.class.name
       key = defaults.shift
-      value = @base.send(attribute) if @base.respond_to?(attribute)
+      value = @base.respond_to?(attribute) ? @base.send(attribute) : nil
 
       options = { :default => defaults,
         :model => @base.class.human_name,
         :attribute => @base.class.human_attribute_name(attribute.to_s),
         :value => value,
-        :scope => [:activerecord, :errors, :messages]
+        :scope => [:activerecord, :errors]
       }.merge(options)
 
       I18n.translate(key, options)
