@@ -63,7 +63,7 @@ module I18n
     # files which are either named *.rb and contain plain Ruby Hashes or are
     # named *.yml and contain YAML data.)
     def load_translations(*args)
-      backend.load_translations *args
+      backend.load_translations(*args)
     end
     
     # Stores translations for the given locale in the backend. 
