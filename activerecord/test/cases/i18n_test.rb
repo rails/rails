@@ -39,8 +39,8 @@ class ActiveRecordI18nTests < Test::Unit::TestCase
   end
 
   private
-  def reset_translations
-    I18n.backend.send(:class_variable_set, :@@translations, {})
-  end
+    def reset_translations
+      I18n.backend = I18n::Backend::Simple.new
+    end
 end
 
