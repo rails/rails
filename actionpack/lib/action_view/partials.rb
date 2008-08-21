@@ -68,7 +68,7 @@ module ActionView
   #
   #   <%# app/views/users/_editor.html.erb &>
   #   <div id="editor">
-  #     Deadline: $<%= user.deadline %>
+  #     Deadline: <%= user.deadline %>
   #     <%= yield %>
   #   </div>
   #
@@ -82,7 +82,7 @@ module ActionView
   #
   #   Here's the editor:
   #   <div id="editor">
-  #     Deadline: $<%= user.deadline %>
+  #     Deadline: <%= user.deadline %>
   #     Name: <%= user.name %>
   #   </div>
   #
@@ -101,6 +101,40 @@ module ActionView
   #   </div>
   #
   # As you can see, the <tt>:locals</tt> hash is shared between both the partial and its layout.
+  #
+  # If you pass arguments to "yield" then this will be passed to the block. One way to use this is to pass
+  # an array to layout and treat it as an enumerable.
+  #
+  #   <%# app/views/users/_user.html.erb &>
+  #   <div class="user">
+  #     Budget: $<%= user.budget %>
+  #     <%= yield user %>
+  #   </div>
+  #
+  #   <%# app/views/users/index.html.erb &>
+  #   <% render :layout => @users do |user| %>
+  #     Title: <%= user.title %>
+  #   <% end %>
+  #
+  # This will render the layout for each user and yield to the block, passing the user, each time.
+  #
+  # You can also yield multiple times in one layout and use block arguments to differentiate the sections.
+  #
+  #   <%# app/views/users/_user.html.erb &>
+  #   <div class="user">
+  #     <%= yield user, :header %>
+  #     Budget: $<%= user.budget %>
+  #     <%= yield user, :footer %>
+  #   </div>
+  #
+  #   <%# app/views/users/index.html.erb &>
+  #   <% render :layout => @users do |user, section| %>
+  #     <%- case section when :header -%>
+  #       Title: <%= user.title %>
+  #     <%- when :footer -%>
+  #       Deadline: <%= user.deadline %>
+  #     <%- end -%>
+  #   <% end %>
   module Partials
     extend ActiveSupport::Memoizable
 
@@ -127,7 +161,7 @@ module ActionView
       end
 
       def render_partial_collection(partial_path, collection, partial_spacer_template = nil, local_assigns = {}, as = nil) #:nodoc:
-        return " " if collection.empty?
+        return nil if collection.blank?
 
         local_assigns = local_assigns ? local_assigns.clone : {}
         spacer = partial_spacer_template ? render(:partial => partial_spacer_template) : ''
@@ -146,7 +180,7 @@ module ActionView
 
       def find_partial_path(partial_path)
         if partial_path.include?('/')
-          "#{File.dirname(partial_path)}/_#{File.basename(partial_path)}"
+          File.join(File.dirname(partial_path), "_#{File.basename(partial_path)}")
         elsif respond_to?(:controller)
           "#{controller.class.controller_path}/_#{partial_path}"
         else

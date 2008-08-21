@@ -1679,19 +1679,19 @@ module ActiveRecord
               else            all << cond
             end
           end
-          conditions.join(' ').scan(/([\.\w]+).?\./).flatten
+          conditions.join(' ').scan(/([\.a-zA-Z_]+).?\./).flatten
         end
 
         def order_tables(options)
           order = [options[:order], scope(:find, :order) ].join(", ")
           return [] unless order && order.is_a?(String)
-          order.scan(/([\.\w]+).?\./).flatten
+          order.scan(/([\.a-zA-Z_]+).?\./).flatten
         end
 
         def selects_tables(options)
           select = options[:select]
           return [] unless select && select.is_a?(String)
-          select.scan(/"?([\.\w]+)"?.?\./).flatten
+          select.scan(/"?([\.a-zA-Z_]+)"?.?\./).flatten
         end
 
         # Checks if the conditions reference a table other than the current model table
@@ -2099,10 +2099,8 @@ module ActiveRecord
                 else
                   ""
               end || ''
-              join << %(AND %s.%s = %s ) % [
-                connection.quote_table_name(aliased_table_name),
-                connection.quote_column_name(klass.inheritance_column),
-                klass.quote_value(klass.sti_name)] unless klass.descends_from_active_record?
+              join << %(AND %s) % [
+                klass.send(:type_condition, aliased_table_name)] unless klass.descends_from_active_record?
 
               [through_reflection, reflection].each do |ref|
                 join << "AND #{interpolate_sql(sanitize_sql(ref.options[:conditions]))} " if ref && ref.options[:conditions]

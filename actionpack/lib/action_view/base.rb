@@ -169,6 +169,7 @@ module ActionView #:nodoc:
 
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
+      delegate :logger, :to => 'ActionController::Base'
     end
 
     def self.cache_template_loading=(*args)
@@ -246,17 +247,23 @@ module ActionView #:nodoc:
 
         if partial_layout = options.delete(:layout)
           if block_given?
-            wrap_content_for_layout capture(&block) do
+            begin
+              @_proc_for_layout = block
               concat(render(options.merge(:partial => partial_layout)))
+            ensure
+              @_proc_for_layout = nil
             end
           else
-            wrap_content_for_layout render(options) do
+            begin
+              original_content_for_layout, @content_for_layout = @content_for_layout, render(options)
               render(options.merge(:partial => partial_layout))
+            ensure
+              @content_for_layout = original_content_for_layout
             end
           end
         elsif options[:file]
           render_file(options[:file], nil, options[:locals])
-        elsif options[:partial] && options[:collection]
+        elsif options[:partial] && options.has_key?(:collection)
           render_partial_collection(options[:partial], options[:collection], options[:spacer_template], options[:locals], options[:as])
         elsif options[:partial]
           render_partial(options[:partial], options[:object], options[:locals])
@@ -322,7 +329,7 @@ module ActionView #:nodoc:
       else
         template = Template.new(template_path, view_paths)
 
-        if self.class.warn_cache_misses && logger = ActionController::Base.logger
+        if self.class.warn_cache_misses && logger
           logger.debug "[PERFORMANCE] Rendering a template that was " +
             "not found in view path. Templates outside the view path are " +
             "not cached and result in expensive disk operations. Move this " +
@@ -367,13 +374,6 @@ module ActionView #:nodoc:
         InlineTemplate.new(text, type).render(self, local_assigns)
       end
 
-      def wrap_content_for_layout(content)
-        original_content_for_layout, @content_for_layout = @content_for_layout, content
-        yield
-      ensure
-        @content_for_layout = original_content_for_layout
-      end
-
       # Evaluate the local assigns and pushes them to the view.
       def evaluate_assigns
         unless @assigns_added
@@ -390,12 +390,6 @@ module ActionView #:nodoc:
       def set_controller_content_type(content_type)
         if controller.respond_to?(:response)
           controller.response.content_type ||= content_type
-        end
-      end
-
-      def execute(method, local_assigns = {})
-        send(method, local_assigns) do |*names|
-          instance_variable_get "@content_for_#{names.first || 'layout'}"
         end
       end
   end

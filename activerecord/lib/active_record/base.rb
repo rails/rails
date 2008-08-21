@@ -612,7 +612,7 @@ module ActiveRecord #:nodoc:
       #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
       #   > [#<Post:0x36bff9c @attributes={"first_name"=>"The Cheap Man Buys Twice"}>, ...]
       def find_by_sql(sql)
-        connection.select_all(sanitize_sql(sql), "#{name} Load").collect! { |record| instantiate(record) }
+        connection.select_all(sanitize_sql(sql), "#{name} Load").map { |record| instantiate(record) }
       end
 
       # Checks whether a record exists in the database that matches conditions given.  These conditions
@@ -1644,10 +1644,11 @@ module ActiveRecord #:nodoc:
           sql << "WHERE #{merged_conditions} " unless merged_conditions.blank?
         end
 
-        def type_condition
+        def type_condition(table_alias=nil)
+          quoted_table_alias = self.connection.quote_table_name(table_alias || table_name)
           quoted_inheritance_column = connection.quote_column_name(inheritance_column)
-          type_condition = subclasses.inject("#{quoted_table_name}.#{quoted_inheritance_column} = '#{sti_name}' ") do |condition, subclass|
-            condition << "OR #{quoted_table_name}.#{quoted_inheritance_column} = '#{subclass.sti_name}' "
+          type_condition = subclasses.inject("#{quoted_table_alias}.#{quoted_inheritance_column} = '#{sti_name}' ") do |condition, subclass|
+            condition << "OR #{quoted_table_alias}.#{quoted_inheritance_column} = '#{subclass.sti_name}' "
           end
 
           " (#{type_condition}) "
@@ -1784,7 +1785,7 @@ module ActiveRecord #:nodoc:
         def attribute_condition(argument)
           case argument
             when nil   then "IS ?"
-            when Array, ActiveRecord::Associations::AssociationCollection then "IN (?)"
+            when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope then "IN (?)"
             when Range then "BETWEEN ? AND ?"
             else            "= ?"
           end
@@ -2629,7 +2630,7 @@ module ActiveRecord #:nodoc:
         removed_attributes = attributes.keys - safe_attributes.keys
 
         if removed_attributes.any?
-          logger.debug "WARNING: Can't mass-assign these protected attributes: #{removed_attributes.join(', ')}"
+          log_protected_attribute_removal(removed_attributes)
         end
 
         safe_attributes
@@ -2642,6 +2643,10 @@ module ActiveRecord #:nodoc:
         else
           attributes
         end
+      end
+
+      def log_protected_attribute_removal(*attributes)
+        logger.debug "WARNING: Can't mass-assign these protected attributes: #{attributes.join(', ')}"
       end
 
       # The primary key and inheritance column can never be set by mass-assignment for security reasons.
@@ -2657,8 +2662,15 @@ module ActiveRecord #:nodoc:
         quoted = {}
         connection = self.class.connection
         attribute_names.each do |name|
-          if column = column_for_attribute(name)
-            quoted[name] = connection.quote(read_attribute(name), column) unless !include_primary_key && column.primary
+          if (column = column_for_attribute(name)) && (include_primary_key || !column.primary)
+            value = read_attribute(name)
+
+            # We need explicit to_yaml because quote() does not properly convert Time/Date fields to YAML.
+            if value && self.class.serialized_attributes.has_key?(name) && (value.acts_like?(:date) || value.acts_like?(:time))
+              value = value.to_yaml
+            end
+
+            quoted[name] = connection.quote(value, column)
           end
         end
         include_readonly_attributes ? quoted : remove_readonly_attributes(quoted)

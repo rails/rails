@@ -1,31 +1,33 @@
+require 'active_support/memoizable'
+
 module ActionController
   module Http
     class Headers < ::Hash
-      
-      def initialize(constructor = {})
-         if constructor.is_a?(Hash)
+      extend ActiveSupport::Memoizable
+
+      def initialize(*args)
+         if args.size == 1 && args[0].is_a?(Hash)
            super()
-           update(constructor)
+           update(args[0])
          else
-           super(constructor)
+           super
          end
        end
-      
+
       def [](header_name)
         if include?(header_name)
-          super 
+          super
         else
-          super(normalize_header(header_name))
+          super(env_name(header_name))
         end
       end
-      
-      
+
       private
-        # Takes an HTTP header name and returns it in the 
-        # format 
-        def normalize_header(header_name)
+        # Converts a HTTP header name to an environment variable name.
+        def env_name(header_name)
           "HTTP_#{header_name.upcase.gsub(/-/, '_')}"
         end
+        memoize :env_name
     end
   end
 end

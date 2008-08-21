@@ -23,7 +23,7 @@ module ActionController #:nodoc:
 
   class TestRequest < AbstractRequest #:nodoc:
     attr_accessor :cookies, :session_options
-    attr_accessor :query_parameters, :request_parameters, :path, :session, :env
+    attr_accessor :query_parameters, :request_parameters, :path, :session
     attr_accessor :host, :user_agent
 
     def initialize(query_parameters = nil, request_parameters = nil, session = nil)
@@ -42,7 +42,7 @@ module ActionController #:nodoc:
     end
 
     # Wraps raw_post in a StringIO.
-    def body
+    def body_stream #:nodoc:
       StringIO.new(raw_post)
     end
 
@@ -54,7 +54,7 @@ module ActionController #:nodoc:
 
     def port=(number)
       @env["SERVER_PORT"] = number.to_i
-      @port_as_int = nil
+      port(true)
     end
 
     def action=(action_name)
@@ -68,6 +68,8 @@ module ActionController #:nodoc:
       @env["REQUEST_URI"] = value
       @request_uri = nil
       @path = nil
+      request_uri(true)
+      path(true)
     end
 
     def request_uri=(uri)
@@ -77,21 +79,26 @@ module ActionController #:nodoc:
 
     def accept=(mime_types)
       @env["HTTP_ACCEPT"] = Array(mime_types).collect { |mime_types| mime_types.to_s }.join(",")
+      accepts(true)
+    end
+
+    def if_modified_since=(last_modified)
+      @env["HTTP_IF_MODIFIED_SINCE"] = last_modified
+    end
+
+    def if_none_match=(etag)
+      @env["HTTP_IF_NONE_MATCH"] = etag
     end
 
     def remote_addr=(addr)
       @env['REMOTE_ADDR'] = addr
     end
 
-    def remote_addr
-      @env['REMOTE_ADDR']
-    end
-
-    def request_uri
+    def request_uri(*args)
       @request_uri || super
     end
 
-    def path
+    def path(*args)
       @path || super
     end
 
@@ -113,17 +120,13 @@ module ActionController #:nodoc:
         end
       end
       @parameters = nil # reset TestRequest#parameters to use the new path_parameters
-    end                        
-    
+    end
+
     def recycle!
       self.request_parameters = {}
       self.query_parameters   = {}
       self.path_parameters    = {}
-      @request_method, @accepts, @content_type = nil, nil, nil
-    end    
-
-    def referer
-      @env["HTTP_REFERER"]
+      unmemoize_all
     end
 
     private
@@ -135,7 +138,7 @@ module ActionController #:nodoc:
         @host                    = "test.host"
         @request_uri             = "/"
         @user_agent              = "Rails Testing"
-        self.remote_addr         = "0.0.0.0"        
+        self.remote_addr         = "0.0.0.0"
         @env["SERVER_PORT"]      = 80
         @env['REQUEST_METHOD']   = "GET"
       end
@@ -157,16 +160,16 @@ module ActionController #:nodoc:
   module TestResponseBehavior #:nodoc:
     # The response code of the request
     def response_code
-      headers['Status'][0,3].to_i rescue 0
+      status[0,3].to_i rescue 0
     end
-    
+
     # Returns a String to ensure compatibility with Net::HTTPResponse
     def code
-      headers['Status'].to_s.split(' ')[0]
+      status.to_s.split(' ')[0]
     end
 
     def message
-      headers['Status'].to_s.split(' ',2)[1]
+      status.to_s.split(' ',2)[1]
     end
 
     # Was the response successful?
@@ -243,11 +246,11 @@ module ActionController #:nodoc:
 
     # Does the specified template object exist?
     def has_template_object?(name=nil)
-      !template_objects[name].nil?      
+      !template_objects[name].nil?
     end
 
     # Returns the response cookies, converted to a Hash of (name => CGI::Cookie) pairs
-    # 
+    #
     #   assert_equal ['AuthorOfNewPage'], r.cookies['author'].value
     def cookies
       headers['cookie'].inject({}) { |hash, cookie| hash[cookie.name] = cookie; hash }
@@ -319,7 +322,7 @@ module ActionController #:nodoc:
   #
   # Usage example, within a functional test:
   #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + '/files/spongebob.png', 'image/png')
-  # 
+  #
   # Pass a true third parameter to ensure the uploaded file is opened in binary mode (only required for Windows):
   #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + '/files/spongebob.png', 'image/png', :binary)
   require 'tempfile'
@@ -400,13 +403,13 @@ module ActionController #:nodoc:
     end
     alias xhr :xml_http_request
 
-    def assigns(key = nil) 
-      if key.nil? 
-        @response.template.assigns 
-      else 
-        @response.template.assigns[key.to_s] 
-      end 
-    end 
+    def assigns(key = nil)
+      if key.nil?
+        @response.template.assigns
+      else
+        @response.template.assigns[key.to_s]
+      end
+    end
 
     def session
       @response.session
@@ -448,10 +451,13 @@ module ActionController #:nodoc:
     end
 
     def method_missing(selector, *args)
-      return @controller.send!(selector, *args) if ActionController::Routing::Routes.named_routes.helpers.include?(selector)
-      return super
+      if ActionController::Routing::Routes.named_routes.helpers.include?(selector)
+        @controller.send(selector, *args)
+      else
+        super
+      end
     end
-    
+
     # Shortcut for <tt>ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + path, type)</tt>:
     #
     #   post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png')
@@ -462,7 +468,7 @@ module ActionController #:nodoc:
     #   post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png', :binary)
     def fixture_file_upload(path, mime_type = nil, binary = false)
       ActionController::TestUploadedFile.new(
-        Test::Unit::TestCase.respond_to?(:fixture_path) ? Test::Unit::TestCase.fixture_path + path : path, 
+        Test::Unit::TestCase.respond_to?(:fixture_path) ? Test::Unit::TestCase.fixture_path + path : path,
         mime_type,
         binary
       )
@@ -470,7 +476,7 @@ module ActionController #:nodoc:
 
     # A helper to make it easier to test different route configurations.
     # This method temporarily replaces ActionController::Routing::Routes
-    # with a new RouteSet instance. 
+    # with a new RouteSet instance.
     #
     # The new instance is yielded to the passed block. Typically the block
     # will create some routes using <tt>map.draw { map.connect ... }</tt>:

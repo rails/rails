@@ -612,12 +612,21 @@ module ActionView
         end
 
         def join_asset_file_contents(paths)
-          paths.collect { |path| File.read(File.join(ASSETS_DIR, path.split("?").first)) }.join("\n\n")
+          paths.collect { |path| File.read(asset_file_path(path)) }.join("\n\n")
         end
 
         def write_asset_file_contents(joined_asset_path, asset_paths)
           FileUtils.mkdir_p(File.dirname(joined_asset_path))
           File.open(joined_asset_path, "w+") { |cache| cache.write(join_asset_file_contents(asset_paths)) }
+
+          # Set mtime to the latest of the combined files to allow for
+          # consistent ETag without a shared filesystem.
+          mt = asset_paths.map { |p| File.mtime(asset_file_path(p)) }.max
+          File.utime(mt, mt, joined_asset_path)
+        end
+
+        def asset_file_path(path)
+          File.join(ASSETS_DIR, path.split('?').first)
         end
 
         def collect_asset_files(*path)

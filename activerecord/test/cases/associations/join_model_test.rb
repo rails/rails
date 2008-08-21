@@ -694,6 +694,13 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert ! david.categories.include?(category)
   end
 
+  def test_has_many_through_goes_through_all_sti_classes
+    sub_sti_post = SubStiPost.create!(:title => 'test', :body => 'test', :author_id => 1)
+    new_comment = sub_sti_post.comments.create(:body => 'test')
+
+    assert_equal [9, 10, new_comment.id], authors(:david).sti_post_comments.map(&:id).sort
+  end
+
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)

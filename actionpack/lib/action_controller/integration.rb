@@ -228,21 +228,6 @@ module ActionController
       end
 
       private
-        class StubCGI < CGI #:nodoc:
-          attr_accessor :stdinput, :stdoutput, :env_table
-
-          def initialize(env, stdinput = nil)
-            self.env_table = env
-            self.stdoutput = StringIO.new
-
-            super
-
-            stdinput.set_encoding(Encoding::BINARY) if stdinput.respond_to?(:set_encoding)
-            stdinput.force_encoding(Encoding::BINARY) if stdinput.respond_to?(:force_encoding)
-            @stdinput = stdinput.is_a?(IO) ? stdinput : StringIO.new(stdinput || '')
-          end
-        end
-
         # Tailors the session based on the given URI, setting the HTTPS value
         # and the hostname.
         def interpret_uri(path)
@@ -290,9 +275,8 @@ module ActionController
 
           ActionController::Base.clear_last_instantiation!
 
-          cgi = StubCGI.new(env, data)
-          ActionController::Dispatcher.dispatch(cgi, ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, cgi.stdoutput)
-          @result = cgi.stdoutput.string
+          env['rack.input'] = data.is_a?(IO) ? data : StringIO.new(data || '')
+          @status, @headers, result_body = ActionController::Dispatcher.new.call(env)
           @request_count += 1
 
           @controller = ActionController::Base.last_instantiation
@@ -306,32 +290,34 @@ module ActionController
 
           @html_document = nil
 
-          parse_result
+          # Inject status back in for backwords compatibility with CGI
+          @headers['Status'] = @status
+
+          @status, @status_message = @status.split(/ /)
+          @status = @status.to_i
+
+          cgi_headers = Hash.new { |h,k| h[k] = [] }
+          @headers.each do |key, value|
+            cgi_headers[key.downcase] << value
+          end
+          cgi_headers['set-cookie'] = cgi_headers['set-cookie'].first
+          @headers = cgi_headers
+
+          @response.headers['cookie'] ||= []
+          (@headers['set-cookie'] || []).each do |cookie|
+            name, value = cookie.match(/^([^=]*)=([^;]*);/)[1,2]
+            @cookies[name] = value
+
+            # Fake CGI cookie header
+            # DEPRECATE: Use response.headers["Set-Cookie"] instead
+            @response.headers['cookie'] << CGI::Cookie::new("name" => name, "value" => value)
+          end
+
           return status
         rescue MultiPartNeededException
           boundary = "----------XnJLe9ZIbbGUYtzPQJ16u1"
           status = process(method, path, multipart_body(parameters, boundary), (headers || {}).merge({"CONTENT_TYPE" => "multipart/form-data; boundary=#{boundary}"}))
           return status
-        end
-
-        # Parses the result of the response and extracts the various values,
-        # like cookies, status, headers, etc.
-        def parse_result
-          response_headers, result_body = @result.split(/\r\n\r\n/, 2)
-
-          @headers = Hash.new { |h,k| h[k] = [] }
-          response_headers.to_s.each_line do |line|
-            key, value = line.strip.split(/:\s*/, 2)
-            @headers[key.downcase] << value
-          end
-
-          (@headers['set-cookie'] || [] ).each do |string|
-            name, value = string.match(/^([^=]*)=([^;]*);/)[1,2]
-            @cookies[name] = value
-          end
-
-          @status, @status_message = @headers["status"].first.to_s.split(/ /)
-          @status = @status.to_i
         end
 
         # Encode the cookies hash in a format suitable for passing to a
@@ -344,13 +330,15 @@ module ActionController
 
         # Get a temporary URL writer object
         def generic_url_rewriter
-          cgi = StubCGI.new('REQUEST_METHOD' => "GET",
-                            'QUERY_STRING'   => "",
-                            "REQUEST_URI"    => "/",
-                            "HTTP_HOST"      => host,
-                            "SERVER_PORT"    => https? ? "443" : "80",
-                            "HTTPS"          => https? ? "on" : "off")
-          ActionController::UrlRewriter.new(ActionController::CgiRequest.new(cgi), {})
+          env = {
+            'REQUEST_METHOD' => "GET",
+            'QUERY_STRING'   => "",
+            "REQUEST_URI"    => "/",
+            "HTTP_HOST"      => host,
+            "SERVER_PORT"    => https? ? "443" : "80",
+            "HTTPS"          => https? ? "on" : "off"
+          }
+          ActionController::UrlRewriter.new(ActionController::RackRequest.new(env), {})
         end
 
         def name_with_prefix(prefix, name)
@@ -451,7 +439,7 @@ EOF
       end
 
       %w(get post put head delete cookies assigns
-         xml_http_request get_via_redirect post_via_redirect).each do |method|
+         xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
           reset! unless @integration_session
           # reset the html_document variable, but only for new get/post calls

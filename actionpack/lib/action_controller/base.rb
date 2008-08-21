@@ -939,8 +939,7 @@ module ActionController #:nodoc:
             render_for_text(generator.to_s, options[:status])
 
           elsif options[:nothing]
-            # Safari doesn't pass the headers of the return if the response is zero length
-            render_for_text(" ", options[:status])
+            render_for_text(nil, options[:status])
 
           else
             render_for_file(default_template_name, options[:status], true)
@@ -1154,7 +1153,11 @@ module ActionController #:nodoc:
           response.body ||= ''
           response.body << text.to_s
         else
-          response.body = text.is_a?(Proc) ? text : text.to_s
+          response.body = case text
+            when Proc then text
+            when nil  then " " # Safari doesn't pass the headers of the return if the response is zero length
+            else           text.to_s
+          end
         end
       end
 
