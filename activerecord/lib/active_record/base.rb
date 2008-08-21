@@ -1750,7 +1750,7 @@ module ActiveRecord #:nodoc:
         def attribute_condition(argument)
           case argument
             when nil   then "IS ?"
-            when Array, ActiveRecord::Associations::AssociationCollection then "IN (?)"
+            when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope then "IN (?)"
             when Range then "BETWEEN ? AND ?"
             else            "= ?"
           end
