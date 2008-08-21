@@ -52,6 +52,11 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert Topic.approved.respond_to?(:length)
   end
 
+  def test_respond_to_respects_include_private_parameter
+    assert !Topic.approved.respond_to?(:load_found)
+    assert Topic.approved.respond_to?(:load_found, true)
+  end
+
   def test_subclasses_inherit_scopes
     assert Topic.scopes.include?(:base)
 

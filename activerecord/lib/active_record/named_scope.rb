@@ -140,8 +140,8 @@ module ActiveRecord
         @found ? @found.empty? : count.zero?
       end
 
-      def respond_to?(method)
-        super || @proxy_scope.respond_to?(method)
+      def respond_to?(method, include_private = false)
+        super || @proxy_scope.respond_to?(method, include_private)
       end
 
       def any?
