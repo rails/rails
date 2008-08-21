@@ -2,6 +2,19 @@ require 'set'
 
 module ActiveRecord
   module Associations
+    # AssociationCollection is an abstract class that provides common stuff to
+    # ease the implementation of association proxies that represent
+    # collections. See the class hierarchy in AssociationProxy.
+    #
+    # You need to be careful with assumptions regarding the target: The proxy
+    # does not fetch records from the database until it needs them, but new
+    # ones created with +build+ are added to the target. So, the target may be
+    # non-empty and still lack children waiting to be read from the database.
+    # If you look directly to the database you cannot assume that's the entire
+    # collection because new records may have beed added to the target, etc.
+    #
+    # If you need to work on all current children, new and existing records,
+    # +load_target+ and the +loaded+ flag are your friends.
     class AssociationCollection < AssociationProxy #:nodoc:
       def initialize(owner, reflection)
         super
@@ -185,9 +198,16 @@ module ActiveRecord
         end
       end
 
-      # Returns the size of the collection by executing a SELECT COUNT(*) query if the collection hasn't been loaded and
-      # calling collection.size if it has. If it's more likely than not that the collection does have a size larger than zero
-      # and you need to fetch that collection afterwards, it'll take one less SELECT query if you use length.
+      # Returns the size of the collection by executing a SELECT COUNT(*)
+      # query if the collection hasn't been loaded, and calling
+      # <tt>collection.size</tt> if it has.
+      #
+      # If the collection has been already loaded +size+ and +length+ are
+      # equivalent. If not and you are going to need the records anyway
+      # +length+ will take one less query. Otherwise +size+ is more efficient.
+      #
+      # This method is abstract in the sense that it relies on
+      # +count_records+, which is a method descendants have to provide.
       def size
         if @owner.new_record? || (loaded? && !@reflection.options[:uniq])
           @target.size
@@ -199,12 +219,18 @@ module ActiveRecord
         end
       end
 
-      # Returns the size of the collection by loading it and calling size on the array. If you want to use this method to check
-      # whether the collection is empty, use collection.length.zero? instead of collection.empty?
+      # Returns the size of the collection calling +size+ on the target.
+      #
+      # If the collection has been already loaded +length+ and +size+ are
+      # equivalent. If not and you are going to need the records anyway this
+      # method will take one less query. Otherwise +size+ is more efficient.
       def length
         load_target.size
       end
 
+      # Equivalent to <tt>collection.size.zero?</tt>. If the collection has
+      # not been already loaded and you are going to fetch the records anyway
+      # it is better to check <tt>collection.length.zero?</tt>.
       def empty?
         size.zero?
       end
