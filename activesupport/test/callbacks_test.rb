@@ -134,10 +134,10 @@ class CallbackChainTest < Test::Unit::TestCase
     assert_equal :bacon, @chain.find(:bacon).method
   end
 
-  def test_union
-    assert_equal [:bacon, :lettuce, :tomato], (@chain | Callback.new(:make, :bacon)).map(&:method)
-    assert_equal [:bacon, :lettuce, :tomato, :turkey], (@chain | CallbackChain.build(:make, :bacon, :lettuce, :tomato, :turkey)).map(&:method)
-    assert_equal [:bacon, :lettuce, :tomato, :turkey, :mayo], (@chain | Callback.new(:make, :mayo)).map(&:method)
+  def test_replace_or_append
+    assert_equal [:bacon, :lettuce, :tomato], (@chain.replace_or_append!(Callback.new(:make, :bacon))).map(&:method)
+    assert_equal [:bacon, :lettuce, :tomato, :turkey], (@chain.replace_or_append!(Callback.new(:make, :turkey))).map(&:method)
+    assert_equal [:bacon, :lettuce, :tomato, :turkey, :mayo], (@chain.replace_or_append!(Callback.new(:make, :mayo))).map(&:method)
   end
 
   def test_delete
