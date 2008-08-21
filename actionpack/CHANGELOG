@@ -1,5 +1,7 @@
 *Edge*
 
+* Allow polymorphic_url helper to take url options. #880 [Tarmo Tänav]
+
 * Switched integration test runner to use Rack processor instead of CGI [Josh Peek]
 
 * Made AbstractRequest.if_modified_sense return nil if the header could not be parsed [Jamis Buck]
