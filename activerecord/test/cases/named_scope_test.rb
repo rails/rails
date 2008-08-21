@@ -238,4 +238,8 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert topic.approved
     assert_equal 'lifo', topic.author_name
   end
+
+  def test_find_all_should_behave_like_select
+    assert_equal Topic.base.select(&:approved), Topic.base.find_all(&:approved)
+  end
 end
