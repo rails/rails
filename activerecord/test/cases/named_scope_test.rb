@@ -185,4 +185,8 @@ class NamedScopeTest < ActiveRecord::TestCase
       topics.empty?  # use loaded (no query)
     end
   end
+
+  def test_find_all_should_behave_like_select
+    assert_equal Topic.base.select(&:approved), Topic.base.find_all(&:approved)
+  end
 end
