@@ -36,12 +36,10 @@ module ActiveRecord
       # * +wait_timeout+ (optional): number of seconds to block and wait
       #   for a connection before giving up and raising a timeout error.
       def self.create(spec)
-        if spec.config[:pool] && spec.config[:pool].to_i > 0
-          FixedSizeConnectionPool.new(spec)
-        elsif spec.config[:jndi] # JRuby appserver datasource pool; passthrough
+        if spec.config[:jndi] # JRuby appserver datasource pool; passthrough
           NewConnectionEveryTime.new(spec)
         else
-          CachedConnectionPerThread.new(spec)
+          FixedSizeConnectionPool.new(spec)
         end
       end
 
@@ -204,18 +202,6 @@ module ActiveRecord
       end
     end
 
-    # CachedConnectionPerThread is a compatible pseudo-connection pool that
-    # caches connections per-thread. In order to hold onto threads in the same
-    # manner as ActiveRecord 2.1 and earlier, it only disconnects the
-    # connection when the connection is checked in, or when calling
-    # ActiveRecord::Base.clear_all_connections!, and not during
-    # #release_connection.
-    class CachedConnectionPerThread < NewConnectionEveryTime
-      def release_connection
-        # no-op; keep the connection
-      end
-    end
-
     # FixedSizeConnectionPool provides a full, fixed-size connection pool with
     # timed waits when the pool is exhausted.
     class FixedSizeConnectionPool < ConnectionPool
@@ -223,7 +209,8 @@ module ActiveRecord
         super
         # default 5 second timeout
         @timeout = spec.config[:wait_timeout] || 5
-        @size = spec.config[:pool].to_i
+        # default max pool size to 5
+        @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
         @queue = @connection_mutex.new_cond
         @connections = []
         @checked_out = []

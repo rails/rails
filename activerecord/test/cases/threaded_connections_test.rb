@@ -16,12 +16,14 @@ unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
 
   class PooledConnectionsTest < ActiveRecord::TestCase
     def setup
+      super
       @connection = ActiveRecord::Base.remove_connection
     end
 
     def teardown
       ActiveRecord::Base.clear_all_connections!
       ActiveRecord::Base.establish_connection(@connection)
+      super
     end
 
     def checkout_connections

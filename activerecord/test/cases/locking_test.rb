@@ -280,6 +280,7 @@ unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :OpenBaseAdapter)
               sleep zzz       # block thread 2 for zzz seconds
             end
             t1 = Time.now
+            Person.clear_active_connections!
           end
 
           b = Thread.new do
@@ -287,6 +288,7 @@ unless current_adapter?(:SQLServerAdapter, :SybaseAdapter, :OpenBaseAdapter)
             t2 = Time.now
             Person.transaction { yield }
             t3 = Time.now
+            Person.clear_active_connections!
           end
 
           a.join
