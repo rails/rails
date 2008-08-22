@@ -1189,7 +1189,7 @@ module ActionController #:nodoc:
         elsif respond_to? :method_missing
           method_missing action_name
           default_render unless performed?
-        elsif template_exists? && template_public?
+        elsif template_exists?
           default_render
         else
           raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.sort.to_sentence}", caller
@@ -1262,10 +1262,6 @@ module ActionController #:nodoc:
 
       def template_exists?(template_name = default_template_name)
         @template.file_exists?(template_name)
-      end
-
-      def template_public?(template_name = default_template_name)
-        @template.file_public?(template_name)
       end
 
       def template_exempt_from_layout?(template_name = default_template_name)

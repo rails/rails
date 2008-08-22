@@ -275,11 +275,6 @@ module ActionView #:nodoc:
       end
     end
 
-    # Returns true is the file may be rendered implicitly.
-    def file_public?(template_path)#:nodoc:
-      template_path.split('/').last[0,1] != '_'
-    end
-
     # The format to be used when choosing between multiple templates with
     # the same name but differing formats.  See +Request#template_format+
     # for more details.
