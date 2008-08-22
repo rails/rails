@@ -395,6 +395,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, company.clients_of_firm.size
   end
 
+  def test_collection_size_twice_for_regressions
+    post = posts(:thinking)
+    assert_equal 0, post.readers.size
+    # This test needs a post that has no readers, we assert it to ensure it holds,
+    # but need to reload the post because the very call to #size hides the bug.
+    post.reload
+    post.readers.build
+    size1 = post.readers.size
+    size2 = post.readers.size
+    assert_equal size1, size2
+  end
+
   def test_build_many
     company = companies(:first_firm)
     new_clients = assert_no_queries { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }

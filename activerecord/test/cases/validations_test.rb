@@ -1420,8 +1420,8 @@ class ValidatesNumericalityTest < ActiveRecord::TestCase
   def test_validates_numericality_of_with_nil_allowed
     Topic.validates_numericality_of :approved, :allow_nil => true
 
-    invalid!(BLANK + JUNK)
-    valid!(NIL + FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
+    invalid!(JUNK)
+    valid!(NIL + BLANK + FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
   end
 
   def test_validates_numericality_of_with_integer_only
@@ -1434,8 +1434,8 @@ class ValidatesNumericalityTest < ActiveRecord::TestCase
   def test_validates_numericality_of_with_integer_only_and_nil_allowed
     Topic.validates_numericality_of :approved, :only_integer => true, :allow_nil => true
 
-    invalid!(BLANK + JUNK + FLOATS + BIGDECIMAL + INFINITY)
-    valid!(NIL + INTEGERS)
+    invalid!(JUNK + FLOATS + BIGDECIMAL + INFINITY)
+    valid!(NIL + BLANK + INTEGERS)
   end
 
   def test_validates_numericality_with_greater_than

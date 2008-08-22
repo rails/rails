@@ -44,7 +44,7 @@ module ActionController
       def to_prepare(identifier = nil, &block)
         @prepare_dispatch_callbacks ||= ActiveSupport::Callbacks::CallbackChain.new
         callback = ActiveSupport::Callbacks::Callback.new(:prepare_dispatch, block, :identifier => identifier)
-        @prepare_dispatch_callbacks | callback
+        @prepare_dispatch_callbacks.replace_or_append!(callback)
       end
 
       # If the block raises, send status code as a last-ditch response.

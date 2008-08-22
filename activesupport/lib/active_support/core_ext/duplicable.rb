@@ -35,3 +35,9 @@ class Numeric #:nodoc:
     false
   end
 end
+
+class Class #:nodoc:
+  def duplicable?
+    false
+  end
+end

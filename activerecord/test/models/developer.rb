@@ -43,6 +43,8 @@ class Developer < ActiveRecord::Base
 
   has_many :audit_logs
 
+  named_scope :jamises, :conditions => {:name => 'Jamis'}
+
   validates_inclusion_of :salary, :in => 50000..200000
   validates_length_of    :name, :within => 3..20
 

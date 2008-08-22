@@ -1750,7 +1750,7 @@ module ActiveRecord #:nodoc:
         def attribute_condition(argument)
           case argument
             when nil   then "IS ?"
-            when Array, ActiveRecord::Associations::AssociationCollection then "IN (?)"
+            when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope then "IN (?)"
             when Range then "BETWEEN ? AND ?"
             else            "= ?"
           end
@@ -2572,11 +2572,14 @@ module ActiveRecord #:nodoc:
       end
 
       def convert_number_column_value(value)
-        case value
-          when FalseClass; 0
-          when TrueClass;  1
-          when '';         nil
-          else value
+        if value == false
+          0
+        elsif value == true
+          1
+        elsif value.is_a?(String) && value.blank?
+          nil
+        else
+          value
         end
       end
 

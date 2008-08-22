@@ -1,5 +1,5 @@
 module ActionView #:nodoc:
-  class PathSet < ActiveSupport::TypedArray #:nodoc:
+  class PathSet < Array #:nodoc:
     def self.type_cast(obj)
       if obj.is_a?(String)
         if Base.warn_cache_misses && defined?(Rails) && Rails.initialized?
@@ -13,6 +13,30 @@ module ActionView #:nodoc:
       else
         obj
       end
+    end
+
+    def initialize(*args)
+      super(*args).map! { |obj| self.class.type_cast(obj) }
+    end
+
+    def <<(obj)
+      super(self.class.type_cast(obj))
+    end
+
+    def concat(array)
+      super(array.map! { |obj| self.class.type_cast(obj) })
+    end
+
+    def insert(index, obj)
+      super(index, self.class.type_cast(obj))
+    end
+
+    def push(*objs)
+      super(*objs.map { |obj| self.class.type_cast(obj) })
+    end
+
+    def unshift(*objs)
+      super(*objs.map { |obj| self.class.type_cast(obj) })
     end
 
     class Path #:nodoc:
