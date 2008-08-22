@@ -149,21 +149,14 @@ module ActionView
           if options.has_key?(:collection)
             render_partial_collection(options)
           else
-            pick_template(find_partial_path(partial_path)).render_partial(self, options[:object], local_assigns)
+            _pick_partial_template(partial_path).render_partial(self, options[:object], local_assigns)
           end
         when ActionView::Helpers::FormBuilder
           builder_partial_path = partial_path.class.to_s.demodulize.underscore.sub(/_builder$/, '')
-          render_partial(
-            :partial => builder_partial_path,
-            :object => options[:object],
-            :locals => local_assigns.merge(builder_partial_path.to_sym => partial_path)
-          )
+          local_assigns.merge!(builder_partial_path.to_sym => partial_path)
+          render_partial(:partial => builder_partial_path, :object => options[:object], :locals => local_assigns)
         when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope
-          if partial_path.any?
-            render_partial(:collection => partial_path, :locals => local_assigns)
-          else
-            ""
-          end
+          partial_path.any? ? render_partial(:collection => partial_path, :locals => local_assigns) : ""
         else
           object = partial_path
           render_partial(
@@ -186,8 +179,7 @@ module ActionView
         options[:collection].map do |object|
           _partial_path ||= partial ||
             ActionController::RecordIdentifier.partial_path(object, controller.class.controller_path)
-          path = find_partial_path(_partial_path)
-          template = pick_template(path)
+          template = _pick_partial_template(_partial_path)
           local_assigns[template.counter_name] = index
           result = template.render_partial(self, object, local_assigns, as)
           index += 1
@@ -195,15 +187,17 @@ module ActionView
         end.join(spacer)
       end
 
-      def find_partial_path(partial_path) #:nodoc:
+      def _pick_partial_template(partial_path) #:nodoc:
         if partial_path.include?('/')
-          File.join(File.dirname(partial_path), "_#{File.basename(partial_path)}")
+          path = File.join(File.dirname(partial_path), "_#{File.basename(partial_path)}")
         elsif respond_to?(:controller)
-          "#{controller.class.controller_path}/_#{partial_path}"
+          path = "#{controller.class.controller_path}/_#{partial_path}"
         else
-          "_#{partial_path}"
+          path = "_#{partial_path}"
         end
+
+        pick_template(path)
       end
-      memoize :find_partial_path
+      memoize :_pick_partial_template
   end
 end
