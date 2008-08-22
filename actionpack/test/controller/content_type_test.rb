@@ -19,6 +19,11 @@ class ContentTypeController < ActionController::Base
     render :text => "hello world!"
   end
 
+  def render_nil_charset_from_body
+    response.charset = nil
+    render :text => "hello world!"
+  end
+
   def render_default_for_rhtml
   end
 
@@ -85,8 +90,23 @@ class ContentTypeTest < Test::Unit::TestCase
 
   def test_charset_from_body
     get :render_charset_from_body
-    assert_equal "utf-16", @response.charset
     assert_equal Mime::HTML, @response.content_type
+    assert_equal "utf-16", @response.charset
+  end
+
+  def test_nil_charset_from_body
+    get :render_nil_charset_from_body
+    assert_equal Mime::HTML, @response.content_type
+    assert_equal "utf-8", @response.charset, @response.headers.inspect
+  end
+
+  def test_nil_default_for_rhtml
+    ContentTypeController.default_charset = nil
+    get :render_default_for_rhtml
+    assert_equal Mime::HTML, @response.content_type
+    assert_nil @response.charset, @response.headers.inspect
+  ensure
+    ContentTypeController.default_charset = "utf-8"
   end
 
   def test_default_for_rhtml

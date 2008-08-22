@@ -548,7 +548,6 @@ module ActionController #:nodoc:
           @@guard.synchronize { send(method, *arguments) }
         end
 
-        assign_default_content_type_and_charset
         response.prepare! unless component_request?
         response
       ensure
@@ -1217,15 +1216,6 @@ module ActionController #:nodoc:
 
       def assign_names
         @action_name = (params['action'] || 'index')
-      end
-
-      def assign_default_content_type_and_charset
-        response.content_type ||= Mime::HTML
-        response.charset      ||= self.class.default_charset unless sending_file?
-      end
-
-      def sending_file?
-        response.headers["Content-Transfer-Encoding"] == "binary"
       end
 
       def action_methods

@@ -40,6 +40,8 @@ module ActionController # :nodoc:
     attr_accessor :session, :cookies, :assigns, :template, :layout
     attr_accessor :redirected_to, :redirected_to_method_params
 
+    delegate :default_charset, :to => 'ActionController::Base'
+
     def initialize
       @body, @headers, @session, @assigns = "", DEFAULT_HEADERS.merge("cookie" => []), [], []
     end
@@ -60,19 +62,31 @@ module ActionController # :nodoc:
     # the character set information will also be included in the content type
     # information.
     def content_type=(mime_type)
-      self.headers["Content-Type"] = charset ? "#{mime_type}; charset=#{charset}" : mime_type
+      self.headers["Content-Type"] =
+        if mime_type =~ /charset/ || (c = charset).nil?
+          mime_type.to_s
+        else
+          "#{mime_type}; charset=#{c}"
+        end
     end
-    
+
     # Returns the response's content MIME type, or nil if content type has been set.
     def content_type
       content_type = String(headers["Content-Type"] || headers["type"]).split(";")[0]
       content_type.blank? ? nil : content_type
     end
-    
-    def charset=(encoding)
-      self.headers["Content-Type"] = "#{content_type || Mime::HTML}; charset=#{encoding}"
+
+    # Set the charset of the Content-Type header. Set to nil to remove it.
+    # If no content type is set, it defaults to HTML.
+    def charset=(charset)
+      headers["Content-Type"] =
+        if charset
+          "#{content_type || Mime::HTML}; charset=#{charset}"
+        else
+          content_type || Mime::HTML.to_s
+        end
     end
-    
+
     def charset
       charset = String(headers["Content-Type"] || headers["type"]).split(";")[1]
       charset.blank? ? nil : charset.strip.split("=")[1]
@@ -104,7 +118,17 @@ module ActionController # :nodoc:
       self.body = "<html><body>You are being <a href=\"#{url}\">redirected</a>.</body></html>"
     end
 
+    def sending_file?
+      headers["Content-Transfer-Encoding"] == "binary"
+    end
+
+    def assign_default_content_type_and_charset!
+      self.content_type ||= Mime::HTML
+      self.charset ||= default_charset unless sending_file?
+    end
+
     def prepare!
+      assign_default_content_type_and_charset!
       set_content_length!
       handle_conditional_get!
       convert_content_type!
