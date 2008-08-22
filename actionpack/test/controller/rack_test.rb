@@ -241,7 +241,7 @@ class RackResponseTest < BaseRackTest
     status, headers, body = @response.out(@output)
     assert_equal "200 OK", status
     assert_equal({
-      "Content-Type" => "text/html",
+      "Content-Type" => "text/html; charset=utf-8",
       "Cache-Control" => "private, max-age=0, must-revalidate",
       "ETag" => '"65a8e27d8879283831b664bd8b7f0ad4"',
       "Set-Cookie" => [],
@@ -261,7 +261,7 @@ class RackResponseTest < BaseRackTest
 
     status, headers, body = @response.out(@output)
     assert_equal "200 OK", status
-    assert_equal({"Content-Type" => "text/html", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
+    assert_equal({"Content-Type" => "text/html; charset=utf-8", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
 
     parts = []
     body.each { |part| parts << part }
@@ -278,7 +278,7 @@ class RackResponseTest < BaseRackTest
     status, headers, body = @response.out(@output)
     assert_equal "200 OK", status
     assert_equal({
-      "Content-Type" => "text/html",
+      "Content-Type" => "text/html; charset=utf-8",
       "Cache-Control" => "private, max-age=0, must-revalidate",
       "ETag" => '"65a8e27d8879283831b664bd8b7f0ad4"',
       "Set-Cookie" => ["name=Josh; path="],
