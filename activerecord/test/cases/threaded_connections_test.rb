@@ -4,53 +4,23 @@ require 'models/reply'
 
 unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
   class ThreadedConnectionsTest < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false
-
-    fixtures :topics
-
-    def setup
-      @connection = ActiveRecord::Base.remove_connection
-      @connections = []
-      @allow_concurrency = ActiveRecord::Base.allow_concurrency
-      ActiveRecord::Base.allow_concurrency = true
-    end
-
-    def teardown
-      # clear the connection cache
-      ActiveRecord::Base.clear_active_connections!
-      # set allow_concurrency to saved value
-      ActiveRecord::Base.allow_concurrency = @allow_concurrency
-      # reestablish old connection
-      ActiveRecord::Base.establish_connection(@connection)
-    end
-
-    def gather_connections
-      ActiveRecord::Base.establish_connection(@connection)
-
-      5.times do
-        Thread.new do
-          Topic.find :first
-          @connections << ActiveRecord::Base.active_connections.values.first
-        end.join
+    def test_allow_concurrency_is_deprecated
+      assert_deprecated('ActiveRecord::Base.allow_concurrency') do
+        ActiveRecord::Base.allow_concurrency
       end
-    end
-
-    def test_threaded_connections
-      gather_connections
-      assert_equal @connections.length, 5
+      assert_deprecated('ActiveRecord::Base.allow_concurrency=') do
+        ActiveRecord::Base.allow_concurrency = true
+      end
     end
   end
 
   class PooledConnectionsTest < ActiveRecord::TestCase
     def setup
       @connection = ActiveRecord::Base.remove_connection
-      @allow_concurrency = ActiveRecord::Base.allow_concurrency
-      ActiveRecord::Base.allow_concurrency = true
     end
 
     def teardown
       ActiveRecord::Base.clear_all_connections!
-      ActiveRecord::Base.allow_concurrency = @allow_concurrency
       ActiveRecord::Base.establish_connection(@connection)
     end
 

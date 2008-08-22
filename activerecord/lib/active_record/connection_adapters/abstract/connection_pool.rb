@@ -154,7 +154,7 @@ module ActiveRecord
 
       private
       def new_connection
-        config = spec.config.reverse_merge(:allow_concurrency => ActiveRecord::Base.allow_concurrency)
+        config = spec.config.reverse_merge(:allow_concurrency => true)
         ActiveRecord::Base.send(spec.adapter_method, config)
       end
 
@@ -285,9 +285,12 @@ module ActiveRecord
       end
     end
 
-    module ConnectionHandlerMethods
+    class ConnectionHandler
+      attr_reader :connection_pools_lock
+
       def initialize(pools = {})
         @connection_pools = pools
+        @connection_pools_lock = Monitor.new
       end
 
       def connection_pools
@@ -360,24 +363,6 @@ module ActiveRecord
           return nil if ActiveRecord::Base == klass
           klass = klass.superclass
         end
-      end
-    end
-
-    # This connection handler is not thread-safe, as it does not protect access
-    # to the underlying connection pools.
-    class SingleThreadConnectionHandler
-      include ConnectionHandlerMethods
-    end
-
-    # This connection handler is thread-safe. Each access or modification of a thread
-    # pool is synchronized by an internal monitor.
-    class MultipleThreadConnectionHandler
-      attr_reader :connection_pools_lock
-      include ConnectionHandlerMethods
-
-      def initialize(pools = {})
-        super
-        @connection_pools_lock = Monitor.new
       end
 
       # Apply monitor to all public methods that access the pool.

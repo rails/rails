@@ -14,25 +14,7 @@ module ActiveRecord
 
     # The connection handler
     cattr_accessor :connection_handler, :instance_writer => false
-    @@connection_handler = ConnectionAdapters::SingleThreadConnectionHandler.new
-
-    # Turning on allow_concurrency changes the single threaded connection handler
-    # for a multiple threaded one, so that multi-threaded access of the
-    # connection pools is synchronized.
-    def self.allow_concurrency=(flag)
-      if @@allow_concurrency != flag
-        @@allow_concurrency = flag
-        # When switching connection handlers, preserve the existing pools so that
-        # #establish_connection doesn't need to be called again.
-        if @@allow_concurrency
-          self.connection_handler = ConnectionAdapters::MultipleThreadConnectionHandler.new(
-            self.connection_handler.connection_pools)
-        else
-          self.connection_handler = ConnectionAdapters::SingleThreadConnectionHandler.new(
-            self.connection_handler.connection_pools)
-        end
-      end
-    end
+    @@connection_handler = ConnectionAdapters::ConnectionHandler.new
 
     # Returns the connection currently associated with the class. This can
     # also be used to "borrow" the connection to do database work that isn't
@@ -109,6 +91,16 @@ module ActiveRecord
     end
 
     class << self
+      # Deprecated and no longer has any effect.
+      def allow_concurrency
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_concurrency has been deprecated and no longer has any effect. Please remove all references to allow_concurrency.")
+      end
+
+      # Deprecated and no longer has any effect.
+      def allow_concurrency=(flag)
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_concurrency= has been deprecated and no longer has any effect. Please remove all references to allow_concurrency=.")
+      end
+
       # Returns the connection currently associated with the class. This can
       # also be used to "borrow" the connection to do database work unrelated
       # to any of the specific Active Records.

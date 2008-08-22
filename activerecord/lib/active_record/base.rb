@@ -452,13 +452,6 @@ module ActiveRecord #:nodoc:
     cattr_accessor :default_timezone, :instance_writer => false
     @@default_timezone = :local
 
-    # Determines whether to use a connection for each thread, or a single shared connection for all threads.
-    # Defaults to false. If you're writing a threaded application, set to true
-    # and periodically call verify_active_connections! to clear out connections
-    # assigned to stale threads.
-    cattr_accessor :allow_concurrency, :instance_writer => false
-    @@allow_concurrency = false
-
     # Specifies the format to use when dumping the database schema with Rails'
     # Rakefile.  If :sql, the schema is dumped as (potentially database-
     # specific) SQL statements.  If :ruby, the schema is dumped as an
@@ -1943,20 +1936,9 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def thread_safe_scoped_methods #:nodoc:
+        def scoped_methods #:nodoc:
           scoped_methods = (Thread.current[:scoped_methods] ||= {})
           scoped_methods[self] ||= []
-        end
-
-        def single_threaded_scoped_methods #:nodoc:
-          @scoped_methods ||= []
-        end
-
-        # pick up the correct scoped_methods version from @@allow_concurrency
-        if @@allow_concurrency
-          alias_method :scoped_methods, :thread_safe_scoped_methods
-        else
-          alias_method :scoped_methods, :single_threaded_scoped_methods
         end
 
         def current_scoped_methods #:nodoc:

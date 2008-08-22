@@ -109,7 +109,9 @@ module ActiveRecord
       # ROLLBACK and swallows any exceptions which is probably not enough to
       # ensure the connection is clean.
       def reset!
-        execute "ROLLBACK" rescue nil
+        silence_stderr do # postgres prints on stderr when you do this w/o a txn
+          execute "ROLLBACK" rescue nil
+        end
       end
 
       # Returns true if its safe to reload the connection between requests for development mode.
