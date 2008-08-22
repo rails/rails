@@ -95,6 +95,10 @@ class ViewRenderTest < Test::Unit::TestCase
     assert_nil @view.render(:partial => "test/customer", :collection => nil)
   end
 
+  def test_render_partial_with_empty_array_should_return_nil
+    assert_nil @view.render(:partial => [])
+  end
+
   # TODO: The reason for this test is unclear, improve documentation
   def test_render_partial_and_fallback_to_layout
     assert_equal "Before (Josh)\n\nAfter", @view.render(:partial => "test/layout_for_partial", :locals => { :name => "Josh" })

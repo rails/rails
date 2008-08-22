@@ -156,7 +156,7 @@ module ActionView
           local_assigns.merge!(builder_partial_path.to_sym => partial_path)
           render_partial(:partial => builder_partial_path, :object => options[:object], :locals => local_assigns)
         when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope
-          partial_path.any? ? render_partial(:collection => partial_path, :locals => local_assigns) : ""
+          render_partial_collection(options.except(:partial).merge(:collection => partial_path))
         else
           object = partial_path
           render_partial(

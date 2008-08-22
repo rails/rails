@@ -62,6 +62,7 @@ namespace :doc do
         options << "-o doc/plugins/#{plugin}"
         options << "--title '#{plugin.titlecase} Plugin Documentation'"
         options << '--line-numbers' << '--inline-source'
+        options << '--charset' << 'utf-8'
         options << '-T html'
 
         files.include("#{plugin_base}/lib/**/*.rb")

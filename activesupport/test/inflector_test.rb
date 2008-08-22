@@ -46,6 +46,10 @@ class InflectorTest < Test::Unit::TestCase
     end
   end
 
+  def test_camelize_with_lower_downcases_the_first_letter
+    assert_equal('capital', ActiveSupport::Inflector.camelize('Capital', false))
+  end
+
   def test_underscore
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(underscore, ActiveSupport::Inflector.underscore(camel))
