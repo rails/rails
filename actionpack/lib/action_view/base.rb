@@ -239,7 +239,7 @@ module ActionView #:nodoc:
       local_assigns ||= {}
 
       if options.is_a?(String)
-        render_file(options, nil, local_assigns)
+        render(:file => options, :locals => local_assigns)
       elsif options == :update
         update_page(&block)
       elsif options.is_a?(Hash)
@@ -262,13 +262,15 @@ module ActionView #:nodoc:
             end
           end
         elsif options[:file]
-          render_file(options[:file], nil, options[:locals])
-        elsif options[:partial] && options.has_key?(:collection)
-          render_partial_collection(options[:partial], options[:collection], options[:spacer_template], options[:locals], options[:as])
+          if options[:use_full_path]
+            ActiveSupport::Deprecation.warn("use_full_path option has been deprecated and has no affect.", caller)
+          end
+
+          pick_template(options[:file]).render_template(self, options[:locals])
         elsif options[:partial]
-          render_partial(options[:partial], options[:object], options[:locals])
+          render_partial(options)
         elsif options[:inline]
-          render_inline(options[:inline], options[:locals], options[:type])
+          InlineTemplate.new(options[:inline], options[:type]).render(self, options[:locals])
         end
       end
     end
@@ -345,35 +347,6 @@ module ActionView #:nodoc:
     memoize :pick_template
 
     private
-      # Renders the template present at <tt>template_path</tt>. The hash in <tt>local_assigns</tt>
-      # is made available as local variables.
-      def render_file(template_path, use_full_path = nil, local_assigns = {}) #:nodoc:
-        unless use_full_path == nil
-          ActiveSupport::Deprecation.warn("use_full_path option has been deprecated and has no affect.", caller)
-        end
-
-        if defined?(ActionMailer) && defined?(ActionMailer::Base) && controller.is_a?(ActionMailer::Base) &&
-            template_path.is_a?(String) && !template_path.include?("/")
-          raise ActionViewError, <<-END_ERROR
-  Due to changes in ActionMailer, you need to provide the mailer_name along with the template name.
-
-    render "user_mailer/signup"
-    render :file => "user_mailer/signup"
-
-  If you are rendering a subtemplate, you must now use controller-like partial syntax:
-
-    render :partial => 'signup' # no mailer_name necessary
-          END_ERROR
-        end
-
-        template = pick_template(template_path)
-        template.render_template(self, local_assigns)
-      end
-
-      def render_inline(text, local_assigns = {}, type = nil)
-        InlineTemplate.new(text, type).render(self, local_assigns)
-      end
-
       # Evaluate the local assigns and pushes them to the view.
       def evaluate_assigns
         unless @assigns_added

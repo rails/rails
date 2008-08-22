@@ -780,9 +780,6 @@ module ActionController #:nodoc:
       #   render :file => "/path/to/some/template.erb", :layout => true, :status => 404
       #   render :file => "c:/path/to/some/template.erb", :layout => true, :status => 404
       #
-      #   # Renders a template relative to the template root and chooses the proper file extension
-      #   render :file => "some/template", :use_full_path => true
-      #
       # === Rendering text
       #
       # Rendering of text is usually used for tests or for rendering prepared content, such as a cache. By default, text
@@ -913,21 +910,10 @@ module ActionController #:nodoc:
             response.content_type ||= Mime::JSON
             render_for_text(json, options[:status])
 
-          elsif partial = options[:partial]
-            partial = default_template_name if partial == true
+          elsif options[:partial]
+            options[:partial] = default_template_name if options[:partial] == true
             add_variables_to_assigns
-
-            if collection = options[:collection]
-              render_for_text(
-                @template.send!(:render_partial_collection, partial, collection,
-                options[:spacer_template], options[:locals], options[:as]), options[:status]
-              )
-            else
-              render_for_text(
-                @template.send!(:render_partial, partial,
-                options[:object], options[:locals]), options[:status]
-              )
-            end
+            render_for_text(@template.render(options), options[:status])
 
           elsif options[:update]
             add_variables_to_assigns
