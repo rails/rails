@@ -280,6 +280,15 @@ module ActiveRecord
         @connection.close rescue nil
       end
 
+      def reset!
+        if @connection.respond_to?(:change_user)
+          # See http://bugs.mysql.com/bug.php?id=33540 -- the workaround way to
+          # reset the connection is to change the user to the same user.
+          @connection.change_user(@config[:username], @config[:password], @config[:database])
+        else
+          super
+        end
+      end
 
       # DATABASE STATEMENTS ======================================
 

@@ -261,12 +261,17 @@ module ActiveRecord
       def checkout_new_connection
         c = new_connection
         @connections << c
-        @checked_out << c
-        c
+        checkout_and_verify(c)
       end
 
       def checkout_existing_connection
         c = (@connections - @checked_out).first
+        checkout_and_verify(c)
+      end
+
+      def checkout_and_verify(c)
+        c.reset!
+        c.verify!(verification_timeout)
         @checked_out << c
         c
       end

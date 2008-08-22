@@ -103,14 +103,23 @@ module ActiveRecord
         @active = false
       end
 
+      # Reset the state of this connection, directing the DBMS to clear
+      # transactions and other connection-related server-side state. Usually a
+      # database-dependent operation; the default method simply executes a
+      # ROLLBACK and swallows any exceptions which is probably not enough to
+      # ensure the connection is clean.
+      def reset!
+        execute "ROLLBACK" rescue nil
+      end
+
       # Returns true if its safe to reload the connection between requests for development mode.
       # This is not the case for Ruby/MySQL and it's not necessary for any adapters except SQLite.
       def requires_reloading?
         false
       end
 
-      # Lazily verify this connection, calling <tt>active?</tt> only if it hasn't
-      # been called for +timeout+ seconds.
+      # Lazily verify this connection, calling <tt>active?</tt> only if it
+      # hasn't been called for +timeout+ seconds.
       def verify!(timeout)
         now = Time.now.to_i
         if (now - @last_verification) > timeout
