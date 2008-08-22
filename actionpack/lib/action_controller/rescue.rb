@@ -182,7 +182,7 @@ module ActionController #:nodoc:
         @template.instance_variable_set("@rescues_path", File.dirname(rescues_path("stub")))
         @template.send!(:assign_variables_from_controller)
 
-        @template.instance_variable_set("@contents", @template.render(:file => template_path_for_local_rescue(exception), :use_full_path => false))
+        @template.instance_variable_set("@contents", @template.render(:file => template_path_for_local_rescue(exception)))
 
         response.content_type = Mime::HTML
         render_for_file(rescues_path("layout"), response_code_for_rescue(exception))

@@ -1,5 +1,7 @@
 *Edge*
 
+* Add ActiveResource::Base.find(:last). [#754 state:resolved] (Adrian Mugnolo)
+
 * Fixed problems with the logger used if the logging string included %'s [#840 state:resolved] (Jamis Buck)
 
 * Fixed Base#exists? to check status code as integer [#299 state:resolved] (Wes Oldenbeuving)
