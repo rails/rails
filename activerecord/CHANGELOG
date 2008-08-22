@@ -1,5 +1,7 @@
 *Edge*
 
+* Transactional migrations for databases which support them.  #834 [divoxx, Adam Wiggins, Tarmo Tänav]
+
 * Set config.active_record.timestamped_migrations = false to have migrations with numeric prefix instead of UTC timestamp. #446. [Andrew Stone, Nik Wakelin]
 
 * change_column_default preserves the not-null constraint.  #617 [Tarmo Tänav]

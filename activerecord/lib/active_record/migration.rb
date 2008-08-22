@@ -461,14 +461,22 @@ module ActiveRecord
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})"
 
         # On our way up, we skip migrating the ones we've already migrated
-        # On our way down, we skip reverting the ones we've never migrated
         next if up? && migrated.include?(migration.version.to_i)
 
+        # On our way down, we skip reverting the ones we've never migrated
         if down? && !migrated.include?(migration.version.to_i)
           migration.announce 'never migrated, skipping'; migration.write
-        else
-          migration.migrate(@direction)
-          record_version_state_after_migrating(migration.version)
+          next
+        end
+
+        begin
+          ddl_transaction do
+            migration.migrate(@direction)
+            record_version_state_after_migrating(migration.version)
+          end
+        rescue => e
+          canceled_msg = Base.connection.supports_ddl_transactions? ? "this and " : ""
+          raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
         end
       end
     end
@@ -530,6 +538,15 @@ module ActiveRecord
 
       def down?
         @direction == :down
+      end
+
+      # Wrap the migration in a transaction only if supported by the adapter.
+      def ddl_transaction(&block)
+        if Base.connection.supports_ddl_transactions?
+          Base.transaction { block.call }
+        else
+          block.call
+        end
       end
   end
 end

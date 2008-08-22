@@ -937,6 +937,21 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal(0, ActiveRecord::Migrator.current_version)
     end
 
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_migrator_one_up_with_exception_and_rollback
+        assert !Person.column_methods_hash.include?(:last_name)
+
+        e = assert_raises(StandardError) do
+          ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/broken", 100)
+        end
+
+        assert_equal "An error has occurred, this and all later migrations canceled:\n\nSomething broke", e.message
+
+        Person.reset_column_information
+        assert !Person.column_methods_hash.include?(:last_name)
+      end
+    end
+
     def test_finds_migrations
       migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid").migrations
       [['1', 'people_have_last_names'],

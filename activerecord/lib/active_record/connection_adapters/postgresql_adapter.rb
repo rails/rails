@@ -335,6 +335,10 @@ module ActiveRecord
         postgresql_version >= 80200
       end
 
+      def supports_ddl_transactions?
+        true
+      end
+
       # Returns the configured supported identifier length supported by PostgreSQL,
       # or report the default of 63 on PostgreSQL 7.x.
       def table_alias_length
