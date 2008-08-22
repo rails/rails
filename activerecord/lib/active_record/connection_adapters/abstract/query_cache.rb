@@ -72,12 +72,21 @@ module ActiveRecord
 
       private
         def cache_sql(sql)
-          if @query_cache.has_key?(sql)
-            log_info(sql, "CACHE", 0.0)
-            @query_cache[sql]
+          result =
+            if @query_cache.has_key?(sql)
+              log_info(sql, "CACHE", 0.0)
+              @query_cache[sql]
+            else
+              @query_cache[sql] = yield
+            end
+
+          if Array === result
+            result.collect { |row| row.dup }
           else
-            @query_cache[sql] = yield.freeze
+            result.duplicable? ? result.dup : result
           end
+        rescue TypeError
+          result
         end
     end
   end
