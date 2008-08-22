@@ -296,7 +296,6 @@ if current_adapter?(:PostgreSQLAdapter)
               topic.approved = !topic.approved?
               topic.save!
             end
-            Topic.clear_active_connections!
           end
         end
 
@@ -332,7 +331,6 @@ if current_adapter?(:PostgreSQLAdapter)
               dev = Developer.find(1)
               assert_equal original_salary, dev.salary
             end
-            Developer.clear_active_connections!
           end
         end
 
@@ -344,7 +342,6 @@ if current_adapter?(:PostgreSQLAdapter)
               # Always expect original salary.
               assert_equal original_salary, Developer.find(1).salary
             end
-            Developer.clear_active_connections!
           end
         end
 

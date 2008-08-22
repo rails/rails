@@ -124,9 +124,8 @@ module ActiveRecord
         connection_handler.remove_connection(klass)
       end
 
-      delegate :active_connections, :clear_active_connections!,
-        :clear_reloadable_connections!, :clear_all_connections!,
-        :verify_active_connections!, :to => :connection_handler
+      delegate :clear_active_connections!, :clear_reloadable_connections!,
+        :clear_all_connections!,:verify_active_connections!, :to => :connection_handler
     end
   end
 end

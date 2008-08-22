@@ -60,11 +60,11 @@ module ActiveRecord
       # #connection can be called any number of times; the connection is
       # held in a hash keyed by the thread id.
       def connection
-        if conn = @reserved_connections[active_connection_name]
+        if conn = @reserved_connections[current_connection_id]
           conn.verify!(verification_timeout)
           conn
         else
-          @reserved_connections[active_connection_name] = checkout
+          @reserved_connections[current_connection_id] = checkout
         end
       end
 
@@ -72,7 +72,7 @@ module ActiveRecord
       # #release_connection releases the connection-thread association
       # and returns the connection to the pool.
       def release_connection
-        conn = @reserved_connections.delete(active_connection_name)
+        conn = @reserved_connections.delete(current_connection_id)
         checkin conn if conn
       end
 
@@ -118,11 +118,17 @@ module ActiveRecord
       # Verify active connections and remove and disconnect connections
       # associated with stale threads.
       def verify_active_connections! #:nodoc:
-        remove_stale_cached_threads!(@reserved_connections) do |name, conn|
-          checkin conn
-        end
+        clear_stale_cached_connections!
         connections.each do |connection|
           connection.verify!(verification_timeout)
+        end
+      end
+
+      # Return any checked-out connections back to the pool by threads that
+      # are no longer alive.
+      def clear_stale_cached_connections!
+        remove_stale_cached_threads!(@reserved_connections) do |name, conn|
+          checkin conn
         end
       end
 
@@ -156,7 +162,7 @@ module ActiveRecord
         ActiveRecord::Base.send(spec.adapter_method, config)
       end
 
-      def active_connection_name #:nodoc:
+      def current_connection_id #:nodoc:
         Thread.current.object_id
       end
 
@@ -178,12 +184,6 @@ module ActiveRecord
     # NewConnectionEveryTime is a simple implementation: always
     # create/disconnect on checkout/checkin.
     class NewConnectionEveryTime < ConnectionPool
-      def active_connection
-        @reserved_connections[active_connection_name]
-      end
-
-      def active_connections; @reserved_connections; end
-
       def checkout
         new_connection
       end
@@ -288,19 +288,14 @@ module ActiveRecord
         @connection_pools[name] = ConnectionAdapters::ConnectionPool.create(spec)
       end
 
-      # for internal use only and for testing;
-      # only works with ConnectionPerThread pool class
-      def active_connections #:nodoc:
-        @connection_pools.inject({}) do |hash,kv|
-          hash[kv.first] = kv.last.active_connection
-          hash.delete(kv.first) unless hash[kv.first]
-          hash
-        end
-      end
-
-      # Clears the cache which maps classes to connections.
+      # Returns any connections in use by the current thread back to the pool,
+      # and also returns connections to the pool cached by threads that are no
+      # longer alive.
       def clear_active_connections!
-        @connection_pools.each_value {|pool| pool.release_connection }
+        @connection_pools.each_value do |pool|
+          pool.release_connection
+          pool.clear_stale_cached_connections!
+        end
       end
 
       # Clears the cache which maps classes
@@ -353,11 +348,9 @@ module ActiveRecord
       end
 
       # Apply monitor to all public methods that access the pool.
-      synchronize :establish_connection, :retrieve_connection,
-        :connected?, :remove_connection, :active_connections,
-        :clear_active_connections!, :clear_reloadable_connections!,
-        :clear_all_connections!, :verify_active_connections!,
-        :with => :connection_pools_lock
+      synchronize :establish_connection, :retrieve_connection, :connected?, :remove_connection,
+        :clear_active_connections!, :clear_reloadable_connections!, :clear_all_connections!,
+        :verify_active_connections!, :with => :connection_pools_lock
     end
   end
 end
