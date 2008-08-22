@@ -57,8 +57,8 @@ require 'active_support/base64'
 
 require 'active_support/time_with_zone'
 
-I18n.backend.populate do
-  require 'active_support/locale/en-US.rb'
+I18n.populate do
+  I18n.load_translations File.dirname(__FILE__) + '/active_support/locale/en-US.yml'
 end
 
 Inflector = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Inflector', 'ActiveSupport::Inflector')

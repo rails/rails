@@ -42,4 +42,12 @@ module I18n
       super "reserved key #{key.inspect} used in #{string.inspect}"
     end
   end
+  
+  class UnknownFileType < ArgumentError
+    attr_reader :type, :filename
+    def initialize(type, filename)
+      @type, @filename = type, filename
+      super "can not load translations from #{filename}, the file type #{type} is not known"
+    end
+  end
 end  
