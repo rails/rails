@@ -25,6 +25,9 @@ module ActiveRecord
     class AbstractAdapter
       include Quoting, DatabaseStatements, SchemaStatements
       include QueryCache
+      include ActiveSupport::Callbacks
+      define_callbacks :checkout, :checkin
+      checkout :reset!
       @@row_even = true
 
       def initialize(connection, logger = nil) #:nodoc:
