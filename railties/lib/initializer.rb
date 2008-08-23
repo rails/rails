@@ -36,6 +36,7 @@ module Rails
     end
   
     def env
+      require 'active_support/string_inquirer'
       ActiveSupport::StringInquirer.new(RAILS_ENV)
     end
   
