@@ -29,4 +29,12 @@ class RailsModelGeneratorTest < GeneratorTestCase
       assert_generated_column t, :created_at, :timestamp
     end
   end
+
+  def test_model_with_reference_attributes_generates_belongs_to_associations
+    run_generator('model', %w(Product name:string supplier:references))
+
+    assert_generated_model_for :product do |body|
+      assert body =~ /^\s+belongs_to :supplier/, "#{body.inspect} should contain 'belongs_to :supplier'"
+    end
+  end
 end
