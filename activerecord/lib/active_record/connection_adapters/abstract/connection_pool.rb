@@ -161,8 +161,7 @@ module ActiveRecord
         end
       end
 
-      synchronize :connection, :release_connection,
-        :clear_reloadable_connections!, :verify_active_connections!,
+      synchronize :clear_reloadable_connections!, :verify_active_connections!,
         :connected?, :disconnect!, :with => :@connection_mutex
 
       private
@@ -209,11 +208,8 @@ module ActiveRecord
     end
 
     class ConnectionHandler
-      attr_reader :connection_pools_lock
-
       def initialize(pools = {})
         @connection_pools = pools
-        @connection_pools_lock = Monitor.new
       end
 
       def connection_pools
@@ -282,11 +278,6 @@ module ActiveRecord
           klass = klass.superclass
         end
       end
-
-      # Apply monitor to all public methods that access the pool.
-      synchronize :establish_connection, :retrieve_connection, :connected?, :remove_connection,
-        :clear_active_connections!, :clear_reloadable_connections!, :clear_all_connections!,
-        :verify_active_connections!, :with => :connection_pools_lock
     end
   end
 end
