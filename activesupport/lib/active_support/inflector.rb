@@ -39,12 +39,16 @@ module ActiveSupport
       # Specifies a new pluralization rule and its replacement. The rule can either be a string or a regular expression.
       # The replacement should always be a string that may include references to the matched data from the rule.
       def plural(rule, replacement)
+        @uncountables.delete(rule) if rule.is_a?(String)
+        @uncountables.delete(replacement)
         @plurals.insert(0, [rule, replacement])
       end
 
       # Specifies a new singularization rule and its replacement. The rule can either be a string or a regular expression.
       # The replacement should always be a string that may include references to the matched data from the rule.
       def singular(rule, replacement)
+        @uncountables.delete(rule) if rule.is_a?(String)
+        @uncountables.delete(replacement)
         @singulars.insert(0, [rule, replacement])
       end
 
@@ -55,6 +59,8 @@ module ActiveSupport
       #   irregular 'octopus', 'octopi'
       #   irregular 'person', 'people'
       def irregular(singular, plural)
+        @uncountables.delete(singular)
+        @uncountables.delete(plural)
         if singular[0,1].upcase == plural[0,1].upcase
           plural(Regexp.new("(#{singular[0,1]})#{singular[1..-1]}$", "i"), '\1' + plural[1..-1])
           singular(Regexp.new("(#{plural[0,1]})#{plural[1..-1]}$", "i"), '\1' + singular[1..-1])

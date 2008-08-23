@@ -34,6 +34,13 @@ class InflectorTest < Test::Unit::TestCase
     end
   end
 
+  def test_overwrite_previous_inflectors
+    assert_equal("series", ActiveSupport::Inflector.singularize("series"))
+    ActiveSupport::Inflector.inflections.singular "series", "serie"
+    assert_equal("serie", ActiveSupport::Inflector.singularize("series"))
+    ActiveSupport::Inflector.inflections.uncountable "series" # Return to normal
+  end
+
   MixtureToTitleCase.each do |before, titleized|
     define_method "test_titleize_#{before}" do
       assert_equal(titleized, ActiveSupport::Inflector.titleize(before))
