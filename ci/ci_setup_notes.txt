@@ -1,0 +1,120 @@
+# Rails Continuous Integration Server Setup Notes
+# This procedure was used to set up http://ci.rubyonrails.org on Ubuntu 8.04
+# It can be used as a guideline for setting up your own CI server against your local rails branches
+
+* Set up ci user:
+# log in as root
+$ adduser ci
+enter user info and password
+$ visudo
+# give ci user same sudo rights as root
+
+* Disable root login:
+# log in as ci
+$ sudo vi /etc/shadow
+# overwrite and disable encrypted root password to disable root login:
+root:*:14001:0:99999:7:::
+
+* Change Hostname:
+$ sudo vi /etc/hostname
+change to 'ci'
+$ sudo vi /etc/hosts
+replace old hostname with 'ci'
+# reboot to use new hostname (and test reboot)
+$ sudo shutdown -r now
+
+* Update aptitude:
+$ sudo aptitude update
+
+* Use cinabox to perform rest of ruby/ccrb setup: 
+* http://github.com/thewoolleyman/cinabox/tree/master/README.txt
+
+# This is not yet properly supported by RubyGems...
+# * Configure RubyGems to not require root access for gem installation
+# $ vi ~/.profile
+# # add this line at bottom:
+# PATH="$HOME/.gem/ruby/1.8/bin:$PATH"
+# $ sudo vi /etc/init.d/cruise
+# # edit the start_cruise line to source CRUISE_USER/.profile:
+#   start_cruise "cd #{CRUISE_HOME} && source /home/#{CRUISE_USER}/.profile && ./cruise start -d"
+# $ vi ~/.gemrc
+# # add these lines:
+# ---
+# gemhome: /home/ci/.gem/ruby/1.8
+# gempath: 
+# - /home/ci/.gem/ruby/1.8
+
+* If you did not configure no-root-gem installation via ~/.gemrc as shown above, then allow no-password sudo for gem installation:
+$ sudo visudo
+# add this line to bottom:
+ci      ALL=NOPASSWD: /usr/local/bin/geminstaller, /usr/local/bin/ruby, /usr/local/bin/gem
+
+* Start ccrb via init script and check for default homepage at port 3333
+
+* Install/setup nginx:
+$ sudo aptitude install nginx
+$ sudo vi /etc/nginx/sites-available/default
+# comment two lines and add one to proxy to ccrb:
+#               root   /var/www/nginx-default;
+#               index  index.html index.htm;
+                proxy_pass      http://127.0.0.1:3333;
+$ sudo /etc/init.d/nginx start
+
+* Add project to cruise (It will still fail until everything is set up):
+$ cd ~/ccrb
+$ ./cruise add rails -s git -r git://github.com/rails/rails.git  # or the URI of your branch
+
+* Copy and configure cruise site config file:
+$ cp ~/.cruise/projects/rails/work/ci/site_config.rb ~/.cruise/site_config.rb
+# Edit ~/.cruise/site_config.rb as desired, for example:
+ActionMailer::Base.smtp_settings = {
+  :address =>        "localhost",
+  :domain =>         "ci.yourdomain.com",
+}
+Configuration.dashboard_refresh_interval = 60.seconds
+Configuration.dashboard_url = 'http://ci.yourdomain.com/'
+Configuration.serialize_builds = true
+Configuration.serialized_build_timeout = 1.hours
+BuildReaper.number_of_builds_to_keep = 100
+  
+* Copy and configure cruise project config file
+$ cp ~/.cruise/projects/rails/work/ci/cruise_config.rb ~/.cruise/projects/rails
+$ vi ~/.cruise/projects/rails/cruise_config.rb:
+# Edit ~/.cruise/projects/rails/cruise_config.rb as desired, for example:
+Project.configure do |project|
+ project.build_command = 'ruby ci/ci_build.rb'
+ project.email_notifier.emails = ['recipient@yourdomain.com']
+ project.email_notifier.from = 'sender@yourdomain.com'
+end
+
+* Set up mysql
+$ sudo aptitude install mysql-server-5.0 libmysqlclient-dev
+# no password for mysql root user
+
+* setup sqlite
+$ sudo aptitude install sqlite sqlite3 libsqlite-dev libsqlite3-dev
+# Note: there's some installation bugs with sqlite3-ruby 1.2.2 gem file permissions:
+#   http://www.icoretech.org/2008/07/06/no-such-file-to-load-sqlite3-database
+#   cd /usr/local/lib/ruby/gems/1.8/gems/sqlite3-ruby-1.2.2 && sudo find . -perm 0662 -exec chmod 664 {} \;
+
+* setup postgres
+$ sudo aptitude install postgresql postgresql-server-dev-8.3
+$ sudo su - postgres -c 'createuser -s ci'
+
+* Install and run GemInstaller to get all dependency gems
+$ sudo gem install geminstaller
+$ cd ~/.cruise/projects/rails/work
+$ sudo geminstaller --config=ci/geminstaller.yml # turn up debugging with these options: --geminstaller-output=all --rubygems-output=all
+
+* Create ActiveRecord test databases for mysql
+$ mysql -uroot -e 'grant all on *.* to rails@localhost;'
+$ mysql -urails -e 'create database activerecord_unittest;'
+$ mysql -urails -e 'create database activerecord_unittest2;'
+
+* Create ActiveRecord test databases for postgres
+# cd to rails activerecord dir
+$ rake postgresql:build_databases
+
+* Reboot and make sure everything is working
+$ sudo shutdown -r now
+$ http://ci.yourdomain.com
