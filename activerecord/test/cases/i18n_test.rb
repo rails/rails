@@ -40,7 +40,7 @@ class ActiveRecordI18nTests < Test::Unit::TestCase
 
   private
     def reset_translations
-      I18n.backend = I18n::Backend::Simple.new
+      I18n.backend = I18n::Backend::Simple
     end
 end
 
