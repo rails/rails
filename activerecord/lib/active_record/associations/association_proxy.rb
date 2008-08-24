@@ -213,7 +213,7 @@ module ActiveRecord
 
         # Array#flatten has problems with recursive arrays. Going one level deeper solves the majority of the problems.
         def flatten_deeper(array)
-          array.collect { |element| element.respond_to?(:flatten) ? element.flatten : element }.flatten
+          array.collect { |element| (element.respond_to?(:flatten) && !element.is_a?(Hash)) ? element.flatten : element }.flatten
         end
 
         def owner_quoted_id
