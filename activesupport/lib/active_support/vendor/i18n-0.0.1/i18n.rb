@@ -183,8 +183,8 @@ module I18n
     # keys are Symbols.
     def normalize_translation_keys(locale, key, scope)
       keys = [locale] + Array(scope) + [key]
-      keys = keys.map{|key| key.to_s.split(/\./) }
-      keys.flatten.map{|key| key.to_sym}
+      keys = keys.map{|k| k.to_s.split(/\./) }
+      keys.flatten.map{|k| k.to_sym}
     end
   end
 end

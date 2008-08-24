@@ -27,7 +27,7 @@ module I18n
       
       def translate(locale, key, options = {})
         raise InvalidLocale.new(locale) if locale.nil?
-        return key.map{|key| translate locale, key, options } if key.is_a? Array
+        return key.map{|k| translate locale, k, options } if key.is_a? Array
 
         reserved = :scope, :default
         count, scope, default = options.values_at(:count, *reserved)
@@ -74,7 +74,7 @@ module I18n
         def lookup(locale, key, scope = [])
           return unless key
           keys = I18n.send :normalize_translation_keys, locale, key, scope
-          keys.inject(translations){|result, key| result[key.to_sym] or return nil }
+          keys.inject(translations){|result, k| result[k.to_sym] or return nil }
         end
       
         # Evaluates a default translation. 
@@ -147,9 +147,9 @@ module I18n
           type = File.extname(filename).tr('.', '').downcase
           raise UnknownFileType.new(type, filename) unless respond_to? :"load_#{type}"
           data = send :"load_#{type}", filename # TODO raise a meaningful exception if this does not yield a Hash
-          data.each do |locale, data| 
-            merge_translations locale, data
-          end            
+          data.each do |locale, d|
+            merge_translations locale, d
+          end
         end
         
         # Loads a plain Ruby translations file. eval'ing the file must yield

@@ -37,6 +37,10 @@ module Rails
             ""
         end      
       end
+
+      def reference?
+        [ :references, :belongs_to ].include?(self.type)
+      end
     end
   end
 end
