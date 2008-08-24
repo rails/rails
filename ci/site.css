@@ -1,0 +1,13 @@
+/* this is a copy of /home/ci/.cruise/site.css, please make any changes to it there */
+
+/* this is a copy of /home/ci/.cruise/site.css, please make any changes to it there */
+
+/* if you'd like to add custom styles to cruise, add them here */
+/* the following will make successful builds green */
+a.success, a.success:visited {
+  color: #0A0;
+}
+
+.build_success {
+  background-image: url(/images/green_gradient.png);
+}
