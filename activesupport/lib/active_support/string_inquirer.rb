@@ -1,5 +1,5 @@
 module ActiveSupport
-  class StringQuestioneer < String
+  class StringInquirer < String
     def method_missing(method_name, *arguments)
       if method_name.to_s.ends_with?("?")
         self == method_name.to_s[0..-2]
