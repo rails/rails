@@ -249,6 +249,10 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal Topic.base.select(&:approved), Topic.base.find_all(&:approved)
   end
 
+  def test_rand_should_select_a_random_object_from_proxy
+    assert Topic.approved.rand.is_a? Topic
+  end
+
   def test_should_use_where_in_query_for_named_scope
     assert_equal Developer.find_all_by_name('Jamis'), Developer.find_all_by_id(Developer.jamises)
   end

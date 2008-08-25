@@ -103,7 +103,7 @@ module ActiveRecord
       attr_reader :proxy_scope, :proxy_options
 
       [].methods.each do |m|
-        unless m =~ /(^__|^nil\?|^send|^object_id$|class|extend|^find$|count|sum|average|maximum|minimum|paginate|first|last|empty?|any?|respond_to?)/
+        unless m =~ /(^__|^nil\?|^send|^object_id$|class|extend|^find$|count|sum|average|maximum|minimum|paginate|first|last|empty\?|any\?|respond_to\?)/
           delegate m, :to => :proxy_found
         end
       end
