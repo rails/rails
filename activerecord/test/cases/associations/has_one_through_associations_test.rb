@@ -75,4 +75,20 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_not_nil assert_no_queries {clubs[0].sponsored_member}
   end
 
+  def test_has_one_through_nonpreload_eagerloading
+    members = assert_queries(1) do
+      Member.find(:all, :include => :club, :conditions => ["members.name = ?", "Groucho Marx"], :order => 'clubs.name') #force fallback
+    end
+    assert_equal 1, members.size
+    assert_not_nil assert_no_queries {members[0].club}
+  end
+
+  def test_has_one_through_nonpreload_eager_loading_through_polymorphic
+    members = assert_queries(1) do
+      Member.find(:all, :include => :sponsor_club, :conditions => ["members.name = ?", "Groucho Marx"], :order => 'clubs.name') #force fallback
+    end
+    assert_equal 1, members.size
+    assert_not_nil assert_no_queries {members[0].sponsor_club}
+  end
+
 end
