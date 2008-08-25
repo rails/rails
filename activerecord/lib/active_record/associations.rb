@@ -1974,7 +1974,7 @@ module ActiveRecord
                 @aliased_join_table_name = aliased_table_name_for(reflection.options[:join_table], "_join")
               end
         
-              if reflection.macro == :has_many && reflection.options[:through]
+              if [:has_many, :has_one].include?(reflection.macro) && reflection.options[:through]
                 @aliased_join_table_name = aliased_table_name_for(reflection.through_reflection.klass.table_name, "_join")
               end
             end
@@ -1998,7 +1998,7 @@ module ActiveRecord
                      ]
                 when :has_many, :has_one
                   case
-                    when reflection.macro == :has_many && reflection.options[:through]
+                    when reflection.options[:through]
                       through_conditions = through_reflection.options[:conditions] ? "AND #{interpolate_sql(sanitize_sql(through_reflection.options[:conditions]))}" : ''
 
                       jt_foreign_key = jt_as_extra = jt_source_extra = jt_sti_extra = nil
