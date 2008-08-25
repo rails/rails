@@ -190,7 +190,7 @@ module ActionView
       def _pick_partial_template(partial_path) #:nodoc:
         if partial_path.include?('/')
           path = File.join(File.dirname(partial_path), "_#{File.basename(partial_path)}")
-        elsif respond_to?(:controller)
+        elsif controller
           path = "#{controller.class.controller_path}/_#{partial_path}"
         else
           path = "_#{partial_path}"
