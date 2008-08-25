@@ -50,35 +50,35 @@
     distance_in_words:
       half_a_minute: "half a minute"
       less_than_x_seconds:
-        one:  "less than 1 second"
-        many: "less than {{count}} seconds"
+        one:   "less than 1 second"
+        other: "less than {{count}} seconds"
       x_seconds:
-        one:  "1 second"
-        many: "{{count}} seconds"
+        one:   "1 second"
+        other: "{{count}} seconds"
       less_than_x_minutes:
-        one:  "less than a minute"
-        many: "less than {{count}} minutes"
+        one:   "less than a minute"
+        other: "less than {{count}} minutes"
       x_minutes:
-        one:  "1 minute"
-        many: "{{count}} minutes"
+        one:   "1 minute"
+        other: "{{count}} minutes"
       about_x_hours:
-        one:  "about 1 hour"
-        many: "about {{count}} hours"
+        one:   "about 1 hour"
+        other: "about {{count}} hours"
       x_days:
-        one:  "1 day"
-        many: "{{count}} days"
+        one:   "1 day"
+        other: "{{count}} days"
       about_x_months:
-        one:  "about 1 month"
-        many: "about {{count}} months"
+        one:   "about 1 month"
+        other: "about {{count}} months"
       x_months:
-        one:  "1 month"
-        many: "{{count}} months"
+        one:   "1 month"
+        other: "{{count}} months"
       about_x_years:
-        one:  "about 1 year"
-        many: "about {{count}} years"
+        one:   "about 1 year"
+        other: "about {{count}} years"
       over_x_years:
-        one:  "over 1 year"
-        many: "over {{count}} years"
+        one:   "over 1 year"
+        other: "over {{count}} years"
 
   activerecord:
     errors:
