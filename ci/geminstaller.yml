@@ -1,0 +1,17 @@
+---
+gems:
+- name: geminstaller
+  version: >= 0.4.3
+- name: mocha
+  version: >= 0.9.0
+- name: mysql
+  #version: >= 2.7
+  version: = 2.7
+- name: postgres
+  version: >= 0.7.9.2008.01.28
+- name: rake
+  version: >= 0.8.1
+- name: sqlite-ruby
+  version: >= 2.2.3
+- name: sqlite3-ruby
+  version: >= 1.2.2

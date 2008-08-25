@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/topic'
 require 'models/reply'
 require 'models/developer'
+require 'models/book'
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
@@ -86,8 +87,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert Topic.find(2).approved?, "Second should still be approved"
   end
 
-
-  def test_callback_rollback_in_save
+  def test_raising_exception_in_callback_rollbacks_in_save
     add_exception_raising_after_save_callback_to_topic
 
     begin
@@ -99,6 +99,54 @@ class TransactionTest < ActiveRecord::TestCase
       assert !Topic.find(1).approved?
     ensure
       remove_exception_raising_after_save_callback_to_topic
+    end
+  end
+
+  def test_cancellation_from_before_destroy_rollbacks_in_destroy
+    add_cancelling_before_destroy_with_db_side_effect_to_topic
+    begin
+      nbooks_before_destroy = Book.count
+      status = @first.destroy
+      assert !status
+      assert_nothing_raised(ActiveRecord::RecordNotFound) { @first.reload }
+      assert_equal nbooks_before_destroy, Book.count
+    ensure
+      remove_cancelling_before_destroy_with_db_side_effect_to_topic
+    end
+  end
+
+  def test_cancellation_from_before_filters_rollbacks_in_save
+    %w(validation save).each do |filter|
+      send("add_cancelling_before_#{filter}_with_db_side_effect_to_topic")
+      begin
+        nbooks_before_save = Book.count
+        original_author_name = @first.author_name
+        @first.author_name += '_this_should_not_end_up_in_the_db'
+        status = @first.save
+        assert !status
+        assert_equal original_author_name, @first.reload.author_name
+        assert_equal nbooks_before_save, Book.count
+      ensure
+        send("remove_cancelling_before_#{filter}_with_db_side_effect_to_topic")
+      end
+    end
+  end
+
+  def test_cancellation_from_before_filters_rollbacks_in_save!
+    %w(validation save).each do |filter|
+      send("add_cancelling_before_#{filter}_with_db_side_effect_to_topic")
+      begin
+        nbooks_before_save = Book.count
+        original_author_name = @first.author_name
+        @first.author_name += '_this_should_not_end_up_in_the_db'
+        @first.save!
+        flunk
+      rescue => e
+        assert_equal original_author_name, @first.reload.author_name
+        assert_equal nbooks_before_save, Book.count
+      ensure
+        send("remove_cancelling_before_#{filter}_with_db_side_effect_to_topic")
+      end
     end
   end
 
@@ -220,6 +268,16 @@ class TransactionTest < ActiveRecord::TestCase
 
     def remove_exception_raising_after_create_callback_to_topic
       Topic.class_eval { remove_method :after_create }
+    end
+
+    %w(validation save destroy).each do |filter|
+      define_method("add_cancelling_before_#{filter}_with_db_side_effect_to_topic") do
+        Topic.class_eval "def before_#{filter}() Book.create; false end"
+      end
+
+      define_method("remove_cancelling_before_#{filter}_with_db_side_effect_to_topic") do
+        Topic.class_eval "remove_method :before_#{filter}"
+      end
     end
 end
 

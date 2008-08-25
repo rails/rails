@@ -9,14 +9,14 @@ require 'i18n/backend/simple'
 require 'i18n/exceptions'
 
 module I18n  
-  @@backend = nil
+  @@backend = Backend::Simple
   @@default_locale = 'en-US'
   @@exception_handler = :default_exception_handler
     
   class << self
     # Returns the current backend. Defaults to +Backend::Simple+.
     def backend
-      @@backend ||= Backend::Simple.new
+      @@backend
     end
     
     # Sets the current backend. Used to set a custom backend.
@@ -183,8 +183,8 @@ module I18n
     # keys are Symbols.
     def normalize_translation_keys(locale, key, scope)
       keys = [locale] + Array(scope) + [key]
-      keys = keys.map{|key| key.to_s.split(/\./) }
-      keys.flatten.map{|key| key.to_sym}
+      keys = keys.map{|k| k.to_s.split(/\./) }
+      keys.flatten.map{|k| k.to_sym}
     end
   end
 end
