@@ -658,15 +658,10 @@ module ActiveRecord
       # (*Note*: +collection+ is replaced with the symbol passed as the first argument, so
       # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.)
       #
-<<<<<<< HEAD:activerecord/lib/active_record/associations.rb
       # === Example
       #
-      # A Firm class declares <tt>has_many :clients</tt>, which will add:
-      # * <tt>Firm#clients</tt> (similar to <tt>Clients.find :all, :conditions => "firm_id = #{id}"</tt>)
-=======
       # Example: A Firm class declares <tt>has_many :clients</tt>, which will add:
       # * <tt>Firm#clients</tt> (similar to <tt>Clients.find :all, :conditions => ["firm_id = ?", id]</tt>)
->>>>>>> Corrected interpolation in a model find:activerecord/lib/active_record/associations.rb
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
       # * <tt>Firm#clients=</tt>
