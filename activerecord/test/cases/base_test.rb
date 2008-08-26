@@ -616,7 +616,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_update_counter
-    category = Category.first
+    category = categories(:general)
     assert_nil category.categorizations_count
     assert_equal 2, category.categorizations.count
 
