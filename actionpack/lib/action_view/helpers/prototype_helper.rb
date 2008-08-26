@@ -588,26 +588,8 @@ module ActionView
 
         private
           def include_helpers_from_context
-            unless generator_methods_module = @context.instance_variable_get(:@__javascript_generator_methods__)
-              modules = @context.extended_by - ([ActionView::Helpers] + ActionView::Helpers.included_modules)
-
-              generator_methods_module = Module.new do
-                modules.each do |mod|
-                  begin
-                    include mod
-                  rescue Exception => e
-                    # HACK: Probably not a good idea to suppress these warnings
-                    # AFAIK exceptions are only raised in while testing with mocha
-                    # because the module does not like to be included into other
-                    # non TestUnit classes
-                  end
-                end
-                include GeneratorMethods
-              end
-              @context.instance_variable_set(:@__javascript_generator_methods__, generator_methods_module)
-            end
-
-            extend generator_methods_module
+            extend @context.helpers if @context.respond_to?(:helpers)
+            extend GeneratorMethods
           end
 
         # JavaScriptGenerator generates blocks of JavaScript code that allow you

@@ -1148,7 +1148,7 @@ module ActionController #:nodoc:
 
       def initialize_template_class(response)
         response.template = ActionView::Base.new(self.class.view_paths, {}, self)
-        response.template.extend self.class.master_helper_module
+        response.template.helpers.send :include, self.class.master_helper_module
         response.redirected_to = nil
         @performed_render = @performed_redirect = false
       end
