@@ -647,8 +647,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     developer.save
     developer.reload
     assert_equal 2, developer.projects.length
-    assert_equal projects(:active_record), developer.projects[0]
-    assert_equal projects(:action_controller), developer.projects[1]
+    assert_equal [projects(:active_record), projects(:action_controller)].map(&:id).sort, developer.projects_ids
   end
 
   def test_assign_ids_ignoring_blanks
@@ -657,8 +656,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     developer.save
     developer.reload
     assert_equal 2, developer.projects.length
-    assert_equal projects(:active_record), developer.projects[0]
-    assert_equal projects(:action_controller), developer.projects[1]
+    assert_equal [projects(:active_record), projects(:action_controller)].map(&:id).sort, developer.projects_ids
   end
 
   def test_select_limited_ids_list
