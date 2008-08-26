@@ -2237,22 +2237,40 @@ module ActiveRecord #:nodoc:
         defined?(@new_record) && @new_record
       end
 
-      # * No record exists: Creates a new record with values matching those of the object attributes.
-      # * A record does exist: Updates the record with values matching those of the object attributes.
+      # :call-seq:
+      #   save(perform_validation = true)
       #
-      # Note: If your model specifies any validations then the method declaration dynamically
-      # changes to:
-      #   save(perform_validation=true)
-      # Calling save(false) saves the model without running validations.
-      # See ActiveRecord::Validations for more information.
+      # Saves the model.
+      #
+      # If the model is new a record gets created in the database, otherwise
+      # the existing record gets updated.
+      #
+      # If +perform_validation+ is true validations run. If any of them fail
+      # the action is cancelled and +save+ returns +false+. If the flag is
+      # false validations are bypassed altogether. See
+      # ActiveRecord::Validations for more information. 
+      #
+      # There's a series of callbacks associated with +save+. If any of the
+      # <tt>before_*</tt> callbacks return +false+ the action is cancelled and
+      # +save+ returns +false+. See ActiveRecord::Callbacks for further
+      # details. 
       def save
         create_or_update
       end
 
-      # Attempts to save the record, but instead of just returning false if it couldn't happen, it raises an
-      # ActiveRecord::RecordNotSaved exception. However, if the callback chain raises ActiveRecord::Rollback
-      # to rollback the transaction that wraps <tt>save!</tt> no exception is raised, <tt>save!</tt> just
-      # returns +nil+. See ActiveRecord::Callbacks for further details.
+      # Saves the model.
+      #
+      # If the model is new a record gets created in the database, otherwise
+      # the existing record gets updated.
+      #
+      # With <tt>save!</tt> validations always run. If any of them fail
+      # ActiveRecord::RecordInvalid gets raised. See ActiveRecord::Validations
+      # for more information. 
+      #
+      # There's a series of callbacks associated with <tt>save!</tt>. If any of
+      # the <tt>before_*</tt> callbacks return +false+ the action is cancelled
+      # and <tt>save!</tt> raises ActiveRecord::RecordNotSaved. See
+      # ActiveRecord::Callbacks for further details. 
       def save!
         create_or_update || raise(RecordNotSaved)
       end
