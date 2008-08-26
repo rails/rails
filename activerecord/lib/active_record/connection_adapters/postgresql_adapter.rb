@@ -23,8 +23,8 @@ module ActiveRecord
       config = config.symbolize_keys
       host     = config[:host]
       port     = config[:port] || 5432
-      username = config[:username].to_s
-      password = config[:password].to_s
+      username = config[:username].to_s if config[:username]
+      password = config[:password].to_s if config[:password]
 
       if config.has_key?(:database)
         database = config[:database]
