@@ -406,12 +406,14 @@ module ActiveRecord
         Base.table_name_prefix + 'schema_migrations' + Base.table_name_suffix
       end
 
+      def get_all_versions
+        Base.connection.select_values("SELECT version FROM #{schema_migrations_table_name}").map(&:to_i).sort
+      end
+
       def current_version
         sm_table = schema_migrations_table_name
         if Base.connection.table_exists?(sm_table)
-          Base.connection.select_value(
-            "SELECT MAX(CAST(version AS DECIMAL)) FROM #{sm_table}"
-          ).to_i
+          get_all_versions.max || 0
         else
           0
         end
@@ -521,8 +523,7 @@ module ActiveRecord
     end
 
     def migrated
-      sm_table = self.class.schema_migrations_table_name
-      @migrated_versions ||= Base.connection.select_values("SELECT version FROM #{sm_table}").map(&:to_i).sort
+      @migrated_versions ||= self.class.get_all_versions
     end
 
     private
