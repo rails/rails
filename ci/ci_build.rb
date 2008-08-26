@@ -30,7 +30,6 @@ cd "#{root_dir}/activerecord" do
   build_results[:activerecord_mysql] = system 'rake test_mysql'
 end
 
-Postgres is disabled until tests are fixed
 cd "#{root_dir}/activerecord" do
   puts
   puts "[CruiseControl] Building ActiveRecord with PostgreSQL"
