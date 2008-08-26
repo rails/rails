@@ -1270,10 +1270,9 @@ module ActiveRecord
               association.create_through_record(new_value)
               self.send(reflection.name, new_value)
             else
-              association.replace(new_value)              
+              association.replace(new_value)
+              instance_variable_set(ivar, new_value.nil? ? nil : association)
             end
-
-            instance_variable_set(ivar, new_value.nil? ? nil : association)
           end
 
           define_method("set_#{reflection.name}_target") do |target|
