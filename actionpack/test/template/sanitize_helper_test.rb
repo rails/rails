@@ -11,9 +11,9 @@ class SanitizeHelperTest < ActionView::TestCase
     assert_equal "Dont touch me", strip_links("Dont touch me")
     assert_equal "<a<a", strip_links("<a<a")
     assert_equal "on my mind\nall day long", strip_links("<a href='almost'>on my mind</a>\n<A href='almost'>all day long</A>")
-    assert_equal "0wn3d", strip_links("<a href='http://www.rubyonrails.com/'><a href='http://www.rubyonrails.com/' onlclick='steal()'>0wn3d</a></a>") 
-    assert_equal "Magic", strip_links("<a href='http://www.rubyonrails.com/'>Mag<a href='http://www.ruby-lang.org/'>ic") 
-    assert_equal "FrrFox", strip_links("<href onlclick='steal()'>FrrFox</a></href>") 
+    assert_equal "0wn3d", strip_links("<a href='http://www.rubyonrails.com/'><a href='http://www.rubyonrails.com/' onlclick='steal()'>0wn3d</a></a>")
+    assert_equal "Magic", strip_links("<a href='http://www.rubyonrails.com/'>Mag<a href='http://www.ruby-lang.org/'>ic")
+    assert_equal "FrrFox", strip_links("<href onlclick='steal()'>FrrFox</a></href>")
     assert_equal "My mind\nall <b>day</b> long", strip_links("<a href='almost'>My mind</a>\n<A href='almost'>all <b>day</b> long</A>")
     assert_equal "all <b>day</b> long", strip_links("<<a>a href='hello'>all <b>day</b> long<</A>/a>")
   end

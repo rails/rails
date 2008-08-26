@@ -38,10 +38,9 @@ I18n.backend.populate do
   I18n.load_translations File.dirname(__FILE__) + '/action_view/locale/en-US.yml'
 end
 
+require 'action_view/helpers'
+
 ActionView::Base.class_eval do
   include ActionView::Partials
-
-  ActionView::Base.helper_modules.each do |helper_module|
-    include helper_module
-  end
+  include ActionView::Helpers
 end

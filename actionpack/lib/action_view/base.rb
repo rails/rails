@@ -203,19 +203,6 @@ module ActionView #:nodoc:
     end
     include CompiledTemplates
 
-    def self.helper_modules #:nodoc:
-      helpers = []
-      Dir.entries(File.expand_path("#{File.dirname(__FILE__)}/helpers")).sort.each do |file|
-        next unless file =~ /^([a-z][a-z_]*_helper).rb$/
-        require "action_view/helpers/#{$1}"
-        helper_module_name = $1.camelize
-        if Helpers.const_defined?(helper_module_name)
-          helpers << Helpers.const_get(helper_module_name)
-        end
-      end
-      return helpers
-    end
-
     def self.process_view_paths(value)
       ActionView::PathSet.new(Array(value))
     end
