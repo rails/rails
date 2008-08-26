@@ -11,6 +11,9 @@ module ActiveRecord
       when /^find_(all_by|by)_([_a-zA-Z]\w*)$/
         @finder = :find_every if $1 == 'all_by'
         names = $2
+      when /^find_by_([_a-zA-Z]\w*)\!$/
+        @bang = true
+        names = $1
       when /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/
         @instantiator = $1 == 'initialize' ? :new : :create
         names = $2
@@ -28,6 +31,10 @@ module ActiveRecord
 
     def instantiator?
       @finder == :find_initial && !@instantiator.nil?
+    end
+
+    def bang?
+      @bang
     end
   end
 end

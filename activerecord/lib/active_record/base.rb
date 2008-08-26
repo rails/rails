@@ -1679,6 +1679,7 @@ module ActiveRecord #:nodoc:
             super unless all_attributes_exists?(attribute_names)
             if match.finder?
               finder = match.finder
+              bang = match.bang?
               self.class_eval %{
                 def self.#{method_id}(*args)
                   options = args.extract_options!
@@ -1687,13 +1688,14 @@ module ActiveRecord #:nodoc:
                   validate_find_options(options)
                   set_readonly_option!(options)
 
-                  if options[:conditions]
+                  #{'result = ' if bang}if options[:conditions]
                     with_scope(:find => finder_options) do
                       ActiveSupport::Deprecation.silence { send(:#{finder}, options) }
                     end
                   else
                     ActiveSupport::Deprecation.silence { send(:#{finder}, options.merge(finder_options)) }
                   end
+                  #{'result || raise(RecordNotFound)' if bang}
                 end
               }, __FILE__, __LINE__
               send(method_id, *arguments)

@@ -25,6 +25,15 @@ class DynamicFinderMatchTest < ActiveRecord::TestCase
     assert_equal %w(age sex location), match.attribute_names
   end
 
+  def find_by_bang
+    match = ActiveRecord::DynamicFinderMatch.match("find_by_age_and_sex_and_location!")
+    assert_not_nil match
+    assert match.finder?
+    assert match.bang?
+    assert_equal :find_initial, match.finder
+    assert_equal %w(age sex location), match.attribute_names
+  end
+
   def test_find_all_by
     match = ActiveRecord::DynamicFinderMatch.match("find_all_by_age_and_sex_and_location")
     assert_not_nil match
@@ -480,6 +489,11 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_by_one_attribute
     assert_equal topics(:first), Topic.find_by_title("The First Topic")
     assert_nil Topic.find_by_title("The First Topic!")
+  end
+
+  def test_find_by_one_attribute_bang
+    assert_equal topics(:first), Topic.find_by_title!("The First Topic")
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find_by_title!("The First Topic!") }
   end
 
   def test_find_by_one_attribute_caches_dynamic_finder
