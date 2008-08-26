@@ -328,11 +328,6 @@ module ActionView #:nodoc:
     memoize :pick_template
 
     private
-      def extended_by_without_helpers #:nodoc:
-        extended_by.reject { |mod| mod.name =~ /^ActionView::Helpers/ }
-      end
-      memoize :extended_by_without_helpers
-
       # Evaluate the local assigns and pushes them to the view.
       def evaluate_assigns
         unless @assigns_added

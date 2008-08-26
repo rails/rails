@@ -108,9 +108,4 @@ class JavaScriptHelperTest < ActionView::TestCase
   def test_javascript_cdata_section
     assert_dom_equal "\n//<![CDATA[\nalert('hello')\n//]]>\n", javascript_cdata_section("alert('hello')")
   end
-
-  private
-    def extended_by_without_helpers
-      []
-    end
 end
