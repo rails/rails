@@ -158,6 +158,7 @@ module ActionView #:nodoc:
   # See the ActionView::Helpers::PrototypeHelper::GeneratorMethods documentation for more details.
   class Base
     include ERB::Util
+    extend ActiveSupport::Memoizable
 
     attr_accessor :base_path, :assigns, :template_extension
     attr_accessor :controller
@@ -324,11 +325,14 @@ module ActionView #:nodoc:
         template
       end
     end
-
-    extend ActiveSupport::Memoizable
     memoize :pick_template
 
     private
+      def extended_by_without_helpers #:nodoc:
+        extended_by.reject { |mod| mod.name =~ /^ActionView::Helpers/ }
+      end
+      memoize :extended_by_without_helpers
+
       # Evaluate the local assigns and pushes them to the view.
       def evaluate_assigns
         unless @assigns_added
