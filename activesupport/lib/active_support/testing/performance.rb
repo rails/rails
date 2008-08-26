@@ -17,14 +17,14 @@ module ActiveSupport
         else
           { :benchmark => false,
             :runs => 1,
-            :min_percent => 0.02,
+            :min_percent => 0.01,
             :metrics => [:process_time, :memory, :objects],
             :formats => [:flat, :graph_html, :call_tree],
             :output => 'tmp/performance' }
-        end
+        end.freeze
 
       def self.included(base)
-        base.class_inheritable_hash :profile_options
+        base.superclass_delegating_accessor :profile_options
         base.profile_options = DEFAULTS
       end
 
@@ -34,16 +34,17 @@ module ActiveSupport
 
       def run(result)
         return if method_name =~ /^default_test$/
-        self.profile_options ||= DEFAULTS
 
         yield(self.class::STARTED, name)
         @_result = result
 
         run_warmup
-        profile_options[:metrics].each do |metric_name|
-          if klass = Metrics[metric_name.to_sym]
-            run_profile(klass.new)
-            result.add_run
+        if profile_options && metrics = profile_options[:metrics]
+          metrics.each do |metric_name|
+            if klass = Metrics[metric_name.to_sym]
+              run_profile(klass.new)
+              result.add_run
+            end
           end
         end
 
