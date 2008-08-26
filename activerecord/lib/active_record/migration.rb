@@ -386,9 +386,14 @@ module ActiveRecord
       end
 
       def current_version
-        Base.connection.select_value(
-          "SELECT MAX(CAST(version AS integer)) FROM #{schema_migrations_table_name}"
-        ).to_i rescue 0
+        sm_table = schema_migrations_table_name
+        if Base.connection.table_exists?(sm_table)
+          Base.connection.select_value(
+            "SELECT MAX(CAST(version AS DECIMAL)) FROM #{sm_table}"
+          ).to_i
+        else
+          0
+        end
       end
 
       def proper_table_name(name)
