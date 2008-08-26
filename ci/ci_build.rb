@@ -14,7 +14,7 @@ root_dir = File.expand_path(File.dirname(__FILE__) + "/..")
 
 # for now, use the no-passwd sudoers approach (documented in ci_setup_notes.txt)
 # A security hole, but there is nothing valuable on rails CI box anyway.
-build_results[:geminstaller] = system 'sudo geminstaller --config=#{root_dir}/ci/geminstaller.yml --exceptions'
+build_results[:geminstaller] = system "sudo geminstaller --config=#{root_dir}/ci/geminstaller.yml --exceptions"
 
 cd "#{root_dir}/activesupport" do
   puts
