@@ -271,12 +271,10 @@ module ActiveRecord
       end
 
       def retrieve_connection_pool(klass)
-        loop do
-          pool = @connection_pools[klass.name]
-          return pool if pool
-          return nil if ActiveRecord::Base == klass
-          klass = klass.superclass
-        end
+        pool = @connection_pools[klass.name]
+        return pool if pool
+        return nil if ActiveRecord::Base == klass
+        retrieve_connection_pool klass.superclass
       end
     end
   end
