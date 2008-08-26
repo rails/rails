@@ -14,7 +14,16 @@ module ActiveRecord
             @finder_sql + " AND (#{sanitize_sql(options[:conditions])})"
           options[:include] ||= @reflection.options[:include]
 
-          @reflection.klass.count(column_name, options)
+          value = @reflection.klass.count(column_name, options)
+
+          limit  = @reflection.options[:limit]
+          offset = @reflection.options[:offset]
+
+          if limit || offset
+            [ [value - offset.to_i, 0].max, limit.to_i ].min
+          else
+            value
+          end
         end
       end
 
