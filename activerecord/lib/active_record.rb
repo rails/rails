@@ -51,6 +51,7 @@ require 'active_record/calculations'
 require 'active_record/serialization'
 require 'active_record/attribute_methods'
 require 'active_record/dirty'
+require 'active_record/dynamic_finder_match'
 
 ActiveRecord::Base.class_eval do
   extend ActiveRecord::QueryCache

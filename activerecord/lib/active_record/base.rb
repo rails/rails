@@ -1354,8 +1354,8 @@ module ActiveRecord #:nodoc:
       end
 
       def respond_to?(method_id, include_private = false)
-        if match = matches_dynamic_finder?(method_id) || matches_dynamic_finder_with_initialize_or_create?(method_id)
-          return true if all_attributes_exists?(extract_attribute_names_from_match(match))
+        if match = DynamicFinderMatch.match(method_id)
+          return true if all_attributes_exists?(match.attribute_names)
         end
         super
       end
@@ -1674,86 +1674,63 @@ module ActiveRecord #:nodoc:
         # Each dynamic finder or initializer/creator is also defined in the class after it is first invoked, so that future
         # attempts to use it do not run through method_missing.
         def method_missing(method_id, *arguments)
-          if match = matches_dynamic_finder?(method_id)
-            finder = determine_finder(match)
-
-            attribute_names = extract_attribute_names_from_match(match)
+          if match = DynamicFinderMatch.match(method_id)
+            attribute_names = match.attribute_names
             super unless all_attributes_exists?(attribute_names)
+            if match.finder?
+              finder = match.finder
+              self.class_eval %{
+                def self.#{method_id}(*args)
+                  options = args.extract_options!
+                  attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
+                  finder_options = { :conditions => attributes }
+                  validate_find_options(options)
+                  set_readonly_option!(options)
 
-            self.class_eval %{
-              def self.#{method_id}(*args)
-                options = args.extract_options!
-                attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
-                finder_options = { :conditions => attributes }
-                validate_find_options(options)
-                set_readonly_option!(options)
-
-                if options[:conditions]
-                  with_scope(:find => finder_options) do
-                    ActiveSupport::Deprecation.silence { send(:#{finder}, options) }
+                  if options[:conditions]
+                    with_scope(:find => finder_options) do
+                      ActiveSupport::Deprecation.silence { send(:#{finder}, options) }
+                    end
+                  else
+                    ActiveSupport::Deprecation.silence { send(:#{finder}, options.merge(finder_options)) }
                   end
-                else
-                  ActiveSupport::Deprecation.silence { send(:#{finder}, options.merge(finder_options)) }
                 end
-              end
-            }, __FILE__, __LINE__
-            send(method_id, *arguments)
-          elsif match = matches_dynamic_finder_with_initialize_or_create?(method_id)
-            instantiator = determine_instantiator(match)
-            attribute_names = extract_attribute_names_from_match(match)
-            super unless all_attributes_exists?(attribute_names)
+              }, __FILE__, __LINE__
+              send(method_id, *arguments)
+            elsif match.instantiator?
+              instantiator = match.instantiator
+              self.class_eval %{
+                def self.#{method_id}(*args)
+                  guard_protected_attributes = false
 
-            self.class_eval %{
-              def self.#{method_id}(*args)
-                guard_protected_attributes = false
+                  if args[0].is_a?(Hash)
+                    guard_protected_attributes = true
+                    attributes = args[0].with_indifferent_access
+                    find_attributes = attributes.slice(*[:#{attribute_names.join(',:')}])
+                  else
+                    find_attributes = attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
+                  end
 
-                if args[0].is_a?(Hash)
-                  guard_protected_attributes = true
-                  attributes = args[0].with_indifferent_access
-                  find_attributes = attributes.slice(*[:#{attribute_names.join(',:')}])
-                else
-                  find_attributes = attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
+                  options = { :conditions => find_attributes }
+                  set_readonly_option!(options)
+
+                  record = find_initial(options)
+
+                   if record.nil?
+                    record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
+                    #{'yield(record) if block_given?'}
+                    #{'record.save' if instantiator == :create}
+                    record
+                  else
+                    record
+                  end
                 end
-
-                options = { :conditions => find_attributes }
-                set_readonly_option!(options)
-
-                record = find_initial(options)
-
-                 if record.nil?
-                  record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
-                  #{'yield(record) if block_given?'}
-                  #{'record.save' if instantiator == :create}
-                  record
-                else
-                  record
-                end
-              end
-            }, __FILE__, __LINE__
-            send(method_id, *arguments)
+              }, __FILE__, __LINE__
+              send(method_id, *arguments)
+            end
           else
             super
           end
-        end
-
-        def matches_dynamic_finder?(method_id)
-          /^find_(all_by|by)_([_a-zA-Z]\w*)$/.match(method_id.to_s)
-        end
-
-        def matches_dynamic_finder_with_initialize_or_create?(method_id)
-          /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/.match(method_id.to_s)
-        end
-
-        def determine_finder(match)
-          match.captures.first == 'all_by' ? :find_every : :find_initial
-        end
-
-        def determine_instantiator(match)
-          match.captures.first == 'initialize' ? :new : :create
-        end
-
-        def extract_attribute_names_from_match(match)
-          match.captures.last.split('_and_')
         end
 
         def construct_attributes_from_arguments(attribute_names, arguments)
