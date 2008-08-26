@@ -260,9 +260,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_through
-    posts_with_comments = people(:michael).posts.find(:all, :include => :comments)
-    posts_with_author = people(:michael).posts.find(:all, :include => :author )
-    posts_with_comments_and_author = people(:michael).posts.find(:all, :include => [ :comments, :author ])
+    posts_with_comments = people(:michael).posts.find(:all, :include => :comments, :order => 'posts.id')
+    posts_with_author = people(:michael).posts.find(:all, :include => :author, :order => 'posts.id')
+    posts_with_comments_and_author = people(:michael).posts.find(:all, :include => [ :comments, :author ], :order => 'posts.id')
     assert_equal 2, posts_with_comments.inject(0) { |sum, post| sum += post.comments.size }
     assert_equal authors(:david), assert_no_queries { posts_with_author.first.author }
     assert_equal authors(:david), assert_no_queries { posts_with_comments_and_author.first.author }
