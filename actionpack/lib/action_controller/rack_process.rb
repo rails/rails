@@ -3,7 +3,7 @@ require 'action_controller/session/cookie_store'
 
 module ActionController #:nodoc:
   class RackRequest < AbstractRequest #:nodoc:
-    attr_accessor :env, :session_options
+    attr_accessor :session_options
     attr_reader :cgi
 
     class SessionFixationAttempt < StandardError #:nodoc:
@@ -15,7 +15,7 @@ module ActionController #:nodoc:
       :session_path     => "/",             # available to all paths in app
       :session_key      => "_session_id",
       :cookie_only      => true
-    } unless const_defined?(:DEFAULT_SESSION_OPTIONS)
+    }
 
     def initialize(env, session_options = DEFAULT_SESSION_OPTIONS)
       @session_options = session_options
@@ -24,39 +24,34 @@ module ActionController #:nodoc:
       super()
     end
 
-    %w[ AUTH_TYPE CONTENT_TYPE GATEWAY_INTERFACE PATH_INFO
-        PATH_TRANSLATED QUERY_STRING REMOTE_HOST
+    %w[ AUTH_TYPE GATEWAY_INTERFACE PATH_INFO
+        PATH_TRANSLATED REMOTE_HOST
         REMOTE_IDENT REMOTE_USER SCRIPT_NAME
         SERVER_NAME SERVER_PROTOCOL
 
         HTTP_ACCEPT HTTP_ACCEPT_CHARSET HTTP_ACCEPT_ENCODING
-        HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM HTTP_HOST
+        HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM
         HTTP_NEGOTIATE HTTP_PRAGMA HTTP_REFERER HTTP_USER_AGENT ].each do |env|
       define_method(env.sub(/^HTTP_/n, '').downcase) do
         @env[env]
       end
     end
 
-    # The request body is an IO input stream. If the RAW_POST_DATA environment
-    # variable is already set, wrap it in a StringIO.
-    def body
-      if raw_post = env['RAW_POST_DATA']
-        StringIO.new(raw_post)
+    def query_string
+      qs = super
+      if !qs.blank?
+        qs
       else
-        @env['rack.input']
+        @env['QUERY_STRING']
       end
+    end
+
+    def body_stream #:nodoc:
+      @env['rack.input']
     end
 
     def key?(key)
       @env.key?(key)
-    end
-
-    def query_parameters
-      @query_parameters ||= self.class.parse_query_parameters(query_string)
-    end
-
-    def request_parameters
-      @request_parameters ||= parse_formatted_request_parameters
     end
 
     def cookies
@@ -68,38 +63,6 @@ module ActionController #:nodoc:
       end
 
       @env["rack.request.cookie_hash"]
-    end
-
-    def host_with_port_without_standard_port_handling
-      if forwarded = @env["HTTP_X_FORWARDED_HOST"]
-        forwarded.split(/,\s?/).last
-      elsif http_host = @env['HTTP_HOST']
-        http_host
-      elsif server_name = @env['SERVER_NAME']
-        server_name
-      else
-        "#{env['SERVER_ADDR']}:#{env['SERVER_PORT']}"
-      end
-    end
-
-    def host
-      host_with_port_without_standard_port_handling.sub(/:\d+$/, '')
-    end
-
-    def port
-      if host_with_port_without_standard_port_handling =~ /:(\d+)$/
-        $1.to_i
-      else
-        standard_port
-      end
-    end
-
-    def remote_addr
-      @env['REMOTE_ADDR']
-    end
-
-    def request_method
-      @env['REQUEST_METHOD'].downcase.to_sym
     end
 
     def server_port
@@ -189,23 +152,30 @@ end_msg
   end
 
   class RackResponse < AbstractResponse #:nodoc:
-    attr_accessor :status
-
     def initialize(request)
-      @request = request
+      @cgi = request.cgi
       @writer = lambda { |x| @body << x }
       @block = nil
       super()
     end
 
+    # Retrieve status from instance variable if has already been delete
+    def status
+      @status || super
+    end
+
     def out(output = $stdout, &block)
+      # Nasty hack because CGI sessions are closed after the normal
+      # prepare! statement
+      set_cookies!
+
       @block = block
-      normalize_headers(@headers)
-      if [204, 304].include?(@status.to_i)
-        @headers.delete "Content-Type"
-        [status, @headers.to_hash, []]
+      @status = headers.delete("Status")
+      if [204, 304].include?(status.to_i)
+        headers.delete("Content-Type")
+        [status, headers.to_hash, []]
       else
-        [status, @headers.to_hash, self]
+        [status, headers.to_hash, self]
       end
     end
     alias to_a out
@@ -237,43 +207,57 @@ end_msg
       @block == nil && @body.empty?
     end
 
+    def prepare!
+      super
+
+      convert_language!
+      convert_expires!
+      set_status!
+      # set_cookies!
+    end
+
     private
-      def normalize_headers(options = "text/html")
-        if options.is_a?(String)
-          headers['Content-Type']     = options unless headers['Content-Type']
-        else
-          headers['Content-Length']   = options.delete('Content-Length').to_s if options['Content-Length']
+      def convert_language!
+        headers["Content-Language"] = headers.delete("language") if headers["language"]
+      end
 
-          headers['Content-Type']     = options.delete('type') || "text/html"
-          headers['Content-Type']    += "; charset=" + options.delete('charset') if options['charset']
+      def convert_expires!
+        headers["Expires"] = headers.delete("") if headers["expires"]
+      end
 
-          headers['Content-Language'] = options.delete('language') if options['language']
-          headers['Expires']          = options.delete('expires') if options['expires']
+      def convert_content_type!
+        super
+        headers['Content-Type'] = headers.delete('type') || "text/html"
+        headers['Content-Type'] += "; charset=" + headers.delete('charset') if headers['charset']
+      end
 
-          @status = options['Status'] || "200 OK"
+      def set_content_length!
+        super
+        headers["Content-Length"] = headers["Content-Length"].to_s if headers["Content-Length"]
+      end
 
-          # Convert 'cookie' header to 'Set-Cookie' headers.
-          # Because Set-Cookie header can appear more the once in the response body,
-          # we store it in a line break seperated string that will be translated to
-          # multiple Set-Cookie header by the handler.
-          if cookie = options.delete('cookie')
-            cookies = []
+      def set_status!
+        self.status ||= "200 OK"
+      end
 
-            case cookie
-              when Array then cookie.each { |c| cookies << c.to_s }
-              when Hash  then cookie.each { |_, c| cookies << c.to_s }
-              else            cookies << cookie.to_s
-            end
+      def set_cookies!
+        # Convert 'cookie' header to 'Set-Cookie' headers.
+        # Because Set-Cookie header can appear more the once in the response body,
+        # we store it in a line break separated string that will be translated to
+        # multiple Set-Cookie header by the handler.
+        if cookie = headers.delete('cookie')
+          cookies = []
 
-            @request.cgi.output_cookies.each { |c| cookies << c.to_s } if @request.cgi.output_cookies
-
-            headers['Set-Cookie'] = [headers['Set-Cookie'], cookies].flatten.compact
+          case cookie
+            when Array then cookie.each { |c| cookies << c.to_s }
+            when Hash  then cookie.each { |_, c| cookies << c.to_s }
+            else            cookies << cookie.to_s
           end
 
-          options.each { |k,v| headers[k] = v }
-        end
+          @cgi.output_cookies.each { |c| cookies << c.to_s } if @cgi.output_cookies
 
-        ""
+          headers['Set-Cookie'] = [headers['Set-Cookie'], cookies].flatten.compact
+        end
       end
   end
 

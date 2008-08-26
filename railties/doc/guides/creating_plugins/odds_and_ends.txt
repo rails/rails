@@ -1,0 +1,122 @@
+== Odds and ends ==
+
+=== Work with init.rb ===
+
+The plugin initializer script 'init.rb' is invoked via `eval` (not `require`) so it has slightly different behavior.
+
+If you reopen any classes in init.rb itself your changes will potentially be made to the wrong module.  There are 2 ways around this:
+
+The first way is to explicitly define the top-level module space for all modules and classes, like `::Hash`:
+
+[source, ruby]
+---------------------------------------------------
+# File: vendor/plugins/yaffle/init.rb
+
+class ::Hash
+  def is_a_special_hash?
+    true
+  end
+end
+---------------------------------------------------
+
+OR you can use `module_eval` or `class_eval`:
+
+---------------------------------------------------
+# File: vendor/plugins/yaffle/init.rb
+
+Hash.class_eval do
+  def is_a_special_hash?
+    true
+  end
+end
+---------------------------------------------------
+
+=== Generate RDoc Documentation ===
+
+Once your plugin is stable, the tests pass on all database and you are ready to deploy do everyone else a favor and document it!  Luckily, writing documentation for your plugin is easy.
+
+The first step is to update the README file with detailed information about how to use your plugin.  A few key things to include are:
+
+ * Your name.
+ * How to install.
+ * How to add the functionality to the app (several examples of common use cases).
+ * Warning, gotchas or tips that might help save users time.
+
+Once your README is solid, go through and add rdoc comments to all of the methods that developers will use.
+
+Before you generate your documentation, be sure to go through and add nodoc comments to those modules and methods that are not important to your users.
+
+Once your comments are good to go, navigate to your plugin directory and run:
+
+    rake rdoc
+
+
+=== Store models, views, helpers, and controllers in your plugins ===
+
+You can easily store models, views, helpers and controllers in plugins.  Just create a folder for each in the lib folder, add them to the load path and remove them from the load once path:
+
+[source, ruby]
+---------------------------------------------------------
+# File: vendor/plugins/yaffle/init.rb
+
+%w{ models controllers helpers }.each do |dir|
+  path = File.join(directory, 'lib', dir)
+  $LOAD_PATH << path
+  Dependencies.load_paths << path
+  Dependencies.load_once_paths.delete(path)
+end
+---------------------------------------------------------
+
+Adding directories to the load path makes them appear just like files in the the main app directory - except that they are only loaded once, so you have to restart the web server to see the changes in the browser.
+
+Adding directories to the load once paths allow those changes to picked up as soon as you save the file - without having to restart the web server.
+
+
+=== Write custom Rake tasks in your plugin ===
+
+When you created the plugin with the built-in rails generator, it generated a rake file for you in 'vendor/plugins/yaffle/tasks/yaffle.rake'.  Any rake task you add here will be available to the app.
+
+Many plugin authors put all of their rake tasks into a common namespace that is the same as the plugin, like so:
+
+[source, ruby]
+---------------------------------------------------------
+# File: vendor/plugins/yaffle/tasks/yaffle.rake
+
+namespace :yaffle do
+  desc "Prints out the word 'Yaffle'"
+  task :squawk => :environment do
+    puts "squawk!"
+  end
+end
+---------------------------------------------------------
+
+When you run `rake -T` from your plugin you will see:
+
+---------------------------------------------------------
+yaffle:squawk             # Prints out the word 'Yaffle'
+---------------------------------------------------------
+
+You can add as many files as you want in the tasks directory, and if they end in .rake Rails will pick them up.
+
+=== Store plugins in alternate locations ===
+
+You can store plugins wherever you want - you just have to add those plugins to the plugins path in 'environment.rb'.
+
+Since the plugin is only loaded after the plugin paths are defined, you can't redefine this in your plugins - but it may be good to now.
+
+You can even store plugins inside of other plugins for complete plugin madness!
+
+[source, ruby]
+---------------------------------------------------------
+config.plugin_paths << File.join(RAILS_ROOT,"vendor","plugins","yaffle","lib","plugins")
+---------------------------------------------------------
+
+=== Create your own Plugin Loaders and Plugin Locators ===
+
+If the built-in plugin behavior is inadequate, you can change almost every aspect of the location and loading process.  You can write your own plugin locators and plugin loaders, but that's beyond the scope of this tutorial.
+
+
+=== Use Custom Plugin Generators ===
+
+If you are an RSpec fan, you can install the `rspec_plugin_generator` gem, which will generate the spec folder and database for you. See http://github.com/pat-maddox/rspec-plugin-generator/tree/master.
+

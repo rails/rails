@@ -1,0 +1,193 @@
+== Add an `acts_as_yaffle` method to ActiveRecord ==
+
+A common pattern in plugins is to add a method called `acts_as_something` to models.  In this case, you want to write a method called `acts_as_yaffle` that adds a `squawk` method to your models.
+
+To keep things clean, create a new test file called 'acts_as_yaffle_test.rb' in your plugin's test directory and require your test helper.
+
+[source, ruby]
+------------------------------------------------------
+# File: vendor/plugins/yaffle/test/acts_as_yaffle_test.rb
+
+require File.dirname(__FILE__) + '/test_helper.rb'
+
+class Hickwall < ActiveRecord::Base
+  acts_as_yaffle
+end
+
+class ActsAsYaffleTest < Test::Unit::TestCase
+end
+------------------------------------------------------
+
+[source, ruby]
+------------------------------------------------------
+# File: vendor/plugins/lib/acts_as_yaffle.rb
+
+module Yaffle
+end
+------------------------------------------------------
+
+One of the most common plugin patterns for `acts_as_yaffle` plugins is to structure your file like so:
+
+[source, ruby]
+------------------------------------------------------
+module Yaffle
+  def self.included(base)
+    base.send :extend, ClassMethods
+  end
+
+  module ClassMethods
+    # any method placed here will apply to classes, like Hickwall
+    def acts_as_something
+      send :include, InstanceMethods
+    end
+  end
+
+  module InstanceMethods
+    # any method placed here will apply to instaces, like @hickwall
+  end
+end
+------------------------------------------------------
+
+With structure you can easily separate the methods that will be used for the class (like `Hickwall.some_method`) and the instance (like `@hickwell.some_method`).
+
+Let's add class method named `acts_as_yaffle` - testing it out first.  You already defined the ActiveRecord models in your test helper, so if you run tests now they will fail.
+
+Back in your `acts_as_yaffle` file, update ClassMethods like so:
+
+[source, ruby]
+------------------------------------------------------
+module ClassMethods
+  def acts_as_yaffle(options = {})
+    send :include, InstanceMethods
+  end
+end
+------------------------------------------------------
+
+Now that test should pass.  Since your plugin is going to work with field names, you need to allow people to define the field names, in case there is a naming conflict.  You can write a few simple tests for this:
+
+[source, ruby]
+------------------------------------------------------
+# File: vendor/plugins/yaffle/test/acts_as_yaffle_test.rb
+
+require File.dirname(__FILE__) + '/test_helper.rb'
+
+class ActsAsYaffleTest < Test::Unit::TestCase
+  def test_a_hickwalls_yaffle_text_field_should_be_last_squawk
+    assert_equal "last_squawk", Hickwall.yaffle_text_field
+  end
+
+  def test_a_hickwalls_yaffle_date_field_should_be_last_squawked_at
+    assert_equal "last_squawked_at", Hickwall.yaffle_date_field
+  end
+
+  def test_a_wickwalls_yaffle_text_field_should_be_last_tweet
+    assert_equal "last_tweet", Wickwall.yaffle_text_field
+  end
+
+  def test_a_wickwalls_yaffle_date_field_should_be_last_tweeted_at
+    assert_equal "last_tweeted_at", Wickwall.yaffle_date_field
+  end
+end
+------------------------------------------------------
+
+To make these tests pass, you could modify your `acts_as_yaffle` file like so:
+
+[source, ruby]
+------------------------------------------------------
+# File: vendor/plugins/yaffle/lib/acts_as_yaffle.rb
+
+module Yaffle
+  def self.included(base)
+    base.send :extend, ClassMethods
+  end
+
+  module ClassMethods
+    def acts_as_yaffle(options = {})
+      cattr_accessor :yaffle_text_field, :yaffle_date_field
+      self.yaffle_text_field = (options[:yaffle_text_field] || :last_squawk).to_s
+      self.yaffle_date_field = (options[:yaffle_date_field] || :last_squawked_at).to_s
+      send :include, InstanceMethods
+    end
+  end
+
+  module InstanceMethods
+  end
+end
+------------------------------------------------------
+
+Now you can add tests for the instance methods, and the instance method itself:
+
+[source, ruby]
+------------------------------------------------------
+# File: vendor/plugins/yaffle/test/acts_as_yaffle_test.rb
+
+require File.dirname(__FILE__) + '/test_helper.rb'
+
+class ActsAsYaffleTest < Test::Unit::TestCase
+
+  def test_a_hickwalls_yaffle_text_field_should_be_last_squawk
+    assert_equal "last_squawk", Hickwall.yaffle_text_field
+  end
+  def test_a_hickwalls_yaffle_date_field_should_be_last_squawked_at
+    assert_equal "last_squawked_at", Hickwall.yaffle_date_field
+  end
+
+  def test_a_wickwalls_yaffle_text_field_should_be_last_squawk
+    assert_equal "last_tweet", Wickwall.yaffle_text_field
+  end
+  def test_a_wickwalls_yaffle_date_field_should_be_last_squawked_at
+    assert_equal "last_tweeted_at", Wickwall.yaffle_date_field
+  end
+
+  def test_hickwalls_squawk_should_populate_last_squawk
+    hickwall = Hickwall.new
+    hickwall.squawk("Hello World")
+    assert_equal "squawk! Hello World", hickwall.last_squawk
+  end
+  def test_hickwalls_squawk_should_populate_last_squawked_at
+    hickwall = Hickwall.new
+    hickwall.squawk("Hello World")
+    assert_equal Date.today, hickwall.last_squawked_at
+  end
+
+  def test_wickwalls_squawk_should_populate_last_tweet
+    wickwall = Wickwall.new
+    wickwall.squawk("Hello World")
+    assert_equal "squawk! Hello World", wickwall.last_tweet
+  end
+  def test_wickwalls_squawk_should_populate_last_tweeted_at
+    wickwall = Wickwall.new
+    wickwall.squawk("Hello World")
+    assert_equal Date.today, wickwall.last_tweeted_at
+  end
+end
+------------------------------------------------------
+
+[source, ruby]
+------------------------------------------------------
+# File: vendor/plugins/yaffle/lib/acts_as_yaffle.rb
+
+module Yaffle
+  def self.included(base)
+    base.send :extend, ClassMethods
+  end
+
+  module ClassMethods
+    def acts_as_yaffle(options = {})
+      cattr_accessor :yaffle_text_field, :yaffle_date_field
+      self.yaffle_text_field = (options[:yaffle_text_field] || :last_squawk).to_s
+      self.yaffle_date_field = (options[:yaffle_date_field] || :last_squawked_at).to_s
+      send :include, InstanceMethods
+    end
+  end
+
+  module InstanceMethods
+    def squawk(string)
+      write_attribute(self.class.yaffle_text_field, string.to_squawk)
+      write_attribute(self.class.yaffle_date_field, Date.today)
+    end
+  end
+end
+------------------------------------------------------
+
+Note the use of `write_attribute` to write to the field in model.

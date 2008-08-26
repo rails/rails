@@ -11,6 +11,7 @@ uses_mocha "Plugin Tests" do
       @gem_with_source  = Rails::GemDependency.new "hpricot", :source => "http://code.whytheluckystiff.net"
       @gem_with_version = Rails::GemDependency.new "hpricot", :version => "= 0.6"
       @gem_with_lib     = Rails::GemDependency.new "aws-s3", :lib => "aws/s3"
+      @gem_without_load  = Rails::GemDependency.new "hpricot", :lib => false
     end
 
     def test_configuration_adds_gem_dependency
@@ -62,5 +63,13 @@ uses_mocha "Plugin Tests" do
       @gem_with_lib.add_load_paths
       @gem_with_lib.load
     end
+
+    def test_gem_without_lib_loading
+      @gem_without_load.expects(:gem).with(@gem_without_load.name)
+      @gem_without_load.expects(:require).with(@gem_without_load.lib).never
+      @gem_without_load.add_load_paths
+      @gem_without_load.load
+    end
+
   end
 end

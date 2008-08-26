@@ -12,6 +12,57 @@ require 'models/customer'
 require 'models/job'
 require 'models/categorization'
 
+class DynamicFinderMatchTest < ActiveRecord::TestCase
+  def test_find_no_match
+    assert_nil ActiveRecord::DynamicFinderMatch.match("not_a_finder")
+  end
+
+  def test_find_by
+    match = ActiveRecord::DynamicFinderMatch.match("find_by_age_and_sex_and_location")
+    assert_not_nil match
+    assert match.finder?
+    assert_equal :find_initial, match.finder
+    assert_equal %w(age sex location), match.attribute_names
+  end
+
+  def find_by_bang
+    match = ActiveRecord::DynamicFinderMatch.match("find_by_age_and_sex_and_location!")
+    assert_not_nil match
+    assert match.finder?
+    assert match.bang?
+    assert_equal :find_initial, match.finder
+    assert_equal %w(age sex location), match.attribute_names
+  end
+
+  def test_find_all_by
+    match = ActiveRecord::DynamicFinderMatch.match("find_all_by_age_and_sex_and_location")
+    assert_not_nil match
+    assert match.finder?
+    assert_equal :find_every, match.finder
+    assert_equal %w(age sex location), match.attribute_names
+  end
+
+  def test_find_or_initialize_by
+    match = ActiveRecord::DynamicFinderMatch.match("find_or_initialize_by_age_and_sex_and_location")
+    assert_not_nil match
+    assert !match.finder?
+    assert match.instantiator?
+    assert_equal :find_initial, match.finder
+    assert_equal :new, match.instantiator
+    assert_equal %w(age sex location), match.attribute_names
+  end
+
+  def test_find_or_create_by
+    match = ActiveRecord::DynamicFinderMatch.match("find_or_create_by_age_and_sex_and_location")
+    assert_not_nil match
+    assert !match.finder?
+    assert match.instantiator?
+    assert_equal :find_initial, match.finder
+    assert_equal :create, match.instantiator
+    assert_equal %w(age sex location), match.attribute_names
+  end
+end
+
 class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers
 
@@ -438,6 +489,11 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_by_one_attribute
     assert_equal topics(:first), Topic.find_by_title("The First Topic")
     assert_nil Topic.find_by_title("The First Topic!")
+  end
+
+  def test_find_by_one_attribute_bang
+    assert_equal topics(:first), Topic.find_by_title!("The First Topic")
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find_by_title!("The First Topic!") }
   end
 
   def test_find_by_one_attribute_caches_dynamic_finder

@@ -1,0 +1,1371 @@
+A Guide to Testing Rails Applications
+=====================================
+
+This article is for fellow Rubyists looking for more information on test writing and how that fits into Ruby On Rails. If you're new to test writing or experienced with test writing, but not in Rails, hopefully you'll gain some practical tips and insight on successful testing.
+Assumptions
+
+Just so we're all on the same page here, I'm making a few assumptions about you.
+
+ * You've got Ruby installed and know how to run a Ruby script.
+ * You've got Rails installed
+ * You've created a basic Rails application with 1 controller and 1 model.
+
+If you haven't accomplished all of the above, you might be jumping ahead of yourself. Check out www.rubyonrails.org for some great beginner's tutorials.
+
+Make sure you have Ruby 1.8.6 or greater and Rails 2.0 or greater.
+
+Also, hats off to xal (and others) for creating this site.
+
+
+== Testing 1-2-3... is this thing on?
+
+=== What are These Strange Creatures?
+
+I have to say that tests are such a straight-forward concept that it's actually harder to describe what they are than it is to show you how to do them.
+
+So what are tests?
+
+The Official Answer::
+	Tests are collections of questions and scenarios that provide us (developers) with consistent results which prove that our application is doing what we expect it to do.
+
+The Unofficial Answer::
+	We write tests to interrogate, taunt, bully, punish, and otherwise kick the crap out of our application code until it consistently gives us the correct answer. Think of it as ``tough love''. ;)
+
+Need some examples?
+
+ * ensure user names have at least 4 characters
+ * ensure that when we save this record, the administrator is e-mailed
+ * ensure all replies are deleted when we delete the parent message
+ * ensure that Canadians have GST of 7% applied to their purchases
+
+The idea of tests is that you write them at the same time as you write your application. In essence, you're writing two application. As your application grows and becomes more complex, you create many tests. Re-running these tests at any point will help you discover if you've ``broke'' anything along the way.
+
+Some developers actually take this a step further and create the tests before they create the application. This is called Test Driven Development (TDD), and although I personally don't subscribe to it, it's a totally legit way of coding.
+
+There's volumes written about Test Driven Development and testing in general. For more information, talk to Mr. Google.
+
+=== So Why Test?
+
+As mentioned before, tests offer proof that you've done a good job. Your tests become your own personal QA assistant. If you code your tests correctly, at any point in development, you will know:
+
+ * what processes work
+ * what processes fail
+ * the effect of adding new pieces onto your application
+
+With your tests as your safety net, you can do wild refactoring of your code and be able to tell what needs to be addressed simply by seeing which tests fail.
+
+In addition to normal "did it pass?" testing, you can go the opposite route. You can explicitly try to break your application such as feeding it unexpected and crazy input, shutting down critical resources like a database to see what happens, and tampering with things such as session values just to see what happens. By testing your application where the weak points are, you can fix it *before* it ever becomes an issue.
+
+A strong suite of tests ensures your application has a high level of quality. It's worth the extra effort.
+
+Another positive side-effect of writing tests is that you have basic usage documentation of how things work. Simply by looking at your testing code, you can see how you need to work with an object to make it do it's thing.
+
+But enough about theory.
+
+
+== Introducing Test/Unit
+
+=== The Small Picture
+
+==== Hello World
+
+As we all know, Ruby ships with a boat load of great libraries. If you're like me, you've only used a quarter of them or so. One little gem of a library is 'test/unit'. It comes packaged with Ruby 1.8.1, so there's nothing to download.
+
+By using one line of code `require \'test/unit'`, you arm your Ruby script with the capability to write tests.
+
+Let's show you a really basic test, and then we'll step through it and explain some details.
+
+[source,ruby]
+------------------------------------------------------
+# hello_test.rb
+
+require 'test/unit'
+
+class HelloTestCase < Test::Unit::TestCase
+  def test_hello
+    assert true
+  end
+end
+------------------------------------------------------
+
+Quite possibly the simplest and least useful test ever invented, but it shows you the bare bones of writing a test case. That script can be run from the command line the same way your run any other Ruby script.
+
+Simply run `ruby hello_test.rb` and you will see the following:
+
+------------------------------------------------------
+Started
+.
+Finished in 0.0 seconds.
+
+1 tests, 1 assertions, 0 failures, 0 errors
+------------------------------------------------------
+
+Congratulations, your first test.
+
+
+==== What Does It All Mean?
+
+By looking at the output of a test, you will be able to tell if the tests pass or not. In our example, not surprisingly, we've passed. The summary shows *1 test, 1 assertion, 0 failures, and 0 errors*.
+
+So, let's break our test source code down.
+
+First, line 1.
+
+[source,ruby]
+------------------------------------------------------
+require 'test/unit'
+------------------------------------------------------
+
+You'll always have this when writing unit tests. It contains the classes and functionality to write and run unit tests.
+
+Next, we have a class `HelloTestCase` which derives from `Test::Unit::TestCase`.
+
+[source,ruby]
+------------------------------------------------------
+class HelloTestCase < Test::Unit::TestCase
+------------------------------------------------------
+
+All of the tests that you create will directly subclass `Test::Unit::TestCase`. The TestCase provides the ``housing'' of where your tests will live. More on this in a bit.
+
+Finally, we have a method called `test_hello`.
+
+[source,ruby]
+------------------------------------------------------
+def test_hello
+------------------------------------------------------
+
+All tests must follow this naming convention: *their names start with the first 4 characters test*, as in `test_hello`, `testme`, and `testarosa`. If you create a method that doesn't start with test, the testing framework won't recognize it as a test, hence, won't run it automatically, hence it is a normal Ruby method.
+
+Inside our `test_hello` method, we have an assertion.
+
+[source,ruby]
+------------------------------------------------------
+assert true
+------------------------------------------------------
+
+Assertions are where the real work gets done. There are a whole army of different types of assertions that you'll use to make sure your code is doing the right thing.
+
+
+=== The Big Picture
+
+Grab a cup of coffee and dunk your head in some ice water, because here's some more theory.
+
+There are 4 major players in the testing game.
+
+==== A: The Assertion
+
+An 'Assertion' is 1 line of code that evaluates an object (or expression) for expected results.
+
+For example, is this value = that value? is this object nil? does this line of code throw an exception? is the user's password greater than 5 characters?
+
+==== B: The Test ====
+
+A 'Test' is method that contains assertions which represent a particular testing scenario.
+
+For example, we may have a test method called `test_valid_password`. In order for this test to pass, we might need to check a few things:
+
+ * password is 4 or more characters
+ * password isn't the word ‘password'
+ * password isn't all spaces
+
+If all of these assertions are successful, the test will pass.
+
+==== C: The Test Case ====
+A 'Test Case' is a class inherited from `Test::Unit::TestCase` containing a testing ``strategy'' comprised of contextually related tests.
+
+For example, I may have a test case called UserTestCase which has a bunch of tests that check that:
+
+ * the password is valid (`test_password`)
+ * the username doesn't have any forbidden words (`test_username_cussin`)
+ * a user is under the age of 150 (`test_shriveled_raisin`)
+
+==== D: The Test Suite ====
+A 'Test Suite' is a collection of test cases. When you run a test suite, it will, in turn, execute each test that belongs to it.
+
+For example, instead of running each test unit individually, you can run them all by creating a suite and including them. This is good for stuff like continuous-build integration.
+
+We won't get into test suites in this article.
+
+
+==== The Hierarchy ====
+
+The relationship of these objects to one-another looks like this:
+
+ * a test suite
+ * has many test cases
+ * which have many tests
+ * which have many assertions
+
+
+== Hello World on Steroids ==
+
+=== The Victim ===
+
+In the last episode, we learned that we write tests to prove our code works properly. Let's create a really simple class for us to test.
+
+[source,ruby]
+--------------------------------------------------
+# secret_agent.rb
+class SecretAgent
+
+  # simple public properties
+  attr_accessor :username
+  attr_accessor :password
+
+  # our "constructor"
+  def initialize(username,password)
+    @username = username
+    @password = password
+  end
+
+  # the logic to determine if the password is
+  # good enough for the user to use
+  def is_password_secure?
+    return false if @password.nil?
+    return false if @password.empty?
+    return false if @password.size < 4
+    return false if @password  'stirred'
+    return false if @password  ‘password'
+    return false if @password == @username
+    true
+  end
+end
+--------------------------------------------------
+
+Ok. So, we've got a class which represents a secret agent. What we're about to do is test a user to make sure that their password is secure enough to use in our top-secret database.
+
+The `is_password_secure?` method will answer that for us. If the user's password passes our stringent set of rules, then the function will return a true value and the secret agent granted access.
+
+
+=== The Assault ===
+
+Let's build upon the last test we wrote and add in a few more things, specifically, let's test out this brand new SecretAgent.
+
+[source,ruby]
+-----------------------------------------------
+require 'test/unit'
+require 'secret_agent'
+
+class HelloTestCase < Test::Unit::TestCase
+
+  def test_hello
+    assert true
+  end
+
+  # our new test will exercise the new SecretAgent class
+  def test_these_passwords
+    # first, let's try a few passwords that should fail
+    assert !SecretAgent.new("bond","abc").is_password_secure?
+    assert !SecretAgent.new("bond","007").is_password_secure?
+    assert !SecretAgent.new("bond","stirred").is_password_secure?
+    assert !SecretAgent.new("bond","password").is_password_secure?
+    assert !SecretAgent.new("bond","bond").is_password_secure?
+    assert !SecretAgent.new("bond","").is_password_secure?
+    assert !SecretAgent.new("bond",nil).is_password_secure?
+
+    # now, let's try passwords that should succeed
+    assert SecretAgent.new("bond","goldfinger").is_password_secure?
+    assert SecretAgent.new("bond","1234").is_password_secure?
+    assert SecretAgent.new("bond","shaken").is_password_secure?
+  end
+end
+-----------------------------------------------
+
+In this example, we've expanded our test case by adding another test called `test_these_passwords` with 10 assertions. Let's run it, cross our fingers, and hope it passes.
+
+-----------------------------------------------
+Started
+..
+Finished in 0.01 seconds.
+
+2 tests, 11 assertions, 0 failures, 0 errors
+-----------------------------------------------
+
+Sweet! It passed!
+
+A couple of new things to notice about the results. See the line right underneath the word Started? Notice it has 2 dots instead of only 1 before? Each . represents a test. You can have 1 of 3 values where the dots are.
+
+ * *.* means successful test (pass)
+ * *F* means failed test
+ * *E* means an error has occurred
+
+=== Failure, Error and General Discomfort ===
+
+Let's add another in 2 more tests. This time, we'll make one of them fail and the other throw an error. Yes, on purpose. Yes, I'm a trained professional.
+
+[source,ruby]
+---------------------------------------------------------------
+...
+# this will result in a failure because the assertion fails... plus everyone
+# knows batman really exists
+def test_bam_zap_sock_pow
+  batman = nil
+  assert_not_nil batman
+end
+
+# this will result in an error because it contains an undefined symbol
+def test_uh_oh_hotdog
+  assert_not_nil does_this_var_speak_korean
+end
+...
+---------------------------------------------------------------
+
+Ok... Let's run this puppy.
+
+---------------------------------------------------------------
+Started
+F..E
+Finished in 0.07 seconds.
+
+1) Failure:
+test_bam_zap_sock_pow(HelloTestCase) [/example/test.rb:62]:
+<nil> expected to not be nil.
+
+2) Error:
+test_uh_oh_hotdog(HelloTestCase):
+NameError: undefined local variable or method 'does_this_var_speak_korean' for
+#<HelloTestCase:0x28c59a0> /example/test.rb:68:in 'test_uh_oh_hotdog'
+
+4 tests, 12 assertions, 1 failures, 1 errors
+---------------------------------------------------------------
+
+Wow. Nasty.
+
+Take a look at the 2nd line. This time we have 'F..E' which means failure, pass, pass, error. In the details underneath the total elapsed time, you see what exactly went wrong and where.
+
+The incredibly observant will notice that even though the two new methods were added as the 3rd and 4th tests, they showed up in the results as 1st and 4th. That's because the tests are sorted alphabetically.
+
+So, that's what errors and failures look like. The difference is, a failure represents an assertion attempt that gave us the wrong results whereas an error is a Ruby problem.
+
+
+=== This Side Up ^ ===
+
+Another thing about assertions. They're fragile. If the test finds an assertion that fails, it will stop execution of that method and move on to the next test.
+
+If I had a test with 4 assertions, of which numbers 2, 3, and 4 were all going to fail, you'd only see #2 as the cause of the failed test. If you were to correct that failure, then rerun the test, it would be #3 thats causes grief.
+
+Got it? Good, there will be a pop quiz on Monday.
+
+
+== The Test Case Life Cycle ==
+
+=== 4.1 A Quick Recap ===
+
+You already saw a simple test case in action. It looked something like this:
+
+[source,ruby]
+---------------------------------------------------------
+require 'test/unit'
+
+class MyTestCase < Test::Unit::TestCase
+
+  def test_1
+    assert true
+  end
+
+  def test_2
+  end
+
+  def test_3
+  end
+
+end
+---------------------------------------------------------
+
+You saw that:
+
+ * we need to use `require ‘test/unit'`
+ * we need to inherit from `Test::Unit::TestCase`
+ * we need to define methods that start with `test`
+ * we need assertions to prove our code works
+
+Next, we're going to look at the flow of how test cases are run.
+
+
+=== The Flow ===
+
+When a test case is run, the testing framework creates a ‘fresh' object before running each test. That allows the test to not have to worry about what state the other test methods leave the object in. So for the above example, the testing flow looks like this when run:
+
+ * an object of class `MyTestCase` is created
+ * method `test_1` is run
+ * the test case object is destroyed
+
+then...
+
+ * a brand new object of class `MyTestCase` is created
+ * method `test_2` is run
+ * the test case object is destroyed
+
+then...
+
+ * one last object of class `MyTestCase` is created
+ * method `test_3` is run
+ * the test case object is destroyed
+
+
+=== Setup and Teardown Exposed ===
+
+Now, there are 2 special methods that you can use to hook into this process. One is called setup and the other is called teardown.
+
+Let's rewrite our test.
+
+[source,ruby]
+------------------------------------------
+require 'test/unit'
+
+class MyTestCase < Test::Unit::TestCase
+
+  # called before every single test
+  def setup
+    @name = 'jimmy'
+    @age = 150
+  end
+
+  # called after every single test
+  def teardown
+  end
+
+  # our tests
+  def test_1
+    assert true
+  end
+
+  def test_2
+  end
+
+  def test_3
+  end
+end
+------------------------------------------
+
+The `setup` method will always be called just before the test method. Comparatively, the `teardown` method will always be called always be called just after the test method. So now, the flow looks like this:
+
+ * an object of class `MyTestCase` is created
+ * method `setup` is run
+ * method `test_1` is run
+ * method `teardown` is run
+ * the test case object is destroyed
+
+then...
+
+ * a brand new object of class `MyTestCase` is created
+ * method `setup` is run
+ * method `test_2` is run
+ * method `teardown` is run
+ * the test case object is destroyed
+
+then...
+
+ * one last object of class `MyTestCase` is created
+ * method `setup` is run
+ * method `test_3` is run
+ * method `teardown` is run
+ * the test case object is destroyed
+
+What can you do with this? Well, the `setup` method is good for stuff like creating objects that each method uses. For example, maybe we need to create a user and populate her with sample data before running each of the tests?
+
+As you'll see later, Rails uses the `setup` and `teardown` methods extensively.
+
+
+== Hey Test/Unit. Assert This! ==
+
+=== The Assertion Lineup ===
+
+By now you've caught a glimpse of some of the assertions that are available. Assertions are the worker bees of testing. They are the ones that actually perform the checks to ensure things are going as planned.
+
+There are a bunch of different types of assertions you can use. Here's the complete list of assertions that ship with test/unit. The [msg] is an optional string message you can specify to make your test failure messages clearer. It's not required.
+
+`assert( boolean, [msg] )`::
+	Ensures that the object/expression is true.
+
+`assert_equal( obj1, obj2, [msg] )`::
+	Ensures that `obj1 == obj2` is true.
+
+`assert_not_equal( obj1, obj2, [msg] )`::
+	Ensures that `obj1 == obj2` is false.
+
+`assert_same( obj1, obj2, [msg] )`::
+	Ensures that `obj1.equal?(obj2)` is true.
+
+`assert_not_same( obj1, obj2, [msg] )`::
+	Ensures that `obj1.equal?(obj2)` is false.
+
+`assert_nil( obj, [msg] )`::
+	Ensures that `obj.nil?` is true.
+
+`assert_not_nil( obj, [msg] )`::
+	Ensures that `obj.nil?` is false.
+
+`assert_match( regexp, string, [msg] )`::
+	Ensures that a string matches the regular expression.
+
+`assert_no_match( regexp, string, [msg] )`::
+	Ensures that a string doesn't matches the regular expression.
+
+`assert_in_delta( expecting, actual, delta, [msg] )`::
+	Ensures that the numbers `expecting` and `actual` are within `delta` of each other.
+
+`assert_throws( symbol, [msg] ) { block }`::
+	Ensures that the given block throws the symbol.
+
+`assert_raises( exception1, exception2, ... ) { block }`::
+	Ensures that the given block raises one of the given exceptions.
+
+`assert_nothing_raised( exception1, exception2, ... ) { block }`::
+	Ensures that the given block doesn't raise one of the given exceptions.
+
+`assert_instance_of( class, obj, [msg] )`::
+	Ensures that `obj` is of the `class` type.
+
+`assert_kind_of( class, obj, [msg] )`::
+	Ensures that `obj` is or descends from `class`.
+
+`assert_respond_to( obj, symbol, [msg] )`::
+	Ensures that obj has a method called symbol.
+
+`assert_operator( obj1, operator, obj2, [msg] )`::
+	Ensures that `obj1.operator(obj2)` is true.
+
+`assert_send( array, [msg] )`::
+	Ensures that executing the method listed in `array[1]` on the object in `array[0]` with the parameters of `array[2 and up]` is true. This one is weird eh?
+
+`flunk( [msg] )`::
+	Ensures failure... like me and high school chemistry exams.
+
+Because of the modular nature of the testing framework, it is possible to create your own assertions. In fact, that's exactly what Rails does. It has some specialized assertions to make your life easier.
+
+Creating your own assertions is more of an advanced topic we won't cover in this tutorial.
+
+
+== The Rails Fly-By ==
+
+=== It's About Frikkin' Time ===
+
+Finally we get to testing in with Ruby on Rails! By this point, I'm going to assume a few things.
+
+ * you're familiar with the basic building blocks of 'test/unit'
+ * you know that there are a bunch of assertions you can use
+ * you know what the special methods `setup` and `teardown` are
+ * you're conscious
+
+Rails promotes testing. The Ruby on Rails framework itself was built using these testing methodologies.
+
+In fact, the features built-in to Rails makes it exceptionally easy to do testing. For every model and controller you create using the `script/generate model` and `script/generate controller` scripts, corresponding test stubs are created.
+
+=== Where They Live ===
+
+Your tests, quite surprisingly, go in your 'test' directory under your rails application. In the test directory, you'll see 4 sub-directories; one for controller tests ('functional'), one for model tests ('unit'), one for mock objects ('mocks') and one that only holds sample data ('fixtures').
+
+ * test
+   - /unit
+   - /functional
+   - /fixtures
+   - /mocks
+
+=== How to Turn Them On ===
+
+To run these tests, you simply run the test script directly:
+
+---------------------------------------------
+ruby test/unit/my_good_old_test_unit.rb
+---------------------------------------------
+
+Another way to run your tests is to have the main rakefile run it for you. `rake test_functional` will run all your controller tests and `rake test_units` will run all your model tests.
+
+=== The 3 Environments ===
+
+Testing support was woven into the Rails fabric from the beginning. It wasn't a ``oh! let's bolt on support for running tests because they're new and cool'' epiphany.
+
+Each Rails application you build has 3 sides. A side for production, a side for development and a side for testing.
+
+Let's take a closer look at the Rails 'config/database.yml' file. This YAML configuration file has 3 different sections defining 3 unique database setups:
+
+ * production
+ * development
+ * test
+
+Why 3 different databases? Well, there's one for testing where you can use sample data, there's one for development where you'll be most of the time as you develop your application, and then production for the ``real deal'', or when it goes live.
+
+Every new Rails application should have these 3 sections filled out. They should point to different databases. You may end up not having a local database for your production environment, but development and test should both exist and be different.
+
+=== Why Make This Distinction? ===
+
+If you stop and think about it for a second, it makes sense.
+
+By segregating your development database and your testing database, you're not in any danger of losing any data where it matters.
+
+For example, you need to test your new `delete_this_user_and_every_everything_associated_with_it` function. Wouldn't you want to run this in an environment which makes no difference if you destroy data or not?
+
+When you do end up destroying your testing database (and it will happen, trust me), simply run a task in your rakefile to rebuild it from scratch according to the specs defined in the development database. You can do this by running `rake db:test:prepare`.
+
+
+== The Lo-Down on Fixtures ==
+
+=== What They Are ===
+
+The structure is one thing, but what about when I want to automatically create sample data?
+
+Enter fixtures. Fixtures is a fancy word for ‘sample data'. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and assume one of two formats: *YAML* or *CSV*.
+
+You'll find fixtures under your 'test/fixtures' directory. When you run `script/generate model` to create a new model, fixture stubs will be automatically created and placed in this directory.
+
+=== YAML the Camel is a Mammal with Enamel ===
+
+YAML-formatted fixtures are a very human-friendly way to describe your sample data. These types of fixtures have the *.yml* file extension (as in 'users.yml').
+
+On any given Sunday, a YAML fixture file may look like this:
+
+---------------------------------------------
+# low & behold!  I am a YAML comment!
+david:
+ id: 1
+ name: David Heinemeier Hansson
+ birthday: 1979-10-15
+ profession: Systems development
+
+steve:
+ id: 2
+ name: Steve Ross Kellock
+ birthday: 1974-09-27
+ profession: guy with keyboard
+---------------------------------------------
+
+Each fixture is given a 'name' followed by an indented list of colon-separated key/value pairs. Records are separated by a blank space. You can place comments by using the # character in the first column.
+
+=== Comma Seperated ===
+
+Fixtures can also be described using the all-too-familiar comma-separated value file format. These files, just like YAML fixtures are placed in the 'test/fixtures directory', but these end with the *.csv* file extension (as in 'celebrity_holiday_figures.csv').
+
+A CSV fixture looks like this:
+
+--------------------------------------------------------------
+id, username, password, stretchable, comments
+1, sclaus, ihatekids, false, I like to say ""Ho! Ho! Ho!""
+2, ebunny, ihateeggs, true, Hoppity hop y'all
+3, tfairy, ilovecavities, true, "Pull your teeth, I will"
+--------------------------------------------------------------
+
+The first line is the header. It is a comma-separated list of fields. The rest of the file is the payload: 1 record per line. A few notes about this format:
+
+ * each cell is stripped of outward facing spaces
+ * if you use a comma as data, the cell must be encased in quotes
+ * if you use a quote as data, you must escape it with a 2nd quote
+ * don't use blank lines
+ * nulls can be achived by just placing a comma, for example, (1,sclaus,,false,) minus the parenthesis of course.
+
+Unlike the YAML format where you give each fixture a name, CSV fixture names are automatically generated. They follow a pattern of ``model-name''-''counter''. In the above example, you would have:
+
+--------------------------------------------------------------
+celebrity-holiday-figures-1
+celebrity-holiday-figures-2
+celebrity-holiday-figures-3
+--------------------------------------------------------------
+
+The CSV format is great to use if you have existing data in a spreadsheet or database and you are able to save it (or export it) as a CSV.
+
+=== ERb'in It Up ===
+
+ERb allows you embed ruby code within templates. Both the YAML and CSV fixture formats are pre-processed with ERb. This allows you to use Ruby to help you generate some sample data.
+
+I'll demonstrate with a YAML file:
+
+--------------------------------------------------------------
+<% earth_size = 20 -%>
+mercury:
+  id: 1
+  size: <%= earth_size / 50 %>
+
+venus:
+  id: 2
+  size: <%= earth_size / 2 %>
+
+mars:
+  id: 3
+  size: <%= earth_size - 69 %>
+--------------------------------------------------------------
+
+Anything encased within the
+
+-------------
+<% -%>
+-------------
+
+tag is considered Ruby code. To actually print something out, you must use the
+
+-------------
+<%= %>
+-------------
+
+tag.
+
+=== Fixtures in Action ===
+
+Rails makes no assumptions when it comes to fixtures. You must explicitly load them yourself by using the fixtures method within your TestCase. For example, a users model unit test might look like this:
+
+[source, ruby]
+--------------------------------------------------------------
+# Allow this test to hook into the Rails framework.
+require File.dirname(__FILE__) + '/../test_helper'
+
+class UserTest < Test::Unit::TestCase
+  fixtures :users
+
+  # Count the fixtures.
+  def test_count_my_fixtures
+    assert_equal 5, User.count
+  end
+end
+--------------------------------------------------------------
+
+Using the fixtures method and placing the symbol name of the model, Rails will automatically load up the fixtures for you at the start of each test method.
+
+[source, ruby]
+--------------------------------------------------------------
+fixtures :users
+--------------------------------------------------------------
+
+What exactly does this line of code do? It does 3 things:
+
+ * it nukes any existing data living in the users table
+* it loads the fixture data (if any) into the users table
+ * it dumps the data into a variable in case you want to access it directly
+
+So, in the above example, if we had another test method, we wouldn't have 10 users on the 2nd test because they would be wiped out before being created.
+
+You can load multiple fixtures by including them on the same line separated by commas.
+
+[source, ruby]
+--------------------------------------------------------------
+fixtures :users, :losers, :bruisers, :cruisers
+--------------------------------------------------------------
+
+=== Hashes with Special Powers ===
+
+Fixtures are basically Hash objects. As mentioned in point #3 above, you can access the hash object directly because it is automatically setup as a local variable of the test case.
+
+[source, ruby]
+--------------------------------------------------------------
+...
+  fixtures :users
+
+  def test_user
+    # this will return the Hash for the fixture named david
+    users(:david)
+
+    # this will return the property for david called id
+    users(:david).id
+  end
+...
+--------------------------------------------------------------
+
+But, by there's another side to fixtures... at night, if the moon is full and the wind completely still, fixtures can also transform themselves into the form of the original class!
+
+Now you can get at the methods only available to that class.
+
+[source, ruby]
+--------------------------------------------------------------
+...
+  fixtures :users
+
+  def test_user
+    # using the find method, we grab the "real" david as a User
+    david = users(:david).find
+
+    # an now we have access to methods only available to a User class
+    email( david.girlfriend.email, david.illegitimate_children )
+  end
+...
+--------------------------------------------------------------
+
+
+== Testing Your Models ==
+
+=== A Unit Test ===
+
+Unit tests are what we use to test our models. Generally, there is one test for each model. The test stubs are created automatically when you use `script/generate model SecretAgent` (for example).
+
+Let's take a look at what a unit test might look like.
+
+[source, ruby]
+-------------------------------------------------------
+# hook into the Rails environment
+require File.dirname(__FILE__) + '/../test_helper'
+
+class SecretAgent < ActiveSupport::TestCase
+  fixtures :secret_agents
+
+  # ensure the SecretAgent plays well with the database
+  def test_create_read_update_delete
+    # create a brand new secret agent
+    jimmy = SecretAgent.new("jagent", "unbelievablysecretpassword")
+
+    # save him
+    assert jimmy.save
+
+    # read him back
+    agent = SecretAgent.find(jimmy.id)
+
+    # compare the usernames
+    assert_equal jimmy.username, agent.username
+
+    # change the password by using hi-tech encryption
+    agent.username = agent.username.reverse
+
+    # save the changes
+    assert agent.save
+
+    # the agent gets killed
+    assert agent.destroy
+  end
+end
+-------------------------------------------------------
+
+In this basic unit test, we're exercising the 'SecretAgent' model. In our solitary test, we're proving a bunch of things about our 'SecretAgent' model. We try 4 different assertions to test that we can do the basics with the database such as create, read, update and delete (creatively known as CRUD).
+
+It is up to you to decide just how much you want to test of your model. Ideally you test anything that could possibly break, however, it is really trial and error. Only you know what's best to test.
+
+You most certainly want to test the validation code, and additionally, you probably want a least 1 test for every method in your model.
+
+
+== Testing Your Controllers ==
+
+=== What Is It? ===
+
+The goal of functional testing is to test your controllers. When you get into the realm of testing controllers, we're operating at a higher level than the model. At this level, we test for things such as:
+
+ * was the web request successful?
+ * were we redirected to the right page?
+ * were we successfully authenticated?
+ * was the correct object stored in the response template?
+
+Just as there is a one-to-one ratio between unit tests and models, so there is between functional tests and controllers. For a controller named `HomeController`, you would have a test case named `HomeControllerTest`.
+
+=== An Anatomy Lesson ===
+
+So let's take a look at an example of a functional test.
+
+[source, ruby]
+----------------------------------------------------
+require File.dirname(__FILE__) + '/../test_helper'
+
+class HomeControllerTest < ActionController::TestCase
+  # let's test our main index page
+  def test_index
+    get :index
+    assert_response :success
+  end
+end
+----------------------------------------------------
+
+==== Making the moves ====
+
+In the one test we have called `test_index`, we are simulating a request on the action called index and making sure the request was successful.
+
+The `get` method kicks off the web request and populates the results into the response. It accepts 4 arguments.
+
+ * The action of the controller you are requesting. It can be in the form of a string or a symbol. Cool people use symbols. ;)
+ * An optional hash of request parameters to pass into the action (eg. query string parameters or post variables).
+ * An optional hash of session variables to pass along with the request.
+ * An optional hash of flash to stash your goulash.
+
+*Example:* Calling the `:show` action, passing an `id` of 12 as the params and setting `user_id` of 5 in the session.
+
+[source, ruby]
+----------------------------------------------------
+get(:show, {'id' => "12"}, {'user_id' => 5})
+----------------------------------------------------
+
+*Another example:* Calling the `:view` action, passing an `id` of 12 as the params, this time with no session, but with a flash message.
+
+[source, ruby]
+----------------------------------------------------
+get(:view, {'id' => '12'}, nil, {'message' => 'booya!'})
+----------------------------------------------------
+
+==== Available at your disposal ====
+
+For those of you familiar with HTTP protocol, you'll know that get is a type of request. There are 5 request types supported in Rails:
+
+ * get
+ * post
+ * put
+ * head
+ * delete
+
+All of request types are methods that you can use, however, you'll probably end up using the first two more ofter than the others.
+
+=== The 4 Hashes of the Apocolypse ===
+
+After the request has been made by using one of the 5 methods (get, post, etc...), you will have 4 Hash objects ready for use.
+
+They are (starring in alphabetical order):
+
+`assigns`::
+	Any objects that are stored as instance variables in actions for use in views.
+`cookies`::
+	Any objects cookies that are set.
+`flash`::
+	Any objects living in the flash.
+`session`::
+	Any object living in session variables.
+
+For example, let's say we have a `MoviesController` with an action called `movie`. The code for that action might look something like:
+
+[source, ruby]
+----------------------------------------------------
+def movie
+  @movie = Movie.find(params[:id])
+  if @movie.nil?
+    flash['message'] = "That movie has been burned."
+    redirect_to :controller => 'error', :action => 'missing'
+  end
+end
+----------------------------------------------------
+
+Now, to test out if the proper movie is being set, we could have a series of tests that look like this:
+
+[source, ruby]
+----------------------------------------------------
+# this test proves that fetching a movie works
+def test_successfully_finding_a_movie
+  get :movie, "id" => "1"
+  assert_not_nil assigns["movie"]
+  assert_equal 1, assigns["movie"].id
+  assert flash.empty?
+end
+
+# and when we can't find a movie...
+def test_movie_not_found
+  get :movie, "id" => "666999"
+  assert_nil assigns["movie"]
+  assert flash.has_key?("message")
+  assert assigns.empty?
+end
+----------------------------------------------------
+
+As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name... except assigns. Check it out:
+
+[source, ruby]
+----------------------------------------------------
+flash["gordon"]               flash[:gordon]
+session["shmession"]          session[:shmession]
+cookies["are_good_for_u"]     cookies[:are_good_for_u]
+
+# Because you can't use assigns[:something] for historical reasons:
+assigns["something"]          assigns(:something)
+----------------------------------------------------
+
+Keep an eye out for that. mmmm kay?
+
+=== Response-Related Assertions ===
+
+There are 3 assertions that deal with the overall response to a request. They are:
+
+`assert_template( expected_template, [msg] )`::
+Ensures the expected template was responsible for rendering. For example:
++
+[source, ruby]
+--------------------------------------
+assert_template "user/profile"
+--------------------------------------
++
+This code will fail unless the template located at app/views/user/profile.rhtml was rendered.
+
+`assert_response( type_or_code, [msg] )`::
+Ensures the response type/status code is as expected. For example:
++
+[source, ruby]
+--------------------------------------
+assert_response :success      # page rendered ok
+assert_response :redirect     # we've been redirected
+assert_response :missing      # not found
+assert_response 505           # status code was 505
+--------------------------------------
++
+The possible options are:
++
+ * `:success` (status code is 200)
+ * `:redirect` (status code is within 300..399)
+ * `:missing` (status code is 404)
+ * `:error` (status code is within 500..599)
+ * any number (to specifically reference a particular status code)
+
+`assert_redirected_to ( options={}, [msg] )`::
+Ensures we've been redirected to a specific place within our application.
++
+[source, ruby]
+--------------------------
+assert_redirected_to :controller => 'widget', :action => 'view', :id => 555
+--------------------------
+
+=== Tag-Related Assertions ===
+
+The assert_tag and assert_no_tag assertions are for analysing the html returned from a request.
+
+==== assert_tag( options ) ====
+Ensures that a tag or text exists. There are a whole whack o' options you can use to discover what you are looking for. Some of the conditions are like XPATH in concept, but this is sexier. In fact, let's call it SEXPATH.
+
+The following description is lifted verbatim from the rails assertion docs.
+
+Asserts that there is a tag/node/element in the body of the response that meets all of the given conditions. The conditions parameter must be a hash of any of the following keys (all are optional):
+
+ * `:tag` : the node type must match the corresponding value
+ * `:attributes` : a hash. The node's attributes must match the corresponding values in the hash.
+ * `:parent` : a hash. The node's parent must match the corresponding hash.
+ * `:child` : a hash. At least one of the node's immediate children must meet the criteria described by the hash.
+ * `:ancestor` : a hash. At least one of the node's ancestors must meet the criteria described by the hash.
+ * `:descendant` : a hash. At least one of the node's descendants must meet the criteria described by the hash.
+ * `:children` : a hash, for counting children of a node. Accepts the keys:
+    - `:count` : either a number or a range which must equal (or include) the number of children that match.
+    - `:less_than` : the number of matching children must be less than this number.
+    - `:greater_than` : the number of matching children must be greater than this number.
+    - `:only` : another hash consisting of the keys to use to match on the children, and only matching children will be counted.
+    - `:content` : (text nodes only). The content of the node must match the given value.
+
+Conditions are matched using the following algorithm:
+
+ * if the condition is a *string*, it must be a substring of the value.
+ * if the condition is a *regexp*, it must match the value.
+ * if the condition is a *number*, the value must match `number.to_s`.
+ * if the condition is *true*, the value must not be `nil`.
+ * if the condition is *false* or *nil*, the value must be `nil`.
+
+These examples are taken from the same docs too:
+
+[source, ruby]
+-------------------------------------------------------------
+  # assert that there is a "span" tag
+  assert_tag :tag => "span"
+
+  # assert that there is a "span" inside of a "div"
+  assert_tag :tag => "span", :parent => { :tag => "div" }
+
+  # assert that there is a "span" somewhere inside a table
+  assert_tag :tag => "span", :ancestor => { :tag => "table" }
+
+  # assert that there is a "span" with at least one "em" child
+  assert_tag :tag => "span", :child => { :tag => "em" }
+
+  # assert that there is a "span" containing a (possibly nested)
+  # "strong" tag.
+  assert_tag :tag => "span", :descendant => { :tag => "strong" }
+
+  # assert that there is a "span" containing between 2 and 4 "em" tags
+  # as immediate children
+  assert_tag :tag => "span",
+             :children => { :count => 2..4, :only => { :tag => "em" } }
+
+  # get funky: assert that there is a "div", with an "ul" ancestor
+  # and an "li" parent (with "class" = "enum"), and containing a
+  # "span" descendant that contains text matching /hello world/
+  assert_tag :tag => "div",
+             :ancestor => { :tag => "ul" },
+             :parent => { :tag => "li",
+                          :attributes => { :class => "enum" } },
+             :descendant => { :tag => "span",
+                              :child => /hello world/ }
+-------------------------------------------------------------
+
+==== assert_no_tag( options ) ====
+This is the exact opposite of assert_tag. It ensures that the tag does not exist.
+
+=== Routing-Related Assertions ===
+
+==== assert_generates( expected_path, options, defaults={}, extras = {}, [msg] ) ====
+Ensures that the options map to the expected_path.
+
+[source, ruby]
+-------------------------------------------------------------
+opts = {:controller => "movies", :action => "movie", :id => "69"}
+assert_generates "movies/movie/69", opts
+-------------------------------------------------------------
+
+==== assert_recognizes( expected_options, path, extras={}, [msg] ) ====
+Ensures that when the path is chopped up into pieces, it is equal to expected_options. Essentially, the opposite of assert_generates.
+
+[source, ruby]
+-------------------------------------------------------------
+opts = {:controller => "movies", :action => "movie", :id => "69"}
+assert_recognizes opts, "/movies/movie/69
+
+# also, let's say i had a line in my config/routes.rb
+# that looked like:
+#
+#    map.connect (
+#      'calendar/:year/:month',
+#      :controller => 'content',
+#      :action => 'calendar',
+#      :year => nil,
+#      :month => nil,
+#      :requirements => {:year => /\d{4}/, :month => /\d{1,2}/}
+#    }
+#
+# Then, this would work too:
+opts = {
+  :controller => 'content',
+  :action => 'calendar',
+  :year => '2005',
+  :month => '5'
+}
+assert_recognizes opts, 'calendar/2005/5'
+-------------------------------------------------------------
+
+==== assert_routing( path, options, defaults={}, extras={}, [msg] ) ====
+Ensures that the path resolves into options, and the options, resolves into path. It's a two-way check to make sure your routing maps work as expected.
+
+This assertion is simply a wrapper around `assert_generates` and `assert_recognizes`.
+
+If you're going to test your routes, this assertion might be your best bet for robustness (yes, the overused buzzword of the 90's).
+
+[source, ruby]
+-------------------------------------------------------------
+opts = {:controller => "movies", :action => "movie", :id => "69"}
+assert_routing "movies/movie/69", opts
+-------------------------------------------------------------
+
+=== Testing File Uploads ===
+So your web app supports file uploads eh? Here's what you can do to test your uploads.
+
+This tip is brought to you by Chris Brinker, the letter R and the number 12.
+
+Chris says, '``In order to test a file being uploaded you have to mirror what cgi.rb is doing with a multipart post. Unfortunately what it does is quite long and complex, this code takes a file on your system, and turns it into what normally comes out of cgi.rb.'''
+
+Here are some helper methods based on Chris' work that you'll need to squirrel away either in a new unit, or cut ‘n' pasted right into your test. Any errors with this are my fault.
+
+[source, ruby]
+-------------------------------------------------------------
+# get us an object that represents an uploaded file
+def uploaded_file(path, content_type="application/octet-stream", filename=nil)
+  filename ||= File.basename(path)
+  t = Tempfile.new(filename)
+  FileUtils.copy_file(path, t.path)
+  (class << t; self; end;).class_eval do
+    alias local_path path
+    define_method(:original_filename) { filename }
+    define_method(:content_type) { content_type }
+  end
+  return t
+end
+
+# a JPEG helper
+def uploaded_jpeg(path, filename=nil)
+  uploaded_file(path, 'image/jpeg', filename)
+end
+
+# a GIF helper
+def uploaded_gif(path, filename=nil)
+  uploaded_file(path, 'image/gif', filename)
+end
+-------------------------------------------------------------
+
+And to use this code, you'd have a test that would looks something like this:
+
+[source, ruby]
+-------------------------------------------------------------
+def test_a_file_upload
+  assert_equal 0, GalleryImage.count
+  heman = uploaded_jpeg("#{File.expand_path(RAILS_ROOT)}/text/fixtures/heman.jpg")
+  post :imageupload, 'imagefile' => heman
+  assert_redirected_to :controller => 'gallery', :action => 'view'
+  assert_equal 1, GalleryImage.count
+end
+-------------------------------------------------------------
+
+
+== Testing Your Mailers ==
+
+=== Keeping the postman in check ===
+
+Your ActionMailer -- like every other part of your Rails application -- should be tested to ensure that it is working as expected.
+
+The goal of testing your ActionMailer is to ensure that:
+
+ * emails are being processed (created and sent)
+ * the email content is correct (subject, sender, body, etc)
+ * the right emails are being sent at the righ times
+
+==== From all sides ====
+
+There are two aspects of testing your mailer, the unit tests and the functional tests.
+Unit tests
+
+In the unit tests, we run the mailer in isolation with tightly controlled inputs and compare the output to a known-value -- a fixture -- yay! more fixtures!
+
+==== Functional tests ====
+
+In the functional tests we don't so much test the minute details produced by the mailer, instead we test that our controllers and models are using the mailer in the right way. We test to prove that the right email was sent at the right time.
+
+=== Unit Testing ===
+
+In order to test that your mailer is working as expected, we can use unit tests to compare the actual results of the mailer with pre-writen examples of what should be produced.
+
+==== Revenge of the fixtures ====
+
+For the purposes of unit testing a mailer, fixtures are used to provide an example of how output ``should'' look. Because these are example emails, and not Active Record data like the other fixtures, they are kept in their own subdirectory from the other fixtures. Don't tease them about it though, they hate that.
+
+When you generated your mailer (you did that right?) the generator created stub fixtures for each of the mailers actions. If you didn't use the generator you'll have to make those files yourself.
+
+==== The basic test case ====
+
+Here is an example of what you start with.
+
+[source, ruby]
+-------------------------------------------------
+require File.dirname(__FILE__) + '/. ./test_helper'
+
+class MyMailerTest < Test::Unit::TestCase
+  FIXTURES_PATH = File.dirname(__FILE__) + '/. ./fixtures'
+
+  def setup
+    ActionMailer::Base.delivery_method = :test
+    ActionMailer::Base.perform_deliveries = true
+    ActionMailer::Base.deliveries = []
+
+    @expected = TMail::Mail.new
+  end
+
+  def test_signup
+    @expected.subject = 'MyMailer#signup'
+    @expected.body    = read_fixture('signup')
+    @expected.date    = Time.now
+
+    assert_equal @expected.encoded, MyMailer.create_signup(@expected.date).encoded
+  end
+
+  private
+    def read_fixture(action)
+      IO.readlines("#{FIXTURES_PATH}/my_mailer/#{action}")
+    end
+end
+-------------------------------------------------
+
+The `setup` method is mostly concerned with setting up a blank slate for the next test. However it is worth describing what each statement does
+
+[source, ruby]
+-------------------------------------------------
+ActionMailer::Base.delivery_method = :test
+-------------------------------------------------
+
+sets the delivery method to test mode so that email will not actually be delivered (useful to avoid spamming your users while testing) but instead it will be appended to an array (ActionMailer::Base.deliveries).
+
+[source, ruby]
+-------------------------------------------------
+ActionMailer::Base.perform_deliveries = true
+-------------------------------------------------
+
+Ensures the mail will be sent using the method specified by ActionMailer::Base.delivery_method, and finally
+
+[source, ruby]
+-------------------------------------------------
+ActionMailer::Base.deliveries = []
+-------------------------------------------------
+
+sets the array of sent messages to an empty array so we can be sure that anything we find there was sent as part of our current test.
+
+However often in unit tests, mails will not actually be sent, simply constructed, as in the example above, where the precise content of the email is checked against what it should be. Dave Thomas suggests an alternative approach, which is just to check the part of the email that is likely to break, i.e. the dynamic content. The following example assumes we have some kind of user table, and we might want to mail those users new passwords:
+
+[source, ruby]
+-------------------------------------------------
+require File.dirname(__FILE__) + '/../test_helper'
+require 'my_mailer'
+
+class MyMailerTest < Test::Unit::TestCase
+  fixtures :users
+  FIXTURES_PATH = File.dirname(__FILE__) + '/../fixtures'
+  CHARSET = "utf-8"
+
+  include ActionMailer::Quoting
+
+  def setup
+    ActionMailer::Base.delivery_method = :test
+    ActionMailer::Base.perform_deliveries = true
+    ActionMailer::Base.deliveries = []
+
+    @expected = TMail::Mail.new
+    @expected.set_content_type "text", "plain", { "charset" => CHARSET }
+  end
+
+  def test_reset_password
+    user = User.find(:first)
+    newpass = 'newpass'
+    response = MyMailer.create_reset_password(user,newpass)
+    assert_equal 'Your New Password', response.subject
+    assert_match /Dear #{user.full_name},/, response.body
+    assert_match /New Password: #{newpass}/, response.body
+    assert_equal user.email, response.to[0]
+  end
+
+  private
+    def read_fixture(action)
+      IO.readlines("#{FIXTURES_PATH}/community_mailer/#{action}")
+    end
+
+    def encode(subject)
+      quoted_printable(subject, CHARSET)
+    end
+end
+-------------------------------------------------
+
+and here we check the dynamic parts of the mail, specifically that we use the users' correct full name and that we give them the correct password.
+
+=== Functional Testing ===
+
+Functional testing involves more than just checking that the email body, recipients and so forth are correct. In functional mail tests we call the mail deliver methods and check that the appropriate emails have been appended to the delivery list. It is fairly safe to assume that the deliver methods themselves do their job -- what we are probably more interested in is whether our own business logic is sending emails when we expect them to. For example the password reset operation we used an example in the previous section will probably be called in response to a user requesting a password reset through some sort of controller.
+
+[source, ruby]
+----------------------------------------------------------------
+require File.dirname(__FILE__) + '/../test_helper'
+require 'my_controller'
+
+# Raise errors beyond the default web-based presentation
+class MyController; def rescue_action(e) raise e end; end
+
+class MyControllerTest < Test::Unit::TestCase
+
+  def setup
+    @controller = MyController.new
+    @request, @response = ActionController::TestRequest.new, ActionController::TestResponse.new
+  end
+
+  def test_reset_password
+    num_deliveries = ActionMailer::Base.deliveries.size
+    post :reset_password, :email => 'bob@test.com'
+
+    assert_equal num_deliveries+1, ActionMailer::Base.deliveries.size
+  end
+
+end
+----------------------------------------------------------------
+
+=== Filtering emails in development ===
+
+Sometimes you want to be somewhere inbetween the `:test` and `:smtp` settings. Say you're working on your development site, and you have a few testers working with you. The site isn't in production yet, but you'd like the testers to be able to receive emails from the site, but no one else. Here's a handy way to handle that situation, add this to your 'environment.rb' or 'development.rb' file
+
+[source, ruby]
+----------------------------------------------------------------
+class ActionMailer::Base
+
+  def perform_delivery_fixed_email(mail)
+    destinations = mail.destinations
+    if destinations.nil?
+      destinations = ["mymail@me.com"]
+      mail.subject = '[TEST-FAILURE]:'+mail.subject
+    else
+      mail.subject = '[TEST]:'+mail.subject
+    end
+    approved = ["testerone@me.com","testertwo@me.com"]
+    destinations = destinations.collect{|x| approved.collect{|y| (x==y ? x : nil)}}.flatten.compact
+    mail.to = destinations
+    if destinations.size > 0
+      mail.ready_to_send
+      Net::SMTP.start(server_settings[:address], server_settings[:port], server_settings[:domain],
+                    server_settings[:user_name], server_settings[:password], server_settings[:authentication]) do |smtp|
+        smtp.sendmail(mail.encoded, mail.from, destinations)
+      end
+    end
+
+  end
+
+end
+----------------------------------------------------------------
+

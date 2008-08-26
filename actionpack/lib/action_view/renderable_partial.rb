@@ -3,7 +3,7 @@ module ActionView
     # NOTE: The template that this mixin is beening include into is frozen
     # So you can not set or modify any instance variables
 
-    include ActiveSupport::Memoizable
+    extend ActiveSupport::Memoizable
 
     def variable_name
       name.sub(/\A_/, '').to_sym

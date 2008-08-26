@@ -33,7 +33,11 @@ module Rails
     end
 
     def logger
-      RAILS_DEFAULT_LOGGER
+      if defined?(RAILS_DEFAULT_LOGGER)
+        RAILS_DEFAULT_LOGGER
+      else
+        nil
+      end
     end
 
     def root
@@ -45,6 +49,7 @@ module Rails
     end
 
     def env
+      require 'active_support/string_inquirer'
       ActiveSupport::StringInquirer.new(RAILS_ENV)
     end
 
@@ -98,7 +103,7 @@ module Rails
     #   Rails::Initializer.run(:set_load_path)
     #
     # This is useful if you only want the load path initialized, without
-    # incuring the overhead of completely loading the entire environment.
+    # incurring the overhead of completely loading the entire environment.
     def self.run(command = :process, configuration = Configuration.new)
       yield configuration if block_given?
       initializer = new configuration
@@ -167,6 +172,15 @@ module Rails
 
       # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
       load_observers
+
+      # Load view path cache
+      load_view_paths
+
+      # Load application classes
+      load_application_classes
+
+      # Disable dependency loading during request cycle
+      disable_dependency_loading
 
       # Flag initialized
       Rails.initialized = true
@@ -266,11 +280,16 @@ module Rails
         @gems_dependencies_loaded = false
         # don't print if the gems rake tasks are being run
         unless $rails_gem_installer
-          puts %{These gems that this application depends on are missing:}
-          unloaded_gems.each do |gem|
-            puts " - #{gem.name}"
-          end
-          puts %{Run "rake gems:install" to install them.}
+          abort <<-end_error
+Missing these required gems:
+  #{unloaded_gems.map { |gem| "#{gem.name}  #{gem.requirement}" } * "\n  "}
+
+You're running:
+  ruby #{Gem.ruby_version} at #{Gem.ruby}
+  rubygems #{Gem::RubyGemsVersion} at #{Gem.path * ', '}
+
+Run `rake gems:install` to install the missing gems.
+          end_error
         end
       else
         @gems_dependencies_loaded = true
@@ -325,6 +344,26 @@ module Rails
       end
     end
 
+    def load_view_paths
+      if configuration.frameworks.include?(:action_view)
+        ActionView::PathSet::Path.eager_load_templates! if configuration.cache_classes
+        ActionController::Base.view_paths.load if configuration.frameworks.include?(:action_controller)
+        ActionMailer::Base.template_root.load if configuration.frameworks.include?(:action_mailer)
+      end
+    end
+
+    # Eager load application classes
+    def load_application_classes
+      if configuration.cache_classes
+        configuration.eager_load_paths.each do |load_path|
+          matcher = /\A#{Regexp.escape(load_path)}(.*)\.rb\Z/
+          Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
+            require_dependency file.sub(matcher, '\1')
+          end
+        end
+      end
+    end
+
     # For Ruby 1.8, this initialization sets $KCODE to 'u' to enable the
     # multibyte safe operations. Plugin authors supporting other encodings
     # should override this behaviour and set the relevant +default_charset+
@@ -369,7 +408,7 @@ module Rails
     # +STDERR+, with a log level of +WARN+.
     def initialize_logger
       # if the environment has explicitly defined a logger, use it
-      return if defined?(RAILS_DEFAULT_LOGGER)
+      return if Rails.logger
 
       unless logger = configuration.logger
         begin
@@ -377,7 +416,6 @@ module Rails
           logger.level = ActiveSupport::BufferedLogger.const_get(configuration.log_level.to_s.upcase)
           if configuration.environment == "production"
             logger.auto_flushing = false
-            logger.set_non_blocking_io
           end
         rescue StandardError => e
           logger = ActiveSupport::BufferedLogger.new(STDERR)
@@ -398,10 +436,11 @@ module Rails
     # RAILS_DEFAULT_LOGGER.
     def initialize_framework_logging
       for framework in ([ :active_record, :action_controller, :action_mailer ] & configuration.frameworks)
-        framework.to_s.camelize.constantize.const_get("Base").logger ||= RAILS_DEFAULT_LOGGER
+        framework.to_s.camelize.constantize.const_get("Base").logger ||= Rails.logger
       end
 
-      RAILS_CACHE.logger ||= RAILS_DEFAULT_LOGGER
+      ActiveSupport::Dependencies.logger ||= Rails.logger
+      Rails.cache.logger ||= Rails.logger
     end
 
     # Sets +ActionController::Base#view_paths+ and +ActionMailer::Base#template_root+
@@ -409,8 +448,11 @@ module Rails
     # paths have already been set, it is not changed, otherwise it is
     # set to use Configuration#view_path.
     def initialize_framework_views
-      ActionMailer::Base.template_root ||= configuration.view_path  if configuration.frameworks.include?(:action_mailer)
-      ActionController::Base.view_paths = [configuration.view_path] if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.empty?
+      if configuration.frameworks.include?(:action_view)
+        view_path = ActionView::PathSet::Path.new(configuration.view_path, false)
+        ActionMailer::Base.template_root ||= view_path if configuration.frameworks.include?(:action_mailer)
+        ActionController::Base.view_paths = view_path if configuration.frameworks.include?(:action_controller) && ActionController::Base.view_paths.empty?
+      end
     end
 
     # If Action Controller is not one of the loaded frameworks (Configuration#frameworks)
@@ -492,9 +534,16 @@ module Rails
     end
 
     def prepare_dispatcher
+      return unless configuration.frameworks.include?(:action_controller)
       require 'dispatcher' unless defined?(::Dispatcher)
       Dispatcher.define_dispatcher_callbacks(configuration.cache_classes)
-      Dispatcher.new(RAILS_DEFAULT_LOGGER).send :run_callbacks, :prepare_dispatch
+      Dispatcher.new(Rails.logger).send :run_callbacks, :prepare_dispatch
+    end
+
+    def disable_dependency_loading
+      if configuration.cache_classes && !configuration.dependency_loading
+        ActiveSupport::Dependencies.unhook!
+      end
     end
   end
 
@@ -523,7 +572,7 @@ module Rails
     # A stub for setting options on ActiveRecord::Base.
     attr_accessor :active_record
 
-    # A stub for setting options on ActiveRecord::Base.
+    # A stub for setting options on ActiveResource::Base.
     attr_accessor :active_resource
 
     # A stub for setting options on ActiveSupport.
@@ -558,6 +607,11 @@ module Rails
     # An array of paths from which Rails will automatically load from only once.
     # All elements of this array must also be in +load_paths+.
     attr_accessor :load_once_paths
+
+    # An array of paths from which Rails will eager load on boot if cache
+    # classes is enabled. All elements of this array must also be in
+    # +load_paths+.
+    attr_accessor :eager_load_paths
 
     # The log level to use for the default Rails logger. In production mode,
     # this defaults to <tt>:info</tt>. In development mode, it defaults to
@@ -625,6 +679,17 @@ module Rails
       !!@reload_plugins
     end
 
+    # Enables or disables dependency loading during the request cycle. Setting
+    # <tt>dependency_loading</tt> to true will allow new classes to be loaded
+    # during a request. Setting it to false will disable this behavior.
+    #
+    # Those who want to run in a threaded environment should disable this
+    # option and eager load or require all there classes on initialization.
+    #
+    # If <tt>cache_classes</tt> is disabled, dependency loaded will always be
+    # on.
+    attr_accessor :dependency_loading
+
     # An array of gems that this rails application depends on.  Rails will automatically load
     # these gems during installation, and allow you to install any missing gems with:
     #
@@ -633,13 +698,17 @@ module Rails
     # You can add gems with the #gem method.
     attr_accessor :gems
 
-    # Adds a single Gem dependency to the rails application.
+    # Adds a single Gem dependency to the rails application. By default, it will require
+    # the library with the same name as the gem. Use :lib to specify a different name.
     #
     #   # gem 'aws-s3', '>= 0.4.0'
     #   # require 'aws/s3'
     #   config.gem 'aws-s3', :lib => 'aws/s3', :version => '>= 0.4.0', \
     #     :source => "http://code.whytheluckystiff.net"
     #
+    # To require a library be installed, but not attempt to load it, pass :lib => false
+    #
+    #   config.gem 'qrp', :version => '0.4.1', :lib => false
     def gem(name, options = {})
       @gems << Rails::GemDependency.new(name, options)
     end
@@ -667,11 +736,13 @@ module Rails
       self.frameworks                   = default_frameworks
       self.load_paths                   = default_load_paths
       self.load_once_paths              = default_load_once_paths
+      self.eager_load_paths             = default_eager_load_paths
       self.log_path                     = default_log_path
       self.log_level                    = default_log_level
       self.view_path                    = default_view_path
       self.controller_paths             = default_controller_paths
       self.cache_classes                = default_cache_classes
+      self.dependency_loading           = default_dependency_loading
       self.whiny_nils                   = default_whiny_nils
       self.plugins                      = default_plugins
       self.plugin_paths                 = default_plugin_paths
@@ -707,10 +778,22 @@ module Rails
       ::RAILS_ROOT.replace @root_path
     end
 
+    # Enable threaded mode. Allows concurrent requests to controller actions and
+    # multiple database connections. Also disables automatic dependency loading
+    # after boot
+    def threadsafe!
+      self.cache_classes = true
+      self.dependency_loading = false
+      self.active_record.allow_concurrency = true
+      self.action_controller.allow_concurrency = true
+      self
+    end
+
     # Loads and returns the contents of the #database_configuration_file. The
     # contents of the file are processed via ERB before being sent through
     # YAML::load.
     def database_configuration
+      require 'erb'
       YAML::load(ERB.new(IO.read(database_configuration_file)).result)
     end
 
@@ -807,6 +890,14 @@ module Rails
         []
       end
 
+      def default_eager_load_paths
+        %w(
+          app/models
+          app/controllers
+          app/helpers
+        ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+      end
+
       def default_log_path
         File.join(root_path, 'log', "#{environment}.log")
       end
@@ -833,12 +924,12 @@ module Rails
         paths
       end
 
-      def default_dependency_mechanism
-        :load
+      def default_dependency_loading
+        true
       end
 
       def default_cache_classes
-        false
+        true
       end
 
       def default_whiny_nils

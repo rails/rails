@@ -37,7 +37,7 @@ module TZInfo
     attr_reader :numerator_or_time
     protected :numerator_or_time
     
-    # Either the denominotor of the DateTime if the transition time is defined
+    # Either the denominator of the DateTime if the transition time is defined
     # as a DateTime, otherwise nil. 
     attr_reader :denominator
     protected :denominator

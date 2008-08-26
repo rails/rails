@@ -19,6 +19,7 @@ require 'models/warehouse_thing'
 require 'rexml/document'
 
 class Category < ActiveRecord::Base; end
+class Categorization < ActiveRecord::Base; end
 class Smarts < ActiveRecord::Base; end
 class CreditCard < ActiveRecord::Base
   class PinNumber < ActiveRecord::Base
@@ -75,7 +76,7 @@ class TopicWithProtectedContentAndAccessibleAuthorName < ActiveRecord::Base
 end
 
 class BasicsTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories
 
   def test_table_exists
     assert !NonExistentTable.table_exists?
@@ -130,14 +131,14 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_read_attributes_before_type_cast
     category = Category.new({:name=>"Test categoty", :type => nil})
-    category_attrs = {"name"=>"Test categoty", "type" => nil}
+    category_attrs = {"name"=>"Test categoty", "type" => nil, "categorizations_count" => nil}
     assert_equal category_attrs , category.attributes_before_type_cast
   end
 
   if current_adapter?(:MysqlAdapter)
     def test_read_attributes_before_type_cast_on_boolean
       bool = Booleantest.create({ "value" => false })
-      assert_equal 0, bool.attributes_before_type_cast["value"]
+      assert_equal "0", bool.reload.attributes_before_type_cast["value"]
     end
   end
 
@@ -614,6 +615,22 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal -2, Topic.find(2).replies_count
   end
 
+  def test_update_counter
+    category = categories(:general)
+    assert_nil category.categorizations_count
+    assert_equal 2, category.categorizations.count
+
+    Category.update_counters(category.id, "categorizations_count" => category.categorizations.count)
+    category.reload
+    assert_not_nil category.categorizations_count
+    assert_equal 2, category.categorizations_count
+
+    Category.update_counters(category.id, "categorizations_count" => category.categorizations.count)
+    category.reload
+    assert_not_nil category.categorizations_count
+    assert_equal 4, category.categorizations_count
+  end
+
   def test_update_all
     assert_equal Topic.count, Topic.update_all("content = 'bulk updated!'")
     assert_equal "bulk updated!", Topic.find(1).content
@@ -887,6 +904,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil keyboard.id
   end
 
+  def test_mass_assigning_invalid_attribute
+    firm = Firm.new
+
+    assert_raises(ActiveRecord::UnknownAttributeError) do
+      firm.attributes = { "id" => 5, "type" => "Client", "i_dont_even_exist" => 20 }
+    end
+  end
+
   def test_mass_assignment_protection_on_defaults
     firm = Firm.new
     firm.attributes = { "id" => 5, "type" => "Client" }
@@ -1089,11 +1114,15 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_boolean
+    b_nil = Booleantest.create({ "value" => nil })
+    nil_id = b_nil.id
     b_false = Booleantest.create({ "value" => false })
     false_id = b_false.id
     b_true = Booleantest.create({ "value" => true })
     true_id = b_true.id
 
+    b_nil = Booleantest.find(nil_id)
+    assert_nil b_nil.value
     b_false = Booleantest.find(false_id)
     assert !b_false.value?
     b_true = Booleantest.find(true_id)
@@ -1101,11 +1130,15 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_boolean_cast_from_string
+    b_blank = Booleantest.create({ "value" => "" })
+    blank_id = b_blank.id
     b_false = Booleantest.create({ "value" => "0" })
     false_id = b_false.id
     b_true = Booleantest.create({ "value" => "1" })
     true_id = b_true.id
 
+    b_blank = Booleantest.find(blank_id)
+    assert_nil b_blank.value
     b_false = Booleantest.find(false_id)
     assert !b_false.value?
     b_true = Booleantest.find(true_id)
@@ -1333,6 +1366,12 @@ class BasicsTest < ActiveRecord::TestCase
     myobj = MyObject.new('value1', 'value2')
     topic = Topic.create("content" => myobj)
     Topic.serialize("content", MyObject)
+    assert_equal(myobj, topic.content)
+  end
+
+  def test_serialized_time_attribute
+    myobj = Time.local(2008,1,1,1,0)
+    topic = Topic.create("content" => myobj).reload
     assert_equal(myobj, topic.content)
   end
 

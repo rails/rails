@@ -21,13 +21,13 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-unless defined?(ActionController)
-  begin
-    $:.unshift "#{File.dirname(__FILE__)}/../../actionpack/lib"
+begin
+  require 'action_controller'
+rescue LoadError
+  actionpack_path = "#{File.dirname(__FILE__)}/../../actionpack/lib"
+  if File.directory?(actionpack_path)
+    $:.unshift actionpack_path
     require 'action_controller'
-  rescue LoadError
-    require 'rubygems'
-    gem 'actionpack', '>= 1.12.5'
   end
 end
 

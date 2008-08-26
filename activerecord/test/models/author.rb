@@ -32,6 +32,9 @@ class Author < ActiveRecord::Base
   has_many :special_posts
   has_many :special_post_comments, :through => :special_posts, :source => :comments
 
+  has_many :sti_posts, :class_name => 'StiPost'
+  has_many :sti_post_comments, :through => :sti_posts, :source => :comments
+
   has_many :special_nonexistant_posts, :class_name => "SpecialPost", :conditions => "posts.body = 'nonexistant'"
   has_many :special_nonexistant_post_comments, :through => :special_nonexistant_posts, :source => :comments, :conditions => "comments.post_id = 0"
   has_many :nonexistant_comments, :through => :posts

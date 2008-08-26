@@ -70,7 +70,7 @@ end
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
-           :parrots, :pirates, :treasures, :price_estimates
+           :parrots, :pirates, :treasures, :price_estimates, :tags, :taggings
 
   def test_has_and_belongs_to_many
     david = Developer.find(1)
@@ -299,6 +299,17 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, projects(:active_record, :reload).developers.size
   end
 
+  def test_uniq_option_prevents_duplicate_push
+    project = projects(:active_record)
+    project.developers << developers(:jamis)
+    project.developers << developers(:david)
+    assert_equal 3, project.developers.size
+
+    project.developers << developers(:david)
+    project.developers << developers(:jamis)
+    assert_equal 3, project.developers.size
+  end
+
   def test_deleting
     david = Developer.find(1)
     active_record = Project.find(1)
@@ -437,6 +448,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     active_record = projects(:active_record)
     active_record.developers_with_finder_sql.reload
     assert_equal developers(:david), active_record.developers_with_finder_sql.find(developers(:david).id), "Ruby find"
+  end
+
+  def test_find_in_association_with_custom_finder_sql_and_multiple_interpolations
+    # interpolate once:
+    assert_equal [developers(:david), developers(:jamis), developers(:poor_jamis)], projects(:active_record).developers_with_finder_sql, "first interpolation"
+    # interpolate again, for a different project id
+    assert_equal [developers(:david)], projects(:action_controller).developers_with_finder_sql, "second interpolation"
   end
 
   def test_find_in_association_with_custom_finder_sql_and_string_id
@@ -629,8 +647,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     developer.save
     developer.reload
     assert_equal 2, developer.projects.length
-    assert_equal projects(:active_record), developer.projects[0]
-    assert_equal projects(:action_controller), developer.projects[1]
+    assert_equal [projects(:active_record), projects(:action_controller)].map(&:id).sort, developer.project_ids.sort
   end
 
   def test_assign_ids_ignoring_blanks
@@ -639,8 +656,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     developer.save
     developer.reload
     assert_equal 2, developer.projects.length
-    assert_equal projects(:active_record), developer.projects[0]
-    assert_equal projects(:action_controller), developer.projects[1]
+    assert_equal [projects(:active_record), projects(:action_controller)].map(&:id).sort, developer.project_ids.sort
   end
 
   def test_select_limited_ids_list

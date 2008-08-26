@@ -35,8 +35,8 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate
-    assert_equal "Hello World!", truncate("Hello World!", 12)
-    assert_equal "Hello Wor...", truncate("Hello World!!", 12)
+    assert_equal "Hello World!", truncate("Hello World!", :length => 12)
+    assert_equal "Hello Wor...", truncate("Hello World!!", :length => 12)
   end
 
   def test_truncate_should_use_default_length_of_30
@@ -44,23 +44,29 @@ class TextHelperTest < ActionView::TestCase
     assert_equal str[0...27] + "...", truncate(str)
   end
 
+  def test_truncate_with_options_hash
+    assert_equal "This is a string that wil[...]", truncate("This is a string that will go longer then the default truncate length of 30", :omission => "[...]")
+    assert_equal "Hello W...", truncate("Hello World!", :length => 10)
+    assert_equal "Hello[...]", truncate("Hello World!", :omission => "[...]", :length => 10)
+  end
+
   if RUBY_VERSION < '1.9.0'
     def test_truncate_multibyte
       with_kcode 'none' do
-        assert_equal "\354\225\210\353\205\225\355...", truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", 10)
+        assert_equal "\354\225\210\353\205\225\355...", truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", :length => 10)
       end
       with_kcode 'u' do
         assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...",
-          truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244", 10)
+          truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244", :length => 10)
       end
     end
   else
     def test_truncate_multibyte
       assert_equal "\354\225\210\353\205\225\355...",
-        truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", 10)
+        truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", :length => 10)
 
       assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding('UTF-8'),
-        truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8'), 10)
+        truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8'), :length => 10)
     end
   end
 
@@ -88,7 +94,7 @@ class TextHelperTest < ActionView::TestCase
     assert_equal '   ', highlight('   ', 'blank text is returned verbatim')
   end
 
-  def test_highlighter_with_regexp
+  def test_highlight_with_regexp
     assert_equal(
       "This is a <strong class=\"highlight\">beautiful!</strong> morning",
       highlight("This is a beautiful! morning", "beautiful!")
@@ -105,8 +111,15 @@ class TextHelperTest < ActionView::TestCase
     )
   end
 
-  def test_highlighting_multiple_phrases_in_one_pass
+  def test_highlight_with_multiple_phrases_in_one_pass
     assert_equal %(<em>wow</em> <em>em</em>), highlight('wow em', %w(wow em), '<em>\1</em>')
+  end
+
+  def test_highlight_with_options_hash
+    assert_equal(
+      "This is a <b>beautiful</b> morning, but also a <b>beautiful</b> day",
+      highlight("This is a beautiful morning, but also a beautiful day", "beautiful", :highlighter => '<b>\1</b>')
+    )
   end
 
   def test_excerpt
@@ -138,6 +151,16 @@ class TextHelperTest < ActionView::TestCase
     assert_equal('...is a beautiful? mor...', excerpt('This is a beautiful? morning', 'beautiful', 5))
   end
 
+  def test_excerpt_with_options_hash
+    assert_equal("...is a beautiful morn...", excerpt("This is a beautiful morning", "beautiful", :radius => 5))
+    assert_equal("[...]is a beautiful morn[...]", excerpt("This is a beautiful morning", "beautiful", :omission => "[...]",:radius => 5))
+    assert_equal(
+      "This is the ultimate supercalifragilisticexpialidoceous very looooooooooooooooooong looooooooooooong beautiful morning with amazing sunshine and awesome tempera[...]",
+      excerpt("This is the ultimate supercalifragilisticexpialidoceous very looooooooooooooooooong looooooooooooong beautiful morning with amazing sunshine and awesome temperatures. So what are you gonna do about it?", "very",
+      :omission => "[...]")
+    )
+  end
+
   if RUBY_VERSION < '1.9'
     def test_excerpt_with_utf8
       with_kcode('u') do
@@ -160,6 +183,10 @@ class TextHelperTest < ActionView::TestCase
 
   def test_word_wrap_with_extra_newlines
     assert_equal("my very very\nvery long\nstring\n\nwith another\nline", word_wrap("my very very very long string\n\nwith another line", 15))
+  end
+
+  def test_word_wrap_with_options_hash
+    assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", :line_width => 15))
   end
 
   def test_pluralization
@@ -285,7 +312,13 @@ class TextHelperTest < ActionView::TestCase
     url = "http://api.rubyonrails.com/Foo.html"
     email = "fantabulous@shiznadel.ic"
 
-    assert_equal %(<p><a href="#{url}">#{url[0...7]}...</a><br /><a href="mailto:#{email}">#{email[0...7]}...</a><br /></p>), auto_link("<p>#{url}<br />#{email}<br /></p>") { |url| truncate(url, 10) }
+    assert_equal %(<p><a href="#{url}">#{url[0...7]}...</a><br /><a href="mailto:#{email}">#{email[0...7]}...</a><br /></p>), auto_link("<p>#{url}<br />#{email}<br /></p>") { |url| truncate(url, :length => 10) }
+  end
+
+  def test_auto_link_with_options_hash
+    assert_equal 'Welcome to my new blog at <a href="http://www.myblog.com/" class="menu" target="_blank">http://www.myblog.com/</a>. Please e-mail me at <a href="mailto:me@email.com">me@email.com</a>.',
+      auto_link("Welcome to my new blog at http://www.myblog.com/. Please e-mail me at me@email.com.",
+                :link => :all, :html => { :class => "menu", :target => "_blank" })
   end
 
   def test_cycle_class

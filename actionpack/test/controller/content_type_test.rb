@@ -19,6 +19,11 @@ class ContentTypeController < ActionController::Base
     render :text => "hello world!"
   end
 
+  def render_nil_charset_from_body
+    response.charset = nil
+    render :text => "hello world!"
+  end
+
   def render_default_for_rhtml
   end
 
@@ -85,8 +90,23 @@ class ContentTypeTest < Test::Unit::TestCase
 
   def test_charset_from_body
     get :render_charset_from_body
-    assert_equal "utf-16", @response.charset
     assert_equal Mime::HTML, @response.content_type
+    assert_equal "utf-16", @response.charset
+  end
+
+  def test_nil_charset_from_body
+    get :render_nil_charset_from_body
+    assert_equal Mime::HTML, @response.content_type
+    assert_equal "utf-8", @response.charset, @response.headers.inspect
+  end
+
+  def test_nil_default_for_rhtml
+    ContentTypeController.default_charset = nil
+    get :render_default_for_rhtml
+    assert_equal Mime::HTML, @response.content_type
+    assert_nil @response.charset, @response.headers.inspect
+  ensure
+    ContentTypeController.default_charset = "utf-8"
   end
 
   def test_default_for_rhtml
@@ -128,23 +148,23 @@ class AcceptBasedContentTypeTest < ActionController::TestCase
 
 
   def test_render_default_content_types_for_respond_to
-    @request.env["HTTP_ACCEPT"] = Mime::HTML.to_s
+    @request.accept = Mime::HTML.to_s
     get :render_default_content_types_for_respond_to
     assert_equal Mime::HTML, @response.content_type
 
-    @request.env["HTTP_ACCEPT"] = Mime::JS.to_s
+    @request.accept = Mime::JS.to_s
     get :render_default_content_types_for_respond_to
     assert_equal Mime::JS, @response.content_type
   end
 
   def test_render_default_content_types_for_respond_to_with_template
-    @request.env["HTTP_ACCEPT"] = Mime::XML.to_s
+    @request.accept = Mime::XML.to_s
     get :render_default_content_types_for_respond_to
     assert_equal Mime::XML, @response.content_type
   end
 
   def test_render_default_content_types_for_respond_to_with_overwrite
-    @request.env["HTTP_ACCEPT"] = Mime::RSS.to_s
+    @request.accept = Mime::RSS.to_s
     get :render_default_content_types_for_respond_to
     assert_equal Mime::XML, @response.content_type
   end

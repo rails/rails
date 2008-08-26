@@ -1,8 +1,8 @@
-#!/usr/local/bin/ruby -w
-                                                                                
-# This is a really simple session storage daemon, basically just a hash, 
+#!/usr/bin/env ruby
+
+# This is a really simple session storage daemon, basically just a hash,
 # which is enabled for DRb access.
-                                                                                
+
 require 'drb'
 
 session_hash = Hash.new
@@ -14,13 +14,13 @@ class <<session_hash
       super(key, value)
     end
   end
-  
+
   def [](key)
     @mutex.synchronize do
       super(key)
     end
   end
-  
+
   def delete(key)
     @mutex.synchronize do
       super(key)

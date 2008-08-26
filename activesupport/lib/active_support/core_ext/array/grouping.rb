@@ -19,7 +19,7 @@ module ActiveSupport #:nodoc:
         #   %w(1 2 3).in_groups_of(2, false) {|g| p g}
         #   ["1", "2"]
         #   ["3"]
-        def in_groups_of(number, fill_with = nil, &block)
+        def in_groups_of(number, fill_with = nil)
           if fill_with == false
             collection = self
           else
@@ -31,7 +31,7 @@ module ActiveSupport #:nodoc:
           end
 
           if block_given?
-            collection.each_slice(number, &block)
+            collection.each_slice(number) { |slice| yield(slice) }
           else
             returning [] do |groups|
               collection.each_slice(number) { |group| groups << group }
@@ -87,11 +87,11 @@ module ActiveSupport #:nodoc:
         #
         #   [1, 2, 3, 4, 5].split(3)                # => [[1, 2], [4, 5]]
         #   (1..10).to_a.split { |i| i % 3 == 0 }   # => [[1, 2], [4, 5], [7, 8], [10]]
-        def split(value = nil, &block)
-          block ||= Proc.new { |e| e == value }
+        def split(value = nil)
+          using_block = block_given?
 
           inject([[]]) do |results, element|
-            if block.call(element)
+            if (using_block && yield(element)) || (value == element)
               results << []
             else
               results.last << element

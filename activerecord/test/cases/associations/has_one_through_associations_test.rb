@@ -44,19 +44,23 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_one_through_polymorphic
     assert_equal clubs(:moustache_club), @member.sponsor_club
   end
-  
+
   def has_one_through_to_has_many
     assert_equal 2, @member.fellow_members.size
   end
-  
+
   def test_has_one_through_eager_loading
-    members = Member.find(:all, :include => :club, :conditions => ["name = ?", "Groucho Marx"])
+    members = assert_queries(3) do #base table, through table, clubs table
+      Member.find(:all, :include => :club, :conditions => ["name = ?", "Groucho Marx"])
+    end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries {members[0].club}
   end
-  
+
   def test_has_one_through_eager_loading_through_polymorphic
-    members = Member.find(:all, :include => :sponsor_club, :conditions => ["name = ?", "Groucho Marx"])
+    members = assert_queries(3) do #base table, through table, clubs table
+      Member.find(:all, :include => :sponsor_club, :conditions => ["name = ?", "Groucho Marx"])
+    end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries {members[0].sponsor_club}    
   end
@@ -69,6 +73,32 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     clubs = Club.find(:all, :include => :sponsored_member, :conditions => ["name = ?","Moustache and Eyebrow Fancier Club"])
     # Only the eyebrow fanciers club has a sponsored_member
     assert_not_nil assert_no_queries {clubs[0].sponsored_member}
+  end
+
+  def test_has_one_through_nonpreload_eagerloading
+    members = assert_queries(1) do
+      Member.find(:all, :include => :club, :conditions => ["members.name = ?", "Groucho Marx"], :order => 'clubs.name') #force fallback
+    end
+    assert_equal 1, members.size
+    assert_not_nil assert_no_queries {members[0].club}
+  end
+
+  def test_has_one_through_nonpreload_eager_loading_through_polymorphic
+    members = assert_queries(1) do
+      Member.find(:all, :include => :sponsor_club, :conditions => ["members.name = ?", "Groucho Marx"], :order => 'clubs.name') #force fallback
+    end
+    assert_equal 1, members.size
+    assert_not_nil assert_no_queries {members[0].sponsor_club}
+  end
+
+  def test_has_one_through_nonpreload_eager_loading_through_polymorphic_with_more_than_one_through_record
+    Sponsor.new(:sponsor_club => clubs(:crazy_club), :sponsorable => members(:groucho)).save!
+    members = assert_queries(1) do
+      Member.find(:all, :include => :sponsor_club, :conditions => ["members.name = ?", "Groucho Marx"], :order => 'clubs.name DESC') #force fallback
+    end
+    assert_equal 1, members.size
+    assert_not_nil assert_no_queries { members[0].sponsor_club }
+    assert_equal clubs(:crazy_club), members[0].sponsor_club
   end
 
 end

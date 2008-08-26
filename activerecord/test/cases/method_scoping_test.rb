@@ -6,7 +6,7 @@ require 'models/post'
 require 'models/category'
 
 class MethodScopingTest < ActiveRecord::TestCase
-  fixtures :developers, :projects, :comments, :posts
+  fixtures :developers, :projects, :comments, :posts, :developers_projects
 
   def test_set_conditions
     Developer.with_scope(:find => { :conditions => 'just a test...' }) do

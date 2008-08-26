@@ -283,6 +283,14 @@ module ActionController #:nodoc:
     @@debug_routes = true
     cattr_accessor :debug_routes
 
+    # Indicates whether to allow concurrent action processing. Your
+    # controller actions and any other code they call must also behave well
+    # when called from concurrent threads. Turned off by default.
+    @@allow_concurrency = false
+    cattr_accessor :allow_concurrency
+
+    @@guard = Monitor.new
+
     # Modern REST web services often need to submit complex data to the web application.
     # The <tt>@@param_parsers</tt> hash lets you register handlers which will process the HTTP body and add parameters to the
     # <tt>params</tt> hash. These handlers are invoked for POST and PUT requests.
@@ -354,6 +362,15 @@ module ActionController #:nodoc:
     class_inheritable_accessor :allow_forgery_protection
     self.allow_forgery_protection = true
 
+    # If you are deploying to a subdirectory, you will need to set
+    # <tt>config.action_controller.relative_url_root</tt>
+    # This defaults to ENV['RAILS_RELATIVE_URL_ROOT']
+    cattr_writer :relative_url_root
+
+    def self.relative_url_root
+      @@relative_url_root || ENV['RAILS_RELATIVE_URL_ROOT']
+    end
+
     # Holds the request object that's primarily used to get environment variables through access like
     # <tt>request.env["REQUEST_URI"]</tt>.
     attr_internal :request
@@ -411,11 +428,7 @@ module ActionController #:nodoc:
       # By default, all methods defined in ActionController::Base and included modules are hidden.
       # More methods can be hidden using <tt>hide_actions</tt>.
       def hidden_actions
-        unless read_inheritable_attribute(:hidden_actions)
-          write_inheritable_attribute(:hidden_actions, ActionController::Base.public_instance_methods.map { |m| m.to_s })
-        end
-
-        read_inheritable_attribute(:hidden_actions)
+        read_inheritable_attribute(:hidden_actions) || write_inheritable_attribute(:hidden_actions, [])
       end
 
       # Hide each of the given methods from being callable as actions.
@@ -519,6 +532,8 @@ module ActionController #:nodoc:
     public
       # Extracts the action_name from the request parameters and performs that action.
       def process(request, response, method = :perform_action, *arguments) #:nodoc:
+        response.request = request
+
         initialize_template_class(response)
         assign_shortcuts(request, response)
         initialize_current_url
@@ -526,11 +541,13 @@ module ActionController #:nodoc:
         forget_variables_added_to_assigns
 
         log_processing
-        send(method, *arguments)
 
-        assign_default_content_type_and_charset
+        if @@allow_concurrency
+          send(method, *arguments)
+        else
+          @@guard.synchronize { send(method, *arguments) }
+        end
 
-        response.request = request
         response.prepare! unless component_request?
         response
       ensure
@@ -763,9 +780,6 @@ module ActionController #:nodoc:
       #   render :file => "/path/to/some/template.erb", :layout => true, :status => 404
       #   render :file => "c:/path/to/some/template.erb", :layout => true, :status => 404
       #
-      #   # Renders a template relative to the template root and chooses the proper file extension
-      #   render :file => "some/template", :use_full_path => true
-      #
       # === Rendering text
       #
       # Rendering of text is usually used for tests or for rendering prepared content, such as a cache. By default, text
@@ -896,21 +910,10 @@ module ActionController #:nodoc:
             response.content_type ||= Mime::JSON
             render_for_text(json, options[:status])
 
-          elsif partial = options[:partial]
-            partial = default_template_name if partial == true
+          elsif options[:partial]
+            options[:partial] = default_template_name if options[:partial] == true
             add_variables_to_assigns
-
-            if collection = options[:collection]
-              render_for_text(
-                @template.send!(:render_partial_collection, partial, collection,
-                options[:spacer_template], options[:locals], options[:as]), options[:status]
-              )
-            else
-              render_for_text(
-                @template.send!(:render_partial, partial,
-                options[:object], options[:locals]), options[:status]
-              )
-            end
+            render_for_text(@template.render(options), options[:status])
 
           elsif options[:update]
             add_variables_to_assigns
@@ -921,8 +924,7 @@ module ActionController #:nodoc:
             render_for_text(generator.to_s, options[:status])
 
           elsif options[:nothing]
-            # Safari doesn't pass the headers of the return if the response is zero length
-            render_for_text(" ", options[:status])
+            render_for_text(nil, options[:status])
 
           else
             render_for_file(default_template_name, options[:status], true)
@@ -968,6 +970,17 @@ module ActionController #:nodoc:
         render :nothing => true, :status => status
       end
 
+      # Sets the Last-Modified response header. Returns 304 Not Modified if the
+      # If-Modified-Since request header is <= last modified.
+      def last_modified!(utc_time)
+        head(:not_modified) if response.last_modified!(utc_time)
+      end
+
+      # Sets the ETag response header. Returns 304 Not Modified if the
+      # If-None-Match request header matches.
+      def etag!(etag)
+        head(:not_modified) if response.etag!(etag)
+      end
 
       # Clears the rendered results, allowing for another render to be performed.
       def erase_render_results #:nodoc:
@@ -1125,7 +1138,11 @@ module ActionController #:nodoc:
           response.body ||= ''
           response.body << text.to_s
         else
-          response.body = text.is_a?(Proc) ? text : text.to_s
+          response.body = case text
+            when Proc then text
+            when nil  then " " # Safari doesn't pass the headers of the return if the response is zero length
+            else           text.to_s
+          end
         end
       end
 
@@ -1155,7 +1172,7 @@ module ActionController #:nodoc:
 
       def log_processing
         if logger && logger.info?
-          logger.info "\n\nProcessing #{controller_class_name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
+          logger.info "\n\nProcessing #{self.class.name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
           logger.info "  Session ID: #{@_session.session_id}" if @_session and @_session.respond_to?(:session_id)
           logger.info "  Parameters: #{respond_to?(:filter_parameters) ? filter_parameters(params).inspect : params.inspect}"
         end
@@ -1166,16 +1183,16 @@ module ActionController #:nodoc:
       end
 
       def perform_action
-        if self.class.action_methods.include?(action_name)
+        if action_methods.include?(action_name)
           send(action_name)
           default_render unless performed?
         elsif respond_to? :method_missing
           method_missing action_name
           default_render unless performed?
-        elsif template_exists? && template_public?
+        elsif template_exists?
           default_render
         else
-          raise UnknownAction, "No action responded to #{action_name}", caller
+          raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.sort.to_sentence}", caller
         end
       end
 
@@ -1188,20 +1205,24 @@ module ActionController #:nodoc:
       end
 
       def assign_default_content_type_and_charset
-        response.content_type ||= Mime::HTML
-        response.charset      ||= self.class.default_charset unless sending_file?
+        response.assign_default_content_type_and_charset!
       end
-
-      def sending_file?
-        response.headers["Content-Transfer-Encoding"] == "binary"
-      end
+      deprecate :assign_default_content_type_and_charset => :'response.assign_default_content_type_and_charset!'
 
       def action_methods
         self.class.action_methods
       end
 
       def self.action_methods
-        @action_methods ||= Set.new(public_instance_methods.map { |m| m.to_s }) - hidden_actions
+        @action_methods ||=
+          # All public instance methods of this class, including ancestors
+          public_instance_methods(true).map { |m| m.to_s }.to_set -
+          # Except for public instance methods of Base and its ancestors
+          Base.public_instance_methods(true).map { |m| m.to_s } +
+          # Be sure to include shadowed public instance methods of this class
+          public_instance_methods(false).map { |m| m.to_s } -
+          # And always exclude explicitly hidden actions
+          hidden_actions
       end
 
       def add_variables_to_assigns
@@ -1243,13 +1264,11 @@ module ActionController #:nodoc:
         @template.file_exists?(template_name)
       end
 
-      def template_public?(template_name = default_template_name)
-        @template.file_public?(template_name)
-      end
-
       def template_exempt_from_layout?(template_name = default_template_name)
         template_name = @template.pick_template(template_name).to_s if @template
         @@exempt_from_layout.any? { |ext| template_name =~ ext }
+      rescue ActionView::MissingTemplate
+        false
       end
 
       def default_template_name(action_name = self.action_name)

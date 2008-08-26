@@ -28,24 +28,24 @@ module ActiveResource
 
   # 3xx Redirection
   class Redirection < ConnectionError # :nodoc:
-    def to_s; response['Location'] ? "#{super} => #{response['Location']}" : super; end    
-  end 
+    def to_s; response['Location'] ? "#{super} => #{response['Location']}" : super; end
+  end
 
   # 4xx Client Error
   class ClientError < ConnectionError; end # :nodoc:
-  
+
   # 400 Bad Request
   class BadRequest < ClientError; end # :nodoc
-  
+
   # 401 Unauthorized
   class UnauthorizedAccess < ClientError; end # :nodoc
-  
+
   # 403 Forbidden
   class ForbiddenAccess < ClientError; end # :nodoc
-  
+
   # 404 Not Found
   class ResourceNotFound < ClientError; end # :nodoc:
-  
+
   # 409 Conflict
   class ResourceConflict < ClientError; end # :nodoc:
 
@@ -140,7 +140,7 @@ module ActiveResource
         logger.info "#{method.to_s.upcase} #{site.scheme}://#{site.host}:#{site.port}#{path}" if logger
         result = nil
         time = Benchmark.realtime { result = http.send(method, path, *arguments) }
-        logger.info "--> #{result.code} #{result.message} (#{result.body ? result.body.length : 0}b %.2fs)" % time if logger
+        logger.info "--> %d %s (%d %.2fs)" % [result.code, result.message, result.body ? result.body.length : 0, time] if logger
         handle_response(result)
       rescue Timeout::Error => e
         raise TimeoutError.new(e.message)
@@ -201,7 +201,7 @@ module ActiveResource
       end
 
       def logger #:nodoc:
-        ActiveResource::Base.logger
+        Base.logger
       end
   end
 end

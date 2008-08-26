@@ -30,7 +30,7 @@ desc 'Run mysql, sqlite, and postgresql tests by default'
 task :default => :test
 
 desc 'Run mysql, sqlite, and postgresql tests'
-task :test => %w(test_mysql test_sqlite test_sqlite3 test_postgresql)
+task :test => %w(test_mysql test_sqlite3 test_postgresql)
 
 for adapter in %w( mysql postgresql sqlite sqlite3 firebird db2 oracle sybase openbase frontbase )
   Rake::TestTask.new("test_#{adapter}") { |t|

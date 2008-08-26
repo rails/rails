@@ -21,7 +21,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
-            :developers, :projects
+            :developers, :projects, :developers_projects
 
   def test_loading_with_one_association
     posts = Post.find(:all, :include => :comments)
@@ -34,6 +34,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert post.comments.include?(comments(:greetings))
 
     posts = Post.find(:all, :include => :last_comment)
+    post = posts.find { |p| p.id == 1 }
+    assert_equal Post.find(1).last_comment, post.last_comment
+  end
+
+  def test_loading_with_one_association_with_non_preload
+    posts = Post.find(:all, :include => :last_comment, :order => 'comments.id DESC')
     post = posts.find { |p| p.id == 1 }
     assert_equal Post.find(1).last_comment, post.last_comment
   end
@@ -254,9 +260,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_through
-    posts_with_comments = people(:michael).posts.find(:all, :include => :comments)
-    posts_with_author = people(:michael).posts.find(:all, :include => :author )
-    posts_with_comments_and_author = people(:michael).posts.find(:all, :include => [ :comments, :author ])
+    posts_with_comments = people(:michael).posts.find(:all, :include => :comments, :order => 'posts.id')
+    posts_with_author = people(:michael).posts.find(:all, :include => :author, :order => 'posts.id')
+    posts_with_comments_and_author = people(:michael).posts.find(:all, :include => [ :comments, :author ], :order => 'posts.id')
     assert_equal 2, posts_with_comments.inject(0) { |sum, post| sum += post.comments.size }
     assert_equal authors(:david), assert_no_queries { posts_with_author.first.author }
     assert_equal authors(:david), assert_no_queries { posts_with_comments_and_author.first.author }
@@ -557,6 +563,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
   def test_eager_with_valid_association_as_string_not_symbol
     assert_nothing_raised { Post.find(:all, :include => 'comments') }
+  end
+
+  def test_eager_with_floating_point_numbers
+    assert_queries(2) do
+      # Before changes, the floating point numbers will be interpreted as table names and will cause this to run in one query
+      Comment.find :all, :conditions => "123.456 = 123.456", :include => :post
+    end
   end
 
   def test_preconfigured_includes_with_belongs_to

@@ -96,15 +96,12 @@ module ActiveSupport
         end
       end
 
-      def |(chain)
-        if chain.is_a?(CallbackChain)
-          chain.each { |callback| self | callback }
+      # TODO: Decompose into more Array like behavior
+      def replace_or_append!(chain)
+        if index = index(chain)
+          self[index] = chain
         else
-          if (found_callback = find(chain)) && (index = index(chain))
-            self[index] = chain
-          else
-            self << chain
-          end
+          self << chain
         end
         self
       end
@@ -155,6 +152,14 @@ module ActiveSupport
 
       def dup
         self.class.new(@kind, @method, @options.dup)
+      end
+
+      def hash
+        if @identifier
+          @identifier.hash
+        else
+          @method.hash
+        end
       end
 
       def call(*args, &block)

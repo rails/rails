@@ -1,6 +1,6 @@
 module ActionController
   module Routing
-    class RouteSet #:nodoc: 
+    class RouteSet #:nodoc:
       # Mapper instances are used to build routes. The object passed to the draw
       # block in config/routes.rb is a Mapper instance.
       #
@@ -194,6 +194,8 @@ module ActionController
       def initialize
         self.routes = []
         self.named_routes = NamedRouteCollection.new
+
+        write_recognize_optimized!
       end
 
       # Subclasses and plugins may override this method to specify a different
@@ -231,7 +233,6 @@ module ActionController
         Routing.use_controllers! nil # Clear the controller cache so we may discover new ones
         clear!
         load_routes!
-        install_helpers
       end
 
       # reload! will always force a reload whereas load checks the timestamp first

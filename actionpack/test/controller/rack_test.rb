@@ -51,62 +51,74 @@ class BaseRackTest < Test::Unit::TestCase
   end
 
   def default_test; end
+
+  private
+
+  def set_content_data(data)
+    @request.env['REQUEST_METHOD'] = 'POST'
+    @request.env['CONTENT_LENGTH'] = data.length
+    @request.env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
+    @request.env['RAW_POST_DATA'] = data
+  end
 end
 
 class RackRequestTest < BaseRackTest
   def test_proxy_request
-    assert_equal 'glu.ttono.us', @request.host_with_port
+    assert_equal 'glu.ttono.us', @request.host_with_port(true)
   end
 
   def test_http_host
     @env.delete "HTTP_X_FORWARDED_HOST"
     @env['HTTP_HOST'] = "rubyonrails.org:8080"
-    assert_equal "rubyonrails.org:8080", @request.host_with_port
+    assert_equal "rubyonrails.org", @request.host(true)
+    assert_equal "rubyonrails.org:8080", @request.host_with_port(true)
 
     @env['HTTP_X_FORWARDED_HOST'] = "www.firsthost.org, www.secondhost.org"
-    assert_equal "www.secondhost.org", @request.host
+    assert_equal "www.secondhost.org", @request.host(true)
   end
 
   def test_http_host_with_default_port_overrides_server_port
     @env.delete "HTTP_X_FORWARDED_HOST"
     @env['HTTP_HOST'] = "rubyonrails.org"
-    assert_equal "rubyonrails.org", @request.host_with_port
+    assert_equal "rubyonrails.org", @request.host_with_port(true)
   end
 
   def test_host_with_port_defaults_to_server_name_if_no_host_headers
     @env.delete "HTTP_X_FORWARDED_HOST"
     @env.delete "HTTP_HOST"
-    assert_equal "glu.ttono.us:8007", @request.host_with_port
+    assert_equal "glu.ttono.us:8007", @request.host_with_port(true)
   end
 
   def test_host_with_port_falls_back_to_server_addr_if_necessary
     @env.delete "HTTP_X_FORWARDED_HOST"
     @env.delete "HTTP_HOST"
     @env.delete "SERVER_NAME"
-    assert_equal "207.7.108.53:8007", @request.host_with_port
+    assert_equal "207.7.108.53", @request.host(true)
+    assert_equal 8007, @request.port(true)
+    assert_equal "207.7.108.53:8007", @request.host_with_port(true)
   end
 
   def test_host_with_port_if_http_standard_port_is_specified
     @env['HTTP_X_FORWARDED_HOST'] = "glu.ttono.us:80"
-    assert_equal "glu.ttono.us", @request.host_with_port
+    assert_equal "glu.ttono.us", @request.host_with_port(true)
   end
 
   def test_host_with_port_if_https_standard_port_is_specified
     @env['HTTP_X_FORWARDED_PROTO'] = "https"
     @env['HTTP_X_FORWARDED_HOST'] = "glu.ttono.us:443"
-    assert_equal "glu.ttono.us", @request.host_with_port
+    assert_equal "glu.ttono.us", @request.host_with_port(true)
   end
 
   def test_host_if_ipv6_reference
     @env.delete "HTTP_X_FORWARDED_HOST"
     @env['HTTP_HOST'] = "[2001:1234:5678:9abc:def0::dead:beef]"
-    assert_equal "[2001:1234:5678:9abc:def0::dead:beef]", @request.host
+    assert_equal "[2001:1234:5678:9abc:def0::dead:beef]", @request.host(true)
   end
 
   def test_host_if_ipv6_reference_with_port
     @env.delete "HTTP_X_FORWARDED_HOST"
     @env['HTTP_HOST'] = "[2001:1234:5678:9abc:def0::dead:beef]:8008"
-    assert_equal "[2001:1234:5678:9abc:def0::dead:beef]", @request.host
+    assert_equal "[2001:1234:5678:9abc:def0::dead:beef]", @request.host(true)
   end
 
   def test_cgi_environment_variables
@@ -153,16 +165,49 @@ end
 
 class RackRequestParamsParsingTest < BaseRackTest
   def test_doesnt_break_when_content_type_has_charset
-    data = 'flamenco=love'
-    @request.env['CONTENT_LENGTH'] = data.length
-    @request.env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded; charset=utf-8'
-    @request.env['RAW_POST_DATA'] = data
+    set_content_data 'flamenco=love'
+
     assert_equal({"flamenco"=> "love"}, @request.request_parameters)
   end
 
   def test_doesnt_interpret_request_uri_as_query_string_when_missing
     @request.env['REQUEST_URI'] = 'foo'
     assert_equal({}, @request.query_parameters)
+  end
+end
+
+class RackRequestContentTypeTest < BaseRackTest
+  def test_html_content_type_verification
+    @request.env['CONTENT_TYPE'] = Mime::HTML.to_s
+    assert @request.content_type.verify_request?
+  end
+
+  def test_xml_content_type_verification
+    @request.env['CONTENT_TYPE'] = Mime::XML.to_s
+    assert !@request.content_type.verify_request?
+  end
+end
+
+class RackRequestMethodTest < BaseRackTest
+  def test_get
+    assert_equal :get, @request.request_method
+  end
+
+  def test_post
+    @request.env['REQUEST_METHOD'] = 'POST'
+    assert_equal :post, @request.request_method
+  end
+
+  def test_put
+    set_content_data '_method=put'
+
+    assert_equal :put, @request.request_method
+  end
+
+  def test_delete
+    set_content_data '_method=delete'
+
+    assert_equal :delete, @request.request_method
   end
 end
 
@@ -191,10 +236,17 @@ class RackResponseTest < BaseRackTest
 
   def test_simple_output
     @response.body = "Hello, World!"
+    @response.prepare!
 
     status, headers, body = @response.out(@output)
     assert_equal "200 OK", status
-    assert_equal({"Content-Type" => "text/html", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
+    assert_equal({
+      "Content-Type" => "text/html; charset=utf-8",
+      "Cache-Control" => "private, max-age=0, must-revalidate",
+      "ETag" => '"65a8e27d8879283831b664bd8b7f0ad4"',
+      "Set-Cookie" => [],
+      "Content-Length" => "13"
+    }, headers)
 
     parts = []
     body.each { |part| parts << part }
@@ -205,10 +257,11 @@ class RackResponseTest < BaseRackTest
     @response.body = Proc.new do |response, output|
       5.times { |n| output.write(n) }
     end
+    @response.prepare!
 
     status, headers, body = @response.out(@output)
     assert_equal "200 OK", status
-    assert_equal({"Content-Type" => "text/html", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
+    assert_equal({"Content-Type" => "text/html; charset=utf-8", "Cache-Control" => "no-cache", "Set-Cookie" => []}, headers)
 
     parts = []
     body.each { |part| parts << part }
@@ -220,17 +273,51 @@ class RackResponseTest < BaseRackTest
     @request.cgi.send :instance_variable_set, '@output_cookies', [cookie]
 
     @response.body = "Hello, World!"
+    @response.prepare!
 
     status, headers, body = @response.out(@output)
     assert_equal "200 OK", status
     assert_equal({
-      "Content-Type" => "text/html",
-      "Cache-Control" => "no-cache",
-      "Set-Cookie" => ["name=Josh; path="]
+      "Content-Type" => "text/html; charset=utf-8",
+      "Cache-Control" => "private, max-age=0, must-revalidate",
+      "ETag" => '"65a8e27d8879283831b664bd8b7f0ad4"',
+      "Set-Cookie" => ["name=Josh; path="],
+      "Content-Length" => "13"
     }, headers)
 
     parts = []
     body.each { |part| parts << part }
     assert_equal ["Hello, World!"], parts
   end
+end
+
+class RackResponseHeadersTest < BaseRackTest
+  def setup
+    super
+    @response = ActionController::RackResponse.new(@request)
+    @output = StringIO.new('')
+    @response.headers['Status'] = "200 OK"
+  end
+
+  def test_content_type
+    [204, 304].each do |c|
+      @response.headers['Status'] = c.to_s
+      assert !response_headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
+    end
+
+    [200, 302, 404, 500].each do |c|
+      @response.headers['Status'] = c.to_s
+      assert response_headers.has_key?("Content-Type"), "#{c} did not have Content-Type header"
+    end
+  end
+
+  def test_status
+    assert !response_headers.has_key?('Status')
+  end
+
+  private
+    def response_headers
+      @response.prepare!
+      @response.out(@output)[1]
+    end
 end

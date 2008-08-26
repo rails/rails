@@ -158,6 +158,7 @@ module ActionView #:nodoc:
   # See the ActionView::Helpers::PrototypeHelper::GeneratorMethods documentation for more details.
   class Base
     include ERB::Util
+    extend ActiveSupport::Memoizable
 
     attr_accessor :base_path, :assigns, :template_extension
     attr_accessor :controller
@@ -169,15 +170,19 @@ module ActionView #:nodoc:
 
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::TemplateHandlers::ERB'
+      delegate :logger, :to => 'ActionController::Base'
     end
 
-    # Specify whether templates should be cached. Otherwise the file we be read everytime it is accessed.
-    @@cache_template_loading = false
-    cattr_accessor :cache_template_loading
+    def self.cache_template_loading=(*args)
+      ActiveSupport::Deprecation.warn(
+        "config.action_view.cache_template_loading option has been deprecated" +
+        "and has no effect. Please remove it from your config files.", caller)
+    end
 
     def self.cache_template_extensions=(*args)
-      ActiveSupport::Deprecation.warn("config.action_view.cache_template_extensions option has been deprecated and has no affect. " <<
-                                       "Please remove it from your config files.", caller)
+      ActiveSupport::Deprecation.warn(
+        "config.action_view.cache_template_extensions option has been" +
+        "deprecated and has no effect. Please remove it from your config files.", caller)
     end
 
     # Specify whether RJS responses should be wrapped in a try/catch block
@@ -198,23 +203,6 @@ module ActionView #:nodoc:
       # holds compiled template code
     end
     include CompiledTemplates
-
-    # Cache public asset paths
-    cattr_reader :computed_public_paths
-    @@computed_public_paths = {}
-
-    def self.helper_modules #:nodoc:
-      helpers = []
-      Dir.entries(File.expand_path("#{File.dirname(__FILE__)}/helpers")).sort.each do |file|
-        next unless file =~ /^([a-z][a-z_]*_helper).rb$/
-        require "action_view/helpers/#{$1}"
-        helper_module_name = $1.camelize
-        if Helpers.const_defined?(helper_module_name)
-          helpers << Helpers.const_get(helper_module_name)
-        end
-      end
-      return helpers
-    end
 
     def self.process_view_paths(value)
       ActionView::PathSet.new(Array(value))
@@ -239,7 +227,7 @@ module ActionView #:nodoc:
       local_assigns ||= {}
 
       if options.is_a?(String)
-        render_file(options, nil, local_assigns)
+        render(:file => options, :locals => local_assigns)
       elsif options == :update
         update_page(&block)
       elsif options.is_a?(Hash)
@@ -247,29 +235,32 @@ module ActionView #:nodoc:
 
         if partial_layout = options.delete(:layout)
           if block_given?
-            wrap_content_for_layout capture(&block) do
+            begin
+              @_proc_for_layout = block
               concat(render(options.merge(:partial => partial_layout)))
+            ensure
+              @_proc_for_layout = nil
             end
           else
-            wrap_content_for_layout render(options) do
+            begin
+              original_content_for_layout, @content_for_layout = @content_for_layout, render(options)
               render(options.merge(:partial => partial_layout))
+            ensure
+              @content_for_layout = original_content_for_layout
             end
           end
         elsif options[:file]
-          render_file(options[:file], nil, options[:locals])
-        elsif options[:partial] && options[:collection]
-          render_partial_collection(options[:partial], options[:collection], options[:spacer_template], options[:locals], options[:as])
+          if options[:use_full_path]
+            ActiveSupport::Deprecation.warn("use_full_path option has been deprecated and has no affect.", caller)
+          end
+
+          pick_template(options[:file]).render_template(self, options[:locals])
         elsif options[:partial]
-          render_partial(options[:partial], options[:object], options[:locals])
+          render_partial(options)
         elsif options[:inline]
-          render_inline(options[:inline], options[:locals], options[:type])
+          InlineTemplate.new(options[:inline], options[:type]).render(self, options[:locals])
         end
       end
-    end
-
-    # Returns true is the file may be rendered implicitly.
-    def file_public?(template_path)#:nodoc:
-      template_path.split('/').last[0,1] != '_'
     end
 
     # The format to be used when choosing between multiple templates with
@@ -301,6 +292,8 @@ module ActionView #:nodoc:
     #   # => 'users/legacy.rhtml'
     #
     def pick_template(template_path)
+      return template_path if template_path.respond_to?(:render)
+
       path = template_path.sub(/^\//, '')
       if m = path.match(/(.*)\.(\w+)$/)
         template_file_name, template_file_extension = m[1], m[2]
@@ -321,54 +314,20 @@ module ActionView #:nodoc:
       else
         template = Template.new(template_path, view_paths)
 
-        if self.class.warn_cache_misses && logger = ActionController::Base.logger
+        if self.class.warn_cache_misses && logger
           logger.debug "[PERFORMANCE] Rendering a template that was " +
             "not found in view path. Templates outside the view path are " +
-            "not cached and result in expensive disk operations. Move this " + 
-            "file into #{view_paths.join(':')} or add the folder to your " + 
+            "not cached and result in expensive disk operations. Move this " +
+            "file into #{view_paths.join(':')} or add the folder to your " +
             "view path list"
         end
 
         template
       end
     end
+    memoize :pick_template
 
     private
-      # Renders the template present at <tt>template_path</tt>. The hash in <tt>local_assigns</tt>
-      # is made available as local variables.
-      def render_file(template_path, use_full_path = nil, local_assigns = {}) #:nodoc:
-        unless use_full_path == nil
-          ActiveSupport::Deprecation.warn("use_full_path option has been deprecated and has no affect.", caller)
-        end
-
-        if defined?(ActionMailer) && defined?(ActionMailer::Base) && controller.is_a?(ActionMailer::Base) && !template_path.include?("/")
-          raise ActionViewError, <<-END_ERROR
-  Due to changes in ActionMailer, you need to provide the mailer_name along with the template name.
-
-    render "user_mailer/signup"
-    render :file => "user_mailer/signup"
-
-  If you are rendering a subtemplate, you must now use controller-like partial syntax:
-
-    render :partial => 'signup' # no mailer_name necessary
-          END_ERROR
-        end
-
-        template = pick_template(template_path)
-        template.render_template(self, local_assigns)
-      end
-
-      def render_inline(text, local_assigns = {}, type = nil)
-        InlineTemplate.new(text, type).render(self, local_assigns)
-      end
-
-      def wrap_content_for_layout(content)
-        original_content_for_layout, @content_for_layout = @content_for_layout, content
-        yield
-      ensure
-        @content_for_layout = original_content_for_layout
-      end
-
       # Evaluate the local assigns and pushes them to the view.
       def evaluate_assigns
         unless @assigns_added
@@ -382,9 +341,9 @@ module ActionView #:nodoc:
         @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
       end
 
-      def execute(template, local_assigns = {})
-        send(template.method(local_assigns), local_assigns) do |*names|
-          instance_variable_get "@content_for_#{names.first || 'layout'}"
+      def set_controller_content_type(content_type)
+        if controller.respond_to?(:response)
+          controller.response.content_type ||= content_type
         end
       end
   end

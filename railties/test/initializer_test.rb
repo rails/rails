@@ -30,6 +30,24 @@ class Initializer_load_environment_Test < Test::Unit::TestCase
 
 end
 
+class Initializer_eager_loading_Test < Test::Unit::TestCase
+  def setup
+    @config = ConfigurationMock.new("")
+    @config.cache_classes = true
+    @config.load_paths = [File.expand_path(File.dirname(__FILE__) + "/fixtures/eager")]
+    @config.eager_load_paths = [File.expand_path(File.dirname(__FILE__) + "/fixtures/eager")]
+    @initializer = Rails::Initializer.new(@config)
+    @initializer.set_load_path
+    @initializer.set_autoload_paths
+  end
+
+  def test_eager_loading_loads_parent_classes_before_children
+    assert_nothing_raised do
+      @initializer.load_application_classes
+    end
+  end
+end
+
 uses_mocha 'Initializer after_initialize' do
   class Initializer_after_initialize_with_blocks_environment_Test < Test::Unit::TestCase
     def setup
@@ -136,8 +154,27 @@ uses_mocha 'framework paths' do
       end
     end
 
-    protected
+    def test_action_mailer_load_paths_set_only_if_action_mailer_in_use
+      @config.frameworks = [:action_controller]
+      initializer = Rails::Initializer.new @config
+      initializer.send :require_frameworks
 
+      assert_nothing_raised NameError do
+        initializer.send :load_view_paths
+      end
+    end
+
+    def test_action_controller_load_paths_set_only_if_action_controller_in_use
+      @config.frameworks = []
+      initializer = Rails::Initializer.new @config
+      initializer.send :require_frameworks
+
+      assert_nothing_raised NameError do
+        initializer.send :load_view_paths
+      end
+    end
+
+    protected
       def assert_framework_path(path)
         assert @config.framework_paths.include?(path),
           "<#{path.inspect}> not found among <#{@config.framework_paths.inspect}>"

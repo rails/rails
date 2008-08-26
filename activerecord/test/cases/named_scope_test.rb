@@ -4,6 +4,7 @@ require 'models/topic'
 require 'models/comment'
 require 'models/reply'
 require 'models/author'
+require 'models/developer'
 
 class NamedScopeTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses
@@ -43,6 +44,17 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal Topic.find(:first),             Topic.base.find(:first)
     assert_equal Topic.count,                    Topic.base.count
     assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
+  end
+
+  def test_scope_should_respond_to_own_methods_and_methods_of_the_proxy
+    assert Topic.approved.respond_to?(:proxy_found)
+    assert Topic.approved.respond_to?(:count)
+    assert Topic.approved.respond_to?(:length)
+  end
+
+  def test_respond_to_respects_include_private_parameter
+    assert !Topic.approved.respond_to?(:load_found)
+    assert Topic.approved.respond_to?(:load_found, true)
   end
 
   def test_subclasses_inherit_scopes
@@ -184,6 +196,29 @@ class NamedScopeTest < ActiveRecord::TestCase
     end
   end
 
+  def test_any_should_not_load_results
+    topics = Topic.base
+    assert_queries(2) do
+      topics.any?    # use count query
+      topics.collect # force load
+      topics.any?    # use loaded (no query)
+    end
+  end
+
+  def test_any_should_call_proxy_found_if_using_a_block
+    topics = Topic.base
+    assert_queries(1) do
+      topics.expects(:empty?).never
+      topics.any? { true }
+    end
+  end
+
+  def test_any_should_not_fire_query_if_named_scope_loaded
+    topics = Topic.base
+    topics.collect # force load
+    assert_no_queries { assert topics.any? }
+  end
+
   def test_should_build_with_proxy_options
     topic = Topic.approved.build({})
     assert topic.approved
@@ -208,5 +243,13 @@ class NamedScopeTest < ActiveRecord::TestCase
     topic = Topic.approved.by_lifo.build({})
     assert topic.approved
     assert_equal 'lifo', topic.author_name
+  end
+
+  def test_find_all_should_behave_like_select
+    assert_equal Topic.base.select(&:approved), Topic.base.find_all(&:approved)
+  end
+
+  def test_should_use_where_in_query_for_named_scope
+    assert_equal Developer.find_all_by_name('Jamis'), Developer.find_all_by_id(Developer.jamises)
   end
 end

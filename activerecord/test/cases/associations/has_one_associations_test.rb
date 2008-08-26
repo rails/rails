@@ -79,6 +79,16 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { Account.find(old_account_id) }
   end
 
+  def test_natural_assignment_to_already_associated_record
+    company = companies(:first_firm)
+    account = accounts(:signals37)
+    assert_equal company.account, account
+    company.account = account
+    company.reload
+    account.reload
+    assert_equal company.account, account
+  end
+
   def test_assignment_without_replacement
     apple = Firm.create("name" => "Apple")
     citibank = Account.create("credit_limit" => 10)

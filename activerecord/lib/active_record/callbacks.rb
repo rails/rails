@@ -50,7 +50,7 @@ module ActiveRecord
   #
   # == Inheritable callback queues
   #
-  # Besides the overwriteable callback methods, it's also possible to register callbacks through the use of the callback macros.
+  # Besides the overwritable callback methods, it's also possible to register callbacks through the use of the callback macros.
   # Their main advantage is that the macros add behavior into a callback queue that is kept intact down through an inheritance
   # hierarchy. Example:
   #
@@ -169,6 +169,18 @@ module ActiveRecord
   # If a <tt>before_*</tt> callback returns +false+, all the later callbacks and the associated action are cancelled. If an <tt>after_*</tt> callback returns
   # +false+, all the later callbacks are cancelled. Callbacks are generally run in the order they are defined, with the exception of callbacks
   # defined as methods on the model, which are called last.
+  #
+  # == Transactions
+  #
+  # The entire callback chain of a +save+, <tt>save!</tt>, or +destroy+ call runs
+  # within a transaction. That includes <tt>after_*</tt> hooks. If everything
+  # goes fine a COMMIT is executed once the chain has been completed.
+  #
+  # If a <tt>before_*</tt> callback cancels the action a ROLLBACK is issued. You
+  # can also trigger a ROLLBACK raising an exception in any of the callbacks,
+  # including <tt>after_*</tt> hooks. Note, however, that in that case the client
+  # needs to be aware of it because an ordinary +save+ will raise such exception
+  # instead of quietly returning +false+.
   module Callbacks
     CALLBACKS = %w(
       after_find after_initialize before_save after_save before_create after_create before_update after_update before_validation

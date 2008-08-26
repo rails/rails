@@ -3,35 +3,63 @@ module ActiveSupport
     class MemoryStore < Store
       def initialize
         @data = {}
+        @guard = Monitor.new
+      end
+
+      def fetch(key, options = {})
+        @guard.synchronize do
+          super
+        end
       end
 
       def read(name, options = nil)
-        super
-        @data[name]
+        @guard.synchronize do
+          super
+          @data[name]
+        end
       end
 
       def write(name, value, options = nil)
-        super
-        @data[name] = value
+        @guard.synchronize do
+          super
+          @data[name] = value.freeze
+        end
       end
 
       def delete(name, options = nil)
-        super
-        @data.delete(name)
+        @guard.synchronize do
+          @data.delete(name)
+        end
       end
 
       def delete_matched(matcher, options = nil)
-        super
-        @data.delete_if { |k,v| k =~ matcher }
+        @guard.synchronize do
+          @data.delete_if { |k,v| k =~ matcher }
+        end
       end
 
       def exist?(name,options = nil)
-        super
-        @data.has_key?(name)
+        @guard.synchronize do
+          @data.has_key?(name)
+        end
+      end
+
+      def increment(key, amount = 1)
+        @guard.synchronize do
+          super
+        end
+      end
+
+      def decrement(key, amount = 1)
+        @guard.synchronize do
+          super
+        end
       end
 
       def clear
-        @data.clear
+        @guard.synchronize do
+          @data.clear
+        end
       end
     end
   end

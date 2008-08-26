@@ -1,0 +1,64 @@
+== Cross Site Scripting (CSS/XSS) ==
+
+=== The problem ===
+
+Many web applications use session cookies to track the requests of a user. The cookie is used to identify the request and connect it to the session data (the `session` method in Rails). Usually the session contains a reference to the user that is currently logged in, e.g. the id of a User object.
+
+Cross Site Scripting is a technique for ``stealing'' the cookie from another visitor of the website, and thus stealing the login. Cookies are only available from the domain where the were originally created. The easiest way to get access to the cookie is to place a specially crafted piece of JavaScript code on the website; the script can read the cookie of a visitor and send it to the attacker, e.g. by transmitting the data as an URL parameter to another website.
+2.2 Example of an attack
+
+A site with the following Eruby template is vulnerable to XSS:
+
+------------------------------------
+<%= params[:text] %>
+------------------------------------
+
+The 'text' parameter is directly included in the page, so it is possible to insert JavaScript code by setting the parameter to something like
+
+[source, xhtml]
+------------------------------------
+<script>alert(document.cookie)</script>
+------------------------------------
+
+After url-encoding the script (e.g. with `CGI.encode`) the attacker can put it into an URL and make his victim open the URL in the browser.
+
+If you open the URL
+
+------------------------------------
+http://website.domain/controller/action?text=%3Cscript%3Ealert%28document.cookie%29%3C%2Fscript%3E
+------------------------------------
+
+you will get a popup window with your session cookie. Instead of opening the popup the script could as well send the session id to another server.
+
+=== How to protect your application ===
+
+Obviously the key to a successful attack is the possibility to place JavaScript on a website that can receive the session cookie. This can be a blog with user comments, a web forum or a Wiki. How can you protect against it? Strictly convert HTML meta characters (`<` and `>`) to the equivalent HTML entities (`&lt;` and `&gt;`) in every string that is rendered in the website. This will ensure that, no matter what kind of text an attacker enters in a form or attaches to an URL, the browser will always render it as plain text and never interpret any HTML tags. This is a good idea anyway, as a user can easily mess up your layout by leaving tags open. If you want the user to be able to format his texts, it is usually better to use a markup language like Textile, Markdown or RDoc.
+
+Rails provides the helper method `h` for HTML meta character conversion in Views.
+
+Example:
+
+------------------------------------
+<%=h post.subject %>
+<%=h post.text %>
+------------------------------------
+
+You should accustom to using `h` for any variable that is rendered in the view, even if you think you can trust it to be from a reliable source.
+
+=== XSS attacks using an echo service ===
+
+The echo service is a service running on TCP port 7 that returns back everything you send to it. On Debian it is active by default. Now how can this be a security problem for a web application?
+
+If the server of the target website 'target.domain' is running an echo service, the attacker could create a form like the following on his own website:
+
+[source, xhtml]
+------------------------------------
+<form action="http://target.domain:7/" method="post">
+  <input type="hidden" name="code" value="some_javascript_code_here" />
+  <input type="submit" />
+</form>
+------------------------------------
+
+If he makes someone who has a session cookie on the target website submit this form, the content of the hidden field is sent to the echo server at port 7 – and returned. If the browser decides to display the returned data as HTML (some versions of IE do), it will execute the JavaScript code; and because the domain is 'target.domain' the session cookie is available for the script.
+
+This is rather a client-side issue, but to reduce the probability of a successful attack you should deactivate any echo services on the web server. However this does not provide full security, because there are also some other services (e.g. FTP, POP3) that can be used instead of the echo server.

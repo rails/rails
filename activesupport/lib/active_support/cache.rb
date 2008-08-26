@@ -21,7 +21,7 @@ module ActiveSupport
       expanded_cache_key = namespace ? "#{namespace}/" : ""
 
       if ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
-        expanded_cache_key << "#{ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]}/" 
+        expanded_cache_key << "#{ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]}/"
       end
 
       expanded_cache_key << case
@@ -36,16 +36,11 @@ module ActiveSupport
       expanded_cache_key
     end
 
-
     class Store
       cattr_accessor :logger
 
-      def initialize
-      end
-
-      def threadsafe!
-        @mutex = Mutex.new
-        self.class.send :include, ThreadSafety
+      def silence!
+        @silence = true
         self
       end
 
@@ -110,30 +105,11 @@ module ActiveSupport
           nil
         end
       end
-      
+
       private
         def log(operation, key, options)
-          logger.debug("Cache #{operation}: #{key}#{options ? " (#{options.inspect})" : ""}") if logger && !@logger_off
+          logger.debug("Cache #{operation}: #{key}#{options ? " (#{options.inspect})" : ""}") if logger && !@silence && !@logger_off
         end
-    end
-
-
-    module ThreadSafety #:nodoc:
-      def read(key, options = nil) #:nodoc:
-        @mutex.synchronize { super }
-      end
-
-      def write(key, value, options = nil) #:nodoc:
-        @mutex.synchronize { super }
-      end
-
-      def delete(key, options = nil) #:nodoc:
-        @mutex.synchronize { super }
-      end
-
-      def delete_matched(matcher, options = nil) #:nodoc:
-        @mutex.synchronize { super }
-      end
     end
   end
 end

@@ -29,8 +29,8 @@ module ActiveSupport
         nil
       end
 
-      # Set key = value. Pass :unless_exist => true if you don't 
-      # want to update the cache if the key is already set. 
+      # Set key = value. Pass :unless_exist => true if you don't
+      # want to update the cache if the key is already set.
       def write(key, value, options = nil)
         super
         method = options && options[:unless_exist] ? :add : :set
@@ -56,33 +56,33 @@ module ActiveSupport
         !read(key, options).nil?
       end
 
-      def increment(key, amount = 1)       
+      def increment(key, amount = 1)
         log("incrementing", key, amount)
-        
-        response = @data.incr(key, amount)  
+
+        response = @data.incr(key, amount)
         response == Response::NOT_FOUND ? nil : response
-      rescue MemCache::MemCacheError 
+      rescue MemCache::MemCacheError
         nil
       end
 
       def decrement(key, amount = 1)
         log("decrement", key, amount)
-        
-        response = data.decr(key, amount) 
+
+        response = @data.decr(key, amount)
         response == Response::NOT_FOUND ? nil : response
-      rescue MemCache::MemCacheError 
+      rescue MemCache::MemCacheError
         nil
-      end        
-      
+      end
+
       def delete_matched(matcher, options = nil)
         super
         raise "Not supported by Memcache"
-      end        
-      
+      end
+
       def clear
         @data.flush_all
-      end        
-      
+      end
+
       def stats
         @data.stats
       end

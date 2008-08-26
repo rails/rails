@@ -66,32 +66,24 @@ module ActiveRecord
     # will happen under the protected cover of a transaction. So you can use validations to check for values that the transaction
     # depends on or you can raise exceptions in the callbacks to rollback.
     #
-    # == Exception handling
+    # == Exception handling and rolling back
     #
     # Also have in mind that exceptions thrown within a transaction block will be propagated (after triggering the ROLLBACK), so you
-    # should be ready to catch those in your application code. One exception is the ActiveRecord::Rollback exception, which will
-    # trigger a ROLLBACK when raised, but not be re-raised by the transaction block.
+    # should be ready to catch those in your application code.
+    #
+    # One exception is the ActiveRecord::Rollback exception, which will trigger a ROLLBACK when raised,
+    # but not be re-raised by the transaction block.
     module ClassMethods
+      # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
       def transaction(&block)
-        increment_open_transactions
+        connection.increment_open_transactions
 
         begin
-          connection.transaction(Thread.current['start_db_transaction'], &block)
+          connection.transaction(connection.open_transactions == 1, &block)
         ensure
-          decrement_open_transactions
+          connection.decrement_open_transactions
         end
       end
-
-      private
-        def increment_open_transactions #:nodoc:
-          open = Thread.current['open_transactions'] ||= 0
-          Thread.current['start_db_transaction'] = open.zero?
-          Thread.current['open_transactions'] = open + 1
-        end
-
-        def decrement_open_transactions #:nodoc:
-          Thread.current['open_transactions'] -= 1
-        end
     end
 
     def transaction(&block)
@@ -99,11 +91,11 @@ module ActiveRecord
     end
 
     def destroy_with_transactions #:nodoc:
-      transaction { destroy_without_transactions }
+      with_transaction_returning_status(:destroy_without_transactions)
     end
 
     def save_with_transactions(perform_validation = true) #:nodoc:
-      rollback_active_record_state! { transaction { save_without_transactions(perform_validation) } }
+      rollback_active_record_state! { with_transaction_returning_status(:save_without_transactions, perform_validation) }
     end
 
     def save_with_transactions! #:nodoc:
@@ -125,6 +117,18 @@ module ActiveRecord
         @attributes_cache.delete(self.class.primary_key)
       end
       raise
+    end
+
+    # Executes +method+ within a transaction and captures its return value as a
+    # status flag. If the status is true the transaction is committed, otherwise
+    # a ROLLBACK is issued. In any case the status flag is returned.
+    def with_transaction_returning_status(method, *args)
+      status = nil
+      transaction do
+        status = send(method, *args)
+        raise ActiveRecord::Rollback unless status
+      end
+      status
     end
   end
 end

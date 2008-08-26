@@ -34,7 +34,7 @@ module ActiveRecord
         class_to_reflection = {}
         # Not all records have the same class, so group then preload
         # group on the reflection itself so that if various subclass share the same association then we do not split them
-        # unncessarily
+        # unnecessarily
         records.group_by {|record| class_to_reflection[record.class] ||= record.class.reflections[association]}.each do |reflection, records|
           raise ConfigurationError, "Association named '#{ association }' was not found; perhaps you misspelled it?" unless reflection
           send("preload_#{reflection.macro}_association", records, reflection, preload_options)
@@ -51,9 +51,7 @@ module ActiveRecord
       
       def add_preloaded_record_to_collection(parent_records, reflection_name, associated_record)
         parent_records.each do |parent_record|
-          association_proxy = parent_record.send(reflection_name)
-          association_proxy.loaded
-          association_proxy.target = associated_record
+          parent_record.send("set_#{reflection_name}_target", associated_record)
         end
       end
 
@@ -112,8 +110,8 @@ module ActiveRecord
       def preload_has_one_association(records, reflection, preload_options={})
         id_to_record_map, ids = construct_id_map(records)        
         options = reflection.options
+        records.each {|record| record.send("set_#{reflection.name}_target", nil)}
         if options[:through]
-          records.each {|record| record.send(reflection.name) && record.send(reflection.name).loaded}
           through_records = preload_through_records(records, reflection, options[:through])
           through_reflection = reflections[options[:through]]
           through_primary_key = through_reflection.primary_key_name
@@ -126,8 +124,6 @@ module ActiveRecord
             end
           end
         else
-          records.each {|record| record.send("set_#{reflection.name}_target", nil)}
-
           set_association_single_records(id_to_record_map, reflection.name, find_associated_records(ids, reflection, preload_options), reflection.primary_key_name)
         end
       end
@@ -252,7 +248,7 @@ module ActiveRecord
         table_name = reflection.klass.quoted_table_name
 
         if interface = reflection.options[:as]
-          conditions = "#{reflection.klass.quoted_table_name}.#{connection.quote_column_name "#{interface}_id"} IN (?) and #{reflection.klass.quoted_table_name}.#{connection.quote_column_name "#{interface}_type"} = '#{self.base_class.name.demodulize}'"
+          conditions = "#{reflection.klass.quoted_table_name}.#{connection.quote_column_name "#{interface}_id"} IN (?) and #{reflection.klass.quoted_table_name}.#{connection.quote_column_name "#{interface}_type"} = '#{self.base_class.sti_name}'"
         else
           foreign_key = reflection.primary_key_name
           conditions = "#{reflection.klass.quoted_table_name}.#{foreign_key} IN (?)"

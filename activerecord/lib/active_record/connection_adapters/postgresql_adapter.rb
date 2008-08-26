@@ -23,8 +23,8 @@ module ActiveRecord
       config = config.symbolize_keys
       host     = config[:host]
       port     = config[:port] || 5432
-      username = config[:username].to_s
-      password = config[:password].to_s
+      username = config[:username].to_s if config[:username]
+      password = config[:password].to_s if config[:password]
 
       if config.has_key?(:database)
         database = config[:database]
@@ -182,8 +182,8 @@ module ActiveRecord
         def self.extract_value_from_default(default)
           case default
             # Numeric types
-            when /\A-?\d+(\.\d*)?\z/
-              default
+            when /\A\(?(-?\d+(\.\d*)?\)?)\z/
+              $1
             # Character types
             when /\A'(.*)'::(?:character varying|bpchar|text)\z/m
               $1
@@ -333,6 +333,10 @@ module ActiveRecord
 
       def supports_insert_with_returning?
         postgresql_version >= 80200
+      end
+
+      def supports_ddl_transactions?
+        true
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL,
@@ -534,13 +538,13 @@ module ActiveRecord
         option_string = options.symbolize_keys.sum do |key, value|
           case key
           when :owner
-            " OWNER = '#{value}'"
+            " OWNER = \"#{value}\""
           when :template
-            " TEMPLATE = #{value}"
+            " TEMPLATE = \"#{value}\""
           when :encoding
             " ENCODING = '#{value}'"
           when :tablespace
-            " TABLESPACE = #{value}"
+            " TABLESPACE = \"#{value}\""
           when :connection_limit
             " CONNECTION LIMIT = #{value}"
           else
@@ -761,7 +765,8 @@ module ActiveRecord
 
         begin
           execute "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
-        rescue ActiveRecord::StatementInvalid
+        rescue ActiveRecord::StatementInvalid => e
+          raise e if postgresql_version > 80000
           # This is PostgreSQL 7.x, so we have to use a more arcane way of doing it.
           begin
             begin_db_transaction
@@ -867,7 +872,7 @@ module ActiveRecord
         end
 
       private
-        # The internal PostgreSQL identifer of the money data type.
+        # The internal PostgreSQL identifier of the money data type.
         MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
 
         # Connects to a PostgreSQL server and sets up the adapter depending on the

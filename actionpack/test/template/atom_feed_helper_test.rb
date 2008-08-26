@@ -74,12 +74,30 @@ class ScrollsController < ActionController::Base
           end
         end
     EOT
+    FEEDS["feed_with_overridden_ids"] = <<-EOT
+        atom_feed({:id => 'tag:test.rubyonrails.org,2008:test/'}) do |feed|
+          feed.title("My great blog!")
+          feed.updated((@scrolls.first.created_at))
+
+          for scroll in @scrolls
+            feed.entry(scroll, :id => "tag:test.rubyonrails.org,2008:"+scroll.id.to_s) do |entry|
+              entry.title(scroll.title)
+              entry.content(scroll.body, :type => 'html')
+              entry.tag!('app:edited', Time.now)
+
+              entry.author do |author|
+                author.name("DHH")
+              end
+            end
+          end
+        end
+    EOT
   def index
     @scrolls = [
       Scroll.new(1, "1", "Hello One", "Something <i>COOL!</i>", Time.utc(2007, 12, 12, 15), Time.utc(2007, 12, 12, 15)),
       Scroll.new(2, "2", "Hello Two", "Something Boring", Time.utc(2007, 12, 12, 15)),
     ]
-    
+
     render :inline => FEEDS[params[:id]], :type => :builder
   end
 
@@ -98,21 +116,21 @@ class AtomFeedTest < Test::Unit::TestCase
 
     @request.host = "www.nextangle.com"
   end
-  
+
   def test_feed_should_use_default_language_if_none_is_given
     with_restful_routing(:scrolls) do
       get :index, :id => "defaults"
       assert_match %r{xml:lang="en-US"}, @response.body
     end
   end
-  
+
   def test_feed_should_include_two_entries
     with_restful_routing(:scrolls) do
       get :index, :id => "defaults"
       assert_select "entry", 2
     end
   end
-  
+
   def test_entry_should_only_use_published_if_created_at_is_present
     with_restful_routing(:scrolls) do
       get :index, :id => "defaults"
@@ -167,7 +185,16 @@ class AtomFeedTest < Test::Unit::TestCase
     end
   end
 
-  private
+  def test_feed_should_allow_overriding_ids
+    with_restful_routing(:scrolls) do
+      get :index, :id => "feed_with_overridden_ids"
+      assert_select "id", :text => "tag:test.rubyonrails.org,2008:test/"
+      assert_select "entry id", :text => "tag:test.rubyonrails.org,2008:1"
+      assert_select "entry id", :text => "tag:test.rubyonrails.org,2008:2"
+    end
+  end
+
+private
     def with_restful_routing(resources)
       with_routing do |set|
         set.draw do |map|

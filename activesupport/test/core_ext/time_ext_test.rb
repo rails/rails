@@ -528,8 +528,13 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.time_with_datetime_fallback(:utc, 2005), Time.utc(2005)
     assert_equal Time.time_with_datetime_fallback(:utc, 2039), DateTime.civil(2039, 1, 1, 0, 0, 0, 0, 0)
     assert_equal Time.time_with_datetime_fallback(:utc, 2005, 2, 21, 17, 44, 30, 1), Time.utc(2005, 2, 21, 17, 44, 30, 1) #with usec
-    assert_equal Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1), DateTime.civil(2039, 2, 21, 17, 44, 30, 0, 0)
-    assert_equal ::Date::ITALY, Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1).start # use Ruby's default start value
+    # This won't overflow on 64bit linux
+    expected_to_overflow = Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1)
+    unless expected_to_overflow.is_a?(Time)
+      assert_equal Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1),
+                   DateTime.civil(2039, 2, 21, 17, 44, 30, 0, 0)
+      assert_equal ::Date::ITALY, Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30, 1).start # use Ruby's default start value
+    end
   end
 
   def test_utc_time

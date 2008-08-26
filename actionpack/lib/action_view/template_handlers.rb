@@ -1,5 +1,4 @@
 require 'action_view/template_handler'
-require 'action_view/template_handlers/compilable'
 require 'action_view/template_handlers/builder'
 require 'action_view/template_handlers/erb'
 require 'action_view/template_handlers/rjs'

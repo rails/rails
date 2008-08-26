@@ -1,0 +1,87 @@
+== SQL Injection ==
+
+=== The problem ===
+
+SQL injection is the #1 security problem in many web applications. How does it work? If the web application includes strings from unreliable sources (usually form parameters) in SQL statements and doesn't correctly quote any SQL meta characters like backslashes or single quotes, an attacker can change `WHERE` conditions in SQL statements, create records with invalid data or even execute arbitrary SQL statements.
+
+=== How to protect your application ===
+
+If you only use the predefined ActiveRecord functions (attributes, save, find) without writing any conditions, limits or SQL queries yourself, ActiveRecord takes care of quoting any dangerous characters in the data for you.
+
+If you don't, you have to make sure that strings for arguments that are directly used to build SQL queries (like the condition, limit and sort arguments for `find :all`) do not contain any SQL meta characters.
+
+=== Using arbitrary strings in conditions and SQL statements ===
+
+==== Wrong ====
+
+Imagine a webmail system where a user can select a list of all the emails with a certain subject. A query could look like this:
+
+[source, ruby]
+---------------------------------------------------------------------------
+Email.find(:all, "owner_id = 123 AND subject = '#{params[:subject]}'")
+---------------------------------------------------------------------------
+
+This is dangerous. Imagine a user sending the string `\' OR 1 \--` in the parameter 'subject'; the resulting statement will look like this:
+
+[source, ruby]
+---------------------------------------------------------------------------
+Email.find(:all, "owner_id = 123 AND subject = '' OR 1 --'")
+---------------------------------------------------------------------------
+
+Because of ``OR 1'' the condition is always true. The part ``\--'' starts a SQL comment; everything after it will be ignored. The result: the user will get a list of all the emails in the database.
+
+(Of course the 'owner_id' would have to be inserted dynamically in a real application; this was omitted to keep the examples as simple as possible.)
+
+==== Correct ====
+
+[source, ruby]
+---------------------------------------------------------------------------
+Email.find(:all, ["owner_id = 123 AND subject = ?", params[:subject]])
+---------------------------------------------------------------------------
+
+If the argument for find_all is an array instead of a string, ActiveRecord will insert the elements 2..n of the array for the `?` placeholders in the element 1, add quotation marks if the elements are strings, and quote all characters that have a special meaning for the database adapter used by the `Email` model.
+
+If you don't like the syntax of the array, you can take care of the quoting yourself by calling the `quote_value` method of the model class. You have to do this when you use `find_by_sql`, as the Array argument doesn't work there:
+
+[source, ruby]
+---------------------------------------------------------------------------
+Email.find_by_sql("SELECT * FROM email WHERE owner_id = 123 AND subject = #{Email.quote_value(subject)}")
+---------------------------------------------------------------------------
+
+The quotation marks are added automatically by `Email.quote_value` if the argument is a string.
+
+=== Extracting queries into model methods ===
+
+If you need to execute a query with the similar options in several places in your code, you should create a model method for that query. Instead of
+
+[source, ruby]
+---------------------------------------------------------------------------
+emails = Email.find(:all, ["subject = ?", subject])
+---------------------------------------------------------------------------
+
+you could define the following class method in the model:
+
+[source, ruby]
+---------------------------------------------------------------------------
+class Email < ActiveRecord::Base
+  def self.find_with_subject(subject)
+    Email.find(:all, ["subject = ?", subject])
+  end
+end
+---------------------------------------------------------------------------
+
+and call it like this:
+
+[source, ruby]
+---------------------------------------------------------------------------
+emails = Email.find_with_subject(subject)
+---------------------------------------------------------------------------
+
+This has the advantage that you don't have to care about meta characters when using the function `find_with_subject`. Generally you should always make sure that this kind of model method can not break anything, even if it is called with untrusted arguments.
+
+.ActiveRecord automatically generates finder methods
+NOTE: The `find_with_subject` method given in the above example is actually redundant.
+ActiveRecord automatically generates finder methods for columns. In this case, ActiveRecord
+automatically generates the method `find_by_subject` (which works exactly like the `find_with_subject`
+method given in the example). `find_with_subject` is only given here as an example. In general,
+you should use ActiveRecord's auto-generated finder methods instead of writing your own.

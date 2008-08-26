@@ -39,6 +39,11 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
     @developers = Developer.find(:all)
     render :partial => @developers
   end
+
+  def render_with_record_collection_and_spacer_template
+    @developer = Developer.find(1)
+    render :partial => @developer.projects, :spacer_template => 'test/partial_only'
+  end
 end
 
 class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
@@ -79,6 +84,11 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
     get :render_with_record_collection
     assert_template 'developers/_developer'
     assert_equal 'DavidJamisfixture_3fixture_4fixture_5fixture_6fixture_7fixture_8fixture_9fixture_10Jamis', @response.body
+  end
+
+  def test_render_with_record_collection_and_spacer_template
+    get :render_with_record_collection_and_spacer_template
+    assert_equal 'Active Recordonly partialActive Controller', @response.body
   end
 
   def test_rendering_partial_with_has_one_association

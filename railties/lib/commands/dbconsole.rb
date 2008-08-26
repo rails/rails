@@ -41,11 +41,13 @@ when "mysql"
 
   if config['password'] && include_password
     args << "--password=#{config['password']}"
+  elsif config['password'] && !config['password'].empty?
+    args << "-p"
   end
 
   args << config['database']
 
-  exec(find_cmd('mysql5', 'mysql'), *args)
+  exec(find_cmd('mysql', 'mysql5'), *args)
 
 when "postgresql"
   ENV['PGUSER']     = config["username"] if config["username"]

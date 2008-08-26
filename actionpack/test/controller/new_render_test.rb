@@ -136,6 +136,10 @@ class NewRenderTestController < ActionController::Base
     render :partial => "partial_only", :layout => true
   end
 
+  def partial_with_counter
+    render :partial => "counter", :locals => { :counter_counter => 5 }
+  end
+
   def partial_with_locals
     render :partial => "customer", :locals => { :customer => Customer.new("david") }
   end
@@ -429,6 +433,10 @@ class NewRenderTestController < ActionController::Base
 
   def render_using_layout_around_block
     render :action => "using_layout_around_block"
+  end
+
+  def render_using_layout_around_block_with_args
+    render :action => "using_layout_around_block_with_args"
   end
 
   def render_using_layout_around_block_in_main_layout_and_within_content_for_layout
@@ -741,6 +749,11 @@ EOS
     assert_equal "<title>Talking to the layout</title>\nAction was here!", @response.body
   end
 
+  def test_partial_with_counter
+    get :partial_with_counter
+    assert_equal "5", @response.body
+  end
+
   def test_partials_list
     get :partials_list
     assert_equal "goodbyeHello: davidHello: marygoodbye\n", @response.body
@@ -959,5 +972,10 @@ EOS
   def test_using_layout_around_block_in_main_layout_and_within_content_for_layout
     get :render_using_layout_around_block_in_main_layout_and_within_content_for_layout
     assert_equal "Before (Anthony)\nInside from first block in layout\nAfter\nBefore (David)\nInside from block\nAfter\nBefore (Ramm)\nInside from second block in layout\nAfter\n", @response.body
+  end
+
+  def test_using_layout_around_block_with_args
+    get :render_using_layout_around_block_with_args
+    assert_equal "Before\narg1arg2\nAfter", @response.body
   end
 end

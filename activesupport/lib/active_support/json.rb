@@ -1,5 +1,5 @@
 module ActiveSupport
-  # If true, use ISO 8601 format for dates and times.  Otherwise, fall back to the Active Support legacy format.
+  # If true, use ISO 8601 format for dates and times. Otherwise, fall back to the Active Support legacy format.
   mattr_accessor :use_standard_json_time_format
 
   class << self

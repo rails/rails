@@ -2,8 +2,6 @@ module ActionController
   # Dispatches requests to the appropriate controller and takes care of
   # reloading the app after each request when Dependencies.load? is true.
   class Dispatcher
-    @@guard = Mutex.new
-
     class << self
       def define_dispatcher_callbacks(cache_classes)
         unless cache_classes
@@ -26,7 +24,7 @@ module ActionController
           to_prepare(:activerecord_instantiate_observers) { ActiveRecord::Base.instantiate_observers }
         end
 
-        after_dispatch :flush_logger if defined?(RAILS_DEFAULT_LOGGER) && RAILS_DEFAULT_LOGGER.respond_to?(:flush)
+        after_dispatch :flush_logger if Base.logger && Base.logger.respond_to?(:flush)
       end
 
       # Backward-compatible class method takes CGI-specific args. Deprecated
@@ -46,7 +44,7 @@ module ActionController
       def to_prepare(identifier = nil, &block)
         @prepare_dispatch_callbacks ||= ActiveSupport::Callbacks::CallbackChain.new
         callback = ActiveSupport::Callbacks::Callback.new(:prepare_dispatch, block, :identifier => identifier)
-        @prepare_dispatch_callbacks | callback
+        @prepare_dispatch_callbacks.replace_or_append!(callback)
       end
 
       # If the block raises, send status code as a last-ditch response.
@@ -101,15 +99,13 @@ module ActionController
     end
 
     def dispatch
-      @@guard.synchronize do
-        begin
-          run_callbacks :before_dispatch
-          handle_request
-        rescue Exception => exception
-          failsafe_rescue exception
-        ensure
-          run_callbacks :after_dispatch, :enumerator => :reverse_each
-        end
+      begin
+        run_callbacks :before_dispatch
+        handle_request
+      rescue Exception => exception
+        failsafe_rescue exception
+      ensure
+        run_callbacks :after_dispatch, :enumerator => :reverse_each
       end
     end
 
@@ -146,7 +142,7 @@ module ActionController
     end
 
     def flush_logger
-      RAILS_DEFAULT_LOGGER.flush
+      Base.logger.flush
     end
 
     protected

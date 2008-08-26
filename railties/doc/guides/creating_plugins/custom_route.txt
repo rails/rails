@@ -1,0 +1,69 @@
+== Add a Custom Route ==
+
+Testing routes in plugins can be complex, especially if the controllers are also in the plugin itself.  Jamis Buck showed a great example of this in http://weblog.jamisbuck.org/2006/10/26/monkey-patching-rails-extending-routes-2.
+
+[source, ruby]
+--------------------------------------------------------
+# File: vendor/plugins/yaffle/test/routing_test.rb
+
+require "#{File.dirname(__FILE__)}/test_helper"
+
+class RoutingTest < Test::Unit::TestCase
+
+  def setup
+    ActionController::Routing::Routes.draw do |map|
+      map.yaffles
+    end
+  end
+
+  def test_yaffles_route
+    assert_recognition :get, "/yaffles", :controller => "yaffles_controller", :action => "index"
+  end
+
+  private
+
+    # yes, I know about assert_recognizes, but it has proven problematic to
+    # use in these tests, since it uses RouteSet#recognize (which actually
+    # tries to instantiate the controller) and because it uses an awkward
+    # parameter order.
+    def assert_recognition(method, path, options)
+      result = ActionController::Routing::Routes.recognize_path(path, :method => method)
+      assert_equal options, result
+    end
+end
+--------------------------------------------------------
+
+[source, ruby]
+--------------------------------------------------------
+# File: vendor/plugins/yaffle/init.rb
+
+require "routing"
+ActionController::Routing::RouteSet::Mapper.send :include, Yaffle::Routing::MapperExtensions
+--------------------------------------------------------
+
+[source, ruby]
+--------------------------------------------------------
+# File: vendor/plugins/yaffle/lib/routing.rb
+
+module Yaffle #:nodoc:
+  module Routing #:nodoc:
+    module MapperExtensions
+      def yaffles
+        @set.add_route("/yaffles", {:controller => "yaffles_controller", :action => "index"})
+      end
+    end
+  end
+end
+--------------------------------------------------------
+
+[source, ruby]
+--------------------------------------------------------
+# File: config/routes.rb
+
+ActionController::Routing::Routes.draw do |map|
+  ...
+  map.yaffles
+end
+--------------------------------------------------------
+
+You can also see if your routes work by running `rake routes` from your app directory.

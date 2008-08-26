@@ -48,14 +48,10 @@ module ActionController
             end
           when /\A\*(\w+)/ then PathSegment.new($1.to_sym, :optional => true)
           when /\A\?(.*?)\?/
-            returning segment = StaticSegment.new($1) do
-              segment.is_optional = true
-            end
+            StaticSegment.new($1, :optional => true)
           when /\A(#{separator_pattern(:inverted)}+)/ then StaticSegment.new($1)
           when Regexp.new(separator_pattern) then
-            returning segment = DividerSegment.new($&) do
-              segment.is_optional = (optional_separators.include? $&)
-            end
+            DividerSegment.new($&, :optional => (optional_separators.include? $&))
         end
         [segment, $~.post_match]
       end
@@ -75,6 +71,8 @@ module ActionController
         requirements = (options.delete(:requirements) || {}).dup
         defaults     = (options.delete(:defaults)     || {}).dup
         conditions   = (options.delete(:conditions)   || {}).dup
+
+        validate_route_conditions(conditions)
 
         path_keys = segments.collect { |segment| segment.key if segment.respond_to?(:key) }.compact
         options.each do |key, value|
@@ -174,30 +172,30 @@ module ActionController
         defaults, requirements, conditions = divide_route_options(segments, options)
         requirements = assign_route_options(segments, defaults, requirements)
 
-        route = Route.new
+        # TODO: Segments should be frozen on initialize
+        segments.each { |segment| segment.freeze }
 
-        route.segments = segments
-        route.requirements = requirements
-        route.conditions = conditions
-
-        if !route.significant_keys.include?(:action) && !route.requirements[:action]
-          route.requirements[:action] = "index"
-          route.significant_keys << :action
-        end
-
-        # Routes cannot use the current string interpolation method
-        # if there are user-supplied <tt>:requirements</tt> as the interpolation
-        # code won't raise RoutingErrors when generating
-        if options.key?(:requirements) || route.requirements.keys.to_set != Routing::ALLOWED_REQUIREMENTS_FOR_OPTIMISATION
-          route.optimise = false
-        end
+        route = Route.new(segments, requirements, conditions)
 
         if !route.significant_keys.include?(:controller)
           raise ArgumentError, "Illegal route: the :controller must be specified!"
         end
 
-        route
+        route.freeze
       end
+
+      private
+        def validate_route_conditions(conditions)
+          if method = conditions[:method]
+            if method == :head
+              raise ArgumentError, "HTTP method HEAD is invalid in route conditions. Rails processes HEAD requests the same as GETs, returning just the response headers"
+            end
+
+            unless HTTP_METHODS.include?(method.to_sym)
+              raise ArgumentError, "Invalid HTTP method specified in route conditions: #{conditions.inspect}"
+            end
+          end
+        end
     end
   end
 end

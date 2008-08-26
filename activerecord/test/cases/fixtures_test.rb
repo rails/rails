@@ -461,11 +461,11 @@ class FixturesBrokenRollbackTest < ActiveRecord::TestCase
   alias_method :teardown, :blank_teardown
 
   def test_no_rollback_in_teardown_unless_transaction_active
-    assert_equal 0, Thread.current['open_transactions']
+    assert_equal 0, ActiveRecord::Base.connection.open_transactions
     assert_raise(RuntimeError) { ar_setup_fixtures }
-    assert_equal 0, Thread.current['open_transactions']
+    assert_equal 0, ActiveRecord::Base.connection.open_transactions
     assert_nothing_raised { ar_teardown_fixtures }
-    assert_equal 0, Thread.current['open_transactions']
+    assert_equal 0, ActiveRecord::Base.connection.open_transactions
   end
 
   private

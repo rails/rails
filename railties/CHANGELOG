@@ -1,5 +1,13 @@
 *Edge*
 
+* Added config.threadsafe! to toggle allow concurrency settings and disable the dependency loader [Josh Peek]
+
+* Turn cache_classes on by default [Josh Peek]
+
+* Added configurable eager load paths. Defaults to app/models, app/controllers, and app/helpers [Josh Peek]
+
+* Introduce simple internationalization support.  [Ruby i18n team]
+
 * Make script/plugin install <plugin> -r <revision> option work with git based plugins. #257. [Tim Pope Jakub Kuźma]. Example:
 
   script/plugin install git://github.com/mislav/will_paginate.git -r agnostic # Installs 'agnostic' branch
