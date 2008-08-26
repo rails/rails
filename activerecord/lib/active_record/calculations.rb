@@ -260,7 +260,14 @@ module ActiveRecord
         #   column_alias_for("count(*)")                 # => "count_all"
         #   column_alias_for("count", "id")              # => "count_id"
         def column_alias_for(*keys)
-          connection.table_alias_for(keys.join(' ').downcase.gsub(/\*/, 'all').gsub(/\W+/, ' ').strip.gsub(/ +/, '_'))
+          table_name = keys.join(' ')
+          table_name.downcase!
+          table_name.gsub!(/\*/, 'all')
+          table_name.gsub!(/\W+/, ' ')
+          table_name.strip!
+          table_name.gsub!(/ +/, '_')
+
+          connection.table_alias_for(table_name)
         end
 
         def column_for(field)
