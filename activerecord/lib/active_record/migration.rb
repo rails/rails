@@ -386,10 +386,9 @@ module ActiveRecord
       end
 
       def current_version
-        version = Base.connection.select_values(
-          "SELECT version FROM #{schema_migrations_table_name}"
-        ).map(&:to_i).max rescue nil
-        version || 0
+        Base.connection.select_value(
+          "SELECT MAX(CAST(version AS integer)) FROM #{schema_migrations_table_name}"
+        ).to_i rescue 0
       end
 
       def proper_table_name(name)
@@ -405,7 +404,7 @@ module ActiveRecord
     end
 
     def current_version
-      self.class.current_version
+      migrated.last || 0
     end
     
     def current_migration
@@ -490,16 +489,19 @@ module ActiveRecord
 
     def migrated
       sm_table = self.class.schema_migrations_table_name
-      Base.connection.select_values("SELECT version FROM #{sm_table}").map(&:to_i).sort
+      @migrated_versions ||= Base.connection.select_values("SELECT version FROM #{sm_table}").map(&:to_i).sort
     end
 
     private
       def record_version_state_after_migrating(version)
         sm_table = self.class.schema_migrations_table_name
 
+        @migrated_versions ||= []
         if down?
+          @migrated_versions.delete(version.to_i)
           Base.connection.update("DELETE FROM #{sm_table} WHERE version = '#{version}'")
         else
+          @migrated_versions.push(version.to_i).sort!
           Base.connection.insert("INSERT INTO #{sm_table} (version) VALUES ('#{version}')")
         end
       end
