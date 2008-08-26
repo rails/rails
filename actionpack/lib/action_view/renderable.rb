@@ -72,7 +72,7 @@ module ActionView
         end_src
 
         begin
-          logger = Base.logger
+          logger = defined? ActionController && Base.logger
           logger.debug "Compiling template #{render_symbol}" if logger
 
           ActionView::Base::CompiledTemplates.module_eval(source, filename, 0)
