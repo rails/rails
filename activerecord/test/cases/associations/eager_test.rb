@@ -38,6 +38,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal Post.find(1).last_comment, post.last_comment
   end
 
+  def test_loading_with_one_association_with_non_preload
+    posts = Post.find(:all, :include => :last_comment, :order => 'comments.id DESC')
+    post = posts.find { |p| p.id == 1 }
+    assert_equal Post.find(1).last_comment, post.last_comment
+  end
+
   def test_loading_conditions_with_or
     posts = authors(:david).posts.find(:all, :include => :comments, :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE} = 'SpecialComment'")
     assert_nil posts.detect { |p| p.author_id != authors(:david).id },
