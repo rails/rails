@@ -21,8 +21,6 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-$:.unshift(File.dirname(__FILE__))
-
 require 'active_support/vendor'
 require 'active_support/basic_object'
 require 'active_support/inflector'
