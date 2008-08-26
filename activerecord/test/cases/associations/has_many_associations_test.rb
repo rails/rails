@@ -48,6 +48,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, Firm.find(:first).plain_clients.count(:name)
   end
 
+  def test_counting_with_association_limit
+    firm = companies(:first_firm)
+    assert_equal firm.limited_clients.length, firm.limited_clients.size
+    assert_equal firm.limited_clients.length, firm.limited_clients.count
+  end
+
   def test_finding
     assert_equal 2, Firm.find(:first).clients.length
   end
