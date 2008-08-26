@@ -1734,6 +1734,7 @@ module ActiveRecord
                   collection.target.push(association)
                 when :has_one
                   return if record.id.to_s != join.parent.record_id(row).to_s
+                  return if record.instance_variable_defined?("@#{join.reflection.name}")
                   association = join.instantiate(row) unless row[join.aliased_primary_key].nil?
                   record.send("set_#{join.reflection.name}_target", association)
                 when :belongs_to
