@@ -33,12 +33,4 @@ class SecretKeyGenerationTest < Test::Unit::TestCase
   def test_secret_key_generation
     assert @generator.generate_secret.length >= SECRET_KEY_MIN_LENGTH
   end
-
-  Rails::SecretKeyGenerator::GENERATORS.each do |generator|
-    if Rails::SecretKeyGenerator.send("supports_#{generator}?")
-      define_method("test_secret_key_generation_with_#{generator}") do
-        assert @generator.send("generate_secret_with_#{generator}").length >= SECRET_KEY_MIN_LENGTH
-      end
-    end
-  end
 end
