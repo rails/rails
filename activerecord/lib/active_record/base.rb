@@ -752,13 +752,15 @@ module ActiveRecord #:nodoc:
       end
 
       # Updates all records with details given if they match a set of conditions supplied, limits and order can
-      # also be supplied.
+      # also be supplied. This method constructs a single SQL UPDATE statement and sends it straight to the
+      # database. It does not instantiate the involved models and it does not trigger Active Record callbacks.
       #
       # ==== Attributes
       #
-      # * +updates+ - A String of column and value pairs that will be set on any records that match conditions.
+      # * +updates+ - A string of column and value pairs that will be set on any records that match conditions.
+      #               What goes into the SET clause.
       # * +conditions+ - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro for more info.
-      # * +options+ - Additional options are <tt>:limit</tt> and/or <tt>:order</tt>, see the examples for usage.
+      # * +options+ - Additional options are <tt>:limit</tt> and <tt>:order</tt>, see the examples for usage.
       #
       # ==== Examples
       #
@@ -780,8 +782,8 @@ module ActiveRecord #:nodoc:
         connection.update(sql, "#{name} Update")
       end
 
-      # Destroys the records matching +conditions+ by instantiating each record and calling the destroy method.
-      # This means at least 2*N database queries to destroy N records, so avoid destroy_all if you are deleting
+      # Destroys the records matching +conditions+ by instantiating each record and calling their +destroy+ method.
+      # This means at least 2*N database queries to destroy N records, so avoid +destroy_all+ if you are deleting
       # many records. If you want to simply delete records without worrying about dependent associations or
       # callbacks, use the much faster +delete_all+ method instead.
       #
@@ -800,8 +802,9 @@ module ActiveRecord #:nodoc:
       end
 
       # Deletes the records matching +conditions+ without instantiating the records first, and hence not
-      # calling the destroy method and invoking callbacks. This is a single SQL query, much more efficient
-      # than destroy_all.
+      # calling the +destroy+ method nor invoking callbacks. This is a single SQL DELETE statement that
+      # goes straight to the database, much more efficient than +destroy_all+. Careful with relations
+      # though, in particular <tt>:dependent</tt> is not taken into account.
       #
       # ==== Attributes
       #
@@ -811,8 +814,8 @@ module ActiveRecord #:nodoc:
       #
       #   Post.delete_all "person_id = 5 AND (category = 'Something' OR category = 'Else')"
       #
-      # This deletes the affected posts all at once with a single DELETE query. If you need to destroy dependent
-      # associations or call your before_ or after_destroy callbacks, use the +destroy_all+ method instead.
+      # This deletes the affected posts all at once with a single DELETE statement. If you need to destroy dependent
+      # associations or call your <tt>before_*</tt> or +after_destroy+ callbacks, use the +destroy_all+ method instead.
       def delete_all(conditions = nil)
         sql = "DELETE FROM #{quoted_table_name} "
         add_conditions!(sql, conditions, scope(:find))
@@ -2234,20 +2237,40 @@ module ActiveRecord #:nodoc:
         defined?(@new_record) && @new_record
       end
 
-      # * No record exists: Creates a new record with values matching those of the object attributes.
-      # * A record does exist: Updates the record with values matching those of the object attributes.
+      # :call-seq:
+      #   save(perform_validation = true)
       #
-      # Note: If your model specifies any validations then the method declaration dynamically
-      # changes to:
-      #   save(perform_validation=true)
-      # Calling save(false) saves the model without running validations.
-      # See ActiveRecord::Validations for more information.
+      # Saves the model.
+      #
+      # If the model is new a record gets created in the database, otherwise
+      # the existing record gets updated.
+      #
+      # If +perform_validation+ is true validations run. If any of them fail
+      # the action is cancelled and +save+ returns +false+. If the flag is
+      # false validations are bypassed altogether. See
+      # ActiveRecord::Validations for more information. 
+      #
+      # There's a series of callbacks associated with +save+. If any of the
+      # <tt>before_*</tt> callbacks return +false+ the action is cancelled and
+      # +save+ returns +false+. See ActiveRecord::Callbacks for further
+      # details. 
       def save
         create_or_update
       end
 
-      # Attempts to save the record, but instead of just returning false if it couldn't happen, it raises a
-      # RecordNotSaved exception
+      # Saves the model.
+      #
+      # If the model is new a record gets created in the database, otherwise
+      # the existing record gets updated.
+      #
+      # With <tt>save!</tt> validations always run. If any of them fail
+      # ActiveRecord::RecordInvalid gets raised. See ActiveRecord::Validations
+      # for more information. 
+      #
+      # There's a series of callbacks associated with <tt>save!</tt>. If any of
+      # the <tt>before_*</tt> callbacks return +false+ the action is cancelled
+      # and <tt>save!</tt> raises ActiveRecord::RecordNotSaved. See
+      # ActiveRecord::Callbacks for further details. 
       def save!
         create_or_update || raise(RecordNotSaved)
       end
@@ -2594,7 +2617,7 @@ module ActiveRecord #:nodoc:
         removed_attributes = attributes.keys - safe_attributes.keys
 
         if removed_attributes.any?
-          logger.debug "WARNING: Can't mass-assign these protected attributes: #{removed_attributes.join(', ')}"
+          log_protected_attribute_removal(removed_attributes)
         end
 
         safe_attributes
@@ -2607,6 +2630,10 @@ module ActiveRecord #:nodoc:
         else
           attributes
         end
+      end
+
+      def log_protected_attribute_removal(*attributes)
+        logger.debug "WARNING: Can't mass-assign these protected attributes: #{attributes.join(', ')}"
       end
 
       # The primary key and inheritance column can never be set by mass-assignment for security reasons.
@@ -2622,8 +2649,15 @@ module ActiveRecord #:nodoc:
         quoted = {}
         connection = self.class.connection
         attribute_names.each do |name|
-          if column = column_for_attribute(name)
-            quoted[name] = connection.quote(read_attribute(name), column) unless !include_primary_key && column.primary
+          if (column = column_for_attribute(name)) && (include_primary_key || !column.primary)
+            value = read_attribute(name)
+
+            # We need explicit to_yaml because quote() does not properly convert Time/Date fields to YAML.
+            if value && self.class.serialized_attributes.has_key?(name) && (value.acts_like?(:date) || value.acts_like?(:time))
+              value = value.to_yaml
+            end
+
+            quoted[name] = connection.quote(value, column)
           end
         end
         include_readonly_attributes ? quoted : remove_readonly_attributes(quoted)

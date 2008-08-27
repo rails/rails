@@ -76,7 +76,7 @@ class TopicWithProtectedContentAndAccessibleAuthorName < ActiveRecord::Base
 end
 
 class BasicsTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories
 
   def test_table_exists
     assert !NonExistentTable.table_exists?
@@ -1358,6 +1358,12 @@ class BasicsTest < ActiveRecord::TestCase
     myobj = MyObject.new('value1', 'value2')
     topic = Topic.create("content" => myobj)
     Topic.serialize("content", MyObject)
+    assert_equal(myobj, topic.content)
+  end
+
+  def test_serialized_time_attribute
+    myobj = Time.local(2008,1,1,1,0)
+    topic = Topic.create("content" => myobj).reload
     assert_equal(myobj, topic.content)
   end
 

@@ -3,7 +3,7 @@ require 'action_controller/session/cookie_store'
 
 module ActionController #:nodoc:
   class RackRequest < AbstractRequest #:nodoc:
-    attr_accessor :env, :session_options
+    attr_accessor :session_options
     attr_reader :cgi
 
     class SessionFixationAttempt < StandardError #:nodoc:
@@ -15,7 +15,7 @@ module ActionController #:nodoc:
       :session_path     => "/",             # available to all paths in app
       :session_key      => "_session_id",
       :cookie_only      => true
-    } unless const_defined?(:DEFAULT_SESSION_OPTIONS)
+    }
 
     def initialize(env, session_options = DEFAULT_SESSION_OPTIONS)
       @session_options = session_options
@@ -30,33 +30,19 @@ module ActionController #:nodoc:
         SERVER_NAME SERVER_PROTOCOL
 
         HTTP_ACCEPT HTTP_ACCEPT_CHARSET HTTP_ACCEPT_ENCODING
-        HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM HTTP_HOST
+        HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM
         HTTP_NEGOTIATE HTTP_PRAGMA HTTP_REFERER HTTP_USER_AGENT ].each do |env|
       define_method(env.sub(/^HTTP_/n, '').downcase) do
         @env[env]
       end
     end
 
-    # The request body is an IO input stream. If the RAW_POST_DATA environment
-    # variable is already set, wrap it in a StringIO.
-    def body
-      if raw_post = env['RAW_POST_DATA']
-        StringIO.new(raw_post)
-      else
-        @env['rack.input']
-      end
+    def body_stream #:nodoc:
+      @env['rack.input']
     end
 
     def key?(key)
       @env.key?(key)
-    end
-
-    def query_parameters
-      @query_parameters ||= self.class.parse_query_parameters(query_string)
-    end
-
-    def request_parameters
-      @request_parameters ||= parse_formatted_request_parameters
     end
 
     def cookies
@@ -68,34 +54,6 @@ module ActionController #:nodoc:
       end
 
       @env["rack.request.cookie_hash"]
-    end
-
-    def host_with_port_without_standard_port_handling
-      if forwarded = @env["HTTP_X_FORWARDED_HOST"]
-        forwarded.split(/,\s?/).last
-      elsif http_host = @env['HTTP_HOST']
-        http_host
-      elsif server_name = @env['SERVER_NAME']
-        server_name
-      else
-        "#{env['SERVER_ADDR']}:#{env['SERVER_PORT']}"
-      end
-    end
-
-    def host
-      host_with_port_without_standard_port_handling.sub(/:\d+$/, '')
-    end
-
-    def port
-      if host_with_port_without_standard_port_handling =~ /:(\d+)$/
-        $1.to_i
-      else
-        standard_port
-      end
-    end
-
-    def remote_addr
-      @env['REMOTE_ADDR']
     end
 
     def server_port

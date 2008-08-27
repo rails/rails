@@ -21,7 +21,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
-            :developers, :projects
+            :developers, :projects, :developers_projects
 
   def test_loading_with_one_association
     posts = Post.find(:all, :include => :comments)

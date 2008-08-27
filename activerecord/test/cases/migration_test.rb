@@ -922,6 +922,26 @@ if ActiveRecord::Base.connection.supports_migrations?
       migrations[0].name    == 'innocent_jointable'
     end
 
+    def test_only_loads_pending_migrations
+      # migrate up to 1
+      ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
+
+      # now unload the migrations that have been defined
+      PeopleHaveLastNames.unloadable
+      ActiveSupport::Dependencies.remove_unloadable_constants!
+
+      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", nil)
+
+      assert !defined? PeopleHaveLastNames
+
+      %w(WeNeedReminders, InnocentJointable).each do |migration|
+        assert defined? migration
+      end
+
+    ensure
+      load(MIGRATIONS_ROOT + "/valid/1_people_have_last_names.rb")
+    end
+
     def test_migrator_interleaved_migrations
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_1")
 

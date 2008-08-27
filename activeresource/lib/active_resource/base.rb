@@ -75,20 +75,6 @@ module ActiveResource
   # For more information on using custom REST methods, see the
   # ActiveResource::CustomMethods documentation.
   #
-  # == Validations
-  #
-  # You can validate resources client side by overriding validation methods in the base class.
-  # 
-  #   class Person < ActiveResource::Base
-  #      self.site = "http://api.people.com:3000/"
-  #      protected
-  #        def validate
-  #          errors.add("last", "has invalid characters") unless last =~ /[a-zA-Z]*/
-  #        end
-  #   end
-  # 
-  # See the ActiveResource::Validations documentation for more information.
-  #
   # == Authentication
   # 
   # Many REST APIs will require authentication, usually in the form of basic
@@ -130,12 +116,18 @@ module ActiveResource
   # <tt>404</tt> is just one of the HTTP error response codes that Active Resource will handle with its own exception. The
   # following HTTP response codes will also result in these exceptions:
   # 
-  # * 200..399 - Valid response, no exception
+  # * 200..399 - Valid response, no exception (other than 301, 302)
+  # * 301, 302 - ActiveResource::Redirection
+  # * 400 - ActiveResource::BadRequest
+  # * 401 - ActiveResource::UnauthorizedAccess
+  # * 403 - ActiveResource::ForbiddenAccess
   # * 404 - ActiveResource::ResourceNotFound
+  # * 405 - ActiveResource::MethodNotAllowed
   # * 409 - ActiveResource::ResourceConflict
   # * 422 - ActiveResource::ResourceInvalid (rescued by save as validation errors)
   # * 401..499 - ActiveResource::ClientError
   # * 500..599 - ActiveResource::ServerError
+  # * Other - ActiveResource::ConnectionError
   #
   # These custom exceptions allow you to deal with resource errors more naturally and with more precision
   # rather than returning a general HTTP error.  For example:

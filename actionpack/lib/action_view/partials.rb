@@ -146,7 +146,7 @@ module ActionView
 
       def find_partial_path(partial_path)
         if partial_path.include?('/')
-          "#{File.dirname(partial_path)}/_#{File.basename(partial_path)}"
+          File.join(File.dirname(partial_path), "_#{File.basename(partial_path)}")
         elsif respond_to?(:controller)
           "#{controller.class.controller_path}/_#{partial_path}"
         else

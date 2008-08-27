@@ -22,6 +22,14 @@ module ActionView #:nodoc:
     end
     memoize :format_and_extension
 
+    def multipart?
+      format && format.include?('.')
+    end
+
+    def content_type
+      format.gsub('.', '/')
+    end
+
     def mime_type
       Mime::Type.lookup_by_extension(format) if format
     end
@@ -84,7 +92,7 @@ module ActionView #:nodoc:
       #   [base_path, name, format, extension]
       def split(file)
         if m = file.match(/^(.*\/)?([^\.]+)\.?(\w+)?\.?(\w+)?\.?(\w+)?$/)
-          if m[5] # Mulipart formats
+          if m[5] # Multipart formats
             [m[1], m[2], "#{m[3]}.#{m[4]}", m[5]]
           elsif m[4] # Single format
             [m[1], m[2], m[3], m[4]]

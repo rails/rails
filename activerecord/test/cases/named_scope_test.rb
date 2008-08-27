@@ -45,6 +45,12 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
   end
 
+  def test_scope_should_respond_to_own_methods_and_methods_of_the_proxy
+    assert Topic.approved.respond_to?(:proxy_found)
+    assert Topic.approved.respond_to?(:count)
+    assert Topic.approved.respond_to?(:length)
+  end
+
   def test_subclasses_inherit_scopes
     assert Topic.scopes.include?(:base)
 
@@ -186,9 +192,10 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_any_should_not_load_results
     topics = Topic.base
-    assert_queries(1) do
-      topics.expects(:empty?).returns(true)
-      assert !topics.any?
+    assert_queries(2) do
+      topics.any?    # use count query
+      topics.collect # force load
+      topics.any?    # use loaded (no query)
     end
   end
 

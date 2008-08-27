@@ -428,11 +428,7 @@ module ActionController #:nodoc:
       # By default, all methods defined in ActionController::Base and included modules are hidden.
       # More methods can be hidden using <tt>hide_actions</tt>.
       def hidden_actions
-        unless read_inheritable_attribute(:hidden_actions)
-          write_inheritable_attribute(:hidden_actions, ActionController::Base.public_instance_methods.map { |m| m.to_s })
-        end
-
-        read_inheritable_attribute(:hidden_actions)
+        read_inheritable_attribute(:hidden_actions) || write_inheritable_attribute(:hidden_actions, [])
       end
 
       # Hide each of the given methods from being callable as actions.
@@ -1199,7 +1195,7 @@ module ActionController #:nodoc:
       end
 
       def perform_action
-        if self.class.action_methods.include?(action_name)
+        if action_methods.include?(action_name)
           send(action_name)
           default_render unless performed?
         elsif respond_to? :method_missing
@@ -1208,7 +1204,7 @@ module ActionController #:nodoc:
         elsif template_exists? && template_public?
           default_render
         else
-          raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.to_a.sort.to_sentence}", caller
+          raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.sort.to_sentence}", caller
         end
       end
 
@@ -1234,7 +1230,15 @@ module ActionController #:nodoc:
       end
 
       def self.action_methods
-        @action_methods ||= Set.new(public_instance_methods.map { |m| m.to_s }) - hidden_actions
+        @action_methods ||=
+          # All public instance methods of this class, including ancestors
+          public_instance_methods(true).map { |m| m.to_s }.to_set -
+          # Except for public instance methods of Base and its ancestors
+          Base.public_instance_methods(true).map { |m| m.to_s } +
+          # Be sure to include shadowed public instance methods of this class
+          public_instance_methods(false).map { |m| m.to_s } -
+          # And always exclude explicitly hidden actions
+          hidden_actions
       end
 
       def add_variables_to_assigns

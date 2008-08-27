@@ -134,7 +134,9 @@ module ActiveRecord
 
       def update_with_dirty
         if partial_updates?
-          update_without_dirty(changed)
+          # Serialized attributes should always be written in case they've been
+          # changed in place.
+          update_without_dirty(changed | self.class.serialized_attributes.keys)
         else
           update_without_dirty
         end

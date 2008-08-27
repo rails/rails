@@ -136,6 +136,10 @@ class NewRenderTestController < ActionController::Base
     render :partial => "partial_only", :layout => true
   end
 
+  def partial_with_counter
+    render :partial => "counter", :locals => { :counter_counter => 5 }
+  end
+
   def partial_with_locals
     render :partial => "customer", :locals => { :customer => Customer.new("david") }
   end
@@ -739,6 +743,11 @@ EOS
   def test_action_talk_to_layout
     get :action_talk_to_layout
     assert_equal "<title>Talking to the layout</title>\nAction was here!", @response.body
+  end
+
+  def test_partial_with_counter
+    get :partial_with_counter
+    assert_equal "5", @response.body
   end
 
   def test_partials_list

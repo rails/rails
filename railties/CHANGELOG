@@ -1,5 +1,7 @@
 *Edge*
 
+* Added config.threadsafe! to toggle allow concurrency settings and disable the dependency loader [Josh Peek]
+
 * Turn cache_classes on by default [Josh Peek]
 
 * Added configurable eager load paths. Defaults to app/models, app/controllers, and app/helpers [Josh Peek]

@@ -182,11 +182,11 @@ namespace :db do
   end
 
   namespace :fixtures do
-    desc "Load fixtures into the current environment's database.  Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z."
+    desc "Load fixtures into the current environment's database.  Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task :load => :environment do
       require 'active_record/fixtures'
       ActiveRecord::Base.establish_connection(Rails.env)
-      base_dir = File.join(Rails.root, 'test', 'fixtures')
+      base_dir = ENV['FIXTURES_PATH'] ? File.join(Rails.root, ENV['FIXTURES_PATH']) : File.join(Rails.root, 'test', 'fixtures')
       fixtures_dir = ENV['FIXTURES_DIR'] ? File.join(base_dir, ENV['FIXTURES_DIR']) : base_dir
 
       (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/).map {|f| File.join(fixtures_dir, f) } : Dir.glob(File.join(fixtures_dir, '*.{yml,csv}'))).each do |fixture_file|
@@ -194,7 +194,7 @@ namespace :db do
       end
     end
 
-    desc "Search for a fixture given a LABEL or ID."
+    desc "Search for a fixture given a LABEL or ID. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task :identify => :environment do
       require "active_record/fixtures"
 
@@ -203,7 +203,8 @@ namespace :db do
 
       puts %Q(The fixture ID for "#{label}" is #{Fixtures.identify(label)}.) if label
 
-      Dir["#{RAILS_ROOT}/test/fixtures/**/*.yml"].each do |file|
+      base_dir = ENV['FIXTURES_PATH'] ? File.join(Rails.root, ENV['FIXTURES_PATH']) : File.join(Rails.root, 'test', 'fixtures')
+      Dir["#{base_dir}/**/*.yml"].each do |file|
         if data = YAML::load(ERB.new(IO.read(file)).result)
           data.keys.each do |key|
             key_id = Fixtures.identify(key)

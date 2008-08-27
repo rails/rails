@@ -660,8 +660,8 @@ module ActiveRecord
       #
       # === Example
       #
-      # A Firm class declares <tt>has_many :clients</tt>, which will add:
-      # * <tt>Firm#clients</tt> (similar to <tt>Clients.find :all, :conditions => "firm_id = #{id}"</tt>)
+      # Example: A Firm class declares <tt>has_many :clients</tt>, which will add:
+      # * <tt>Firm#clients</tt> (similar to <tt>Clients.find :all, :conditions => ["firm_id = ?", id]</tt>)
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
       # * <tt>Firm#clients=</tt>
@@ -1220,12 +1220,11 @@ module ActiveRecord
       end
 
       private
-        # Generate a join table name from two provided tables names.
-        # The order of names in join name is determined by lexical precedence.
-        #   join_table_name("members", "clubs")
-        #   => "clubs_members"
-        #   join_table_name("members", "special_clubs")
-        #   => "members_special_clubs"
+        # Generates a join table name from two provided table names.
+        # The names in the join table namesme end up in lexicographic order.
+        #
+        #   join_table_name("members", "clubs")         # => "clubs_members"
+        #   join_table_name("members", "special_clubs") # => "members_special_clubs"
         def join_table_name(first_table_name, second_table_name)
           if first_table_name < second_table_name
             join_table = "#{first_table_name}_#{second_table_name}"

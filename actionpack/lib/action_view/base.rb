@@ -300,6 +300,8 @@ module ActionView #:nodoc:
     #   # => 'users/legacy.rhtml'
     #
     def pick_template(template_path)
+      return template_path if template_path.respond_to?(:render)
+
       path = template_path.sub(/^\//, '')
       if m = path.match(/(.*)\.(\w+)$/)
         template_file_name, template_file_extension = m[1], m[2]
@@ -343,7 +345,8 @@ module ActionView #:nodoc:
           ActiveSupport::Deprecation.warn("use_full_path option has been deprecated and has no affect.", caller)
         end
 
-        if defined?(ActionMailer) && defined?(ActionMailer::Base) && controller.is_a?(ActionMailer::Base) && !template_path.include?("/")
+        if defined?(ActionMailer) && defined?(ActionMailer::Base) && controller.is_a?(ActionMailer::Base) &&
+            template_path.is_a?(String) && !template_path.include?("/")
           raise ActionViewError, <<-END_ERROR
   Due to changes in ActionMailer, you need to provide the mailer_name along with the template name.
 

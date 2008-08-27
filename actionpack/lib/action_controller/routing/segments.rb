@@ -2,7 +2,8 @@ module ActionController
   module Routing
     class Segment #:nodoc:
       RESERVED_PCHAR = ':@&=+$,;'
-      UNSAFE_PCHAR = Regexp.new("[^#{URI::REGEXP::PATTERN::UNRESERVED}#{RESERVED_PCHAR}]", false, 'N').freeze
+      SAFE_PCHAR = "#{URI::REGEXP::PATTERN::UNRESERVED}#{RESERVED_PCHAR}"
+      UNSAFE_PCHAR = Regexp.new("[^#{SAFE_PCHAR}]", false, 'N').freeze
 
       # TODO: Convert :is_optional accessor to read only
       attr_accessor :is_optional
