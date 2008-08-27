@@ -11,12 +11,12 @@ module ActiveSupport
     end
   end
 
-  module CoreExt
+  module CoreExtensions
     module Module
-      module ModelNaming
-        def model_name
-          @model_name ||= ModelName.new(name)
-        end
+      # Returns an ActiveSupport::ModelName object for module. It can be
+      # used to retrieve all kinds of naming-related information.
+      def model_name
+        @model_name ||= ModelName.new(name)
       end
     end
   end
