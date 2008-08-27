@@ -3,13 +3,6 @@ require 'strscan'
 module I18n
   module Backend
     class Simple
-      # Allow client libraries to pass a block that populates the translation
-      # storage. Decoupled for backends like a db backend that persist their
-      # translations, so the backend can decide whether/when to yield or not.
-      def populate(&block)
-        yield
-      end
-    
       # Accepts a list of paths to translation files. Loads translations from 
       # plain Ruby (*.rb) or YAML files (*.yml). See #load_rb and #load_yml
       # for details.
