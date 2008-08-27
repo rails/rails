@@ -77,7 +77,5 @@ require 'active_record/connection_adapters/abstract_adapter'
 
 require 'active_record/schema_dumper'
 
-I18n.backend.populate do
-  I18n.load_translations File.dirname(__FILE__) + '/active_record/locale/en-US.yml'
-end
+I18n.load_translations File.dirname(__FILE__) + '/active_record/locale/en-US.yml'
 
