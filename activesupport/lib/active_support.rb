@@ -56,9 +56,7 @@ require 'active_support/time_with_zone'
 
 require 'active_support/secure_random'
 
-I18n.populate do
-  I18n.load_translations File.dirname(__FILE__) + '/active_support/locale/en-US.yml'
-end
+I18n.load_translations File.dirname(__FILE__) + '/active_support/locale/en-US.yml'
 
 Inflector = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Inflector', 'ActiveSupport::Inflector')
 Dependencies = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Dependencies', 'ActiveSupport::Dependencies')

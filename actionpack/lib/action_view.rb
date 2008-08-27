@@ -43,9 +43,7 @@ require 'action_view/base'
 require 'action_view/partials'
 require 'action_view/template_error'
 
-I18n.backend.populate do
-  I18n.load_translations "#{File.dirname(__FILE__)}/action_view/locale/en-US.yml"
-end
+I18n.load_translations "#{File.dirname(__FILE__)}/action_view/locale/en-US.yml"
 
 require 'action_view/helpers'
 

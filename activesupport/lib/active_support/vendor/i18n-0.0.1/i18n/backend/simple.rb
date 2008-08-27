@@ -3,13 +3,6 @@ require 'strscan'
 module I18n
   module Backend
     class Simple
-      # Allow client libraries to pass a block that populates the translation
-      # storage. Decoupled for backends like a db backend that persist their
-      # translations, so the backend can decide whether/when to yield or not.
-      def populate(&block)
-        yield
-      end
-    
       # Accepts a list of paths to translation files. Loads translations from 
       # plain Ruby (*.rb) or YAML files (*.yml). See #load_rb and #load_yml
       # for details.
@@ -47,12 +40,15 @@ module I18n
         raise ArgumentError, "Object must be a Date, DateTime or Time object. #{object.inspect} given." unless object.respond_to?(:strftime)
         
         type = object.respond_to?(:sec) ? 'time' : 'date'
+        # TODO only translate these if format is a String?
         formats = translate(locale, :"#{type}.formats")
         format = formats[format.to_sym] if formats && formats[format.to_sym]
         # TODO raise exception unless format found?
         format = format.to_s.dup
 
-        format.gsub!(/%a/, translate(locale, :"date.abbr_day_names")[object.wday])
+        # TODO only translate these if the format string is actually present
+        # TODO check which format strings are present, then bulk translate then, then replace them
+        format.gsub!(/%a/, translate(locale, :"date.abbr_day_names")[object.wday]) 
         format.gsub!(/%A/, translate(locale, :"date.day_names")[object.wday])
         format.gsub!(/%b/, translate(locale, :"date.abbr_month_names")[object.mon])
         format.gsub!(/%B/, translate(locale, :"date.month_names")[object.mon])
