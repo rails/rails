@@ -17,5 +17,6 @@ module Rails
     def generate_secret
       ActiveSupport::SecureRandom.hex(64)
     end
+    deprecate :generate_secret=>"You should use ActiveSupport::SecureRandom.hex(64)"
   end
 end
