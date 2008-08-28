@@ -78,6 +78,16 @@ module ActiveRecord
           end
 
           @join_sql = "INNER JOIN #{@owner.connection.quote_table_name @reflection.options[:join_table]} ON #{@reflection.quoted_table_name}.#{@reflection.klass.primary_key} = #{@owner.connection.quote_table_name @reflection.options[:join_table]}.#{@reflection.association_foreign_key}"
+
+          if @reflection.options[:counter_sql]
+            @counter_sql = interpolate_sql(@reflection.options[:counter_sql])
+          elsif @reflection.options[:finder_sql]
+            # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
+            @reflection.options[:counter_sql] = @reflection.options[:finder_sql].sub(/SELECT (\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
+            @counter_sql = interpolate_sql(@reflection.options[:counter_sql])
+          else
+            @counter_sql = @finder_sql
+          end
         end
 
         def construct_scope

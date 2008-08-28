@@ -703,4 +703,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     # due to Unknown column 'authors.id'
     assert Category.find(1).posts_with_authors_sorted_by_author_id.find_by_title('Welcome to the weblog')
   end
+
+  def test_counting_on_habtm_association_and_not_array
+    david = Developer.find(1)
+    # Extra parameter just to make sure we aren't falling back to
+    # Array#count in Ruby >=1.8.7, which would raise an ArgumentError
+    assert_nothing_raised { david.projects.count(:all, :conditions => '1=1') }
+  end
 end

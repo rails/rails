@@ -128,6 +128,35 @@ module ActiveRecord
         end
       end
 
+      # Count all records using SQL. If the +:counter_sql+ option is set for the association, it will
+      # be used for the query. If no +:counter_sql+ was supplied, but +:finder_sql+ was set, the
+      # descendant's +construct_sql+ method will have set :counter_sql automatically.
+      # Otherwise, construct options and pass them with scope to the target class's +count+.
+      def count(*args)
+        if @reflection.options[:counter_sql]
+          @reflection.klass.count_by_sql(@counter_sql)
+        else
+          column_name, options = @reflection.klass.send(:construct_count_options_from_args, *args)
+          if @reflection.options[:uniq]
+            # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
+            column_name = "#{@reflection.quoted_table_name}.#{@reflection.klass.primary_key}" if column_name == :all
+            options.merge!(:distinct => true)
+          end
+
+          value = @reflection.klass.send(:with_scope, construct_scope) { @reflection.klass.count(column_name, options) }
+
+          limit  = @reflection.options[:limit]
+          offset = @reflection.options[:offset]
+
+          if limit || offset
+            [ [value - offset.to_i, 0].max, limit.to_i ].min
+          else
+            value
+          end
+        end
+      end
+
+
       # Remove +records+ from this association.  Does not destroy +records+.
       def delete(*records)
         records = flatten_deeper(records)
