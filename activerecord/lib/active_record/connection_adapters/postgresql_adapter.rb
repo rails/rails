@@ -380,7 +380,7 @@ module ActiveRecord
           # There are some incorrectly compiled postgres drivers out there
           # that don't define PGconn.escape.
           self.class.instance_eval do
-            undef_method(:quote_string)
+            remove_method(:quote_string)
           end
         end
         quote_string(s)
