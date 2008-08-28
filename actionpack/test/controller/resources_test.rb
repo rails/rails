@@ -264,6 +264,19 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_array_as_collection_or_member_method_value
+    with_restful_routing :messages, :collection => { :search => [:get, :post] }, :member => { :toggle => [:get, :post] } do
+      assert_restful_routes_for :messages do |options|
+        [:get, :post].each do |method|
+          assert_recognizes(options.merge(:action => 'search'), :path => "/messages/search", :method => method)
+        end
+        [:get, :post].each do |method|
+          assert_recognizes(options.merge(:action => 'toggle', :id => '1'), :path => '/messages/1/toggle', :method => method)
+        end
+      end
+    end
+  end
+
   def test_with_new_action
     with_restful_routing :messages, :new => { :preview => :post } do
       preview_options = {:action => 'preview'}

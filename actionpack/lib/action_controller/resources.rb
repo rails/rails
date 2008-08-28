@@ -238,8 +238,9 @@ module ActionController
     #
     # The +resources+ method accepts the following options to customize the resulting routes:
     # * <tt>:collection</tt> - Add named routes for other actions that operate on the collection.
-    #   Takes a hash of <tt>#{action} => #{method}</tt>, where method is <tt>:get</tt>/<tt>:post</tt>/<tt>:put</tt>/<tt>:delete</tt>
-    #   or <tt>:any</tt> if the method does not matter.  These routes map to a URL like /messages/rss, with a route of +rss_messages_url+.
+    #   Takes a hash of <tt>#{action} => #{method}</tt>, where method is <tt>:get</tt>/<tt>:post</tt>/<tt>:put</tt>/<tt>:delete</tt>,
+    #   an array of any of the previous, or <tt>:any</tt> if the method does not matter.
+    #   These routes map to a URL like /messages/rss, with a route of +rss_messages_url+.
     # * <tt>:member</tt> - Same as <tt>:collection</tt>, but for actions that operate on a specific member.
     # * <tt>:new</tt> - Same as <tt>:collection</tt>, but for actions that operate on the new resource action.
     # * <tt>:controller</tt> - Specify the controller name for the routes.
@@ -480,8 +481,10 @@ module ActionController
       def map_collection_actions(map, resource)
         resource.collection_methods.each do |method, actions|
           actions.each do |action|
-            action_options = action_options_for(action, resource, method)
-            map_named_routes(map, "#{action}_#{resource.name_prefix}#{resource.plural}", "#{resource.path}#{resource.action_separator}#{action}", action_options)
+            [method].flatten.each do |m|
+              action_options = action_options_for(action, resource, m)
+              map_named_routes(map, "#{action}_#{resource.name_prefix}#{resource.plural}", "#{resource.path}#{resource.action_separator}#{action}", action_options)
+            end
           end
         end
       end
@@ -521,12 +524,14 @@ module ActionController
       def map_member_actions(map, resource)
         resource.member_methods.each do |method, actions|
           actions.each do |action|
-            action_options = action_options_for(action, resource, method)
+            [method].flatten.each do |m|
+              action_options = action_options_for(action, resource, m)
 
-            action_path = resource.options[:path_names][action] if resource.options[:path_names].is_a?(Hash)
-            action_path ||= Base.resources_path_names[action] || action
+              action_path = resource.options[:path_names][action] if resource.options[:path_names].is_a?(Hash)
+              action_path ||= Base.resources_path_names[action] || action
 
-            map_named_routes(map, "#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action_path}", action_options)
+              map_named_routes(map, "#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action_path}", action_options)
+            end
           end
         end
 
