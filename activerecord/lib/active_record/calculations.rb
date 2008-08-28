@@ -186,11 +186,17 @@ module ActiveRecord
             sql << " FROM (SELECT #{distinct}#{column_name}" if use_workaround
             sql << " FROM #{connection.quote_table_name(table_name)} "
           end
+
+          joins = ""
+          add_joins!(joins, options, scope)
+
           if merged_includes.any?
-            join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_includes, options[:joins])
+            join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_includes, joins)
             sql << join_dependency.join_associations.collect{|join| join.association_join }.join
           end
-          add_joins!(sql, options, scope)
+
+          sql << joins unless joins.blank?
+
           add_conditions!(sql, options[:conditions], scope)
           add_limited_ids_condition!(sql, options, join_dependency) if join_dependency && !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
 
@@ -260,7 +266,14 @@ module ActiveRecord
         #   column_alias_for("count(*)")                 # => "count_all"
         #   column_alias_for("count", "id")              # => "count_id"
         def column_alias_for(*keys)
-          connection.table_alias_for(keys.join(' ').downcase.gsub(/\*/, 'all').gsub(/\W+/, ' ').strip.gsub(/ +/, '_'))
+          table_name = keys.join(' ')
+          table_name.downcase!
+          table_name.gsub!(/\*/, 'all')
+          table_name.gsub!(/\W+/, ' ')
+          table_name.strip!
+          table_name.gsub!(/ +/, '_')
+
+          connection.table_alias_for(table_name)
         end
 
         def column_for(field)

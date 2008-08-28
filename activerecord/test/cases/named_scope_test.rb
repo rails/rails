@@ -4,6 +4,7 @@ require 'models/topic'
 require 'models/comment'
 require 'models/reply'
 require 'models/author'
+require 'models/developer'
 
 class NamedScopeTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses
@@ -49,6 +50,11 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert Topic.approved.respond_to?(:proxy_found)
     assert Topic.approved.respond_to?(:count)
     assert Topic.approved.respond_to?(:length)
+  end
+
+  def test_respond_to_respects_include_private_parameter
+    assert !Topic.approved.respond_to?(:load_found)
+    assert Topic.approved.respond_to?(:load_found, true)
   end
 
   def test_subclasses_inherit_scopes
@@ -237,5 +243,13 @@ class NamedScopeTest < ActiveRecord::TestCase
     topic = Topic.approved.by_lifo.build({})
     assert topic.approved
     assert_equal 'lifo', topic.author_name
+  end
+
+  def test_find_all_should_behave_like_select
+    assert_equal Topic.base.select(&:approved), Topic.base.find_all(&:approved)
+  end
+
+  def test_should_use_where_in_query_for_named_scope
+    assert_equal Developer.find_all_by_name('Jamis'), Developer.find_all_by_id(Developer.jamises)
   end
 end

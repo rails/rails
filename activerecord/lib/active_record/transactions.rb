@@ -91,11 +91,11 @@ module ActiveRecord
     end
 
     def destroy_with_transactions #:nodoc:
-      transaction { destroy_without_transactions }
+      with_transaction_returning_status(:destroy_without_transactions)
     end
 
     def save_with_transactions(perform_validation = true) #:nodoc:
-      rollback_active_record_state! { transaction { save_without_transactions(perform_validation) } }
+      rollback_active_record_state! { with_transaction_returning_status(:save_without_transactions, perform_validation) }
     end
 
     def save_with_transactions! #:nodoc:
@@ -117,6 +117,18 @@ module ActiveRecord
         @attributes_cache.delete(self.class.primary_key)
       end
       raise
+    end
+
+    # Executes +method+ within a transaction and captures its return value as a
+    # status flag. If the status is true the transaction is committed, otherwise
+    # a ROLLBACK is issued. In any case the status flag is returned.
+    def with_transaction_returning_status(method, *args)
+      status = nil
+      transaction do
+        status = send(method, *args)
+        raise ActiveRecord::Rollback unless status
+      end
+      status
     end
   end
 end

@@ -588,9 +588,7 @@ module ActionView
 
         private
           def include_helpers_from_context
-            @context.extended_by.each do |mod|
-              extend mod unless mod.name =~ /^ActionView::Helpers/
-            end
+            extend @context.helpers if @context.respond_to?(:helpers)
             extend GeneratorMethods
           end
 

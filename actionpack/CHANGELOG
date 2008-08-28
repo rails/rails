@@ -1,5 +1,13 @@
 *Edge*
 
+* Introduce current_cycle helper method to return the current value without bumping the cycle.  #417 [Ken Collins]
+
+* Allow polymorphic_url helper to take url options. #880 [Tarmo Tänav]
+
+* Switched integration test runner to use Rack processor instead of CGI [Josh Peek]
+
+* Made AbstractRequest.if_modified_sense return nil if the header could not be parsed [Jamis Buck]
+
 * Added back ActionController::Base.allow_concurrency flag [Josh Peek]
 
 * AbstractRequest.relative_url_root is no longer automatically configured by a HTTP header. It can now be set in your configuration environment with config.action_controller.relative_url_root [Josh Peek]

@@ -166,6 +166,10 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 0, Firm.reflect_on_all_associations(:belongs_to).size
   end
 
+  def test_reflection_should_not_raise_error_when_compared_to_other_object
+    assert_nothing_raised { Firm.reflections[:clients] == Object.new }
+  end
+
   private
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)

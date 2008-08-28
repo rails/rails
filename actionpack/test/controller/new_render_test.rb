@@ -435,6 +435,10 @@ class NewRenderTestController < ActionController::Base
     render :action => "using_layout_around_block"
   end
 
+  def render_using_layout_around_block_with_args
+    render :action => "using_layout_around_block_with_args"
+  end
+
   def render_using_layout_around_block_in_main_layout_and_within_content_for_layout
     render :action => "using_layout_around_block"
   end
@@ -968,5 +972,10 @@ EOS
   def test_using_layout_around_block_in_main_layout_and_within_content_for_layout
     get :render_using_layout_around_block_in_main_layout_and_within_content_for_layout
     assert_equal "Before (Anthony)\nInside from first block in layout\nAfter\nBefore (David)\nInside from block\nAfter\nBefore (Ramm)\nInside from second block in layout\nAfter\n", @response.body
+  end
+
+  def test_using_layout_around_block_with_args
+    get :render_using_layout_around_block_with_args
+    assert_equal "Before\narg1arg2\nAfter", @response.body
   end
 end

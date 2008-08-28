@@ -369,6 +369,40 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("red", cycle("red", "blue", :name => "colors"))
   end
 
+  def test_current_cycle_with_default_name
+    cycle("even","odd")
+    assert_equal "even", current_cycle
+    cycle("even","odd")
+    assert_equal "odd", current_cycle
+    cycle("even","odd")
+    assert_equal "even", current_cycle
+  end
+
+  def test_current_cycle_with_named_cycles
+    cycle("red", "blue", :name => "colors")
+    assert_equal "red", current_cycle("colors")
+    cycle("red", "blue", :name => "colors")
+    assert_equal "blue", current_cycle("colors")
+    cycle("red", "blue", :name => "colors")
+    assert_equal "red", current_cycle("colors")
+  end
+
+  def test_current_cycle_safe_call
+    assert_nothing_raised { current_cycle }
+    assert_nothing_raised { current_cycle("colors") }
+  end
+
+  def test_current_cycle_with_more_than_two_names
+    cycle(1,2,3)
+    assert_equal "1", current_cycle
+    cycle(1,2,3)
+    assert_equal "2", current_cycle
+    cycle(1,2,3)
+    assert_equal "3", current_cycle
+    cycle(1,2,3)
+    assert_equal "1", current_cycle
+  end
+
   def test_default_named_cycle
     assert_equal("1", cycle(1, 2, 3))
     assert_equal("2", cycle(1, 2, 3, :name => "default"))

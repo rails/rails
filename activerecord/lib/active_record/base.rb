@@ -1223,11 +1223,46 @@ module ActiveRecord #:nodoc:
         subclasses.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
       end
 
+      def self_and_descendents_from_active_record#nodoc:
+        klass = self
+        classes = [klass]
+        while klass != klass.base_class  
+          classes << klass = klass.superclass
+        end
+        classes
+      rescue
+        # OPTIMIZE this rescue is to fix this test: ./test/cases/reflection_test.rb:56:in `test_human_name_for_column'
+        # Appearantly the method base_class causes some trouble.
+        # It now works for sure.
+        [self]
+      end
+
       # Transforms attribute key names into a more humane format, such as "First name" instead of "first_name". Example:
       #   Person.human_attribute_name("first_name") # => "First name"
-      # Deprecated in favor of just calling "first_name".humanize
-      def human_attribute_name(attribute_key_name) #:nodoc:
-        attribute_key_name.humanize
+      # This used to be depricated in favor of humanize, but is now preferred, because it automatically uses the I18n
+      # module now.
+      # Specify +options+ with additional translating options.
+      def human_attribute_name(attribute_key_name, options = {})
+        defaults = self_and_descendents_from_active_record.map do |klass|
+          :"#{klass.name.underscore}.#{attribute_key_name}"
+        end
+        defaults << options[:default] if options[:default]
+        defaults.flatten!
+        defaults << attribute_key_name.humanize
+        options[:count] ||= 1
+        I18n.translate(defaults.shift, options.merge(:default => defaults, :scope => [:activerecord, :attributes]))
+      end
+
+      # Transform the modelname into a more humane format, using I18n.
+      # Defaults to the basic humanize method.
+      # Default scope of the translation is activerecord.models
+      # Specify +options+ with additional translating options.
+      def human_name(options = {})
+        defaults = self_and_descendents_from_active_record.map do |klass|
+          :"#{klass.name.underscore}"
+        end 
+        defaults << self.name.humanize
+        I18n.translate(defaults.shift, {:scope => [:activerecord, :models], :count => 1, :default => defaults}.merge(options))
       end
 
       # True if this isn't a concrete subclass needing a STI type condition.
@@ -1322,8 +1357,8 @@ module ActiveRecord #:nodoc:
       end
 
       def respond_to?(method_id, include_private = false)
-        if match = matches_dynamic_finder?(method_id) || matches_dynamic_finder_with_initialize_or_create?(method_id)
-          return true if all_attributes_exists?(extract_attribute_names_from_match(match))
+        if match = DynamicFinderMatch.match(method_id)
+          return true if all_attributes_exists?(match.attribute_names)
         end
         super
       end
@@ -1612,10 +1647,11 @@ module ActiveRecord #:nodoc:
           sql << "WHERE #{merged_conditions} " unless merged_conditions.blank?
         end
 
-        def type_condition
+        def type_condition(table_alias=nil)
+          quoted_table_alias = self.connection.quote_table_name(table_alias || table_name)
           quoted_inheritance_column = connection.quote_column_name(inheritance_column)
-          type_condition = subclasses.inject("#{quoted_table_name}.#{quoted_inheritance_column} = '#{sti_name}' ") do |condition, subclass|
-            condition << "OR #{quoted_table_name}.#{quoted_inheritance_column} = '#{subclass.sti_name}' "
+          type_condition = subclasses.inject("#{quoted_table_alias}.#{quoted_inheritance_column} = '#{sti_name}' ") do |condition, subclass|
+            condition << "OR #{quoted_table_alias}.#{quoted_inheritance_column} = '#{subclass.sti_name}' "
           end
 
           " (#{type_condition}) "
@@ -1641,86 +1677,65 @@ module ActiveRecord #:nodoc:
         # Each dynamic finder or initializer/creator is also defined in the class after it is first invoked, so that future
         # attempts to use it do not run through method_missing.
         def method_missing(method_id, *arguments)
-          if match = matches_dynamic_finder?(method_id)
-            finder = determine_finder(match)
-
-            attribute_names = extract_attribute_names_from_match(match)
+          if match = DynamicFinderMatch.match(method_id)
+            attribute_names = match.attribute_names
             super unless all_attributes_exists?(attribute_names)
+            if match.finder?
+              finder = match.finder
+              bang = match.bang?
+              self.class_eval %{
+                def self.#{method_id}(*args)
+                  options = args.extract_options!
+                  attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
+                  finder_options = { :conditions => attributes }
+                  validate_find_options(options)
+                  set_readonly_option!(options)
 
-            self.class_eval %{
-              def self.#{method_id}(*args)
-                options = args.extract_options!
-                attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
-                finder_options = { :conditions => attributes }
-                validate_find_options(options)
-                set_readonly_option!(options)
-
-                if options[:conditions]
-                  with_scope(:find => finder_options) do
-                    ActiveSupport::Deprecation.silence { send(:#{finder}, options) }
+                  #{'result = ' if bang}if options[:conditions]
+                    with_scope(:find => finder_options) do
+                      ActiveSupport::Deprecation.silence { send(:#{finder}, options) }
+                    end
+                  else
+                    ActiveSupport::Deprecation.silence { send(:#{finder}, options.merge(finder_options)) }
                   end
-                else
-                  ActiveSupport::Deprecation.silence { send(:#{finder}, options.merge(finder_options)) }
+                  #{'result || raise(RecordNotFound)' if bang}
                 end
-              end
-            }, __FILE__, __LINE__
-            send(method_id, *arguments)
-          elsif match = matches_dynamic_finder_with_initialize_or_create?(method_id)
-            instantiator = determine_instantiator(match)
-            attribute_names = extract_attribute_names_from_match(match)
-            super unless all_attributes_exists?(attribute_names)
+              }, __FILE__, __LINE__
+              send(method_id, *arguments)
+            elsif match.instantiator?
+              instantiator = match.instantiator
+              self.class_eval %{
+                def self.#{method_id}(*args)
+                  guard_protected_attributes = false
 
-            self.class_eval %{
-              def self.#{method_id}(*args)
-                guard_protected_attributes = false
+                  if args[0].is_a?(Hash)
+                    guard_protected_attributes = true
+                    attributes = args[0].with_indifferent_access
+                    find_attributes = attributes.slice(*[:#{attribute_names.join(',:')}])
+                  else
+                    find_attributes = attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
+                  end
 
-                if args[0].is_a?(Hash)
-                  guard_protected_attributes = true
-                  attributes = args[0].with_indifferent_access
-                  find_attributes = attributes.slice(*[:#{attribute_names.join(',:')}])
-                else
-                  find_attributes = attributes = construct_attributes_from_arguments([:#{attribute_names.join(',:')}], args)
+                  options = { :conditions => find_attributes }
+                  set_readonly_option!(options)
+
+                  record = find_initial(options)
+
+                   if record.nil?
+                    record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
+                    #{'yield(record) if block_given?'}
+                    #{'record.save' if instantiator == :create}
+                    record
+                  else
+                    record
+                  end
                 end
-
-                options = { :conditions => find_attributes }
-                set_readonly_option!(options)
-
-                record = find_initial(options)
-
-                 if record.nil?
-                  record = self.new { |r| r.send(:attributes=, attributes, guard_protected_attributes) }
-                  #{'yield(record) if block_given?'}
-                  #{'record.save' if instantiator == :create}
-                  record
-                else
-                  record
-                end
-              end
-            }, __FILE__, __LINE__
-            send(method_id, *arguments)
+              }, __FILE__, __LINE__
+              send(method_id, *arguments)
+            end
           else
             super
           end
-        end
-
-        def matches_dynamic_finder?(method_id)
-          /^find_(all_by|by)_([_a-zA-Z]\w*)$/.match(method_id.to_s)
-        end
-
-        def matches_dynamic_finder_with_initialize_or_create?(method_id)
-          /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/.match(method_id.to_s)
-        end
-
-        def determine_finder(match)
-          match.captures.first == 'all_by' ? :find_every : :find_initial
-        end
-
-        def determine_instantiator(match)
-          match.captures.first == 'initialize' ? :new : :create
-        end
-
-        def extract_attribute_names_from_match(match)
-          match.captures.last.split('_and_')
         end
 
         def construct_attributes_from_arguments(attribute_names, arguments)
@@ -1752,7 +1767,7 @@ module ActiveRecord #:nodoc:
         def attribute_condition(argument)
           case argument
             when nil   then "IS ?"
-            when Array, ActiveRecord::Associations::AssociationCollection then "IN (?)"
+            when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::NamedScope::Scope then "IN (?)"
             when Range then "BETWEEN ? AND ?"
             else            "= ?"
           end
@@ -2594,11 +2609,14 @@ module ActiveRecord #:nodoc:
       end
 
       def convert_number_column_value(value)
-        case value
-          when FalseClass; 0
-          when TrueClass;  1
-          when '';         nil
-          else value
+        if value == false
+          0
+        elsif value == true
+          1
+        elsif value.is_a?(String) && value.blank?
+          nil
+        else
+          value
         end
       end
 

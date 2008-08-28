@@ -196,4 +196,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     # due to Unknown column 'comments.id'
     assert Person.find(1).posts_with_comments_sorted_by_comment_id.find_by_title('Welcome to the weblog')
   end
+
+  def test_count_with_include_should_alias_join_table
+    assert_equal 2, people(:michael).posts.count(:include => :readers)
+  end
 end

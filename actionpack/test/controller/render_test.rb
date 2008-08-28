@@ -329,7 +329,7 @@ class RenderTest < Test::Unit::TestCase
   def test_render_text_with_nil
     get :render_text_with_nil
     assert_response 200
-    assert_equal '', @response.body
+    assert_equal ' ', @response.body
   end
 
   def test_render_text_with_false

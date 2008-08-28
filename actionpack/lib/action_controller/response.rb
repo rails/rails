@@ -40,6 +40,8 @@ module ActionController # :nodoc:
     attr_accessor :session, :cookies, :assigns, :template, :layout
     attr_accessor :redirected_to, :redirected_to_method_params
 
+    delegate :default_charset, :to => 'ActionController::Base'
+
     def initialize
       @body, @headers, @session, @assigns = "", DEFAULT_HEADERS.merge("cookie" => []), [], []
     end
@@ -60,26 +62,44 @@ module ActionController # :nodoc:
     # the character set information will also be included in the content type
     # information.
     def content_type=(mime_type)
-      self.headers["Content-Type"] = charset ? "#{mime_type}; charset=#{charset}" : mime_type
+      self.headers["Content-Type"] =
+        if mime_type =~ /charset/ || (c = charset).nil?
+          mime_type.to_s
+        else
+          "#{mime_type}; charset=#{c}"
+        end
     end
-    
+
     # Returns the response's content MIME type, or nil if content type has been set.
     def content_type
       content_type = String(headers["Content-Type"] || headers["type"]).split(";")[0]
       content_type.blank? ? nil : content_type
     end
-    
-    def charset=(encoding)
-      self.headers["Content-Type"] = "#{content_type || Mime::HTML}; charset=#{encoding}"
+
+    # Set the charset of the Content-Type header. Set to nil to remove it.
+    # If no content type is set, it defaults to HTML.
+    def charset=(charset)
+      headers["Content-Type"] =
+        if charset
+          "#{content_type || Mime::HTML}; charset=#{charset}"
+        else
+          content_type || Mime::HTML.to_s
+        end
     end
-    
+
     def charset
       charset = String(headers["Content-Type"] || headers["type"]).split(";")[1]
       charset.blank? ? nil : charset.strip.split("=")[1]
     end
 
     def last_modified
-      Time.rfc2822(headers['Last-Modified'])
+      if last = headers['Last-Modified']
+        Time.httpdate(last)
+      end
+    end
+
+    def last_modified?
+      headers.include?('Last-Modified')
     end
 
     def last_modified=(utc_time)
@@ -87,6 +107,7 @@ module ActionController # :nodoc:
     end
 
     def etag; headers['ETag'] end
+    def etag?; headers.include?('ETag') end
     def etag=(etag)
       headers['ETag'] = %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(etag))}")
     end
@@ -97,23 +118,33 @@ module ActionController # :nodoc:
       self.body = "<html><body>You are being <a href=\"#{url}\">redirected</a>.</body></html>"
     end
 
+    def sending_file?
+      headers["Content-Transfer-Encoding"] == "binary"
+    end
+
+    def assign_default_content_type_and_charset!
+      self.content_type ||= Mime::HTML
+      self.charset ||= default_charset unless sending_file?
+    end
+
     def prepare!
+      assign_default_content_type_and_charset!
+      set_content_length!
       handle_conditional_get!
       convert_content_type!
-      set_content_length!
     end
 
     private
       def handle_conditional_get!
         if nonempty_ok_response?
-          set_conditional_cache_control!
-
           self.etag ||= body
           if request && request.etag_matches?(etag)
             self.status = '304 Not Modified'
             self.body = ''
           end
         end
+
+        set_conditional_cache_control! if etag? || last_modified?
       end
 
       def nonempty_ok_response?
@@ -142,7 +173,9 @@ module ActionController # :nodoc:
       # Don't set the Content-Length for block-based bodies as that would mean reading it all into memory. Not nice
       # for, say, a 2GB streaming file.
       def set_content_length!
-        self.headers["Content-Length"] = body.size unless body.respond_to?(:call)
+        unless body.respond_to?(:call) || (status && status[0..2] == '304')
+          self.headers["Content-Length"] ||= body.size
+        end
       end
   end
 end

@@ -548,7 +548,6 @@ module ActionController #:nodoc:
           @@guard.synchronize { send(method, *arguments) }
         end
 
-        assign_default_content_type_and_charset
         response.prepare! unless component_request?
         response
       ensure
@@ -781,9 +780,6 @@ module ActionController #:nodoc:
       #   render :file => "/path/to/some/template.erb", :layout => true, :status => 404
       #   render :file => "c:/path/to/some/template.erb", :layout => true, :status => 404
       #
-      #   # Renders a template relative to the template root and chooses the proper file extension
-      #   render :file => "some/template", :use_full_path => true
-      #
       # === Rendering text
       #
       # Rendering of text is usually used for tests or for rendering prepared content, such as a cache. By default, text
@@ -914,21 +910,10 @@ module ActionController #:nodoc:
             response.content_type ||= Mime::JSON
             render_for_text(json, options[:status])
 
-          elsif partial = options[:partial]
-            partial = default_template_name if partial == true
+          elsif options[:partial]
+            options[:partial] = default_template_name if options[:partial] == true
             add_variables_to_assigns
-
-            if collection = options[:collection]
-              render_for_text(
-                @template.send!(:render_partial_collection, partial, collection,
-                options[:spacer_template], options[:locals], options[:as]), options[:status]
-              )
-            else
-              render_for_text(
-                @template.send!(:render_partial, partial,
-                options[:object], options[:locals]), options[:status]
-              )
-            end
+            render_for_text(@template.render(options), options[:status])
 
           elsif options[:update]
             add_variables_to_assigns
@@ -939,8 +924,7 @@ module ActionController #:nodoc:
             render_for_text(generator.to_s, options[:status])
 
           elsif options[:nothing]
-            # Safari doesn't pass the headers of the return if the response is zero length
-            render_for_text(" ", options[:status])
+            render_for_text(nil, options[:status])
 
           else
             render_for_file(default_template_name, options[:status], true)
@@ -1154,13 +1138,17 @@ module ActionController #:nodoc:
           response.body ||= ''
           response.body << text.to_s
         else
-          response.body = text.is_a?(Proc) ? text : text.to_s
+          response.body = case text
+            when Proc then text
+            when nil  then " " # Safari doesn't pass the headers of the return if the response is zero length
+            else           text.to_s
+          end
         end
       end
 
       def initialize_template_class(response)
         response.template = ActionView::Base.new(self.class.view_paths, {}, self)
-        response.template.extend self.class.master_helper_module
+        response.template.helpers.send :include, self.class.master_helper_module
         response.redirected_to = nil
         @performed_render = @performed_redirect = false
       end
@@ -1201,7 +1189,7 @@ module ActionController #:nodoc:
         elsif respond_to? :method_missing
           method_missing action_name
           default_render unless performed?
-        elsif template_exists? && template_public?
+        elsif template_exists?
           default_render
         else
           raise UnknownAction, "No action responded to #{action_name}. Actions: #{action_methods.sort.to_sentence}", caller
@@ -1217,13 +1205,9 @@ module ActionController #:nodoc:
       end
 
       def assign_default_content_type_and_charset
-        response.content_type ||= Mime::HTML
-        response.charset      ||= self.class.default_charset unless sending_file?
+        response.assign_default_content_type_and_charset!
       end
-
-      def sending_file?
-        response.headers["Content-Transfer-Encoding"] == "binary"
-      end
+      deprecate :assign_default_content_type_and_charset => :'response.assign_default_content_type_and_charset!'
 
       def action_methods
         self.class.action_methods
@@ -1278,10 +1262,6 @@ module ActionController #:nodoc:
 
       def template_exists?(template_name = default_template_name)
         @template.file_exists?(template_name)
-      end
-
-      def template_public?(template_name = default_template_name)
-        @template.file_public?(template_name)
       end
 
       def template_exempt_from_layout?(template_name = default_template_name)

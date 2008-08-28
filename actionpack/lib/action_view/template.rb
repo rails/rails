@@ -1,3 +1,5 @@
+require 'action_controller/mime_type'
+
 module ActionView #:nodoc:
   class Template
     extend TemplateHandlers

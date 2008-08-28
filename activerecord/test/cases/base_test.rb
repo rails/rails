@@ -138,7 +138,7 @@ class BasicsTest < ActiveRecord::TestCase
   if current_adapter?(:MysqlAdapter)
     def test_read_attributes_before_type_cast_on_boolean
       bool = Booleantest.create({ "value" => false })
-      assert_equal 0, bool.attributes_before_type_cast["value"]
+      assert_equal "0", bool.reload.attributes_before_type_cast["value"]
     end
   end
 
@@ -616,7 +616,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_update_counter
-    category = Category.first
+    category = categories(:general)
     assert_nil category.categorizations_count
     assert_equal 2, category.categorizations.count
 
@@ -1114,11 +1114,15 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_boolean
+    b_nil = Booleantest.create({ "value" => nil })
+    nil_id = b_nil.id
     b_false = Booleantest.create({ "value" => false })
     false_id = b_false.id
     b_true = Booleantest.create({ "value" => true })
     true_id = b_true.id
 
+    b_nil = Booleantest.find(nil_id)
+    assert_nil b_nil.value
     b_false = Booleantest.find(false_id)
     assert !b_false.value?
     b_true = Booleantest.find(true_id)
@@ -1126,11 +1130,15 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_boolean_cast_from_string
+    b_blank = Booleantest.create({ "value" => "" })
+    blank_id = b_blank.id
     b_false = Booleantest.create({ "value" => "0" })
     false_id = b_false.id
     b_true = Booleantest.create({ "value" => "1" })
     true_id = b_true.id
 
+    b_blank = Booleantest.find(blank_id)
+    assert_nil b_blank.value
     b_false = Booleantest.find(false_id)
     assert !b_false.value?
     b_true = Booleantest.find(true_id)

@@ -21,17 +21,12 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-$:.unshift(File.dirname(__FILE__)) unless
-  $:.include?(File.dirname(__FILE__)) || $:.include?(File.expand_path(File.dirname(__FILE__)))
-
-unless defined? ActiveSupport
-  active_support_path = File.dirname(__FILE__) + "/../../activesupport/lib"
-  if File.exist?(active_support_path)
-    $:.unshift active_support_path
-    require 'active_support'
-  else
-    require 'rubygems'
-    gem 'activesupport'
+begin
+  require 'active_support'
+rescue LoadError
+  activesupport_path = "#{File.dirname(__FILE__)}/../../activesupport/lib"
+  if File.directory?(activesupport_path)
+    $:.unshift activesupport_path
     require 'active_support'
   end
 end
@@ -56,6 +51,7 @@ require 'active_record/calculations'
 require 'active_record/serialization'
 require 'active_record/attribute_methods'
 require 'active_record/dirty'
+require 'active_record/dynamic_finder_match'
 
 ActiveRecord::Base.class_eval do
   extend ActiveRecord::QueryCache
@@ -81,7 +77,5 @@ require 'active_record/connection_adapters/abstract_adapter'
 
 require 'active_record/schema_dumper'
 
-I18n.backend.populate do
-  require 'active_record/locale/en-US.rb'
-end
+I18n.load_translations File.dirname(__FILE__) + '/active_record/locale/en-US.yml'
 

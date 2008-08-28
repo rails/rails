@@ -189,15 +189,15 @@ module ActionView
           end
           options[:object_name] ||= params.first
 
-          I18n.with_options :locale => options[:locale], :scope => [:active_record, :error] do |locale|
+          I18n.with_options :locale => options[:locale], :scope => [:activerecord, :errors, :template] do |locale|
             header_message = if options.include?(:header_message)
               options[:header_message]
             else
               object_name = options[:object_name].to_s.gsub('_', ' ')
-              object_name = I18n.t(object_name, :default => object_name)
-              locale.t :header_message, :count => count, :object_name => object_name
+              object_name = I18n.t(object_name, :default => object_name, :scope => [:activerecord, :models], :count => 1)
+              locale.t :header, :count => count, :model => object_name
             end
-            message = options.include?(:message) ? options[:message] : locale.t(:message)
+            message = options.include?(:message) ? options[:message] : locale.t(:body)
             error_messages = objects.sum {|object| object.errors.full_messages.map {|msg| content_tag(:li, msg) } }.join
 
             contents = ''

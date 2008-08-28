@@ -23,8 +23,8 @@ module ActiveRecord
       config = config.symbolize_keys
       host     = config[:host]
       port     = config[:port] || 5432
-      username = config[:username].to_s
-      password = config[:password].to_s
+      username = config[:username].to_s if config[:username]
+      password = config[:password].to_s if config[:password]
 
       if config.has_key?(:database)
         database = config[:database]
@@ -335,6 +335,10 @@ module ActiveRecord
         postgresql_version >= 80200
       end
 
+      def supports_ddl_transactions?
+        true
+      end
+
       # Returns the configured supported identifier length supported by PostgreSQL,
       # or report the default of 63 on PostgreSQL 7.x.
       def table_alias_length
@@ -376,7 +380,7 @@ module ActiveRecord
           # There are some incorrectly compiled postgres drivers out there
           # that don't define PGconn.escape.
           self.class.instance_eval do
-            undef_method(:quote_string)
+            remove_method(:quote_string)
           end
         end
         quote_string(s)
@@ -534,13 +538,13 @@ module ActiveRecord
         option_string = options.symbolize_keys.sum do |key, value|
           case key
           when :owner
-            " OWNER = '#{value}'"
+            " OWNER = \"#{value}\""
           when :template
-            " TEMPLATE = #{value}"
+            " TEMPLATE = \"#{value}\""
           when :encoding
             " ENCODING = '#{value}'"
           when :tablespace
-            " TABLESPACE = #{value}"
+            " TABLESPACE = \"#{value}\""
           when :connection_limit
             " CONNECTION LIMIT = #{value}"
           else
@@ -761,7 +765,8 @@ module ActiveRecord
 
         begin
           execute "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
-        rescue ActiveRecord::StatementInvalid
+        rescue ActiveRecord::StatementInvalid => e
+          raise e if postgresql_version > 80000
           # This is PostgreSQL 7.x, so we have to use a more arcane way of doing it.
           begin
             begin_db_transaction

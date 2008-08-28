@@ -13,43 +13,43 @@ module ActiveResource
   # to Ruby objects, Active Resource only needs a class name that corresponds to the resource name (e.g., the class
   # Person maps to the resources people, very similarly to Active Record) and a +site+ value, which holds the
   # URI of the resources.
-  # 
+  #
   #   class Person < ActiveResource::Base
   #     self.site = "http://api.people.com:3000/"
   #   end
-  # 
+  #
   # Now the Person class is mapped to RESTful resources located at <tt>http://api.people.com:3000/people/</tt>, and
-  # you can now use Active Resource's lifecycles methods to manipulate resources. In the case where you already have 
+  # you can now use Active Resource's lifecycles methods to manipulate resources. In the case where you already have
   # an existing model with the same name as the desired RESTful resource you can set the +element_name+ value.
   #
   #   class PersonResource < ActiveResource::Base
   #     self.site = "http://api.people.com:3000/"
   #     self.element_name = "person"
   #   end
-  #  
-  # 
+  #
+  #
   # == Lifecycle methods
   #
   # Active Resource exposes methods for creating, finding, updating, and deleting resources
   # from REST web services.
-  # 
+  #
   #   ryan = Person.new(:first => 'Ryan', :last => 'Daigle')
   #   ryan.save                # => true
   #   ryan.id                  # => 2
   #   Person.exists?(ryan.id)  # => true
   #   ryan.exists?             # => true
-  # 
+  #
   #   ryan = Person.find(1)
   #   # Resource holding our newly created Person object
-  # 
+  #
   #   ryan.first = 'Rizzle'
   #   ryan.save                # => true
-  # 
+  #
   #   ryan.destroy             # => true
   #
   # As you can see, these are very similar to Active Record's lifecycle methods for database records.
   # You can read more about each of these methods in their respective documentation.
-  # 
+  #
   # === Custom REST methods
   #
   # Since simple CRUD/lifecycle methods can't accomplish every task, Active Resource also supports
@@ -71,20 +71,34 @@ module ActiveResource
   #
   #   # DELETE to 'fire' a person, i.e. DELETE /people/1/fire.xml.
   #   Person.find(1).delete(:fire)
-  # 
+  #
   # For more information on using custom REST methods, see the
   # ActiveResource::CustomMethods documentation.
   #
+  # == Validations
+  #
+  # You can validate resources client side by overriding validation methods in the base class.
+  #
+  #   class Person < ActiveResource::Base
+  #      self.site = "http://api.people.com:3000/"
+  #      protected
+  #        def validate
+  #          errors.add("last", "has invalid characters") unless last =~ /[a-zA-Z]*/
+  #        end
+  #   end
+  #
+  # See the ActiveResource::Validations documentation for more information.
+  #
   # == Authentication
-  # 
+  #
   # Many REST APIs will require authentication, usually in the form of basic
   # HTTP authentication.  Authentication can be specified by:
   # * putting the credentials in the URL for the +site+ variable.
-  # 
+  #
   #    class Person < ActiveResource::Base
   #      self.site = "http://ryan:password@api.people.com:3000/"
   #    end
-  # 
+  #
   # * defining +user+ and/or +password+ variables
   #
   #    class Person < ActiveResource::Base
@@ -93,26 +107,26 @@ module ActiveResource
   #      self.password = "password"
   #    end
   #
-  # For obvious security reasons, it is probably best if such services are available 
+  # For obvious security reasons, it is probably best if such services are available
   # over HTTPS.
-  # 
-  # Note: Some values cannot be provided in the URL passed to site.  e.g. email addresses 
+  #
+  # Note: Some values cannot be provided in the URL passed to site.  e.g. email addresses
   # as usernames.  In those situations you should use the separate user and password option.
   # == Errors & Validation
   #
   # Error handling and validation is handled in much the same manner as you're used to seeing in
   # Active Record.  Both the response code in the HTTP response and the body of the response are used to
   # indicate that an error occurred.
-  # 
+  #
   # === Resource errors
-  # 
+  #
   # When a GET is requested for a resource that does not exist, the HTTP <tt>404</tt> (Resource Not Found)
   # response code will be returned from the server which will raise an ActiveResource::ResourceNotFound
   # exception.
-  # 
+  #
   #   # GET http://api.people.com:3000/people/999.xml
   #   ryan = Person.find(999) # 404, raises ActiveResource::ResourceNotFound
-  # 
+  #
   # <tt>404</tt> is just one of the HTTP error response codes that Active Resource will handle with its own exception. The
   # following HTTP response codes will also result in these exceptions:
   # 
@@ -141,17 +155,17 @@ module ActiveResource
   #   end
   #
   # === Validation errors
-  # 
+  #
   # Active Resource supports validations on resources and will return errors if any these validations fail
-  # (e.g., "First name can not be blank" and so on).  These types of errors are denoted in the response by 
+  # (e.g., "First name can not be blank" and so on).  These types of errors are denoted in the response by
   # a response code of <tt>422</tt> and an XML representation of the validation errors.  The save operation will
   # then fail (with a <tt>false</tt> return value) and the validation errors can be accessed on the resource in question.
-  # 
+  #
   #   ryan = Person.find(1)
   #   ryan.first # => ''
   #   ryan.save  # => false
   #
-  #   # When 
+  #   # When
   #   # PUT http://api.people.com:3000/people/1.xml
   #   # is requested with invalid values, the response is:
   #   #
@@ -161,7 +175,7 @@ module ActiveResource
   #
   #   ryan.errors.invalid?(:first)  # => true
   #   ryan.errors.full_messages     # => ['First cannot be empty']
-  # 
+  #
   # Learn more about Active Resource's validation features in the ActiveResource::Validations documentation.
   #
   # === Timeouts
@@ -272,7 +286,7 @@ module ActiveResource
       #
       # Default format is <tt>:xml</tt>.
       def format=(mime_type_reference_or_format)
-        format = mime_type_reference_or_format.is_a?(Symbol) ? 
+        format = mime_type_reference_or_format.is_a?(Symbol) ?
           ActiveResource::Formats[mime_type_reference_or_format] : mime_type_reference_or_format
 
         write_inheritable_attribute("format", format)
@@ -348,6 +362,9 @@ module ActiveResource
         # Replace :placeholders with '#{embedded options[:lookups]}'
         prefix_call = value.gsub(/:\w+/) { |key| "\#{options[#{key}]}" }
 
+        # Clear prefix parameters in case they have been cached
+        @prefix_parameters = nil
+
         # Redefine the new methods.
         code = <<-end_code
           def prefix_source() "#{value}" end
@@ -373,21 +390,21 @@ module ActiveResource
       # +query_options+ - A \hash to add items to the query string for the request.
       #
       # ==== Examples
-      #   Post.element_path(1) 
+      #   Post.element_path(1)
       #   # => /posts/1.xml
       #
-      #   Comment.element_path(1, :post_id => 5) 
+      #   Comment.element_path(1, :post_id => 5)
       #   # => /posts/5/comments/1.xml
       #
-      #   Comment.element_path(1, :post_id => 5, :active => 1) 
+      #   Comment.element_path(1, :post_id => 5, :active => 1)
       #   # => /posts/5/comments/1.xml?active=1
       #
-      #   Comment.element_path(1, {:post_id => 5}, {:active => 1}) 
+      #   Comment.element_path(1, {:post_id => 5}, {:active => 1})
       #   # => /posts/5/comments/1.xml?active=1
       #
       def element_path(id, prefix_options = {}, query_options = nil)
         prefix_options, query_options = split_options(prefix_options) if query_options.nil?
-        "#{prefix(prefix_options)}#{collection_name}/#{id}.#{format.extension}#{query_string(query_options)}"        
+        "#{prefix(prefix_options)}#{collection_name}/#{id}.#{format.extension}#{query_string(query_options)}"
       end
 
       # Gets the collection path for the REST resources.  If the +query_options+ parameter is omitted, Rails
@@ -402,13 +419,13 @@ module ActiveResource
       #   Post.collection_path
       #   # => /posts.xml
       #
-      #   Comment.collection_path(:post_id => 5) 
+      #   Comment.collection_path(:post_id => 5)
       #   # => /posts/5/comments.xml
       #
-      #   Comment.collection_path(:post_id => 5, :active => 1) 
+      #   Comment.collection_path(:post_id => 5, :active => 1)
       #   # => /posts/5/comments.xml?active=1
       #
-      #   Comment.collection_path({:post_id => 5}, {:active => 1}) 
+      #   Comment.collection_path({:post_id => 5}, {:active => 1})
       #   # => /posts/5/comments.xml?active=1
       #
       def collection_path(prefix_options = {}, query_options = nil)
@@ -443,50 +460,54 @@ module ActiveResource
       #   that_guy.valid? # => false
       #   that_guy.new?   # => true
       def create(attributes = {})
-        returning(self.new(attributes)) { |res| res.save }        
+        returning(self.new(attributes)) { |res| res.save }
       end
 
       # Core method for finding resources.  Used similarly to Active Record's +find+ method.
       #
       # ==== Arguments
-      # The first argument is considered to be the scope of the query.  That is, how many 
+      # The first argument is considered to be the scope of the query.  That is, how many
       # resources are returned from the request.  It can be one of the following.
       #
       # * <tt>:one</tt> - Returns a single resource.
       # * <tt>:first</tt> - Returns the first resource found.
+      # * <tt>:last</tt> - Returns the last resource found.
       # * <tt>:all</tt> - Returns every resource that matches the request.
-      # 
+      #
       # ==== Options
       #
       # * <tt>:from</tt> - Sets the path or custom method that resources will be fetched from.
       # * <tt>:params</tt> - Sets query and \prefix (nested URL) parameters.
       #
       # ==== Examples
-      #   Person.find(1)                                         
+      #   Person.find(1)
       #   # => GET /people/1.xml
       #
-      #   Person.find(:all)                                      
+      #   Person.find(:all)
       #   # => GET /people.xml
       #
-      #   Person.find(:all, :params => { :title => "CEO" })      
+      #   Person.find(:all, :params => { :title => "CEO" })
       #   # => GET /people.xml?title=CEO
       #
-      #   Person.find(:first, :from => :managers)                  
+      #   Person.find(:first, :from => :managers)
       #   # => GET /people/managers.xml
       #
-      #   Person.find(:all, :from => "/companies/1/people.xml")  
+      #   Person.find(:last, :from => :managers)
+      #   # => GET /people/managers.xml
+      #
+      #   Person.find(:all, :from => "/companies/1/people.xml")
       #   # => GET /companies/1/people.xml
       #
-      #   Person.find(:one, :from => :leader)                    
+      #   Person.find(:one, :from => :leader)
       #   # => GET /people/leader.xml
       #
       #   Person.find(:all, :from => :developers, :params => { :language => 'ruby' })
       #   # => GET /people/developers.xml?language=ruby
       #
-      #   Person.find(:one, :from => "/companies/1/manager.xml") 
+      #   Person.find(:one, :from => "/companies/1/manager.xml")
       #   # => GET /companies/1/manager.xml
       #
-      #   StreetAddress.find(1, :params => { :person_id => 1 })  
+      #   StreetAddress.find(1, :params => { :person_id => 1 })
       #   # => GET /people/1/street_addresses/1.xml
       def find(*arguments)
         scope   = arguments.slice!(0)
@@ -495,6 +516,7 @@ module ActiveResource
         case scope
           when :all   then find_every(options)
           when :first then find_every(options).first
+          when :last  then find_every(options).last
           when :one   then find_one(options)
           else             find_single(scope, options)
         end
@@ -552,7 +574,7 @@ module ActiveResource
             instantiate_collection( (connection.get(path, headers) || []), prefix_options )
           end
         end
-        
+
         # Find a single resource from a one-off URL
         def find_one(options)
           case from = options[:from]
@@ -570,7 +592,7 @@ module ActiveResource
           path = element_path(scope, prefix_options, query_options)
           instantiate_record(connection.get(path, headers), prefix_options)
         end
-        
+
         def instantiate_collection(collection, prefix_options = {})
           collection.collect! { |record| instantiate_record(record, prefix_options) }
         end
@@ -594,10 +616,10 @@ module ActiveResource
 
         # Builds the query string for the request.
         def query_string(options)
-          "?#{options.to_query}" unless options.nil? || options.empty? 
+          "?#{options.to_query}" unless options.nil? || options.empty?
         end
 
-        # split an option hash into two hashes, one containing the prefix options, 
+        # split an option hash into two hashes, one containing the prefix options,
         # and the other containing the leftovers.
         def split_options(options = {})
           prefix_options, query_options = {}, {}
@@ -646,7 +668,7 @@ module ActiveResource
     #   ryan = Person.find(1)
     #   ryan.address = StreetAddress.find(1, :person_id => ryan.id)
     #   ryan.hash = {:not => "an ARes instance"}
-    #   
+    #
     #   not_ryan = ryan.clone
     #   not_ryan.new?            # => true
     #   not_ryan.address         # => NoMethodError
@@ -698,7 +720,7 @@ module ActiveResource
       id && id.to_s
     end
 
-    # Test for equality.  Resource are equal if and only if +other+ is the same object or 
+    # Test for equality.  Resource are equal if and only if +other+ is the same object or
     # is an instance of the same class, is not <tt>new?</tt>, and has the same +id+.
     #
     # ==== Examples
@@ -734,7 +756,7 @@ module ActiveResource
     def hash
       id.hash
     end
-    
+
     # Duplicate the current resource without saving it.
     #
     # ==== Examples
@@ -778,7 +800,7 @@ module ActiveResource
     #   my_person = Person.find(my_id)
     #   my_person.destroy
     #   Person.find(my_id) # 404 (Resource Not Found)
-    #   
+    #
     #   new_person = Person.create(:name => 'James')
     #   new_id = new_person.id # => 7
     #   new_person.destroy
@@ -817,7 +839,7 @@ module ActiveResource
     # * <tt>:indent</tt> - Set the indent level for the XML output (default is +2+).
     # * <tt>:dasherize</tt> - Boolean option to determine whether or not element names should
     #   replace underscores with dashes (default is <tt>false</tt>).
-    # * <tt>:skip_instruct</tt> - Toggle skipping the +instruct!+ call on the XML builder 
+    # * <tt>:skip_instruct</tt> - Toggle skipping the +instruct!+ call on the XML builder
     #   that generates the XML declaration (default is <tt>false</tt>).
     #
     # ==== Examples
@@ -841,7 +863,7 @@ module ActiveResource
     # ==== Examples
     #   my_branch = Branch.find(:first)
     #   my_branch.name # => "Wislon Raod"
-    #   
+    #
     #   # Another client fixes the typo...
     #
     #   my_branch.name # => "Wislon Raod"
@@ -889,7 +911,7 @@ module ActiveResource
       end
       self
     end
-    
+
     # For checking <tt>respond_to?</tt> without searching the attributes (which is faster).
     alias_method :respond_to_without_attributes?, :respond_to?
 
@@ -901,7 +923,7 @@ module ActiveResource
       if attributes.nil?
         return super
       elsif attributes.has_key?(method_name)
-        return true 
+        return true
       elsif ['?','='].include?(method_name.last) && attributes.has_key?(method_name.first(-1))
         return true
       end
@@ -909,7 +931,7 @@ module ActiveResource
       # would return true for generated readers, even if the attribute wasn't present
       super
     end
-    
+
 
     protected
       def connection(refresh = false)
@@ -930,7 +952,7 @@ module ActiveResource
           load_attributes_from_response(response)
         end
       end
-      
+
       def load_attributes_from_response(response)
         if response['Content-Length'] != "0" && response.body.strip.size > 0
           load(self.class.format.decode(response.body))
@@ -955,7 +977,7 @@ module ActiveResource
       def find_or_create_resource_for_collection(name)
         find_or_create_resource_for(name.to_s.singularize)
       end
-      
+
       # Tries to find a resource in a non empty list of nested modules
       # Raises a NameError if it was not found in any of the given nested modules
       def find_resource_in_modules(resource_name, module_names)
