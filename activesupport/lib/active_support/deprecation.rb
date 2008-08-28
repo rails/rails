@@ -162,6 +162,22 @@ module ActiveSupport
         end
     end
 
+    class DeprecatedObjectProxy < DeprecationProxy
+      def initialize(object, message)
+        @object = object
+        @message = message
+      end
+
+      private
+        def target
+          @object
+        end
+
+        def warn(callstack, called, args)
+          ActiveSupport::Deprecation.warn(@message, callstack)
+        end
+    end
+
     # Stand-in for <tt>@request</tt>, <tt>@attributes</tt>, <tt>@params</tt>, etc.
     # which emits deprecation warnings on any method call (except +inspect+).
     class DeprecatedInstanceVariableProxy < DeprecationProxy #:nodoc:

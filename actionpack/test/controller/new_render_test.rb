@@ -832,8 +832,10 @@ EOS
   end
 
   def test_partial_with_implicit_local_assignment
-    get :partial_with_implicit_local_assignment
-    assert_equal "Hello: Marcel", @response.body
+    assert_deprecated do
+      get :partial_with_implicit_local_assignment
+      assert_equal "Hello: Marcel", @response.body
+    end
   end
 
   def test_render_missing_partial_template
