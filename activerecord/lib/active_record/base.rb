@@ -1549,7 +1549,7 @@ module ActiveRecord #:nodoc:
           sql  = "SELECT #{options[:select] || (scope && scope[:select]) || ((options[:joins] || (scope && scope[:joins])) && quoted_table_name + '.*') || '*'} "
           sql << "FROM #{(scope && scope[:from]) || options[:from] || quoted_table_name} "
 
-          add_joins!(sql, options, scope)
+          add_joins!(sql, options[:joins], scope)
           add_conditions!(sql, options[:conditions], scope)
 
           add_group!(sql, options[:group], scope)
@@ -1563,6 +1563,22 @@ module ActiveRecord #:nodoc:
         # Merges includes so that the result is a valid +include+
         def merge_includes(first, second)
          (safe_to_array(first) + safe_to_array(second)).uniq
+        end
+
+        def merge_joins(first, second)
+          if first.is_a?(String) && second.is_a?(String)
+            "#{first} #{second}"
+          elsif first.is_a?(String) || second.is_a?(String)
+            if first.is_a?(String)
+              join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, second, nil)
+              "#{first} #{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join}"
+            else
+              join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, first, nil)
+              "#{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join} #{second}"
+            end
+          else
+            (safe_to_array(first) + safe_to_array(second)).uniq
+          end
         end
 
         # Object#to_a is deprecated, though it does have the desired behavior
@@ -1620,16 +1636,15 @@ module ActiveRecord #:nodoc:
         end
 
         # The optional scope argument is for the current <tt>:find</tt> scope.
-        def add_joins!(sql, options, scope = :auto)
+        def add_joins!(sql, joins, scope = :auto)
           scope = scope(:find) if :auto == scope
-          [(scope && scope[:joins]), options[:joins]].each do |join|
-            case join
-            when Symbol, Hash, Array
-              join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, join, nil)
-              sql << " #{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join} "
-            else
-              sql << " #{join} "
-            end
+          merged_joins = scope && scope[:joins] && joins ? merge_joins(scope[:joins], joins) : (joins || scope && scope[:joins])
+          case merged_joins
+          when Symbol, Hash, Array
+            join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, merged_joins, nil)
+            sql << " #{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join} "
+          when String
+            sql << " #{merged_joins} "
           end
         end
 
@@ -1879,6 +1894,8 @@ module ActiveRecord #:nodoc:
                         hash[method][key] = merge_conditions(params[key], hash[method][key])
                       elsif key == :include && merge
                         hash[method][key] = merge_includes(hash[method][key], params[key]).uniq
+                      elsif key == :joins && merge
+                        hash[method][key] = merge_joins(params[key], hash[method][key])
                       else
                         hash[method][key] = hash[method][key] || params[key]
                       end

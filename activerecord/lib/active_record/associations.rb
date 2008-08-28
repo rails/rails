@@ -1599,7 +1599,7 @@ module ActiveRecord
           sql = "SELECT #{column_aliases(join_dependency)} FROM #{(scope && scope[:from]) || options[:from] || quoted_table_name} "
           sql << join_dependency.join_associations.collect{|join| join.association_join }.join
 
-          add_joins!(sql, options, scope)
+          add_joins!(sql, options[:joins], scope)
           add_conditions!(sql, options[:conditions], scope)
           add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
 
@@ -1655,7 +1655,7 @@ module ActiveRecord
 
           if is_distinct
             sql << distinct_join_associations.collect { |assoc| assoc.association_join }.join
-            add_joins!(sql, options, scope)
+            add_joins!(sql, options[:joins], scope)
           end
 
           add_conditions!(sql, options[:conditions], scope)

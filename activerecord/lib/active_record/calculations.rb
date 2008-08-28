@@ -188,7 +188,7 @@ module ActiveRecord
           end
 
           joins = ""
-          add_joins!(joins, options, scope)
+          add_joins!(joins, options[:joins], scope)
 
           if merged_includes.any?
             join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_includes, joins)
