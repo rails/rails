@@ -1297,6 +1297,31 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       end
     end
 
+    def test_recognize_array_of_methods
+      begin
+        Object.const_set(:BooksController, Class.new(ActionController::Base))
+        rs.draw do |r|
+          r.connect '/match', :controller => 'books', :action => 'get_or_post', :conditions => { :method => [:get, :post] }
+          r.connect '/match', :controller => 'books', :action => 'not_get_or_post'
+        end
+
+        @request = ActionController::TestRequest.new
+        @request.env["REQUEST_METHOD"] = 'POST'
+        @request.request_uri = "/match"
+        assert_nothing_raised { rs.recognize(@request) }
+        assert_equal 'get_or_post', @request.path_parameters[:action]
+
+        # have to recreate or else the RouteSet uses a cached version:
+        @request = ActionController::TestRequest.new
+        @request.env["REQUEST_METHOD"] = 'PUT'
+        @request.request_uri = "/match"
+        assert_nothing_raised { rs.recognize(@request) }
+        assert_equal 'not_get_or_post', @request.path_parameters[:action]
+        ensure
+          Object.send(:remove_const, :BooksController) rescue nil
+        end
+      end
+
     def test_subpath_recognized
       Object.const_set(:SubpathBooksController, Class.new(ActionController::Base))
 

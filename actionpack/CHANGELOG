@@ -1,5 +1,9 @@
 *Edge*
 
+* Routes may be restricted to lists of HTTP methods instead of a single method or :any.  #407 [Brennan Dunn, Gaius Centus Novus]
+    map.resource :posts, :collection => { :search => [:get, :post] }
+    map.session 'session', :requirements => { :method => [:get, :post, :delete] }
+
 * Deprecated implicit local assignments when rendering partials [Josh Peek]
 
 * Introduce current_cycle helper method to return the current value without bumping the cycle.  #417 [Ken Collins]
