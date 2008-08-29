@@ -451,6 +451,18 @@ class ValidationsTest < ActiveRecord::TestCase
     t2.title = nil
     assert t2.valid?, "should validate with nil"
     assert t2.save, "should save with nil"
+
+    with_kcode('UTF8') do
+      t_utf8 = Topic.new("title" => "Я тоже уникальный!")
+      assert t_utf8.save, "Should save t_utf8 as unique"
+
+      # If database hasn't UTF-8 character set, this test fails
+      if Topic.find(t_utf8, :select => 'LOWER(title) AS title').title == "я тоже уникальный!"
+        t2_utf8 = Topic.new("title" => "я тоже УНИКАЛЬНЫЙ!")
+        assert !t2_utf8.valid?, "Shouldn't be valid"
+        assert !t2_utf8.save, "Shouldn't save t2_utf8 as unique"
+      end
+    end
   end
 
   def test_validate_case_sensitive_uniqueness
