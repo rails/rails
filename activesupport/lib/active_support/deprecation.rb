@@ -109,7 +109,7 @@ module ActiveSupport
       end
 
       def deprecation_horizon
-        '2.0'
+        '2.3'
       end
     end
 

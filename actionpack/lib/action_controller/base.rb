@@ -548,10 +548,14 @@ module ActionController #:nodoc:
           @@guard.synchronize { send(method, *arguments) }
         end
 
-        response.prepare! unless component_request?
-        response
+        send_response
       ensure
         process_cleanup
+      end
+
+      def send_response
+        response.prepare! unless component_request?
+        response
       end
 
       # Returns a URL that has been rewritten according to the options hash and the defined Routes.
