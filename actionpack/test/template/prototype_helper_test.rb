@@ -91,6 +91,19 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
       link_to_remote("Remote", { :url => { :action => "whatnot's" } })
   end
 
+  def test_button_to_remote
+    assert_dom_equal %(<input class=\"fine\" type=\"button\" value=\"Remote outpost\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true});\" />),
+      button_to_remote("Remote outpost", { :url => { :action => "whatnot"  }}, { :class => "fine"  })
+    assert_dom_equal %(<input type=\"button\" value=\"Remote outpost\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onComplete:function(request){alert(request.reponseText)}});\" />),
+      button_to_remote("Remote outpost", :complete => "alert(request.reponseText)", :url => { :action => "whatnot"  })
+    assert_dom_equal %(<input type=\"button\" value=\"Remote outpost\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onSuccess:function(request){alert(request.reponseText)}});\" />),
+      button_to_remote("Remote outpost", :success => "alert(request.reponseText)", :url => { :action => "whatnot"  })
+    assert_dom_equal %(<input type=\"button\" value=\"Remote outpost\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onFailure:function(request){alert(request.reponseText)}});\" />),
+      button_to_remote("Remote outpost", :failure => "alert(request.reponseText)", :url => { :action => "whatnot"  })
+    assert_dom_equal %(<input type=\"button\" value=\"Remote outpost\" onclick=\"new Ajax.Request('http://www.example.com/whatnot?a=10&amp;b=20', {asynchronous:true, evalScripts:true, onFailure:function(request){alert(request.reponseText)}});\" />),
+      button_to_remote("Remote outpost", :failure => "alert(request.reponseText)", :url => { :action => "whatnot", :a => '10', :b => '20' })
+  end
+
   def test_periodically_call_remote
     assert_dom_equal %(<script type="text/javascript">\n//<![CDATA[\nnew PeriodicalExecuter(function() {new Ajax.Updater('schremser_bier', 'http://www.example.com/mehr_bier', {asynchronous:true, evalScripts:true})}, 10)\n//]]>\n</script>),
       periodically_call_remote(:update => "schremser_bier", :url => { :action => "mehr_bier" })

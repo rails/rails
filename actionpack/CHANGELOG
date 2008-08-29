@@ -1,5 +1,7 @@
 *Edge*
 
+* Added button_to_remote helper.  #3641 [Donald Piret, Tarmo Tänav]
+
 * Deprecate render_component. Please use render_component plugin from http://github.com/rails/render_component/tree/master [Pratik]
 
 * Routes may be restricted to lists of HTTP methods instead of a single method or :any.  #407 [Brennan Dunn, Gaius Centus Novus]

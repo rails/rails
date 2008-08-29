@@ -255,6 +255,14 @@ module ActionView
         link_to_function(name, remote_function(options), html_options || options.delete(:html))
       end
 
+      # Creates a button with an onclick event which calls a remote action
+      # via XMLHttpRequest
+      # The options for specifying the target with :url
+      # and defining callbacks is the same as link_to_remote.
+      def button_to_remote(name, options = {}, html_options = {})
+        button_to_function(name, remote_function(options), html_options)
+      end
+
       # Periodically calls the specified url (<tt>options[:url]</tt>) every
       # <tt>options[:frequency]</tt> seconds (default is 10). Usually used to
       # update a specified div (<tt>options[:update]</tt>) with the results
