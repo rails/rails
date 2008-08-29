@@ -21,15 +21,19 @@ module ActiveSupport #:nodoc:
         #
         # Ruby 1.9 uses a preinitialized instance variable so it's unaffected.
         # This hack is as close as we can get to feature detection:
-        if (Date.today.freeze.inspect rescue false)
-          def freeze #:nodoc:
-            self.class.private_instance_methods(false).each do |m|
-              if m.to_s =~ /\A__\d+__\Z/
-                instance_variable_set(:"@#{m}", [send(m)])
+        begin
+          ::Date.today.freeze.jd
+        rescue => frozen_object_error
+          if frozen_object_error.message =~ /frozen/
+            def freeze #:nodoc:
+              self.class.private_instance_methods(false).each do |m|
+                if m.to_s =~ /\A__\d+__\Z/
+                  instance_variable_set(:"@#{m}", [send(m)])
+                end
               end
-            end
 
-            super
+              super
+            end
           end
         end
       end
