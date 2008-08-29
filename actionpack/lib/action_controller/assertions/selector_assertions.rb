@@ -472,7 +472,13 @@ module ActionController
           matches
         else
           # RJS statement not found.
-          flunk args.shift || "No RJS statement that replaces or inserts HTML content."
+          case rjs_type
+            when :remove, :show, :hide, :toggle
+              flunk_message = "No RJS statement that #{rjs_type.to_s}s '#{id}' was rendered."
+            else
+              flunk_message = "No RJS statement that replaces or inserts HTML content."
+          end
+          flunk args.shift || flunk_message
         end
       end
 
