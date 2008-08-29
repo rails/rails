@@ -374,11 +374,16 @@ module ActionMailer #:nodoc:
       alias_method :controller_name, :mailer_name
       alias_method :controller_path, :mailer_name
 
-      def method_missing(method_symbol, *parameters)#:nodoc:
-        case method_symbol.id2name
-          when /^create_([_a-z]\w*)/  then new($1, *parameters).mail
-          when /^deliver_([_a-z]\w*)/ then new($1, *parameters).deliver!
-          when "new" then nil
+      def respond_to?(method_symbol, include_private = false) #:nodoc:
+        matches_dynamic_method?(method_symbol) || super
+      end
+
+      def method_missing(method_symbol, *parameters) #:nodoc:
+        match = matches_dynamic_method?(method_symbol)
+        case match[1]
+          when 'create'  then new(match[2], *parameters).mail
+          when 'deliver' then new(match[2], *parameters).deliver!
+          when 'new'     then nil
           else super
         end
       end
@@ -424,6 +429,12 @@ module ActionMailer #:nodoc:
       def template_root=(root)
         self.view_paths = ActionView::Base.process_view_paths(root)
       end
+
+      private
+        def matches_dynamic_method?(method_name) #:nodoc:
+          method_name = method_name.to_s
+          /(create|deliver)_([_a-z]\w*)/.match(method_name) || /^(new)$/.match(method_name)
+        end
     end
 
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
