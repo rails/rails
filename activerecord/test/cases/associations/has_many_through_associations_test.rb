@@ -200,4 +200,24 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_count_with_include_should_alias_join_table
     assert_equal 2, people(:michael).posts.count(:include => :readers)
   end
+
+  def test_get_ids
+    assert_equal [posts(:welcome).id, posts(:authorless).id], people(:michael).post_ids
+  end
+
+  def test_get_ids_for_loaded_associations
+    person = people(:michael)
+    person.posts(true)
+    assert_queries(0) do
+      person.post_ids
+      person.post_ids
+    end
+  end
+
+  def test_get_ids_for_unloaded_associations_does_not_load_them
+    person = people(:michael)
+    assert !person.posts.loaded?
+    assert_equal [posts(:welcome).id, posts(:authorless).id], person.post_ids
+    assert !person.posts.loaded?
+  end
 end
