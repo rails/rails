@@ -79,6 +79,8 @@ class PrototypeHelperTest < PrototypeHelperBaseTest
       link_to_remote("Remote outauthor", :failure => "alert(request.responseText)", :url => { :action => "whatnot", :a => '10', :b => '20' })
     assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:false, evalScripts:true}); return false;\">Remote outauthor</a>),
       link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :type => :synchronous)
+    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, insertion:'bottom'}); return false;\">Remote outauthor</a>),
+      link_to_remote("Remote outauthor", :url => { :action => "whatnot" }, :position => :bottom)
   end
 
   def test_link_to_remote_html_options
