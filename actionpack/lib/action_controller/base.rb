@@ -863,7 +863,7 @@ module ActionController #:nodoc:
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
         if options.nil?
-          return render_for_file(default_template_name, nil, true)
+          return render_for_file(default_template_name)
         elsif !extra_options.is_a?(Hash)
           raise RenderError, "You called render with invalid options : #{options.inspect}, #{extra_options.inspect}"
         else
@@ -887,10 +887,10 @@ module ActionController #:nodoc:
 
         else
           if file = options[:file]
-            render_for_file(file, options[:status], nil, options[:locals] || {})
+            render_for_file(file, options[:status], options[:locals] || {})
 
           elsif template = options[:template]
-            render_for_file(template, options[:status], true, options[:locals] || {})
+            render_for_file(template, options[:status], options[:locals] || {})
 
           elsif inline = options[:inline]
             add_variables_to_assigns
@@ -926,7 +926,7 @@ module ActionController #:nodoc:
             render_for_text(nil, options[:status])
 
           else
-            render_for_file(default_template_name, options[:status], true)
+            render_for_file(default_template_name, options[:status])
           end
         end
       end
@@ -1122,7 +1122,7 @@ module ActionController #:nodoc:
 
 
     private
-      def render_for_file(template_path, status = nil, use_full_path = nil, locals = {}) #:nodoc:
+      def render_for_file(template_path, status = nil, locals = {}) #:nodoc:
         add_variables_to_assigns
         logger.info("Rendering #{template_path}" + (status ? " (#{status})" : '')) if logger
         render_for_text(@template.render(:file => template_path, :locals => locals), status)
