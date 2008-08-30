@@ -85,16 +85,24 @@ module ActionController
         @new_path  ||= "#{path}/#{new_action}"
       end
 
+      def shallow_path_prefix
+        @shallow_path_prefix ||= "#{path_prefix unless @options[:shallow]}"
+      end
+
       def member_path
-        @member_path ||= "#{path}/:id"
+        @member_path ||= "#{shallow_path_prefix}/#{path_segment}/:id"
       end
 
       def nesting_path_prefix
-        @nesting_path_prefix ||= "#{path}/:#{singular}_id"
+        @nesting_path_prefix ||= "#{shallow_path_prefix}/#{path_segment}/:#{singular}_id"
+      end
+
+      def shallow_name_prefix
+        @shallow_name_prefix ||= "#{name_prefix unless @options[:shallow]}"
       end
 
       def nesting_name_prefix
-        "#{name_prefix}#{singular}_"
+        "#{shallow_name_prefix}#{singular}_"
       end
 
       def action_separator
@@ -141,6 +149,8 @@ module ActionController
         super
       end
 
+      alias_method :shallow_path_prefix, :path_prefix
+      alias_method :shallow_name_prefix, :name_prefix
       alias_method :member_path,         :path
       alias_method :nesting_path_prefix, :path
     end
@@ -318,6 +328,31 @@ module ActionController
     #   comments_url(@article)
     #   comment_url(@article, @comment)
     #
+    # * <tt>:shallow</tt> - If true, paths for nested resources which reference a specific member
+    #   (ie. those with an :id parameter) will not use the parent path prefix or name prefix.
+    #
+    # The <tt>:shallow</tt> option is inherited by any nested resource(s).
+    #
+    # For example, 'users', 'posts' and 'comments' all use shallow paths with the following nested resources:
+    #
+    #   map.resources :users, :shallow => true do |user|
+    #     user.resources :posts do |post|
+    #       post.resources :comments
+    #     end
+    #   end
+    #   # --> GET /users/1/posts (maps to the PostsController#index action as usual)
+    #   #     also adds the usual named route called "user_posts"
+    #   # --> GET /posts/2 (maps to the PostsController#show action as if it were not nested)
+    #   #     also adds the named route called "post"
+    #   # --> GET /posts/2/comments (maps to the CommentsController#index action)
+    #   #     also adds the named route called "post_comments"
+    #   # --> GET /comments/2 (maps to the CommentsController#show action as if it were not nested)
+    #   #     also adds the named route called "comment"
+    #
+    # You may also use <tt>:shallow</tt> in combination with the +has_one+ and +has_many+ shorthand notations like:
+    #
+    #   map.resources :users, :has_many => { :posts => :comments }, :shallow => true
+    #
     # If <tt>map.resources</tt> is called with multiple resources, they all get the same options applied.
     #
     # Examples:
@@ -443,7 +478,7 @@ module ActionController
           map_associations(resource, options)
 
           if block_given?
-            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, :namespace => options[:namespace], &block)
+            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, :namespace => options[:namespace], :shallow => options[:shallow], &block)
           end
         end
       end
@@ -460,21 +495,35 @@ module ActionController
           map_associations(resource, options)
 
           if block_given?
-            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, :namespace => options[:namespace], &block)
+            with_options(:path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, :namespace => options[:namespace], :shallow => options[:shallow], &block)
           end
         end
       end
 
       def map_associations(resource, options)
+        map_has_many_associations(resource, options.delete(:has_many), options) if options[:has_many]
+
         path_prefix = "#{options.delete(:path_prefix)}#{resource.nesting_path_prefix}"
         name_prefix = "#{options.delete(:name_prefix)}#{resource.nesting_name_prefix}"
 
-        Array(options[:has_many]).each do |association|
-          resources(association, :path_prefix => path_prefix, :name_prefix => name_prefix, :namespace => options[:namespace])
-        end
-
         Array(options[:has_one]).each do |association|
-          resource(association, :path_prefix => path_prefix, :name_prefix => name_prefix, :namespace => options[:namespace])
+          resource(association, :path_prefix => path_prefix, :name_prefix => name_prefix, :namespace => options[:namespace], :shallow => options[:shallow])
+        end
+      end
+
+      def map_has_many_associations(resource, associations, options)
+        case associations
+        when Hash
+          associations.each do |association,has_many|
+            map_has_many_associations(resource, association, options.merge(:has_many => has_many))
+          end
+        when Array
+          associations.each do |association|
+            map_has_many_associations(resource, association, options)
+          end
+        when Symbol, String
+          resources(associations, :path_prefix => resource.nesting_path_prefix, :name_prefix => resource.nesting_name_prefix, :namespace => options[:namespace], :shallow => options[:shallow], :has_many => options[:has_many])
+        else
         end
       end
 
@@ -530,13 +579,13 @@ module ActionController
               action_path = resource.options[:path_names][action] if resource.options[:path_names].is_a?(Hash)
               action_path ||= Base.resources_path_names[action] || action
 
-              map_named_routes(map, "#{action}_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action_path}", action_options)
+              map_named_routes(map, "#{action}_#{resource.shallow_name_prefix}#{resource.singular}", "#{resource.member_path}#{resource.action_separator}#{action_path}", action_options)
             end
           end
         end
 
         show_action_options = action_options_for("show", resource)
-        map_named_routes(map, "#{resource.name_prefix}#{resource.singular}", resource.member_path, show_action_options)
+        map_named_routes(map, "#{resource.shallow_name_prefix}#{resource.singular}", resource.member_path, show_action_options)
 
         update_action_options = action_options_for("update", resource)
         map_unnamed_routes(map, resource.member_path, update_action_options)

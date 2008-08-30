@@ -1,5 +1,19 @@
 *Edge*
 
+* Add support for shallow nesting of routes. #838 [S. Brent Faulkner]
+
+  Example :
+
+  map.resources :users, :shallow => true do |user|
+    user.resources :posts
+  end
+
+  - GET /users/1/posts (maps to PostsController#index action as usual)
+    named route "user_posts" is added as usual.
+
+  - GET /posts/2 (maps to PostsController#show action as if it were not nested)
+    Additionally, named route "post" is added too.
+
 * Added button_to_remote helper.  #3641 [Donald Piret, Tarmo Tänav]
 
 * Deprecate render_component. Please use render_component plugin from http://github.com/rails/render_component/tree/master [Pratik]
