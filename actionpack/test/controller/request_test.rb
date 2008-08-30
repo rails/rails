@@ -13,7 +13,7 @@ class RequestTest < Test::Unit::TestCase
     assert_equal '1.2.3.4', @request.remote_ip
 
     @request.remote_addr = '1.2.3.4,3.4.5.6'
-    assert_equal '1.2.3.4', @request.remote_ip(true)
+    assert_equal '1.2.3.4', @request.remote_ip
 
     @request.env['HTTP_CLIENT_IP'] = '2.3.4.5'
     assert_equal '1.2.3.4', @request.remote_ip
