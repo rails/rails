@@ -897,12 +897,7 @@ module ActionController #:nodoc:
             render_for_text(@template.render(options), options[:status])
 
           elsif action_name = options[:action]
-            template = default_template_name(action_name.to_s)
-            if options[:layout] && !template_exempt_from_layout?(template)
-              render_with_a_layout(:file => template, :status => options[:status], :layout => true)
-            else
-              render_with_no_layout(:file => template, :status => options[:status])
-            end
+            render_for_file(default_template_name(action_name.to_s), options[:status], nil, options[:locals] || {})
 
           elsif xml = options[:xml]
             response.content_type ||= Mime::XML
