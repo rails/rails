@@ -897,7 +897,7 @@ module ActionController #:nodoc:
             render_for_text(@template.render(options), options[:status])
 
           elsif action_name = options[:action]
-            render_for_file(default_template_name(action_name.to_s), options[:status], nil, options[:locals] || {})
+            render_for_file(default_template_name(action_name.to_s), options[:status])
 
           elsif xml = options[:xml]
             response.content_type ||= Mime::XML
