@@ -245,7 +245,7 @@ module ActionController #:nodoc:
         template_with_options = options.is_a?(Hash)
 
         if (layout = pick_layout(template_with_options, options)) && apply_layout?(template_with_options, options)
-          options = options.merge :layout => false if template_with_options
+          options.delete(:layout) if template_with_options
           logger.info("Rendering template within #{layout}") if logger
 
           content_for_layout = render_with_no_layout(options, extra_options, &block)

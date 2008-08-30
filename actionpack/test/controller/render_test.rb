@@ -371,6 +371,12 @@ class TestController < ActionController::Base
     end
   end
 
+  def update_page_with_view_method
+    render :update do |page|
+      page.replace_html 'person', pluralize(2, 'person')
+    end
+  end
+
   def action_talk_to_layout
     # Action template sets variable that's picked up by layout
   end
@@ -1020,6 +1026,13 @@ class RenderTest < Test::Unit::TestCase
     assert_equal 'text/javascript; charset=utf-8', @response.headers['type']
     assert_match /balance/, @response.body
     assert_match /\$37/, @response.body
+  end
+
+  def test_update_page_with_view_method
+    get :update_page_with_view_method
+    assert_template nil
+    assert_equal 'text/javascript; charset=utf-8', @response.headers['type']
+    assert_match /2 people/, @response.body
   end
 
   def test_yield_content_for
