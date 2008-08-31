@@ -108,11 +108,6 @@ class ClassExtTest < Test::Unit::TestCase
 end
 
 class ObjectTests < Test::Unit::TestCase
-  def test_send_bang_aliases_send_before_19
-    assert_respond_to 'a', :send!
-    assert_equal 1, 'a'.send!(:size)
-  end
-
   def test_suppress_re_raises
     assert_raises(LoadError) { suppress(ArgumentError) {raise LoadError} }
   end

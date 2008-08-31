@@ -83,13 +83,13 @@ module ActionController #:nodoc:
             controller_callback_method_name = "#{timing}_#{controller.controller_name.underscore}"
             action_callback_method_name     = "#{controller_callback_method_name}_#{controller.action_name}"
 
-            send!(controller_callback_method_name) if respond_to?(controller_callback_method_name, true)
-            send!(action_callback_method_name)     if respond_to?(action_callback_method_name, true)
+            __send__(controller_callback_method_name) if respond_to?(controller_callback_method_name, true)
+            __send__(action_callback_method_name)     if respond_to?(action_callback_method_name, true)
           end
 
           def method_missing(method, *arguments)
             return if @controller.nil?
-            @controller.send!(method, *arguments)
+            @controller.__send__(method, *arguments)
           end
       end
     end

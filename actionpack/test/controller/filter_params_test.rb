@@ -27,7 +27,7 @@ class FilterParamTest < Test::Unit::TestCase
 
     test_hashes.each do |before_filter, after_filter, filter_words|
       FilterParamController.filter_parameter_logging(*filter_words)
-      assert_equal after_filter, @controller.send!(:filter_parameters, before_filter)
+      assert_equal after_filter, @controller.__send__(:filter_parameters, before_filter)
 
       filter_words.push('blah')
       FilterParamController.filter_parameter_logging(*filter_words) do |key, value|
@@ -37,7 +37,7 @@ class FilterParamTest < Test::Unit::TestCase
       before_filter['barg'] = {'bargain'=>'gain', 'blah'=>'bar', 'bar'=>{'bargain'=>{'blah'=>'foo'}}}
       after_filter['barg'] = {'bargain'=>'niag', 'blah'=>'[FILTERED]', 'bar'=>{'bargain'=>{'blah'=>'[FILTERED]'}}}
 
-      assert_equal after_filter, @controller.send!(:filter_parameters, before_filter)
+      assert_equal after_filter, @controller.__send__(:filter_parameters, before_filter)
     end
   end
 

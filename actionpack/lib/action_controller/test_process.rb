@@ -357,7 +357,7 @@ module ActionController #:nodoc:
     alias local_path path
 
     def method_missing(method_name, *args, &block) #:nodoc:
-      @tempfile.send!(method_name, *args, &block)
+      @tempfile.__send__(method_name, *args, &block)
     end
   end
 
@@ -403,7 +403,7 @@ module ActionController #:nodoc:
     def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
       @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
       @request.env['HTTP_ACCEPT'] = 'text/javascript, text/html, application/xml, text/xml, */*'
-      returning send!(request_method, action, parameters, session, flash) do
+      returning __send__(request_method, action, parameters, session, flash) do
         @request.env.delete 'HTTP_X_REQUESTED_WITH'
         @request.env.delete 'HTTP_ACCEPT'
       end
@@ -436,7 +436,7 @@ module ActionController #:nodoc:
 
     def build_request_uri(action, parameters)
       unless @request.env['REQUEST_URI']
-        options = @controller.send!(:rewrite_options, parameters)
+        options = @controller.__send__(:rewrite_options, parameters)
         options.update(:only_path => true, :action => action)
 
         url = ActionController::UrlRewriter.new(@request, parameters)

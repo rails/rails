@@ -364,7 +364,7 @@ class FilterTest < Test::Unit::TestCase
       begin
         yield
       rescue ErrorToRescue => ex
-        controller.send! :render, :text => "I rescued this: #{ex.inspect}"
+        controller.__send__ :render, :text => "I rescued this: #{ex.inspect}"
       end
     end
   end

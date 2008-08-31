@@ -90,7 +90,7 @@ module ActionController #:nodoc:
             set_content_type!(controller, cache_path.extension)
             options = { :text => cache }
             options.merge!(:layout => true) if cache_layout?
-            controller.send!(:render, options)
+            controller.__send__(:render, options)
             false
           else
             controller.action_cache_path = cache_path

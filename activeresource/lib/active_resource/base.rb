@@ -1012,7 +1012,7 @@ module ActiveResource
       end
 
       def split_options(options = {})
-        self.class.send!(:split_options, options)
+        self.class.__send__(:split_options, options)
       end
 
       def method_missing(method_symbol, *arguments) #:nodoc:
