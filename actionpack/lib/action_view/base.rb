@@ -162,7 +162,6 @@ module ActionView #:nodoc:
 
     attr_accessor :base_path, :assigns, :template_extension
     attr_accessor :controller
-    attr_accessor :_first_render, :_last_render
 
     attr_writer :template_format
 
@@ -247,7 +246,7 @@ module ActionView #:nodoc:
       elsif options.is_a?(Hash)
         options = options.reverse_merge(:locals => {})
         if options[:layout]
-          render_with_layout(options, local_assigns, &block)
+          _render_with_layout(options, local_assigns, &block)
         elsif options[:file]
           if options[:use_full_path]
             ActiveSupport::Deprecation.warn("use_full_path option has been deprecated and has no affect.", caller)
@@ -329,8 +328,10 @@ module ActionView #:nodoc:
     memoize :pick_template
 
     private
+      attr_accessor :_first_render, :_last_render
+
       # Evaluate the local assigns and pushes them to the view.
-      def evaluate_assigns_and_ivars
+      def _evaluate_assigns_and_ivars #:nodoc:
         unless @assigns_added
           @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
 
@@ -344,13 +345,13 @@ module ActionView #:nodoc:
         end
       end
 
-      def set_controller_content_type(content_type)
+      def _set_controller_content_type(content_type) #:nodoc:
         if controller.respond_to?(:response)
           controller.response.content_type ||= content_type
         end
       end
 
-      def render_with_layout(options, local_assigns, &block)
+      def _render_with_layout(options, local_assigns, &block) #:nodoc:
         partial_layout = options.delete(:layout)
 
         if block_given?

@@ -917,7 +917,7 @@ module ActionController #:nodoc:
             end
 
           elsif options[:update]
-            @template.send! :evaluate_assigns_and_ivars
+            @template.send(:_evaluate_assigns_and_ivars)
 
             generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(@template, &block)
             response.content_type = Mime::JS
