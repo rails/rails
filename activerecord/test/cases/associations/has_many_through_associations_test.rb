@@ -202,7 +202,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_get_ids
-    assert_equal [posts(:welcome).id, posts(:authorless).id], people(:michael).post_ids
+    assert_equal [posts(:welcome).id, posts(:authorless).id].sort, people(:michael).post_ids.sort
   end
 
   def test_get_ids_for_loaded_associations
@@ -217,7 +217,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_get_ids_for_unloaded_associations_does_not_load_them
     person = people(:michael)
     assert !person.posts.loaded?
-    assert_equal [posts(:welcome).id, posts(:authorless).id], person.post_ids
+    assert_equal [posts(:welcome).id, posts(:authorless).id].sort, person.post_ids.sort
     assert !person.posts.loaded?
   end
 end
