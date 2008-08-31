@@ -932,6 +932,7 @@ module Test #:nodoc:
           end
           ActiveRecord::Base.connection.increment_open_transactions
           ActiveRecord::Base.connection.begin_db_transaction
+          ActiveRecord::Base.connection.transactional_fixtures = true
         # Load fixtures for every test.
         else
           Fixtures.reset_cache
@@ -954,6 +955,7 @@ module Test #:nodoc:
         if use_transactional_fixtures? && ActiveRecord::Base.connection.open_transactions != 0
           ActiveRecord::Base.connection.rollback_db_transaction
           ActiveRecord::Base.connection.decrement_open_transactions
+          ActiveRecord::Base.connection.transactional_fixtures = false
         end
         ActiveRecord::Base.clear_active_connections!
       end

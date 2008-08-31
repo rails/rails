@@ -567,6 +567,17 @@ module ActiveRecord
         end
       end
 
+      def create_savepoint
+        execute("SAVEPOINT #{current_savepoint_name}")
+      end
+
+      def rollback_to_savepoint
+        execute("ROLLBACK TO SAVEPOINT #{current_savepoint_name}")
+      end
+
+      def release_savepoint(savepoint_number)
+        execute("RELEASE SAVEPOINT #{current_savepoint_name}")
+      end
 
       # SCHEMA STATEMENTS ========================================
 

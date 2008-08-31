@@ -122,14 +122,10 @@ module ActiveRecord
     # One should restart the entire transaction if a StatementError occurred.
     module ClassMethods
       # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
-      def transaction(&block)
-        connection.increment_open_transactions
-
-        begin
-          connection.transaction(connection.open_transactions == 1, &block)
-        ensure
-          connection.decrement_open_transactions
-        end
+      def transaction(options = {}, &block)
+        options.assert_valid_keys :force
+        
+        connection.transaction(options[:force], &block)
       end
     end
 

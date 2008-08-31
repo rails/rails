@@ -55,12 +55,14 @@ module ActiveRecord
       end
 
       # Wrap a block in a transaction.  Returns result of block.
-      def transaction(start_db_transaction = true)
+      def transaction(start_db_transaction = false)
+        start_db_transaction ||= open_transactions.zero? || (open_transactions == 1 && transactional_fixtures)
         transaction_open = false
         begin
           if block_given?
             if start_db_transaction
-              begin_db_transaction
+              open_transactions.zero? ? begin_db_transaction : create_savepoint
+              increment_open_transactions
               transaction_open = true
             end
             yield
@@ -68,21 +70,23 @@ module ActiveRecord
         rescue Exception => database_transaction_rollback
           if transaction_open
             transaction_open = false
-            rollback_db_transaction
+            decrement_open_transactions
+            open_transactions.zero? ? rollback_db_transaction : rollback_to_savepoint
           end
           raise unless database_transaction_rollback.is_a? ActiveRecord::Rollback
         end
       ensure
         if transaction_open
+          decrement_open_transactions
           begin
-            commit_db_transaction
+            open_transactions.zero? ? commit_db_transaction : release_savepoint
           rescue Exception => database_transaction_rollback
-            rollback_db_transaction
+            open_transactions.zero? ? rollback_db_transaction : rollback_to_savepoint
             raise
           end
         end
       end
-
+      
       # Begins the transaction (and turns off auto-committing).
       def begin_db_transaction()    end
 

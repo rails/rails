@@ -159,6 +159,21 @@ module ActiveRecord
       def decrement_open_transactions
         @open_transactions -= 1
       end
+      
+      def create_savepoint
+      end
+      
+      def rollback_to_savepoint
+      end
+      
+      def release_savepoint
+      end
+      
+      def current_savepoint_name
+        "rails_savepoint_#{open_transactions}"
+      end
+      
+      attr_accessor :transactional_fixtures
 
       def log_info(sql, name, seconds)
         if @logger && @logger.debug?

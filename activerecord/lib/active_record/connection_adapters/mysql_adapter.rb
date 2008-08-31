@@ -343,6 +343,17 @@ module ActiveRecord
         # Transactions aren't supported
       end
 
+      def create_savepoint
+        execute("SAVEPOINT #{current_savepoint_name}")
+      end
+
+      def rollback_to_savepoint
+        execute("ROLLBACK TO SAVEPOINT #{current_savepoint_name}")
+      end
+
+      def release_savepoint
+        execute("RELEASE SAVEPOINT #{current_savepoint_name}")
+      end
 
       def add_limit_offset!(sql, options) #:nodoc:
         if limit = options[:limit]
