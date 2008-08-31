@@ -859,7 +859,7 @@ module ActionController #:nodoc:
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
         if options.nil?
-          return render_for_file(default_template_name)
+          return render(:file => default_template_name, :layout => true)
         elsif !extra_options.is_a?(Hash)
           raise RenderError, "You called render with invalid options : #{options.inspect}, #{extra_options.inspect}"
         else
@@ -870,6 +870,8 @@ module ActionController #:nodoc:
           end
         end
 
+        response.layout = layout = pick_layout(options)
+
         if content_type = options[:content_type]
           response.content_type = content_type.to_s
         end
@@ -879,20 +881,21 @@ module ActionController #:nodoc:
         end
 
         if options.has_key?(:text)
-          render_for_text(options[:text], options[:status])
+          text = layout ? @template.render(options.merge(:text => options[:text], :layout => layout)) : options[:text]
+          render_for_text(text, options[:status])
 
         else
           if file = options[:file]
-            render_for_file(file, options[:status], options[:locals] || {})
+            render_for_file(file, options[:status], layout, options[:locals] || {})
 
           elsif template = options[:template]
-            render_for_file(template, options[:status], options[:locals] || {})
+            render_for_file(template, options[:status], layout, options[:locals] || {})
 
           elsif inline = options[:inline]
-            render_for_text(@template.render(options), options[:status])
+            render_for_text(@template.render(options.merge(:layout => layout)), options[:status])
 
           elsif action_name = options[:action]
-            render_for_file(default_template_name(action_name.to_s), options[:status])
+            render_for_file(default_template_name(action_name.to_s), options[:status], layout)
 
           elsif xml = options[:xml]
             response.content_type ||= Mime::XML
@@ -906,7 +909,11 @@ module ActionController #:nodoc:
 
           elsif options[:partial]
             options[:partial] = default_template_name if options[:partial] == true
-            render_for_text(@template.render(options), options[:status])
+            if layout
+              render_for_text(@template.render(:text => @template.render(options), :layout => layout), options[:status])
+            else
+              render_for_text(@template.render(options), options[:status])
+            end
 
           elsif options[:update]
             @template.send! :evaluate_assigns_and_ivars
@@ -919,7 +926,7 @@ module ActionController #:nodoc:
             render_for_text(nil, options[:status])
 
           else
-            render_for_file(default_template_name, options[:status])
+            render_for_file(default_template_name, options[:status], layout)
           end
         end
       end
@@ -1114,9 +1121,9 @@ module ActionController #:nodoc:
 
 
     private
-      def render_for_file(template_path, status = nil, locals = {}) #:nodoc:
+      def render_for_file(template_path, status = nil, layout = nil, locals = {}) #:nodoc:
         logger.info("Rendering #{template_path}" + (status ? " (#{status})" : '')) if logger
-        render_for_text(@template.render(:file => template_path, :locals => locals), status)
+        render_for_text @template.render(:file => template_path, :locals => locals, :layout => layout), status
       end
 
       def render_for_text(text = nil, status = nil, append_response = false) #:nodoc:

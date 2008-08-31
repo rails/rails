@@ -246,23 +246,8 @@ module ActionView #:nodoc:
         update_page(&block)
       elsif options.is_a?(Hash)
         options = options.reverse_merge(:locals => {})
-
-        if partial_layout = options.delete(:layout)
-          if block_given?
-            begin
-              @_proc_for_layout = block
-              concat(render(options.merge(:partial => partial_layout)))
-            ensure
-              @_proc_for_layout = nil
-            end
-          else
-            begin
-              original_content_for_layout, @content_for_layout = @content_for_layout, render(options)
-              render(options.merge(:partial => partial_layout))
-            ensure
-              @content_for_layout = original_content_for_layout
-            end
-          end
+        if options[:layout]
+          render_with_layout(options, local_assigns, &block)
         elsif options[:file]
           if options[:use_full_path]
             ActiveSupport::Deprecation.warn("use_full_path option has been deprecated and has no affect.", caller)
@@ -273,6 +258,8 @@ module ActionView #:nodoc:
           render_partial(options)
         elsif options[:inline]
           InlineTemplate.new(options[:inline], options[:type]).render(self, options[:locals])
+        elsif options[:text]
+          options[:text]
         end
       end
     end
@@ -360,6 +347,30 @@ module ActionView #:nodoc:
       def set_controller_content_type(content_type)
         if controller.respond_to?(:response)
           controller.response.content_type ||= content_type
+        end
+      end
+
+      def render_with_layout(options, local_assigns, &block)
+        partial_layout = options.delete(:layout)
+        if block_given?
+          begin
+            @_proc_for_layout = block
+            concat(render(options.merge(:partial => partial_layout)))
+          ensure
+            @_proc_for_layout = nil
+          end
+        else
+          begin
+            original_content_for_layout, @content_for_layout = @content_for_layout, render(options)
+            if (options[:inline] || options[:file] || options[:text])
+              @cached_content_for_layout = @content_for_layout
+              render(:file => partial_layout, :locals => local_assigns)
+            else
+              render(options.merge(:partial => partial_layout))
+            end
+          ensure
+            @content_for_layout = original_content_for_layout
+          end
         end
       end
   end

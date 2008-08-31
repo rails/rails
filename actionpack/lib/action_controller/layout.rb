@@ -3,11 +3,6 @@ module ActionController #:nodoc:
     def self.included(base)
       base.extend(ClassMethods)
       base.class_eval do
-        # NOTE: Can't use alias_method_chain here because +render_without_layout+ is already
-        # defined as a publicly exposed method
-        alias_method :render_with_no_layout, :render
-        alias_method :render, :render_with_a_layout
-
         class << self
           alias_method_chain :inherited, :layout
         end
@@ -240,50 +235,24 @@ module ActionController #:nodoc:
       end
     end
 
-    protected
-      def render_with_a_layout(options = nil, extra_options = {}, &block) #:nodoc:
-        template_with_options = options.is_a?(Hash)
-
-        if (layout = pick_layout(template_with_options, options)) && apply_layout?(template_with_options, options)
-          options.delete(:layout) if template_with_options
-          logger.info("Rendering template within #{layout}") if logger
-
-          content_for_layout = render_with_no_layout(options, extra_options, &block)
-          erase_render_results
-          @template.instance_variable_set("@content_for_layout", content_for_layout)
-          response.layout = layout
-          status = template_with_options ? options[:status] : nil
-          render_for_text(@template.render(layout), status)
-        else
-          render_with_no_layout(options, extra_options, &block)
-        end
-      end
-
-
     private
-      def apply_layout?(template_with_options, options)
-        return false if options == :update
-        template_with_options ?  candidate_for_layout?(options) : !template_exempt_from_layout?
-      end
-
       def candidate_for_layout?(options)
-        (options.has_key?(:layout) && options[:layout] != false) ||
-          options.values_at(:text, :xml, :json, :file, :inline, :partial, :nothing).compact.empty? &&
+        options.values_at(:text, :xml, :json, :file, :inline, :partial, :nothing, :update).compact.empty? &&
           !template_exempt_from_layout?(options[:template] || default_template_name(options[:action]))
       end
 
-      def pick_layout(template_with_options, options)
-        if template_with_options
-          case layout = options[:layout]
-            when FalseClass
-              nil
-            when NilClass, TrueClass
-              active_layout if action_has_layout?
-            else
-              active_layout(layout)
+      def pick_layout(options)
+        if options.has_key?(:layout)
+          case layout = options.delete(:layout)
+          when FalseClass
+            nil
+          when NilClass, TrueClass
+            active_layout if action_has_layout? && !template_exempt_from_layout?(default_template_name)
+          else
+            active_layout(layout)
           end
         else
-          active_layout if action_has_layout?
+          active_layout if action_has_layout? && candidate_for_layout?(options)
         end
       end
 

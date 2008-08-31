@@ -121,7 +121,7 @@ module ActionController #:nodoc:
           end
 
           def content_for_layout(controller)
-            controller.response.layout && controller.response.template.instance_variable_get('@content_for_layout')
+            controller.response.layout && controller.response.template.instance_variable_get('@cached_content_for_layout')
           end
       end
 
