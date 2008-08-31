@@ -343,16 +343,18 @@ module ActionView #:nodoc:
 
     private
       # Evaluate the local assigns and pushes them to the view.
-      def evaluate_assigns
+      def evaluate_assigns_and_ivars
         unless @assigns_added
-          assign_variables_from_controller
+          @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+
+          if @controller
+            variables = @controller.instance_variables
+            variables -= @controller.protected_instance_variables if @controller.respond_to?(:protected_instance_variables)
+            variables.each {|name| instance_variable_set(name, @controller.instance_variable_get(name)) }
+          end
+
           @assigns_added = true
         end
-      end
-
-      # Assigns instance variables from the controller to the view.
-      def assign_variables_from_controller
-        @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
       end
 
       def set_controller_content_type(content_type)

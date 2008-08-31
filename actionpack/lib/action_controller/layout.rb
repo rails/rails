@@ -250,7 +250,6 @@ module ActionController #:nodoc:
 
           content_for_layout = render_with_no_layout(options, extra_options, &block)
           erase_render_results
-          add_variables_to_assigns
           @template.instance_variable_set("@content_for_layout", content_for_layout)
           response.layout = layout
           status = template_with_options ? options[:status] : nil

@@ -3,6 +3,8 @@ require 'action_controller/test_case'
 
 module ActionController #:nodoc:
   class Base
+    attr_reader :assigns
+
     # Process a test request called with a TestRequest object.
     def self.process_test(request)
       new.process_test(request)
@@ -14,7 +16,12 @@ module ActionController #:nodoc:
 
     def process_with_test(*args)
       returning process_without_test(*args) do
-        add_variables_to_assigns
+        @assigns = {}
+        (instance_variable_names - @@protected_instance_variables).each do |var|
+          value = instance_variable_get(var)
+          @assigns[var[1..-1]] = value
+          response.template.assigns[var[1..-1]] = value if response
+        end
       end
     end
 

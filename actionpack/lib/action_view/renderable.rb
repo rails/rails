@@ -29,7 +29,7 @@ module ActionView
       view._first_render ||= self
       view._last_render = self
 
-      view.send(:evaluate_assigns)
+      view.send(:evaluate_assigns_and_ivars)
       view.send(:set_controller_content_type, mime_type) if respond_to?(:mime_type)
 
       view.send(method_name(local_assigns), local_assigns) do |*names|
