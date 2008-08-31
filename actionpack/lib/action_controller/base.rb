@@ -1122,7 +1122,6 @@ module ActionController #:nodoc:
 
     private
       def render_for_file(template_path, status = nil, layout = nil, locals = {}) #:nodoc:
-        logger.info("Rendering #{template_path}" + (status ? " (#{status})" : '')) if logger
         render_for_text @template.render(:file => template_path, :locals => locals, :layout => layout), status
       end
 

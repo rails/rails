@@ -253,6 +253,7 @@ module ActionView #:nodoc:
             ActiveSupport::Deprecation.warn("use_full_path option has been deprecated and has no affect.", caller)
           end
 
+          logger.info("Rendering #{options[:file]}") if logger
           pick_template(options[:file]).render_template(self, options[:locals])
         elsif options[:partial]
           render_partial(options)
@@ -352,6 +353,8 @@ module ActionView #:nodoc:
 
       def render_with_layout(options, local_assigns, &block)
         partial_layout = options.delete(:layout)
+        logger.info("Rendering template within #{partial_layout}") if logger
+
         if block_given?
           begin
             @_proc_for_layout = block
