@@ -871,6 +871,7 @@ module ActionController #:nodoc:
         end
 
         response.layout = layout = pick_layout(options)
+        logger.info("Rendering template within #{layout}") if logger && layout
 
         if content_type = options[:content_type]
           response.content_type = content_type.to_s
@@ -1122,6 +1123,7 @@ module ActionController #:nodoc:
 
     private
       def render_for_file(template_path, status = nil, layout = nil, locals = {}) #:nodoc:
+        logger.info("Rendering #{template_path}" + (status ? " (#{status})" : '')) if logger
         render_for_text @template.render(:file => template_path, :locals => locals, :layout => layout), status
       end
 

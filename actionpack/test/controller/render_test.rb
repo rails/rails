@@ -8,6 +8,18 @@ module Fun
   end
 end
 
+class MockLogger
+  attr_reader :logged
+
+  def initialize
+    @logged = []
+  end
+
+  def method_missing(method, *args)
+    @logged << args.first
+  end
+end
+
 class TestController < ActionController::Base
   class LabellingFormBuilder < ActionView::Helpers::FormBuilder
   end
@@ -1383,5 +1395,23 @@ class LastModifiedRenderTest < Test::Unit::TestCase
     assert_equal "200 OK", @response.status
     assert !@response.body.blank?
     assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+end
+
+class RenderingLoggingTest < Test::Unit::TestCase
+  def setup
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    @controller = TestController.new
+
+    @request.host = "www.nextangle.com"
+  end
+
+  def test_logger_prints_layout_and_template_rendering_info
+    @controller.logger = MockLogger.new
+    get :layout_test
+    logged = @controller.logger.logged.find_all {|l| l =~ /render/i }
+    assert_equal "Rendering template within layouts/standard", logged[0]
+    assert_equal "Rendering test/hello_world", logged[1]
   end
 end
