@@ -216,7 +216,7 @@ module ActionController #:nodoc:
     # object). If the layout was defined without a directory, layouts is assumed. So <tt>layout "weblog/standard"</tt> will return
     # weblog/standard, but <tt>layout "standard"</tt> will return layouts/standard.
     def active_layout(passed_layout = nil)
-      layout = passed_layout || self.class.default_layout(response.template.template_format)
+      layout = passed_layout || self.class.default_layout(default_template_format)
       active_layout = case layout
         when String then layout
         when Symbol then send!(layout)
@@ -275,6 +275,10 @@ module ActionController #:nodoc:
         @template.send(:_pick_template, "#{File.join('layouts', layout_name)}.#{@template.template_format}") ? true : false
       rescue ActionView::MissingTemplate
         false
+      end
+
+      def default_template_format
+        response.template.template_format
       end
   end
 end
