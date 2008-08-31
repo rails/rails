@@ -184,6 +184,17 @@ module ActionView #:nodoc:
         "deprecated and has no effect. Please remove it from your config files.", caller)
     end
 
+    # Templates that are exempt from layouts
+    @@exempt_from_layout = Set.new([/\.rjs$/])
+
+    # Don't render layouts for templates with the given extensions.
+    def self.exempt_from_layout(*extensions)
+      regexps = extensions.collect do |extension|
+        extension.is_a?(Regexp) ? extension : /\.#{Regexp.escape(extension.to_s)}$/
+      end
+      @@exempt_from_layout.merge(regexps)
+    end
+
     # Specify whether RJS responses should be wrapped in a try/catch block
     # that alert()s the caught exception (and then re-raises it).
     @@debug_rjs = false
@@ -252,7 +263,7 @@ module ActionView #:nodoc:
             ActiveSupport::Deprecation.warn("use_full_path option has been deprecated and has no affect.", caller)
           end
 
-          pick_template(options[:file]).render_template(self, options[:locals])
+          _pick_template(options[:file]).render_template(self, options[:locals])
         elsif options[:partial]
           render_partial(options)
         elsif options[:inline]
@@ -276,57 +287,6 @@ module ActionView #:nodoc:
       end
     end
 
-    def file_exists?(template_path)
-      pick_template(template_path) ? true : false
-    rescue MissingTemplate
-      false
-    end
-
-    # Gets the extension for an existing template with the given template_path.
-    # Returns the format with the extension if that template exists.
-    #
-    #   pick_template('users/show')
-    #   # => 'users/show.html.erb'
-    #
-    #   pick_template('users/legacy')
-    #   # => 'users/legacy.rhtml'
-    #
-    def pick_template(template_path)
-      return template_path if template_path.respond_to?(:render)
-
-      path = template_path.sub(/^\//, '')
-      if m = path.match(/(.*)\.(\w+)$/)
-        template_file_name, template_file_extension = m[1], m[2]
-      else
-        template_file_name = path
-      end
-
-      # OPTIMIZE: Checks to lookup template in view path
-      if template = self.view_paths["#{template_file_name}.#{template_format}"]
-        template
-      elsif template = self.view_paths[template_file_name]
-        template
-      elsif _first_render && template = self.view_paths["#{template_file_name}.#{_first_render.format_and_extension}"]
-        template
-      elsif template_format == :js && template = self.view_paths["#{template_file_name}.html"]
-        @template_format = :html
-        template
-      else
-        template = Template.new(template_path, view_paths)
-
-        if self.class.warn_cache_misses && logger
-          logger.debug "[PERFORMANCE] Rendering a template that was " +
-            "not found in view path. Templates outside the view path are " +
-            "not cached and result in expensive disk operations. Move this " +
-            "file into #{view_paths.join(':')} or add the folder to your " +
-            "view path list"
-        end
-
-        template
-      end
-    end
-    memoize :pick_template
-
     private
       attr_accessor :_first_render, :_last_render
 
@@ -349,6 +309,49 @@ module ActionView #:nodoc:
         if controller.respond_to?(:response)
           controller.response.content_type ||= content_type
         end
+      end
+
+      def _pick_template(template_path)
+        return template_path if template_path.respond_to?(:render)
+
+        path = template_path.sub(/^\//, '')
+        if m = path.match(/(.*)\.(\w+)$/)
+          template_file_name, template_file_extension = m[1], m[2]
+        else
+          template_file_name = path
+        end
+
+        # OPTIMIZE: Checks to lookup template in view path
+        if template = self.view_paths["#{template_file_name}.#{template_format}"]
+          template
+        elsif template = self.view_paths[template_file_name]
+          template
+        elsif _first_render && template = self.view_paths["#{template_file_name}.#{_first_render.format_and_extension}"]
+          template
+        elsif template_format == :js && template = self.view_paths["#{template_file_name}.html"]
+          @template_format = :html
+          template
+        else
+          template = Template.new(template_path, view_paths)
+
+          if self.class.warn_cache_misses && logger
+            logger.debug "[PERFORMANCE] Rendering a template that was " +
+              "not found in view path. Templates outside the view path are " +
+              "not cached and result in expensive disk operations. Move this " +
+              "file into #{view_paths.join(':')} or add the folder to your " +
+              "view path list"
+          end
+
+          template
+        end
+      end
+      memoize :_pick_template
+
+      def _exempt_from_layout?(template_path) #:nodoc:
+        template = _pick_template(template_path).to_s
+        @@exempt_from_layout.any? { |ext| template =~ ext }
+      rescue ActionView::MissingTemplate
+        return false
       end
 
       def _render_with_layout(options, local_assigns, &block) #:nodoc:

@@ -397,9 +397,6 @@ module ActionController #:nodoc:
     # Returns the name of the action this controller is processing.
     attr_accessor :action_name
 
-    # Templates that are exempt from layouts
-    @@exempt_from_layout = Set.new([/\.rjs$/])
-
     class << self
       # Factory for the standard create, process loop where the controller is discarded after processing.
       def process(request, response) #:nodoc:
@@ -517,13 +514,7 @@ module ActionController #:nodoc:
         protected :filter_parameters
       end
 
-      # Don't render layouts for templates with the given extensions.
-      def exempt_from_layout(*extensions)
-        regexps = extensions.collect do |extension|
-          extension.is_a?(Regexp) ? extension : /\.#{Regexp.escape(extension.to_s)}$/
-        end
-        @@exempt_from_layout.merge regexps
-      end
+      delegate :exempt_from_layout, :to => 'ActionView::Base'
     end
 
     public
@@ -1241,12 +1232,7 @@ module ActionController #:nodoc:
       end
 
       def template_exists?(template_name = default_template_name)
-        @template.file_exists?(template_name)
-      end
-
-      def template_exempt_from_layout?(template_name = default_template_name)
-        template_name = @template.pick_template(template_name).to_s if @template
-        @@exempt_from_layout.any? { |ext| template_name =~ ext }
+        @template.send(:_pick_template, template_name) ? true : false
       rescue ActionView::MissingTemplate
         false
       end

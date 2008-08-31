@@ -238,7 +238,7 @@ module ActionController #:nodoc:
     private
       def candidate_for_layout?(options)
         options.values_at(:text, :xml, :json, :file, :inline, :partial, :nothing, :update).compact.empty? &&
-          !template_exempt_from_layout?(options[:template] || default_template_name(options[:action]))
+          !@template.send(:_exempt_from_layout?, options[:template] || default_template_name(options[:action]))
       end
 
       def pick_layout(options)
@@ -247,7 +247,7 @@ module ActionController #:nodoc:
           when FalseClass
             nil
           when NilClass, TrueClass
-            active_layout if action_has_layout? && !template_exempt_from_layout?(default_template_name)
+            active_layout if action_has_layout? && !@template.send(:_exempt_from_layout?, default_template_name)
           else
             active_layout(layout)
           end
@@ -272,7 +272,9 @@ module ActionController #:nodoc:
       end
 
       def layout_directory?(layout_name)
-        @template.file_exists?("#{File.join('layouts', layout_name)}.#{@template.template_format}")
+        @template.send(:_pick_template, "#{File.join('layouts', layout_name)}.#{@template.template_format}") ? true : false
+      rescue ActionView::MissingTemplate
+        false
       end
   end
 end
