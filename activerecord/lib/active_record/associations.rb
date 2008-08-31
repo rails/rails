@@ -1307,7 +1307,7 @@ module ActiveRecord
             if send(reflection.name).loaded?
               send(reflection.name).map(&:id)
             else
-              send(reflection.name).all(:select => "#{reflection.quoted_table_name}.id").map(&:id)
+              send(reflection.name).all(:select => "#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").map(&:id)
             end
           end
         end
