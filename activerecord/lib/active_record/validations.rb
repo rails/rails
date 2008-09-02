@@ -87,6 +87,8 @@ module ActiveRecord
     # </ol>
     def generate_message(attribute, message = :invalid, options = {})
 
+      message, options[:default] = options[:default], message if options[:default].is_a?(Symbol)
+
       defaults = @base.class.self_and_descendents_from_active_record.map do |klass| 
         [ :"models.#{klass.name.underscore}.attributes.#{attribute}.#{message}", 
           :"models.#{klass.name.underscore}.#{message}" ]
@@ -95,7 +97,6 @@ module ActiveRecord
       defaults << options.delete(:default)
       defaults = defaults.compact.flatten << :"messages.#{message}"
 
-      model_name = @base.class.name
       key = defaults.shift
       value = @base.respond_to?(attribute) ? @base.send(attribute) : nil
 

@@ -111,15 +111,15 @@ class FilterTest < Test::Unit::TestCase
   end
 
   class OnlyConditionProcController < ConditionalFilterController
-    before_filter(:only => :show) {|c| c.assigns["ran_proc_filter"] = true }
+    before_filter(:only => :show) {|c| c.instance_variable_set(:"@ran_proc_filter", true) }
   end
 
   class ExceptConditionProcController < ConditionalFilterController
-    before_filter(:except => :show_without_filter) {|c| c.assigns["ran_proc_filter"] = true }
+    before_filter(:except => :show_without_filter) {|c| c.instance_variable_set(:"@ran_proc_filter", true) }
   end
 
   class ConditionalClassFilter
-    def self.filter(controller) controller.assigns["ran_class_filter"] = true end
+    def self.filter(controller) controller.instance_variable_set(:"@ran_class_filter", true) end
   end
 
   class OnlyConditionClassController < ConditionalFilterController
@@ -131,7 +131,7 @@ class FilterTest < Test::Unit::TestCase
   end
 
   class AnomolousYetValidConditionController < ConditionalFilterController
-    before_filter(ConditionalClassFilter, :ensure_login, Proc.new {|c| c.assigns["ran_proc_filter1"] = true }, :except => :show_without_filter) { |c| c.assigns["ran_proc_filter2"] = true}
+    before_filter(ConditionalClassFilter, :ensure_login, Proc.new {|c| c.instance_variable_set(:"@ran_proc_filter1", true)}, :except => :show_without_filter) { |c| c.instance_variable_set(:"@ran_proc_filter2", true)}
   end
 
   class ConditionalOptionsFilter < ConditionalFilterController
@@ -225,16 +225,16 @@ class FilterTest < Test::Unit::TestCase
   end
 
   class ProcController < PrependingController
-    before_filter(proc { |c| c.assigns["ran_proc_filter"] = true })
+    before_filter(proc { |c| c.instance_variable_set(:"@ran_proc_filter", true) })
   end
 
   class ImplicitProcController < PrependingController
-    before_filter { |c| c.assigns["ran_proc_filter"] = true }
+    before_filter { |c| c.instance_variable_set(:"@ran_proc_filter", true) }
   end
 
   class AuditFilter
     def self.filter(controller)
-      controller.assigns["was_audited"] = true
+      controller.instance_variable_set(:"@was_audited", true)
     end
   end
 
@@ -242,12 +242,12 @@ class FilterTest < Test::Unit::TestCase
     def before(controller)
       @execution_log = "before"
       controller.class.execution_log << " before aroundfilter " if controller.respond_to? :execution_log
-      controller.assigns["before_ran"] = true
+      controller.instance_variable_set(:"@before_ran", true)
     end
 
     def after(controller)
-      controller.assigns["execution_log"] = @execution_log + " and after"
-      controller.assigns["after_ran"] = true
+      controller.instance_variable_set(:"@execution_log", @execution_log + " and after")
+      controller.instance_variable_set(:"@after_ran", true)
       controller.class.execution_log << " after aroundfilter " if controller.respond_to? :execution_log
     end
   end
@@ -364,7 +364,7 @@ class FilterTest < Test::Unit::TestCase
       begin
         yield
       rescue ErrorToRescue => ex
-        controller.send! :render, :text => "I rescued this: #{ex.inspect}"
+        controller.__send__ :render, :text => "I rescued this: #{ex.inspect}"
       end
     end
   end
@@ -726,9 +726,9 @@ end
 
 class ControllerWithProcFilter < PostsController
   around_filter(:only => :no_raise) do |c,b|
-    c.assigns['before'] = true
+    c.instance_variable_set(:"@before", true)
     b.call
-    c.assigns['after'] = true
+    c.instance_variable_set(:"@after", true)
   end
 end
 

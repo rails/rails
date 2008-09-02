@@ -8,6 +8,18 @@ module Fun
   end
 end
 
+class MockLogger
+  attr_reader :logged
+
+  def initialize
+    @logged = []
+  end
+
+  def method_missing(method, *args)
+    @logged << args.first
+  end
+end
+
 class TestController < ActionController::Base
   class LabellingFormBuilder < ActionView::Helpers::FormBuilder
   end
@@ -368,6 +380,12 @@ class TestController < ActionController::Base
     render :update do |page|
       page.replace_html @div_id, @money
       page.visual_effect :highlight, @div_id
+    end
+  end
+
+  def update_page_with_view_method
+    render :update do |page|
+      page.replace_html 'person', pluralize(2, 'person')
     end
   end
 
@@ -1022,6 +1040,13 @@ class RenderTest < Test::Unit::TestCase
     assert_match /\$37/, @response.body
   end
 
+  def test_update_page_with_view_method
+    get :update_page_with_view_method
+    assert_template nil
+    assert_equal 'text/javascript; charset=utf-8', @response.headers['type']
+    assert_match /2 people/, @response.body
+  end
+
   def test_yield_content_for
     assert_not_deprecated { get :yield_content_for }
     assert_equal "<title>Putting stuff in the title!</title>\n\nGreat stuff!\n", @response.body
@@ -1370,5 +1395,23 @@ class LastModifiedRenderTest < Test::Unit::TestCase
     assert_equal "200 OK", @response.status
     assert !@response.body.blank?
     assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+end
+
+class RenderingLoggingTest < Test::Unit::TestCase
+  def setup
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    @controller = TestController.new
+
+    @request.host = "www.nextangle.com"
+  end
+
+  def test_logger_prints_layout_and_template_rendering_info
+    @controller.logger = MockLogger.new
+    get :layout_test
+    logged = @controller.logger.logged.find_all {|l| l =~ /render/i }
+    assert_equal "Rendering template within layouts/standard", logged[0]
+    assert_equal "Rendering test/hello_world", logged[1]
   end
 end

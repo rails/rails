@@ -199,8 +199,8 @@ module ActionController #:nodoc:
           Proc.new do |controller, action|
             method.before(controller)
 
-            if controller.send!(:performed?)
-              controller.send!(:halt_filter_chain, method, :rendered_or_redirected)
+            if controller.__send__(:performed?)
+              controller.__send__(:halt_filter_chain, method, :rendered_or_redirected)
             else
               begin
                 action.call
@@ -223,8 +223,8 @@ module ActionController #:nodoc:
 
       def call(controller, &block)
         super
-        if controller.send!(:performed?)
-          controller.send!(:halt_filter_chain, method, :rendered_or_redirected)
+        if controller.__send__(:performed?)
+          controller.__send__(:halt_filter_chain, method, :rendered_or_redirected)
         end
       end
     end

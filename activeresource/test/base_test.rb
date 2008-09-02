@@ -468,7 +468,7 @@ class BaseTest < Test::Unit::TestCase
 
   def test_prefix
     assert_equal "/", Person.prefix
-    assert_equal Set.new, Person.send!(:prefix_parameters)
+    assert_equal Set.new, Person.__send__(:prefix_parameters)
   end
 
   def test_set_prefix
@@ -504,7 +504,7 @@ class BaseTest < Test::Unit::TestCase
   def test_custom_prefix
     assert_equal '/people//', StreetAddress.prefix
     assert_equal '/people/1/', StreetAddress.prefix(:person_id => 1)
-    assert_equal [:person_id].to_set, StreetAddress.send!(:prefix_parameters)
+    assert_equal [:person_id].to_set, StreetAddress.__send__(:prefix_parameters)
   end
 
   def test_find_by_id
@@ -607,10 +607,10 @@ class BaseTest < Test::Unit::TestCase
   def test_id_from_response
     p = Person.new
     resp = {'Location' => '/foo/bar/1'}
-    assert_equal '1', p.send!(:id_from_response, resp)
+    assert_equal '1', p.__send__(:id_from_response, resp)
 
     resp['Location'] << '.xml'
-    assert_equal '1', p.send!(:id_from_response, resp)
+    assert_equal '1', p.__send__(:id_from_response, resp)
   end
 
   def test_create_with_custom_prefix
@@ -825,7 +825,7 @@ class BaseTest < Test::Unit::TestCase
 
   def test_to_xml
     matz = Person.find(1)
-    xml = matz.to_xml
+    xml = matz.encode
     assert xml.starts_with?('<?xml version="1.0" encoding="UTF-8"?>')
     assert xml.include?('<name>Matz</name>')
     assert xml.include?('<id type="integer">1</id>')

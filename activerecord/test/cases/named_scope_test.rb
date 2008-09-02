@@ -256,4 +256,19 @@ class NamedScopeTest < ActiveRecord::TestCase
   def test_should_use_where_in_query_for_named_scope
     assert_equal Developer.find_all_by_name('Jamis'), Developer.find_all_by_id(Developer.jamises)
   end
+
+  def test_size_should_use_count_when_results_are_not_loaded
+    topics = Topic.base
+    assert_queries(1) do
+      assert_sql(/COUNT/i) { topics.size }
+    end
+  end
+
+  def test_size_should_use_length_when_results_are_loaded
+    topics = Topic.base
+    topics.reload # force load
+    assert_no_queries do
+      topics.size # use loaded (no query)
+    end
+  end
 end

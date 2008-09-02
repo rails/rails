@@ -162,7 +162,6 @@ module ActionView #:nodoc:
 
     attr_accessor :base_path, :assigns, :template_extension
     attr_accessor :controller
-    attr_accessor :_first_render, :_last_render
 
     attr_writer :template_format
 
@@ -183,6 +182,17 @@ module ActionView #:nodoc:
       ActiveSupport::Deprecation.warn(
         "config.action_view.cache_template_extensions option has been" +
         "deprecated and has no effect. Please remove it from your config files.", caller)
+    end
+
+    # Templates that are exempt from layouts
+    @@exempt_from_layout = Set.new([/\.rjs$/])
+
+    # Don't render layouts for templates with the given extensions.
+    def self.exempt_from_layout(*extensions)
+      regexps = extensions.collect do |extension|
+        extension.is_a?(Regexp) ? extension : /\.#{Regexp.escape(extension.to_s)}$/
+      end
+      @@exempt_from_layout.merge(regexps)
     end
 
     # Specify whether RJS responses should be wrapped in a try/catch block
@@ -246,33 +256,20 @@ module ActionView #:nodoc:
         update_page(&block)
       elsif options.is_a?(Hash)
         options = options.reverse_merge(:locals => {})
-
-        if partial_layout = options.delete(:layout)
-          if block_given?
-            begin
-              @_proc_for_layout = block
-              concat(render(options.merge(:partial => partial_layout)))
-            ensure
-              @_proc_for_layout = nil
-            end
-          else
-            begin
-              original_content_for_layout, @content_for_layout = @content_for_layout, render(options)
-              render(options.merge(:partial => partial_layout))
-            ensure
-              @content_for_layout = original_content_for_layout
-            end
-          end
+        if options[:layout]
+          _render_with_layout(options, local_assigns, &block)
         elsif options[:file]
           if options[:use_full_path]
             ActiveSupport::Deprecation.warn("use_full_path option has been deprecated and has no affect.", caller)
           end
 
-          pick_template(options[:file]).render_template(self, options[:locals])
+          _pick_template(options[:file]).render_template(self, options[:locals])
         elsif options[:partial]
           render_partial(options)
         elsif options[:inline]
           InlineTemplate.new(options[:inline], options[:type]).render(self, options[:locals])
+        elsif options[:text]
+          options[:text]
         end
       end
     end
@@ -290,74 +287,95 @@ module ActionView #:nodoc:
       end
     end
 
-    def file_exists?(template_path)
-      pick_template(template_path) ? true : false
-    rescue MissingTemplate
-      false
-    end
-
-    # Gets the extension for an existing template with the given template_path.
-    # Returns the format with the extension if that template exists.
-    #
-    #   pick_template('users/show')
-    #   # => 'users/show.html.erb'
-    #
-    #   pick_template('users/legacy')
-    #   # => 'users/legacy.rhtml'
-    #
-    def pick_template(template_path)
-      return template_path if template_path.respond_to?(:render)
-
-      path = template_path.sub(/^\//, '')
-      if m = path.match(/(.*)\.(\w+)$/)
-        template_file_name, template_file_extension = m[1], m[2]
-      else
-        template_file_name = path
-      end
-
-      # OPTIMIZE: Checks to lookup template in view path
-      if template = self.view_paths["#{template_file_name}.#{template_format}"]
-        template
-      elsif template = self.view_paths[template_file_name]
-        template
-      elsif _first_render && template = self.view_paths["#{template_file_name}.#{_first_render.format_and_extension}"]
-        template
-      elsif template_format == :js && template = self.view_paths["#{template_file_name}.html"]
-        @template_format = :html
-        template
-      else
-        template = Template.new(template_path, view_paths)
-
-        if self.class.warn_cache_misses && logger
-          logger.debug "[PERFORMANCE] Rendering a template that was " +
-            "not found in view path. Templates outside the view path are " +
-            "not cached and result in expensive disk operations. Move this " +
-            "file into #{view_paths.join(':')} or add the folder to your " +
-            "view path list"
-        end
-
-        template
-      end
-    end
-    memoize :pick_template
-
     private
+      attr_accessor :_first_render, :_last_render
+
       # Evaluate the local assigns and pushes them to the view.
-      def evaluate_assigns
+      def _evaluate_assigns_and_ivars #:nodoc:
         unless @assigns_added
-          assign_variables_from_controller
+          @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+
+          if @controller
+            variables = @controller.instance_variables
+            variables -= @controller.protected_instance_variables if @controller.respond_to?(:protected_instance_variables)
+            variables.each {|name| instance_variable_set(name, @controller.instance_variable_get(name)) }
+          end
+
           @assigns_added = true
         end
       end
 
-      # Assigns instance variables from the controller to the view.
-      def assign_variables_from_controller
-        @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
-      end
-
-      def set_controller_content_type(content_type)
+      def _set_controller_content_type(content_type) #:nodoc:
         if controller.respond_to?(:response)
           controller.response.content_type ||= content_type
+        end
+      end
+
+      def _pick_template(template_path)
+        return template_path if template_path.respond_to?(:render)
+
+        path = template_path.sub(/^\//, '')
+        if m = path.match(/(.*)\.(\w+)$/)
+          template_file_name, template_file_extension = m[1], m[2]
+        else
+          template_file_name = path
+        end
+
+        # OPTIMIZE: Checks to lookup template in view path
+        if template = self.view_paths["#{template_file_name}.#{template_format}"]
+          template
+        elsif template = self.view_paths[template_file_name]
+          template
+        elsif _first_render && template = self.view_paths["#{template_file_name}.#{_first_render.format_and_extension}"]
+          template
+        elsif template_format == :js && template = self.view_paths["#{template_file_name}.html"]
+          @template_format = :html
+          template
+        else
+          template = Template.new(template_path, view_paths)
+
+          if self.class.warn_cache_misses && logger
+            logger.debug "[PERFORMANCE] Rendering a template that was " +
+              "not found in view path. Templates outside the view path are " +
+              "not cached and result in expensive disk operations. Move this " +
+              "file into #{view_paths.join(':')} or add the folder to your " +
+              "view path list"
+          end
+
+          template
+        end
+      end
+      memoize :_pick_template
+
+      def _exempt_from_layout?(template_path) #:nodoc:
+        template = _pick_template(template_path).to_s
+        @@exempt_from_layout.any? { |ext| template =~ ext }
+      rescue ActionView::MissingTemplate
+        return false
+      end
+
+      def _render_with_layout(options, local_assigns, &block) #:nodoc:
+        partial_layout = options.delete(:layout)
+
+        if block_given?
+          begin
+            @_proc_for_layout = block
+            concat(render(options.merge(:partial => partial_layout)))
+          ensure
+            @_proc_for_layout = nil
+          end
+        else
+          begin
+            original_content_for_layout, @content_for_layout = @content_for_layout, render(options)
+            if (options[:inline] || options[:file] || options[:text])
+              @cached_content_for_layout = @content_for_layout
+              render(:file => partial_layout, :locals => local_assigns)
+            else
+              render(options.merge(:partial => partial_layout))
+            end
+          ensure
+            @content_for_layout = original_content_for_layout
+          end
         end
       end
   end

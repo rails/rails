@@ -968,3 +968,55 @@ class MethodNamingTest < Test::Unit::TestCase
     end
   end
 end
+
+class RespondToTest < Test::Unit::TestCase
+  class RespondToMailer < ActionMailer::Base; end
+
+  def setup
+    set_delivery_method :test
+  end
+
+  def teardown
+    restore_delivery_method
+  end
+
+  def test_should_respond_to_new
+    assert RespondToMailer.respond_to?(:new)
+  end
+
+  def test_should_respond_to_create_with_template_suffix
+    assert RespondToMailer.respond_to?(:create_any_old_template)
+  end
+
+  def test_should_respond_to_deliver_with_template_suffix
+    assert RespondToMailer.respond_to?(:deliver_any_old_template)
+  end
+
+  def test_should_not_respond_to_new_with_template_suffix
+    assert !RespondToMailer.respond_to?(:new_any_old_template)
+  end
+
+  def test_should_not_respond_to_create_with_template_suffix_unless_it_is_separated_by_an_underscore
+    assert !RespondToMailer.respond_to?(:createany_old_template)
+  end
+
+  def test_should_not_respond_to_deliver_with_template_suffix_unless_it_is_separated_by_an_underscore
+    assert !RespondToMailer.respond_to?(:deliverany_old_template)
+  end
+
+  def test_should_not_respond_to_create_with_template_suffix_if_it_begins_with_a_uppercase_letter
+    assert !RespondToMailer.respond_to?(:create_Any_old_template)
+  end
+
+  def test_should_not_respond_to_deliver_with_template_suffix_if_it_begins_with_a_uppercase_letter
+    assert !RespondToMailer.respond_to?(:deliver_Any_old_template)
+  end
+
+  def test_should_not_respond_to_create_with_template_suffix_if_it_begins_with_a_digit
+    assert !RespondToMailer.respond_to?(:create_1_template)
+  end
+
+  def test_should_not_respond_to_deliver_with_template_suffix_if_it_begins_with_a_digit
+    assert !RespondToMailer.respond_to?(:deliver_1_template)
+  end
+end

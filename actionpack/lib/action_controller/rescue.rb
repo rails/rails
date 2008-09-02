@@ -177,11 +177,8 @@ module ActionController #:nodoc:
       # Render detailed diagnostics for unhandled exceptions rescued from
       # a controller action.
       def rescue_action_locally(exception)
-        add_variables_to_assigns
         @template.instance_variable_set("@exception", exception)
         @template.instance_variable_set("@rescues_path", File.dirname(rescues_path("stub")))
-        @template.send!(:assign_variables_from_controller)
-
         @template.instance_variable_set("@contents", @template.render(:file => template_path_for_local_rescue(exception)))
 
         response.content_type = Mime::HTML

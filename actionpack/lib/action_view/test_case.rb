@@ -54,7 +54,7 @@ module ActionView
     private
       def method_missing(selector, *args)
         controller = TestController.new
-        return controller.send!(selector, *args) if ActionController::Routing::Routes.named_routes.helpers.include?(selector)
+        return controller.__send__(selector, *args) if ActionController::Routing::Routes.named_routes.helpers.include?(selector)
         super
       end
   end

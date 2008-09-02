@@ -243,7 +243,7 @@ class IntegrationTestUsesCorrectClass < ActionController::IntegrationTest
     reset!
     stub_integration_session(@integration_session)
     %w( get post head put delete ).each do |verb|
-      assert_nothing_raised("'#{verb}' should use integration test methods") { send!(verb, '/') }
+      assert_nothing_raised("'#{verb}' should use integration test methods") { __send__(verb, '/') }
     end
   end
 end

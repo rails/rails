@@ -444,7 +444,7 @@ EOF
           reset! unless @integration_session
           # reset the html_document variable, but only for new get/post calls
           @html_document = nil unless %w(cookies assigns).include?(method)
-          returning @integration_session.send!(method, *args) do
+          returning @integration_session.__send__(method, *args) do
             copy_session_variables!
           end
         end
@@ -469,12 +469,12 @@ EOF
           self.class.fixture_table_names.each do |table_name|
             name = table_name.tr(".", "_")
             next unless respond_to?(name)
-            extras.send!(:define_method, name) { |*args| delegate.send(name, *args) }
+            extras.__send__(:define_method, name) { |*args| delegate.send(name, *args) }
           end
         end
 
         # delegate add_assertion to the test case
-        extras.send!(:define_method, :add_assertion) { test_result.add_assertion }
+        extras.__send__(:define_method, :add_assertion) { test_result.add_assertion }
         session.extend(extras)
         session.delegate = self
         session.test_result = @_result
@@ -488,7 +488,7 @@ EOF
       def copy_session_variables! #:nodoc:
         return unless @integration_session
         %w(controller response request).each do |var|
-          instance_variable_set("@#{var}", @integration_session.send!(var))
+          instance_variable_set("@#{var}", @integration_session.__send__(var))
         end
       end
 
