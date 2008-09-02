@@ -298,7 +298,7 @@ module ActionView
             ""
           else
             textilized = RedCloth.new(text, [ :hard_breaks ])
-            textilized.hard_breaks = true if textilized.respond_to?("hard_breaks=")
+            textilized.hard_breaks = true if textilized.respond_to?(:hard_breaks=)
             textilized.to_html
           end
         end
