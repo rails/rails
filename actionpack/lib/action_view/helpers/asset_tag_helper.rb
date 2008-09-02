@@ -104,7 +104,7 @@ module ActionView
       ASSETS_DIR      = defined?(Rails.public_path) ? Rails.public_path : "public"
       JAVASCRIPTS_DIR = "#{ASSETS_DIR}/javascripts"
       STYLESHEETS_DIR = "#{ASSETS_DIR}/stylesheets"
-      JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls'].map(&:to_s).freeze unless const_defined?(:JAVASCRIPT_DEFAULT_SOURCES)
+      JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls'].freeze unless const_defined?(:JAVASCRIPT_DEFAULT_SOURCES)
 
       # Returns a link tag that browsers and news readers can use to auto-detect
       # an RSS or ATOM feed. The +type+ can either be <tt>:rss</tt> (default) or
