@@ -742,6 +742,27 @@ class QueryTest < Test::Unit::TestCase
       :person => {:id => [20, 10]}
   end
 
+  def test_expansion_count_is_limited
+    assert_raises RuntimeError do
+      attack_xml = <<-EOT
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE member [
+        <!ENTITY a "&b;&b;&b;&b;&b;&b;&b;&b;&b;&b;">
+        <!ENTITY b "&c;&c;&c;&c;&c;&c;&c;&c;&c;&c;">
+        <!ENTITY c "&d;&d;&d;&d;&d;&d;&d;&d;&d;&d;">
+        <!ENTITY d "&e;&e;&e;&e;&e;&e;&e;&e;&e;&e;">
+        <!ENTITY e "&f;&f;&f;&f;&f;&f;&f;&f;&f;&f;">
+        <!ENTITY f "&g;&g;&g;&g;&g;&g;&g;&g;&g;&g;">
+        <!ENTITY g "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+      ]>
+      <member>
+      &a;
+      </member>
+      EOT
+      Hash.from_xml(attack_xml)
+    end
+  end
+
   private
     def assert_query_equal(expected, actual, message = nil)
       assert_equal expected.split('&'), actual.to_query.split('&')
