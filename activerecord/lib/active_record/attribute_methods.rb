@@ -214,7 +214,7 @@ module ActiveRecord
             if logger
               logger.warn "Exception occurred during reader method compilation."
               logger.warn "Maybe #{attr_name} is not a valid Ruby identifier?"
-              logger.warn "#{err.message}"
+              logger.warn err.message
             end
           end
         end
