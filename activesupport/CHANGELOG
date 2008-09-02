@@ -1,5 +1,7 @@
 *2.0.4* (2nd September 2008)
 
+* Fixed the rexml vulnerability disclosed at http://www.ruby-lang.org/en/news/2008/08/23/dos-vulnerability-in-rexml/ [koz]
+
 * Remove :nodoc: entries around the ActiveSupport test/unit assertions.  #10946 [dancroak, jamesh]
 
 * Fixed String#titleize to work for strings with 's too #10571 [trek]
