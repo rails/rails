@@ -330,8 +330,8 @@ module ActiveRecord
       end
     end
     
-    # A Person object with a name attribute can ask <tt>person.respond_to?("name")</tt>,
-    # <tt>person.respond_to?("name=")</tt>, and <tt>person.respond_to?("name?")</tt>
+    # A Person object with a name attribute can ask <tt>person.respond_to?(:name)</tt>,
+    # <tt>person.respond_to?(:name=)</tt>, and <tt>person.respond_to?(:name?)</tt>
     # which will all return +true+.
     alias :respond_to_without_attributes? :respond_to?
     def respond_to?(method, include_priv = false)

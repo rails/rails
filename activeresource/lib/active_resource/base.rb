@@ -915,8 +915,8 @@ module ActiveResource
     alias_method :respond_to_without_attributes?, :respond_to?
 
     # A method to determine if an object responds to a message (e.g., a method call). In Active Resource, a Person object with a
-    # +name+ attribute can answer <tt>true</tt> to <tt>my_person.respond_to?("name")</tt>, <tt>my_person.respond_to?("name=")</tt>, and
-    # <tt>my_person.respond_to?("name?")</tt>.
+    # +name+ attribute can answer <tt>true</tt> to <tt>my_person.respond_to?(:name)</tt>, <tt>my_person.respond_to?(:name=)</tt>, and
+    # <tt>my_person.respond_to?(:name?)</tt>.
     def respond_to?(method, include_priv = false)
       method_name = method.to_s
       if attributes.nil?

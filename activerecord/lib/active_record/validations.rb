@@ -54,7 +54,7 @@ module ActiveRecord
     def add_on_empty(attributes, custom_message = nil)
       for attr in [attributes].flatten
         value = @base.respond_to?(attr.to_s) ? @base.send(attr.to_s) : @base[attr.to_s]
-        is_empty = value.respond_to?("empty?") ? value.empty? : false        
+        is_empty = value.respond_to?(:empty?) ? value.empty? : false
         add(attr, :empty, :default => custom_message) unless !value.nil? && !is_empty
       end
     end
@@ -751,7 +751,7 @@ module ActiveRecord
 
         enum = configuration[:in] || configuration[:within]
 
-        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
+        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?(:include?)
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           unless enum.include?(value)
@@ -785,7 +785,7 @@ module ActiveRecord
 
         enum = configuration[:in] || configuration[:within]
 
-        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
+        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?(:include?)
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           if enum.include?(value)
