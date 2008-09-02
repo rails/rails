@@ -1321,6 +1321,12 @@ class EtagRenderTest < Test::Unit::TestCase
     assert @response.body.empty?
   end
 
+  def test_render_against_etag_request_should_have_no_content_length_when_match
+    @request.if_none_match = etag_for("hello david")
+    get :render_hello_world_from_variable
+    assert !@response.headers.has_key?("Content-Length")
+  end
+
   def test_render_against_etag_request_should_200_when_no_match
     @request.if_none_match = etag_for("hello somewhere else")
     get :render_hello_world_from_variable

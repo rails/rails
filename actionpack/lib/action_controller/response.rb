@@ -129,8 +129,8 @@ module ActionController # :nodoc:
 
     def prepare!
       assign_default_content_type_and_charset!
-      set_content_length!
       handle_conditional_get!
+      set_content_length!
       convert_content_type!
     end
 
