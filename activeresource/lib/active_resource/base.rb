@@ -283,13 +283,13 @@ module ActiveResource
         format = mime_type_reference_or_format.is_a?(Symbol) ?
           ActiveResource::Formats[mime_type_reference_or_format] : mime_type_reference_or_format
 
-        write_inheritable_attribute("format", format)
+        write_inheritable_attribute(:format, format)
         connection.format = format if site
       end
 
       # Returns the current format, default is ActiveResource::Formats::XmlFormat.
       def format
-        read_inheritable_attribute("format") || ActiveResource::Formats[:xml]
+        read_inheritable_attribute(:format) || ActiveResource::Formats[:xml]
       end
 
       # Sets the number of seconds after which requests to the REST API should time out.

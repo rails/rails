@@ -920,12 +920,12 @@ module ActiveRecord #:nodoc:
       # To start from an all-closed default and enable attributes as needed,
       # have a look at +attr_accessible+.
       def attr_protected(*attributes)
-        write_inheritable_attribute("attr_protected", Set.new(attributes.map(&:to_s)) + (protected_attributes || []))
+        write_inheritable_attribute(:attr_protected, Set.new(attributes.map(&:to_s)) + (protected_attributes || []))
       end
 
       # Returns an array of all the attributes that have been protected from mass-assignment.
       def protected_attributes # :nodoc:
-        read_inheritable_attribute("attr_protected")
+        read_inheritable_attribute(:attr_protected)
       end
 
       # Specifies a white list of model attributes that can be set via
@@ -953,22 +953,22 @@ module ActiveRecord #:nodoc:
       #   customer.credit_rating = "Average"
       #   customer.credit_rating # => "Average"
       def attr_accessible(*attributes)
-        write_inheritable_attribute("attr_accessible", Set.new(attributes.map(&:to_s)) + (accessible_attributes || []))
+        write_inheritable_attribute(:attr_accessible, Set.new(attributes.map(&:to_s)) + (accessible_attributes || []))
       end
 
       # Returns an array of all the attributes that have been made accessible to mass-assignment.
       def accessible_attributes # :nodoc:
-        read_inheritable_attribute("attr_accessible")
+        read_inheritable_attribute(:attr_accessible)
       end
 
        # Attributes listed as readonly can be set for a new record, but will be ignored in database updates afterwards.
        def attr_readonly(*attributes)
-         write_inheritable_attribute("attr_readonly", Set.new(attributes.map(&:to_s)) + (readonly_attributes || []))
+         write_inheritable_attribute(:attr_readonly, Set.new(attributes.map(&:to_s)) + (readonly_attributes || []))
        end
 
        # Returns an array of all the attributes that have been specified as readonly.
        def readonly_attributes
-         read_inheritable_attribute("attr_readonly")
+         read_inheritable_attribute(:attr_readonly)
        end
 
       # If you have an attribute that needs to be saved to the database as an object, and retrieved as the same object,
@@ -992,7 +992,7 @@ module ActiveRecord #:nodoc:
 
       # Returns a hash of all the attributes that have been specified for serialization as keys and their class restriction as values.
       def serialized_attributes
-        read_inheritable_attribute("attr_serialized") or write_inheritable_attribute("attr_serialized", {})
+        read_inheritable_attribute(:attr_serialized) or write_inheritable_attribute(:attr_serialized, {})
       end
 
 

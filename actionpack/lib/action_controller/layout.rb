@@ -164,17 +164,17 @@ module ActionController #:nodoc:
       # performance and have access to them as any normal template would.
       def layout(template_name, conditions = {}, auto = false)
         add_layout_conditions(conditions)
-        write_inheritable_attribute "layout", template_name
-        write_inheritable_attribute "auto_layout", auto
+        write_inheritable_attribute(:layout, template_name)
+        write_inheritable_attribute(:auto_layout, auto)
       end
 
       def layout_conditions #:nodoc:
-        @layout_conditions ||= read_inheritable_attribute("layout_conditions")
+        @layout_conditions ||= read_inheritable_attribute(:layout_conditions)
       end
 
       def default_layout(format) #:nodoc:
-        layout = read_inheritable_attribute("layout")
-        return layout unless read_inheritable_attribute("auto_layout")
+        layout = read_inheritable_attribute(:layout)
+        return layout unless read_inheritable_attribute(:auto_layout)
         @default_layout ||= {}
         @default_layout[format] ||= default_layout_with_format(format, layout)
         @default_layout[format]
@@ -194,7 +194,7 @@ module ActionController #:nodoc:
         end
 
         def add_layout_conditions(conditions)
-          write_inheritable_hash "layout_conditions", normalize_conditions(conditions)
+          write_inheritable_hash(:layout_conditions, normalize_conditions(conditions))
         end
 
         def normalize_conditions(conditions)
