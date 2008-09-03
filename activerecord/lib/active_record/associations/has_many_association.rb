@@ -5,32 +5,6 @@ module ActiveRecord
     # If the association has a <tt>:through</tt> option further specialization
     # is provided by its child HasManyThroughAssociation.
     class HasManyAssociation < AssociationCollection #:nodoc:
-      # Count the number of associated records. All arguments are optional.
-      def count(*args)
-        if @reflection.options[:counter_sql]
-          @reflection.klass.count_by_sql(@counter_sql)
-        elsif @reflection.options[:finder_sql]
-          @reflection.klass.count_by_sql(@finder_sql)
-        else
-          column_name, options = @reflection.klass.send(:construct_count_options_from_args, *args)          
-          options[:conditions] = options[:conditions].blank? ?
-            @finder_sql :
-            @finder_sql + " AND (#{sanitize_sql(options[:conditions])})"
-          options[:include] ||= @reflection.options[:include]
-
-          value = @reflection.klass.count(column_name, options)
-
-          limit  = @reflection.options[:limit]
-          offset = @reflection.options[:offset]
-
-          if limit || offset
-            [ [value - offset.to_i, 0].max, limit.to_i ].min
-          else
-            value
-          end
-        end
-      end
-
       protected
         def owner_quoted_id
           if @reflection.options[:primary_key]

@@ -201,7 +201,7 @@ module ActionController
         # recognition, not generation.
         def recognition_conditions
           result = ["(match = #{Regexp.new(recognition_pattern).inspect}.match(path))"]
-          result << "conditions[:method] === env[:method]" if conditions[:method]
+          result << "[conditions[:method]].flatten.include?(env[:method])" if conditions[:method]
           result
         end
 

@@ -223,10 +223,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     devel = Developer.find(1)
     proj = assert_no_queries { devel.projects.build("name" => "Projekt") }
     assert !devel.projects.loaded?
-    
+
     assert_equal devel.projects.last, proj
     assert devel.projects.loaded?
-    
+
     assert proj.new_record?
     devel.save
     assert !proj.new_record?
@@ -251,10 +251,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     devel = Developer.find(1)
     proj = devel.projects.create("name" => "Projekt")
     assert !devel.projects.loaded?
-    
+
     assert_equal devel.projects.last, proj
     assert devel.projects.loaded?
-    
+
     assert !proj.new_record?
     assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
   end
@@ -274,10 +274,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_creation_respects_hash_condition
     post = categories(:general).post_with_conditions.build(:body => '')
-    
+
     assert        post.save
     assert_equal  'Yet Another Testing Title', post.title
-    
+
     another_post = categories(:general).post_with_conditions.create(:body => '')
 
     assert        !another_post.new_record?
@@ -288,7 +288,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     dev = developers(:jamis)
     dev.projects << projects(:active_record)
     dev.projects << projects(:active_record)
-    
+
     assert_equal 3, dev.projects.size
     assert_equal 1, dev.projects.uniq.size
   end
@@ -415,13 +415,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     project.developers.class # force load target
 
     developer = project.developers.first
-    
+
     assert_no_queries do
       assert project.developers.loaded?
       assert project.developers.include?(developer)
     end
   end
-  
+
   def test_include_checks_if_record_exists_if_target_not_loaded
     project = projects(:active_record)
     developer = project.developers.first
@@ -641,6 +641,22 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [projects(:active_record).id], developers(:jamis).project_ids
   end
 
+  def test_get_ids_for_loaded_associations
+    developer = developers(:david)
+    developer.projects(true)
+    assert_queries(0) do
+      developer.project_ids
+      developer.project_ids
+    end
+  end
+
+  def test_get_ids_for_unloaded_associations_does_not_load_them
+    developer = developers(:david)
+    assert !developer.projects.loaded?
+    assert_equal projects(:active_record, :action_controller).map(&:id).sort, developer.project_ids.sort
+    assert !developer.projects.loaded?
+  end
+
   def test_assign_ids
     developer = Developer.new("name" => "Joe")
     developer.project_ids = projects(:active_record, :action_controller).map(&:id)
@@ -702,5 +718,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     # SQL error in sort clause if :include is not included
     # due to Unknown column 'authors.id'
     assert Category.find(1).posts_with_authors_sorted_by_author_id.find_by_title('Welcome to the weblog')
+  end
+
+  def test_counting_on_habtm_association_and_not_array
+    david = Developer.find(1)
+    # Extra parameter just to make sure we aren't falling back to
+    # Array#count in Ruby >=1.8.7, which would raise an ArgumentError
+    assert_nothing_raised { david.projects.count(:all, :conditions => '1=1') }
   end
 end

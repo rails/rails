@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/author'
 require 'models/developer'
 require 'models/project'
 require 'models/comment'
@@ -6,7 +7,7 @@ require 'models/post'
 require 'models/category'
 
 class MethodScopingTest < ActiveRecord::TestCase
-  fixtures :developers, :projects, :comments, :posts, :developers_projects
+  fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
 
   def test_set_conditions
     Developer.with_scope(:find => { :conditions => 'just a test...' }) do
@@ -97,6 +98,46 @@ class MethodScopingTest < ActiveRecord::TestCase
     assert_equal developers(:david).attributes, scoped_developers.first.attributes
   end
 
+  def test_scoped_find_using_new_style_joins
+    scoped_developers = Developer.with_scope(:find => { :joins => :projects }) do
+      Developer.find(:all, :conditions => 'projects.id = 2')
+    end
+    assert scoped_developers.include?(developers(:david))
+    assert !scoped_developers.include?(developers(:jamis))
+    assert_equal 1, scoped_developers.size
+    assert_equal developers(:david).attributes, scoped_developers.first.attributes
+  end
+
+  def test_scoped_find_merges_old_style_joins
+    scoped_authors = Author.with_scope(:find => { :joins => 'INNER JOIN posts ON authors.id = posts.author_id ' }) do
+      Author.find(:all, :select => 'DISTINCT authors.*', :joins => 'INNER JOIN comments ON posts.id = comments.post_id', :conditions => 'comments.id = 1')
+    end
+    assert scoped_authors.include?(authors(:david))
+    assert !scoped_authors.include?(authors(:mary))
+    assert_equal 1, scoped_authors.size
+    assert_equal authors(:david).attributes, scoped_authors.first.attributes
+  end
+
+  def test_scoped_find_merges_new_style_joins
+    scoped_authors = Author.with_scope(:find => { :joins => :posts }) do
+      Author.find(:all, :select => 'DISTINCT authors.*', :joins => :comments, :conditions => 'comments.id = 1')
+    end
+    assert scoped_authors.include?(authors(:david))
+    assert !scoped_authors.include?(authors(:mary))
+    assert_equal 1, scoped_authors.size
+    assert_equal authors(:david).attributes, scoped_authors.first.attributes
+  end
+
+  def test_scoped_find_merges_new_and_old_style_joins
+    scoped_authors = Author.with_scope(:find => { :joins => :posts }) do
+      Author.find(:all, :select => 'DISTINCT authors.*', :joins => 'JOIN comments ON posts.id = comments.post_id', :conditions => 'comments.id = 1')
+    end
+    assert scoped_authors.include?(authors(:david))
+    assert !scoped_authors.include?(authors(:mary))
+    assert_equal 1, scoped_authors.size
+    assert_equal authors(:david).attributes, scoped_authors.first.attributes
+  end
+
   def test_scoped_count_include
     # with the include, will retrieve only developers for the given project
     Developer.with_scope(:find => { :include => :projects }) do
@@ -152,7 +193,7 @@ class MethodScopingTest < ActiveRecord::TestCase
 end
 
 class NestedScopingTest < ActiveRecord::TestCase
-  fixtures :developers, :projects, :comments, :posts
+  fixtures :authors, :developers, :projects, :comments, :posts
 
   def test_merge_options
     Developer.with_scope(:find => { :conditions => 'salary = 80000' }) do
@@ -356,6 +397,42 @@ class NestedScopingTest < ActiveRecord::TestCase
       end
       assert_equal scoped_methods, Developer.instance_eval('current_scoped_methods')
     end
+  end
+
+  def test_nested_scoped_find_merges_old_style_joins
+    scoped_authors = Author.with_scope(:find => { :joins => 'INNER JOIN posts ON authors.id = posts.author_id' }) do
+      Author.with_scope(:find => { :joins => 'INNER JOIN comments ON posts.id = comments.post_id' }) do
+        Author.find(:all, :select => 'DISTINCT authors.*', :conditions => 'comments.id = 1')
+      end
+    end
+    assert scoped_authors.include?(authors(:david))
+    assert !scoped_authors.include?(authors(:mary))
+    assert_equal 1, scoped_authors.size
+    assert_equal authors(:david).attributes, scoped_authors.first.attributes
+  end
+
+  def test_nested_scoped_find_merges_new_style_joins
+    scoped_authors = Author.with_scope(:find => { :joins => :posts }) do
+      Author.with_scope(:find => { :joins => :comments }) do
+        Author.find(:all, :select => 'DISTINCT authors.*', :conditions => 'comments.id = 1')
+      end
+    end
+    assert scoped_authors.include?(authors(:david))
+    assert !scoped_authors.include?(authors(:mary))
+    assert_equal 1, scoped_authors.size
+    assert_equal authors(:david).attributes, scoped_authors.first.attributes
+  end
+
+  def test_nested_scoped_find_merges_new_and_old_style_joins
+    scoped_authors = Author.with_scope(:find => { :joins => :posts }) do
+      Author.with_scope(:find => { :joins => 'INNER JOIN comments ON posts.id = comments.post_id' }) do
+        Author.find(:all, :select => 'DISTINCT authors.*', :joins => '', :conditions => 'comments.id = 1')
+      end
+    end
+    assert scoped_authors.include?(authors(:david))
+    assert !scoped_authors.include?(authors(:mary))
+    assert_equal 1, scoped_authors.size
+    assert_equal authors(:david).attributes, scoped_authors.first.attributes
   end
 end
 

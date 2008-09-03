@@ -72,7 +72,7 @@ module ActionMailer
         methods.flatten.each do |method|
           master_helper_module.module_eval <<-end_eval
             def #{method}(*args, &block)
-              controller.send!(%(#{method}), *args, &block)
+              controller.__send__(%(#{method}), *args, &block)
             end
           end_eval
         end
@@ -92,7 +92,7 @@ module ActionMailer
           inherited_without_helper(child)
           begin
             child.master_helper_module = Module.new
-            child.master_helper_module.send! :include, master_helper_module
+            child.master_helper_module.__send__(:include, master_helper_module)
             child.helper child.name.to_s.underscore
           rescue MissingSourceFile => e
             raise unless e.is_missing?("helpers/#{child.name.to_s.underscore}_helper")

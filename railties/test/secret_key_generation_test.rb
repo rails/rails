@@ -31,6 +31,8 @@ class SecretKeyGenerationTest < Test::Unit::TestCase
   end
 
   def test_secret_key_generation
-    assert @generator.generate_secret.length >= SECRET_KEY_MIN_LENGTH
+    assert_deprecated /ActiveSupport::SecureRandom\.hex\(64\)/ do
+      assert @generator.generate_secret.length >= SECRET_KEY_MIN_LENGTH
+    end
   end
 end

@@ -283,17 +283,6 @@ end
 
 if current_adapter?(:PostgreSQLAdapter)
   class ConcurrentTransactionTest < TransactionTest
-    def setup
-      @allow_concurrency = ActiveRecord::Base.allow_concurrency
-      ActiveRecord::Base.allow_concurrency = true
-      super
-    end
-
-    def teardown
-      super
-      ActiveRecord::Base.allow_concurrency = @allow_concurrency
-    end
-
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
     def test_transaction_per_thread

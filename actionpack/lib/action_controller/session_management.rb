@@ -86,14 +86,14 @@ module ActionController #:nodoc:
           raise ArgumentError, "only one of either :only or :except are allowed"
         end
 
-        write_inheritable_array("session_options", [options])
+        write_inheritable_array(:session_options, [options])
       end
 
       # So we can declare session options in the Rails initializer.
       alias_method :session=, :session
 
       def cached_session_options #:nodoc:
-        @session_options ||= read_inheritable_attribute("session_options") || []
+        @session_options ||= read_inheritable_attribute(:session_options) || []
       end
 
       def session_options_for(request, action) #:nodoc:

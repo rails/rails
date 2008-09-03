@@ -134,6 +134,7 @@ class BufferedLoggerTest < Test::Unit::TestCase
     a.join
     b.join
 
-    assert_equal "a\nb\nc\nx\ny\nz\n", @output.string
+    assert @output.string.include?("a\nb\nc\n")
+    assert @output.string.include?("x\ny\nz\n")
   end
 end

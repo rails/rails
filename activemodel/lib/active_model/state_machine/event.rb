@@ -2,15 +2,15 @@ module ActiveModel
   module StateMachine
     class Event
       attr_reader :name, :success
-      
+
       def initialize(machine, name, options = {}, &block)
         @machine, @name, @transitions = machine, name, []
         if machine
-          machine.klass.send(:define_method, "#{name.to_s}!") do |*args|
+          machine.klass.send(:define_method, "#{name}!") do |*args|
             machine.fire_event(name, self, true, *args)
           end
 
-          machine.klass.send(:define_method, "#{name.to_s}") do |*args|
+          machine.klass.send(:define_method, name.to_s) do |*args|
             machine.fire_event(name, self, false, *args)
           end
         end

@@ -289,13 +289,13 @@ module ActiveResource
         format = mime_type_reference_or_format.is_a?(Symbol) ?
           ActiveResource::Formats[mime_type_reference_or_format] : mime_type_reference_or_format
 
-        write_inheritable_attribute("format", format)
+        write_inheritable_attribute(:format, format)
         connection.format = format if site
       end
 
       # Returns the current format, default is ActiveResource::Formats::XmlFormat.
       def format
-        read_inheritable_attribute("format") || ActiveResource::Formats[:xml]
+        read_inheritable_attribute(:format) || ActiveResource::Formats[:xml]
       end
 
       # Sets the number of seconds after which requests to the REST API should time out.
@@ -854,8 +854,13 @@ module ActiveResource
     #
     #   my_group.to_xml(:skip_instruct => true)
     #   # => <subsidiary_group> [...] </subsidiary_group>
-    def to_xml(options={})
-      attributes.to_xml({:root => self.class.element_name}.merge(options))
+    def encode(options={})
+      case self.class.format
+        when ActiveResource::Formats[:xml]
+          self.class.format.encode(attributes, {:root => self.class.element_name}.merge(options))
+        else
+          self.class.format.encode(attributes, options)
+      end
     end
 
     # A method to \reload the attributes of this object from the remote web service.
@@ -916,8 +921,8 @@ module ActiveResource
     alias_method :respond_to_without_attributes?, :respond_to?
 
     # A method to determine if an object responds to a message (e.g., a method call). In Active Resource, a Person object with a
-    # +name+ attribute can answer <tt>true</tt> to <tt>my_person.respond_to?("name")</tt>, <tt>my_person.respond_to?("name=")</tt>, and
-    # <tt>my_person.respond_to?("name?")</tt>.
+    # +name+ attribute can answer <tt>true</tt> to <tt>my_person.respond_to?(:name)</tt>, <tt>my_person.respond_to?(:name=)</tt>, and
+    # <tt>my_person.respond_to?(:name?)</tt>.
     def respond_to?(method, include_priv = false)
       method_name = method.to_s
       if attributes.nil?
@@ -940,14 +945,14 @@ module ActiveResource
 
       # Update the resource on the remote service.
       def update
-        returning connection.put(element_path(prefix_options), to_xml, self.class.headers) do |response|
+        returning connection.put(element_path(prefix_options), encode, self.class.headers) do |response|
           load_attributes_from_response(response)
         end
       end
 
       # Create (i.e., \save to the remote service) the \new resource.
       def create
-        returning connection.post(collection_path, to_xml, self.class.headers) do |response|
+        returning connection.post(collection_path, encode, self.class.headers) do |response|
           self.id = id_from_response(response)
           load_attributes_from_response(response)
         end
@@ -1013,7 +1018,7 @@ module ActiveResource
       end
 
       def split_options(options = {})
-        self.class.send!(:split_options, options)
+        self.class.__send__(:split_options, options)
       end
 
       def method_missing(method_symbol, *arguments) #:nodoc:

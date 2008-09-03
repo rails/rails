@@ -3,11 +3,6 @@ module ActionController #:nodoc:
     def self.included(base)
       base.extend(ClassMethods)
       base.class_eval do
-        # NOTE: Can't use alias_method_chain here because +render_without_layout+ is already
-        # defined as a publicly exposed method
-        alias_method :render_with_no_layout, :render
-        alias_method :render, :render_with_a_layout
-
         class << self
           alias_method_chain :inherited, :layout
         end
@@ -169,17 +164,17 @@ module ActionController #:nodoc:
       # performance and have access to them as any normal template would.
       def layout(template_name, conditions = {}, auto = false)
         add_layout_conditions(conditions)
-        write_inheritable_attribute "layout", template_name
-        write_inheritable_attribute "auto_layout", auto
+        write_inheritable_attribute(:layout, template_name)
+        write_inheritable_attribute(:auto_layout, auto)
       end
 
       def layout_conditions #:nodoc:
-        @layout_conditions ||= read_inheritable_attribute("layout_conditions")
+        @layout_conditions ||= read_inheritable_attribute(:layout_conditions)
       end
 
       def default_layout(format) #:nodoc:
-        layout = read_inheritable_attribute("layout")
-        return layout unless read_inheritable_attribute("auto_layout")
+        layout = read_inheritable_attribute(:layout)
+        return layout unless read_inheritable_attribute(:auto_layout)
         @default_layout ||= {}
         @default_layout[format] ||= default_layout_with_format(format, layout)
         @default_layout[format]
@@ -199,7 +194,7 @@ module ActionController #:nodoc:
         end
 
         def add_layout_conditions(conditions)
-          write_inheritable_hash "layout_conditions", normalize_conditions(conditions)
+          write_inheritable_hash(:layout_conditions, normalize_conditions(conditions))
         end
 
         def normalize_conditions(conditions)
@@ -221,10 +216,10 @@ module ActionController #:nodoc:
     # object). If the layout was defined without a directory, layouts is assumed. So <tt>layout "weblog/standard"</tt> will return
     # weblog/standard, but <tt>layout "standard"</tt> will return layouts/standard.
     def active_layout(passed_layout = nil)
-      layout = passed_layout || self.class.default_layout(response.template.template_format)
+      layout = passed_layout || self.class.default_layout(default_template_format)
       active_layout = case layout
         when String then layout
-        when Symbol then send!(layout)
+        when Symbol then __send__(layout)
         when Proc   then layout.call(self)
       end
 
@@ -240,51 +235,24 @@ module ActionController #:nodoc:
       end
     end
 
-    protected
-      def render_with_a_layout(options = nil, extra_options = {}, &block) #:nodoc:
-        template_with_options = options.is_a?(Hash)
-
-        if (layout = pick_layout(template_with_options, options)) && apply_layout?(template_with_options, options)
-          options = options.merge :layout => false if template_with_options
-          logger.info("Rendering template within #{layout}") if logger
-
-          content_for_layout = render_with_no_layout(options, extra_options, &block)
-          erase_render_results
-          add_variables_to_assigns
-          @template.instance_variable_set("@content_for_layout", content_for_layout)
-          response.layout = layout
-          status = template_with_options ? options[:status] : nil
-          render_for_text(@template.render(layout), status)
-        else
-          render_with_no_layout(options, extra_options, &block)
-        end
-      end
-
-
     private
-      def apply_layout?(template_with_options, options)
-        return false if options == :update
-        template_with_options ?  candidate_for_layout?(options) : !template_exempt_from_layout?
-      end
-
       def candidate_for_layout?(options)
-        (options.has_key?(:layout) && options[:layout] != false) ||
-          options.values_at(:text, :xml, :json, :file, :inline, :partial, :nothing).compact.empty? &&
-          !template_exempt_from_layout?(options[:template] || default_template_name(options[:action]))
+        options.values_at(:text, :xml, :json, :file, :inline, :partial, :nothing, :update).compact.empty? &&
+          !@template.__send__(:_exempt_from_layout?, options[:template] || default_template_name(options[:action]))
       end
 
-      def pick_layout(template_with_options, options)
-        if template_with_options
-          case layout = options[:layout]
-            when FalseClass
-              nil
-            when NilClass, TrueClass
-              active_layout if action_has_layout?
-            else
-              active_layout(layout)
+      def pick_layout(options)
+        if options.has_key?(:layout)
+          case layout = options.delete(:layout)
+          when FalseClass
+            nil
+          when NilClass, TrueClass
+            active_layout if action_has_layout? && !@template.__send__(:_exempt_from_layout?, default_template_name)
+          else
+            active_layout(layout)
           end
         else
-          active_layout if action_has_layout?
+          active_layout if action_has_layout? && candidate_for_layout?(options)
         end
       end
 
@@ -304,7 +272,13 @@ module ActionController #:nodoc:
       end
 
       def layout_directory?(layout_name)
-        @template.file_exists?("#{File.join('layouts', layout_name)}.#{@template.template_format}")
+        @template.__send__(:_pick_template, "#{File.join('layouts', layout_name)}.#{@template.template_format}") ? true : false
+      rescue ActionView::MissingTemplate
+        false
+      end
+
+      def default_template_format
+        response.template.template_format
       end
   end
 end

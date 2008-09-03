@@ -34,6 +34,14 @@ class RecordTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_block_not_in_erb_multiple_calls
+    expected = %(<div class="post bar" id="post_45">#{@post.body}</div>)
+    actual = div_for(@post, :class => "bar") { @post.body }
+    assert_dom_equal expected, actual
+    actual = div_for(@post, :class => "bar") { @post.body }
+    assert_dom_equal expected, actual
+  end
+
   def test_block_works_with_content_tag_for_in_erb
     __in_erb_template = ''
     expected = %(<tr class="post" id="post_45">#{@post.body}</tr>)

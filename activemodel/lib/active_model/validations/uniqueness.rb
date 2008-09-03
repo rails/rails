@@ -79,8 +79,8 @@ module ActiveModel
           results = finder_class.with_exclusive_scope do
             connection.select_all(
               construct_finder_sql(
-                :select     => "#{attr_name}",
-                :from       => "#{finder_class.quoted_table_name}",
+                :select     => attr_name,
+                :from       => finder_class.quoted_table_name,
                 :conditions => [condition_sql, *condition_params]
               )
             )

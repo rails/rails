@@ -1,5 +1,29 @@
 *Edge*
 
+* Add support for shallow nesting of routes. #838 [S. Brent Faulkner]
+
+  Example :
+
+  map.resources :users, :shallow => true do |user|
+    user.resources :posts
+  end
+
+  - GET /users/1/posts (maps to PostsController#index action as usual)
+    named route "user_posts" is added as usual.
+
+  - GET /posts/2 (maps to PostsController#show action as if it were not nested)
+    Additionally, named route "post" is added too.
+
+* Added button_to_remote helper.  #3641 [Donald Piret, Tarmo Tänav]
+
+* Deprecate render_component. Please use render_component plugin from http://github.com/rails/render_component/tree/master [Pratik]
+
+* Routes may be restricted to lists of HTTP methods instead of a single method or :any.  #407 [Brennan Dunn, Gaius Centus Novus]
+    map.resource :posts, :collection => { :search => [:get, :post] }
+    map.session 'session', :requirements => { :method => [:get, :post, :delete] }
+
+* Deprecated implicit local assignments when rendering partials [Josh Peek]
+
 * Introduce current_cycle helper method to return the current value without bumping the cycle.  #417 [Ken Collins]
 
 * Allow polymorphic_url helper to take url options. #880 [Tarmo Tänav]

@@ -204,8 +204,8 @@ module ActionController #:nodoc:
 
           begin
             child.master_helper_module = Module.new
-            child.master_helper_module.send! :include, master_helper_module
-            child.send! :default_helper_module!
+            child.master_helper_module.__send__ :include, master_helper_module
+            child.__send__ :default_helper_module!
           rescue MissingSourceFile => e
             raise unless e.is_missing?("helpers/#{child.controller_path}_helper")
           end

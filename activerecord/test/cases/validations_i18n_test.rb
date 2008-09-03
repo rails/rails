@@ -675,6 +675,38 @@ class ActiveRecordValidationsI18nTests < Test::Unit::TestCase
     replied_topic.valid?
     assert_equal 'global message', replied_topic.errors.on(:replies)
   end
+
+  def test_validations_with_message_symbol_must_translate
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:messages => {:custom_error => "I am a custom error"}}}
+    Topic.validates_presence_of :title, :message => :custom_error
+    @topic.title = nil
+    @topic.valid?
+    assert_equal "I am a custom error", @topic.errors.on(:title)
+  end
+
+  def test_validates_with_message_symbol_must_translate_per_attribute
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:attributes => {:title => {:custom_error => "I am a custom error"}}}}}}
+    Topic.validates_presence_of :title, :message => :custom_error
+    @topic.title = nil
+    @topic.valid?
+    assert_equal "I am a custom error", @topic.errors.on(:title)
+  end
+
+  def test_validates_with_message_symbol_must_translate_per_model
+    I18n.backend.store_translations 'en-US', :activerecord => {:errors => {:models => {:topic => {:custom_error => "I am a custom error"}}}}
+    Topic.validates_presence_of :title, :message => :custom_error
+    @topic.title = nil
+    @topic.valid?
+    assert_equal "I am a custom error", @topic.errors.on(:title)
+  end
+
+  def test_validates_with_message_string
+    Topic.validates_presence_of :title, :message => "I am a custom error"
+    @topic.title = nil
+    @topic.valid?
+    assert_equal "I am a custom error", @topic.errors.on(:title)
+  end
+
 end
 
 class ActiveRecordValidationsGenerateMessageI18nTests < Test::Unit::TestCase
@@ -855,4 +887,5 @@ class ActiveRecordValidationsGenerateMessageI18nTests < Test::Unit::TestCase
   def test_generate_message_even_with_default_message
     assert_equal "must be even", @topic.errors.generate_message(:title, :even, :default => nil, :value => 'title', :count => 10)
   end
+
 end

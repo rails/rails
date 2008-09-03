@@ -1297,6 +1297,29 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       end
     end
 
+    def test_recognize_array_of_methods
+      Object.const_set(:BooksController, Class.new(ActionController::Base))
+      rs.draw do |r|
+        r.connect '/match', :controller => 'books', :action => 'get_or_post', :conditions => { :method => [:get, :post] }
+        r.connect '/match', :controller => 'books', :action => 'not_get_or_post'
+      end
+
+      @request = ActionController::TestRequest.new
+      @request.env["REQUEST_METHOD"] = 'POST'
+      @request.request_uri = "/match"
+      assert_nothing_raised { rs.recognize(@request) }
+      assert_equal 'get_or_post', @request.path_parameters[:action]
+
+      # have to recreate or else the RouteSet uses a cached version:
+      @request = ActionController::TestRequest.new
+      @request.env["REQUEST_METHOD"] = 'PUT'
+      @request.request_uri = "/match"
+      assert_nothing_raised { rs.recognize(@request) }
+      assert_equal 'not_get_or_post', @request.path_parameters[:action]
+    ensure
+      Object.send(:remove_const, :BooksController) rescue nil
+    end
+
     def test_subpath_recognized
       Object.const_set(:SubpathBooksController, Class.new(ActionController::Base))
 
@@ -1669,6 +1692,12 @@ uses_mocha 'LegacyRouteSet, Route, RouteSet and RouteLoading' do
       controller = setup_named_route_test
       assert_equal "http://named.route.test/people/go/7/hello/joe/5?baz=bar",
         controller.send(:multi_url, 7, "hello", 5, :baz => "bar")
+    end
+
+    def test_named_route_url_method_with_ordered_parameters_and_empty_hash
+      controller = setup_named_route_test
+      assert_equal "http://named.route.test/people/go/7/hello/joe/5",
+        controller.send(:multi_url, 7, "hello", 5, {})
     end
 
     def test_named_route_url_method_with_no_positional_arguments

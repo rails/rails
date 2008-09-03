@@ -160,7 +160,7 @@ module ActionController
         s << "\n#{expiry_statement}"
       end
 
-      def interpolation_chunk(value_code = "#{local_name}")
+      def interpolation_chunk(value_code = local_name)
         "\#{URI.escape(#{value_code}.to_s, ActionController::Routing::Segment::UNSAFE_PCHAR)}"
       end
 
@@ -231,7 +231,7 @@ module ActionController
       end
 
       # Don't URI.escape the controller name since it may contain slashes.
-      def interpolation_chunk(value_code = "#{local_name}")
+      def interpolation_chunk(value_code = local_name)
         "\#{#{value_code}.to_s}"
       end
 
@@ -251,7 +251,7 @@ module ActionController
     end
 
     class PathSegment < DynamicSegment #:nodoc:
-      def interpolation_chunk(value_code = "#{local_name}")
+      def interpolation_chunk(value_code = local_name)
         "\#{#{value_code}}"
       end
 
