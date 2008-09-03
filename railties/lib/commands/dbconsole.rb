@@ -6,7 +6,7 @@ include_password = false
 
 OptionParser.new do |opt|
   opt.banner = "Usage: dbconsole [options] [environment]"
-  opt.on("-p", "--include-password", "Automatically provide the database from database.yml") do |v|
+  opt.on("-p", "--include-password", "Automatically provide the password from database.yml") do |v|
     include_password = true
   end
   opt.parse!(ARGV)

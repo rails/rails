@@ -64,7 +64,7 @@ module ActiveRecord
     #
     # Both Base#save and Base#destroy come wrapped in a transaction that ensures that whatever you do in validations or callbacks
     # will happen under the protected cover of a transaction. So you can use validations to check for values that the transaction
-    # depends on or you can raise exceptions in the callbacks to rollback.
+    # depends on or you can raise exceptions in the callbacks to rollback, including <tt>after_*</tt> callbacks.
     #
     # == Exception handling and rolling back
     #
