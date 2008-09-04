@@ -51,3 +51,134 @@ Make sure you have started your web server with the option --debugger:
 ----------------------------------------------------------------------------
 
 In order to use Rails debugging you'll need to be running either *WEBrick* or *Mongrel*. For the moment, no alternative servers are supported.
+
+
+== The debugger
+=== The context
+
+As soon as your application calls the *debugger* method, the debugger will be started and you will be placed in the ruby-debug's prompt (rdb:n) in the console running the server. The n is the thread number.
+
+For example:
+
+[source, shell]
+----------------------------------------------------------------------------
+@posts = Post.find(:all)
+(rdb:7)
+----------------------------------------------------------------------------
+
+Now it's time to play and dig into our application. The first we are going to do is ask our debugger for help... so we type: *help* (You didn't see that coming, right?)
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:7) help
+ruby-debug help v0.10.2
+Type 'help <command-name>' for help on a specific command
+
+Available commands:
+backtrace  delete   enable  help    next  quit     show    trace    
+break      disable  eval    info    p     reload   source  undisplay
+catch      display  exit    irb     pp    restart  step    up       
+condition  down     finish  list    ps    save     thread  var      
+continue   edit     frame   method  putl  set      tmate   where
+----------------------------------------------------------------------------
+
+The second command before we move on, is one of the most useful command: *list* (or his shorthand *l*)
+
+This command will give us a starting point of where we are by printing 10 lines centered around the current line; the current line here is line 6 and is marked by =>.
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:7) list
+[1, 10] in /PathToProject/posts_controller.rb
+   1  class PostsController < ApplicationController
+   2    # GET /posts
+   3    # GET /posts.xml
+   4    def index
+   5      debugger
+=> 6      @posts = Post.find(:all)
+   7  
+   8      respond_to do |format|
+   9        format.html # index.html.erb
+   10        format.xml  { render :xml => @posts }
+----------------------------------------------------------------------------
+
+If we do it again, this time using just *l*, the next ten lines of the file will be printed out.
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:7) l
+[11, 20] in /Users/miloops/Workspace/rails_edge_app/app/controllers/posts_controller.rb
+   11      end
+   12    end
+   13  
+   14    # GET /posts/1
+   15    # GET /posts/1.xml
+   16    def show
+   17      @post = Post.find(params[:id])
+   18  
+   19      respond_to do |format|
+   20        format.html # show.html.erb
+----------------------------------------------------------------------------
+
+And so on until the end of the current file, when the end of file is reached, it will start again from the beginning of the file and continue again up to the end, acting as a circular buffer.
+
+=== The context
+When we start debugging your application, we will be placed in different contexts as you go through the different parts of the stack. 
+
+A context will be created when a stopping point or an event is reached. It has information about the suspended program which enable a debugger to inspect the frame stack, evaluate variables from the perspective of the debugged program, and contains information about the place the debugged program is stopped.
+
+At any time we can call the *backtrace* command to print the backtrace of the application, this is very helpful to know how we got where we are. If you ever wondered about how you got somewhere in your code, then *backtrace* is your answer.
+
+The available variables are the same as if we were running the code line by line, after all, that's what debugging is.
+
+In the following example we will print the instance_variables defined within the current context.
+
+[source, shell]
+----------------------------------------------------------------------------
+@posts = Post.find(:all)
+(rdb:11) instance_variables
+["@_response", "@action_name", "@url", "@_session", "@_cookies", "@performed_render", "@_flash", "@template", "@_params", "@before_filter_chain_aborted", "@request_origin", "@_headers", "@performed_redirect", "@_request"]
+----------------------------------------------------------------------------
+
+As you may expect, all variables that you can access from a controller are displayed, lets run the next line, we will use *next* (we will get later into this command).
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:11) n
+Processing PostsController#index (for 127.0.0.1 at 2008-09-04 19:51:34) [GET]
+  Session ID: BAh7BiIKZmxhc2hJQzonQWN0aW9uQ29udHJvbGxlcjo6Rmxhc2g6OkZsYXNoSGFzaHsABjoKQHVzZWR7AA==--b16e91b992453a8cc201694d660147bba8b0fd0e
+  Parameters: {"action"=>"index", "controller"=>"posts"}
+/PathToProject/posts_controller.rb:8
+respond_to do |format|
+-------------------------------------------------------------------------------
+
+And ask again for the instance_variables.
+
+[source, shell]
+----------------------------------------------------------------------------
+(rdb:11) instance_variables
+["@_response", "@action_name", "@url", "@_session", "@_cookies", "@performed_render", "@_flash", "@template", "@_params", "@before_filter_chain_aborted", "@posts", "@request_origin", "@_headers", "@performed_redirect", "@_request"]
+----------------------------------------------------------------------------
+
+Now @posts is a included in them, because the line was executed. 
+
+Other useful methods to inspect the current context:
+
+* local_variables
+* global_variables
+* methods
+* self, self.class, etc...
+
+=== Everything as an end
+
+To exit ruby-debug, use the *quit* command (abbreviated *q*), or alias *exit*.
+
+A simple quit tries to terminate all threads in effect. Therefore your server will be stopped and you will have to start it again.
+
+== References
+
+* link:http://www.datanoise.com/ruby-debug[ruby-debug Homepage]
+* link:http://www.sitepoint.com/article/debug-rails-app-ruby-debug/[Article: Debugging a Rails application with ruby-debug]
+* link:http://brian.maybeyoureinsane.net/blog/2007/05/07/ruby-debug-basics-screencast/[ruby-debug Basics screencast]
+* link:http://railscasts.com/episodes/54-debugging-with-ruby-debug[Ryan Bate's ruby-debug screencast]
+* link:http://bashdb.sourceforge.net/ruby-debug.html[Debugging with ruby-debug]
