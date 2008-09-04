@@ -1,0 +1,53 @@
+Debugging Rails applications
+============================
+
+You may have heard about debugging:
+
+_Debugging is a methodical process of finding and reducing the number of bugs, or defects, in a computer program or a piece of electronic hardware thus making it behave as expected._
+ 
+Many times your code may not behave has you expect, sometimes you will try to print in logs or console values to make a diagnostic of the problem.
+
+Unfortunately, you won't find always the answer you are looking for this way. In that case, you will need to know what's happening and adventure into Rails, in this journey the debugger will be your best companion.
+
+
+== Introducing the debugger
+
+=== Rails debugging history
+
+Rails has built-in support for ruby-debug since April 28, 2007. When the Breakpoint library was removed in favor of ruby-debug, the reason?
+
+The breakpointer, included in the Breakpoint library, and Binding.of_caller were removed in favor of relying on ruby-debug by Kent Sibilev.
+
+The problem was a bug in Ruby 1.8.4, that was fixed in Ruby 1.8.5 but left unusable the breakpointer. The Breakpoint library is also no longer being maintained, so it's effectively dead.
+
+=== Start debugging your rails app
+
+Inside any Rails application you can invoke the debugger by calling the *debugger* method.
+
+Let's take a look at an example:
+
+[source, ruby]
+----------------------------------------------------------------------------
+class PeopleController < ApplicationController
+  def new
+    debugger
+    @person = Person.new
+  end
+end
+----------------------------------------------------------------------------
+
+If you see the message in the console or logs:
+
+[source, shell]
+----------------------------------------------------------------------------
+***** Debugger requested, but was not available: Start server with --debugger to enable *****
+----------------------------------------------------------------------------
+
+Make sure you have started your web server with the option --debugger:
+
+[source, shell]
+----------------------------------------------------------------------------
+~/PathTo/rails_project$ script/server --debugger
+----------------------------------------------------------------------------
+
+In order to use Rails debugging you'll need to be running either *WEBrick* or *Mongrel*. For the moment, no alternative servers are supported.
