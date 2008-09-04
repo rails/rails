@@ -466,7 +466,7 @@ module ActionMailer #:nodoc:
             template = template_root["#{mailer_name}/#{File.basename(path)}"]
 
             # Skip unless template has a multipart format
-            next unless template.multipart?
+            next unless template && template.multipart?
 
             @parts << Part.new(
               :content_type => template.content_type,
