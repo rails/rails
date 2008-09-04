@@ -123,14 +123,10 @@ module ActiveRecord
         false
       end
 
-      # Lazily verify this connection, calling <tt>active?</tt> only if it
-      # hasn't been called for +timeout+ seconds.
-      def verify!(timeout)
-        now = Time.now.to_i
-        if (now - @last_verification) > timeout
-          reconnect! unless active?
-          @last_verification = now
-        end
+      # Verify this connection by calling <tt>active?</tt> and reconnecting if
+      # the connection is no longer active.
+      def verify!(*ignored)
+        reconnect! unless active?
       end
 
       # Provides access to the underlying database connection. Useful for
