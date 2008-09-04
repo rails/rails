@@ -529,17 +529,24 @@ module ActiveRecord
 
       # Wrap a block in a transaction.  Returns result of block.
       def transaction(start_db_transaction = true)
+        transaction_open = false
         begin
           if block_given?
-            begin_db_transaction if start_db_transaction
+            if start_db_transaction
+              begin_db_transaction
+              transaction_open = true
+            end
             yield
           end
         rescue Exception => database_transaction_rollback
-          rollback_db_transaction if transaction_active?
+          if transaction_open && transaction_active?
+            transaction_open = false
+            rollback_db_transaction
+          end
           raise unless database_transaction_rollback.is_a? ActiveRecord::Rollback
         end
       ensure
-        if transaction_active?
+        if transaction_open && transaction_active?
           begin
             commit_db_transaction
           rescue Exception => database_transaction_rollback
