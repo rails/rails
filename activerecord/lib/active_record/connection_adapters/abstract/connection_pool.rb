@@ -164,8 +164,7 @@ module ActiveRecord
 
       private
       def new_connection
-        config = spec.config.reverse_merge(:allow_concurrency => true)
-        ActiveRecord::Base.send(spec.adapter_method, config)
+        ActiveRecord::Base.send(spec.adapter_method, spec.config)
       end
 
       def current_connection_id #:nodoc:
