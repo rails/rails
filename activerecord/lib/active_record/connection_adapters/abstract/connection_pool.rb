@@ -145,7 +145,7 @@ module ActiveRecord
           if @queue.wait(@timeout)
             checkout_existing_connection
           else
-            raise ConnectionTimeoutError, "could not obtain a database connection in a timely fashion"
+            raise ConnectionTimeoutError, "could not obtain a database connection within #{@timeout} seconds.  The pool size is currently #{@size}, perhaps you need to increase it?"
           end
         end
       end
