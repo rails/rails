@@ -5,6 +5,8 @@ require 'rake/rdoctask'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
 require 'rake/contrib/sshpublisher'
+require 'rake/contrib/rubyforgepublisher'
+
 require File.join(File.dirname(__FILE__), 'lib', 'action_mailer', 'version')
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
@@ -76,8 +78,8 @@ end
 
 desc "Publish the API documentation"
 task :pgem => [:package] do 
-  Rake::SshFilePublisher.new("wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
-  `ssh wrath.rubyonrails.org './gemupdate.sh'`
+  Rake::SshFilePublisher.new("david@greed.loudthinking.com", "/u/sites/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+  `ssh david@greed.loudthinking.com '/u/sites/gems/gemupdate.sh'`
 end
 
 desc "Publish the API documentation"

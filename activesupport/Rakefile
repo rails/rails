@@ -2,6 +2,7 @@ require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
 require 'rake/contrib/sshpublisher'
+require 'rake/contrib/rubyforgepublisher'
 
 require File.join(File.dirname(__FILE__), 'lib', 'active_support', 'version')
 
@@ -65,8 +66,13 @@ end
 
 desc "Publish the beta gem"
 task :pgem => [:package] do
+<<<<<<< HEAD:activesupport/Rakefile
   Rake::SshFilePublisher.new("wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
   `ssh wrath.rubyonrails.org './gemupdate.sh'`
+=======
+  Rake::SshFilePublisher.new("david@greed.loudthinking.com", "/u/sites/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+  `ssh david@greed.loudthinking.com '/u/sites/gems/gemupdate.sh'`
+>>>>>>> e8bf065... Use personal server as temporary gem testing site until wrath get its shit together:activesupport/Rakefile
 end
 
 desc "Publish the API documentation"
