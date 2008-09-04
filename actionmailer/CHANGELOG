@@ -1,3 +1,8 @@
+*2.1.1 (September 4th, 2008)*
+
+* Included in Rails 2.1.1
+
+
 *2.1.0 (May 31st, 2008)*
 
 * Fixed that a return-path header would be ignored #7572 [joost]
